@@ -69,10 +69,12 @@ module.exports = {
 
   // add your custom rules here
   rules: {
+    // to get app working initially
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-explicit-any" : "off",
+    // quotes: ['warn', 'single', { avoidEscape: true }],
     
     'prefer-promise-reject-errors': 'off',
-
-    quotes: ['warn', 'single', { avoidEscape: true }],
 
     // this rule, if on, would require explicit return type on the `render` function
     '@typescript-eslint/explicit-function-return-type': 'off',

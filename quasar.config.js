@@ -10,7 +10,8 @@
 
 
 const { configure } = require('quasar/wrappers');
-
+const topLevelAwait = require('vite-plugin-top-level-await').default;
+const { nodePolyfills } = require('vite-plugin-node-polyfills');
 
 module.exports = configure(function (/* ctx */) {
   return {
@@ -56,7 +57,7 @@ module.exports = configure(function (/* ctx */) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       target: {
-        browser: [ 'es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1' ],
+        browser: [ 'es2022' ],
         node: 'node20'
       },
 
@@ -80,9 +81,20 @@ module.exports = configure(function (/* ctx */) {
       // viteVuePluginOptions: {},
 
       
-      // vitePlugins: [
-      //   [ 'package-name', { ..options.. } ]
-      // ]
+      vitePlugins: [
+        [
+          nodePolyfills
+        ],
+        [
+          topLevelAwait,
+          {
+            // The export name of top-level await promise for each chunk module
+            promiseExportName: '__tla',
+            // The function to generate import names of top-level await promise in each chunk module
+            promiseImportName: (i) => `__tla_${i}`,
+          },
+        ],
+      ],
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
