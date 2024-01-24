@@ -2373,10 +2373,10 @@
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.4.15"
 
-"mainnet-js@^2.3.1":
-  "integrity" "sha512-9KquGWJdY0FpJpfCIdhFmEWe18g+DbgwlAqEKGMPe3MybAhOddqtLLm+vbBZDsimmVJw28ZG2DZtVgXtwUs/hw=="
-  "resolved" "https://registry.npmjs.org/mainnet-js/-/mainnet-js-2.3.1.tgz"
-  "version" "2.3.1"
+"mainnet-js@^2.3.3":
+  "integrity" "sha512-DlCvJKBRhAdDy0S0VSsUUslWFHAD7g9tuJp5afLErJRphgcgYbxkV6o+DaADItEGkFi4sljgxGMfq2V28dFVnw=="
+  "resolved" "https://registry.npmjs.org/mainnet-js/-/mainnet-js-2.3.3.tgz"
+  "version" "2.3.3"
   dependencies:
     "@bitauth/libauth" "^2.0.0"
     "bip39" "^3.0.3"
