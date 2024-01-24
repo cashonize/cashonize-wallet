@@ -262,4 +262,4 @@
       </div>
     </fieldset>
   </div>
-</template>../stores/store
+</template>

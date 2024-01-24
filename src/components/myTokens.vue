@@ -13,4 +13,4 @@
       <tokenItem :tokenData="tokenData"/>
     </div>
   </div>
-</template>../stores/store
+</template>

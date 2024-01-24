@@ -132,4 +132,4 @@
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
   </fieldset>
-</template>../stores/store
+</template>

@@ -77,4 +77,4 @@
   </fieldset>
 </template>
 
-<style src="@vueform/toggle/themes/default.css"></style>../stores/store
+<style src="@vueform/toggle/themes/default.css"></style>

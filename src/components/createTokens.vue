@@ -209,4 +209,4 @@
         Process might take a few seconds... <input @click="selectedTokenType == 'fungibles' ? createMintingNFT : createFungibles" type="button" class="primaryButton" value="Create" style="margin-top: 8px;">
       </div>
     </fieldset>
-</div></template>../stores/store
+</div></template>

@@ -9,7 +9,9 @@
   import { Wallet, TestNetWallet, BalanceResponse, BCMR, binToHex } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
   import { useStore } from '../stores/store'
+  import { useSettingsStore } from '../stores/settingsStore'
   const store = useStore()
+  const settingsStore = useSettingsStore()
 
   const nameWallet = 'mywallet';
   const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
@@ -133,7 +135,7 @@
 
 <template>
   <header>
-    <img :src="store.darkMode? '/images/cashonize-logo-dark.png' : '/images/cashonize-logo.png'" style="height: 85px;" >
+    <img :src="settingsStore.darkMode? '/images/cashonize-logo-dark.png' : '/images/cashonize-logo.png'" style="height: 85px;" >
     <nav v-if="displayView" style="display: flex; justify-content: center;">
       <div @click="changeView(1)" v-bind:style="displayView == 1 ? {color: 'var(--color-primary'} : ''">BchWallet</div>
       <div @click="changeView(2)" v-bind:style="displayView == 2 ? {color: 'var(--color-primary'} : ''">MyTokens</div>
@@ -141,7 +143,7 @@
       <div @click="changeView(4)" v-bind:style="displayView == 4 ? {color: 'var(--color-primary'} : ''">WalletConnect</div>
       <div @click="changeView(5)">
         <img style="vertical-align: text-bottom;" v-bind:src="displayView == 5 ? 'images/settingsGreen.svg' : 
-          store.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg'">
+          settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg'">
       </div>
     </nav>
   </header>
@@ -154,4 +156,3 @@
     <settingsMenu v-if="displayView == 5" @change-network="(arg) => changeNetwork(arg)" @change-view="(arg) => changeView(arg)"/>
   </main>
 </template>
-../stores/store

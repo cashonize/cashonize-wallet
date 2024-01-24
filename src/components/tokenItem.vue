@@ -22,10 +22,12 @@
   const displaySendAllNfts = ref(false);
   const displayMintNfts = ref(false);
   const displayBurnNft = ref(false);
+  const displayBurnFungibles = ref(false);
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
   const tokenSendAmount = ref("");
   const destinationAddr = ref("");
+  const burnAmountFTs = ref("");
   const tokenMetaData = ref(null as (IdentitySnapshot | null));
   const mintUniqueNfts = ref("yes" as 'yes' | 'no');
   const mintCommitment = ref("");
@@ -144,6 +146,35 @@
       console.log(error);
       alert(error);
     }
+  }
+  async function burnFungibles(){
+    if(!store.wallet) return;
+    if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
+    const decimals = tokenMetaData.value?.token?.decimals;
+    const amountTokens = decimals ? +burnAmountFTs.value * (10 ** decimals) : +burnAmountFTs.value;
+    const validInput =  Number.isInteger(amountTokens);
+    if(!validInput && !decimals) throw(`Amount tokens to burn must be a valid integer`);
+    if(!validInput ) throw(`Amount tokens to burn must only have ${decimals} decimal places`);
+    const tokenId = tokenData.value.tokenId;
+
+    let burnWarning = `You are about to burn ${amountTokens} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
+    if (confirm(burnWarning) != true) return;
+    if(!store.wallet) return;
+    try {
+      const { txId } = await store.wallet.tokenBurn(
+        {
+          tokenId: tokenId,
+          amount: BigInt(amountTokens),
+        },
+        "burn", // optional OP_RETURN message
+      );
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      alert(`Burned ${amountTokens} tokens of category ${displayId}`);
+      console.log(`Burned ${amountTokens} tokens of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
+      burnAmountFTs.value = "";
+      displayBurnFungibles.value = false;
+      await store.updateTokenList(undefined, undefined);
+    } catch (error) { alert(error) }
   }
   // NFT Group specific functionality
   async function sendAllNfts(){
@@ -336,6 +367,10 @@
           <img id="burnIcon" class="icon" :src="settingsStore.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
           <span>burn NFT</span>
         </span>
+        <span v-if="settingsStore.tokenBurn && tokenData?.amount" @click="displayBurnFungibles = !displayBurnFungibles" style="white-space: nowrap;">
+          <img id="burnIcon" class="icon" :src="settingsStore.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
+          <span>burn tokens</span>
+        </span>
       </div>
         <!--<span v-if="tokenData?.auth" style="white-space: nowrap;" id="authButton">
           <img id="authIcon" class="icon" src="/images/shield.svg">
@@ -393,6 +428,18 @@
           </div>
           <input @click="sendTokens()" type="button" id="sendSomeButton" class="primaryButton" value="Send">
         </div>
+        <div id="nftBurn" v-if="displayBurnFungibles" style="margin-top: 10px;">
+          <span>Burning tokens removes them from the supply forever</span>
+          <br>
+          <span style="width: 50%; position: relative; display: flex;">
+            <input v-model="burnAmountFTs" type="number" placeholder="amount tokens">
+            <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
+              {{ tokenMetaData?.token?.symbol ?? "tokens" }}
+            </i>
+          </span>
+          <input @click="burnFungibles()" type="button" value="burn tokens" class="button error" style="margin-top: 10px;">
+        </div>
+
         <div v-if="displaySendNft" style="margin-top: 10px;">
           Send this NFT to
           <p class="grouped">
@@ -425,7 +472,7 @@
         </div>
         <div id="nftBurn" v-if="displayBurnNft" style="margin-top: 10px;">
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'">Burn this NFT so no new NFTs of this category can be minted</span>
-          <span v-else>Burning this NFT to remove it from your wallet forever </span>
+          <span v-else>Burning this NFT to remove it from your wallet forever</span>
           <br>
           <input @click="burnNft()" type="button" id="burnNFT" value="burn NFT" class="button error">
         </div>
@@ -448,4 +495,4 @@
       </div>
     </div>
   </div>
-</template>../stores/store
+</template>
