@@ -12,8 +12,10 @@
   "resolved" "https://registry.npmjs.org/@babel/parser/-/parser-7.23.6.tgz"
   "version" "7.23.6"
 
-"@bitauth/libauth@^2.0.0-alpha.8":
-  "version" "2.0.0-alpha.8"
+"@bitauth/libauth@^2.0.0", "@bitauth/libauth@^2.0.0-alpha.8":
+  "integrity" "sha512-wFnQtnJvz7S7jU7fQuBJzRQrVHk46DELd5s8D0F61bW567bKVVfMLbwNPCs12pzVckueQTlLwCS//I9skGI1zg=="
+  "resolved" "https://registry.npmjs.org/@bitauth/libauth/-/libauth-2.0.0.tgz"
+  "version" "2.0.0"
 
 "@bitjson/qr-code@^1.0.2":
   "version" "1.0.2"
@@ -2371,7 +2373,25 @@
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.4.15"
 
-"mainnet-js@^2.3.0", "mainnet-js@2.3.0":
+"mainnet-js@^2.3.1":
+  "integrity" "sha512-9KquGWJdY0FpJpfCIdhFmEWe18g+DbgwlAqEKGMPe3MybAhOddqtLLm+vbBZDsimmVJw28ZG2DZtVgXtwUs/hw=="
+  "resolved" "https://registry.npmjs.org/mainnet-js/-/mainnet-js-2.3.1.tgz"
+  "version" "2.3.1"
+  dependencies:
+    "@bitauth/libauth" "^2.0.0"
+    "bip39" "^3.0.3"
+    "buffer" "^6.0.3"
+    "electrum-cash" "^2.0.10"
+    "events" "^3.2.0"
+    "eventsource" "^1.0.7"
+    "qrcode-svg" "1.1.0"
+  optionalDependencies:
+    "dotenv" "^10.0.0"
+    "stream-browserify" "^3.0.0"
+
+"mainnet-js@2.3.0":
+  "integrity" "sha512-a8lpCMJALPaHFWKYexhn486aVmvDLGuyBQ1i56PU2hhIaBEWoqS/fItzlZQGMFGtg5V1lOpfwQQL+H9hQIAADg=="
+  "resolved" "https://registry.npmjs.org/mainnet-js/-/mainnet-js-2.3.0.tgz"
   "version" "2.3.0"
   dependencies:
     "@bitauth/libauth" "^2.0.0-alpha.8"
