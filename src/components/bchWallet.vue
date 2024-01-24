@@ -3,17 +3,19 @@
   import { convert } from 'mainnet-js'
   import { defineCustomElements } from '@bitjson/qr-code';
   import { useStore } from '../stores/store'
+  import { useSettingsStore } from '../stores/settingsStore'
   const store = useStore()
+  const settingsStore = useSettingsStore()
 
   const nrTokenCategories = computed(() => store.tokenList?.length)
 
   const bchDisplayUnit = computed(() => {
-    if(store.network == "mainnet") return store.bchUnit == "bch"? " BCH" : " sats"
-    else return store.bchUnit == "bch"? " tBCH" : " tsats"
+    if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " sats"
+    else return settingsStore.bchUnit == "bch"? " tBCH" : " tsats"
   })
   const displayUnitLong = computed(() => {
-    if(store.network == "mainnet") return store.bchUnit == "bch"? " BCH" : " satoshis"
-    else return store.bchUnit == "bch"? " tBCH" : " testnet satoshis"
+    if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " satoshis"
+    else return settingsStore.bchUnit == "bch"? " tBCH" : " testnet satoshis"
   })
 
   defineCustomElements(window);
@@ -35,7 +37,7 @@
       usdSendAmount.value = undefined
       return
     }
-    const newUsdValue = await convert(bchSendAmount.value, store.bchUnit, "usd");
+    const newUsdValue = await convert(bchSendAmount.value, settingsStore.bchUnit, "usd");
     usdSendAmount.value = Number(newUsdValue.toFixed(2));
   }
   async function setBchAmount() {
@@ -43,13 +45,13 @@
       bchSendAmount.value = undefined
       return
     }
-    const newBchValue = await convert(usdSendAmount.value, "usd", store.bchUnit);
+    const newBchValue = await convert(usdSendAmount.value, "usd", settingsStore.bchUnit);
     bchSendAmount.value = Number(newBchValue);
   }
   async function useMaxBchAmount(){
     try{
-      if(store.maxAmountToSend && store.maxAmountToSend[store.bchUnit]){
-        bchSendAmount.value = store.maxAmountToSend[store.bchUnit];
+      if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit]){
+        bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
         setUsdAmount()
       }
       else throw("expected a number");
@@ -61,7 +63,8 @@
     try{
       if(!store.wallet) return;
       if(!bchSendAmount.value) throw("No valid amount provided!")
-      const { txId } = await store.wallet.send([{ cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: store.bchUnit}]);
+      const sendBchOutput = {cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: settingsStore.bchUnit}
+      const { txId } = await store.wallet.send([ sendBchOutput ]);
       alert(`Sent ${bchSendAmount.value, displayUnitLong.value} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
       console.log(`Sent ${bchSendAmount.value, displayUnitLong.value} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
       bchSendAmount.value = undefined;
@@ -84,7 +87,7 @@
     <span>
       BCH balance:  
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance && store.balance[store.bchUnit] != undefined ? store.balance[store.bchUnit] + displayUnitLong : "" }}
+        {{ store.balance && store.balance[settingsStore.bchUnit] != undefined ? store.balance[settingsStore.bchUnit] + displayUnitLong : "" }}
       </span>
     </span>
     <span>

@@ -9,8 +9,6 @@ Config.EnforceCashTokenReceiptAddresses = true;
 // @ts-ignore
 BaseWallet.StorageProvider = IndexedDBProvider;
 
-const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
-const dafaultIpfsGateway = "https://ipfs.io/ipfs/";
 const explorerUrlMainnet = "https://explorer.bitcoinunlimited.info";
 const explorerUrlChipnet = "https://chipnet.chaingraph.cash";
 
@@ -24,21 +22,6 @@ export const useStore = defineStore('store', () => {
   const tokenList = ref(null as (Array<TokenData> | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   const nrBcmrRegistries = ref(undefined as (number | undefined));
-
-  // Global settings
-  const bchUnit = ref("bch" as ("bch" | "sat"));
-  const chaingraph = ref(defaultChaingraph);
-  const ipfsGateway = ref(dafaultIpfsGateway);
-  const darkMode  = ref(false);
-
-  // read local storage
-  const readUnit = localStorage.getItem("unit");
-  const readDarkMode = localStorage.getItem("darkMode");
-  if(readUnit && (readUnit=="bch" || readUnit=="sat")) bchUnit.value = readUnit;
-  if(readDarkMode == "true"){
-    document.body.classList.add("dark");
-    darkMode.value = true;
-  }
 
   async function updateTokenList(resultGetFungibleTokens: any, resultGetNFTs: any){
     if(!wallet.value) return // should never happen
@@ -69,5 +52,5 @@ export const useStore = defineStore('store', () => {
     tokenList.value = arrayTokens;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, plannedTokenId, nrBcmrRegistries, bchUnit, chaingraph, ipfsGateway, darkMode }
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, plannedTokenId, nrBcmrRegistries }
 })

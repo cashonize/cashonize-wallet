@@ -2,16 +2,19 @@
   import Toggle from '@vueform/toggle'
   import { ref } from 'vue'
   import { useStore } from '../stores/store'
+  import { useSettingsStore } from '../stores/settingsStore'
   const store = useStore()
+  const settingsStore = useSettingsStore()
 
   const displayeSeedphrase = ref(false);
   const selectedNetwork = ref(store.network);
-  const selectedUnit  = ref(store.bchUnit);
-  const selectedDarkMode  = ref(store.darkMode);
+  const selectedUnit  = ref(settingsStore.bchUnit);
+  const selectedDarkMode  = ref(settingsStore.darkMode);
+  const selectedTokenBurn  = ref(settingsStore.tokenBurn);
   const emit = defineEmits(['changeView','changeNetwork']);
 
   function changeUnit(){
-    store.bchUnit = selectedUnit.value;
+    settingsStore.bchUnit = selectedUnit.value;
     localStorage.setItem("unit", selectedUnit.value);
     emit('changeView', 1);
   }
@@ -19,9 +22,12 @@
     emit('changeNetwork', selectedNetwork.value);
   }
   function changeDarkMode(){
-    store.darkMode = selectedDarkMode.value;
+    settingsStore.darkMode = selectedDarkMode.value;
     localStorage.setItem("darkMode", selectedDarkMode.value? "true" : "false");
     selectedDarkMode.value ? document.body.classList.add("dark") : document.body.classList.remove("dark")
+  }
+  function changeTokenBurn(){
+    settingsStore.tokenBurn = selectedTokenBurn.value;
   }
   function toggleShowSeedphrase(){
     displayeSeedphrase.value = !displayeSeedphrase.value;
@@ -39,9 +45,12 @@
 <template>
   <fieldset class="item">
     <legend>Settings</legend>
-    <span style="margin-top: 15px;">Dark mode
+    <div>Dark mode
       <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
-    </span>
+    </div>
+    <div style="margin-top: 15px;">Enable token-burn  
+      <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+    </div>
     <div style="margin-top:15px">
       <label for="selectUnit">Select default unit:</label>
       <select v-model="selectedUnit" @change="changeUnit()">

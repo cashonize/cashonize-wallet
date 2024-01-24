@@ -8,7 +8,9 @@
   import { queryTotalSupplyFT, querySupplyNFTs, queryActiveMinting } from "../queryChainGraph"
   import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from '../stores/store'
+  import { useSettingsStore } from '../stores/settingsStore'
   const store = useStore()
+  const settingsStore = useSettingsStore()
 
   const props = defineProps<{
     tokenData: TokenData,
@@ -51,7 +53,7 @@
       if(nftIconUri) tokenIconUri = nftIconUri;
     }
     if(tokenIconUri?.startsWith('ipfs://')){
-      return store.ipfsGateway + tokenIconUri.slice(7);
+      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
     }
     return tokenIconUri;
   })
@@ -86,11 +88,11 @@
   // check if need to fetch onchain stats on displayTokenInfo
   watch(displayTokenInfo, async() => {
     if(!totalSupplyFT.value && tokenData.value?.amount){
-      totalSupplyFT.value = await queryTotalSupplyFT(tokenData.value.tokenId, store.chaingraph);
+      totalSupplyFT.value = await queryTotalSupplyFT(tokenData.value.tokenId, settingsStore.chaingraph);
     }
     if(!totalNumberNFTs.value && tokenData.value?.nfts && hasMintingNFT.value == undefined){
-      const supplyNFTs = await querySupplyNFTs(tokenData.value.tokenId, store.chaingraph);
-      const resultHasMintingNft = await queryActiveMinting(tokenData.value.tokenId, store.chaingraph);
+      const supplyNFTs = await querySupplyNFTs(tokenData.value.tokenId, settingsStore.chaingraph);
+      const resultHasMintingNft = await queryActiveMinting(tokenData.value.tokenId, settingsStore.chaingraph);
       totalNumberNFTs.value = supplyNFTs;
       hasMintingNFT.value = resultHasMintingNft;
     }
@@ -250,14 +252,15 @@
   async function burnNft() {
     const tokenId = tokenData.value.tokenId;
     const nftInfo = tokenData.value.nfts?.[0].token;
-    let burnWarning = "You ae about to burn a minting NFT, this can not be unddone. \nAre you sure you want to burn the NFT?";
+    const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
+    let burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
     if (confirm(burnWarning) != true) return;
     if(!store.wallet) return;
     try {
       const { txId } = await store.wallet.tokenBurn(
         {
           tokenId: tokenId,
-          capability: "minting",
+          capability: nftInfo?.capability,
           commitment: nftInfo?.commitment,
         },
         "burn", // optional OP_RETURN message
@@ -308,7 +311,7 @@
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayChildNfts = !displayChildNfts" class="showChildNfts">
             <span class="nrChildNfts" id="nrChildNfts">Number NFTs: {{ tokenData.nfts?.length }}</span>
             <span class="hide" id="showMore" style="margin-left: 10px;">
-              <img class="icon" :src="store.darkMode? (displayChildNfts? '/images/chevron-square-up-lightGrey.svg':'/images/chevron-square-down-lightGrey.svg') : 
+              <img class="icon" :src="settingsStore.darkMode? (displayChildNfts? '/images/chevron-square-up-lightGrey.svg':'/images/chevron-square-down-lightGrey.svg') : 
                 (displayChildNfts? '/images/chevron-square-up.svg':'/images/chevron-square-down.svg')">
             </span>
           </div>
@@ -318,20 +321,20 @@
 
       <div class="actionBar">
         <span v-if="!tokenData?.nfts" @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
-          <img id="sendIcon" class="icon" :src="store.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
+          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
         <span v-if="tokenData?.nfts?.length == 1" @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
-          <img id="sendIcon" class="icon" :src="store.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
+          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
         <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
-          <img id="infoIcon" class="icon" :src="store.darkMode? '/images/infoLightGrey.svg' : '/images/info.svg'"> info
+          <img id="infoIcon" class="icon" :src="settingsStore.darkMode? '/images/infoLightGrey.svg' : '/images/info.svg'"> info
         </span>
         <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displaySendAllNfts = !displaySendAllNfts" style="margin-left: 10px;">
-          <img id="sendIcon" class="icon" :src="store.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> transfer all </span>
+          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> transfer all </span>
         <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'" @click="displayMintNfts = !displayMintNfts">
-          <img id="mintIcon" class="icon" :src="store.darkMode? '/images/hammerLightGrey.svg' : '/images/hammer.svg'"> mint NFTs
+          <img id="mintIcon" class="icon" :src="settingsStore.darkMode? '/images/hammerLightGrey.svg' : '/images/hammer.svg'"> mint NFTs
         </span>
-        <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
-          <img id="burnIcon" class="icon" :src="store.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
-          <span class="hidemobile">burn NFT</span>
+        <span v-if="isSingleNft && (tokenData?.nfts?.[0]?.token?.capability == 'minting' || settingsStore.tokenBurn)" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
+          <img id="burnIcon" class="icon" :src="settingsStore.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
+          <span>burn NFT</span>
         </span>
       </div>
         <!--<span v-if="tokenData?.auth" style="white-space: nowrap;" id="authButton">
@@ -421,7 +424,8 @@
           </span>
         </div>
         <div id="nftBurn" v-if="displayBurnNft" style="margin-top: 10px;">
-          Burn this NFT so no new NFTs of this category can be minted
+          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'">Burn this NFT so no new NFTs of this category can be minted</span>
+          <span v-else>Burning this NFT to remove it from your wallet forever </span>
           <br>
           <input @click="burnNft()" type="button" id="burnNFT" value="burn NFT" class="button error">
         </div>
