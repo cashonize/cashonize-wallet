@@ -266,8 +266,8 @@
         "burn", // optional OP_RETURN message
       );
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      alert(`Burned minting NFT of category ${displayId}`);
-      console.log(`Burned minting NFT of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
+      alert(`Burned ${nftTypeString} of category ${displayId}`);
+      console.log(`Burned ${nftTypeString} of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
       await store.updateTokenList(undefined, undefined);
     } catch (error) { alert(error) }
   }
