@@ -1,0 +1,255 @@
+<script setup lang="ts">
+  import { ref, onMounted, onBeforeMount, toRefs, computed, watch } from 'vue';
+  import { TokenSendRequest, BCMR } from "mainnet-js"
+  // @ts-ignore
+  import { createIcon } from '@download/blockies';
+  import type { TokenData } from "../interfaces/interfaces"
+  import { queryTotalSupplyFT, queryAuthHead } from "../queryChainGraph"
+  import type { IdentitySnapshot } from "mainnet-js"
+  import { useStore } from '../stores/store'
+  import { useSettingsStore } from '../stores/settingsStore'
+  const store = useStore()
+  const settingsStore = useSettingsStore()
+
+  const props = defineProps<{
+    tokenData: TokenData,
+  }>()
+  const { tokenData } = toRefs(props);
+
+  const authUtxo = ref(undefined)
+  const displaySendTokens = ref(false);
+  const displayBurnFungibles = ref(false);
+  const displayAuthTransfer = ref(false);
+  const displayTokenInfo = ref(false);
+  const tokenSendAmount = ref("");
+  const destinationAddr = ref("");
+  const burnAmountFTs = ref("");
+  const tokenMetaData = ref(null as (IdentitySnapshot | null));
+  const totalSupplyFT = ref(undefined as bigint | undefined);
+
+  tokenMetaData.value = BCMR.getTokenInfo(tokenData.value.tokenId) ?? null;
+
+  const httpsUrlTokenIcon = computed(() => {
+    let tokenIconUri = tokenMetaData.value?.uris?.icon;
+    if(tokenIconUri?.startsWith('ipfs://')){
+      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
+    }
+    return tokenIconUri;
+  })
+  const tokenName = computed(() => {
+    return tokenMetaData.value?.name;
+  })
+
+  // lifecycle hooks
+  onBeforeMount(async() => {
+    if(!store.wallet) return
+    const authHeadTxId = await queryAuthHead(tokenData.value.tokenId, settingsStore.chaingraph);
+    const tokenUtxos = await store.wallet.getTokenUtxos(tokenData.value.tokenId);
+    tokenUtxos.forEach(utxo => {
+      if(utxo.txid == authHeadTxId && utxo.vout == 0){
+        authUtxo.value = authHeadTxId;
+      }
+    })
+  })
+  onMounted(() => {
+    let icon = createIcon({
+      seed: tokenData.value.tokenId,
+      size: 12,
+      scale: 4,
+      spotcolor: '#000'
+    });
+    icon.style = "display: block; border-radius: 50%;"
+    const template = document.querySelector(`#id${tokenData.value.tokenId.slice(0, 10)}`);
+    const iconDiv = template?.querySelector("#genericTokenIcon")
+    iconDiv?.appendChild(icon);
+  })
+
+  function copyTokenId(){
+    navigator.clipboard.writeText(tokenData.value.tokenId);
+  }
+
+  // check if need to fetch onchain stats on displayTokenInfo
+  watch(displayTokenInfo, async() => {
+    if(!totalSupplyFT.value && tokenData.value?.amount){
+      totalSupplyFT.value = await queryTotalSupplyFT(tokenData.value.tokenId, settingsStore.chaingraph);
+    }
+  })
+  
+  // Fungible token specific functionality
+  function toAmountDecimals(amount:bigint){
+    let tokenAmountDecimals: bigint|number = amount;
+    const decimals = tokenMetaData.value?.token?.decimals;
+    if(decimals) tokenAmountDecimals = Number(tokenAmountDecimals) / (10 ** decimals);
+    return tokenAmountDecimals;
+  }
+  async function maxTokenAmount(){
+    try{
+      if(!tokenData.value?.amount) return // should never happen
+      const decimals = tokenMetaData.value?.token?.decimals;
+      let amountTokens = decimals ? Number(tokenData.value.amount) / (10 ** decimals) : tokenData.value.amount;
+      tokenSendAmount.value = amountTokens.toString();
+    } catch(error) {
+      console.log(error)
+    }
+  }
+  async function sendTokens(){
+    try{
+      if(!store.wallet) return;
+      if(!tokenSendAmount?.value) throw(`Amount tokens to send must be a valid integer`);
+      const decimals = tokenMetaData.value?.token?.decimals;
+      const amountTokens = decimals ? +tokenSendAmount.value * (10 ** decimals) : +tokenSendAmount.value;
+      const validInput =  Number.isInteger(amountTokens);
+      if(!validInput && !decimals) throw(`Amount tokens to send must be a valid integer`);
+      if(!validInput ) throw(`Amount tokens to send must only have ${decimals} decimal places`);
+      const tokenId = tokenData.value.tokenId;
+      const { txId } = await store.wallet.send([
+        new TokenSendRequest({
+          cashaddr: destinationAddr.value,
+          amount: amountTokens,
+          tokenId: tokenId,
+        }),
+      ]);
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      let message = `Sent ${tokenSendAmount.value} fungible tokens of category ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`;
+      alert(message);
+      console.log(message);
+      tokenSendAmount.value = "";
+      destinationAddr.value = "";
+      displaySendTokens.value = false;
+      await store.updateTokenList(undefined, undefined);
+    } catch(error){
+      console.log(error);
+      alert(error);
+    }
+  }
+  async function burnFungibles(){
+    if(!store.wallet) return;
+    if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
+    const decimals = tokenMetaData.value?.token?.decimals;
+    const amountTokens = decimals ? +burnAmountFTs.value * (10 ** decimals) : +burnAmountFTs.value;
+    const validInput =  Number.isInteger(amountTokens);
+    if(!validInput && !decimals) throw(`Amount tokens to burn must be a valid integer`);
+    if(!validInput ) throw(`Amount tokens to burn must only have ${decimals} decimal places`);
+    const tokenId = tokenData.value.tokenId;
+
+    let burnWarning = `You are about to burn ${amountTokens} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
+    if (confirm(burnWarning) != true) return;
+    if(!store.wallet) return;
+    try {
+      const { txId } = await store.wallet.tokenBurn(
+        {
+          tokenId: tokenId,
+          amount: BigInt(amountTokens),
+        },
+        "burn", // optional OP_RETURN message
+      );
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      alert(`Burned ${amountTokens} tokens of category ${displayId}`);
+      console.log(`Burned ${amountTokens} tokens of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
+      burnAmountFTs.value = "";
+      displayBurnFungibles.value = false;
+      await store.updateTokenList(undefined, undefined);
+    } catch (error) { alert(error) }
+  }
+</script>
+
+<template id="token-template">
+  <div :id="`id${tokenData.tokenId.slice(0, 10)}`" class="item">
+    <fieldset style="position: relative;">
+      <legend>
+        <div id="tokenType"></div>
+      </legend>
+      <div class="tokenInfo">
+        <img v-if="httpsUrlTokenIcon" id="tokenIcon" class="tokenIcon" style="width: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
+        <div v-else id="genericTokenIcon" class="tokenIcon"></div>
+        <div class="tokenBaseInfo">
+          <div class="tokenBaseInfo1">
+            <div v-if="tokenName" id="tokenName">Name: {{ tokenName }}</div>
+            <div id="tokenIdBox" style="word-break: break-all;">
+              TokenId: 
+              <span class="tokenId">
+                 {{ `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` }}
+              </span>
+              <img class="copyIcon" src="/images/copyGrey.svg" @click="copyTokenId">
+            </div>
+            <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
+          </div>
+          <div v-if="tokenData?.amount" class="tokenAmount" id="tokenAmount">Token amount: 
+            {{ toAmountDecimals(tokenData?.amount) }} {{ tokenMetaData?.token?.symbol }}
+          </div>
+        </div>
+      </div>
+
+      <div class="actionBar">
+        <span v-if="!tokenData?.nfts" @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
+          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
+        <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
+          <img id="infoIcon" class="icon" :src="settingsStore.darkMode? '/images/infoLightGrey.svg' : '/images/info.svg'"> info
+        </span>
+        <span v-if="settingsStore.tokenBurn && tokenData?.amount" @click="displayBurnFungibles = !displayBurnFungibles" style="white-space: nowrap;">
+          <img id="burnIcon" class="icon" :src="settingsStore.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
+          <span>burn tokens</span>
+        </span>
+        <span v-if="authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
+          <img id="authIcon" class="icon" src="/images/shield.svg">
+          <span>auth transfer</span>
+        </span>
+        <div v-if="displayTokenInfo" style="margin-top: 10px;">
+          <div></div>
+          <div v-if="tokenMetaData?.description"> {{ tokenMetaData.description }} </div>
+          <div v-if="tokenData.amount && tokenMetaData">
+            Number of decimals: {{ tokenMetaData?.token?.decimals ?? 0 }}
+          </div>
+          <div v-if="tokenMetaData?.uris?.web">
+            Token web link: <a :href="tokenMetaData?.uris?.web" target="_blank">{{ tokenMetaData?.uris?.web }}</a>
+          </div>
+          <div v-if="tokenData.amount">
+            Genesis supply: {{ totalSupplyFT? 
+              (tokenMetaData?.token?.symbol ? toAmountDecimals(totalSupplyFT) + " " + tokenMetaData?.token?.symbol
+              : totalSupplyFT + " tokens") : "..."
+            }}
+          </div>
+        </div>
+
+        <div v-if="displaySendTokens" id="tokenSend" style="margin-top: 10px;">
+          Send these tokens to
+          <div class="inputGroup">
+            <div class="addressInput">
+              <input v-model="destinationAddr" id="tokenAddress" placeholder="token address">
+            </div>
+            <div style="display: flex; width: 50%;">
+              <span style="width: 100%; position: relative;">
+                <input v-model="tokenSendAmount" id="sendTokenAmount" placeholder="amount">
+                <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
+                  {{ tokenMetaData?.token?.symbol ?? "tokens" }}
+                </i>
+              </span>
+              <button @click="maxTokenAmount()" id="maxButton" style="color: black;">max</button>
+            </div>
+          </div>
+          <input @click="sendTokens()" type="button" id="sendSomeButton" class="primaryButton" value="Send">
+        </div>
+        <div id="nftBurn" v-if="displayBurnFungibles" style="margin-top: 10px;">
+          <span>Burning tokens removes them from the supply forever</span>
+          <br>
+          <span style="width: 50%; position: relative; display: flex;">
+            <input v-model="burnAmountFTs" type="number" placeholder="amount tokens">
+            <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
+              {{ tokenMetaData?.token?.symbol ?? "tokens" }}
+            </i>
+          </span>
+          <input @click="burnFungibles()" type="button" value="burn tokens" class="button error" style="margin-top: 10px;">
+        </div>
+        <div v-if="displayAuthTransfer" style="margin-top: 10px;">
+          Transfer the authority to change the token's metadata to another wallet <br>
+          This should be to a wallet with coin-control, where you can label the Auth UTXO<br>
+          It is recommended to use the Electron Cash pc wallet<br>
+          <span class="grouped" style="margin-top: 10px;">
+            <input id="destinationAddr" placeholder="destinationAddress"> 
+            <input type="button" id="transferAuth" value="Transfer Auth">
+          </span>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+</template>

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-  import { ref, onMounted, toRefs, computed, watch } from 'vue';
+  import { ref, onMounted, onBeforeMount, toRefs, computed, watch } from 'vue';
   import nftItem from './nftItem.vue'
   import { TokenSendRequest, TokenMintRequest, BCMR } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import type { TokenData } from "../interfaces/interfaces"
-  import { queryTotalSupplyFT, querySupplyNFTs, queryActiveMinting } from "../queryChainGraph"
+  import { querySupplyNFTs, queryActiveMinting, queryAuthHead } from "../queryChainGraph"
   import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -17,23 +17,20 @@
   }>()
   const { tokenData } = toRefs(props);
 
-  const displaySendTokens = ref(false);
+  const authUtxo = ref(undefined)
   const displaySendNft = ref(false);
   const displaySendAllNfts = ref(false);
   const displayMintNfts = ref(false);
   const displayBurnNft = ref(false);
-  const displayBurnFungibles = ref(false);
+  const displayAuthTransfer = ref(false);
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
-  const tokenSendAmount = ref("");
   const destinationAddr = ref("");
-  const burnAmountFTs = ref("");
   const tokenMetaData = ref(null as (IdentitySnapshot | null));
   const mintUniqueNfts = ref("yes" as 'yes' | 'no');
   const mintCommitment = ref("");
   const mintAmountNfts = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
-  const totalSupplyFT = ref(undefined as bigint | undefined);
   const totalNumberNFTs = ref(undefined as number | undefined);
   const hasMintingNFT = ref(undefined as boolean | undefined);
 
@@ -70,6 +67,17 @@
     return tokenName;
   })
 
+  // lifecycle hooks
+  onBeforeMount(async() => {
+    if(!store.wallet) return
+    const authHeadTxId = await queryAuthHead(tokenData.value.tokenId, settingsStore.chaingraph);
+    const tokenUtxos = await store.wallet.getTokenUtxos(tokenData.value.tokenId);
+    tokenUtxos.forEach(utxo => {
+      if(utxo.txid == authHeadTxId && utxo.vout == 0){
+        authUtxo.value = authHeadTxId;
+      }
+    })
+  })
   onMounted(() => {
     let icon = createIcon({
       seed: tokenData.value.tokenId,
@@ -89,9 +97,6 @@
 
   // check if need to fetch onchain stats on displayTokenInfo
   watch(displayTokenInfo, async() => {
-    if(!totalSupplyFT.value && tokenData.value?.amount){
-      totalSupplyFT.value = await queryTotalSupplyFT(tokenData.value.tokenId, settingsStore.chaingraph);
-    }
     if(!totalNumberNFTs.value && tokenData.value?.nfts && hasMintingNFT.value == undefined){
       const supplyNFTs = await querySupplyNFTs(tokenData.value.tokenId, settingsStore.chaingraph);
       const resultHasMintingNft = await queryActiveMinting(tokenData.value.tokenId, settingsStore.chaingraph);
@@ -100,82 +105,6 @@
     }
   })
   
-  // Fungible token specific functionality
-  function toAmountDecimals(amount:bigint){
-    let tokenAmountDecimals: bigint|number = amount;
-    const decimals = tokenMetaData.value?.token?.decimals;
-    if(decimals) tokenAmountDecimals = Number(tokenAmountDecimals) / (10 ** decimals);
-    return tokenAmountDecimals;
-  }
-  async function maxTokenAmount(){
-    try{
-      if(!tokenData.value?.amount) return // should never happen
-      const decimals = tokenMetaData.value?.token?.decimals;
-      let amountTokens = decimals ? Number(tokenData.value.amount) / (10 ** decimals) : tokenData.value.amount;
-      tokenSendAmount.value = amountTokens.toString();
-    } catch(error) {
-      console.log(error)
-    }
-  }
-  async function sendTokens(){
-    try{
-      if(!store.wallet) return;
-      if(!tokenSendAmount?.value) throw(`Amount tokens to send must be a valid integer`);
-      const decimals = tokenMetaData.value?.token?.decimals;
-      const amountTokens = decimals ? +tokenSendAmount.value * (10 ** decimals) : +tokenSendAmount.value;
-      const validInput =  Number.isInteger(amountTokens);
-      if(!validInput && !decimals) throw(`Amount tokens to send must be a valid integer`);
-      if(!validInput ) throw(`Amount tokens to send must only have ${decimals} decimal places`);
-      const tokenId = tokenData.value.tokenId;
-      const { txId } = await store.wallet.send([
-        new TokenSendRequest({
-          cashaddr: destinationAddr.value,
-          amount: amountTokens,
-          tokenId: tokenId,
-        }),
-      ]);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      let message = `Sent ${tokenSendAmount.value} fungible tokens of category ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`;
-      alert(message);
-      console.log(message);
-      tokenSendAmount.value = "";
-      destinationAddr.value = "";
-      displaySendTokens.value = false;
-      await store.updateTokenList(undefined, undefined);
-    } catch(error){
-      console.log(error);
-      alert(error);
-    }
-  }
-  async function burnFungibles(){
-    if(!store.wallet) return;
-    if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
-    const decimals = tokenMetaData.value?.token?.decimals;
-    const amountTokens = decimals ? +burnAmountFTs.value * (10 ** decimals) : +burnAmountFTs.value;
-    const validInput =  Number.isInteger(amountTokens);
-    if(!validInput && !decimals) throw(`Amount tokens to burn must be a valid integer`);
-    if(!validInput ) throw(`Amount tokens to burn must only have ${decimals} decimal places`);
-    const tokenId = tokenData.value.tokenId;
-
-    let burnWarning = `You are about to burn ${amountTokens} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
-    if (confirm(burnWarning) != true) return;
-    if(!store.wallet) return;
-    try {
-      const { txId } = await store.wallet.tokenBurn(
-        {
-          tokenId: tokenId,
-          amount: BigInt(amountTokens),
-        },
-        "burn", // optional OP_RETURN message
-      );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      alert(`Burned ${amountTokens} tokens of category ${displayId}`);
-      console.log(`Burned ${amountTokens} tokens of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
-      burnAmountFTs.value = "";
-      displayBurnFungibles.value = false;
-      await store.updateTokenList(undefined, undefined);
-    } catch (error) { alert(error) }
-  }
   // NFT Group specific functionality
   async function sendAllNfts(){
     try{
@@ -336,9 +265,6 @@
             </div>
             <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
           </div>
-          <div v-if="tokenData?.amount" class="tokenAmount" id="tokenAmount">Token amount: 
-            {{ toAmountDecimals(tokenData?.amount) }} {{ tokenMetaData?.token?.symbol }}
-          </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayChildNfts = !displayChildNfts" class="showChildNfts">
             <span class="nrChildNfts" id="nrChildNfts">Number NFTs: {{ tokenData.nfts?.length }}</span>
             <span class="hide" id="showMore" style="margin-left: 10px;">
@@ -351,8 +277,6 @@
       </div>
 
       <div class="actionBar">
-        <span v-if="!tokenData?.nfts" @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
-          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
         <span v-if="tokenData?.nfts?.length == 1" @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
           <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
         <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
@@ -367,34 +291,18 @@
           <img id="burnIcon" class="icon" :src="settingsStore.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
           <span>burn NFT</span>
         </span>
-        <span v-if="settingsStore.tokenBurn && tokenData?.amount" @click="displayBurnFungibles = !displayBurnFungibles" style="white-space: nowrap;">
-          <img id="burnIcon" class="icon" :src="settingsStore.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
-          <span>burn tokens</span>
-        </span>
-      </div>
-        <!--<span v-if="tokenData?.auth" style="white-space: nowrap;" id="authButton">
+        <span v-if="authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
           <img id="authIcon" class="icon" src="/images/shield.svg">
-          <span class="hidemobile">auth transfer</span>
-          <span class="showmobile">auth</span>
-        </span>-->
-      <div>
+          <span>auth transfer</span>
+        </span>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">
           <div></div>
           <div v-if="tokenMetaData?.description"> {{ tokenMetaData.description }} </div>
-          <div v-if="tokenData.amount && tokenMetaData">
-            Number of decimals: {{ tokenMetaData?.token?.decimals ?? 0 }}
-          </div>
           <div v-if="isSingleNft">
             NFT commitment: {{ tokenData.nfts?.[0].token?.commitment ? tokenData.nfts?.[0].token?.commitment : "none" }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
             Token web link: <a :href="tokenMetaData?.uris?.web" target="_blank">{{ tokenMetaData?.uris?.web }}</a>
-          </div>
-          <div v-if="tokenData.amount">
-            Genesis supply: {{ totalSupplyFT? 
-              (tokenMetaData?.token?.symbol ? toAmountDecimals(totalSupplyFT) + " " + tokenMetaData?.token?.symbol
-              : totalSupplyFT + " tokens") : "..."
-            }}
           </div>
           <div v-if="tokenData?.nfts?.length">
             Total supply NFTs: {{ totalNumberNFTs? totalNumberNFTs: "..."}}
@@ -408,36 +316,6 @@
               {{ attributeKey }}: {{ attributeValue ? attributeValue : "none" }}
             </div>
           </details>
-        </div>
-
-        <div v-if="displaySendTokens" id="tokenSend" style="margin-top: 10px;">
-          Send these tokens to
-          <div class="inputGroup">
-            <div class="addressInput">
-              <input v-model="destinationAddr" id="tokenAddress" placeholder="token address">
-            </div>
-            <div style="display: flex; width: 50%;">
-              <span style="width: 100%; position: relative;">
-                <input v-model="tokenSendAmount" id="sendTokenAmount" placeholder="amount">
-                <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
-                  {{ tokenMetaData?.token?.symbol ?? "tokens" }}
-                </i>
-              </span>
-              <button @click="maxTokenAmount()" id="maxButton" style="color: black;">max</button>
-            </div>
-          </div>
-          <input @click="sendTokens()" type="button" id="sendSomeButton" class="primaryButton" value="Send">
-        </div>
-        <div id="nftBurn" v-if="displayBurnFungibles" style="margin-top: 10px;">
-          <span>Burning tokens removes them from the supply forever</span>
-          <br>
-          <span style="width: 50%; position: relative; display: flex;">
-            <input v-model="burnAmountFTs" type="number" placeholder="amount tokens">
-            <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
-              {{ tokenMetaData?.token?.symbol ?? "tokens" }}
-            </i>
-          </span>
-          <input @click="burnFungibles()" type="button" value="burn tokens" class="button error" style="margin-top: 10px;">
         </div>
 
         <div v-if="displaySendNft" style="margin-top: 10px;">
@@ -470,22 +348,21 @@
             <input @click="mintNfts()" type="button" id="mintNFTs" value="Mint NFTs">
           </span>
         </div>
-        <div id="nftBurn" v-if="displayBurnNft" style="margin-top: 10px;">
+        <div v-if="displayBurnNft" style="margin-top: 10px;">
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'">Burn this NFT so no new NFTs of this category can be minted</span>
           <span v-else>Burning this NFT to remove it from your wallet forever</span>
           <br>
           <input @click="burnNft()" type="button" id="burnNFT" value="burn NFT" class="button error">
         </div>
-        <!--<div id="authTransfer" class="hide" style="margin-top: 10px;">
+        <div v-if="displayAuthTransfer" style="margin-top: 10px;">
           Transfer the authority to change the token's metadata to another wallet <br>
           This should be to a wallet with coin-control, where you can label the Auth UTXO<br>
           It is recommended to use the Electron Cash pc wallet<br>
-          <br>
-          <span class="grouped">
+          <span class="grouped" style="margin-top: 10px;">
             <input id="destinationAddr" placeholder="destinationAddress"> 
             <input type="button" id="transferAuth" value="Transfer Auth">
           </span>
-        </div>-->
+        </div>
       </div>
     </fieldset>
 

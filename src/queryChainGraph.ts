@@ -108,5 +108,9 @@ export async function queryAuthHead(tokenId:string, chaingraphUrl:string){
       }
     }
   }`;
-  return await queryChainGraph(queryReqAuthHead, chaingraphUrl);
+  const jsonRespAuthHead = await queryChainGraph(queryReqAuthHead, chaingraphUrl);
+  const authHeadObj = jsonRespAuthHead.data.transaction[0];
+  const authHead = authHeadObj.authchains[0].authhead;
+  const authHeadTxId = authHead.hash.slice(2);
+  return authHeadTxId
 }
