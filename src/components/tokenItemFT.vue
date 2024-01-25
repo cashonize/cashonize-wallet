@@ -24,6 +24,7 @@
   const tokenSendAmount = ref("");
   const destinationAddr = ref("");
   const burnAmountFTs = ref("");
+  const reservedSupply = ref("")
   const tokenMetaData = ref(null as (IdentitySnapshot | null));
   const totalSupplyFT = ref(undefined as bigint | undefined);
 
@@ -160,7 +161,7 @@
         <div id="tokenType"></div>
       </legend>
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon" id="tokenIcon" class="tokenIcon" style="width: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
+        <img v-if="httpsUrlTokenIcon" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
@@ -191,7 +192,7 @@
           <span>burn tokens</span>
         </span>
         <span v-if="authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
-          <img id="authIcon" class="icon" src="/images/shield.svg">
+          <img id="authIcon" class="icon" :src="settingsStore.darkMode? '/images/shieldLightGrey.svg' : '/images/shield.svg'">
           <span>auth transfer</span>
         </span>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">
@@ -241,11 +242,17 @@
           <input @click="burnFungibles()" type="button" value="burn tokens" class="button error" style="margin-top: 10px;">
         </div>
         <div v-if="displayAuthTransfer" style="margin-top: 10px;">
-          Transfer the authority to change the token's metadata to another wallet <br>
-          This should be to a wallet with coin-control, where you can label the Auth UTXO<br>
-          It is recommended to use the Electron Cash pc wallet<br>
+          Transfer the authority to change the token's metadata <br>
+          You can either transfer the Auth to a dedicated wallet or to the <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>.<br>
+          Token supply kept at the Auth UTXO will be marked as reserved supply, not yet in circulation. <br>
           <span class="grouped" style="margin-top: 10px;">
-            <input id="destinationAddr" placeholder="destinationAddress"> 
+            <input v-model="destinationAddr" placeholder="destinationAddr">
+            <span style="width: 100%; position: relative; display: flex;">
+              <input v-model="reservedSupply" placeholder="reservedSupply">
+              <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
+                {{ tokenMetaData?.token?.symbol ?? "tokens" }}
+              </i>
+            </span>
             <input type="button" id="transferAuth" value="Transfer Auth">
           </span>
         </div>

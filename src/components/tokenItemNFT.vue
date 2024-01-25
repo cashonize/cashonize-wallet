@@ -246,7 +246,7 @@
         </div>
       </div>-->
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon" id="tokenIcon" class="tokenIcon" style="width: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
+        <img v-if="httpsUrlTokenIcon" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
         <!--<div v-if="tokenData?.nft" id="tokenIconModal" class="modal">
           <span class="close">&times;</span>
@@ -292,7 +292,7 @@
           <span>burn NFT</span>
         </span>
         <span v-if="authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
-          <img id="authIcon" class="icon" src="/images/shield.svg">
+          <img id="authIcon" class="icon" :src="settingsStore.darkMode? '/images/shieldLightGrey.svg' : '/images/shield.svg'">
           <span>auth transfer</span>
         </span>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">
