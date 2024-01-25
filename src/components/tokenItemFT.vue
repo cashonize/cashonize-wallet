@@ -1,9 +1,9 @@
 <script setup lang="ts">
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, BCMR } from "mainnet-js"
+  import { TokenSendRequest, BCMR, SendRequest  } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
-  import type { TokenData } from "../interfaces/interfaces"
+  import type { TokenDataFT } from "../interfaces/interfaces"
   import { queryTotalSupplyFT } from "../queryChainGraph"
   import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from '../stores/store'
@@ -12,7 +12,7 @@
   const settingsStore = useSettingsStore()
 
   const props = defineProps<{
-    tokenData: TokenData,
+    tokenData: TokenDataFT,
   }>()
   const { tokenData } = toRefs(props);
 
@@ -23,7 +23,7 @@
   const tokenSendAmount = ref("");
   const destinationAddr = ref("");
   const burnAmountFTs = ref("");
-  const reservedSupply = ref("")
+  const reservedSupplyInput = ref("")
   const tokenMetaData = ref(null as (IdentitySnapshot | null));
   const totalSupplyFT = ref(undefined as bigint | undefined);
 
@@ -90,6 +90,10 @@
       const validInput =  Number.isInteger(amountTokens);
       if(!validInput && !decimals) throw(`Amount tokens to send must be a valid integer`);
       if(!validInput ) throw(`Amount tokens to send must only have ${decimals} decimal places`);
+      if(tokenData.value?.authUtxo){
+        let authWarning = "You risk unintentionally sending the authority to update this token's metadata elsewhere. \nAre you sure you want to send the transaction anyways?";
+        if(confirm(authWarning) != true) return;
+      }
       const tokenId = tokenData.value.tokenId;
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
@@ -123,7 +127,6 @@
 
     let burnWarning = `You are about to burn ${amountTokens} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
     if (confirm(burnWarning) != true) return;
-    if(!store.wallet) return;
     try {
       const { txId } = await store.wallet.tokenBurn(
         {
@@ -139,6 +142,45 @@
       displayBurnFungibles.value = false;
       await store.updateTokenList(undefined, undefined);
     } catch (error) { alert(error) }
+  }
+  async function transferAuth() {
+    if(!store.wallet || !store.wallet.tokenaddr) return;
+    if(!tokenData.value?.authUtxo) return;
+    if(!reservedSupplyInput?.value) throw(`Amount tokens for reserved supply must be a valid integer`);
+    const decimals = tokenMetaData.value?.token?.decimals;
+    const reservedSupply = decimals ? +burnAmountFTs.value * (10 ** decimals) : +reservedSupplyInput.value;
+    const validInput =  Number.isInteger(reservedSupply);
+    if(!validInput && !decimals) throw(`Amount tokens for reserved supply must be a valid integer`);
+    if(!validInput ) throw(`Amount tokens for reserved supply must only have ${decimals} decimal places`);
+    const tokenId = tokenData.value.tokenId;
+    try {
+      const changeAmount = reservedSupply? tokenData.value.amount - BigInt(reservedSupply) : tokenData.value.amount;
+      const authTransfer = !reservedSupply? {
+        cashaddr: destinationAddr.value,
+        value: 1000,
+        unit: 'sats',
+      } as SendRequest : new TokenSendRequest({
+        cashaddr: destinationAddr.value,
+        tokenId: tokenId,
+        amount: reservedSupply
+      });
+      const outputs = [authTransfer];
+      if(changeAmount){
+        const changeOutput = new TokenSendRequest({
+          cashaddr: store.wallet.tokenaddr,
+          tokenId: tokenId,
+          amount: changeAmount
+        });
+        outputs.push(changeOutput)
+      }
+      const { txId } = await store.wallet.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      alert(`Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`);
+      console.log(`Transferred the Auth of token ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
+    } catch (error) { 
+      alert(error);
+      console.log(error);
+    }
   }
 </script>
 
@@ -170,7 +212,7 @@
       </div>
 
       <div class="actionBar">
-        <span v-if="!tokenData?.nfts" @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
+        <span @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
           <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
         <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
           <img id="infoIcon" class="icon" :src="settingsStore.darkMode? '/images/infoLightGrey.svg' : '/images/info.svg'"> info
@@ -236,12 +278,12 @@
           <span class="grouped" style="margin-top: 10px;">
             <input v-model="destinationAddr" placeholder="destinationAddr">
             <span style="width: 100%; position: relative; display: flex;">
-              <input v-model="reservedSupply" placeholder="reservedSupply">
+              <input v-model="reservedSupplyInput" placeholder="reservedSupply">
               <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? "tokens" }}
               </i>
             </span>
-            <input type="button" id="transferAuth" value="Transfer Auth">
+            <input @click="transferAuth()" type="button" value="Transfer Auth">
           </span>
         </div>
       </div>

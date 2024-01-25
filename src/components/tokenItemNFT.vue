@@ -4,7 +4,7 @@
   import { TokenSendRequest, TokenMintRequest, BCMR } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
-  import type { TokenData } from "../interfaces/interfaces"
+  import type { TokenDataNFT } from "../interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "../queryChainGraph"
   import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from '../stores/store'
@@ -13,7 +13,7 @@
   const settingsStore = useSettingsStore()
 
   const props = defineProps<{
-    tokenData: TokenData,
+    tokenData: TokenDataNFT,
   }>()
   const { tokenData } = toRefs(props);
 

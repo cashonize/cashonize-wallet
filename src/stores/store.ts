@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
 import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
-import type { TokenData } from "../interfaces/interfaces"
+import type { TokenList } from "../interfaces/interfaces"
 import { useSettingsStore } from './settingsStore'
 import { queryAuthHead } from "../queryChainGraph"
 const settingsStore = useSettingsStore()
@@ -22,7 +22,7 @@ export const useStore = defineStore('store', () => {
   const maxAmountToSend = ref(undefined as (BalanceResponse | undefined));
   const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
   const explorerUrl = computed(() => network.value == "mainnet" ? explorerUrlMainnet : explorerUrlChipnet);
-  const tokenList = ref(null as (Array<TokenData> | null))
+  const tokenList = ref(null as (TokenList| null))
   const plannedTokenId = ref(undefined as (undefined | string));
   const nrBcmrRegistries = ref(undefined as (number | undefined));
 
@@ -36,7 +36,7 @@ export const useStore = defineStore('store', () => {
       [resultGetFungibleTokens, resultGetNFTs] = await Promise.all(balancePromises);
     }
     // Get NFT data
-    const arrayTokens:TokenData[] = [];
+    const arrayTokens:TokenList = [];
     for (const tokenId of Object.keys(resultGetFungibleTokens)) {
       arrayTokens.push({ tokenId, amount: resultGetFungibleTokens[tokenId] });
     }
@@ -69,9 +69,8 @@ export const useStore = defineStore('store', () => {
     const tokenUtxosResults: UtxoI[][] = await Promise.all(tokenUtxosPromises);
     tokenUtxosResults.forEach((tokenUtxos, index) => {
       const authHeadTxId = authHeadTxIdResults[index];
-      if(tokenUtxos.some(utxo => utxo.txid == authHeadTxId && utxo.vout == 0)){
-        copyTokenList[index].authUtxo = authHeadTxId;
-      }
+      const authUtxo = tokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
+      if(authUtxo) copyTokenList[index].authUtxo = authUtxo;
     })
     tokenList.value = copyTokenList;
   }

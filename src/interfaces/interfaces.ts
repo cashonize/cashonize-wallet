@@ -1,8 +1,15 @@
 import { type UtxoI } from "mainnet-js"
 
-export interface TokenData {
+export type TokenList = (TokenDataNFT | TokenDataFT)[]
+
+export interface TokenDataNFT {
   tokenId: string,
-  amount?: bigint,
-  nfts?: UtxoI[],
-  authUtxo?: string
+  nfts: UtxoI[],
+  authUtxo?: UtxoI
+}
+
+export interface TokenDataFT {
+  tokenId: string,
+  amount: bigint,
+  authUtxo?: UtxoI
 }
