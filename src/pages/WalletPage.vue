@@ -63,6 +63,7 @@
     await importRegistries(tokenCategories);
     console.timeEnd('importRegistries');
     store.nrBcmrRegistries = BCMR.getRegistries().length ?? 0;
+    await store.fetchAuthUtxos();
   }
 
   async function setUpWalletSubscriptions(){

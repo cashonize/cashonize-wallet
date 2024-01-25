@@ -1,8 +1,11 @@
 import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse } from "mainnet-js"
+import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenData } from "../interfaces/interfaces"
+import { useSettingsStore } from './settingsStore'
+import { queryAuthHead } from "../queryChainGraph"
+const settingsStore = useSettingsStore()
 
 // set mainnet-js config
 Config.EnforceCashTokenReceiptAddresses = true;
@@ -52,5 +55,26 @@ export const useStore = defineStore('store', () => {
     tokenList.value = arrayTokens;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, plannedTokenId, nrBcmrRegistries }
+  async function fetchAuthUtxos(){
+    if(!wallet.value) return // should never happen
+    if(!tokenList.value?.length) return
+    const copyTokenList = tokenList.value
+    const authHeadTxIdPromises: any[] = [];
+    const tokenUtxosPromises: any[] = [];
+    for (const token of tokenList.value){
+      authHeadTxIdPromises.push(queryAuthHead(token.tokenId, settingsStore.chaingraph))
+      tokenUtxosPromises.push(wallet.value.getTokenUtxos(token.tokenId));
+    }
+    const authHeadTxIdResults: string[] = await Promise.all(authHeadTxIdPromises);
+    const tokenUtxosResults: UtxoI[][] = await Promise.all(tokenUtxosPromises);
+    tokenUtxosResults.forEach((tokenUtxos, index) => {
+      const authHeadTxId = authHeadTxIdResults[index];
+      if(tokenUtxos.some(utxo => utxo.txid == authHeadTxId && utxo.vout == 0)){
+        copyTokenList[index].authUtxo = authHeadTxId;
+      }
+    })
+    tokenList.value = copyTokenList;
+  }
+
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, fetchAuthUtxos, plannedTokenId, nrBcmrRegistries }
 })

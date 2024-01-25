@@ -1,10 +1,10 @@
 <script setup lang="ts">
-  import { ref, onMounted, onBeforeMount, toRefs, computed, watch } from 'vue';
+  import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import { TokenSendRequest, BCMR } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import type { TokenData } from "../interfaces/interfaces"
-  import { queryTotalSupplyFT, queryAuthHead } from "../queryChainGraph"
+  import { queryTotalSupplyFT } from "../queryChainGraph"
   import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -16,7 +16,6 @@
   }>()
   const { tokenData } = toRefs(props);
 
-  const authUtxo = ref(undefined)
   const displaySendTokens = ref(false);
   const displayBurnFungibles = ref(false);
   const displayAuthTransfer = ref(false);
@@ -41,17 +40,6 @@
     return tokenMetaData.value?.name;
   })
 
-  // lifecycle hooks
-  onBeforeMount(async() => {
-    if(!store.wallet) return
-    const authHeadTxId = await queryAuthHead(tokenData.value.tokenId, settingsStore.chaingraph);
-    const tokenUtxos = await store.wallet.getTokenUtxos(tokenData.value.tokenId);
-    tokenUtxos.forEach(utxo => {
-      if(utxo.txid == authHeadTxId && utxo.vout == 0){
-        authUtxo.value = authHeadTxId;
-      }
-    })
-  })
   onMounted(() => {
     let icon = createIcon({
       seed: tokenData.value.tokenId,
@@ -191,7 +179,7 @@
           <img id="burnIcon" class="icon" :src="settingsStore.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
           <span>burn tokens</span>
         </span>
-        <span v-if="authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
+        <span v-if="tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
           <img id="authIcon" class="icon" :src="settingsStore.darkMode? '/images/shieldLightGrey.svg' : '/images/shield.svg'">
           <span>auth transfer</span>
         </span>
