@@ -6,6 +6,9 @@
   import { useSettingsStore } from '../stores/settingsStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
+  import { useWindowSize } from '@vueuse/core'
+  const { width } = useWindowSize();
+  const isMobile = computed(() => width.value < 480)
 
   const nrTokenCategories = computed(() => store.tokenList?.length)
 
@@ -90,18 +93,24 @@
         {{ store.balance && store.balance[settingsStore.bchUnit] != undefined ? store.balance[settingsStore.bchUnit] + displayUnitLong : "" }}
       </span>
     </span>
-    <span>
+    <span v-if="!isMobile">
       , Tokens: 
       <span style="color: hsla(160, 100%, 37%, 1);">
         {{ nrTokenCategories != undefined ? nrTokenCategories + " different categories" : ""}}
       </span>
     </span>
-    <div>
+    <div v-else style="margin-bottom: 10px;">
+      Tokens: 
+      <span style="color: hsla(160, 100%, 37%, 1);">
+        {{ nrTokenCategories != undefined ? nrTokenCategories + " different categories" : ""}}
+      </span>
+    </div>
+    <div style="word-break: break-all;">
       BCH address: 
       <span class="depositAddr">{{ store.wallet?.address ?? "" }} </span>
       <img class="copyIcon" src="/images/copyGrey.svg" @click="() => copyToClipboard(store.wallet?.address)">
     </div>
-    <div>
+    <div style="word-break: break-all;">
       Token address:
       <span class="depositAddr">{{ store.wallet?.tokenaddr ?? "" }}</span>
       <img class="copyIcon" src="/images/copyGrey.svg" @click="() => copyToClipboard(store.wallet?.tokenaddr)">

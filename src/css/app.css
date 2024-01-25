@@ -13,6 +13,9 @@
 
   font-weight: normal;
 }
+body{
+  margin-top: 15px;
+}
 body.dark {
   --bg-color: #000;
   --bg-secondary-color: #131316;
@@ -141,14 +144,25 @@ input[type=number] {
 }
 
 @media (min-width: 1024px) {
-  body {
-    display: flex;
-    margin-top: 15px;
-  }
-
   #app {
     /* display: grid;
     grid-template-columns: 1fr 1fr; */
     padding: 0 2rem;
+  }
+}
+@media only screen and (max-width: 850px) {
+  .tokenBaseInfo {
+    display: block;
+  }
+  .tokenAmount {
+    margin-left: 0;
+  }
+  .showChildNfts {
+    margin-left: 0;
+  }
+}
+@media only screen and (max-width: 570px) {
+  .tabs div {
+    padding: 1rem;
   }
 }
