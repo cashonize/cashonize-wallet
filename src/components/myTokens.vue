@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-  import tokenItem from './tokenItem.vue'
+  import tokenItemNFT from './tokenItemNFT.vue'
   import tokenItemFT from './tokenItemFT.vue'
   import { useStore } from '../stores/store'
   const store = useStore()
@@ -12,7 +12,7 @@
   <div v-if="store.nrBcmrRegistries != undefined">
     <div v-for="tokenData in store.tokenList" :key="tokenData.tokenId.slice(0,6)">
       <tokenItemFT v-if="tokenData.amount" :tokenData="tokenData"/>
-      <tokenItem v-else :tokenData="tokenData"/>
+      <tokenItemNFT v-else :tokenData="tokenData"/>
     </div>
   </div>
 </template>

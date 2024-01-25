@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, onMounted, onBeforeMount, toRefs, computed, watch } from 'vue';
-  import nftItem from './nftItem.vue'
+  import nftChild from './nftChild.vue'
   import { TokenSendRequest, TokenMintRequest, BCMR } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
@@ -368,7 +368,7 @@
 
     <div v-if="displayChildNfts && (tokenData.nfts?.length ?? 0) > 1">
       <div v-for="(nft, index) in tokenData.nfts" :key="'nft'+tokenData.tokenId.slice(0,4) + index">
-        <nftItem :nftData="nft" :tokenMetaData="tokenMetaData" :id="'nft'+tokenData.tokenId.slice(0,4) + index"/>
+        <nftChild :nftData="nft" :tokenMetaData="tokenMetaData" :id="'nft'+tokenData.tokenId.slice(0,4) + index"/>
       </div>
     </div>
   </div>
