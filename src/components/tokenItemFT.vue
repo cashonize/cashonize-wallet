@@ -242,7 +242,7 @@
           </div>
         </div>
 
-        <div v-if="displaySendTokens" id="tokenSend" style="margin-top: 10px;">
+        <div v-if="displaySendTokens" style="margin-top: 10px;">
           Send these tokens to
           <div class="inputGroup">
             <div class="addressInput">
@@ -260,9 +260,8 @@
           </div>
           <input @click="sendTokens()" type="button" id="sendSomeButton" class="primaryButton" value="Send">
         </div>
-        <div id="nftBurn" v-if="displayBurnFungibles" style="margin-top: 10px;">
-          <span>Burning tokens removes them from the supply forever</span>
-          <br>
+        <div v-if="displayBurnFungibles" style="margin-top: 10px;">
+          <div>Burning tokens removes them from the supply forever</div>
           <span style="width: 50%; position: relative; display: flex;">
             <input v-model="burnAmountFTs" type="number" placeholder="amount tokens">
             <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">

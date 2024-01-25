@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import nftChild from './nftChild.vue'
-  import { TokenSendRequest, TokenMintRequest, BCMR } from "mainnet-js"
+  import { TokenSendRequest, TokenMintRequest, BCMR, SendRequest } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import type { TokenDataNFT } from "../interfaces/interfaces"
@@ -219,6 +219,32 @@
       await store.updateTokenList(undefined, undefined);
     } catch (error) { alert(error) }
   }
+  async function transferAuth() {
+    if(!store.wallet || !store.wallet.tokenaddr) return;
+    if(!tokenData.value?.authUtxo) return;
+    const tokenId = tokenData.value.tokenId;
+    const authNft = tokenData.value.authUtxo?.token;
+    try {
+      const authTransfer = {
+        cashaddr: destinationAddr.value,
+        value: 1000,
+        unit: 'sats',
+      } as SendRequest;
+      const changeOutputNft = new TokenSendRequest({
+        cashaddr: store.wallet.tokenaddr,
+        tokenId: tokenData.value.tokenId,
+        commitment: authNft?.commitment,
+        capability: authNft?.capability
+      });
+      const { txId } = await store.wallet.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      alert(`Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`);
+      console.log(`Transferred the Auth of token ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
+    } catch (error) { 
+      alert(error);
+      console.log(error);
+    }
+  }
 </script>
 
 <template id="token-template">
@@ -348,7 +374,7 @@
           It is recommended to use the Electron Cash pc wallet<br>
           <span class="grouped" style="margin-top: 10px;">
             <input id="destinationAddr" placeholder="destinationAddress"> 
-            <input type="button" id="transferAuth" value="Transfer Auth">
+            <input @click="transferAuth()" type="button" value="Transfer Auth">
           </span>
         </div>
       </div>
