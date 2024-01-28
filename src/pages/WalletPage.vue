@@ -139,7 +139,7 @@
 
 <template>
   <header>
-    <img :src="settingsStore.darkMode? '/images/cashonize-logo-dark.png' : '/images/cashonize-logo.png'" style="height: 85px;" >
+    <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" style="height: 85px;" >
     <nav v-if="displayView" style="display: flex; justify-content: center;" class="tabs">
       <div @click="changeView(1)" v-bind:style="displayView == 1 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "BCH" : "BchWallet"}}</div>
       <div @click="changeView(2)" v-bind:style="displayView == 2 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Tokens" : "myTokens"}}</div>

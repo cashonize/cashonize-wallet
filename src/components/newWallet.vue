@@ -29,12 +29,12 @@
 
 <template>
   <fieldset style="margin-top: 15px;">
-    <h4><img class="icon plusIcon" src="/images/plus-square.svg"> Create new wallet</h4>
+    <h4><img class="icon plusIcon" src="images/plus-square.svg"> Create new wallet</h4>
     <input @click="createNewWallet()" class="button primary" type="button" value="Create">
     <br><br>
     <hr>
     <br>
-    <h4><img class="icon importIcon" src="/images/import.svg"> Import existing wallet</h4>
+    <h4><img class="icon importIcon" src="images/import.svg"> Import existing wallet</h4>
     <div>Enter mnemonic seed phrase</div>
     <textarea v-model="seedphrase" style="resize: none;" rows="3" cols="50" placeholder="word1 word2 ..."></textarea>
     <span>Derivation path: </span>

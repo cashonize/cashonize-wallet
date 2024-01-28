@@ -255,7 +255,7 @@
       </legend>
       <!--<div v-if="tokenData?.verified" id="verified" class="verified">
         <div class="tooltip">
-          <img class="verifiedIcon" src="/images/check-circle.svg">
+          <img class="verifiedIcon" src="images/check-circle.svg">
           <span class="tooltiptext">Verified</span>
         </div>
       </div>-->
@@ -275,15 +275,15 @@
               <span class="tokenId">
                  {{ `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` }}
               </span>
-              <img class="copyIcon" src="/images/copyGrey.svg" @click="copyTokenId">
+              <img class="copyIcon" src="images/copyGrey.svg" @click="copyTokenId">
             </div>
             <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
           </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayChildNfts = !displayChildNfts" class="showChildNfts">
             <span class="nrChildNfts" id="nrChildNfts">Number NFTs: {{ tokenData.nfts?.length }}</span>
             <span class="hide" id="showMore" style="margin-left: 10px;">
-              <img class="icon" :src="settingsStore.darkMode? (displayChildNfts? '/images/chevron-square-up-lightGrey.svg':'/images/chevron-square-down-lightGrey.svg') : 
-                (displayChildNfts? '/images/chevron-square-up.svg':'/images/chevron-square-down.svg')">
+              <img class="icon" :src="settingsStore.darkMode? (displayChildNfts? 'images/chevron-square-up-lightGrey.svg':'images/chevron-square-down-lightGrey.svg') : 
+                (displayChildNfts? 'images/chevron-square-up.svg':'images/chevron-square-down.svg')">
             </span>
           </div>
 
@@ -292,21 +292,21 @@
 
       <div class="actionBar">
         <span v-if="tokenData?.nfts?.length == 1" @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
-          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> send </span>
+          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
         <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
-          <img id="infoIcon" class="icon" :src="settingsStore.darkMode? '/images/infoLightGrey.svg' : '/images/info.svg'"> info
+          <img id="infoIcon" class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
         </span>
         <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displaySendAllNfts = !displaySendAllNfts" style="margin-left: 10px;">
-          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? '/images/sendLightGrey.svg' : '/images/send.svg'"> transfer all </span>
+          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> transfer all </span>
         <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'" @click="displayMintNfts = !displayMintNfts">
-          <img id="mintIcon" class="icon" :src="settingsStore.darkMode? '/images/hammerLightGrey.svg' : '/images/hammer.svg'"> mint NFTs
+          <img id="mintIcon" class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> mint NFTs
         </span>
         <span v-if="isSingleNft && (tokenData?.nfts?.[0]?.token?.capability == 'minting' || settingsStore.tokenBurn)" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
-          <img id="burnIcon" class="icon" :src="settingsStore.darkMode? '/images/fireLightGrey.svg' : '/images/fire.svg'">
+          <img id="burnIcon" class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
           <span>burn NFT</span>
         </span>
         <span v-if="tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
-          <img id="authIcon" class="icon" :src="settingsStore.darkMode? '/images/shieldLightGrey.svg' : '/images/shield.svg'">
+          <img id="authIcon" class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
           <span>auth transfer</span>
         </span>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">

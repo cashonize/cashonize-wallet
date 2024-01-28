@@ -134,7 +134,7 @@
           <span v-if="store.plannedTokenId == undefined" id="plannedTokenId">loading...</span>
           <span v-if="store.plannedTokenId"> {{ displayPlannedTokenId }} </span>
           <button @click="copyNewTokenId" type="button" style="background: none; padding: 0;">
-            <img class="copyIcon icon" src="/images/copy.svg">
+            <img class="copyIcon icon" src="images/copy.svg">
           </button>
         </div> 
       </div>

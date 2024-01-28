@@ -108,12 +108,12 @@
     <div style="word-break: break-all;">
       BCH address: 
       <span class="depositAddr">{{ store.wallet?.address ?? "" }} </span>
-      <img class="copyIcon" src="/images/copyGrey.svg" @click="() => copyToClipboard(store.wallet?.address)">
+      <img class="copyIcon" src="images/copyGrey.svg" @click="() => copyToClipboard(store.wallet?.address)">
     </div>
     <div style="word-break: break-all;">
       Token address:
       <span class="depositAddr">{{ store.wallet?.tokenaddr ?? "" }}</span>
-      <img class="copyIcon" src="/images/copyGrey.svg" @click="() => copyToClipboard(store.wallet?.tokenaddr)">
+      <img class="copyIcon" src="images/copyGrey.svg" @click="() => copyToClipboard(store.wallet?.tokenaddr)">
     </div>
     <qr-code id="qrCode" :contents="displayeBchQr? store.wallet?.address : store.wallet?.tokenaddr" 
       style="display: block; width: 230px; height: 230px; margin: 5px auto 0 auto; background-color: #fff;">
