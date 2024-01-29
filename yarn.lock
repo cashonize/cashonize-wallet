@@ -160,7 +160,7 @@
   dependencies:
     cross-spawn "^7.0.1"
 
-"@noble/hashes@^1.2.0":
+"@noble/hashes@^1.2.0", "@noble/hashes@~1.3.2":
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.3.tgz#39908da56a4adc270147bb07968bf3b16cfe1699"
   integrity sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==
@@ -273,6 +273,19 @@
     "@types/estree" "^1.0.0"
     estree-walker "^2.0.2"
     picomatch "^2.3.1"
+
+"@scure/base@~1.1.4":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.5.tgz#1d85d17269fe97694b9c592552dd9e5e33552157"
+  integrity sha512-Brj9FiG2W1MRQSTB212YVPRrcbjkv48FoZi/u4l/zds/ieRrqsh7aUf6CLwkAq61oKXr/ZlTzlY66gLIj3TFTQ==
+
+"@scure/bip39@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@scure/bip39/-/bip39-1.2.2.tgz#f3426813f4ced11a47489cbcf7294aa963966527"
+  integrity sha512-HYf9TUXG80beW+hGAt3TRM8wU6pQoYur9iNypTROm42dorCGmLnFe3eWjz3gOq6G62H2WRh0FCzAR1PI+29zIA==
+  dependencies:
+    "@noble/hashes" "~1.3.2"
+    "@scure/base" "~1.1.4"
 
 "@sindresorhus/is@^4.0.0":
   version "4.6.0"
@@ -3143,13 +3156,29 @@ magic-string@^0.30.3, magic-string@^0.30.5:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.4.15"
 
-mainnet-js@2.3.3, mainnet-js@^2.3.3:
+mainnet-js@2.3.3:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.3.3.tgz#531fc8547dba8b17e6129f1fa34ae1c0886e45c8"
   integrity sha512-DlCvJKBRhAdDy0S0VSsUUslWFHAD7g9tuJp5afLErJRphgcgYbxkV6o+DaADItEGkFi4sljgxGMfq2V28dFVnw==
   dependencies:
     "@bitauth/libauth" "^2.0.0"
     bip39 "^3.0.3"
+    buffer "^6.0.3"
+    electrum-cash "^2.0.10"
+    events "^3.2.0"
+    eventsource "^1.0.7"
+    qrcode-svg "1.1.0"
+  optionalDependencies:
+    dotenv "^10.0.0"
+    stream-browserify "^3.0.0"
+
+mainnet-js@^2.3.5:
+  version "2.3.5"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.3.5.tgz#e4ab942e2d349f4b361016418e7627a15fac394c"
+  integrity sha512-pusqS7YQ1hhbYmrS0PMO2+Gzd+v7x3OvdVSb0um7oG/s+Os/P3OZpOsTpdi6EYWG9d6Zjmvnb0R0b70VyZBaQQ==
+  dependencies:
+    "@bitauth/libauth" "^2.0.0"
+    "@scure/bip39" "^1.2.2"
     buffer "^6.0.3"
     electrum-cash "^2.0.10"
     events "^3.2.0"
