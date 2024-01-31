@@ -35,6 +35,18 @@
   function copyToClipboard(item: string|undefined){
     if(item) navigator.clipboard.writeText(item);
   }
+  async function parseAddrParams(){
+    const addressInput = destinationAddr.value;
+    if(addressInput.includes("?amount=")){
+      const [address, params] = addressInput.split("?");
+      destinationAddr.value = address;
+      // set the bch amount field
+      let bchAmount =  Number(params.split("amount=")[1]);
+      if(settingsStore.bchUnit == "sat") bchAmount = Math.round(bchAmount * 100_000_000);
+      bchSendAmount.value = bchAmount;
+      setUsdAmount()
+    }
+  }
   async function setUsdAmount() {
     if(typeof bchSendAmount.value != 'number'){
       usdSendAmount.value = undefined
@@ -126,14 +138,14 @@
     </div>
     <div style="margin-top: 5px;">
       Send BCH:
-      <input v-model="destinationAddr" id="destinationAddr" placeholder="address">
+      <input v-model="destinationAddr" @input="parseAddrParams()" id="destinationAddr" placeholder="address">
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
-          <input v-model="bchSendAmount" @input="setUsdAmount" id="sendAmount" type="number" placeholder="amount">
+          <input v-model="bchSendAmount" @input="setUsdAmount()" id="sendAmount" type="number" placeholder="amount">
           <i class="input-icon" style="color: black;">{{ bchDisplayUnit }}</i>
         </span>
         <span style="position: relative; width: 50%; margin-left: 5px;">
-          <input v-model="usdSendAmount" @input="setBchAmount" id="sendAmount" type="number" placeholder="amount">
+          <input v-model="usdSendAmount" @input="setBchAmount()" id="sendAmount" type="number" placeholder="amount">
           <i class="input-icon" style="color: black;">{{store.network == "mainnet"? "USD $":"tUsd $"}}</i>
         </span> 
             <button @click="useMaxBchAmount()" style="margin-left: 5px;">max</button>
