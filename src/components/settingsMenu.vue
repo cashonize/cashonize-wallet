@@ -6,6 +6,9 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
 
+  const isElectronApp = (process.env.MODE == "electron");
+  const appVersion = process.env.version
+
   const displayeSeedphrase = ref(false);
   const selectedNetwork = ref(store.network);
   const selectedUnit  = ref(settingsStore.bchUnit);
@@ -45,6 +48,7 @@
 <template>
   <fieldset class="item">
     <legend>Settings</legend>
+    <div v-if="isElectronApp" style="margin-bottom: 15px;">Version Cashonize App: {{ appVersion }}</div>
     <div>Dark mode
       <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
     </div>
@@ -72,7 +76,7 @@
     <div v-if="displayeSeedphrase" id="seedphrase"> {{store.wallet?.mnemonic }}</div>
     <br>
     <span style="margin-top:15px">Derivation path of this wallet is {{store.wallet?.derivationPath }}</span>
-    <div style="margin-top:15px">Remove wallet data from browser</div>
+    <div style="margin-top:15px">Remove wallet data from {{isElectronApp? "application": "browser"}}</div>
     <input @click="confirmDeleteWallet()" type="button" id="burnNFT" value="Delete wallet" class="button error" style="display: block;">
   </fieldset>
 </template>

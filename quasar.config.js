@@ -12,6 +12,7 @@
 const { configure } = require('quasar/wrappers');
 const topLevelAwait = require('vite-plugin-top-level-await').default;
 const { nodePolyfills } = require('vite-plugin-node-polyfills');
+const {version} = require('./package.json');
 
 module.exports = configure(function (/* ctx */) {
   return {
@@ -70,7 +71,9 @@ module.exports = configure(function (/* ctx */) {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+       env: {
+          version: version
+       },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
