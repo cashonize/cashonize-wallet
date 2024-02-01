@@ -211,11 +211,12 @@ module.exports = configure(function (/* ctx */) {
         // https://www.electron.build/configuration/configuration
         
         appId: 'com.cashonize.quasar',
-        win: {
-          target: ['portable', 'nsis']
+        nsis: {
+          createDesktopShortcut: "always",
+          differentialPackage: false
         },
         publish: {
-          'provider': 'github',
+          provider: 'github',
         }
       },
 
