@@ -9,7 +9,6 @@ const settingsStore = useSettingsStore()
 
 // set mainnet-js config
 Config.EnforceCashTokenReceiptAddresses = true;
-// @ts-ignore
 BaseWallet.StorageProvider = IndexedDBProvider;
 
 const explorerUrlMainnet = "https://explorer.bitcoinunlimited.info";
