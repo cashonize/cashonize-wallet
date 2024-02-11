@@ -13,3 +13,10 @@ export interface TokenDataFT {
   amount: bigint,
   authUtxo?: UtxoI
 }
+
+export interface DappMetadata {
+  description: string,
+  icons: string[]
+  name: string,
+  url: string
+}

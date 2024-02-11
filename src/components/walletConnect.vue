@@ -3,10 +3,12 @@
   import { ref } from 'vue'
   import { Core } from '@walletconnect/core'
   import { Web3Wallet } from '@walletconnect/web3wallet'
-  import { useStore } from '../stores/store'
-  const store = useStore()
+  import type { DappMetadata } from "src/interfaces/interfaces"
+  import WC2SessionRequestDialog from 'src/components/walletconnect/WC2SessionRequestDialog.vue';
 
   const dappUriInput = ref("");
+  const dappMetadata = ref(undefined as (DappMetadata | undefined));
+  const dappTargetNetwork = ref("mainnet" as ("mainnet" | "chipnet"));
 
   const core = new Core({
     projectId: "3fd234b8e2cd0e1da4bc08a0011bbf64"
@@ -40,12 +42,10 @@
       return;
     }
 
-    const requiredNetworkPrefix = requiredNamespaces.bch.chains[0]?.split(":")[1];
-    let needsNetworkSwitch = false;
-    const networkPrefixWallet = store.network == "mainnet" ? "bitcoincash" : "bchtest";
-    if(requiredNetworkPrefix !== networkPrefixWallet) needsNetworkSwitch = true
+    const dappNetworkPrefix = requiredNamespaces.bch.chains[0]?.split(":")[1];
+    dappTargetNetwork.value = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
 
-    alert("needsNetworkSwitch: " + needsNetworkSwitch)
+    dappMetadata.value = sessionProposal.params.proposer.metadata;
   }
 </script>
 
@@ -60,8 +60,11 @@
       <input @click="connectDappWithUri" type="button" class="primaryButton" id="connect" value="Connect New dApp">
       <input @click="() => {}" type="button" class="primaryButton" id="send" value="Scan QR Code">
     </div>
-    
 
+    <div v-if="dappMetadata">
+      <WC2SessionRequestDialog :dappMetadata="dappMetadata" :dappTargetNetwork="dappTargetNetwork" />
+    </div>
+    
     <br/><br/>
 
     Active Sessions:
