@@ -3,21 +3,32 @@
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   const store = useStore()
+  const emit = defineEmits(['approveSession']);
 
   const showDialog = ref(true);
 
   const props = defineProps<{
-    dappMetadata: DappMetadata
-    dappTargetNetwork: "mainnet" | "chipnet"
+    sessionProposalWC: any
   }>()
-  const { dappMetadata, dappTargetNetwork } = toRefs(props);
+  const { sessionProposalWC } = toRefs(props);
 
+  const sessionProposal = sessionProposalWC.value;
+  const dappMetadata = sessionProposal.params.proposer.metadata as DappMetadata;
+  const { requiredNamespaces } = sessionProposal.params;
   let needsNetworkSwitch = false;
-  if(dappTargetNetwork.value !== store.network) needsNetworkSwitch = true
+
+  const dappNetworkPrefix = requiredNamespaces.bch.chains[0]?.split(":")[1];
+  const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
+  if(dappTargetNetwork !== store.network) needsNetworkSwitch = true
+
+  function approveSessionWC() {
+    emit('approveSession', sessionProposalWC.value);
+  }
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" class="all-pointer-events">
+  <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
+    <q-card>
       <fieldset class="dialogFieldset"> 
         <legend style="font-size: large;">Approve Session?</legend>
         <div style="display: flex;">
@@ -28,10 +39,11 @@
           </div>
         </div>
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-          <input type="button" class="primaryButton" value="Approve">
-          <input type="button" value="Reject" @click="() => showDialog = false">
+          <input type="button" class="primaryButton" value="Approve" @click="() => approveSessionWC()" v-close-popup>
+          <input type="button" value="Reject" v-close-popup>
         </div>
       </fieldset>
+    </q-card>
   </q-dialog>
 </template>
 
@@ -47,7 +59,8 @@
     background-color: transparent;
     pointer-events: all  !important;
   }
-  input[type=button]:hover{
-    cursor: pointer;
+  .q-card{
+    box-shadow: none;
+    background: none;
   }
 </style>

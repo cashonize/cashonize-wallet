@@ -3,12 +3,12 @@
   import { ref } from 'vue'
   import { Core } from '@walletconnect/core'
   import { Web3Wallet } from '@walletconnect/web3wallet'
-  import type { DappMetadata } from "src/interfaces/interfaces"
   import WC2SessionRequestDialog from 'src/components/walletconnect/WC2SessionRequestDialog.vue';
+  import { useStore } from 'src/stores/store'
+  const store = useStore()
 
   const dappUriInput = ref("");
-  const dappMetadata = ref(undefined as (DappMetadata | undefined));
-  const dappTargetNetwork = ref("mainnet" as ("mainnet" | "chipnet"));
+  const sessionProposalWC = ref(undefined as any);
 
   const core = new Core({
     projectId: "3fd234b8e2cd0e1da4bc08a0011bbf64"
@@ -42,10 +42,30 @@
       return;
     }
 
-    const dappNetworkPrefix = requiredNamespaces.bch.chains[0]?.split(":")[1];
-    dappTargetNetwork.value = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
+    sessionProposalWC.value = sessionProposal;
+  }
 
-    dappMetadata.value = sessionProposal.params.proposer.metadata;
+  async function approveSession(sessionProposal: any){
+    const namespaces = {
+      bch: {
+        methods: [
+          "bch_getAddresses",
+          "bch_signTransaction",
+          "bch_signMessage"
+        ],
+        chains: store.network === "mainnet" ? ["bch:bitcoincash"] : ["bch:bchtest"],
+        events: [ "addressesChanged" ],
+        accounts: [`bch:${store.wallet?.getDepositAddress()}`],
+      }
+    }
+
+    await web3wallet.approveSession({
+      id: sessionProposal.id,
+      namespaces: namespaces,
+    });
+
+    const sessions = web3wallet.getActiveSessions();
+    console.log(sessions)
   }
 </script>
 
@@ -61,8 +81,8 @@
       <input @click="() => {}" type="button" class="primaryButton" id="send" value="Scan QR Code">
     </div>
 
-    <div v-if="dappMetadata">
-      <WC2SessionRequestDialog :dappMetadata="dappMetadata" :dappTargetNetwork="dappTargetNetwork" />
+    <div v-if="sessionProposalWC">
+      <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)"/>
     </div>
     
     <br/><br/>
