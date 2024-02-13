@@ -1,17 +1,19 @@
 <script setup lang="ts">
-  import newWalletView from '../components/newWallet.vue'
-  import bchWalletView from '../components/bchWallet.vue'
-  import myTokensView from '../components/myTokens.vue'
-  import settingsMenu from '../components/settingsMenu.vue'
-  import connectView from '../components/walletConnect.vue'
-  import createTokensView from '../components/createTokens.vue'
+  import newWalletView from 'src/components/newWallet.vue'
+  import bchWalletView from 'src/components/bchWallet.vue'
+  import myTokensView from 'src/components/myTokens.vue'
+  import settingsMenu from 'src/components/settingsMenu.vue'
+  import connectView from 'src/components/walletConnect.vue'
+  import createTokensView from 'src/components/createTokens.vue'
   import { ref, computed } from 'vue'
   import { Wallet, TestNetWallet, BalanceResponse, BCMR, binToHex } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
-  import { useStore } from '../stores/store'
-  import { useSettingsStore } from '../stores/settingsStore'
+  import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const walletconnectStore = useWalletconnectStore()
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
@@ -44,6 +46,7 @@
   async function setWallet(newWallet: TestNetWallet){
     changeView(1);
     store.wallet = newWallet;
+    walletconnectStore.initweb3wallet()
     console.time('Balance Promises');
     const promiseWalletBalance = store.wallet.getBalance() as BalanceResponse;
     const promiseMaxAmountToSend = store.wallet.getMaxAmountToSend();

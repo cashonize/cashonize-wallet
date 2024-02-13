@@ -1,30 +1,21 @@
 
 <script setup lang="ts">
   import { ref } from 'vue'
-  import { Core } from '@walletconnect/core'
-  import { Web3Wallet } from '@walletconnect/web3wallet'
   import WC2SessionRequestDialog from 'src/components/walletconnect/WC2SessionRequestDialog.vue';
+  import WC2ActiveSession from 'src/components/walletconnect/WC2ActiveSession.vue'
   import { useStore } from 'src/stores/store'
+  import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   const store = useStore()
+  const walletconnectStore = useWalletconnectStore()
+
+  const web3wallet = walletconnectStore.web3wallet
+  const activeSessions = walletconnectStore.activeSessions
 
   const dappUriInput = ref("");
   const sessionProposalWC = ref(undefined as any);
 
-  const core = new Core({
-    projectId: "3fd234b8e2cd0e1da4bc08a0011bbf64"
-  });
-
-  const web3wallet = await Web3Wallet.init({
-    core,
-    metadata: {
-      name: 'Cashonize',
-      description: 'Cashonize BitcoinCash Web Wallet',
-      url: 'cashonize.com/',
-      icons: ['https://cashonize.com/images/favicon.ico'],
-    }
-  })
-
   async function connectDappWithUri(){
+    if(!web3wallet) return
     if (!dappUriInput.value) {
       throw new Error("Please paste valid Wallet Connect V2 connection URI");
     }
@@ -32,7 +23,7 @@
     dappUriInput.value = "";
   }
 
-  web3wallet.on('session_proposal', renderSessionProposal);
+  web3wallet?.on('session_proposal', renderSessionProposal);
 
   async function renderSessionProposal(sessionProposal: any) {
     const { requiredNamespaces } = sessionProposal.params;
@@ -59,13 +50,13 @@
       }
     }
 
-    await web3wallet.approveSession({
+    await web3wallet?.approveSession({
       id: sessionProposal.id,
       namespaces: namespaces,
     });
 
-    const sessions = web3wallet.getActiveSessions();
-    console.log(sessions)
+    const updatedSessions = web3wallet?.getActiveSessions();
+    walletconnectStore.activeSessions = updatedSessions
   }
 </script>
 
@@ -84,9 +75,12 @@
     <div v-if="sessionProposalWC">
       <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)"/>
     </div>
-    
+
     <br/><br/>
 
     Active Sessions:
+    <div v-for="(sessionInfo, index) in Object.values(activeSessions).reverse()" :key="activeSessions[index]">
+      <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata"/>
+    </div>
   </fieldset>
 </template>
