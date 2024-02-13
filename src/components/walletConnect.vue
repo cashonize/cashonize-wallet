@@ -1,25 +1,24 @@
 
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
   import WC2SessionRequestDialog from 'src/components/walletconnect/WC2SessionRequestDialog.vue';
   import WC2ActiveSession from 'src/components/walletconnect/WC2ActiveSession.vue'
+  import { getSdkError } from '@walletconnect/utils';
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   const store = useStore()
   const walletconnectStore = useWalletconnectStore()
-
   const web3wallet = walletconnectStore.web3wallet
-  const activeSessions = walletconnectStore.activeSessions
 
   const dappUriInput = ref("");
   const sessionProposalWC = ref(undefined as any);
+  const activeSessions = computed(() => walletconnectStore.activeSessions)
 
   async function connectDappWithUri(){
-    if(!web3wallet) return
     if (!dappUriInput.value) {
       throw new Error("Please paste valid Wallet Connect V2 connection URI");
     }
-    await web3wallet.core.pairing.pair({ uri: dappUriInput.value });
+    await web3wallet?.core.pairing.pair({ uri: dappUriInput.value });
     dappUriInput.value = "";
   }
 
@@ -58,6 +57,16 @@
     const updatedSessions = web3wallet?.getActiveSessions();
     walletconnectStore.activeSessions = updatedSessions
   }
+
+  async function deleteSession(sessionId :string){
+    await web3wallet?.disconnectSession({
+      topic: sessionId,
+      reason: getSdkError("USER_DISCONNECTED")
+    });
+
+    const updatedSessions = web3wallet?.getActiveSessions();
+    walletconnectStore.activeSessions = updatedSessions
+  }
 </script>
 
 <template>
@@ -79,8 +88,14 @@
     <br/><br/>
 
     Active Sessions:
-    <div v-for="(sessionInfo, index) in Object.values(activeSessions).reverse()" :key="activeSessions[index]">
-      <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata"/>
+    <div v-for="(sessionInfo, index) in Object.values(activeSessions).reverse()" :key="activeSessions[index]" class="wc2sessions" >
+      <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" @delete-session="(arg) => deleteSession(arg)"/>
     </div>
   </fieldset>
 </template>
+
+<style>
+  .wc2sessions:nth-child(odd) {
+    background-color: azure;
+  }
+</style>
