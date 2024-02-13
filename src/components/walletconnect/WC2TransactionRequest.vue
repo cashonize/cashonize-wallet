@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
+  import { hexToBin } from "mainnet-js"
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   const store = useStore()
@@ -13,7 +14,37 @@
   }>()
   const { transactionRequestWC } = toRefs(props);
 
-  const requestParams = transactionRequestWC.value.params.request.params;
+  const parseExtendedJson = (jsonString: string) => {
+    const uint8ArrayRegex = /^<Uint8Array: 0x(?<hex>[0-9a-f]*)>$/u;
+    const bigIntRegex = /^<bigint: (?<bigint>[0-9]*)n>$/;
+
+    return JSON.parse(jsonString, (_key, value) => {
+      if (typeof value === "string") {
+        const bigintMatch = value.match(bigIntRegex);
+        if (bigintMatch) {
+          return BigInt(bigintMatch[1]);
+        }
+        const uint8ArrayMatch = value.match(uint8ArrayRegex);
+        if (uint8ArrayMatch) {
+          return hexToBin(uint8ArrayMatch[1]);
+        }
+      }
+      return value;
+    });
+  }
+
+  const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params));
+  const txDetails = requestParams.transaction;
+
+  const satoshiToBCHString = (amount:bigint) => {
+    const numberAmount = Number(amount);
+    if (Math.abs(numberAmount / (10 ** 4)) > 1000) {
+      const bchAmount = numberAmount * (10 ** -8)
+      return `${bchAmount.toFixed(8)} BCH`
+    } else {
+      return `${numberAmount} sat`
+    }
+  };
 
   function signWCtransaction() {
     // emit('signTransactionWC', );
@@ -37,7 +68,14 @@
         <div style="font-size: large; margin-top: 2rem;">Signer:</div>
         <div style="font-size: smaller;">{{ store.wallet?.getDepositAddress() }}</div>
         <div style="font-size: large; margin-top: 2rem;">Inputs:</div>
+        <div v-for="(input, inputIndex) in txDetails.inputs" :key="input.outpointTransactionHash">
+          <div>#{{ inputIndex }}: </div>
+        </div>
         <div style="font-size: large; margin-top: 2rem;">Outputs:</div>
+        <div v-for="(output, outputIndex) in txDetails.outputs" :key="output.outpointTransactionHash">
+          <span>#{{ outputIndex }}:</span>
+          {{ satoshiToBCHString(output.valueSatoshis) }}
+        </div>
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">
           <input type="button" class="primaryButton" value="Sign" @click="() => signWCtransaction()" v-close-popup>
           <input type="button" value="Cancel" v-close-popup>
