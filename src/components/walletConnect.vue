@@ -3,6 +3,7 @@
   import { ref, computed } from 'vue'
   import WC2SessionRequestDialog from 'src/components/walletconnect/WC2SessionRequestDialog.vue';
   import WC2ActiveSession from 'src/components/walletconnect/WC2ActiveSession.vue'
+  import WC2TransactionRequest from './walletconnect/WC2TransactionRequest.vue';
   import { getSdkError } from '@walletconnect/utils';
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
@@ -12,6 +13,8 @@
 
   const dappUriInput = ref("");
   const sessionProposalWC = ref(undefined as any);
+  const transactionRequestWC = ref(undefined as any);
+  const dappMetadata = ref(undefined as any);
   const activeSessions = computed(() => walletconnectStore.activeSessions)
 
   async function connectDappWithUri(){
@@ -65,6 +68,13 @@
         break;
       case "bch_signTransaction": {
         alert("bch_signTransaction")
+        if(!web3wallet) return
+        const sessions = web3wallet.getActiveSessions();
+        const session = sessions[topic];
+        if (!session) return;
+        const metadataDapp = session.peer.metadata;
+        dappMetadata.value = metadataDapp
+        transactionRequestWC.value = event;
       }
         break;
       default:{
@@ -123,6 +133,10 @@
 
     <div v-if="sessionProposalWC">
       <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)"/>
+    </div>
+
+    <div v-if="transactionRequestWC">
+      <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata"/>
     </div>
 
     <br/>

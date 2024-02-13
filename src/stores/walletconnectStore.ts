@@ -27,7 +27,6 @@ export const useWalletconnectStore = defineStore('walletconnectStore', () => {
 
     web3wallet.value = newweb3wallet
     activeSessions.value = web3wallet.value.getActiveSessions();
-    console.log(activeSessions.value)
   }
   
 
