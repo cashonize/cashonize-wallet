@@ -22,9 +22,13 @@
     dappUriInput.value = "";
   }
 
-  web3wallet?.on('session_proposal', renderSessionProposal);
+  web3wallet?.on('session_proposal', wcSessionProposal);
 
-  async function renderSessionProposal(sessionProposal: any) {
+  web3wallet?.on('session_request', async (event: any) => {
+    wcRequest(event);
+  });
+
+  async function wcSessionProposal(sessionProposal: any) {
     const { requiredNamespaces } = sessionProposal.params;
 
     if (!requiredNamespaces.bch) {
@@ -33,6 +37,41 @@
     }
 
     sessionProposalWC.value = sessionProposal;
+  }
+
+
+  async function wcRequest(event: any) {
+    const { topic, params, id } = event
+    const { request } = params
+    const method = request.method;
+
+    let result;
+    let error;
+
+    const walletAddress = store.wallet?.getDepositAddress();
+
+    switch (method) {
+      case "bch_getAddresses":
+      case "bch_getAccounts": {
+        result = [walletAddress];
+        const response = { id, jsonrpc: '2.0', result };
+        web3wallet?.respondSessionRequest({ topic, response });
+      }
+        break;
+      case "bch_signMessage":
+      case "personal_sign": {
+        alert("bch_signMessage")
+      }
+        break;
+      case "bch_signTransaction": {
+        alert("bch_signTransaction")
+      }
+        break;
+      default:{
+        const response = { id, jsonrpc: '2.0', error: {code: 1001, message: `Unsupported method ${method}`} };
+        await web3wallet?.respondSessionRequest({ topic, response });
+      }
+    }
   }
 
   async function approveSession(sessionProposal: any){
