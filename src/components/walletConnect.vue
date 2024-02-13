@@ -55,7 +55,8 @@
     });
 
     const updatedSessions = web3wallet?.getActiveSessions();
-    walletconnectStore.activeSessions = updatedSessions
+    walletconnectStore.activeSessions = updatedSessions;
+    sessionProposalWC.value = undefined;
   }
 
   async function deleteSession(sessionId :string){
@@ -65,7 +66,7 @@
     });
 
     const updatedSessions = web3wallet?.getActiveSessions();
-    walletconnectStore.activeSessions = updatedSessions
+    walletconnectStore.activeSessions = updatedSessions;
   }
 </script>
 
@@ -85,12 +86,18 @@
       <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)"/>
     </div>
 
-    <br/><br/>
+    <br/>
 
-    Active Sessions:
-    <div v-for="(sessionInfo, index) in Object.values(activeSessions).reverse()" :key="activeSessions[index]" class="wc2sessions" >
-      <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" @delete-session="(arg) => deleteSession(arg)"/>
+    <div v-if="Object.values(activeSessions).length">
+      Active Sessions:
+      <div v-for="(sessionInfo, index) in Object.values(activeSessions).reverse()" :key="activeSessions[index]" class="wc2sessions" >
+        <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" @delete-session="(arg) => deleteSession(arg)"/>
+      </div>
     </div>
+    <div v-else>
+      No Active Sessions
+    </div>
+    
   </fieldset>
 </template>
 

@@ -39,7 +39,7 @@
           </div>
         </div>
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-          <input type="button" class="primaryButton" value="Approve" @click="() => approveSessionWC()" v-close-popup>
+          <input type="button" class="primaryButton" :value="needsNetworkSwitch ?`Switch to ${dappTargetNetwork} and approve`: 'Approve'" @click="() => approveSessionWC()" v-close-popup>
           <input type="button" value="Reject" v-close-popup>
         </div>
       </fieldset>
