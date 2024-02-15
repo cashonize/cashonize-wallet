@@ -3,7 +3,7 @@
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   const store = useStore()
-  const emit = defineEmits(['approveSession']);
+  const emit = defineEmits(['approveSession','rejectSession']);
 
   const showDialog = ref(true);
 
@@ -24,6 +24,10 @@
   function approveSessionWC() {
     emit('approveSession', sessionProposalWC.value);
   }
+
+  function rejectSessionWC() {
+    emit('rejectSession');
+  }
 </script>
 
 <template>
@@ -40,7 +44,7 @@
         </div>
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">
           <input type="button" class="primaryButton" :value="needsNetworkSwitch ?`Switch to ${dappTargetNetwork} and approve`: 'Approve'" @click="() => approveSessionWC()" v-close-popup>
-          <input type="button" value="Reject" v-close-popup>
+          <input type="button" value="Reject" v-close-popup @click="() => rejectSessionWC()">
         </div>
       </fieldset>
     </q-card>

@@ -107,6 +107,10 @@
     sessionProposalWC.value = undefined;
   }
 
+  function rejectSession(){
+    sessionProposalWC.value = undefined;
+  }
+
   async function deleteSession(sessionId :string){
     await web3wallet?.disconnectSession({
       topic: sessionId,
@@ -117,8 +121,11 @@
     walletconnectStore.activeSessions = updatedSessions;
   }
 
-  async function signedTransaction(txId:string){
+  function signedTransaction(txId:string){
     alert("Transaction succesfully sent! Txid:" + txId)
+    transactionRequestWC.value = undefined;
+  }
+  function rejectTransaction(){
     transactionRequestWC.value = undefined;
   }
 </script>
@@ -136,11 +143,11 @@
     </div>
 
     <div v-if="sessionProposalWC">
-      <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)"/>
+      <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)" @reject-session="rejectSession()"/>
     </div>
 
     <div v-if="transactionRequestWC">
-      <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg) => signedTransaction(arg)"/>
+      <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg) => signedTransaction(arg)" @reject-transaction="rejectTransaction()"/>
     </div>
 
     <br/>

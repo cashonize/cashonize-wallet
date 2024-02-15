@@ -2,13 +2,14 @@
   import { ref, toRefs } from 'vue';
   import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH } from "@bitauth/libauth"
   import { BCMR, convert } from "mainnet-js"
+  import { getSdkError } from '@walletconnect/utils';
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   const store = useStore()
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
-  const emit = defineEmits(['signedTransaction']);
+  const emit = defineEmits(['signedTransaction', 'rejectTransaction']);
 
   const showDialog = ref(true);
 
@@ -37,6 +38,7 @@
     });
   }
 
+  const { id, topic } = transactionRequestWC.value;
   const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params));
   const txDetails = requestParams.transaction;
 
@@ -171,9 +173,6 @@
     const signedTxObject = { signedTransaction: binToHex(encoded), signedTransactionHash: hash };
 
     // send transaction
-
-    const { id, topic } = transactionRequestWC.value;
-
     const response = { id, jsonrpc: '2.0', result: signedTxObject };
     if (requestParams.broadcast) {
       await store.wallet?.submitTransaction(hexToBin(signedTxObject.signedTransaction));
@@ -181,6 +180,12 @@
     await web3wallet?.respondSessionRequest({ topic, response });
 
     emit('signedTransaction', signedTxObject.signedTransactionHash);
+  }
+
+  async function rejectTransaction(){
+    const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
+    await web3wallet?.respondSessionRequest({ topic, response });
+    emit('rejectTransaction')
   }
 </script>
 
@@ -287,12 +292,12 @@
               BCMR.getTokenInfo(binToHex(tokenReceived.category))?.name : 
               binToHex(tokenReceived.category).slice(0,6)  + '...'
             }}
-            {{ tokenReceived.amount ? "amount: "+ (tokenReceived.amount / (BCMR.getTokenInfo(binToHex(tokenReceived.category))?.token?.decimals ?? 1)) : ""}}
+            {{ tokenReceived.amount ? "amount: "+ (tokenReceived.amount / (10n ** BigInt(BCMR.getTokenInfo(binToHex(tokenReceived.category))?.token?.decimals ?? 0n))) : ""}}
             </div>
           </div>
           <div class="wc-modal-bottom-buttons">
             <input type="button" class="primaryButton" value="Sign" @click="() => signTransactionWC()" v-close-popup>
-            <input type="button" value="Cancel" v-close-popup>
+            <input type="button" value="Cancel" @click="() => rejectTransaction()" v-close-popup>
           </div>
         </div>
       </fieldset>
