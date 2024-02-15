@@ -67,7 +67,6 @@
       }
         break;
       case "bch_signTransaction": {
-        alert("bch_signTransaction")
         if(!web3wallet) return
         const sessions = web3wallet.getActiveSessions();
         const session = sessions[topic];

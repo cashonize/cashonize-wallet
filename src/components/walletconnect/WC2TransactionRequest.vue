@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
   import { lockingBytecodeToCashAddress, hexToBin, binToHex } from "@bitauth/libauth"
-  import { BCMR } from "mainnet-js"
+  import { BCMR, convert } from "mainnet-js"
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   const store = useStore()
@@ -37,6 +37,8 @@
   const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params));
   const txDetails = requestParams.transaction;
 
+  const abs = (value: bigint) => (value < 0n) ? -value : value;
+
   const satoshiToBCHString = (amount:bigint) => {
     const numberAmount = Number(amount);
     if (Math.abs(numberAmount / (10 ** 3)) > 1000) {
@@ -49,10 +51,46 @@
 
   const toCashaddr = (lockingBytecode:Uint8Array) => {
     const prefix = store.network == "mainnet" ? "bitcoincash" : "bchtest";
+    // check for opreturn
+    if(binToHex(lockingBytecode).startsWith("6a")) return "opreturn:" +  binToHex(lockingBytecode)
     const result = lockingBytecodeToCashAddress(lockingBytecode,prefix);
     if (typeof result !== "string") throw result;
     return result;
   }
+
+  async function convertToUsd(satAmount: bigint) {
+    const newUsdValue = await convert(Number(satAmount), "sat", "usd");
+    return Number(newUsdValue.toFixed(2));
+  }
+
+  const bchSpentInputs:bigint = requestParams.sourceOutputs.reduce((total:bigint, sourceOutputs:any) => 
+    toCashaddr(sourceOutputs.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + sourceOutputs.valueSatoshis : total, 0n
+  );
+  const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs:any) => 
+    toCashaddr(outputs.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + outputs.valueSatoshis : total, 0n
+  );
+  const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
+  const usdBalanceChange = await convertToUsd(bchBalanceChange);
+
+  const tokensSpentInputs: any = {}
+  const tokensReceivedOutputs: any = {}
+  for (const input of requestParams.sourceOutputs) {
+    const walletOrigin = toCashaddr(input.lockingBytecode) == store?.wallet?.getDepositAddress();
+    if(input.token && walletOrigin){
+      const tokenCategory = binToHex(input.token.category);
+      if(tokensSpentInputs[tokenCategory])tokensSpentInputs[tokenCategory].push(input.token);
+      else tokensSpentInputs[tokenCategory] = [input.token];
+    }
+  }
+  for (const output of txDetails.outputs) {
+    const walletDestination = toCashaddr(output.lockingBytecode) == store?.wallet?.getDepositAddress();
+    if(output.token && walletDestination){
+      const tokenCategory = binToHex(output.token.category);
+      if(tokensReceivedOutputs[tokenCategory]) tokensReceivedOutputs[tokenCategory].push(output.token);
+      else tokensReceivedOutputs[tokenCategory] = [output.token];
+    }
+  }
+
 
   function signWCtransaction() {
     // emit('signTransactionWC', );
@@ -141,6 +179,30 @@
             </tbody>
           </table>
           <hr>
+          <div class="wc-modal-heading">Balance Change:</div>
+          <div>
+            {{ bchBalanceChange > 0 ? '+ ': '- '}} {{ satoshiToBCHString(abs(bchBalanceChange)) }}
+            ({{ usdBalanceChange }}$)
+          </div>
+          <div v-for="tokenArrayInput in tokensSpentInputs" :key="tokenArrayInput.category">
+            <div v-for="(tokenSpent, index) in tokenArrayInput" :key="tokenArrayInput.category + index">
+            - {{tokenArrayInput.nft ? "NFT" : "Token"}}
+            {{ BCMR.getTokenInfo(binToHex(tokenSpent.category))?.name ?
+              BCMR.getTokenInfo(binToHex(tokenSpent.category))?.name : 
+              binToHex(tokenSpent.category).slice(0,6)  + '...'
+            }}
+            </div>
+          </div>
+          <div v-for="tokenArrayRecived in tokensReceivedOutputs" :key="tokenArrayRecived.category">
+            <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="tokenArrayRecived.category + index">
+            + {{tokenReceived.nft ? "NFT" : "Token"}}
+            {{ BCMR.getTokenInfo(binToHex(tokenReceived.category))?.name ?
+              BCMR.getTokenInfo(binToHex(tokenReceived.category))?.name : 
+              binToHex(tokenReceived.category).slice(0,6)  + '...'
+            }}
+            {{ tokenReceived.amount ? "amount: "+ (tokenReceived.amount / (BCMR.getTokenInfo(binToHex(tokenReceived.category))?.token?.decimals ?? 1)) : ""}}
+            </div>
+          </div>
           <div class="wc-modal-bottom-buttons">
             <input type="button" class="primaryButton" value="Sign" @click="() => signWCtransaction()" v-close-popup>
             <input type="button" value="Cancel" v-close-popup>
@@ -155,7 +217,7 @@
   .dialogFieldsetTxRequest{
     padding: .5rem 2rem;
     width: 500px;
-    height: 600px;
+    max-height: 90vh;
     background-color: white
   }
   .q-dialog__backdrop {
