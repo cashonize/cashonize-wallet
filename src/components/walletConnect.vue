@@ -116,6 +116,11 @@
     const updatedSessions = web3wallet?.getActiveSessions();
     walletconnectStore.activeSessions = updatedSessions;
   }
+
+  async function signedTransaction(txId:string){
+    alert("Transaction succesfully sent! Txid:" + txId)
+    transactionRequestWC.value = undefined;
+  }
 </script>
 
 <template>
@@ -135,14 +140,14 @@
     </div>
 
     <div v-if="transactionRequestWC">
-      <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata"/>
+      <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg) => signedTransaction(arg)"/>
     </div>
 
     <br/>
 
-    <div v-if="Object.values(activeSessions).length">
+    <div v-if="activeSessions">
       Active Sessions:
-      <div v-for="(sessionInfo, index) in Object.values(activeSessions).reverse()" :key="activeSessions[index]" class="wc2sessions" >
+      <div v-for="sessionInfo in Object.values(activeSessions).reverse()" :key="sessionInfo.topic" class="wc2sessions" >
         <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" @delete-session="(arg) => deleteSession(arg)"/>
       </div>
     </div>

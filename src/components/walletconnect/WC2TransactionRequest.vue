@@ -1,11 +1,14 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
-  import { lockingBytecodeToCashAddress, hexToBin, binToHex } from "@bitauth/libauth"
+  import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH } from "@bitauth/libauth"
   import { BCMR, convert } from "mainnet-js"
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
+  import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   const store = useStore()
-  // const emit = defineEmits(['signTransactionWC']);
+  const walletconnectStore = useWalletconnectStore()
+  const web3wallet = walletconnectStore.web3wallet
+  const emit = defineEmits(['signedTransaction']);
 
   const showDialog = ref(true);
 
@@ -92,8 +95,92 @@
   }
 
 
-  function signWCtransaction() {
-    // emit('signTransactionWC', );
+  async function signTransactionWC() {
+    const privateKey = store?.wallet?.privateKey;
+    const pubkeyCompressed = store?.wallet?.publicKeyCompressed
+    if(!privateKey || !pubkeyCompressed) return
+
+    // prepare libauth template for input signing
+    const template = importWalletTemplate(walletTemplateP2pkhNonHd);
+    if (typeof template === "string") throw new Error("Transaction template error");
+
+    // configure compiler
+    const compiler = walletTemplateToCompilerBCH(template);
+
+    const txTemplate = {...txDetails};
+
+    for (const [index, input] of txTemplate.inputs.entries()) {
+      const sourceOutputsUnpacked = requestParams.sourceOutputs;
+      if (sourceOutputsUnpacked[index].contract?.artifact.contractName) {
+        // instruct compiler to produce signatures for relevant contract inputs
+
+        // replace pubkey and sig placeholders
+        let unlockingBytecodeHex = binToHex(sourceOutputsUnpacked[index].unlockingBytecode);
+        const sigPlaceholder = "41" + binToHex(Uint8Array.from(Array(65)));
+        const pubkeyPlaceholder = "21" + binToHex(Uint8Array.from(Array(33)));
+        if (unlockingBytecodeHex.indexOf(sigPlaceholder) !== -1) {
+          // compute the signature argument
+          const hashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
+          const context = { inputIndex: index, sourceOutputs: sourceOutputsUnpacked, transaction: txDetails };
+          const signingSerializationType = new Uint8Array([hashType]);
+
+          const coveredBytecode = sourceOutputsUnpacked[index].contract?.redeemScript;
+          if (!coveredBytecode) {
+            alert("Not enough information provided, please include contract redeemScript");
+            return;
+          }
+          const sighashPreimage = generateSigningSerializationBCH(context, { coveredBytecode, signingSerializationType });
+          const sighash = hash256(sighashPreimage);
+          const signature = secp256k1.signMessageHashSchnorr(privateKey, sighash);
+          if (typeof signature === "string") {
+            alert(signature);
+            return;
+          }
+          const sig = Uint8Array.from([...signature, hashType]);
+
+          unlockingBytecodeHex = unlockingBytecodeHex.replace(sigPlaceholder, "41" + binToHex(sig));
+        }
+        if (unlockingBytecodeHex.indexOf(pubkeyPlaceholder) !== -1) {
+          unlockingBytecodeHex = unlockingBytecodeHex.replace(pubkeyPlaceholder, "21" + binToHex(pubkeyCompressed));
+        }
+
+        input.unlockingBytecode = hexToBin(unlockingBytecodeHex);
+      } else {
+        // replace unlocking bytecode for non-contract inputs having placeholder unlocking bytecode
+        const sourceOutput = sourceOutputsUnpacked[index];
+        if (!sourceOutput.unlockingBytecode?.length && toCashaddr(sourceOutput.lockingBytecode) === store.wallet?.getDepositAddress()) {
+           input.unlockingBytecode = {
+            compiler,
+             data: {
+              keys: { privateKeys: { key: privateKey } },
+            },
+            valueSatoshis: sourceOutput.valueSatoshis,
+            script: "unlock",
+            token: sourceOutput.token,
+          }
+        }
+      }
+    };
+
+    // generate and encode transaction
+    const generated = generateTransaction(txTemplate);
+    if (!generated.success) throw Error(JSON.stringify(generated.errors, null, 2));
+
+    const encoded = encodeTransaction(generated.transaction);
+    const hash = binToHex(sha256.hash(sha256.hash(encoded)).reverse());
+    const signedTxObject = { signedTransaction: binToHex(encoded), signedTransactionHash: hash };
+
+    // send transaction
+
+    const { id, topic } = transactionRequestWC.value;
+
+    const response = { id, jsonrpc: '2.0', result: signedTxObject };
+    if (requestParams.broadcast) {
+      await store.wallet?.submitTransaction(hexToBin(signedTxObject.signedTransaction));
+    }
+    await web3wallet?.respondSessionRequest({ topic, response });
+
+    emit('signedTransaction', signedTxObject.signedTransactionHash);
   }
 </script>
 
@@ -204,7 +291,7 @@
             </div>
           </div>
           <div class="wc-modal-bottom-buttons">
-            <input type="button" class="primaryButton" value="Sign" @click="() => signWCtransaction()" v-close-popup>
+            <input type="button" class="primaryButton" value="Sign" @click="() => signTransactionWC()" v-close-popup>
             <input type="button" value="Cancel" v-close-popup>
           </div>
         </div>
@@ -218,7 +305,8 @@
     padding: .5rem 2rem;
     width: 500px;
     max-height: 90vh;
-    background-color: white
+    background-color: white;
+    overflow: auto;
   }
   .q-dialog__backdrop {
     backdrop-filter: blur(24px);
