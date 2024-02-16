@@ -207,7 +207,7 @@
         <div class="wc-modal-details">
           <div style="display: flex; justify-content: center; font-size: larger;"> {{ requestParams.userPrompt }}</div>
           <div class="wc-modal-heading">Inputs:</div>
-          <table>
+          <table class="wc-data-table">
             <tbody v-for="(input, inputIndex) in requestParams.sourceOutputs" :key="input.outpointTransactionHash">
               <tr>
                 <td>{{ inputIndex }}</td>
@@ -242,7 +242,7 @@
           <div>
           </div>
           <div class="wc-modal-heading">Outputs:</div>
-          <table>
+          <table class="wc-data-table">
             <tbody v-for="(output, outputIndex) in txDetails.outputs" :key="output.outpointTransactionHash">
               <tr>
                 <td>{{ outputIndex }}</td>
@@ -328,12 +328,8 @@
   .wc-modal-heading {
     font-weight: 700;
   }
-  .wc-data-table {
-    font-size: smaller;
-    white-space: nowrap;
-  }
-  .wc-data-table tbody th, .wc-data-table tbody td {
-    padding: .3em .3em .3em 0;
+  .wc-data-table tbody td {
+    padding-right: .3em;
   }
   td {
     padding: 0;
