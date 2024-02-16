@@ -5,6 +5,7 @@
   import settingsMenu from 'src/components/settingsMenu.vue'
   import connectView from 'src/components/walletConnect.vue'
   import createTokensView from 'src/components/createTokens.vue'
+  import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
   import { ref, computed } from 'vue'
   import { Wallet, TestNetWallet, BalanceResponse, BCMR, binToHex } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
@@ -25,6 +26,8 @@
   let cancelWatchTokenTxs: undefined | CancelWatchFn;
 
   const displayView = ref(undefined as (number | undefined));
+  const transactionRequestWC = ref(undefined as any);
+  const dappMetadata = ref(undefined as any);
   const bcmrIndexer = computed(() => store.network == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
   
   // check if wallet exists
@@ -46,7 +49,13 @@
   async function setWallet(newWallet: TestNetWallet){
     changeView(1);
     store.wallet = newWallet;
-    walletconnectStore.initweb3wallet()
+    console.time('initweb3wallet');
+    await walletconnectStore.initweb3wallet();
+    console.timeEnd('initweb3wallet');
+    const web3wallet = walletconnectStore.web3wallet;
+    web3wallet?.on('session_request', async (event: any) => {
+      wcRequest(event);
+    });
     console.time('Balance Promises');
     const promiseWalletBalance = store.wallet.getBalance() as BalanceResponse;
     const promiseMaxAmountToSend = store.wallet.getMaxAmountToSend();
@@ -138,6 +147,52 @@
     }
     console.timeEnd('response.json()');
   }
+
+  // Wallet connect dialog functionality
+  async function wcRequest(event: any) {
+    const web3wallet = walletconnectStore.web3wallet;
+    if(!web3wallet) return
+    const { topic, params, id } = event;
+    const { request } = params;
+    const method = request.method;
+    const walletAddress = store.wallet?.getDepositAddress();
+
+    switch (method) {
+      case "bch_getAddresses":
+      case "bch_getAccounts": {
+        const result = [walletAddress];
+        const response = { id, jsonrpc: '2.0', result };
+        web3wallet.respondSessionRequest({ topic, response });
+      }
+        break;
+      case "bch_signMessage":
+      case "personal_sign": {
+        alert("bch_signMessage")
+      }
+        break;
+      case "bch_signTransaction": {
+        const sessions = web3wallet.getActiveSessions();
+        const session = sessions[topic];
+        if (!session) return;
+        const metadataDapp = session.peer.metadata;
+        dappMetadata.value = metadataDapp
+        transactionRequestWC.value = event;
+      }
+        break;
+      default:{
+        const response = { id, jsonrpc: '2.0', error: {code: 1001, message: `Unsupported method ${method}`} };
+        await web3wallet.respondSessionRequest({ topic, response });
+      }
+    }
+  }
+  // Reset transactionRequestWC after sign or reject
+  function signedTransaction(txId:string){
+    alert("Transaction succesfully sent! Txid:" + txId)
+    transactionRequestWC.value = undefined;
+  }
+  function rejectTransaction(){
+    transactionRequestWC.value = undefined;
+  }
 </script>
 
 <template>
@@ -162,4 +217,7 @@
     <connectView v-if="displayView == 4"/>
     <settingsMenu v-if="displayView == 5" @change-network="(arg) => changeNetwork(arg)" @change-view="(arg) => changeView(arg)"/>
   </main>
+  <div v-if="transactionRequestWC">
+    <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg:string) => signedTransaction(arg)" @reject-transaction="rejectTransaction()"/>
+  </div>
 </template>
