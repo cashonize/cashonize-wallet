@@ -40,12 +40,13 @@ export const useStore = defineStore('store', () => {
       arrayTokens.push({ tokenId, amount: resultGetFungibleTokens[tokenId] });
     }
     console.time('Utxo Promises');
-    const nftUtxoPromises = [];
+    const tokenUtxos = await wallet.value.getTokenUtxos();
+    const listNftUtxos = [];
     for (const tokenId of Object.keys(resultGetNFTs)) {
-      nftUtxoPromises.push(wallet.value.getTokenUtxos(tokenId));
+      const utxosNftTokenid = tokenUtxos.filter((val) =>val.token?.tokenId === tokenId);
+      listNftUtxos.push(utxosNftTokenid);
     }
-    const nftUtxoResults = await Promise.all(nftUtxoPromises);
-    for (const nftUtxos of nftUtxoResults) {
+    for (const nftUtxos of listNftUtxos) {
       const tokenId = nftUtxos[0].token?.tokenId;
       if(!tokenId) return // should never happen
       arrayTokens.push({ tokenId, nfts: nftUtxos });
