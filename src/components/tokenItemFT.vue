@@ -109,7 +109,7 @@
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
-      await store.updateTokenList(undefined, undefined);
+      await store.updateTokenList();
     } catch(error){
       console.log(error);
       alert(error);
@@ -140,7 +140,7 @@
       console.log(`Burned ${amountTokens} tokens of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
       burnAmountFTs.value = "";
       displayBurnFungibles.value = false;
-      await store.updateTokenList(undefined, undefined);
+      await store.updateTokenList();
     } catch (error) { alert(error) }
   }
   async function transferAuth() {

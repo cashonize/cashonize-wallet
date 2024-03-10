@@ -143,7 +143,7 @@
       console.log(`Sent NFT of category ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
       destinationAddr.value = "";
       displaySendNft.value = false;
-      await store.updateTokenList(undefined, undefined);
+      await store.updateTokenList();
     } catch(error){
       console.log(error)
     }
@@ -216,7 +216,7 @@
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
       alert(`Burned ${nftTypeString} of category ${displayId}`);
       console.log(`Burned ${nftTypeString} of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
-      await store.updateTokenList(undefined, undefined);
+      await store.updateTokenList();
     } catch (error) { alert(error) }
   }
   async function transferAuth() {

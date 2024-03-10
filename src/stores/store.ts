@@ -5,6 +5,7 @@ import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenList } from "../interfaces/interfaces"
 import { useSettingsStore } from './settingsStore'
 import { queryAuthHead } from "../queryChainGraph"
+import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
@@ -25,34 +26,23 @@ export const useStore = defineStore('store', () => {
   const plannedTokenId = ref(undefined as (undefined | string));
   const nrBcmrRegistries = ref(undefined as (number | undefined));
 
-  async function updateTokenList(resultGetFungibleTokens: any, resultGetNFTs: any){
+  async function updateTokenList(){
     if(!wallet.value) return // should never happen
-    // Option to fetch new tokenlist in advance or not
-    if(!resultGetFungibleTokens || !resultGetNFTs){
-      const promiseGetFungibleTokens = wallet.value?.getAllTokenBalances();
-      const promiseGetNFTs = wallet.value?.getAllNftTokenBalances();
-      const balancePromises: any[] = [promiseGetFungibleTokens, promiseGetNFTs];
-      [resultGetFungibleTokens, resultGetNFTs] = await Promise.all(balancePromises);
-    }
-    // Get NFT data
-    const arrayTokens:TokenList = [];
-    for (const tokenId of Object.keys(resultGetFungibleTokens)) {
-      arrayTokens.push({ tokenId, amount: resultGetFungibleTokens[tokenId] });
-    }
-    console.time('Utxo Promises');
     const tokenUtxos = await wallet.value.getTokenUtxos();
-    const listNftUtxos = [];
-    for (const tokenId of Object.keys(resultGetNFTs)) {
+    const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
+    const nftsResult = getAllNftTokenBalances(tokenUtxos);
+    if(!fungibleTokensResult || !nftsResult) return // should never happen
+    const arrayTokens:TokenList = [];
+    for (const tokenId of Object.keys(fungibleTokensResult)) {
+      arrayTokens.push({ tokenId, amount: fungibleTokensResult[tokenId] });
+    }
+    for (const tokenId of Object.keys(nftsResult)) {
       const utxosNftTokenid = tokenUtxos.filter((val) =>val.token?.tokenId === tokenId);
-      listNftUtxos.push(utxosNftTokenid);
+      arrayTokens.push({ tokenId, nfts: utxosNftTokenid });
     }
-    for (const nftUtxos of listNftUtxos) {
-      const tokenId = nftUtxos[0].token?.tokenId;
-      if(!tokenId) return // should never happen
-      arrayTokens.push({ tokenId, nfts: nftUtxos });
-    }
-    console.timeEnd('Utxo Promises');
     tokenList.value = arrayTokens;
+    const catgeories = Object.keys({...fungibleTokensResult, ...nftsResult})
+    return catgeories;
   }
 
   async function fetchAuthUtxos(){

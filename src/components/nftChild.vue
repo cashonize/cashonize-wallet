@@ -88,7 +88,7 @@
       console.log(`Sent NFT of category ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
       destinationAddr.value = "";
       displaySendNft.value = false;
-      await store.updateTokenList(undefined, undefined);
+      await store.updateTokenList();
     } catch(error){
       console.log(error);
       alert(error);

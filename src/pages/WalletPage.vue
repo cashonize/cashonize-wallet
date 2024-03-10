@@ -9,6 +9,7 @@
   import { ref, computed } from 'vue'
   import { Wallet, TestNetWallet, BalanceResponse, BCMR, binToHex } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
+  import type { Web3WalletTypes } from '@walletconnect/web3wallet';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
@@ -53,27 +54,27 @@
     await walletconnectStore.initweb3wallet();
     console.timeEnd('initweb3wallet');
     const web3wallet = walletconnectStore.web3wallet;
-    web3wallet?.on('session_request', async (event: any) => {
-      wcRequest(event);
-    });
+    web3wallet?.on('session_request', async (event) => wcRequest(event));
+    // fetch bch balance
     console.time('Balance Promises');
     const promiseWalletBalance = store.wallet.getBalance() as BalanceResponse;
     const promiseMaxAmountToSend = store.wallet.getMaxAmountToSend();
-    const promiseGetFungibleTokens = store.wallet.getAllTokenBalances();
-    const promiseGetNFTs = store.wallet.getAllNftTokenBalances();
-    const balancePromises: any[] = [promiseWalletBalance, promiseGetFungibleTokens, promiseGetNFTs,promiseMaxAmountToSend];
-    const [resultWalletBalance, resultGetFungibleTokens, resultGetNFTs, resultMaxAmountToSend] = await Promise.all(balancePromises);
+    const balancePromises = [promiseWalletBalance,promiseMaxAmountToSend];
+    const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
     console.timeEnd('Balance Promises');
-    let tokenCategories = Object.keys({...resultGetFungibleTokens, ...resultGetNFTs});
+    // fetch token balance
+    console.time('fetch tokenUtxos Promise');
+    let tokenCategories = await store.updateTokenList();
+    console.timeEnd('fetch tokenUtxos Promise');
     store.balance = resultWalletBalance;
     store.maxAmountToSend = resultMaxAmountToSend;
     const utxosPromise = store.wallet?.getAddressUtxos();
-    await store.updateTokenList(resultGetFungibleTokens, resultGetNFTs);
     setUpWalletSubscriptions();
     // get plannedTokenId
     const walletUtxos = await utxosPromise;
     const preGenesisUtxo = walletUtxos?.find(utxo => !utxo.token && utxo.vout === 0);
     store.plannedTokenId = preGenesisUtxo?.txid ?? '';
+    if(!tokenCategories) return // should never happen
     console.time('importRegistries');
     await importRegistries(tokenCategories);
     console.timeEnd('importRegistries');
@@ -94,15 +95,9 @@
       if(!tokenId) return;
       const previousTokenList = store.tokenList;
       const isNewCategory = !previousTokenList?.find(elem => elem.tokenId == tokenId);
-      const promiseGetFungibleTokens = store.wallet.getAllTokenBalances();
-      const promiseGetNFTs = store.wallet.getAllNftTokenBalances();
-      const balancePromises: any[] = [promiseGetFungibleTokens, promiseGetNFTs];
-      const [resultGetFungibleTokens, resultGetNFTs] = await Promise.all(balancePromises);
+      await store.updateTokenList();
       // Dynamically import tokenmetadata
-      if(isNewCategory){
-        await importRegistries([tokenId]);
-      }
-      await store.updateTokenList(resultGetFungibleTokens, resultGetNFTs);
+      if(isNewCategory) await importRegistries([tokenId]);
     });
   }
 
@@ -149,7 +144,7 @@
   }
 
   // Wallet connect dialog functionality
-  async function wcRequest(event: any) {
+  async function wcRequest(event: Web3WalletTypes.SessionRequest) {
     const web3wallet = walletconnectStore.web3wallet;
     if(!web3wallet) return
     const { topic, params, id } = event;
