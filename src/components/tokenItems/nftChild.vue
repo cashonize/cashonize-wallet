@@ -18,6 +18,7 @@
   }>()
   const { nftData, tokenMetaData, id } = toRefs(props);
 
+  const showNftImage = ref(false);
   const displaySendNft = ref(false);
   const displayNftInfo = ref(false);
   const displayMintNfts = ref(false);
@@ -175,13 +176,9 @@
         </div>
       </div>-->
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
+        <img v-if="httpsUrlTokenIcon" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%; cursor: pointer;" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
-        <!--<div v-if="tokenData?.nft" id="tokenIconModal" class="modal">
-          <span class="close">&times;</span>
-          <img class="modal-content" id="imgTokenIcon" style="width: 400px; max-width: 80%;">
-          <div id="caption"></div>
-        </div>-->
+
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
             <div v-if="tokenName" id="tokenName">Name: {{ tokenName }}</div>
@@ -262,5 +259,8 @@
         </div>-->
       </div>
     </fieldset>
+    <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
+      <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata?.uris?.image : nftMetadata?.uris?.icon" :nftName="nftMetadata.name" @close-dialog="() => showNftImage = false"/>
+    </div>
   </div>
 </template>

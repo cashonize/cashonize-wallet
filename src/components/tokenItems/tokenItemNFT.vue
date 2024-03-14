@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
+  import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
   import { TokenSendRequest, TokenMintRequest, BCMR, SendRequest } from "mainnet-js"
   // @ts-ignore
@@ -17,6 +18,7 @@
   }>()
   const { tokenData } = toRefs(props);
 
+  const showNftImage = ref(false);
   const displaySendNft = ref(false);
   const displaySendAllNfts = ref(false);
   const displayMintNfts = ref(false);
@@ -37,7 +39,7 @@
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
   const nftMetadata = computed(() => {
-    if(isSingleNft.value) return
+    if(!isSingleNft.value) return
     const nftData = tokenData.value.nfts?.[0];
     const commitment = nftData?.token?.commitment;
     return tokenMetaData?.value?.token?.nfts?.parse?.types[commitment ?? ""];
@@ -260,13 +262,10 @@
         </div>
       </div>-->
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
-        <div v-else id="genericTokenIcon" class="tokenIcon"></div>
-        <!--<div v-if="tokenData?.nft" id="tokenIconModal" class="modal">
-          <span class="close">&times;</span>
-          <img class="modal-content" id="imgTokenIcon" style="width: 400px; max-width: 80%;">
-          <div id="caption"></div>
-        </div>-->
+        <img v-if="httpsUrlTokenIcon && isSingleNft" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%; cursor: pointer;" :src="httpsUrlTokenIcon"  @click="() => showNftImage = true">
+        <img v-if="httpsUrlTokenIcon && !isSingleNft" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
+        <div v-if="!httpsUrlTokenIcon" id="genericTokenIcon" class="tokenIcon"></div>
+
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
             <div v-if="tokenName" id="tokenName">Name: {{ tokenName }}</div>
@@ -379,6 +378,10 @@
         </div>
       </div>
     </fieldset>
+
+    <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
+      <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata?.uris?.image : nftMetadata?.uris?.icon" :nftName="tokenName" @close-dialog="() => showNftImage = false"/>
+    </div>
 
     <div v-if="displayChildNfts && (tokenData.nfts?.length ?? 0) > 1">
       <div v-for="(nft, index) in tokenData.nfts" :key="'nft'+tokenData.tokenId.slice(0,4) + index">
