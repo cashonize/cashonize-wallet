@@ -4,11 +4,11 @@
   import { TokenSendRequest, TokenMintRequest, BCMR, SendRequest } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
-  import type { TokenDataNFT } from "../interfaces/interfaces"
-  import { querySupplyNFTs, queryActiveMinting } from "../queryChainGraph"
+  import type { TokenDataNFT } from "src/interfaces/interfaces"
+  import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import type { IdentitySnapshot } from "mainnet-js"
-  import { useStore } from '../stores/store'
-  import { useSettingsStore } from '../stores/settingsStore'
+  import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
 

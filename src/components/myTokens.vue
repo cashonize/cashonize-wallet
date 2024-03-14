@@ -1,8 +1,8 @@
 
 <script setup lang="ts">
-  import tokenItemNFT from './tokenItemNFT.vue'
-  import tokenItemFT from './tokenItemFT.vue'
-  import { useStore } from '../stores/store'
+  import tokenItemNFT from './tokenItems/tokenItemNFT.vue'
+  import tokenItemFT from './tokenItems/tokenItemFT.vue'
+  import { useStore } from 'src/stores/store'
   const store = useStore()
 </script>
 

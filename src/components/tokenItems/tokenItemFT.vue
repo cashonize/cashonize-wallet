@@ -3,11 +3,11 @@
   import { TokenSendRequest, BCMR, SendRequest  } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
-  import type { TokenDataFT } from "../interfaces/interfaces"
-  import { queryTotalSupplyFT } from "../queryChainGraph"
+  import type { TokenDataFT } from "src/interfaces/interfaces"
+  import { queryTotalSupplyFT } from "src/queryChainGraph"
   import type { IdentitySnapshot } from "mainnet-js"
-  import { useStore } from '../stores/store'
-  import { useSettingsStore } from '../stores/settingsStore'
+  import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
 

@@ -1,12 +1,13 @@
 <script setup lang="ts">
+  import dialogNftIcon from './dialogNftIcon.vue'
   import { ref, onMounted, toRefs, computed } from 'vue';
   import { TokenSendRequest, TokenMintRequest } from "mainnet-js"
   import { type UtxoI } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import type { IdentitySnapshot } from "mainnet-js"
-  import { useStore } from '../stores/store'
-  import { useSettingsStore } from '../stores/settingsStore'
+  import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
 
