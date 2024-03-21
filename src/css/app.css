@@ -67,6 +67,14 @@ a,
   display: flex;
   margin-top: 8px;
 }
+.sendUsdInput{
+  position: relative;
+  width: 50%;
+  margin-left: 5px;
+}
+.fillInMaxBch{
+  margin-left: 5px;
+}
 .input-icon {
   position: absolute;
   display: block;
@@ -154,6 +162,9 @@ input[type=number] {
   .tokenBaseInfo {
     display: block;
   }
+  .tokenBaseInfo1 {
+    width: 100%;
+  }
   .tokenAmount {
     margin-left: 0;
   }
@@ -164,5 +175,16 @@ input[type=number] {
 @media only screen and (max-width: 570px) {
   .tabs div {
     padding: 1rem;
+  }
+  .sendUsdInput{
+    position: relative;
+    width: 140px;
+    margin-left: 5px;
+  }
+  .fillInMaxBch{
+    padding: 1rem 1.5rem;
+  }
+  .actionBar span {
+    margin: 0 10px;
   }
 }

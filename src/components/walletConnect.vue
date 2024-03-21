@@ -83,7 +83,7 @@
     <input v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem;">
       <input @click="connectDappWithUri" type="button" class="primaryButton" id="connect" value="Connect New dApp">
-      <input @click="() => {}" type="button" class="primaryButton" id="send" value="Scan QR Code">
+      <!--<input @click="() => {}" type="button" class="primaryButton" id="send" value="Scan QR Code">-->
     </div>
 
     <div v-if="sessionProposalWC">

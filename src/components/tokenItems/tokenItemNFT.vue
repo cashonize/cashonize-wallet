@@ -12,6 +12,9 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
+  import { useWindowSize } from '@vueuse/core'
+  const { width } = useWindowSize();
+  const isMobile = computed(() => width.value < 480)
 
   const props = defineProps<{
     tokenData: TokenDataNFT,
@@ -272,7 +275,7 @@
             <div id="tokenIdBox" style="word-break: break-all;">
               TokenId: 
               <span class="tokenId">
-                 {{ `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` }}
+                 {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-10)}`}}
               </span>
               <img class="copyIcon" src="images/copyGrey.svg" @click="copyTokenId">
             </div>

@@ -92,7 +92,7 @@
 
 
 <template>
-  <fieldset style="margin-top: 20px; padding-top: 2rem; max-width: 75rem; margin: auto;">
+  <fieldset style="margin-top: 20px; padding-top: 2rem; max-width: 75rem; margin: auto 10px;">
     <div v-if="store.network == 'mainnet'" style="font-size: 1.2em">
       USD balance:  
       <span style="color: hsla(160, 100%, 37%, 1);">
@@ -144,12 +144,13 @@
           <input v-model="bchSendAmount" @input="setUsdAmount()" id="sendAmount" type="number" placeholder="amount">
           <i class="input-icon" style="color: black;">{{ bchDisplayUnit }}</i>
         </span>
-        <span style="position: relative; width: 50%; margin-left: 5px;">
+        <span class="sendUsdInput">
           <input v-model="usdSendAmount" @input="setBchAmount()" id="sendAmount" type="number" placeholder="amount">
           <i class="input-icon" style="color: black;">{{store.network == "mainnet"? "USD $":"tUsd $"}}</i>
         </span> 
-            <button @click="useMaxBchAmount()" style="margin-left: 5px;">max</button>
+            <button @click="useMaxBchAmount()" class="fillInMaxBch">max</button>
       </span>
+      
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
   </fieldset>
