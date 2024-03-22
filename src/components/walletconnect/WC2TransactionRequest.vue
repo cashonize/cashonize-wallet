@@ -213,8 +213,8 @@
                 <td>{{ inputIndex }}</td>
                 <td>
                   {{ toCashaddr(input.lockingBytecode).slice(0,25)  + '...' }}
-                  <span style="color: hsla(160, 100%, 37%, 1)">
-                    {{ toCashaddr(input.lockingBytecode) == store?.wallet?.getDepositAddress() ? "(this wallet)" : "" }}
+                  <span v-if="toCashaddr(input.lockingBytecode) == store?.wallet?.getDepositAddress()" class="thisWalletTag">
+                    (this wallet)
                   </span>
                 </td>
                 <td>{{ satoshiToBCHString(input.valueSatoshis) }}</td>
@@ -248,8 +248,8 @@
                 <td>{{ outputIndex }}</td>
                 <td>
                   {{ toCashaddr(output.lockingBytecode).slice(0,25)  + '...' }}
-                  <span style="color: hsla(160, 100%, 37%, 1)">
-                    {{ toCashaddr(output.lockingBytecode) == store?.wallet?.getDepositAddress() ? "(this wallet)" : "" }}
+                  <span v-if="toCashaddr(output.lockingBytecode) == store?.wallet?.getDepositAddress()" class="thisWalletTag">
+                    (this wallet)
                   </span>
                 </td>
                 <td>{{ satoshiToBCHString(output.valueSatoshis) }}</td>
@@ -343,5 +343,17 @@
   }
   .wc-modal-bottom-buttons > input {
     width: 111px;
+  }
+  .thisWalletTag{
+    color: hsla(160, 100%, 37%, 1)
+  }
+
+  @media only screen and (max-width: 570px) {
+    .dialogFieldsetTxRequest{
+      width: 100%;
+    }
+    .thisWalletTag{
+      display: block;
+    }
   }
 </style>
