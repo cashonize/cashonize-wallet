@@ -96,7 +96,7 @@
     <div v-if="store.network == 'mainnet'" style="font-size: 1.2em">
       USD balance:  
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance && store.balance.usd != undefined ? store.balance.usd + " $": "" }}
+        {{ store.balance && store.balance.usd != undefined ?  (store.balance.usd).toFixed(2) + " $": "" }}
       </span>
     </div>
     <span>

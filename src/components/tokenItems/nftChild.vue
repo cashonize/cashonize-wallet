@@ -187,24 +187,26 @@
         </div>
       </div>
 
-      <div class="actionBar">
-        <span @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
-          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
-        <span v-if="nftMetadata" @click="displayNftInfo = !displayNftInfo" id="infoButton">
-          <img id="infoIcon" class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
-        </span>
-        <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.capability == 'minting'">
-          <img id="mintIcon" class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> mint NFTs
-        </span>
-        <span @click="displayBurnNft = !displayBurnNft" v-if="nftData?.token?.capability == 'minting' || settingsStore.tokenBurn" style="white-space: nowrap;">
-          <img id="burnIcon" class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
-          <span class="hidemobile">burn NFT</span>
-        </span>
-        <!--<span v-if="tokenData?.auth" style="white-space: nowrap;" id="authButton">
-          <img id="authIcon" class="icon" src="images/shield.svg">
-          <span class="hidemobile">auth transfer</span>
-          <span class="showmobile">auth</span>
-        </span>-->
+      <div class="actionActions">
+        <div class="actionBar">
+          <span @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
+            <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
+          <span v-if="nftMetadata" @click="displayNftInfo = !displayNftInfo" id="infoButton">
+            <img id="infoIcon" class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
+          </span>
+          <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.capability == 'minting'">
+            <img id="mintIcon" class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> mint NFTs
+          </span>
+          <span @click="displayBurnNft = !displayBurnNft" v-if="nftData?.token?.capability == 'minting' || settingsStore.tokenBurn" style="white-space: nowrap;">
+            <img id="burnIcon" class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
+            <span class="hidemobile">burn NFT</span>
+          </span>
+          <!--<span v-if="tokenData?.auth" style="white-space: nowrap;" id="authButton">
+            <img id="authIcon" class="icon" src="images/shield.svg">
+            <span class="hidemobile">auth transfer</span>
+            <span class="showmobile">auth</span>
+          </span>-->
+        </div>
         <div v-if="displayNftInfo" id="tokenInfoDisplay" style="margin-top: 10px;">
           <div id="tokenBegin"></div>
           <div v-if="tokenMetaData?.description" id="tokenDescription"> {{ nftDescription }} </div>

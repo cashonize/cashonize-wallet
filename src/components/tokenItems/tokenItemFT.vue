@@ -214,20 +214,22 @@
         </div>
       </div>
 
-      <div class="actionBar">
-        <span @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
-          <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
-        <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
-          <img id="infoIcon" class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
-        </span>
-        <span v-if="settingsStore.tokenBurn && tokenData?.amount" @click="displayBurnFungibles = !displayBurnFungibles" style="white-space: nowrap;">
-          <img id="burnIcon" class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
-          <span>burn tokens</span>
-        </span>
-        <span v-if="tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
-          <img id="authIcon" class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
-          <span>auth transfer</span>
-        </span>
+      <div class="tokenActions">
+        <div class="actionBar">
+          <span @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
+            <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
+          <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
+            <img id="infoIcon" class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
+          </span>
+          <span v-if="settingsStore.tokenBurn && tokenData?.amount" @click="displayBurnFungibles = !displayBurnFungibles" style="white-space: nowrap;">
+            <img id="burnIcon" class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
+            <span>burn tokens</span>
+          </span>
+          <span v-if="tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
+            <img id="authIcon" class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
+            <span>auth transfer</span>
+          </span>
+        </div>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">
           <div></div>
           <div v-if="tokenMetaData?.description"> {{ tokenMetaData.description }} </div>
@@ -248,12 +250,12 @@
         <div v-if="displaySendTokens" style="margin-top: 10px;">
           Send these tokens to
           <div class="inputGroup">
-            <div class="addressInput">
+            <div class="addressInputFtSend">
               <input v-model="destinationAddr" id="tokenAddress" placeholder="token address">
             </div>
-            <div style="display: flex; width: 50%;">
-              <span style="width: 100%; position: relative;">
-                <input v-model="tokenSendAmount" id="sendTokenAmount" placeholder="amount">
+            <div class="sendTokenAmount">
+              <span style="width: 100%; position: relative; ">
+                <input v-model="tokenSendAmount" placeholder="amount">
                 <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
                   {{ tokenMetaData?.token?.symbol ?? "tokens" }}
                 </i>
