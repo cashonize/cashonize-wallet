@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "@bitjson/qr-code": "^1.0.2",
+    "@capacitor/app": "^5.0.7",
+    "@capacitor/core": "^5.7.4",
     "@download/blockies": "^1.0.3",
     "@mainnet-cash/indexeddb-storage": "^2.2.7",
     "@quasar/extras": "^1.16.4",
