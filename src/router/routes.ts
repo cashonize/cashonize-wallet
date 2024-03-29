@@ -3,11 +3,10 @@ import { RouteRecordRaw } from 'vue-router';
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    children: [{ path: '', component: () => import('pages/WalletPage.vue') }],
+    component: () => import('pages/WalletPage.vue'),
+    props: route => ({ uri: route.query.uri })
   },
 
-  // Always leave this as last one,
-  // but you can also remove it
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),

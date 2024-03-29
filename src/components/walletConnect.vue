@@ -10,16 +10,24 @@
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
 
+  const props = defineProps<{
+    dappUriUrlParam?: string
+  }>()
+
   const dappUriInput = ref("");
   const sessionProposalWC = ref(undefined as any);
   const activeSessions = computed(() => walletconnectStore.activeSessions)
 
-  async function connectDappWithUri(){
+  async function connectDappUriInput(){
     if (!dappUriInput.value) {
       throw new Error("Please paste valid Wallet Connect V2 connection URI");
     }
     await web3wallet?.core.pairing.pair({ uri: dappUriInput.value });
     dappUriInput.value = "";
+  }
+
+  if(props.dappUriUrlParam){
+    await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam })
   }
 
   web3wallet?.on('session_proposal', wcSessionProposal);
@@ -82,7 +90,7 @@
 
     <input v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem;">
-      <input @click="connectDappWithUri" type="button" class="primaryButton" id="connect" value="Connect New dApp">
+      <input @click="connectDappUriInput" type="button" class="primaryButton" id="connect" value="Connect New dApp">
       <!--<input @click="() => {}" type="button" class="primaryButton" id="send" value="Scan QR Code">-->
     </div>
 

@@ -20,6 +20,10 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
+  const props = defineProps<{
+    uri: string
+  }>()
+
   const nameWallet = 'mywallet';
   const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
   const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
@@ -29,6 +33,7 @@
   const displayView = ref(undefined as (number | undefined));
   const transactionRequestWC = ref(undefined as any);
   const dappMetadata = ref(undefined as any);
+  const dappUriUrlParam = ref(undefined as undefined|string);
   const bcmrIndexer = computed(() => store.network == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
   
   // check if wallet exists
@@ -55,6 +60,11 @@
     console.timeEnd('initweb3wallet');
     const web3wallet = walletconnectStore.web3wallet;
     web3wallet?.on('session_request', async (event) => wcRequest(event));
+    // check if session request in URL params
+    if(props?.uri?.startsWith('wc:')){
+      dappUriUrlParam.value = props.uri
+      changeView(4);
+    }
     // fetch bch balance
     console.time('Balance Promises');
     const promiseWalletBalance = store.wallet.getBalance() as BalanceResponse;
@@ -209,7 +219,7 @@
     <bchWalletView v-if="displayView == 1"/>
     <myTokensView v-if="displayView == 2"/>
     <createTokensView v-if="displayView == 3"/>
-    <connectView v-if="displayView == 4"/>
+    <connectView v-if="displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
     <settingsMenu v-if="displayView == 5" @change-network="(arg) => changeNetwork(arg)" @change-view="(arg) => changeView(arg)"/>
   </main>
   <div v-if="transactionRequestWC">
