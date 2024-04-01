@@ -32,6 +32,8 @@
 
   tokenMetaData.value = BCMR.getTokenInfo(tokenData.value.tokenId) ?? null;
 
+  const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
+
   const httpsUrlTokenIcon = computed(() => {
     let tokenIconUri = tokenMetaData.value?.uris?.icon;
     if(tokenIconUri?.startsWith('ipfs://')){
@@ -209,7 +211,7 @@
             <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
           </div>
           <div v-if="tokenData?.amount" class="tokenAmount" id="tokenAmount">Token amount: 
-            {{ toAmountDecimals(tokenData?.amount) }} {{ tokenMetaData?.token?.symbol }}
+            {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
           </div>
         </div>
       </div>
