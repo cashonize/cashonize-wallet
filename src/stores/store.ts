@@ -24,7 +24,8 @@ export const useStore = defineStore('store', () => {
   const explorerUrl = computed(() => network.value == "mainnet" ? explorerUrlMainnet : explorerUrlChipnet);
   const tokenList = ref(null as (TokenList| null))
   const plannedTokenId = ref(undefined as (undefined | string));
-  const nrBcmrRegistries = ref(undefined as (number | undefined));
+  const bcmrRegistries = ref(undefined as (Record<string, any> | undefined));
+  const nrBcmrRegistries = computed(() => bcmrRegistries.value? Object.keys(bcmrRegistries.value) : undefined);
 
   async function updateTokenList(){
     if(!wallet.value) return // should never happen
@@ -65,5 +66,5 @@ export const useStore = defineStore('store', () => {
     tokenList.value = copyTokenList;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, fetchAuthUtxos, plannedTokenId, nrBcmrRegistries }
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries }
 })

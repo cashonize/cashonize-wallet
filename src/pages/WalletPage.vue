@@ -17,6 +17,7 @@
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
   import { useWindowSize } from '@vueuse/core'
+import { TokenList } from 'src/interfaces/interfaces'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
@@ -74,7 +75,7 @@
     console.timeEnd('Balance Promises');
     // fetch token balance
     console.time('fetch tokenUtxos Promise');
-    let tokenCategories = await store.updateTokenList();
+    await store.updateTokenList();
     console.timeEnd('fetch tokenUtxos Promise');
     store.balance = resultWalletBalance;
     store.maxAmountToSend = resultMaxAmountToSend;
@@ -84,12 +85,13 @@
     const walletUtxos = await utxosPromise;
     const preGenesisUtxo = walletUtxos?.find(utxo => !utxo.token && utxo.vout === 0);
     store.plannedTokenId = preGenesisUtxo?.txid ?? '';
-    if(!tokenCategories) return // should never happen
+    if(!store.tokenList) return // should never happen
     console.time('importRegistries');
-    await importRegistries(tokenCategories);
+    await importRegistries(store.tokenList);
     console.timeEnd('importRegistries');
-    store.nrBcmrRegistries = BCMR.getRegistries().length ?? 0;
+    console.time('fetchAuthUtxos');
     await store.fetchAuthUtxos();
+    console.timeEnd('fetchAuthUtxos');
   }
 
   async function setUpWalletSubscriptions(){
@@ -126,31 +128,49 @@
     store.maxAmountToSend = undefined;
     store.plannedTokenId = undefined;
     store.tokenList = null;
-    store.nrBcmrRegistries = undefined;
+    store.bcmrRegistries = undefined;
     changeView(1);
   }
 
   // Import onchain resolved BCMRs
-  async function importRegistries(tokenIds: string[]) {
+  async function importRegistries(tokenList: TokenList) { 
     let metadataPromises = [];
-    for (const tokenId of tokenIds) {
-      try {
-        const metadataPromise = fetch(`${bcmrIndexer.value}/registries/${tokenId}/latest`);
+    for (const item of tokenList){
+      if('nfts' in item){
+        for (const nft of item.nfts.slice(0,1)){
+          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nft.token?.commitment}`);
+          metadataPromises.push(metadataPromise);
+        }
+      } else{
+        const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}`);
         metadataPromises.push(metadataPromise);
-      } catch (error) { /*console.log(error)*/ }
-    }
-    console.time('Promises BCMR indexer');
-    const resolveMetadataPromsises = Promise.all(metadataPromises);
-    const resultsMetadata = await resolveMetadataPromsises;
-    console.timeEnd('Promises BCMR indexer');
-    console.time('response.json()');
-    for await (const response of resultsMetadata){
-      if (response?.status != 404) {
-        const jsonResponse = await response.json();
-        BCMR.addMetadataRegistry(jsonResponse);
       }
     }
-    console.timeEnd('response.json()');
+
+      console.time('Promises BCMR indexer');
+      const resolveMetadataPromsises = Promise.all(metadataPromises);
+      const resultsMetadata = await resolveMetadataPromsises;
+      console.timeEnd('Promises BCMR indexer');
+      console.time('response.json()');
+      const registries: any = {}
+      for await (const response of resultsMetadata){
+        if (response?.status != 404) {
+          const jsonResponse = await response.json();
+          const tokenId = jsonResponse?.token?.category
+          if(jsonResponse?.type_metadata){
+            const commitment = response.url.split("/").at(-2) as string;
+            if(!registries[tokenId]) registries[tokenId] = jsonResponse;
+            if(!registries[tokenId]?.nfts) registries[tokenId].nfts = {}
+            registries[tokenId].nfts[commitment] = jsonResponse?.type_metadata
+          } else {
+            registries[tokenId] = jsonResponse;
+          }
+        }
+      }
+      console.timeEnd('response.json()');
+      console.log(registries)
+      store.bcmrRegistries = registries
+      console.log(registries)
   }
 
   // Wallet connect dialog functionality

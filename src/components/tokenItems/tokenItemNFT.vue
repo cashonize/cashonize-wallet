@@ -30,7 +30,7 @@
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
   const destinationAddr = ref("");
-  const tokenMetaData = ref(null as (IdentitySnapshot | null));
+  const tokenMetaData = ref(null as (any | null));
   const mintUniqueNfts = ref("yes" as 'yes' | 'no');
   const mintCommitment = ref("");
   const mintAmountNfts = ref(undefined as string | undefined);
@@ -38,14 +38,14 @@
   const totalNumberNFTs = ref(undefined as number | undefined);
   const hasMintingNFT = ref(undefined as boolean | undefined);
 
-  tokenMetaData.value = BCMR.getTokenInfo(tokenData.value.tokenId) ?? null;
+  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? null;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
   const nftMetadata = computed(() => {
     if(!isSingleNft.value) return
     const nftData = tokenData.value.nfts?.[0];
     const commitment = nftData?.token?.commitment;
-    return tokenMetaData?.value?.token?.nfts?.parse?.types[commitment ?? ""];
+    return tokenMetaData?.value?.nfts[commitment ?? ""]
   })
   const httpsUrlTokenIcon = computed(() => {
     let tokenIconUri = tokenMetaData.value?.uris?.icon;

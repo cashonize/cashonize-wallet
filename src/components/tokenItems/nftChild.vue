@@ -13,7 +13,7 @@
 
   const props = defineProps<{
     nftData: UtxoI,
-    tokenMetaData: IdentitySnapshot | null,
+    tokenMetaData: any | null,
     id: string
   }>()
   const { nftData, tokenMetaData, id } = toRefs(props);
@@ -31,7 +31,7 @@
 
   const nftMetadata = computed(() => {
     const commitment = nftData.value?.token?.commitment;
-    return tokenMetaData?.value?.token?.nfts?.parse?.types[commitment ?? ""];
+    return tokenMetaData?.value?.nfts?.[commitment ?? ""];
   })
   const httpsUrlTokenIcon = computed(() => {
     let tokenIconUri = tokenMetaData.value?.uris?.icon;

@@ -27,10 +27,10 @@
   const destinationAddr = ref("");
   const burnAmountFTs = ref("");
   const reservedSupplyInput = ref("")
-  const tokenMetaData = ref(null as (IdentitySnapshot | null));
+  const tokenMetaData = ref(null as (any | null));
   const totalSupplyFT = ref(undefined as bigint | undefined);
 
-  tokenMetaData.value = BCMR.getTokenInfo(tokenData.value.tokenId) ?? null;
+  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? null;
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
