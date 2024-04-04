@@ -11,7 +11,7 @@
   <div v-if="store.tokenList?.length == 0"> No tokens in Wallet </div>
   <div v-if="store.nrBcmrRegistries != undefined">
     <div v-for="tokenData in store.tokenList" :key="tokenData.tokenId.slice(0,6)">
-      <tokenItemFT v-if="tokenData.amount" :tokenData="tokenData"/>
+      <tokenItemFT v-if="'amount' in tokenData" :tokenData="tokenData"/>
       <tokenItemNFT v-else :tokenData="tokenData"/>
     </div>
   </div>
