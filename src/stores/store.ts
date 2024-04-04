@@ -54,9 +54,11 @@ export const useStore = defineStore('store', () => {
     const metadataPromises = [];
     for (const item of tokenList) {
       if('nfts' in item && (fetchNftInfo || Object.keys(item.nfts).length == 1)) {
-        for(const nft of item.nfts) {
-          if(!nft.token?.commitment) continue // handle empty commit case!
-          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nft.token?.commitment}`);
+        const listCommitments = item.nfts.map(nftItem => nftItem.token?.commitment)
+        const uniqueCommitments = new Set(listCommitments);
+        for(const nftCommitment of uniqueCommitments) {
+          if(!nftCommitment) continue // handle empty commit case!
+          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftCommitment}`);
           metadataPromises.push(metadataPromise);
         }
       } else {
