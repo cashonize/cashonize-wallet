@@ -160,7 +160,7 @@
         </div>
 
         <details  style="margin-bottom: 0.5em;">
-          <summary>Link Token-Metadata</summary>
+          <summary style="display: list-item">Link Token-Metadata</summary>
           To add metadata to your token you need to upload the token image(s), create a JSON file following the 
           <a href="https://github.com/bitjson/chip-bcmr" target="_blank">BCMR-standard</a>, upload it somewhere and then post that link on-chain. <br><br>
     
