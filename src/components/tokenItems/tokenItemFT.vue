@@ -243,8 +243,10 @@
           </div>
           <div v-if="tokenData.amount">
             Genesis supply: {{ totalSupplyFT? 
-              (tokenMetaData?.token?.symbol ? toAmountDecimals(totalSupplyFT) + " " + tokenMetaData?.token?.symbol
-              : totalSupplyFT + " tokens") : "..."
+              (tokenMetaData?.token?.symbol ? 
+                numberFormatter.format(toAmountDecimals(totalSupplyFT)) + " " + tokenMetaData?.token?.symbol
+                : totalSupplyFT + " tokens")
+              : "..."
             }}
           </div>
         </div>
