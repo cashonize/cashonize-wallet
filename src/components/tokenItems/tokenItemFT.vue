@@ -1,11 +1,10 @@
 <script setup lang="ts">
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, BCMR, SendRequest  } from "mainnet-js"
+  import { TokenSendRequest, SendRequest  } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import type { TokenDataFT } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT } from "src/queryChainGraph"
-  import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()

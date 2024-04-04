@@ -5,7 +5,6 @@
   import { type UtxoI } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
-  import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()

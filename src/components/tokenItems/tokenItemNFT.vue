@@ -2,12 +2,11 @@
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
-  import { TokenSendRequest, TokenMintRequest, BCMR, SendRequest } from "mainnet-js"
+  import { TokenSendRequest, TokenMintRequest, SendRequest } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import type { TokenDataNFT } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
-  import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
@@ -38,6 +37,8 @@
   const totalNumberNFTs = ref(undefined as number | undefined);
   const hasMintingNFT = ref(undefined as boolean | undefined);
 
+  let fetchedMetadataChildren = false
+
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? null;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
@@ -51,7 +52,7 @@
     let tokenIconUri = tokenMetaData.value?.uris?.icon;
     if(isSingleNft.value){
       const commitment = tokenData.value.nfts?.[0].token?.commitment;
-      const nftMetadata = tokenMetaData.value?.token?.nfts?.parse?.types[commitment ?? ""];
+      const nftMetadata = tokenMetaData.value?.nfts?.[commitment ?? ""];
       const nftIconUri = nftMetadata?.uris?.icon;
       if(nftIconUri) tokenIconUri = nftIconUri;
     }
@@ -64,7 +65,7 @@
     let tokenName = tokenMetaData.value?.name;
     if(isSingleNft.value){
       const commitment = tokenData.value.nfts?.[0].token?.commitment;
-      const nftMetadata = tokenMetaData?.value?.token?.nfts?.parse?.types[commitment ?? ""];
+      const nftMetadata = tokenMetaData?.value?.nfts?.[commitment ?? ""];
       const nftName = nftMetadata?.name;
       if(nftName) tokenName = nftName;
     }
@@ -97,6 +98,16 @@
       hasMintingNFT.value = resultHasMintingNft;
     }
   })
+
+  async function showChildNfts() {
+    if(!fetchedMetadataChildren){
+      console.time('fetch NFT info');
+      await store.importRegistries([tokenData.value], true)
+      fetchedMetadataChildren = true
+      console.timeEnd('fetch NFT info');
+    }
+    displayChildNfts.value = !displayChildNfts.value;
+  }
   
   // NFT Group specific functionality
   async function sendAllNfts(){
@@ -281,7 +292,7 @@
             </div>
             <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
           </div>
-          <div v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayChildNfts = !displayChildNfts" class="showChildNfts">
+          <div v-if="(tokenData.nfts?.length ?? 0) > 1" @click="showChildNfts()" class="showChildNfts">
             <span class="nrChildNfts" id="nrChildNfts">Number NFTs: {{ tokenData.nfts?.length }}</span>
             <span class="hide" id="showMore" style="margin-left: 10px;">
               <img class="icon" :src="settingsStore.darkMode? (displayChildNfts? 'images/chevron-square-up-lightGrey.svg':'images/chevron-square-down-lightGrey.svg') : 
@@ -390,7 +401,7 @@
 
     <div v-if="displayChildNfts && (tokenData.nfts?.length ?? 0) > 1">
       <div v-for="(nft, index) in tokenData.nfts" :key="'nft'+tokenData.tokenId.slice(0,4) + index">
-        <nftChild :nftData="nft" :tokenMetaData="tokenMetaData" :id="'nft'+tokenData.tokenId.slice(0,4) + index"/>
+        <nftChild :nftData="nft" :tokenMetaData="store.bcmrRegistries?.[tokenData.tokenId] " :id="'nft'+tokenData.tokenId.slice(0,4) + index"/>
       </div>
     </div>
   </div>

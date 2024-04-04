@@ -7,7 +7,7 @@
   import createTokensView from 'src/components/createTokens.vue'
   import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
   import { ref, computed } from 'vue'
-  import { Wallet, TestNetWallet, BalanceResponse, BCMR, binToHex } from 'mainnet-js'
+  import { Wallet, TestNetWallet, BalanceResponse, binToHex } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
   import type { Web3WalletTypes } from '@walletconnect/web3wallet';
   import { useStore } from 'src/stores/store'
@@ -17,17 +17,14 @@
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
   import { useWindowSize } from '@vueuse/core'
-import { TokenList } from 'src/interfaces/interfaces'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
   const props = defineProps<{
-    uri: string
+    uri: string | undefined
   }>()
 
   const nameWallet = 'mywallet';
-  const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
-  const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
   let cancelWatchBchtxs: undefined | CancelWatchFn;
   let cancelWatchTokenTxs: undefined | CancelWatchFn;
 
@@ -35,7 +32,6 @@ import { TokenList } from 'src/interfaces/interfaces'
   const transactionRequestWC = ref(undefined as any);
   const dappMetadata = ref(undefined as any);
   const dappUriUrlParam = ref(undefined as undefined|string);
-  const bcmrIndexer = computed(() => store.network == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
   
   // check if wallet exists
   const mainnetWalletExists = await Wallet.namedExists(nameWallet);
@@ -87,7 +83,7 @@ import { TokenList } from 'src/interfaces/interfaces'
     store.plannedTokenId = preGenesisUtxo?.txid ?? '';
     if(!store.tokenList) return // should never happen
     console.time('importRegistries');
-    await importRegistries(store.tokenList);
+    await store.importRegistries(store.tokenList, false);
     console.timeEnd('importRegistries');
     console.time('fetchAuthUtxos');
     await store.fetchAuthUtxos();
@@ -106,10 +102,10 @@ import { TokenList } from 'src/interfaces/interfaces'
       const tokenId = tokenOutput?.tokenData?.category;
       if(!tokenId) return;
       const previousTokenList = store.tokenList;
-      const isNewCategory = !previousTokenList?.find(elem => elem.tokenId == tokenId);
+      const newTokenItem = previousTokenList?.find(elem => elem.tokenId == tokenId);
       await store.updateTokenList();
       // Dynamically import tokenmetadata
-      if(isNewCategory) await importRegistries([tokenId]);
+      if(newTokenItem) await store.importRegistries([newTokenItem], true);
     });
   }
 
@@ -132,46 +128,6 @@ import { TokenList } from 'src/interfaces/interfaces'
     changeView(1);
   }
 
-  // Import onchain resolved BCMRs
-  async function importRegistries(tokenList: TokenList) { 
-    let metadataPromises = [];
-    for (const item of tokenList){
-      if('nfts' in item){
-        for (const nft of item.nfts.slice(0,1)){
-          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nft.token?.commitment}`);
-          metadataPromises.push(metadataPromise);
-        }
-      } else{
-        const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}`);
-        metadataPromises.push(metadataPromise);
-      }
-    }
-
-      console.time('Promises BCMR indexer');
-      const resolveMetadataPromsises = Promise.all(metadataPromises);
-      const resultsMetadata = await resolveMetadataPromsises;
-      console.timeEnd('Promises BCMR indexer');
-      console.time('response.json()');
-      const registries: any = {}
-      for await (const response of resultsMetadata){
-        if (response?.status != 404) {
-          const jsonResponse = await response.json();
-          const tokenId = jsonResponse?.token?.category
-          if(jsonResponse?.type_metadata){
-            const commitment = response.url.split("/").at(-2) as string;
-            if(!registries[tokenId]) registries[tokenId] = jsonResponse;
-            if(!registries[tokenId]?.nfts) registries[tokenId].nfts = {}
-            registries[tokenId].nfts[commitment] = jsonResponse?.type_metadata
-          } else {
-            registries[tokenId] = jsonResponse;
-          }
-        }
-      }
-      console.timeEnd('response.json()');
-      console.log(registries)
-      store.bcmrRegistries = registries
-      console.log(registries)
-  }
 
   // Wallet connect dialog functionality
   async function wcRequest(event: Web3WalletTypes.SessionRequest) {
