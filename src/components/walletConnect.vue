@@ -6,6 +6,8 @@
   import { getSdkError } from '@walletconnect/utils';
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
   const store = useStore()
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
@@ -19,11 +21,17 @@
   const activeSessions = computed(() => walletconnectStore.activeSessions)
 
   async function connectDappUriInput(){
-    if (!dappUriInput.value) {
-      throw new Error("Please paste valid Wallet Connect V2 connection URI");
+    try {
+      if(!dappUriInput.value) throw("Please paste valid Wallet Connect V2 connection URI");
+      await web3wallet?.core.pairing.pair({ uri: dappUriInput.value });
+      dappUriInput.value = "";
+    } catch(error) {
+      $q.notify({
+        message: "Please paste valid Wallet Connect V2 connection URI",
+        icon: 'warning',
+        color: "red"
+      })
     }
-    await web3wallet?.core.pairing.pair({ uri: dappUriInput.value });
-    dappUriInput.value = "";
   }
 
   if(props.dappUriUrlParam){

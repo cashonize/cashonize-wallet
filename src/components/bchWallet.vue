@@ -4,6 +4,8 @@
   import { defineCustomElements } from '@bitjson/qr-code';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
   import { useWindowSize } from '@vueuse/core'
@@ -64,20 +66,25 @@
     bchSendAmount.value = Number(newBchValue);
   }
   async function useMaxBchAmount(){
-    try{
-      if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit]){
-        bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
-        setUsdAmount()
-      }
-      else throw("expected a number");
-    } catch(error) {
-      console.log(error)
+    if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit]){
+      bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
+      setUsdAmount()
+    }
+    else{
+      $q.notify({
+        message: "Wallet Doesn't hold any Bitcoin Cash",
+        icon: 'warning',
+        color: "grey-7"
+      })
     }
   }
   async function sendBch(){
     try{
       if(!store.wallet) return;
-      if(!bchSendAmount.value) throw("No valid amount provided!")
+      // check for valid inputs
+      if(!bchSendAmount.value) throw("No valid amount provided")
+      if(!destinationAddr.value) throw("No valid destination address provided")
+      if(bchSendAmount.value > (store.maxAmountToSend?.sat ?? 0)) throw("Not enough BCH in wallet")
       const sendBchOutput = {cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: settingsStore.bchUnit}
       const { txId } = await store.wallet.send([ sendBchOutput ]);
       alert(`Sent ${bchSendAmount.value, displayUnitLong.value} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
@@ -85,7 +92,13 @@
       bchSendAmount.value = undefined;
       destinationAddr.value = "";
     } catch(error){
-      console.log(error)
+      if(typeof error == 'string'){
+        $q.notify({
+          message: error,
+          icon: 'warning',
+          color: "red"
+        })
+      }
     }
   }
 </script>
@@ -150,6 +163,7 @@
         </span> 
             <button @click="useMaxBchAmount()" class="fillInMaxBch">max</button>
       </span>
+      <div v-if="(store.maxAmountToSend?.sat ?? 0) < (bchSendAmount ?? 0)" style="color: red;" id="warningNoBCH">Not enough BCH in wallet to send</div>
       
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
