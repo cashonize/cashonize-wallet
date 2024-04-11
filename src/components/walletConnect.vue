@@ -22,12 +22,12 @@
 
   async function connectDappUriInput(){
     try {
-      if(!dappUriInput.value) throw("Please paste valid Wallet Connect V2 connection URI");
+      if(!dappUriInput.value) throw("");
       await web3wallet?.core.pairing.pair({ uri: dappUriInput.value });
       dappUriInput.value = "";
     } catch(error) {
       $q.notify({
-        message: "Please paste valid Wallet Connect V2 connection URI",
+        message: "Not a valid BCH WalletConnect URI",
         icon: 'warning',
         color: "red"
       })

@@ -72,7 +72,7 @@
     }
     else{
       $q.notify({
-        message: "Wallet Doesn't hold any Bitcoin Cash",
+        message: "Wallet doesn't hold any Bitcoin Cash",
         icon: 'warning',
         color: "grey-7"
       })
@@ -82,8 +82,8 @@
     try{
       if(!store.wallet) return;
       // check for valid inputs
+      if(!destinationAddr.value) throw("No destination address provided")
       if(!bchSendAmount.value) throw("No valid amount provided")
-      if(!destinationAddr.value) throw("No valid destination address provided")
       if(bchSendAmount.value > (store.maxAmountToSend?.sat ?? 0)) throw("Not enough BCH in wallet")
       const sendBchOutput = {cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: settingsStore.bchUnit}
       const { txId } = await store.wallet.send([ sendBchOutput ]);

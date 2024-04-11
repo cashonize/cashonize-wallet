@@ -154,6 +154,18 @@ input[type=number] {
   }
 }
 
+/* offset chota styling for quasar notify plugin */
+.row{
+  margin: auto;
+  margin-right: auto !important;
+}
+@media screen and (max-width: 599px) {
+  .col{
+    flex: none;
+    margin: auto;
+  }
+}
+
 @media (min-width: 1024px) {
   #app {
     /* display: grid;
