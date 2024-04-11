@@ -1,6 +1,8 @@
 <script setup lang="ts">
   import { ref } from "vue"
   import { Wallet, TestNetWallet, Config } from "mainnet-js"
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
 
   const seedphrase = ref(undefined as (string | undefined));
   const selectedDerivationPath =  ref("standard" as ("standard" | "bitcoindotcom"));
@@ -16,14 +18,24 @@
   }
 
   async function importWallet() {
-    const derivationPath = selectedDerivationPath.value == "standard"? "m/44'/145'/0'/0/0" : "m/44'/0'/0'/0/0";
-    if(selectedDerivationPath.value == "standard") Config.DefaultParentDerivationPath = "m/44'/145'/0'";
-    const walletId = `seed:mainnet:${seedphrase.value}:${derivationPath}`;
-    await Wallet.replaceNamed(nameWallet, walletId);
-    const walletIdTestnet = `seed:testnet:${seedphrase.value}:${derivationPath}`;
-    await TestNetWallet.replaceNamed(nameWallet, walletIdTestnet);
-    const mainnetWallet = await Wallet.named(nameWallet);
-    emit('initWallet', mainnetWallet);
+    try{
+      const derivationPath = selectedDerivationPath.value == "standard"? "m/44'/145'/0'/0/0" : "m/44'/0'/0'/0/0";
+      if(selectedDerivationPath.value == "standard") Config.DefaultParentDerivationPath = "m/44'/145'/0'";
+      if(!seedphrase.value) throw("Enter a seed phrase to import wallet")
+      const walletId = `seed:mainnet:${seedphrase.value}:${derivationPath}`;
+      await Wallet.replaceNamed(nameWallet, walletId);
+      const walletIdTestnet = `seed:testnet:${seedphrase.value}:${derivationPath}`;
+      await TestNetWallet.replaceNamed(nameWallet, walletIdTestnet);
+      const mainnetWallet = await Wallet.named(nameWallet);
+      emit('initWallet', mainnetWallet);
+    } catch (error) {
+      const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase"
+      $q.notify({
+        message: errorMessage,
+        icon: 'warning',
+        color: typeof error == 'string' ? "grey-7" : "red"
+      })
+    }
   }
 </script>
 

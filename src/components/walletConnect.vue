@@ -22,14 +22,15 @@
 
   async function connectDappUriInput(){
     try {
-      if(!dappUriInput.value) throw("");
+      if(!dappUriInput.value) throw("Enter a BCH WalletConnect URI");
       await web3wallet?.core.pairing.pair({ uri: dappUriInput.value });
       dappUriInput.value = "";
     } catch(error) {
+      const errorMessage = typeof error == 'string' ? error : "Not a valid BCH WalletConnect URI"
       $q.notify({
-        message: "Not a valid BCH WalletConnect URI",
+        message: errorMessage,
         icon: 'warning',
-        color: "red"
+        color: typeof error == 'string' ? "grey-7" : "red"
       })
     }
   }
