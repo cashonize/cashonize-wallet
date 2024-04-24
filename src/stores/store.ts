@@ -57,8 +57,8 @@ export const useStore = defineStore('store', () => {
         const listCommitments = item.nfts.map(nftItem => nftItem.token?.commitment)
         const uniqueCommitments = new Set(listCommitments);
         for(const nftCommitment of uniqueCommitments) {
-          if(!nftCommitment) continue // handle empty commit case!
-          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftCommitment}`);
+          const nftEndpoint = nftCommitment ? nftCommitment : "empty"
+          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftEndpoint}`);
           metadataPromises.push(metadataPromise);
         }
       } else {
@@ -74,7 +74,8 @@ export const useStore = defineStore('store', () => {
         const jsonResponse = await response.json();
         const tokenId = jsonResponse?.token?.category
         if(jsonResponse?.type_metadata) {
-          const commitment = response.url.split("/").at(-2) as string;
+          const nftEndpoint = response.url.split("/").at(-2) as string;
+          const commitment = nftEndpoint != "empty"? nftEndpoint : "";
           if(!registries[tokenId]) registries[tokenId] = jsonResponse;
           if(!registries[tokenId]?.nfts) registries[tokenId].nfts = {}
           registries[tokenId].nfts[commitment] = jsonResponse?.type_metadata
