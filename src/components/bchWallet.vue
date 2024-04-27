@@ -166,7 +166,7 @@
         </span> 
             <button @click="useMaxBchAmount()" class="fillInMaxBch">max</button>
       </span>
-      <div v-if="(store.maxAmountToSend?.sat ?? 0) < (bchSendAmount ?? 0)" style="color: red;" id="warningNoBCH">Not enough BCH in wallet to send</div>
+      <div v-if="(store.maxAmountToSend?.[settingsStore.bchUnit] ?? 0) < (bchSendAmount ?? 0)" style="color: red;" id="warningNoBCH">Not enough BCH in wallet to send</div>
       
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
