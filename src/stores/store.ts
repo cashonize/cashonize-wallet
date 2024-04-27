@@ -14,17 +14,21 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 
 const explorerUrlMainnet = "https://explorer.bitcoinunlimited.info";
 const explorerUrlChipnet = "https://chipnet.chaingraph.cash";
+const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
+const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
 export const useStore = defineStore('store', () => {
   // Wallet State
-  const wallet = ref(null as (Wallet |TestNetWallet | null));
+  const wallet = ref(null as (Wallet | TestNetWallet | null));
   const balance = ref(undefined as (BalanceResponse | undefined));
   const maxAmountToSend = ref(undefined as (BalanceResponse | undefined));
   const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
   const explorerUrl = computed(() => network.value == "mainnet" ? explorerUrlMainnet : explorerUrlChipnet);
-  const tokenList = ref(null as (TokenList| null))
+  const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
-  const nrBcmrRegistries = ref(undefined as (number | undefined));
+  const bcmrRegistries = ref(undefined as (Record<string, any> | undefined));
+  const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
+  const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
   async function updateTokenList(){
     if(!wallet.value) return // should never happen
@@ -43,6 +47,44 @@ export const useStore = defineStore('store', () => {
     tokenList.value = arrayTokens;
     const catgeories = Object.keys({...fungibleTokensResult, ...nftsResult})
     return catgeories;
+  }
+
+  // Import onchain resolved BCMRs
+  async function importRegistries(tokenList: TokenList, fetchNftInfo: boolean) {
+    const metadataPromises = [];
+    for (const item of tokenList) {
+      if('nfts' in item && (fetchNftInfo || Object.keys(item.nfts).length == 1)) {
+        const listCommitments = item.nfts.map(nftItem => nftItem.token?.commitment)
+        const uniqueCommitments = new Set(listCommitments);
+        for(const nftCommitment of uniqueCommitments) {
+          const nftEndpoint = nftCommitment ? nftCommitment : "empty"
+          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftEndpoint}`);
+          metadataPromises.push(metadataPromise);
+        }
+      } else {
+        const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}`);
+        metadataPromises.push(metadataPromise);
+      }
+    }
+    const resolveMetadataPromsises = Promise.all(metadataPromises);
+    const resultsMetadata = await resolveMetadataPromsises;
+    const registries = bcmrRegistries.value ?? {};
+    for await(const response of resultsMetadata) {
+      if(response?.status != 404) {
+        const jsonResponse = await response.json();
+        const tokenId = jsonResponse?.token?.category
+        if(jsonResponse?.type_metadata) {
+          const nftEndpoint = response.url.split("/").at(-2) as string;
+          const commitment = nftEndpoint != "empty"? nftEndpoint : "";
+          if(!registries[tokenId]) registries[tokenId] = jsonResponse;
+          if(!registries[tokenId]?.nfts) registries[tokenId].nfts = {}
+          registries[tokenId].nfts[commitment] = jsonResponse?.type_metadata
+        } else {
+          registries[tokenId] = jsonResponse;
+        }
+      }
+    }
+    bcmrRegistries.value = registries
   }
 
   async function fetchAuthUtxos(){
@@ -65,5 +107,5 @@ export const useStore = defineStore('store', () => {
     tokenList.value = copyTokenList;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, fetchAuthUtxos, plannedTokenId, nrBcmrRegistries }
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries }
 })

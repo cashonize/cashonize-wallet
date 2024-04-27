@@ -1,11 +1,10 @@
 <script setup lang="ts">
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, BCMR, SendRequest  } from "mainnet-js"
+  import { TokenSendRequest, SendRequest  } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import type { TokenDataFT } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT } from "src/queryChainGraph"
-  import type { IdentitySnapshot } from "mainnet-js"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
@@ -27,10 +26,10 @@
   const destinationAddr = ref("");
   const burnAmountFTs = ref("");
   const reservedSupplyInput = ref("")
-  const tokenMetaData = ref(null as (IdentitySnapshot | null));
+  const tokenMetaData = ref(null as (any | null));
   const totalSupplyFT = ref(undefined as bigint | undefined);
 
-  tokenMetaData.value = BCMR.getTokenInfo(tokenData.value.tokenId) ?? null;
+  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? null;
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 

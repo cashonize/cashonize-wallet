@@ -7,7 +7,7 @@
   import createTokensView from 'src/components/createTokens.vue'
   import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
   import { ref, computed } from 'vue'
-  import { Wallet, TestNetWallet, BalanceResponse, BCMR, binToHex } from 'mainnet-js'
+  import { Wallet, TestNetWallet, BalanceResponse, binToHex } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
   import type { Web3WalletTypes } from '@walletconnect/web3wallet';
   import { useStore } from 'src/stores/store'
@@ -21,12 +21,10 @@
   const isMobile = computed(() => width.value < 480)
 
   const props = defineProps<{
-    uri: string
+    uri: string | undefined
   }>()
 
   const nameWallet = 'mywallet';
-  const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
-  const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
   let cancelWatchBchtxs: undefined | CancelWatchFn;
   let cancelWatchTokenTxs: undefined | CancelWatchFn;
 
@@ -34,7 +32,6 @@
   const transactionRequestWC = ref(undefined as any);
   const dappMetadata = ref(undefined as any);
   const dappUriUrlParam = ref(undefined as undefined|string);
-  const bcmrIndexer = computed(() => store.network == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
   
   // check if wallet exists
   const mainnetWalletExists = await Wallet.namedExists(nameWallet);
@@ -74,7 +71,7 @@
     console.timeEnd('Balance Promises');
     // fetch token balance
     console.time('fetch tokenUtxos Promise');
-    let tokenCategories = await store.updateTokenList();
+    await store.updateTokenList();
     console.timeEnd('fetch tokenUtxos Promise');
     store.balance = resultWalletBalance;
     store.maxAmountToSend = resultMaxAmountToSend;
@@ -84,12 +81,13 @@
     const walletUtxos = await utxosPromise;
     const preGenesisUtxo = walletUtxos?.find(utxo => !utxo.token && utxo.vout === 0);
     store.plannedTokenId = preGenesisUtxo?.txid ?? '';
-    if(!tokenCategories) return // should never happen
+    if(!store.tokenList) return // should never happen
     console.time('importRegistries');
-    await importRegistries(tokenCategories);
+    await store.importRegistries(store.tokenList, false);
     console.timeEnd('importRegistries');
-    store.nrBcmrRegistries = BCMR.getRegistries().length ?? 0;
+    console.time('fetchAuthUtxos');
     await store.fetchAuthUtxos();
+    console.timeEnd('fetchAuthUtxos');
   }
 
   async function setUpWalletSubscriptions(){
@@ -104,10 +102,10 @@
       const tokenId = tokenOutput?.tokenData?.category;
       if(!tokenId) return;
       const previousTokenList = store.tokenList;
-      const isNewCategory = !previousTokenList?.find(elem => elem.tokenId == tokenId);
+      const newTokenItem = previousTokenList?.find(elem => elem.tokenId == tokenId);
       await store.updateTokenList();
       // Dynamically import tokenmetadata
-      if(isNewCategory) await importRegistries([tokenId]);
+      if(newTokenItem) await store.importRegistries([newTokenItem], true);
     });
   }
 
@@ -126,32 +124,10 @@
     store.maxAmountToSend = undefined;
     store.plannedTokenId = undefined;
     store.tokenList = null;
-    store.nrBcmrRegistries = undefined;
+    store.bcmrRegistries = undefined;
     changeView(1);
   }
 
-  // Import onchain resolved BCMRs
-  async function importRegistries(tokenIds: string[]) {
-    let metadataPromises = [];
-    for (const tokenId of tokenIds) {
-      try {
-        const metadataPromise = fetch(`${bcmrIndexer.value}/registries/${tokenId}/latest`);
-        metadataPromises.push(metadataPromise);
-      } catch (error) { /*console.log(error)*/ }
-    }
-    console.time('Promises BCMR indexer');
-    const resolveMetadataPromsises = Promise.all(metadataPromises);
-    const resultsMetadata = await resolveMetadataPromsises;
-    console.timeEnd('Promises BCMR indexer');
-    console.time('response.json()');
-    for await (const response of resultsMetadata){
-      if (response?.status != 404) {
-        const jsonResponse = await response.json();
-        BCMR.addMetadataRegistry(jsonResponse);
-      }
-    }
-    console.timeEnd('response.json()');
-  }
 
   // Wallet connect dialog functionality
   async function wcRequest(event: Web3WalletTypes.SessionRequest) {
