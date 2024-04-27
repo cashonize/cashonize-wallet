@@ -1,6 +1,6 @@
 {
   "name": "cashonize-quasar",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Cashonize is a Bitcoin Cash (BCH) Wallet which supports CashTokens and WalletConnect.",
   "productName": "Cashonize",
   "author": "",
