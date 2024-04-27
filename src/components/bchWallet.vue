@@ -14,6 +14,8 @@
 
   const nrTokenCategories = computed(() => store.tokenList?.length)
 
+  const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
+
   const bchDisplayUnit = computed(() => {
     if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " sats"
     else return settingsStore.bchUnit == "bch"? " tBCH" : " tsats"
@@ -115,7 +117,8 @@
     <span>
       BCH balance:  
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance && store.balance[settingsStore.bchUnit] != undefined ? store.balance[settingsStore.bchUnit] + displayUnitLong : "" }}
+        {{ store.balance && store.balance[settingsStore.bchUnit] != undefined 
+          ? numberFormatter.format(store.balance[settingsStore.bchUnit] as number) + displayUnitLong : "" }}
       </span>
     </span>
     <span v-if="!isMobile">
