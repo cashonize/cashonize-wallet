@@ -1,11 +1,12 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
-  import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH } from "@bitauth/libauth"
+  import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH, TransactionCommon } from "@bitauth/libauth"
   import { BCMR, convert } from "mainnet-js"
   import { getSdkError } from '@walletconnect/utils';
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
+  import { parseExtendedJson } from 'src/utils/utils'
   const store = useStore()
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
@@ -19,28 +20,9 @@
   }>()
   const { transactionRequestWC } = toRefs(props);
 
-  const parseExtendedJson = (jsonString: string) => {
-    const uint8ArrayRegex = /^<Uint8Array: 0x(?<hex>[0-9a-f]*)>$/u;
-    const bigIntRegex = /^<bigint: (?<bigint>[0-9]*)n>$/;
-
-    return JSON.parse(jsonString, (_key, value) => {
-      if (typeof value === "string") {
-        const bigintMatch = value.match(bigIntRegex);
-        if (bigintMatch) {
-          return BigInt(bigintMatch[1]);
-        }
-        const uint8ArrayMatch = value.match(uint8ArrayRegex);
-        if (uint8ArrayMatch) {
-          return hexToBin(uint8ArrayMatch[1]);
-        }
-      }
-      return value;
-    });
-  }
-
   const { id, topic } = transactionRequestWC.value;
   const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params));
-  const txDetails = requestParams.transaction;
+  const txDetails:TransactionCommon = requestParams.transaction;
 
   const abs = (value: bigint) => (value < 0n) ? -value : value;
 
@@ -243,7 +225,7 @@
           </div>
           <div class="wc-modal-heading">Outputs:</div>
           <table class="wc-data-table">
-            <tbody v-for="(output, outputIndex) in txDetails.outputs" :key="output.outpointTransactionHash">
+            <tbody v-for="(output, outputIndex) in txDetails.outputs" :key="binToHex(output.lockingBytecode) + outputIndex">
               <tr>
                 <td>{{ outputIndex }}</td>
                 <td>
