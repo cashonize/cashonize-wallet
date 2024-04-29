@@ -81,10 +81,8 @@
     max-width: 100%;
     background-color: white
   }
-  .q-dialog__backdrop {
-    backdrop-filter: blur(24px);
-    background-color: transparent;
-    pointer-events: all  !important;
+  body.dark .dialogFieldsetSignMessage {
+    background-color: #050a14;
   }
   .q-card{
     box-shadow: none;

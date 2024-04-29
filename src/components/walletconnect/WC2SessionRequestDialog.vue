@@ -59,10 +59,8 @@
     height: 220px;
     background-color: white
   }
-  .q-dialog__backdrop {
-    backdrop-filter: blur(24px);
-    background-color: transparent;
-    pointer-events: all  !important;
+  body.dark .dialogFieldset {
+    background-color: #050a14;
   }
   .q-card{
     box-shadow: none;

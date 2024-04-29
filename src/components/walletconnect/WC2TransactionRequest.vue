@@ -301,10 +301,8 @@
     background-color: white;
     overflow: auto;
   }
-  .q-dialog__backdrop {
-    backdrop-filter: blur(24px);
-    background-color: transparent;
-    pointer-events: all  !important;
+  body.dark .dialogFieldsetTxRequest {
+    background-color: #050a14;
   }
   .q-card{
     box-shadow: none;

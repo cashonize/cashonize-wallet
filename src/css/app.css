@@ -216,3 +216,8 @@ input[type=number] {
     width: 100%;
   }
 }
+.q-dialog__backdrop {
+  backdrop-filter: blur(24px);
+  background-color: transparent;
+  pointer-events: all  !important;
+}
