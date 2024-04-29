@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
-  import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH, TransactionCommon } from "@bitauth/libauth"
+  import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH, TransactionCommon, TransactionTemplateFixed, CompilationContextBCH } from "@bitauth/libauth"
   import { BCMR, convert } from "mainnet-js"
   import { getSdkError } from '@walletconnect/utils';
   import type { DappMetadata } from "src/interfaces/interfaces"
@@ -91,7 +91,7 @@
     // configure compiler
     const compiler = walletTemplateToCompilerBCH(template);
 
-    const txTemplate = {...txDetails};
+    const txTemplate = {...txDetails} as TransactionTemplateFixed<typeof compiler>;
 
     for (const [index, input] of txTemplate.inputs.entries()) {
       const sourceOutputsUnpacked = requestParams.sourceOutputs;
@@ -105,7 +105,7 @@
         if (unlockingBytecodeHex.indexOf(sigPlaceholder) !== -1) {
           // compute the signature argument
           const hashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
-          const context = { inputIndex: index, sourceOutputs: sourceOutputsUnpacked, transaction: txDetails };
+          const context: CompilationContextBCH = { inputIndex: index, sourceOutputs: sourceOutputsUnpacked, transaction: txDetails };
           const signingSerializationType = new Uint8Array([hashType]);
 
           const coveredBytecode = sourceOutputsUnpacked[index].contract?.redeemScript;
