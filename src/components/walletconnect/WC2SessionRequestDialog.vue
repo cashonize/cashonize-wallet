@@ -51,7 +51,7 @@
   </q-dialog>
 </template>
 
-<style>
+<style scoped>
   .dialogFieldset{
     padding: 3rem;
     width: 500px;

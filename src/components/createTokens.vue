@@ -141,10 +141,10 @@
         <div v-else>
            Planned tokenId:
           <span v-if="store.plannedTokenId == undefined" id="plannedTokenId">loading...</span>
-          <span v-if="store.plannedTokenId"> {{ displayPlannedTokenId }} </span>
-          <button @click="copyToClipboard(store.plannedTokenId)" type="button" style="background: none; padding: 0;">
-            <img class="copyIcon icon" src="images/copy.svg">
-          </button>
+          <span v-if="store.plannedTokenId" @click="copyToClipboard(store.plannedTokenId)" style="cursor: pointer;">
+            <span class="tokenId"> {{ displayPlannedTokenId }} </span>
+            <img class="copyIcon icon" src="images/copyGrey.svg">
+          </span>
         </div> 
       </div>
 

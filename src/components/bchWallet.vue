@@ -2,6 +2,7 @@
   import { ref, computed } from 'vue'
   import { convert } from 'mainnet-js'
   import { defineCustomElements } from '@bitjson/qr-code';
+  import alertDialog from 'src/components/alertDialog.vue'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -12,6 +13,7 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
+  const alertInfo = ref(undefined as any)
   const nrTokenCategories = computed(() => store.tokenList?.length)
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
@@ -95,10 +97,26 @@
       if(!bchSendAmount.value) throw("No valid amount provided")
       if(bchSendAmount.value > (store.maxAmountToSend?.sat ?? 0)) throw("Not enough BCH in wallet")
       const sendBchOutput = {cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: settingsStore.bchUnit}
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const { txId } = await store.wallet.send([ sendBchOutput ]);
-      alert(`Sent ${bchSendAmount.value, displayUnitLong.value} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
-      console.log(`Sent ${bchSendAmount.value, displayUnitLong.value} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
+      // show alert
+      $q.notify({
+        type: 'positive',
+        message: 'Transaction succesfully sent!'
+      })
+      const alertMessage = `Sent ${bchSendAmount.value + displayUnitLong.value} to ${destinationAddr.value}`
+      const alertLink = `${store.explorerUrl}/tx/${txId}`
+      alertInfo.value = { message: alertMessage, txid: txId, link: alertLink } 
+      console.log(alertMessage);
+      console.log(alertLink);
+      // reset fields
       bchSendAmount.value = undefined;
+      usdSendAmount.value = undefined;
       destinationAddr.value = "";
     } catch(error){
       if(typeof error == 'string'){
@@ -142,13 +160,17 @@
     </div>
     <div style="word-break: break-all;">
       BCH address: 
-      <span class="depositAddr">{{ store.wallet?.address ?? "" }} </span>
-      <img class="copyIcon" src="images/copyGrey.svg" @click="() => copyToClipboard(store.wallet?.address)">
+      <span @click="() => copyToClipboard(store.wallet?.address)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.wallet?.address ?? "" }} </span>
+        <img class="copyIcon" src="images/copyGrey.svg">
+      </span>
     </div>
     <div style="word-break: break-all;">
       Token address:
-      <span class="depositAddr">{{ store.wallet?.tokenaddr ?? "" }}</span>
-      <img class="copyIcon" src="images/copyGrey.svg" @click="() => copyToClipboard(store.wallet?.tokenaddr)">
+      <span @click="() => copyToClipboard(store.wallet?.tokenaddr)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.wallet?.tokenaddr ?? "" }}</span>
+        <img class="copyIcon" src="images/copyGrey.svg"> 
+      </span>
     </div>
     <qr-code id="qrCode" :contents="displayeBchQr? store.wallet?.address : store.wallet?.tokenaddr" 
       style="display: block; width: 230px; height: 230px; margin: 5px auto 0 auto; background-color: #fff;">
@@ -178,4 +200,8 @@
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
   </fieldset>
+
+  <div v-if="alertInfo">
+    <alertDialog :alertInfo="alertInfo" @close-dialog="() => alertInfo = undefined"/>
+  </div>
 </template>

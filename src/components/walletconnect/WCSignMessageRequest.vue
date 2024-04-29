@@ -73,7 +73,7 @@
   </q-dialog>
 </template>
 
-<style>
+<style scoped>
   .dialogFieldsetSignMessage{
     padding: 3rem;
     max-height: 90vh;

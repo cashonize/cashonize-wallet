@@ -287,7 +287,7 @@
   </q-dialog>
 </template>
 
-<style>
+<style scoped>
   .dialogFieldsetTxRequest{
     padding: .5rem 2rem;
     width: 500px;

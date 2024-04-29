@@ -210,10 +210,12 @@
             <div v-if="tokenName" id="tokenName">Name: {{ tokenName }}</div>
             <div id="tokenIdBox" style="word-break: break-all;">
               TokenId: 
-              <span class="tokenId">
-                 {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-10)}`}}
+              <span>
+                <span class="tokenId" @click="copyToClipboard(tokenData.tokenId)" style="cursor: pointer;">
+                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-10)}`}}
+                </span>
+                <img class="copyIcon" src="images/copyGrey.svg">
               </span>
-              <img class="copyIcon" src="images/copyGrey.svg" @click="copyToClipboard(tokenData.tokenId)">
             </div>
             <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
           </div>
