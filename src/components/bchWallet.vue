@@ -36,8 +36,15 @@
   function switchAddressTypeQr(){
     displayeBchQr.value = !displayeBchQr.value;
   }
-  function copyToClipboard(item: string|undefined){
-    if(item) navigator.clipboard.writeText(item);
+  function copyToClipboard(copyText: string|undefined){
+    if(!copyText) return
+    navigator.clipboard.writeText(copyText);
+    $q.notify({
+        message: "Copied!",
+        icon: 'info',
+        timeout : 1000,
+        color: "grey-6"
+      })
   }
   async function parseAddrParams(){
     const addressInput = destinationAddr.value;

@@ -159,6 +159,9 @@ input[type=number] {
   margin: auto;
   margin-right: auto !important;
 }
+.col {
+  margin: 0;
+}
 @media screen and (max-width: 599px) {
   .col{
     flex: none;

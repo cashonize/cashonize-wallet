@@ -2,6 +2,8 @@
   import { ref, computed } from 'vue';
   import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
   import { useStore } from '../stores/store'
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
   const store = useStore()
 
   const selectedTokenType = ref("-select-");
@@ -11,8 +13,15 @@
   const validitityCheck = ref(false);
   const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-10)}`:"");
 
-  function copyNewTokenId(){
-    navigator.clipboard.writeText(store.plannedTokenId ?? "");
+  function copyToClipboard(copyText: string|undefined){
+    if(!copyText) return
+    navigator.clipboard.writeText(copyText);
+    $q.notify({
+        message: "Copied!",
+        icon: 'info',
+        timeout : 1000,
+        color: "grey-6"
+      })
   }
 
   async function hasPreGenesis(){
@@ -133,7 +142,7 @@
            Planned tokenId:
           <span v-if="store.plannedTokenId == undefined" id="plannedTokenId">loading...</span>
           <span v-if="store.plannedTokenId"> {{ displayPlannedTokenId }} </span>
-          <button @click="copyNewTokenId" type="button" style="background: none; padding: 0;">
+          <button @click="copyToClipboard(store.plannedTokenId)" type="button" style="background: none; padding: 0;">
             <img class="copyIcon icon" src="images/copy.svg">
           </button>
         </div> 

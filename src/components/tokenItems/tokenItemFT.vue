@@ -7,6 +7,8 @@
   import { queryTotalSupplyFT } from "src/queryChainGraph"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
   import { useWindowSize } from '@vueuse/core'
@@ -57,8 +59,14 @@
     iconDiv?.appendChild(icon);
   })
 
-  function copyTokenId(){
-    navigator.clipboard.writeText(tokenData.value.tokenId);
+  function copyToClipboard(copyText:string){
+    navigator.clipboard.writeText(copyText);
+    $q.notify({
+        message: "Copied!",
+        icon: 'info',
+        timeout : 1000,
+        color: "grey-6"
+      })
   }
 
   // check if need to fetch onchain stats on displayTokenInfo
@@ -205,7 +213,7 @@
               <span class="tokenId">
                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-10)}`}}
               </span>
-              <img class="copyIcon" src="images/copyGrey.svg" @click="copyTokenId">
+              <img class="copyIcon" src="images/copyGrey.svg" @click="copyToClipboard(tokenData.tokenId)">
             </div>
             <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
           </div>
@@ -238,7 +246,9 @@
             Number of decimals: {{ tokenMetaData?.token?.decimals ?? 0 }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
-            Token web link: <a :href="tokenMetaData?.uris?.web" target="_blank">{{ tokenMetaData?.uris?.web }}</a>
+            Token web link: 
+            <a v-if="!$q.platform.is.electron" :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
+            <a v-else @click="copyToClipboard(tokenMetaData.uris.web)">{{ tokenMetaData?.uris?.web }}</a>
           </div>
           <div v-if="tokenData.amount">
             Genesis supply: {{ totalSupplyFT? 

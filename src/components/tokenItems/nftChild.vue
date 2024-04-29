@@ -207,10 +207,7 @@
           </span>-->
         </div>
         <div v-if="displayNftInfo" id="tokenInfoDisplay" style="margin-top: 10px;">
-          <div id="tokenBegin"></div>
           <div v-if="tokenMetaData?.description" id="tokenDescription"> NFT description: {{ nftDescription }} </div>
-          <div id="tokenCommitment"></div>
-          <div id="tokenWebLink"></div>
           <div id="onchainTokenInfo" style="white-space: pre-line;"></div>
           <details v-if="nftMetadata?.extensions?.attributes" style="cursor:pointer;">
             <summary style="display: list-item">NFT attributes</summary>
