@@ -17,7 +17,7 @@ body{
   margin-top: 15px;
 }
 body.dark {
-  --bg-color: #000;
+  --bg-color: #050a14;
   --bg-secondary-color: #131316;
   --font-color: #f5f5f5;
   --color-grey: #ccc;
