@@ -20,3 +20,8 @@ export interface DappMetadata {
   name: string,
   url: string
 }
+
+export interface dialogInfo {
+  message: string
+  txid: string
+}

@@ -5,8 +5,12 @@
   import { type UtxoI } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
+  import alertDialog from 'src/components/alertDialog.vue'
+  import type { dialogInfo } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
 
@@ -27,6 +31,8 @@
   const mintCommitment = ref("");
   const mintAmountNfts = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
+
+  const alertInfo = ref(undefined as undefined | dialogInfo)
 
   const nftMetadata = computed(() => {
     const commitment = nftData.value?.token?.commitment;
@@ -71,10 +77,17 @@
   async function sendNft(){
     try{
       if(!store.wallet) return;
+      if(!destinationAddr.value) throw("No destination address provided")
       const nftInfo = nftData.value.token;
       const tokenId = nftInfo?.tokenId as string;
       const tokenCommitment = nftInfo?.commitment;
       const tokenCapability = nftInfo?.capability;
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
@@ -83,16 +96,27 @@
           capability: tokenCapability,
         }),
       ]);
-      console.log(tokenCommitment, tokenCapability)
+      // show alert
+      $q.notify({
+        type: 'positive',
+        message: 'Transaction succesfully sent!'
+      })
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      alert(`Sent NFT of category ${displayId} to ${destinationAddr.value}`);
-      console.log(`Sent NFT of category ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
+      const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
+      alertInfo.value = { message: alertMessage, txid: txId as string } 
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
       destinationAddr.value = "";
       displaySendNft.value = false;
       await store.updateTokenList();
-    } catch(error){
-      console.log(error);
-      alert(error);
+    }catch(error){
+      if(typeof error == 'string'){
+        $q.notify({
+          message: error,
+          icon: 'warning',
+          color: "red"
+        })
+      }
     }
   }
   async function mintNfts() {
@@ -260,5 +284,9 @@
     <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
       <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata?.uris?.image : nftMetadata?.uris?.icon" :nftName="nftMetadata.name" @close-dialog="() => showNftImage = false"/>
     </div>
+  </div>
+
+  <div v-if="alertInfo">
+    <alertDialog :alertInfo="alertInfo" @close-dialog="() => alertInfo = undefined"/>
   </div>
 </template>

@@ -3,7 +3,8 @@
   import { TokenSendRequest, SendRequest  } from "mainnet-js"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
-  import type { TokenDataFT } from "src/interfaces/interfaces"
+  import alertDialog from 'src/components/alertDialog.vue'
+  import type { TokenDataFT, dialogInfo } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT } from "src/queryChainGraph"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -30,6 +31,8 @@
   const reservedSupplyInput = ref("")
   const tokenMetaData = ref(null as (any | null));
   const totalSupplyFT = ref(undefined as bigint | undefined);
+
+  const alertInfo = ref(undefined as undefined | dialogInfo)
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? null;
 
@@ -96,7 +99,8 @@
   async function sendTokens(){
     try{
       if(!store.wallet) return;
-      if(!tokenSendAmount?.value) throw(`Amount tokens to send must be a valid integer`);
+      if(!destinationAddr.value) throw("No destination address provided")
+      if(!tokenSendAmount?.value) throw(`No valid amount provided`);
       const decimals = tokenMetaData.value?.token?.decimals;
       const amountTokens = decimals ? +tokenSendAmount.value * (10 ** decimals) : +tokenSendAmount.value;
       const validInput =  Number.isInteger(amountTokens);
@@ -107,6 +111,12 @@
         if(confirm(authWarning) != true) return;
       }
       const tokenId = tokenData.value.tokenId;
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
@@ -114,17 +124,31 @@
           tokenId: tokenId,
         }),
       ]);
+      // show alert
+       $q.notify({
+        type: 'positive',
+        message: 'Transaction succesfully sent!'
+      })
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      let message = `Sent ${tokenSendAmount.value} fungible tokens of category ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`;
-      alert(message);
-      console.log(message);
+      console.log(tokenMetaData.value)
+      const alertMessage = tokenMetaData.value.token.symbol ?
+        `Sent ${tokenSendAmount.value} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
+        : `Sent ${tokenSendAmount.value} fungible tokens of category ${displayId} to ${destinationAddr.value}`
+      alertInfo.value = { message: alertMessage, txid: txId as string } 
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
       await store.updateTokenList();
-    } catch(error){
-      console.log(error);
-      alert(error);
+    }catch(error){
+      if(typeof error == 'string'){
+        $q.notify({
+          message: error,
+          icon: 'warning',
+          color: "red"
+        })
+      }
     }
   }
   async function burnFungibles(){
@@ -307,5 +331,8 @@
         </div>
       </div>
     </fieldset>
+  </div>
+  <div v-if="alertInfo">
+    <alertDialog :alertInfo="alertInfo" @close-dialog="() => alertInfo = undefined"/>
   </div>
 </template>
