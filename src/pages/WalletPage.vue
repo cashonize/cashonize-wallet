@@ -6,6 +6,7 @@
   import connectView from 'src/components/walletConnect.vue'
   import createTokensView from 'src/components/createTokens.vue'
   import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
+  import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
   import { ref, computed } from 'vue'
   import { Wallet, TestNetWallet, BalanceResponse, binToHex } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
@@ -13,6 +14,8 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
@@ -30,6 +33,7 @@
 
   const displayView = ref(undefined as (number | undefined));
   const transactionRequestWC = ref(undefined as any);
+  const signMessageRequestWC = ref(undefined as any);
   const dappMetadata = ref(undefined as any);
   const dappUriUrlParam = ref(undefined as undefined|string);
   
@@ -148,7 +152,12 @@
         break;
       case "bch_signMessage":
       case "personal_sign": {
-        alert("bch_signMessage")
+        const sessions = web3wallet.getActiveSessions();
+        const session = sessions[topic];
+        if (!session) return;
+        const metadataDapp = session.peer.metadata;
+        dappMetadata.value = metadataDapp
+        signMessageRequestWC.value = event;
       }
         break;
       case "bch_signTransaction": {
@@ -168,11 +177,31 @@
   }
   // Reset transactionRequestWC after sign or reject
   function signedTransaction(txId:string){
-    alert("Transaction succesfully sent! Txid:" + txId)
     transactionRequestWC.value = undefined;
+    $q.notify({
+      type: 'positive',
+      message: 'Transaction succesfully sent!'
+    })
+    $q.notify({
+      icon: 'info',
+      timeout : 5000,
+      color: "grey-6",
+      message: 'Txid:' + txId
+    })
   }
   function rejectTransaction(){
     transactionRequestWC.value = undefined;
+  }
+  // Reset signMessageRequestWC after sign or reject
+  function signMessage(){
+    signMessageRequestWC.value = undefined;
+    $q.notify({
+      type: 'positive',
+      message: 'Message succesfully signed!'
+    })
+  }
+  function rejectSignMessage(){
+    signMessageRequestWC.value = undefined;
   }
 </script>
 
@@ -200,5 +229,8 @@
   </main>
   <div v-if="transactionRequestWC">
     <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg:string) => signedTransaction(arg)" @reject-transaction="rejectTransaction()"/>
+  </div>
+  <div v-if="signMessageRequestWC">
+    <WC2SignMessageRequest :signMessageRequestWC="signMessageRequestWC" :dappMetadata="dappMetadata" @sign-message="() => signMessage()" @reject-sign-message="rejectSignMessage()"/>
   </div>
 </template>
