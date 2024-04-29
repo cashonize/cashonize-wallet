@@ -1,9 +1,9 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
-  import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH, TransactionCommon, TransactionTemplateFixed, CompilationContextBCH } from "@bitauth/libauth"
+  import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH, TransactionCommon, TransactionTemplateFixed, CompilationContextBCH, Input, Output } from "@bitauth/libauth"
   import { BCMR, convert } from "mainnet-js"
   import { getSdkError } from '@walletconnect/utils';
-  import type { DappMetadata } from "src/interfaces/interfaces"
+  import type { DappMetadata, ContractInfo } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { parseExtendedJson } from 'src/utils/utils'
@@ -21,8 +21,10 @@
   const { transactionRequestWC } = toRefs(props);
 
   const { id, topic } = transactionRequestWC.value;
+  // parse params from transactionRequestWC
   const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params));
   const txDetails:TransactionCommon = requestParams.transaction;
+  const sourceOutputs = requestParams.sourceOutputs as (Input & Output & ContractInfo)[]
 
   const abs = (value: bigint) => (value < 0n) ? -value : value;
 
@@ -50,8 +52,8 @@
     return Number(newUsdValue.toFixed(2));
   }
 
-  const bchSpentInputs:bigint = requestParams.sourceOutputs.reduce((total:bigint, sourceOutputs:any) => 
-    toCashaddr(sourceOutputs.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + sourceOutputs.valueSatoshis : total, 0n
+  const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput:any) => 
+    toCashaddr(sourceOutput.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + sourceOutput.valueSatoshis : total, 0n
   );
   const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs:any) => 
     toCashaddr(outputs.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + outputs.valueSatoshis : total, 0n
@@ -59,9 +61,9 @@
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
   const usdBalanceChange = await convertToUsd(bchBalanceChange);
 
-  const tokensSpentInputs: any = {}
-  const tokensReceivedOutputs: any = {}
-  for (const input of requestParams.sourceOutputs) {
+  const tokensSpentInputs:Record<string, NonNullable<Output['token']>[]> = {}
+  const tokensReceivedOutputs:Record<string, NonNullable<Output['token']>[]> = {}
+  for (const input of sourceOutputs) {
     const walletOrigin = toCashaddr(input.lockingBytecode) == store?.wallet?.getDepositAddress();
     if(input.token && walletOrigin){
       const tokenCategory = binToHex(input.token.category);
@@ -94,7 +96,7 @@
     const txTemplate = {...txDetails} as TransactionTemplateFixed<typeof compiler>;
 
     for (const [index, input] of txTemplate.inputs.entries()) {
-      const sourceOutputsUnpacked = requestParams.sourceOutputs;
+      const sourceOutputsUnpacked = sourceOutputs;
       if (sourceOutputsUnpacked[index].contract?.artifact.contractName) {
         // instruct compiler to produce signatures for relevant contract inputs
 
@@ -190,7 +192,7 @@
           <div style="display: flex; justify-content: center; font-size: larger;"> {{ requestParams.userPrompt }}</div>
           <div class="wc-modal-heading">Inputs:</div>
           <table class="wc-data-table">
-            <tbody v-for="(input, inputIndex) in requestParams.sourceOutputs" :key="input.outpointTransactionHash">
+            <tbody v-for="(input, inputIndex) in sourceOutputs" :key="binToHex(input.outpointTransactionHash) + inputIndex">
               <tr>
                 <td>{{ inputIndex }}</td>
                 <td>
@@ -210,7 +212,9 @@
                 <td>
                   {{input?.token?.nft && !input?.token?.amount ? 'NFT:' : 'Token:'}}
                   {{ binToHex(input.token.category).slice(0,6)  + '...'}}
-                  <span style="font-weight: 600;">{{BCMR.getTokenInfo(binToHex(input.token.category))?.name }}</span>
+                  <span style="font-weight: 600;">
+                    {{ store.bcmrRegistries?.[binToHex(input.token.category)]?.name ?? null }}
+                  </span>
                 </td>
                 <td v-if="input.token.amount">Amount: {{ input.token.amount }}</td>
               </tr>
@@ -241,7 +245,9 @@
                 <td>
                   {{output?.token?.nft && !output?.token?.amount ? 'NFT:' : 'Token:'}}
                   {{ binToHex(output.token.category).slice(0,6)  + '...'}}
-                  <span style="font-weight: 600;">{{ BCMR.getTokenInfo(binToHex(output.token.category))?.name }}</span>
+                  <span style="font-weight: 600;">
+                    {{ store.bcmrRegistries?.[binToHex(output.token.category)]?.name ?? null }}
+                  </span>
                 </td>
                 <td v-if="output.token.amount">Amount: {{ output.token.amount }}</td>
               </tr>
@@ -258,20 +264,20 @@
             {{ bchBalanceChange > 0 ? '+ ': '- '}} {{ satoshiToBCHString(abs(bchBalanceChange)) }}
             ({{ usdBalanceChange }}$)
           </div>
-          <div v-for="tokenArrayInput in tokensSpentInputs" :key="tokenArrayInput.category">
-            <div v-for="(tokenSpent, index) in tokenArrayInput" :key="tokenArrayInput.category + index">
-            - {{tokenArrayInput.nft ? "NFT" : "Token"}}
-            {{ BCMR.getTokenInfo(binToHex(tokenSpent.category))?.name ?
-              BCMR.getTokenInfo(binToHex(tokenSpent.category))?.name : 
+          <div v-for="(tokenArrayInput, firstIndex) in tokensSpentInputs" :key="firstIndex">
+            <div v-for="(tokenSpent, index) in tokenArrayInput" :key="binToHex(tokenSpent.category) + index">
+            - {{tokenSpent?.nft ? "NFT" : "Token"}}
+            {{ store.bcmrRegistries?.[binToHex(tokenSpent?.category) ?? ""]?.name ?
+              store.bcmrRegistries?.[binToHex(tokenSpent.category)]?.name : 
               binToHex(tokenSpent.category).slice(0,6)  + '...'
             }}
             </div>
           </div>
-          <div v-for="tokenArrayRecived in tokensReceivedOutputs" :key="tokenArrayRecived.category">
-            <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="tokenArrayRecived.category + index">
+          <div v-for="(tokenArrayRecived, firstIndex) in tokensReceivedOutputs" :key="firstIndex">
+            <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="binToHex(tokenReceived.category) + index">
             + {{tokenReceived.nft ? "NFT" : "Token"}}
-            {{ BCMR.getTokenInfo(binToHex(tokenReceived.category))?.name ?
-              BCMR.getTokenInfo(binToHex(tokenReceived.category))?.name : 
+            {{ store.bcmrRegistries?.[binToHex(tokenReceived.category)]?.name ?
+              store.bcmrRegistries?.[binToHex(tokenReceived.category)]?.name : 
               binToHex(tokenReceived.category).slice(0,6)  + '...'
             }}
             {{ tokenReceived.amount ? "amount: "+ (tokenReceived.amount / (10n ** BigInt(BCMR.getTokenInfo(binToHex(tokenReceived.category))?.token?.decimals ?? 0n))) : ""}}
