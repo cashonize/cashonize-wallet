@@ -6,7 +6,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { TokenDataNFT, dialogInfo } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, dialogInfo, bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -32,7 +32,7 @@
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
   const destinationAddr = ref("");
-  const tokenMetaData = ref(null as (any | null));
+  const tokenMetaData = ref(undefined as (bcmrTokenMetadata | undefined));
   const mintUniqueNfts = ref("yes" as 'yes' | 'no');
   const mintCommitment = ref("");
   const mintAmountNfts = ref(undefined as string | undefined);
@@ -385,7 +385,7 @@
           <div v-if="tokenMetaData?.uris?.web">
             Token web link:
             <a v-if="!$q.platform.is.electron" :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
-            <a v-else @click="copyToClipboard(tokenMetaData.uris.web)">{{ tokenMetaData.uris.web }}</a>
+            <a v-else @click="copyToClipboard(tokenMetaData?.uris?.web ?? '')">{{ tokenMetaData.uris.web }}</a>
           </div>
           <div v-if="tokenData?.nfts?.length">
             Total supply NFTs: {{ totalNumberNFTs? totalNumberNFTs: "..."}}

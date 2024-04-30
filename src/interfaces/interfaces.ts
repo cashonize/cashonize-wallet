@@ -26,6 +26,34 @@ export interface dialogInfo {
   txid: string
 }
 
+export interface bcmrTokenMetadata {
+  name: string
+  description: string
+  token: {
+    category: string
+    decimals: number
+    symbol: string
+  }
+  is_nft: boolean
+  nfts: any
+  uris: Record<string, string>
+  extensions: Record<string, any>
+}
+
+export interface bcmrIndexerResponse {
+  name: string
+  description: string
+  token: {
+    category: string
+    decimals: number
+    symbol: string
+  }
+  is_nft: boolean
+  type_metadata: any
+  uris: Record<string, string>
+  extensions: Record<string, any>
+}
+
 export interface AbiInput {
   name: string;
   type: string;

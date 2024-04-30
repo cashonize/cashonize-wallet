@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
 import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
-import type { TokenList } from "../interfaces/interfaces"
+import type { TokenList, bcmrIndexerResponse } from "../interfaces/interfaces"
 import { useSettingsStore } from './settingsStore'
 import { queryAuthHead } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
@@ -71,7 +71,7 @@ export const useStore = defineStore('store', () => {
     const registries = bcmrRegistries.value ?? {};
     for await(const response of resultsMetadata) {
       if(response?.status != 404) {
-        const jsonResponse = await response.json();
+        const jsonResponse:bcmrIndexerResponse = await response.json();
         const tokenId = jsonResponse?.token?.category
         if(jsonResponse?.type_metadata) {
           const nftEndpoint = response.url.split("/").at(-2) as string;

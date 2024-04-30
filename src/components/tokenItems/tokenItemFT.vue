@@ -4,7 +4,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { TokenDataFT, dialogInfo } from "src/interfaces/interfaces"
+  import type { TokenDataFT, dialogInfo, bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT } from "src/queryChainGraph"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -29,12 +29,12 @@
   const destinationAddr = ref("");
   const burnAmountFTs = ref("");
   const reservedSupplyInput = ref("")
-  const tokenMetaData = ref(null as (any | null));
+  const tokenMetaData = ref(undefined as (bcmrTokenMetadata | undefined));
   const totalSupplyFT = ref(undefined as bigint | undefined);
 
   const alertInfo = ref(undefined as undefined | dialogInfo)
 
-  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? null;
+  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
@@ -131,7 +131,8 @@
       })
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
       console.log(tokenMetaData.value)
-      const alertMessage = tokenMetaData.value.token.symbol ?
+      console.log(tokenMetaData.value?.token)
+      const alertMessage = tokenMetaData.value?.token?.symbol ?
         `Sent ${tokenSendAmount.value} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
         : `Sent ${tokenSendAmount.value} fungible tokens of category ${displayId} to ${destinationAddr.value}`
       alertInfo.value = { message: alertMessage, txid: txId as string } 
@@ -274,7 +275,7 @@
           <div v-if="tokenMetaData?.uris?.web">
             Token web link: 
             <a v-if="!$q.platform.is.electron" :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
-            <a v-else @click="copyToClipboard(tokenMetaData.uris.web)">{{ tokenMetaData?.uris?.web }}</a>
+            <a v-else @click="copyToClipboard(tokenMetaData?.uris.web ?? '')">{{ tokenMetaData?.uris?.web }}</a>
           </div>
           <div v-if="tokenData.amount">
             Genesis supply: {{ totalSupplyFT? 

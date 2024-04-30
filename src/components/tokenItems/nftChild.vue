@@ -6,7 +6,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { dialogInfo } from "src/interfaces/interfaces"
+  import type { dialogInfo, bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -16,7 +16,7 @@
 
   const props = defineProps<{
     nftData: UtxoI,
-    tokenMetaData: any | null,
+    tokenMetaData: bcmrTokenMetadata | undefined,
     id: string
   }>()
   const { nftData, tokenMetaData, id } = toRefs(props);
