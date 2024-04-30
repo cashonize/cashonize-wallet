@@ -26,7 +26,7 @@
       <q-card>
         <q-card-section class="row items-center q-pb-none text-white">
           <q-space />
-          <q-btn icon="close" flat round dense v-close-popup/>
+          <q-btn icon="close" color="white" flat round dense v-close-popup/>
         </q-card-section>
 
         <q-card-section>
@@ -37,9 +37,9 @@
     </q-dialog>
 </template>
 
-<style>
-.q-btn--round {
-  color: white;
+<style scoped>
+.q-card{
+  box-shadow: none;
   background: none;
 }
 .row {

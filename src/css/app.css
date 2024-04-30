@@ -221,3 +221,6 @@ input[type=number] {
   background-color: transparent;
   pointer-events: all  !important;
 }
+.q-btn--round {
+  background: none;
+}
