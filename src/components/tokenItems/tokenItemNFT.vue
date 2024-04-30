@@ -2,7 +2,8 @@
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
-  import { TokenSendRequest, TokenMintRequest, SendRequest } from "mainnet-js"
+  import { TokenSendRequest, TokenMintRequest, SendRequest, TokenI } from "mainnet-js"
+  import { decodeCashAddress } from "@bitauth/libauth"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
@@ -125,6 +126,14 @@
     try{
       if(!store.wallet) return;
       if(!destinationAddr.value) throw("No destination address provided")
+      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
+        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
+        throw(`Address prefix ${networkPrefix} is required`)
+      }
+      const decodedAddress = decodeCashAddress(destinationAddr.value)
+      if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
+      const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
+      if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       const tokenId = tokenData.value.tokenId;
       const allNfts = tokenData.value.nfts;
       const outputArray:TokenSendRequest[] = [];
@@ -173,10 +182,16 @@
     try{
       if(!store.wallet) return;
       if(!destinationAddr.value) throw("No destination address provided")
+      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
+        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
+        throw(`Address prefix ${networkPrefix} is required`)
+      }
+      const decodedAddress = decodeCashAddress(destinationAddr.value)
+      if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
+      const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
+      if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       const tokenId = tokenData.value.tokenId;
-      const nftInfo = tokenData.value.nfts?.[0].token;
-      const tokenCommitment = nftInfo?.commitment;
-      const tokenCapability = nftInfo?.capability;
+      const nftInfo = tokenData.value.nfts?.[0].token as TokenI;
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
@@ -187,8 +202,8 @@
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
           tokenId: tokenId,
-          commitment: tokenCommitment,
-          capability: tokenCapability,
+          commitment: nftInfo.commitment,
+          capability: nftInfo.capability,
         }),
       ]);
       // show alert

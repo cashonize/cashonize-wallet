@@ -1,8 +1,9 @@
 <script setup lang="ts">
   import dialogNftIcon from './dialogNftIcon.vue'
   import { ref, onMounted, toRefs, computed } from 'vue';
-  import { TokenSendRequest, TokenMintRequest } from "mainnet-js"
+  import { TokenSendRequest, TokenMintRequest, TokenI } from "mainnet-js"
   import { type UtxoI } from "mainnet-js"
+  import { decodeCashAddress } from "@bitauth/libauth"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
@@ -78,10 +79,15 @@
     try{
       if(!store.wallet) return;
       if(!destinationAddr.value) throw("No destination address provided")
-      const nftInfo = nftData.value.token;
-      const tokenId = nftInfo?.tokenId as string;
-      const tokenCommitment = nftInfo?.commitment;
-      const tokenCapability = nftInfo?.capability;
+      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
+        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
+        throw(`Address prefix ${networkPrefix} is required`)
+      }
+      const decodedAddress = decodeCashAddress(destinationAddr.value)
+      if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
+      const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
+      if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
+      const nftInfo = nftData.value.token as TokenI;
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
@@ -91,9 +97,9 @@
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
-          tokenId: tokenId,
-          commitment: tokenCommitment,
-          capability: tokenCapability,
+          tokenId: nftInfo.tokenId,
+          commitment: nftInfo.commitment,
+          capability: nftInfo.capability,
         }),
       ]);
       // show alert
@@ -101,7 +107,7 @@
         type: 'positive',
         message: 'Transaction succesfully sent!'
       })
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-10)}`;
       const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
       alertInfo.value = { message: alertMessage, txid: txId as string } 
       console.log(alertMessage);

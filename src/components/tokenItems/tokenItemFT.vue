@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import { TokenSendRequest, SendRequest  } from "mainnet-js"
+  import { decodeCashAddress } from "@bitauth/libauth"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
@@ -106,6 +107,14 @@
       const validInput =  Number.isInteger(amountTokens);
       if(!validInput && !decimals) throw(`Amount tokens to send must be a valid integer`);
       if(!validInput ) throw(`Amount tokens to send must only have ${decimals} decimal places`);
+      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
+        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
+        throw(`Address prefix ${networkPrefix} is required`)
+      }
+      const decodedAddress = decodeCashAddress(destinationAddr.value)
+      if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
+      const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
+      if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if(tokenData.value?.authUtxo){
         let authWarning = "You risk unintentionally sending the authority to update this token's metadata elsewhere. \nAre you sure you want to send the transaction anyways?";
         if(confirm(authWarning) != true) return;

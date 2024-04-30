@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue'
   import { convert } from 'mainnet-js'
+  import { decodeCashAddress } from "@bitauth/libauth"
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
   import type { dialogInfo } from 'src/interfaces/interfaces'
@@ -97,6 +98,12 @@
       if(!destinationAddr.value) throw("No destination address provided")
       if(!bchSendAmount.value) throw("No valid amount provided")
       if(bchSendAmount.value > (store.maxAmountToSend?.sat ?? 0)) throw("Not enough BCH in wallet")
+      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
+        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
+        throw(`Address prefix ${networkPrefix} is required`)
+      }
+      const decodedAddress = decodeCashAddress(destinationAddr.value)
+      if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
       const sendBchOutput = {cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: settingsStore.bchUnit}
       $q.notify({
         spinner: true,
