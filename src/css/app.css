@@ -13,6 +13,10 @@
 
   font-weight: normal;
 }
+/* prevent scoll bar from causing jumps */
+body {
+  padding-left: calc(100vw - 100%);
+}
 body.dark {
   --bg-color: #050a14;
   --bg-secondary-color: #131316;
@@ -221,4 +225,17 @@ input[type=number] {
 }
 .q-btn--round {
   background: none;
+}
+
+/* change look of scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 20px;
+  border: transparent;
 }
