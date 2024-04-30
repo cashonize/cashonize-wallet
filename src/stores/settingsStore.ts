@@ -21,6 +21,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     document.body.classList.add("dark");
     darkMode.value = true;
   }
+  const readChaingraph = localStorage.getItem("chaingraph") ?? "";
+  const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
+  if(readChaingraph) chaingraph.value = readChaingraph
+  if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
 
   return { bchUnit, chaingraph, ipfsGateway, darkMode, tokenBurn }
 })
