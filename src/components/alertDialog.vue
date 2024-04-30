@@ -48,10 +48,7 @@
           <img class="copyIcon icon" :src="settingsStore.darkMode? 'images/copyGrey.svg':'images/copy.svg'">
         </span>
         <br><br>
-        <a v-if="!$q.platform.is.electron" :href="store.explorerUrl + `/tx/${alertInfo.txid}`" target="_blank">Link blockexplorer</a>
-        <a v-else @click="() => copyToClipboard(store.explorerUrl + `/tx/${alertInfo.txid}`)">
-          Copy link blockexplorer
-        </a>
+        <a :href="store.explorerUrl + `/tx/${alertInfo.txid}`" target="_blank">Link blockexplorer</a>
       </q-card-section>
       <br>
     </q-card>

@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import os from 'os';
 
@@ -26,6 +26,12 @@ function createWindow() {
   mainWindow.loadURL(process.env.APP_URL);
   mainWindow.maximize();
   mainWindow.show();
+
+  // Open links in browser window
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
 
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled

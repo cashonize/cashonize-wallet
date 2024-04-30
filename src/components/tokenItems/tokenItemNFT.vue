@@ -399,8 +399,7 @@
           </div>
           <div v-if="tokenMetaData?.uris?.web">
             Token web link:
-            <a v-if="!$q.platform.is.electron" :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
-            <a v-else @click="copyToClipboard(tokenMetaData?.uris?.web ?? '')">{{ tokenMetaData.uris.web }}</a>
+            <a :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
           </div>
           <div v-if="tokenData?.nfts?.length">
             Total supply NFTs: {{ totalNumberNFTs? totalNumberNFTs: "..."}}
