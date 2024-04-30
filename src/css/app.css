@@ -13,9 +13,6 @@
 
   font-weight: normal;
 }
-body{
-  margin-top: 15px;
-}
 body.dark {
   --bg-color: #050a14;
   --bg-secondary-color: #131316;
@@ -24,6 +21,7 @@ body.dark {
   --color-darkGrey: #777;
 }
 header{
+  padding-top: 15px;
   display: flex;
   align-items: center;
   flex-direction: column;
