@@ -80,7 +80,7 @@ export const useStore = defineStore('store', () => {
           if(!registries[tokenId]?.nfts) registries[tokenId].nfts = {}
           registries[tokenId].nfts[commitment] = jsonResponse?.type_metadata
         } else {
-          registries[tokenId] = jsonResponse;
+          if(!registries[tokenId]) registries[tokenId] = jsonResponse;
         }
       }
     }
