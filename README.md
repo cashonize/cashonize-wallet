@@ -26,4 +26,4 @@ Webwallet: [cashonize.com](cashonize.com)
 
 ## Local development
 
-For local development check out the developer instructions.
+For local development check out the [developer instructions](./development.md).
