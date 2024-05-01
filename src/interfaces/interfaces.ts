@@ -35,7 +35,14 @@ export interface bcmrTokenMetadata {
     symbol: string
   }
   is_nft: boolean
-  nfts: any
+  nfts?: Record<string, bcmrNftMetadata>
+  uris: Record<string, string>
+  extensions: Record<string, any>
+}
+
+export interface bcmrNftMetadata {
+  name: string
+  description: string
   uris: Record<string, string>
   extensions: Record<string, any>
 }

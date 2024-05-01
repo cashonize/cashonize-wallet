@@ -52,14 +52,13 @@
     if(!isSingleNft.value) return
     const nftData = tokenData.value.nfts?.[0];
     const commitment = nftData?.token?.commitment;
-    return tokenMetaData?.value?.nfts[commitment ?? ""]
+    const matchedNftMetadata = tokenMetaData?.value?.nfts?.[commitment ?? ""]
+    return matchedNftMetadata ? matchedNftMetadata : tokenMetaData?.value
   })
   const httpsUrlTokenIcon = computed(() => {
     let tokenIconUri = tokenMetaData.value?.uris?.icon;
     if(isSingleNft.value){
-      const commitment = tokenData.value.nfts?.[0].token?.commitment;
-      const nftMetadata = tokenMetaData.value?.nfts?.[commitment ?? ""];
-      const nftIconUri = nftMetadata?.uris?.icon;
+      const nftIconUri = nftMetadata.value?.uris?.icon;
       if(nftIconUri) tokenIconUri = nftIconUri;
     }
     if(tokenIconUri?.startsWith('ipfs://')){
@@ -69,12 +68,7 @@
   })
   const tokenName = computed(() => {
     let tokenName = tokenMetaData.value?.name;
-    if(isSingleNft.value){
-      const commitment = tokenData.value.nfts?.[0].token?.commitment;
-      const nftMetadata = tokenMetaData?.value?.nfts?.[commitment ?? ""];
-      const nftName = nftMetadata?.name;
-      if(nftName) tokenName = nftName;
-    }
+    if(isSingleNft.value) tokenName = nftMetadata.value?.name;
     return tokenName;
   })
 
