@@ -44,11 +44,11 @@
     if(!copyText) return
     navigator.clipboard.writeText(copyText);
     $q.notify({
-        message: "Copied!",
-        icon: 'info',
-        timeout : 1000,
-        color: "grey-6"
-      })
+      message: "Copied!",
+      icon: 'info',
+      timeout : 1000,
+      color: "grey-6"
+    })
   }
   async function parseAddrParams(){
     const addressInput = destinationAddr.value;
