@@ -3,6 +3,8 @@
   import { ref } from 'vue'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
 
@@ -45,6 +47,16 @@
   }
   function toggleShowSeedphrase(){
     displayeSeedphrase.value = !displayeSeedphrase.value;
+  }
+  function copyToClipboard(copyText: string|undefined){
+    if(!copyText) return
+    navigator.clipboard.writeText(copyText);
+    $q.notify({
+      message: "Copied!",
+      icon: 'info',
+      timeout : 1000,
+      color: "grey-6"
+    })
   }
   function confirmDeleteWallet(){
     let text = "You are about to delete your Cashonize wallet info from this browser.\nAre you sure you want to delete?";
@@ -112,7 +124,9 @@
       <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
         :value="displayeSeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
       >
-      <div v-if="displayeSeedphrase" id="seedphrase"> {{store.wallet?.mnemonic }}</div>
+      <div v-if="displayeSeedphrase" @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
+        {{ store.wallet?.mnemonic }}
+      </div>
       <br>
       <span style="margin-top:15px">Derivation path of this wallet is {{store.wallet?.derivationPath }}</span>
     </div>
