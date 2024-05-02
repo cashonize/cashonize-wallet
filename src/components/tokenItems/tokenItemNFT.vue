@@ -7,7 +7,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { TokenDataNFT, dialogInfo, bcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -40,8 +40,6 @@
   const startingNumberNFTs = ref(undefined as string | undefined);
   const totalNumberNFTs = ref(undefined as number | undefined);
   const hasMintingNFT = ref(undefined as boolean | undefined);
-
-  const alertInfo = ref(undefined as undefined | dialogInfo)
 
   let fetchedMetadataChildren = false
 
@@ -149,14 +147,18 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send(outputArray);
-      // show alert
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const alertMessage = `Sent all NFTs of category  ${displayId} to ${destinationAddr.value}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string } 
+        }
+      })
       $q.notify({
         type: 'positive',
         message: 'Transaction succesfully sent!'
       })
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      const alertMessage = `Sent all NFTs of category  ${displayId} to ${destinationAddr.value}`
-      alertInfo.value = { message: alertMessage, txid: txId as string } 
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/tx/${txId}`);
       destinationAddr.value = "";
@@ -200,14 +202,18 @@
           capability: nftInfo.capability,
         }),
       ]);
-      // show alert
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
       $q.notify({
         type: 'positive',
         message: 'Transaction succesfully sent!'
       })
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
-      alertInfo.value = { message: alertMessage, txid: txId as string }
       console.log(alertMessage)
       console.log(`${store.explorerUrl}/tx/${txId}`);
       destinationAddr.value = "";
@@ -466,9 +472,5 @@
         <nftChild :nftData="nft" :tokenMetaData="store.bcmrRegistries?.[tokenData.tokenId] " :id="'nft'+tokenData.tokenId.slice(0,4) + index"/>
       </div>
     </div>
-  </div>
-
-  <div v-if="alertInfo">
-    <alertDialog :alertInfo="alertInfo" @close-dialog="() => alertInfo = undefined"/>
   </div>
 </template>

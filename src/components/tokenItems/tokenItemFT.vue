@@ -5,7 +5,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { TokenDataFT, dialogInfo, bcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { TokenDataFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT } from "src/queryChainGraph"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -32,8 +32,6 @@
   const reservedSupplyInput = ref("")
   const tokenMetaData = ref(undefined as (bcmrTokenMetadata | undefined));
   const totalSupplyFT = ref(undefined as bigint | undefined);
-
-  const alertInfo = ref(undefined as undefined | dialogInfo)
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
 
@@ -133,18 +131,20 @@
           tokenId: tokenId,
         }),
       ]);
-      // show alert
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const alertMessage = tokenMetaData.value?.token?.symbol ?
+        `Sent ${tokenSendAmount.value} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
+        : `Sent ${tokenSendAmount.value} fungible tokens of category ${displayId} to ${destinationAddr.value}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
        $q.notify({
         type: 'positive',
         message: 'Transaction succesfully sent!'
       })
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      console.log(tokenMetaData.value)
-      console.log(tokenMetaData.value?.token)
-      const alertMessage = tokenMetaData.value?.token?.symbol ?
-        `Sent ${tokenSendAmount.value} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
-        : `Sent ${tokenSendAmount.value} fungible tokens of category ${displayId} to ${destinationAddr.value}`
-      alertInfo.value = { message: alertMessage, txid: txId as string } 
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/tx/${txId}`);
       tokenSendAmount.value = "";
@@ -340,8 +340,5 @@
         </div>
       </div>
     </fieldset>
-  </div>
-  <div v-if="alertInfo">
-    <alertDialog :alertInfo="alertInfo" @close-dialog="() => alertInfo = undefined"/>
   </div>
 </template>

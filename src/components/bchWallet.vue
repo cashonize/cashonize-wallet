@@ -4,7 +4,6 @@
   import { decodeCashAddress } from "@bitauth/libauth"
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { dialogInfo } from 'src/interfaces/interfaces'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -15,7 +14,6 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
-  const alertInfo = ref(undefined as undefined | dialogInfo)
   const nrTokenCategories = computed(() => store.tokenList?.length)
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
@@ -112,13 +110,17 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send([ sendBchOutput ]);
-      // show alert
+      const alertMessage = `Sent ${bchSendAmount.value + displayUnitLong.value} to ${destinationAddr.value}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string } 
+        }
+      })
       $q.notify({
         type: 'positive',
         message: 'Transaction succesfully sent!'
       })
-      const alertMessage = `Sent ${bchSendAmount.value + displayUnitLong.value} to ${destinationAddr.value}`
-      alertInfo.value = { message: alertMessage, txid: txId as string } 
       console.log(alertMessage);
       // reset fields
       bchSendAmount.value = undefined;
@@ -206,8 +208,4 @@
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
   </fieldset>
-
-  <div v-if="alertInfo">
-    <alertDialog :alertInfo="alertInfo" @close-dialog="() => alertInfo = undefined"/>
-  </div>
 </template>

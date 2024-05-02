@@ -7,7 +7,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { dialogInfo, bcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -32,8 +32,6 @@
   const mintCommitment = ref("");
   const mintAmountNfts = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
-
-  const alertInfo = ref(undefined as undefined | dialogInfo)
 
   const nftMetadata = computed(() => {
     const commitment = nftData.value?.token?.commitment;
@@ -102,14 +100,18 @@
           capability: nftInfo.capability,
         }),
       ]);
-      // show alert
+      const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-10)}`;
+      const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string } 
+        }
+      })
       $q.notify({
         type: 'positive',
         message: 'Transaction succesfully sent!'
       })
-      const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-10)}`;
-      const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
-      alertInfo.value = { message: alertMessage, txid: txId as string } 
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/tx/${txId}`);
       destinationAddr.value = "";
@@ -290,9 +292,5 @@
     <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
       <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata?.uris?.image : nftMetadata?.uris?.icon" :nftName="nftMetadata.name" @close-dialog="() => showNftImage = false"/>
     </div>
-  </div>
-
-  <div v-if="alertInfo">
-    <alertDialog :alertInfo="alertInfo" @close-dialog="() => alertInfo = undefined"/>
   </div>
 </template>
