@@ -10,6 +10,8 @@
   import { ref, computed } from 'vue'
   import { Wallet, TestNetWallet, BalanceResponse, binToHex } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
+  import { convertElectrumTokenData } from "src/utils/utils"
+  import type { TokenList } from "../interfaces/interfaces"
   import type { Web3WalletTypes } from '@walletconnect/web3wallet';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -102,14 +104,19 @@
     cancelWatchTokenTxs = store.wallet?.watchAddressTokenTransactions(async(tx) => {
       if(!store.wallet) return // should never happen
       const walletPkh = binToHex(store.wallet.getPublicKeyHash() as Uint8Array);
-      const tokenOutput = tx.vout.find(elem => elem.scriptPubKey.hex.includes(walletPkh));
-      const tokenId = tokenOutput?.tokenData?.category;
-      if(!tokenId) return;
+      const tokenOutputs = tx.vout.filter(elem => elem.scriptPubKey.hex.includes(walletPkh));
       const previousTokenList = store.tokenList;
-      const newTokenItem = previousTokenList?.find(elem => elem.tokenId == tokenId);
-      await store.updateTokenList();
+      let listNewTokens:TokenList = []
+      for(const tokenOutput of tokenOutputs){
+        const tokenId = tokenOutput?.tokenData?.category;
+        const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);
+        if(!tokenId && !isNewTokenItem) continue;
+        const newTokenItem = convertElectrumTokenData(tokenOutput?.tokenData)
+        if(newTokenItem) listNewTokens.push(newTokenItem)
+      }
       // Dynamically import tokenmetadata
-      if(newTokenItem) await store.importRegistries([newTokenItem], true);
+      await store.importRegistries(listNewTokens, true);
+      await store.updateTokenList();
     });
   }
 

@@ -1,4 +1,4 @@
-import { type UtxoI } from "mainnet-js"
+import { type UtxoI, type NFTCapability } from "mainnet-js"
 
 export type TokenList = (TokenDataNFT | TokenDataFT)[]
 
@@ -83,9 +83,18 @@ export interface Artifact {
   updatedAt: string;
 }
 export interface ContractInfo {
-contract?: {
-  abiFunction: AbiFunction;
-  redeemScript: Uint8Array;
-  artifact: Partial<Artifact>;
+  contract?: {
+    abiFunction: AbiFunction;
+    redeemScript: Uint8Array;
+    artifact: Partial<Artifact>;
+  }
 }
+
+export interface ElectrumTokenData {
+  amount: string;
+  category: string;
+  nft?: {
+    capability?: NFTCapability;
+    commitment?: string;
+  };
 }

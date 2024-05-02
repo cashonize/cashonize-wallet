@@ -1,5 +1,6 @@
 import { type UtxoI } from "mainnet-js"
 import { hexToBin } from "@bitauth/libauth"
+import type { ElectrumTokenData, TokenDataFT, TokenDataNFT } from "../interfaces/interfaces"
 
 export function getAllNftTokenBalances(tokenUtxos: UtxoI[]){
   const result:Record<string, number> = {};
@@ -44,4 +45,25 @@ export function parseExtendedJson(jsonString: string){
     }
     return value;
   })
+}
+
+export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | undefined){
+  if(!electrumTokenData) return
+  if(electrumTokenData.amount && BigInt(electrumTokenData.amount)){
+    return {
+      amount: BigInt(electrumTokenData.amount),
+      tokenId: electrumTokenData.category,
+    } as TokenDataFT
+  }
+  return {
+    tokenId: electrumTokenData.category,
+    nfts: [
+      {
+        token:{
+          capability: electrumTokenData.nft?.capability,
+          commitment: electrumTokenData.nft?.commitment
+        }
+      }
+    ]
+  } as TokenDataNFT
 }
