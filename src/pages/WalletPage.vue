@@ -5,6 +5,7 @@
   import settingsMenu from 'src/components/settingsMenu.vue'
   import connectView from 'src/components/walletConnect.vue'
   import createTokensView from 'src/components/createTokens.vue'
+  import AsyncDialogWrapper from 'src/components/walletconnect/asyncDialogWrapper.vue';
   import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
   import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
   import { ref, computed } from 'vue'
@@ -36,7 +37,6 @@
   const displayView = ref(undefined as (number | undefined));
   const transactionRequestWC = ref(undefined as any);
   const signMessageRequestWC = ref(undefined as any);
-  const dappMetadata = ref(undefined as any);
   const dappUriUrlParam = ref(undefined as undefined|string);
   
   // check if wallet exists
@@ -162,18 +162,32 @@
         const sessions = web3wallet.getActiveSessions();
         const session = sessions[topic];
         if (!session) return;
-        const metadataDapp = session.peer.metadata;
-        dappMetadata.value = metadataDapp
-        signMessageRequestWC.value = event;
+        $q.dialog({
+          component: AsyncDialogWrapper,
+          componentProps: {
+            component: WC2SignMessageRequest,
+            signMessageRequestWC: event,
+            dappMetadata: session.peer.metadata,
+            signMessage,
+            rejectSignMessage
+          }
+        })
       }
         break;
       case "bch_signTransaction": {
         const sessions = web3wallet.getActiveSessions();
         const session = sessions[topic];
         if (!session) return;
-        const metadataDapp = session.peer.metadata;
-        dappMetadata.value = metadataDapp
-        transactionRequestWC.value = event;
+        $q.dialog({
+          component: AsyncDialogWrapper,
+          componentProps: {
+            component: WC2TransactionRequest,
+            transactionRequestWC: event,
+            dappMetadata: session.peer.metadata,
+            signedTransaction,
+            rejectTransaction
+          }
+        })
       }
         break;
       default:{
@@ -234,10 +248,4 @@
     <connectView v-if="displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
     <settingsMenu v-if="displayView == 5" @change-network="(arg) => changeNetwork(arg)" @change-view="(arg) => changeView(arg)"/>
   </main>
-  <div v-if="transactionRequestWC">
-    <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg:string) => signedTransaction(arg)" @reject-transaction="rejectTransaction()"/>
-  </div>
-  <div v-if="signMessageRequestWC">
-    <WC2SignMessageRequest :signMessageRequestWC="signMessageRequestWC" :dappMetadata="dappMetadata" @sign-message="() => signMessage()" @reject-sign-message="rejectSignMessage()"/>
-  </div>
 </template>

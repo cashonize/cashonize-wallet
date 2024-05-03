@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { ref, toRefs } from 'vue';
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { getSdkError } from '@walletconnect/utils';
   import { useStore } from 'src/stores/store'
@@ -9,17 +8,16 @@
   const web3wallet = walletconnectStore.web3wallet
   const emit = defineEmits(['signMessage', 'rejectSignMessage']);
 
-  const showDialog = ref(true);
-
   const props = defineProps<{
     dappMetadata: DappMetadata,
-    signMessageRequestWC: any
+    signMessageRequestWC: any,
+    onDialogHide: () => void,
+    onDialogOK: (payload?: any) => void,
+    onDialogCancel: () => void,
   }>()
-  const { signMessageRequestWC } = toRefs(props);
 
-  const { id, topic } = signMessageRequestWC.value;
-  
-  const requestParams = signMessageRequestWC.value.params.request.params
+  const { id, topic } = props.signMessageRequestWC;
+  const requestParams = props.signMessageRequestWC.params.request.params
   const signingAddress = requestParams?.address ?? requestParams?.account;
   const walletAddress = store.wallet?.address
   if(signingAddress !== walletAddress)  rejectSignMessage()
@@ -32,16 +30,17 @@
     const response = { id, jsonrpc: '2.0', result: signedMessage?.signature };
     await web3wallet?.respondSessionRequest({ topic, response });
     emit('signMessage')
+    props.onDialogCancel()
   }
   async function rejectSignMessage(){
     const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
     await web3wallet?.respondSessionRequest({ topic, response });
     emit('rejectSignMessage')
+    props.onDialogCancel()
   }
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
     <q-card>
       <fieldset class="dialogFieldsetSignMessage"> 
         <legend style="font-size: large;">Sign Message</legend>
@@ -70,7 +69,6 @@
           </div>
       </fieldset>
     </q-card>
-  </q-dialog>
 </template>
 
 <style scoped>

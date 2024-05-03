@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { ref, toRefs } from 'vue';
   import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH, TransactionCommon, TransactionTemplateFixed, CompilationContextBCH, Input, Output } from "@bitauth/libauth"
   import { BCMR, convert } from "mainnet-js"
   import { getSdkError } from '@walletconnect/utils';
@@ -12,17 +11,17 @@
   const web3wallet = walletconnectStore.web3wallet
   const emit = defineEmits(['signedTransaction', 'rejectTransaction']);
 
-  const showDialog = ref(true);
-
   const props = defineProps<{
     dappMetadata: DappMetadata,
-    transactionRequestWC: any
+    transactionRequestWC: any,
+    onDialogHide: () => void,
+    onDialogOK: (payload?: any) => void,
+    onDialogCancel: () => void,
   }>()
-  const { transactionRequestWC } = toRefs(props);
 
-  const { id, topic } = transactionRequestWC.value;
+  const { id, topic } = props.transactionRequestWC;
   // parse params from transactionRequestWC
-  const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params));
+  const requestParams = parseExtendedJson(JSON.stringify(props.transactionRequestWC.params.request.params));
   const txDetails:TransactionCommon = requestParams.transaction;
   const sourceOutputs = requestParams.sourceOutputs as (Input & Output & ContractInfo)[]
 
@@ -164,17 +163,18 @@
     await web3wallet?.respondSessionRequest({ topic, response });
 
     emit('signedTransaction', signedTxObject.signedTransactionHash);
+    props.onDialogCancel()
   }
 
   async function rejectTransaction(){
     const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
     await web3wallet?.respondSessionRequest({ topic, response });
     emit('rejectTransaction')
+    props.onDialogCancel()
   }
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
     <q-card>
       <fieldset class="dialogFieldsetTxRequest"> 
         <legend style="font-size: large;">Sign Transaction</legend>
@@ -284,13 +284,12 @@
             </div>
           </div>
           <div class="wc-modal-bottom-buttons">
-            <input type="button" class="primaryButton" value="Sign" @click="() => signTransactionWC()" v-close-popup>
-            <input type="button" value="Cancel" @click="() => rejectTransaction()" v-close-popup>
+            <input type="button" class="primaryButton" value="Sign" @click="() => signTransactionWC()">
+            <input type="button" value="Cancel" @click="() => rejectTransaction()">
           </div>
         </div>
       </fieldset>
     </q-card>
-  </q-dialog>
 </template>
 
 <style scoped>
