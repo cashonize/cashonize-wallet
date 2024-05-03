@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue';
   import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
+  import alertDialog from 'src/components/alertDialog.vue'
   import { useStore } from '../stores/store'
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
@@ -35,7 +36,17 @@
     try{
       store.plannedTokenId = undefined;
       const walletAddr = store.wallet.address as string;
+      $q.notify({
+        spinner: true,
+        message: 'Preparing preGenesis...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const { txId } = await store.wallet.send([{ cashaddr: walletAddr, value: 10000, unit: "sat" }]);
+      $q.notify({
+        type: 'positive',
+        message: 'Transaction succesfully sent!'
+      })
       console.log(`Created valid preGenesis for token creation \n${store.explorerUrl}/tx/${txId}`);
       let walletUtxos = await store.wallet.getAddressUtxos();
       const createdPreGenesis = walletUtxos.find(utxo => !utxo.token && utxo.vout === 0);
@@ -47,6 +58,7 @@
 
   async function getOpreturnData(){
     const inputField = inputBcmr.value;
+    if(selectedUri.value == "-select-") return
     let validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("ipfs://baf");
     if(!validinput){
       selectedUri.value != "IPFS" ? alert("Urls should not have any prefix!") : alert("Ipfs location should be a v1 CID");
@@ -77,6 +89,12 @@
     try{
       const totalSupply = inputFungibleSupply.value;
       let opreturnData = await getOpreturnData();
+      $q.notify({
+        spinner: true,
+        message: 'Creating tokens...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const genesisResponse = await store.wallet.tokenGenesis(
         {
           cashaddr: store.wallet.tokenaddr,
@@ -87,8 +105,19 @@
       );
       const tokenId = genesisResponse?.tokenIds?.[0];
       const { txId } = genesisResponse;
-      alert(`Created ${totalSupply} fungible tokens of category ${tokenId}`);
-      console.log(`Created ${totalSupply} fungible tokens \n${store.explorerUrl}/tx/${txId}`);
+      const alertMessage = `Created ${totalSupply} fungible tokens of category ${tokenId}`;
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
+       $q.notify({
+        type: 'positive',
+        message: 'Transaction succesfully sent!'
+      })
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
       // reset input fields
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
@@ -101,6 +130,12 @@
     if(!store.wallet) return;
     try{
       let opreturnData = await getOpreturnData();
+      $q.notify({
+        spinner: true,
+        message: 'Creating minting NFT...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const genesisResponse = await store.wallet.tokenGenesis(
         {
           cashaddr: store.wallet.tokenaddr,
@@ -112,8 +147,19 @@
       );
       const tokenId = genesisResponse?.tokenIds?.[0];
       const { txId } = genesisResponse;
-      alert(`Created minting NFT with category ${tokenId}`);
-      console.log(`Created minting NFT with category ${tokenId} \n${store.explorerUrl}/tx/${txId}`);
+      const alertMessage = `Created minting NFT with category ${tokenId}`;
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
+       $q.notify({
+        type: 'positive',
+        message: 'Transaction succesfully sent!'
+      })
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
       // reset input fields
       selectedTokenType.value  = "-select-";
       hasPreGenesis();
@@ -165,8 +211,9 @@
       <div v-if="selectedTokenType != '-select-'">
         <div v-if="selectedTokenType == 'fungibles'">
           Choose the total supply of fungible tokens
-          <input v-model="inputFungibleSupply" placeholder="total supply" type="number"> <br>
-        </div>
+          <input v-model="inputFungibleSupply" placeholder="total supply" type="number">
+          <i>note:</i> add extra zeroes for the number of decimals set in the BCMR metadata
+        </div> <br>
 
         <details  style="margin-bottom: 0.5em;">
           <summary style="display: list-item">Link Token-Metadata</summary>
@@ -215,7 +262,7 @@
         </details><br>
         <b>Note:</b> Token metadata can still be added/updated after creation with the token's AuthUTXO.
         That's why the AuthUTXO should be transferred to a dedicated wallet right after creation.<br><br>
-        Process might take a few seconds... <input @click="selectedTokenType == 'fungibles' ? createMintingNFT : createFungibles" type="button" class="primaryButton" value="Create" style="margin-top: 8px;">
+        <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" value="Create" style="margin-top: 8px;">
       </div>
     </fieldset>
 </div></template>
