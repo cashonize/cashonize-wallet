@@ -8,7 +8,7 @@
   import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
   import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
   import { ref, computed } from 'vue'
-  import { Wallet, TestNetWallet, BalanceResponse, binToHex } from 'mainnet-js'
+  import { Wallet, TestNetWallet, BalanceResponse, binToHex, Connection } from 'mainnet-js'
   import type { CancelWatchFn } from 'mainnet-js';
   import { convertElectrumTokenData } from "src/utils/utils"
   import type { TokenList } from "../interfaces/interfaces"
@@ -57,6 +57,10 @@
 
   async function setWallet(newWallet: TestNetWallet){
     changeView(1);
+    if(newWallet.network == 'mainnet'){
+      let connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
+      newWallet.provider = connectionMainnet.networkProvider
+    }
     store.wallet = newWallet;
     console.time('initweb3wallet');
     await walletconnectStore.initweb3wallet();

@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import { ref } from 'vue'
+  import { Connection } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -17,6 +18,7 @@
   const selectedUnit  = ref(settingsStore.bchUnit);
   const selectedDarkMode  = ref(settingsStore.darkMode);
   const selectedTokenBurn  = ref(settingsStore.tokenBurn);
+  const selectedElectrumServer  = ref(settingsStore.electrumServerMainnet);
   const selectedIpfsGateway  = ref(settingsStore.ipfsGateway);
   const selectedChaingraph  = ref(settingsStore.chaingraph);
   const emit = defineEmits(['changeView','changeNetwork']);
@@ -28,6 +30,13 @@
   }
   function changeNetwork(){
     emit('changeNetwork', selectedNetwork.value);
+  }
+  function changeElectrumServer(){
+    if(!store.wallet) return
+    let newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004` )
+    store.wallet.provider = newConnection.networkProvider;
+    settingsStore.electrumServerMainnet = selectedElectrumServer.value
+    localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
   }
   function changeIpfsGateway(){
     settingsStore.ipfsGateway = selectedIpfsGateway.value
@@ -87,6 +96,15 @@
         <select v-model="selectedNetwork" @change="changeNetwork()">
           <option value="mainnet">mainnet</option>
           <option value="chipnet">chipnet</option>
+        </select>
+      </div>
+
+      <div v-if="store.network == 'mainnet'" style="margin-top:15px">
+        <label for="selectNetwork">Change Electrum server mainnet:</label>
+        <select v-model="selectedElectrumServer" @change="changeElectrumServer()">
+          <option value="bch.imaginary.cash">bch.imaginary.cash (default)</option>
+          <option value="electrum.imaginary.cash">electrum.imaginary.cash</option>
+          <option value="cashnode.bch.ninja">cashnode.bch.ninja</option>
         </select>
       </div>
 
