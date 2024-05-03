@@ -35,6 +35,7 @@ export async function queryTotalSupplyFT(tokenId:string, chaingraphUrl:string){
         }
       }`;
     const responseJson = await queryChainGraph(queryReqTotalSupply, chaingraphUrl);
+    if(!responseJson) return
     const totalAmount:bigint = responseJson.data.transaction[0].outputs.reduce(
         (total:bigint, output:any) => total +  BigInt(output.fungible_token_amount),
         0n
@@ -100,17 +101,32 @@ export async function queryAuthHead(tokenId:string, chaingraphUrl:string){
         }
       }
     ) {
-      hash
       authchains {
         authhead {
-          hash
+          hash,
+          identity_output {
+            fungible_token_amount
+          }
         }
       }
     }
   }`;
   const jsonRespAuthHead = await queryChainGraph(queryReqAuthHead, chaingraphUrl);
-  const authHeadObj = jsonRespAuthHead.data.transaction[0];
+  return jsonRespAuthHead?.data?.transaction?.[0];
+}
+
+export async function queryAuthHeadTxid(tokenId:string, chaingraphUrl:string){
+  const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl)
+  if(!authHeadObj) return
   const authHead = authHeadObj.authchains[0].authhead;
   const authHeadTxId = authHead.hash.slice(2);
   return authHeadTxId
+}
+
+export async function queryReservedSupply(tokenId:string, chaingraphUrl:string){
+  const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl)
+  if(!authHeadObj) return
+  const authHead = authHeadObj.authchains[0].authhead
+  const reservedSupply = authHead.identity_output[0].fungible_token_amount ?? "0";
+  return reservedSupply ? BigInt(reservedSupply) : undefined
 }

@@ -4,7 +4,7 @@ import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI } fro
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenList, bcmrIndexerResponse } from "../interfaces/interfaces"
 import { useSettingsStore } from './settingsStore'
-import { queryAuthHead } from "../queryChainGraph"
+import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
 const settingsStore = useSettingsStore()
 
@@ -94,7 +94,7 @@ export const useStore = defineStore('store', () => {
     const authHeadTxIdPromises: any[] = [];
     const tokenUtxosPromises: any[] = [];
     for (const token of tokenList.value){
-      authHeadTxIdPromises.push(queryAuthHead(token.tokenId, settingsStore.chaingraph))
+      authHeadTxIdPromises.push(queryAuthHeadTxid(token.tokenId, settingsStore.chaingraph))
       tokenUtxosPromises.push(wallet.value.getTokenUtxos(token.tokenId));
     }
     const authHeadTxIdResults: string[] = await Promise.all(authHeadTxIdPromises);

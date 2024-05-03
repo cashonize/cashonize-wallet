@@ -6,7 +6,7 @@
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
   import type { TokenDataFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
-  import { queryTotalSupplyFT } from "src/queryChainGraph"
+  import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -32,10 +32,13 @@
   const reservedSupplyInput = ref("")
   const tokenMetaData = ref(undefined as (bcmrTokenMetadata | undefined));
   const totalSupplyFT = ref(undefined as bigint | undefined);
+  const reservedSupply = ref(undefined as bigint | undefined);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
+
+  const MAX_SUPPLY_FTS = 9_223_372_036_854_775_807n
 
   const httpsUrlTokenIcon = computed(() => {
     let tokenIconUri = tokenMetaData.value?.uris?.icon;
@@ -75,6 +78,7 @@
   watch(displayTokenInfo, async() => {
     if(!totalSupplyFT.value && tokenData.value?.amount){
       totalSupplyFT.value = await queryTotalSupplyFT(tokenData.value.tokenId, settingsStore.chaingraph);
+      reservedSupply.value = await queryReservedSupply(tokenData.value.tokenId, settingsStore.chaingraph)
     }
   })
   
@@ -285,13 +289,27 @@
             Token web link: 
             <a :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
           </div>
-          <div v-if="tokenData.amount">
-            Genesis supply: {{ totalSupplyFT? 
-              (tokenMetaData?.token?.symbol ? 
-                numberFormatter.format(toAmountDecimals(totalSupplyFT)) + " " + tokenMetaData?.token?.symbol
-                : totalSupplyFT + " tokens")
-              : "..."
-            }}
+          <div>
+            Max supply: 
+            <span v-if="totalSupplyFT">
+              {{ totalSupplyFT!= MAX_SUPPLY_FTS ?
+                  numberFormatter.format(toAmountDecimals(totalSupplyFT)) +
+                  (tokenMetaData?.token?.symbol ? " " + tokenMetaData?.token?.symbol : " tokens")
+                : "open ended"
+              }}
+            </span><span v-else>...</span>
+          </div>
+          <div>
+            Circulating supply: 
+            <span v-if="totalSupplyFT && reservedSupply != undefined">
+              {{ numberFormatter.format(toAmountDecimals(totalSupplyFT - reservedSupply)) +
+                (tokenMetaData?.token?.symbol ? " " + tokenMetaData?.token?.symbol: " tokens")
+              }}
+              {{ totalSupplyFT!= MAX_SUPPLY_FTS ?
+                `( ${((Number((totalSupplyFT - reservedSupply)*1000n/totalSupplyFT))/10).toFixed(1)}%)`
+                :"" 
+              }}
+            </span><span v-else>...</span>
           </div>
         </div>
 
