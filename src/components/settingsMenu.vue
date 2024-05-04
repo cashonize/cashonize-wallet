@@ -102,9 +102,12 @@
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <label for="selectNetwork">Change Electrum server mainnet:</label>
         <select v-model="selectedElectrumServer" @change="changeElectrumServer()">
-          <option value="bch.imaginary.cash">bch.imaginary.cash (default)</option>
-          <option value="electrum.imaginary.cash">electrum.imaginary.cash</option>
+          <option value="electrum.imaginary.cash">electrum.imaginary.cash (default)</option>
+          <option value="bch.imaginary.cash">bch.imaginary.cash</option>
           <option value="cashnode.bch.ninja">cashnode.bch.ninja</option>
+          <option value="bch.looping.net">bch.looping.net</option>
+          <option value="fulcrum.greyh.at">fulcrum.greyh.at</option>
+          <option value="electrum.bitcoinverde.org">electrum.bitcoinverde.org</option>
         </select>
       </div>
 

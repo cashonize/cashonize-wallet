@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 
-const defaultElectrumMainnet = "bch.imaginary.cash"
+const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
 const dafaultIpfsGateway = "https://ipfs.io/ipfs/";
 
