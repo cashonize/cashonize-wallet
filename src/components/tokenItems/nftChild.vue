@@ -61,7 +61,7 @@
 
   onMounted(() => {
     const tokenId = nftData.value.token?.tokenId as string;
-    let icon = createIcon({
+    const icon = createIcon({
       seed: tokenId,
       size: 12,
       scale: 4,

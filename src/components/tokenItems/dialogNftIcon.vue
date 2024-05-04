@@ -13,7 +13,7 @@
   watch(showIcon, () => emit('closeDialog'))
 
   const httpsUrlTokenImage = computed(() => {
-    let nftImageUri = srcNftImage.value;
+    const nftImageUri = srcNftImage.value;
     if(nftImageUri?.startsWith('ipfs://')){
       return settingsStore.ipfsGateway + nftImageUri.slice(7);
     }

@@ -51,7 +51,7 @@
   async function getOpreturnData(){
     const inputField = inputBcmr.value;
     if(selectedUri.value == "-select-") return
-    let validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("ipfs://baf");
+    const validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("ipfs://baf");
     if(!validinput){
       selectedUri.value != "IPFS" ? alert("Urls should not have any prefix!") : alert("Ipfs location should be a v1 CID");
       return
@@ -80,7 +80,7 @@
     if(!validInput){ alert(`Input total supply must be a valid integer`); return }
     try{
       const totalSupply = inputFungibleSupply.value;
-      let opreturnData = await getOpreturnData();
+      const opreturnData = await getOpreturnData();
       $q.notify({
         spinner: true,
         message: 'Creating tokens...',
@@ -121,7 +121,7 @@
   async function createMintingNFT(){
     if(!store.wallet) return;
     try{
-      let opreturnData = await getOpreturnData();
+      const opreturnData = await getOpreturnData();
       $q.notify({
         spinner: true,
         message: 'Creating minting NFT...',

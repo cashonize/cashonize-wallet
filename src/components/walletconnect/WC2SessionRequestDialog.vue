@@ -15,11 +15,10 @@
   const sessionProposal = sessionProposalWC.value;
   const dappMetadata = sessionProposal.params.proposer.metadata as DappMetadata;
   const { requiredNamespaces } = sessionProposal.params;
-  let needsNetworkSwitch = false;
 
   const dappNetworkPrefix = requiredNamespaces.bch.chains[0]?.split(":")[1];
   const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
-  if(dappTargetNetwork !== store.network) needsNetworkSwitch = true
+  const needsNetworkSwitch = (dappTargetNetwork !== store.network);
 
   function approveSessionWC() {
     emit('approveSession', sessionProposalWC.value);

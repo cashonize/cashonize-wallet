@@ -33,7 +33,7 @@
   }
   function changeElectrumServer(){
     if(!store.wallet) return
-    let newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004` )
+    const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004` )
     store.wallet.provider = newConnection.networkProvider;
     settingsStore.electrumServerMainnet = selectedElectrumServer.value
     localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
@@ -68,7 +68,7 @@
     })
   }
   function confirmDeleteWallet(){
-    let text = "You are about to delete your Cashonize wallet info from this browser.\nAre you sure you want to delete?";
+    const text = "You are about to delete your Cashonize wallet info from this browser.\nAre you sure you want to delete?";
     if (confirm(text)){
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");

@@ -58,7 +58,7 @@
   async function setWallet(newWallet: TestNetWallet){
     changeView(1);
     if(newWallet.network == 'mainnet'){
-      let connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
+      const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       newWallet.provider = connectionMainnet.networkProvider
     }
     store.wallet = newWallet;
@@ -109,7 +109,7 @@
       const walletPkh = binToHex(store.wallet.getPublicKeyHash() as Uint8Array);
       const tokenOutputs = tx.vout.filter(elem => elem.scriptPubKey.hex.includes(walletPkh));
       const previousTokenList = store.tokenList;
-      let listNewTokens:TokenList = []
+      const listNewTokens:TokenList = []
       for(const tokenOutput of tokenOutputs){
         const tokenId = tokenOutput?.tokenData?.category;
         const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);

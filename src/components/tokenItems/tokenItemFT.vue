@@ -52,7 +52,7 @@
   })
 
   onMounted(() => {
-    let icon = createIcon({
+    const icon = createIcon({
       seed: tokenData.value.tokenId,
       size: 12,
       scale: 4,

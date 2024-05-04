@@ -71,7 +71,7 @@
   })
 
   onMounted(() => {
-    let icon = createIcon({
+    const icon = createIcon({
       seed: tokenData.value.tokenId,
       size: 12,
       scale: 4,
@@ -282,7 +282,7 @@
     const tokenId = tokenData.value.tokenId;
     const nftInfo = tokenData.value.nfts?.[0].token;
     const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
-    let burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
+    const burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
     if (confirm(burnWarning) != true) return;
     if(!store.wallet) return;
     try {
