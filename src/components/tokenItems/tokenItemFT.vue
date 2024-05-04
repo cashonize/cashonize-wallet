@@ -136,9 +136,10 @@
         }),
       ]);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const amountSentFormatted = numberFormatter.format(toAmountDecimals(BigInt(amountTokens)))
       const alertMessage = tokenMetaData.value?.token?.symbol ?
-        `Sent ${tokenSendAmount.value} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
-        : `Sent ${tokenSendAmount.value} fungible tokens of category ${displayId} to ${destinationAddr.value}`
+        `Sent ${amountSentFormatted} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
+        : `Sent ${amountSentFormatted} fungible tokens of category ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
         componentProps: {
