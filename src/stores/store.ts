@@ -87,6 +87,13 @@ export const useStore = defineStore('store', () => {
     bcmrRegistries.value = registries
   }
 
+  async function hasPreGenesis(){
+    plannedTokenId.value = undefined;
+    const walletUtxos = await wallet.value?.getAddressUtxos();
+    const preGenesisUtxo = walletUtxos?.find(utxo => !utxo.token && utxo.vout === 0);
+    plannedTokenId.value = preGenesisUtxo?.txid ?? "";
+  }
+
   async function fetchAuthUtxos(){
     if(!wallet.value) return // should never happen
     if(!tokenList.value?.length) return
@@ -107,5 +114,5 @@ export const useStore = defineStore('store', () => {
     tokenList.value = copyTokenList;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries }
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries }
 })

@@ -25,12 +25,6 @@
     })
   }
 
-  async function hasPreGenesis(){
-    store.plannedTokenId = undefined;
-    const walletUtxos = await store.wallet?.getAddressUtxos();;
-    const preGenesisUtxo = walletUtxos?.find(utxo => !utxo.token && utxo.vout === 0);
-    store.plannedTokenId = preGenesisUtxo?.txid ?? "";
-  }
   async function createPreGenesis(){
     if(!store.wallet) return;
     try{
@@ -48,9 +42,7 @@
         message: 'Transaction succesfully sent!'
       })
       console.log(`Created valid preGenesis for token creation \n${store.explorerUrl}/tx/${txId}`);
-      let walletUtxos = await store.wallet.getAddressUtxos();
-      const createdPreGenesis = walletUtxos.find(utxo => !utxo.token && utxo.vout === 0);
-      store.plannedTokenId = createdPreGenesis?.txid;
+      store.plannedTokenId = txId;
     } catch(error){
       console.log(error)
     }
@@ -121,7 +113,7 @@
       // reset input fields
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
-      hasPreGenesis();
+      await store.hasPreGenesis()
     } catch(error){
       console.log(error)
     }
@@ -162,7 +154,7 @@
       console.log(`${store.explorerUrl}/tx/${txId}`);
       // reset input fields
       selectedTokenType.value  = "-select-";
-      hasPreGenesis();
+      await store.hasPreGenesis()
     } catch(error){
       console.log(error)
     }

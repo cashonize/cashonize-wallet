@@ -85,16 +85,15 @@
     console.timeEnd('fetch tokenUtxos Promise');
     store.balance = resultWalletBalance;
     store.maxAmountToSend = resultMaxAmountToSend;
-    const utxosPromise = store.wallet?.getAddressUtxos();
     setUpWalletSubscriptions();
     // get plannedTokenId
-    const walletUtxos = await utxosPromise;
-    const preGenesisUtxo = walletUtxos?.find(utxo => !utxo.token && utxo.vout === 0);
-    store.plannedTokenId = preGenesisUtxo?.txid ?? '';
     if(!store.tokenList) return // should never happen
     console.time('importRegistries');
     await store.importRegistries(store.tokenList, false);
     console.timeEnd('importRegistries');
+    console.time('planned tokenid');
+    await store.hasPreGenesis()
+    console.timeEnd('planned tokenid');
     console.time('fetchAuthUtxos');
     await store.fetchAuthUtxos();
     console.timeEnd('fetchAuthUtxos');
