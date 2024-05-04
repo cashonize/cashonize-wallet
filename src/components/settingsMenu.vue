@@ -105,9 +105,10 @@
           <option value="electrum.imaginary.cash">electrum.imaginary.cash (default)</option>
           <option value="bch.imaginary.cash">bch.imaginary.cash</option>
           <option value="cashnode.bch.ninja">cashnode.bch.ninja</option>
-          <option value="bch.looping.net">bch.looping.net</option>
           <option value="fulcrum.greyh.at">fulcrum.greyh.at</option>
-          <option value="electrum.bitcoinverde.org">electrum.bitcoinverde.org</option>
+          <option value="electroncash.dk">electroncash.dk</option>
+          <option value="fulcrum.jettscythe.xyz">fulcrum.jettscythe.xyz</option>
+          <option value="bch.loping.net">bch.loping.net</option>
         </select>
       </div>
 
