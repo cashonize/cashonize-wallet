@@ -97,18 +97,23 @@ export const useStore = defineStore('store', () => {
   async function fetchAuthUtxos(){
     if(!wallet.value) return // should never happen
     if(!tokenList.value?.length) return
-    const copyTokenList = tokenList.value
-    const authHeadTxIdPromises: any[] = [];
-    const tokenUtxosPromises: any[] = [];
+    const copyTokenList = [...tokenList.value]
+    const authHeadTxIdPromises: Promise<string>[] = [];
+    // get all tokenUtxos & authHeadTxIds
+    const tokenUtxosPromise: Promise<UtxoI[]> = wallet.value.getTokenUtxos();
     for (const token of tokenList.value){
-      authHeadTxIdPromises.push(queryAuthHeadTxid(token.tokenId, settingsStore.chaingraph))
-      tokenUtxosPromises.push(wallet.value.getTokenUtxos(token.tokenId));
+      const fetchAuthHeadPromise = queryAuthHeadTxid(token.tokenId, settingsStore.chaingraph)
+      authHeadTxIdPromises.push(fetchAuthHeadPromise)
     }
-    const authHeadTxIdResults: string[] = await Promise.all(authHeadTxIdPromises);
-    const tokenUtxosResults: UtxoI[][] = await Promise.all(tokenUtxosPromises);
-    tokenUtxosResults.forEach((tokenUtxos, index) => {
+    const authHeadTxIdResults = await Promise.all(authHeadTxIdPromises);
+    const tokenUtxosResult = await tokenUtxosPromise;
+    // check if any tokenUtxo of category is the authUtxo for that category
+      tokenList.value.forEach((token, index) => {
       const authHeadTxId = authHeadTxIdResults[index];
-      const authUtxo = tokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
+      const filteredTokenUtxos = tokenUtxosResult.filter(
+        (tokenUtxos) => tokenUtxos.token?.tokenId === token.tokenId
+      );
+      const authUtxo = filteredTokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
       if(authUtxo) copyTokenList[index].authUtxo = authUtxo;
     })
     tokenList.value = copyTokenList;
