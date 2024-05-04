@@ -127,13 +127,13 @@
       usdSendAmount.value = undefined;
       destinationAddr.value = "";
     } catch(error){
-      if(typeof error == 'string'){
-        $q.notify({
-          message: error,
-          icon: 'warning',
-          color: "red"
-        })
-      }
+      console.log(error)
+      const errorMessage = typeof error == 'string' ? error : "something went wrong";
+      $q.notify({
+        message: errorMessage,
+        icon: 'warning',
+        color: "red"
+      })
     }
   }
 </script>
