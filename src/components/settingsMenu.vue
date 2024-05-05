@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import { ref } from 'vue'
-  import { Connection } from "mainnet-js"
+  import { Connection, ElectrumNetworkProvider } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -34,7 +34,7 @@
   function changeElectrumServer(){
     if(!store.wallet) return
     const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004` )
-    store.wallet.provider = newConnection.networkProvider;
+    store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
     settingsStore.electrumServerMainnet = selectedElectrumServer.value
     localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
   }
