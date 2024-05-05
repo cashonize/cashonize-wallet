@@ -225,10 +225,8 @@
       const tokenAddr = store.wallet.tokenaddr;
       const unique = mintUniqueNfts.value === 'yes';
       let tokenCommitment = unique? "" : mintCommitment.value;
-      if(mintAmountNfts.value == undefined || startingNumberNFTs.value == undefined){
-        alert('invalid inputs');
-        return;
-      }
+      if(mintAmountNfts.value == undefined) throw('invalid amount NFTs to mint');
+      if(startingNumberNFTs.value == undefined) throw('invalid starting number');
       const mintAmount = parseInt(mintAmountNfts.value);
       const startingNumber = parseInt(startingNumberNFTs.value);
       const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);

@@ -44,7 +44,7 @@
       console.log(`Created valid preGenesis for token creation \n${store.explorerUrl}/tx/${txId}`);
       store.plannedTokenId = txId;
     } catch(error){
-      console.log(error)
+      handleTransactionError(error)
     }
   }
 
@@ -53,8 +53,8 @@
     if(selectedUri.value == "-select-") return
     const validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("ipfs://baf");
     if(!validinput){
-      selectedUri.value != "IPFS" ? alert("Urls should not have any prefix!") : alert("Ipfs location should be a v1 CID");
-      return
+      const errorString = selectedUri.value != "IPFS" ? "Urls should not have any prefix!" : "Ipfs location should be a v1 CID";
+      throw(errorString)
     }
     const defaultBcmrLocation = "/.well-known/bitcoin-cash-metadata-registry.json"
     const bcmrLocation = (selectedUri.value === "website" && !inputField.endsWith(".json"))? defaultBcmrLocation : ""
@@ -77,7 +77,7 @@
       try { return BigInt(value) }
       catch (e) { return false }
     }
-    if(!validInput){ alert(`Input total supply must be a valid integer`); return }
+    if(!validInput) throw(`Input total supply must be a valid integer`)
     try{
       const totalSupply = inputFungibleSupply.value;
       const opreturnData = await getOpreturnData();
@@ -115,7 +115,7 @@
       selectedTokenType.value  = "-select-";
       await store.hasPreGenesis()
     } catch(error){
-      console.log(error)
+      handleTransactionError(error)
     }
   }
   async function createMintingNFT(){
@@ -156,8 +156,18 @@
       selectedTokenType.value  = "-select-";
       await store.hasPreGenesis()
     } catch(error){
-      console.log(error)
+      handleTransactionError(error)
     }
+  }
+
+  function handleTransactionError(error: any){
+    console.log(error)
+    const errorMessage = typeof error == 'string' ? error : "something went wrong";
+    $q.notify({
+      message: errorMessage,
+      icon: 'warning',
+      color: "red"
+    }) 
   }
 </script>
 

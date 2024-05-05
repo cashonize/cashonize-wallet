@@ -45,7 +45,12 @@
     const { requiredNamespaces } = sessionProposal.params;
 
     if (!requiredNamespaces.bch) {
-      alert(`You are trying to connect an app from unsupported blockchain(s): ${Object.keys(requiredNamespaces).join(", ")}`);
+      const errorMessage = `Trying to connect an app from unsupported blockchain(s): ${Object.keys(requiredNamespaces).join(", ")}`;
+      $q.notify({
+        message: errorMessage,
+        icon: 'warning',
+        color: "red"
+      })
       return;
     }
 
