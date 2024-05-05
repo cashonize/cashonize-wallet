@@ -117,19 +117,20 @@
     });
     cancelWatchTokenTxs = store.wallet?.watchAddressTokenTransactions(async(tx) => {
       if(!store.wallet) return // should never happen
-      // Check if transaction made by user
-      const userInputs = tx.vin.filter(vinElem => vinElem.address == store.wallet?.address);
-      if(userInputs.length) return
       const walletPkh = binToHex(store.wallet.getPublicKeyHash() as Uint8Array);
       const tokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
       const previousTokenList = store.tokenList;
       const listNewTokens:TokenList = []
+      // Check if transaction not initiated by user
+      const userInputs = tx.vin.filter(vinElem => vinElem.address == store.wallet?.address);
       for(const tokenOutput of tokenOutputs){
-        const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
-        $q.notify({
-          type: 'positive',
-          message: `Received new ${tokenType}`
-        })
+        if(!userInputs.length){
+          const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
+          $q.notify({
+            type: 'positive',
+            message: `Received new ${tokenType}`
+          })
+        }
         const tokenId = tokenOutput?.tokenData?.category;
         const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);
         if(!tokenId && !isNewTokenItem) continue;
