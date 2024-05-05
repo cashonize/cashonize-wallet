@@ -89,12 +89,13 @@
     if(decimals) tokenAmountDecimals = Number(tokenAmountDecimals) / (10 ** decimals);
     return tokenAmountDecimals;
   }
-  async function maxTokenAmount(){
+  async function maxTokenAmount(tokenSend:boolean){
     try{
       if(!tokenData.value?.amount) return // should never happen
       const decimals = tokenMetaData.value?.token?.decimals;
       let amountTokens = decimals ? Number(tokenData.value.amount) / (10 ** decimals) : tokenData.value.amount;
-      tokenSendAmount.value = amountTokens.toString();
+      const targetState = tokenSend? tokenSendAmount : burnAmountFTs;
+      targetState.value = amountTokens.toString();
     } catch(error) {
       console.log(error)
     }
@@ -351,19 +352,22 @@
                   {{ tokenMetaData?.token?.symbol ?? "tokens" }}
                 </i>
               </span>
-              <button @click="maxTokenAmount()" id="maxButton" style="color: black;">max</button>
+              <button @click="maxTokenAmount(true)" id="maxButton" style="color: black;">max</button>
             </div>
           </div>
           <input @click="sendTokens()" type="button" id="sendSomeButton" class="primaryButton" value="Send">
         </div>
         <div v-if="displayBurnFungibles" style="margin-top: 10px;">
           <div>Burning tokens removes them from the supply forever</div>
-          <span style="width: 50%; position: relative; display: flex;">
-            <input v-model="burnAmountFTs" type="number" placeholder="amount tokens">
-            <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
-              {{ tokenMetaData?.token?.symbol ?? "tokens" }}
-            </i>
-          </span>
+          <div style="display: flex">
+            <span style="width: 50%; position: relative; display: flex;">
+              <input v-model="burnAmountFTs" type="number" placeholder="amount tokens">
+              <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
+                {{ tokenMetaData?.token?.symbol ?? "tokens" }}
+              </i>
+            </span>
+            <button @click="maxTokenAmount(false)" style="color: black;">max</button>
+          </div>
           <input @click="burnFungibles()" type="button" value="burn tokens" class="button error" style="margin-top: 10px;">
         </div>
         <div v-if="displayAuthTransfer" style="margin-top: 10px;">
