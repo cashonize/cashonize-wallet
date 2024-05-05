@@ -394,9 +394,12 @@
         </div>
       </div>-->
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon && isSingleNft" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%; cursor: pointer;" :src="httpsUrlTokenIcon"  @click="() => showNftImage = true">
-        <img v-if="httpsUrlTokenIcon && !isSingleNft" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
-        <div v-if="!httpsUrlTokenIcon" id="genericTokenIcon" class="tokenIcon"></div>
+        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;cursor: pointer;" @click="() => showNftImage = true">
+          <source :src="httpsUrlTokenIcon" type="video/mp4" />
+        </video>
+        <img v-else-if="httpsUrlTokenIcon && isSingleNft" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%; cursor: pointer;" :src="httpsUrlTokenIcon"  @click="() => showNftImage = true">
+        <img v-else-if="httpsUrlTokenIcon && !isSingleNft" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
+        <div v-else-if="!httpsUrlTokenIcon" id="genericTokenIcon" class="tokenIcon"></div>
 
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
