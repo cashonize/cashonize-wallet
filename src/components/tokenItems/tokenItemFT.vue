@@ -221,7 +221,6 @@
     if(!validInput ) throw(`Amount tokens for reserved supply must only have ${decimals} decimal places`);
     const tokenId = tokenData.value.tokenId;
     try {
-      const changeAmount = reservedSupply? tokenData.value.amount - BigInt(reservedSupply) : tokenData.value.amount;
       const authTransfer = !reservedSupply? {
         cashaddr: destinationAddr.value,
         value: 1000,
@@ -232,6 +231,7 @@
         amount: reservedSupply
       });
       const outputs = [authTransfer];
+      const changeAmount = reservedSupply? tokenData.value.amount - BigInt(reservedSupply) : tokenData.value.amount;
       if(changeAmount){
         const changeOutput = new TokenSendRequest({
           cashaddr: store.wallet.tokenaddr,
@@ -240,10 +240,27 @@
         });
         outputs.push(changeOutput)
       }
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const { txId } = await store.wallet.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      alert(`Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`);
-      console.log(`Transferred the Auth of token ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
+      const alertMessage = `Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
+       $q.notify({
+        type: 'positive',
+        message: 'Auth transfer successful'
+      })
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
     } catch (error) { 
       handleTransactionError(error);
     }
@@ -332,7 +349,7 @@
                 (tokenMetaData?.token?.symbol ? " " + tokenMetaData?.token?.symbol: " tokens")
               }}
               {{ totalSupplyFT!= MAX_SUPPLY_FTS ?
-                `( ${((Number((totalSupplyFT - reservedSupply)*1000n/totalSupplyFT))/10).toFixed(1)}%)`
+                `(${((Number((totalSupplyFT - reservedSupply)*1000n/totalSupplyFT))/10).toFixed(1)}%)`
                 :"" 
               }}
             </span><span v-else>...</span>
@@ -376,14 +393,14 @@
           Token supply kept at the Auth UTXO will be marked as reserved supply, not yet in circulation. <br>
           <span class="grouped" style="margin-top: 10px;">
             <input v-model="destinationAddr" placeholder="destinationAddr">
-            <span style="width: 100%; position: relative; display: flex;">
+            <span style="width: 100%; position: relative; display: flex; margin: 0">
               <input v-model="reservedSupplyInput" placeholder="reservedSupply">
               <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? "tokens" }}
               </i>
             </span>
-            <input @click="transferAuth()" type="button" value="Transfer Auth">
           </span>
+          <input @click="transferAuth()" type="button" class="primaryButton" value="Transfer Auth"  style="margin-top: 10px;">
         </div>
       </div>
     </fieldset>

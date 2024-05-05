@@ -346,10 +346,27 @@
         commitment: authNft?.commitment,
         capability: authNft?.capability
       });
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const { txId } = await store.wallet.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      alert(`Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`);
-      console.log(`Transferred the Auth of token ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
+      const alertMessage = `Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
+       $q.notify({
+        type: 'positive',
+        message: 'Auth transfer successful'
+      })
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
     } catch (error) { 
       handleTransactionError(error)
     }
@@ -480,7 +497,7 @@
           </p>
           <span class="grouped">
             <input v-model="destinationAddr" placeholder="destinationAddress"> 
-            <input @click="mintNfts()" type="button" id="mintNFTs" value="Mint NFTs">
+            <input @click="mintNfts()" type="button" id="mintNFTs" value="Mint NFTs" class="primaryButton">
           </span>
         </div>
         <div v-if="displayBurnNft" style="margin-top: 10px;">
@@ -491,11 +508,10 @@
         </div>
         <div v-if="displayAuthTransfer" style="margin-top: 10px;">
           Transfer the authority to change the token's metadata to another wallet <br>
-          This should be to a wallet with coin-control, where you can label the Auth UTXO<br>
-          It is recommended to use the Electron Cash pc wallet<br>
+          You can either transfer the Auth to a dedicated wallet or to the <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>.<br>
           <span class="grouped" style="margin-top: 10px;">
             <input id="destinationAddr" placeholder="destinationAddress"> 
-            <input @click="transferAuth()" type="button" value="Transfer Auth">
+            <input @click="transferAuth()" type="button" value="Transfer Auth" class="primaryButton">
           </span>
         </div>
       </div>
