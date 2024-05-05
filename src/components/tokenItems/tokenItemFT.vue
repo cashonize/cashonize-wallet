@@ -157,13 +157,7 @@
       displaySendTokens.value = false;
       await store.updateTokenList();
     }catch(error){
-      console.log(error)
-      const errorMessage = typeof error == 'string' ? error : "something went wrong";
-      $q.notify({
-        message: errorMessage,
-        icon: 'warning',
-        color: "red"
-      })
+      handleTransactionError(error)
     }
   }
   async function burnFungibles(){
@@ -179,20 +173,41 @@
     let burnWarning = `You are about to burn ${amountTokens} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
     if (confirm(burnWarning) != true) return;
     try {
-      const { txId } = await store.wallet.tokenBurn(
-        {
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
+      const { txId } = await store.wallet.tokenBurn({
           tokenId: tokenId,
           amount: BigInt(amountTokens),
         },
         "burn", // optional OP_RETURN message
       );
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      alert(`Burned ${amountTokens} tokens of category ${displayId}`);
-      console.log(`Burned ${amountTokens} tokens of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
+      const amountBurntFormatted = numberFormatter.format(toAmountDecimals(BigInt(amountTokens)))
+      const alertMessage = tokenMetaData.value?.token?.symbol ?
+        `Burned ${amountBurntFormatted} ${tokenMetaData.value.token.symbol}`
+        : `Burned ${amountBurntFormatted} tokens of category ${displayId}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
+       $q.notify({
+        type: 'positive',
+        message: 'Burn successful'
+      })
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
       burnAmountFTs.value = "";
       displayBurnFungibles.value = false;
       await store.updateTokenList();
-    } catch (error) { alert(error) }
+    } catch (error) {
+      handleTransactionError(error)
+    }
   }
   async function transferAuth() {
     if(!store.wallet || !store.wallet.tokenaddr) return;
@@ -229,9 +244,18 @@
       alert(`Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`);
       console.log(`Transferred the Auth of token ${displayId} to ${destinationAddr.value} \n${store.explorerUrl}/tx/${txId}`);
     } catch (error) { 
-      alert(error);
-      console.log(error);
+      handleTransactionError(error);
     }
+  }
+
+  function handleTransactionError(error: any){
+    console.log(error)
+    const errorMessage = typeof error == 'string' ? error : "something went wrong";
+    $q.notify({
+      message: errorMessage,
+      icon: 'warning',
+      color: "red"
+    }) 
   }
 </script>
 

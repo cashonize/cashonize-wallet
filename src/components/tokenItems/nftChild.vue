@@ -118,13 +118,7 @@
       displaySendNft.value = false;
       await store.updateTokenList();
     }catch(error){
-      console.log(error)
-      const errorMessage = typeof error == 'string' ? error : "something went wrong";
-      $q.notify({
-        message: errorMessage,
-        icon: 'warning',
-        color: "red"
-      })
+      handleTransactionError(error)
     }
   }
   async function mintNfts() {
@@ -159,17 +153,33 @@
         })
         arraySendrequests.push(mintRequest);
       }
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
       const commitmentText= tokenCommitment? `with commitment ${tokenCommitment}`: "";
-      if(mintAmount == 1){
-        alert(`Minted immutable NFT of category ${displayId} ${commitmentText}`);
-        console.log(`Minted immutable NFT of category ${displayId} ${commitmentText} \n${store.explorerUrl}/tx/${txId}`);
-      } else {
-        alert(`Minted ${mintAmount} NFTs of category ${displayId}`);
-        console.log(`Minted ${mintAmount} immutable NFT of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
-      }
-    } catch (error) { alert(error) }
+      const alertMessage = mintAmount == 1 ?
+        `Minted immutable NFT of category ${displayId} ${commitmentText}`
+        : `Minted ${mintAmount} NFTs of category ${displayId}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
+       $q.notify({
+        type: 'positive',
+        message: 'Mint successful'
+      })
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
+    } catch (error) {
+      handleTransactionError(error)
+    }
   }
   async function burnNft() {
     const nftInfo = nftData.value.token;
@@ -179,6 +189,12 @@
     if (confirm(burnWarning) != true) return;
     if(!store.wallet) return;
     try {
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
       const { txId } = await store.wallet.tokenBurn(
         {
           tokenId: tokenId,
@@ -188,9 +204,32 @@
         "burn", // optional OP_RETURN message
       );
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      alert(`Burned ${nftTypeString} of category ${displayId}`);
-      console.log(`Burned ${nftTypeString} of category ${displayId} \n${store.explorerUrl}/tx/${txId}`);
-    } catch (error) { alert(error) }
+      const alertMessage = `Burned ${nftTypeString} of category ${displayId}`
+      $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string }
+        }
+      })
+       $q.notify({
+        type: 'positive',
+        message: 'Burn successful'
+      })
+      console.log(alertMessage);
+      console.log(`${store.explorerUrl}/tx/${txId}`);
+    } catch (error) {
+      handleTransactionError(error)
+    }
+  }
+
+  function handleTransactionError(error: any){
+    console.log(error)
+    const errorMessage = typeof error == 'string' ? error : "something went wrong";
+    $q.notify({
+      message: errorMessage,
+      icon: 'warning',
+      color: "red"
+    }) 
   }
 </script>
 
