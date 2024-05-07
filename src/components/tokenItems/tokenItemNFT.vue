@@ -104,7 +104,7 @@
   })
 
   async function showChildNfts() {
-    if(!fetchedMetadataChildren){
+    if(!fetchedMetadataChildren && tokenMetaData.value){
       console.time('fetch NFT info');
       await store.importRegistries([tokenData.value], true)
       fetchedMetadataChildren = true
