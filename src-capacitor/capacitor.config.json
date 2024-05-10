@@ -3,7 +3,6 @@
   "appName": "Cashonize",
   "webDir": "www",
   "server": {
-    "androidScheme": "https",
-    "url": "http://10.45.142.229:9500"
+    "androidScheme": "https"
   }
 }
