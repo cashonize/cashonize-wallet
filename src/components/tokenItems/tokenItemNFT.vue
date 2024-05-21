@@ -78,7 +78,7 @@
       spotcolor: '#000'
     });
     icon.style = "display: block; border-radius: 50%;"
-    const template = document.querySelector(`#id${tokenData.value.tokenId.slice(0, 10)}`);
+    const template = document.querySelector(`#id${tokenData.value.tokenId.slice(0, 10)}nft`);
     const iconDiv = template?.querySelector("#genericTokenIcon")
     iconDiv?.appendChild(icon);
   })
@@ -382,7 +382,7 @@
 </script>
 
 <template id="token-template">
-  <div :id="`id${tokenData.tokenId.slice(0, 10)}`" class="item">
+  <div :id="`id${tokenData.tokenId.slice(0, 10)}nft`" class="item">
     <fieldset style="position: relative;">
       <legend>
         <div id="tokenType"></div>
