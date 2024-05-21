@@ -215,6 +215,7 @@
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/tx/${txId}`);
+      await store.updateTokenList();
     } catch (error) {
       handleTransactionError(error)
     }
