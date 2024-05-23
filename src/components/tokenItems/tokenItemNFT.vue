@@ -126,6 +126,7 @@
       if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
+      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const tokenId = tokenData.value.tokenId;
       const allNfts = tokenData.value.nfts;
       const outputArray:TokenSendRequest[] = [];
@@ -180,6 +181,7 @@
       if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
+      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const tokenId = tokenData.value.tokenId;
       const nftInfo = tokenData.value.nfts?.[0].token as TokenI;
       $q.notify({
@@ -232,6 +234,7 @@
       const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
       const validCommitment = (isHex(tokenCommitment) || tokenCommitment == "")
       if(!validCommitment) throw(`tokenCommitment '${tokenCommitment}' must be a hexadecimal`);
+      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
@@ -281,19 +284,22 @@
     }
   }
   async function burnNft() {
-    const tokenId = tokenData.value.tokenId;
-    const nftInfo = tokenData.value.nfts?.[0].token;
-    const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
-    const burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
-    if (confirm(burnWarning) != true) return;
-    if(!store.wallet) return;
-    $q.notify({
-      spinner: true,
-      message: 'Sending transaction...',
-      color: 'grey-5',
-      timeout: 1000
-    })
     try {
+      if(!store.wallet) return;
+      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+
+      const tokenId = tokenData.value.tokenId;
+      const nftInfo = tokenData.value.nfts?.[0].token;
+      const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
+      const burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
+      if (confirm(burnWarning) != true) return;
+      $q.notify({
+        spinner: true,
+        message: 'Sending transaction...',
+        color: 'grey-5',
+        timeout: 1000
+      })
+
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',

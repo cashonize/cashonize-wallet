@@ -103,6 +103,7 @@
   async function sendTokens(){
     try{
       if(!store.wallet) return;
+      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       if(!destinationAddr.value) throw("No destination address provided")
       if(!tokenSendAmount?.value) throw(`No valid amount provided`);
       const decimals = tokenMetaData.value?.token?.decimals;
@@ -162,18 +163,20 @@
     }
   }
   async function burnFungibles(){
-    if(!store.wallet) return;
-    if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
-    const decimals = tokenMetaData.value?.token?.decimals;
-    const amountTokens = decimals ? +burnAmountFTs.value * (10 ** decimals) : +burnAmountFTs.value;
-    const validInput =  Number.isInteger(amountTokens);
-    if(!validInput && !decimals) throw(`Amount tokens to burn must be a valid integer`);
-    if(!validInput ) throw(`Amount tokens to burn must only have ${decimals} decimal places`);
-    const tokenId = tokenData.value.tokenId;
-
-    let burnWarning = `You are about to burn ${amountTokens} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
-    if (confirm(burnWarning) != true) return;
     try {
+      if(!store.wallet) return;
+      if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
+      const decimals = tokenMetaData.value?.token?.decimals;
+      const amountTokens = decimals ? +burnAmountFTs.value * (10 ** decimals) : +burnAmountFTs.value;
+      const validInput =  Number.isInteger(amountTokens);
+      if(!validInput && !decimals) throw(`Amount tokens to burn must be a valid integer`);
+      if(!validInput ) throw(`Amount tokens to burn must only have ${decimals} decimal places`);
+      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      const tokenId = tokenData.value.tokenId;
+
+      let burnWarning = `You are about to burn ${amountTokens} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
+      if (confirm(burnWarning) != true) return;
+
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
