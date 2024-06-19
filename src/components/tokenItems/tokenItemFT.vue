@@ -153,7 +153,7 @@
         message: 'Transaction succesfully sent!'
       })
       console.log(alertMessage);
-      console.log(`${store.explorerUrl}/tx/${txId}`);
+      console.log(`${store.explorerUrl}/${txId}`);
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
@@ -205,7 +205,7 @@
         message: 'Burn successful'
       })
       console.log(alertMessage);
-      console.log(`${store.explorerUrl}/tx/${txId}`);
+      console.log(`${store.explorerUrl}/${txId}`);
       burnAmountFTs.value = "";
       displayBurnFungibles.value = false;
       await store.updateTokenList();
@@ -263,7 +263,7 @@
         message: 'Auth transfer successful'
       })
       console.log(alertMessage);
-      console.log(`${store.explorerUrl}/tx/${txId}`);
+      console.log(`${store.explorerUrl}/${txId}`);
     } catch (error) { 
       handleTransactionError(error);
     }

@@ -15,18 +15,24 @@
   const displayeAdvanced = ref(false);
   const displayeSeedphrase = ref(false);
   const selectedNetwork = ref(store.network);
-  const selectedUnit  = ref(settingsStore.bchUnit);
-  const selectedDarkMode  = ref(settingsStore.darkMode);
-  const selectedTokenBurn  = ref(settingsStore.tokenBurn);
-  const selectedElectrumServer  = ref(settingsStore.electrumServerMainnet);
-  const selectedIpfsGateway  = ref(settingsStore.ipfsGateway);
-  const selectedChaingraph  = ref(settingsStore.chaingraph);
+  const selectedUnit = ref(settingsStore.bchUnit);
+  const selectedExplorer = ref(store.explorerUrl);
+  const selectedDarkMode = ref(settingsStore.darkMode);
+  const selectedTokenBurn = ref(settingsStore.tokenBurn);
+  const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
+  const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
+  const selectedChaingraph = ref(settingsStore.chaingraph);
   const emit = defineEmits(['changeView','changeNetwork']);
 
   function changeUnit(){
     settingsStore.bchUnit = selectedUnit.value;
     localStorage.setItem("unit", selectedUnit.value);
     emit('changeView', 1);
+  }
+  function changeBlockExplorer(){
+    const explorerNetwork = store.network == "mainnet" ? "explorerMainnet" : "explorerChipnet";
+    settingsStore[explorerNetwork] = selectedExplorer.value;
+    localStorage.setItem(explorerNetwork, selectedExplorer.value);
   }
   function changeNetwork(){
     emit('changeNetwork', selectedNetwork.value);
@@ -142,6 +148,22 @@
           <option value="sat">satoshis</option>
         </select>
       </div>
+
+      <div style="margin-top:15px">
+        <label for="selectUnit">Select BlockExplorer:</label>
+        <select v-model="selectedExplorer" @change="changeBlockExplorer()">
+          <option v-if="store.network == 'mainnet'" value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
+          <option v-if="store.network == 'mainnet'" value="https://explorer.bitcoinunlimited.info/tx">Bitcoinunlimited</option>
+          <option v-if="store.network == 'mainnet'" value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
+          <option v-if="store.network == 'mainnet'" value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
+          <option v-if="store.network == 'mainnet'" value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
+          <option v-if="store.network == 'mainnet'" value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
+
+          <option v-if="store.network == 'chipnet'" value="https://chipnet.imaginary.cash/tx">chipnet imaginary</option>
+          <option v-if="store.network == 'chipnet'" value="https://chipnet.chaingraph.cash/tx">chipnet chaingraph</option>
+        </select>
+      </div>
+
       <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
       <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
         :value="displayeSeedphrase? 'Hide seed phrase' : 'Show seed phrase'"

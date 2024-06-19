@@ -114,7 +114,7 @@
         message: 'Transaction succesfully sent!'
       })
       console.log(alertMessage);
-      console.log(`${store.explorerUrl}/tx/${txId}`);
+      console.log(`${store.explorerUrl}/${txId}`);
       destinationAddr.value = "";
       displaySendNft.value = false;
       await store.updateTokenList();
@@ -176,7 +176,7 @@
         message: 'Mint successful'
       })
       console.log(alertMessage);
-      console.log(`${store.explorerUrl}/tx/${txId}`);
+      console.log(`${store.explorerUrl}/${txId}`);
     } catch (error) {
       handleTransactionError(error)
     }
@@ -219,7 +219,7 @@
         message: 'Burn successful'
       })
       console.log(alertMessage);
-      console.log(`${store.explorerUrl}/tx/${txId}`);
+      console.log(`${store.explorerUrl}/${txId}`);
       await store.updateTokenList();
     } catch (error) {
       handleTransactionError(error)

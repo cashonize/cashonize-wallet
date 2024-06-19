@@ -48,7 +48,7 @@
           <img class="copyIcon icon" :src="settingsStore.darkMode? 'images/copyGrey.svg':'images/copy.svg'">
         </span>
         <br><br>
-        <a :href="store.explorerUrl + `/tx/${alertInfo.txid}`" target="_blank">Link blockexplorer</a>
+        <a :href="store.explorerUrl + `/${alertInfo.txid}`" target="_blank">Link blockexplorer</a>
       </q-card-section>
       <br>
     </q-card>

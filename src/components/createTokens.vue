@@ -41,7 +41,7 @@
         type: 'positive',
         message: 'Transaction succesfully sent!'
       })
-      console.log(`Created valid preGenesis for token creation \n${store.explorerUrl}/tx/${txId}`);
+      console.log(`Created valid preGenesis for token creation \n${store.explorerUrl}/${txId}`);
       store.plannedTokenId = txId;
     } catch(error){
       handleTransactionError(error)
@@ -109,7 +109,7 @@
         message: 'Transaction succesfully sent!'
       })
       console.log(alertMessage);
-      console.log(`${store.explorerUrl}/tx/${txId}`);
+      console.log(`${store.explorerUrl}/${txId}`);
       // reset input fields
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
@@ -151,7 +151,7 @@
         message: 'Transaction succesfully sent!'
       })
       console.log(alertMessage);
-      console.log(`${store.explorerUrl}/tx/${txId}`);
+      console.log(`${store.explorerUrl}/${txId}`);
       // reset input fields
       selectedTokenType.value  = "-select-";
       await store.hasPreGenesis()

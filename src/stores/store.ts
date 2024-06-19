@@ -12,8 +12,6 @@ const settingsStore = useSettingsStore()
 Config.EnforceCashTokenReceiptAddresses = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
 
-const explorerUrlMainnet = "https://explorer.bitcoinunlimited.info";
-const explorerUrlChipnet = "https://chipnet.chaingraph.cash";
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
@@ -23,7 +21,7 @@ export const useStore = defineStore('store', () => {
   const balance = ref(undefined as (BalanceResponse | undefined));
   const maxAmountToSend = ref(undefined as (BalanceResponse | undefined));
   const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
-  const explorerUrl = computed(() => network.value == "mainnet" ? explorerUrlMainnet : explorerUrlChipnet);
+  const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   const bcmrRegistries = ref(undefined as (Record<string, any> | undefined));
