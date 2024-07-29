@@ -18,6 +18,8 @@
   const selectedUnit = ref(settingsStore.bchUnit);
   const selectedExplorer = ref(store.explorerUrl);
   const selectedDarkMode = ref(settingsStore.darkMode);
+  const selectedWalletConnect = ref(settingsStore.walletConnect);
+  const selectedTokenCreation = ref(settingsStore.tokenCreation);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
@@ -57,8 +59,17 @@
     localStorage.setItem("darkMode", selectedDarkMode.value? "true" : "false");
     selectedDarkMode.value ? document.body.classList.add("dark") : document.body.classList.remove("dark")
   }
+  function changeWalletConnect(){
+    settingsStore.walletConnect = selectedWalletConnect.value;
+    localStorage.setItem("walletConnect", selectedWalletConnect.value? "true" : "false");
+  }
+  function changeTokenCreation(){
+    settingsStore.tokenCreation = selectedTokenCreation.value;
+    localStorage.setItem("tokenCreation", selectedTokenCreation.value? "true" : "false");
+  }
   function changeTokenBurn(){
     settingsStore.tokenBurn = selectedTokenBurn.value;
+    localStorage.setItem("tokenBurn", selectedTokenBurn.value? "true" : "false");
   }
   function toggleShowSeedphrase(){
     displayeSeedphrase.value = !displayeSeedphrase.value;
@@ -93,6 +104,14 @@
     </div>
 
     <div v-if="displayeAdvanced">
+      <div style="margin-top: 15px;">Enable WalletConnect  
+        <Toggle v-model="selectedWalletConnect" @change="changeWalletConnect()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      </div>
+
+      <div style="margin-top: 15px;">Enable token creation  
+        <Toggle v-model="selectedTokenCreation" @change="changeTokenCreation()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      </div>
+
       <div style="margin-top: 15px;">Enable token-burn  
         <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>

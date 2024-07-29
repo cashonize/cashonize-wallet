@@ -17,6 +17,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const ipfsGateway = ref(dafaultIpfsGateway);
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
+  const walletConnect = ref(false);
+  const tokenCreation = ref(false);
 
   // read local storage for stored settings
   const readUnit = localStorage.getItem("unit");
@@ -26,6 +28,21 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readDarkMode == "true"){
     document.body.classList.add("dark");
     darkMode.value = true;
+  }
+  const readTokenBurn = localStorage.getItem("tokenBurn");
+  if(readTokenBurn == "true"){
+    document.body.classList.add("tokenBurn");
+    tokenBurn.value = true;
+  }
+  const readWalletConnect = localStorage.getItem("walletConnect");
+  if(readWalletConnect == "true"){
+    document.body.classList.add("walletConnect");
+    walletConnect.value = true;
+  }
+  const readTokenCreation = localStorage.getItem("tokenCreation");
+  if(readTokenCreation == "true"){
+    document.body.classList.add("tokenCreation");
+    tokenCreation.value = true;
   }
   const readElectrumMainnet = localStorage.getItem("electrum-mainnet") ?? "";
   if(readElectrumMainnet) electrumServerMainnet.value = readElectrumMainnet
@@ -41,5 +58,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn }
+  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, walletConnect, tokenCreation }
 })

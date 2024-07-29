@@ -38,7 +38,10 @@
   const signMessageRequestWC = ref(undefined as any);
   const dappMetadata = ref(undefined as any);
   const dappUriUrlParam = ref(undefined as undefined|string);
-  
+
+  const walletConnect = ref(settingsStore.walletConnect);
+  const tokenCreation = ref(settingsStore.tokenCreation);
+
   // check if wallet exists
   const mainnetWalletExists = await Wallet.namedExists(nameWallet);
   const testnetWalletExists = await TestNetWallet.namedExists(nameWallet);
@@ -244,8 +247,8 @@
     <nav v-if="displayView" style="display: flex; justify-content: center;" class="tabs">
       <div @click="changeView(1)" v-bind:style="displayView == 1 ? {color: 'var(--color-primary'} : ''">BchWallet</div>
       <div @click="changeView(2)" v-bind:style="displayView == 2 ? {color: 'var(--color-primary'} : ''">MyTokens</div>
-      <div v-if="!isMobile" @click="changeView(3)" v-bind:style="displayView == 3 ? {color: 'var(--color-primary'} : ''">CreateTokens</div>
-      <div @click="changeView(4)" v-bind:style="displayView == 4 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Connect" : "WalletConnect"}}</div>
+      <div v-if="!isMobile && tokenCreation" @click="changeView(3)" v-bind:style="displayView == 3 ? {color: 'var(--color-primary'} : ''">CreateTokens</div>
+      <div v-if="walletConnect" @click="changeView(4)" v-bind:style="displayView == 4 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Connect" : "WalletConnect"}}</div>
       <div @click="changeView(5)">
         <img style="vertical-align: text-bottom;" v-bind:src="displayView == 5 ? 'images/settingsGreen.svg' : 
           settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg'">
