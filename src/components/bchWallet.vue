@@ -14,7 +14,7 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
-  const nrTokenCategories = computed(() => store.tokenList?.length)
+  const nrTokenCategories = computed(() => store.tokenList?.filter(token => token.amount > 0n || token.nfts?.length > 0).length)
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
@@ -154,18 +154,20 @@
           ? numberFormatter.format(store.balance[settingsStore.bchUnit] as number) + displayUnitLong : "" }}
       </span>
     </span>
-    <span v-if="!isMobile">
-      , Tokens: 
-      <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ nrTokenCategories != undefined ? nrTokenCategories + " different categories" : ""}}
+    <span v-if="nrTokenCategories">
+      <span v-if="!isMobile">
+        , Tokens: 
+        <span style="color: hsla(160, 100%, 37%, 1);">
+          {{ nrTokenCategories + " different categories"}}
+        </span>
       </span>
+      <div v-else style="margin-bottom: 10px;">
+        Tokens: 
+        <span style="color: hsla(160, 100%, 37%, 1);">
+          {{ nrTokenCategories + " different categories"}}
+        </span>
+      </div>
     </span>
-    <div v-else style="margin-bottom: 10px;">
-      Tokens: 
-      <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ nrTokenCategories != undefined ? nrTokenCategories + " different categories" : ""}}
-      </span>
-    </div>
     <div style="word-break: break-all;">
       BCH address: 
       <span @click="() => copyToClipboard(store.wallet?.address)" style="cursor:pointer;">

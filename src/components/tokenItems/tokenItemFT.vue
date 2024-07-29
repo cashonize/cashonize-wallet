@@ -303,7 +303,7 @@
             </div>
             <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
           </div>
-          <div v-if="tokenData?.amount" class="tokenAmount" id="tokenAmount">Amount: 
+          <div v-if="tokenData?.amount !== undefined" class="tokenAmount" id="tokenAmount">Amount: 
             {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
           </div>
         </div>

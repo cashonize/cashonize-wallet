@@ -15,6 +15,10 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
+export const featuredTokens = [
+  "36546e4062a1cfd070a4a8d8ff9db18aae4ddf8d9ac9a4fa789314d108b49797"
+];
+
 export const useStore = defineStore('store', () => {
   // Wallet State
   const wallet = ref(null as (Wallet | TestNetWallet | null));
@@ -31,7 +35,7 @@ export const useStore = defineStore('store', () => {
   async function updateTokenList(){
     if(!wallet.value) return // should never happen
     const tokenUtxos = await wallet.value.getTokenUtxos();
-    const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
+    const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos, featuredTokens);
     const nftsResult = getAllNftTokenBalances(tokenUtxos);
     if(!fungibleTokensResult || !nftsResult) return // should never happen
     const arrayTokens:TokenList = [];
