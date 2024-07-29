@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import { ref } from 'vue'
-  import { Connection, ElectrumNetworkProvider } from "mainnet-js"
+  import { Connection, ElectrumNetworkProvider, Config } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -15,6 +15,7 @@
   const displayeAdvanced = ref(false);
   const displayeSeedphrase = ref(false);
   const selectedNetwork = ref(store.network);
+  const selectedCurrency = ref(settingsStore.currency);
   const selectedUnit = ref(settingsStore.bchUnit);
   const selectedExplorer = ref(store.explorerUrl);
   const selectedDarkMode = ref(settingsStore.darkMode);
@@ -26,6 +27,13 @@
   const selectedChaingraph = ref(settingsStore.chaingraph);
   const emit = defineEmits(['changeView','changeNetwork']);
 
+  async function changeCurrency(){
+    Config.DefaultCurrency = selectedCurrency.value;
+    settingsStore.currency = selectedCurrency.value;
+    localStorage.setItem("currency", selectedCurrency.value);
+    emit('changeView', 1);
+    store.balance = await store.wallet.getBalance();
+  }
   function changeUnit(){
     settingsStore.bchUnit = selectedUnit.value;
     localStorage.setItem("unit", selectedUnit.value);
@@ -159,6 +167,13 @@
     <div v-else>
       <div>Dark mode
         <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      </div>
+      <div style="margin-top:15px">
+        <label for="selectUnit">Select default currency:</label>
+        <select v-model="selectedCurrency" @change="changeCurrency()">
+          <option value="usd">USD</option>
+          <option value="eur">EUR</option>
+        </select>
       </div>
       <div style="margin-top:15px">
         <label for="selectUnit">Select default unit:</label>

@@ -69,7 +69,7 @@ a,
   display: flex;
   margin-top: 8px;
 }
-.sendUsdInput{
+.sendCurrencyInput{
   position: relative;
   width: 50%;
   margin-left: 5px;
@@ -196,7 +196,7 @@ input[type=number] {
   .tabs div {
     padding: 1rem;
   }
-  .sendUsdInput{
+  .sendCurrencyInput{
     position: relative;
     width: 140px;
     margin-left: 5px;

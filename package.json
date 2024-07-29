@@ -29,7 +29,7 @@
     "@walletconnect/core": "^2.11.1",
     "@walletconnect/web3wallet": "^1.10.1",
     "chota": "^0.9.2",
-    "mainnet-js": "^2.3.13",
+    "mainnet-js": "^2.3.14",
     "pinia": "^2.1.7",
     "quasar": "^2.14.3",
     "vue": "^3.3.4",

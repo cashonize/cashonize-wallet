@@ -46,7 +46,11 @@ export const useStore = defineStore('store', () => {
       const utxosNftTokenid = tokenUtxos.filter((val) =>val.token?.tokenId === tokenId);
       arrayTokens.push({ tokenId, nfts: utxosNftTokenid });
     }
-    tokenList.value = arrayTokens;
+
+    const featuredTokenList = arrayTokens.filter(token => featuredTokens.includes(token.tokenId));
+    const otherTokenList = arrayTokens.filter(token => !featuredTokens.includes(token.tokenId));
+
+    tokenList.value = [...featuredTokenList, ...otherTokenList];
     const catgeories = Object.keys({...fungibleTokensResult, ...nftsResult})
     return catgeories;
   }

@@ -4396,10 +4396,10 @@ mainnet-js@2.3.3:
     dotenv "^10.0.0"
     stream-browserify "^3.0.0"
 
-mainnet-js@^2.3.13:
-  version "2.3.13"
-  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.3.13.tgz#84a5f8b05ed84ddb17e62456ed157914ad19d5c9"
-  integrity sha512-YHX5hJX9cN4qCvQwVD0QPBTT8rm5RzSf6AAP2VvWmhSJfzgRL5pYKjtp2ysNGB+JM4HxDqNRyebe48ava0GQ/A==
+mainnet-js@^2.3.14:
+  version "2.3.14"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.3.14.tgz#9b7dc2399dce2e6aeb937d0d7024c8f8b0603669"
+  integrity sha512-MPGg7RceO98fXuZr3dAVpkvksmMRyCDHAmrROJnvZWRE+qndd7IzVPB3CVE6w238dh2/DvVmayudxfNcgbNVwg==
   dependencies:
     "@bitauth/libauth" "^2.0.0"
     "@scure/bip39" "^1.2.2"

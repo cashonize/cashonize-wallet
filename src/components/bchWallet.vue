@@ -4,6 +4,7 @@
   import { decodeCashAddress } from "@bitauth/libauth"
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
+  import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -32,7 +33,7 @@
   // reactive state
   const displayeBchQr = ref(true);
   const bchSendAmount = ref(undefined as (number | undefined));
-  const usdSendAmount = ref(undefined as (number | undefined));
+  const currencySendAmount = ref(undefined as (number | undefined));
   const destinationAddr = ref("");
 
   function switchAddressTypeQr(){
@@ -57,29 +58,29 @@
       let bchAmount =  Number(params.split("amount=")[1]);
       if(settingsStore.bchUnit == "sat") bchAmount = Math.round(bchAmount * 100_000_000);
       bchSendAmount.value = bchAmount;
-      setUsdAmount()
+      setCurrencyAmount()
     }
   }
-  async function setUsdAmount() {
+  async function setCurrencyAmount() {
     if(typeof bchSendAmount.value != 'number'){
-      usdSendAmount.value = undefined
+      currencySendAmount.value = undefined
       return
     }
-    const newUsdValue = await convert(bchSendAmount.value, settingsStore.bchUnit, "usd");
-    usdSendAmount.value = Number(newUsdValue.toFixed(2));
+    const newCurrencyValue = await convert(bchSendAmount.value, settingsStore.bchUnit, settingsStore.currency);
+    currencySendAmount.value = Number(newCurrencyValue.toFixed(2));
   }
   async function setBchAmount() {
-    if(typeof usdSendAmount.value != 'number'){
+    if(typeof currencySendAmount.value != 'number'){
       bchSendAmount.value = undefined
       return
     }
-    const newBchValue = await convert(usdSendAmount.value, "usd", settingsStore.bchUnit);
+    const newBchValue = await convert(currencySendAmount.value, settingsStore.currency, settingsStore.bchUnit);
     bchSendAmount.value = Number(newBchValue);
   }
   async function useMaxBchAmount(){
     if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit]){
       bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
-      setUsdAmount()
+      setCurrencyAmount()
     }
     else{
       $q.notify({
@@ -124,7 +125,7 @@
       console.log(alertMessage);
       // reset fields
       bchSendAmount.value = undefined;
-      usdSendAmount.value = undefined;
+      currencySendAmount.value = undefined;
       destinationAddr.value = "";
     } catch(error){
       console.log(error)
@@ -142,9 +143,9 @@
 <template>
   <fieldset style="margin-top: 20px; padding-top: 2rem; max-width: 75rem; margin: auto 10px;">
     <div v-if="store.network == 'mainnet'" style="font-size: 1.2em">
-      USD balance:  
+      {{ CurrencyShortNames[settingsStore.currency] }} balance:  
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance && store.balance.usd != undefined ?  (store.balance.usd).toFixed(2) + " $": "" }}
+        {{ store.balance && store.balance[settingsStore.currency] != undefined ?  (store.balance[settingsStore.currency]).toFixed(2) + ` ${CurrencySymbols[settingsStore.currency]}`: "" }}
       </span>
     </div>
     <span>
@@ -196,12 +197,12 @@
       <input v-model="destinationAddr" @input="parseAddrParams()" id="destinationAddr" placeholder="address">
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
-          <input v-model="bchSendAmount" @input="setUsdAmount()" id="sendAmount" type="number" placeholder="amount">
+          <input v-model="bchSendAmount" @input="setCurrencyAmount()" id="sendAmount" type="number" placeholder="amount">
           <i class="input-icon" style="color: black;">{{ bchDisplayUnit }}</i>
         </span>
-        <span class="sendUsdInput">
-          <input v-model="usdSendAmount" @input="setBchAmount()" id="sendAmount" type="number" placeholder="amount">
-          <i class="input-icon" style="color: black;">{{store.network == "mainnet"? "USD $":"tUsd $"}}</i>
+        <span class="sendCurrencyInput">
+          <input v-model="currencySendAmount" @input="setBchAmount()" id="sendAmount" type="number" placeholder="amount">
+          <i class="input-icon" style="color: black;">{{(store.network == "mainnet"?  "" : "t") + `${CurrencyShortNames[settingsStore.currency]} ${CurrencySymbols[settingsStore.currency]}`}}</i>
         </span> 
             <button @click="useMaxBchAmount()" class="fillInMaxBch">max</button>
       </span>

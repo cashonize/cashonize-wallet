@@ -311,7 +311,7 @@
 
       <div class="tokenActions">
         <div class="actionBar">
-          <span @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
+          <span v-if="tokenData?.amount" @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
             <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
           <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
             <img id="infoIcon" class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info

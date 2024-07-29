@@ -13,7 +13,7 @@ Because of its minimalist design, Cashonize is a user-friendly wallet, even for 
 Cashonize nicely displays your NFT collections by collapsing NFTs of the same tokenId, making it ideal for NFT collectors.
 
 Cashonize is a single-address wallet, for privacy-centered users is better to use a HD-wallet.
-Cashonize does not have a display for your transaction history and for now it only supports USD for denomating BCH balances.
+Cashonize does not have a display for your transaction history.
 
 ## Platforms
 

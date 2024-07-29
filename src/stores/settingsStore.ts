@@ -1,3 +1,4 @@
+import { Config } from "mainnet-js";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 
@@ -19,8 +20,15 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const tokenBurn = ref(false);
   const walletConnect = ref(false);
   const tokenCreation = ref(false);
+  const currency = ref("usd" as ("usd" | "eur"));
 
   // read local storage for stored settings
+  const readCurrency = localStorage.getItem("currency");
+  if(readCurrency && (readCurrency=="usd" || readCurrency=="eur")) {
+    currency.value = readCurrency;
+    Config.DefaultCurrency = readCurrency;
+  }
+
   const readUnit = localStorage.getItem("unit");
   if(readUnit && (readUnit=="bch" || readUnit=="sat")) bchUnit.value = readUnit;
 
@@ -49,7 +57,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readChaingraph = localStorage.getItem("chaingraph") ?? "";
   if(readChaingraph) chaingraph.value = readChaingraph
-  
+
   const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
   if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
 
@@ -58,5 +66,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, walletConnect, tokenCreation }
+  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, walletConnect, tokenCreation, currency }
 })

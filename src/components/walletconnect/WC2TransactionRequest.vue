@@ -5,9 +5,11 @@
   import { getSdkError } from '@walletconnect/utils';
   import type { DappMetadata, ContractInfo } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { parseExtendedJson } from 'src/utils/utils'
   const store = useStore()
+  const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
   const emit = defineEmits(['signedTransaction', 'rejectTransaction']);
@@ -47,9 +49,9 @@
     return result;
   }
 
-  async function convertToUsd(satAmount: bigint) {
-    const newUsdValue = await convert(Number(satAmount), "sat", "usd");
-    return Number(newUsdValue.toFixed(2));
+  async function convertToCurrency(satAmount: bigint) {
+    const newCurrencyValue = await convert(Number(satAmount), "sat", settingsStore.currency);
+    return Number(newCurrencyValue.toFixed(2));
   }
 
   const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput:any) => 
@@ -59,7 +61,7 @@
     toCashaddr(outputs.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + outputs.valueSatoshis : total, 0n
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
-  const usdBalanceChange = await convertToUsd(bchBalanceChange);
+  const currencyBalanceChange = await convertToCurrency(bchBalanceChange);
 
   const tokensSpentInputs:Record<string, NonNullable<Output['token']>[]> = {}
   const tokensReceivedOutputs:Record<string, NonNullable<Output['token']>[]> = {}
@@ -262,7 +264,7 @@
           <div class="wc-modal-heading">Balance Change:</div>
           <div>
             {{ bchBalanceChange > 0 ? '+ ': '- '}} {{ satoshiToBCHString(abs(bchBalanceChange)) }}
-            ({{ usdBalanceChange }}$)
+            ({{ currencyBalanceChange }}{{ CurrencySymbols[settingsStore.currency] }})
           </div>
           <div v-for="(tokenArrayInput, firstIndex) in tokensSpentInputs" :key="firstIndex">
             <div v-for="(tokenSpent, index) in tokenArrayInput" :key="binToHex(tokenSpent.category) + index">
