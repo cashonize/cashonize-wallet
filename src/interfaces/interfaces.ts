@@ -1,4 +1,4 @@
-import { type UtxoI, type NFTCapability } from "mainnet-js"
+import { NFTCapability, TokenI, type UtxoI } from "mainnet-js"
 
 export const CurrencySymbols = {
   usd: "$",
@@ -10,7 +10,6 @@ export const CurrencyShortNames = {
   eur: "EUR"
 }
 
-export type TokenList = (TokenDataNFT | TokenDataFT)[]
 
 export interface TokenDataNFT {
   tokenId: string,
@@ -23,6 +22,11 @@ export interface TokenDataFT {
   amount: bigint,
   authUtxo?: UtxoI
 }
+
+export type TokenData = TokenDataNFT | TokenDataFT
+
+export type TokenList = TokenData[]
+
 
 export interface DappMetadata {
   description: string,

@@ -8,6 +8,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { parseExtendedJson } from 'src/utils/utils'
+  import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()

@@ -5,7 +5,9 @@
 
   const props = defineProps<{
     nftName: string | undefined,
-    srcNftImage: string
+    srcNftImage: string,
+    tokenId?: string,
+    commitment?: string,
   }>()
   const { srcNftImage } = toRefs(props);
   const showIcon = ref(true)
@@ -30,11 +32,13 @@
         </q-card-section>
 
         <q-card-section>
-          <video v-if="httpsUrlTokenImage?.endsWith('.mp4')" id="tokenIcon" class="tokenIcon" style="width: 400px;" autoplay>
+          <video v-if="httpsUrlTokenImage?.endsWith('.mp4')" id="tokenIcon" class="tokenIcon" style="width: 400px;" autoPlay loop muted :controls="false">
             <source :src="httpsUrlTokenImage" type="video/mp4" />
           </video>
           <img v-else style="width: 400px;" :src="httpsUrlTokenImage">
           <div class="text-h4 text-white" style="max-width: 400px;">{{ nftName }}</div>
+          <div v-if="tokenId" class="text-h4 text-white" style="max-width: 400px; word-break: break-all; margin-top: 1rem;">TokenId: {{ tokenId }}</div>
+          <div v-if="commitment" class="text-h4 text-white" style="max-width: 400px; word-break: break-all; margin-top: 1rem;">Commitment: {{ commitment }}</div>
         </q-card-section>
       </q-card>
     </q-dialog>

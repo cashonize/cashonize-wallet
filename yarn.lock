@@ -358,6 +358,11 @@
     dexie "^3.2.4"
     mainnet-js "2.3.3"
 
+"@mainnet-pat/json5-bigint@^2.2.5":
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/@mainnet-pat/json5-bigint/-/json5-bigint-2.2.5.tgz#9acb2610d0dc3118a124cb9e3907296f7f0edc70"
+  integrity sha512-fApq2btQrTSFTh99dzfE/coAwQN4LTKUjzZagsw5xS/xS2f8XLnC8hcFeRTm6L6K9ODmNopqnnegt8nG6GvKdA==
+
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@malept/cross-spawn-promise/-/cross-spawn-promise-1.1.1.tgz#504af200af6b98e198bce768bc1730c6936ae01d"
@@ -4396,10 +4401,10 @@ mainnet-js@2.3.3:
     dotenv "^10.0.0"
     stream-browserify "^3.0.0"
 
-mainnet-js@^2.3.14:
-  version "2.3.14"
-  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.3.14.tgz#9b7dc2399dce2e6aeb937d0d7024c8f8b0603669"
-  integrity sha512-MPGg7RceO98fXuZr3dAVpkvksmMRyCDHAmrROJnvZWRE+qndd7IzVPB3CVE6w238dh2/DvVmayudxfNcgbNVwg==
+mainnet-js@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.4.1.tgz#ee93998697c1e00fb58ac4f958d27fc47ac409ec"
+  integrity sha512-YKlLXNaA1zdDv2bUrmuAuyq4AGi0YRJ9sZX2bs49CVQ4RndUX6FETevY9q0tYjnB4schKmMC0w1Apwl65HLw9A==
   dependencies:
     "@bitauth/libauth" "^2.0.0"
     "@scure/bip39" "^1.2.2"

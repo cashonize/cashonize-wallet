@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import { ref } from 'vue'
-  import { Connection, ElectrumNetworkProvider, Config } from "mainnet-js"
+  import { Connection, ElectrumNetworkProvider, Config, BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -32,7 +32,7 @@
     settingsStore.currency = selectedCurrency.value;
     localStorage.setItem("currency", selectedCurrency.value);
     emit('changeView', 1);
-    store.balance = await store.wallet.getBalance();
+    store.balance = await store.wallet!.getBalance() as BalanceResponse;
   }
   function changeUnit(){
     settingsStore.bchUnit = selectedUnit.value;

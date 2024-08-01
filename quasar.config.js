@@ -66,7 +66,7 @@ module.exports = configure(function (/* ctx */) {
       // vueDevtools,
       // vueOptionsAPI: false,
 
-      // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
+      rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
       // analyze: true,
@@ -82,7 +82,14 @@ module.exports = configure(function (/* ctx */) {
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
 
-      
+      viteVuePluginOptions: {
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag) => tag === ('qr-code')
+          }
+        }
+      },
+
       vitePlugins: [
         [
           nodePolyfills

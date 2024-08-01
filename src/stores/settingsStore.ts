@@ -21,12 +21,18 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const walletConnect = ref(false);
   const tokenCreation = ref(false);
   const currency = ref("usd" as ("usd" | "eur"));
+  const historyUseCurrency = ref(false);
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
   if(readCurrency && (readCurrency=="usd" || readCurrency=="eur")) {
     currency.value = readCurrency;
     Config.DefaultCurrency = readCurrency;
+  }
+
+  const readHistoryUseCurrency = localStorage.getItem("historyUseCurrency");
+  if(readHistoryUseCurrency) {
+    historyUseCurrency.value = readHistoryUseCurrency==="true";
   }
 
   const readUnit = localStorage.getItem("unit");
@@ -66,5 +72,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, walletConnect, tokenCreation, currency }
+  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, walletConnect, tokenCreation, currency, historyUseCurrency }
 })

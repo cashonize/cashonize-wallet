@@ -400,7 +400,7 @@
         </div>
       </div>-->
       <div class="tokenInfo">
-        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;cursor: pointer;" @click="() => showNftImage = true">
+        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" id="tokenIcon" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%;cursor: pointer;" @click="() => showNftImage = true" autoPlay loop muted :controls="false">
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
         </video>
         <img v-else-if="httpsUrlTokenIcon && isSingleNft" class="tokenIcon" style="width: 48px; height: 48px; border-radius: 50%; cursor: pointer;" :src="httpsUrlTokenIcon"  @click="() => showNftImage = true">

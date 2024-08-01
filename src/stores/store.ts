@@ -1,22 +1,24 @@
 import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI } from "mainnet-js"
+import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, TxI } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
-import type { TokenList, bcmrIndexerResponse } from "../interfaces/interfaces"
+import type { TokenList, bcmrIndexerResponse, bcmrTokenMetadata } from "../interfaces/interfaces"
 import { useSettingsStore } from './settingsStore'
 import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
+import { TransactionHistoryItem } from "mainnet-js/dist/module/history/interface"
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
 Config.EnforceCashTokenReceiptAddresses = true;
+Config.UseLocalStorageCache = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
 
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
 export const featuredTokens = [
-  "36546e4062a1cfd070a4a8d8ff9db18aae4ddf8d9ac9a4fa789314d108b49797"
+  "177a6a68427bf7afde71e5d6441ce53aafcf84c5339c92c2064861529351d766"
 ];
 
 export const useStore = defineStore('store', () => {
@@ -28,9 +30,12 @@ export const useStore = defineStore('store', () => {
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
-  const bcmrRegistries = ref(undefined as (Record<string, any> | undefined));
+  const bcmrRegistries = ref({} as (Record<string, bcmrTokenMetadata>));
   const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
+  const history = ref(undefined as (undefined | TransactionHistoryItem[]));
+  const reloadHistory = ref(true);
+  const currentBlockHeight = ref(0);
 
   async function updateTokenList(){
     if(!wallet.value) return // should never happen
@@ -125,5 +130,5 @@ export const useStore = defineStore('store', () => {
     tokenList.value = copyTokenList;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries }
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight }
 })
