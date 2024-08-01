@@ -32,7 +32,9 @@
     settingsStore.currency = selectedCurrency.value;
     localStorage.setItem("currency", selectedCurrency.value);
     emit('changeView', 1);
-    store.balance = await store.wallet!.getBalance() as BalanceResponse;
+    if (store.wallet) {
+      store.balance = await store.wallet.getBalance() as BalanceResponse;
+    }
   }
   function changeUnit(){
     settingsStore.bchUnit = selectedUnit.value;

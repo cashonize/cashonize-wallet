@@ -4,7 +4,7 @@
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
 import { TransactionHistoryItem } from 'mainnet-js/dist/module/history/interface';
-import { BCMR, convert } from 'mainnet-js';
+import { convert } from 'mainnet-js';
 import { CurrencySymbols, TokenDataNFT } from 'src/interfaces/interfaces';
 import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
 

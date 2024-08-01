@@ -3,7 +3,6 @@
   import { ref, watch } from 'vue';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { useQuasar } from 'quasar'
   import TransactionDialog from './transactionDialog.vue';
   import { TransactionHistoryItem } from 'mainnet-js/dist/module/history/interface';
   import { convert } from 'mainnet-js';
@@ -48,7 +47,7 @@
   };
 
   const reloadHistory = () => {
-    store.wallet!.getHistory({}).then(async (result) => {
+    store.wallet?.getHistory({}).then(async (result) => {
       store.history = result;
       history.value = await processHistoryCurrency(result, useCurrency.value ? settingsStore.currency : settingsStore.bchUnit);
     });

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, TxI } from "mainnet-js"
+import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenList, bcmrIndexerResponse, bcmrTokenMetadata } from "../interfaces/interfaces"
 import { useSettingsStore } from './settingsStore'

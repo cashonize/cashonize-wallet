@@ -1,4 +1,4 @@
-import { NFTCapability, TokenI, type UtxoI } from "mainnet-js"
+import { NFTCapability, type UtxoI } from "mainnet-js"
 
 export const CurrencySymbols = {
   usd: "$",
