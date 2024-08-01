@@ -48,10 +48,8 @@ export const useStore = defineStore('store', () => {
       arrayTokens.push({ tokenId, nfts: utxosNftTokenid });
     }
 
-    // const featuredTokenList = arrayTokens.filter(token => settingsStore.featuredTokens.includes(token.tokenId));
-    // const otherTokenList = arrayTokens.filter(token => !settingsStore.featuredTokens.includes(token.tokenId));
-
-    tokenList.value = arrayTokens; // [...featuredTokenList, ...otherTokenList];
+    tokenList.value = arrayTokens;
+    sortTokenList();
     const catgeories = Object.keys({...fungibleTokensResult, ...nftsResult})
     return catgeories;
   }
@@ -126,5 +124,12 @@ export const useStore = defineStore('store', () => {
     tokenList.value = copyTokenList;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight }
+  function sortTokenList() {
+    const featuredTokenList = tokenList.value?.filter(token => settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+    const otherTokenList = tokenList.value?.filter(token => !settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+
+    tokenList.value = [...featuredTokenList, ...otherTokenList];
+  }
+
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, sortTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight }
 })

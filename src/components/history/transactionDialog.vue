@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, defineEmits, defineProps } from 'vue';
+  import { ref } from 'vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';

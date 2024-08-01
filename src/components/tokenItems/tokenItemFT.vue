@@ -279,20 +279,13 @@
     }) 
   }
 
-  const updateTokenList = () => {
-    const featuredTokenList = store.tokenList?.filter(token => settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
-    const otherTokenList = store.tokenList?.filter(token => !settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
-
-    store.tokenList = [...featuredTokenList, ...otherTokenList];
-  }
-
   function toggleFavorite(tokenId: string) {
     const newFeaturedTokens = settingsStore.featuredTokens.includes(tokenId) ?
       settingsStore.featuredTokens.filter((id) => id !== tokenId) :
       [...settingsStore.featuredTokens, tokenId];
     localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
     settingsStore.featuredTokens = newFeaturedTokens;
-    updateTokenList();
+    store.updateTokenList();
   }
 </script>
 
