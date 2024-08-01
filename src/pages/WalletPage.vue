@@ -14,7 +14,7 @@
   import { convertElectrumTokenData } from "src/utils/utils"
   import type { TokenData, TokenList } from "../interfaces/interfaces"
   import type { Web3WalletTypes } from '@walletconnect/web3wallet';
-  import { useStore, featuredTokens } from 'src/stores/store'
+  import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
@@ -93,7 +93,7 @@
     console.time('importRegistries');
     await Promise.all([
       store.importRegistries(store.tokenList, false),
-      store.importRegistries(featuredTokens.map((tokenId: string) => ({tokenId} as TokenData)), false),
+      store.importRegistries(settingsStore.featuredTokens.map((tokenId: string) => ({tokenId} as TokenData)), false),
     ]);
     console.timeEnd('importRegistries');
     console.time('planned tokenid');

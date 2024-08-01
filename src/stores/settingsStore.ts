@@ -7,6 +7,9 @@ const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
 const dafaultIpfsGateway = "https://ipfs.io/ipfs/";
+const defaultFeaturedTokens = [
+  "177a6a68427bf7afde71e5d6441ce53aafcf84c5339c92c2064861529351d766"
+];
 
 export const useSettingsStore = defineStore('settingsStore', () => {
   // Global settings
@@ -22,8 +25,16 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const tokenCreation = ref(false);
   const currency = ref("usd" as ("usd" | "eur"));
   const historyUseCurrency = ref(false);
+  const featuredTokens = ref([] as string[]);
 
   // read local storage for stored settings
+  const readFeaturedTokens = localStorage.getItem("featuredTokens");
+  if(readFeaturedTokens) {
+    featuredTokens.value = JSON.parse(readFeaturedTokens) as string[];
+  } else {
+    featuredTokens.value = defaultFeaturedTokens;
+  }
+
   const readCurrency = localStorage.getItem("currency");
   if(readCurrency && (readCurrency=="usd" || readCurrency=="eur")) {
     currency.value = readCurrency;
@@ -72,5 +83,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, walletConnect, tokenCreation, currency, historyUseCurrency }
+  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, walletConnect, tokenCreation, currency, historyUseCurrency, featuredTokens }
 })

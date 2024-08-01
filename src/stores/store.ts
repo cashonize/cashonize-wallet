@@ -17,10 +17,6 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
-export const featuredTokens = [
-  "177a6a68427bf7afde71e5d6441ce53aafcf84c5339c92c2064861529351d766"
-];
-
 export const useStore = defineStore('store', () => {
   // Wallet State
   const wallet = ref(null as (Wallet | TestNetWallet | null));
@@ -40,7 +36,7 @@ export const useStore = defineStore('store', () => {
   async function updateTokenList(){
     if(!wallet.value) return // should never happen
     const tokenUtxos = await wallet.value.getTokenUtxos();
-    const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos, featuredTokens);
+    const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos, settingsStore.featuredTokens);
     const nftsResult = getAllNftTokenBalances(tokenUtxos);
     if(!fungibleTokensResult || !nftsResult) return // should never happen
     const arrayTokens:TokenList = [];
@@ -52,10 +48,10 @@ export const useStore = defineStore('store', () => {
       arrayTokens.push({ tokenId, nfts: utxosNftTokenid });
     }
 
-    const featuredTokenList = arrayTokens.filter(token => featuredTokens.includes(token.tokenId));
-    const otherTokenList = arrayTokens.filter(token => !featuredTokens.includes(token.tokenId));
+    // const featuredTokenList = arrayTokens.filter(token => settingsStore.featuredTokens.includes(token.tokenId));
+    // const otherTokenList = arrayTokens.filter(token => !settingsStore.featuredTokens.includes(token.tokenId));
 
-    tokenList.value = [...featuredTokenList, ...otherTokenList];
+    tokenList.value = arrayTokens; // [...featuredTokenList, ...otherTokenList];
     const catgeories = Object.keys({...fungibleTokensResult, ...nftsResult})
     return catgeories;
   }

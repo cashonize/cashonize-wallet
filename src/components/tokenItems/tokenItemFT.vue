@@ -81,7 +81,7 @@
       reservedSupply.value = await queryReservedSupply(tokenData.value.tokenId, settingsStore.chaingraph)
     }
   })
-  
+
   // Fungible token specific functionality
   function toAmountDecimals(amount:bigint){
     let tokenAmountDecimals: bigint|number = amount;
@@ -278,6 +278,22 @@
       color: "red"
     }) 
   }
+
+  const updateTokenList = () => {
+    const featuredTokenList = store.tokenList?.filter(token => settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+    const otherTokenList = store.tokenList?.filter(token => !settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+
+    store.tokenList = [...featuredTokenList, ...otherTokenList];
+  }
+
+  function toggleFavorite(tokenId: string) {
+    const newFeaturedTokens = settingsStore.featuredTokens.includes(tokenId) ?
+      settingsStore.featuredTokens.filter((id) => id !== tokenId) :
+      [...settingsStore.featuredTokens, tokenId];
+    localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
+    settingsStore.featuredTokens = newFeaturedTokens;
+    updateTokenList();
+  }
 </script>
 
 <template id="token-template">
@@ -311,6 +327,8 @@
 
       <div class="tokenActions">
         <div class="actionBar">
+          <span @click="toggleFavorite(tokenData.tokenId)" style="margin-left: 10px;">
+            {{ settingsStore.featuredTokens.includes(tokenData.tokenId) ? "★" : "☆" }} favorite </span>
           <span v-if="tokenData?.amount" @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
             <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
           <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">

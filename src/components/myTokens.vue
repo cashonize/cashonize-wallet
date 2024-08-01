@@ -3,7 +3,27 @@
   import tokenItemNFT from './tokenItems/tokenItemNFT.vue'
   import tokenItemFT from './tokenItems/tokenItemFT.vue'
   import { useStore } from 'src/stores/store'
+  import { ref, watch } from 'vue';
+  import { useSettingsStore } from 'src/stores/settingsStore';
+
   const store = useStore()
+  const settingsStore = useSettingsStore();
+  const tokenList = ref([] as typeof store.tokenList);
+
+  const updateTokenList = () => {
+    const featuredTokenList = store.tokenList?.filter(token => settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+    const otherTokenList = store.tokenList?.filter(token => !settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+
+    tokenList.value = [...featuredTokenList, ...otherTokenList];
+    console.log(123)
+  }
+
+  watch(settingsStore.featuredTokens, () => {
+    console.log(1)
+    updateTokenList();
+  });
+
+  updateTokenList();
 </script>
 
 <template>
