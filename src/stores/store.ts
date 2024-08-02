@@ -26,7 +26,7 @@ export const useStore = defineStore('store', () => {
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
-  const bcmrRegistries = ref({} as (Record<string, bcmrTokenMetadata>));
+  const bcmrRegistries = ref(undefined as (Record<string, bcmrTokenMetadata> | undefined));
   const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
   const history = ref(undefined as (undefined | TransactionHistoryItem[]));

@@ -73,10 +73,13 @@
   const updateIconUrlMap = () => {
     const map: Record<string, string> = {};
 
-    for (const tokenId of Object.keys(store.bcmrRegistries)) {
+    for (const tokenId of Object.keys(store.bcmrRegistries ?? {})) {
       let tokenIconUri = store.bcmrRegistries?.[tokenId]?.uris?.icon;
+      if (!tokenIconUri) {
+        return;
+      }
 
-      if (tokenIconUri?.startsWith('ipfs://')) {
+      if (tokenIconUri.startsWith('ipfs://')) {
         map[tokenId] = settingsStore.ipfsGateway + tokenIconUri.slice(7);
       } else {
         map[tokenId] = tokenIconUri;
@@ -88,7 +91,7 @@
 
   updateIconUrlMap();
 
-  watch(store.bcmrRegistries, async () => {
+  watch(store.bcmrRegistries as any, async () => {
     updateIconUrlMap();
     bcmrRefreshKey.value++;
   });

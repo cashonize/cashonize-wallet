@@ -17,7 +17,7 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   const props = defineProps<{
     historyItem: TransactionHistoryItem,
     unit: string,
-    bcmrRegistries: Record<string, any>,
+    bcmrRegistries: Record<string, any> | undefined,
     iconUrlMap: Record<string, string>,
   }>()
 
@@ -42,7 +42,7 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   const selectedTokenCommitment = ref("");
 
   const loadTokenMetadata = async (tokenId: string, commitment: string | undefined) => {
-    if (!store.bcmrRegistries[tokenId]) {
+    if (!store.bcmrRegistries?.[tokenId]) {
       $q.notify({
         message: "Unknown token",
         icon: 'info',

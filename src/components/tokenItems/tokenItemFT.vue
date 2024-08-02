@@ -320,8 +320,6 @@
 
       <div class="tokenActions">
         <div class="actionBar">
-          <span @click="toggleFavorite(tokenData.tokenId)" style="margin-left: 10px;">
-            {{ settingsStore.featuredTokens.includes(tokenData.tokenId) ? "★" : "☆" }} favorite </span>
           <span v-if="tokenData?.amount" @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
             <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
           <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
@@ -335,6 +333,8 @@
             <img id="authIcon" class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
             <span>auth transfer</span>
           </span>
+          <span @click="toggleFavorite(tokenData.tokenId)" style="float:right">
+            {{ settingsStore.featuredTokens.includes(tokenData.tokenId) ? "★" : "☆" }} favorite </span>
         </div>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">
           <div></div>

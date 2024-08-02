@@ -4,7 +4,7 @@
   import { decodeCashAddress } from "@bitauth/libauth"
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
-  import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
+  import { CurrencySymbols, CurrencyShortNames, TokenDataFT, TokenDataNFT, TokenData } from 'src/interfaces/interfaces'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -15,7 +15,7 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
-  const nrTokenCategories = computed(() => store.tokenList?.filter(token => token.amount > 0n || token.nfts?.length > 0).length)
+  const nrTokenCategories = computed(() => store.tokenList?.filter((token: TokenData) => (token as TokenDataFT).amount > 0n || (token as TokenDataNFT).nfts?.length > 0).length)
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
