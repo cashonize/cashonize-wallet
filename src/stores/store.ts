@@ -1,6 +1,7 @@
 import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
 import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI } from "mainnet-js"
+import { isHex } from "@bitauth/libauth"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenList, bcmrIndexerResponse, bcmrTokenMetadata } from "../interfaces/interfaces"
 import { useSettingsStore } from './settingsStore'
@@ -131,5 +132,28 @@ export const useStore = defineStore('store', () => {
     tokenList.value = [...featuredTokenList, ...otherTokenList];
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, sortTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight }
+  function toggleFavorite(tokenId: string) {
+    const newFeaturedTokens = settingsStore.featuredTokens.includes(tokenId) ?
+      settingsStore.featuredTokens.filter((id) => id !== tokenId) :
+      [...settingsStore.featuredTokens, tokenId];
+    localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
+    settingsStore.featuredTokens = newFeaturedTokens;
+    updateTokenList();
+  }
+
+  function addToFavorites(tokenId: string) {
+    if (settingsStore.featuredTokens.includes(tokenId)) {
+      return;
+    }
+    if (!isHex(tokenId) || tokenId.length !== 64) {
+      return;
+    }
+
+    const newFeaturedTokens = [...settingsStore.featuredTokens, tokenId];
+    localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
+    settingsStore.featuredTokens = newFeaturedTokens;
+    updateTokenList();
+  }
+
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, addToFavorites, toggleFavorite, sortTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight }
 })

@@ -385,15 +385,6 @@
       color: "red"
     }) 
   }
-
-  function toggleFavorite(tokenId: string) {
-    const newFeaturedTokens = settingsStore.featuredTokens.includes(tokenId) ?
-      settingsStore.featuredTokens.filter((id) => id !== tokenId) :
-      [...settingsStore.featuredTokens, tokenId];
-    localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
-    settingsStore.featuredTokens = newFeaturedTokens;
-    store.sortTokenList();
-  }
 </script>
 
 <template id="token-template">
@@ -461,7 +452,7 @@
             <img id="authIcon" class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
             <span>auth transfer</span>
           </span>
-          <span @click="toggleFavorite(tokenData.tokenId)" style="float: right;">
+          <span @click="store.toggleFavorite(tokenData.tokenId)" style="float: right;">
             {{ settingsStore.featuredTokens.includes(tokenData.tokenId) ? "★" : "☆" }} favorite </span>
         </div>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">

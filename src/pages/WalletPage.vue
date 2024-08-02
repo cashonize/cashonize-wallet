@@ -27,8 +27,13 @@
   const isMobile = computed(() => width.value < 480)
 
   const props = defineProps<{
-    uri: string | undefined
+    uri: string | undefined,
+    addTokenId?: string,
   }>()
+
+  if (props.addTokenId) {
+    store.addToFavorites(props.addTokenId);
+  }
 
   const nameWallet = 'mywallet';
   let cancelWatchBchtxs: undefined | CancelWatchFn;
