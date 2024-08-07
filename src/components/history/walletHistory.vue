@@ -1,12 +1,16 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
-  import { ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import TransactionDialog from './transactionDialog.vue';
   import { TransactionHistoryItem } from 'mainnet-js/dist/module/history/interface';
   import { convert } from 'mainnet-js';
   import JSON5 from '@mainnet-pat/json5-bigint';
+import { useWindowSize } from '@vueuse/core';
+
+  const { width } = useWindowSize();
+  const isMobile = computed(() => width.value < 480)
 
   const store = useStore();
   const settingsStore = useSettingsStore();
@@ -98,7 +102,8 @@
         <tbody class="body">
           <tr v-for="transaction in history" :key="transaction.hash" @click="() => {selectedTransaction = transaction}">
             <td>{{ transaction.timestamp ? "✅" : "⏳" }}</td>
-            <td>{{ transaction.timestamp ? new Date(transaction.timestamp * 1000).toLocaleString() : "Unconfirmed" }}</td>
+            <td v-if="isMobile">{{ transaction.timestamp ? new Date(transaction.timestamp * 1000).toLocaleString().replace("202", "2").replace(",", "") : "Unconf." }}</td>
+            <td v-else>{{ transaction.timestamp ? new Date(transaction.timestamp * 1000).toLocaleString() : "Unconfirmed" }}</td>
             <td class="value" v-if="transaction.valueChange >= 0">{{ `+${transaction.valueChange}` }}</td>
             <td v-else class="value" style="color: rgb(188,30,30)"> {{ `${transaction.valueChange}` }}</td>
             <td class="value">{{ transaction.balance }}</td>
@@ -107,12 +112,12 @@
                 <span v-if="tokenChange.amount !== 0n">
                   <span v-if="tokenChange.amount > 0n" class="value">+{{ tokenChange.amount }}</span>
                   <span v-else class="value" style="color: rgb(188,30,30)">{{ tokenChange.amount }}</span>
-                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
+                  <span class="break"> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                 </span>
                 <span v-if="tokenChange.nftAmount !== 0n">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
                   <span v-else class="value" style="color: rgb(188,30,30)">{{ tokenChange.nftAmount }}</span>
-                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT</span>
+                  <span class="break"> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT</span>
                 </span>
 
                 <img v-if="store.bcmrRegistries?.[tokenChange.tokenId]" id="tokenIcon" class="tokenIcon" style="width: 20px; height: 20px; border-radius: 50%;" :src="store.tokenIconUrl(tokenChange.tokenId)">
@@ -152,6 +157,10 @@ tr:nth-child(even) {
 
 .tokenChange > img {
   margin-left: 5px;
+}
+
+.break {
+  word-break: break-all;
 }
 
 </style>
