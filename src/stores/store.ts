@@ -155,5 +155,22 @@ export const useStore = defineStore('store', () => {
     updateTokenList();
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, addToFavorites, toggleFavorite, sortTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight }
+  function tokenIconUrl(tokenId: string) {
+    if (tokenId === "BCH") {
+      return 'images/bch-icon.png';
+    }
+
+    const tokenIconUri = bcmrRegistries.value?.[tokenId]?.uris?.icon;
+    if (!tokenIconUri) {
+      return undefined;
+    }
+
+    if (tokenIconUri.startsWith('ipfs://')) {
+      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
+    } else {
+      return tokenIconUri;
+    }
+  }
+
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, addToFavorites, toggleFavorite, sortTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight, tokenIconUrl }
 })

@@ -18,7 +18,6 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
     historyItem: TransactionHistoryItem,
     unit: string,
     bcmrRegistries: Record<string, any> | undefined,
-    iconUrlMap: Record<string, string>,
   }>()
 
   const emit = defineEmits(['hide']);
@@ -121,7 +120,7 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
                 <span> {{ " " + (input.token.amount === 0n ? 1 : input.token.amount) }}</span>
                 <span> {{ " " + (bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="input.token.capability"> NFT</span>
-                <img v-if="bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="iconUrlMap[input.token.tokenId]">
+                <img v-if="bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="store.tokenIconUrl(input.token.tokenId)">
               </span>
             </div>
           </div>
@@ -138,7 +137,7 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
                 <span> {{ " " + (output.token.amount === 0n ? 1 : output.token.amount) }}</span>
                 <span> {{ " " + (bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="output.token.capability"> NFT</span>
-                <img v-if="bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="iconUrlMap[output.token.tokenId]">
+                <img v-if="bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="store.tokenIconUrl(output.token.tokenId)">
               </span>
             </div>
           </div>

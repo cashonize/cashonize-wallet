@@ -67,41 +67,13 @@
     .filter(tokenId => !loadedTokenIds.includes(tokenId));
 
   store.importRegistries(tokenIds.map(tokenId => ({tokenId} as any)), false);
-  const bcmrRefreshKey = ref(0);
-  const iconUrlMap = ref({} as Record<string, string>);
-
-  const updateIconUrlMap = () => {
-    const map: Record<string, string> = {};
-
-    for (const tokenId of Object.keys(store.bcmrRegistries ?? {})) {
-      let tokenIconUri = store.bcmrRegistries?.[tokenId]?.uris?.icon;
-      if (!tokenIconUri) {
-        return;
-      }
-
-      if (tokenIconUri.startsWith('ipfs://')) {
-        map[tokenId] = settingsStore.ipfsGateway + tokenIconUri.slice(7);
-      } else {
-        map[tokenId] = tokenIconUri;
-      }
-    }
-
-    iconUrlMap.value = map;
-  }
-
-  updateIconUrlMap();
-
-  watch(store.bcmrRegistries as any, async () => {
-    updateIconUrlMap();
-    bcmrRefreshKey.value++;
-  });
 
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined)
 </script>
 
 <template>
   <div class="history">
-    <TransactionDialog v-if="selectedTransaction" :bcmr-registries="store.bcmrRegistries" :icon-url-map="iconUrlMap" :history-item="selectedTransaction" :unit="(useCurrency ? settingsStore.currency : settingsStore.bchUnit).toLocaleUpperCase()" @hide="() => {selectedTransaction = undefined}"></TransactionDialog>
+    <TransactionDialog v-if="selectedTransaction" :bcmr-registries="store.bcmrRegistries" :history-item="selectedTransaction" :unit="(useCurrency ? settingsStore.currency : settingsStore.bchUnit).toLocaleUpperCase()" @hide="() => {selectedTransaction = undefined}"></TransactionDialog>
 
     <div v-if="history === undefined" style="text-align: center;">Loading history ...</div>
     <div v-if="history && history.length === 0" style="text-align: center;">No transactions in this wallet</div>
@@ -130,7 +102,7 @@
             <td class="value" v-if="transaction.valueChange >= 0">{{ `+${transaction.valueChange}` }}</td>
             <td v-else class="value" style="color: rgb(188,30,30)"> {{ `${transaction.valueChange}` }}</td>
             <td class="value">{{ transaction.balance }}</td>
-            <td v-if="transaction.tokenAmountChanges.length" :key="bcmrRefreshKey">
+            <td v-if="transaction.tokenAmountChanges.length">
               <div class="tokenChange" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
                 <span v-if="tokenChange.amount !== 0n">
                   <span v-if="tokenChange.amount > 0n" class="value">+{{ tokenChange.amount }}</span>
@@ -143,7 +115,7 @@
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT</span>
                 </span>
 
-                <img v-if="store.bcmrRegistries?.[tokenChange.tokenId]" id="tokenIcon" class="tokenIcon" style="width: 20px; height: 20px; border-radius: 50%;" :src="iconUrlMap[tokenChange.tokenId]">
+                <img v-if="store.bcmrRegistries?.[tokenChange.tokenId]" id="tokenIcon" class="tokenIcon" style="width: 20px; height: 20px; border-radius: 50%;" :src="store.tokenIconUrl(tokenChange.tokenId)">
               </div>
             </td>
             <td v-else></td>
