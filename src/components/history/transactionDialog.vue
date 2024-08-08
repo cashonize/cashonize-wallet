@@ -117,7 +117,7 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
             <div>
               <span v-if="!input.token">{{ input.value }} {{ unit }}</span>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer; text-decoration-line: underline;">
-                <span> {{ " " + (input.token.amount === 0n ? 1 : input.token.amount) }}</span>
+                <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="input.token.capability"> NFT</span>
                 <img v-if="bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="store.tokenIconUrl(input.token.tokenId)">
@@ -134,7 +134,7 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
             <div>
               <span v-if="!output.token && !output.address.includes('OP_RETURN')">{{ output.value }} {{ unit }}</span>
               <span v-if="output.token" @click="loadTokenMetadata(output.token!.tokenId, output.token!.commitment!)" style="cursor: pointer; text-decoration-line: underline;">
-                <span> {{ " " + (output.token.amount === 0n ? 1 : output.token.amount) }}</span>
+                <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="output.token.capability"> NFT</span>
                 <img v-if="bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="store.tokenIconUrl(output.token.tokenId)">
