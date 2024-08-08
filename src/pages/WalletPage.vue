@@ -253,8 +253,8 @@
   <header>
     <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
     <nav v-if="displayView" style="display: flex; justify-content: center;" class="tabs">
-      <div @click="changeView(1)" v-bind:style="displayView == 1 ? {color: 'var(--color-primary'} : ''">BchWallet</div>
-      <div @click="changeView(2)" v-bind:style="displayView == 2 ? {color: 'var(--color-primary'} : ''">MyTokens</div>
+      <div @click="changeView(1)" v-bind:style="displayView == 1 ? {color: 'var(--color-primary'} : ''">{{ isMobile ? 'Wallet' : 'BchWallet' }}</div>
+      <div @click="changeView(2)" v-bind:style="displayView == 2 ? {color: 'var(--color-primary'} : ''">{{ isMobile ? 'Tokens' : 'MyTokens' }}</div>
       <div v-if="!isMobile && settingsStore.tokenCreation" @click="changeView(3)" v-bind:style="displayView == 3 ? {color: 'var(--color-primary'} : ''">CreateTokens</div>
       <div v-if="settingsStore.walletConnect" @click="changeView(4)" v-bind:style="displayView == 4 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Connect" : "WalletConnect"}}</div>
       <div @click="changeView(5)" v-bind:style="displayView == 5 ? {color: 'var(--color-primary'} : ''">History</div>
