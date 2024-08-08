@@ -3,10 +3,10 @@
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
-import { TransactionHistoryItem } from 'mainnet-js/dist/module/history/interface';
-import { convert } from 'mainnet-js';
-import { CurrencySymbols, TokenDataNFT } from 'src/interfaces/interfaces';
-import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
+  import { TransactionHistoryItem } from 'mainnet-js/dist/module/history/interface';
+  import { convert } from 'mainnet-js';
+  import { CurrencySymbols, TokenDataNFT } from 'src/interfaces/interfaces';
+  import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
 
   const store = useStore()
   const settingsStore = useSettingsStore()

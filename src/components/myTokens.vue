@@ -3,7 +3,6 @@
   import tokenItemNFT from './tokenItems/tokenItemNFT.vue'
   import tokenItemFT from './tokenItems/tokenItemFT.vue'
   import { useStore } from 'src/stores/store'
-
   const store = useStore()
 </script>
 

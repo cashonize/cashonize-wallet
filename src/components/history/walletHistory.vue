@@ -7,7 +7,7 @@
   import { TransactionHistoryItem } from 'mainnet-js/dist/module/history/interface';
   import { convert } from 'mainnet-js';
   import JSON5 from '@mainnet-pat/json5-bigint';
-import { useWindowSize } from '@vueuse/core';
+  import { useWindowSize } from '@vueuse/core';
 
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)

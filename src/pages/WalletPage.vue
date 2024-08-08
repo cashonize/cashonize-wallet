@@ -172,7 +172,7 @@
     store.maxAmountToSend = undefined;
     store.plannedTokenId = undefined;
     store.tokenList = null;
-    store.bcmrRegistries = {};
+    store.bcmrRegistries = undefined;
     changeView(1);
   }
 

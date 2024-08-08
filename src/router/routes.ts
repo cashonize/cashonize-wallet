@@ -8,7 +8,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/addToken/:tokenId',
-    redirect: to => {
+    redirect: () => {
       return { path: '/' }
     }
   },
