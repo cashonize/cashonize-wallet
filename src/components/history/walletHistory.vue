@@ -100,7 +100,7 @@ import { useWindowSize } from '@vueuse/core';
           </tr>
         </thead>
         <tbody class="body">
-          <tr v-for="transaction in history" :key="transaction.hash" @click="() => {selectedTransaction = transaction}">
+          <tr :class="settingsStore.darkMode ? 'dark' : ''" v-for="transaction in history" :key="transaction.hash" @click="() => {selectedTransaction = transaction}">
             <td>{{ transaction.timestamp ? "✅" : "⏳" }}</td>
             <td v-if="isMobile">{{ transaction.timestamp ? new Date(transaction.timestamp * 1000).toLocaleString().replace("202", "2").replace(",", "") : "Unconf." }}</td>
             <td v-else>{{ transaction.timestamp ? new Date(transaction.timestamp * 1000).toLocaleString() : "Unconfirmed" }}</td>
@@ -110,8 +110,8 @@ import { useWindowSize } from '@vueuse/core';
             <td v-if="transaction.tokenAmountChanges.length">
               <div class="tokenChange" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
                 <span v-if="tokenChange.amount !== 0n">
-                  <span v-if="tokenChange.amount > 0n" class="value">+{{ tokenChange.amount }}</span>
-                  <span v-else class="value" style="color: rgb(188,30,30)">{{ tokenChange.amount }}</span>
+                  <span v-if="tokenChange.amount > 0n" class="value">+{{ Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0) }}</span>
+                  <span v-else class="value" style="color: rgb(188,30,30)">{{ Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0) }}</span>
                   <span class="break"> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                 </span>
                 <span v-if="tokenChange.nftAmount !== 0n">
@@ -137,7 +137,10 @@ th.valueHeader {
   text-align: right;
 }
 tr:nth-child(even) {
-  background-color: #f8f8f8;
+  background-color: var(--color-background-soft);
+}
+tr.dark:nth-child(even) {
+  background-color: #232326;
 }
 
 .body > * {

@@ -111,7 +111,7 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
 
         <fieldset style="max-height: 200px; overflow: scroll; margin-top: 1rem;">
           <legend style="font-size: medium;">Inputs</legend>
-          <div v-for="(input, index) in historyItem.inputs" :key="index" class="input">
+          <div v-for="(input, index) in historyItem.inputs" :key="index" class="input" :class="settingsStore.darkMode ? 'dark' : ''">
             <span>{{ index }}: </span>
             <span class="break" :class="input.address === ourAddress ? 'our' : ''">{{ input.address.split(":")[1] }}</span>
             <div>
@@ -128,7 +128,7 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
 
         <fieldset style="max-height: 200px; overflow: scroll; margin-top: 1rem;">
           <legend style="font-size: medium;">Outputs</legend>
-          <div v-for="(output, index) in historyItem.outputs" :key="index" class="output">
+          <div v-for="(output, index) in historyItem.outputs" :key="index" class="output" :class="settingsStore.darkMode ? 'dark' : ''">
             <span v-if="output.value === 0" class="break">{{ index }}: {{ output.address }}</span>
             <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'our' : ''">{{ output.address.split(":")[1] }}</span></span>
             <div>
@@ -164,10 +164,16 @@ import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
     background: none;
   }
   .input:nth-child(odd) {
-    background-color: #f2f2f2;
+    background-color: var(--color-background-soft);
   }
   .output:nth-child(odd) {
-    background-color: #f2f2f2;
+    background-color: var(--color-background-soft);
+  }
+  .input.dark:nth-child(odd) {
+    background-color: #232326;
+  }
+  .output.dark:nth-child(odd) {
+    background-color: #232326;
   }
   .our{
     text-decoration-line: underline;
