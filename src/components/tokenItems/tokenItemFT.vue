@@ -1,11 +1,11 @@
 <script setup lang="ts">
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, SendRequest  } from "mainnet-js"
+  import { TokenSendRequest, SendRequest, convert  } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { TokenDataFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
+  import { CurrencySymbols, type TokenDataFT, type bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -50,6 +50,12 @@
   const tokenName = computed(() => {
     return tokenMetaData.value?.name;
   })
+
+  const tokenPrice = ref(0);
+  setTimeout(async () => {
+    const priceInSat = await store.fetchCurrentTokenPrice(tokenData.value.tokenId);
+    tokenPrice.value = await convert(Number(toAmountDecimals(tokenData.value.amount)) * priceInSat, "sat", settingsStore.currency);
+  }, 1);
 
   onMounted(() => {
     const icon = createIcon({
@@ -276,7 +282,7 @@
       message: errorMessage,
       icon: 'warning',
       color: "red"
-    }) 
+    })
   }
 </script>
 
@@ -303,8 +309,13 @@
             </div>
             <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
           </div>
-          <div v-if="tokenData?.amount !== undefined" class="tokenAmount" id="tokenAmount">Amount: 
-            {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
+          <div v-if="tokenData?.amount !== undefined" style="display: flex; flex-direction: column;">
+            <div class="tokenAmount" id="tokenAmount">Amount: 
+              {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
+            </div>
+            <div v-if="tokenPrice !== 0" class="tokenAmount" id="tokenAmount">Value: 
+              {{ tokenPrice }} {{ CurrencySymbols[settingsStore.currency] }}
+            </div>
           </div>
         </div>
       </div>

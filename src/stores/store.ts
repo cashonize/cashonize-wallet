@@ -6,7 +6,7 @@ import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenList, bcmrIndexerResponse, bcmrTokenMetadata } from "../interfaces/interfaces"
 import { useSettingsStore } from './settingsStore'
 import { queryAuthHeadTxid } from "../queryChainGraph"
-import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
+import { cachedFetch, getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
 import { TransactionHistoryItem } from "mainnet-js/dist/module/history/interface"
 const settingsStore = useSettingsStore()
 
@@ -172,5 +172,26 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, addToFavorites, toggleFavorite, sortTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight, tokenIconUrl }
+  async function fetchCurrentTokenPrice(tokenId: string): Promise<number> {
+    const priceResponse = await cachedFetch(`https://indexer.cauldron.quest/cauldron/price/${tokenId}/current`, {
+      storageType: sessionStorage,
+      duration: 300000, // 5 minutes
+    });
+
+    const price = (await priceResponse.json()).price;
+    return price;
+  }
+
+  async function fetchHistoricTokenPrice(tokenId: string, timestamp: number): Promise<number> {
+    // lookup historic prices with from day before to date in 10 minute steps and grab latest avg price reported
+    const priceHisotryResponse = await cachedFetch(`https://indexer.cauldron.quest/cauldron/price/${tokenId}/history/?start=${timestamp - 86400}&end=${timestamp}&stepsize=600`, {
+      storageType: localStorage,
+      duration: -1, // store forever
+    });
+
+    const history: any[] = (await priceHisotryResponse.json()).history;
+    return history.at(-1)?.avg ?? 0;
+  }
+
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, addToFavorites, toggleFavorite, sortTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries, history, shouldReloadHistory: reloadHistory, currentBlockHeight, tokenIconUrl, fetchCurrentTokenPrice, fetchHistoricTokenPrice }
 })

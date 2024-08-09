@@ -18,7 +18,8 @@
     historyItem: TransactionHistoryItem,
     unit: string,
     bcmrRegistries: Record<string, any> | undefined,
-  }>()
+    tokenPrices: Record<string, number>,
+  }>();
 
   const emit = defineEmits(['hide']);
 
@@ -64,6 +65,16 @@
     tokenMetadata.value = store.bcmrRegistries[tokenId].nfts?.[commitment];
     selectedTokenCommitment.value = commitment;
   }
+
+
+  const values = {} as Record<string, number>;
+  for (const inOutput of [...props.historyItem.inputs, ...props.historyItem.outputs]) {
+    if (inOutput.token?.amount) {
+      const priceInSat = props.tokenPrices[`${inOutput.token.tokenId}-${props.historyItem.timestamp ?? 0}`];
+      values[`${inOutput.token.tokenId}-${props.historyItem.timestamp ?? 0}-${inOutput.token.amount}`] = await convert(priceInSat * Number(inOutput.token.amount) / 10**(store.bcmrRegistries?.[inOutput.token.tokenId]?.token.decimals ?? 0), "sat", settingsStore.currency);
+    }
+  }
+  const currencyValues = ref(values);
 </script>
 
 <template>
@@ -116,11 +127,12 @@
             <span class="break" :class="input.address === ourAddress ? 'our' : ''">{{ input.address.split(":")[1] }}</span>
             <div>
               <span v-if="!input.token">{{ input.value }} {{ unit }}</span>
-              <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer; text-decoration-line: underline;">
-                <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
-                <span> {{ " " + (bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
-                <span v-if="input.token.capability"> NFT</span>
+              <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer;">
+                <span class="uline"> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
+                <span class="uline"> {{ " " + (bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
+                <span class="uline" v-if="input.token.capability"> NFT</span>
                 <img v-if="bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="store.tokenIconUrl(input.token.tokenId)">
+                <span v-if="input.token.amount"> ({{ (currencyValues[`${input.token.tokenId}-${props.historyItem.timestamp ?? 0}-${input.token.amount}`] === 0 ? '< ' : '') + currencyValues[`${input.token.tokenId}-${props.historyItem.timestamp ?? 0}-${input.token.amount}`] + " " + currencySymbol }})</span>
               </span>
             </div>
           </div>
@@ -133,11 +145,12 @@
             <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'our' : ''">{{ output.address.split(":")[1] }}</span></span>
             <div>
               <span v-if="!output.token && !output.address.includes('OP_RETURN')">{{ output.value }} {{ unit }}</span>
-              <span v-if="output.token" @click="loadTokenMetadata(output.token!.tokenId, output.token!.commitment!)" style="cursor: pointer; text-decoration-line: underline;">
-                <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
-                <span> {{ " " + (bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
-                <span v-if="output.token.capability"> NFT</span>
+              <span v-if="output.token" @click="loadTokenMetadata(output.token!.tokenId, output.token!.commitment!)" style="cursor: pointer;">
+                <span class="uline"> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
+                <span class="uline"> {{ " " + (bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
+                <span class="uline" v-if="output.token.capability"> NFT</span>
                 <img v-if="bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="store.tokenIconUrl(output.token.tokenId)">
+                <span v-if="output.token.amount"> ({{ (currencyValues[`${output.token.tokenId}-${props.historyItem.timestamp ?? 0}-${output.token.amount}`] === 0 ? '< ' : '') + currencyValues[`${output.token.tokenId}-${props.historyItem.timestamp ?? 0}-${output.token.amount}`] + " " + currencySymbol }})</span>
               </span>
             </div>
           </div>
@@ -180,5 +193,8 @@
   }
   .break {
     word-break: break-all;
+  }
+  .uline {
+    text-decoration: underline;
   }
 </style>
