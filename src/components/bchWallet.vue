@@ -8,6 +8,8 @@
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
+  import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -35,6 +37,7 @@
   const bchSendAmount = ref(undefined as (number | undefined));
   const currencySendAmount = ref(undefined as (number | undefined));
   const destinationAddr = ref("");
+  const showQrCodeDialog = ref(false);
 
   function switchAddressTypeQr(){
     displayeBchQr.value = !displayeBchQr.value;
@@ -137,6 +140,17 @@
       })
     }
   }
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+  }
+  const qrFilter = (content: string) => {
+    const decoded = decodeCashAddress(content);
+    if (typeof decoded === "string") {
+      return false;
+    }
+
+    return decoded.prefix === store.wallet?.networkPrefix;
+  }
 </script>
 
 
@@ -194,7 +208,12 @@
     </div>
     <div style="margin-top: 5px;">
       Send BCH:
-      <input v-model="destinationAddr" @input="parseAddrParams()" id="destinationAddr" placeholder="address">
+      <div style="display: flex; gap: 0.5rem;">
+        <input v-model="destinationAddr" @input="parseAddrParams()" id="destinationAddr" placeholder="address">
+        <button @click="() => showQrCodeDialog = true" style="padding: 12px">
+          <img src="images/qrscan.svg" />
+        </button>
+      </div>
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
           <input v-model="bchSendAmount" @input="setCurrencyAmount()" id="sendAmount" type="number" placeholder="amount">
@@ -207,8 +226,10 @@
             <button @click="useMaxBchAmount()" class="fillInMaxBch">max</button>
       </span>
       <div v-if="(store.maxAmountToSend?.[settingsStore.bchUnit] ?? 0) < (bchSendAmount ?? 0)" style="color: red;" id="warningNoBCH">Not enough BCH in wallet to send</div>
-      
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
   </fieldset>
+  <div v-if="showQrCodeDialog">
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
+  </div>
 </template>

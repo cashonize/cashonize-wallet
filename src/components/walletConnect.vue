@@ -7,6 +7,7 @@
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
+  import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   const $q = useQuasar()
   const store = useStore()
   const walletconnectStore = useWalletconnectStore()
@@ -19,6 +20,7 @@
   const dappUriInput = ref("");
   const sessionProposalWC = ref(undefined as any);
   const activeSessions = computed(() => walletconnectStore.activeSessions)
+  const showQrCodeDialog = ref(false);
 
   async function connectDappUriInput(){
     try {
@@ -94,6 +96,19 @@
     const updatedSessions = web3wallet?.getActiveSessions();
     walletconnectStore.activeSessions = updatedSessions;
   }
+
+  const qrDecode = async (content: string) => {
+    await web3wallet?.core.pairing.pair({ uri: content});
+  }
+  const qrFilter = (content: string) => {
+    const matchV2 = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
+    console.log(matchV2);
+    if (matchV2) {
+      return true;
+    }
+
+    return false;
+}
 </script>
 
 <template>
@@ -102,7 +117,13 @@
 
     Connect New dApp:
 
-    <input v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
+    <div style="display: flex; gap: 0.5rem; ">
+      <input v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
+      <button @click="() => showQrCodeDialog = true" style="padding: 12px; height: 43px;">
+        <img src="images/qrscan.svg" />
+      </button>
+    </div>
+
     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem;">
       <input @click="connectDappUriInput" type="button" class="primaryButton" id="connect" value="Connect New dApp">
       <!--<input @click="() => {}" type="button" class="primaryButton" id="send" value="Scan QR Code">-->
@@ -125,6 +146,10 @@
     </div>
     
   </fieldset>
+
+  <div v-if="showQrCodeDialog">
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
+  </div>
 </template>
 
 <style>
