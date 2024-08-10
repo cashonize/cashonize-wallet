@@ -94,6 +94,16 @@
       color: "grey-6"
     })
   }
+  function clearCache(){
+    const keys = ["tx-", "header-", "cachedFetch-"]
+    for (const storage of [localStorage, sessionStorage]) {
+      for (const key in localStorage) {
+        if (keys.some((value) => key.includes(value))) {
+          storage.removeItem(key);
+        }
+      }
+    }
+  }
   function confirmDeleteWallet(){
     const text = "You are about to delete your Cashonize wallet info from this browser.\nAre you sure you want to delete?";
     if (confirm(text)){
@@ -162,6 +172,8 @@
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
         </select>
       </div>
+
+      <input @click="clearCache" type="button" value="Clear application caches" class="button primary" style="display: block; margin-top:15px;">
 
       <div style="margin-top:15px">Remove wallet data from {{isBrowser? "browser": "application"}}</div>
       <input @click="confirmDeleteWallet()" type="button" id="burnNFT" value="Delete wallet" class="button error" style="display: block;">

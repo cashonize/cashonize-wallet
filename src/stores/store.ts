@@ -184,7 +184,7 @@ export const useStore = defineStore('store', () => {
 
   async function fetchHistoricTokenPrice(tokenId: string, timestamp: number): Promise<number> {
     // lookup historic prices with from day before to date in 10 minute steps and grab latest avg price reported
-    const priceHisotryResponse = await cachedFetch(`https://indexer.cauldron.quest/cauldron/price/${tokenId}/history/?start=${timestamp - 86400}&end=${timestamp}&stepsize=600`, {
+    const priceHisotryResponse = await cachedFetch(`https://indexer.cauldron.quest/cauldron/price/${tokenId}/history/?start=${timestamp - 86400}&end=${timestamp + 1}&stepsize=600`, {
       storageType: localStorage,
       duration: -1, // store forever
     });
