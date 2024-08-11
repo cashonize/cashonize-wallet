@@ -14,7 +14,7 @@
         <div class="line-design4"></div>
       </div>
     </div>
-    <span class="scanner-text text-center full-width">Scan QrCode</span>
+    <span class="scanner-text text-center full-width">Scan QR Code</span>
   </div>
 </template>
 
@@ -57,8 +57,8 @@
 .scanner-box {
 	position: relative !important;
 	display: flex !important;
-	height: 220px !important;
-	width: 220px !important;
+	height: 280px !important;
+	width: 280px !important;
 	border-radius: 16% !important;
 	box-shadow: 0px 0px 0px 1000px rgba(0, 0, 0, 0.6);
 	vertical-align: middle;
