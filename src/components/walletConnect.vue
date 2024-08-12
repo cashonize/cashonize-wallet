@@ -102,12 +102,11 @@
   }
   const qrFilter = (content: string) => {
     const matchV2 = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
-    console.log(matchV2);
-    if (matchV2) {
-      return true;
+    if (!matchV2) {
+      return "Not a valid WalletConnect2 URI";
     }
 
-    return false;
+    return true;
 }
 </script>
 

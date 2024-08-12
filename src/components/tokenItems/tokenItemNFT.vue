@@ -12,6 +12,8 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
+  import QrCodeScanDialog from '../qr/qrCodeScanDialog.vue';
+
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -40,6 +42,7 @@
   const startingNumberNFTs = ref(undefined as string | undefined);
   const totalNumberNFTs = ref(undefined as number | undefined);
   const hasMintingNFT = ref(undefined as boolean | undefined);
+  const showQrCodeDialog = ref(false);
 
   let fetchedMetadataChildren = false
 
@@ -385,6 +388,18 @@
       color: "red"
     }) 
   }
+
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+  }
+  const qrFilter = (content: string) => {
+    const decoded = decodeCashAddress(content);
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix || !['p2pkhWithTokens', 'p2shWithTokens'].includes(decoded.type)) {
+      return "Not a tokenaddress on current network";
+    }
+
+    return true;
+  }
 </script>
 
 <template id="token-template">
@@ -481,17 +496,27 @@
 
         <div v-if="displaySendNft" style="margin-top: 10px;">
           Send this NFT to
-          <p class="grouped">
-            <input v-model="destinationAddr" id="tokenAddress" placeholder="token address">
+          <div class="grouped">
+            <div style="display: flex;">
+              <input v-model="destinationAddr" id="tokenAddress" placeholder="token address" style="margin-right: 0px;">
+              <button @click="() => showQrCodeDialog = true" style="padding: 12px;">
+                <img src="images/qrscan.svg" />
+              </button>
+            </div>
             <input @click="sendNft()" type="button" class="primaryButton" id="sendNFT" value="Send NFT">
-          </p>
+          </div>
         </div>
         <div v-if="displaySendAllNfts" style="margin-top: 10px;">
           Send all {{ tokenData.nfts?.length }} NFTs of this category to
-          <p class="grouped">
-            <input v-model="destinationAddr" id="tokenAddress" placeholder="token address">
+          <div class="grouped">
+            <div style="display: flex;">
+              <input v-model="destinationAddr" id="tokenAddress" placeholder="token address" style="margin-right: 0px;">
+              <button @click="() => showQrCodeDialog = true" style="padding: 12px;">
+                <img src="images/qrscan.svg" />
+              </button>
+            </div>
             <input @click="sendAllNfts()" type="button" class="primaryButton" id="sendNFT" value="Transfer NFTs">
-          </p>
+          </div>
         </div>
         <div id="nftMint" v-if="displayMintNfts" style="margin-top: 10px;">
           Mint a number of (unique) NFTs to a specific address
@@ -505,7 +530,10 @@
             <input v-if="mintUniqueNfts == 'no'" v-model="mintCommitment" placeholder="commitment">
           </p>
           <span class="grouped">
-            <input v-model="destinationAddr" placeholder="destinationAddress"> 
+            <input v-model="destinationAddr" placeholder="destinationAddress" style="margin-right: 0px;">
+            <button @click="() => showQrCodeDialog = true" style="padding: 12px;">
+              <img src="images/qrscan.svg" />
+            </button>
             <input @click="mintNfts()" type="button" id="mintNFTs" value="Mint NFTs" class="primaryButton">
           </span>
         </div>
@@ -519,7 +547,10 @@
           Transfer the authority to change the token's metadata to another wallet <br>
           You can either transfer the Auth to a dedicated wallet or to the <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>.<br>
           <span class="grouped" style="margin-top: 10px;">
-            <input id="destinationAddr" placeholder="destinationAddress"> 
+            <input id="destinationAddr" placeholder="Destination Address" style="margin-right: 0px;">
+            <button @click="() => showQrCodeDialog = true" style="padding: 12px;">
+              <img src="images/qrscan.svg" />
+            </button>
             <input @click="transferAuth()" type="button" value="Transfer Auth" class="primaryButton">
           </span>
         </div>
@@ -535,5 +566,9 @@
         <nftChild :nftData="nft" :tokenMetaData="store.bcmrRegistries?.[tokenData.tokenId] " :id="'nft'+tokenData.tokenId.slice(0,4) + index"/>
       </div>
     </div>
+  </div>
+
+  <div v-if="showQrCodeDialog">
+    <QrCodeScanDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>

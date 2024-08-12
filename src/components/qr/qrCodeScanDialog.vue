@@ -8,11 +8,12 @@
   const isMobile = computed(() => width.value < 480)
 
   const props = defineProps<{
-    filter?: (decoded: string) => boolean
+    filter?: (decoded: string) => string | true
   }>();
 
   const error = ref("");
   const frontCamera = ref(false);
+  const filterHint = ref("");
 
   const showDialog = ref(true);
 
@@ -56,9 +57,12 @@
       emit('decode', content[0].rawValue);
       showDialog.value = false;
     } else {
-      if (props.filter(content[0].rawValue)) {
+      const filterResult = props.filter(content[0].rawValue);
+      if (filterResult === true) {
         emit('decode', content[0].rawValue);
         showDialog.value = false;
+      } else {
+        filterHint.value = filterResult;
       }
     }
   }
@@ -92,7 +96,7 @@
           @error="onScannerError"
         />
         <div style="display: flex; height: 100%;">
-          <ScannerUI />
+          <ScannerUI :filter-hint="filterHint" />
         </div>
     </q-card>
   </q-dialog>

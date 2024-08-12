@@ -145,11 +145,11 @@
   }
   const qrFilter = (content: string) => {
     const decoded = decodeCashAddress(content);
-    if (typeof decoded === "string") {
-      return false;
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+      return "Not a cashaddress on current network";
     }
 
-    return decoded.prefix === store.wallet?.networkPrefix;
+    return true;
   }
 </script>
 
