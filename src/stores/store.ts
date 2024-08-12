@@ -64,11 +64,17 @@ export const useStore = defineStore('store', () => {
         const uniqueCommitments = new Set(listCommitments);
         for(const nftCommitment of uniqueCommitments) {
           const nftEndpoint = nftCommitment ? nftCommitment : "empty"
-          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftEndpoint}/`);
+          const metadataPromise = cachedFetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftEndpoint}/`, {
+            storageType: localStorage,
+            duration: -1, // cache forever
+          });
           metadataPromises.push(metadataPromise);
         }
       } else {
-        const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/`);
+        const metadataPromise = cachedFetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/`, {
+          storageType: localStorage,
+          duration: -1, // cache forever
+        });
         metadataPromises.push(metadataPromise);
       }
     }

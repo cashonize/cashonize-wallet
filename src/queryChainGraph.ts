@@ -1,10 +1,12 @@
+import { cachedFetch } from "./utils/utils";
+
 async function queryChainGraph(queryReq:string, chaingraphUrl:string){
     const jsonObj = {
         "operationName": null,
         "variables": {},
         "query": queryReq
     };
-    const response = await fetch(chaingraphUrl, {
+    const response = await cachedFetch(chaingraphUrl, {
         method: "POST",
         mode: "cors", // no-cors, *cors, same-origin
         cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
@@ -15,6 +17,9 @@ async function queryChainGraph(queryReq:string, chaingraphUrl:string){
         redirect: "follow", // manual, *follow, error
         referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         body: JSON.stringify(jsonObj), // body data type must match "Content-Type" header
+
+        storageType: localStorage,
+        duration: 1000 * 60 * 5, // 5 minutes
     });
     return await response.json();
 }

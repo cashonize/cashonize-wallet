@@ -4,6 +4,7 @@
   import alertDialog from 'src/components/alertDialog.vue'
   import { useStore } from '../stores/store'
   import { useQuasar } from 'quasar'
+import { cachedFetch } from 'src/utils/utils';
   const $q = useQuasar()
   const store = useStore()
 
@@ -61,7 +62,10 @@
     const fetchLocation = selectedUri.value != "IPFS" ? "https://" + inputField + bcmrLocation : inputField + inputField.slice(7);
     try{
       console.log("fetching bcmr at "+fetchLocation);
-      const response = await fetch(fetchLocation);
+      const response = await cachedFetch(fetchLocation, { 
+        storageType: localStorage,
+        duration: 1000 * 60 * 60 * 24, // 1 day
+       });
       if(response?.status == 200) validitityCheck.value = true;
       const bcmrContent = await response.text();
       const hashContent = sha256.hash(utf8ToBin(bcmrContent));

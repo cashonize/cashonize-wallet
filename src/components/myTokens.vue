@@ -12,7 +12,7 @@
   <div v-if="store.nrBcmrRegistries != undefined" :key="(store.tokenList?.[0]?.tokenId ?? '') + (store.tokenList?.length ?? 0)">
     <div v-for="tokenData in store.tokenList" :key="tokenData.tokenId.slice(0,6)">
       <tokenItemFT v-if="'amount' in tokenData" :tokenData="tokenData" :key="store.bcmrRegistries?.[tokenData.tokenId]?.name"/>
-      <tokenItemNFT v-else :tokenData="tokenData" :key="Object.values(store.bcmrRegistries?.[tokenData.tokenId]?.nfts ?? {}).length"/>
+      <tokenItemNFT v-else :tokenData="tokenData" :key="store.bcmrRegistries?.[tokenData.tokenId]?.description"/>
     </div>
   </div>
 </template>
