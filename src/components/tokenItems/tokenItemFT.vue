@@ -54,7 +54,7 @@
   const tokenPrice = ref(0);
   setTimeout(async () => {
     const priceInSat = await store.fetchCurrentTokenPrice(tokenData.value.tokenId);
-    tokenPrice.value = await convert(Number(toAmountDecimals(tokenData.value.amount)) * priceInSat, "sat", settingsStore.currency);
+    tokenPrice.value = await convert(Number(tokenData.value.amount) * priceInSat, "sat", settingsStore.currency);
   }, 1);
 
   onMounted(() => {

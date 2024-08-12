@@ -71,7 +71,7 @@
   for (const inOutput of [...props.historyItem.inputs, ...props.historyItem.outputs]) {
     if (inOutput.token?.amount) {
       const priceInSat = props.tokenPrices[`${inOutput.token.tokenId}-${props.historyItem.timestamp ?? 0}`];
-      values[`${inOutput.token.tokenId}-${props.historyItem.timestamp ?? 0}-${inOutput.token.amount}`] = await convert(priceInSat * Number(inOutput.token.amount) / 10**(store.bcmrRegistries?.[inOutput.token.tokenId]?.token.decimals ?? 0), "sat", settingsStore.currency);
+      values[`${inOutput.token.tokenId}-${props.historyItem.timestamp ?? 0}-${inOutput.token.amount}`] = await convert(priceInSat * Number(inOutput.token.amount), "sat", settingsStore.currency);
     }
   }
   const currencyValues = ref(values);

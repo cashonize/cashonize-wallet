@@ -80,7 +80,7 @@
       for (const tokenChange of transaction.tokenAmountChanges) {
         if (tokenChange.amount) {
           const priceInSat = tokenPrices.value[`${tokenChange.tokenId}-${transaction.timestamp ?? 0}`]
-          changeCurrencyValues[`${tokenChange.tokenId}-${transaction.timestamp ?? 0}-${tokenChange.amount}`] = await convert(priceInSat * Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0), "sat", settingsStore.currency);
+          changeCurrencyValues[`${tokenChange.tokenId}-${transaction.timestamp ?? 0}-${tokenChange.amount}`] = await convert(priceInSat * Number(tokenChange.amount), "sat", settingsStore.currency);
         }
       }
     }
