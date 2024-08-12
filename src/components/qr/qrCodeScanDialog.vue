@@ -77,14 +77,12 @@
     <q-card v-else :style="isMobile ? 'width: 100%; height: 100%;' : 'width: 75%; height: 75%;'">
       <qrcode-stream
           :formats="['qr_code']"
-          :camera="frontCamera ? 'front': 'auto'"
           :constraints="{
-            video: {
-              width: { min: 1080 },
-              height: { min: 1080 },
-              aspectRatio: { ideal: 1 },
-              frameRate: { min: 20 }
-            }
+            width: { min: 720 },
+            height: { min: 720 },
+            aspectRatio: { ideal: 1 },
+            frameRate: { min: 20 },
+            facingMode: { ideal: 'environment' }
           }"
           @detect="onScannerDecode"
           @init="onScannerInit"
