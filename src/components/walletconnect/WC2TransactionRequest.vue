@@ -220,7 +220,7 @@
               </tr>
               <tr v-if="input?.token?.nft">
                 <td></td>
-                <td>Commitment: {{ binToHex(input.token.nft.commitment) }}</td>
+                <td class="commitment">Commitment: {{ binToHex(input.token.nft.commitment) }}</td>
                 <td>Capability: {{ input.token.nft.capability }}</td>
               </tr>
             </tbody>
@@ -253,7 +253,7 @@
               </tr>
               <tr v-if="output?.token?.nft">
                 <td></td>
-                <td>Commitment: {{ binToHex(output.token.nft.commitment) }}</td>
+                <td class="commitment">Commitment: {{ binToHex(output.token.nft.commitment) }}</td>
                 <td>Capability: {{ output.token.nft.capability }}</td>
               </tr>
             </tbody>
@@ -266,21 +266,22 @@
           </div>
           <div v-for="(tokenArrayInput, firstIndex) in tokensSpentInputs" :key="firstIndex">
             <div v-for="(tokenSpent, index) in tokenArrayInput" :key="binToHex(tokenSpent.category) + index">
-            - {{tokenSpent?.nft ? "NFT" : "Token"}}
-            {{ store.bcmrRegistries?.[binToHex(tokenSpent?.category) ?? ""]?.name ?
-              store.bcmrRegistries?.[binToHex(tokenSpent.category)]?.name : 
-              binToHex(tokenSpent.category).slice(0,6)  + '...'
-            }}
+              - {{ tokenSpent.amount ? (tokenSpent.amount / (10n ** BigInt(BCMR.getTokenInfo(binToHex(tokenSpent.category))?.token?.decimals ?? 0n))) : ""}}
+              {{ store.bcmrRegistries?.[binToHex(tokenSpent?.category) ?? ""]?.name ?
+                store.bcmrRegistries?.[binToHex(tokenSpent.category)]?.name : 
+                binToHex(tokenSpent.category).slice(0,6)  + '...'
+              }}
+              {{tokenSpent?.nft ? "NFT" : "Tokens"}}
             </div>
           </div>
           <div v-for="(tokenArrayRecived, firstIndex) in tokensReceivedOutputs" :key="firstIndex">
             <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="binToHex(tokenReceived.category) + index">
-            + {{tokenReceived.nft ? "NFT" : "Token"}}
-            {{ store.bcmrRegistries?.[binToHex(tokenReceived.category)]?.name ?
-              store.bcmrRegistries?.[binToHex(tokenReceived.category)]?.name : 
-              binToHex(tokenReceived.category).slice(0,6)  + '...'
-            }}
-            {{ tokenReceived.amount ? "amount: "+ (tokenReceived.amount / (10n ** BigInt(BCMR.getTokenInfo(binToHex(tokenReceived.category))?.token?.decimals ?? 0n))) : ""}}
+              + {{ tokenReceived.amount ? (tokenReceived.amount / (10n ** BigInt(BCMR.getTokenInfo(binToHex(tokenReceived.category))?.token?.decimals ?? 0n))) : ""}}
+              {{ store.bcmrRegistries?.[binToHex(tokenReceived.category)]?.name ?
+                store.bcmrRegistries?.[binToHex(tokenReceived.category)]?.name : 
+                binToHex(tokenReceived.category).slice(0,6)  + '...'
+              }}
+              {{tokenReceived.nft ? "NFT" : "Tokens"}}
             </div>
           </div>
           <div class="wc-modal-bottom-buttons">
@@ -310,6 +311,7 @@
   }
   .wc-modal-details {
     font-size: smaller;
+    margin: 0 5px;
   }
   .wc-modal-heading {
     font-weight: 700;
@@ -319,6 +321,7 @@
   }
   td {
     padding: 0;
+    max-width: 220px;
   }
   .wc-modal-bottom-buttons {
     display: flex;
@@ -332,6 +335,11 @@
   }
   .thisWalletTag{
     color: hsla(160, 100%, 37%, 1)
+  }
+  .wc-data-table tbody td.commitment{
+    line-break: anywhere;
+    width: min-content;
+    padding-right: 40px;
   }
 
   @media only screen and (max-width: 570px) {
