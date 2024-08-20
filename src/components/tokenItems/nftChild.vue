@@ -274,7 +274,7 @@
           <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.capability == 'minting'">
             <img id="mintIcon" class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> mint NFTs
           </span>
-          <span @click="displayBurnNft = !displayBurnNft" v-if="nftData?.token?.capability == 'minting' || settingsStore.tokenBurn" style="white-space: nowrap;">
+          <span @click="displayBurnNft = !displayBurnNft" v-if="settingsStore.tokenBurn" style="white-space: nowrap;">
             <img id="burnIcon" class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             <span class="hidemobile">burn NFT</span>
           </span>
