@@ -254,7 +254,9 @@
     <bchWalletView v-if="displayView == 1"/>
     <myTokensView v-if="displayView == 2"/>
     <createTokensView v-if="displayView == 3"/>
-    <connectView v-if="displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
+    <template v-if="displayView == 4">
+      <connectView v-if="displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
+    </template>
     <settingsMenu v-if="displayView == 5" @change-network="(arg) => changeNetwork(arg)" @change-view="(arg) => changeView(arg)"/>
   </main>
   <div v-if="transactionRequestWC">
