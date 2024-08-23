@@ -7,6 +7,8 @@
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { parseExtendedJson } from 'src/utils/utils'
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
   const store = useStore()
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
@@ -159,7 +161,16 @@
     // send transaction
     const response = { id, jsonrpc: '2.0', result: signedTxObject };
     if (requestParams.broadcast) {
-      await store.wallet?.submitTransaction(hexToBin(signedTxObject.signedTransaction));
+      try{
+        await store.wallet?.submitTransaction(hexToBin(signedTxObject.signedTransaction));
+      } catch(error){
+        console.log(error)
+        $q.notify({
+          type: 'negative',
+          message: typeof error == 'string' ? error :  "Error in sending transaction"
+        })
+        return
+      }   
     }
     await web3wallet?.respondSessionRequest({ topic, response });
 
