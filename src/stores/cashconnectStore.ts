@@ -27,6 +27,8 @@ import {
   walletTemplateP2pkhNonHd,
 } from '@bitauth/libauth';
 
+// NOTE: We use a wrapper so that we can pass in the Mainnet Wallet as an argument.
+//       This keeps the mutable state more managable in the sense that CC cannot exist with a valid wallet.
 export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
   const store = defineStore('cashconnectStore', () => {
     // Ensure that the Mainnet Wallet has a Private Key.
@@ -44,9 +46,6 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
       'bch_getBalance_V0',
       'bch_getChangeLockingBytecode_V0',
     ];
-
-    // Whether the CashConnect Service has been initialized.
-    const isInitialized = ref(false);
 
     // List of CashConnect sessions.
     // NOTE: This reactive state is synced with CashConnect via the onSessionsUpdated hook.
@@ -107,8 +106,6 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     async function onSessionProposal(
       sessionProposal: Web3WalletTypes.SessionProposal
     ) {
-      debugger;
-
       return await new Promise<WalletProperties>((resolve, reject) => {
         Dialog.create({
           component: CCSessionRequestDialogVue,
@@ -313,7 +310,6 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
       pair,
 
       // Properties
-      isInitialized,
       cashConnectWallet,
       sessions,
     };
