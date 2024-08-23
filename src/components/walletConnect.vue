@@ -9,7 +9,7 @@
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
-  const walletconnectStore = useWalletconnectStore()
+  const walletconnectStore = await useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
 
   const props = defineProps<{

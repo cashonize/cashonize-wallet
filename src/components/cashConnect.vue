@@ -1,23 +1,50 @@
 
 <script setup lang="ts">
+  import { ref } from 'vue'
+  import { useQuasar } from 'quasar';
   import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
 
+  const $q = useQuasar();
+
   const store = useStore()
+  const settingsStore = useSettingsStore();
 
   if(!store.wallet) {
     throw new Error('store.wallet is falsy');
   }
 
-  const cashconnectStore = useCashconnectStore(store.wallet);
+  // TODO: Why does this type not work? They're the same?
+  const cashconnectStore = await useCashconnectStore(store.wallet);
+
+  // State.
+  const dappUriInput = ref("");
+
+  // Methods.
+  async function connectDappUriInput(){
+    try {
+      cashconnectStore.pair(dappUriInput.value);
+    } catch(error) {
+      $q.notify({
+        message: `${error}`,
+        icon: 'warning',
+        color: 'negative'
+      })
+    }
+  }
 </script>
 
 <template>
-  <!-- CashConnect (Vue Container) -->
-  <div id="cashconnect-sessions-vue">
     <!-- Sessions -->
-    <fieldset style="display: block; margin-top: 15px">
-      <legend>CashConnect Sessions (Pre-Alpha)</legend>
+    <fieldset class="item">
+      <legend>CashConnect (Pre-Alpha)</legend>
+      <!-- TODO: Temporary - unless we want to keep these separate -->
+      <input v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem;">
+        <input @click="connectDappUriInput" type="button" class="primaryButton" id="connect" value="Connect New dApp">
+      </div>
+      <!-- Sessions -->
       <div class="cc-session-items-container">
         <!-- Iterate over active sessions -->
         <template v-for="(session, topic) of cashconnectStore.sessions" :key="topic">
@@ -29,13 +56,12 @@
               <div>{{ session.peer.metadata.description }}</div>
             </div>
             <div class="cc-session-item-action-container">
-              <div class="cc-session-item-action-icon" @click="cashconnectStore.cashConnectWallet.disconnectSession(topic)"><img class="trashIcon icon"></div>
+              <div class="cc-session-item-action-icon" @click="cashconnectStore.cashConnectWallet.disconnectSession(topic)"><img :src="settingsStore.darkMode? 'images/trashGrey.svg': 'images/trash.svg'" style="cursor: pointer;" /></div>
             </div>
           </div>
         </template>
       </div>
     </fieldset>
-  </div>
 </template>
 
 <style>

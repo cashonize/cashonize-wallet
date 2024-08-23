@@ -4,6 +4,7 @@
   import myTokensView from 'src/components/myTokens.vue'
   import settingsMenu from 'src/components/settingsMenu.vue'
   import connectView from 'src/components/walletConnect.vue'
+  import cashconnectView from 'src/components/cashConnect.vue'
   import createTokensView from 'src/components/createTokens.vue'
   import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
   import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
@@ -15,6 +16,7 @@
   import type { Web3WalletTypes } from '@walletconnect/web3wallet';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useCashconnectStore } from 'src/stores/cashconnectStore'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
@@ -62,16 +64,13 @@
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
     }
     store.wallet = newWallet;
-    console.time('initweb3wallet');
-    await walletconnectStore.initweb3wallet();
-    console.timeEnd('initweb3wallet');
-    const web3wallet = walletconnectStore.web3wallet;
-    web3wallet?.on('session_request', async (event) => wcRequest(event));
-    // check if session request in URL params
-    if(props?.uri?.startsWith('wc:')){
-      dappUriUrlParam.value = props.uri
-      changeView(4);
-    }
+
+    // Initialize WalletConnect and CashConnect.
+    // NOTE: We do these in parallel as they have no dependency on each other and it speeds initialization up.
+    console.time('initialize walletconnect and cashconnect');
+    await Promise.all([initializeWalletConnect(), initializeCashConnect(newWallet)]);
+    console.timeEnd('initialize walletconnect and cashconnect');
+
     // fetch bch balance
     console.time('Balance Promises');
     const promiseWalletBalance = store.wallet.getBalance() as BalanceResponse;
@@ -97,6 +96,39 @@
     console.time('fetchAuthUtxos');
     await store.fetchAuthUtxos();
     console.timeEnd('fetchAuthUtxos');
+  }
+
+  async function initializeWalletConnect() {
+    await walletconnectStore.initweb3wallet();
+    const web3wallet = walletconnectStore.web3wallet;
+    web3wallet?.on('session_request', async (event) => wcRequest(event));
+    // check if session request in URL params
+    if(props?.uri?.startsWith('wc:')){
+      dappUriUrlParam.value = props.uri
+      changeView(4);
+    }
+  }
+
+  async function initializeCashConnect(wallet: TestNetWallet) {
+    // Initialize CashConnect.
+    const cashconnectWallet = await useCashconnectStore(wallet);
+
+    // Start the wallet service.
+    await cashconnectWallet.cashConnectWallet.start();
+
+    // Check if session request in URL params
+    if(props?.uri?.startsWith('cc:')){
+      cashconnectWallet.pair(props.uri);
+    }
+
+    // Monitor the wallet for balance changes.
+    wallet.watchBalance(async () => {
+      // Convert the network into WC format,
+      const chainIdFormatted = wallet.network === 'mainnet' ? 'bch:bitcoincash' : 'bch:bchtest';
+
+      // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
+      cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
+    });
   }
 
   async function setUpWalletSubscriptions(){
@@ -255,7 +287,8 @@
     <myTokensView v-if="displayView == 2"/>
     <createTokensView v-if="displayView == 3"/>
     <template v-if="displayView == 4">
-      <connectView v-if="displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
+      <connectView :dappUriUrlParam="dappUriUrlParam"/>
+      <cashconnectView :dappUriUrlParam="dappUriUrlParam" />
     </template>
     <settingsMenu v-if="displayView == 5" @change-network="(arg) => changeNetwork(arg)" @change-view="(arg) => changeView(arg)"/>
   </main>
