@@ -205,7 +205,6 @@
       }
     }
   }
-  // Reset transactionRequestWC after sign or reject
   function signedTransaction(broadcast: boolean){
     const message = broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
     transactionRequestWC.value = undefined;
@@ -217,7 +216,6 @@
   function rejectTransaction(){
     transactionRequestWC.value = undefined;
   }
-  // Reset signMessageRequestWC after sign or reject
   function signMessage(){
     signMessageRequestWC.value = undefined;
     $q.notify({
