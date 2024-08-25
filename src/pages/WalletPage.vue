@@ -206,11 +206,12 @@
     }
   }
   // Reset transactionRequestWC after sign or reject
-  function signedTransaction(txId:string){
+  function signedTransaction(broadcast: boolean){
+    const message = broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
     transactionRequestWC.value = undefined;
     $q.notify({
       type: 'positive',
-      message: 'Transaction succesfully sent!'
+      message
     })
   }
   function rejectTransaction(){
@@ -252,7 +253,7 @@
     <settingsMenu v-if="displayView == 5" @change-network="(arg) => changeNetwork(arg)" @change-view="(arg) => changeView(arg)"/>
   </main>
   <div v-if="transactionRequestWC">
-    <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg:string) => signedTransaction(arg)" @reject-transaction="rejectTransaction()"/>
+    <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg:boolean) => signedTransaction(arg)" @reject-transaction="rejectTransaction()"/>
   </div>
   <div v-if="signMessageRequestWC">
     <WC2SignMessageRequest :signMessageRequestWC="signMessageRequestWC" :dappMetadata="dappMetadata" @sign-message="() => signMessage()" @reject-sign-message="rejectSignMessage()"/>

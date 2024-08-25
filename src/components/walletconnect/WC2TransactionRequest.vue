@@ -189,8 +189,9 @@
       }   
     }
     await web3wallet?.respondSessionRequest({ topic, response });
-
-    emit('signedTransaction', signedTxObject.signedTransactionHash);
+    // close dialog when broadcast = false
+    showDialog.value = false
+    emit('signedTransaction', requestParams.broadcast);
   }
 
   async function rejectTransaction(){
