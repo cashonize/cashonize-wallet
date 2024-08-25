@@ -212,12 +212,6 @@
       type: 'positive',
       message: 'Transaction succesfully sent!'
     })
-    $q.notify({
-      icon: 'info',
-      timeout : 5000,
-      color: "grey-6",
-      message: 'Txid:' + txId
-    })
   }
   function rejectTransaction(){
     transactionRequestWC.value = undefined;
