@@ -32,7 +32,7 @@
       const walletAddr = store.wallet.address as string;
       $q.notify({
         spinner: true,
-        message: 'Preparing preGenesis...',
+        message: 'Preparing pre-genesis...',
         color: 'grey-5',
         timeout: 1000
       })
@@ -41,7 +41,7 @@
         type: 'positive',
         message: 'Transaction succesfully sent!'
       })
-      console.log(`Created valid preGenesis for token creation \n${store.explorerUrl}/${txId}`);
+      console.log(`Created valid pre-genesis for token creation \n${store.explorerUrl}/${txId}`);
       store.plannedTokenId = txId;
     } catch(error){
       handleTransactionError(error)
@@ -215,7 +215,8 @@
           Choose the total supply of fungible tokens
           <input v-model="inputFungibleSupply" placeholder="total supply" type="number">
           <i>note:</i> add extra zeroes for the number of decimals set in the BCMR metadata
-        </div> <br>
+          <br><br>
+        </div>
 
         <details  style="margin-bottom: 0.5em;">
           <summary style="display: list-item">Link Token-Metadata</summary>

@@ -45,6 +45,9 @@ a,
   color: hsla(160, 100%, 37%, 1);
   transition: 0.4s;
 }
+img {
+  pointer-events: none;
+}
 
 .primaryButton {
   background-color: var(--color-primary); 
@@ -144,10 +147,12 @@ input[type=number] {
   display: flex;
   width: 50%;
 }
-
 .showChildNfts {
   cursor: pointer;
   margin-left: 35px;
+}
+select, summary {
+  cursor: pointer;
 }
 
 @media (hover: hover) {
