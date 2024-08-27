@@ -85,6 +85,10 @@ export const useStore = defineStore('store', () => {
     bcmrRegistries.value = registries
   }
 
+  async function fetchTokenInfo(categoryId: string) {
+    return await fetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
+  }
+
   async function hasPreGenesis(){
     plannedTokenId.value = undefined;
     const walletUtxos = await wallet.value?.getAddressUtxos();
@@ -117,5 +121,5 @@ export const useStore = defineStore('store', () => {
     tokenList.value = copyTokenList;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries }
+  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, fetchTokenInfo, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries }
 })

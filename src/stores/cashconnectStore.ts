@@ -39,7 +39,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     }
 
     // Auto-approve the following RPC methods.
-    // NOTE: We hard-code these for Cashonize, but they could be customized on a per-Dapp basis too
+    // NOTE: We hard-code these for Cashonize, but they could be customized on a per-Dapp basis too.
     const autoApprove = [
       'wc_authRequest',
       'bch_getTokens_V0',

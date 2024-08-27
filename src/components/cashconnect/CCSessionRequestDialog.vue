@@ -1,15 +1,24 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useQuasar, useDialogPluginComponent } from 'quasar'
 import type { BchSession } from 'cashconnect';
 import type { Web3WalletTypes } from '@walletconnect/web3wallet';
 
+import { useStore } from 'src/stores/store';
+import { useSettingsStore } from 'src/stores/settingsStore';
+
 import CCViewTemplateDialog from './CCViewTemplateDialog.vue';
 
 const $q = useQuasar();
+const store = useStore();
+const settingsStore = useSettingsStore();
 
 const props = defineProps<{
   session: Web3WalletTypes.SessionProposal
 }>()
+
+// State to store fetched token info from BCMR.
+const tokens = ref<{ [categoryId: string]: any }>({});
 
 defineEmits([
   // REQUIRED; need to specify some events that your
@@ -36,6 +45,57 @@ function viewTemplate() {
     },
   });
 }
+
+function getTokenName(categoryId: string) {
+  // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.
+  try {
+    const tokenInfo = tokens.value[categoryId];
+
+    if(!tokenInfo) {
+      return categoryId;
+    }
+
+    return tokenInfo.name;
+  } catch(error) {
+    console.warn(`${error}`);
+
+    return categoryId;
+  }
+}
+
+function getTokenIcon(categoryId: string) {
+  // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.
+  try {
+    const tokenInfo = tokens.value[categoryId];
+
+    if(!tokenInfo?.uris?.icon) {
+      return categoryId;
+    }
+
+    const tokenIconUri = tokenInfo.uris.icon;
+
+    if(tokenIconUri?.startsWith('ipfs://')){
+      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
+    }
+
+    return tokenIconUri;
+  } catch(error) {
+    console.warn(`${error}`);
+
+    return categoryId;
+  }
+}
+
+props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId) => {
+  try {
+    const tokenInfo = await store.fetchTokenInfo(tokenId);
+    tokens.value[tokenId] = await tokenInfo.json();
+    console.log(tokens.value);
+  } catch(error) {
+    console.warn(`${error}`);
+  }
+});
+
 </script>
 
 <template>
@@ -67,27 +127,35 @@ function viewTemplate() {
               <a @click="viewTemplate()">{{ session.params.requiredNamespaces?.bch?.template.name }}</a> (Untrusted)
             </div>
 
+            <!-- Allowed Tokens -->
+            <div class="cc-modal-section">
+              <div class="cc-modal-heading">Will be able to see Tokens:</div>
+              <ul>
+                <li v-for="(allowedToken, i) of session.params.requiredNamespaces?.bch?.allowedTokens" :key="i" class="q-mb-xs">
+                  <q-avatar size="18px" class="q-mr-xs">
+                    <img :src="getTokenIcon(allowedToken)">
+                  </q-avatar>
+                  <span>
+                    {{ getTokenName(allowedToken) }}
+                    <q-tooltip>{{ allowedToken }}</q-tooltip>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
             <!-- Methods -->
             <div class="cc-modal-section">
-              <div class="cc-modal-heading">Methods/Events</div>
+              <div class="cc-modal-heading">Wil be able to invoke Methods/Events:</div>
               <ul>
                 <li v-for="(method, i) of session.params.requiredNamespaces?.bch?.methods" :key="i">{{ method }}</li>
                 <li v-for="(event, i) of session.params.requiredNamespaces?.bch?.events" :key="i">{{ event }}</li>
               </ul>
             </div>
-
-            <!-- Allowed Tokens -->
-            <div class="cc-modal-section">
-              <div class="cc-modal-heading">Allowed Tokens</div>
-              <ul>
-                <li v-for="(allowedToken, i) of session.params.requiredNamespaces?.bch?.allowedTokens" :key="i">{{ allowedToken }}</li>
-              </ul>
-            </div>
           </div>
         </div>
         <!-- Approve/Reject Buttons -->
-        <q-card-actions align="right">
-          <q-btn color="primary" label="OK" @click="onOKClick" />
+        <q-card-actions>
+          <q-btn color="primary" label="Approve" @click="onOKClick" />
           <q-btn color="negative" label="Cancel" @click="onDialogCancel" />
         </q-card-actions>
       </fieldset>
