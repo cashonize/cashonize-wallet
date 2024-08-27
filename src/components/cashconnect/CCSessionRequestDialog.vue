@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar, useDialogPluginComponent } from 'quasar'
-import type { BchSession } from 'cashconnect';
-import type { Web3WalletTypes } from '@walletconnect/web3wallet';
+import type { BchSessionProposal } from 'cashconnect';
 
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
@@ -14,7 +13,7 @@ const store = useStore();
 const settingsStore = useSettingsStore();
 
 const props = defineProps<{
-  session: Web3WalletTypes.SessionProposal
+  session: BchSessionProposal
 }>()
 
 // State to store fetched token info from BCMR.
@@ -28,13 +27,8 @@ defineEmits([
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-// this is part of our example (so not required)
 function onOKClick () {
-  // on OK, it is REQUIRED to
-  // call onDialogOK (with optional payload)
   onDialogOK()
-  // or with payload: onDialogOK({ ... })
-  // ...and it will also hide the dialog automatically
 }
 
 function viewTemplate() {

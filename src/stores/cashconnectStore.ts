@@ -1,7 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { type QDialogOptions, Dialog } from 'quasar';
-import { Web3WalletTypes } from '@walletconnect/web3wallet';
 
 // Components.
 import CCSessionRequestDialogVue from 'src/components/cashconnect/CCSessionRequestDialog.vue';
@@ -12,6 +11,7 @@ import CCErrorDialogVue from 'src/components/cashconnect/CCErrorDialog.vue';
 import { NFTCapability, TestNetWallet, Wallet } from 'mainnet-js';
 import {
   type BchSession,
+  type BchSessionProposal,
   type RpcRequestResponse,
   type WalletProperties,
   type Unspent,
@@ -103,9 +103,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
       sessions.value = updatedSessions;
     }
 
-    async function onSessionProposal(
-      sessionProposal: Web3WalletTypes.SessionProposal
-    ) {
+    async function onSessionProposal(sessionProposal: BchSessionProposal) {
       return await new Promise<WalletProperties>((resolve, reject) => {
         Dialog.create({
           component: CCSessionRequestDialogVue,
