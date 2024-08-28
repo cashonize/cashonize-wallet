@@ -46,7 +46,8 @@ a,
   transition: 0.4s;
 }
 img {
-  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .primaryButton {
