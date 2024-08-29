@@ -30,13 +30,15 @@
   defineCustomElements(window);
 
   // reactive state
-  const displayeBchQr = ref(true);
+  const displayBchQr = ref(true);
   const bchSendAmount = ref(undefined as (number | undefined));
   const usdSendAmount = ref(undefined as (number | undefined));
   const destinationAddr = ref("");
 
+  const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.address : store.wallet?.tokenaddr)
+
   function switchAddressTypeQr(){
-    displayeBchQr.value = !displayeBchQr.value;
+    displayBchQr.value = !displayBchQr.value;
   }
   function copyToClipboard(copyText: string|undefined){
     if(!copyText) return
@@ -180,9 +182,8 @@
         <img class="copyIcon" src="images/copyGrey.svg"> 
       </span>
     </div>
-    <qr-code id="qrCode" :contents="displayeBchQr? store.wallet?.address : store.wallet?.tokenaddr" 
-      style="display: block; width: 230px; height: 230px; margin: 5px auto 0 auto; background-color: #fff;">
-      <img :src="displayeBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
+    <qr-code :contents="addressQrcode" @click="copyToClipboard(addressQrcode)" class="qr-code">
+      <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
     </qr-code>
     <div style="text-align: center;">
       <div id="switchAddress" class="icon" @click="switchAddressTypeQr()"
@@ -209,3 +210,14 @@
     <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
   </fieldset>
 </template>
+
+<style scoped>
+.qr-code {
+  display: block;
+  cursor: pointer;
+  width: 230px;
+  height: 230px;
+  margin: 5px auto 0 auto;
+  background-color: #fff;
+}
+</style>

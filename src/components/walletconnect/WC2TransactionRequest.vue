@@ -3,6 +3,7 @@
   import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH, TransactionCommon, TransactionTemplateFixed, CompilationContextBCH, Input, Output } from "@bitauth/libauth"
   import { BCMR, convert } from "mainnet-js"
   import { getSdkError } from '@walletconnect/utils';
+  import alertDialog from 'src/components/alertDialog.vue'
   import type { DappMetadata, ContractInfo } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
@@ -162,8 +163,23 @@
     const response = { id, jsonrpc: '2.0', result: signedTxObject };
     if (requestParams.broadcast) {
       try{
-        await store.wallet?.submitTransaction(hexToBin(signedTxObject.signedTransaction));
+        $q.notify({
+          spinner: true,
+          message: 'Sending transaction...',
+          color: 'grey-5',
+          timeout: 750
+        })
+        const txId = await store.wallet?.submitTransaction(hexToBin(signedTxObject.signedTransaction));
+        showDialog.value = false
+        const alertMessage = `Sent WalletConnect transaction '${requestParams.userPrompt}'`
+        $q.dialog({
+        component: alertDialog,
+        componentProps: {
+          alertInfo: { message: alertMessage, txid: txId as string } 
+        }
+      })
       } catch(error){
+        showDialog.value = false
         console.log(error)
         $q.notify({
           type: 'negative',
@@ -173,8 +189,9 @@
       }   
     }
     await web3wallet?.respondSessionRequest({ topic, response });
-
-    emit('signedTransaction', signedTxObject.signedTransactionHash);
+    // close dialog when broadcast = false
+    showDialog.value = false
+    emit('signedTransaction', requestParams.broadcast);
   }
 
   async function rejectTransaction(){
@@ -307,7 +324,7 @@
           </div>
         </details>
         <div class="wc-modal-bottom-buttons">
-        <input type="button" class="primaryButton" value="Sign" @click="() => signTransactionWC()" v-close-popup>
+        <input type="button" class="primaryButton" value="Sign" @click="() => signTransactionWC()">
           <input type="button" value="Cancel" @click="() => rejectTransaction()" v-close-popup>
         </div>
       </fieldset>

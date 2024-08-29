@@ -19,8 +19,8 @@
         <a :href="dappMetadata.url">{{ dappMetadata.url }}</a>
         <div>{{ dappMetadata.description }}</div>
       </div>
-      <div>
-        <img :src="settingsStore.darkMode? 'images/trashGrey.svg': 'images/trash.svg'" style="cursor: pointer;" @click="emit('deleteSession', sessionId)"/>
+      <div style="cursor: pointer;" @click="emit('deleteSession', sessionId)">
+        <img :src="settingsStore.darkMode? 'images/trashGrey.svg': 'images/trash.svg'"/>
       </div>
     </div>
   </div>
