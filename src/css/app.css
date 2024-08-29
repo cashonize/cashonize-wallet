@@ -294,6 +294,9 @@ input[type='number'] {
   overflow-x: scroll;
 }
 
+.cc-data-table tbody th {
+  font-weight: bold;
+}
 .cc-data-table tbody th,
 .cc-data-table tbody td {
   padding: 0.3em;

@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
 import type { BchSession, SignTransactionV0 } from 'cashconnect';
 import type { SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress } from '@bitauth/libauth';
+import { useStore } from 'src/stores/store';
+import { useSettingsStore } from 'src/stores/settingsStore';
+
+const store = useStore();
+const settingsStore = useSettingsStore();
 
 const props = defineProps<{
   session: BchSession,
@@ -14,6 +19,36 @@ const props = defineProps<{
 defineEmits([
   ...useDialogPluginComponent.emits
 ])
+
+// State to store fetched token info from BCMR.
+const tokens = ref<{ [categoryId: string]: any }>({});
+
+function getTokenName(categoryId: string | number) {
+  // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.
+  try {
+    const tokenInfo = tokens.value[categoryId];
+
+    if(!tokenInfo) {
+      return categoryId;
+    }
+
+    return tokenInfo.name;
+  } catch(error) {
+    console.warn(`${error}`);
+
+    return categoryId;
+  }
+}
+
+props.session.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId) => {
+  try {
+    const tokenInfo = await store.fetchTokenInfo(tokenId);
+    tokens.value[tokenId] = await tokenInfo.json();
+    console.log(tokens.value);
+  } catch(error) {
+    console.warn(`${error}`);
+  }
+});
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
@@ -56,16 +91,48 @@ function pairOutputs(pairedTx: PairedTx) {
   }));
 }
 
+const paymentAmounts = computed(() => {
+  const amounts: { [category: string]: bigint } = {
+    sats: 0n
+  }
+
+  pairedTxs.value.forEach((pairTx) => {
+    // First, calculate our inputs.
+    pairTx.response.sourceOutputs.forEach((sourceOutput) => {
+      amounts.sats += sourceOutput.valueSatoshis
+      if(sourceOutput.token) {
+        const catIdAsHex = binToHex(sourceOutput.token.category)
+
+        if(!amounts[catIdAsHex]) {
+          amounts[catIdAsHex] = 0n;
+        }
+
+        amounts[catIdAsHex] += sourceOutput.token.amount;
+      }
+    });
+
+    // And then subtract our change ouputs.
+    pairOutputs(pairTx).forEach((pairedOutput) => {
+      if(!pairedOutput.params) {
+        amounts.sats -= pairedOutput.response.valueSatoshis;
+        if(pairedOutput.response.token) {
+          const catIdAsHex = binToHex(pairedOutput.response.token.category);
+
+          amounts[catIdAsHex] -= pairedOutput.response.token.amount;
+        }
+      }
+    });
+  });
+
+  return amounts;
+});
+
 //-----------------------------------------------------------------------------
 // Formatting Utils
 //-----------------------------------------------------------------------------
 
 function formatBin(bin: Uint8Array) {
   return binToHex(bin);
-};
-
-function formatSessionSigner(session: BchSession) {
-  return session?.namespaces?.['bch']?.accounts?.[0] || 'Unable to display signer';
 };
 
 function formatScriptName(scriptId: string | number, template: any) {
@@ -98,7 +165,7 @@ function formatLockscript(lockingBytecode: Uint8Array) {
 
 function formatSats(satoshis: bigint) {
   const numberAmount = Number(satoshis);
-  if (Math.abs(numberAmount / (10 ** 4)) > 1000) {
+  if (numberAmount >= 1000) {
     const bchAmount = numberAmount * (10 ** -8)
     return `${bchAmount.toFixed(8)} BCH`
   } else {
@@ -109,7 +176,7 @@ function formatSats(satoshis: bigint) {
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
-    <q-card>
+    <q-card style="width:600px; max-width:100%;">
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">Sign Transaction</legend>
 
@@ -128,19 +195,21 @@ function formatSats(satoshis: bigint) {
 
         <hr />
 
-        <div v-for="(pairedTx, i) of pairedTxs" :key="i" class="cc-modal-details">
-          <!-- User Prompt -->
-          <!--
-          <div v-if="pairedTx.params.userPrompt" style="display: flex; justify-content: center; font-size: larger;">{{ pairedTx.params.userPrompt }}</div>
-          -->
+        <div class="cc-modal-heading">Amounts</div>
+        <q-markup-table flat>
+          <tr v-for="(amount, category) of paymentAmounts" :key="category">
+            <th>{{ (category === 'sats') ? 'BCH' : getTokenName(category) }}</th>
+            <td>{{ (category === 'sats') ? formatSats(amount) : amount }}</td>
+          </tr>
+        </q-markup-table>
 
+        <hr/>
+
+        <div class="cc-modal-heading">Transaction Details</div>
+        <div v-for="(pairedTx, i) of pairedTxs" :key="i" class="cc-modal-details">
           <q-expansion-item
-            dense
-            dense-toggle
-            expand-separator
             :label="`Tx #${i} - ${pairedTx.params.userPrompt}`"
           >
-            <div class="cc-tx-container">
               <!-- Inputs -->
               <div class="cc-modal-heading">Inputs</div>
               <table class="cc-data-table">
@@ -158,14 +227,14 @@ function formatSats(satoshis: bigint) {
                       <table class="tx-data-table">
                         <tbody>
                           <tr>
-                            <td colspan="2">
-                              <strong>{{ formatScriptName(input.params.script, session.requiredNamespaces.bch.template) }}</strong>
-                            </td>
+                            <th colspan="2">
+                              {{ formatScriptName(input.params.script, session.requiredNamespaces.bch.template) }}
+                            </th>
                           </tr>
-                          <tr v-for="(value, id) of input.params.data" :key="id">
-                            <td>{{ formatDataName(id, session.requiredNamespaces.bch.template) }}</td>
-                            <td>{{ formatDataValue(value, id, session.requiredNamespaces.bch.template) }}</td>
-                          </tr>
+                          <template v-for="(value, id) of input.params.data" :key="id">
+                            <tr><th>{{ formatDataName(id, session.requiredNamespaces.bch.template) }}</th></tr>
+                            <tr><td>{{ formatDataValue(value, id, session.requiredNamespaces.bch.template) }}</td></tr>
+                          </template>
                         </tbody>
                       </table>
                     </td>
@@ -189,7 +258,7 @@ function formatSats(satoshis: bigint) {
                         <tbody>
                           <tr>
                             <td>
-                              Token: {{ formatBin(output.response.token.category) }}
+                              Token: {{ getTokenName(binToHex(output.response.token.category)) }}
                             </td>
                             <td>
                               Amount: {{ Number(output.response.token.amount) }}
@@ -209,23 +278,24 @@ function formatSats(satoshis: bigint) {
                       <table class="tx-data-table">
                         <tbody>
                           <tr>
-                            <td colspan="2">
-                              <strong>{{ formatScriptName(output.params.script, session.requiredNamespaces.bch.template) }}</strong>
-                            </td>
+                            <th colspan="2">
+                              {{ formatScriptName(output.params.script, session.requiredNamespaces.bch.template) }}
+                            </th>
                           </tr>
-                          <tr v-for="(value, id) of output.params.data" :key="id">
-                            <td>{{ formatDataName(id, session.requiredNamespaces.bch.template) }}</td>
-                            <td>{{ formatDataValue(value, id, session.requiredNamespaces.bch.template) }}</td>
-                          </tr>
+                          <template v-for="(value, id) of output.params.data" :key="id">
+                            <tr><th>{{ formatDataName(id, session.requiredNamespaces.bch.template) }}</th></tr>
+                            <tr><td>{{ formatDataValue(value, id, session.requiredNamespaces.bch.template) }}</td></tr>
+                          </template>
                         </tbody>
                       </table>
                     </td>
                   </tr>
                 </tbody>
               </table>
-            </div>
           </q-expansion-item>
         </div>
+
+        <hr/>
 
         <!-- Bottom Buttons -->
         <div class="cc-modal-bottom-buttons">
@@ -257,14 +327,5 @@ function formatSats(satoshis: bigint) {
   .q-card{
     box-shadow: none;
     background: none;
-  }
-
-  .cc-tx-container {
-    max-width: 100%;
-    overflow-x: auto;
-  }
-
-  .cc-hack-width {
-    width: 1px;
   }
 </style>

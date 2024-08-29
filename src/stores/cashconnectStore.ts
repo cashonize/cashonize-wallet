@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { type QDialogOptions, Dialog } from 'quasar';
+import { type QDialogOptions, Dialog, Notify } from 'quasar';
 
 // Components.
 import CCSessionRequestDialogVue from 'src/components/cashconnect/CCSessionRequestDialog.vue';
@@ -115,6 +115,10 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
             resolve({
               autoApprove,
             });
+            Notify.create({
+              color: 'positive',
+              message: 'Session approved',
+            });
           })
           .onCancel(() => {
             reject();
@@ -149,6 +153,10 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
             })
               .onOk(() => {
                 resolve();
+                Notify.create({
+                  color: 'positive',
+                  message: 'Successfully signed transaction',
+                });
               })
               .onCancel(() => {
                 reject();
