@@ -148,10 +148,16 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
           </div>
         </div>
         <!-- Approve/Reject Buttons -->
-        <q-card-actions>
-          <q-btn color="primary" label="Approve" @click="onOKClick" />
-          <q-btn color="negative" label="Cancel" @click="onDialogCancel" />
-        </q-card-actions>
+        <div class="cc-modal-bottom-buttons">
+          <div class="row q-col-gutter-x-md">
+            <div class="col text-right">
+              <q-btn class="cc-modal-button" color="primary" label="Confirm" @click="onOKClick" />
+            </div>
+            <div class="col text-left">
+              <q-btn class="cc-modal-button" color="negative" label="Cancel" @click="onDialogCancel" />
+            </div>
+          </div>
+        </div>
       </fieldset>
     </q-card>
   </q-dialog>

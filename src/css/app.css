@@ -251,8 +251,8 @@ input[type='number'] {
 
 .cc-modal-fieldset {
   width: 510px;
+  max-width: 100%;
   overflow-y: scroll;
-  overflow-x: auto;
   max-height: 90vh;
   background: var(--bg-color);
 }
@@ -280,19 +280,18 @@ input[type='number'] {
 }
 
 .cc-modal-bottom-buttons {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
-  margin-bottom: 2rem;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
-.cc-modal-bottom-buttons > input {
-  width: 111px;
+.cc-modal-button {
+  width: 120px;
 }
 
 .cc-data-table {
   font-size: smaller;
   white-space: nowrap;
+  overflow-x: scroll;
 }
 
 .cc-data-table tbody th,
