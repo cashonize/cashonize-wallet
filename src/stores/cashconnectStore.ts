@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
 
 // Components.
-import CCSessionRequestDialogVue from "src/components/cashconnect/CCSessionRequestDialog.vue";
+import CCSessionProposalDialogVue from "src/components/cashconnect/CCSessionProposalDialog.vue";
 import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransactionDialog.vue";
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
@@ -110,7 +110,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     async function onSessionProposal(sessionProposal: BchSessionProposal) {
       return await new Promise<WalletProperties>((resolve, reject) => {
         Dialog.create({
-          component: CCSessionRequestDialogVue,
+          component: CCSessionProposalDialogVue,
           componentProps: {
             session: sessionProposal,
           },
