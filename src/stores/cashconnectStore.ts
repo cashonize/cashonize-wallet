@@ -40,7 +40,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
 
     // Auto-approve the following RPC methods.
     // NOTE: We hard-code these for Cashonize, but they could be customized on a per-Dapp basis too.
-    const autoApprove = [
+    const autoApprovedMethods = [
       "wc_authRequest",
       "bch_getTokens_V0",
       "bch_getBalance_V0",
@@ -108,6 +108,31 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     }
 
     async function onSessionProposal(sessionProposal: BchSessionProposal) {
+      // Check the network and manually prompt user to switch if incorrect.
+      // TODO: The changeNetwork function is currently in the WalletPage component and we cannot propagate neatly to it from here.
+      //       That function should probably sit in the store in future (as it's part of the global state, not necessarily component state).
+      //       Once it sits in the store, we can automatically invoke it here instead of just instructing the user with an action.
+
+      // NOTE: The walletClass.network property appears to return quirky values (e.g. undefined).
+      //       So we use the networkPrefix property to determine which chain we are currently on.
+      const currentChain = wallet.networkPrefix;
+      const targetChain =
+        sessionProposal.params.requiredNamespaces.bch.chains?.[0].replace(
+          "bch:",
+          ""
+        );
+
+      // Cashonize expects network to be either mainnet or chipnet.
+      const targetChainCashonizeFormat =
+        targetChain === "bitcoincash" ? "mainnet" : "chipnet";
+
+      // Check if the current chain is the target chain.
+      if (currentChain !== targetChain) {
+        throw new Error(
+          `This Dapp requires wallet to be on ${targetChainCashonizeFormat}. Please navigate to settings and change network to use this Dapp.`
+        );
+      }
+
       return await new Promise<WalletProperties>((resolve, reject) => {
         Dialog.create({
           component: CCSessionProposalDialogVue,
@@ -117,7 +142,8 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
         })
           .onOk(() => {
             resolve({
-              autoApprove,
+              // NOTE: We return the methods that are auto-approved to the Dapp so that it knows it doesn't have to display a user prompt for them.
+              autoApprove: autoApprovedMethods,
             });
             Notify.create({
               color: "positive",
@@ -143,7 +169,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
       response: RpcRequestResponse["response"]
     ): Promise<void> {
       // If this is not a request that should be auto-approved...
-      if (!autoApprove.includes(request.method)) {
+      if (!autoApprovedMethods.includes(request.method)) {
         // Handle bch_signTransaction_V0.
         if (request.method === "bch_signTransaction_V0") {
           return await new Promise<void>((resolve, reject) => {
@@ -311,10 +337,9 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     }
 
     //-----------------------------------------------------------------------------
-    // Helpers
+    // Expose
     //-----------------------------------------------------------------------------
 
-    // Expose the following...
     return {
       // Methods
       pair,
