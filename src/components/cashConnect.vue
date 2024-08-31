@@ -4,6 +4,8 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
 
+  import { Wallet } from 'mainnet-js';
+
   // Expose to parent component.
   defineExpose({
     connectDappUriInput
@@ -18,8 +20,9 @@
     throw new Error('store.wallet is falsy');
   }
 
-  // TODO: Why does this type not work? They're the same?
-  const cashconnectStore = await useCashconnectStore(store.wallet);
+  // NOTE: Vue's reactive unwrapping appears to interfere with the types.
+  //       So we just cast this to Wallet here (which works and is compatible in practice).
+  const cashconnectStore = await useCashconnectStore(store.wallet as Wallet);
 
   // Methods.
   async function connectDappUriInput(url: string){
