@@ -1,14 +1,14 @@
-import { ref } from 'vue';
-import { defineStore } from 'pinia';
-import { type QDialogOptions, Dialog, Notify } from 'quasar';
+import { ref } from "vue";
+import { defineStore } from "pinia";
+import { Dialog, Notify } from "quasar";
 
 // Components.
-import CCSessionRequestDialogVue from 'src/components/cashconnect/CCSessionRequestDialog.vue';
-import CCSignTransactionDialogVue from 'src/components/cashconnect/CCSignTransactionDialog.vue';
-import CCErrorDialogVue from 'src/components/cashconnect/CCErrorDialog.vue';
+import CCSessionRequestDialogVue from "src/components/cashconnect/CCSessionRequestDialog.vue";
+import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransactionDialog.vue";
+import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import Mainnet and Wallet Connect
-import { NFTCapability, TestNetWallet, Wallet } from 'mainnet-js';
+import { NFTCapability, TestNetWallet, Wallet } from "mainnet-js";
 import {
   type BchSession,
   type BchSessionProposal,
@@ -16,7 +16,7 @@ import {
   type WalletProperties,
   type Unspent,
   CashConnectWallet,
-} from 'cashconnect';
+} from "cashconnect";
 
 // Import Libauth.
 import {
@@ -25,26 +25,26 @@ import {
   hexToBin,
   cashAddressToLockingBytecode,
   walletTemplateP2pkhNonHd,
-} from '@bitauth/libauth';
+} from "@bitauth/libauth";
 
 // NOTE: We use a wrapper so that we can pass in the Mainnet Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that CC cannot exist with a valid wallet.
 export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
-  const store = defineStore('cashconnectStore', () => {
+  const store = defineStore("cashconnectStore", () => {
     // Ensure that the Mainnet Wallet has a Private Key.
     if (!wallet.privateKey) {
       throw new Error(
-        'Failed to create store: Mainnet wallet.privateKey is undefined'
+        "Failed to create store: Mainnet wallet.privateKey is undefined"
       );
     }
 
     // Auto-approve the following RPC methods.
     // NOTE: We hard-code these for Cashonize, but they could be customized on a per-Dapp basis too.
     const autoApprove = [
-      'wc_authRequest',
-      'bch_getTokens_V0',
-      'bch_getBalance_V0',
-      'bch_getChangeLockingBytecode_V0',
+      "wc_authRequest",
+      "bch_getTokens_V0",
+      "bch_getBalance_V0",
+      "bch_getChangeLockingBytecode_V0",
     ];
 
     // List of CashConnect sessions.
@@ -57,13 +57,13 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
         // The master private key.
         wallet.privateKey,
         // Project ID.
-        '3fd234b8e2cd0e1da4bc08a0011bbf64',
+        "3fd234b8e2cd0e1da4bc08a0011bbf64",
         // Metadata.
         {
-          name: 'Cashonize',
-          description: 'Cashonize BitcoinCash Web Wallet',
-          url: 'cashonize.com/',
-          icons: ['https://cashonize.com/images/favicon.ico'],
+          name: "Cashonize",
+          description: "Cashonize BitcoinCash Web Wallet",
+          url: "cashonize.com/",
+          icons: ["https://cashonize.com/images/favicon.ico"],
         },
         // Event Callbacks.
         {
@@ -89,8 +89,12 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     );
 
     async function pair(wcUri: string) {
-      // Pair with the service.
-      await cashConnectWallet.value.core.pairing.pair({ uri: wcUri });
+      try {
+        // Pair with the service.
+        await cashConnectWallet.value.pair(wcUri);
+      } catch (error) {
+        console.error(error);
+      }
     }
 
     //-----------------------------------------------------------------------------
@@ -116,8 +120,8 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
               autoApprove,
             });
             Notify.create({
-              color: 'positive',
-              message: 'Session approved',
+              color: "positive",
+              message: "Session approved",
             });
           })
           .onCancel(() => {
@@ -130,18 +134,18 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     }
 
     async function onSessionDelete() {
-      console.log('Session deleted');
+      console.log("Session deleted");
     }
 
     async function onRPCRequest(
       session: BchSession,
-      request: RpcRequestResponse['request'],
-      response: RpcRequestResponse['response']
+      request: RpcRequestResponse["request"],
+      response: RpcRequestResponse["response"]
     ): Promise<void> {
       // If this is not a request that should be auto-approved...
       if (!autoApprove.includes(request.method)) {
         // Handle bch_signTransaction_V0.
-        if (request.method === 'bch_signTransaction_V0') {
+        if (request.method === "bch_signTransaction_V0") {
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
               component: CCSignTransactionDialogVue,
@@ -154,8 +158,8 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
               .onOk(() => {
                 resolve();
                 Notify.create({
-                  color: 'positive',
-                  message: 'Successfully signed transaction',
+                  color: "positive",
+                  message: "Successfully signed transaction",
                 });
               })
               .onCancel(() => {
@@ -193,7 +197,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
       outpointIndex: number
     ): Promise<Output> {
       if (!wallet.provider) {
-        throw new Error('Wallet Provider is undefined');
+        throw new Error("Wallet Provider is undefined");
       }
 
       const transaction = await wallet.provider.getRawTransactionObject(
@@ -233,8 +237,8 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
 
       const lockingBytecode = cashAddressToLockingBytecode(wallet.cashaddr);
 
-      if (typeof lockingBytecode === 'string') {
-        throw new Error('Failed to convert CashAddr to Locking Bytecode');
+      if (typeof lockingBytecode === "string") {
+        throw new Error("Failed to convert CashAddr to Locking Bytecode");
       }
 
       const transformed = utxos.map((utxo) => {
@@ -257,8 +261,8 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
 
           if (utxo.token?.capability || utxo.token?.commitment) {
             token.nft = {
-              capability: utxo.token.capability || 'none',
-              commitment: hexToBin(utxo.token.commitment || ''),
+              capability: utxo.token.capability || "none",
+              commitment: hexToBin(utxo.token.commitment || ""),
             };
           }
         }
@@ -271,7 +275,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
           unlockingBytecode: {
             template: walletTemplateP2pkhNonHd,
             valueSatoshis: BigInt(utxo.satoshis),
-            script: 'unlock',
+            script: "unlock",
             data: {
               keys: {
                 privateKeys: {
@@ -290,7 +294,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     async function getChangeTemplate() {
       if (!wallet.privateKey) {
         throw new Error(
-          'Failed to getChangeTemplate: Mainnet wallet.privateKey is undefined'
+          "Failed to getChangeTemplate: Mainnet wallet.privateKey is undefined"
         );
       }
 

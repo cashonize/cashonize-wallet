@@ -7,6 +7,11 @@
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
+
+  defineExpose({
+    connectDappUriInput
+  });
+
   const $q = useQuasar()
   const store = useStore()
   const walletconnectStore = await useWalletconnectStore()
@@ -20,10 +25,10 @@
   const sessionProposalWC = ref(undefined as any);
   const activeSessions = computed(() => walletconnectStore.activeSessions)
 
-  async function connectDappUriInput(){
+  async function connectDappUriInput(url: string){
     try {
-      if(!dappUriInput.value) throw("Enter a BCH WalletConnect URI");
-      await web3wallet?.core.pairing.pair({ uri: dappUriInput.value });
+      if(!url) throw("Enter a BCH WalletConnect URI");
+      await web3wallet?.core.pairing.pair({ uri: url });
       dappUriInput.value = "";
     } catch(error) {
       const errorMessage = typeof error == 'string' ? error : "Not a valid BCH WalletConnect URI"
@@ -98,31 +103,19 @@
 
 <template>
   <fieldset class="item">
-    <legend>WalletConnect</legend>
-
-    Connect New dApp:
-
-    <input v-model="dappUriInput" placeholder="Wallet Connect URI" @keyup.enter="connectDappUriInput" style="margin-bottom: 10px;">
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem;">
-      <input @click="connectDappUriInput" type="button" class="primaryButton" value="Connect New dApp">
-      <!--<input @click="() => {}" type="button" class="primaryButton" id="send" value="Scan QR Code">-->
-    </div>
+    <legend>WalletConnect Sessions</legend>
 
     <div v-if="sessionProposalWC">
       <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)" @reject-session="rejectSession()"/>
     </div>
 
-    <br/>
-
-    <div v-if="activeSessions">
-      Active Sessions:
-      <div v-for="sessionInfo in Object.values(activeSessions).reverse()" :key="sessionInfo.topic" class="wc2sessions" >
-        <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" @delete-session="(arg) => deleteSession(arg)"/>
-      </div>
+    <div v-for="sessionInfo in Object.values(activeSessions || {}).reverse()" :key="sessionInfo.topic" class="wc2sessions" >
+      <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" @delete-session="(arg) => deleteSession(arg)"/>
     </div>
-    <div v-else>
-      No Active Sessions
-    </div>
+    <!-- Show Empty Message if no Sessions are active -->
+    <template v-if="!Object.keys(activeSessions || {}).length">
+      <div class="q-pa-md">No sessions currently active.</div>
+    </template>
     
   </fieldset>
 </template>

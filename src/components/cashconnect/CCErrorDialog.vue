@@ -1,27 +1,20 @@
 <script setup lang="ts">
 import { useDialogPluginComponent } from 'quasar'
 import type { CashRPCError } from 'cashconnect';
-import type { Web3WalletTypes } from '@walletconnect/web3wallet';
 
-const props = defineProps<{
+defineProps<{
   error: CashRPCError
 }>()
 
 defineEmits([
-  // REQUIRED; need to specify some events that your
-  // component will emit through useDialogPluginComponent()
   ...useDialogPluginComponent.emits
 ])
 
-const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
 
 // this is part of our example (so not required)
 function onOKClick () {
-  // on OK, it is REQUIRED to
-  // call onDialogOK (with optional payload)
   onDialogOK()
-  // or with payload: onDialogOK({ ... })
-  // ...and it will also hide the dialog automatically
 }
 </script>
 
@@ -39,8 +32,8 @@ function onOKClick () {
         </template>
 
         <!-- Bottom Buttons -->
-        <div class="cc-modal-bottom-buttons">
-          <q-btn color="primary" label="OK" @click="onOKClick" />
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
+          <input type="button" class="primaryButton" value="OK" @click="onOKClick" v-close-popup>
         </div>
       </fieldset>
     </q-card>

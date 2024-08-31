@@ -6,38 +6,54 @@ defineProps<{
 }>()
 
 defineEmits([
-  // REQUIRED; need to specify some events that your
-  // component will emit through useDialogPluginComponent()
   ...useDialogPluginComponent.emits
 ])
 
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
 
-// this is part of our example (so not required)
 function onOKClick () {
-  // on OK, it is REQUIRED to
-  // call onDialogOK (with optional payload)
   onDialogOK()
-  // or with payload: onDialogOK({ ... })
-  // ...and it will also hide the dialog automatically
 }
 </script>
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card>
-      <fieldset class="cc-modal-fieldset" style="width:1024px">
+      <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">Template</legend>
 
-        <div class="scroll">
-          <pre style="font-size: 10px;">{{ template }}</pre>
-        </div>
+        <pre style="font-size: 10px;">{{ template }}</pre>
 
         <!-- Bottom Buttons -->
-        <div class="cc-modal-bottom-buttons">
-          <q-btn color="primary" label="OK" @click="onOKClick" />
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
+          <input type="button" class="primaryButton" value="Close" @click="onOKClick" v-close-popup>
         </div>
       </fieldset>
     </q-card>
   </q-dialog>
 </template>
+
+<style scoped>
+  .dialogFieldsetSignMessage{
+    padding: 3rem;
+    max-height: 90vh;
+    width: 500px;
+    max-width: 100%;
+    background-color: white
+  }
+  body.dark .dialogFieldsetSignMessage {
+    background-color: #050a14;
+  }
+  .q-card{
+    box-shadow: none;
+    background: none;
+  }
+
+  pre {
+    width: 450px;
+    max-width: 100%;
+    white-space: pre-wrap; /* Allows wrapping */
+    word-wrap: break-word; /* Breaks long words */
+    overflow: auto; /* Adds scrollbars if necessary */
+  }
+</style>

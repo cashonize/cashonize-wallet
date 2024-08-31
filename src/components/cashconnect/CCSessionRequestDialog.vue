@@ -16,12 +16,7 @@ const props = defineProps<{
   session: BchSessionProposal
 }>()
 
-// State to store fetched token info from BCMR.
-const tokens = ref<{ [categoryId: string]: any }>({});
-
 defineEmits([
-  // REQUIRED; need to specify some events that your
-  // component will emit through useDialogPluginComponent()
   ...useDialogPluginComponent.emits
 ])
 
@@ -39,6 +34,13 @@ function viewTemplate() {
     },
   });
 }
+
+//-----------------------------------------------------------------------------
+// Tokens
+//-----------------------------------------------------------------------------
+
+// State to store fetched token info from BCMR.
+const tokens = ref<{ [categoryId: string]: any }>({});
 
 function getTokenName(categoryId: string) {
   // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.
@@ -102,7 +104,7 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
           <div style="display: flex; align-items: center; flex-direction: row; gap: 10px; padding: 7px;">
             <!-- App Icon -->
             <div style="display: flex; align-items: center; height: 64px; width: 64px;">
-              <img :src="session.params.proposer.metadata.icons[0]">
+              <q-img :src="session.params.proposer.metadata.icons[0]" />
             </div>
 
             <!-- Metadata -->
@@ -118,7 +120,7 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
             <!-- Template -->
             <div class="cc-modal-section">
               <div class="cc-modal-heading">Template</div>
-              <a @click="viewTemplate()">{{ session.params.requiredNamespaces?.bch?.template.name }}</a> (Untrusted)
+              <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.requiredNamespaces?.bch?.template.name }}</a> (Untrusted)
             </div>
 
             <!-- Allowed Tokens -->
@@ -127,7 +129,7 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
               <ul>
                 <li v-for="(allowedToken, i) of session.params.requiredNamespaces?.bch?.allowedTokens" :key="i" class="q-mb-xs">
                   <q-avatar size="18px" class="q-mr-xs">
-                    <img :src="getTokenIcon(allowedToken)">
+                    <q-img :src="getTokenIcon(allowedToken)" />
                   </q-avatar>
                   <span>
                     {{ getTokenName(allowedToken) }}
@@ -139,7 +141,7 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
 
             <!-- Methods -->
             <div class="cc-modal-section">
-              <div class="cc-modal-heading">Wil be able to invoke Methods/Events:</div>
+              <div class="cc-modal-heading">Will be able to invoke Methods/Events:</div>
               <ul>
                 <li v-for="(method, i) of session.params.requiredNamespaces?.bch?.methods" :key="i">{{ method }}</li>
                 <li v-for="(event, i) of session.params.requiredNamespaces?.bch?.events" :key="i">{{ event }}</li>
@@ -148,15 +150,9 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
           </div>
         </div>
         <!-- Approve/Reject Buttons -->
-        <div class="cc-modal-bottom-buttons">
-          <div class="row q-col-gutter-x-md">
-            <div class="col text-right">
-              <q-btn class="cc-modal-button" color="primary" label="Confirm" @click="onOKClick" />
-            </div>
-            <div class="col text-left">
-              <q-btn class="cc-modal-button" color="negative" label="Cancel" @click="onDialogCancel" />
-            </div>
-          </div>
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
+          <input type="button" class="primaryButton" value="Approve" @click="onOKClick" v-close-popup>
+          <input type="button" value="Reject" @click="onDialogCancel">
         </div>
       </fieldset>
     </q-card>

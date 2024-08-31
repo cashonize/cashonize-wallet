@@ -3,9 +3,7 @@
   import bchWalletView from 'src/components/bchWallet.vue'
   import myTokensView from 'src/components/myTokens.vue'
   import settingsMenu from 'src/components/settingsMenu.vue'
-  import connectView from 'src/components/connect.vue';
-  import walletconnectView from 'src/components/walletConnect.vue'
-  import cashconnectView from 'src/components/cashConnect.vue'
+  import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/createTokens.vue'
   import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
   import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
@@ -280,7 +278,7 @@
     <bchWalletView v-if="displayView == 1"/>
     <myTokensView v-if="displayView == 2"/>
     <createTokensView v-if="displayView == 3"/>
-    <connectView v-if="displayView == 4" :dappUriUrlParam="dappUriUrlParam" />
+    <connectDappView v-if="displayView == 4" :dappUriUrlParam="dappUriUrlParam" />
     <settingsMenu v-if="displayView == 5" @change-network="(arg) => changeNetwork(arg)" @change-view="(arg) => changeView(arg)"/>
   </main>
   <div v-if="transactionRequestWC">

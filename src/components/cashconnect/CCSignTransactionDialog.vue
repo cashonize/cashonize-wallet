@@ -5,10 +5,8 @@ import type { BchSession, SignTransactionV0 } from 'cashconnect';
 import type { SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress } from '@bitauth/libauth';
 import { useStore } from 'src/stores/store';
-import { useSettingsStore } from 'src/stores/settingsStore';
 
 const store = useStore();
-const settingsStore = useSettingsStore();
 
 const props = defineProps<{
   session: BchSession,
@@ -19,6 +17,16 @@ const props = defineProps<{
 defineEmits([
   ...useDialogPluginComponent.emits
 ])
+
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+function onOKClick () {
+  onDialogOK()
+}
+
+//-----------------------------------------------------------------------------
+// Tokens
+//-----------------------------------------------------------------------------
 
 // State to store fetched token info from BCMR.
 const tokens = ref<{ [categoryId: string]: any }>({});
@@ -50,20 +58,14 @@ props.session.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId) => 
   }
 });
 
-const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
-
-function onOKClick () {
-  onDialogOK()
-}
-
 //-----------------------------------------------------------------------------
 // Helpers
 //-----------------------------------------------------------------------------
 
 // NOTE: These are a bit dirty. Pre-Alpha CC doesn't, technically, have a concept of "actions".
 //       We emulate actions by allowing multiple transactions to pass into signTransaction.
-//       So we need this to satisfy the typing in our templates.
-//       The V1 release handles this much nicer.
+//       The following functions pair the params (tx templates) with the response (compiled txs).
+//       This simplifies the TS typing dramatically but will change with V1.
 
 type PairedTx = {
   params: SignTransactionV0Params,
@@ -91,45 +93,59 @@ function pairOutputs(pairedTx: PairedTx) {
   }));
 }
 
-const paymentAmounts = computed(() => {
-  const amounts: { [category: string]: bigint } = {
+const balanceChanged = computed(() => {
+  const balanceChanges: { [category: string]: bigint } = {
     sats: 0n
   }
 
   pairedTxs.value.forEach((pairTx) => {
     // First, calculate our inputs.
-    pairTx.response.sourceOutputs.forEach((sourceOutput) => {
-      amounts.sats += sourceOutput.valueSatoshis
+    pairTx.response.sourceOutputs.forEach((sourceOutput, i) => {
+      // If a script is being used for this source output, this is not coming from the user's wallet.
+      if('script' in (pairTx.params.transaction?.inputs?.[i] || {})) {
+        return;
+      }
+
+      balanceChanges.sats -= sourceOutput.valueSatoshis
       if(sourceOutput.token) {
         const catIdAsHex = binToHex(sourceOutput.token.category)
 
-        if(!amounts[catIdAsHex]) {
-          amounts[catIdAsHex] = 0n;
+        if(!balanceChanges[catIdAsHex]) {
+          balanceChanges[catIdAsHex] = 0n;
         }
 
-        amounts[catIdAsHex] += sourceOutput.token.amount;
+        balanceChanges[catIdAsHex] -= BigInt(sourceOutput.token.amount || 0n);
       }
     });
 
     // And then subtract our change ouputs.
     pairOutputs(pairTx).forEach((pairedOutput) => {
       if(!pairedOutput.params) {
-        amounts.sats -= pairedOutput.response.valueSatoshis;
+        balanceChanges.sats += pairedOutput.response.valueSatoshis;
         if(pairedOutput.response.token) {
           const catIdAsHex = binToHex(pairedOutput.response.token.category);
 
-          amounts[catIdAsHex] -= pairedOutput.response.token.amount;
+          if(!balanceChanges[catIdAsHex]) {
+            balanceChanges[catIdAsHex] = 0n;
+          }
+
+          balanceChanges[catIdAsHex] += BigInt(pairedOutput.response.token.amount || 0n);
         }
       }
     });
   });
 
-  return amounts;
+  return balanceChanges;
 });
 
 //-----------------------------------------------------------------------------
 // Formatting Utils
 //-----------------------------------------------------------------------------
+
+function addSignPrefixToNumber(value: number | bigint): string {
+  if (Number(value) === 0) return `${value}`;
+  return Number(value) > 0 ? `+${value}` : `${value}`;
+};
 
 function formatBin(bin: Uint8Array) {
   return binToHex(bin);
@@ -163,14 +179,8 @@ function formatLockscript(lockingBytecode: Uint8Array) {
   return result;
 };
 
-function formatSats(satoshis: bigint) {
-  const numberAmount = Number(satoshis);
-  if (numberAmount >= 1000) {
-    const bchAmount = numberAmount * (10 ** -8)
-    return `${bchAmount.toFixed(8)} BCH`
-  } else {
-    return `${numberAmount} Sats`
-  }
+function satsToBCH(satoshis: bigint) {
+  return Number(satoshis) / 100_000_000;
 };
 </script>
 
@@ -195,11 +205,11 @@ function formatSats(satoshis: bigint) {
 
         <hr />
 
-        <div class="cc-modal-heading">Amounts</div>
+        <div class="cc-modal-heading">Balance Change</div>
         <q-markup-table flat>
-          <tr v-for="(amount, category) of paymentAmounts" :key="category">
+          <tr v-for="(amount, category) of balanceChanged" :key="category">
             <th>{{ (category === 'sats') ? 'BCH' : getTokenName(category) }}</th>
-            <td>{{ (category === 'sats') ? formatSats(amount) : amount }}</td>
+            <td>{{ (category === 'sats') ? addSignPrefixToNumber(satsToBCH(amount)) : addSignPrefixToNumber(amount) }}</td>
           </tr>
         </q-markup-table>
 
@@ -218,7 +228,7 @@ function formatSats(satoshis: bigint) {
                     <td>{{ index }}</td>
                     <td>{{ formatBin(input.response.outpointTransactionHash) }}:{{ input.response.outpointIndex }}</td>
                     <td class="satoshis">
-                      {{ formatSats(response[i].sourceOutputs[index].valueSatoshis) }}
+                      {{ satsToBCH(response[i].sourceOutputs[index].valueSatoshis) }}
                     </td>
                   </tr>
                   <!-- If there is data available for this input -->
@@ -249,7 +259,7 @@ function formatSats(satoshis: bigint) {
                   <tr>
                     <td>{{ index }}</td>
                     <td>{{ formatLockscript(output.response.lockingBytecode) }}</td>
-                    <td class="satoshis">{{ formatSats(output.response.valueSatoshis) }}</td>
+                    <td class="satoshis">{{ satsToBCH(output.response.valueSatoshis) }}</td>
                   </tr>
                   <!-- If there is a token available on this output -->
                   <tr v-if="output.response.token">
@@ -297,16 +307,10 @@ function formatSats(satoshis: bigint) {
 
         <hr/>
 
-        <!-- Bottom Buttons -->
-        <div class="cc-modal-bottom-buttons">
-          <div class="row q-col-gutter-x-md">
-            <div class="col text-right">
-              <q-btn class="cc-modal-button" color="primary" label="Confirm" @click="onOKClick" />
-            </div>
-            <div class="col text-left">
-              <q-btn class="cc-modal-button" color="negative" label="Cancel" @click="onDialogCancel" />
-            </div>
-          </div>
+        <!-- Approve/Reject Buttons -->
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
+          <input type="button" class="primaryButton" value="Approve" @click="onOKClick" v-close-popup>
+          <input type="button" value="Reject" @click="onDialogCancel">
         </div>
       </fieldset>
     </q-card>
