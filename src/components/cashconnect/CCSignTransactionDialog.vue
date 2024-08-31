@@ -93,8 +93,8 @@ function pairOutputs(pairedTx: PairedTx) {
   }));
 }
 
-const balanceChanged = computed(() => {
-  const balanceChanges: { [category: string]: bigint } = {
+const balanceChanges = computed(() => {
+  const changes: { [category: string]: bigint } = {
     sats: 0n
   }
 
@@ -106,36 +106,36 @@ const balanceChanged = computed(() => {
         return;
       }
 
-      balanceChanges.sats -= sourceOutput.valueSatoshis
+      changes.sats -= sourceOutput.valueSatoshis
       if(sourceOutput.token) {
         const catIdAsHex = binToHex(sourceOutput.token.category)
 
-        if(!balanceChanges[catIdAsHex]) {
-          balanceChanges[catIdAsHex] = 0n;
+        if(!changes[catIdAsHex]) {
+          changes[catIdAsHex] = 0n;
         }
 
-        balanceChanges[catIdAsHex] -= BigInt(sourceOutput.token.amount || 0n);
+        changes[catIdAsHex] -= BigInt(sourceOutput.token.amount || 0n);
       }
     });
 
     // And then subtract our change ouputs.
     pairOutputs(pairTx).forEach((pairedOutput) => {
       if(!pairedOutput.params) {
-        balanceChanges.sats += pairedOutput.response.valueSatoshis;
+        changes.sats += pairedOutput.response.valueSatoshis;
         if(pairedOutput.response.token) {
           const catIdAsHex = binToHex(pairedOutput.response.token.category);
 
-          if(!balanceChanges[catIdAsHex]) {
-            balanceChanges[catIdAsHex] = 0n;
+          if(!changes[catIdAsHex]) {
+            changes[catIdAsHex] = 0n;
           }
 
-          balanceChanges[catIdAsHex] += BigInt(pairedOutput.response.token.amount || 0n);
+          changes[catIdAsHex] += BigInt(pairedOutput.response.token.amount || 0n);
         }
       }
     });
   });
 
-  return balanceChanges;
+  return changes;
 });
 
 //-----------------------------------------------------------------------------
@@ -207,7 +207,7 @@ function satsToBCH(satoshis: bigint) {
 
         <div class="cc-modal-heading">Balance Change</div>
         <q-markup-table flat>
-          <tr v-for="(amount, category) of balanceChanged" :key="category">
+          <tr v-for="(amount, category) of balanceChanges" :key="category">
             <th>{{ (category === 'sats') ? 'BCH' : getTokenName(category) }}</th>
             <td>{{ (category === 'sats') ? addSignPrefixToNumber(satsToBCH(amount)) : addSignPrefixToNumber(amount) }}</td>
           </tr>
