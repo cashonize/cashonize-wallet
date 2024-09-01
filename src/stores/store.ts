@@ -3,13 +3,12 @@ import { ref, computed } from 'vue'
 import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenList, bcmrIndexerResponse } from "../interfaces/interfaces"
-import { useSettingsStore } from './settingsStore'
-import { useWalletconnectStore } from "./walletconnectStore"
 import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
 import { convertElectrumTokenData } from "src/utils/utils"
-import { useQuasar } from 'quasar'
-const $q = useQuasar()
+import { Notify } from "quasar";
+import { useSettingsStore } from './settingsStore'
+import { useWalletconnectStore } from "./walletconnectStore"
 const settingsStore = useSettingsStore()
 const walletconnectStore = useWalletconnectStore()
 
@@ -91,7 +90,7 @@ export const useStore = defineStore('store', () => {
         if(oldBalance.sat < newBalance.sat){
           const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
           const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
-          $q.notify({
+          Notify.create({
             type: 'positive',
             message: `Received ${amountReceived} ${unitString}`
           })
@@ -110,7 +109,7 @@ export const useStore = defineStore('store', () => {
       for(const tokenOutput of tokenOutputs){
         if(!userInputs.length){
           const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
-          $q.notify({
+          Notify.create({
             type: 'positive',
             message: `Received new ${tokenType}`
           })
