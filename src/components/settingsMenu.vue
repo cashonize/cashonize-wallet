@@ -14,7 +14,7 @@
 
   const displayeAdvanced = ref(false);
   const displayeSeedphrase = ref(false);
-  const selectedNetwork = ref(store.network);
+  const selectedNetwork = ref(store.network as "mainnet" | "chipnet");
   const selectedUnit = ref(settingsStore.bchUnit);
   const selectedExplorer = ref(store.explorerUrl);
   const selectedDarkMode = ref(settingsStore.darkMode);
@@ -22,12 +22,11 @@
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
   const selectedChaingraph = ref(settingsStore.chaingraph);
-  const emit = defineEmits(['changeView','changeNetwork']);
 
   function changeUnit(){
     settingsStore.bchUnit = selectedUnit.value;
     localStorage.setItem("unit", selectedUnit.value);
-    emit('changeView', 1);
+    store.changeView(1)
   }
   function changeBlockExplorer(){
     const explorerNetwork = store.network == "mainnet" ? "explorerMainnet" : "explorerChipnet";
@@ -35,7 +34,7 @@
     localStorage.setItem(explorerNetwork, selectedExplorer.value);
   }
   function changeNetwork(){
-    emit('changeNetwork', selectedNetwork.value);
+    store.changeNetwork(selectedNetwork.value)
   }
   function changeElectrumServer(){
     if(!store.wallet) return
