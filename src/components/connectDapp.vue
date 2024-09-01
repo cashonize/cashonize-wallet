@@ -25,12 +25,12 @@
     try {
       // If the URL begings with "wc:" (walletconnect)...
       if(dappUriInput.value.startsWith('wc:')) {
-        await walletconnectRef.value.connectDappUriInput(dappUriInput.value);
+        await walletconnectRef.value?.connectDappUriInput(dappUriInput.value);
       }
 
       // Otherwise, if the URL begins with "cc:" (cashconnect)...
       else if (dappUriInput.value.startsWith('cc:')) {
-        await cashconnectRef.value.connectDappUriInput(dappUriInput.value);
+        await cashconnectRef.value?.connectDappUriInput(dappUriInput.value);
       }
 
       // Otherwise, if it does not match CC or WC, throw an error.

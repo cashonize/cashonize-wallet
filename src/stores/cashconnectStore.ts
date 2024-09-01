@@ -8,7 +8,7 @@ import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransac
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import Mainnet and Wallet Connect
-import { NFTCapability, TestNetWallet, Wallet } from "mainnet-js";
+import type { TestNetWallet, Wallet } from "mainnet-js";
 import {
   type BchSession,
   type BchSessionProposal,
@@ -268,16 +268,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
       }
 
       const transformed = utxos.map((utxo) => {
-        let token:
-          | {
-              amount: bigint;
-              category: Uint8Array;
-              nft?: {
-                capability: NFTCapability;
-                commitment: Uint8Array;
-              };
-            }
-          | undefined = undefined;
+        let token: Output["token"] | undefined = undefined;
 
         if (utxo.token) {
           token = {

@@ -24,6 +24,51 @@ function onOKClick () {
   onDialogOK()
 }
 
+const balanceChanges = computed(() => {
+  const changes: { [category: string]: bigint } = {
+    sats: 0n
+  }
+
+  pairedTxs.value.forEach((pairTx) => {
+    // First, calculate our inputs.
+    pairTx.response.sourceOutputs.forEach((sourceOutput, i) => {
+      // If a script is being used for this source output, this is not coming from the user's wallet.
+      if('script' in (pairTx.params.transaction?.inputs?.[i] || {})) {
+        return;
+      }
+
+      changes.sats -= sourceOutput.valueSatoshis
+      if(sourceOutput.token) {
+        const catIdAsHex = binToHex(sourceOutput.token.category)
+
+        if(!changes[catIdAsHex]) {
+          changes[catIdAsHex] = 0n;
+        }
+
+        changes[catIdAsHex] -= BigInt(sourceOutput.token.amount || 0n);
+      }
+    });
+
+    // And then subtract our change ouputs.
+    pairOutputs(pairTx).forEach((pairedOutput) => {
+      if(!pairedOutput.params) {
+        changes.sats += pairedOutput.response.valueSatoshis;
+        if(pairedOutput.response.token) {
+          const catIdAsHex = binToHex(pairedOutput.response.token.category);
+
+          if(!changes[catIdAsHex]) {
+            changes[catIdAsHex] = 0n;
+          }
+
+          changes[catIdAsHex] += BigInt(pairedOutput.response.token.amount || 0n);
+        }
+      }
+    });
+  });
+
+  return changes;
+});
+
 //-----------------------------------------------------------------------------
 // Tokens
 //-----------------------------------------------------------------------------
@@ -92,51 +137,6 @@ function pairOutputs(pairedTx: PairedTx) {
     response: output
   }));
 }
-
-const balanceChanges = computed(() => {
-  const changes: { [category: string]: bigint } = {
-    sats: 0n
-  }
-
-  pairedTxs.value.forEach((pairTx) => {
-    // First, calculate our inputs.
-    pairTx.response.sourceOutputs.forEach((sourceOutput, i) => {
-      // If a script is being used for this source output, this is not coming from the user's wallet.
-      if('script' in (pairTx.params.transaction?.inputs?.[i] || {})) {
-        return;
-      }
-
-      changes.sats -= sourceOutput.valueSatoshis
-      if(sourceOutput.token) {
-        const catIdAsHex = binToHex(sourceOutput.token.category)
-
-        if(!changes[catIdAsHex]) {
-          changes[catIdAsHex] = 0n;
-        }
-
-        changes[catIdAsHex] -= BigInt(sourceOutput.token.amount || 0n);
-      }
-    });
-
-    // And then subtract our change ouputs.
-    pairOutputs(pairTx).forEach((pairedOutput) => {
-      if(!pairedOutput.params) {
-        changes.sats += pairedOutput.response.valueSatoshis;
-        if(pairedOutput.response.token) {
-          const catIdAsHex = binToHex(pairedOutput.response.token.category);
-
-          if(!changes[catIdAsHex]) {
-            changes[catIdAsHex] = 0n;
-          }
-
-          changes[catIdAsHex] += BigInt(pairedOutput.response.token.amount || 0n);
-        }
-      }
-    });
-  });
-
-  return changes;
-});
 
 //-----------------------------------------------------------------------------
 // Formatting Utils

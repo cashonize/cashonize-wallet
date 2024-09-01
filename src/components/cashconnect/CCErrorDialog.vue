@@ -12,7 +12,6 @@ defineEmits([
 
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
 
-// this is part of our example (so not required)
 function onOKClick () {
   onDialogOK()
 }

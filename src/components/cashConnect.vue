@@ -101,7 +101,6 @@
 
 .cc-session-item-action-icon {
   height: 24px;
-  width: 24px;
   cursor: pointer;
 }
 </style>
