@@ -5,14 +5,10 @@
   import settingsMenu from 'src/components/settingsMenu.vue'
   import connectView from 'src/components/walletConnect.vue'
   import createTokensView from 'src/components/createTokens.vue'
-  import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
-  import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
   import { ref, computed, watch } from 'vue'
   import { Wallet, TestNetWallet } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { useQuasar } from 'quasar'
-  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
   import { useWindowSize } from '@vueuse/core'
@@ -22,12 +18,6 @@
   const props = defineProps<{
     uri: string | undefined
   }>()
-
-  // TODO: rework both
-  const transactionRequestWC = ref(undefined as any);
-  const signMessageRequestWC = ref(undefined as any);
-  // TODO: rework
-  const dappMetadata = ref(undefined as any);
 
   const dappUriUrlParam = ref(undefined as undefined|string);
 
@@ -49,28 +39,6 @@
     const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
     const initWallet = await walletClass.named(store.nameWallet);
     store.setWallet(initWallet);
-  }
-
-  function signedTransaction(broadcast: boolean){
-    const message = broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
-    transactionRequestWC.value = undefined;
-    $q.notify({
-      type: 'positive',
-      message
-    })
-  }
-  function rejectTransaction(){
-    transactionRequestWC.value = undefined;
-  }
-  function signMessage(){
-    signMessageRequestWC.value = undefined;
-    $q.notify({
-      type: 'positive',
-      message: 'Message succesfully signed!'
-    })
-  }
-  function rejectSignMessage(){
-    signMessageRequestWC.value = undefined;
   }
 </script>
 
@@ -96,10 +64,4 @@
     <connectView v-if="store.displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
     <settingsMenu v-if="store.displayView == 5"/>
   </main>
-  <div v-if="transactionRequestWC">
-    <WC2TransactionRequest :transactionRequestWC="transactionRequestWC" :dappMetadata="dappMetadata" @signed-transaction="(arg:boolean) => signedTransaction(arg)" @reject-transaction="rejectTransaction()"/>
-  </div>
-  <div v-if="signMessageRequestWC">
-    <WC2SignMessageRequest :signMessageRequestWC="signMessageRequestWC" :dappMetadata="dappMetadata" @sign-message="() => signMessage()" @reject-sign-message="rejectSignMessage()"/>
-  </div>
 </template>

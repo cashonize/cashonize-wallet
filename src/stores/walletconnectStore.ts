@@ -4,6 +4,9 @@ import { Core } from '@walletconnect/core'
 import { Web3Wallet, type Web3WalletTypes } from '@walletconnect/web3wallet'
 import type Client from '@walletconnect/web3wallet'
 import type {SessionTypes} from '@walletconnect/types'
+import { Dialog, Notify } from "quasar";
+import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
+import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
 
 export const useWalletconnectStore = defineStore('walletconnectStore', () => {
 
@@ -49,28 +52,76 @@ export const useWalletconnectStore = defineStore('walletconnectStore', () => {
         const sessions = web3wallet.value.getActiveSessions();
         const session = sessions[topic];
         if (!session) return;
-        const metadataDapp = session.peer.metadata;
-        // TODO: rework
-        //dappMetadata.value = metadataDapp
-        //signMessageRequestWC.value = event;
+        const dappMetadata = session.peer.metadata;
+        return await new Promise<void>((resolve, reject) => {
+          Dialog.create({
+            component: WC2SignMessageRequest,
+            componentProps: {
+              dappMetadata,
+              signMessageRequestWC: event
+            },
+          })
+            .onOk(() => {
+              resolve();
+              Notify.create({
+                color: "positive",
+                message: "Successfully signed transaction",
+              });
+            })
+            .onCancel(() => {
+              reject();
+            })
+            .onDismiss(() => {
+              reject();
+            });
+        });
       }
-        break;
       case "bch_signTransaction": {
         const sessions = web3wallet.value.getActiveSessions();
         const session = sessions[topic];
         if (!session) return;
-        const metadataDapp = session.peer.metadata;
-        // TODO: rework
-        //dappMetadata.value = metadataDapp
-        //transactionRequestWC.value = event;
+        const dappMetadata = session.peer.metadata;
+        return await new Promise<void>((resolve, reject) => {
+          Dialog.create({
+            component: WC2TransactionRequest,
+            componentProps: {
+              dappMetadata,
+              transactionRequestWC: event
+            },
+          })
+            .onOk(() => {
+              resolve();
+              Notify.create({
+                type: 'positive',
+                message: 'Message succesfully signed!'
+              })
+            })
+            .onCancel(() => {
+              reject();
+            })
+            .onDismiss(() => {
+              reject();
+            });
+        });
       }
-        break;
       default:{
         const response = { id, jsonrpc: '2.0', error: {code: 1001, message: `Unsupported method ${method}`} };
         await web3wallet.value.respondSessionRequest({ topic, response });
       }
     }
   }
+
+  // TODO: add different message based on 'broadcast' setting dapp
+  /*
+  function signedTransaction(broadcast: boolean){
+    const message = broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
+    transactionRequestWC.value = undefined;
+    Notify.create({
+      type: 'positive',
+      message
+    })
+  }
+*/
 
   return { web3wallet, activeSessions, initweb3wallet, wcRequest }
 })
