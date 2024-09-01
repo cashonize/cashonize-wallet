@@ -9,6 +9,8 @@ import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
 import { convertElectrumTokenData } from "src/utils/utils"
 import type { Web3WalletTypes } from '@walletconnect/web3wallet';
+import { useQuasar } from 'quasar'
+const $q = useQuasar()
 const settingsStore = useSettingsStore()
 const walletconnectStore = useWalletconnectStore()
 
@@ -54,13 +56,6 @@ export const useStore = defineStore('store', () => {
     console.timeEnd('initweb3wallet');
     const web3wallet = walletconnectStore.web3wallet;
     web3wallet?.on('session_request', async (event) => wcRequest(event));
-    // check if session request in URL params
-    // TODO: rework
-    /*
-    if(props?.uri?.startsWith('wc:')){
-      dappUriUrlParam.value = props.uri
-      store.changeView(4);
-    } */
     // fetch bch balance
     console.time('Balance Promises');
     const promiseWalletBalance = wallet.value.getBalance() as BalanceResponse;
@@ -96,12 +91,10 @@ export const useStore = defineStore('store', () => {
         if(oldBalance.sat < newBalance.sat){
           const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
           const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
-          // TODO: rework
-          /*
           $q.notify({
             type: 'positive',
             message: `Received ${amountReceived} ${unitString}`
-          }) */
+          })
         }
       }
       maxAmountToSend.value = await wallet.value?.getMaxAmountToSend();
@@ -117,12 +110,10 @@ export const useStore = defineStore('store', () => {
       for(const tokenOutput of tokenOutputs){
         if(!userInputs.length){
           const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
-          // TODO: rework
-          /*
           $q.notify({
             type: 'positive',
             message: `Received new ${tokenType}`
-          })*/
+          })
         }
         const tokenId = tokenOutput?.tokenData?.category;
         const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);

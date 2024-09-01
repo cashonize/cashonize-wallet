@@ -7,7 +7,7 @@
   import createTokensView from 'src/components/createTokens.vue'
   import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
   import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { Wallet, TestNetWallet } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -19,16 +19,25 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
-  // TODO: rework
   const props = defineProps<{
     uri: string | undefined
   }>()
 
+  // TODO: rework both
   const transactionRequestWC = ref(undefined as any);
   const signMessageRequestWC = ref(undefined as any);
   // TODO: rework
   const dappMetadata = ref(undefined as any);
+
   const dappUriUrlParam = ref(undefined as undefined|string);
+
+  watch(props, () => {
+    // check if session request in URL params passed through prop
+    if(props?.uri?.startsWith('wc:')){
+      dappUriUrlParam.value = props.uri
+      store.changeView(4);
+    }
+  })
   
   // check if wallet exists
   const mainnetWalletExists = await Wallet.namedExists(store.nameWallet);
