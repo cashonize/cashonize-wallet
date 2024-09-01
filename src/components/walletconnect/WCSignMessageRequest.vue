@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
+  import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { getSdkError } from '@walletconnect/utils';
   import { useStore } from 'src/stores/store'
@@ -7,7 +8,6 @@
   const store = useStore()
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
-  const emit = defineEmits(['signMessage', 'rejectSignMessage']);
 
   const showDialog = ref(true);
 
@@ -16,6 +16,14 @@
     signMessageRequestWC: any
   }>()
   const { signMessageRequestWC } = toRefs(props);
+
+  defineEmits([
+    ...useDialogPluginComponent.emits
+  ])
+  const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+  function onOKClick () {
+    onDialogOK()
+  }
 
   const { id, topic } = signMessageRequestWC.value;
   
@@ -31,12 +39,14 @@
     const signedMessage = await store.wallet?.sign(message);
     const response = { id, jsonrpc: '2.0', result: signedMessage?.signature };
     await web3wallet?.respondSessionRequest({ topic, response });
-    emit('signMessage')
+    // TODO: rework
+    // emit('signMessage')
   }
   async function rejectSignMessage(){
     const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
     await web3wallet?.respondSessionRequest({ topic, response });
-    emit('rejectSignMessage')
+    // TODO: rework
+    // emit('rejectSignMessage')
   }
 </script>
 

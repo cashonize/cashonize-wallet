@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
+  import { useDialogPluginComponent } from 'quasar'
   import { lockingBytecodeToCashAddress, hexToBin, binToHex, importWalletTemplate, walletTemplateP2pkhNonHd, walletTemplateToCompilerBCH, secp256k1, generateTransaction, encodeTransaction, sha256, hash256, SigningSerializationFlag, generateSigningSerializationBCH, TransactionCommon, TransactionTemplateFixed, CompilationContextBCH, Input, Output } from "@bitauth/libauth"
   import { BCMR, convert } from "mainnet-js"
   import { getSdkError } from '@walletconnect/utils';
@@ -13,7 +14,6 @@
   const store = useStore()
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
-  const emit = defineEmits(['signedTransaction', 'rejectTransaction']);
 
   const showDialog = ref(true);
 
@@ -22,6 +22,14 @@
     transactionRequestWC: any
   }>()
   const { transactionRequestWC } = toRefs(props);
+
+  defineEmits([
+    ...useDialogPluginComponent.emits
+  ])
+  const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+  function onOKClick () {
+    onDialogOK()
+  }
 
   const { id, topic } = transactionRequestWC.value;
   // parse params from transactionRequestWC
@@ -191,13 +199,15 @@
     await web3wallet?.respondSessionRequest({ topic, response });
     // close dialog when broadcast = false
     showDialog.value = false
-    emit('signedTransaction', requestParams.broadcast);
+    // TODO: rework
+    // emit('signedTransaction', requestParams.broadcast);
   }
 
   async function rejectTransaction(){
     const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
     await web3wallet?.respondSessionRequest({ topic, response });
-    emit('rejectTransaction')
+    // TODO: rework
+    // emit('rejectTransaction')
   }
 </script>
 
