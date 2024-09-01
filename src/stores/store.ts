@@ -8,7 +8,6 @@ import { useWalletconnectStore } from "./walletconnectStore"
 import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
 import { convertElectrumTokenData } from "src/utils/utils"
-import type { Web3WalletTypes } from '@walletconnect/web3wallet';
 import { useQuasar } from 'quasar'
 const $q = useQuasar()
 const settingsStore = useSettingsStore()
@@ -55,7 +54,8 @@ export const useStore = defineStore('store', () => {
     await walletconnectStore.initweb3wallet();
     console.timeEnd('initweb3wallet');
     const web3wallet = walletconnectStore.web3wallet;
-    web3wallet?.on('session_request', async (event) => wcRequest(event));
+    const walletAddress = wallet.value.getDepositAddress()
+    web3wallet?.on('session_request', async (event) => walletconnectStore.wcRequest(event, walletAddress));
     // fetch bch balance
     console.time('Balance Promises');
     const promiseWalletBalance = wallet.value.getBalance() as BalanceResponse;
@@ -144,51 +144,6 @@ export const useStore = defineStore('store', () => {
     tokenList.value = null;
     bcmrRegistries.value = undefined;
     changeView(1);
-  }
-  
-  // Wallet connect dialog functionality
-  async function wcRequest(event: Web3WalletTypes.SessionRequest) {
-    const web3wallet = walletconnectStore.web3wallet;
-    if(!web3wallet) return
-    const { topic, params, id } = event;
-    const { request } = params;
-    const method = request.method;
-    const walletAddress = wallet.value?.getDepositAddress();
-
-    switch (method) {
-      case "bch_getAddresses":
-      case "bch_getAccounts": {
-        const result = [walletAddress];
-        const response = { id, jsonrpc: '2.0', result };
-        web3wallet.respondSessionRequest({ topic, response });
-      }
-        break;
-      case "bch_signMessage":
-      case "personal_sign": {
-        const sessions = web3wallet.getActiveSessions();
-        const session = sessions[topic];
-        if (!session) return;
-        const metadataDapp = session.peer.metadata;
-        // TODO: rework
-        //dappMetadata.value = metadataDapp
-        //signMessageRequestWC.value = event;
-      }
-        break;
-      case "bch_signTransaction": {
-        const sessions = web3wallet.getActiveSessions();
-        const session = sessions[topic];
-        if (!session) return;
-        const metadataDapp = session.peer.metadata;
-        // TODO: rework
-        //dappMetadata.value = metadataDapp
-        //transactionRequestWC.value = event;
-      }
-        break;
-      default:{
-        const response = { id, jsonrpc: '2.0', error: {code: 1001, message: `Unsupported method ${method}`} };
-        await web3wallet.respondSessionRequest({ topic, response });
-      }
-    }
   }
 
   async function updateTokenList() {
