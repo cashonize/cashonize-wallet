@@ -21,7 +21,6 @@
     dappUriUrlParam?: string
   }>()
 
-  const dappUriInput = ref("");
   const sessionProposalWC = ref(undefined as any);
   const activeSessions = computed(() => walletconnectStore.activeSessions)
 
@@ -29,7 +28,6 @@
     try {
       if(!url) throw("Enter a BCH WalletConnect URI");
       await web3wallet?.core.pairing.pair({ uri: url });
-      dappUriInput.value = "";
     } catch(error) {
       const errorMessage = typeof error == 'string' ? error : "Not a valid BCH WalletConnect URI"
       $q.notify({
