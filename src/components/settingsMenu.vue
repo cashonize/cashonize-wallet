@@ -121,8 +121,10 @@
       <div style="margin-top:15px">
         <label for="selectNetwork">Change IPFS gateway:</label>
         <select v-model="selectedIpfsGateway" @change="changeIpfsGateway()">
-          <option value="https://ipfs.io/ipfs/">ipfs.io (default)</option>
+          <option value="https://w3s.link/ipfs/">w3s.link (default)</option>
+          <option value="https://ipfs.io/ipfs/">ipfs.io</option>
           <option value="https://dweb.link/ipfs/">dweb.link</option>
+          <option value="https://nftstorage.link/ipfs/">nftstorage.link</option>
         </select>
       </div>
 
