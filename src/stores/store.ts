@@ -10,7 +10,6 @@ import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useWalletconnectStore } from "./walletconnectStore"
 const settingsStore = useSettingsStore()
-const walletconnectStore = useWalletconnectStore()
 
 // set mainnet-js config
 Config.EnforceCashTokenReceiptAddresses = true;
@@ -50,6 +49,7 @@ export const useStore = defineStore('store', () => {
     }
     wallet.value = newWallet;
     console.time('initweb3wallet');
+    const walletconnectStore = await useWalletconnectStore(wallet.value as Wallet)
     await walletconnectStore.initweb3wallet();
     console.timeEnd('initweb3wallet');
     const web3wallet = walletconnectStore.web3wallet;
