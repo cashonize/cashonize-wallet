@@ -4,8 +4,7 @@
   import { Connection, ElectrumNetworkProvider } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
-  import { useQuasar } from 'quasar'
-  const $q = useQuasar()
+  import { copyToClipboard } from 'src/utils/utils';
   const store = useStore()
   const settingsStore = useSettingsStore()
 
@@ -62,16 +61,6 @@
   }
   function toggleShowSeedphrase(){
     displayeSeedphrase.value = !displayeSeedphrase.value;
-  }
-  function copyToClipboard(copyText: string|undefined){
-    if(!copyText) return
-    navigator.clipboard.writeText(copyText);
-    $q.notify({
-      message: "Copied!",
-      icon: 'info',
-      timeout : 1000,
-      color: "grey-6"
-    })
   }
   function confirmDeleteWallet(){
     const text = "You are about to delete your Cashonize wallet info from this browser.\nAre you sure you want to delete?";

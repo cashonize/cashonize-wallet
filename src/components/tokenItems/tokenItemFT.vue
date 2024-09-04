@@ -7,6 +7,7 @@
   import alertDialog from 'src/components/alertDialog.vue'
   import type { TokenDataFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
+  import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -63,16 +64,6 @@
     const iconDiv = template?.querySelector("#genericTokenIcon")
     iconDiv?.appendChild(icon);
   })
-
-  function copyToClipboard(copyText:string){
-    navigator.clipboard.writeText(copyText);
-    $q.notify({
-      message: "Copied!",
-      icon: 'info',
-      timeout : 1000,
-      color: "grey-6"
-    })
-  }
 
   // check if need to fetch onchain stats on displayTokenInfo
   watch(displayTokenInfo, async() => {
@@ -294,8 +285,8 @@
             <div v-if="tokenName" id="tokenName">Name: {{ tokenName }}</div>
             <div id="tokenIdBox" style="word-break: break-all;">
               TokenId: 
-              <span>
-                <span class="tokenId" @click="copyToClipboard(tokenData.tokenId)" style="cursor: pointer;">
+              <span @click="copyToClipboard(tokenData.tokenId)">
+                <span class="tokenId" style="cursor: pointer;">
                   {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-10)}`}}
                 </span>
                 <img class="copyIcon" src="images/copyGrey.svg">
