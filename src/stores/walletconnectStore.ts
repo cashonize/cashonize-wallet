@@ -30,7 +30,6 @@ import alertDialog from 'src/components/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
-import AsyncDialogWrapper from 'src/components/walletconnect/asyncDialogWrapper.vue'
 import { ContractInfo } from "src/interfaces/interfaces"
 
 // NOTE: We use a wrapper so that we can pass in the Mainnet Wallet as an argument.
@@ -81,9 +80,8 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
           const dappMetadata = session.peer.metadata;
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
-              component: AsyncDialogWrapper,
+              component: WC2SignMessageRequest,
               componentProps: {
-                component: WC2SignMessageRequest,
                 dappMetadata,
                 signMessageRequestWC: event
               },
@@ -110,9 +108,8 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
           const dappMetadata = session.peer.metadata;
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
-              component: AsyncDialogWrapper,
+              component: WC2TransactionRequest,
               componentProps: {
-                component: WC2TransactionRequest,
                 dappMetadata,
                 transactionRequestWC: event
               },
