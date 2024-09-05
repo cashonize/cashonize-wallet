@@ -59,7 +59,11 @@
     sessionProposalWC.value = sessionProposal;
   }
 
-  async function approveSession(sessionProposal: any){
+  async function approveSession(sessionProposal: any, dappTargetNetwork: "mainnet" | "chipnet"){
+    // Handle network switching when needed
+    if(store.wallet?.network != dappTargetNetwork){
+      await store.changeNetwork(dappTargetNetwork)
+    }
     const namespaces = {
       bch: {
         methods: [
@@ -111,7 +115,7 @@
     </div>
 
     <div v-if="sessionProposalWC">
-      <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)" @reject-session="rejectSession()"/>
+      <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg1, arg2) => approveSession(arg1, arg2)" @reject-session="rejectSession()"/>
     </div>
 
     <br/>

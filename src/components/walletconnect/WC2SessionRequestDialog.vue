@@ -20,8 +20,8 @@
   const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
   const needsNetworkSwitch = (dappTargetNetwork !== store.network);
 
-  function approveSessionWC() {
-    emit('approveSession', sessionProposalWC.value);
+  async function approveSessionWC() {
+    emit('approveSession', sessionProposalWC.value, dappTargetNetwork);
   }
 
   function rejectSessionWC() {
