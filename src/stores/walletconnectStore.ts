@@ -4,7 +4,7 @@ import { Core } from '@walletconnect/core'
 import { Web3Wallet, type Web3WalletTypes } from '@walletconnect/web3wallet'
 import type Client from '@walletconnect/web3wallet'
 import type {SessionTypes} from '@walletconnect/types'
-import type { TestNetWallet, Wallet } from "mainnet-js";
+import { convert, type TestNetWallet, type Wallet } from "mainnet-js";
 import {
   hexToBin,
   binToHex,
@@ -106,12 +106,14 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
           const session = sessions[topic];
           if (!session) return;
           const dappMetadata = session.peer.metadata;
+          const exchangeRate = await convert(1, "bch", "usd");
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
               component: WC2TransactionRequest,
               componentProps: {
                 dappMetadata,
-                transactionRequestWC: event
+                transactionRequestWC: event,
+                exchangeRate
               },
             })
               .onOk(() => {

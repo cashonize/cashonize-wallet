@@ -2,7 +2,7 @@
   import { toRefs } from 'vue';
   import { binToHex, lockingBytecodeToCashAddress, type TransactionCommon, type Input, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
-  import { BCMR, convert } from "mainnet-js"
+  import { BCMR } from "mainnet-js"
   import type { DappMetadata, ContractInfo } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { parseExtendedJson } from 'src/utils/utils'
@@ -10,9 +10,10 @@
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
-    transactionRequestWC: any
+    transactionRequestWC: any,
+    exchangeRate: number,
   }>()
-  const { transactionRequestWC } = toRefs(props);
+  const { transactionRequestWC, exchangeRate } = toRefs(props);
 
   defineEmits([
     ...useDialogPluginComponent.emits
@@ -45,8 +46,8 @@
     return result;
   }
 
-  async function convertToUsd(satAmount: bigint) {
-    const newUsdValue = await convert(Number(satAmount), "sat", "usd");
+  function convertToUsd(satAmount: bigint) {
+    const newUsdValue =  Number(satAmount) * exchangeRate.value / 100_000_000
     return Number(newUsdValue.toFixed(2));
   }
 
@@ -57,7 +58,7 @@
     toCashaddr(outputs.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + outputs.valueSatoshis : total, 0n
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
-  const usdBalanceChange = await convertToUsd(bchBalanceChange);
+  const usdBalanceChange = convertToUsd(bchBalanceChange);
 
   const tokensSpentInputs:Record<string, NonNullable<Output['token']>[]> = {}
   const tokensReceivedOutputs:Record<string, NonNullable<Output['token']>[]> = {}
