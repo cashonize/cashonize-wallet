@@ -86,14 +86,16 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
                 signMessageRequestWC: event
               },
             })
-              .onOk(() => {
+              .onOk(async() => {
+                await signMessage(event)
                 resolve();
                 Notify.create({
                   color: "positive",
                   message: "Successfully signed transaction",
                 });
               })
-              .onCancel(() => {
+              .onCancel(async() => {
+                await rejectRequest(event)
                 reject();
               })
               .onDismiss(() => {
@@ -126,11 +128,10 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
                 })
               })
               .onCancel(async() => {
-                await rejectTransaction(event)
+                await rejectRequest(event)
                 reject();
               })
-              .onDismiss(async() => {
-                await rejectTransaction(event)
+              .onDismiss(() => {
                 reject();
               });
           });
@@ -264,8 +265,18 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       return requestParams.broadcast
     }
 
-    async function rejectTransaction(transactionRequestWC: any){
-      const { id, topic } = transactionRequestWC;
+    async function signMessage(signMessageRequestWC: any){
+      const requestParams = signMessageRequestWC.params.request.params
+      const message = requestParams?.message;
+      const signedMessage = await wallet?.sign(message);
+
+      const { id, topic } = signMessageRequestWC;
+      const response = { id, jsonrpc: '2.0', result: signedMessage?.signature };
+      await web3wallet.value?.respondSessionRequest({ topic, response });
+    }
+
+    async function rejectRequest(wcRequest: any){
+      const { id, topic } = wcRequest;
       const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
       await web3wallet.value?.respondSessionRequest({ topic, response });
     }

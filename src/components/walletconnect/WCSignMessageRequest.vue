@@ -1,15 +1,9 @@
 <script setup lang="ts">
-  import { ref, toRefs } from 'vue';
+  import { toRefs } from 'vue';
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
-  import { getSdkError } from '@walletconnect/utils';
   import { useStore } from 'src/stores/store'
-  import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   const store = useStore()
-  const walletconnectStore = useWalletconnectStore()
-  const web3wallet = walletconnectStore.web3wallet
-
-  const showDialog = ref(true);
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
@@ -21,37 +15,19 @@
     ...useDialogPluginComponent.emits
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
-  function onOKClick () {
-    onDialogOK()
-  }
-
-  const { id, topic } = signMessageRequestWC.value;
   
   const requestParams = signMessageRequestWC.value.params.request.params
   const signingAddress = requestParams?.address ?? requestParams?.account;
   const walletAddress = store.wallet?.address
-  if(signingAddress !== walletAddress)  rejectSignMessage()
+  if(signingAddress !== walletAddress) onDialogCancel()
 
   const message = requestParams?.message;
-  if(!message) rejectSignMessage()
+  if(!message) onDialogCancel()
 
-  async function signMessage(){
-    const signedMessage = await store.wallet?.sign(message);
-    const response = { id, jsonrpc: '2.0', result: signedMessage?.signature };
-    await web3wallet?.respondSessionRequest({ topic, response });
-    // TODO: rework
-    // emit('signMessage')
-  }
-  async function rejectSignMessage(){
-    const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
-    await web3wallet?.respondSessionRequest({ topic, response });
-    // TODO: rework
-    // emit('rejectSignMessage')
-  }
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
     <q-card>
       <fieldset class="dialogFieldsetSignMessage"> 
         <legend style="font-size: large;">Sign Message</legend>
@@ -75,9 +51,9 @@
         
         <hr>
         <div class="wc-modal-bottom-buttons">
-            <input type="button" class="primaryButton" value="Sign" @click="() => signMessage()" v-close-popup>
-            <input type="button" value="Cancel" @click="() => rejectSignMessage()" v-close-popup>
-          </div>
+          <input type="button" class="primaryButton" value="Sign" @click="onDialogOK">
+          <input type="button" value="Cancel" @click="onDialogCancel">
+        </div>
       </fieldset>
     </q-card>
   </q-dialog>
