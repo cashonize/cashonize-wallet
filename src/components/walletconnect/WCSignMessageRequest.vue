@@ -31,6 +31,12 @@
     <q-card>
       <fieldset class="dialogFieldsetSignMessage"> 
         <legend style="font-size: large;">Sign Message</legend>
+
+        <div style="display: flex; justify-content: center; font-size: larger;  margin-top: 1rem;">
+          Sign Message
+        </div>
+
+        <div style="font-size: large; margin-top: 1.5rem;">Origin:</div>
         <div style="display: flex;">
           <img :src="dappMetadata.icons[0]" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
@@ -39,7 +45,6 @@
           </div>
         </div>
         <hr>
-        <div style="display: flex; justify-content: center; font-size: larger;">Sign Message </div>
         <div style="margin: 15px 0;">
           <div>Signer:</div>
           {{ signingAddress }}
@@ -61,7 +66,7 @@
 
 <style scoped>
   .dialogFieldsetSignMessage{
-    padding: 3rem;
+    padding: .5rem 2rem;
     max-height: 90vh;
     width: 500px;
     max-width: 100%;
@@ -73,5 +78,15 @@
   .q-card{
     box-shadow: none;
     background: none;
+  }
+  .wc-modal-bottom-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    gap: 10px;
+  }
+  .wc-modal-bottom-buttons > input {
+    width: 111px;
   }
 </style>
