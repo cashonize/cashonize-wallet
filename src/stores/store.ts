@@ -1,11 +1,14 @@
 import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI } from "mainnet-js"
+import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenList, bcmrIndexerResponse } from "../interfaces/interfaces"
-import { useSettingsStore } from './settingsStore'
 import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
+import { convertElectrumTokenData } from "src/utils/utils"
+import { Notify } from "quasar";
+import { useSettingsStore } from './settingsStore'
+import { useWalletconnectStore } from "./walletconnectStore"
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
@@ -15,7 +18,10 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
+const nameWallet = 'mywallet';
+
 export const useStore = defineStore('store', () => {
+  const displayView = ref(undefined as (number | undefined));
   // Wallet State
   const wallet = ref(null as (Wallet | TestNetWallet | null));
   const balance = ref(undefined as (BalanceResponse | undefined));
@@ -28,7 +34,118 @@ export const useStore = defineStore('store', () => {
   const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
-  async function updateTokenList(){
+  let cancelWatchBchtxs: undefined | CancelWatchFn;
+  let cancelWatchTokenTxs: undefined | CancelWatchFn;
+
+  function changeView(newView: number) {
+    displayView.value = newView;
+  }
+
+  async function setWallet(newWallet: TestNetWallet){
+    changeView(1);
+    if(newWallet.network == 'mainnet'){
+      const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
+      newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
+    }
+    wallet.value = newWallet;
+    console.time('initweb3wallet');
+    const walletconnectStore = await useWalletconnectStore(wallet.value as Wallet)
+    await walletconnectStore.initweb3wallet();
+    console.timeEnd('initweb3wallet');
+    const web3wallet = walletconnectStore.web3wallet;
+    const walletAddress = wallet.value.getDepositAddress()
+    web3wallet?.on('session_request', async (event) => walletconnectStore.wcRequest(event, walletAddress));
+    // fetch bch balance
+    console.time('Balance Promises');
+    const promiseWalletBalance = wallet.value.getBalance() as BalanceResponse;
+    const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend();
+    const balancePromises = [promiseWalletBalance,promiseMaxAmountToSend];
+    const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
+    console.timeEnd('Balance Promises');
+    // fetch token balance
+    console.time('fetch tokenUtxos Promise');
+    await updateTokenList();
+    console.timeEnd('fetch tokenUtxos Promise');
+    balance.value = resultWalletBalance;
+    maxAmountToSend.value = resultMaxAmountToSend;
+    setUpWalletSubscriptions();
+    // get plannedTokenId
+    if(!tokenList.value) return // should never happen
+    console.time('importRegistries');
+    await importRegistries(tokenList.value, false);
+    console.timeEnd('importRegistries');
+    console.time('planned tokenid');
+    await hasPreGenesis()
+    console.timeEnd('planned tokenid');
+    console.time('fetchAuthUtxos');
+    await fetchAuthUtxos();
+    console.timeEnd('fetchAuthUtxos');
+  }
+
+  async function setUpWalletSubscriptions(){
+    cancelWatchBchtxs = wallet.value?.watchBalance(async (newBalance) => {
+      const oldBalance = balance.value;
+      balance.value = newBalance;
+      if(oldBalance?.sat && newBalance?.sat){
+        if(oldBalance.sat < newBalance.sat){
+          const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
+          const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
+          Notify.create({
+            type: 'positive',
+            message: `Received ${amountReceived} ${unitString}`
+          })
+        }
+      }
+      maxAmountToSend.value = await wallet.value?.getMaxAmountToSend();
+    });
+    cancelWatchTokenTxs = wallet.value?.watchAddressTokenTransactions(async(tx) => {
+      if(!wallet.value) return // should never happen
+      const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
+      const tokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
+      const previousTokenList = tokenList.value;
+      const listNewTokens:TokenList = []
+      // Check if transaction not initiated by user
+      const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value?.address);
+      for(const tokenOutput of tokenOutputs){
+        if(!userInputs.length){
+          const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
+          Notify.create({
+            type: 'positive',
+            message: `Received new ${tokenType}`
+          })
+        }
+        const tokenId = tokenOutput?.tokenData?.category;
+        const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);
+        if(!tokenId && !isNewTokenItem) continue;
+        const newTokenItem = convertElectrumTokenData(tokenOutput?.tokenData)
+        if(newTokenItem) listNewTokens.push(newTokenItem)
+      }
+      // Dynamically import tokenmetadata
+      await importRegistries(listNewTokens, true);
+      await updateTokenList(); 
+    });
+  }
+
+  async function changeNetwork(newNetwork: 'mainnet' | 'chipnet'){
+    // cancel active listeners
+    if(cancelWatchBchtxs && cancelWatchTokenTxs){
+      cancelWatchBchtxs()
+      cancelWatchTokenTxs()
+    }
+    const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
+    const newWallet = await walletClass.named(nameWallet);
+    setWallet(newWallet);
+    localStorage.setItem('network', newNetwork);
+    // reset wallet to default state
+    balance.value = undefined;
+    maxAmountToSend.value = undefined;
+    plannedTokenId.value = undefined;
+    tokenList.value = null;
+    bcmrRegistries.value = undefined;
+    changeView(1);
+  }
+
+  async function updateTokenList() {
     if(!wallet.value) return // should never happen
     const tokenUtxos = await wallet.value.getTokenUtxos();
     const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
@@ -92,7 +209,7 @@ export const useStore = defineStore('store', () => {
     plannedTokenId.value = preGenesisUtxo?.txid ?? "";
   }
 
-  async function fetchAuthUtxos(){
+  async function fetchAuthUtxos() {
     if(!wallet.value) return // should never happen
     if(!tokenList.value?.length) return
     const copyTokenList = [...tokenList.value]
@@ -106,7 +223,7 @@ export const useStore = defineStore('store', () => {
     const authHeadTxIdResults = await Promise.all(authHeadTxIdPromises);
     const tokenUtxosResult = await tokenUtxosPromise;
     // check if any tokenUtxo of category is the authUtxo for that category
-      tokenList.value.forEach((token, index) => {
+    tokenList.value.forEach((token, index) => {
       const authHeadTxId = authHeadTxIdResults[index];
       const filteredTokenUtxos = tokenUtxosResult.filter(
         (tokenUtxos) => tokenUtxos.token?.tokenId === token.tokenId
@@ -117,5 +234,24 @@ export const useStore = defineStore('store', () => {
     tokenList.value = copyTokenList;
   }
 
-  return { wallet, balance, maxAmountToSend, network, explorerUrl, tokenList, updateTokenList, hasPreGenesis, fetchAuthUtxos, plannedTokenId, bcmrRegistries, nrBcmrRegistries, importRegistries }
+  return {
+    nameWallet,
+    displayView,
+    wallet,
+    balance,
+    maxAmountToSend,
+    network,
+    explorerUrl,
+    tokenList,
+    plannedTokenId,
+    bcmrRegistries,
+    nrBcmrRegistries,
+    changeView,
+    setWallet,
+    changeNetwork,
+    updateTokenList,
+    hasPreGenesis,
+    fetchAuthUtxos,
+    importRegistries
+  }
 })

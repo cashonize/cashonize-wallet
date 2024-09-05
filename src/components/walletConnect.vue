@@ -7,9 +7,11 @@
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
+  import { type Wallet, type TestNetWallet } from 'mainnet-js';
   const $q = useQuasar()
   const store = useStore()
-  const walletconnectStore = useWalletconnectStore()
+  // TODO: move to walletconnectStore
+  const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet | TestNetWallet)
   const web3wallet = walletconnectStore.web3wallet
 
   const props = defineProps<{
