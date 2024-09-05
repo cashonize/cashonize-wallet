@@ -116,17 +116,21 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
                 exchangeRate
               },
             })
-              .onOk(() => {
+              .onOk(async() => {
+                const broadcast = await signTransactionWC(event)
                 resolve();
+                const message = broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
                 Notify.create({
                   type: 'positive',
-                  message: 'Message succesfully signed!'
+                  message
                 })
               })
-              .onCancel(() => {
+              .onCancel(async() => {
+                await rejectTransaction(event)
                 reject();
               })
-              .onDismiss(() => {
+              .onDismiss(async() => {
+                await rejectTransaction(event)
                 reject();
               });
           });
@@ -137,18 +141,6 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
         }
       }
     }
-
-    // TODO: add different message based on 'broadcast' setting dapp
-    /*
-    function signedTransaction(broadcast: boolean){
-      const message = broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
-      transactionRequestWC.value = undefined;
-      Notify.create({
-        type: 'positive',
-        message
-      })
-    }
-  */
 
     const toCashaddr = (lockingBytecode:Uint8Array) => {
       const prefix = wallet.network == "mainnet" ? "bitcoincash" : "bchtest";
@@ -161,7 +153,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
 
     async function signTransactionWC(transactionRequestWC: any) {
       // parse params from transactionRequestWC
-      const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params));
+      const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.params.request.params));
       const txDetails:TransactionCommon = requestParams.transaction;
       const sourceOutputs = requestParams.sourceOutputs as (Input & Output & ContractInfo)[]
 
@@ -240,7 +232,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       const signedTxObject = { signedTransaction: binToHex(encoded), signedTransactionHash: hash };
 
       // send transaction
-      const { id, topic } = transactionRequestWC.value;
+      const { id, topic } = transactionRequestWC;
       const response = { id, jsonrpc: '2.0', result: signedTxObject };
       if (requestParams.broadcast) {
         try{
@@ -268,18 +260,14 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
         }   
       }
       await web3wallet.value?.respondSessionRequest({ topic, response });
-      // close dialog when broadcast = false
-      // showDialog.value = false
-      // TODO: rework
-      // emit('signedTransaction', requestParams.broadcast);
+
+      return requestParams.broadcast
     }
 
     async function rejectTransaction(transactionRequestWC: any){
-      const { id, topic } = transactionRequestWC.value;
+      const { id, topic } = transactionRequestWC;
       const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
       await web3wallet.value?.respondSessionRequest({ topic, response });
-      // TODO: rework
-      // emit('rejectTransaction')
     }
 
     return { web3wallet, activeSessions, initweb3wallet, wcRequest }
