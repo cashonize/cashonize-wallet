@@ -7,16 +7,21 @@
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
-  import { type Wallet, type TestNetWallet } from 'mainnet-js';
+  import { type Wallet } from 'mainnet-js';
+  import { useCashconnectStore } from 'src/stores/cashconnectStore';
   defineExpose({
     connectDappUriInput
   });
   
   const $q = useQuasar()
   const store = useStore()
-  // TODO: move to walletconnectStore
-  const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet | TestNetWallet)
+
+  // TODO: investigate moving to main store
+  const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
+  await walletconnectStore.initweb3wallet()
   const web3wallet = walletconnectStore.web3wallet
+
+  const cashconnectStore = await useCashconnectStore(store.wallet as Wallet);
 
   const props = defineProps<{
     dappUriUrlParam?: string
@@ -39,10 +44,12 @@
     }
   }
 
-  if(props.dappUriUrlParam){
+  if(props.dappUriUrlParam?.startsWith('wc:')){
     await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam })
   }
-  // TODO: add cashconnect dappUriUrlParam matching
+  if(props.dappUriUrlParam?.startsWith('cc:')){
+    await cashconnectStore.pair(props.dappUriUrlParam);
+  }
 
   web3wallet?.on('session_proposal', wcSessionProposal);
 

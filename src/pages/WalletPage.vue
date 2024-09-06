@@ -23,7 +23,7 @@
 
   watch(props, () => {
     // check if session request in URL params passed through prop
-    if(props?.uri?.startsWith('wc:')){
+    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
       dappUriUrlParam.value = props.uri
       store.changeView(4);
     }
@@ -39,6 +39,14 @@
     const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
     const initWallet = await walletClass.named(store.nameWallet);
     store.setWallet(initWallet);
+  }
+  
+  // check if session request in URL params passed through prop
+  if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
+    dappUriUrlParam.value = props.uri
+    // workaround to solve race conditions with initialising stores
+    await new Promise(resolve => setTimeout(resolve, 500)); 
+    store.changeView(4);
   }
 </script>
 

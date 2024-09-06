@@ -49,7 +49,6 @@ export const useStore = defineStore('store', () => {
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
     }
     wallet.value = newWallet;
-    console.time('initweb3wallet');
     console.time('initialize walletconnect and cashconnect');
     await Promise.all([initializeWalletConnect(newWallet), initializeCashConnect(newWallet)]);
     console.timeEnd('initialize walletconnect and cashconnect');
