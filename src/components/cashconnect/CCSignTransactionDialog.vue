@@ -4,6 +4,7 @@ import { useDialogPluginComponent } from 'quasar'
 import type { BchSession, SignTransactionV0 } from 'cashconnect';
 import type { SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress } from '@bitauth/libauth';
+import { convertToUsd } from 'src/utils/utils'
 import { useStore } from 'src/stores/store';
 
 const store = useStore();
@@ -12,6 +13,7 @@ const props = defineProps<{
   session: BchSession,
   params: SignTransactionV0['request']['params'],
   response: SignTransactionV0['response'],
+  exchangeRate: number,
 }>()
 
 defineEmits([
@@ -140,7 +142,7 @@ function pairOutputs(pairedTx: PairedTx) {
 
 function addSignPrefixToNumber(value: number | bigint): string {
   if (Number(value) === 0) return `${value}`;
-  return Number(value) > 0 ? `+${value}` : `${value}`;
+  return Number(value) > 0 ? `+ ${value}` : `- ${-(value)}`;
 };
 
 function formatBin(bin: Uint8Array) {
@@ -201,15 +203,17 @@ function satsToBCH(satoshis: bigint) {
 
         <hr />
 
-        <div class="cc-modal-heading">Balance Change</div>
-        <q-markup-table flat>
-          <tr v-for="(amount, category) of balanceChanges" :key="category">
-            <th>{{ (category === 'sats') ? 'BCH' : getTokenName(category) }}</th>
-            <td>{{ (category === 'sats') ? addSignPrefixToNumber(satsToBCH(amount)) : addSignPrefixToNumber(amount) }}</td>
-          </tr>
-        </q-markup-table>
+        <div class="cc-modal-heading" style="margin-top: 1.5rem;">Balance Change:</div>
+        <div v-for="(amount, category) of balanceChanges" :key="category">
+          <div v-if="(category === 'sats')">
+            {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' +  `(${convertToUsd(amount, props.exchangeRate)}$)` }}
+          </div>
+          <div v-else>
+            <span>{{ getTokenName(category) + addSignPrefixToNumber(amount) }}</span>
+          </div>
+        </div>
 
-        <hr/>
+        <hr style="margin-top: 2rem;"/>
 
         <div class="cc-modal-heading">Transaction Details</div>
         <div v-for="(pairedTx, i) of pairedTxs" :key="i" class="cc-modal-details">

@@ -2,6 +2,11 @@ import { type UtxoI } from "mainnet-js"
 import { hexToBin } from "@bitauth/libauth"
 import type { ElectrumTokenData, TokenDataFT, TokenDataNFT } from "../interfaces/interfaces"
 
+export function convertToUsd(satAmount: bigint, exchangeRate:number) {
+  const newUsdValue =  Number(satAmount) * exchangeRate / 100_000_000
+  return Number(newUsdValue.toFixed(2));
+}
+
 export function getAllNftTokenBalances(tokenUtxos: UtxoI[]){
   const result:Record<string, number> = {};
   const nftUtxos = tokenUtxos.filter((val) => val.token?.commitment !== undefined);

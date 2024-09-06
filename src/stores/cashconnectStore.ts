@@ -8,7 +8,7 @@ import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransac
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import Mainnet and Wallet Connect
-import type { TestNetWallet, Wallet } from "mainnet-js";
+import { convert, TestNetWallet, Wallet } from "mainnet-js";
 import {
   type BchSession,
   type BchSessionProposal,
@@ -172,6 +172,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
       if (!autoApprovedMethods.includes(request.method)) {
         // Handle bch_signTransaction_V0.
         if (request.method === "bch_signTransaction_V0") {
+          const exchangeRate = await convert(1, "bch", "usd");
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
               component: CCSignTransactionDialogVue,
@@ -179,6 +180,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
                 session,
                 params: request.params,
                 response,
+                exchangeRate
               },
             })
               .onOk(() => {
