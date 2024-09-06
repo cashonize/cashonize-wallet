@@ -27,6 +27,8 @@
   // Methods.
   async function connectDappUriInput(url: string){
     try {
+      // TODO: investigate why cashconnectStore network reactivity isn't working
+      console.log('cashconnectStore network: ' + cashconnectStore.network)
       await cashconnectStore.pair(url);
     } catch(error) {
       $q.notify({

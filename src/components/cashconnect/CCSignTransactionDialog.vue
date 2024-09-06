@@ -95,7 +95,6 @@ props.session.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId) => 
   try {
     const tokenInfo = await store.fetchTokenInfo(tokenId);
     tokens.value[tokenId] = await tokenInfo.json();
-    console.log(tokens.value);
   } catch(error) {
     console.warn(`${error}`);
   }

@@ -28,7 +28,7 @@ import {
 } from "@bitauth/libauth";
 
 // NOTE: We use a wrapper so that we can pass in the Mainnet Wallet as an argument.
-//       This keeps the mutable state more managable in the sense that CC cannot exist with a valid wallet.
+//       This keeps the mutable state more managable in the sense that CC cannot exist without a valid wallet.
 export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
   const store = defineStore("cashconnectStore", () => {
     // Ensure that the Mainnet Wallet has a Private Key.
@@ -39,7 +39,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     }
 
     // Auto-approve the following RPC methods.
-    // NOTE: We hard-code these for Cashonize, but they could be customized on a per-Dapp basis too.
+    // NOTE: We hard-code these for now, but they could be customized on a per-Dapp basis in the future.
     const autoApprovedMethods = [
       "wc_authRequest",
       "bch_getTokens_V0",
@@ -50,6 +50,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
     // List of CashConnect sessions.
     // NOTE: This reactive state is synced with CashConnect via the onSessionsUpdated hook.
     const sessions = ref<Record<string, BchSession>>({});
+    const network = wallet.network
 
     // The CashConnect Wallet instance.
     const cashConnectWallet = ref<CashConnectWallet>(
@@ -109,9 +110,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
 
     async function onSessionProposal(sessionProposal: BchSessionProposal) {
       // Check the network and manually prompt user to switch if incorrect.
-      // TODO: The changeNetwork function is currently in the WalletPage component and we cannot propagate neatly to it from here.
-      //       That function should probably sit in the store in future (as it's part of the global state, not necessarily component state).
-      //       Once it sits in the store, we can automatically invoke it here instead of just instructing the user with an action.
+      // TODO: we can automatically invoke changeNetwork here instead of just instructing the user with an action.
 
       // NOTE: The walletClass.network property appears to return quirky values (e.g. undefined).
       //       So we use the networkPrefix property to determine which chain we are currently on.
@@ -340,6 +339,7 @@ export const useCashconnectStore = async (wallet: Wallet | TestNetWallet) => {
       // Properties
       cashConnectWallet,
       sessions,
+      network
     };
   })();
 
