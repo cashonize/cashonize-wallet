@@ -4,6 +4,7 @@
   import { decodeCashAddress } from "@bitauth/libauth"
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
+  import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -39,16 +40,6 @@
 
   function switchAddressTypeQr(){
     displayBchQr.value = !displayBchQr.value;
-  }
-  function copyToClipboard(copyText: string|undefined){
-    if(!copyText) return
-    navigator.clipboard.writeText(copyText);
-    $q.notify({
-      message: "Copied!",
-      icon: 'info',
-      timeout : 1000,
-      color: "grey-6"
-    })
   }
   async function parseAddrParams(){
     const addressInput = destinationAddr.value;

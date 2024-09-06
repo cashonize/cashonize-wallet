@@ -9,6 +9,7 @@
   import alertDialog from 'src/components/alertDialog.vue'
   import type { TokenDataNFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
+  import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -82,16 +83,6 @@
     const iconDiv = template?.querySelector("#genericTokenIcon")
     iconDiv?.appendChild(icon);
   })
-
-  function copyToClipboard(copyText:string){
-    navigator.clipboard.writeText(copyText);
-    $q.notify({
-      message: "Copied!",
-      icon: 'info',
-      timeout : 1000,
-      color: "grey-6"
-    })
-  }
 
   // check if need to fetch onchain stats on displayTokenInfo
   watch(displayTokenInfo, async() => {

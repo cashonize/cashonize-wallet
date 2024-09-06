@@ -5,7 +5,7 @@ const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction"
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
-const dafaultIpfsGateway = "https://ipfs.io/ipfs/";
+const dafaultIpfsGateway = "https://w3s.link/ipfs/";
 
 export const useSettingsStore = defineStore('settingsStore', () => {
   // Global settings

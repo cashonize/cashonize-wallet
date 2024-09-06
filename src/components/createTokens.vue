@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue';
   import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
+  import { copyToClipboard } from 'src/utils/utils';
   import alertDialog from 'src/components/alertDialog.vue'
   import { useStore } from '../stores/store'
   import { useQuasar } from 'quasar'
@@ -13,17 +14,6 @@
   const inputBcmr = ref("");
   const validitityCheck = ref(false);
   const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-10)}`:"");
-
-  function copyToClipboard(copyText: string|undefined){
-    if(!copyText) return
-    navigator.clipboard.writeText(copyText);
-    $q.notify({
-      message: "Copied!",
-      icon: 'info',
-      timeout : 1000,
-      color: "grey-6"
-    })
-  }
 
   async function createPreGenesis(){
     if(!store.wallet) return;

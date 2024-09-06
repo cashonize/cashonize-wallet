@@ -1,6 +1,18 @@
 import { type UtxoI } from "mainnet-js"
 import { hexToBin } from "@bitauth/libauth"
 import type { ElectrumTokenData, TokenDataFT, TokenDataNFT } from "../interfaces/interfaces"
+import { Notify } from "quasar";
+
+export function copyToClipboard(copyText:string|undefined){
+  if(!copyText) return
+  navigator.clipboard.writeText(copyText);
+  Notify.create({
+    message: "Copied!",
+    icon: 'info',
+    timeout : 1000,
+    color: "grey-6"
+  })
+}
 
 export function convertToUsd(satAmount: bigint, exchangeRate:number) {
   const newUsdValue =  Number(satAmount) * exchangeRate / 100_000_000

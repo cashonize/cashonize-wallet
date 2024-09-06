@@ -3,8 +3,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import type { dialogInfo } from 'src/interfaces/interfaces'
-  import { useQuasar } from 'quasar'
-  const $q = useQuasar()
+  import { copyToClipboard } from 'src/utils/utils';
   const store = useStore()
   const settingsStore = useSettingsStore()
   const emit = defineEmits(['closeDialog']);
@@ -14,17 +13,6 @@
   defineProps<{
     alertInfo: dialogInfo,
   }>()
-
-  function copyToClipboard(copyText: string|undefined){
-    if(!copyText) return
-    navigator.clipboard.writeText(copyText);
-    $q.notify({
-      message: "Copied!",
-      icon: 'info',
-      timeout : 1000,
-      color: "grey-6"
-    })
-  }
 
   watch(showDialog, () => {
     if(!showDialog.value) emit('closeDialog')

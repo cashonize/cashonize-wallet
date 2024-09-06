@@ -7,14 +7,15 @@
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
-
+  import { type Wallet, type TestNetWallet } from 'mainnet-js';
   defineExpose({
     connectDappUriInput
   });
-
+  
   const $q = useQuasar()
   const store = useStore()
-  const walletconnectStore = await useWalletconnectStore()
+  // TODO: move to walletconnectStore
+  const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet | TestNetWallet)
   const web3wallet = walletconnectStore.web3wallet
 
   const props = defineProps<{
@@ -41,6 +42,7 @@
   if(props.dappUriUrlParam){
     await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam })
   }
+  // TODO: add cashconnect dappUriUrlParam matching
 
   web3wallet?.on('session_proposal', wcSessionProposal);
 
@@ -60,7 +62,11 @@
     sessionProposalWC.value = sessionProposal;
   }
 
-  async function approveSession(sessionProposal: any){
+  async function approveSession(sessionProposal: any, dappTargetNetwork: "mainnet" | "chipnet"){
+    // Handle network switching when needed
+    if(store.wallet?.network != dappTargetNetwork){
+      await store.changeNetwork(dappTargetNetwork)
+    }
     const namespaces = {
       bch: {
         methods: [
@@ -104,7 +110,7 @@
     <legend>WalletConnect Sessions</legend>
 
     <div v-if="sessionProposalWC">
-      <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg) => approveSession(arg)" @reject-session="rejectSession()"/>
+      <WC2SessionRequestDialog :sessionProposalWC="sessionProposalWC" @approve-session="(arg1, arg2) => approveSession(arg1, arg2)" @reject-session="rejectSession()"/>
     </div>
 
     <div v-for="sessionInfo in Object.values(activeSessions || {}).reverse()" :key="sessionInfo.topic" class="wc2sessions" >
