@@ -183,8 +183,8 @@ function satsToBCH(satoshis: bigint) {
 </script>
 
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
-    <q-card style="width:600px; max-width:100%;">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale">
+    <q-card>
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">Sign Transaction</legend>
 

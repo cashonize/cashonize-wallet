@@ -91,7 +91,7 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
 </script>
 
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale">
     <q-card>
       <fieldset class="cc-modal-fieldset">
         <legend style="font-size: larger;">Approve Session?</legend>
@@ -115,7 +115,7 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
           <div class="cc-modal-details">
             <!-- Template -->
             <div class="cc-modal-section">
-              <div class="cc-modal-heading">Template</div>
+              <div class="cc-modal-heading">Template:</div>
               <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.requiredNamespaces?.bch?.template.name }}</a> (Untrusted)
             </div>
 
@@ -146,7 +146,7 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
           </div>
         </div>
         <!-- Approve/Reject Buttons -->
-        <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
+        <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
           <input type="button" class="primaryButton" value="Approve" @click="onDialogOK" v-close-popup>
           <input type="button" value="Reject" @click="onDialogCancel">
         </div>
