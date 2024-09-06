@@ -188,6 +188,10 @@ function satsToBCH(satoshis: bigint) {
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">Sign Transaction</legend>
 
+        <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
+          {{ pairedTxs[0].params.userPrompt }}
+        </div>
+
         <!-- Origin -->
         <q-item>
           <q-item-section avatar>
@@ -209,7 +213,7 @@ function satsToBCH(satoshis: bigint) {
             {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' +  `(${convertToUsd(amount, props.exchangeRate)}$)` }}
           </div>
           <div v-else>
-            <span>{{ getTokenName(category) + addSignPrefixToNumber(amount) }}</span>
+            <span>{{ addSignPrefixToNumber(amount) + ' ' + getTokenName(category) }}</span>
           </div>
         </div>
 
@@ -308,7 +312,7 @@ function satsToBCH(satoshis: bigint) {
         <hr/>
 
         <!-- Approve/Reject Buttons -->
-        <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
+        <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
           <input type="button" class="primaryButton" value="Approve" @click="onDialogOK" v-close-popup>
           <input type="button" value="Reject" @click="onDialogCancel">
         </div>
