@@ -22,10 +22,6 @@ defineEmits([
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-function onOKClick () {
-  onDialogOK()
-}
-
 function viewTemplate() {
   $q.dialog({
     component: CCViewTemplateDialog,
@@ -151,7 +147,7 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
         </div>
         <!-- Approve/Reject Buttons -->
         <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" value="Approve" @click="onOKClick" v-close-popup>
+          <input type="button" class="primaryButton" value="Approve" @click="onDialogOK" v-close-popup>
           <input type="button" value="Reject" @click="onDialogCancel">
         </div>
       </fieldset>

@@ -11,10 +11,6 @@ defineEmits([
 ])
 
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
-
-function onOKClick () {
-  onDialogOK()
-}
 </script>
 
 <template>
@@ -32,7 +28,7 @@ function onOKClick () {
 
         <!-- Bottom Buttons -->
         <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" value="OK" @click="onOKClick" v-close-popup>
+          <input type="button" class="primaryButton" value="OK" @click="onDialogOK" v-close-popup>
         </div>
       </fieldset>
     </q-card>
