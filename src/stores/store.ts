@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, computed } from 'vue'
+import { ref, computed, Ref } from 'vue'
 import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import type { TokenList, bcmrIndexerResponse } from "../interfaces/interfaces"
@@ -50,7 +50,7 @@ export const useStore = defineStore('store', () => {
     }
     wallet.value = newWallet;
     console.time('initialize walletconnect and cashconnect');
-    await Promise.all([initializeWalletConnect(newWallet), initializeCashConnect(newWallet)]);
+    await Promise.all([initializeWalletConnect(newWallet), initializeCashConnect()]);
     console.timeEnd('initialize walletconnect and cashconnect');
     // fetch bch balance
     console.time('Balance Promises');
@@ -150,17 +150,17 @@ export const useStore = defineStore('store', () => {
     web3wallet?.on('session_request', async (event) => walletconnectStore.wcRequest(event, walletAddress));
   }
 
-  async function initializeCashConnect(wallet: Wallet | TestNetWallet) {
+  async function initializeCashConnect() {
     // Initialize CashConnect.
-    const cashconnectWallet = await useCashconnectStore(wallet);
+    const cashconnectWallet = await useCashconnectStore(wallet as Ref<Wallet>);
 
     // Start the wallet service.
-    await cashconnectWallet.cashConnectWallet.start();
+    await cashconnectWallet.start();
 
     // Monitor the wallet for balance changes.
-    wallet.watchBalance(async () => {
+    wallet.value?.watchBalance(async () => {
       // Convert the network into WC format,
-      const chainIdFormatted = wallet.network === 'mainnet' ? 'bch:bitcoincash' : 'bch:bchtest';
+      const chainIdFormatted = wallet.value?.network === 'mainnet' ? 'bch:bitcoincash' : 'bch:bchtest';
 
       // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
       cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);

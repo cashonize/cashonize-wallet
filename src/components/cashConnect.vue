@@ -1,9 +1,10 @@
 <script setup lang="ts">
+  import { Ref } from 'vue';
+  import { storeToRefs } from 'pinia';
   import { useQuasar } from 'quasar';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
-
   import { Wallet } from 'mainnet-js';
 
   // Expose to parent component.
@@ -21,14 +22,13 @@
   }
 
   // NOTE: Vue's reactive unwrapping appears to interfere with the types.
-  //       So we just cast this to Wallet here (which works and is compatible in practice).
-  const cashconnectStore = await useCashconnectStore(store.wallet as Wallet);
+  //       So we just cast this to Ref<Wallet> here (which works and is compatible in practice).
+  const { wallet } = storeToRefs(store);
+  const cashconnectStore = await useCashconnectStore(wallet as Ref<Wallet>);
 
   // Methods.
   async function connectDappUriInput(url: string){
     try {
-      // TODO: investigate why cashconnectStore network reactivity isn't working
-      console.log('cashconnectStore network: ' + cashconnectStore.network)
       await cashconnectStore.pair(url);
     } catch(error) {
       $q.notify({
