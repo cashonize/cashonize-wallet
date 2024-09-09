@@ -19,7 +19,6 @@
 
   // TODO: investigate moving to main store
   const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
-  await walletconnectStore.initweb3wallet()
   const web3wallet = walletconnectStore.web3wallet
 
   const { wallet } = storeToRefs(store);
@@ -46,6 +45,7 @@
     }
   }
 
+  // TODO: investigate moving to ConnectDapp page
   if(props.dappUriUrlParam?.startsWith('wc:')){
     await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam })
   }
