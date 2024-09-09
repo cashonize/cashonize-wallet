@@ -4,13 +4,13 @@
 
 **Cashonize is an easy-to-use, multi-platfrom Bitcoin Cash wallet** <br>
 Cashonize supports CashTokens and WalletConnect which makes it an ideal wallet for using dapps on BCH. <br>
-Currently Cashonize is available as webwallet and a desktop application. <br>
-
+Currently Cashonize is available as webwallet, a Windows desktop application and Android APK. <br>
 
 ### The wallet for you?
 
-Because of its minimalist design, Cashonize is a user-friendly wallet, even for inexperienced users .
-Cashonize nicely displays your NFT collections by collapsing NFTs of the same tokenId, making it ideal for NFT collectors.
+Because of its minimalist design, Cashonize is a user-friendly wallet, even for inexperienced users.
+Cashonize has an easy-to-understand transaction preview screen for WalletConnect and CashConnect, empowering users before signing DeFi transactions.
+Further, Cashonize nicely groups and displays your NFTs, making it ideal for NFT collectors.
 
 Cashonize is a single-address wallet, for privacy-centered users is better to use a HD-wallet.
 Cashonize does not have a display for your transaction history and for now it only supports USD for denomating BCH balances.
