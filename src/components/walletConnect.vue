@@ -1,6 +1,7 @@
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+  import { ref, computed, Ref } from 'vue'
+  import { storeToRefs } from 'pinia';
   import WC2SessionRequestDialog from 'src/components/walletconnect/WC2SessionRequestDialog.vue';
   import WC2ActiveSession from 'src/components/walletconnect/WC2ActiveSession.vue'
   import { getSdkError } from '@walletconnect/utils';
@@ -21,7 +22,8 @@
   await walletconnectStore.initweb3wallet()
   const web3wallet = walletconnectStore.web3wallet
 
-  const cashconnectStore = await useCashconnectStore(store.wallet as Wallet);
+  const { wallet } = storeToRefs(store);
+  const cashconnectStore = await useCashconnectStore(wallet as Ref<Wallet>);
 
   const props = defineProps<{
     dappUriUrlParam?: string
