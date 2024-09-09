@@ -38,6 +38,9 @@ export const useStore = defineStore('store', () => {
   let cancelWatchBchtxs: undefined | CancelWatchFn;
   let cancelWatchTokenTxs: undefined | CancelWatchFn;
 
+  // Create a callback that triggers when we switch networks.
+  let networkChangeCallbacks: Array<() => Promise<void>> = [];
+
   function changeView(newView: number) {
     displayView.value = newView;
   }
@@ -124,6 +127,12 @@ export const useStore = defineStore('store', () => {
   }
 
   async function changeNetwork(newNetwork: 'mainnet' | 'chipnet'){
+    // Execute each of our network changed callbacks.
+    // In practice, we're using these for WC/CC to disconnect their sessions.
+    networkChangeCallbacks.forEach((callback) => callback());
+    // clear the networkChangeCallbacks before initialising newWallet 
+    networkChangeCallbacks = []
+
     // cancel active listeners
     if(cancelWatchBchtxs && cancelWatchTokenTxs){
       cancelWatchBchtxs()
@@ -147,6 +156,21 @@ export const useStore = defineStore('store', () => {
     await walletconnectStore.initweb3wallet();
     const web3wallet = walletconnectStore.web3wallet;
     const walletAddress = wallet.getDepositAddress()
+    // Setup network change callback to disconnect all sessions.
+    networkChangeCallbacks.push(async () => {
+      const sessions = walletconnectStore.web3wallet?.getActiveSessions();
+      if(!sessions) return
+
+      for (const session of Object.values(sessions)) {
+        walletconnectStore.web3wallet?.disconnectSession({
+          topic: session.topic,
+          reason: {
+            code: 5000,
+            message: "User rejected",
+          },
+        });
+      }
+    });
     web3wallet?.on('session_request', async (event) => walletconnectStore.wcRequest(event, walletAddress));
   }
 
@@ -156,6 +180,12 @@ export const useStore = defineStore('store', () => {
 
     // Start the wallet service.
     await cashconnectWallet.start();
+
+    // Setup network change callback to disconnect all sessions.
+    // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
+    networkChangeCallbacks.push(async () => {
+      cashconnectWallet.cashConnectWallet.disconnectAllSessions();
+    });
 
     // Monitor the wallet for balance changes.
     wallet.value?.watchBalance(async () => {
