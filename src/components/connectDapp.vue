@@ -53,9 +53,9 @@
 <template>
     <fieldset class="item">
       <legend>Connect to Dapp</legend>
-      <input v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
+      <input @keyup.enter="connectDappUriInput" v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
       <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem;">
-        <input @click="connectDappUriInput" type="button" class="primaryButton" @keyup.enter="connectDappUriInput" value="Connect New dApp">
+        <input @click="connectDappUriInput" type="button" class="primaryButton" value="Connect New dApp">
       </div>
     </fieldset>
 
