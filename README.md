@@ -1,4 +1,4 @@
-![3](https://github.com/cashonize/cashonize-quasar/assets/53938059/fd6b8244-76ba-4d3d-9b84-c757e0fb0e21)
+![3](https://github.com/cashonize/cashonize-wallet/assets/53938059/fd6b8244-76ba-4d3d-9b84-c757e0fb0e21)
 
 ## Cashonize: a Bitcoin Cash Wallet
 
@@ -17,7 +17,7 @@ Cashonize does not have a display for your transaction history and for now it on
 
 ## Platforms
 
-🖥️ Desktop version: https://github.com/cashonize/cashonize-quasar/releases
+🖥️ Desktop version: https://github.com/cashonize/cashonize-wallet/releases
 
 🌐 Webwallet: [cashonize.com](cashonize.com) 
 

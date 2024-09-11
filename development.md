@@ -1,4 +1,4 @@
-# Cashonize (cashonize-quasar)
+# Cashonize
 
 Cashonize: a Bitcoin Cash Wallet
 
