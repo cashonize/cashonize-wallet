@@ -1,4 +1,4 @@
-package com.cashonize.quasar;
+package com.cashonize.wallet;
 
 import com.getcapacitor.BridgeActivity;
 

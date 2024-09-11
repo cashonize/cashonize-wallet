@@ -212,7 +212,7 @@ module.exports = configure(function (/* ctx */) {
       builder: {
         // https://www.electron.build/configuration/configuration
         
-        appId: 'com.cashonize.quasar',
+        appId: 'com.cashonize.wallet',
         nsis: {
           createDesktopShortcut: "always",
           differentialPackage: false
