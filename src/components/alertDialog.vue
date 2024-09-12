@@ -33,10 +33,12 @@
         {{ alertInfo.message }} <br><br>
         <span @click="copyToClipboard(alertInfo.txid)" style="cursor: pointer;">
           TransactionId: {{ alertInfo.txid.slice(0, 20) + "..." + alertInfo.txid.slice(-10) }}
-          <img class="copyIcon icon" :src="settingsStore.darkMode? 'images/copyGrey.svg':'images/copy.svg'">
         </span>
         <br><br>
         <a :href="store.explorerUrl + `/${alertInfo.txid}`" target="_blank">Link blockexplorer</a>
+        <span @click="copyToClipboard(store.explorerUrl + `/${alertInfo.txid}`)" style="cursor: pointer;">
+          <img class="copyIcon icon" :src="settingsStore.darkMode? 'images/copyGrey.svg':'images/copy.svg'">
+        </span>
       </q-card-section>
       <br>
     </q-card>
