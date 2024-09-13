@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue'
-  import { convert } from 'mainnet-js'
+  import { BalanceResponse, convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
@@ -70,9 +70,23 @@
     const newBchValue = await convert(currencySendAmount.value, settingsStore.currency, settingsStore.bchUnit);
     bchSendAmount.value = Number(newBchValue);
   }
+  async function updateCurrencyBalance(){
+    if(store.balance && store.maxAmountToSend){
+      const newFiatValue = await convert(
+        store.maxAmountToSend[settingsStore.bchUnit], "bch", settingsStore.currency
+      )
+      const refreshedBalance: BalanceResponse = {
+        ...store.balance,
+        [settingsStore.currency]: newFiatValue
+      }
+      store.balance = refreshedBalance
+    }
+  }
   async function useMaxBchAmount(){
     if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit]){
       bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
+      // update currency balance & set currency amount
+      updateCurrencyBalance()
       setCurrencyAmount()
     }
     else{
