@@ -73,7 +73,8 @@
 
   async function approveSession(sessionProposal: any, dappTargetNetwork: "mainnet" | "chipnet"){
     // Handle network switching when needed
-    if(store.wallet?.network != dappTargetNetwork){
+    const currentNetwork = store.wallet?.network == "mainnet" ? "mainnet" : "chipnet"
+    if(currentNetwork != dappTargetNetwork){
       await store.changeNetwork(dappTargetNetwork)
     }
     const namespaces = {
