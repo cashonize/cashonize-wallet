@@ -57,7 +57,7 @@ export const useStore = defineStore('store', () => {
     console.timeEnd('initialize walletconnect and cashconnect');
     // fetch bch balance
     console.time('Balance Promises');
-    const promiseWalletBalance = wallet.value.getBalance() as BalanceResponse;
+    const promiseWalletBalance = wallet.value.getBalance();
     const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend();
     const balancePromises = [promiseWalletBalance,promiseMaxAmountToSend];
     const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
@@ -66,8 +66,8 @@ export const useStore = defineStore('store', () => {
     console.time('fetch tokenUtxos Promise');
     await updateTokenList();
     console.timeEnd('fetch tokenUtxos Promise');
-    balance.value = resultWalletBalance;
-    maxAmountToSend.value = resultMaxAmountToSend;
+    balance.value = resultWalletBalance as BalanceResponse;
+    maxAmountToSend.value = resultMaxAmountToSend as BalanceResponse;
     setUpWalletSubscriptions();
     // get plannedTokenId
     if(!tokenList.value) return // should never happen
