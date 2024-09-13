@@ -119,13 +119,8 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
               },
             })
               .onOk(async() => {
-                const broadcast = await signTransactionWC(event)
+                await signTransactionWC(event)
                 resolve();
-                const message = broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
-                Notify.create({
-                  type: 'positive',
-                  message
-                })
               })
               .onCancel(async() => {
                 await rejectRequest(event)
@@ -262,7 +257,11 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       }
       await web3wallet.value?.respondSessionRequest({ topic, response });
 
-      return requestParams.broadcast
+      const message = requestParams.broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
+      Notify.create({
+        type: 'positive',
+        message
+      })
     }
 
     async function signMessage(signMessageRequestWC: any){
