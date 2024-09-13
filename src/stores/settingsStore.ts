@@ -1,3 +1,4 @@
+import { Config } from "mainnet-js";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 
@@ -9,6 +10,7 @@ const dafaultIpfsGateway = "https://w3s.link/ipfs/";
 
 export const useSettingsStore = defineStore('settingsStore', () => {
   // Global settings
+  const currency = ref("usd" as ("usd" | "eur"));
   const bchUnit = ref("bch" as ("bch" | "sat"));
   const explorerMainnet = ref(defaultExplorerMainnet);
   const explorerChipnet = ref(defaultExplorerChipnet);
@@ -19,6 +21,12 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const tokenBurn = ref(false);
 
   // read local storage for stored settings
+  const readCurrency = localStorage.getItem("currency");
+  if(readCurrency && (readCurrency=="usd" || readCurrency=="eur")) {
+    currency.value = readCurrency;
+    Config.DefaultCurrency = readCurrency;
+  }
+
   const readUnit = localStorage.getItem("unit");
   if(readUnit && (readUnit=="bch" || readUnit=="sat")) bchUnit.value = readUnit;
 
@@ -41,5 +49,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  return { bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn }
+  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn }
 })

@@ -4,10 +4,12 @@ import { useDialogPluginComponent } from 'quasar'
 import type { BchSession, SignTransactionV0 } from 'cashconnect';
 import type { SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress } from '@bitauth/libauth';
-import { convertToUsd } from 'src/utils/utils'
+import { CurrencySymbols } from 'src/interfaces/interfaces';
+import { convertToCurrency } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
-
-const store = useStore();
+import { useSettingsStore } from 'src/stores/settingsStore';
+const store = useStore()
+const settingsStore = useSettingsStore()
 
 const props = defineProps<{
   session: BchSession,
@@ -209,7 +211,8 @@ function satsToBCH(satoshis: bigint) {
         <div class="cc-modal-heading" style="margin-top: 1.5rem;">Balance Change:</div>
         <div v-for="(amount, category) of balanceChanges" :key="category">
           <div v-if="(category === 'sats')">
-            {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' +  `(${convertToUsd(amount, props.exchangeRate)}$)` }}
+            {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' }}
+            ({{ convertToCurrency(amount, props.exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
           </div>
           <div v-else>
             <span>{{ addSignPrefixToNumber(amount) + ' ' + getTokenName(category) }}</span>

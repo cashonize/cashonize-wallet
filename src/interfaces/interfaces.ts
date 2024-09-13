@@ -1,5 +1,15 @@
 import { type UtxoI, type NFTCapability } from "mainnet-js"
 
+export const CurrencySymbols = {
+  usd: "$",
+  eur: "€"
+}
+
+export const CurrencyShortNames = {
+  usd: "USD",
+  eur: "EUR"
+}
+
 export type TokenList = (TokenDataNFT | TokenDataFT)[]
 
 export interface TokenDataNFT {

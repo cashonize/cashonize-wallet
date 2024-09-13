@@ -26,6 +26,8 @@ import {
   cashAddressToLockingBytecode,
   walletTemplateP2pkhNonHd,
 } from "@bitauth/libauth";
+import { useSettingsStore } from 'src/stores/settingsStore';
+const settingsStore = useSettingsStore()
 
 // NOTE: We use a wrapper so that we can pass in the Mainnet Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that CC cannot exist without a valid wallet.
@@ -187,7 +189,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       if (!autoApprovedMethods.includes(request.method)) {
         // Handle bch_signTransaction_V0.
         if (request.method === "bch_signTransaction_V0") {
-          const exchangeRate = await convert(1, "bch", "usd");
+          const exchangeRate = await convert(1, "bch", settingsStore.currency);
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
               component: CCSignTransactionDialogVue,

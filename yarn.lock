@@ -17,25 +17,30 @@
   resolved "https://registry.npmjs.org/@babel/parser/-/parser-7.23.6.tgz"
   integrity sha512-Z2uID7YJ7oNvAI20O9X0bblw7Qqs8Q2hFy0R9tAfnfLkp5MW0UH9eUvnDSnFwKZ0AvgS1ucqR4KzvVHgnke1VQ==
 
-"@bitauth/libauth@2.0.0", "@bitauth/libauth@^2.0.0":
+"@bitauth/libauth@2.0.0":
   version "2.0.0"
   resolved "https://registry.npmjs.org/@bitauth/libauth/-/libauth-2.0.0.tgz"
   integrity sha512-wFnQtnJvz7S7jU7fQuBJzRQrVHk46DELd5s8D0F61bW567bKVVfMLbwNPCs12pzVckueQTlLwCS//I9skGI1zg==
+
+"@bitauth/libauth@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@bitauth/libauth/-/libauth-3.0.0.tgz#d88535fc5353d5ecd11db96d9a229e11c06a43d2"
+  integrity sha512-3yoL31XpnhAnf5nDVMFk4xPqebxDwXrgYAwpa31ARJnV5A/eXWlpNYvCd6FTZPFM4VvKfjCBi+jRCrw1hOZ0Jg==
 
 "@bitjson/qr-code@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@bitjson/qr-code/-/qr-code-1.0.2.tgz#a17330a09e6d29490d10eadb7280fdb41a070b03"
   integrity sha512-oqcTWhzMs8Dt/xrHKDUzYglccgjVX2GleASd4FsE7TGGUkW8n57tBjKmfwkAVWa722+v6ijS81EmWbd07ebsmQ==
 
-"@capacitor/app@^5.0.7":
-  version "5.0.7"
-  resolved "https://registry.yarnpkg.com/@capacitor/app/-/app-5.0.7.tgz#f71e81320bcd504c400c1f503ba43a88ccac96e8"
-  integrity sha512-oad0jwQu+vgQDukeS9UV56yG10dlxkAGGl26IQpZlTmg3dTI9qSJtvhmlLfkF0nEtoj5IsVQUPE+NLH1oZkgGQ==
+"@capacitor/app@^6.0.0":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@capacitor/app/-/app-6.0.1.tgz#601878ea1b4488a9a89b61b437644bbe134a0532"
+  integrity sha512-0kXbOl7LPPMFVcAii3u/7Ps0DvXlr7dtHT97r9J1faDlgdQLQUvtGp48tjvFm48gqHI0aOPRJnTBr5JXW4ETYg==
 
-"@capacitor/core@^5.7.4":
-  version "5.7.4"
-  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-5.7.4.tgz#df894775972413982c03fad1ab9e39da38671549"
-  integrity sha512-iZBgvx3o4amzKv5ttA+QHB6i7cxK+/mYpCQd1tnSdipg6ZkvfBhg1HkzhEqHk+I7MNur+QwgYDZho9+ycHRwOw==
+"@capacitor/core@^6.0.0":
+  version "6.1.2"
+  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-6.1.2.tgz#a072e78b46693a6a47047cfc90d5f7cc48299fe9"
+  integrity sha512-xFy1/4qLFLp5WCIzIhtwUuVNNoz36+V7/BzHmLqgVJcvotc4MMjswW/TshnPQaLLujEOaLkA4h8ZJ0uoK3ImGg==
   dependencies:
     tslib "^2.1.0"
 
@@ -390,13 +395,13 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@mainnet-cash/indexeddb-storage@^2.2.7":
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-2.3.3.tgz#107dba3c4cd3d0b9f02ff2e83982674207c8b7bb"
-  integrity sha512-tCEe5mQBFbZFDKL41/L01hRjVFEA6YDDms/mDptiH8ReOanY/1UMbxnDY3JIdYKZ6Xc1/iGapzUdf6/rm4QPpw==
+"@mainnet-cash/indexeddb-storage@^2.5.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-2.5.0.tgz#1798bd8c22c249717f36c103b140ca22f72039b1"
+  integrity sha512-R3t0pNu4tPfy/BnZRGEj6Bt9p7cAreRRqo/2LtKaYkgUouuFF4JXJG9hTjyJC7rdpyf64F6JWnoLzTX8040bOg==
   dependencies:
     dexie "^3.2.4"
-    mainnet-js "2.3.3"
+    mainnet-js "2.5.0"
 
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
@@ -415,7 +420,7 @@
     lodash "^4.17.15"
     tmp-promise "^3.0.2"
 
-"@noble/hashes@^1.2.0", "@noble/hashes@~1.3.2":
+"@noble/hashes@~1.3.2":
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.3.tgz#39908da56a4adc270147bb07968bf3b16cfe1699"
   integrity sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==
@@ -1826,13 +1831,6 @@ binary-extensions@^2.0.0:
   version "2.2.0"
   resolved "https://registry.npmjs.org/binary-extensions/-/binary-extensions-2.2.0.tgz"
   integrity sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==
-
-bip39@^3.0.3:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/bip39/-/bip39-3.1.0.tgz#c55a418deaf48826a6ceb34ac55b3ee1577e18a3"
-  integrity sha512-c9kiwdk45Do5GL0vJMe7tS95VjCii65mYAH7DfWl3uW8AVzXKQVUm64i3hzVybBDMp9r7j9iNxR85+ul8MdN/A==
-  dependencies:
-    "@noble/hashes" "^1.2.0"
 
 bl@^4.0.3, bl@^4.1.0:
   version "4.1.0"
@@ -4450,28 +4448,12 @@ magic-string@^0.30.3, magic-string@^0.30.5:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.4.15"
 
-mainnet-js@2.3.3:
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.3.3.tgz#531fc8547dba8b17e6129f1fa34ae1c0886e45c8"
-  integrity sha512-DlCvJKBRhAdDy0S0VSsUUslWFHAD7g9tuJp5afLErJRphgcgYbxkV6o+DaADItEGkFi4sljgxGMfq2V28dFVnw==
+mainnet-js@2.5.0, mainnet-js@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.5.0.tgz#2a5a396eb11cde4828573ed37912a3d8a88c6e74"
+  integrity sha512-vyC7Q749ag2w0GNwkynp2Qy4741OdzPUWyTwjxX4xeQqqGkU2MC6SXUMo6SBVUOv+tDkltdiscxWZtHHWbwzSQ==
   dependencies:
-    "@bitauth/libauth" "^2.0.0"
-    bip39 "^3.0.3"
-    buffer "^6.0.3"
-    electrum-cash "^2.0.10"
-    events "^3.2.0"
-    eventsource "^1.0.7"
-    qrcode-svg "1.1.0"
-  optionalDependencies:
-    dotenv "^10.0.0"
-    stream-browserify "^3.0.0"
-
-mainnet-js@^2.3.13:
-  version "2.3.13"
-  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.3.13.tgz#84a5f8b05ed84ddb17e62456ed157914ad19d5c9"
-  integrity sha512-YHX5hJX9cN4qCvQwVD0QPBTT8rm5RzSf6AAP2VvWmhSJfzgRL5pYKjtp2ysNGB+JM4HxDqNRyebe48ava0GQ/A==
-  dependencies:
-    "@bitauth/libauth" "^2.0.0"
+    "@bitauth/libauth" "^3.0.0"
     "@scure/bip39" "^1.2.2"
     buffer "^6.0.3"
     electrum-cash "^2.0.10"

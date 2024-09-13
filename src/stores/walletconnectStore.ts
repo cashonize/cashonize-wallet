@@ -31,6 +31,8 @@ import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
 import { ContractInfo } from "src/interfaces/interfaces"
+import { useSettingsStore } from 'src/stores/settingsStore';
+const settingsStore = useSettingsStore()
 
 // NOTE: We use a wrapper so that we can pass in the Mainnet Wallet as an argument.
 export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
@@ -108,7 +110,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
           const session = sessions[topic];
           if (!session) return;
           const dappMetadata = session.peer.metadata;
-          const exchangeRate = await convert(1, "bch", "usd");
+          const exchangeRate = await convert(1, "bch", settingsStore.currency);
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
               component: WC2TransactionRequest,

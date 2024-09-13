@@ -14,9 +14,9 @@ export function copyToClipboard(copyText:string|undefined){
   })
 }
 
-export function convertToUsd(satAmount: bigint, exchangeRate:number) {
-  const newUsdValue =  Number(satAmount) * exchangeRate / 100_000_000
-  return Number(newUsdValue.toFixed(2));
+export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
+  const newFiatValue =  Number(satAmount) * exchangeRate / 100_000_000
+  return Number(newFiatValue.toFixed(2));
 }
 
 export function getAllNftTokenBalances(tokenUtxos: UtxoI[]){

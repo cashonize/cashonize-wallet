@@ -3,10 +3,12 @@
   import { binToHex, lockingBytecodeToCashAddress, type TransactionCommon, type Input, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { BCMR } from "mainnet-js"
-  import type { DappMetadata, ContractInfo } from "src/interfaces/interfaces"
+  import { type DappMetadata, type ContractInfo, CurrencySymbols } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
-  import { parseExtendedJson } from 'src/utils/utils'
+  import { convertToCurrency, parseExtendedJson } from 'src/utils/utils'
+  import { useSettingsStore } from 'src/stores/settingsStore';
   const store = useStore()
+  const settingsStore = useSettingsStore()
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
@@ -46,11 +48,6 @@
     return result;
   }
 
-  function convertToUsd(satAmount: bigint) {
-    const newUsdValue =  Number(satAmount) * exchangeRate.value / 100_000_000
-    return Number(newUsdValue.toFixed(2));
-  }
-
   const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput:any) => 
     toCashaddr(sourceOutput.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + sourceOutput.valueSatoshis : total, 0n
   );
@@ -58,7 +55,7 @@
     toCashaddr(outputs.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + outputs.valueSatoshis : total, 0n
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
-  const usdBalanceChange = convertToUsd(bchBalanceChange);
+  const currencyBalanceChange = convertToCurrency(bchBalanceChange, exchangeRate.value);
 
   const tokensSpentInputs:Record<string, NonNullable<Output['token']>[]> = {}
   const tokensReceivedOutputs:Record<string, NonNullable<Output['token']>[]> = {}
@@ -104,7 +101,7 @@
         <div class="wc-modal-heading" style="margin-top: 1.5rem;">Balance Change:</div>
           <div>
             {{ bchBalanceChange > 0 ? '+ ': '- '}} {{ satoshiToBCHString(abs(bchBalanceChange)) }}
-            ({{ usdBalanceChange }}$)
+            ({{ currencyBalanceChange + ` ${CurrencySymbols[settingsStore.currency]}`}})
           </div>
           <div v-for="(tokenArrayInput, firstIndex) in tokensSpentInputs" :key="firstIndex">
             <div v-for="(tokenSpent, index) in tokenArrayInput" :key="binToHex(tokenSpent.category) + index">
