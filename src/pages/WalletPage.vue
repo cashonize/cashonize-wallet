@@ -14,20 +14,14 @@
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
+  import { useQuasar } from 'quasar'
+  const $q = useQuasar()
 
   const props = defineProps<{
     uri: string | undefined
   }>()
 
   const dappUriUrlParam = ref(undefined as undefined|string);
-
-  watch(props, () => {
-    // check if session request in URL params passed through prop
-    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
-      dappUriUrlParam.value = props.uri
-      store.changeView(4);
-    }
-  })
   
   // check if wallet exists
   const mainnetWalletExists = await Wallet.namedExists(store.nameWallet);
@@ -43,11 +37,27 @@
   
   // check if session request in URL params passed through prop
   if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
-    dappUriUrlParam.value = props.uri
-    // workaround to solve race conditions with initialising stores
-    await new Promise(resolve => setTimeout(resolve, 500)); 
-    store.changeView(4);
+    if(walletExists){
+      dappUriUrlParam.value = props.uri
+      // workaround to solve race conditions with initialising stores
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+      store.changeView(4);
+    } else {
+      $q.notify({
+        message: "Need to initialize a wallet first",
+        icon: 'warning',
+        color: "grey-7"
+      })
+    }
   }
+
+  watch(props, () => {
+    // check if session request in URL params passed through prop
+    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
+      dappUriUrlParam.value = props.uri
+      store.changeView(4);
+    }
+  })
 </script>
 
 <template>
