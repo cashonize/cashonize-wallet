@@ -72,7 +72,9 @@
     displayeSeedphrase.value = !displayeSeedphrase.value;
   }
   function confirmDeleteWallet(){
-    const text = "You are about to delete your Cashonize wallet info from this browser.\nAre you sure you want to delete?";
+    const isBrowser = (process.env.MODE == "spa");
+    const platformString = isBrowser ? 'browser' : 'application'
+    const text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
     if (confirm(text)){
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
