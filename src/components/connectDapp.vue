@@ -53,8 +53,11 @@
 <template>
     <fieldset class="item">
       <legend>Connect to Dapp</legend>
+      <div style="margin-bottom: 10px;">
+        To explore: <a href="https://tokenaut.cash/dapps?filter=walletconnect" target="_blank">Tokenaut.cash</a> has the full list of BCH Dapps with WalletConnect
+      </div>
       <input @keyup.enter="connectDappUriInput" v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
-      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-bottom: 5px">
         <input @click="connectDappUriInput" type="button" class="primaryButton" value="Connect New dApp">
       </div>
     </fieldset>
