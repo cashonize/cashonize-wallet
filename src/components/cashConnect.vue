@@ -49,7 +49,7 @@
         <!-- Iterate over active sessions -->
         <template v-for="(session, topic) of cashconnectStore.sessions" :key="topic">
           <div class="cc-session-item">
-            <div class="cc-session-item-app-icon"><q-img :src="session.peer.metadata.icons[0]" /></div>
+            <div class="cc-session-item-app-icon"><img :src="session.peer.metadata.icons[0]" /></div>
             <div class="cc-session-item-details-container">
               <div>{{ session.peer.metadata.name }}</div>
               <div><a href="session.peer.metadata.url" target="_blank">{{ session.peer.metadata.url }}</a></div>
