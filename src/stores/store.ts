@@ -269,15 +269,17 @@ export const useStore = defineStore('store', () => {
     if(!wallet.value) return // should never happen
     if(!tokenList.value?.length) return
     const copyTokenList = [...tokenList.value]
-    const authHeadTxIdPromises: Promise<string>[] = [];
-    // get all tokenUtxos & authHeadTxIds
+    // get all tokenUtxos
     const tokenUtxosPromise: Promise<UtxoI[]> = wallet.value.getTokenUtxos();
+    // get all authHeadTxIds in parallel
+    const authHeadTxIdPromises: Promise<string | undefined>[] = [];
     for (const token of tokenList.value){
       const fetchAuthHeadPromise = queryAuthHeadTxid(token.tokenId, settingsStore.chaingraph)
       authHeadTxIdPromises.push(fetchAuthHeadPromise)
     }
-    const authHeadTxIdResults = await Promise.all(authHeadTxIdPromises);
     const tokenUtxosResult = await tokenUtxosPromise;
+    const authHeadTxIdResults = await Promise.all(authHeadTxIdPromises);
+    if(authHeadTxIdResults.includes(undefined)) console.error("ChainGraph instance not returning all authHeadTxIds")
     // check if any tokenUtxo of category is the authUtxo for that category
     tokenList.value.forEach((token, index) => {
       const authHeadTxId = authHeadTxIdResults[index];

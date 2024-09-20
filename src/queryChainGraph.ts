@@ -119,7 +119,7 @@ export async function queryAuthHeadTxid(tokenId:string, chaingraphUrl:string){
   const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl)
   if(!authHeadObj) return
   const authHead = authHeadObj.authchains[0].authhead;
-  const authHeadTxId = authHead.hash.slice(2);
+  const authHeadTxId = authHead.hash.slice(2) as string;
   return authHeadTxId
 }
 
