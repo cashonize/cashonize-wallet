@@ -91,17 +91,28 @@
       console.log(error)
     }
   }
+  function countDecimalPlaces(number: number): number {
+    // Convert the number to a string
+    const numberString = number.toString();
+    // Find the index of the decimal point
+    const decimalIndex = numberString.indexOf('.');
+
+    // Return the number of decimal places
+    if (decimalIndex === -1) return 0;
+    return numberString.length - decimalIndex - 1;
+  }
   async function sendTokens(){
     try{
       if(!store.wallet) return;
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       if(!destinationAddr.value) throw("No destination address provided")
       if(!tokenSendAmount?.value) throw(`No valid amount provided`);
-      const decimals = tokenMetaData.value?.token?.decimals;
-      const amountTokens = decimals ? +tokenSendAmount.value * (10 ** decimals) : +tokenSendAmount.value;
-      const validInput =  Number.isInteger(amountTokens);
+      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+      const validInput = countDecimalPlaces(+tokenSendAmount.value) <= decimals
       if(!validInput && !decimals) throw(`Amount tokens to send must be a valid integer`);
-      if(!validInput ) throw(`Amount tokens to send must only have ${decimals} decimal places`);
+      if(!validInput) throw(`Amount tokens to send must only have ${decimals} decimal places`);
+      const amountTokensNumber = decimals ? +tokenSendAmount.value * (10 ** decimals) : +tokenSendAmount.value;
+      const amountTokensInt = BigInt(Math.round(amountTokensNumber))
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         throw(`Address prefix ${networkPrefix} is required`)
@@ -124,12 +135,12 @@
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
-          amount: amountTokens,
+          amount: amountTokensInt,
           tokenId: tokenId,
         }),
       ]);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      const amountSentFormatted = numberFormatter.format(toAmountDecimals(BigInt(amountTokens)))
+      const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const alertMessage = tokenMetaData.value?.token?.symbol ?
         `Sent ${amountSentFormatted} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
         : `Sent ${amountSentFormatted} fungible tokens of category ${displayId} to ${destinationAddr.value}`
@@ -157,15 +168,16 @@
     try {
       if(!store.wallet) return;
       if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
-      const decimals = tokenMetaData.value?.token?.decimals;
-      const amountTokens = decimals ? +burnAmountFTs.value * (10 ** decimals) : +burnAmountFTs.value;
-      const validInput =  Number.isInteger(amountTokens);
+      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+      const validInput = countDecimalPlaces(+burnAmountFTs.value) <= decimals
       if(!validInput && !decimals) throw(`Amount tokens to burn must be a valid integer`);
-      if(!validInput ) throw(`Amount tokens to burn must only have ${decimals} decimal places`);
+      if(!validInput) throw(`Amount tokens to burn must only have ${decimals} decimal places`);
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      const amountTokensNumber = decimals ? +burnAmountFTs.value * (10 ** decimals) : +burnAmountFTs.value;
+      const amountTokensInt = BigInt(Math.round(amountTokensNumber))
       const tokenId = tokenData.value.tokenId;
 
-      let burnWarning = `You are about to burn ${amountTokens} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
+      let burnWarning = `You are about to burn ${amountTokensInt} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
       if (confirm(burnWarning) != true) return;
 
       $q.notify({
@@ -176,12 +188,12 @@
       })
       const { txId } = await store.wallet.tokenBurn({
           tokenId: tokenId,
-          amount: BigInt(amountTokens),
+          amount: amountTokensInt,
         },
         "burn", // optional OP_RETURN message
       );
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      const amountBurntFormatted = numberFormatter.format(toAmountDecimals(BigInt(amountTokens)))
+      const amountBurntFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const alertMessage = tokenMetaData.value?.token?.symbol ?
         `Burned ${amountBurntFormatted} ${tokenMetaData.value.token.symbol}`
         : `Burned ${amountBurntFormatted} tokens of category ${displayId}`
@@ -208,11 +220,12 @@
     if(!store.wallet || !store.wallet.tokenaddr) return;
     if(!tokenData.value?.authUtxo) return;
     if(!reservedSupplyInput?.value) throw(`Amount tokens for reserved supply must be a valid integer`);
-    const decimals = tokenMetaData.value?.token?.decimals;
-    const reservedSupply = decimals ? +burnAmountFTs.value * (10 ** decimals) : +reservedSupplyInput.value;
-    const validInput =  Number.isInteger(reservedSupply);
+    const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+    const validInput = countDecimalPlaces(+reservedSupplyInput.value) <= decimals
     if(!validInput && !decimals) throw(`Amount tokens for reserved supply must be a valid integer`);
-    if(!validInput ) throw(`Amount tokens for reserved supply must only have ${decimals} decimal places`);
+    if(!validInput) throw(`Amount tokens for reserved supply must only have ${decimals} decimal places`);
+    const reservedSupplyNumer = decimals ? +reservedSupplyInput.value * (10 ** decimals) : +reservedSupplyInput.value;
+    const reservedSupply = BigInt(Math.round(reservedSupplyNumer))
     const tokenId = tokenData.value.tokenId;
     try {
       const authTransfer = !reservedSupply? {
@@ -225,7 +238,7 @@
         amount: reservedSupply
       });
       const outputs = [authTransfer];
-      const changeAmount = reservedSupply? tokenData.value.amount - BigInt(reservedSupply) : tokenData.value.amount;
+      const changeAmount = reservedSupply? tokenData.value.amount - reservedSupply : tokenData.value.amount;
       if(changeAmount){
         const changeOutput = new TokenSendRequest({
           cashaddr: store.wallet.tokenaddr,
