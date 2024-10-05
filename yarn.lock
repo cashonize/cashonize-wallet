@@ -543,10 +543,10 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@quasar/app-vite@^1.9.5":
-  version "1.9.5"
-  resolved "https://registry.yarnpkg.com/@quasar/app-vite/-/app-vite-1.9.5.tgz#99c06269fc655e5a35b51d2ecdac9da98b0c3034"
-  integrity sha512-WO/S8Omav28BzV6BAOY9Gq5k/jmrIklZ+/rXtWqmW1OFIyyI9Gw62kGsVHgLQ0f1Jv1BNdaqWixD6fUcV+knTw==
+"@quasar/app-vite@^1.10.0":
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@quasar/app-vite/-/app-vite-1.10.0.tgz#06cc410e23e7ab3ed0321ee3df6c37652a2af516"
+  integrity sha512-9zJfSBh1GtsmS1c3zIKa78gwPAMJoJ4AHv7KftkaaLQ4F1z2DpoqKbJG8YiXVR9STOronPAh+4JNypFP1RHFfQ==
   dependencies:
     "@quasar/render-ssr-error" "^1.0.3"
     "@quasar/vite-plugin" "^1.7.0"
@@ -576,7 +576,7 @@
     open "^8.4.0"
     register-service-worker "^1.7.2"
     rollup-plugin-visualizer "^5.5.4"
-    sass "^1.33.0"
+    sass "^1.79.1"
     semver "^7.3.5"
     serialize-javascript "^6.0.0"
     table "^6.8.0"
@@ -2145,7 +2145,7 @@ chardet@^0.7.0:
   resolved "https://registry.npmjs.org/chardet/-/chardet-0.7.0.tgz"
   integrity sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==
 
-"chokidar@>=3.0.0 <4.0.0", chokidar@^3.5.3:
+chokidar@^3.5.3:
   version "3.5.3"
   resolved "https://registry.npmjs.org/chokidar/-/chokidar-3.5.3.tgz"
   integrity sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==
@@ -2159,6 +2159,13 @@ chardet@^0.7.0:
     readdirp "~3.6.0"
   optionalDependencies:
     fsevents "~2.3.2"
+
+chokidar@^4.0.0:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-4.0.1.tgz#4a6dff66798fb0f72a94f616abbd7e1a19f31d41"
+  integrity sha512-n8enUVCED/KVRQlab1hr3MVpcVMvxtZjmEa956u+4YijlmQED223XMSYj2tLuKvr4jcCTzNNMpQDUer72MMmzA==
+  dependencies:
+    readdirp "^4.0.1"
 
 chota@^0.9.2:
   version "0.9.2"
@@ -5249,10 +5256,10 @@ qs@^6.11.2:
   dependencies:
     side-channel "^1.0.4"
 
-quasar@^2.16.11:
-  version "2.16.11"
-  resolved "https://registry.yarnpkg.com/quasar/-/quasar-2.16.11.tgz#5d6415eff7e7be2e4cf4641c8bfbb937b6993642"
-  integrity sha512-64C03WzZTRlJFvn0xNG3xmq/4R97lqbZAbzNE19ObNeYSUbJzQ8xi4ft5YQDRfTTIJ7RxB3pNye/dOSb11qoxQ==
+quasar@^2.17.0:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/quasar/-/quasar-2.17.0.tgz#af92f90e8d6571479745eeb6bed20b1e0a40e789"
+  integrity sha512-xFWwCt4FGuaC0M4/MA5drjBiCP7kj/5BsUPv2+dDIlyQG9YGvKIewCnWYYt02r4ijRqJSzPb7TsH89Gzkno1Mg==
 
 query-string@7.1.3:
   version "7.1.3"
@@ -5359,6 +5366,11 @@ readdir-glob@^1.1.2:
   integrity sha512-v05I2k7xN8zXvPD9N+z/uhXPaj0sUFCe2rcWZIpBsqxfP7xXFQ0tipAd/wjj1YxWyWtUS5IDJpOG82JKt2EAVA==
   dependencies:
     minimatch "^5.1.0"
+
+readdirp@^4.0.1:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/readdirp/-/readdirp-4.0.2.tgz#388fccb8b75665da3abffe2d8f8ed59fe74c230a"
+  integrity sha512-yDMz9g+VaZkqBYS/ozoBJwaBhTbZo3UNYQHNRw1D3UFQB8oHB4uS/tAODO+ZLjGWmUbKnIlOWO+aaIiAxrUWHA==
 
 readdirp@~3.6.0:
   version "3.6.0"
@@ -5538,12 +5550,12 @@ sanitize-filename@^1.6.3:
   dependencies:
     truncate-utf8-bytes "^1.0.0"
 
-sass@^1.33.0:
-  version "1.70.0"
-  resolved "https://registry.npmjs.org/sass/-/sass-1.70.0.tgz"
-  integrity sha512-uUxNQ3zAHeAx5nRFskBnrWzDUJrrvpCPD5FNAoRvTi0WwremlheES3tg+56PaVtCs5QDRX5CBLxxKMDJMEa1WQ==
+sass@^1.79.1:
+  version "1.79.4"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.79.4.tgz#f9c45af35fbeb53d2c386850ec842098d9935267"
+  integrity sha512-K0QDSNPXgyqO4GZq2HO5Q70TLxTH6cIT59RdoCHMivrC8rqzaTw5ab9prjz9KUN1El4FLXrBXJhik61JR4HcGg==
   dependencies:
-    chokidar ">=3.0.0 <4.0.0"
+    chokidar "^4.0.0"
     immutable "^4.0.0"
     source-map-js ">=0.6.2 <2.0.0"
 
