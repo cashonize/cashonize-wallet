@@ -5,7 +5,7 @@ import { ref } from 'vue'
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
-const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
+const defaultChaingraph = "https://demo.chaingraph.cash/v1/graphql";
 const dafaultIpfsGateway = "https://w3s.link/ipfs/";
 
 export const useSettingsStore = defineStore('settingsStore', () => {

@@ -131,8 +131,8 @@
       <div style="margin-top:15px">
         <label for="selectNetwork">Change ChainGraph:</label>
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
-          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph (default)</option>
-          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
+          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph (default)</option>
+          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph</option>
         </select>
       </div>
 
