@@ -73,6 +73,21 @@
     }
   })
   
+  function checkValidTokenInput(numberInput: string, decimals: number){
+    // Validate the input format (no separting commas allowed here)
+    if (!/^\d*\.?\d*$/.test(numberInput)) throw ('Invalid number format');
+
+    // Validate if the input can be converted to a number
+    const number = parseFloat(numberInput);
+    if (isNaN(number) || number <= 0) throw(`Enter a valid positive amount`);
+
+    // check number of decimal places
+    const decimalPart = numberInput.split('.')[1];
+    const decimalPlaces = decimalPart ? decimalPart.length : 0;
+    const validInput = decimalPlaces <= decimals
+    if(!validInput && !decimals) throw(`This token does not allow for decimal places`);
+    if(!validInput) throw (`This token only allows up to ${decimals} decimal places`);
+  }
   // Fungible token specific functionality
   function toAmountDecimals(amount:bigint){
     let tokenAmountDecimals: bigint|number = amount;
@@ -81,25 +96,11 @@
     return tokenAmountDecimals;
   }
   async function maxTokenAmount(tokenSend:boolean){
-    try{
-      if(!tokenData.value?.amount) return // should never happen
-      const decimals = tokenMetaData.value?.token?.decimals;
-      let amountTokens = decimals ? Number(tokenData.value.amount) / (10 ** decimals) : tokenData.value.amount;
-      const targetState = tokenSend? tokenSendAmount : burnAmountFTs;
-      targetState.value = amountTokens.toString();
-    } catch(error) {
-      console.log(error)
-    }
-  }
-  function countDecimalPlaces(number: number): number {
-    // Convert the number to a string
-    const numberString = number.toString();
-    // Find the index of the decimal point
-    const decimalIndex = numberString.indexOf('.');
-
-    // Return the number of decimal places
-    if (decimalIndex === -1) return 0;
-    return numberString.length - decimalIndex - 1;
+    if(!tokenData.value?.amount) return // should never happen
+    const decimals = tokenMetaData.value?.token?.decimals;
+    const amountTokens = decimals ? Number(tokenData.value.amount) / (10 ** decimals) : tokenData.value.amount;
+    const targetState = tokenSend? tokenSendAmount : burnAmountFTs;
+    targetState.value = numberFormatter.format(amountTokens);
   }
   async function sendTokens(){
     try{
@@ -107,12 +108,12 @@
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       if(!destinationAddr.value) throw("No destination address provided")
       if(!tokenSendAmount?.value) throw(`No valid amount provided`);
+      const sanitizedInput = tokenSendAmount.value.replace(/,/g, '');
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      const validInput = countDecimalPlaces(+tokenSendAmount.value) <= decimals
-      if(!validInput && !decimals) throw(`Amount tokens to send must be a valid integer`);
-      if(!validInput) throw(`Amount tokens to send must only have ${decimals} decimal places`);
-      const amountTokensNumber = decimals ? +tokenSendAmount.value * (10 ** decimals) : +tokenSendAmount.value;
-      const amountTokensInt = BigInt(Math.round(amountTokensNumber))
+      checkValidTokenInput(sanitizedInput, decimals)
+      const amountTokensNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
+      const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
+      if(amountTokensInt > tokenData.value.amount) throw(`Insufficient token balance`);
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         throw(`Address prefix ${networkPrefix} is required`)
@@ -167,14 +168,14 @@
   async function burnFungibles(){
     try {
       if(!store.wallet) return;
-      if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
-      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      const validInput = countDecimalPlaces(+burnAmountFTs.value) <= decimals
-      if(!validInput && !decimals) throw(`Amount tokens to burn must be a valid integer`);
-      if(!validInput) throw(`Amount tokens to burn must only have ${decimals} decimal places`);
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
-      const amountTokensNumber = decimals ? +burnAmountFTs.value * (10 ** decimals) : +burnAmountFTs.value;
-      const amountTokensInt = BigInt(Math.round(amountTokensNumber))
+      if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
+      const sanitizedInput = burnAmountFTs.value.replace(/,/g, '');
+      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+      checkValidTokenInput(sanitizedInput, decimals)
+      const amountTokensNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
+      const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
+      if(amountTokensInt > tokenData.value.amount) throw(`Insufficient token balance`);
       const tokenId = tokenData.value.tokenId;
 
       let burnWarning = `You are about to burn ${amountTokensInt} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
@@ -221,11 +222,11 @@
     if(!tokenData.value?.authUtxo) return;
     if(!reservedSupplyInput?.value) throw(`Amount tokens for reserved supply must be a valid integer`);
     const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-    const validInput = countDecimalPlaces(+reservedSupplyInput.value) <= decimals
-    if(!validInput && !decimals) throw(`Amount tokens for reserved supply must be a valid integer`);
-    if(!validInput) throw(`Amount tokens for reserved supply must only have ${decimals} decimal places`);
-    const reservedSupplyNumer = decimals ? +reservedSupplyInput.value * (10 ** decimals) : +reservedSupplyInput.value;
-    const reservedSupply = BigInt(Math.round(reservedSupplyNumer))
+    const sanitizedInput = reservedSupplyInput.value.replace(/,/g, '');
+    checkValidTokenInput(sanitizedInput, decimals)
+    const reservedSupplyNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
+    const reservedSupply = typeof reservedSupplyNumber == "number" ? BigInt(Math.round(reservedSupplyNumber)): BigInt(reservedSupplyNumber)
+    if(reservedSupply > tokenData.value.amount) throw(`Insufficient token balance`);
     const tokenId = tokenData.value.tokenId;
     try {
       const authTransfer = !reservedSupply? {
