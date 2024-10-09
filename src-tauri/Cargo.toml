@@ -1,8 +1,8 @@
 [package]
-name = "tauri-app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+name = "Cashonize"
+version = "0.3.0"
+description = "Cashonize is a cross-platform Bitcoin Cash (BCH) Wallet which supports CashTokens and WalletConnect."
+authors = ["Mathieu G."]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
