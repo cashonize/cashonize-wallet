@@ -132,6 +132,7 @@
         <label for="selectNetwork">Change ChainGraph:</label>
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph (default)</option>
+          <option value="https://gql.chaingraph.panmoni.com/v1/graphql">Panmoni Chaingraph</option>
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph</option>
         </select>
       </div>
