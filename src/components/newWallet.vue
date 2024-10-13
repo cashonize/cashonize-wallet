@@ -3,6 +3,7 @@
   import { Wallet, TestNetWallet, Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
+  const isBrowser = (process.env.MODE == "spa");
 
   const seedphrase = ref(undefined as (string | undefined));
   const selectedDerivationPath =  ref("standard" as ("standard" | "bitcoindotcom"));
@@ -40,6 +41,13 @@
 </script>
 
 <template>
+  <div v-if="isBrowser" style="display:block; margin-top: -25px;">
+    <a style="color: black; padding: 5px;" href="https://about.cashonize.com">
+      <span style="font-size: 24px; vertical-align: sub;">⬅</span>
+      <span> About page</span>
+    </a>
+  </div>
+  
   <fieldset style="margin-top: 15px;">
     <div style="margin: 20px 0;">
       <h4><img class="icon plusIcon" src="images/plus-square.svg"> Create new wallet</h4>
