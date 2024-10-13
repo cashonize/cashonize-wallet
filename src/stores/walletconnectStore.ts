@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, type Web3WalletTypes } from '@walletconnect/web3wallet'
 import type Client from '@walletconnect/web3wallet'
-import type {SessionTypes} from '@walletconnect/types'
+import type { SessionTypes } from '@walletconnect/types'
 import { convert, type TestNetWallet, type Wallet } from "mainnet-js";
 import {
   hexToBin,
@@ -12,13 +12,14 @@ import {
   importWalletTemplate,
   walletTemplateP2pkhNonHd,
   walletTemplateToCompilerBCH,
-  secp256k1, generateTransaction,
+  secp256k1,
+  generateTransaction,
   encodeTransaction,
   sha256,
   hash256,
   SigningSerializationFlag,
   generateSigningSerializationBCH,
-  TransactionTemplateFixed,
+  type TransactionTemplateFixed,
   type CompilationContextBCH,
   type TransactionCommon,
   type Input,
