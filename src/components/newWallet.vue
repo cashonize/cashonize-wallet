@@ -41,20 +41,24 @@
 
 <template>
   <fieldset style="margin-top: 15px;">
-    <h4><img class="icon plusIcon" src="images/plus-square.svg"> Create new wallet</h4>
-    <input @click="createNewWallet()" class="button primary" type="button" value="Create">
-    <br><br>
-    <hr>
-    <br>
-    <h4><img class="icon importIcon" src="images/import.svg"> Import existing wallet</h4>
-    <div>Enter mnemonic seed phrase</div>
-    <textarea v-model="seedphrase" style="resize: none;" rows="3" cols="50" placeholder="word1 word2 ..."></textarea>
-    <span>Derivation path: </span>
-    <select v-model="selectedDerivationPath">
-      <option value="standard">m/44’/145’/0’ (standard)</option>
-      <option value="bitcoindotcom">m/44’/0’/0’ (bitcoin.com wallet)</option>
-    </select> <br>
-    <input @click="importWallet()" class="button primary" type="button" style="margin-top:15px" value="Import">
-    <br><br>
+    <div style="margin: 20px 0;">
+      <h4><img class="icon plusIcon" src="images/plus-square.svg"> Create new wallet</h4>
+      <input @click="createNewWallet()" class="button primary" type="button" value="Create">
+    </div>
+    <hr style="margin: 30px 0;">
+    <div style="margin: 20px 0;">
+      <h4><img class="icon importIcon" src="images/import.svg"> Import existing wallet</h4>
+      <div>Enter mnemonic seed phrase</div>
+      <textarea v-model="seedphrase" style="resize: none;" rows="3" cols="50" placeholder="word1 word2 ..."></textarea>
+      <span>Derivation path: </span>
+      <select v-model="selectedDerivationPath">
+        <option value="standard">m/44’/145’/0’ (standard)</option>
+        <option value="bitcoindotcom">m/44’/0’/0’ (bitcoin.com wallet)</option>
+      </select>
+      <div style="margin-top: 5px;">
+        <i>Note:</i> Cashonize is a single-address wallet so you can't fully import HD wallets
+      </div>
+      <input @click="importWallet()" class="button primary" type="button" style="margin-top:15px" value="Import">
+    </div>
   </fieldset>
 </template>
