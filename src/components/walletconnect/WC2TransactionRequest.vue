@@ -3,7 +3,8 @@
   import { binToHex, lockingBytecodeToCashAddress, type TransactionCommon, type Input, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { BCMR } from "mainnet-js"
-  import { type DappMetadata, type ContractInfo, CurrencySymbols } from "src/interfaces/interfaces"
+  import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
+  import { type ContractInfo } from "src/interfaces/wcInterfaces"
   import { useStore } from 'src/stores/store'
   import { convertToCurrency, parseExtendedJson } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';

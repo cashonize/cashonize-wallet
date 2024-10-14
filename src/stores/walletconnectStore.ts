@@ -31,7 +31,7 @@ import alertDialog from 'src/components/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
-import { ContractInfo } from "src/interfaces/interfaces"
+import { ContractInfo } from "src/interfaces/wcInterfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
 const settingsStore = useSettingsStore()
 
