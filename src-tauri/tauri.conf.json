@@ -4,9 +4,9 @@
   "version": "0.3.0",
   "identifier": "com.cashonize.wallet",
   "build": {
-    "beforeDevCommand": "yarn dev",
+    "beforeDevCommand": "cross-env TAURI=true yarn dev",
     "devUrl": "http://localhost:9000",
-    "beforeBuildCommand": "yarn build",
+    "beforeBuildCommand": "cross-env TAURI=true yarn build",
     "frontendDist": "../dist/spa"
   },
   "app": {

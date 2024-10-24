@@ -8,7 +8,7 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
 
-  const isBrowser = (process.env.MODE == "spa");
+  const isBrowser = (process.env.MODE == "spa" && !process.env.TAURI);
   const appVersion = process.env.version
 
   const displayeAdvanced = ref(false);
@@ -72,7 +72,7 @@
     displayeSeedphrase.value = !displayeSeedphrase.value;
   }
   function confirmDeleteWallet(){
-    const isBrowser = (process.env.MODE == "spa");
+    const isBrowser = (process.env.MODE == "spa" && process.env.TAURI);
     const platformString = isBrowser ? 'browser' : 'application'
     const text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
     if (confirm(text)){

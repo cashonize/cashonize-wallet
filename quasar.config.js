@@ -71,7 +71,8 @@ module.exports = configure(function (/* ctx */) {
       // publicPath: '/',
       // analyze: true,
        env: {
-          version: version
+          version: version,
+          TAURI: process.env.TAURI || "",
        },
       // rawDefine: {}
       // ignorePublicFolder: true,
