@@ -6,7 +6,9 @@
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/createTokens.vue'
   import { ref, computed, watch } from 'vue'
+  import { storeToRefs } from 'pinia'
   import { Wallet, TestNetWallet } from 'mainnet-js'
+  import { waitForInitialized } from 'src/utils/utils'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
@@ -39,8 +41,9 @@
   if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
     if(walletExists){
       dappUriUrlParam.value = props.uri
-      // workaround to solve race conditions with initialising stores
-      await new Promise(resolve => setTimeout(resolve, 500)); 
+      // Promise will wait for state indicating whether WC and CC are initialized
+      const { isWcAndCcInitialized } = storeToRefs(store);
+      await waitForInitialized(isWcAndCcInitialized); 
       store.changeView(4);
     } else {
       $q.notify({

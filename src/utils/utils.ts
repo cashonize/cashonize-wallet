@@ -2,6 +2,7 @@ import { type UtxoI } from "mainnet-js"
 import { hexToBin } from "@bitauth/libauth"
 import type { ElectrumTokenData, TokenDataFT, TokenDataNFT } from "../interfaces/interfaces"
 import { Notify } from "quasar";
+import { Ref, watch, WatchStopHandle } from "vue";
 
 export function copyToClipboard(copyText:string|undefined){
   if(!copyText) return
@@ -84,3 +85,27 @@ export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | 
     ]
   } as TokenDataNFT
 }
+
+export const waitForInitialized = async function(property: Ref<boolean>): Promise<void> {
+  // Declare a handle for our stopWatching function here so that it is in-scope.
+  let stopWatching: WatchStopHandle | undefined;
+
+  const waitForPromise = new Promise((resolve): void => {
+    // Create a watcher on the reactive property and give it a handle so we can unwatch it later.
+    // NOTE: We use `immediate: true` to eagerly evaluate when `watch` is first called.
+    stopWatching = watch(
+      property,
+      (newValue) => {
+        if (newValue === true) resolve(true);
+      },
+      { immediate: true },
+    );
+  });
+
+  // Wait for our promise to resolve.
+  await waitForPromise;
+
+  // Stop watching this value.
+  // NOTE: This cannot be called inside our watcher as the stopWatching handle won't be instantiated yet.
+  if (stopWatching) stopWatching();
+};

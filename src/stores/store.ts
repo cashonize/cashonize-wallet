@@ -32,6 +32,10 @@ export const useStore = defineStore('store', () => {
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   const bcmrRegistries = ref(undefined as (Record<string, any> | undefined));
+  const isWcInitialized = ref(false as boolean)
+  const isCcInitialized = ref(false as boolean)
+
+  const isWcAndCcInitialized =  computed(() => isWcInitialized.value && isCcInitialized.value)
   const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
@@ -154,6 +158,8 @@ export const useStore = defineStore('store', () => {
   async function initializeWalletConnect(wallet: Wallet | TestNetWallet) {
     const walletconnectStore = await useWalletconnectStore(wallet as Wallet)
     await walletconnectStore.initweb3wallet();
+    isWcInitialized.value = true;
+
     const web3wallet = walletconnectStore.web3wallet;
     const walletAddress = wallet.getDepositAddress()
     // Setup network change callback to disconnect all sessions.
@@ -180,6 +186,7 @@ export const useStore = defineStore('store', () => {
 
     // Start the wallet service.
     await cashconnectWallet.start();
+    isCcInitialized.value = true;
 
     // Setup network change callback to disconnect all sessions.
     // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
@@ -302,6 +309,7 @@ export const useStore = defineStore('store', () => {
     explorerUrl,
     tokenList,
     plannedTokenId,
+    isWcAndCcInitialized,
     bcmrRegistries,
     nrBcmrRegistries,
     changeView,
