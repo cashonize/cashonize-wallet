@@ -237,7 +237,7 @@ export const useStore = defineStore('store', () => {
     const resultsMetadata = await resolveMetadataPromsises;
     const registries = bcmrRegistries.value ?? {};
     for await(const response of resultsMetadata) {
-      if(response?.status != 404) {
+      if(response?.status == 200) {
         const jsonResponse:bcmrIndexerResponse = await response.json();
         const tokenId = jsonResponse?.token?.category
         if(jsonResponse?.type_metadata) {
