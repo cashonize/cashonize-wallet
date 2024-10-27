@@ -239,9 +239,10 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       outpointTransactionHash: Uint8Array,
       outpointIndex: number
     ): Promise<Output> {
-      if (!wallet.value.provider) {
-        throw new Error("Wallet Provider is undefined");
-      }
+      if (!wallet.value.provider) throw new Error("Wallet Provider is undefined");
+
+      // wait for electrum to be initialized to avoid race-conditions
+      await wallet.value.provider.ready()
 
       const transaction = await wallet.value.provider.getRawTransactionObject(
         binToHex(outpointTransactionHash)
@@ -272,10 +273,11 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
     }
 
     async function getUnspents(): Promise<Array<Unspent>> {
-      if (!wallet.value.cashaddr) {
-        throw new Error('Wallet "cashaddr" is not available.');
-      }
+      if (!wallet.value.cashaddr) throw new Error('Wallet "cashaddr" is not available.');
+      if (!wallet.value.provider) throw new Error("Wallet Provider is undefined");
 
+      // wait for electrum to be initialized to avoid race-conditions
+      await wallet.value.provider.ready()
       const utxos = await wallet.value.getUtxos();
 
       const lockingBytecode = cashAddressToLockingBytecode(wallet.value.cashaddr);
