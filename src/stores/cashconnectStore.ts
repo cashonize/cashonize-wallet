@@ -242,7 +242,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       if (!wallet.value.provider) throw new Error("Wallet Provider is undefined");
 
       // wait for electrum to be initialized to avoid race-conditions
-      await wallet.value.provider.ready()
+      await wallet.value.provider.readyClient()
 
       const transaction = await wallet.value.provider.getRawTransactionObject(
         binToHex(outpointTransactionHash)
@@ -277,7 +277,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       if (!wallet.value.provider) throw new Error("Wallet Provider is undefined");
 
       // wait for electrum to be initialized to avoid race-conditions
-      await wallet.value.provider.ready()
+      await wallet.value.provider.readyClient()
       const utxos = await wallet.value.getUtxos();
 
       const lockingBytecode = cashAddressToLockingBytecode(wallet.value.cashaddr);
