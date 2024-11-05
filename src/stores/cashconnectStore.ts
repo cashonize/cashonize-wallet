@@ -1,6 +1,7 @@
 import { ref, Ref } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
+import { type ElectrumClient } from "electrum-cash";
 
 // Components.
 import CCSessionProposalDialogVue from "src/components/cashconnect/CCSessionProposalDialog.vue";
@@ -242,8 +243,13 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       if (!wallet.value.provider) throw new Error("Wallet Provider is undefined");
 
       // wait for electrum to be initialized to avoid race-conditions
-      await wallet.value.provider.readyClient()
-
+      if (document.visibilityState === 'visible') {
+        try {
+          await wallet.value.provider.connect();
+        } catch (error) {
+          console.error('Failed to reconnect:', error);
+        }
+      }
       const transaction = await wallet.value.provider.getRawTransactionObject(
         binToHex(outpointTransactionHash)
       );
@@ -277,7 +283,14 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       if (!wallet.value.provider) throw new Error("Wallet Provider is undefined");
 
       // wait for electrum to be initialized to avoid race-conditions
-      await wallet.value.provider.readyClient()
+      if (document.visibilityState === 'visible') {
+        try {
+          await wallet.value.provider.connect();
+        } catch (error) {
+          console.error('Failed to reconnect:', error);
+        }
+      }
+      
       const utxos = await wallet.value.getUtxos();
 
       const lockingBytecode = cashAddressToLockingBytecode(wallet.value.cashaddr);
