@@ -1,7 +1,6 @@
 import { ref, Ref } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
-import { type ElectrumClient } from "electrum-cash";
 
 // Components.
 import CCSessionProposalDialogVue from "src/components/cashconnect/CCSessionProposalDialog.vue";

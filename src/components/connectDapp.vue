@@ -1,6 +1,10 @@
 <script setup lang="ts">
   import { ref } from 'vue'
+  import { storeToRefs } from 'pinia'
   import { useQuasar } from 'quasar';
+  import { useStore } from 'src/stores/store'
+  import { waitForInitialized } from 'src/utils/utils'
+  const store = useStore()
 
   // Components.
   import WalletconnectView from 'src/components/walletConnect.vue'
@@ -23,6 +27,10 @@
   // Methods.
   async function connectDappUriInput(){
     try {
+      // Promise will wait for state indicating whether WC and CC are initialized
+      const { isWcAndCcInitialized } = storeToRefs(store);
+      await waitForInitialized(isWcAndCcInitialized); 
+
       // If the URL begings with "wc:" (walletconnect)...
       if(dappUriInput.value.startsWith('wc:')) {
         await walletconnectRef.value?.connectDappUriInput(dappUriInput.value);
