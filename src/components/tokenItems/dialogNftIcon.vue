@@ -30,7 +30,7 @@
         </q-card-section>
 
         <q-card-section>
-          <video v-if="httpsUrlTokenImage?.endsWith('.mp4')" id="tokenIcon" class="tokenIcon" style="width: 400px;" autoplay>
+          <video v-if="httpsUrlTokenImage?.endsWith('.mp4')" style="width: 400px;" autoplay>
             <source :src="httpsUrlTokenImage" type="video/mp4" />
           </video>
           <q-img v-else style="width: 400px; height: 400px" :src="httpsUrlTokenImage" />

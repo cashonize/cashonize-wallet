@@ -292,7 +292,7 @@
         <div id="tokenType"></div>
       </legend>
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon" class="tokenIcon" loading="lazy" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
+        <img v-if="httpsUrlTokenIcon" class="tokenIcon" loading="lazy" :src="httpsUrlTokenIcon">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">

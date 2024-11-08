@@ -391,11 +391,11 @@
         </div>
       </div>-->
       <div class="tokenInfo">
-        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" id="tokenIcon" class="tokenIcon" loading="lazy" style="width: 48px; height: 48px; border-radius: 50%;cursor: pointer;" @click="() => showNftImage = true">
+        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" id="tokenIcon" class="tokenIcon" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
         </video>
-        <img v-else-if="httpsUrlTokenIcon && isSingleNft" class="tokenIcon" loading="lazy" style="width: 48px; height: 48px; border-radius: 50%; cursor: pointer;" :src="httpsUrlTokenIcon"  @click="() => showNftImage = true">
-        <img v-else-if="httpsUrlTokenIcon && !isSingleNft" class="tokenIcon" loading="lazy" style="width: 48px; height: 48px; border-radius: 50%;" :src="httpsUrlTokenIcon">
+        <img v-else-if="httpsUrlTokenIcon && isSingleNft" class="tokenIcon" loading="lazy" style="cursor: pointer;" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
+        <img v-else-if="httpsUrlTokenIcon && !isSingleNft" class="tokenIcon" loading="lazy" :src="httpsUrlTokenIcon">
         <div v-else-if="!httpsUrlTokenIcon" id="genericTokenIcon" loading="lazy" class="tokenIcon"></div>
 
         <div class="tokenBaseInfo">

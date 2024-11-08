@@ -118,6 +118,9 @@ input[type='number'] {
 }
 .tokenIcon {
   margin-right: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
 }
 .tokenBaseInfo1 {
   width: 370px;
