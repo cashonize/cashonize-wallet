@@ -460,6 +460,10 @@
           <div v-if="tokenData?.nfts?.length">
             Has active minting NFT: {{ hasMintingNFT == undefined? "..." :( hasMintingNFT? "yes": "no")}}
           </div>
+          <div>
+            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.tokenId" target="_blank">
+              See details on TokenExplorer</a>
+          </div>
           <details v-if="isSingleNft && nftMetadata?.extensions?.attributes" style="cursor:pointer;">
             <summary style="display: list-item">NFT attributes</summary>
             <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap;">

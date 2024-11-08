@@ -362,6 +362,10 @@
               }}
             </span><span v-else>...</span>
           </div>
+          <div>
+            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.tokenId" target="_blank">
+              See details on TokenExplorer</a>
+          </div>
         </div>
 
         <div v-if="displaySendTokens" style="margin-top: 10px;">
