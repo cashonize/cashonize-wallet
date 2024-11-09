@@ -12,16 +12,18 @@ Because of its minimalist design, Cashonize is a user-friendly wallet, even for 
 Cashonize has an easy-to-understand transaction preview screen for WalletConnect and CashConnect, empowering users before signing DeFi transactions.
 Further, Cashonize nicely groups and displays your NFTs, making it ideal for NFT collectors.
 
-Cashonize is a single-address wallet, for privacy-centered users is better to use a HD-wallet.
-Cashonize does not have a display for your transaction history and for now it only supports USD for denomating BCH balances.
+Cashonize is a single-address wallet, for privacy-focused users is recommended to use a HD-wallet.
+Cashonize does not have a display for your transaction history currently.
 
 ## Platforms
 
 🖥️ Desktop version: https://github.com/cashonize/cashonize-wallet/releases
 
+📱 Android apk: https://github.com/cashonize/cashonize-wallet/releases
+
 🌐 Webwallet: [cashonize.com](cashonize.com) 
 
-**Note:** webwallets are great for convenience, but desktop applications are more secure. <br>
+**Note:** webwallets are great for convenience, but downloaded applications are more secure. <br>
 ⚠️ [cashonize.com](cashonize.com) is the only correct URL for the webwallet
 
 ## Local development 
@@ -36,7 +38,7 @@ The ongoing work on the project was enabled by the financial support of the [fli
 In special: molecular, Mike Komaransky, 'BCH Conference', toorik and majamalu.
 
 Futher thanks to bitcoincashautist, Joemar, Romit and Kallisti for being very helpful responding to questions. <br>
-Also a thank you to users reporting bugs: samrock5000 and Stockleezy.
+Also a thank you to users reporting bugs: samrock5000, Stockleezy and Steve Thurmond.
 
 ## Historic version
 
