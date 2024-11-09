@@ -1,8 +1,8 @@
 import { defineStore } from "pinia"
 import { ref, computed, Ref } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn } from "mainnet-js"
+import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn, convert } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
-import type { TokenList, bcmrIndexerResponse } from "../interfaces/interfaces"
+import { CurrencySymbols, type TokenList, type bcmrIndexerResponse } from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
 import { convertElectrumTokenData } from "src/utils/utils"
@@ -93,10 +93,11 @@ export const useStore = defineStore('store', () => {
       if(oldBalance?.sat && newBalance?.sat){
         if(oldBalance.sat < newBalance.sat){
           const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
+          const currencyValue = await convert(amountReceived, settingsStore.bchUnit, settingsStore.currency);
           const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
           Notify.create({
             type: 'positive',
-            message: `Received ${amountReceived} ${unitString}`
+            message: `Received ${amountReceived} ${unitString} (${currencyValue + CurrencySymbols[settingsStore.currency]})`
           })
         }
       }
