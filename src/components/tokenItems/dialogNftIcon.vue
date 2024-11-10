@@ -33,7 +33,7 @@
           <video v-if="httpsUrlTokenImage?.endsWith('.mp4')" style="width: 400px;" autoplay>
             <source :src="httpsUrlTokenImage" type="video/mp4" />
           </video>
-          <q-img v-else style="width: 400px; height: 400px" :src="httpsUrlTokenImage" />
+          <q-img v-else style="width: 400px; max-width: 100%; max-height: 100%;" :src="httpsUrlTokenImage" />
           <div class="text-h4 text-white" style="max-width: 400px;">{{ nftName }}</div>
         </q-card-section>
       </q-card>
