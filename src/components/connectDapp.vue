@@ -1,19 +1,26 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
-  import { storeToRefs } from 'pinia'
+  import { ref, type Ref } from 'vue'
   import { useQuasar } from 'quasar';
+  import { storeToRefs } from 'pinia';
   import { useStore } from 'src/stores/store'
+  import { useWalletconnectStore } from 'src/stores/walletconnectStore'
+  import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
-  const store = useStore()
+  import { type Wallet } from 'mainnet-js';
 
   // Components.
   import WalletconnectView from 'src/components/walletConnect.vue'
   import CashconnectView from 'src/components/cashConnect.vue'
 
   const $q = useQuasar();
+  const store = useStore()
+  const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
+  const web3wallet = walletconnectStore.web3wallet
+  const { wallet } = storeToRefs(store);
+  const cashconnectStore = await useCashconnectStore(wallet as Ref<Wallet>);
 
   // Props.
-  defineProps<{
+  const props = defineProps<{
     dappUriUrlParam?: string
   }>()
 
@@ -23,6 +30,24 @@
 
   // State.
   const dappUriInput = ref("");
+
+  // Handle Props.
+  function isSessionRequest(uri: string): boolean {
+    // Check if the URI contains the `?requestId=` parameter, which indicates a signing request
+    const isSigningRequest = uri.includes("?requestId=");
+    return !isSigningRequest;
+  }
+
+  if(props.dappUriUrlParam?.startsWith('wc:') && isSessionRequest(props.dappUriUrlParam)){
+    try {
+      await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam });
+    } catch (error) {
+      console.error("Error pairing URI:", error);
+    }
+  }
+  if(props.dappUriUrlParam?.startsWith('cc:')){
+    await cashconnectStore.pair(props.dappUriUrlParam);
+  }
 
   // Methods.
   async function connectDappUriInput(){
@@ -70,6 +95,6 @@
       </div>
     </fieldset>
 
-    <WalletconnectView ref="walletconnectRef" :dappUriUrlParam="dappUriUrlParam"/>
+    <WalletconnectView ref="walletconnectRef"/>
     <CashconnectView ref="cashconnectRef" />
 </template>

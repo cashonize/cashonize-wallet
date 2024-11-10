@@ -1,7 +1,6 @@
 
 <script setup lang="ts">
-  import { ref, computed, Ref } from 'vue'
-  import { storeToRefs } from 'pinia';
+  import { ref, computed } from 'vue'
   import WC2SessionRequestDialog from 'src/components/walletconnect/WC2SessionRequestDialog.vue';
   import WC2ActiveSession from 'src/components/walletconnect/WC2ActiveSession.vue'
   import { getSdkError } from '@walletconnect/utils';
@@ -9,7 +8,6 @@
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
   import { type Wallet } from 'mainnet-js';
-  import { useCashconnectStore } from 'src/stores/cashconnectStore';
   defineExpose({
     connectDappUriInput
   });
@@ -20,13 +18,6 @@
   // TODO: investigate moving to main store
   const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
   const web3wallet = walletconnectStore.web3wallet
-
-  const { wallet } = storeToRefs(store);
-  const cashconnectStore = await useCashconnectStore(wallet as Ref<Wallet>);
-
-  const props = defineProps<{
-    dappUriUrlParam?: string
-  }>()
 
   const sessionProposalWC = ref(undefined as any);
   const activeSessions = computed(() => walletconnectStore.activeSessions)
@@ -43,14 +34,6 @@
         color: typeof error == 'string' ? "grey-7" : "red"
       })
     }
-  }
-
-  // TODO: investigate moving to ConnectDapp page
-  if(props.dappUriUrlParam?.startsWith('wc:')){
-    await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam })
-  }
-  if(props.dappUriUrlParam?.startsWith('cc:')){
-    await cashconnectStore.pair(props.dappUriUrlParam);
   }
 
   web3wallet?.on('session_proposal', wcSessionProposal);
