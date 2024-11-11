@@ -11,7 +11,8 @@
   const isBrowser = (process.env.MODE == "spa");
   const appVersion = process.env.version
 
-  const displayeAdvanced = ref(false);
+  const displayAdvanced = ref(false);
+  const displayBackup = ref(false);
   const displayeSeedphrase = ref(false);
   const selectedNetwork = ref(store.network as "mainnet" | "chipnet");
   const selectedCurrency = ref(settingsStore.currency);
@@ -88,11 +89,11 @@
     <legend>Settings</legend>
     <div v-if="!isBrowser" style="margin-bottom: 15px;">Version Cashonize App: {{ appVersion }}</div>
 
-    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayeAdvanced = !displayeAdvanced">
-      {{!displayeAdvanced? '↳ Advanced settings' : '↲ All settings'}}
-    </div>
+    <div v-if="displayAdvanced">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayAdvanced = false">
+        ↲ All settings
+      </div>
 
-    <div v-if="displayeAdvanced">
       <div style="margin-top: 15px;">Enable token-burn  
         <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
@@ -140,9 +141,37 @@
       <div style="margin-top:15px">Remove wallet data from {{isBrowser? "browser": "application"}}</div>
       <input @click="confirmDeleteWallet()" type="button" id="burnNFT" value="Delete wallet" class="button error" style="display: block;">
     </div>
+    <div v-else-if="displayBackup">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayBackup = false">
+        ↲ All settings
+      </div>
+
+      <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
+        <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
+          :value="displayeSeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
+        >
+        <div v-if="displayeSeedphrase" @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
+          {{ store.wallet?.mnemonic }}
+        </div>
+        <br>
+        <div style="margin-bottom:15px;">
+          Derivation path of this wallet is 
+          <span @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
+            {{store.wallet?.derivationPath }}
+          </span>
+        </div>
+    </div>
     <div v-else>
-      <div>Dark mode
-        <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayBackup = true">
+        ↳ Backup wallet
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayAdvanced = true">
+        ↳ Advanced settings
+      </div>
+
+      <div>
+        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
 
       <div style="margin-top:15px">
@@ -161,7 +190,7 @@
         </select>
       </div>
 
-      <div style="margin-top:15px">
+      <div style="margin-top:15px; margin-bottom:15px;">
         <label for="selectUnit">Select BlockExplorer:</label>
         <select v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option v-if="store.network == 'mainnet'" value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
@@ -177,15 +206,13 @@
         </select>
       </div>
 
-      <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
-      <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
-        :value="displayeSeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
-      >
-      <div v-if="displayeSeedphrase" @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
-        {{ store.wallet?.mnemonic }}
+      <div v-if="isBrowser" style="margin-bottom:15px; ">
+        <a style="color: var(--font-color); cursor: pointer;" href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">
+          Download Cashonize
+          <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
+        </a>
       </div>
-      <br>
-      <span style="margin-top:15px">Derivation path of this wallet is {{store.wallet?.derivationPath }}</span>
+
     </div>
   </fieldset>
 </template>
