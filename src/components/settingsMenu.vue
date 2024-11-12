@@ -9,6 +9,7 @@
   const settingsStore = useSettingsStore()
 
   const isBrowser = (process.env.MODE == "spa");
+  const isDesktop = (process.env.MODE == "electron");
   const appVersion = process.env.version
 
   const displayAdvanced = ref(false);
@@ -23,6 +24,24 @@
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
   const selectedChaingraph = ref(settingsStore.chaingraph);
+
+  const latestGithubRelease = ref(undefined as undefined | string);
+
+  if(isDesktop) getLatestGithubRelease()
+
+  async function getLatestGithubRelease(){
+    try {
+      const response = await fetch('https://api.github.com/repos/cashonize/cashonize-wallet/releases/latest');
+      if (!response.ok) throw new Error('Network response was not ok');
+        
+      const releaseData = await response.json();
+      // Extract the version tag (e.g., 'v0.2.4')
+      latestGithubRelease.value = releaseData.tag_name;
+      console.log(latestGithubRelease.value)
+    } catch (error) {
+      console.error('Error fetching latest GitHub release:', error);
+    }
+  }
 
   async function changeCurrency(){
     Config.DefaultCurrency = selectedCurrency.value;
@@ -87,7 +106,14 @@
 <template>
   <fieldset class="item">
     <legend>Settings</legend>
-    <div v-if="!isBrowser" style="margin-bottom: 15px;">Version Cashonize App: {{ appVersion }}</div>
+    <div v-if="!isBrowser" style="margin-bottom: 15px;">
+      Version Cashonize App: {{ appVersion }}
+      <span v-if="isDesktop && latestGithubRelease && latestGithubRelease == 'v'+appVersion">(latest)</span>
+      <span v-if="isDesktop && latestGithubRelease && latestGithubRelease !== 'v'+appVersion">
+        (latest release is 
+          <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{latestGithubRelease}}</a>)
+      </span>
+    </div>
 
     <div v-if="displayAdvanced">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayAdvanced = false">
