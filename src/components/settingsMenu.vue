@@ -13,7 +13,7 @@
 
   const displayAdvanced = ref(false);
   const displayBackup = ref(false);
-  const displayeSeedphrase = ref(false);
+  const displaySeedphrase = ref(false);
   const selectedNetwork = ref(store.network as "mainnet" | "chipnet");
   const selectedCurrency = ref(settingsStore.currency);
   const selectedUnit = ref(settingsStore.bchUnit);
@@ -70,7 +70,7 @@
     settingsStore.tokenBurn = selectedTokenBurn.value;
   }
   function toggleShowSeedphrase(){
-    displayeSeedphrase.value = !displayeSeedphrase.value;
+    displaySeedphrase.value = !displaySeedphrase.value;
   }
   function confirmDeleteWallet(){
     const isBrowser = (process.env.MODE == "spa");
@@ -132,9 +132,9 @@
       <div style="margin-top:15px">
         <label for="selectNetwork">Change ChainGraph:</label>
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
-          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph (default)</option>
-          <option value="https://gql.chaingraph.panmoni.com/v1/graphql">Panmoni Chaingraph</option>
-          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph</option>
+          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph (default)</option>
+          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
+          <option value="https://gql.chaingraph.panmoni.com/v1/graphql">Panmoni Chaingraph </option>
         </select>
       </div>
 
@@ -148,9 +148,9 @@
 
       <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
         <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
-          :value="displayeSeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
+          :value="displaySeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
         >
-        <div v-if="displayeSeedphrase" @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
+        <div v-if="displaySeedphrase" @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
           {{ store.wallet?.mnemonic }}
         </div>
         <br>
