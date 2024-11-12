@@ -513,7 +513,7 @@
           Transfer the authority to change the token's metadata to another wallet <br>
           You can either transfer the Auth to a dedicated wallet or to the <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>.<br>
           <span class="grouped" style="margin-top: 10px;">
-            <input id="destinationAddr" placeholder="destinationAddress"> 
+            <input v-model="destinationAddr" placeholder="destinationAddress"> 
             <input @click="transferAuth()" type="button" value="Transfer Auth" class="primaryButton">
           </span>
         </div>
