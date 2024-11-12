@@ -12,6 +12,7 @@
   const nameWallet = "mywallet";
 
   async function createNewWallet() {
+    Config.DefaultParentDerivationPath = "m/44'/145'/0'";
     const mainnetWallet = await Wallet.named(nameWallet);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
     await TestNetWallet.replaceNamed(nameWallet, walletId);
