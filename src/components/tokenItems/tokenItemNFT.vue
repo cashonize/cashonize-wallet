@@ -360,6 +360,8 @@
         type: 'positive',
         message: 'Auth transfer successful'
       })
+      displayAuthTransfer.value = false;
+      destinationAddr.value = "";
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
     } catch (error) { 
