@@ -157,7 +157,8 @@
         <div style="margin-bottom:15px;">
           Derivation path of this wallet is 
           <span @click="copyToClipboard(store.wallet?.derivationPath)" style="cursor: pointer;">
-            {{store.wallet?.derivationPath }}
+            {{ store.wallet?.derivationPath }}
+            ({{ store.wallet?.derivationPath == "m/44'/145'/0'/0/0" ? "default on BCH" : "custom, non-default" }})
           </span>
         </div>
     </div>
