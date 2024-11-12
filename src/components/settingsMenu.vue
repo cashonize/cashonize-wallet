@@ -156,7 +156,7 @@
         <br>
         <div style="margin-bottom:15px;">
           Derivation path of this wallet is 
-          <span @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
+          <span @click="copyToClipboard(store.wallet?.derivationPath)" style="cursor: pointer;">
             {{store.wallet?.derivationPath }}
           </span>
         </div>
