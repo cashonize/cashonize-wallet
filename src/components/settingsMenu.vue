@@ -12,8 +12,7 @@
   const isDesktop = (process.env.MODE == "electron");
   const appVersion = process.env.version
 
-  const displayAdvanced = ref(false);
-  const displayBackup = ref(false);
+  const displaySettingsMenu = ref(0);
   const displaySeedphrase = ref(false);
   const selectedNetwork = ref(store.network as "mainnet" | "chipnet");
   const selectedCurrency = ref(settingsStore.currency);
@@ -115,11 +114,30 @@
       </span>
     </div>
 
-    <div v-if="displayAdvanced">
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayAdvanced = false">
+    <div v-if="displaySettingsMenu != 0">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 0">
         ↲ All settings
       </div>
+    </div>
 
+    <div v-if="displaySettingsMenu == 1">
+      <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
+        <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
+          :value="displaySeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
+        >
+        <div v-if="displaySeedphrase" @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
+          {{ store.wallet?.mnemonic }}
+        </div>
+        <br>
+        <div style="margin-bottom:15px;">
+          Derivation path of this wallet is 
+          <span @click="copyToClipboard(store.wallet?.derivationPath)" style="cursor: pointer;">
+            {{ store.wallet?.derivationPath }}
+            ({{ store.wallet?.derivationPath == "m/44'/145'/0'/0/0" ? "default on BCH" : "custom, non-default" }})
+          </span>
+        </div>
+    </div>
+    <div v-else-if="displaySettingsMenu == 2">
       <div style="margin-top: 15px;">Enable token-burn  
         <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
@@ -167,33 +185,12 @@
       <div style="margin-top:15px">Remove wallet data from {{isBrowser? "browser": "application"}}</div>
       <input @click="confirmDeleteWallet()" type="button" id="burnNFT" value="Delete wallet" class="button error" style="display: block;">
     </div>
-    <div v-else-if="displayBackup">
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayBackup = false">
-        ↲ All settings
-      </div>
-
-      <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
-        <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
-          :value="displaySeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
-        >
-        <div v-if="displaySeedphrase" @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
-          {{ store.wallet?.mnemonic }}
-        </div>
-        <br>
-        <div style="margin-bottom:15px;">
-          Derivation path of this wallet is 
-          <span @click="copyToClipboard(store.wallet?.derivationPath)" style="cursor: pointer;">
-            {{ store.wallet?.derivationPath }}
-            ({{ store.wallet?.derivationPath == "m/44'/145'/0'/0/0" ? "default on BCH" : "custom, non-default" }})
-          </span>
-        </div>
-    </div>
     <div v-else>
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayBackup = true">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">
         ↳ Backup wallet
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displayAdvanced = true">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 2">
         ↳ Advanced settings
       </div>
 
