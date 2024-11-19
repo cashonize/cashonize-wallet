@@ -5,14 +5,16 @@
   import alertDialog from 'src/components/alertDialog.vue'
   import { useStore } from '../stores/store'
   import { useQuasar } from 'quasar'
+  import { useSettingsStore } from 'src/stores/settingsStore';
   const $q = useQuasar()
   const store = useStore()
+  const settingsStore = useSettingsStore()
 
   const selectedTokenType = ref("-select-");
   const inputFungibleSupply = ref("");
   const selectedUri = ref("-select-");
   const inputBcmr = ref("");
-  const validitityCheck = ref(false);
+  const validitityCheck = ref(undefined as boolean | undefined);
   const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-10)}`:"");
 
   async function createPreGenesis(){
@@ -39,25 +41,36 @@
   }
 
   async function getOpreturnData(){
+    validitityCheck.value = undefined;
     const inputField = inputBcmr.value;
     if(selectedUri.value == "-select-") return
-    const validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("ipfs://baf");
+    const validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("baf");
     if(!validinput){
-      const errorString = selectedUri.value != "IPFS" ? "Urls should not have any prefix!" : "Ipfs location should be a v1 CID";
-      throw(errorString)
+      const errorMessage = selectedUri.value != "IPFS" ? "Urls should not have any prefix!" : "Ipfs location should be a v1 CID";
+      $q.notify({
+        message: errorMessage,
+        icon: 'warning',
+        color: "red"
+      })
+      validitityCheck.value = false;
+      return
     }
     const defaultBcmrLocation = "/.well-known/bitcoin-cash-metadata-registry.json"
     const bcmrLocation = (selectedUri.value === "website" && !inputField.endsWith(".json"))? defaultBcmrLocation : ""
-    const fetchLocation = selectedUri.value != "IPFS" ? "https://" + inputField + bcmrLocation : inputField + inputField.slice(7);
+    const fetchLocation = selectedUri.value != "IPFS" ? "https://" + inputField + bcmrLocation : settingsStore.ipfsGateway + inputField;
     try{
       console.log("fetching bcmr at "+fetchLocation);
       const response = await fetch(fetchLocation);
-      if(response?.status == 200) validitityCheck.value = true;
       const bcmrContent = await response.text();
+      JSON.parse(bcmrContent)
+      validitityCheck.value = true;
       const hashContent = sha256.hash(utf8ToBin(bcmrContent));
-      const chunks = ["BCMR", hashContent, inputField];
+      const bcmrUri = selectedUri.value != "IPFS" ? inputField : "ipfs://" + inputField;
+      const chunks = ["BCMR", hashContent, bcmrUri];
       return OpReturnData.fromArray(chunks);
-    } catch (error) {validitityCheck.value = false;}
+    } catch (error) {
+      validitityCheck.value = false;
+    }
   }
   
   async function createFungibles(){
@@ -242,16 +255,15 @@
             <input v-model="inputBcmr" @input="getOpreturnData" placeholder="yourtokenwebsite.com">
           </div>
           <div v-if="selectedUri == 'IPFS'">
-            1) First upload (pin) your tokenIcon on IPFS which can be done easily with <a href="https://nft.storage/" target="_blank">nft.storage</a>. <br>
-            To upload multiple images grouped together on IPFS use their <a href="https://nft.storage/docs/how-to/nftup/" target="_blank">NFT UP</a> tool. <br>
-            2) Then, you can create the BCMR JSON file with the <a href="https://bcmr-generator.netlify.app/" target="_blank">BCMR generator</a> or
+            1) First upload (pin) your tokenIcon and image on IPFS. <br>
+            2) Then, you can create the BCMR JSON file with the <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a> or
               with the <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.ts" target="_blank">BCMR-schema</a>.<br>
-            3) Upload the BCMR JSON file to ipfs with <a href="https://nft.storage/" target="_blank">nft.storage</a>.<br>
+            3) Upload the BCMR JSON file to IPFS.<br>
             4) Enter the IPFS location of your BCMR json file (version 1 CID starting with <code>baf...</code>) below. <br>
             The BCMR location together with the hash of its content will be stored on the blockchain.
             <input v-model="inputBcmr" @input="getOpreturnData" placeholder="bafkreiaqpmlrtsdf5cvwgh46mpyric2r44ikqzqgtevny74qdmrjc5dkxy">
           </div><br>
-          <b>Validity check metadata: {{ validitityCheck? '✅':'❌' }}</b>
+          <b>Validity check metadata: {{ validitityCheck == undefined ? '...' : (validitityCheck ? '✅':'❌') }}</b>
         </details><br>
         <b>Note:</b> Token metadata can still be added/updated after creation with the token's AuthUTXO.
         That's why the AuthUTXO should be transferred to a dedicated wallet right after creation.<br><br>
