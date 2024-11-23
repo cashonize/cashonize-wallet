@@ -2,7 +2,6 @@
   import { toRefs } from 'vue';
   import { binToHex, lockingBytecodeToCashAddress, type TransactionCommon, type Input, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
-  import { BCMR } from "mainnet-js"
   import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
   import { type ContractInfo } from "src/interfaces/wcInterfaces"
   import { useStore } from 'src/stores/store'
@@ -76,6 +75,35 @@
       else tokensReceivedOutputs[tokenCategory] = [output.token];
     }
   }
+
+  const calculateAmount = (tokenObject: NonNullable<Output['token']>): string => {
+    if (!tokenObject.amount) return '';
+    const categoryHex = binToHex(tokenObject.category);
+    const decimals = Number(store.bcmrRegistries?.[categoryHex]?.token?.decimals ?? 0);
+
+    if (decimals === 0) {
+      return tokenObject.amount.toString();
+    } else {
+      const amount = Number(tokenObject.amount);
+      return (amount / (10 ** decimals)).toFixed(decimals);
+    }
+  };
+
+  const formatTokenDisplay = (tokenSpent: NonNullable<Output['token']>, displayFullName= true): string => {
+    const categoryHex = binToHex(tokenSpent.category);
+    const tokenMetadata = store.bcmrRegistries?.[categoryHex];
+    const tokenName = tokenMetadata?.name;
+    const tokenSymbol = tokenMetadata?.token?.symbol;
+    const displayMetadata = displayFullName ? tokenName : tokenSymbol;
+
+    if (displayMetadata) {
+      const addNftPostfix = tokenSpent.nft ? " NFT" : "";
+      return displayMetadata + addNftPostfix;
+    } else {
+      const tokenType = tokenSpent.nft ? "NFT" : "Tokens";
+      return `${categoryHex.slice(0, 6)}... ${tokenType}`;
+    }
+  };
 </script>
 
 <template>
@@ -106,22 +134,12 @@
           </div>
           <div v-for="(tokenArrayInput, firstIndex) in tokensSpentInputs" :key="firstIndex">
             <div v-for="(tokenSpent, index) in tokenArrayInput" :key="binToHex(tokenSpent.category) + index">
-              - {{ tokenSpent.amount ? (tokenSpent.amount / (10n ** BigInt(BCMR.getTokenInfo(binToHex(tokenSpent.category))?.token?.decimals ?? 0n))) : ""}}
-              {{ store.bcmrRegistries?.[binToHex(tokenSpent?.category) ?? ""]?.name ?
-                store.bcmrRegistries?.[binToHex(tokenSpent.category)]?.name : 
-                binToHex(tokenSpent.category).slice(0,6)  + '...'
-              }}
-              {{tokenSpent?.nft ? "NFT" : "Tokens"}}
+              {{ `- ${calculateAmount(tokenSpent)} ${formatTokenDisplay(tokenSpent)}` }}
             </div>
           </div>
           <div v-for="(tokenArrayRecived, firstIndex) in tokensReceivedOutputs" :key="firstIndex">
             <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="binToHex(tokenReceived.category) + index">
-              + {{ tokenReceived.amount ? (tokenReceived.amount / (10n ** BigInt(BCMR.getTokenInfo(binToHex(tokenReceived.category))?.token?.decimals ?? 0n))) : ""}}
-              {{ store.bcmrRegistries?.[binToHex(tokenReceived.category)]?.name ?
-                store.bcmrRegistries?.[binToHex(tokenReceived.category)]?.name : 
-                binToHex(tokenReceived.category).slice(0,6)  + '...'
-              }}
-              {{tokenReceived.nft ? "NFT" : "Tokens"}}
+              {{ `+ ${calculateAmount(tokenReceived)} ${formatTokenDisplay(tokenReceived)}` }}
             </div>
           </div>
 
@@ -151,12 +169,11 @@
                   <td></td>
                   <td>
                     {{input?.token?.nft && !input?.token?.amount ? 'NFT:' : 'Token:'}}
-                    {{ binToHex(input.token.category).slice(0,6)  + '...'}}
-                    <span style="font-weight: 600;">
-                      {{ store.bcmrRegistries?.[binToHex(input.token.category)]?.name ?? null }}
-                    </span>
+                    {{ formatTokenDisplay(input.token as NonNullable<Output['token']>) }}
                   </td>
-                  <td v-if="input.token.amount">Amount: {{ input.token.amount }}</td>
+                  <td v-if="input.token.amount">
+                    Amount: {{ calculateAmount(input.token as NonNullable<Output['token']>) }}
+                  </td>
                 </tr>
                 <tr v-if="input?.token?.nft">
                   <td></td>
@@ -184,12 +201,11 @@
                   <td></td>
                   <td>
                     {{output?.token?.nft && !output?.token?.amount ? 'NFT:' : 'Token:'}}
-                    {{ binToHex(output.token.category).slice(0,6)  + '...'}}
-                    <span style="font-weight: 600;">
-                      {{ store.bcmrRegistries?.[binToHex(output.token.category)]?.name ?? null }}
-                    </span>
+                    {{ formatTokenDisplay(output.token as NonNullable<Output['token']>) }}
                   </td>
-                  <td v-if="output.token.amount">Amount: {{ output.token.amount }}</td>
+                  <td v-if="output.token.amount">
+                    Amount: {{ calculateAmount(output.token as NonNullable<Output['token']>) }}
+                  </td>
                 </tr>
                 <tr v-if="output?.token?.nft">
                   <td></td>
