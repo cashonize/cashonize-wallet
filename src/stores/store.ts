@@ -226,8 +226,14 @@ export const useStore = defineStore('store', () => {
   }
 
   function sortTokenList(unsortedTokenList: TokenList) {
-    const featuredTokenList = unsortedTokenList?.filter(token => settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
-    const otherTokenList = unsortedTokenList?.filter(token => !settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+    // order the featuredTokenList according to the order in the settingStore
+    const featuredTokenList:TokenList = []
+    for(const featuredToken of settingsStore.featuredTokens){
+      // if featuredToken in unsortedTokenList, add it to a featuredTokenList
+      const featuredTokenItem = unsortedTokenList.find(token => token.tokenId === featuredToken);
+      if(featuredTokenItem) featuredTokenList.push(featuredTokenItem)
+    }
+    const otherTokenList = unsortedTokenList.filter(token => !settingsStore.featuredTokens.includes(token.tokenId));
 
     tokenList.value = [...featuredTokenList, ...otherTokenList];
   }
