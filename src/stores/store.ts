@@ -219,9 +219,17 @@ export const useStore = defineStore('store', () => {
       const utxosNftTokenid = tokenUtxos.filter((val) =>val.token?.tokenId === tokenId);
       arrayTokens.push({ tokenId, nfts: utxosNftTokenid });
     }
-    tokenList.value = arrayTokens;
+    // sort tokenList with featuredTokens first
+    sortTokenList(arrayTokens);
     const catgeories = Object.keys({...fungibleTokensResult, ...nftsResult})
     return catgeories;
+  }
+
+  function sortTokenList(unsortedTokenList: TokenList) {
+    const featuredTokenList = unsortedTokenList?.filter(token => settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+    const otherTokenList = unsortedTokenList?.filter(token => !settingsStore.featuredTokens.includes(token.tokenId)) ?? [];
+
+    tokenList.value = [...featuredTokenList, ...otherTokenList];
   }
 
   // Import onchain resolved BCMRs
@@ -300,6 +308,18 @@ export const useStore = defineStore('store', () => {
     tokenList.value = copyTokenList;
   }
 
+  function toggleFavorite(tokenId: string) {
+    // Remove token from featuredTokens if it's already there, otherwise add it
+    const newFeaturedTokens = settingsStore.featuredTokens.includes(tokenId) ?
+      settingsStore.featuredTokens.filter((id) => id !== tokenId) :
+      [...settingsStore.featuredTokens, tokenId];
+    // save the new featuredTokens to local storage
+    localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
+    settingsStore.featuredTokens = newFeaturedTokens;
+    // actually change the UI list by updating the state
+    sortTokenList(tokenList.value as TokenList);
+  }
+
   return {
     nameWallet,
     displayView,
@@ -320,6 +340,7 @@ export const useStore = defineStore('store', () => {
     updateTokenList,
     hasPreGenesis,
     fetchAuthUtxos,
-    importRegistries
+    importRegistries,
+    toggleFavorite
   }
 })

@@ -122,6 +122,15 @@ input[type='number'] {
   height: 48px;
   border-radius: 50%;
 }
+.boxStarIcon {
+  align-self: flex-start;
+  cursor: pointer;
+  width: 30px;
+  height:30px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
 .tokenBaseInfo1 {
   width: 370px;
   display: block;

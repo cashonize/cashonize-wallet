@@ -314,6 +314,10 @@
             {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
           </div>
         </div>
+        <span @click="store.toggleFavorite(tokenData.tokenId)" class="boxStarIcon">
+          <img :src="settingsStore.featuredTokens.includes(tokenData.tokenId) ? 'images/star-full.svg' : 
+            settingsStore.darkMode? 'images/star-empty-grey.svg' : 'images/star-empty.svg'">
+        </span>
       </div>
 
       <div class="tokenActions">

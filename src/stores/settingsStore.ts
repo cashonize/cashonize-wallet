@@ -19,6 +19,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const ipfsGateway = ref(dafaultIpfsGateway);
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
+  const featuredTokens = ref([] as string[]);
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
@@ -35,6 +36,12 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     document.body.classList.add("dark");
     darkMode.value = true;
   }
+
+  const readFeaturedTokens = localStorage.getItem("featuredTokens");
+  if(readFeaturedTokens) {
+    featuredTokens.value = JSON.parse(readFeaturedTokens) as string[];
+  }
+
   const readElectrumMainnet = localStorage.getItem("electrum-mainnet") ?? "";
   if(readElectrumMainnet) electrumServerMainnet.value = readElectrumMainnet
 
@@ -49,5 +56,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn }
+  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, featuredTokens }
 })
