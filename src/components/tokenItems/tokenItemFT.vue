@@ -287,12 +287,9 @@
   }
 </script>
 
-<template id="token-template">
+<template>
   <div :id="`id${tokenData.tokenId.slice(0, 10)}`" class="item">
     <fieldset style="position: relative;">
-      <legend>
-        <div id="tokenType"></div>
-      </legend>
       <div class="tokenInfo">
         <img v-if="httpsUrlTokenIcon" class="tokenIcon" loading="lazy" :src="httpsUrlTokenIcon">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>

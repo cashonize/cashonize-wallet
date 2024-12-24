@@ -380,12 +380,9 @@
   }
 </script>
 
-<template id="token-template">
+<template>
   <div :id="`id${tokenData.tokenId.slice(0, 10)}nft`" class="item">
     <fieldset style="position: relative;">
-      <legend>
-        <div id="tokenType"></div>
-      </legend>
       <!--<div v-if="tokenData?.verified" id="verified" class="verified">
         <div class="tooltip">
           <img class="verifiedIcon" src="images/check-circle.svg">

@@ -237,12 +237,9 @@
   }
 </script>
 
-<template id="nft-template">
+<template>
   <div class="item" :id="id">
     <fieldset style="position: relative;">
-      <legend>
-        <div id="tokenType"></div>
-      </legend>
       <div class="tokenInfo">
         <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
           <source :src="httpsUrlTokenIcon" type="video/mp4" />

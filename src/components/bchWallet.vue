@@ -194,30 +194,30 @@
       <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
     </qr-code>
     <div style="text-align: center;">
-      <div id="switchAddress" class="icon" @click="switchAddressTypeQr()"
+      <div class="icon" @click="switchAddressTypeQr()"
         style="font-size: 20px;font-weight: 700;width: fit-content; margin: auto; margin-top: -5px; cursor: pointer;">⇄
       </div>
     </div>
     <div style="margin-top: 5px;">
       Send BCH:
-      <input v-model="destinationAddr" @input="parseAddrParams()" id="destinationAddr" placeholder="address">
+      <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address">
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
-          <input v-model="bchSendAmount" @input="setCurrencyAmount()" id="sendAmount" type="number" placeholder="amount">
+          <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="number" placeholder="amount">
           <i class="input-icon" style="color: black;">{{ bchDisplayUnit }}</i>
         </span>
         <span class="sendCurrencyInput">
-          <input v-model="currencySendAmount" @input="setBchAmount()" id="sendAmount" type="number" placeholder="amount">
+          <input v-model="currencySendAmount" @input="setBchAmount()" type="number" placeholder="amount">
           <i class="input-icon" style="color: black;">
             {{(store.network == "mainnet"? "" : "t") + `${CurrencyShortNames[settingsStore.currency]} ${CurrencySymbols[settingsStore.currency]}`}}
           </i>
         </span> 
             <button @click="useMaxBchAmount()" class="fillInMaxBch">max</button>
       </span>
-      <div v-if="(store.maxAmountToSend?.[settingsStore.bchUnit] ?? 0) < (bchSendAmount ?? 0)" style="color: red;" id="warningNoBCH">Not enough BCH in wallet to send</div>
+      <div v-if="(store.maxAmountToSend?.[settingsStore.bchUnit] ?? 0) < (bchSendAmount ?? 0)" style="color: red;">Not enough BCH in wallet to send</div>
       
     </div>
-    <input @click="sendBch()" type="button" class="primaryButton" id="send" value="Send" style="margin-top: 8px;">
+    <input @click="sendBch()" type="button" class="primaryButton" value="Send" style="margin-top: 8px;">
   </fieldset>
 </template>
 
