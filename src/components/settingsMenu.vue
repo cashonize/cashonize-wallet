@@ -183,7 +183,7 @@
       </div>
 
       <div style="margin-top:15px">Remove wallet data from {{isBrowser? "browser": "application"}}</div>
-      <input @click="confirmDeleteWallet()" type="button" id="burnNFT" value="Delete wallet" class="button error" style="display: block;">
+      <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
     </div>
     <div v-else>
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">

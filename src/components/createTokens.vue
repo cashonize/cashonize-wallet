@@ -183,7 +183,7 @@
         for the easiest token creation, or you can use the built-in process below for fine-grained control. <br><br>
       </div>
 
-      <div v-if="store.balance?.bch === 0" style="color: red;" id="warningNoBCH">Need BCH in wallet to create tokens</div>
+      <div v-if="store.balance?.bch === 0" style="color: red;">Need BCH in wallet to create tokens</div>
       <div style="margin-bottom: 1em;">
         <div v-if="store.plannedTokenId == ''">
           Currently the wallet does not have any UTXOs capable of token creation. <br>
@@ -191,7 +191,7 @@
         </div>
         <div v-else>
            Planned tokenId:
-          <span v-if="store.plannedTokenId == undefined" id="plannedTokenId">loading...</span>
+          <span v-if="store.plannedTokenId == undefined">loading...</span>
           <span v-if="store.plannedTokenId" @click="copyToClipboard(store.plannedTokenId)" style="cursor: pointer;">
             <span class="tokenId"> {{ displayPlannedTokenId }} </span>
             <img class="copyIcon icon" src="images/copyGrey.svg">
