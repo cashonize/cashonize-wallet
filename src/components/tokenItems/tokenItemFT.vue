@@ -2,7 +2,6 @@
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import { TokenSendRequest, SendRequest  } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
-  // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
   import type { TokenDataFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
@@ -42,7 +41,7 @@
   const MAX_SUPPLY_FTS = 9_223_372_036_854_775_807n
 
   const httpsUrlTokenIcon = computed(() => {
-    let tokenIconUri = tokenMetaData.value?.uris?.icon;
+    const tokenIconUri = tokenMetaData.value?.uris?.icon;
     if(tokenIconUri?.startsWith('ipfs://')){
       return settingsStore.ipfsGateway + tokenIconUri.slice(7);
     }
@@ -123,7 +122,7 @@
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if(tokenData.value?.authUtxo){
-        let authWarning = "You risk unintentionally sending the authority to update this token's metadata elsewhere. \nAre you sure you want to send the transaction anyways?";
+        const authWarning = "You risk unintentionally sending the authority to update this token's metadata elsewhere. \nAre you sure you want to send the transaction anyways?";
         if(confirm(authWarning) != true) return;
       }
       const tokenId = tokenData.value.tokenId;
@@ -178,7 +177,7 @@
       if(amountTokensInt > tokenData.value.amount) throw(`Insufficient token balance`);
       const tokenId = tokenData.value.tokenId;
 
-      let burnWarning = `You are about to burn ${amountTokensInt} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
+      const burnWarning = `You are about to burn ${amountTokensInt} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
       if (confirm(burnWarning) != true) return;
 
       $q.notify({
