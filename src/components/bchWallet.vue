@@ -200,14 +200,14 @@
     </div>
     <div style="margin-top: 5px;">
       Send BCH:
-      <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address">
+      <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address" name="addressInput">
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
-          <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="number" placeholder="amount">
+          <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="number" placeholder="amount" name="currencyInput">
           <i class="input-icon" style="color: black;">{{ bchDisplayUnit }}</i>
         </span>
         <span class="sendCurrencyInput">
-          <input v-model="currencySendAmount" @input="setBchAmount()" type="number" placeholder="amount">
+          <input v-model="currencySendAmount" @input="setBchAmount()" type="number" placeholder="amount" name="bchAmountInput">
           <i class="input-icon" style="color: black;">
             {{(store.network == "mainnet"? "" : "t") + `${CurrencyShortNames[settingsStore.currency]} ${CurrencySymbols[settingsStore.currency]}`}}
           </i>

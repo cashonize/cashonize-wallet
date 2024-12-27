@@ -295,8 +295,8 @@
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
-            <div v-if="tokenName" id="tokenName">Name: {{ tokenName }}</div>
-            <div id="tokenIdBox" style="word-break: break-all;">
+            <div v-if="tokenName">Name: {{ tokenName }}</div>
+            <div style="word-break: break-all;">
               TokenId: 
               <span @click="copyToClipboard(tokenData.tokenId)">
                 <span class="tokenId" style="cursor: pointer;">
@@ -305,9 +305,9 @@
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
             </div>
-            <div id="childNftCommitment" style="word-break: break-all;" class="hide"></div>
+            <div style="word-break: break-all;" class="hide"></div>
           </div>
-          <div v-if="tokenData?.amount" class="tokenAmount" id="tokenAmount">Amount: 
+          <div v-if="tokenData?.amount" class="tokenAmount">Amount: 
             {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
           </div>
         </div>
@@ -320,16 +320,16 @@
       <div class="tokenActions">
         <div class="actionBar">
           <span @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
-            <img id="sendIcon" class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
-          <span @click="displayTokenInfo = !displayTokenInfo" id="infoButton">
-            <img id="infoIcon" class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
+            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
+          <span @click="displayTokenInfo = !displayTokenInfo">
+            <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
           </span>
           <span v-if="settingsStore.tokenBurn && tokenData?.amount" @click="displayBurnFungibles = !displayBurnFungibles" style="white-space: nowrap;">
-            <img id="burnIcon" class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
+            <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             <span>burn tokens</span>
           </span>
-          <span v-if="tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;" id="authButton">
-            <img id="authIcon" class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
+          <span v-if="tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
             <span>auth transfer</span>
           </span>
         </div>
@@ -376,26 +376,26 @@
           Send these tokens to
           <div class="inputGroup">
             <div class="addressInputFtSend">
-              <input v-model="destinationAddr" id="tokenAddress" placeholder="token address">
+              <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
             </div>
             <div class="sendTokenAmount">
               <span style="width: 100%; position: relative; ">
-                <input v-model="tokenSendAmount" placeholder="amount">
-                <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
+                <input v-model="tokenSendAmount" placeholder="amount" name="tokenAmountInput">
+                <i class="input-icon" style="width: min-content; padding-right: 15px;">
                   {{ tokenMetaData?.token?.symbol ?? "tokens" }}
                 </i>
               </span>
-              <button @click="maxTokenAmount(true)" id="maxButton" style="color: black;">max</button>
+              <button @click="maxTokenAmount(true)" style="color: black;">max</button>
             </div>
           </div>
-          <input @click="sendTokens()" type="button" id="sendSomeButton" class="primaryButton" value="Send">
+          <input @click="sendTokens()" type="button" class="primaryButton" value="Send">
         </div>
         <div v-if="displayBurnFungibles" style="margin-top: 10px;">
           <div>Burning tokens removes them from the supply forever</div>
           <div style="display: flex">
             <span style="width: 50%; position: relative; display: flex;">
-              <input v-model="burnAmountFTs" type="number" placeholder="amount tokens">
-              <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
+              <input v-model="burnAmountFTs" type="number" placeholder="amount tokens" name="tokenAmountInput">
+              <i class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? "tokens" }}
               </i>
             </span>
@@ -410,8 +410,8 @@
           <span class="grouped" style="margin-top: 10px;">
             <input v-model="destinationAddr" placeholder="destinationAddr">
             <span style="width: 100%; position: relative; display: flex; margin: 0">
-              <input v-model="reservedSupplyInput" placeholder="reservedSupply">
-              <i id="sendUnit" class="input-icon" style="width: min-content; padding-right: 15px;">
+              <input v-model="reservedSupplyInput" placeholder="reservedSupply" name="tokenAmountInput">
+              <i class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? "tokens" }}
               </i>
             </span>
