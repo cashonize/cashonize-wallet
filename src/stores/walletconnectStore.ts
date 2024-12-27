@@ -23,7 +23,9 @@ import {
   type CompilationContextBCH,
   type TransactionCommon,
   type Input,
-  type Output
+  type Output,
+  AuthenticationProgramState,
+  TransactionGenerationError
 } from "@bitauth/libauth"
 import { getSdkError } from '@walletconnect/utils';
 import { parseExtendedJson } from 'src/utils/utils'
@@ -224,7 +226,11 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
 
       // generate and encode transaction
       const generated = generateTransaction(txTemplate);
-      if (!generated.success) throw Error(JSON.stringify(generated.errors, null, 2));
+      if (!generated.success){
+        // TODO: avoid typecasting to TransactionGenerationError
+        const generationError = generated as TransactionGenerationError<AuthenticationProgramState>;
+        throw Error(JSON.stringify(generationError, null, 2));
+      }
 
       const encoded = encodeTransaction(generated.transaction);
       const hash = binToHex(sha256.hash(sha256.hash(encoded)).reverse());

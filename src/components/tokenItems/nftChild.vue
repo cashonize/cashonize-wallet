@@ -4,7 +4,6 @@
   import { TokenSendRequest, TokenMintRequest, TokenI } from "mainnet-js"
   import { type UtxoI } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
-  // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
   import type { bcmrTokenMetadata } from "src/interfaces/interfaces"
@@ -189,7 +188,7 @@
       const nftInfo = nftData.value.token;
       const tokenId = nftInfo?.tokenId as string;
       const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
-      let burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
+      const burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
       if (confirm(burnWarning) != true) return;
 
       $q.notify({

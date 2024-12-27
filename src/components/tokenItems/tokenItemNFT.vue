@@ -4,7 +4,6 @@
   import nftChild from './nftChild.vue'
   import { TokenSendRequest, TokenMintRequest, SendRequest, TokenI } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
-  // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
   import type { TokenDataNFT, bcmrTokenMetadata } from "src/interfaces/interfaces"

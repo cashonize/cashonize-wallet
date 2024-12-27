@@ -68,7 +68,7 @@
       const bcmrUri = selectedUri.value != "IPFS" ? inputField : "ipfs://" + inputField;
       const chunks = ["BCMR", hashContent, bcmrUri];
       return OpReturnData.fromArray(chunks);
-    } catch (error) {
+    } catch{
       validitityCheck.value = false;
     }
   }
@@ -78,7 +78,7 @@
     const validInput = isValidBigInt(inputFungibleSupply.value) && +inputFungibleSupply.value > 0;
     function isValidBigInt(value:string) {
       try { return BigInt(value) }
-      catch (e) { return false }
+      catch{ return false }
     }
     if(!validInput) throw(`Input total supply must be a valid integer`)
     try{
