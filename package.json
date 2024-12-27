@@ -8,10 +8,10 @@
     "type": "git",
     "url": "https://github.com/cashonize/cashonize-wallet.git"
   },
+  "type": "module",
   "private": true,
   "scripts": {
-    "lint": "eslint --ext .js,.ts,.vue ./",
-    "format": "prettier --write \"**/*.{js,ts,vue,css,html,md,json}\" --ignore-path .gitignore",
+    "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build"
@@ -31,29 +31,30 @@
     "cashconnect": "0.0.15",
     "chota": "^0.9.2",
     "mainnet-js": "^2.5.0",
-    "pinia": "^2.2.4",
-    "quasar": "^2.17.0",
-    "vue": "^3.5.11",
-    "vue-router": "^4.4.5"
+    "pinia": "^2.3.0",
+    "quasar": "^2.17.5",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@quasar/app-vite": "^1.10.0",
-    "@types/node": "^12.20.21",
-    "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "^5.10.0",
+    "@eslint/js": "^9.17.0",
+    "@quasar/app-vite": "^2.0.4",
+    "@types/node": "^20.5.9",
+    "@vue/eslint-config-typescript": "^14.2.0",
     "autoprefixer": "^10.4.2",
     "electron": "^32.1.2",
     "electron-builder": "^25.1.7",
-    "eslint": "^8.11.0",
-    "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-vue": "^9.0.0",
-    "prettier": "^2.5.1",
-    "typescript": "^4.5.4",
+    "eslint": "^9.14.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "globals": "^15.14.0",
+    "typescript": "~5.5.3",
+    "vite-plugin-checker": "^0.8.0",
     "vite-plugin-node-polyfills": "^0.19.0",
-    "vite-plugin-top-level-await": "^1.4.1"
+    "vite-plugin-top-level-await": "^1.4.1",
+    "vue-tsc": "^2.2.0"
   },
   "engines": {
-    "node": "^20 || ^18 || ^16",
+    "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
   }
