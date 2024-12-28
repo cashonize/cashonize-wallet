@@ -393,7 +393,7 @@
           <div>Burning tokens removes them from the supply forever</div>
           <div style="display: flex">
             <span style="width: 50%; position: relative; display: flex;">
-              <input v-model="burnAmountFTs" type="number" placeholder="amount tokens" name="tokenAmountInput">
+              <input v-model="burnAmountFTs" placeholder="amount tokens" name="tokenAmountInput">
               <i class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? "tokens" }}
               </i>

@@ -3,6 +3,7 @@
 
 import { defineConfig } from '#q-app/wrappers';
 import topLevelAwait from 'vite-plugin-top-level-await';
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import packageJson from './package.json';
 
 export default defineConfig((/* ctx */) => {
@@ -70,8 +71,10 @@ export default defineConfig((/* ctx */) => {
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
       
+      // TODO: remove topLevelAwait & nodePolyfills when possible
       vitePlugins: [
-        [topLevelAwait],
+        [topLevelAwait, {}],
+        [nodePolyfills, {globals: { Buffer: true }}],
         ['vite-plugin-checker', {
           vueTsc: true,
           eslint: {
