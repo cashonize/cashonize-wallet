@@ -1,12 +1,12 @@
-
 import { boot } from 'quasar/wrappers'
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Platform } from 'quasar'
 
-export default boot(async ( { redirect  }) => {
+export default boot(async ( { router }) => {
   if(Platform.is.capacitor) {
     App.addListener('appUrlOpen', function (event: URLOpenListenerEvent) {
-      redirect({ path: '/' , query:{uri: event.url}})
+      // Use router.push to navigate without a hard-refresh (redirect)
+      router.push({ path: '/', query:{uri: event.url} });
     });
   }
 })

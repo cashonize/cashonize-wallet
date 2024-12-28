@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, type Ref } from 'vue'
+  import { ref, watch, type Ref } from 'vue'
   import { useQuasar } from 'quasar';
   import { storeToRefs } from 'pinia';
   import { useStore } from 'src/stores/store'
@@ -38,16 +38,23 @@
     return !isSigningRequest;
   }
 
-  if(props.dappUriUrlParam?.startsWith('wc:') && isSessionRequest(props.dappUriUrlParam)){
-    try {
-      await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam });
-    } catch (error) {
-      console.error("Error pairing URI:", error);
+  async function checkDappUriUrlParam(){
+    if(props.dappUriUrlParam?.startsWith('wc:') && isSessionRequest(props.dappUriUrlParam)){
+      try {
+        await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam });
+      } catch (error) {
+        console.error("Error pairing URI:", error);
+      }
+    }
+    if(props.dappUriUrlParam?.startsWith('cc:')){
+      await cashconnectStore.pair(props.dappUriUrlParam);
     }
   }
-  if(props.dappUriUrlParam?.startsWith('cc:')){
-    await cashconnectStore.pair(props.dappUriUrlParam);
-  }
+  // Check for dappUriUrlParam on component mount and watch for changes.
+  await checkDappUriUrlParam()
+  watch(props, async() => {
+    await checkDappUriUrlParam()
+  })
 
   // Methods.
   async function connectDappUriInput(){
