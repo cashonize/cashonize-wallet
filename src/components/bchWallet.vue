@@ -1,18 +1,23 @@
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { BalanceResponse, convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
   import { copyToClipboard } from 'src/utils/utils';
+  import { useWindowSize } from '@vueuse/core'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
-  import { useWindowSize } from '@vueuse/core'
+
+  const props = defineProps<{
+    bchSendRequest?: string
+  }>()
+
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
@@ -38,6 +43,17 @@
   const destinationAddr = ref("");
 
   const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.address : store.wallet?.tokenaddr)
+
+  if(props.bchSendRequest?.startsWith('bitcoincash:')){
+    destinationAddr.value = props.bchSendRequest
+    parseAddrParams()
+  }
+  watch(props, () => {
+    if(props.bchSendRequest?.startsWith('bitcoincash:')){
+      destinationAddr.value = props.bchSendRequest
+      parseAddrParams()
+    }
+  })
 
   function switchAddressTypeQr(){
     displayBchQr.value = !displayBchQr.value;

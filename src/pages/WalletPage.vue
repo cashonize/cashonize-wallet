@@ -24,6 +24,7 @@
   }>()
 
   const dappUriUrlParam = ref(undefined as undefined|string);
+  const bchSendRequest = ref(undefined as undefined|string);
   
   // check if wallet exists
   const mainnetWalletExists = await Wallet.namedExists(store.nameWallet);
@@ -37,7 +38,7 @@
     store.setWallet(initWallet);
   }
   
-  // check if session request in URL params passed through prop
+  // check if session request in URL params passed through props
   if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
     if(walletExists){
       dappUriUrlParam.value = props.uri
@@ -53,12 +54,31 @@
       })
     }
   }
+  // check if BCH send request is passed through props
+  if(props?.uri?.startsWith('bitcoincash:')){
+    if(walletExists){
+      bchSendRequest.value = props.uri
+      store.changeView(1);
+    } else {
+      $q.notify({
+        message: "Need to initialize a wallet first",
+        icon: 'warning',
+        color: "grey-7"
+      })
+    }
+  }
 
   watch(props, () => {
-    // check if session request in URL params passed through prop
+    if(!walletExists) return
+    // check if session request in URL params passed through props
     if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
       dappUriUrlParam.value = props.uri
       store.changeView(4);
+    }
+    // check if BCH send request is passed through props
+    if(props?.uri?.startsWith('bitcoincash:')){
+      bchSendRequest.value = props.uri
+      store.changeView(1);
     }
   })
 </script>
@@ -79,7 +99,7 @@
   </header>
   <main style="margin: 20px auto; max-width: 78rem;">
     <newWalletView v-if="!store.wallet" @init-wallet="(arg) => store.setWallet(arg)"/>
-    <bchWalletView v-if="store.displayView == 1"/>
+    <bchWalletView v-if="store.displayView == 1" :bchSendRequest="bchSendRequest"/>
     <myTokensView v-if="store.displayView == 2"/>
     <createTokensView v-if="store.displayView == 3"/>
     <connectDappView v-if="store.displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
