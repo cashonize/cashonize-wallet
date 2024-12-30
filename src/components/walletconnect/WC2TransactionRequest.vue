@@ -43,7 +43,7 @@
     const prefix = store.network == "mainnet" ? "bitcoincash" : "bchtest";
     // check for opreturn
     if(binToHex(lockingBytecode).startsWith("6a")) return "opreturn:" +  binToHex(lockingBytecode)
-    const result = lockingBytecodeToCashAddress(lockingBytecode,prefix);
+    const result = lockingBytecodeToCashAddress({bytecode:lockingBytecode, prefix});
     if (typeof result !== "string") throw result;
     return result;
   }

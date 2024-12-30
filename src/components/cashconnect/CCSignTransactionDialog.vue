@@ -171,7 +171,7 @@ function formatDataValue(value: Uint8Array, dataId: string | number, template: a
 };
 
 function formatLockscript(lockingBytecode: Uint8Array) {
-  const result = lockingBytecodeToCashAddress(lockingBytecode, 'bitcoincash');
+  const result = lockingBytecodeToCashAddress({bytecode:lockingBytecode, prefix:'bitcoincash'});
   if (typeof result !== "string") {
     return binToHex(lockingBytecode);
   }

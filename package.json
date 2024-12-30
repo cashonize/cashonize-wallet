@@ -17,11 +17,12 @@
     "build": "quasar build"
   },
   "dependencies": {
+    "@bitauth/libauth": "3.0.0",
     "@bitjson/qr-code": "^1.0.2",
     "@capacitor/app": "^6.0.0",
     "@capacitor/core": "^6.0.0",
     "@download/blockies": "^1.0.3",
-    "@mainnet-cash/indexeddb-storage": "^2.5.0",
+    "@mainnet-cash/indexeddb-storage": "2.6.0",
     "@quasar/extras": "^1.16.12",
     "@types/blockies": "^0.0.4",
     "@vueform/toggle": "^2.1.4",
@@ -30,7 +31,7 @@
     "@walletconnect/web3wallet": "^1.10.1",
     "cashconnect": "0.0.15",
     "chota": "^0.9.2",
-    "mainnet-js": "^2.5.0",
+    "mainnet-js": "2.6.0",
     "pinia": "^2.3.0",
     "quasar": "^2.17.5",
     "vue": "^3.5.13",
@@ -49,7 +50,6 @@
     "globals": "^15.14.0",
     "typescript": "~5.5.3",
     "vite-plugin-checker": "^0.8.0",
-    "vite-plugin-node-polyfills": "^0.22.0",
     "vite-plugin-top-level-await": "^1.4.1",
     "vue-tsc": "^2.2.0"
   },
