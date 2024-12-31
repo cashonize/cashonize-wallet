@@ -172,10 +172,10 @@ function formatDataValue(value: Uint8Array, dataId: string | number, template: a
 
 function formatLockscript(lockingBytecode: Uint8Array) {
   const result = lockingBytecodeToCashAddress({bytecode:lockingBytecode, prefix:'bitcoincash'});
-  if (typeof result !== "string") {
+  if (typeof result == "string") {
     return binToHex(lockingBytecode);
   }
-  return result;
+  return result.address;
 };
 
 function satsToBCH(satoshis: bigint) {

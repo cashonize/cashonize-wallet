@@ -148,8 +148,8 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       // check for opreturn
       if(binToHex(lockingBytecode).startsWith("6a")) return "opreturn:" +  binToHex(lockingBytecode)
       const result = lockingBytecodeToCashAddress({bytecode:lockingBytecode,prefix});
-      if (typeof result !== "string") throw result;
-      return result;
+      if (typeof result == "string") throw result;
+      return result.address;
     }
 
     async function signTransactionWC(transactionRequestWC: any) {
