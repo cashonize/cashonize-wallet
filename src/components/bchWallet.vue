@@ -10,6 +10,8 @@
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
+  import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -19,7 +21,8 @@
   }>()
 
   const { width } = useWindowSize();
-  const isMobile = computed(() => width.value < 480)
+  const isMobilePhone = computed(() => width.value < 480)
+  const isBrowser = (process.env.MODE == "spa");
 
   const nrTokenCategories = computed(() => store.tokenList?.length)
 
@@ -41,6 +44,7 @@
   const bchSendAmount = ref(undefined as (number | undefined));
   const currencySendAmount = ref(undefined as (number | undefined));
   const destinationAddr = ref("");
+  const showQrCodeDialog = ref(false);
 
   const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.address : store.wallet?.tokenaddr)
 
@@ -160,6 +164,17 @@
       })
     }
   }
+
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+  }
+  const qrFilter = (content: string) => {
+    const decoded = decodeCashAddress(content);
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+      return "Not a cashaddress on current network";
+    }
+    return true;
+  }
 </script>
 
 
@@ -180,13 +195,8 @@
           ? numberFormatter.format(store.balance[settingsStore.bchUnit] as number) + displayUnitLong : "" }}
       </span>
     </span>
-    <span v-if="!isMobile">
-      , Tokens: 
-      <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ nrTokenCategories != undefined ? nrTokenCategories + " different categories" : ""}}
-      </span>
-    </span>
-    <div v-else style="margin-bottom: 10px;">
+    <div :style="!isMobilePhone ? 'display: in-line-block' : 'margin-bottom: 10px;'">
+      <span v-if="!isMobilePhone">, </span>
       Tokens: 
       <span style="color: hsla(160, 100%, 37%, 1);">
         {{ nrTokenCategories != undefined ? nrTokenCategories + " different categories" : ""}}
@@ -216,7 +226,12 @@
     </div>
     <div style="margin-top: 5px;">
       Send BCH:
-      <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address" name="addressInput">
+      <div style="display: flex; gap: 0.5rem;">
+        <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address" name="addressInput">
+        <button v-if="isBrowser" @click="() => showQrCodeDialog = true" style="padding: 12px">
+            <img src="images/qrscan.svg" />
+        </button>
+      </div>
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
           <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="number" placeholder="amount" name="currencyInput">
@@ -235,6 +250,9 @@
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" value="Send" style="margin-top: 8px;">
   </fieldset>
+  <div v-if="showQrCodeDialog">
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
+  </div>
 </template>
 
 <style scoped>
