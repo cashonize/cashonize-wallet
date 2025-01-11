@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, computed, Ref } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn, convert } from "mainnet-js"
+import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn, convert, DefaultProvider } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import { CurrencySymbols, type TokenList, type bcmrIndexerResponse } from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
@@ -15,6 +15,7 @@ const settingsStore = useSettingsStore()
 // set mainnet-js config
 Config.EnforceCashTokenReceiptAddresses = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
+DefaultProvider.servers.chipnet = ["wss://chipnet.bch.ninja:50004"];
 
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
@@ -54,6 +55,12 @@ export const useStore = defineStore('store', () => {
     if(newWallet.network == 'mainnet'){
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
+    }
+    if(newWallet.network == 'testnet'){
+      console.log(newWallet.provider)
+      const connectionChipnet = new Connection("testnet", `wss://${settingsStore.electrumServerChipnet}:50004`)
+      newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
+      console.log(newWallet.provider)
     }
     wallet.value = newWallet;
     console.time('initialize walletconnect and cashconnect');
@@ -145,6 +152,7 @@ export const useStore = defineStore('store', () => {
     }
     const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
     const newWallet = await walletClass.named(nameWallet);
+    newWallet.provider = undefined
     setWallet(newWallet);
     localStorage.setItem('network', newNetwork);
     // reset wallet to default state

@@ -7,7 +7,7 @@
   import createTokensView from 'src/components/createTokens.vue'
   import { ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
-  import { Wallet, TestNetWallet } from 'mainnet-js'
+  import { Wallet, TestNetWallet, DefaultProvider } from 'mainnet-js'
   import { waitForInitialized } from 'src/utils/utils'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -25,6 +25,8 @@
 
   const dappUriUrlParam = ref(undefined as undefined|string);
   const bchSendRequest = ref(undefined as undefined|string);
+
+  DefaultProvider.servers.chipnet = ["wss://chipnet.bch.ninja:50004"];
   
   // check if wallet exists
   const mainnetWalletExists = await Wallet.namedExists(store.nameWallet);

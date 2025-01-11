@@ -5,6 +5,7 @@ import { ref } from 'vue'
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
+const defaultElectrumChipnet = "chipnet.bch.ninja"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
 const dafaultIpfsGateway = "https://w3s.link/ipfs/";
 
@@ -15,6 +16,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const explorerMainnet = ref(defaultExplorerMainnet);
   const explorerChipnet = ref(defaultExplorerChipnet);
   const electrumServerMainnet = ref(defaultElectrumMainnet);
+  const electrumServerChipnet = ref(defaultElectrumChipnet);
   const chaingraph = ref(defaultChaingraph);
   const ipfsGateway = ref(dafaultIpfsGateway);
   const darkMode  = ref(false);
@@ -45,6 +47,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readElectrumMainnet = localStorage.getItem("electrum-mainnet") ?? "";
   if(readElectrumMainnet) electrumServerMainnet.value = readElectrumMainnet
 
+  const readElectrumChipnet = localStorage.getItem("electrum-chipnet") ?? "";
+  if(readElectrumChipnet) electrumServerChipnet.value = readElectrumChipnet
+
   const readChaingraph = localStorage.getItem("chaingraph") ?? "";
   if(readChaingraph) chaingraph.value = readChaingraph
   
@@ -56,5 +61,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, chaingraph, ipfsGateway, darkMode, tokenBurn, featuredTokens }
+  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, tokenBurn, featuredTokens }
 })

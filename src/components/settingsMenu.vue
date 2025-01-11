@@ -21,6 +21,7 @@
   const selectedDarkMode = ref(settingsStore.darkMode);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
+  const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
   const selectedChaingraph = ref(settingsStore.chaingraph);
 
@@ -70,6 +71,13 @@
     store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
     settingsStore.electrumServerMainnet = selectedElectrumServer.value
     localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
+  }
+  function changeElectrumServerChipnet(){
+    if(!store.wallet) return
+    const newConnection = new Connection("testnet",`wss://${selectedElectrumServerChipnet.value}:50004` )
+    store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+    settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
+    localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
   }
   function changeIpfsGateway(){
     settingsStore.ipfsGateway = selectedIpfsGateway.value
@@ -160,6 +168,14 @@
           <option value="electroncash.dk">electroncash.dk</option>
           <option value="fulcrum.jettscythe.xyz">fulcrum.jettscythe.xyz</option>
           <option value="bch.loping.net">bch.loping.net</option>
+        </select>
+      </div>
+
+      <div v-if="store.network == 'chipnet'" style="margin-top:15px">
+        <label for="selectNetwork">Change Electrum server chipnet:</label>
+        <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServerChipnet()">
+          <option value="chipnet.bch.ninja">chipnet.bch.ninja (default)</option>
+          <option value="chipnet.imaginary.cash">chipnet.imaginary.cash</option>
         </select>
       </div>
 
