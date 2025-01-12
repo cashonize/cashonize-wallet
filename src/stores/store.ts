@@ -55,6 +55,12 @@ export const useStore = defineStore('store', () => {
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
     }
+    if(newWallet.network == 'testnet'){
+      console.log(newWallet.provider)
+      const connectionChipnet = new Connection("testnet", `wss://${settingsStore.electrumServerChipnet}:50004`)
+      newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
+      console.log(newWallet.provider)
+    }
     wallet.value = newWallet;
     console.time('initialize walletconnect and cashconnect');
     await Promise.all([initializeWalletConnect(newWallet), initializeCashConnect()]);
