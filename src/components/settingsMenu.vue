@@ -176,6 +176,7 @@
         <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServerChipnet()">
           <option value="chipnet.bch.ninja">chipnet.bch.ninja (default)</option>
           <option value="chipnet.imaginary.cash">chipnet.imaginary.cash</option>
+          <option value="cbch.loping.net">cbch.loping.net</option>
         </select>
       </div>
 
@@ -242,8 +243,10 @@
           <option v-if="store.network == 'mainnet'" value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
           <option v-if="store.network == 'mainnet'" value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
 
-          <option v-if="store.network == 'chipnet'" value="https://chipnet.imaginary.cash/tx">chipnet imaginary</option>
-          <option v-if="store.network == 'chipnet'" value="https://chipnet.chaingraph.cash/tx">chipnet chaingraph</option>
+          <option v-if="store.network == 'chipnet'" value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
+          <option v-if="store.network == 'chipnet'" value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
+          <option v-if="store.network == 'chipnet'" value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
+          <option v-if="store.network == 'chipnet'" value="https://cbch.loping.net/tx">cbch.loping.net</option>
         </select>
       </div>
 
