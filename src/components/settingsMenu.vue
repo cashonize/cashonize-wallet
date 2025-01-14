@@ -198,8 +198,9 @@
         </select>
       </div>
 
-      <div style="margin-top:15px">Remove wallet data from {{isBrowser? "browser": "application"}}</div>
-      <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
+      <div style="margin-top:15px; margin-bottom: 15px">Remove wallet data from {{isBrowser? "browser": "application"}}
+        <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
+      </div>
     </div>
     <div v-else>
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">
@@ -246,7 +247,7 @@
         </select>
       </div>
 
-      <div v-if="isBrowser" style="margin-bottom:15px; ">
+      <div v-if="isBrowser" style="margin-bottom:15px;">
         <a style="color: var(--font-color); cursor: pointer;" href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">
           Download Cashonize
           <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
