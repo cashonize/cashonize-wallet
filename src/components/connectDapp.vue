@@ -7,6 +7,7 @@
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
   import { type Wallet } from 'mainnet-js';
+  import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   // Components.
   import WalletconnectView from 'src/components/walletConnect.vue'
@@ -14,6 +15,8 @@
 
   const $q = useQuasar();
   const store = useStore()
+  const isBrowser = (process.env.MODE == "spa");
+
   const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
   const web3wallet = walletconnectStore.web3wallet
   const { wallet } = storeToRefs(store);
@@ -30,6 +33,7 @@
 
   // State.
   const dappUriInput = ref("");
+  const showQrCodeDialog = ref(false);
 
   // Handle Props.
   function isSessionRequest(uri: string): boolean {
@@ -57,20 +61,20 @@
   })
 
   // Methods.
-  async function connectDappUriInput(){
+  async function connectDappUriInput(dappUri: string) {
     try {
       // Promise will wait for state indicating whether WC and CC are initialized
       const { isWcAndCcInitialized } = storeToRefs(store);
       await waitForInitialized(isWcAndCcInitialized); 
 
       // If the URL begings with "wc:" (walletconnect)...
-      if(dappUriInput.value.startsWith('wc:')) {
-        await walletconnectRef.value?.connectDappUriInput(dappUriInput.value);
+      if(dappUri.startsWith('wc:')) {
+        await walletconnectRef.value?.connectDappUriInput(dappUri);
       }
 
       // Otherwise, if the URL begins with "cc:" (cashconnect)...
-      else if (dappUriInput.value.startsWith('cc:')) {
-        await cashconnectRef.value?.connectDappUriInput(dappUriInput.value);
+      else if (dappUri.startsWith('cc:')) {
+        await cashconnectRef.value?.connectDappUriInput(dappUri);
       }
 
       // Otherwise, if it does not match CC or WC, throw an error.
@@ -88,6 +92,19 @@
       })
     }
   }
+
+  const qrDecode = async (content: string) => {
+    await connectDappUriInput(content)
+  }
+  const qrFilter = (content: string) => {
+    const matchWalletConnect = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
+    const matchCashConnect = String(content).match(/^cc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
+
+    if (!matchWalletConnect && !matchCashConnect) {
+      return "Not a valid WalletConnect or CashConnect URI";
+    }
+    return true;
+}
 </script>
 
 <template>
@@ -96,12 +113,21 @@
       <div style="margin-bottom: 10px;">
         See <a href="https://tokenaut.cash/dapps?filter=walletconnect" target="_blank">Tokenaut.cash</a> to explore the full list of BCH Dapps with WalletConnect
       </div>
-      <input @keyup.enter="connectDappUriInput" v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
+      <div style="display: flex; gap: 0.5rem; ">
+        <input @keyup.enter="() => connectDappUriInput(dappUriInput)" v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
+        <button v-if="isBrowser" @click="() => showQrCodeDialog = true" style="padding: 12px; height: 43px;">
+          <img src="images/qrscan.svg" />
+        </button>
+      </div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-bottom: 5px">
-        <input @click="connectDappUriInput" type="button" class="primaryButton" value="Connect New dApp">
+        <input @click="() => connectDappUriInput(dappUriInput)" type="button" class="primaryButton" value="Connect New dApp">
       </div>
     </fieldset>
 
     <WalletconnectView ref="walletconnectRef"/>
     <CashconnectView ref="cashconnectRef" />
+
+    <div v-if="showQrCodeDialog">
+      <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
+    </div>
 </template>
