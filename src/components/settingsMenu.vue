@@ -1,12 +1,15 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { Connection, ElectrumNetworkProvider, Config, BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils';
   const store = useStore()
   const settingsStore = useSettingsStore()
+  import { useWindowSize } from '@vueuse/core'
+  const { width } = useWindowSize();
+  const isMobile = computed(() => width.value < 480)
 
   const isBrowser = (process.env.MODE == "spa");
   const isDesktop = (process.env.MODE == "electron");
@@ -210,6 +213,10 @@
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 2">
         ↳ Advanced settings
+      </div>
+
+      <div v-if="!isMobile" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
+        → Token Creation
       </div>
 
       <div>
