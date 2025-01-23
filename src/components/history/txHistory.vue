@@ -51,7 +51,7 @@
       <table>
         <thead>
           <tr style="padding-left: 10px;">
-            <th v-if="!isMobile" scope="col"></th>
+            <th scope="col"></th>
             <th scope="col">Date</th>
             <th scope="col" class="valueHeader">Amount</th>
             <th scope="col" class="valueHeader">Balance</th>
@@ -61,7 +61,7 @@
         <tbody class="transactionTable">
           <tr :class="settingsStore.darkMode ? 'dark' : ''" v-for="transaction in selectedHistory" :key="transaction.hash" @click="() => selectedTransaction = transaction">
 
-            <td v-if="!isMobile">{{ transaction.timestamp ? "✅" : "⏳" }}</td>
+            <td>{{ transaction.timestamp ? "✅" : "⏳" }}</td>
 
             <td v-if="isMobile">
               <div style="line-height: 1">{{ new Date(transaction.timestamp * 1000).toLocaleDateString().replace("202", "2") }}</div>
@@ -80,17 +80,11 @@
             </td>
 
             <td v-if="transaction.tokenAmountChanges.length" class="tokenChange">
-              <div style="max-width: 160px; display: flex; align-items: center;" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
+              <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
                 <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
-                  <div style="display: flex; flex-direction: column;">
-                   <div>
-                      <span v-if="tokenChange.amount > 0n" class="value">+{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
-                      <span v-else class="value" style="color: rgb(188,30,30)">{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
-                      <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
-                    </div>
-                    <div style="display: flex; justify-content: end;" :style="tokenChange.amount < 0n ? 'color: rgb(188,30,30)' : ''">
-                    </div>
-                  </div>
+                  <span v-if="tokenChange.amount > 0n" class="value">+{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
+                  <span v-else class="value" style="color: rgb(188,30,30)">{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
+                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                 </span>
                 <span v-if="tokenChange.nftAmount !== 0n">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
@@ -132,6 +126,13 @@ tr.dark:nth-child(even) {
   align-items: end;
   justify-content: flex-end;
   text-align: end;
+  width: auto;
+}
+.tokenChangeItem {
+  max-width: 160px;
+  overflow: auto;
+  display: flex;
+  align-items: center;
 }
 
 img.tokenIcon {
@@ -150,8 +151,15 @@ img.tokenIcon {
   .tokenIcon {
     margin-right: 0px;
   }
-  .tokenChange {
+  .tokenChangeItem {
+    max-width: 120px;
+    text-align: center;
+    width: 100%;
     flex-direction: column;
+    justify-content: center;
+  }
+  .transactionTable > * {
+    font-size: small;
   }
 }
 </style>

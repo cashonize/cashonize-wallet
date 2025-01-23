@@ -82,7 +82,9 @@
         <div style="display: flex; flex-direction: column; gap: 1rem">
           <div>
             Transaction ID: 
-            <a :href="store.explorerUrl + `/${historyItem.hash}`" target="_blank">{{ historyItem.hash.slice(0, 12) + "..." + historyItem.hash.slice(52) }}</a>
+            <a :href="store.explorerUrl + `/${historyItem.hash}`" target="_blank" style="word-break: break-all;">
+              {{ historyItem.hash.slice(0, 12) + "..." + historyItem.hash.slice(52) }}
+            </a>
             <span @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer;">
               <img class="copyIcon" src="images/copyGrey.svg">
             </span>
@@ -123,7 +125,7 @@
                 <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="input.token.capability"> NFT</span>
-                <img v-if="bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="store.tokenIconUrl(input.token.tokenId)">
+                <img v-if="bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;" :src="store.tokenIconUrl(input.token.tokenId)">
               </span>
             </div>
           </div>
@@ -140,7 +142,7 @@
                 <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="output.token.capability"> NFT</span>
-                <img v-if="bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 16px; height: 16px; border-radius: 50%;" :src="store.tokenIconUrl(output.token.tokenId)">
+                <img v-if="bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;" :src="store.tokenIconUrl(output.token.tokenId)">
               </span>
             </div>
           </div>
