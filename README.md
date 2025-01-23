@@ -13,7 +13,6 @@ Cashonize has an easy-to-understand transaction preview screen for WalletConnect
 Further, Cashonize nicely groups and displays your NFTs, making it ideal for NFT collectors.
 
 Cashonize is a single-address wallet, for privacy-focused users is recommended to use a HD-wallet.
-The wallet currently doesn't have a page to display your transaction history.
 
 ## Platforms
 
