@@ -20,6 +20,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const chaingraph = ref(defaultChaingraph);
   const ipfsGateway = ref(dafaultIpfsGateway);
   const darkMode  = ref(false);
+  const showFiatValueHistory = ref(true);
   const tokenBurn = ref(false);
   const featuredTokens = ref([] as string[]);
 
@@ -32,6 +33,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readUnit = localStorage.getItem("unit");
   if(readUnit && (readUnit=="bch" || readUnit=="sat")) bchUnit.value = readUnit;
+
+  const readFiatValueHistory = localStorage.getItem("fiatValueHistory");
+  if(readFiatValueHistory) showFiatValueHistory.value = readFiatValueHistory == "true";
 
   const readDarkMode = localStorage.getItem("darkMode");
   if(readDarkMode == "true"){
@@ -61,5 +65,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, tokenBurn, featuredTokens }
+  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, showFiatValueHistory, tokenBurn, featuredTokens }
 })

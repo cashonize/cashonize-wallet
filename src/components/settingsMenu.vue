@@ -1,12 +1,15 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { Connection, ElectrumNetworkProvider, Config, BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils';
   const store = useStore()
   const settingsStore = useSettingsStore()
+  import { useWindowSize } from '@vueuse/core'
+  const { width } = useWindowSize();
+  const isMobile = computed(() => width.value < 480)
 
   const isBrowser = (process.env.MODE == "spa");
   const isDesktop = (process.env.MODE == "electron");
@@ -19,6 +22,7 @@
   const selectedUnit = ref(settingsStore.bchUnit);
   const selectedExplorer = ref(store.explorerUrl);
   const selectedDarkMode = ref(settingsStore.darkMode);
+  const showFiatValueHistory = ref(settingsStore.showFiatValueHistory);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
@@ -91,6 +95,10 @@
     settingsStore.darkMode = selectedDarkMode.value;
     localStorage.setItem("darkMode", selectedDarkMode.value? "true" : "false");
     selectedDarkMode.value ? document.body.classList.add("dark") : document.body.classList.remove("dark")
+  }
+  function toggleShowFiatValueHistory(){
+    localStorage.setItem("fiatValueHistory", showFiatValueHistory.value? "true" : "false");
+    settingsStore.showFiatValueHistory = showFiatValueHistory.value;
   }
   function changeTokenBurn(){
     settingsStore.tokenBurn = selectedTokenBurn.value;
@@ -212,8 +220,16 @@
         ↳ Advanced settings
       </div>
 
+      <div v-if="!isMobile" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
+        → Token Creation
+      </div>
+
       <div>
         Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      </div>
+
+      <div style="margin-top:15px">
+        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
 
       <div style="margin-top:15px">

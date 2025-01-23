@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, computed, Ref } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn, convert } from "mainnet-js"
+import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn, convert, HexHeaderI } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import { CurrencySymbols, type TokenList, type bcmrIndexerResponse } from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
@@ -21,6 +21,8 @@ const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
 const nameWallet = 'mywallet';
 
+type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;
+
 export const useStore = defineStore('store', () => {
   const displayView = ref(undefined as (number | undefined));
   // Wallet State
@@ -29,8 +31,10 @@ export const useStore = defineStore('store', () => {
   const maxAmountToSend = ref(undefined as (BalanceResponse | undefined));
   const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
+  const walletHistory = ref(undefined as (WalletHistoryReturnType | undefined));
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
+  const currentBlockHeight = ref(undefined as (number | undefined));
   const bcmrRegistries = ref(undefined as (Record<string, any> | undefined));
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
@@ -41,6 +45,7 @@ export const useStore = defineStore('store', () => {
 
   let cancelWatchBchtxs: undefined | CancelWatchFn;
   let cancelWatchTokenTxs: undefined | CancelWatchFn;
+  let cancelWatchBlocks: undefined | CancelWatchFn;
 
   // Create a callback that triggers when we switch networks.
   let networkChangeCallbacks: Array<() => Promise<void>> = [];
@@ -62,9 +67,11 @@ export const useStore = defineStore('store', () => {
       console.log(newWallet.provider)
     }
     wallet.value = newWallet;
+    console.time('fetch history');
     console.time('initialize walletconnect and cashconnect');
     await Promise.all([initializeWalletConnect(newWallet), initializeCashConnect()]);
     console.timeEnd('initialize walletconnect and cashconnect');
+    setUpWalletSubscriptions();
     // fetch bch balance
     console.time('Balance Promises');
     const promiseWalletBalance = wallet.value.getBalance();
@@ -76,17 +83,19 @@ export const useStore = defineStore('store', () => {
     console.time('fetch tokenUtxos Promise');
     await updateTokenList();
     console.timeEnd('fetch tokenUtxos Promise');
+    // set values simulatenously with tokenList so the UI elements load together
     balance.value = resultWalletBalance as BalanceResponse;
     maxAmountToSend.value = resultMaxAmountToSend as BalanceResponse;
-    setUpWalletSubscriptions();
     // get plannedTokenId
     if(!tokenList.value) return // should never happen
     console.time('importRegistries');
     await importRegistries(tokenList.value, false);
     console.timeEnd('importRegistries');
-    console.time('planned tokenid');
-    await hasPreGenesis()
-    console.timeEnd('planned tokenid');
+    hasPreGenesis()
+    // TODO: getHistory is very slow, find a way to speed it up
+    walletHistory.value = await wallet.value.getHistory({})
+    console.timeEnd('fetch history');
+    // fetchAuthUtxos start last because it is not critical
     console.time('fetchAuthUtxos');
     await fetchAuthUtxos();
     console.timeEnd('fetchAuthUtxos');
@@ -135,6 +144,9 @@ export const useStore = defineStore('store', () => {
       await importRegistries(listNewTokens, true);
       await updateTokenList(); 
     });
+    cancelWatchBlocks = wallet.value?.watchBlocks((header: HexHeaderI) => {
+      currentBlockHeight.value = header.height;
+    }, false);
   }
 
   async function changeNetwork(newNetwork: 'mainnet' | 'chipnet'){
@@ -145,20 +157,23 @@ export const useStore = defineStore('store', () => {
     networkChangeCallbacks = []
 
     // cancel active listeners
-    if(cancelWatchBchtxs && cancelWatchTokenTxs){
+    if(cancelWatchBchtxs && cancelWatchTokenTxs && cancelWatchBlocks){
       cancelWatchBchtxs()
       cancelWatchTokenTxs()
+      cancelWatchBlocks()
     }
-    const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
-    const newWallet = await walletClass.named(nameWallet);
-    setWallet(newWallet);
-    localStorage.setItem('network', newNetwork);
     // reset wallet to default state
     balance.value = undefined;
     maxAmountToSend.value = undefined;
     plannedTokenId.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = undefined;
+    walletHistory.value = undefined;
+    // set new wallet
+    const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
+    const newWallet = await walletClass.named(nameWallet);
+    setWallet(newWallet);
+    localStorage.setItem('network', newNetwork);
     changeView(1);
   }
 
@@ -332,6 +347,17 @@ export const useStore = defineStore('store', () => {
     sortTokenList(tokenList.value as TokenList);
   }
 
+  function tokenIconUrl(tokenId: string) {
+    const tokenIconUri = bcmrRegistries.value?.[tokenId]?.uris?.icon;
+    if (!tokenIconUri) return undefined;
+
+    if (tokenIconUri.startsWith('ipfs://')) {
+      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
+    } else {
+      return tokenIconUri;
+    }
+  }
+
   return {
     nameWallet,
     displayView,
@@ -341,10 +367,12 @@ export const useStore = defineStore('store', () => {
     network,
     explorerUrl,
     tokenList,
+    walletHistory,
     plannedTokenId,
     isWcAndCcInitialized,
     bcmrRegistries,
     nrBcmrRegistries,
+    currentBlockHeight,
     changeView,
     setWallet,
     changeNetwork,
@@ -353,6 +381,7 @@ export const useStore = defineStore('store', () => {
     hasPreGenesis,
     fetchAuthUtxos,
     importRegistries,
-    toggleFavorite
+    toggleFavorite,
+    tokenIconUrl
   }
 })

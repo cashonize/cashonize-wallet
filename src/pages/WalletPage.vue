@@ -2,6 +2,7 @@
   import newWalletView from 'src/components/newWallet.vue'
   import bchWalletView from 'src/components/bchWallet.vue'
   import myTokensView from 'src/components/myTokens.vue'
+  import historyView from 'src/components/history/txHistory.vue'
   import settingsMenu from 'src/components/settingsMenu.vue'
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/createTokens.vue'
@@ -89,9 +90,9 @@
   <header>
     <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
     <nav v-if="store.displayView" style="display: flex; justify-content: center;" class="tabs">
-      <div @click="store.changeView(1)" v-bind:style="store.displayView == 1 ? {color: 'var(--color-primary'} : ''">BchWallet</div>
-      <div @click="store.changeView(2)" v-bind:style="store.displayView == 2 ? {color: 'var(--color-primary'} : ''">MyTokens</div>
-      <div v-if="!isMobile" @click="store.changeView(3)" v-bind:style="store.displayView == 3 ? {color: 'var(--color-primary'} : ''">CreateTokens</div>
+      <div @click="store.changeView(1)" v-bind:style="store.displayView == 1 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Wallet" : "BchWallet"}}</div>
+      <div @click="store.changeView(2)" v-bind:style="store.displayView == 2 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Tokens" : "MyTokens"}}</div>
+      <div @click="store.changeView(3)" v-bind:style="store.displayView == 3 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "History" : "TxHistory"}}</div>
       <div @click="store.changeView(4)" v-bind:style="store.displayView == 4 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Connect" : "WalletConnect"}}</div>
       <div @click="store.changeView(5)">
         <img style="vertical-align: text-bottom;" v-bind:src="store.displayView == 5 ? 'images/settingsGreen.svg' : 
@@ -103,8 +104,9 @@
     <newWalletView v-if="!store.wallet" @init-wallet="(arg) => store.setWallet(arg)"/>
     <bchWalletView v-if="store.displayView == 1" :bchSendRequest="bchSendRequest"/>
     <myTokensView v-if="store.displayView == 2"/>
-    <createTokensView v-if="store.displayView == 3"/>
+    <historyView v-if="store.displayView == 3"/>
     <connectDappView v-if="store.displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
     <settingsMenu v-if="store.displayView == 5"/>
+    <createTokensView v-if="store.displayView == 6"/>
   </main>
 </template>
