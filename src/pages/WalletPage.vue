@@ -2,7 +2,7 @@
   import newWalletView from 'src/components/newWallet.vue'
   import bchWalletView from 'src/components/bchWallet.vue'
   import myTokensView from 'src/components/myTokens.vue'
-  import historyView from 'src/components/txHistory.vue'
+  import historyView from 'src/components/history/txHistory.vue'
   import settingsMenu from 'src/components/settingsMenu.vue'
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/createTokens.vue'

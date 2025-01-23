@@ -22,6 +22,7 @@
   const selectedUnit = ref(settingsStore.bchUnit);
   const selectedExplorer = ref(store.explorerUrl);
   const selectedDarkMode = ref(settingsStore.darkMode);
+  const showFiatValueHistory = ref(settingsStore.showFiatValueHistory);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
@@ -94,6 +95,10 @@
     settingsStore.darkMode = selectedDarkMode.value;
     localStorage.setItem("darkMode", selectedDarkMode.value? "true" : "false");
     selectedDarkMode.value ? document.body.classList.add("dark") : document.body.classList.remove("dark")
+  }
+  function toggleShowFiatValueHistory(){
+    localStorage.setItem("fiatValueHistory", showFiatValueHistory.value? "true" : "false");
+    settingsStore.showFiatValueHistory = showFiatValueHistory.value;
   }
   function changeTokenBurn(){
     settingsStore.tokenBurn = selectedTokenBurn.value;
@@ -221,6 +226,10 @@
 
       <div>
         Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      </div>
+
+      <div>
+        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
 
       <div style="margin-top:15px">

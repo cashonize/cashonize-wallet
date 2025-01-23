@@ -156,16 +156,18 @@ export const useStore = defineStore('store', () => {
       cancelWatchBchtxs()
       cancelWatchTokenTxs()
     }
-    const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
-    const newWallet = await walletClass.named(nameWallet);
-    setWallet(newWallet);
-    localStorage.setItem('network', newNetwork);
     // reset wallet to default state
     balance.value = undefined;
     maxAmountToSend.value = undefined;
     plannedTokenId.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = undefined;
+    walletHistory.value = undefined;
+    // set new wallet
+    const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
+    const newWallet = await walletClass.named(nameWallet);
+    setWallet(newWallet);
+    localStorage.setItem('network', newNetwork);
     changeView(1);
   }
 
