@@ -105,7 +105,7 @@
   <TransactionDialog v-if="selectedTransaction" :bcmr-registries="store.bcmrRegistries" :history-item="selectedTransaction" @hide="() => {selectedTransaction = undefined}"></TransactionDialog>
 </template>
 
-<style lang="css">
+<style scoped>
 tr:nth-child(even) {
   background-color: var(--color-background-soft);
 }
