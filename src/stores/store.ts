@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, computed, Ref } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn, convert } from "mainnet-js"
+import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn, convert, HexHeaderI } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import { CurrencySymbols, type TokenList, type bcmrIndexerResponse } from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
@@ -34,6 +34,7 @@ export const useStore = defineStore('store', () => {
   const walletHistory = ref(undefined as (WalletHistoryReturnType | undefined));
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
+  const currentBlockHeight = ref(undefined as (number | undefined));
   const bcmrRegistries = ref(undefined as (Record<string, any> | undefined));
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
@@ -44,6 +45,7 @@ export const useStore = defineStore('store', () => {
 
   let cancelWatchBchtxs: undefined | CancelWatchFn;
   let cancelWatchTokenTxs: undefined | CancelWatchFn;
+  let cancelWatchBlocks: undefined | CancelWatchFn;
 
   // Create a callback that triggers when we switch networks.
   let networkChangeCallbacks: Array<() => Promise<void>> = [];
@@ -142,6 +144,9 @@ export const useStore = defineStore('store', () => {
       await importRegistries(listNewTokens, true);
       await updateTokenList(); 
     });
+    cancelWatchBlocks = wallet.value?.watchBlocks((header: HexHeaderI) => {
+      currentBlockHeight.value = header.height;
+    }, false);
   }
 
   async function changeNetwork(newNetwork: 'mainnet' | 'chipnet'){
@@ -152,9 +157,10 @@ export const useStore = defineStore('store', () => {
     networkChangeCallbacks = []
 
     // cancel active listeners
-    if(cancelWatchBchtxs && cancelWatchTokenTxs){
+    if(cancelWatchBchtxs && cancelWatchTokenTxs && cancelWatchBlocks){
       cancelWatchBchtxs()
       cancelWatchTokenTxs()
+      cancelWatchBlocks()
     }
     // reset wallet to default state
     balance.value = undefined;
@@ -341,6 +347,17 @@ export const useStore = defineStore('store', () => {
     sortTokenList(tokenList.value as TokenList);
   }
 
+  function tokenIconUrl(tokenId: string) {
+    const tokenIconUri = bcmrRegistries.value?.[tokenId]?.uris?.icon;
+    if (!tokenIconUri) return undefined;
+
+    if (tokenIconUri.startsWith('ipfs://')) {
+      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
+    } else {
+      return tokenIconUri;
+    }
+  }
+
   return {
     nameWallet,
     displayView,
@@ -355,6 +372,7 @@ export const useStore = defineStore('store', () => {
     isWcAndCcInitialized,
     bcmrRegistries,
     nrBcmrRegistries,
+    currentBlockHeight,
     changeView,
     setWallet,
     changeNetwork,
@@ -363,6 +381,7 @@ export const useStore = defineStore('store', () => {
     hasPreGenesis,
     fetchAuthUtxos,
     importRegistries,
-    toggleFavorite
+    toggleFavorite,
+    tokenIconUrl
   }
 })

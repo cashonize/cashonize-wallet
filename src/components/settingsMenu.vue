@@ -228,7 +228,7 @@
         Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
 
-      <div>
+      <div style="margin-top:15px">
         Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
 

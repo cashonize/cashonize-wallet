@@ -3,7 +3,9 @@
   import { useStore } from 'src/stores/store'
   import { computed, ref } from 'vue';
   import { useWindowSize } from '@vueuse/core';
-  import { ExchangeRate } from 'mainnet-js';
+  import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
+  import TransactionDialog from './transactionDialog.vue';
+  import { formatTimestamp } from 'src/utils/utils';
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -13,6 +15,7 @@
 
   const exchangeRate = +(await ExchangeRate.get(settingsStore.currency, true)).toFixed(2)
 
+  const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
   const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");
 
   const selectedHistory = computed(() => {
@@ -22,30 +25,6 @@
   });
 
   const transactionCount = computed(() => selectedHistory.value?.length);
-
-  function formatTimestamp(timestamp?: number){
-    if (!timestamp) return "Unconfirmed";
-    const date = new Date(timestamp * 1000);
-    const hoursAndMinutes = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-    return date.toLocaleDateString() + ' ' + hoursAndMinutes
-  }
-
-  function tokenIconUrl(tokenId: string) {
-    if (tokenId === "BCH") {
-      return 'images/bch-icon.png';
-    }
-
-    const tokenIconUri = store.bcmrRegistries?.[tokenId]?.uris?.icon;
-    if (!tokenIconUri) {
-      return undefined;
-    }
-
-    if (tokenIconUri.startsWith('ipfs://')) {
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    } else {
-      return tokenIconUri;
-    }
-  }
 </script>
 
 <template>
@@ -80,7 +59,7 @@
           </tr>
         </thead>
         <tbody class="transactionTable">
-          <tr :class="settingsStore.darkMode ? 'dark' : ''" v-for="transaction in selectedHistory" :key="transaction.hash">
+          <tr :class="settingsStore.darkMode ? 'dark' : ''" v-for="transaction in selectedHistory" :key="transaction.hash" @click="() => selectedTransaction = transaction">
 
             <td v-if="!isMobile">{{ transaction.timestamp ? "✅" : "⏳" }}</td>
 
@@ -119,7 +98,7 @@
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT</span>
                 </span>
 
-                <img v-if="store.bcmrRegistries?.[tokenChange.tokenId]" class="tokenIcon" style="width: 24px; height: 24px; border-radius: 50%;" :src="tokenIconUrl(tokenChange.tokenId)">
+                <img v-if="store.bcmrRegistries?.[tokenChange.tokenId]" class="tokenIcon" style="width: 24px; height: 24px; border-radius: 50%;" :src="store.tokenIconUrl(tokenChange.tokenId)">
               </div>
             </td>
             <td v-else></td>
@@ -128,6 +107,8 @@
       </table>
     </fieldset>
   </div>
+
+  <TransactionDialog v-if="selectedTransaction" :bcmr-registries="store.bcmrRegistries" :history-item="selectedTransaction" @hide="() => {selectedTransaction = undefined}"></TransactionDialog>
 </template>
 
 <style lang="css">

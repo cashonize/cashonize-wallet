@@ -15,6 +15,13 @@ export function copyToClipboard(copyText:string|undefined){
   })
 }
 
+export function formatTimestamp(timestamp?: number){
+  if (!timestamp) return "Unconfirmed";
+  const date = new Date(timestamp * 1000);
+  const hoursAndMinutes = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleDateString() + ' ' + hoursAndMinutes
+}
+
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
   const newFiatValue =  Number(satAmount) * exchangeRate / 100_000_000
   return Number(newFiatValue.toFixed(2));
