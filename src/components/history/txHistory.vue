@@ -6,6 +6,7 @@
   import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import { formatTimestamp } from 'src/utils/utils';
+  import { CurrencySymbols } from 'src/interfaces/interfaces';
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -71,12 +72,16 @@
 
             <td class="value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
               {{ `${transaction.valueChange > 0 ? '+' : '' }${transaction.valueChange / 100_000_000}` + (isMobile? "" : " BCH")}}
-              <div v-if="settingsStore.showFiatValueHistory">({{`${transaction.valueChange > 0 ? '+' : '' }` + (exchangeRate * transaction.valueChange / 100_000_000).toFixed(2)}}$)</div>
+              <div v-if="settingsStore.showFiatValueHistory">
+                ({{`${transaction.valueChange > 0 ? '+' : '' }` + (exchangeRate * transaction.valueChange / 100_000_000).toFixed(2) + CurrencySymbols[settingsStore.currency]}})
+              </div>
             </td>
               
             <td class="value">
               {{ transaction.balance / 100_000_000 }}{{ isMobile? "" : " BCH" }}
-              <div v-if="settingsStore.showFiatValueHistory">~{{(exchangeRate * transaction.balance / 100_000_000).toFixed(2)}}$</div>
+              <div v-if="settingsStore.showFiatValueHistory">
+                ~{{(exchangeRate * transaction.balance / 100_000_000).toFixed(2) + CurrencySymbols[settingsStore.currency]}}
+              </div>
             </td>
 
             <td v-if="transaction.tokenAmountChanges.length" class="tokenChange">
@@ -123,7 +128,7 @@ tr.dark:nth-child(even) {
 
 .tokenChange {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: flex-end;
   text-align: end;
   width: auto;
