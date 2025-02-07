@@ -116,6 +116,9 @@
       location.reload(); 
     }
   }
+  function clearLocalStorage(){
+    localStorage.clear();
+  }
 </script>
 
 <template>
@@ -154,11 +157,20 @@
         </div>
     </div>
     <div v-else-if="displaySettingsMenu == 2">
-      <div style="margin-top: 15px;">Enable token-burn  
-        <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      <div style="margin-bottom:15px;">
+        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
 
       <div style="margin-top:15px">
+        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      </div>
+
+      <div style="margin-top: 15px; margin-bottom: 15px;">Enable token-burn  
+        <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      </div>
+    </div>
+    <div v-else-if="displaySettingsMenu == 3">
+      <div>
         <label for="selectNetwork">Change network:</label>
         <select v-model="selectedNetwork" @change="changeNetwork()">
           <option value="mainnet">mainnet</option>
@@ -207,8 +219,13 @@
         </select>
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px">Remove wallet data from {{isBrowser? "browser": "application"}}
+      <div style="margin-top:15px;">Remove wallet from {{isBrowser? "browser": "application"}}
         <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px">
+        Clear wallet history from {{isBrowser? "browser": "application"}}
+        <input @click="clearLocalStorage()" type="button" value="Clear cache" class="button" style="display: block;">
       </div>
     </div>
     <div v-else>
@@ -217,19 +234,15 @@
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 2">
+        ↳ User options
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 3">
         ↳ Advanced settings
       </div>
 
       <div v-if="!isMobile" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
         → Token Creation
-      </div>
-
-      <div>
-        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
-      </div>
-
-      <div style="margin-top:15px">
-        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
 
       <div style="margin-top:15px">
