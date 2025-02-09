@@ -186,4 +186,10 @@
   .uline {
     text-decoration: underline;
   }
+
+  @media only screen and (max-width: 450px) {
+    .dialogFieldset{
+      padding: 2rem; 
+    }
+  }
 </style>

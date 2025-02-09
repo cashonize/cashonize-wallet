@@ -65,8 +65,11 @@
             <td>{{ transaction.timestamp ? "✅" : "⏳" }}</td>
 
             <td v-if="isMobile">
-              <div style="line-height: 1">{{ new Date(transaction.timestamp * 1000).toLocaleDateString().replace("202", "2") }}</div>
-              <div>{{ new Date(transaction.timestamp * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) }}</div>
+              <div v-if="transaction.timestamp" style="line-height: 1.3">
+                <div>{{ new Date(transaction.timestamp * 1000).toLocaleDateString().replace("202", "2") }}</div>
+                <div>{{new Date(transaction.timestamp * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) }}</div>
+              </div>
+              <div v-else>pending</div>
             </td>
             <td v-else>{{ transaction.timestamp ? formatTimestamp(transaction.timestamp) : "Unconfirmed" }}</td>
 
