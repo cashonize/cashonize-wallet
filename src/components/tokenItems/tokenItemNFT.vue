@@ -3,7 +3,7 @@
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
   import { TokenSendRequest, TokenMintRequest, SendRequest, TokenI } from "mainnet-js"
-  import { decodeCashAddress } from "@bitauth/libauth"
+  import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
   import type { TokenDataNFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
@@ -34,7 +34,8 @@
   const displayChildNfts = ref(false);
   const destinationAddr = ref("");
   const tokenMetaData = ref(undefined as (bcmrTokenMetadata | undefined));
-  const mintUniqueNfts = ref("yes" as 'yes' | 'no');
+  const mintUniqueNfts = ref(true);
+  const numberingUniqueNfts = ref("vm-numbers" as "vm-numbers" | "hex-numbers");
   const mintCommitment = ref("");
   const mintAmountNfts = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
@@ -215,26 +216,32 @@
     try {
       if(!store.wallet || !nftInfo) return;
       const tokenAddr = store.wallet.tokenaddr;
-      const unique = mintUniqueNfts.value === 'yes';
-      let tokenCommitment = unique? "" : mintCommitment.value;
+      let nftCommitment = mintUniqueNfts.value? "" : mintCommitment.value;
       if(mintAmountNfts.value == undefined) throw('invalid amount NFTs to mint');
       if(startingNumberNFTs.value == undefined) throw('invalid starting number');
       const mintAmount = parseInt(mintAmountNfts.value);
       const startingNumber = parseInt(startingNumberNFTs.value);
       const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
-      const validCommitment = (isHex(tokenCommitment) || tokenCommitment == "")
-      if(!validCommitment) throw(`tokenCommitment '${tokenCommitment}' must be a hexadecimal`);
+      const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
+      if(!validCommitment) throw(`nftCommitment '${nftCommitment}' must be a hexadecimal`);
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
-        if(unique){
-          tokenCommitment = (startingNumber + i).toString(16);
-          if(tokenCommitment.length % 2 != 0) tokenCommitment = `0${tokenCommitment}`;
+        if(mintUniqueNfts.value){
+          const nftNumber = startingNumber + i;
+          // handle both vm-numering and hex numbering
+          if(numberingUniqueNfts.value == "vm-numbers"){
+            const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
+            nftCommitment = binToHex(vmNumber)
+          } else if(numberingUniqueNfts.value == "hex-numbers"){
+            nftCommitment = nftNumber.toString(16);
+            if(nftCommitment.length % 2 != 0) nftCommitment = `0${nftCommitment}`;
+          }
         }
         const mintRequest = new TokenMintRequest({
           cashaddr: recipientAddr,
-          commitment: tokenCommitment,
+          commitment: nftCommitment,
           capability: "none",
           value: 1000,
         })
@@ -248,7 +255,7 @@
       })
       const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      const commitmentText= tokenCommitment? `with commitment ${tokenCommitment}`: "";
+      const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
       const alertMessage = mintAmount == 1 ?
         `Minted immutable NFT of category ${displayId} ${commitmentText}`
         : `Minted ${mintAmount} NFTs of category ${displayId}`
@@ -382,12 +389,6 @@
 <template>
   <div :id="`id${tokenData.tokenId.slice(0, 10)}nft`" class="item">
     <fieldset style="position: relative;">
-      <!--<div v-if="tokenData?.verified" id="verified" class="verified">
-        <div class="tooltip">
-          <img class="verifiedIcon" src="images/check-circle.svg">
-          <span class="tooltiptext">Verified</span>
-        </div>
-      </div>-->
       <div class="tokenInfo">
         <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
@@ -491,13 +492,20 @@
         <div v-if="displayMintNfts" style="margin-top: 10px;">
           Mint a number of (unique) NFTs to a specific address
           <div>
-            <input type="checkbox" v-model="mintUniqueNfts" true-value="yes" false-value="no" style="margin: 0px; vertical-align: text-bottom;">
+            <input type="checkbox" v-model="mintUniqueNfts" style="margin: 0px; vertical-align: text-bottom;">
             make each NFT unique by numbering each one in the collection
+          </div>
+          <div v-if="mintUniqueNfts" style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
+            <label for="numbering" style="width: 80px;">Numbering:</label>
+            <select id="numbering" v-model="numberingUniqueNfts" style="width: 260px; padding: 4px 8px;">
+              <option value="vm-numbers">VM numbers (default)</option>
+              <option value="hex-numbers">Hex numbers (old cashonize)</option>
+            </select>
           </div>
           <p class="grouped" style="align-items: center; margin-bottom: 5px;">
             <input v-model="mintAmountNfts" type="number" placeholder="amount NFTs">
-            <input v-if="mintUniqueNfts == 'yes'" v-model="startingNumberNFTs" type="number" placeholder="starting number" style="margin-right: 0px;">
-            <input v-if="mintUniqueNfts == 'no'" v-model="mintCommitment" placeholder="commitment">
+            <input v-if="mintUniqueNfts" v-model="startingNumberNFTs" type="number" placeholder="starting number" style="margin-right: 0px;">
+            <input v-if="!mintUniqueNfts" v-model="mintCommitment" placeholder="commitment">
           </p>
           <span class="grouped">
             <input v-model="destinationAddr" placeholder="destinationAddress"> 
