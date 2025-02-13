@@ -116,8 +116,11 @@
       location.reload(); 
     }
   }
-  function clearLocalStorage(){
-    localStorage.clear();
+  function clearHistoryCache(){
+    // only remove tx- and header- keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('tx-') || key.startsWith('header-')) localStorage.removeItem(key);
+    });
   }
 </script>
 
@@ -225,7 +228,7 @@
 
       <div style="margin-top:15px; margin-bottom: 15px">
         Clear wallet history from {{isBrowser? "browser": "application"}}
-        <input @click="clearLocalStorage()" type="button" value="Clear cache" class="button" style="display: block;">
+        <input @click="clearHistoryCache()" type="button" value="Clear cache" class="button" style="display: block;">
       </div>
     </div>
     <div v-else>
