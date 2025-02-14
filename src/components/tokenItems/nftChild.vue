@@ -301,7 +301,7 @@
           </div>
           <div v-if="mintUniqueNfts" style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
             <label for="numbering" style="width: 80px;">Numbering:</label>
-            <select id="numbering" v-model="numberingUniqueNfts" style="width: 260px; padding: 4px 8px;">
+            <select id="numbering" v-model="numberingUniqueNfts" style="max-width: 260px; padding: 4px 8px;">
               <option value="vm-numbers">VM numbers (default)</option>
               <option value="hex-numbers">Hex numbers (old cashonize)</option>
             </select>
