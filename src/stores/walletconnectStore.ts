@@ -1,8 +1,7 @@
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import { Core } from '@walletconnect/core'
-import { Web3Wallet, type Web3WalletTypes } from '@walletconnect/web3wallet'
-import type Client from '@walletconnect/web3wallet'
+import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
 import { convert, type TestNetWallet, type Wallet } from "mainnet-js";
 import {
@@ -41,14 +40,14 @@ const settingsStore = useSettingsStore()
 export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
   const store = defineStore("walletconnectStore", () => {
     const activeSessions = ref(undefined as undefined | Record<string, SessionTypes.Struct>);
-    const web3wallet = ref(undefined as undefined | Client);
+    const web3wallet = ref(undefined as undefined | IWalletKit);
 
     async function initweb3wallet() {
       const core = new Core({
         projectId: "3fd234b8e2cd0e1da4bc08a0011bbf64"
       });
 
-      const newweb3wallet = await Web3Wallet.init({
+      const newweb3wallet = await WalletKit.init({
         core,
         metadata: {
           name: 'Cashonize',
@@ -63,7 +62,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
     }
     
     // Wallet connect dialog functionality
-    async function wcRequest(event: Web3WalletTypes.SessionRequest, walletAddress: string) {
+    async function wcRequest(event: WalletKitTypes.SessionRequest, walletAddress: string) {
       if(!web3wallet.value) throw new Error("No web3wallet initialized")
       const { topic, params, id } = event;
       const { request } = params;
