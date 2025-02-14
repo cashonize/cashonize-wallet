@@ -93,7 +93,6 @@ export const useStore = defineStore('store', () => {
     await importRegistries(tokenList.value, false);
     console.timeEnd('importRegistries');
     hasPreGenesis()
-    // TODO: getHistory is very slow, find a way to speed it up
     walletHistory.value = await wallet.value.getHistory({})
     console.timeEnd('fetch history');
     // fetchAuthUtxos start last because it is not critical
@@ -118,16 +117,16 @@ export const useStore = defineStore('store', () => {
         }
       }
       maxAmountToSend.value = await wallet.value?.getMaxAmountToSend();
+      walletHistory.value = await wallet.value.getHistory({});
     });
-    cancelWatchTokenTxs = wallet.value?.watchAddressTokenTransactions(async(tx) => {
-      if(!wallet.value) return // should never happen
-      const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
-      const tokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
+    const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
+    cancelWatchTokenTxs = wallet.value?.watchAddressTokenTransactions(async(tx) => {      
+      const receivedTokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
       const previousTokenList = tokenList.value;
       const listNewTokens:TokenList = []
       // Check if transaction not initiated by user
       const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value?.address);
-      for(const tokenOutput of tokenOutputs){
+      for(const tokenOutput of receivedTokenOutputs){
         if(!userInputs.length){
           const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
           Notify.create({
@@ -143,7 +142,8 @@ export const useStore = defineStore('store', () => {
       }
       // Dynamically import tokenmetadata
       await importRegistries(listNewTokens, true);
-      await updateTokenList(); 
+      await updateTokenList();
+      walletHistory.value = await wallet.value.getHistory({});
     });
     cancelWatchBlocks = wallet.value?.watchBlocks((header: HexHeaderI) => {
       currentBlockHeight.value = header.height;
@@ -225,6 +225,10 @@ export const useStore = defineStore('store', () => {
       // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
       cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
     });
+  }
+
+  async function updateWalletHistory() {
+    walletHistory.value = await wallet.value?.getHistory({});
   }
 
   async function updateTokenList() {
@@ -376,6 +380,7 @@ export const useStore = defineStore('store', () => {
     currentBlockHeight,
     changeView,
     setWallet,
+    updateWalletHistory,
     changeNetwork,
     fetchTokenInfo,
     updateTokenList,

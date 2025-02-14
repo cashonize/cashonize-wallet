@@ -155,6 +155,8 @@
       console.log(`${store.explorerUrl}/${txId}`);
       destinationAddr.value = "";
       displaySendAllNfts.value = false;
+      // update wallet history
+      store.updateWalletHistory();
     }catch(error){
       handleTransactionError(error)
     }
@@ -206,6 +208,8 @@
       destinationAddr.value = "";
       displaySendNft.value = false;
       await store.updateTokenList();
+      // update wallet history
+      store.updateWalletHistory();
     }catch(error){
       handleTransactionError(error)
     }
@@ -276,6 +280,8 @@
       mintCommitment.value = "";
       mintAmountNfts.value = undefined;
       startingNumberNFTs.value = undefined;
+      // update wallet history
+      store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
     }
@@ -326,6 +332,8 @@
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
       await store.updateTokenList();
+      // update wallet history
+      store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
     }
@@ -370,6 +378,8 @@
       destinationAddr.value = "";
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
+      // update wallet history
+      store.updateWalletHistory();
     } catch (error) { 
       handleTransactionError(error)
     }

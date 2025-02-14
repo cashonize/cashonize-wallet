@@ -150,6 +150,8 @@
       bchSendAmount.value = undefined;
       currencySendAmount.value = undefined;
       destinationAddr.value = "";
+      // update wallet history
+      store.updateWalletHistory();
     } catch(error){
       console.log(error)
       const errorMessage = typeof error == 'string' ? error : "something went wrong";

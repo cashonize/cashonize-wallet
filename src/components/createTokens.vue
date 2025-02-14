@@ -35,6 +35,8 @@
       })
       console.log(`Created valid pre-genesis for token creation \n${store.explorerUrl}/${txId}`);
       store.plannedTokenId = txId;
+      // update wallet history
+      store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
     }
@@ -117,6 +119,8 @@
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
       await store.hasPreGenesis()
+      // update wallet history
+      store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
     }
@@ -158,6 +162,8 @@
       // reset input fields
       selectedTokenType.value  = "-select-";
       await store.hasPreGenesis()
+      // update wallet history
+      store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
     }

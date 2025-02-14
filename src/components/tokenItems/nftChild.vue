@@ -118,6 +118,8 @@
       destinationAddr.value = "";
       displaySendNft.value = false;
       await store.updateTokenList();
+      // update wallet history
+      store.updateWalletHistory();
     }catch(error){
       handleTransactionError(error)
     }
@@ -183,6 +185,8 @@
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
+      // update wallet history
+      store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
     }
@@ -227,6 +231,8 @@
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
       await store.updateTokenList();
+      // update wallet history
+      store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
     }
