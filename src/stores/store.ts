@@ -93,7 +93,7 @@ export const useStore = defineStore('store', () => {
     await importRegistries(tokenList.value, false);
     console.timeEnd('importRegistries');
     hasPreGenesis()
-    walletHistory.value = await wallet.value.getHistory({})
+    updateWalletHistory()
     console.timeEnd('fetch history');
     // fetchAuthUtxos start last because it is not critical
     console.time('fetchAuthUtxos');
@@ -117,7 +117,7 @@ export const useStore = defineStore('store', () => {
         }
       }
       maxAmountToSend.value = await wallet.value?.getMaxAmountToSend();
-      walletHistory.value = await wallet.value.getHistory({});
+      updateWalletHistory()
     });
     const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
     cancelWatchTokenTxs = wallet.value?.watchAddressTokenTransactions(async(tx) => {      
@@ -143,7 +143,7 @@ export const useStore = defineStore('store', () => {
       // Dynamically import tokenmetadata
       await importRegistries(listNewTokens, true);
       await updateTokenList();
-      walletHistory.value = await wallet.value.getHistory({});
+      updateWalletHistory()
     });
     cancelWatchBlocks = wallet.value?.watchBlocks((header: HexHeaderI) => {
       currentBlockHeight.value = header.height;
@@ -228,7 +228,16 @@ export const useStore = defineStore('store', () => {
   }
 
   async function updateWalletHistory() {
-    walletHistory.value = await wallet.value?.getHistory({});
+    try {
+      walletHistory.value = await wallet.value?.getHistory({});
+    } catch(errorMessage){
+      console.error(errorMessage)
+      Notify.create({
+        message: errorMessage,
+        icon: 'warning',
+        color: "red"
+      })
+    }
   }
 
   async function updateTokenList() {

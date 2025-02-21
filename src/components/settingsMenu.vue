@@ -30,6 +30,8 @@
   const selectedChaingraph = ref(settingsStore.chaingraph);
 
   const latestGithubRelease = ref(undefined as undefined | string);
+  const localStorageSizeMB = ref('');
+  localStorageSizeMB.value = calculateLocalStorageSizeMB();
 
   if(isDesktop) getLatestGithubRelease()
 
@@ -45,6 +47,13 @@
     } catch (error) {
       console.error('Error fetching latest GitHub release:', error);
     }
+  }
+
+  function calculateLocalStorageSizeMB() {
+    const localStorageSizeBytes = Object.entries(localStorage).reduce((sum, [key, value]) => 
+      sum + new Blob([key + value]).size, 0
+    ) 
+    return (localStorageSizeBytes / (1024 ** 2)).toFixed(2);
   }
 
   async function changeCurrency(){
@@ -121,6 +130,7 @@
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('tx-') || key.startsWith('header-')) localStorage.removeItem(key);
     });
+    localStorageSizeMB.value = calculateLocalStorageSizeMB();
   }
 </script>
 
@@ -227,7 +237,7 @@
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear wallet history from {{isBrowser? "browser": "application"}}
+        Clear wallet history from {{isBrowser? "browser": "application"}} ({{ localStorageSizeMB }} MB)
         <input @click="clearHistoryCache()" type="button" value="Clear cache" class="button" style="display: block;">
       </div>
     </div>
