@@ -269,7 +269,7 @@
         <select v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option v-if="store.network == 'mainnet'" value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
           <option v-if="store.network == 'mainnet'" value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
-          <option v-if="store.network == 'mainnet'" value="https://explorer.electroncash.de/tx">explorer.electroncash.de</option>
+          <option v-if="store.network == 'mainnet'" value="https://explorer.bch.ninja/tx">explorer.bch.ninja</option>
           <option v-if="store.network == 'mainnet'" value="https://bch.loping.net/tx">bch.loping.net</option>
           <option v-if="store.network == 'mainnet'" value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
           <option v-if="store.network == 'mainnet'" value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
