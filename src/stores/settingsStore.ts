@@ -65,5 +65,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
+  removeOldCacheData();
+
+  function removeOldCacheData(){
+    // remove tx- and header- keys from local storage
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('tx-') || key.startsWith('header-')) localStorage.removeItem(key);
+    });
+  }
+
   return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, showFiatValueHistory, tokenBurn, featuredTokens }
 })

@@ -1,10 +1,11 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
-  import { computed, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { Connection, ElectrumNetworkProvider, Config, BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils';
+  import { openIndexedDB, getIndexedDBObjectStoreSize, clearIndexedDBObjectStore } from "src/utils/cacheUtils";
   const store = useStore()
   const settingsStore = useSettingsStore()
   import { useWindowSize } from '@vueuse/core'
@@ -30,8 +31,11 @@
   const selectedChaingraph = ref(settingsStore.chaingraph);
 
   const latestGithubRelease = ref(undefined as undefined | string);
-  const localStorageSizeMB = ref('');
-  localStorageSizeMB.value = calculateLocalStorageSizeMB();
+  const indexedDbCacheSizeMB = ref(undefined as undefined | number);
+
+  onMounted(async () => {
+    indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
+  });
 
   if(isDesktop) getLatestGithubRelease()
 
@@ -49,11 +53,12 @@
     }
   }
 
-  function calculateLocalStorageSizeMB() {
-    const localStorageSizeBytes = Object.entries(localStorage).reduce((sum, [key, value]) => 
-      sum + new Blob([key + value]).size, 0
-    ) 
-    return (localStorageSizeBytes / (1024 ** 2)).toFixed(2);
+  async function calculateIndexedDBSizeMB(): Promise<number> {
+    const dbName = "ElectrumNetworkProviderCache";
+    const db = await openIndexedDB(dbName);
+    const totalSize = await getIndexedDBObjectStoreSize(db, dbName);
+    
+    return totalSize / (1024 ** 2); // Convert to MB
   }
 
   async function changeCurrency(){
@@ -125,12 +130,10 @@
       location.reload(); 
     }
   }
-  function clearHistoryCache(){
-    // only remove tx- and header- keys
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('tx-') || key.startsWith('header-')) localStorage.removeItem(key);
-    });
-    localStorageSizeMB.value = calculateLocalStorageSizeMB();
+  async function clearHistoryCache(){
+    const dbName = "ElectrumNetworkProviderCache";
+    clearIndexedDBObjectStore(dbName, dbName)
+    indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
   }
 </script>
 
@@ -237,7 +240,7 @@
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear wallet history from {{isBrowser? "browser": "application"}} ({{ localStorageSizeMB }} MB)
+        Clear wallet history from {{isBrowser? "browser": "application"}} ({{ indexedDbCacheSizeMB.toFixed(2) }} MB)
         <input @click="clearHistoryCache()" type="button" value="Clear cache" class="button" style="display: block;">
       </div>
     </div>

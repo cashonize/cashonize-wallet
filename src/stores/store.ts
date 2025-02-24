@@ -14,7 +14,7 @@ const settingsStore = useSettingsStore()
 
 // set mainnet-js config
 Config.EnforceCashTokenReceiptAddresses = true;
-Config.UseLocalStorageCache = true;
+Config.UseIndexedDBCache = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
 
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';

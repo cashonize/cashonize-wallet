@@ -4895,10 +4895,26 @@ magic-string@^0.30.11:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.0"
 
-mainnet-js@2.6.2, mainnet-js@^2.6.2:
+mainnet-js@2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.6.2.tgz#2bc8127836d808915dcd83fb88925b30fea3d96c"
   integrity sha512-BzVtT+uPNPZB7ktKZzb1un10rwqRF0oeqFXrEiDwQy0+hp6kPL4sc364hVuFAk/rgzrlxcUXBR3JS8UHUDIYrA==
+  dependencies:
+    "@bitauth/libauth" "^3.0.0"
+    "@scure/bip39" "^1.2.2"
+    buffer "^6.0.3"
+    electrum-cash "^2.0.10"
+    events "^3.2.0"
+    eventsource "^1.0.7"
+    qrcode-svg "1.1.0"
+  optionalDependencies:
+    dotenv "^10.0.0"
+    stream-browserify "^3.0.0"
+
+mainnet-js@^2.6.4:
+  version "2.6.4"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.6.4.tgz#c2e580a223c0a11108b91705e195e8537cfd8cea"
+  integrity sha512-J8eOu8SlUPzlw5MZnw0uz2pru4/7LKgOpxNopDvkASbl24w8Qg6iFVwaBuvvbvfatmXwz5JS0cfxOmxwbiQYjQ==
   dependencies:
     "@bitauth/libauth" "^3.0.0"
     "@scure/bip39" "^1.2.2"
