@@ -118,6 +118,8 @@
     settingsStore.tokenBurn = selectedTokenBurn.value;
   }
   function toggleShowSeedphrase(){
+    settingsStore.hasSeedBackedUp = true;
+    localStorage.setItem("seedBackedUp", "true");
     displaySeedphrase.value = !displaySeedphrase.value;
   }
   function confirmDeleteWallet(){
@@ -246,7 +248,7 @@
     </div>
     <div v-else>
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">
-        ↳ Backup wallet
+        ↳ Backup wallet <span v-if="!settingsStore.hasSeedBackedUp" style="color: var(--color-primary)">(important)</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 2">

@@ -23,6 +23,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const showFiatValueHistory = ref(true);
   const tokenBurn = ref(false);
   const featuredTokens = ref([] as string[]);
+  const hasSeedBackedUp = ref(false as boolean)
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
@@ -33,6 +34,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readUnit = localStorage.getItem("unit");
   if(readUnit && (readUnit=="bch" || readUnit=="sat")) bchUnit.value = readUnit;
+
+  const readHasSeedBackedUp = localStorage.getItem("seedBackedUp");
+  if(readHasSeedBackedUp) hasSeedBackedUp.value = readHasSeedBackedUp == "true";
 
   const readFiatValueHistory = localStorage.getItem("fiatValueHistory");
   if(readFiatValueHistory) showFiatValueHistory.value = readFiatValueHistory == "true";
@@ -74,5 +78,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     });
   }
 
-  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, showFiatValueHistory, tokenBurn, featuredTokens }
+  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, showFiatValueHistory, tokenBurn, featuredTokens, hasSeedBackedUp }
 })

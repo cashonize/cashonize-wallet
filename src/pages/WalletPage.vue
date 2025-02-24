@@ -94,9 +94,10 @@
       <div @click="store.changeView(2)" v-bind:style="store.displayView == 2 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Tokens" : "MyTokens"}}</div>
       <div @click="store.changeView(3)" v-bind:style="store.displayView == 3 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "History" : "TxHistory"}}</div>
       <div @click="store.changeView(4)" v-bind:style="store.displayView == 4 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Connect" : "WalletConnect"}}</div>
-      <div @click="store.changeView(5)" style="width: max-content;">
+      <div @click="store.changeView(5)" style="width: max-content; position: relative;">
         <img style="vertical-align: text-bottom;" v-bind:src="store.displayView == 5 ? 'images/settingsGreen.svg' : 
           settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg'">
+        <span v-if="!settingsStore.hasSeedBackedUp" class="notification-dot"></span>
       </div>
     </nav>
   </header>

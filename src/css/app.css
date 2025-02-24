@@ -49,6 +49,13 @@ img {
   -webkit-user-drag: none;
   user-select: none;
 }
+.notification-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-primary);
+  border-radius: 50%;
+}
 
 .primaryButton {
   background-color: var(--color-primary);
