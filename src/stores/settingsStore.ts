@@ -46,6 +46,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     document.body.classList.add("dark");
     darkMode.value = true;
   }
+  const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
+  if(readDarkMode == null && prefersDarkMode){
+    document.body.classList.add("dark");
+    darkMode.value = true;
+  }
 
   const readFeaturedTokens = localStorage.getItem("featuredTokens");
   if(readFeaturedTokens) {
