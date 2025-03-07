@@ -22,7 +22,7 @@
 
   const { width } = useWindowSize();
   const isMobilePhone = computed(() => width.value < 480)
-  const isBrowser = (process.env.MODE == "spa");
+  const isCapacitor = (process.env.MODE == "capacitor");
 
   const nrTokenCategories = computed(() => store.tokenList?.length)
 
@@ -235,7 +235,7 @@
       Send BCH:
       <div style="display: flex; gap: 0.5rem;">
         <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address" name="addressInput">
-        <button v-if="isBrowser && settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
+        <button v-if="!isCapacitor && settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
             <img src="images/qrscan.svg" />
         </button>
       </div>

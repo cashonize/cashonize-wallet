@@ -17,7 +17,7 @@ import { useSettingsStore } from 'src/stores/settingsStore';
   const $q = useQuasar();
   const store = useStore()
   const settingsStore = useSettingsStore();
-  const isBrowser = (process.env.MODE == "spa");
+  const isCapacitor = (process.env.MODE == "capacitor");
 
   const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
   const web3wallet = walletconnectStore.web3wallet
@@ -117,7 +117,7 @@ import { useSettingsStore } from 'src/stores/settingsStore';
       </div>
       <div style="display: flex; gap: 0.5rem; ">
         <input @keyup.enter="() => connectDappUriInput(dappUriInput)" v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
-        <button v-if="isBrowser && settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px; height: 43px;">
+        <button v-if="!isCapacitor && settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px; height: 43px;">
           <img src="images/qrscan.svg" />
         </button>
       </div>

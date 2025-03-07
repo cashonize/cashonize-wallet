@@ -82,7 +82,8 @@
           :style="{
             position: 'absolute',
             inset: 0,
-            padding: '0.75rem'
+            padding: '0.75rem',
+            overflow: 'hidden'
           }"
           @error="onScannerError"
         />

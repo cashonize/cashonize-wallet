@@ -14,6 +14,7 @@
 
   const isBrowser = (process.env.MODE == "spa");
   const isDesktop = (process.env.MODE == "electron");
+  const isCapacitor = (process.env.MODE == "capacitor");
   const appVersion = process.env.version
 
   const displaySettingsMenu = ref(0);
@@ -185,19 +186,19 @@
     </div>
     <div v-else-if="displaySettingsMenu == 2">
       <div style="margin-bottom:15px;">
-        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle; display: inline-block;"/>
       </div>
 
       <div style="margin-top:15px">
-        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;display: inline-block;"/>
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">Enable token-burn  
-        <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+        <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle; display: inline-block;"/>
       </div>
 
-      <div style="margin-top: 15px; margin-bottom: 15px;">Enable QR scan 
-        <Toggle v-model="enableQrScan" @change="changeQrScan()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      <div v-if="!isCapacitor" style="margin-top: 15px; margin-bottom: 15px;">Enable QR scan 
+        <Toggle v-model="enableQrScan" @change="changeQrScan()" style="vertical-align: middle; display: inline-block;"/>
       </div>
     </div>
     <div v-else-if="displaySettingsMenu == 3">
