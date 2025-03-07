@@ -17,21 +17,26 @@
   const appVersion = process.env.version
 
   const displaySettingsMenu = ref(0);
-  const displaySeedphrase = ref(false);
-  const selectedNetwork = ref(store.network as "mainnet" | "chipnet");
+  const latestGithubRelease = ref(undefined as undefined | string);
+  const indexedDbCacheSizeMB = ref(undefined as undefined | number);
+  
+  // basic settings
   const selectedCurrency = ref(settingsStore.currency);
   const selectedUnit = ref(settingsStore.bchUnit);
   const selectedExplorer = ref(store.explorerUrl);
+  // backup wallet
+  const displaySeedphrase = ref(false);
+  // user options
   const selectedDarkMode = ref(settingsStore.darkMode);
   const showFiatValueHistory = ref(settingsStore.showFiatValueHistory);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
+  const enableQrScan = ref(settingsStore.qrScan);
+  // advanced settings
+  const selectedNetwork = ref(store.network as "mainnet" | "chipnet");
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
   const selectedChaingraph = ref(settingsStore.chaingraph);
-
-  const latestGithubRelease = ref(undefined as undefined | string);
-  const indexedDbCacheSizeMB = ref(undefined as undefined | number);
 
   onMounted(async () => {
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
@@ -117,6 +122,10 @@
   function changeTokenBurn(){
     settingsStore.tokenBurn = selectedTokenBurn.value;
   }
+  function changeQrScan(){
+    localStorage.setItem("qrScan", enableQrScan.value? "true" : "false");
+    settingsStore.qrScan = enableQrScan.value;
+  }
   function toggleShowSeedphrase(){
     settingsStore.hasSeedBackedUp = true;
     localStorage.setItem("seedBackedUp", "true");
@@ -185,6 +194,10 @@
 
       <div style="margin-top: 15px; margin-bottom: 15px;">Enable token-burn  
         <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
+      </div>
+
+      <div style="margin-top: 15px; margin-bottom: 15px;">Enable QR scan 
+        <Toggle v-model="enableQrScan" @change="changeQrScan()" style="vertical-align: middle;toggle-height: 5.25rem; display: inline-block;"/>
       </div>
     </div>
     <div v-else-if="displaySettingsMenu == 3">

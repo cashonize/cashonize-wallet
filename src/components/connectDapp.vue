@@ -12,9 +12,11 @@
   // Components.
   import WalletconnectView from 'src/components/walletConnect.vue'
   import CashconnectView from 'src/components/cashConnect.vue'
+import { useSettingsStore } from 'src/stores/settingsStore';
 
   const $q = useQuasar();
   const store = useStore()
+  const settingsStore = useSettingsStore();
   const isBrowser = (process.env.MODE == "spa");
 
   const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
@@ -115,7 +117,7 @@
       </div>
       <div style="display: flex; gap: 0.5rem; ">
         <input @keyup.enter="() => connectDappUriInput(dappUriInput)" v-model="dappUriInput" placeholder="Wallet Connect URI" style="margin-bottom: 10px;">
-        <button v-if="isBrowser" @click="() => showQrCodeDialog = true" style="padding: 12px; height: 43px;">
+        <button v-if="isBrowser && settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px; height: 43px;">
           <img src="images/qrscan.svg" />
         </button>
       </div>
