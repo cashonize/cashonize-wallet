@@ -22,6 +22,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const darkMode  = ref(false);
   const showFiatValueHistory = ref(true);
   const tokenBurn = ref(false);
+  const qrScan = ref(true);
   const featuredTokens = ref([] as string[]);
   const hasSeedBackedUp = ref(false as boolean)
 
@@ -40,6 +41,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readFiatValueHistory = localStorage.getItem("fiatValueHistory");
   if(readFiatValueHistory) showFiatValueHistory.value = readFiatValueHistory == "true";
+
+  const readQrScan = localStorage.getItem("qrScan");
+  if(readQrScan) qrScan.value = readQrScan == "true";
 
   const readDarkMode = localStorage.getItem("darkMode");
   if(readDarkMode == "true"){
@@ -83,5 +87,5 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     });
   }
 
-  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, showFiatValueHistory, tokenBurn, featuredTokens, hasSeedBackedUp }
+  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, showFiatValueHistory, tokenBurn, qrScan, featuredTokens, hasSeedBackedUp }
 })
