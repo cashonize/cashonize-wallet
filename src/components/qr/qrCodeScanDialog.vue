@@ -71,6 +71,8 @@
 
   const scanBarcode = async () => {
     try {
+      document.body.classList.add('transparent-body')
+
       // Request camera permission
       const status = await BarcodeScanner.checkPermission({ force: true });
       if (!status.granted) {
@@ -82,26 +84,35 @@
       BarcodeScanner.hideBackground();
 
       // Start scanning
-      document.body.classList.add('transparent-body')
       const result = await BarcodeScanner.startScan();
-      document.body.classList.remove('transparent-body')
-
       // If a QR code is detected
       if (result.hasContent) {
         emit('decode', result.content);
-        showDialog.value = false;
       } else {
         error.value = "Scan failed, try again.";
       }
 
       // Restore background
+      await BarcodeScanner.stopScan();
+      document.body.classList.remove('transparent-body')
       BarcodeScanner.showBackground();
       emit('hide')
+      showDialog.value = false;
     } catch (err) {
       console.error("Scan error:", err);
       error.value = "Error scanning barcode: " + err.message;
     }
   };
+
+  async function handleBeforeHide() {
+    if(isCapacitor) {
+      await BarcodeScanner.stopScan();
+      document.body.classList.remove('transparent-body')
+      BarcodeScanner.showBackground();
+    }
+
+    emit('hide');
+  } 
 
   onMounted(() => {
     if(isCapacitor) scanBarcode();
@@ -109,7 +120,7 @@
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @hide="emit('hide')">
+  <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @before-hide="handleBeforeHide">
     <div v-if="error" class="scanner-error-dialog text-center bg-red-1 text-red q-pa-md">
       <q-icon name="error" left/>
       {{ error }}
@@ -136,11 +147,15 @@
 </template>
 
 <style>
+body.transparent-body.dark {
+  border: var(--vt-c-black) calc(6.125vw) solid;
+}
 body.transparent-body {
   background-color: transparent;
+  border: var(--color-background-soft) calc(6.125vw) solid;
 }
 .transparent-body fieldset {
-  visibility: hidden;
+  display: none;
 }
 .transparent-body header {
   visibility: hidden;
