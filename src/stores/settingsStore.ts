@@ -1,3 +1,4 @@
+import { useWindowSize } from "@vueuse/core";
 import { Config } from "mainnet-js";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
@@ -8,6 +9,10 @@ const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultElectrumChipnet = "chipnet.bch.ninja"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
 const dafaultIpfsGateway = "https://w3s.link/ipfs/";
+
+const { width,height } = useWindowSize();
+const isDesktop = (process.env.MODE == "electron");
+const isMobileDevice = width.value / height.value < 1.5
 
 export const useSettingsStore = defineStore('settingsStore', () => {
   // Global settings
@@ -43,6 +48,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readFiatValueHistory) showFiatValueHistory.value = readFiatValueHistory == "true";
 
   const readQrScan = localStorage.getItem("qrScan");
+  if(!readQrScan && (isDesktop || !isMobileDevice)) qrScan.value = false;
   if(readQrScan) qrScan.value = readQrScan == "true";
 
   const readDarkMode = localStorage.getItem("darkMode");
