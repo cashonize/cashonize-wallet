@@ -24,6 +24,11 @@ body.dark {
   --color-grey: #ccc;
   --color-darkGrey: #777;
 }
+.transition-enabled {
+  transition:
+    color 0.5s,
+    background-color 0.5s;
+}
 header {
   padding-top: 15px;
   display: flex;

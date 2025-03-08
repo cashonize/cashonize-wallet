@@ -1,11 +1,13 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
   import { QrcodeStream } from 'vue-qrcode-reader'
   import ScannerUI from 'components/qr/qrScannerUi.vue'
+  import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
+  const isCapacitor = (process.env.MODE == "capacitor");
 
   const props = defineProps<{
     filter?: (decoded: string) => string | true
@@ -16,6 +18,7 @@
   const filterHint = ref("");
 
   const showDialog = ref(true);
+  const showScanner = ref(true);
 
   const CameraPermissionErrMsg1 = "Permission required to access the camera";
   const CameraPermissionErrMsg2 = "No camera found on this device";
@@ -66,16 +69,70 @@
       }
     }
   }
+
+  const scanBarcode = async () => {
+    try {
+      BarcodeScanner.hideBackground();
+
+      // Request camera permission
+      const status = await BarcodeScanner.checkPermission({ force: true });
+      if (!status.granted) {
+        error.value = "Camera permission required";
+        return;
+      }
+
+      document.body.classList.add('scanner-active')
+      document.body.classList.add('transparent-body')
+
+      // Start scanning
+      const result = await BarcodeScanner.startScan();
+      // If a QR code is detected
+      if (result.hasContent) {
+        emit('decode', result.content);
+      } else {
+        error.value = "Scan failed, try again.";
+      }
+
+      // Restore background
+      document.body.classList.remove('transparent-body')
+      BarcodeScanner.showBackground();
+      document.body.classList.remove('scanner-active')
+      await BarcodeScanner.stopScan();
+      emit('hide')
+      showDialog.value = false;
+    } catch (err) {
+      console.error("Scan error:", err);
+      error.value = "Error scanning barcode: " + err.message;
+    }
+  };
+
+  function handleBeforeHide() {
+    if(isCapacitor) {
+      document.body.classList.remove('transparent-body')
+      BarcodeScanner.showBackground();
+      document.body.classList.remove('scanner-active')
+    }
+
+    emit('hide');
+  } 
+
+  onMounted(() => {
+    if(isCapacitor) scanBarcode();
+  });
+  onUnmounted(() => {
+    if(isCapacitor) BarcodeScanner.stopScan();
+  });
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @hide="emit('hide')">
+  <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @before-hide="handleBeforeHide">
     <div v-if="error" class="scanner-error-dialog text-center bg-red-1 text-red q-pa-md">
       <q-icon name="error" left/>
       {{ error }}
     </div>
     <q-card v-else :style="isMobile ? 'width: 100%; height: 100%;' : 'width: 75%; height: 75%;'">
       <qrcode-stream
+           v-if="!isCapacitor"
           :formats="['qr_code']"
           @detect="onScannerDecode"
           @init="onScannerInit"
@@ -87,7 +144,7 @@
           }"
           @error="onScannerError"
         />
-        <div style="display: flex; height: 100%;">
+        <div v-if="showScanner" style="display: flex; height: 100%;">
           <ScannerUI :filter-hint="filterHint" />
         </div>
     </q-card>
@@ -95,7 +152,25 @@
 </template>
 
 <style>
-div:has(> video#video) {
+body.transparent-body {
+  background-color: transparent;
+}
+body.transparent-body.dark {
+  border: var(--vt-c-black) calc(6.125vw) solid;
+}
+body.transparent-body {
+  border: var(--color-background-soft) calc(6.125vw) solid;
+}
+.scanner-active fieldset {
   display: none;
+}
+.scanner-active header {
+  visibility: hidden;
+}
+.transparent-body .q-card{
+  background: transparent !important;
+}
+.q-card {
+  background: var(--bg--color);
 }
 </style>

@@ -25,36 +25,8 @@
   </div>
 </template>
 
-<style lang="scss">
+<style scoped>
 /* Scanner UI */
-.hide-section {
-  display: none !important;
-}
-.qrcode-scanner {
-  position: fixed;
-  top: 0px;
-  right: 0px;
-  width: 100% !important;
-  height: 100% !important;
-  background: transparent;
-  display: flex;
-}
-.qrcode-scanner {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 10px;
-  color: #ef4f84;
-}
-.qrcode-scanner > .scanner-error-dialog {
-	border-radius: 15px;
-	margin-top: 20%;
-	margin-bottom: auto;
-	margin-left: auto;
-	margin-right: auto;
-	width: 220px;
-	max-width: 90vw;
-}
 .scanner-text {
 	position: absolute;
 	bottom: -30px;
