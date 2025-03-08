@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
   import { QrcodeStream } from 'vue-qrcode-reader'
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
@@ -18,6 +18,7 @@
   const filterHint = ref("");
 
   const showDialog = ref(true);
+  const showScanner = ref(true);
 
   const CameraPermissionErrMsg1 = "Permission required to access the camera";
   const CameraPermissionErrMsg2 = "No camera found on this device";
@@ -71,7 +72,7 @@
 
   const scanBarcode = async () => {
     try {
-      document.body.classList.add('transparent-body')
+      BarcodeScanner.hideBackground();
 
       // Request camera permission
       const status = await BarcodeScanner.checkPermission({ force: true });
@@ -80,8 +81,8 @@
         return;
       }
 
-      // Hide background for better camera display
-      BarcodeScanner.hideBackground();
+      document.body.classList.add('scanner-active')
+      document.body.classList.add('transparent-body')
 
       // Start scanning
       const result = await BarcodeScanner.startScan();
@@ -93,9 +94,10 @@
       }
 
       // Restore background
-      await BarcodeScanner.stopScan();
       document.body.classList.remove('transparent-body')
       BarcodeScanner.showBackground();
+      document.body.classList.remove('scanner-active')
+      await BarcodeScanner.stopScan();
       emit('hide')
       showDialog.value = false;
     } catch (err) {
@@ -104,11 +106,11 @@
     }
   };
 
-  async function handleBeforeHide() {
+  function handleBeforeHide() {
     if(isCapacitor) {
-      await BarcodeScanner.stopScan();
       document.body.classList.remove('transparent-body')
       BarcodeScanner.showBackground();
+      document.body.classList.remove('scanner-active')
     }
 
     emit('hide');
@@ -116,6 +118,9 @@
 
   onMounted(() => {
     if(isCapacitor) scanBarcode();
+  });
+  onUnmounted(() => {
+    if(isCapacitor) BarcodeScanner.stopScan();
   });
 </script>
 
@@ -139,7 +144,7 @@
           }"
           @error="onScannerError"
         />
-        <div style="display: flex; height: 100%;">
+        <div v-if="showScanner" style="display: flex; height: 100%;">
           <ScannerUI :filter-hint="filterHint" />
         </div>
     </q-card>
@@ -147,20 +152,25 @@
 </template>
 
 <style>
+body.transparent-body {
+  background-color: transparent;
+}
 body.transparent-body.dark {
   border: var(--vt-c-black) calc(6.125vw) solid;
 }
 body.transparent-body {
-  background-color: transparent;
   border: var(--color-background-soft) calc(6.125vw) solid;
 }
-.transparent-body fieldset {
+.scanner-active fieldset {
   display: none;
 }
-.transparent-body header {
+.scanner-active header {
   visibility: hidden;
 }
-.transparent-body .q-card {
+.transparent-body .q-card{
   background: transparent !important;
+}
+.q-card {
+  background: var(--bg--color);
 }
 </style>

@@ -114,7 +114,15 @@
   function changeDarkMode(){
     settingsStore.darkMode = selectedDarkMode.value;
     localStorage.setItem("darkMode", selectedDarkMode.value? "true" : "false");
+    darkmodeTransition()
     selectedDarkMode.value ? document.body.classList.add("dark") : document.body.classList.remove("dark")
+  }
+  // work-around to not apply transitions for qr code scanning
+  function darkmodeTransition() {
+      document.body.classList.add('transition-enabled');
+    setTimeout(() => {
+      document.body.classList.remove('transition-enabled');
+    }, 500);
   }
   function toggleShowFiatValueHistory(){
     localStorage.setItem("fiatValueHistory", showFiatValueHistory.value? "true" : "false");

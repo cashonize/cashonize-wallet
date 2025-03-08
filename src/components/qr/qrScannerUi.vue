@@ -25,7 +25,7 @@
   </div>
 </template>
 
-<style lang="scss">
+<style scoped>
 /* Scanner UI */
 .scanner-text {
 	position: absolute;
