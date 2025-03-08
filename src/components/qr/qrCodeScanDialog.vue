@@ -1,11 +1,13 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { QrcodeStream } from 'vue-qrcode-reader'
   import ScannerUI from 'components/qr/qrScannerUi.vue'
+  import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
+  const isCapacitor = (process.env.MODE == "capacitor");
 
   const props = defineProps<{
     filter?: (decoded: string) => string | true
@@ -66,6 +68,44 @@
       }
     }
   }
+
+  const scanBarcode = async () => {
+    try {
+      // Request camera permission
+      const status = await BarcodeScanner.checkPermission({ force: true });
+      if (!status.granted) {
+        error.value = "Camera permission required";
+        return;
+      }
+
+      // Hide background for better camera display
+      BarcodeScanner.hideBackground();
+
+      // Start scanning
+      document.body.classList.add('transparent-body')
+      const result = await BarcodeScanner.startScan();
+      document.body.classList.remove('transparent-body')
+
+      // If a QR code is detected
+      if (result.hasContent) {
+        emit('decode', result.content);
+        showDialog.value = false;
+      } else {
+        error.value = "Scan failed, try again.";
+      }
+
+      // Restore background
+      BarcodeScanner.showBackground();
+      emit('hide')
+    } catch (err) {
+      console.error("Scan error:", err);
+      error.value = "Error scanning barcode: " + err.message;
+    }
+  };
+
+  onMounted(() => {
+    if(isCapacitor) scanBarcode();
+  });
 </script>
 
 <template>
@@ -76,6 +116,7 @@
     </div>
     <q-card v-else :style="isMobile ? 'width: 100%; height: 100%;' : 'width: 75%; height: 75%;'">
       <qrcode-stream
+           v-if="!isCapacitor"
           :formats="['qr_code']"
           @detect="onScannerDecode"
           @init="onScannerInit"
@@ -95,7 +136,16 @@
 </template>
 
 <style>
-div:has(> video#video) {
-  display: none;
+body.transparent-body {
+  background-color: transparent;
+}
+.transparent-body fieldset {
+  visibility: hidden;
+}
+.transparent-body header {
+  visibility: hidden;
+}
+.transparent-body .q-card {
+  background: transparent !important;
 }
 </style>

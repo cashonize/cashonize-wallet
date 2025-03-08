@@ -19,6 +19,7 @@
   "dependencies": {
     "@bitauth/libauth": "3.0.0",
     "@bitjson/qr-code": "^1.0.2",
+    "@capacitor-community/barcode-scanner": "^4.0.1",
     "@capacitor/app": "^6.0.0",
     "@capacitor/core": "^6.0.0",
     "@download/blockies": "^1.0.3",
