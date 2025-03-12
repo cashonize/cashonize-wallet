@@ -124,25 +124,33 @@
       handleTransactionError(error)
     }
   }
+  const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
+
   async function mintNfts() {
+    const nftInfo = nftData.value.token;
+    const tokenId = nftInfo?.tokenId as string;
+    const tokenAddr = store.wallet.tokenaddr;
+    const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
+
     try {
-      if(!store.wallet || !nftData.value?.token) return;
-      const tokenAddr = store.wallet.tokenaddr;
-      let nftCommitment = mintUniqueNfts.value? "" : mintCommitment.value;
-      const nftInfo = nftData.value.token;
-      const tokenId = nftInfo?.tokenId as string;
+      if(!store.wallet || !nftInfo) return;
+      // mint amount should always be provided
       if(mintAmountNfts.value == undefined) throw('invalid amount NFTs to mint');
-      if(startingNumberNFTs.value == undefined) throw('invalid starting number');
       const mintAmount = parseInt(mintAmountNfts.value);
-      const startingNumber = parseInt(startingNumberNFTs.value);
-      const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
+
+      // startingNumberNFTs should be provided if mintUniqueNfts is checked
+      if(mintUniqueNfts.value && startingNumberNFTs.value == undefined) throw('invalid starting number');
+      // initialize commitment with mintCommitment or empty string
+      let nftCommitment = mintUniqueNfts.value? "" : mintCommitment.value;
       const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
       if(!validCommitment) throw(`nftCommitment '${nftCommitment}' must be a hexadecimal`);
-      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
-      const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
+
+      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`); 
+      // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
         if(mintUniqueNfts.value){
+          const startingNumber = parseInt(startingNumberNFTs.value);
           const nftNumber = startingNumber + i;
           // handle both vm-numering and hex numbering
           if(numberingUniqueNfts.value == "vm-numbers"){
@@ -169,7 +177,7 @@
       })
       const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
-      const commitmentText= nftCommitment? `with commitment ${nftCommitment}`: "";
+      const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
       const alertMessage = mintAmount == 1 ?
         `Minted immutable NFT of category ${displayId} ${commitmentText}`
         : `Minted ${mintAmount} NFTs of category ${displayId}`
@@ -185,6 +193,11 @@
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
+      // reset input fields
+      displayMintNfts.value = false;
+      mintCommitment.value = "";
+      mintAmountNfts.value = undefined;
+      startingNumberNFTs.value = undefined;
       // update wallet history
       store.updateWalletHistory();
     } catch (error) {
@@ -240,9 +253,10 @@
 
   function handleTransactionError(error: any){
     console.log(error)
-    const errorMessage = typeof error == 'string' ? error : "something went wrong";
+    const errorMessage = typeof error == 'string' ? error : error?.message;
+    const displayMessage = errorMessage ?? "something went wrong"
     $q.notify({
-      message: errorMessage,
+      message: displayMessage,
       icon: 'warning',
       color: "red"
     }) 

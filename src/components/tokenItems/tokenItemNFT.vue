@@ -214,25 +214,33 @@
       handleTransactionError(error)
     }
   }
+  const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
+
   async function mintNfts() {
     const tokenId = tokenData.value.tokenId;
     const nftInfo = tokenData.value.nfts?.[0].token;
+    const tokenAddr = store.wallet.tokenaddr;
+    const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
+
     try {
       if(!store.wallet || !nftInfo) return;
-      const tokenAddr = store.wallet.tokenaddr;
-      let nftCommitment = mintUniqueNfts.value? "" : mintCommitment.value;
+      // mint amount should always be provided
       if(mintAmountNfts.value == undefined) throw('invalid amount NFTs to mint');
-      if(startingNumberNFTs.value == undefined) throw('invalid starting number');
       const mintAmount = parseInt(mintAmountNfts.value);
-      const startingNumber = parseInt(startingNumberNFTs.value);
-      const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
+
+      // startingNumberNFTs should be provided if mintUniqueNfts is checked
+      if(mintUniqueNfts.value && startingNumberNFTs.value == undefined) throw('invalid starting number');
+      // initialize commitment with mintCommitment or empty string
+      let nftCommitment = mintUniqueNfts.value? "" : mintCommitment.value;
       const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
       if(!validCommitment) throw(`nftCommitment '${nftCommitment}' must be a hexadecimal`);
-      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
-      const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
+
+      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`); 
+      // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
         if(mintUniqueNfts.value){
+          const startingNumber = parseInt(startingNumberNFTs.value);
           const nftNumber = startingNumber + i;
           // handle both vm-numering and hex numbering
           if(numberingUniqueNfts.value == "vm-numbers"){
@@ -387,9 +395,10 @@
 
   function handleTransactionError(error: any){
     console.log(error)
-    const errorMessage = typeof error == 'string' ? error : "something went wrong";
+    const errorMessage = typeof error == 'string' ? error : error?.message;
+    const displayMessage = errorMessage ?? "something went wrong"
     $q.notify({
-      message: errorMessage,
+      message: displayMessage,
       icon: 'warning',
       color: "red"
     }) 

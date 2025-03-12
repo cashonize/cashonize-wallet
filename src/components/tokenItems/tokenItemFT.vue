@@ -281,9 +281,10 @@
 
   function handleTransactionError(error: any){
     console.log(error)
-    const errorMessage = typeof error == 'string' ? error : "something went wrong";
+    const errorMessage = typeof error == 'string' ? error : error?.message;
+    const displayMessage = errorMessage ?? "something went wrong"
     $q.notify({
-      message: errorMessage,
+      message: displayMessage,
       icon: 'warning',
       color: "red"
     }) 
