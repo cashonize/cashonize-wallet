@@ -348,3 +348,25 @@ select, summary {
   word-break: break-word;
   font-size: 0.6em;
 }
+input[type="radio"]:checked {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #0ac18f;
+  border-radius: 50%;
+  position: relative;
+  margin: 0 2px ;
+  cursor: pointer;
+  display: inline-block;
+}
+
+input[type="radio"]:checked::before {
+  content: "";
+  position: absolute;
+  top: 2.5px;
+  left: 2.5px;
+  width: 8px;
+  height: 8px;
+  background-color: #0ac18f;
+  border-radius: 50%;
+}
