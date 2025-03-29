@@ -107,7 +107,7 @@
     </div>
 
     <div v-for="sessionInfo in Object.values(activeSessions || {}).reverse()" :key="sessionInfo.topic" class="wc2sessions" >
-      <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" @delete-session="(arg) => deleteSession(arg)"/>
+      <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" :activeSessions="activeSessions" @delete-session="(arg) => deleteSession(arg)"/>
     </div>
     <!-- Show Empty Message if no Sessions are active -->
     <template v-if="!Object.keys(activeSessions || {}).length">

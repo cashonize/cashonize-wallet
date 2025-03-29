@@ -129,10 +129,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   function isAutoApproveValid(topic: string): boolean {
     const current = getAutoApproveState(topic);
-    const now = Date.now();
-
     if (!current) return false;
 
+    if (current.mode === "forever") return true;
+
+    const now = Date.now();
     const isTimeValid = !current.timestamp || now < current.timestamp;
     const hasRequestsLeft = current.requests === undefined || current.requests > 0;
 

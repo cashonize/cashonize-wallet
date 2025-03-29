@@ -111,6 +111,18 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
           const sessions = web3wallet.value.getActiveSessions();
           const session = sessions[topic];
           if (!session) return;
+
+          // Auto-approve early return
+          if (settingsStore.isAutoApproveValid(topic)) {
+            await signTransactionWC(event)
+            // Decrement request count if applicable
+            if (settingsStore.getAutoApproveState(topic)?.mode === "count") {
+              settingsStore.decrementAutoApproveRequest(topic);
+            }
+            return;
+          }
+
+          // Manually approve
           const dappMetadata = session.peer.metadata;
           const exchangeRate = await convert(1, "bch", settingsStore.currency);
           return await new Promise<void>((resolve, reject) => {
