@@ -170,7 +170,4 @@ body.transparent-body {
 .transparent-body .q-card{
   background: transparent !important;
 }
-.q-card {
-  background: var(--bg--color);
-}
 </style>

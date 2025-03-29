@@ -84,6 +84,63 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
+  // --- Auto-approve session logic ---
+
+  interface AutoApproveSessionReq {
+    mode: "forever" | "count" | "time",
+    requests?: number,
+    timestamp?: number
+  }
+
+  function getAutoApproveState(topic: string) {
+    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}");
+    return state?.[topic] as AutoApproveSessionReq || null;
+  }
+
+  function setAutoApproveState(
+    topic: string,
+    newState: { mode: "forever" | "count" | "time", requests?: number, timestamp?: number } | null
+  ) {
+    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}");
+  
+    if (!newState) {
+      delete state[topic];
+    } else {
+      state[topic] = newState;
+    }
+  
+    localStorage.setItem("auto-approve", JSON.stringify(state));
+  }
+  
+
+  function clearAutoApproveState(topic: string) {
+    setAutoApproveState(topic, null);
+  }
+
+  function decrementAutoApproveRequest(topic: string): number | null {
+    const current = getAutoApproveState(topic);
+    if (!current || typeof current.requests !== "number") return null;
+
+    current.requests = Math.max(0, current.requests - 1);
+    setAutoApproveState(topic, current);
+
+    return current.requests;
+  }
+
+  function isAutoApproveValid(topic: string): boolean {
+    const current = getAutoApproveState(topic);
+    if (!current) return false;
+
+    if (current.mode === "forever") return true;
+
+    const now = Date.now();
+    const isTimeValid = !current.timestamp || now < current.timestamp;
+    const hasRequestsLeft = current.requests === undefined || current.requests > 0;
+
+    return isTimeValid && hasRequestsLeft;
+  }
+
+
   removeOldCacheData();
 
   function removeOldCacheData(){
@@ -93,5 +150,24 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     });
   }
 
-  return { currency, bchUnit, explorerMainnet, explorerChipnet, electrumServerMainnet, electrumServerChipnet, chaingraph, ipfsGateway, darkMode, showFiatValueHistory, tokenBurn, qrScan, featuredTokens, hasSeedBackedUp }
+  return {
+    currency,
+    bchUnit,
+    explorerMainnet,
+    explorerChipnet,
+    electrumServerMainnet,
+    electrumServerChipnet,
+    chaingraph,
+    ipfsGateway,
+    darkMode,
+    showFiatValueHistory,
+    tokenBurn,
+    qrScan,
+    featuredTokens,
+    hasSeedBackedUp,
+    getAutoApproveState,
+    setAutoApproveState,
+    clearAutoApproveState,
+    decrementAutoApproveRequest,
+    isAutoApproveValid  }
 })
