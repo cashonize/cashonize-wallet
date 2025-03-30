@@ -4,16 +4,19 @@
   import WC2SessionRequestDialog from 'src/components/walletconnect/WC2SessionRequestDialog.vue';
   import WC2ActiveSession from 'src/components/walletconnect/WC2ActiveSession.vue'
   import { getSdkError } from '@walletconnect/utils';
+  import { type Wallet } from 'mainnet-js';
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
-  import { type Wallet } from 'mainnet-js';
+  
   defineExpose({
     connectDappUriInput
   });
   
   const $q = useQuasar()
   const store = useStore()
+  const settingsStore = useSettingsStore()
 
   // TODO: investigate moving to main store
   const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
@@ -92,6 +95,7 @@
       topic: sessionId,
       reason: getSdkError("USER_DISCONNECTED")
     });
+    settingsStore.clearAutoApproveState(sessionId);
 
     const updatedSessions = web3wallet?.getActiveSessions();
     walletconnectStore.activeSessions = updatedSessions;
