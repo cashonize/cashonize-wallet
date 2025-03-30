@@ -988,10 +988,10 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@quasar/app-vite@^2.1.4":
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/@quasar/app-vite/-/app-vite-2.1.4.tgz#d643c8ecd4d97e134ed94b3955e48d526683d25b"
-  integrity sha512-UBsF+HFirXB7tMs1GHcSqB4fb7TY+mbeEHjlwDx6NiHX+LawuzktQBAx9V36QqoMV95kNgZDJrwcbMcUNd0HsA==
+"@quasar/app-vite@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@quasar/app-vite/-/app-vite-2.2.0.tgz#ac12ed42d1235a6d5f4d0dbf3ec573b9ac8b6ab4"
+  integrity sha512-MvCfJrCbxUYvoGaK5jPq0h0hjO8mbxYOWngf+dIKrxhwb+1h5ERh6aVYEUuCtMIwTMEVfPkCez4DIfZIoReuDw==
   dependencies:
     "@quasar/render-ssr-error" "^1.0.3"
     "@quasar/ssl-certificate" "^1.0.0"
