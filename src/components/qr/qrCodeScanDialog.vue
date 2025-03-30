@@ -170,4 +170,7 @@ body.transparent-body {
 .transparent-body .q-card{
   background: transparent !important;
 }
+.q-dialog__backdrop {
+  backdrop-filter: none !important;
+}
 </style>
