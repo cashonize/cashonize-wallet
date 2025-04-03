@@ -1,0 +1,45 @@
+name: Cross-Platform Electron Build
+
+on:
+  push:
+    tags:
+      - 'v*' # Run when you push a version tag like v1.0.0
+
+permissions:
+  contents: read # required by checkout, setup-node, and artifact actions
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install Yarn (v1.22.22)
+        run: npm install -g yarn@1.22.22
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build Electron App
+        run: npx quasar build -m electron
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quasar-build-${{ matrix.os }}
+          path: dist/electron/packaged/
+          if-no-files-found: error
+          compression-level: 0 # optional: speed boost
