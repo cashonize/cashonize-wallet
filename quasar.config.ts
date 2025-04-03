@@ -210,9 +210,9 @@ export default defineConfig((/* ctx */) => {
           createDesktopShortcut: "always",
           differentialPackage: false
         },
-        publish: {
-          provider: 'github',
-        }
+        linux: {
+          target: ['AppImage']
+        },
       },
 
     },
