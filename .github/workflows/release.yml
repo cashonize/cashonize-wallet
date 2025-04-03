@@ -34,12 +34,12 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build Electron App
-        run: npx quasar build -m electron
+        run: npx quasar build --mode electron --publish never
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: quasar-build-${{ matrix.os }}
-          path: dist/electron/packaged/
+          path: dist/electron/Packaged/
           if-no-files-found: error
           compression-level: 0 # optional: speed boost
