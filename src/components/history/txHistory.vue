@@ -208,4 +208,7 @@ img.tokenIcon {
 .q-pagination .q-field__control-container {
   width: 100%;
 }
+.q-pagination .q-field__native {
+  color: var(--font-color);
+}
 </style>
