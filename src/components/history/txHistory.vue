@@ -11,6 +11,8 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
 
+  const itemsPerPage = 100
+  const currentPage = ref(1)
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 570)
 
@@ -26,6 +28,12 @@
   });
 
   const transactionCount = computed(() => selectedHistory.value?.length);
+
+  const paginatedHistory = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    return selectedHistory.value.slice(start, start + itemsPerPage)
+  })
+  const totalPages = computed(() => Math.ceil((selectedHistory.value?.length ?? 0) / itemsPerPage))
 </script>
 
 <template>
@@ -60,7 +68,12 @@
           </tr>
         </thead>
         <tbody class="transactionTable">
-          <tr :class="settingsStore.darkMode ? 'dark' : ''" v-for="transaction in selectedHistory" :key="transaction.hash" @click="() => selectedTransaction = transaction">
+          <tr
+            v-for="transaction in paginatedHistory"
+            :key="transaction.hash"
+            @click="() => selectedTransaction = transaction"
+            :class="settingsStore.darkMode ? 'dark' : ''"
+          >
 
             <td>{{ transaction.timestamp ? "✅" : "⏳" }}</td>
 
@@ -107,6 +120,15 @@
           </tr>
         </tbody>
       </table>
+      <q-pagination
+        v-if="totalPages > 1"
+        v-model="currentPage"
+        :max="totalPages"
+        input
+        direction-links
+        boundary-numbers
+        color="primary"
+      />
     </fieldset>
   </div>
 
@@ -169,5 +191,21 @@ img.tokenIcon {
   .transactionTable > * {
     font-size: small;
   }
+}
+</style>
+
+<style>
+.q-pagination .q-btn {
+  background-color: transparent !important;
+}
+.q-pagination .q-field {
+  width: 5em !important;
+  margin: 10px 0px;
+}
+.q-pagination .q-field__inner {
+  width: 100%;
+}
+.q-pagination .q-field__control-container {
+  width: 100%;
 }
 </style>
