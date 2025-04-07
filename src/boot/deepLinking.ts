@@ -1,4 +1,5 @@
 import { boot } from 'quasar/wrappers'
+// @ts-ignore: @capacitor/app import gives TS error when dependency is not included
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Platform } from 'quasar'
 
