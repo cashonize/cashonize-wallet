@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import dialogNftIcon from './dialogNftIcon.vue'
   import { ref, onMounted, toRefs, computed } from 'vue';
-  import { TokenSendRequest, TokenMintRequest, TokenI } from "mainnet-js"
+  import { TokenSendRequest, TokenMintRequest } from "mainnet-js"
   import { type UtxoI } from "mainnet-js"
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import { createIcon } from '@download/blockies';
@@ -60,7 +60,7 @@
   })
 
   onMounted(() => {
-    const tokenId = nftData.value.token?.tokenId as string;
+    const tokenId = nftData.value.token.tokenId;
     const icon = createIcon({
       seed: tokenId,
       size: 12,
@@ -86,7 +86,7 @@
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
-      const nftInfo = nftData.value.token as TokenI;
+      const nftInfo = nftData.value.token;
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
@@ -106,7 +106,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string } 
+          alertInfo: { message: alertMessage, txid: txId } 
         }
       })
       $q.notify({
@@ -128,7 +128,7 @@
 
   async function mintNfts() {
     const nftInfo = nftData.value.token;
-    const tokenId = nftInfo?.tokenId as string;
+    const tokenId = nftInfo.tokenId;
     const tokenAddr = store.wallet.tokenaddr;
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
@@ -184,7 +184,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({
@@ -210,7 +210,7 @@
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       
       const nftInfo = nftData.value.token;
-      const tokenId = nftInfo?.tokenId as string;
+      const tokenId = nftInfo.tokenId;
       const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
       const burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
       if (confirm(burnWarning) != true) return;
@@ -234,7 +234,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({

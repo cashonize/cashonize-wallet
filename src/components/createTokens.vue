@@ -21,7 +21,7 @@
     if(!store.wallet) return;
     try{
       store.plannedTokenId = undefined;
-      const walletAddr = store.wallet.address as string;
+      const walletAddr = store.wallet.address;
       $q.notify({
         spinner: true,
         message: 'Preparing pre-genesis...',
@@ -106,7 +106,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({
@@ -150,7 +150,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({

@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, watch, onMounted, toRefs } from 'vue';
   import Toggle from '@vueform/toggle';
-  import { DappMetadata } from 'src/interfaces/interfaces';
+  import { type DappMetadata } from 'src/interfaces/interfaces';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWindowSize } from '@vueuse/core'
   const settingsStore = useSettingsStore()

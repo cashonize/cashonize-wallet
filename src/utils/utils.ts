@@ -2,7 +2,7 @@ import { type UtxoI } from "mainnet-js"
 import { hexToBin } from "@bitauth/libauth"
 import type { ElectrumTokenData, TokenDataFT, TokenDataNFT } from "../interfaces/interfaces"
 import { Notify } from "quasar";
-import { Ref, watch, WatchStopHandle } from "vue";
+import { type Ref, watch, type WatchStopHandle } from "vue";
 
 export function copyToClipboard(copyText:string|undefined){
   if(!copyText) return

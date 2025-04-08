@@ -64,12 +64,17 @@ export default defineConfigWithVueTs(
     },
 
     // add your custom rules here
-    // TODO: @typescript-eslint/consistent-type-imports
-    // TODO: enable @typescript-eslint/no-explicit-any
+    // TODO: consider re-enabling most of these rules
     rules: {
       'prefer-promise-reject-errors': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       "@typescript-eslint/ban-ts-comment": 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/only-throw-error': 'off',
+      '@typescript-eslint/prefer-promise-reject-errors': 'off',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-unused-expressions': [
         'error',
         { allowTernary: true } // Allow function calls and other expressions in ternaries

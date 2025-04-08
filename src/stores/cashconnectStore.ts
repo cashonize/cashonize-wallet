@@ -1,4 +1,4 @@
-import { ref, Ref } from "vue";
+import { ref, type Ref } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
 
@@ -8,7 +8,7 @@ import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransac
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import Mainnet and Wallet Connect
-import { convert, TestNetWallet, Wallet } from "mainnet-js";
+import { convert, type Wallet, type TestNetWallet } from "mainnet-js";
 import {
   type BchSession,
   type BchSessionProposal,
@@ -120,7 +120,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
     // Session Hooks
     //-----------------------------------------------------------------------------
 
-    async function onSessionsUpdated(
+    function onSessionsUpdated(
       updatedSessions: Record<string, BchSession>
     ) {
       sessions.value = updatedSessions;
@@ -176,7 +176,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       });
     }
 
-    async function onSessionDelete() {
+    function onSessionDelete() {
       console.log("Session deleted");
     }
 
@@ -339,7 +339,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       return transformed;
     }
 
-    async function getChangeTemplate() {
+    function getChangeTemplate() {
       if (!wallet.value.privateKey) {
         throw new Error(
           "Failed to getChangeTemplate: Mainnet wallet.value.value.privateKey is undefined"

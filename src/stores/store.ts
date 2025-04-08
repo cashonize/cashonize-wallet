@@ -1,6 +1,19 @@
 import { defineStore } from "pinia"
-import { ref, computed, Ref } from 'vue'
-import { Wallet, TestNetWallet, BaseWallet, Config, BalanceResponse, UtxoI, Connection, ElectrumNetworkProvider, binToHex, type CancelWatchFn, convert, HexHeaderI } from "mainnet-js"
+import { ref, computed, type Ref } from 'vue'
+import {
+  Wallet,
+  TestNetWallet,
+  BaseWallet,
+  Config,
+  Connection,
+  binToHex,
+  convert,
+  type BalanceResponse,
+  type UtxoI,
+  type ElectrumNetworkProvider,
+  type CancelWatchFn,
+  type HexHeaderI
+} from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import { CurrencySymbols, type TokenList, type bcmrIndexerResponse } from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
@@ -101,7 +114,7 @@ export const useStore = defineStore('store', () => {
     console.timeEnd('fetchAuthUtxos');
   }
 
-  async function setUpWalletSubscriptions(){
+  function setUpWalletSubscriptions(){
     cancelWatchBchtxs = wallet.value?.watchBalance(async (newBalance) => {
       const oldBalance = balance.value;
       balance.value = newBalance;
@@ -293,7 +306,7 @@ export const useStore = defineStore('store', () => {
     const resolveMetadataPromsises = Promise.all(metadataPromises);
     const resultsMetadata = await resolveMetadataPromsises;
     const registries = bcmrRegistries.value ?? {};
-    for await(const response of resultsMetadata) {
+    for(const response of resultsMetadata) {
       if(response?.status == 200) {
         const jsonResponse:bcmrIndexerResponse = await response.json();
         const tokenId = jsonResponse?.token?.category

@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { BalanceResponse, convert } from 'mainnet-js'
+  import { type BalanceResponse, convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
@@ -61,7 +61,7 @@
   function switchAddressTypeQr(){
     displayBchQr.value = !displayBchQr.value;
   }
-  async function parseAddrParams(){
+  function parseAddrParams(){
     const addressInput = destinationAddr.value;
     if(addressInput.includes("?amount=")){
       const [address, params] = addressInput.split("?");
@@ -101,7 +101,7 @@
       store.balance = refreshedBalance
     }
   }
-  async function useMaxBchAmount(){
+  function useMaxBchAmount(){
     if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit]){
       bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
       // update currency balance & set currency amount
@@ -141,7 +141,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string } 
+          alertInfo: { message: alertMessage, txid: txId } 
         }
       })
       $q.notify({

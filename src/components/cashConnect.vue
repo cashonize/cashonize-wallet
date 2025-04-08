@@ -1,11 +1,11 @@
 <script setup lang="ts">
-  import { Ref } from 'vue';
+  import { type Ref } from 'vue';
   import { storeToRefs } from 'pinia';
   import { useQuasar } from 'quasar';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
-  import { Wallet } from 'mainnet-js';
+  import { type Wallet } from 'mainnet-js';
 
   // Expose to parent component.
   defineExpose({

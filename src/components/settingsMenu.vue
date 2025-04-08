@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import { computed, onMounted, ref } from 'vue'
-  import { Connection, ElectrumNetworkProvider, Config, BalanceResponse } from "mainnet-js"
+  import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils';
@@ -33,7 +33,7 @@
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   // advanced settings
-  const selectedNetwork = ref(store.network as "mainnet" | "chipnet");
+  const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);

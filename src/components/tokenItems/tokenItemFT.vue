@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, SendRequest  } from "mainnet-js"
+  import { TokenSendRequest, type SendRequest } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
@@ -94,7 +94,7 @@
     if(decimals) tokenAmountDecimals = Number(tokenAmountDecimals) / (10 ** decimals);
     return tokenAmountDecimals;
   }
-  async function maxTokenAmount(tokenSend:boolean){
+  function maxTokenAmount(tokenSend:boolean){
     if(!tokenData.value?.amount) return // should never happen
     const decimals = tokenMetaData.value?.token?.decimals;
     const amountTokens = decimals ? Number(tokenData.value.amount) / (10 ** decimals) : tokenData.value.amount;
@@ -147,7 +147,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({
@@ -202,7 +202,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({
@@ -261,7 +261,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({

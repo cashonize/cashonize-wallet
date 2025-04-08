@@ -2,7 +2,7 @@
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
-  import { TokenSendRequest, TokenMintRequest, SendRequest, TokenI } from "mainnet-js"
+  import { TokenSendRequest, TokenMintRequest, type SendRequest } from "mainnet-js"
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
@@ -144,7 +144,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string } 
+          alertInfo: { message: alertMessage, txid: txId } 
         }
       })
       $q.notify({
@@ -176,7 +176,7 @@
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const tokenId = tokenData.value.tokenId;
-      const nftInfo = tokenData.value.nfts?.[0].token as TokenI;
+      const nftInfo = tokenData.value.nfts?.[0].token;
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
@@ -196,7 +196,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
       $q.notify({
@@ -274,7 +274,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({
@@ -330,7 +330,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({
@@ -375,7 +375,7 @@
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId as string }
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
        $q.notify({

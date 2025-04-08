@@ -23,8 +23,8 @@ import {
   type TransactionCommon,
   type Input,
   type Output,
-  AuthenticationProgramState,
-  TransactionGenerationError
+  type AuthenticationProgramState,
+  type TransactionGenerationError
 } from "@bitauth/libauth"
 import { getSdkError } from '@walletconnect/utils';
 import { parseExtendedJson } from 'src/utils/utils'
@@ -32,7 +32,7 @@ import alertDialog from 'src/components/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
-import { ContractInfo } from "src/interfaces/wcInterfaces"
+import { type ContractInfo } from "src/interfaces/wcInterfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
 const settingsStore = useSettingsStore()
 
@@ -263,7 +263,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
           Dialog.create({
             component: alertDialog,
             componentProps: {
-              alertInfo: { message: alertMessage, txid: txId as string } 
+              alertInfo: { message: alertMessage, txid: txId } 
             }
           })
         } catch(error){

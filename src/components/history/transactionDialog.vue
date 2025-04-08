@@ -35,7 +35,7 @@
   const ourAddress = store.wallet?.cashaddr ?? "";
   const feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.00";
   const currencySymbol = CurrencySymbols[settingsStore.currency];
-  const tokenMetadata = ref(undefined as undefined | any);
+  const tokenMetadata = ref(undefined as any);
   const selectedTokenId = ref("");
   const selectedTokenCommitment = ref("");
 
