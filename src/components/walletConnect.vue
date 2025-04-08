@@ -23,7 +23,7 @@
   const web3wallet = walletconnectStore.web3wallet
 
   const sessionProposalWC = ref(undefined as any);
-  const activeSessions = computed(() => walletconnectStore.activeSessions)
+  const activeSessions = computed(() => walletconnectStore.activeSessions ?? {})
 
   async function connectDappUriInput(url: string){
     try {

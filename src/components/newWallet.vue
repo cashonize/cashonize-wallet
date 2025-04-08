@@ -5,7 +5,7 @@
   const $q = useQuasar()
   const isBrowser = (process.env.MODE == "spa");
 
-  const seedphrase = ref(undefined as (string | undefined));
+  const seedphrase = ref('');
   const selectedDerivationPath =  ref("standard" as ("standard" | "bitcoindotcom"));
   const emit = defineEmits(['initWallet']);
 

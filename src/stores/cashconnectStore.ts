@@ -16,6 +16,7 @@ import {
   type WalletProperties,
   type Unspent,
   CashConnectWallet,
+  // @ts-ignore: TODO: fix cashconnect types
 } from "cashconnect";
 
 // Import Libauth.
@@ -27,6 +28,7 @@ import {
   walletTemplateP2pkhNonHd,
 } from "@bitauth/libauth";
 import { useSettingsStore } from 'src/stores/settingsStore';
+import { type ElectrumRawTransactionVout } from "src/interfaces/interfaces";
 const settingsStore = useSettingsStore()
 
 // NOTE: We use a wrapper so that we can pass in the Mainnet Wallet as an argument.
@@ -253,11 +255,11 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
         binToHex(outpointTransactionHash)
       );
 
-      const outpoint = transaction.vout[outpointIndex];
+      const outpoint = transaction.vout[outpointIndex] as ElectrumRawTransactionVout ;
 
       let token;
 
-      if (outpoint.tokenData) {
+      if ('tokenData' in outpoint) {
         token = {
           amount: BigInt(outpoint.tokenData.amount),
           category: hexToBin(outpoint.tokenData.category),
@@ -274,6 +276,8 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
         token,
       };
 
+      // TODO: investigate this type error
+      // @ts-ignore
       return formatted;
     }
 

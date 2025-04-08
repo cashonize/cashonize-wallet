@@ -6,6 +6,7 @@
   import { useStore } from '../stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { type TokeneGenesisRequestParams } from 'src/interfaces/interfaces';
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -21,7 +22,7 @@
     if(!store.wallet) return;
     try{
       store.plannedTokenId = undefined;
-      const walletAddr = store.wallet.address;
+      const walletAddr = store.wallet.address as string;
       $q.notify({
         spinner: true,
         message: 'Preparing pre-genesis...',
@@ -97,7 +98,7 @@
           cashaddr: store.wallet.tokenaddr,
           amount: BigInt(totalSupply),    // fungible token amount
           value: 1000,                    // Satoshi value
-        }, 
+        } as TokeneGenesisRequestParams, 
         opreturnData
       );
       const tokenId = genesisResponse?.tokenIds?.[0];
@@ -141,7 +142,7 @@
           commitment: "",
           capability: "minting",
           value: 1000,
-        }, 
+        } as TokeneGenesisRequestParams, 
         opreturnData
       );
       const tokenId = genesisResponse?.tokenIds?.[0];

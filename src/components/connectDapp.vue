@@ -25,7 +25,7 @@ import { useSettingsStore } from 'src/stores/settingsStore';
 
   // Props.
   const props = defineProps<{
-    dappUriUrlParam?: string
+    dappUriUrlParam: string | undefined
   }>()
 
   // Component references.
@@ -86,8 +86,13 @@ import { useSettingsStore } from 'src/stores/settingsStore';
       // Clear the input.
       dappUriInput.value = '';
     } catch(error) {
+      let errorMessage: string;
+      if (typeof error === 'string') errorMessage = error;
+      else if (error instanceof Error) errorMessage = error.message;
+      else errorMessage = 'Something went wrong';
+
       $q.notify({
-        message: `${error}`,
+        message: errorMessage,
         icon: 'warning',
         color: 'negative'
       })

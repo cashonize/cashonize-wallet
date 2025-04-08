@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
-import type { BchSession, SignTransactionV0 } from 'cashconnect';
-import type { SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
+// @ts-ignore: TODO: fix cashconnect types
+import type { BchSession, SignTransactionV0, SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress } from '@bitauth/libauth';
 import { CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
@@ -87,18 +87,28 @@ function getTokenName(categoryId: string | number) {
 
     return tokenInfo.name;
   } catch(error) {
-    console.warn(`${error}`);
+    let errorMessage: string;
+    if (typeof error === 'string') errorMessage = error;
+    else if (error instanceof Error) errorMessage = error.message;
+    else errorMessage = 'Something went wrong';
+    
+    console.warn(errorMessage);
 
     return categoryId;
   }
 }
 
-props.session.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId) => {
+props.session.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId: string) => {
   try {
     const tokenInfo = await store.fetchTokenInfo(tokenId);
     tokens.value[tokenId] = await tokenInfo.json();
   } catch(error) {
-    console.warn(`${error}`);
+    let errorMessage: string;
+    if (typeof error === 'string') errorMessage = error;
+    else if (error instanceof Error) errorMessage = error.message;
+    else errorMessage = 'Something went wrong';
+    
+    console.warn(errorMessage);
   }
 });
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDialogPluginComponent } from 'quasar'
+// @ts-ignore: TODO: fix cashconnect types
 import type { CashRPCError } from 'cashconnect';
 
 defineProps<{

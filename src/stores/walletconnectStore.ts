@@ -48,6 +48,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       });
 
       const newweb3wallet = await WalletKit.init({
+        // @ts-ignore: it complais about not having a 'relayUrl' property but it is not needed
         core,
         metadata: {
           name: 'Cashonize',
@@ -183,21 +184,22 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       const txTemplate = {...txDetails} as TransactionTemplateFixed<typeof compiler>;
 
       for (const [index, input] of txTemplate.inputs.entries()) {
-        const sourceOutputsUnpacked = sourceOutputs;
-        if (sourceOutputsUnpacked[index].contract?.artifact.contractName) {
+        const correspondingSourceOutput = sourceOutputs[index] as (typeof sourceOutputs)[number];
+
+        if (correspondingSourceOutput.contract?.artifact.contractName) {
           // instruct compiler to produce signatures for relevant contract inputs
 
           // replace pubkey and sig placeholders
-          let unlockingBytecodeHex = binToHex(sourceOutputsUnpacked[index].unlockingBytecode);
+          let unlockingBytecodeHex = binToHex(correspondingSourceOutput.unlockingBytecode);
           const sigPlaceholder = "41" + binToHex(Uint8Array.from(Array(65)));
           const pubkeyPlaceholder = "21" + binToHex(Uint8Array.from(Array(33)));
           if (unlockingBytecodeHex.indexOf(sigPlaceholder) !== -1) {
             // compute the signature argument
             const hashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
-            const context: CompilationContextBCH = { inputIndex: index, sourceOutputs: sourceOutputsUnpacked, transaction: txDetails };
+            const context: CompilationContextBCH = { inputIndex: index, sourceOutputs, transaction: txDetails };
             const signingSerializationType = new Uint8Array([hashType]);
 
-            const coveredBytecode = sourceOutputsUnpacked[index].contract?.redeemScript;
+            const coveredBytecode = correspondingSourceOutput.contract?.redeemScript;
             if (!coveredBytecode) {
               alert("Not enough information provided, please include contract redeemScript");
               return;
@@ -220,16 +222,17 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
           input.unlockingBytecode = hexToBin(unlockingBytecodeHex);
         } else {
           // replace unlocking bytecode for non-contract inputs having placeholder unlocking bytecode
-          const sourceOutput = sourceOutputsUnpacked[index];
-          if (!sourceOutput.unlockingBytecode?.length && toCashaddr(sourceOutput.lockingBytecode) === wallet?.getDepositAddress()) {
+          if (!correspondingSourceOutput.unlockingBytecode?.length && 
+            toCashaddr(correspondingSourceOutput.lockingBytecode) === wallet?.getDepositAddress()
+          ) {
             input.unlockingBytecode = {
               compiler,
               data: {
                 keys: { privateKeys: { key: privateKey } },
               },
-              valueSatoshis: sourceOutput.valueSatoshis,
+              valueSatoshis: correspondingSourceOutput.valueSatoshis,
               script: "unlock",
-              token: sourceOutput.token,
+              token: correspondingSourceOutput.token,
             }
           }
         }

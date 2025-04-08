@@ -264,7 +264,8 @@
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear wallet history from {{isBrowser? "browser": "application"}} ({{ indexedDbCacheSizeMB.toFixed(2) }} MB)
+        Clear wallet history from {{isBrowser? "browser": "application"}}
+        <span v-if="indexedDbCacheSizeMB">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
         <input @click="clearHistoryCache()" type="button" value="Clear cache" class="button" style="display: block;">
       </div>
     </div>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
   import dialogNftIcon from './dialogNftIcon.vue'
   import { ref, onMounted, toRefs, computed } from 'vue';
-  import { TokenSendRequest, TokenMintRequest } from "mainnet-js"
+  import { TokenSendRequest, TokenMintRequest, type TokenI } from "mainnet-js"
   import { type UtxoI } from "mainnet-js"
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
+  // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { BcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { BcmrTokenMetadata, TokenBurnRequestParams, TokenSendRequestParams } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -60,7 +61,7 @@
   })
 
   onMounted(() => {
-    const tokenId = nftData.value.token.tokenId;
+    const tokenId = (nftData.value.token as TokenI).tokenId;
     const icon = createIcon({
       seed: tokenId,
       size: 12,
@@ -86,20 +87,21 @@
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
-      const nftInfo = nftData.value.token;
+      const nftInfo = nftData.value.token as TokenI;
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
         color: 'grey-5',
         timeout: 1000
       })
+
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
           tokenId: nftInfo.tokenId,
           commitment: nftInfo.commitment,
           capability: nftInfo.capability,
-        }),
+        } as TokenSendRequestParams),
       ]);
       const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-10)}`;
       const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
@@ -127,9 +129,9 @@
   const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
 
   async function mintNfts() {
-    const nftInfo = nftData.value.token;
+    const nftInfo = nftData.value.token as TokenI;
     const tokenId = nftInfo.tokenId;
-    const tokenAddr = store.wallet.tokenaddr;
+    const tokenAddr = store.wallet!.tokenaddr;
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     try {
@@ -149,7 +151,7 @@
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
-        if(mintUniqueNfts.value){
+        if(mintUniqueNfts.value && startingNumberNFTs.value){
           const startingNumber = parseInt(startingNumberNFTs.value);
           const nftNumber = startingNumber + i;
           // handle both vm-numering and hex numbering
@@ -166,7 +168,7 @@
           commitment: nftCommitment,
           capability: "none",
           value: 1000,
-        })
+        } as TokenSendRequestParams)
         arraySendrequests.push(mintRequest);
       }
       $q.notify({
@@ -209,7 +211,7 @@
       if(!store.wallet) return;
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       
-      const nftInfo = nftData.value.token;
+      const nftInfo = nftData.value.token as TokenI;
       const tokenId = nftInfo.tokenId;
       const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
       const burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
@@ -226,7 +228,7 @@
           tokenId: tokenId,
           capability: nftInfo?.capability,
           commitment: nftInfo?.commitment,
-        },
+        } as TokenBurnRequestParams,
         "burn", // optional OP_RETURN message
       );
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
@@ -345,7 +347,7 @@
       </div>
     </fieldset>
     <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
-      <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata?.uris?.image : nftMetadata?.uris?.icon" :nftName="nftMetadata.name" @close-dialog="() => showNftImage = false"/>
+      <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata.uris.image : nftMetadata.uris.icon as string" :nftName="nftMetadata.name" @close-dialog="() => showNftImage = false"/>
     </div>
   </div>
 </template>

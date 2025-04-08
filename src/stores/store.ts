@@ -132,7 +132,7 @@ export const useStore = defineStore('store', () => {
       maxAmountToSend.value = await wallet.value?.getMaxAmountToSend();
       updateWalletHistory()
     });
-    const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
+    const walletPkh = binToHex(wallet.value?.getPublicKeyHash() as Uint8Array);
     cancelWatchTokenTxs = wallet.value?.watchAddressTokenTransactions(async(tx) => {      
       const receivedTokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
       const previousTokenList = tokenList.value;
@@ -243,7 +243,8 @@ export const useStore = defineStore('store', () => {
   async function updateWalletHistory() {
     try {
       walletHistory.value = await wallet.value?.getHistory({});
-    } catch(errorMessage){
+    } catch(error){
+      const errorMessage = typeof error == 'string' ? error : "something went wrong";
       console.error(errorMessage)
       Notify.create({
         message: errorMessage,
@@ -261,7 +262,9 @@ export const useStore = defineStore('store', () => {
     if(!fungibleTokensResult || !nftsResult) return // should never happen
     const arrayTokens:TokenList = [];
     for (const tokenId of Object.keys(fungibleTokensResult)) {
-      arrayTokens.push({ tokenId, amount: fungibleTokensResult[tokenId] });
+      const fungibleTokenAmount = fungibleTokensResult[tokenId]
+      if(!fungibleTokenAmount) continue // should never happen
+      arrayTokens.push({ tokenId, amount: fungibleTokenAmount });
     }
     for (const tokenId of Object.keys(nftsResult)) {
       const utxosNftTokenid = tokenUtxos.filter((val) =>val.token?.tokenId === tokenId);
@@ -351,13 +354,13 @@ export const useStore = defineStore('store', () => {
     const authHeadTxIdResults = await Promise.all(authHeadTxIdPromises);
     if(authHeadTxIdResults.includes(undefined)) console.error("ChainGraph instance not returning all authHeadTxIds")
     // check if any tokenUtxo of category is the authUtxo for that category
-    tokenList.value.forEach((token, index) => {
+    copyTokenList.forEach((token, index) => {
       const authHeadTxId = authHeadTxIdResults[index];
       const filteredTokenUtxos = tokenUtxosResult.filter(
         (tokenUtxos) => tokenUtxos.token?.tokenId === token.tokenId
       );
       const authUtxo = filteredTokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
-      if(authUtxo) copyTokenList[index].authUtxo = authUtxo;
+      if(authUtxo) token.authUtxo = authUtxo;
     })
     tokenList.value = copyTokenList;
   }

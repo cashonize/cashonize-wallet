@@ -17,7 +17,7 @@
   const settingsStore = useSettingsStore()
 
   const props = defineProps<{
-    bchSendRequest?: string
+    bchSendRequest: string | undefined
   }>()
 
   const { width } = useWindowSize();
@@ -35,6 +35,11 @@
     if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " satoshis"
     else return settingsStore.bchUnit == "bch"? " tBCH" : " testnet satoshis"
   })
+  const displayCurrencyBalance = computed(() => {
+    const balance = store.balance?.[settingsStore.currency];
+    if (balance === undefined) return '';
+    return balance.toFixed(2) + ` ${CurrencySymbols[settingsStore.currency]}`;
+  });
 
   defineCustomElements(window);
 
@@ -65,8 +70,10 @@
     const addressInput = destinationAddr.value;
     if(addressInput.includes("?amount=")){
       const [address, params] = addressInput.split("?");
+      if(!address || !params) return;
       destinationAddr.value = address;
       // set the bch amount field
+      
       let bchAmount =  Number(params.split("amount=")[1]);
       if(settingsStore.bchUnit == "sat") bchAmount = Math.round(bchAmount * 100_000_000);
       bchSendAmount.value = bchAmount;
@@ -183,17 +190,13 @@
   <fieldset style="margin-top: 20px; padding-top: 2rem; max-width: 75rem; margin: auto 10px;">
     <div v-if="store.network == 'mainnet'" style="font-size: 1.2em">
       {{ CurrencyShortNames[settingsStore.currency] }} balance:
-      <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance && store.balance[settingsStore.currency] != undefined ?
-          (store.balance[settingsStore.currency]).toFixed(2) + ` ${CurrencySymbols[settingsStore.currency]}`: "" 
-        }}
-      </span>
+      <span style="color: hsla(160, 100%, 37%, 1);">{{ displayCurrencyBalance }}</span>
     </div>
     <span>
       BCH balance:  
       <span style="color: hsla(160, 100%, 37%, 1);">
         {{ store.balance && store.balance[settingsStore.bchUnit] != undefined 
-          ? numberFormatter.format(store.balance[settingsStore.bchUnit] as number) + displayUnitLong : "" }}
+          ? numberFormatter.format(store.balance[settingsStore.bchUnit]) + displayUnitLong : "" }}
       </span>
     </span>
     <span v-if="!isMobilePhone">

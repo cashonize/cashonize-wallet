@@ -1,4 +1,4 @@
-import { type UtxoI, type NFTCapability } from "mainnet-js"
+import type { UtxoI, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest } from "mainnet-js"
 
 export const CurrencySymbols = {
   usd: "$",
@@ -23,6 +23,21 @@ export interface TokenDataFT {
   amount: bigint,
   authUtxo?: UtxoI
 }
+
+export type TokenSendRequestParams = ConstructorParameters<typeof TokenSendRequest>[0];
+
+export type TokenMintRequestParams = ConstructorParameters<typeof TokenMintRequest>[0];
+
+export type TokeneGenesisRequestParams = ConstructorParameters<typeof TokenGenesisRequest>[0];
+
+// manual type because 'number' type on 'amount' causes issues in strict mode
+export type TokenBurnRequestParams = {
+  tokenId: string;
+  capability?: NFTCapability;
+  commitment?: string;
+  amount?: bigint;
+  cashaddr?: string;
+};
 
 export interface DappMetadata {
   description: string,
@@ -77,11 +92,6 @@ export type BcmrExtensions = {
     | { [key: string]: string }
     | { [keyA: string]: { [keyB: string]: string } };
 }
-export interface ElectrumTokenData {
-  amount: string;
-  category: string;
-  nft?: {
-    capability?: NFTCapability;
-    commitment?: string;
-  };
-}
+
+export type ElectrumRawTransactionVout = ElectrumRawTransaction["vout"][number]
+export type ElectrumTokenData = ElectrumRawTransactionVout["tokenData"]

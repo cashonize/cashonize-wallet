@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar, useDialogPluginComponent } from 'quasar'
+// @ts-ignore: TODO: fix cashconnect types
 import type { BchSessionProposal } from 'cashconnect';
 
 import { useStore } from 'src/stores/store';
@@ -49,7 +50,12 @@ function getTokenName(categoryId: string) {
 
     return tokenInfo.name;
   } catch(error) {
-    console.warn(`${error}`);
+    let errorMessage: string;
+    if (typeof error === 'string') errorMessage = error;
+    else if (error instanceof Error) errorMessage = error.message;
+    else errorMessage = 'Something went wrong';
+    
+    console.warn(errorMessage);
 
     return categoryId;
   }
@@ -72,7 +78,12 @@ function getTokenIcon(categoryId: string) {
 
     return tokenIconUri;
   } catch(error) {
-    console.warn(`${error}`);
+    let errorMessage: string;
+    if (typeof error === 'string') errorMessage = error;
+    else if (error instanceof Error) errorMessage = error.message;
+    else errorMessage = 'Something went wrong';
+
+    console.warn(errorMessage);
 
     return categoryId;
   }
@@ -83,7 +94,12 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
     const tokenInfo = await store.fetchTokenInfo(tokenId);
     tokens.value[tokenId] = await tokenInfo.json();
   } catch(error) {
-    console.warn(`${error}`);
+    let errorMessage: string;
+    if (typeof error === 'string') errorMessage = error;
+    else if (error instanceof Error) errorMessage = error.message;
+    else errorMessage = 'Something went wrong';
+    
+    console.warn(errorMessage);
   }
 });
 

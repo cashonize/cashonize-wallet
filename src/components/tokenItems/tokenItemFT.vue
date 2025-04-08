@@ -2,6 +2,7 @@
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import { TokenSendRequest, type SendRequest } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
+  // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"

@@ -2,11 +2,12 @@
   import { ref, onMounted, toRefs, computed, watch } from 'vue';
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
-  import { TokenSendRequest, TokenMintRequest, type SendRequest } from "mainnet-js"
+  import { TokenSendRequest, TokenMintRequest, type SendRequest, type TokenI } from "mainnet-js"
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
+  // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, BcmrTokenMetadata, TokenSendRequestParams, TokenMintRequestParams, TokenBurnRequestParams } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
@@ -44,7 +45,7 @@
 
   let fetchedMetadataChildren = false
 
-  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? null;
+  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? undefined;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
   const nftMetadata = computed(() => {
@@ -130,7 +131,7 @@
           tokenId: tokenId,
           commitment: nftCommitment,
           capability: nftCapability,
-        }))
+        } as TokenSendRequestParams))
       })
       $q.notify({
         spinner: true,
@@ -176,7 +177,7 @@
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const tokenId = tokenData.value.tokenId;
-      const nftInfo = tokenData.value.nfts?.[0].token;
+      const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
@@ -189,7 +190,7 @@
           tokenId: tokenId,
           commitment: nftInfo.commitment,
           capability: nftInfo.capability,
-        }),
+        } as TokenSendRequestParams),
       ]);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
       const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
@@ -218,8 +219,8 @@
 
   async function mintNfts() {
     const tokenId = tokenData.value.tokenId;
-    const nftInfo = tokenData.value.nfts?.[0].token;
-    const tokenAddr = store.wallet.tokenaddr;
+    const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
+    const tokenAddr = store.wallet!.tokenaddr;
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     try {
@@ -239,7 +240,7 @@
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
-        if(mintUniqueNfts.value){
+        if(mintUniqueNfts.value && startingNumberNFTs.value){
           const startingNumber = parseInt(startingNumberNFTs.value);
           const nftNumber = startingNumber + i;
           // handle both vm-numering and hex numbering
@@ -256,7 +257,7 @@
           commitment: nftCommitment,
           capability: "none",
           value: 1000,
-        })
+        } as TokenMintRequestParams)
         arraySendrequests.push(mintRequest);
       }
       $q.notify({
@@ -300,7 +301,7 @@
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
 
       const tokenId = tokenData.value.tokenId;
-      const nftInfo = tokenData.value.nfts?.[0].token;
+      const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
       const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
       const burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
       if (confirm(burnWarning) != true) return;
@@ -322,7 +323,7 @@
           tokenId: tokenId,
           capability: nftInfo?.capability,
           commitment: nftInfo?.commitment,
-        },
+        } as TokenBurnRequestParams,
         "burn", // optional OP_RETURN message
       );
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
@@ -362,7 +363,7 @@
         tokenId: tokenData.value.tokenId,
         commitment: authNft?.commitment,
         capability: authNft?.capability
-      });
+      } as TokenSendRequestParams);
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
@@ -469,7 +470,7 @@
           <div></div>
           <div v-if="tokenMetaData?.description">Token description: {{ tokenMetaData.description }} </div>
           <div v-if="isSingleNft">
-            NFT commitment: {{ tokenData.nfts?.[0].token?.commitment ? tokenData.nfts?.[0].token?.commitment : "none" }}
+            NFT commitment: {{ tokenData.nfts?.[0]?.token?.commitment ? tokenData.nfts?.[0].token?.commitment : "none" }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
             Token web link:
@@ -549,7 +550,7 @@
     </fieldset>
 
     <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
-      <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata?.uris?.image : nftMetadata?.uris?.icon" :nftName="tokenName" @close-dialog="() => showNftImage = false"/>
+      <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata.uris.image : nftMetadata.uris.icon as string" :nftName="tokenName" @close-dialog="() => showNftImage = false"/>
     </div>
 
     <div v-if="displayChildNfts && (tokenData.nfts?.length ?? 0) > 1">
