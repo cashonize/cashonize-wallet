@@ -81,7 +81,6 @@ export const useStore = defineStore('store', () => {
       console.log(newWallet.provider)
     }
     wallet.value = newWallet;
-    console.time('fetch history');
     console.time('initialize walletconnect and cashconnect');
     await Promise.all([initializeWalletConnect(newWallet), initializeCashConnect()]);
     console.timeEnd('initialize walletconnect and cashconnect');
@@ -105,9 +104,10 @@ export const useStore = defineStore('store', () => {
     console.time('importRegistries');
     await importRegistries(tokenList.value, false);
     console.timeEnd('importRegistries');
-    hasPreGenesis()
-    updateWalletHistory()
+    console.time('fetch history');
+    await updateWalletHistory()
     console.timeEnd('fetch history');
+    hasPreGenesis()
     // fetchAuthUtxos start last because it is not critical
     console.time('fetchAuthUtxos');
     await fetchAuthUtxos();
