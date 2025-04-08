@@ -115,7 +115,7 @@
       if(amountTokensInt > tokenData.value.amount) throw(`Insufficient token balance`);
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
-        throw(`Address prefix ${networkPrefix} is required`)
+        destinationAddr.value = networkPrefix + destinationAddr.value
       }
       const decodedAddress = decodeCashAddress(destinationAddr.value)
       if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
