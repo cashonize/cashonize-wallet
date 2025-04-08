@@ -31,12 +31,12 @@ export interface DappMetadata {
   url: string
 }
 
-export interface dialogInfo {
+export interface DialogInfo {
   message: string
   txid: string
 }
 
-export interface bcmrTokenMetadata {
+export interface BcmrTokenMetadata {
   name: string
   description: string
   token: {
@@ -45,19 +45,19 @@ export interface bcmrTokenMetadata {
     symbol: string
   }
   is_nft: boolean
-  nfts?: Record<string, bcmrNftMetadata>
+  nfts?: Record<string, BcmrNftMetadata>
   uris: Record<string, string>
-  extensions: Record<string, any>
+  extensions: BcmrExtensions
 }
 
-export interface bcmrNftMetadata {
+export interface BcmrNftMetadata {
   name: string
   description: string
   uris: Record<string, string>
-  extensions: Record<string, any>
+  extensions: BcmrExtensions
 }
 
-export interface bcmrIndexerResponse {
+export interface BcmrIndexerResponse {
   name: string
   description: string
   token: {
@@ -68,9 +68,15 @@ export interface bcmrIndexerResponse {
   is_nft: boolean
   type_metadata: any
   uris: Record<string, string>
-  extensions: Record<string, any>
+  extensions: BcmrExtensions
 }
 
+export type BcmrExtensions = {
+  [extensionIdentifier: string]:
+    | string
+    | { [key: string]: string }
+    | { [keyA: string]: { [keyB: string]: string } };
+}
 export interface ElectrumTokenData {
   amount: string;
   category: string;

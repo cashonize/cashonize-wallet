@@ -132,7 +132,7 @@
     </fieldset>
   </div>
 
-  <TransactionDialog v-if="selectedTransaction" :bcmr-registries="store.bcmrRegistries" :history-item="selectedTransaction" @hide="() => {selectedTransaction = undefined}"></TransactionDialog>
+  <TransactionDialog v-if="selectedTransaction" :history-item="selectedTransaction" @hide="() => {selectedTransaction = undefined}"></TransactionDialog>
 </template>
 
 <style scoped>

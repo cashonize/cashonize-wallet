@@ -15,7 +15,7 @@ import {
   type HexHeaderI
 } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
-import { CurrencySymbols, type TokenList, type bcmrIndexerResponse } from "../interfaces/interfaces"
+import { CurrencySymbols, type BcmrTokenMetadata, type TokenList, type BcmrIndexerResponse } from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
 import { convertElectrumTokenData } from "src/utils/utils"
@@ -49,7 +49,7 @@ export const useStore = defineStore('store', () => {
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   const currentBlockHeight = ref(undefined as (number | undefined));
-  const bcmrRegistries = ref(undefined as (Record<string, any> | undefined));
+  const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
 
@@ -308,7 +308,7 @@ export const useStore = defineStore('store', () => {
     const registries = bcmrRegistries.value ?? {};
     for(const response of resultsMetadata) {
       if(response?.status == 200) {
-        const jsonResponse:bcmrIndexerResponse = await response.json();
+        const jsonResponse:BcmrIndexerResponse = await response.json();
         const tokenId = jsonResponse?.token?.category
         if(jsonResponse?.type_metadata) {
           const nftEndpoint = response.url.split("/").at(-2) as string;

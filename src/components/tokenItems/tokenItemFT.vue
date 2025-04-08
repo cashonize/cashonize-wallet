@@ -4,7 +4,7 @@
   import { decodeCashAddress } from "@bitauth/libauth"
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { TokenDataFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
@@ -30,7 +30,7 @@
   const destinationAddr = ref("");
   const burnAmountFTs = ref("");
   const reservedSupplyInput = ref("")
-  const tokenMetaData = ref(undefined as (bcmrTokenMetadata | undefined));
+  const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   const totalSupplyFT = ref(undefined as bigint | undefined);
   const reservedSupply = ref(undefined as bigint | undefined);
 

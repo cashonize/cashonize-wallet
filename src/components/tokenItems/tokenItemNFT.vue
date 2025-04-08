@@ -6,7 +6,7 @@
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { TokenDataNFT, bcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
@@ -33,7 +33,7 @@
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
   const destinationAddr = ref("");
-  const tokenMetaData = ref(undefined as (bcmrTokenMetadata | undefined));
+  const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   const mintUniqueNfts = ref(true);
   const numberingUniqueNfts = ref("vm-numbers" as "vm-numbers" | "hex-numbers");
   const mintCommitment = ref("");

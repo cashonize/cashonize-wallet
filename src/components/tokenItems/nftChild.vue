@@ -6,7 +6,7 @@
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
-  import type { bcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -16,7 +16,7 @@
 
   const props = defineProps<{
     nftData: UtxoI,
-    tokenMetaData: bcmrTokenMetadata | undefined,
+    tokenMetaData: BcmrTokenMetadata | undefined,
     id: string
   }>()
   const { nftData, tokenMetaData, id } = toRefs(props);

@@ -4,7 +4,7 @@
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { convert, type TransactionHistoryItem } from 'mainnet-js';
-  import { CurrencySymbols, type TokenDataNFT } from 'src/interfaces/interfaces';
+  import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols, type TokenDataNFT } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import { formatTimestamp } from 'src/utils/utils';
 
@@ -16,7 +16,6 @@
 
   const props = defineProps<{
     historyItem: TransactionHistoryItem,
-    bcmrRegistries: Record<string, any> | undefined
   }>();
 
   const emit = defineEmits(['hide']);
@@ -35,7 +34,7 @@
   const ourAddress = store.wallet?.cashaddr ?? "";
   const feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.00";
   const currencySymbol = CurrencySymbols[settingsStore.currency];
-  const tokenMetadata = ref(undefined as any);
+  const tokenMetadata = ref(undefined as undefined | BcmrTokenMetadata | BcmrNftMetadata);
   const selectedTokenId = ref("");
   const selectedTokenCommitment = ref("");
 
@@ -57,7 +56,6 @@
     }
 
     if (!store.bcmrRegistries[tokenId].nfts?.[commitment]) {
-      tokenMetadata.value = {};
       await store.importRegistries([{tokenId, nfts: [{token: {tokenId, commitment}}]} as TokenDataNFT], true);
     }
     tokenMetadata.value = store.bcmrRegistries[tokenId].nfts?.[commitment];
@@ -123,9 +121,9 @@
               <span v-if="!input.token">{{ satsToBCH(input.value) }} BCH</span>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer;">
                 <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
-                <span> {{ " " + (bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
+                <span> {{ " " + (store.bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="input.token.capability"> NFT</span>
-                <img v-if="bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;" :src="store.tokenIconUrl(input.token.tokenId)">
+                <img v-if="store.bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;" :src="store.tokenIconUrl(input.token.tokenId)">
               </span>
             </div>
           </div>
@@ -140,9 +138,9 @@
               <span v-if="!output.token && !output.address.includes('OP_RETURN')">{{ satsToBCH(output.value) }} BCH</span>
               <span v-if="output.token" @click="loadTokenMetadata(output.token!.tokenId, output.token!.commitment!)" style="cursor: pointer;">
                 <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
-                <span> {{ " " + (bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
+                <span> {{ " " + (store.bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="output.token.capability"> NFT</span>
-                <img v-if="bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;" :src="store.tokenIconUrl(output.token.tokenId)">
+                <img v-if="store.bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;" :src="store.tokenIconUrl(output.token.tokenId)">
               </span>
             </div>
           </div>

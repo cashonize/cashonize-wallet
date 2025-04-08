@@ -2,7 +2,7 @@
   import { ref, watch } from 'vue';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import type { dialogInfo } from 'src/interfaces/interfaces'
+  import type { DialogInfo } from 'src/interfaces/interfaces'
   import { copyToClipboard } from 'src/utils/utils';
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -11,7 +11,7 @@
   const showDialog = ref(true);
 
   defineProps<{
-    alertInfo: dialogInfo,
+    alertInfo: DialogInfo,
   }>()
 
   watch(showDialog, () => {
