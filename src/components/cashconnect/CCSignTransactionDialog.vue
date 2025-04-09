@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
-// @ts-ignore: TODO: fix cashconnect types
 import type { BchSession, SignTransactionV0, SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress } from '@bitauth/libauth';
 import { CurrencySymbols } from 'src/interfaces/interfaces';
@@ -26,9 +25,11 @@ defineEmits([
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
 const balanceChanges = computed(() => {
-  const changes: { [category: string]: bigint } = {
-    sats: 0n
+  interface Changes {
+    sats: bigint;
+    [other: string]: bigint;
   }
+  const changes: Changes= { sats: 0n }
 
   pairedTxs.value.forEach((pairTx) => {
     // First, calculate our inputs.
@@ -121,7 +122,7 @@ type PairedTx = {
 
 const pairedTxs = computed((): Array<PairedTx> => {
   return props.response.map((responseTx, i) => ({
-    params: props.params[i],
+    params: props.params[i] as SignTransactionV0Params,
     response: responseTx,
   }));
 });
@@ -193,13 +194,13 @@ function satsToBCH(satoshis: bigint) {
         <legend class="cc-modal-fieldset-legend">Sign Transaction</legend>
 
         <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
-          {{ pairedTxs[0].params.userPrompt }}
+          {{ pairedTxs[0]?.params.userPrompt }}
         </div>
 
         <!-- Origin -->
         <q-item>
           <q-item-section avatar>
-            <img :src="session.peer.metadata.icons[0]" />
+            <img :src="session.peer.metadata.icons[0] ?? ''" />
           </q-item-section>
           <q-item-section>
             <q-item-label>{{ session.peer.metadata.name }}</q-item-label>
@@ -237,7 +238,7 @@ function satsToBCH(satoshis: bigint) {
                     <td>{{ index }}</td>
                     <td>{{ formatBin(input.response.outpointTransactionHash) }}:{{ input.response.outpointIndex }}</td>
                     <td class="satoshis">
-                      {{ satsToBCH(response[i].sourceOutputs[index].valueSatoshis) }}
+                      {{ satsToBCH(response?.[i]?.sourceOutputs?.[index]?.valueSatoshis as bigint) }}
                     </td>
                   </tr>
                   <!-- If there is data available for this input -->

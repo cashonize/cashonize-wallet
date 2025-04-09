@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar, useDialogPluginComponent } from 'quasar'
-// @ts-ignore: TODO: fix cashconnect types
 import type { BchSessionProposal } from 'cashconnect';
 
 import { useStore } from 'src/stores/store';

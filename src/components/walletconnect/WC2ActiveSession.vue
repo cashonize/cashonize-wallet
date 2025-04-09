@@ -22,14 +22,13 @@
   const sessionSettingsWC = ref('' as string);
 
   const displaySessionId = computed(() => {
-    const session = activeSessions.value[props.sessionId];
-    const sessions = activeSessions.value;
-    const sessionKeys = Object.keys(sessions);
+    const session = activeSessions.value[props.sessionId] as SessionTypes.Struct;
     const sessionName = session.peer.metadata.name;
 
     // Check if there's another session with the same name but a different topic
-    const hasDuplicateName = sessionKeys.some((key) =>
-      sessions[key].peer.metadata.name === sessionName &&
+    const sessions = activeSessions.value;
+    const hasDuplicateName = Object.entries(sessions).some(([key, otherSession]) =>
+      otherSession.peer.metadata.name === sessionName &&
       key !== session.topic
     );
 
@@ -42,7 +41,7 @@
 <template>
   <div style="padding: 7px;" class="dialogFieldset">
     <div style="display: flex; align-items: center;">
-      <img :src="dappMetadata.icons[0]" style="display: flex; height: 55px; width: 55px;">
+      <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
       <div style="margin-left: 15px; width: 100%;">
         <div>{{ dappMetadata.name + displaySessionId }}</div>
         <a :href="dappMetadata.url">{{ dappMetadata.url }}</a>

@@ -3,6 +3,7 @@
   import { QrcodeStream } from 'vue-qrcode-reader'
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+  import { caughtErrorToString } from 'src/utils/errorHandling';
 
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
@@ -101,8 +102,9 @@
       emit('hide')
       showDialog.value = false;
     } catch (err) {
-      console.error("Scan error:", err);
-      error.value = "Error scanning barcode: " + err.message;
+      const errorMessage = caughtErrorToString(err)
+      console.error("Scan error:", errorMessage);
+      error.value = "Error scanning barcode: " + errorMessage;
     }
   };
 

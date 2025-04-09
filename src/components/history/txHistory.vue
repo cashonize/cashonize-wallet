@@ -31,7 +31,7 @@
 
   const paginatedHistory = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage
-    return selectedHistory.value.slice(start, start + itemsPerPage)
+    return selectedHistory.value?.slice(start, start + itemsPerPage)
   })
   const totalPages = computed(() => Math.ceil((selectedHistory.value?.length ?? 0) / itemsPerPage))
 </script>
@@ -113,7 +113,12 @@
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT</span>
                 </span>
 
-                <img v-if="store.bcmrRegistries?.[tokenChange.tokenId]" class="tokenIcon" style="width: 24px; height: 24px; border-radius: 50%;" :src="store.tokenIconUrl(tokenChange.tokenId)">
+                <img
+                  v-if="store.bcmrRegistries?.[tokenChange.tokenId]"
+                  class="tokenIcon"
+                  style="width: 24px; height: 24px; border-radius: 50%;"
+                  :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
+                  >
               </div>
             </td>
             <td v-else></td>

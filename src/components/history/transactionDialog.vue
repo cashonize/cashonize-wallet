@@ -71,7 +71,13 @@
   <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @hide="emit('hide')">
     <q-card>
       <div v-if="tokenMetadata && (tokenMetadata.uris?.image || tokenMetadata.uris?.icon)">
-        <DialogNftIcon :srcNftImage="tokenMetadata.uris?.image ? tokenMetadata.uris?.image : tokenMetadata.uris?.icon" :nftName="tokenMetadata.name" :token-id="selectedTokenId" :commitment="selectedTokenCommitment" @close-dialog="() => tokenMetadata = undefined"/>
+        <DialogNftIcon
+          :srcNftImage="tokenMetadata.uris?.image ? tokenMetadata.uris.image : (tokenMetadata.uris.icon as string)"
+          :nftName="tokenMetadata.name"
+          :token-id="selectedTokenId"
+          :commitment="selectedTokenCommitment"
+          @close-dialog="() => tokenMetadata = undefined"
+        />
       </div>
 
       <fieldset class="dialogFieldset">
@@ -90,7 +96,7 @@
           <div>
             Status: 
               <span v-if="historyItem.timestamp === undefined">unconfirmed</span>
-              <span v-else>{{ store.currentBlockHeight - historyItem.blockHeight }} confirmations
+              <span v-else>{{ store.currentBlockHeight as number - historyItem.blockHeight }} confirmations
                 (mined in block #{{ historyItem.blockHeight }})
               </span>
           </div>
@@ -123,7 +129,10 @@
                 <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="input.token.capability"> NFT</span>
-                <img v-if="store.bcmrRegistries?.[input.token.tokenId]" style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;" :src="store.tokenIconUrl(input.token.tokenId)">
+                <img v-if="store.bcmrRegistries?.[input.token.tokenId]"
+                  style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;"
+                  :src="store.tokenIconUrl(input.token.tokenId) ?? ''"
+                >
               </span>
             </div>
           </div>
@@ -140,7 +149,10 @@
                 <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="output.token.capability"> NFT</span>
-                <img v-if="store.bcmrRegistries?.[output.token.tokenId]" style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;" :src="store.tokenIconUrl(output.token.tokenId)">
+                <img v-if="store.bcmrRegistries?.[output.token.tokenId]"
+                  style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;"
+                  :src="store.tokenIconUrl(output.token.tokenId) ?? ''"
+                >
               </span>
             </div>
           </div>

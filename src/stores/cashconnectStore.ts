@@ -16,7 +16,6 @@ import {
   type WalletProperties,
   type Unspent,
   CashConnectWallet,
-  // @ts-ignore: TODO: fix cashconnect types
 } from "cashconnect";
 
 // Import Libauth.
@@ -122,7 +121,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
     // Session Hooks
     //-----------------------------------------------------------------------------
 
-    function onSessionsUpdated(
+    async function onSessionsUpdated(
       updatedSessions: Record<string, BchSession>
     ) {
       sessions.value = updatedSessions;
@@ -136,7 +135,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       //       So we use the networkPrefix property to determine which chain we are currently on.
       const currentChain = wallet.value.networkPrefix;
       const targetChain =
-        sessionProposal.params.requiredNamespaces.bch.chains?.[0].replace(
+        sessionProposal.params.requiredNamespaces?.bch.chains?.[0]?.replace(
           "bch:",
           ""
         );
@@ -178,7 +177,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       });
     }
 
-    function onSessionDelete() {
+    async function onSessionDelete() {
       console.log("Session deleted");
     }
 
@@ -343,7 +342,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       return transformed;
     }
 
-    function getChangeTemplate() {
+    async function getChangeTemplate() {
       if (!wallet.value.privateKey) {
         throw new Error(
           "Failed to getChangeTemplate: Mainnet wallet.value.value.privateKey is undefined"
