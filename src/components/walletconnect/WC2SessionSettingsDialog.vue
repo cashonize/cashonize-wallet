@@ -26,12 +26,14 @@
 
   const displaySessionId = `- ${!isMobilePhone ?'session ' : ''} ${sessionId.value.slice(0, 6)}`
 
-  function disableRadioButtons() {
+  function toggleRadioButtons() {
     if (!enableAutoApprovals.value) {
       autoMode.value = "";
       autoCount.value = undefined;
       autoDuration.value = undefined;
       settingsStore.clearAutoApproveState(sessionId.value);
+      autoTimeLeft.value = undefined;
+      autoCountLeft.value = undefined;
     } else {
       autoMode.value = "forever";
     }
@@ -45,12 +47,12 @@
     enableAutoApprovals.value = true;
     if (state.mode) autoMode.value = state.mode;
   
-    if (state.requests !== undefined) {
+    if (state.mode == 'count' && state.requests) {
       autoCount.value = state.requests;
       autoCountLeft.value = state.requests;
     }
   
-    if (state.timestamp !== undefined) {
+    if (state.mode == 'time' && state.timestamp) {
       const delta = state.timestamp - Date.now();
       const minutesLeft = Math.max(0, Math.floor(delta / 60000));
       if(minutesLeft > 0) {
@@ -58,7 +60,6 @@
         autoDuration.value = Math.ceil(delta / 60000);
       } else {
         autoTimeLeft.value = 0;
-        autoDuration.value = undefined;
       }
     }
   });
@@ -70,12 +71,13 @@
     if (autoMode.value === "forever") {
       settingsStore.setAutoApproveState(sessionId.value, { mode: "forever" });
     } else if (autoMode.value === "count") {
-      settingsStore.setAutoApproveState(sessionId.value, { mode: "count", requests: autoCount.value });
+      const remainingRequests = autoCount.value ? autoCount.value : null;
+      settingsStore.setAutoApproveState(sessionId.value, { mode: "count", requests: remainingRequests });
       autoCountLeft.value = autoCount.value;
     } else if (autoMode.value === "time") {
-      const expiresAt = Date.now() + autoDuration.value * 60000;
+      const expiresAt = autoDuration.value ? Date.now() + autoDuration.value * 60000 : null;
       settingsStore.setAutoApproveState(sessionId.value, { mode: "time", timestamp: expiresAt });
-      if(autoDuration.value != undefined) autoTimeLeft.value = autoDuration.value;
+      autoTimeLeft.value = autoDuration.value;
     }
   });
 </script> 
@@ -88,7 +90,7 @@
 
         <div style="display: flex; flex-direction: column; gap: 1rem">
           <div style="display: flex; align-items: center;">
-            <img :src="dappMetadata.icons[0]" style="display: flex; height: 55px; width: 55px;">
+            <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
             <div style="margin-left: 10px;">
               <div>{{ dappMetadata.name + displaySessionId }}</div>
               <a :href="dappMetadata.url">{{ dappMetadata.url }}</a>
@@ -97,7 +99,7 @@
 
           <div>
             Enable Auto-Approvals
-            <Toggle v-model="enableAutoApprovals" @change="disableRadioButtons" style="vertical-align: middle;display: inline-block;"/>
+            <Toggle v-model="enableAutoApprovals" @change="toggleRadioButtons" style="vertical-align: middle;display: inline-block;"/>
           </div>
 
           <label class="radio-option">

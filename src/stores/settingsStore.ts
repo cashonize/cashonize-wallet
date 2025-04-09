@@ -86,11 +86,18 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   // --- Auto-approve session logic ---
 
-  interface AutoApproveSessionReq {
-    mode: "forever" | "count" | "time",
-    requests?: number,
-    timestamp?: number
+  interface ForeverAutoApproveSessionReq {
+    mode: "forever" 
   }
+  interface TimeAutoApproveSessionReq {
+    mode: "time",
+    timestamp: number | null,
+  }
+  interface CountAutoApproveSessionReq {
+    mode: "count",
+    requests: number | null,
+  }
+  type AutoApproveSessionReq = ForeverAutoApproveSessionReq | TimeAutoApproveSessionReq | CountAutoApproveSessionReq;
 
   function getAutoApproveState(topic: string) {
     const state = JSON.parse(localStorage.getItem("auto-approve") || "{}");
@@ -99,7 +106,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   function setAutoApproveState(
     topic: string,
-    newState: { mode: "forever" | "count" | "time", requests?: number, timestamp?: number } | null
+    newState: AutoApproveSessionReq | null
   ) {
     const state = JSON.parse(localStorage.getItem("auto-approve") || "{}");
   
@@ -119,7 +126,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   function decrementAutoApproveRequest(topic: string): number | null {
     const current = getAutoApproveState(topic);
-    if (!current || typeof current.requests !== "number") return null;
+    if(!current || current.mode != 'count' || typeof current.requests !== "number"){
+      throw new Error("Invalid auto-approve state");
+    }
 
     current.requests = Math.max(0, current.requests - 1);
     setAutoApproveState(topic, current);
@@ -134,10 +143,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     if (current.mode === "forever") return true;
 
     const now = Date.now();
-    const isTimeValid = !current.timestamp || now < current.timestamp;
-    const hasRequestsLeft = current.requests === undefined || current.requests > 0;
+    const isTimeValid = Boolean(current.mode === "time" && current.timestamp && now < current.timestamp);
+    const hasRequestsLeft = Boolean(current.mode === "count" && current.requests && current.requests > 0);
 
-    return isTimeValid && hasRequestsLeft;
+    return isTimeValid || hasRequestsLeft;
   }
 
 
