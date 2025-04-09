@@ -81,7 +81,7 @@ export interface BcmrIndexerResponse {
     symbol: string
   }
   is_nft: boolean
-  type_metadata: any
+  type_metadata: BcmrNftMetadata
   uris: Record<string, string>
   extensions: BcmrExtensions
 }

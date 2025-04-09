@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
 import type { BchSession, SignTransactionV0, SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
-import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress } from '@bitauth/libauth';
-import { CurrencySymbols } from 'src/interfaces/interfaces';
+import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress, type WalletTemplate } from '@bitauth/libauth';
+import { type BcmrIndexerResponse, CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
@@ -76,7 +76,7 @@ const balanceChanges = computed(() => {
 //-----------------------------------------------------------------------------
 
 // State to store fetched token info from BCMR.
-const tokens = ref<{ [categoryId: string]: any }>({});
+const tokens = ref<{ [categoryId: string]: BcmrIndexerResponse }>({});
 
 function getTokenName(categoryId: string | number) {
   // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.
@@ -154,15 +154,15 @@ function formatBin(bin: Uint8Array) {
   return binToHex(bin);
 };
 
-function formatScriptName(scriptId: string | number, template: any) {
+function formatScriptName(scriptId: string | number, template: WalletTemplate) {
   return template?.scripts?.[scriptId]?.name || scriptId;
 };
 
-function formatDataName(dataId: string | number, template: any) {
+function formatDataName(dataId: string | number, template: WalletTemplate) {
   return template?.entities?.common?.variables?.[dataId]?.name || dataId;
 };
 
-function formatDataValue(value: Uint8Array, dataId: string | number, template: any) {
+function formatDataValue(value: Uint8Array, dataId: string | number, template: WalletTemplate) {
   const type = template?.entities?.common?.variables?.[dataId]?.description;
 
   switch (type) {

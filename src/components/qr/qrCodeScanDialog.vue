@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, onMounted, onUnmounted, ref } from 'vue';
-  import { QrcodeStream } from 'vue-qrcode-reader'
+  import { type DetectedBarcode, QrcodeStream } from 'vue-qrcode-reader'
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
   import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -46,24 +46,15 @@
       error.value = UnknownErrorOccurred + ': ' + err.message;
     }
   }
-  const onScannerInit = (promise: Promise<any>)  => {
-    promise
-      .then(() => {
-        error.value = '';
-      })
-      .catch(error => {
-        onScannerError(error);
-      })
-  }
-  const onScannerDecode = (content: any) => {
-    console.log(content[0].rawValue);
+  const onScannerDecode = (content: DetectedBarcode[]) => {
+    const decoded = content[0]!.rawValue;
     if (!props?.filter) {
-      emit('decode', content[0].rawValue);
+      emit('decode', decoded);
       showDialog.value = false;
     } else {
-      const filterResult = props.filter(content[0].rawValue);
+      const filterResult = props.filter(decoded);
       if (filterResult === true) {
-        emit('decode', content[0].rawValue);
+        emit('decode', decoded);
         showDialog.value = false;
       } else {
         filterHint.value = filterResult;
@@ -137,7 +128,6 @@
            v-if="!isCapacitor"
           :formats="['qr_code']"
           @detect="onScannerDecode"
-          @init="onScannerInit"
           :style="{
             position: 'absolute',
             inset: 0,

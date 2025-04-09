@@ -7,12 +7,13 @@
   import { useStore } from 'src/stores/store'
   import { convertToCurrency, parseExtendedJson } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { type WalletKitTypes } from '@reown/walletkit';
   const store = useStore()
   const settingsStore = useSettingsStore()
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
-    transactionRequestWC: any,
+    transactionRequestWC: WalletKitTypes.SessionRequest,
     exchangeRate: number,
   }>()
   const { transactionRequestWC, exchangeRate } = toRefs(props);
@@ -48,10 +49,10 @@
     return result.address;
   }
 
-  const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput:any) => 
+  const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput) => 
     toCashaddr(sourceOutput.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + sourceOutput.valueSatoshis : total, 0n
   );
-  const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs:any) => 
+  const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs) => 
     toCashaddr(outputs.lockingBytecode) == store?.wallet?.getDepositAddress() ? total + outputs.valueSatoshis : total, 0n
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;

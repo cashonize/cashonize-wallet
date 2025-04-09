@@ -68,7 +68,6 @@ export default defineConfigWithVueTs(
     // TODO: consider re-enabling most of these rules
     rules: {
       'prefer-promise-reject-errors': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
       "@typescript-eslint/ban-ts-comment": 'off',
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/only-throw-error': 'off',

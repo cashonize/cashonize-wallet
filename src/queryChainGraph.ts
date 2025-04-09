@@ -37,7 +37,7 @@ export async function queryTotalSupplyFT(tokenId:string, chaingraphUrl:string){
     const responseJson = await queryChainGraph(queryReqTotalSupply, chaingraphUrl);
     if(!responseJson) return
     const totalAmount:bigint = responseJson.data.transaction[0].outputs.reduce(
-        (total:bigint, output:any) => total +  BigInt(output.fungible_token_amount),
+        (total:bigint, output:{fungible_token_amount:string}) => total +  BigInt(output.fungible_token_amount),
         0n
       );
     return totalAmount
