@@ -12,7 +12,8 @@
   // Components.
   import WalletconnectView from 'src/components/walletConnect.vue'
   import CashconnectView from 'src/components/cashConnect.vue'
-import { useSettingsStore } from 'src/stores/settingsStore';
+  import { useSettingsStore } from 'src/stores/settingsStore';
+  import { caughtErrorToString } from 'src/utils/errorHandling';
 
   const $q = useQuasar();
   const store = useStore()
@@ -86,11 +87,8 @@ import { useSettingsStore } from 'src/stores/settingsStore';
       // Clear the input.
       dappUriInput.value = '';
     } catch(error) {
-      let errorMessage: string;
-      if (typeof error === 'string') errorMessage = error;
-      else if (error instanceof Error) errorMessage = error.message;
-      else errorMessage = 'Something went wrong';
-
+      const errorMessage = caughtErrorToString(error)
+      console.error(errorMessage)
       $q.notify({
         message: errorMessage,
         icon: 'warning',

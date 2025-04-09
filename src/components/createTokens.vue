@@ -3,10 +3,11 @@
   import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
   import { copyToClipboard } from 'src/utils/utils';
   import alertDialog from 'src/components/alertDialog.vue'
+  import { type TokeneGenesisRequestParams } from 'src/interfaces/interfaces';
+  import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useStore } from '../stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
-  import { type TokeneGenesisRequestParams } from 'src/interfaces/interfaces';
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -170,9 +171,9 @@
     }
   }
 
-  function handleTransactionError(error: any){
-    console.log(error)
-    const errorMessage = typeof error == 'string' ? error : "something went wrong";
+  function handleTransactionError(error: unknown){
+    const errorMessage = caughtErrorToString(error)
+    console.error(errorMessage)
     $q.notify({
       message: errorMessage,
       icon: 'warning',

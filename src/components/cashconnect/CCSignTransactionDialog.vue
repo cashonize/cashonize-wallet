@@ -8,6 +8,7 @@ import { CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
+import { caughtErrorToString } from 'src/utils/errorHandling';
 const store = useStore()
 const settingsStore = useSettingsStore()
 
@@ -87,12 +88,8 @@ function getTokenName(categoryId: string | number) {
 
     return tokenInfo.name;
   } catch(error) {
-    let errorMessage: string;
-    if (typeof error === 'string') errorMessage = error;
-    else if (error instanceof Error) errorMessage = error.message;
-    else errorMessage = 'Something went wrong';
-    
-    console.warn(errorMessage);
+    const errorMessage= caughtErrorToString(error)
+    console.error(errorMessage);
 
     return categoryId;
   }
@@ -101,14 +98,10 @@ function getTokenName(categoryId: string | number) {
 props.session.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId: string) => {
   try {
     const tokenInfo = await store.fetchTokenInfo(tokenId);
-    tokens.value[tokenId] = await tokenInfo.json();
+    tokens.value[tokenId] = tokenInfo;
   } catch(error) {
-    let errorMessage: string;
-    if (typeof error === 'string') errorMessage = error;
-    else if (error instanceof Error) errorMessage = error.message;
-    else errorMessage = 'Something went wrong';
-    
-    console.warn(errorMessage);
+    const errorMessage= caughtErrorToString(error)
+    console.error(errorMessage);
   }
 });
 

@@ -9,6 +9,7 @@
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
+  import { type WalletKitTypes } from '@reown/walletkit';
   
   defineExpose({
     connectDappUriInput
@@ -22,7 +23,7 @@
   const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
   const web3wallet = walletconnectStore.web3wallet
 
-  const sessionProposalWC = ref(undefined as any);
+  const sessionProposalWC = ref(undefined as undefined | WalletKitTypes.SessionProposal);
   const activeSessions = computed(() => walletconnectStore.activeSessions ?? {})
 
   async function connectDappUriInput(url: string){
@@ -41,7 +42,7 @@
 
   web3wallet?.on('session_proposal', wcSessionProposal);
 
-  async function wcSessionProposal(sessionProposal: any) {
+  async function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
     const { requiredNamespaces } = sessionProposal.params;
 
     if (!requiredNamespaces.bch) {
@@ -57,7 +58,7 @@
     sessionProposalWC.value = sessionProposal;
   }
 
-  async function approveSession(sessionProposal: any, dappTargetNetwork: "mainnet" | "chipnet"){
+  async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet"){
     // Handle network switching when needed
     const currentNetwork = store.wallet?.network == "mainnet" ? "mainnet" : "chipnet"
     if(currentNetwork != dappTargetNetwork){

@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, toRefs } from 'vue';
   import type { DappMetadata } from "src/interfaces/interfaces"
+  import { type WalletKitTypes } from '@reown/walletkit';
   import { useStore } from 'src/stores/store'
   const store = useStore()
   const emit = defineEmits(['approveSession','rejectSession']);
@@ -8,7 +9,7 @@
   const showDialog = ref(true);
 
   const props = defineProps<{
-    sessionProposalWC: any
+    sessionProposalWC: WalletKitTypes.SessionProposal
   }>()
   const { sessionProposalWC } = toRefs(props);
 
@@ -16,7 +17,7 @@
   const dappMetadata = sessionProposal.params.proposer.metadata as DappMetadata;
   const { requiredNamespaces } = sessionProposal.params;
 
-  const dappNetworkPrefix = requiredNamespaces.bch.chains[0]?.split(":")[1];
+  const dappNetworkPrefix = requiredNamespaces.bch?.chains?.[0]?.split(":")[1];
   const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
   const needsNetworkSwitch = (dappTargetNetwork !== store.network);
 
@@ -35,7 +36,7 @@
       <fieldset class="dialogFieldset"> 
         <legend style="font-size: large;">Approve Session?</legend>
         <div style="display: flex;">
-          <img :src="dappMetadata.icons[0]" style="display: flex; height: 55px; width: 55px;">
+          <img :src="dappMetadata.icons?.[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
             <a :href="dappMetadata.url">{{ dappMetadata.url }}</a>

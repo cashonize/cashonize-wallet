@@ -5,6 +5,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
+  import { caughtErrorToString } from 'src/utils/errorHandling';
   import { type Wallet } from 'mainnet-js';
 
   // Expose to parent component.
@@ -31,10 +32,8 @@
     try {
       await cashconnectStore.pair(url);
     } catch(error) {
-      let errorMessage: string;
-      if (typeof error === 'string') errorMessage = error;
-      else if (error instanceof Error) errorMessage = error.message;
-      else errorMessage = 'Something went wrong';
+      const errorMessage = caughtErrorToString(error)
+      console.error(errorMessage)
 
       $q.notify({
         message: errorMessage,

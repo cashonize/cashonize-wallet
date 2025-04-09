@@ -155,7 +155,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       }
     }
 
-    const toCashaddr = (lockingBytecode:Uint8Array) => {
+    const toCashaddr = (lockingBytecode: Uint8Array) => {
       const prefix = wallet.network == "mainnet" ? "bitcoincash" : "bchtest";
       // check for opreturn
       if(binToHex(lockingBytecode).startsWith("6a")) return "opreturn:" +  binToHex(lockingBytecode)
@@ -164,7 +164,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       return result.address;
     }
 
-    async function signTransactionWC(transactionRequestWC: any) {
+    async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {
       // parse params from transactionRequestWC
       const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.params.request.params));
       const txDetails:TransactionCommon = requestParams.transaction;
@@ -287,7 +287,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       })
     }
 
-    async function signMessage(signMessageRequestWC: any){
+    async function signMessage(signMessageRequestWC: WalletKitTypes.SessionRequest){
       const requestParams = signMessageRequestWC.params.request.params
       const message = requestParams?.message;
       const signedMessage = await wallet?.sign(message);
@@ -297,7 +297,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       await web3wallet.value?.respondSessionRequest({ topic, response });
     }
 
-    async function rejectRequest(wcRequest: any){
+    async function rejectRequest(wcRequest: WalletKitTypes.SessionRequest){
       const { id, topic } = wcRequest;
       const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
       await web3wallet.value?.respondSessionRequest({ topic, response });

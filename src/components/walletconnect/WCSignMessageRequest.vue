@@ -2,12 +2,13 @@
   import { toRefs } from 'vue';
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
+  import { type WalletKitTypes } from '@reown/walletkit'
   import { useStore } from 'src/stores/store'
   const store = useStore()
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
-    signMessageRequestWC: any
+    signMessageRequestWC: WalletKitTypes.SessionRequest
   }>()
   const { signMessageRequestWC } = toRefs(props);
 

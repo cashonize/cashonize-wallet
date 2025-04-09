@@ -8,6 +8,8 @@ import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 
 import CCViewTemplateDialog from './CCViewTemplateDialog.vue';
+import { caughtErrorToString } from 'src/utils/errorHandling';
+import { type BcmrIndexerResponse } from 'src/interfaces/interfaces';
 
 const $q = useQuasar();
 const store = useStore();
@@ -37,7 +39,7 @@ function viewTemplate() {
 //-----------------------------------------------------------------------------
 
 // State to store fetched token info from BCMR.
-const tokens = ref<{ [categoryId: string]: any }>({});
+const tokens = ref<{ [categoryId: string]: BcmrIndexerResponse }>({});
 
 function getTokenName(categoryId: string) {
   // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.
@@ -50,12 +52,8 @@ function getTokenName(categoryId: string) {
 
     return tokenInfo.name;
   } catch(error) {
-    let errorMessage: string;
-    if (typeof error === 'string') errorMessage = error;
-    else if (error instanceof Error) errorMessage = error.message;
-    else errorMessage = 'Something went wrong';
-    
-    console.warn(errorMessage);
+    const errorMessage = caughtErrorToString(error)
+    console.error(errorMessage)
 
     return categoryId;
   }
@@ -78,28 +76,20 @@ function getTokenIcon(categoryId: string) {
 
     return tokenIconUri;
   } catch(error) {
-    let errorMessage: string;
-    if (typeof error === 'string') errorMessage = error;
-    else if (error instanceof Error) errorMessage = error.message;
-    else errorMessage = 'Something went wrong';
-
-    console.warn(errorMessage);
+    const errorMessage = caughtErrorToString(error)
+    console.error(errorMessage)
 
     return categoryId;
   }
 }
 
-props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId) => {
+props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId: string) => {
   try {
     const tokenInfo = await store.fetchTokenInfo(tokenId);
-    tokens.value[tokenId] = await tokenInfo.json();
+    tokens.value[tokenId] = tokenInfo;
   } catch(error) {
-    let errorMessage: string;
-    if (typeof error === 'string') errorMessage = error;
-    else if (error instanceof Error) errorMessage = error.message;
-    else errorMessage = 'Something went wrong';
-    
-    console.warn(errorMessage);
+    const errorMessage = caughtErrorToString(error)
+    console.error(errorMessage)
   }
 });
 

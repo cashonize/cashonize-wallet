@@ -12,6 +12,7 @@
   import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
@@ -394,12 +395,11 @@
     }
   }
 
-  function handleTransactionError(error: any){
-    console.log(error)
-    const errorMessage = typeof error == 'string' ? error : error?.message;
-    const displayMessage = errorMessage ?? "something went wrong"
+  function handleTransactionError(error: unknown){
+    const errorMessage = caughtErrorToString(error)
+    console.error(errorMessage)
     $q.notify({
-      message: displayMessage,
+      message: errorMessage,
       icon: 'warning',
       color: "red"
     }) 

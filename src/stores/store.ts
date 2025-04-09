@@ -328,8 +328,12 @@ export const useStore = defineStore('store', () => {
   }
 
   async function fetchTokenInfo(categoryId: string) {
-    return await fetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
+    const res = await fetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
+    if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
+  
+    return await res.json() as BcmrIndexerResponse;
   }
+  
 
   async function hasPreGenesis(){
     plannedTokenId.value = undefined;
