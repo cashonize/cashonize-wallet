@@ -23,6 +23,7 @@ import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
+import { displayAndLogError } from "src/utils/errorHandling"
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
@@ -75,43 +76,63 @@ export const useStore = defineStore('store', () => {
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
     }
     if(newWallet.network == 'testnet'){
-      console.log(newWallet.provider)
       const connectionChipnet = new Connection("testnet", `wss://${settingsStore.electrumServerChipnet}:50004`)
       newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
-      console.log(newWallet.provider)
     }
     wallet.value = newWallet;
-    console.time('initialize walletconnect and cashconnect');
-    await Promise.all([initializeWalletConnect(newWallet), initializeCashConnect()]);
-    console.timeEnd('initialize walletconnect and cashconnect');
-    setUpWalletSubscriptions();
-    // fetch bch balance
-    console.time('Balance Promises');
-    const promiseWalletBalance = wallet.value.getBalance();
-    const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend();
-    const balancePromises = [promiseWalletBalance,promiseMaxAmountToSend];
-    const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
-    console.timeEnd('Balance Promises');
-    // fetch token balance
-    console.time('fetch tokenUtxos Promise');
-    await updateTokenList();
-    console.timeEnd('fetch tokenUtxos Promise');
-    // set values simulatenously with tokenList so the UI elements load together
-    balance.value = resultWalletBalance as BalanceResponse;
-    maxAmountToSend.value = resultMaxAmountToSend as BalanceResponse;
-    // get plannedTokenId
-    if(!tokenList.value) return // should never happen
-    console.time('importRegistries');
-    await importRegistries(tokenList.value, false);
-    console.timeEnd('importRegistries');
-    console.time('fetch history');
-    await updateWalletHistory()
-    console.timeEnd('fetch history');
-    hasPreGenesis()
-    // fetchAuthUtxos start last because it is not critical
-    console.time('fetchAuthUtxos');
-    await fetchAuthUtxos();
-    console.timeEnd('fetchAuthUtxos');
+    await initializeWallet();
+  }
+
+  async function initializeWallet() {
+    let earlyError = false
+    if(!wallet.value) throw new Error("No Wallet set in global store")
+    try {
+      // attempt non-blocking connection to electrum server
+      let timeoutHandle: ReturnType<typeof setTimeout>
+      const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
+      Promise.race([wallet.value.provider?.connect(),
+        new Promise((_, reject) =>
+          (timeoutHandle = setTimeout(() => {
+            earlyError = true
+            reject(new Error(`Unable to connect to Electrum server '${electrumServer}'`));
+          }, 3000))
+        )
+      ]).finally(() => clearTimeout(timeoutHandle))
+      .catch((error) => {displayAndLogError(error) });
+      console.time('initialize walletconnect and cashconnect');
+      await Promise.all([initializeWalletConnect(wallet.value as Wallet), initializeCashConnect()]);
+      console.timeEnd('initialize walletconnect and cashconnect');
+      setUpWalletSubscriptions();
+      // fetch bch balance
+      console.time('Balance Promises');
+      const promiseWalletBalance = wallet.value.getBalance();
+      const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend();
+      const balancePromises = [promiseWalletBalance, promiseMaxAmountToSend];
+      const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
+      console.timeEnd('Balance Promises');
+      // fetch token balance
+      console.time('fetch tokenUtxos Promise');
+      await updateTokenList();
+      console.timeEnd('fetch tokenUtxos Promise');
+      // set values simulatenously with tokenList so the UI elements load together
+      balance.value = resultWalletBalance as BalanceResponse;
+      maxAmountToSend.value = resultMaxAmountToSend as BalanceResponse;
+      // get plannedTokenId
+      if(!tokenList.value) return // should never happen
+      console.time('importRegistries');
+      await importRegistries(tokenList.value, false);
+      console.timeEnd('importRegistries');
+      console.time('fetch history');
+      await updateWalletHistory()
+      console.timeEnd('fetch history');
+      hasPreGenesis()
+      // fetchAuthUtxos start last because it is not critical
+      console.time('fetchAuthUtxos');
+      await fetchAuthUtxos();
+      console.timeEnd('fetchAuthUtxos');
+    } catch (error) {
+      if(!earlyError) displayAndLogError(error);
+    } 
   }
 
   function setUpWalletSubscriptions(){
@@ -163,7 +184,7 @@ export const useStore = defineStore('store', () => {
     }, false);
   }
 
-  async function changeNetwork(newNetwork: 'mainnet' | 'chipnet'){
+  function resetWalletState(){
     // Execute each of our network changed callbacks.
     // In practice, we're using these for WC/CC to disconnect their sessions.
     networkChangeCallbacks.forEach((callback) => callback());
@@ -183,6 +204,10 @@ export const useStore = defineStore('store', () => {
     tokenList.value = null;
     bcmrRegistries.value = undefined;
     walletHistory.value = undefined;
+  }
+
+  async function changeNetwork(newNetwork: 'mainnet' | 'chipnet'){
+    resetWalletState()
     // set new wallet
     const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
     const newWallet = await walletClass.named(nameWallet);
@@ -409,6 +434,8 @@ export const useStore = defineStore('store', () => {
     currentBlockHeight,
     changeView,
     setWallet,
+    initializeWallet,
+    resetWalletState,
     updateWalletHistory,
     changeNetwork,
     fetchTokenInfo,

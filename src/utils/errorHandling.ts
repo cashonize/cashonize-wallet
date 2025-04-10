@@ -1,7 +1,19 @@
+import { Notify } from "quasar";
+
 export function caughtErrorToString(error: unknown): string {
   if (typeof error === 'string') return error;
   if (error instanceof Error) return error.message;
   return 'Something went wrong';
+}
+
+export function displayAndLogError(error: unknown): void {
+  const errorMessage = caughtErrorToString(error);
+  console.error(errorMessage)
+  Notify.create({
+    message: errorMessage,
+    icon: 'warning',
+    color: "red"
+  })
 }
 
 // Types for the result object with discriminated union

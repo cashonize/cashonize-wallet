@@ -89,19 +89,23 @@
   function changeNetwork(){
     store.changeNetwork(selectedNetwork.value)
   }
-  function changeElectrumServer(){
+  function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
     if(!store.wallet) return
-    const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004` )
-    store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-    settingsStore.electrumServerMainnet = selectedElectrumServer.value
-    localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
-  }
-  function changeElectrumServerChipnet(){
-    if(!store.wallet) return
-    const newConnection = new Connection("testnet",`wss://${selectedElectrumServerChipnet.value}:50004` )
-    store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-    settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
-    localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
+    store.changeView(1)
+    store.resetWalletState()
+    if(targetNetwork == "mainnet"){
+      const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004` )
+      store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+      settingsStore.electrumServerMainnet = selectedElectrumServer.value
+      localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
+    }
+    if(targetNetwork == "chipnet"){
+      const newConnection = new Connection("testnet",`wss://${selectedElectrumServerChipnet.value}:50004` )
+      store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+      settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
+      localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
+    }
+    store.initializeWallet()
   }
   function changeIpfsGateway(){
     settingsStore.ipfsGateway = selectedIpfsGateway.value
@@ -220,7 +224,7 @@
 
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <label for="selectNetwork">Change Electrum server mainnet:</label>
-        <select v-model="selectedElectrumServer" @change="changeElectrumServer()">
+        <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
           <option value="electrum.imaginary.cash">electrum.imaginary.cash (default)</option>
           <option value="bch.imaginary.cash">bch.imaginary.cash</option>
           <option value="cashnode.bch.ninja">cashnode.bch.ninja</option>
@@ -233,7 +237,7 @@
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
         <label for="selectNetwork">Change Electrum server chipnet:</label>
-        <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServerChipnet()">
+        <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
           <option value="chipnet.bch.ninja">chipnet.bch.ninja (default)</option>
           <option value="chipnet.imaginary.cash">chipnet.imaginary.cash</option>
           <option value="cbch.loping.net">cbch.loping.net</option>
