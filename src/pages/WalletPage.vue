@@ -102,7 +102,7 @@
     </nav>
   </header>
   <main style="margin: 20px auto; max-width: 78rem;">
-    <newWalletView v-if="!store.wallet" @init-wallet="(arg) => store.setWallet(arg)"/>
+    <newWalletView v-if="!store.wallet"/>
     <bchWalletView v-if="store.displayView == 1" :bchSendRequest="bchSendRequest"/>
     <myTokensView v-if="store.displayView == 2"/>
     <historyView v-if="store.displayView == 3"/>

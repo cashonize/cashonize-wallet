@@ -2,12 +2,13 @@
   import { ref } from "vue"
   import { Wallet, TestNetWallet, Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
+  import { useStore } from 'src/stores/store'
+  const store = useStore()
   const $q = useQuasar()
   const isBrowser = (process.env.MODE == "spa");
 
   const seedphrase = ref('');
   const selectedDerivationPath =  ref("standard" as ("standard" | "bitcoindotcom"));
-  const emit = defineEmits(['initWallet']);
 
   const nameWallet = "mywallet";
 
@@ -16,7 +17,7 @@
     const mainnetWallet = await Wallet.named(nameWallet);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
     await TestNetWallet.replaceNamed(nameWallet, walletId);
-    emit('initWallet', mainnetWallet);
+    store.setWallet(mainnetWallet)
   }
 
   async function importWallet() {
@@ -29,7 +30,7 @@
       const walletIdTestnet = `seed:testnet:${seedphrase.value}:${derivationPath}`;
       await TestNetWallet.replaceNamed(nameWallet, walletIdTestnet);
       const mainnetWallet = await Wallet.named(nameWallet);
-      emit('initWallet', mainnetWallet);
+      store.setWallet(mainnetWallet)
     } catch (error) {
       const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase"
       $q.notify({
