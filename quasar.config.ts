@@ -66,7 +66,13 @@ export default defineConfig((ctx) => {
       // distDir
 
       // extendViteConf (viteConf) {},
-      // viteVuePluginOptions: {},
+      viteVuePluginOptions: {
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag) => tag === 'qr-code',
+          }
+        }
+      },
       
       // TODO: remove topLevelAwait plugin when possible
       vitePlugins: [

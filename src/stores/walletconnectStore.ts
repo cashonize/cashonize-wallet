@@ -53,7 +53,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
         metadata: {
           name: 'Cashonize',
           description: 'Cashonize BitcoinCash Web Wallet',
-          url: 'cashonize.com/',
+          url: 'https://cashonize.com',
           icons: ['https://cashonize.com/images/favicon.ico'],
         }
       })
