@@ -55,11 +55,11 @@ export function parseExtendedJson(jsonString: string){
   return JSON.parse(jsonString, (_key, value) => {
     if (typeof value === "string") {
       const bigintMatch = value.match(bigIntRegex);
-      if (bigintMatch?.groups?.bigint) {
+      if (bigintMatch?.groups?.bigint !== undefined) {
         return BigInt(bigintMatch.groups.bigint);
       }
       const uint8ArrayMatch = value.match(uint8ArrayRegex);
-      if (uint8ArrayMatch?.groups?.hex) {
+      if (uint8ArrayMatch?.groups?.hex !== undefined) {
         return hexToBin(uint8ArrayMatch.groups.hex);
       }
     }
