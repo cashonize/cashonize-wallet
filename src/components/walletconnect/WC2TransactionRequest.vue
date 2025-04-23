@@ -1,9 +1,9 @@
 <script setup lang="ts">
   import { toRefs } from 'vue';
-  import { binToHex, lockingBytecodeToCashAddress, type TransactionCommon, type Input, type Output } from "@bitauth/libauth"
+  import { binToHex, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
-  import { type ContractInfo } from "src/interfaces/wcInterfaces"
+  import { type WcTransactionObj } from "src/interfaces/wcInterfaces"
   import { useStore } from 'src/stores/store'
   import { convertToCurrency, parseExtendedJson } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -24,9 +24,8 @@
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
   
   // parse params from transactionRequestWC
-  const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params));
-  const txDetails:TransactionCommon = requestParams.transaction;
-  const sourceOutputs = requestParams.sourceOutputs as (Input & Output & ContractInfo)[]
+  const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params)) as WcTransactionObj;
+  const { transaction:txDetails, sourceOutputs } = requestParams;
 
   const abs = (value: bigint) => (value < 0n) ? -value : value;
 

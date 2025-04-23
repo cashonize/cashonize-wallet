@@ -1,3 +1,5 @@
+import type { Input, TransactionCommon } from "@bitauth/libauth";
+
 export interface AbiInput {
   name: string;
   type: string;
@@ -25,4 +27,27 @@ export interface ContractInfo {
     redeemScript: Uint8Array;
     artifact: Partial<Artifact>;
   }
+}
+
+export interface LibauthOutput {
+  lockingBytecode: Uint8Array;
+  valueSatoshis: bigint;
+  token?: LibauthTokenDetails;
+}
+export interface LibauthTokenDetails {
+  amount: bigint;
+  category: Uint8Array;
+  nft?: {
+      capability: 'none' | 'mutable' | 'minting';
+      commitment: Uint8Array;
+  };
+}
+
+export type WcSourceOutputs = (Input & LibauthOutput & ContractInfo)[];
+
+export interface WcTransactionObj {
+  transaction: TransactionCommon<Input>,
+  sourceOutputs: WcSourceOutputs,
+  broadcast: boolean,
+  userPrompt: string
 }

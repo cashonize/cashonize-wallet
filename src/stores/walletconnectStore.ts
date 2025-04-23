@@ -7,24 +7,8 @@ import { convert, type TestNetWallet, type Wallet } from "mainnet-js";
 import {
   hexToBin,
   binToHex,
-  lockingBytecodeToCashAddress,
-  importWalletTemplate,
-  walletTemplateP2pkhNonHd,
-  walletTemplateToCompilerBCH,
-  secp256k1,
-  generateTransaction,
-  encodeTransaction,
   sha256,
-  hash256,
-  SigningSerializationFlag,
-  generateSigningSerializationBCH,
-  type TransactionTemplateFixed,
-  type CompilationContextBCH,
-  type TransactionCommon,
-  type Input,
-  type Output,
-  type AuthenticationProgramState,
-  type TransactionGenerationError
+  encodeLockingBytecodeP2pkh
 } from "@bitauth/libauth"
 import { getSdkError } from '@walletconnect/utils';
 import { parseExtendedJson } from 'src/utils/utils'
@@ -32,8 +16,9 @@ import alertDialog from 'src/components/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
-import { type ContractInfo } from "src/interfaces/wcInterfaces"
+import type { WcTransactionObj } from "src/interfaces/wcInterfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
+import { createSignedWcTransaction } from "src/utils/wcSigning"
 const settingsStore = useSettingsStore()
 
 // NOTE: We use a wrapper so that we can pass in the Mainnet Wallet as an argument.
@@ -155,104 +140,24 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       }
     }
 
-    const toCashaddr = (lockingBytecode: Uint8Array) => {
-      const prefix = wallet.network == "mainnet" ? "bitcoincash" : "bchtest";
-      // check for opreturn
-      if(binToHex(lockingBytecode).startsWith("6a")) return "opreturn:" +  binToHex(lockingBytecode)
-      const result = lockingBytecodeToCashAddress({bytecode:lockingBytecode,prefix});
-      if (typeof result == "string") throw result;
-      return result.address;
-    }
-
     async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {
       // parse params from transactionRequestWC
-      const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.params.request.params));
-      const txDetails:TransactionCommon = requestParams.transaction;
-      const sourceOutputs = requestParams.sourceOutputs as (Input & Output & ContractInfo)[]
+      const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.params.request.params)) as WcTransactionObj;
+      const { transaction, sourceOutputs } = requestParams;
 
-      const privateKey = wallet?.privateKey;
-      const pubkeyCompressed = wallet?.publicKeyCompressed
-      if(!privateKey || !pubkeyCompressed) return
+      const {privateKey, publicKeyCompressed:pubkeyCompressed } = wallet;
+      if(!privateKey || !pubkeyCompressed) throw new Error("should never happen")
 
-      // prepare libauth template for input signing
-      const template = importWalletTemplate(walletTemplateP2pkhNonHd);
-      if (typeof template === "string") throw new Error("Transaction template error");
+      const walletLockingBytecode = encodeLockingBytecodeP2pkh(wallet?.publicKeyHash as Uint8Array);
+      const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
+      const encodedTransaction = createSignedWcTransaction(
+        transaction, sourceOutputs, { privateKey, pubkeyCompressed }, walletLockingBytecodeHex
+      );
 
-      // configure compiler
-      const compiler = walletTemplateToCompilerBCH(template);
-
-      const txTemplate = {...txDetails} as TransactionTemplateFixed<typeof compiler>;
-
-      for (const [index, input] of txTemplate.inputs.entries()) {
-        const correspondingSourceOutput = sourceOutputs[index] as (typeof sourceOutputs)[number];
-
-        if (correspondingSourceOutput.contract?.artifact.contractName) {
-          // instruct compiler to produce signatures for relevant contract inputs
-
-          // replace pubkey and sig placeholders
-          let unlockingBytecodeHex = binToHex(correspondingSourceOutput.unlockingBytecode);
-          const sigPlaceholder = "41" + binToHex(Uint8Array.from(Array(65)));
-          const pubkeyPlaceholder = "21" + binToHex(Uint8Array.from(Array(33)));
-          if (unlockingBytecodeHex.indexOf(sigPlaceholder) !== -1) {
-            // compute the signature argument
-            const hashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
-            const context: CompilationContextBCH = { inputIndex: index, sourceOutputs, transaction: txDetails };
-            const signingSerializationType = new Uint8Array([hashType]);
-
-            const coveredBytecode = correspondingSourceOutput.contract?.redeemScript;
-            if (!coveredBytecode) {
-              alert("Not enough information provided, please include contract redeemScript");
-              return;
-            }
-            const sighashPreimage = generateSigningSerializationBCH(context, { coveredBytecode, signingSerializationType });
-            const sighash = hash256(sighashPreimage);
-            const signature = secp256k1.signMessageHashSchnorr(privateKey, sighash);
-            if (typeof signature === "string") {
-              alert(signature);
-              return;
-            }
-            const sig = Uint8Array.from([...signature, hashType]);
-
-            unlockingBytecodeHex = unlockingBytecodeHex.replace(sigPlaceholder, "41" + binToHex(sig));
-          }
-          if (unlockingBytecodeHex.indexOf(pubkeyPlaceholder) !== -1) {
-            unlockingBytecodeHex = unlockingBytecodeHex.replace(pubkeyPlaceholder, "21" + binToHex(pubkeyCompressed));
-          }
-
-          input.unlockingBytecode = hexToBin(unlockingBytecodeHex);
-        } else {
-          // replace unlocking bytecode for non-contract inputs having placeholder unlocking bytecode
-          if (!correspondingSourceOutput.unlockingBytecode?.length && 
-            toCashaddr(correspondingSourceOutput.lockingBytecode) === wallet?.getDepositAddress()
-          ) {
-            input.unlockingBytecode = {
-              compiler,
-              data: {
-                keys: { privateKeys: { key: privateKey } },
-              },
-              valueSatoshis: correspondingSourceOutput.valueSatoshis,
-              script: "unlock",
-              token: correspondingSourceOutput.token,
-            }
-          }
-        }
-      };
-
-      // generate and encode transaction
-      const generated = generateTransaction(txTemplate);
-      if (!generated.success){
-        // TODO: avoid typecasting to TransactionGenerationError
-        const generationError = generated as TransactionGenerationError<AuthenticationProgramState>;
-        throw Error(JSON.stringify(generationError, null, 2));
-      }
-
-      const encoded = encodeTransaction(generated.transaction);
-      const hash = binToHex(sha256.hash(sha256.hash(encoded)).reverse());
-      const signedTxObject = { signedTransaction: binToHex(encoded), signedTransactionHash: hash };
+      const hash = binToHex(sha256.hash(sha256.hash(encodedTransaction)).reverse());
+      const signedTxObject = { signedTransaction: binToHex(encodedTransaction), signedTransactionHash: hash };
 
       // send transaction
-      const { id, topic } = transactionRequestWC;
-      const response = { id, jsonrpc: '2.0', result: signedTxObject };
       if (requestParams.broadcast) {
         try{
           Notify.create({
@@ -278,6 +183,8 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
           return
         }   
       }
+      const { id, topic } = transactionRequestWC;
+      const response = { id, jsonrpc: '2.0', result: signedTxObject };
       await web3wallet.value?.respondSessionRequest({ topic, response });
 
       const message = requestParams.broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
