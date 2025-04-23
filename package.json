@@ -12,7 +12,7 @@
   "private": true,
   "scripts": {
     "lint": "eslint -c ./eslint.config.ts \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "vitest",
     "dev": "quasar dev",
     "build": "quasar build"
   },
@@ -53,6 +53,7 @@
     "typescript": "^5.8.3",
     "vite-plugin-checker": "^0.9.1",
     "vite-plugin-top-level-await": "^1.4.1",
+    "vitest": "^3.1.2",
     "vue-tsc": "^2.2.8"
   },
   "engines": {
