@@ -141,9 +141,8 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
     }
 
     async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {
-      // parse params from transactionRequestWC
-      const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.params.request.params)) as WcTransactionObj;
-      const { transaction, sourceOutputs } = requestParams;
+      // Get wcTransactionObj from params of the transactionRequestWC
+      const wcTransactionObj = parseExtendedJson(JSON.stringify(transactionRequestWC.params.request.params)) as WcTransactionObj;
 
       const {privateKey, publicKeyCompressed:pubkeyCompressed } = wallet;
       if(!privateKey || !pubkeyCompressed) throw new Error("should never happen")
@@ -151,14 +150,14 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       const walletLockingBytecode = encodeLockingBytecodeP2pkh(wallet?.publicKeyHash as Uint8Array);
       const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
       const encodedTransaction = createSignedWcTransaction(
-        transaction, sourceOutputs, { privateKey, pubkeyCompressed }, walletLockingBytecodeHex
+        wcTransactionObj, { privateKey, pubkeyCompressed }, walletLockingBytecodeHex
       );
 
       const hash = binToHex(sha256.hash(sha256.hash(encodedTransaction)).reverse());
       const signedTxObject = { signedTransaction: binToHex(encodedTransaction), signedTransactionHash: hash };
 
       // send transaction
-      if (requestParams.broadcast) {
+      if (wcTransactionObj.broadcast) {
         try{
           Notify.create({
             spinner: true,
@@ -167,7 +166,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
             timeout: 750
           })
           const txId = await wallet?.submitTransaction(hexToBin(signedTxObject.signedTransaction));
-          const alertMessage = `Sent WalletConnect transaction '${requestParams.userPrompt}'`
+          const alertMessage = `Sent WalletConnect transaction '${wcTransactionObj.userPrompt}'`
           Dialog.create({
             component: alertDialog,
             componentProps: {
@@ -187,7 +186,7 @@ export const useWalletconnectStore = async (wallet: Wallet | TestNetWallet) => {
       const response = { id, jsonrpc: '2.0', result: signedTxObject };
       await web3wallet.value?.respondSessionRequest({ topic, response });
 
-      const message = requestParams.broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
+      const message = wcTransactionObj.broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
       Notify.create({
         type: 'positive',
         message

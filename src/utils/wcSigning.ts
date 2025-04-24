@@ -11,21 +11,18 @@ import {
   importWalletTemplate,
   walletTemplateP2pkhNonHd,
   type CompilationContextBCH,
-  type TransactionCommon,
-  type Input,
-  type Output,
   type TransactionTemplate,
   type AuthenticationProgramState,
   type TransactionGenerationError,
 } from "@bitauth/libauth"
-import type { ContractInfo } from "src/interfaces/wcInterfaces";
+import type { WcTransactionObj } from "src/interfaces/wcInterfaces";
 
 export function createSignedWcTransaction(
-  unsignedTransaction: TransactionCommon,
-  sourceOutputs: (Input & Output & ContractInfo)[],
+  wcTransactionObj: WcTransactionObj,
   signingInfo: { privateKey: Uint8Array, pubkeyCompressed: Uint8Array },
   walletLockingBytecodeHex: string,
 ){
+  const { transaction: unsignedTransaction, sourceOutputs } = wcTransactionObj;
   const { privateKey, pubkeyCompressed } = signingInfo;
 
   // prepare libauth template for input signing
