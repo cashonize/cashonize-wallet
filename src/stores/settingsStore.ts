@@ -27,6 +27,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const darkMode  = ref(false);
   const showFiatValueHistory = ref(true);
   const tokenBurn = ref(false);
+  const showCauldronSwap = ref(false);
   const qrScan = ref(true);
   const featuredTokens = ref([] as string[]);
   const hasSeedBackedUp = ref(false as boolean)
@@ -60,6 +61,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readDarkMode == null && prefersDarkMode){
     document.body.classList.add("dark");
     darkMode.value = true;
+  }
+
+  const readShowSwap = localStorage.getItem("showCauldronSwap");
+  if(readShowSwap == "true"){
+    showCauldronSwap.value = true;
   }
 
   const readFeaturedTokens = localStorage.getItem("featuredTokens");
@@ -171,6 +177,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     darkMode,
     showFiatValueHistory,
     tokenBurn,
+    showCauldronSwap,
     qrScan,
     featuredTokens,
     hasSeedBackedUp,

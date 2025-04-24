@@ -30,6 +30,7 @@
   // user options
   const selectedDarkMode = ref(settingsStore.darkMode);
   const showFiatValueHistory = ref(settingsStore.showFiatValueHistory);
+  const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   // advanced settings
@@ -132,6 +133,10 @@
     localStorage.setItem("fiatValueHistory", showFiatValueHistory.value? "true" : "false");
     settingsStore.showFiatValueHistory = showFiatValueHistory.value;
   }
+  function toggleShowSwap(){
+    localStorage.setItem("showCauldronSwap", selectedShowSwap.value? "true" : "false");
+    settingsStore.showCauldronSwap = selectedShowSwap.value;
+  }
   function changeTokenBurn(){
     settingsStore.tokenBurn = selectedTokenBurn.value;
   }
@@ -203,6 +208,10 @@
 
       <div style="margin-top:15px">
         Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;display: inline-block;"/>
+      </div>
+
+      <div style="margin-top:15px">
+        Show Cauldron Swap Button <Toggle v-model="selectedShowSwap" @change="toggleShowSwap" style="vertical-align: middle;display: inline-block;"/>
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">Enable token-burn  
