@@ -100,7 +100,7 @@ export const useStore = defineStore('store', () => {
       ]).finally(() => clearTimeout(timeoutHandle))
       .catch((error) => {displayAndLogError(error) });
       console.time('initialize walletconnect and cashconnect');
-      await Promise.all([initializeWalletConnect(wallet.value as Wallet), initializeCashConnect()]);
+      await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
       console.timeEnd('initialize walletconnect and cashconnect');
       setUpWalletSubscriptions();
       // fetch bch balance
@@ -216,13 +216,11 @@ export const useStore = defineStore('store', () => {
     changeView(1);
   }
 
-  async function initializeWalletConnect(wallet: Wallet | TestNetWallet) {
-    const walletconnectStore = await useWalletconnectStore(wallet as Wallet)
+  async function initializeWalletConnect() {
+    const walletconnectStore = await useWalletconnectStore(wallet as Ref<Wallet>, changeNetwork)
     await walletconnectStore.initweb3wallet();
     isWcInitialized.value = true;
 
-    const web3wallet = walletconnectStore.web3wallet;
-    const walletAddress = wallet.getDepositAddress()
     // Setup network change callback to disconnect all sessions.
     networkChangeCallbacks.push(async () => {
       const sessions = walletconnectStore.web3wallet?.getActiveSessions();
@@ -238,7 +236,6 @@ export const useStore = defineStore('store', () => {
         });
       }
     });
-    web3wallet?.on('session_request', async (event) => walletconnectStore.wcRequest(event, walletAddress));
   }
 
   async function initializeCashConnect() {

@@ -19,9 +19,9 @@
   const store = useStore()
   const settingsStore = useSettingsStore();
 
-  const walletconnectStore = await useWalletconnectStore(store.wallet as Wallet )
-  const web3wallet = walletconnectStore.web3wallet
   const { wallet } = storeToRefs(store);
+  const walletconnectStore = await useWalletconnectStore(wallet as Ref<Wallet>, store.changeNetwork)
+  const web3wallet = walletconnectStore.web3wallet
   const cashconnectStore = await useCashconnectStore(wallet as Ref<Wallet>);
 
   // Props.

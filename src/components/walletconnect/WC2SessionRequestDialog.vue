@@ -1,37 +1,31 @@
 <script setup lang="ts">
-  import { ref, toRefs } from 'vue';
+  import { toRefs } from 'vue';
+  import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit';
   import { useStore } from 'src/stores/store'
   const store = useStore()
-  const emit = defineEmits(['approveSession','rejectSession']);
-
-  const showDialog = ref(true);
 
   const props = defineProps<{
-    sessionProposalWC: WalletKitTypes.SessionProposal
+    sessionProposalWC: WalletKitTypes.SessionProposal,
+    dappTargetNetwork: "mainnet" | "chipnet"
   }>()
   const { sessionProposalWC } = toRefs(props);
 
+  defineEmits([
+  ...useDialogPluginComponent.emits
+])
+
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
   const sessionProposal = sessionProposalWC.value;
   const dappMetadata = sessionProposal.params.proposer.metadata as DappMetadata;
-  const { requiredNamespaces } = sessionProposal.params;
 
-  const dappNetworkPrefix = requiredNamespaces.bch?.chains?.[0]?.split(":")[1];
-  const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
-  const needsNetworkSwitch = (dappTargetNetwork !== store.network);
-
-  async function approveSessionWC() {
-    emit('approveSession', sessionProposalWC.value, dappTargetNetwork);
-  }
-
-  function rejectSessionWC() {
-    emit('rejectSession');
-  }
+  const needsNetworkSwitch = (props.dappTargetNetwork !== store.network);
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
     <q-card>
       <fieldset class="dialogFieldset"> 
         <legend style="font-size: large;">Approve Session?</legend>
@@ -43,8 +37,8 @@
           </div>
         </div>
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-          <input type="button" class="primaryButton" :value="needsNetworkSwitch ?`Switch to ${dappTargetNetwork} and approve`: 'Approve'" @click="() => approveSessionWC()" v-close-popup>
-          <input type="button" value="Reject" v-close-popup @click="() => rejectSessionWC()">
+          <input type="button" class="primaryButton" :value="needsNetworkSwitch ?`Switch to ${dappTargetNetwork} and approve`: 'Approve'" @click="onDialogOK" v-close-popup>
+          <input type="button" value="Reject" @click="onDialogCancel">
         </div>
       </fieldset>
     </q-card>
