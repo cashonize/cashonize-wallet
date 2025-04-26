@@ -32,7 +32,9 @@
       <q-card-section class="q-pt-none">
         {{ alertInfo.message }} <br><br>
         <span @click="copyToClipboard(alertInfo.txid)" style="cursor: pointer;">
-          TransactionId: {{ alertInfo.txid.slice(0, 20) + "..." + alertInfo.txid.slice(-10) }}
+          Transaction ID:
+          <span style="color: var(--color-grey)">{{ alertInfo.txid.slice(0, 20) + "..." + alertInfo.txid.slice(-10) }}</span>
+          <img class="copyIcon icon" src="images/copyGrey.svg">
         </span>
         <br><br>
         <a :href="store.explorerUrl + `/${alertInfo.txid}`" target="_blank">Link blockexplorer</a>

@@ -257,6 +257,9 @@ select, summary {
 .q-btn--round {
   background: none;
 }
+.q-btn .q-icon {
+  margin: auto;
+}
 
 /* change look of scrollbar */
 ::-webkit-scrollbar {
