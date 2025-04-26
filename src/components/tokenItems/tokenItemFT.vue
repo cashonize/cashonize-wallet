@@ -329,7 +329,7 @@
           <span @click="displayTokenInfo = !displayTokenInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
           </span>
-          <span v-if="settingsStore.showCauldronSwap" style="white-space: nowrap;">
+          <span v-if="settingsStore.showCauldronSwap && store.wallet?.network == 'mainnet'" style="white-space: nowrap;">
             <a :href="`https://app.cauldron.quest/swap/${tokenData.tokenId}`" target="_blank" style="color: var(--font-color);">
               <img class="icon" :src="settingsStore.darkMode? 'images/cauldronLightGrey.svg' : 'images/cauldron.svg'"> swap
             </a>

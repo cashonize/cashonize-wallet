@@ -27,6 +27,9 @@
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
+  const bchDisplayNetwork = computed(() => {
+    return (store.network == "mainnet") ? 'BCH' : 'tBCH'
+  })
   const bchDisplayUnit = computed(() => {
     if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " sats"
     else return settingsStore.bchUnit == "bch"? " tBCH" : " tsats"
@@ -193,7 +196,7 @@
       <span style="color: hsla(160, 100%, 37%, 1);">{{ displayCurrencyBalance }}</span>
     </div>
     <span>
-      BCH balance:  
+      {{ bchDisplayNetwork }} balance:  
       <span style="color: hsla(160, 100%, 37%, 1);">
         {{ store.balance && store.balance[settingsStore.bchUnit] != undefined 
           ? numberFormatter.format(store.balance[settingsStore.bchUnit]) + displayUnitLong : "" }}
@@ -212,7 +215,7 @@
       </span>
     </div>
     <div style="word-break: break-all;">
-      BCH address: 
+      {{ bchDisplayNetwork }} address: 
       <span @click="() => copyToClipboard(store.wallet?.address)" style="cursor:pointer;">
         <span class="depositAddr">{{ store.wallet?.address ?? "" }} </span>
         <img class="copyIcon" src="images/copyGrey.svg">
@@ -234,7 +237,7 @@
       </div>
     </div>
     <div style="margin-top: 5px;">
-      Send BCH:
+      Send {{ bchDisplayNetwork }}:
       <div style="display: flex; gap: 0.5rem;">
         <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address" name="addressInput">
         <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
