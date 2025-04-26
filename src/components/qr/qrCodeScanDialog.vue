@@ -2,7 +2,7 @@
   import { computed, onMounted, onUnmounted, ref } from 'vue';
   import { type DetectedBarcode, QrcodeStream } from 'vue-qrcode-reader'
   import ScannerUI from 'components/qr/qrScannerUi.vue'
-  import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+  import type { BarcodeScannerPlugin } from '@capacitor-community/barcode-scanner';
   import { caughtErrorToString } from 'src/utils/errorHandling';
 
   import { useWindowSize } from '@vueuse/core'
@@ -62,8 +62,10 @@
     }
   }
 
+  let BarcodeScanner: BarcodeScannerPlugin | undefined;
   const scanBarcode = async () => {
     try {
+      if (!BarcodeScanner) return // should never happen
       BarcodeScanner.hideBackground();
 
       // Request camera permission
@@ -100,7 +102,7 @@
   };
 
   function handleBeforeHide() {
-    if(isCapacitor) {
+    if(isCapacitor && BarcodeScanner) {
       document.body.classList.remove('transparent-body')
       BarcodeScanner.showBackground();
       document.body.classList.remove('scanner-active')
@@ -109,11 +111,18 @@
     emit('hide');
   } 
 
-  onMounted(() => {
-    if(isCapacitor) scanBarcode();
+  onMounted(async() => {
+    if(isCapacitor){
+      if (!BarcodeScanner) {
+      // Dynamically import the capacitor plugin so Vite can tree-shake it for web & electron builds
+      const module = await import('@capacitor-community/barcode-scanner');
+      BarcodeScanner = module.BarcodeScanner;
+    }
+    scanBarcode();
+    }
   });
   onUnmounted(() => {
-    if(isCapacitor) BarcodeScanner.stopScan();
+    if(isCapacitor && BarcodeScanner) BarcodeScanner.stopScan();
   });
 </script>
 
