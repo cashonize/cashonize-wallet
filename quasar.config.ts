@@ -4,6 +4,7 @@
 import { defineConfig } from '#q-app/wrappers';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import packageJson from './package.json';
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig((ctx) => {
   return {
@@ -76,7 +77,12 @@ export default defineConfig((ctx) => {
       
       // TODO: remove topLevelAwait plugin when possible
       vitePlugins: [
-        [topLevelAwait, {}],
+        topLevelAwait(),
+        visualizer({
+          open: true,
+          filename: 'dist/stats.html', 
+          gzipSize: true 
+        }),
         ['vite-plugin-checker', {
           vueTsc: true,
           eslint: {
