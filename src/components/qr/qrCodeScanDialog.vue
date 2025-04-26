@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import { computed, onMounted, onUnmounted, ref } from 'vue';
-  import { type DetectedBarcode, QrcodeStream } from 'vue-qrcode-reader'
+  import { computed, defineAsyncComponent, onMounted, onUnmounted, ref } from 'vue';
+  import { type DetectedBarcode } from 'vue-qrcode-reader'
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import type { BarcodeScannerPlugin } from '@capacitor-community/barcode-scanner';
   import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -20,6 +20,10 @@
 
   const showDialog = ref(true);
   const showScanner = ref(true);
+
+  const QrcodeStream = !isCapacitor ? defineAsyncComponent(
+    () => import('vue-qrcode-reader').then(m => m.QrcodeStream)
+  ) : undefined;
 
   const CameraPermissionErrMsg1 = "Permission required to access the camera";
   const CameraPermissionErrMsg2 = "No camera found on this device";
@@ -133,7 +137,7 @@
       {{ error }}
     </div>
     <q-card v-else :style="isMobile ? 'width: 100%; height: 100%;' : 'width: 75%; height: 75%;'">
-      <qrcode-stream
+      <component :is="QrcodeStream"
            v-if="!isCapacitor"
           :formats="['qr_code']"
           @detect="onScannerDecode"
