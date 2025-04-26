@@ -262,6 +262,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
       const signedTxObject = { signedTransaction: binToHex(encodedTransaction), signedTransactionHash: hash };
 
       // send transaction
+      const { id, topic } = transactionRequestWC;
       if (wcTransactionObj.broadcast) {
         try{
           Notify.create({
@@ -279,15 +280,18 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
             }
           })
         } catch(error){
-          console.log(error)
+          const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in sending transaction")
           Notify.create({
             type: 'negative',
-            message: typeof error == 'string' ? error :  "Error in sending transaction"
+            message: errorMessage
           })
+          // respond with error to dapp
+          const wcErrorMessage = 'Transaction failed to send with error: ' + errorMessage;
+          const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+          await web3wallet.value?.respondSessionRequest({ topic, response });
           return
         }   
       }
-      const { id, topic } = transactionRequestWC;
       const response = { id, jsonrpc: '2.0', result: signedTxObject };
       await web3wallet.value?.respondSessionRequest({ topic, response });
 
