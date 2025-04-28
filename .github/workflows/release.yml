@@ -1,4 +1,4 @@
-name: Cross-Platform Electron Build
+name: Cross-Platform Tauri Build
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -33,13 +33,33 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build Electron App
-        run: npx quasar build --mode electron --publish never
+      - name: Ensure Rust toolchain
+        run: |
+          rustup update stable
+          rustup default stable
+          rustup component add rustfmt clippy
+        
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libssl-dev libappindicator3-dev patchelf
+
+      - name: Install WebView2 Runtime
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "Downloading and installing WebView2 Runtime from Microsoft..."
+          curl -LO https://go.microsoft.com/fwlink/p/?LinkId=2124703
+          msiexec /i MicrosoftEdgeWebView2Setup.exe /quiet /norestart
+
+
+      - name: Build Tauri App
+        run: yarn tauri build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: quasar-build-${{ matrix.os }}
-          path: dist/electron/Packaged/
+          path: src-tauri/target/
           if-no-files-found: error
           compression-level: 0 # optional: speed boost
