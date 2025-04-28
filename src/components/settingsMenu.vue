@@ -5,7 +5,7 @@
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils';
-  import { openIndexedDB, getIndexedDBObjectStoreSize, clearIndexedDBObjectStore } from "src/utils/cacheUtils";
+  import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
   const store = useStore()
   const settingsStore = useSettingsStore()
   import { useWindowSize } from '@vueuse/core'
@@ -61,10 +61,7 @@
   }
 
   async function calculateIndexedDBSizeMB(): Promise<number> {
-    const dbName = "ElectrumNetworkProviderCache";
-    const db = await openIndexedDB(dbName);
-    const totalSize = await getIndexedDBObjectStoreSize(db, dbName);
-    
+    const totalSize = await getElectrumCacheSize();
     return totalSize / (1024 ** 2); // Convert to MB
   }
 
@@ -160,8 +157,7 @@
     }
   }
   async function clearHistoryCache(){
-    const dbName = "ElectrumNetworkProviderCache";
-    clearIndexedDBObjectStore(dbName, dbName)
+    clearElectrumCache();
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
   }
 </script>
