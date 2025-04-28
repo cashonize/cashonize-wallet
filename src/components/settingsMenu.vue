@@ -12,8 +12,8 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
-  const isBrowser = (process.env.MODE == "spa");
-  const isDesktop = (process.env.MODE == "electron");
+  const isBrowser = (process.env.MODE == "spa" && !process.env.TAURI);
+  const isDesktop = (process.env.MODE == "electron" || process.env.MODE == "tauri");
   const isCapacitor = (process.env.MODE == "capacitor");
   const appVersion = process.env.version
 
@@ -147,7 +147,7 @@
     displaySeedphrase.value = !displaySeedphrase.value;
   }
   function confirmDeleteWallet(){
-    const isBrowser = (process.env.MODE == "spa");
+    const isBrowser = (process.env.MODE == "spa") && !process.env.TAURI;
     const platformString = isBrowser ? 'browser' : 'application'
     const text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
     if (confirm(text)){

@@ -5,7 +5,7 @@
   import { useStore } from 'src/stores/store'
   const store = useStore()
   const $q = useQuasar()
-  const isBrowser = (process.env.MODE == "spa");
+  const isBrowser = (process.env.MODE == "spa") && !process.env.TAURI;
 
   const seedphrase = ref('');
   const selectedDerivationPath =  ref("standard" as ("standard" | "bitcoindotcom"));

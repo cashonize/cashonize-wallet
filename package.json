@@ -14,7 +14,8 @@
     "lint": "eslint -c ./eslint.config.ts \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
     "test": "vitest",
     "dev": "quasar dev",
-    "build": "quasar build"
+    "build": "quasar build",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@bitauth/libauth": "3.0.0",
@@ -25,6 +26,7 @@
     "@mainnet-cash/indexeddb-storage": "^2.6.4",
     "@quasar/extras": "^1.16.17",
     "@reown/walletkit": "^1.2.3",
+    "@tauri-apps/api": "^2.5.0",
     "@vueform/toggle": "^2.1.4",
     "@vueuse/core": "^13.1.0",
     "@walletconnect/core": "2.19.2",
@@ -41,10 +43,12 @@
   "devDependencies": {
     "@eslint/js": "^9.25.1",
     "@quasar/app-vite": "^2.2.0",
+    "@tauri-apps/cli": "^2.5.0",
     "@types/blockies": "^0.0.4",
     "@types/node": "^20.5.9",
     "@vue/eslint-config-typescript": "^14.5.0",
     "autoprefixer": "^10.4.2",
+    "cross-env": "^7.0.3",
     "electron": "^35.2.0",
     "electron-builder": "^26.0.12",
     "eslint": "^9.25.1",

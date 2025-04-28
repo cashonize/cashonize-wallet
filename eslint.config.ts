@@ -15,7 +15,7 @@ export default defineConfigWithVueTs(
      *
      * ESLint requires "ignores" key to be the only one in this object
      */
-    // ignores: []
+    ignores: ['src-tauri/**']
   },
 
   pluginQuasar.configs.recommended(),
