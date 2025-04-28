@@ -33,13 +33,24 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build Electron App
-        run: npx quasar build --mode electron --publish never
+      - name: Ensure Rust toolchain
+        run: |
+          rustup update stable
+          rustup default stable
+          rustup component add rustfmt clippy
+
+      - name: Install WebView2 on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install microsoft-edge-webview2-runtime
+
+      - name: Build Tauri App
+        run: yarn tauri build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: quasar-build-${{ matrix.os }}
-          path: dist/electron/Packaged/
+          path: src-tauri/target/
           if-no-files-found: error
           compression-level: 0 # optional: speed boost
