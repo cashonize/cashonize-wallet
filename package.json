@@ -1,6 +1,6 @@
 {
   "name": "cashonize-wallet",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Cashonize is a Bitcoin Cash (BCH) Wallet which supports CashTokens, WalletConnect and CashConnect.",
   "productName": "Cashonize",
   "author": "",
@@ -36,7 +36,7 @@
     "quasar": "^2.18.1",
     "vue": "^3.5.13",
     "vue-qrcode-reader": "^5.7.2",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.1",
@@ -45,10 +45,10 @@
     "@types/node": "^20.5.9",
     "@vue/eslint-config-typescript": "^14.5.0",
     "autoprefixer": "^10.4.2",
-    "electron": "^35.2.0",
+    "electron": "^36.0.0",
     "electron-builder": "^26.0.12",
     "eslint": "^9.25.1",
-    "eslint-plugin-vue": "^10.0.0",
+    "eslint-plugin-vue": "^10.0.1",
     "globals": "^16.0.0",
     "jiti": "^2.4.2",
     "rollup-plugin-visualizer": "^5.14.0",
