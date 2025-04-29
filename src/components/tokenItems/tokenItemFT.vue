@@ -5,6 +5,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
+  import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
@@ -35,6 +36,7 @@
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   const totalSupplyFT = ref(undefined as bigint | undefined);
   const reservedSupply = ref(undefined as bigint | undefined);
+  const showQrCodeDialog = ref(false);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
 
@@ -88,6 +90,16 @@
     const validInput = decimalPlaces <= decimals
     if(!validInput && !decimals) throw(`This token does not allow for decimal places`);
     if(!validInput) throw (`This token only allows up to ${decimals} decimal places`);
+  }
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+  }
+  const qrFilter = (content: string) => {
+    const decoded = decodeCashAddress(content);
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+      return "Not a cashaddress on current network";
+    }
+    return true;
   }
   // Fungible token specific functionality
   function toAmountDecimals(amount:bigint){
@@ -386,12 +398,17 @@
           Send these tokens to
           <div class="inputGroup">
             <div class="addressInputFtSend">
-              <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              <span style="width: 100%; position: relative;">
+                <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              </span>
+              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
+                <img src="images/qrscan.svg" />
+              </button>
             </div>
             <div class="sendTokenAmount">
-              <span style="width: 100%; position: relative; ">
+              <span style="width: 100%; position: relative;">
                 <input v-model="tokenSendAmount" placeholder="amount" name="tokenAmountInput">
-                <i class="input-icon" style="width: min-content; padding-right: 15px;">
+                <i class="input-icon" style="width: min-content; padding-right: 15px; color: black;">
                   {{ tokenMetaData?.token?.symbol ?? "tokens" }}
                 </i>
               </span>
@@ -430,5 +447,8 @@
         </div>
       </div>
     </fieldset>
+  </div>
+  <div v-if="showQrCodeDialog">
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>

@@ -153,6 +153,7 @@ input[type='number'] {
 .addressInputFtSend {
   margin-right: 14px;
   width: 50%;
+  display: flex;
 }
 .actionBar {
   margin-top: 15px;
@@ -243,10 +244,12 @@ select, summary {
   }
   .addressInputFtSend {
     width: 100%;
+    gap: 0.5rem;
   }
   .sendTokenAmount {
     margin-top: 4px;
     width: 100%;
+    gap: 0.5rem;
   }
 }
 .q-dialog__backdrop {
