@@ -49,8 +49,13 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           echo "Downloading and installing WebView2 Runtime from Microsoft..."
-          curl -LO https://go.microsoft.com/fwlink/p/?LinkId=2124703
+          curl -L -o MicrosoftEdgeWebView2Setup.exe https://go.microsoft.com/fwlink/p/?LinkId=2124703
           msiexec /i MicrosoftEdgeWebView2Setup.exe /quiet /norestart
+
+      - name: Set verbose environment variables
+        run: |
+          echo "DEBUG=1" >> $GITHUB_ENV
+          echo "LINUXDEPLOY_VERBOSE=1" >> $GITHUB_ENV
 
 
       - name: Build Tauri App
