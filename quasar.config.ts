@@ -14,7 +14,10 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ('capacitor' in ctx.mode ? ['deepLinking'] : []),
+    boot: [
+      ...('capacitor' in ctx.mode ? ['deepLinking'] : []),
+      ...('spa' in ctx.mode && process.env.TAURI ? ['tauriWindow'] : []),
+    ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: [
@@ -58,7 +61,8 @@ export default defineConfig((ctx) => {
       // publicPath: '/',
       // analyze: true,
       env: {
-        version: packageJson.version
+        version: packageJson.version,
+        TAURI: process.env.TAURI || ""
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

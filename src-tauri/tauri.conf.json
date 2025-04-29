@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Cashonize",
+  "version": "0.3.7",
+  "identifier": "com.cashonize.wallet",
+  "build": {
+    "beforeDevCommand": "cross-env TAURI=true yarn dev",
+    "devUrl": "http://localhost:9000",
+    "beforeBuildCommand": "cross-env TAURI=true yarn build",
+    "frontendDist": "../dist/spa"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Cashonize",
+        "width": 800,
+        "height": 600,
+        "visible": false,
+        "backgroundColor": "#ffffff"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "../public/icons/favicon-16x16.png",
+      "../public/icons/favicon-32x32.png",
+      "../public/icons/favicon-96x96.png",
+      "../public/icons/favicon-128x128.png",
+      "../public/favicon.ico"
+    ],
+    "windows": {
+      "nsis":{
+        "installerIcon": "../public/favicon.ico"
+      }
+    }
+  }
+}
