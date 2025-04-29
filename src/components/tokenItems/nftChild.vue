@@ -7,6 +7,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
+  import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { BcmrTokenMetadata, TokenBurnRequestParams, TokenSendRequestParams } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -34,6 +35,7 @@
   const mintCommitment = ref("");
   const mintAmountNfts = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
+  const showQrCodeDialog = ref(false);
 
   const nftMetadata = computed(() => {
     const commitment = nftData.value?.token?.commitment;
@@ -75,6 +77,16 @@
     iconDiv?.appendChild(icon);
   })
 
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+  }
+  const qrFilter = (content: string) => {
+    const decoded = decodeCashAddress(content);
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+      return "Not a cashaddress on current network";
+    }
+    return true;
+  }
   async function sendNft(){
     try{
       if(!store.wallet) return;
@@ -310,10 +322,15 @@
         </div>
         <div v-if="displaySendNft" style="margin-top: 10px;">
           Send this NFT to
-          <p class="grouped">
-            <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+          <div class="inputGroup">
+            <div class="addressInputNftSend">
+              <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
+                <img src="images/qrscan.svg" />
+              </button>
+            </div>
             <input @click="sendNft()" type="button" class="primaryButton" value="Send NFT">
-          </p>
+          </div>
         </div>
         <div v-if="displayMintNfts" style="margin-top: 10px;">
           Mint a number of (unique) NFTs to a specific address
@@ -349,5 +366,8 @@
     <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
       <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata.uris.image : nftMetadata.uris.icon as string" :nftName="nftMetadata.name" @close-dialog="() => showNftImage = false"/>
     </div>
+  </div>
+  <div v-if="showQrCodeDialog">
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>

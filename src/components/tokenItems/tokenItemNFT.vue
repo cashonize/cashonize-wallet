@@ -7,6 +7,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
+  import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenSendRequestParams, TokenMintRequestParams, TokenBurnRequestParams } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
@@ -43,6 +44,7 @@
   const startingNumberNFTs = ref(undefined as string | undefined);
   const totalNumberNFTs = ref(undefined as number | undefined);
   const hasMintingNFT = ref(undefined as boolean | undefined);
+  const showQrCodeDialog = ref(false);
 
   let fetchedMetadataChildren = false
 
@@ -106,6 +108,16 @@
     displayChildNfts.value = !displayChildNfts.value;
   }
   
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+  }
+  const qrFilter = (content: string) => {
+    const decoded = decodeCashAddress(content);
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+      return "Not a cashaddress on current network";
+    }
+    return true;
+  }
   // NFT Group specific functionality
   async function sendAllNfts(){
     try{
@@ -497,17 +509,27 @@
 
         <div v-if="displaySendNft" style="margin-top: 10px;">
           Send this NFT to
-          <p class="grouped">
-            <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+          <div class="inputGroup">
+            <div class="addressInputNftSend">
+              <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
+                <img src="images/qrscan.svg" />
+              </button>
+            </div>
             <input @click="sendNft()" type="button" class="primaryButton" value="Send NFT">
-          </p>
+          </div>
         </div>
         <div v-if="displaySendAllNfts" style="margin-top: 10px;">
           Send all {{ tokenData.nfts?.length }} NFTs of this category to
-          <p class="grouped">
-            <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+          <div class="inputGroup">
+            <div class="addressInputNftSend">
+              <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
+                <img src="images/qrscan.svg" />
+              </button>
+            </div>
             <input @click="sendAllNfts()" type="button" class="primaryButton" value="Transfer NFTs">
-          </p>
+          </div>
         </div>
         <div v-if="displayMintNfts" style="margin-top: 10px;">
           Mint a number of (unique) NFTs to a specific address
@@ -558,5 +580,8 @@
         <nftChild :nftData="nft" :tokenMetaData="store.bcmrRegistries?.[tokenData.tokenId]" :id="'nft'+tokenData.tokenId.slice(0,4) + index"/>
       </div>
     </div>
+  </div>
+  <div v-if="showQrCodeDialog">
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>
