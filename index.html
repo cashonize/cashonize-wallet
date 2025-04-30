@@ -1,19 +1,98 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= productName %></title>
-
     <meta charset="utf-8">
-    <meta name="description" content="<%= productDescription %>">
     <meta name="format-detection" content="telephone=no">
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width<% if (ctx.mode.cordova || ctx.mode.capacitor) { %>, viewport-fit=cover<% } %>">
 
-    <link rel="icon" type="image/png" sizes="128x128" href="icons/favicon-128x128.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <!-- Primary Meta Tags -->
+    <title><%= productName %></title>
+    <meta name="title" content="<%= productName %>">
+    <meta name="description" content="<%= productDescription %>">
+
+    <!-- Favicon + Web App -->
+    <link rel="icon" type="image/png" href="icon/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="icon/favicon.svg">
     <link rel="icon" type="image/ico" href="favicon.ico">
+    <link rel="shortcut icon" href="icon/favicon.ico">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="minisatoshi">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="icon/site.webmanifest">
+    <meta name="msapplication-TileImage" content="icon/favicon-96x96.png">
+
+    <!-- Canonical link for SEO -->
+    <link href="https://cashonize.com" rel="canonical" data-rh="true">
+    <link href="https://cashonize.com" hreflang="x-default" rel="alternate" data-rh="true">
+
+    <!-- Use Google Search Console and Bing Webmaster Tools for SEO data -->
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cashonize.com">
+    <meta property="og:title" content="<%= productName %>">
+    <meta property="og:description" content="<%= productDescription %>">
+    <meta property="og:image" content="https://cashonize.com/icon/card.png">
+    <meta property="og:image:alt" content="Cashonize logo">
+    <meta property="og:article:section" content="Information">
+    <meta property="og:article:tag" content="Bitcoin Cash">
+    <meta property="og:article:tag" content="BCH">
+    <meta property="og:article:tag" content="Wallet">
+    <meta property="og:article:tag" content="Token">
+    <meta property="og:article:tag" content="NFT">
+    <meta property="og:article:tag" content="CashToken">
+    <meta property="og:article:tag" content="WalletConnect">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="https://cashonize.com">
+    <meta name="twitter:site" content="@cashonize">
+    <meta name="twitter:creator" content="@GeukensMathieu">
+    <meta property="twitter:title" content="<%= productName %>">
+    <meta property="twitter:description" content="<%= productDescription %>">
+    <meta property="twitter:image" content="https://cashonize.com/icon/card.png">
+
+    <!-- Meta Tags Generated with https://metatags.io -->
+    <meta name="keywords" content="Bitcoin, Bitcoin Cash, BCH, Wallet, token, NFT, CashToken, WalletConnect, DeFi, altcoin">
+    <meta name="robots" content="index, follow, max-image-preview:standard">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="author" content="cashonize">
+
+    <!-- Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Cashonize",
+      "description": "Cashonize is a cross-platform Bitcoin Cash wallet supporting CashTokens, WalletConnect, and CashConnect. Available as a web wallet, desktop app for Windows and Linux, and Android APK.",
+      "applicationCategory": "Finance",
+      "operatingSystem": ["Web", "Windows", "Linux", "Android"],
+      "softwareVersion": "0.3.5",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "url": "https://cashonize.com",
+      "downloadUrl": "https://github.com/cashonize/cashonize-wallet/releases",
+      "image": "https://cashonize.com/images/cashonize-icon.png",
+      "author": {
+        "@type": "Person",
+        "name": "Mathieu Geukens"
+      },
+      "featureList": [
+        "Bitcoin Cash Wallet",
+        "CashTokens Support",
+        "WalletConnect Integration",
+        "CashConnect Integration",
+        "NFT Display"
+      ]
+    }
+    </script>
+
   </head>
   <body>
     <!-- quasar:entry-point -->
