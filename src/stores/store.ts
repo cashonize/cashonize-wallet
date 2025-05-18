@@ -88,17 +88,21 @@ export const useStore = defineStore('store', () => {
     if(!wallet.value) throw new Error("No Wallet set in global store")
     try {
       // attempt non-blocking connection to electrum server
-      let timeoutHandle: ReturnType<typeof setTimeout>
-      const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
-      Promise.race([wallet.value.provider?.connect(),
-        new Promise((_, reject) =>
-          (timeoutHandle = setTimeout(() => {
-            earlyError = true
-            reject(new Error(`Unable to connect to Electrum server '${electrumServer}'`));
-          }, 3000))
-        )
-      ]).finally(() => clearTimeout(timeoutHandle))
-      .catch((error) => {displayAndLogError(error) });
+      // wrapped the logic in an IIFE to avoid error bubbling up
+      // otherwise this can cause the router to error (and UI to fail) in offline mode
+      (() => {
+        let timeoutHandle: ReturnType<typeof setTimeout>
+        const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
+        Promise.race([wallet.value.provider?.connect(),
+          new Promise((_, reject) =>
+            (timeoutHandle = setTimeout(() => {
+              earlyError = true
+              reject(new Error(`Unable to connect to Electrum server '${electrumServer}'`));
+            }, 3000))
+          )
+        ]).finally(() => clearTimeout(timeoutHandle))
+        .catch((error) => {displayAndLogError(error) });
+      })();
       console.time('initialize walletconnect and cashconnect');
       await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
       console.timeEnd('initialize walletconnect and cashconnect');
