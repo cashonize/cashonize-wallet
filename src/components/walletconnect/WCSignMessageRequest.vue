@@ -64,7 +64,8 @@
     max-height: 90vh;
     width: 500px;
     max-width: 100%;
-    background-color: white
+    background-color: white;
+    overflow-wrap: anywhere;
   }
   body.dark .dialogFieldsetSignMessage {
     background-color: #050a14;
