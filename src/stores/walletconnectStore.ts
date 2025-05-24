@@ -188,7 +188,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
                 resolve();
                 Notify.create({
                   color: "positive",
-                  message: "Successfully signed transaction",
+                  message: "Successfully signed message",
                 });
               })
               .onCancel(async() => {
@@ -320,7 +320,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
     }
 
     async function signMessage(signMessageRequestWC: WalletKitTypes.SessionRequest){
- const requestParams = signMessageRequestWC.params.request.params
+      const requestParams = signMessageRequestWC.params.request.params
       const message = requestParams?.message;
       const signedMessage = await wallet.value?.sign(message);
 
