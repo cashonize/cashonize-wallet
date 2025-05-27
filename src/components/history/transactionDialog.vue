@@ -106,7 +106,7 @@
           </div>
           <div>
             Balance change: 
-              <span>{{ satsToBCH(historyItem.valueChange) }} BCH</span>
+              <span>{{ satsToBCH(historyItem.valueChange) }} {{ store.network == "mainnet"? "BCH" : "tBCH" }}</span>
           </div>
           <div>
             Size: 
@@ -124,7 +124,7 @@
             <span>{{ index }}: </span>
             <span class="break" :class="input.address === ourAddress ? 'uline' : ''">{{ input.address.split(":")[1] }}</span>
             <div>
-              <span v-if="!input.token">{{ satsToBCH(input.value) }} BCH</span>
+              <span v-if="!input.token">{{ satsToBCH(input.value) }} {{ store.network == "mainnet"? "BCH" : "tBCH" }}</span>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer;">
                 <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
@@ -144,7 +144,7 @@
             <span v-if="output.value === 0" class="break">{{ index }}: {{ output.address }}</span>
             <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'uline' : ''">{{ output.address.split(":")[1] }}</span></span>
             <div>
-              <span v-if="!output.token && !output.address.includes('OP_RETURN')">{{ satsToBCH(output.value) }} BCH</span>
+              <span v-if="!output.token && !output.address.includes('OP_RETURN')">{{ satsToBCH(output.value) }} {{ store.network == "mainnet"? "BCH" : "tBCH" }}</span>
               <span v-if="output.token" @click="loadTokenMetadata(output.token!.tokenId, output.token!.commitment!)" style="cursor: pointer;">
                 <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>

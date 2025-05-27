@@ -34,6 +34,13 @@
     return selectedHistory.value?.slice(start, start + itemsPerPage)
   })
   const totalPages = computed(() => Math.ceil((selectedHistory.value?.length ?? 0) / itemsPerPage))
+
+  function formatFiatAmount(amount: number): string {
+    return amount.toLocaleString('en', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
 </script>
 
 <template>
@@ -87,20 +94,22 @@
             <td v-else>{{ transaction.timestamp ? formatTimestamp(transaction.timestamp) : "Unconfirmed" }}</td>
 
             <td class="value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
-              {{ `${transaction.valueChange > 0 ? '+' : '' }${transaction.valueChange / 100_000_000}` + (isMobile? "" : " BCH")}}
+              {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toFixed(5)}`}}
+              {{ isMobile? "" : (store.network == "mainnet"? "BCH" : "tBCH") }}
               <div v-if="settingsStore.showFiatValueHistory">
-                ({{`${transaction.valueChange > 0 ? '+' : '' }` + (exchangeRate * transaction.valueChange / 100_000_000).toFixed(2) + CurrencySymbols[settingsStore.currency]}})
+                ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(exchangeRate * transaction.valueChange / 100_000_000) + CurrencySymbols[settingsStore.currency]}})
               </div>
             </td>
               
             <td class="value">
-              {{ transaction.balance / 100_000_000 }}{{ isMobile? "" : " BCH" }}
+              {{ (transaction.balance / 100_000_000).toFixed(5) }}
+              {{ isMobile? "" : (store.network == "mainnet"? "BCH" : "tBCH") }}
               <div v-if="settingsStore.showFiatValueHistory">
-                ~{{(exchangeRate * transaction.balance / 100_000_000).toFixed(2) + CurrencySymbols[settingsStore.currency]}}
+                ~{{formatFiatAmount(exchangeRate * transaction.balance / 100_000_000) + CurrencySymbols[settingsStore.currency]}}
               </div>
             </td>
 
-            <td v-if="transaction.tokenAmountChanges.length" class="tokenChange">
+            <td class="tokenChange">
               <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
                 <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
                   <span v-if="tokenChange.amount > 0n" class="value">+{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
@@ -121,7 +130,6 @@
                   >
               </div>
             </td>
-            <td v-else></td>
           </tr>
         </tbody>
       </table>
@@ -162,6 +170,7 @@ tr.dark:nth-child(even) {
   justify-content: flex-end;
   text-align: end;
   width: auto;
+  margin-left: -30px;
 }
 .tokenChangeItem {
   max-width: 160px;
@@ -185,6 +194,9 @@ img.tokenIcon {
   }
   .tokenIcon {
     margin-right: 0px;
+  }
+  .tokenChange{
+    margin-left: 0px;
   }
   .tokenChangeItem {
     max-width: 120px;
