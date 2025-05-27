@@ -35,7 +35,7 @@
           <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
-            <a :href="dappMetadata.url">{{ dappMetadata.url }}</a>
+            <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
           </div>
         </div>
         <hr>

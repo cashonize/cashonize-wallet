@@ -44,7 +44,7 @@
       <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
       <div style="margin-left: 15px; width: 100%;">
         <div>{{ dappMetadata.name + displaySessionId }}</div>
-        <a :href="dappMetadata.url">{{ dappMetadata.url }}</a>
+        <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
         <div>{{ dappMetadata.description }}</div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 18px;">
