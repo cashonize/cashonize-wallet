@@ -41,7 +41,7 @@
   const displayCurrencyBalance = computed(() => {
     const balance = store.balance?.[settingsStore.currency];
     if (balance === undefined) return '';
-    return balance.toFixed(2) + ` ${CurrencySymbols[settingsStore.currency]}`;
+    return balance.toLocaleString("en-US", {style: "currency", currency:settingsStore.currency});
   });
 
   defineCustomElements(window);
