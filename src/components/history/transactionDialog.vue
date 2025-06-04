@@ -123,9 +123,9 @@
           <legend style="font-size: medium;">Inputs</legend>
           <div v-for="(input, index) in historyItem.inputs" :key="index" class="input" :class="settingsStore.darkMode ? 'dark' : ''">
             <span>{{ index }}: </span>
-            <span class="break" :class="input.address === ourAddress ? 'uline' : ''">{{ input.address.split(":")[1] }}</span>
-            <div>
-              <span v-if="!input.token">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</span>
+            <span class="break" :class="input.address === ourAddress ? 'thisWalletTag' : ''">{{ input.address.split(":")[1] }}</span>
+            <div style="margin-left: 25px;">
+              <div v-if="input.value > 10_000">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</div>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer;">
                 <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
@@ -143,9 +143,9 @@
           <legend style="font-size: medium;">Outputs</legend>
           <div v-for="(output, index) in historyItem.outputs" :key="index" class="output" :class="settingsStore.darkMode ? 'dark' : ''">
             <span v-if="output.value === 0" class="break">{{ index }}: {{ output.address }}</span>
-            <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'uline' : ''">{{ output.address.split(":")[1] }}</span></span>
-            <div>
-              <span v-if="!output.token && !output.address.includes('OP_RETURN')">{{ satsToBch(output.value) }} {{ bchDisplayUnit }}</span>
+            <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'thisWalletTag' : ''">{{ output.address.split(":")[1] }}</span></span>
+            <div style="margin-left: 25px;">
+              <div v-if="output.value > 10_000">{{ satsToBch(output.value) }} {{ bchDisplayUnit }}</div>
               <span v-if="output.token" @click="loadTokenMetadata(output.token!.tokenId, output.token!.commitment!)" style="cursor: pointer;">
                 <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
@@ -194,8 +194,8 @@
   .break {
     word-break: break-all;
   }
-  .uline {
-    text-decoration: underline;
+  .thisWalletTag{
+    color: hsla(160, 100%, 37%, 1)
   }
 
   @media only screen and (max-width: 450px) {
