@@ -1,20 +1,26 @@
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import os from 'os';
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath } from 'node:url';
+import Store from 'electron-store';
 
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
 
+const store = new Store();
+
 let mainWindow: BrowserWindow | undefined;
 
 function createWindow() {
-  /**
-   * Initial window options
-   */
+  const windowState = store.get('windowState') as {
+    isMaximized: boolean;
+    bounds: Electron.Rectangle;
+  } | undefined;
+
   mainWindow = new BrowserWindow({
+    ...(windowState?.bounds ?? { width: 1000, height: 800 }),
     icon: path.resolve(currentDir, 'icons/icon.png'), // tray icon
     show: false,
     useContentSize: true,
@@ -34,7 +40,23 @@ function createWindow() {
   } else {
     mainWindow.loadFile('index.html')
   }
-  mainWindow.maximize();
+
+  const saveWindowState = () => {
+    if (!mainWindow) return;
+
+    store.set('windowState', {
+      isMaximized: mainWindow.isMaximized(),
+      bounds: mainWindow.getBounds(),
+    });
+  };
+
+  mainWindow.on('close', saveWindowState);
+
+  // Maximize on first launch or when isMaximized is true
+  if (!windowState?.bounds || windowState.isMaximized) {
+    mainWindow.maximize();
+  }
+
   mainWindow.show();
 
   // Open links in browser window
