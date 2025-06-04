@@ -3,12 +3,12 @@ import type { UtxoI, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest,
 export const CurrencySymbols = {
   usd: "$",
   eur: "€"
-}
+} as const
 
 export const CurrencyShortNames = {
   usd: "USD",
   eur: "EUR"
-}
+} as const
 
 export type TokenList = (TokenDataNFT | TokenDataFT)[]
 

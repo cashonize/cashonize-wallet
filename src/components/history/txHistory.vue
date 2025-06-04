@@ -5,8 +5,7 @@
   import { useWindowSize } from '@vueuse/core';
   import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
-  import { formatTimestamp } from 'src/utils/utils';
-  import { CurrencySymbols } from 'src/interfaces/interfaces';
+  import { formatTimestamp, formatFiatAmount } from 'src/utils/utils';
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -15,6 +14,10 @@
   const currentPage = ref(1)
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 570)
+
+  const bchDisplayUnit = computed(() => {
+    return store.network === "mainnet" ? "BCH" : "tBCH";
+  });
 
   const exchangeRate = +(await ExchangeRate.get(settingsStore.currency, true)).toFixed(2)
 
@@ -34,13 +37,6 @@
     return selectedHistory.value?.slice(start, start + itemsPerPage)
   })
   const totalPages = computed(() => Math.ceil((selectedHistory.value?.length ?? 0) / itemsPerPage))
-
-  function formatFiatAmount(amount: number): string {
-    return amount.toLocaleString('en', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  }
 </script>
 
 <template>
@@ -95,17 +91,17 @@
 
             <td class="value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
               {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toFixed(5)}`}}
-              {{ isMobile? "" : (store.network == "mainnet"? "BCH" : "tBCH") }}
+              {{ isMobile? "" : (bchDisplayUnit) }}
               <div v-if="settingsStore.showFiatValueHistory">
-                ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(exchangeRate * transaction.valueChange / 100_000_000) + CurrencySymbols[settingsStore.currency]}})
+                ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency)}})
               </div>
             </td>
               
             <td class="value">
               {{ (transaction.balance / 100_000_000).toFixed(5) }}
-              {{ isMobile? "" : (store.network == "mainnet"? "BCH" : "tBCH") }}
+              {{ isMobile? "" : (bchDisplayUnit) }}
               <div v-if="settingsStore.showFiatValueHistory">
-                ~{{formatFiatAmount(exchangeRate * transaction.balance / 100_000_000) + CurrencySymbols[settingsStore.currency]}}
+                ~{{formatFiatAmount(exchangeRate * transaction.balance / 100_000_000, settingsStore.currency) }}
               </div>
             </td>
 
