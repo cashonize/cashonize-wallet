@@ -132,7 +132,8 @@
       console.log(`${store.explorerUrl}/${txId}`);
       destinationAddr.value = "";
       displaySendNft.value = false;
-      await store.updateTokenList();
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     }catch(error){
@@ -258,7 +259,8 @@
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
-      await store.updateTokenList();
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch (error) {

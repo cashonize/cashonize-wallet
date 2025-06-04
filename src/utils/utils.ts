@@ -27,6 +27,10 @@ export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
   return Number(newFiatValue.toFixed(2));
 }
 
+export function getTokenUtxos(utxos:  UtxoI[]){
+  return utxos.filter((val) =>val.token);
+}
+
 export function getAllNftTokenBalances(tokenUtxos: UtxoI[]){
   const result:Record<string, number> = {};
   const nftUtxos = tokenUtxos.filter((val) => val.token?.commitment !== undefined);

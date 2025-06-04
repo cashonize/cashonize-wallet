@@ -17,7 +17,7 @@ import {
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import { CurrencySymbols, type BcmrTokenMetadata, type TokenList, type BcmrIndexerResponse } from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
-import { getAllNftTokenBalances, getFungibleTokenBalances } from "src/utils/utils"
+import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -44,8 +44,7 @@ export const useStore = defineStore('store', () => {
   const wallet = ref(null as (Wallet | TestNetWallet | null));
   const balance = ref(undefined as (BalanceResponse | undefined));
   const maxAmountToSend = ref(undefined as (BalanceResponse | undefined));
-  const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
-  const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
+  const walletUtxos = ref(undefined as (UtxoI[] | undefined));
   const walletHistory = ref(undefined as (WalletHistoryReturnType | undefined));
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
@@ -53,6 +52,10 @@ export const useStore = defineStore('store', () => {
   const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
+
+  // Computed properties
+  const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
+  const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
   const isWcAndCcInitialized =  computed(() => isWcInitialized.value && isCcInitialized.value)
   const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
@@ -108,32 +111,32 @@ export const useStore = defineStore('store', () => {
       console.timeEnd('initialize walletconnect and cashconnect');
       setUpWalletSubscriptions();
       // fetch bch balance
-      console.time('Balance Promises');
+      console.time('fetch balance');
       const promiseWalletBalance = wallet.value.getBalance();
       const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend();
       const balancePromises = [promiseWalletBalance, promiseMaxAmountToSend];
       const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
-      console.timeEnd('Balance Promises');
-      // fetch token balance
-      console.time('fetch tokenUtxos Promise');
-      await updateTokenList();
-      console.timeEnd('fetch tokenUtxos Promise');
+      console.timeEnd('fetch balance');
+      // fetch wallet utxos
+      console.time('fetch wallet utxos');
+      await updateWalletUtxos()
+      console.timeEnd('fetch wallet utxos');
       // set values simulatenously with tokenList so the UI elements load together
       balance.value = resultWalletBalance as BalanceResponse;
       maxAmountToSend.value = resultMaxAmountToSend as BalanceResponse;
       // get plannedTokenId
       if(!tokenList.value) return // should never happen
-      console.time('importRegistries');
+      console.time('import registries');
       await importRegistries(tokenList.value, false);
-      console.timeEnd('importRegistries');
+      console.timeEnd('import registries');
       console.time('fetch history');
       await updateWalletHistory()
       console.timeEnd('fetch history');
       hasPreGenesis()
       // fetchAuthUtxos start last because it is not critical
-      console.time('fetchAuthUtxos');
+      console.time('fetch authUtxos');
       await fetchAuthUtxos();
-      console.timeEnd('fetchAuthUtxos');
+      console.timeEnd('fetch authUtxos');
     } catch (error) {
       if(!earlyError) displayAndLogError(error);
     } 
@@ -180,7 +183,8 @@ export const useStore = defineStore('store', () => {
       }
       // Dynamically import tokenmetadata
       await importRegistries(listNewTokens, true);
-      await updateTokenList();
+      // refetch utxos to update tokenList
+      await updateWalletUtxos();
       updateWalletHistory()
     });
     cancelWatchBlocks = wallet.value?.watchBlocks((header: HexHeaderI) => {
@@ -266,6 +270,21 @@ export const useStore = defineStore('store', () => {
     });
   }
 
+  async function updateWalletUtxos() {
+    try {
+      walletUtxos.value = await wallet.value?.getAddressUtxos();
+      updateTokenList()
+    } catch(error) {
+      const errorMessage = typeof error == 'string' ? error : "something went wrong";
+      console.error(errorMessage)
+      Notify.create({
+        message: errorMessage,
+        icon: 'warning',
+        color: "red"
+      })
+    }
+  }
+
   async function updateWalletHistory() {
     try {
       walletHistory.value = await wallet.value?.getHistory({});
@@ -280,9 +299,9 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  async function updateTokenList() {
-    if(!wallet.value) return // should never happen
-    const tokenUtxos = await wallet.value.getTokenUtxos();
+  function updateTokenList() {
+    if(!wallet.value || !walletUtxos.value) return // should never happen
+    const tokenUtxos = getTokenUtxos(walletUtxos.value);
     const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
     const nftsResult = getAllNftTokenBalances(tokenUtxos);
     if(!fungibleTokensResult || !nftsResult) return // should never happen
@@ -298,8 +317,6 @@ export const useStore = defineStore('store', () => {
     }
     // sort tokenList with featuredTokens first
     sortTokenList(arrayTokens);
-    const catgeories = Object.keys({...fungibleTokensResult, ...nftsResult})
-    return catgeories;
   }
 
   function sortTokenList(unsortedTokenList: TokenList) {
@@ -361,10 +378,9 @@ export const useStore = defineStore('store', () => {
   }
   
 
-  async function hasPreGenesis(){
+  function hasPreGenesis(){
     plannedTokenId.value = undefined;
-    const walletUtxos = await wallet.value?.getAddressUtxos();
-    const preGenesisUtxo = walletUtxos?.find(utxo => !utxo.token && utxo.vout === 0);
+    const preGenesisUtxo = walletUtxos.value?.find(utxo => !utxo.token && utxo.vout === 0);
     plannedTokenId.value = preGenesisUtxo?.txid ?? "";
   }
 
@@ -424,12 +440,13 @@ export const useStore = defineStore('store', () => {
     wallet,
     balance,
     maxAmountToSend,
-    network,
-    explorerUrl,
+    walletUtxos,
     tokenList,
     walletHistory,
     plannedTokenId,
     isWcAndCcInitialized,
+    network,
+    explorerUrl,
     bcmrRegistries,
     nrBcmrRegistries,
     currentBlockHeight,
@@ -437,10 +454,10 @@ export const useStore = defineStore('store', () => {
     setWallet,
     initializeWallet,
     resetWalletState,
+    updateWalletUtxos,
     updateWalletHistory,
     changeNetwork,
     fetchTokenInfo,
-    updateTokenList,
     hasPreGenesis,
     fetchAuthUtxos,
     importRegistries,

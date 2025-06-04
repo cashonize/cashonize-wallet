@@ -120,7 +120,9 @@
       // reset input fields
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
-      await store.hasPreGenesis()
+      // update utxo list
+      await store.updateWalletUtxos()
+      store.hasPreGenesis()
       // update wallet history
       store.updateWalletHistory();
     } catch(error){
@@ -163,7 +165,9 @@
       console.log(`${store.explorerUrl}/${txId}`);
       // reset input fields
       selectedTokenType.value  = "-select-";
-      await store.hasPreGenesis()
+      // update utxo list
+      await store.updateWalletUtxos()
+      store.hasPreGenesis()
       // update wallet history
       store.updateWalletHistory();
     } catch(error){

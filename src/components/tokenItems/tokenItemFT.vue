@@ -173,7 +173,8 @@
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
-      await store.updateTokenList();
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     }catch(error){
@@ -227,7 +228,8 @@
       console.log(`${store.explorerUrl}/${txId}`);
       burnAmountFTs.value = "";
       displayBurnFungibles.value = false;
-      await store.updateTokenList();
+      // update utxo list
+      await store.updateWalletUtxos();
     } catch (error) {
       handleTransactionError(error)
     }
