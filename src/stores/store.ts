@@ -24,6 +24,7 @@ import { useSettingsStore } from './settingsStore'
 import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
+import { cachedFetch } from "src/utils/cacheUtils"
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
@@ -341,11 +342,11 @@ export const useStore = defineStore('store', () => {
         const uniqueCommitments = new Set(listCommitments);
         for(const nftCommitment of uniqueCommitments) {
           const nftEndpoint = nftCommitment ? nftCommitment : "empty"
-          const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftEndpoint}/`);
+          const metadataPromise = cachedFetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftEndpoint}/`);
           metadataPromises.push(metadataPromise);
         }
       } else {
-        const metadataPromise = fetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/`);
+        const metadataPromise = cachedFetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/`);
         metadataPromises.push(metadataPromise);
       }
     }

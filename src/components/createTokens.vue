@@ -8,6 +8,7 @@
   import { useStore } from '../stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { cachedFetch } from 'src/utils/cacheUtils';
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -66,7 +67,7 @@
     const fetchLocation = selectedUri.value != "IPFS" ? "https://" + inputField + bcmrLocation : settingsStore.ipfsGateway + inputField;
     try{
       console.log("fetching bcmr at "+fetchLocation);
-      const response = await fetch(fetchLocation);
+      const response = await cachedFetch(fetchLocation);
       const bcmrContent = await response.text();
       JSON.parse(bcmrContent)
       validitityCheck.value = true;

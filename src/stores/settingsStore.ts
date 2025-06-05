@@ -159,7 +159,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   removeOldCacheData();
 
   function removeOldCacheData(){
-    // remove tx- and header- keys from local storage
+    // remove tx- and header- keys from localStorage
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('tx-') || key.startsWith('header-')) localStorage.removeItem(key);
     });

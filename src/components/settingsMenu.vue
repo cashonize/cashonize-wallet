@@ -20,6 +20,7 @@
   const displaySettingsMenu = ref(0);
   const latestGithubRelease = ref(undefined as undefined | string);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
+  const localStorageSizeMB = ref(undefined as undefined | number);
   
   // basic settings
   const selectedCurrency = ref(settingsStore.currency);
@@ -46,6 +47,7 @@
 
   onMounted(async () => {
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
+    localStorageSizeMB.value = calculateLocalStorageSizeMB()
   });
 
   if(isDesktop) getLatestGithubRelease()
@@ -64,8 +66,22 @@
     }
   }
 
-  async function calculateIndexedDBSizeMB(): Promise<number> {
+  async function calculateIndexedDBSizeMB() {
     const totalSize = await getElectrumCacheSize();
+    return totalSize / (1024 ** 2); // Convert to MB
+  }
+
+  function calculateLocalStorageSizeMB() {
+    let totalSize = 0;
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('cachedFetch-')) {
+        const value = localStorage.getItem(key);
+        // Value is multiplied by 2 due to data being stored in `utf-16` format, which requires twice the space.
+        if (value) totalSize += (key.length * 2) + (value.length * 2);
+      }
+    }
     return totalSize / (1024 ** 2); // Convert to MB
   }
 
@@ -163,6 +179,14 @@
   async function clearHistoryCache(){
     clearElectrumCache();
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
+  }
+
+  function clearMetadataCache(){
+    // remove cachedFetch- keys from localStorage
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('cachedFetch')) localStorage.removeItem(key);
+    });
+    localStorageSizeMB.value = calculateLocalStorageSizeMB();
   }
 </script>
 
@@ -277,9 +301,15 @@
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear wallet history from {{isBrowser? "browser": "application"}}
-        <span v-if="indexedDbCacheSizeMB">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
-        <input @click="clearHistoryCache()" type="button" value="Clear cache" class="button" style="display: block;">
+        Clear wallet history cache from {{isBrowser? "browser": "application"}}
+        <span v-if="indexedDbCacheSizeMB != undefined">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
+        <input @click="clearHistoryCache()" type="button" value="Clear history cache" class="button" style="display: block; color: black;">
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px">
+        Clear token-metadata cache from {{isBrowser? "browser": "application"}}
+        <span v-if="localStorageSizeMB != undefined">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
+        <input @click="clearMetadataCache()" type="button" value="Clear metadata cache" class="button" style="display: block; color: black;">
       </div>
     </div>
     <div v-else>
