@@ -110,7 +110,7 @@
                 <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
                   <span v-if="tokenChange.amount > 0n" class="value">+{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
                   <span v-else class="value" style="color: rgb(188,30,30)">{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
-                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
+                  <span class="hideOnOverflow"> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                 </span>
                 <span v-if="tokenChange.nftAmount !== 0n">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
@@ -170,7 +170,6 @@ tr.dark:nth-child(even) {
 }
 .tokenChangeItem {
   max-width: 160px;
-  overflow: auto;
   display: flex;
   align-items: center;
 }
@@ -192,7 +191,7 @@ img.tokenIcon {
     margin-right: 0px;
   }
   .tokenChange{
-    margin-left: 0px;
+    margin-left: -10px;
   }
   .tokenChangeItem {
     max-width: 120px;
@@ -203,6 +202,20 @@ img.tokenIcon {
   }
   .transactionTable > * {
     font-size: small;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .tokenChangeItem {
+    max-width: 100px;
+  }
+  .tokenChange {
+    margin-left: 0px;
+  }
+  .hideOnOverflow {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
   }
 }
 </style>
