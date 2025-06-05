@@ -40,6 +40,10 @@
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
   const selectedChaingraph = ref(settingsStore.chaingraph);
 
+  const utxosWithBchAndTokens = computed(() => {
+    return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
+  });
+
   onMounted(async () => {
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
   });
@@ -293,6 +297,10 @@
 
       <div v-if="!isMobile" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
         → Token Creation
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">
+        → UTXO Management <span v-if="utxosWithBchAndTokens?.length" style="color: orange">(important)</span>
       </div>
 
       <div style="margin-top:15px">

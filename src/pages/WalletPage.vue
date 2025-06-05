@@ -6,6 +6,7 @@
   import settingsMenu from 'src/components/settingsMenu.vue'
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/createTokens.vue'
+  import UtxoManagement from 'src/components/utxoManagement.vue'
   import { ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
   import { Wallet, TestNetWallet, DefaultProvider } from 'mainnet-js'
@@ -84,30 +85,47 @@
       store.changeView(1);
     }
   })
+
+  const hasUtxosWithBchAndTokens = computed(() => {
+    if (!store.wallet || !store.walletUtxos) return undefined;
+    return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n).length > 0;
+  });
+  const showNotificationIcon = computed(() => {
+    if (!store.wallet || !store.walletUtxos) return undefined;
+    return (!settingsStore.hasSeedBackedUp) || hasUtxosWithBchAndTokens.value;
+  });
 </script>
 
 <template>
   <header>
     <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
     <nav v-if="store.displayView" style="display: flex; justify-content: center;" class="tabs">
-      <div @click="store.changeView(1)" v-bind:style="store.displayView == 1 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Wallet" : "BchWallet"}}</div>
-      <div @click="store.changeView(2)" v-bind:style="store.displayView == 2 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Tokens" : "MyTokens"}}</div>
-      <div @click="store.changeView(3)" v-bind:style="store.displayView == 3 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "History" : "TxHistory"}}</div>
-      <div @click="store.changeView(4)" v-bind:style="store.displayView == 4 ? {color: 'var(--color-primary'} : ''">{{isMobile?  "Connect" : "WalletConnect"}}</div>
+      <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ isMobile ? "Wallet" : "BchWallet" }} </div>
+      <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ isMobile ? "Tokens" : "MyTokens" }} </div>
+      <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ isMobile ? "History" : "TxHistory" }} </div>
+      <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ isMobile ? "Connect" : "WalletConnect" }} </div>
       <div @click="store.changeView(5)" style="width: max-content; position: relative;">
-        <img style="vertical-align: text-bottom;" v-bind:src="store.displayView == 5 ? 'images/settingsGreen.svg' : 
-          settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg'">
-        <span v-if="!settingsStore.hasSeedBackedUp" class="notification-dot"></span>
+        <img style="vertical-align: text-bottom;" :src="store.displayView == 5 ? 'images/settingsGreen.svg' : (
+          settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg')">
+        <span v-if="showNotificationIcon" class="notification-dot"></span>
       </div>
     </nav>
   </header>
   <main style="margin: 20px auto; max-width: 78rem;">
     <newWalletView v-if="!store.wallet"/>
+
     <bchWalletView v-if="store.displayView == 1" :bchSendRequest="bchSendRequest"/>
     <myTokensView v-if="store.displayView == 2"/>
     <historyView v-if="store.displayView == 3"/>
     <connectDappView v-if="store.displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
     <settingsMenu v-if="store.displayView == 5"/>
     <createTokensView v-if="store.displayView == 6"/>
+    <UtxoManagement v-if="store.displayView == 7"/>
   </main>
 </template>
+
+<style scoped>
+.active {
+  color: var(--color-primary);
+}
+</style>
