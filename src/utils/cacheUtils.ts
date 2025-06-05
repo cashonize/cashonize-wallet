@@ -38,7 +38,7 @@ interface LocalStorageCacheResponse {
   timestamp: number
 }
 
-export async function cachedFetch(input: string ): Promise<Response> {
+export async function cachedFetch(input: string): Promise<Response> {
   const now = Date.now();
   const cacheDuration = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -51,13 +51,20 @@ export async function cachedFetch(input: string ): Promise<Response> {
   // If item exists in localStorage and is still valid, return it
   if ((now - timestamp < cacheDuration) && simpleResponse.status) {
     // create a new Response object from the cached data
-    return new Response(simpleResponse.responseText, {
+    const resp = new Response(simpleResponse.responseText, {
       status: simpleResponse.status,
       headers: { 'Content-Type': 'application/json' },
     });
+
+    // Set the URL property on the response object
+    Object.defineProperty(resp, "url", { value: input });
+    return resp;
   }
 
   const response = await fetch(input);
+  if (!response.ok) {
+    throw new Error(`Fetch ${input} failed: ${response.status} ${response.statusText}`);
+  }
   const responseText = await response.clone().text();
   localStorage.setItem(`${key}`, JSON.stringify(
     {
