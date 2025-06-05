@@ -37,6 +37,8 @@
       })
       console.log(`Created valid pre-genesis for token creation \n${store.explorerUrl}/${txId}`);
       store.plannedTokenId = txId;
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch(error){

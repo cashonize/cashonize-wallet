@@ -169,6 +169,8 @@
       console.log(`${store.explorerUrl}/${txId}`);
       destinationAddr.value = "";
       displaySendAllNfts.value = false;
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     }catch(error){
@@ -303,6 +305,8 @@
       mintCommitment.value = "";
       mintAmountNfts.value = undefined;
       startingNumberNFTs.value = undefined;
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch (error) {
@@ -402,6 +406,8 @@
       destinationAddr.value = "";
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch (error) { 

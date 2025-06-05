@@ -214,6 +214,8 @@
       mintCommitment.value = "";
       mintAmountNfts.value = undefined;
       startingNumberNFTs.value = undefined;
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch (error) {

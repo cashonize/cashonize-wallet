@@ -288,6 +288,8 @@
       destinationAddr.value = "";
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch (error) { 
