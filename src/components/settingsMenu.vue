@@ -45,6 +45,8 @@
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
   });
 
+  const platformString = isBrowser ? 'browser' : (isCapacitor ? 'app' : 'application');
+
   onMounted(async () => {
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
     localStorageSizeMB.value = calculateLocalStorageSizeMB()
@@ -167,8 +169,6 @@
     displaySeedphrase.value = !displaySeedphrase.value;
   }
   function confirmDeleteWallet(){
-    const isBrowser = (process.env.MODE == "spa");
-    const platformString = isBrowser ? 'browser' : 'application'
     const text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
     if (confirm(text)){
       indexedDB.deleteDatabase("bitcoincash");
@@ -298,20 +298,20 @@
         </select>
       </div>
 
-      <div style="margin-top:15px;">Remove wallet from {{isBrowser? "browser": "application"}}
+      <div style="margin-top:15px;">Remove wallet from {{ platformString }}
         <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear wallet history cache from {{isBrowser? "browser": "application"}}
-        <span v-if="indexedDbCacheSizeMB != undefined">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
+        Clear wallet history cache {{ isMobile? '' : 'from ' + platformString }}
+        <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
         <input @click="clearHistoryCache()" type="button" value="Clear history cache" class="button" style="display: block; color: black;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear token-metadata cache from {{isBrowser? "browser": "application"}}
-        <span v-if="localStorageSizeMB != undefined">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
-        <input @click="clearMetadataCache()" type="button" value="Clear metadata cache" class="button" style="display: block; color: black;">
+        Clear token-metadata cache {{ isMobile? '' : 'from ' + platformString }}
+        <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
+        <input @click="clearMetadataCache()" type="button" value="Clear token cache" class="button" style="display: block; color: black;">
       </div>
     </div>
     <div v-else>
@@ -381,3 +381,9 @@
 </template>
 
 <style src="@vueform/toggle/themes/default.css"></style>
+
+<style scoped>
+.nowrap {
+  white-space: nowrap;
+}
+</style>
