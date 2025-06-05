@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
-  import { computed, onMounted, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -47,11 +47,6 @@
 
   const platformString = isBrowser ? 'browser' : (isCapacitor ? 'app' : 'application');
 
-  onMounted(async () => {
-    indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
-    localStorageSizeMB.value = calculateLocalStorageSizeMB()
-  });
-
   if(isDesktop) getLatestGithubRelease()
 
   async function getLatestGithubRelease(){
@@ -86,6 +81,20 @@
     }
     return totalSize / (1024 ** 2); // Convert to MB
   }
+
+  async function loadCacheSizes() {
+    indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
+    localStorageSizeMB.value = calculateLocalStorageSizeMB()
+  };
+
+  // Loading Cache data is expensive with capacitor so don't block UI on loading
+  watch(displaySettingsMenu, (newVal) => {
+    // Load cache sizes if the user opens the advanced settings menu
+    if (newVal === 3) {
+      // defer execution to allow UI to render first
+      setTimeout(async () => await loadCacheSizes(), 0);
+    }
+  });
 
   async function changeCurrency(){
     Config.DefaultCurrency = selectedCurrency.value;
