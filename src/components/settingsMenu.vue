@@ -173,6 +173,8 @@
     if (confirm(text)){
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
+      clearHistoryCache()
+      clearMetadataCache()
       location.reload(); 
     }
   }
