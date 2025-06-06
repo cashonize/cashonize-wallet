@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
-  import { computed, onMounted, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -20,6 +20,7 @@
   const displaySettingsMenu = ref(0);
   const latestGithubRelease = ref(undefined as undefined | string);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
+  const localStorageSizeMB = ref(undefined as undefined | number);
   
   // basic settings
   const selectedCurrency = ref(settingsStore.currency);
@@ -40,9 +41,11 @@
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
   const selectedChaingraph = ref(settingsStore.chaingraph);
 
-  onMounted(async () => {
-    indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
+  const utxosWithBchAndTokens = computed(() => {
+    return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
   });
+
+  const platformString = isBrowser ? 'browser' : (isCapacitor ? 'app' : 'application');
 
   if(isDesktop) getLatestGithubRelease()
 
@@ -60,10 +63,38 @@
     }
   }
 
-  async function calculateIndexedDBSizeMB(): Promise<number> {
+  async function calculateIndexedDBSizeMB() {
     const totalSize = await getElectrumCacheSize();
     return totalSize / (1024 ** 2); // Convert to MB
   }
+
+  function calculateLocalStorageSizeMB() {
+    let totalSize = 0;
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('cachedFetch-')) {
+        const value = localStorage.getItem(key);
+        // Value is multiplied by 2 due to data being stored in `utf-16` format, which requires twice the space.
+        if (value) totalSize += (key.length * 2) + (value.length * 2);
+      }
+    }
+    return totalSize / (1024 ** 2); // Convert to MB
+  }
+
+  async function loadCacheSizes() {
+    indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
+    localStorageSizeMB.value = calculateLocalStorageSizeMB()
+  };
+
+  // Loading Cache data is expensive with capacitor so don't block UI on loading
+  watch(displaySettingsMenu, (newVal) => {
+    // Load cache sizes if the user opens the advanced settings menu
+    if (newVal === 3) {
+      // defer execution to allow UI to render first
+      setTimeout(async () => await loadCacheSizes(), 0);
+    }
+  });
 
   async function changeCurrency(){
     Config.DefaultCurrency = selectedCurrency.value;
@@ -147,18 +178,26 @@
     displaySeedphrase.value = !displaySeedphrase.value;
   }
   function confirmDeleteWallet(){
-    const isBrowser = (process.env.MODE == "spa") && !process.env.TAURI;
-    const platformString = isBrowser ? 'browser' : 'application'
     const text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
     if (confirm(text)){
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
+      clearHistoryCache()
+      clearMetadataCache()
       location.reload(); 
     }
   }
   async function clearHistoryCache(){
     clearElectrumCache();
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
+  }
+
+  function clearMetadataCache(){
+    // remove cachedFetch- keys from localStorage
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('cachedFetch')) localStorage.removeItem(key);
+    });
+    localStorageSizeMB.value = calculateLocalStorageSizeMB();
   }
 </script>
 
@@ -268,14 +307,20 @@
         </select>
       </div>
 
-      <div style="margin-top:15px;">Remove wallet from {{isBrowser? "browser": "application"}}
+      <div style="margin-top:15px;">Remove wallet from {{ platformString }}
         <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear wallet history from {{isBrowser? "browser": "application"}}
-        <span v-if="indexedDbCacheSizeMB">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
-        <input @click="clearHistoryCache()" type="button" value="Clear cache" class="button" style="display: block;">
+        Clear wallet history cache {{ isMobile? '' : 'from ' + platformString }}
+        <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
+        <input @click="clearHistoryCache()" type="button" value="Clear history cache" class="button" style="display: block; color: black;">
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px">
+        Clear token-metadata cache {{ isMobile? '' : 'from ' + platformString }}
+        <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
+        <input @click="clearMetadataCache()" type="button" value="Clear token cache" class="button" style="display: block; color: black;">
       </div>
     </div>
     <div v-else>
@@ -293,6 +338,10 @@
 
       <div v-if="!isMobile" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
         → Token Creation
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">
+        → UTXO Management <span v-if="utxosWithBchAndTokens?.length" style="color: orange">(important)</span>
       </div>
 
       <div style="margin-top:15px">
@@ -341,3 +390,9 @@
 </template>
 
 <style src="@vueform/toggle/themes/default.css"></style>
+
+<style scoped>
+.nowrap {
+  white-space: nowrap;
+}
+</style>

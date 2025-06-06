@@ -20,6 +20,7 @@ import type { WcTransactionObj } from "src/interfaces/wcInterfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { createSignedWcTransaction } from "src/utils/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
+import { displayAndLogError } from "src/utils/errorHandling"
 const settingsStore = useSettingsStore()
 
 type ChangeNetwork = (network: "mainnet" | "chipnet") => Promise<void>;
@@ -173,6 +174,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
           const session = sessions[topic];
           if (!session) return;
           const dappMetadata = session.peer.metadata;
+          if(!isValidSignMessageRequest(event)) return
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
               component: WC2SignMessageRequest,
@@ -186,7 +188,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
                 resolve();
                 Notify.create({
                   color: "positive",
-                  message: "Successfully signed transaction",
+                  message: "Successfully signed message",
                 });
               })
               .onCancel(async() => {
@@ -300,6 +302,21 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
         type: 'positive',
         message
       })
+    }
+
+    function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
+      try{
+        const requestParams = signMessageRequestWC.params.request.params
+        const message = requestParams?.message;
+        if(!message) throw new Error("Invalid request: No message provided to sign");
+        const signingAddress = requestParams?.address ?? requestParams?.account;
+        const walletAddress = wallet.value?.address
+        if(signingAddress !== walletAddress) throw new Error("Invalid request: Invalid signing address provided");
+        return true
+      } catch (error) {
+        displayAndLogError(error);
+        return false
+      }
     }
 
     async function signMessage(signMessageRequestWC: WalletKitTypes.SessionRequest){

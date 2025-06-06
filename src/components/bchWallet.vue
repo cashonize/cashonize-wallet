@@ -5,7 +5,7 @@
   import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
-  import { copyToClipboard } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
   import { useWindowSize } from '@vueuse/core'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -41,7 +41,7 @@
   const displayCurrencyBalance = computed(() => {
     const balance = store.balance?.[settingsStore.currency];
     if (balance === undefined) return '';
-    return balance.toFixed(2) + ` ${CurrencySymbols[settingsStore.currency]}`;
+    return formatFiatAmount(balance, settingsStore.currency);
   });
 
   defineCustomElements(window);
@@ -163,6 +163,8 @@
       bchSendAmount.value = undefined;
       currencySendAmount.value = undefined;
       destinationAddr.value = "";
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch(error){

@@ -1,6 +1,6 @@
 import { type UtxoI } from "mainnet-js"
 import { hexToBin } from "@bitauth/libauth"
-import type { ElectrumTokenData, TokenDataFT, TokenDataNFT } from "../interfaces/interfaces"
+import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames } from "../interfaces/interfaces"
 import { Notify } from "quasar";
 import { type Ref, watch, type WatchStopHandle } from "vue";
 
@@ -25,6 +25,18 @@ export function formatTimestamp(timestamp?: number){
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
   const newFiatValue =  Number(satAmount) * exchangeRate / 100_000_000
   return Number(newFiatValue.toFixed(2));
+}
+
+export function formatFiatAmount(amount: number, currency: keyof typeof CurrencyShortNames): string {
+  return amount.toLocaleString('en', { style: "currency", currency });
+}
+
+export function satsToBch(satoshis: bigint | number) {
+  return Number(satoshis) / 100_000_000;
+};
+
+export function getTokenUtxos(utxos:  UtxoI[]){
+  return utxos.filter((val) =>val.token);
 }
 
 export function getAllNftTokenBalances(tokenUtxos: UtxoI[]){

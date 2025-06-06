@@ -5,6 +5,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
+  import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
@@ -35,6 +36,7 @@
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   const totalSupplyFT = ref(undefined as bigint | undefined);
   const reservedSupply = ref(undefined as bigint | undefined);
+  const showQrCodeDialog = ref(false);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
 
@@ -89,6 +91,16 @@
     if(!validInput && !decimals) throw(`This token does not allow for decimal places`);
     if(!validInput) throw (`This token only allows up to ${decimals} decimal places`);
   }
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+  }
+  const qrFilter = (content: string) => {
+    const decoded = decodeCashAddress(content);
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+      return "Not a cashaddress on current network";
+    }
+    return true;
+  }
   // Fungible token specific functionality
   function toAmountDecimals(amount:bigint){
     let tokenAmountDecimals: bigint|number = amount;
@@ -141,7 +153,7 @@
           tokenId: tokenId,
         }),
       ]);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const alertMessage = tokenMetaData.value?.token?.symbol ?
         `Sent ${amountSentFormatted} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
@@ -161,7 +173,8 @@
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
-      await store.updateTokenList();
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     }catch(error){
@@ -196,7 +209,7 @@
         },
         "burn", // optional OP_RETURN message
       );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const amountBurntFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const alertMessage = tokenMetaData.value?.token?.symbol ?
         `Burned ${amountBurntFormatted} ${tokenMetaData.value.token.symbol}`
@@ -215,7 +228,8 @@
       console.log(`${store.explorerUrl}/${txId}`);
       burnAmountFTs.value = "";
       displayBurnFungibles.value = false;
-      await store.updateTokenList();
+      // update utxo list
+      await store.updateWalletUtxos();
     } catch (error) {
       handleTransactionError(error)
     }
@@ -258,7 +272,7 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const alertMessage = `Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
@@ -274,6 +288,8 @@
       destinationAddr.value = "";
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch (error) { 
@@ -296,7 +312,7 @@
   <div :id="`id${tokenData.tokenId.slice(0, 10)}`" class="item">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon" class="tokenIcon" loading="lazy" :src="httpsUrlTokenIcon">
+        <img v-if="httpsUrlTokenIcon" class="tokenIcon" width="48" height="48" loading="lazy" :src="httpsUrlTokenIcon">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
@@ -305,7 +321,7 @@
               TokenId: 
               <span @click="copyToClipboard(tokenData.tokenId)">
                 <span class="tokenId" style="cursor: pointer;">
-                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-10)}`}}
+                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-8)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-8)}`}}
                 </span>
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
@@ -386,12 +402,17 @@
           Send these tokens to
           <div class="inputGroup">
             <div class="addressInputFtSend">
-              <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              <span style="width: 100%; position: relative;">
+                <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              </span>
+              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
+                <img src="images/qrscan.svg" />
+              </button>
             </div>
             <div class="sendTokenAmount">
-              <span style="width: 100%; position: relative; ">
+              <span style="width: 100%; position: relative;">
                 <input v-model="tokenSendAmount" placeholder="amount" name="tokenAmountInput">
-                <i class="input-icon" style="width: min-content; padding-right: 15px;">
+                <i class="input-icon" style="width: min-content; padding-right: 15px; color: black;">
                   {{ tokenMetaData?.token?.symbol ?? "tokens" }}
                 </i>
               </span>
@@ -430,5 +451,8 @@
         </div>
       </div>
     </fieldset>
+  </div>
+  <div v-if="showQrCodeDialog">
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>

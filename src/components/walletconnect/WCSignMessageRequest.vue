@@ -3,8 +3,6 @@
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit'
-  import { useStore } from 'src/stores/store'
-  const store = useStore()
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
@@ -18,13 +16,8 @@
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
   
   const requestParams = signMessageRequestWC.value.params.request.params
+  const message = requestParams.message as string
   const signingAddress = requestParams?.address ?? requestParams?.account;
-  const walletAddress = store.wallet?.address
-  if(signingAddress !== walletAddress) onDialogCancel()
-
-  const message = requestParams?.message;
-  if(!message) onDialogCancel()
-
 </script>
 
 <template>
@@ -42,7 +35,7 @@
           <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
-            <a :href="dappMetadata.url">{{ dappMetadata.url }}</a>
+            <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
           </div>
         </div>
         <hr>
@@ -71,7 +64,8 @@
     max-height: 90vh;
     width: 500px;
     max-width: 100%;
-    background-color: white
+    background-color: white;
+    overflow-wrap: anywhere;
   }
   body.dark .dialogFieldsetSignMessage {
     background-color: #050a14;

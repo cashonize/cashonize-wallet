@@ -3,11 +3,13 @@
   import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
   import { copyToClipboard } from 'src/utils/utils';
   import alertDialog from 'src/components/alertDialog.vue'
+  import EmojiItem from './general/emojiItem.vue';
   import { type TokeneGenesisRequestParams } from 'src/interfaces/interfaces';
   import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useStore } from '../stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { cachedFetch } from 'src/utils/cacheUtils';
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -17,7 +19,7 @@
   const selectedUri = ref("-select-");
   const inputBcmr = ref("");
   const validitityCheck = ref(undefined as boolean | undefined);
-  const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-10)}`:"");
+  const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-8)}`:"");
 
   async function createPreGenesis(){
     if(!store.wallet) return;
@@ -37,6 +39,8 @@
       })
       console.log(`Created valid pre-genesis for token creation \n${store.explorerUrl}/${txId}`);
       store.plannedTokenId = txId;
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch(error){
@@ -64,7 +68,7 @@
     const fetchLocation = selectedUri.value != "IPFS" ? "https://" + inputField + bcmrLocation : settingsStore.ipfsGateway + inputField;
     try{
       console.log("fetching bcmr at "+fetchLocation);
-      const response = await fetch(fetchLocation);
+      const response = await cachedFetch(fetchLocation);
       const bcmrContent = await response.text();
       JSON.parse(bcmrContent)
       validitityCheck.value = true;
@@ -120,7 +124,9 @@
       // reset input fields
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
-      await store.hasPreGenesis()
+      // update utxo list
+      await store.updateWalletUtxos()
+      store.hasPreGenesis()
       // update wallet history
       store.updateWalletHistory();
     } catch(error){
@@ -163,7 +169,9 @@
       console.log(`${store.explorerUrl}/${txId}`);
       // reset input fields
       selectedTokenType.value  = "-select-";
-      await store.hasPreGenesis()
+      // update utxo list
+      await store.updateWalletUtxos()
+      store.hasPreGenesis()
       // update wallet history
       store.updateWalletHistory();
     } catch(error){
@@ -271,7 +279,10 @@
             The BCMR location together with the hash of its content will be stored on the blockchain.
             <input v-model="inputBcmr" @input="getOpreturnData" placeholder="bafkreiaqpmlrtsdf5cvwgh46mpyric2r44ikqzqgtevny74qdmrjc5dkxy">
           </div><br>
-          <b>Validity check metadata: {{ validitityCheck == undefined ? '...' : (validitityCheck ? '✅':'❌') }}</b>
+          <b>Validity check metadata:
+            <EmojiItem v-if="validitityCheck != undefined" :emoji="validitityCheck ? '✅':'❌'" style="vertical-align: baseline;"/>
+            <span v-else>...</span>
+          </b>
         </details><br>
         <b>Note:</b> Token metadata can still be added/updated after creation with the token's AuthUTXO.
         That's why the AuthUTXO should be transferred to a dedicated wallet right after creation.<br><br>

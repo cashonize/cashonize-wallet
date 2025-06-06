@@ -5,8 +5,8 @@
   import { useWindowSize } from '@vueuse/core';
   import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
-  import { formatTimestamp } from 'src/utils/utils';
-  import { CurrencySymbols } from 'src/interfaces/interfaces';
+  import EmojiItem from '../general/emojiItem.vue';
+  import { formatTimestamp, formatFiatAmount } from 'src/utils/utils';
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -15,6 +15,10 @@
   const currentPage = ref(1)
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 570)
+
+  const bchDisplayUnit = computed(() => {
+    return store.network === "mainnet" ? "BCH" : "tBCH";
+  });
 
   const exchangeRate = +(await ExchangeRate.get(settingsStore.currency, true)).toFixed(2)
 
@@ -75,7 +79,7 @@
             :class="settingsStore.darkMode ? 'dark' : ''"
           >
 
-            <td>{{ transaction.timestamp ? "✅" : "⏳" }}</td>
+            <td><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳' " style="margin: 0 5px; vertical-align: sub;"/> </td>
 
             <td v-if="isMobile">
               <div v-if="transaction.timestamp" style="line-height: 1.3">
@@ -87,25 +91,27 @@
             <td v-else>{{ transaction.timestamp ? formatTimestamp(transaction.timestamp) : "Unconfirmed" }}</td>
 
             <td class="value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
-              {{ `${transaction.valueChange > 0 ? '+' : '' }${transaction.valueChange / 100_000_000}` + (isMobile? "" : " BCH")}}
+              {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toFixed(5)}`}}
+              {{ isMobile? "" : (bchDisplayUnit) }}
               <div v-if="settingsStore.showFiatValueHistory">
-                ({{`${transaction.valueChange > 0 ? '+' : '' }` + (exchangeRate * transaction.valueChange / 100_000_000).toFixed(2) + CurrencySymbols[settingsStore.currency]}})
+                ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency)}})
               </div>
             </td>
               
             <td class="value">
-              {{ transaction.balance / 100_000_000 }}{{ isMobile? "" : " BCH" }}
+              {{ (transaction.balance / 100_000_000).toFixed(5) }}
+              {{ isMobile? "" : (bchDisplayUnit) }}
               <div v-if="settingsStore.showFiatValueHistory">
-                ~{{(exchangeRate * transaction.balance / 100_000_000).toFixed(2) + CurrencySymbols[settingsStore.currency]}}
+                ~{{formatFiatAmount(exchangeRate * transaction.balance / 100_000_000, settingsStore.currency) }}
               </div>
             </td>
 
-            <td v-if="transaction.tokenAmountChanges.length" class="tokenChange">
+            <td class="tokenChange">
               <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
                 <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
                   <span v-if="tokenChange.amount > 0n" class="value">+{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
                   <span v-else class="value" style="color: rgb(188,30,30)">{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
-                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
+                  <span class="hideOnOverflow"> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                 </span>
                 <span v-if="tokenChange.nftAmount !== 0n">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
@@ -116,12 +122,11 @@
                 <img
                   v-if="store.bcmrRegistries?.[tokenChange.tokenId]"
                   class="tokenIcon"
-                  style="width: 24px; height: 24px; border-radius: 50%;"
+                  style="width: 28px; height: 28px; border-radius: 50%;"
                   :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
                   >
               </div>
             </td>
-            <td v-else></td>
           </tr>
         </tbody>
       </table>
@@ -162,10 +167,10 @@ tr.dark:nth-child(even) {
   justify-content: flex-end;
   text-align: end;
   width: auto;
+  margin-left: -30px;
 }
 .tokenChangeItem {
   max-width: 160px;
-  overflow: auto;
   display: flex;
   align-items: center;
 }
@@ -186,6 +191,9 @@ img.tokenIcon {
   .tokenIcon {
     margin-right: 0px;
   }
+  .tokenChange{
+    margin-left: -10px;
+  }
   .tokenChangeItem {
     max-width: 120px;
     text-align: center;
@@ -195,6 +203,20 @@ img.tokenIcon {
   }
   .transactionTable > * {
     font-size: small;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .tokenChangeItem {
+    max-width: 100px;
+  }
+  .tokenChange {
+    margin-left: 0px;
+  }
+  .hideOnOverflow {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
   }
 }
 </style>

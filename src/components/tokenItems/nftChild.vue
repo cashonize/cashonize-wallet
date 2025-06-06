@@ -7,6 +7,7 @@
   // @ts-ignore
   import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/alertDialog.vue'
+  import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { BcmrTokenMetadata, TokenBurnRequestParams, TokenSendRequestParams } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -34,6 +35,7 @@
   const mintCommitment = ref("");
   const mintAmountNfts = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
+  const showQrCodeDialog = ref(false);
 
   const nftMetadata = computed(() => {
     const commitment = nftData.value?.token?.commitment;
@@ -75,6 +77,16 @@
     iconDiv?.appendChild(icon);
   })
 
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+  }
+  const qrFilter = (content: string) => {
+    const decoded = decodeCashAddress(content);
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+      return "Not a cashaddress on current network";
+    }
+    return true;
+  }
   async function sendNft(){
     try{
       if(!store.wallet) return;
@@ -104,7 +116,7 @@
           capability: nftInfo.capability,
         } as TokenSendRequestParams),
       ]);
-      const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-10)}`;
+      const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-8)}`;
       const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
@@ -120,7 +132,8 @@
       console.log(`${store.explorerUrl}/${txId}`);
       destinationAddr.value = "";
       displaySendNft.value = false;
-      await store.updateTokenList();
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     }catch(error){
@@ -179,7 +192,7 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
       const alertMessage = mintAmount == 1 ?
         `Minted immutable NFT of category ${displayId} ${commitmentText}`
@@ -201,6 +214,8 @@
       mintCommitment.value = "";
       mintAmountNfts.value = undefined;
       startingNumberNFTs.value = undefined;
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch (error) {
@@ -232,7 +247,7 @@
         } as TokenBurnRequestParams,
         "burn", // optional OP_RETURN message
       );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const alertMessage = `Burned ${nftTypeString} of category ${displayId}`
       $q.dialog({
         component: alertDialog,
@@ -246,7 +261,8 @@
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
-      await store.updateTokenList();
+      // update utxo list
+      await store.updateWalletUtxos();
       // update wallet history
       store.updateWalletHistory();
     } catch (error) {
@@ -269,10 +285,10 @@
   <div class="item" :id="id">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
+        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
         </video>
-        <img v-else-if="httpsUrlTokenIcon" class="tokenIcon" loading="lazy" :style="{ cursor: (nftMetadata?.uris?.image || nftMetadata?.uris?.icon) ? 'pointer' : 'default' }" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
+        <img v-else-if="httpsUrlTokenIcon" class="tokenIcon" width="48" height="48" loading="lazy" :style="{ cursor: (nftMetadata?.uris?.image|| nftMetadata?.uris?.icon) ? 'pointer' : 'default' }" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
 
         <div class="tokenBaseInfo">
@@ -310,10 +326,15 @@
         </div>
         <div v-if="displaySendNft" style="margin-top: 10px;">
           Send this NFT to
-          <p class="grouped">
-            <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+          <div class="inputGroup">
+            <div class="addressInputNftSend">
+              <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
+                <img src="images/qrscan.svg" />
+              </button>
+            </div>
             <input @click="sendNft()" type="button" class="primaryButton" value="Send NFT">
-          </p>
+          </div>
         </div>
         <div v-if="displayMintNfts" style="margin-top: 10px;">
           Mint a number of (unique) NFTs to a specific address
@@ -349,5 +370,8 @@
     <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
       <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata.uris.image : nftMetadata.uris.icon as string" :nftName="nftMetadata.name" @close-dialog="() => showNftImage = false"/>
     </div>
+  </div>
+  <div v-if="showQrCodeDialog">
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>
