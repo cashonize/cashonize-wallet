@@ -1,11 +1,11 @@
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, onMounted, onUnmounted, ref } from 'vue';
+  import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
   import { type DetectedBarcode } from 'vue-qrcode-reader'
   import ScannerUI from 'components/qr/qrScannerUi.vue'
-  import type { BarcodeScannerPlugin } from '@capacitor-community/barcode-scanner';
+  import type { CapacitorBarcodeScanner } from '@capacitor/barcode-scanner'
   import { caughtErrorToString } from 'src/utils/errorHandling';
-
   import { useWindowSize } from '@vueuse/core'
+
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
   const isCapacitor = (process.env.MODE == "capacitor");
@@ -15,11 +15,9 @@
   }>();
 
   const error = ref("");
-  const frontCamera = ref(false);
   const filterHint = ref("");
 
   const showDialog = ref(true);
-  const showScanner = ref(true);
 
   const QrcodeStream = !isCapacitor ? defineAsyncComponent(
     () => import('vue-qrcode-reader').then(m => m.QrcodeStream)
@@ -44,7 +42,6 @@
     } else if (err.name === 'NotReadableError') {
       error.value = CameraPermissionErrMsg4;
     } else if (err.name === 'OverconstrainedError') {
-      frontCamera.value = false;
       error.value = CameraPermissionErrMsg5;
     } else {
       error.value = UnknownErrorOccurred + ': ' + err.message;
@@ -66,79 +63,60 @@
     }
   }
 
-  let BarcodeScanner: BarcodeScannerPlugin | undefined;
+  let capacitorBarcodeScanner: {
+    scanBarcode: (typeof CapacitorBarcodeScanner)['scanBarcode']
+  } | undefined
+
   const scanBarcode = async () => {
+    if (!capacitorBarcodeScanner) return
     try {
-      if (!BarcodeScanner) return // should never happen
-      BarcodeScanner.hideBackground();
+      // plugin handles hideBackground / permission internally
 
-      // Request camera permission
-      const status = await BarcodeScanner.checkPermission({ force: true });
-      if (!status.granted) {
-        error.value = "Camera permission required";
-        return;
-      }
+      const QR_CODE = 0; // Html5QrcodeSupportedFormats.QR_CODE
+      const result = await capacitorBarcodeScanner.scanBarcode({
+        hint: QR_CODE,
+        scanButton: true,
+      })
 
-      document.body.classList.add('scanner-active')
-      document.body.classList.add('transparent-body')
-
-      // Start scanning
-      const result = await BarcodeScanner.startScan();
-      // If a QR code is detected
-      if (result.hasContent) {
-        emit('decode', result.content);
+      if (result?.ScanResult) {
+        const decoded = result.ScanResult
+        if (!props.filter) {
+          emit('decode', decoded)
+        } else {
+          const filterResult = props.filter(decoded)
+          if (filterResult === true) emit('decode', decoded)
+          else filterHint.value = filterResult
+        }
+        showDialog.value = false
+        emit('hide')
       } else {
         error.value = "Scan failed, try again.";
       }
-
-      // Restore background
-      document.body.classList.remove('transparent-body')
-      BarcodeScanner.showBackground();
-      document.body.classList.remove('scanner-active')
-      await BarcodeScanner.stopScan();
-      emit('hide')
-      showDialog.value = false;
     } catch (err) {
       const errorMessage = caughtErrorToString(err)
-      console.error("Scan error:", errorMessage);
       error.value = "Error scanning barcode: " + errorMessage;
     }
   };
 
-  function handleBeforeHide() {
-    if(isCapacitor && BarcodeScanner) {
-      document.body.classList.remove('transparent-body')
-      BarcodeScanner.showBackground();
-      document.body.classList.remove('scanner-active')
-    }
-
-    emit('hide');
-  } 
-
   onMounted(async() => {
     if(isCapacitor){
-      if (!BarcodeScanner) {
+      const module = await import('@capacitor/barcode-scanner');
       // Dynamically import the capacitor plugin so Vite can tree-shake it for web & electron builds
-      const module = await import('@capacitor-community/barcode-scanner');
-      BarcodeScanner = module.BarcodeScanner;
+      capacitorBarcodeScanner = module.CapacitorBarcodeScanner;
+      scanBarcode();
     }
-    scanBarcode();
-    }
-  });
-  onUnmounted(() => {
-    if(isCapacitor && BarcodeScanner) BarcodeScanner.stopScan();
   });
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @before-hide="handleBeforeHide">
+  <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @before-hide="() => emit('hide')">
     <div v-if="error" class="scanner-error-dialog text-center bg-red-1 text-red q-pa-md">
       <q-icon name="error" left/>
       {{ error }}
     </div>
     <q-card v-else :style="isMobile ? 'width: 100%; height: 100%;' : 'width: 75%; height: 75%;'">
       <component :is="QrcodeStream"
-           v-if="!isCapacitor"
+          v-if="!isCapacitor"
           :formats="['qr_code']"
           @detect="onScannerDecode"
           :style="{
@@ -149,7 +127,7 @@
           }"
           @error="onScannerError"
         />
-        <div v-if="showScanner" style="display: flex; height: 100%;">
+        <div style="display: flex; height: 100%;">
           <ScannerUI :filter-hint="filterHint" />
         </div>
     </q-card>
