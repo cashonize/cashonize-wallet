@@ -56,11 +56,12 @@ jobs:
       - name: Build Tauri App
         run: yarn tauri build --verbose
 
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: quasar-build-${{ matrix.os }}
-          path: src-tauri/target/
+          name: cashonize-tauri-${{ matrix.os }}
+          path: |
+            src-tauri/target/release/bundle/
+            src-tauri/target/release/*.exe
           if-no-files-found: error
-          compression-level: 0 # optional: speed boost
+          compression-level: 9 # optional: speed boost
