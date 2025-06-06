@@ -116,7 +116,7 @@
           capability: nftInfo.capability,
         } as TokenSendRequestParams),
       ]);
-      const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-10)}`;
+      const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-8)}`;
       const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
@@ -192,7 +192,7 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
       const alertMessage = mintAmount == 1 ?
         `Minted immutable NFT of category ${displayId} ${commitmentText}`
@@ -247,7 +247,7 @@
         } as TokenBurnRequestParams,
         "burn", // optional OP_RETURN message
       );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const alertMessage = `Burned ${nftTypeString} of category ${displayId}`
       $q.dialog({
         component: alertDialog,

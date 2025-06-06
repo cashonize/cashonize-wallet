@@ -153,7 +153,7 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send(outputArray);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const alertMessage = `Sent all NFTs of category  ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
@@ -207,7 +207,7 @@
           capability: nftInfo.capability,
         } as TokenSendRequestParams),
       ]);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
@@ -283,7 +283,7 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
       const alertMessage = mintAmount == 1 ?
         `Minted immutable NFT of category ${displayId} ${commitmentText}`
@@ -344,7 +344,7 @@
         } as TokenBurnRequestParams,
         "burn", // optional OP_RETURN message
       );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const alertMessage= `Burned ${nftTypeString} of category ${displayId}`;
       $q.dialog({
         component: alertDialog,
@@ -390,7 +390,7 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const alertMessage = `Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
@@ -444,7 +444,7 @@
               TokenId:
               <span @click="copyToClipboard(tokenData.tokenId)" style="cursor: pointer;">
                 <span class="tokenId">
-                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-10)}`}}
+                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-8)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-8)}`}}
                 </span>
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>

@@ -18,7 +18,7 @@
   const selectedUri = ref("-select-");
   const inputBcmr = ref("");
   const validitityCheck = ref(undefined as boolean | undefined);
-  const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-10)}`:"");
+  const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-8)}`:"");
 
   async function createPreGenesis(){
     if(!store.wallet) return;

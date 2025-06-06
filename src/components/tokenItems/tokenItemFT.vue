@@ -153,7 +153,7 @@
           tokenId: tokenId,
         }),
       ]);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const alertMessage = tokenMetaData.value?.token?.symbol ?
         `Sent ${amountSentFormatted} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
@@ -209,7 +209,7 @@
         },
         "burn", // optional OP_RETURN message
       );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const amountBurntFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const alertMessage = tokenMetaData.value?.token?.symbol ?
         `Burned ${amountBurntFormatted} ${tokenMetaData.value.token.symbol}`
@@ -272,7 +272,7 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-10)}`;
+      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const alertMessage = `Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
@@ -321,7 +321,7 @@
               TokenId: 
               <span @click="copyToClipboard(tokenData.tokenId)">
                 <span class="tokenId" style="cursor: pointer;">
-                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-10)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-10)}`}}
+                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-8)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-8)}`}}
                 </span>
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
