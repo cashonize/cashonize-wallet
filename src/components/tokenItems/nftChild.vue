@@ -285,10 +285,10 @@
   <div class="item" :id="id">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
+        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
         </video>
-        <img v-else-if="httpsUrlTokenIcon" class="tokenIcon" loading="lazy" :style="{ cursor: (nftMetadata?.uris?.image || nftMetadata?.uris?.icon) ? 'pointer' : 'default' }" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
+        <img v-else-if="httpsUrlTokenIcon" class="tokenIcon" width="48" height="48" loading="lazy" :style="{ cursor: (nftMetadata?.uris?.image|| nftMetadata?.uris?.icon) ? 'pointer' : 'default' }" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
 
         <div class="tokenBaseInfo">

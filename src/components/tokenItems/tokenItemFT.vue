@@ -312,7 +312,7 @@
   <div :id="`id${tokenData.tokenId.slice(0, 10)}`" class="item">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon" class="tokenIcon" loading="lazy" :src="httpsUrlTokenIcon">
+        <img v-if="httpsUrlTokenIcon" class="tokenIcon" width="48" height="48" loading="lazy" :src="httpsUrlTokenIcon">
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
