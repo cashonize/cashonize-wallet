@@ -79,7 +79,7 @@
             :class="settingsStore.darkMode ? 'dark' : ''"
           >
 
-            <td><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳' " style="margin: 0 5px;"/> </td>
+            <td><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳' " style="margin: 0 5px; vertical-align: sub;"/> </td>
 
             <td v-if="isMobile">
               <div v-if="transaction.timestamp" style="line-height: 1.3">
