@@ -2,6 +2,7 @@
   import { computed } from 'vue';
   import { formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import { ExchangeRate, TokenSendRequest, type UtxoI } from 'mainnet-js';
+  import EmojiItem from './general/emojiItem.vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -115,7 +116,9 @@
     <div>Combined BCH + Tokens on UTXOs is currently not well supported in Cashonize</div>
     <div>
       Number of UTXOs with BCH + Tokens: {{ utxosWithBchAndTokens?.length }}
-      <span style="font-size: large;">{{ utxosWithBchAndTokens?.length ? "⚠️" : "✅" }}</span>
+      <span style="font-size: large;">
+        <EmojiItem :emoji="utxosWithBchAndTokens?.length ? '⚠️' : '✅'" :sizePx="20" style="margin: 0 5px;vertical-align: sub;"/>
+      </span>
     </div>
     <div v-if="utxosWithBchAndTokens.filter(utxo => utxo.token?.capability).length" style="margin-bottom: 10px;">
       Note: The tool currently is only able to split BCH from UTXOs with fungible tokens
@@ -129,7 +132,7 @@
             <div style="margin-left: 15px;">
               {{ satsToBch(utxo.satoshis) }} BCH
               ({{formatFiatAmount(exchangeRate * satsToBch(utxo.satoshis), settingsStore.currency) }}) 
-              {{ utxo.satoshis > 100_000n ? "⚠️" : null }} <br/>
+              <EmojiItem v-if="utxo.satoshis > 100_000n" emoji="⚠️" :sizePx="20"/><br/>
               TokenId: {{ utxo.token?.tokenId }} <br/>
               Token: {{ store.bcmrRegistries?.[utxo.token!.tokenId]?.name }} <br/>
               TokenType: {{ utxo.token?.amount && utxo.token.capability ? 'both fungible tokens & NFT' : (

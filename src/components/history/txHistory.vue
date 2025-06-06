@@ -5,6 +5,7 @@
   import { useWindowSize } from '@vueuse/core';
   import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
+  import EmojiItem from '../general/emojiItem.vue';
   import { formatTimestamp, formatFiatAmount } from 'src/utils/utils';
 
   const store = useStore()
@@ -78,7 +79,7 @@
             :class="settingsStore.darkMode ? 'dark' : ''"
           >
 
-            <td>{{ transaction.timestamp ? "✅" : "⏳" }}</td>
+            <td><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳' " style="margin: 0 5px;"/> </td>
 
             <td v-if="isMobile">
               <div v-if="transaction.timestamp" style="line-height: 1.3">
@@ -121,7 +122,7 @@
                 <img
                   v-if="store.bcmrRegistries?.[tokenChange.tokenId]"
                   class="tokenIcon"
-                  style="width: 24px; height: 24px; border-radius: 50%;"
+                  style="width: 28px; height: 28px; border-radius: 50%;"
                   :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
                   >
               </div>
