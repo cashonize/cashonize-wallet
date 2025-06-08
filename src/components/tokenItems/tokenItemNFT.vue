@@ -488,7 +488,7 @@
         </div>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">
           <div></div>
-          <div v-if="tokenMetaData?.description">Token description: {{ tokenMetaData.description }} </div>
+          <div v-if="tokenMetaData?.description" class="indentText">Token description: {{ tokenMetaData.description }} </div>
           <div v-if="isSingleNft">
             NFT commitment: {{ tokenData.nfts?.[0]?.token?.commitment ? tokenData.nfts?.[0].token?.commitment : "none" }}
           </div>
@@ -509,7 +509,7 @@
           </div>
           <details v-if="isSingleNft && nftMetadata?.extensions?.attributes" style="cursor:pointer;">
             <summary style="display: list-item">NFT attributes</summary>
-            <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap;">
+            <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap; margin-left:15px">
               {{ attributeKey }}: {{ attributeValue ? attributeValue : "none" }}
             </div>
           </details>

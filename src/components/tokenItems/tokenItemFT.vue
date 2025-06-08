@@ -361,7 +361,7 @@
         </div>
         <div v-if="displayTokenInfo" style="margin-top: 10px;">
           <div></div>
-          <div v-if="tokenMetaData?.description"> Token description: {{ tokenMetaData.description }} </div>
+          <div v-if="tokenMetaData?.description" class="indentText"> Token description: {{ tokenMetaData.description }} </div>
           <div v-if="tokenData.amount && tokenMetaData">
             Number of decimals: {{ tokenMetaData?.token?.decimals ?? 0 }}
           </div>

@@ -187,6 +187,12 @@ input[type='number'] {
 select, summary {
   cursor: pointer;
 }
+.indentText{
+  padding-left: 15px;
+  text-indent: -15px;
+  display: inline-block;
+  vertical-align: top;
+}
 
 @media (hover: hover) {
   a:hover {
