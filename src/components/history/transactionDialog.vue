@@ -3,6 +3,7 @@
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { useWindowSize } from '@vueuse/core'
   import { convert, type TransactionHistoryItem } from 'mainnet-js';
   import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols, type TokenDataNFT } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
@@ -11,6 +12,9 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+
+  const { width } = useWindowSize();
+  const isMobilePhone = computed(() => width.value < 480)
 
   const showDialog = ref(true);
 
@@ -86,13 +90,18 @@
 
         <div style="display: flex; flex-direction: column; gap: 1rem">
           <div>
-            Transaction ID: 
-            <a :href="store.explorerUrl + `/${historyItem.hash}`" target="_blank" style="word-break: break-all;">
+            {{ isMobilePhone? 'TxId: ' : 'Transaction ID: ' }}
+            <span :href="store.explorerUrl + `/${historyItem.hash}`" @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer; color: var(--color-grey);">
               {{ historyItem.hash.slice(0, 12) + "..." + historyItem.hash.slice(52) }}
-            </a>
+            </span>
             <span @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer;">
               <img class="copyIcon" src="images/copyGrey.svg">
             </span>
+          </div>
+          <div>
+            <a :href="store.explorerUrl + `/${historyItem.hash}`" target="_blank">
+              Link to BlockExplorer
+            </a>
           </div>
           <div>
             Status: 
