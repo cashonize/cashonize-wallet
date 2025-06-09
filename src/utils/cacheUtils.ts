@@ -65,12 +65,26 @@ export async function cachedFetch(input: string): Promise<Response> {
   if (!response.ok) {
     throw new Error(`Fetch ${input} failed: ${response.status} ${response.statusText}`);
   }
-  const responseText = await response.clone().text();
+  const clonedResponse = response.clone();
+  let shouldCache = true;
+  let responseData;
+  try {
+    responseData = await clonedResponse.json()
+    if ('error' in responseData) {
+      shouldCache = false;
+      console.warn("API response body indicates an error. Not caching the response.");
+    }
+  } catch (e) {
+    console.error("Error parsing API response as JSON:", e);
+    shouldCache = false;
+  }
+  if(!shouldCache) return response
+
   localStorage.setItem(`${key}`, JSON.stringify(
     {
       timestamp: now,
       simpleResponse: {
-        responseText,
+        responseText: JSON.stringify(responseData),
         status: response.status,
         url: response.url
       }
