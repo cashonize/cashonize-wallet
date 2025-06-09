@@ -27,6 +27,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="bitcoincash" />
+                <data android:scheme="bch-wif" />
                 <data android:scheme="wc" />
                 <data android:scheme="cc" />
             </intent-filter>

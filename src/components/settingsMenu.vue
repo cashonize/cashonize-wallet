@@ -253,8 +253,24 @@
         <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle; display: inline-block;"/>
       </div>
 
-      <div v-if="!isCapacitor" style="margin-top: 15px; margin-bottom: 15px;">Enable QR scan 
+      <div v-if="!isCapacitor" style="margin-top: 15px;">Enable QR scan 
         <Toggle v-model="enableQrScan" @change="changeQrScan()" style="vertical-align: middle; display: inline-block;"/>
+      </div>
+
+      <div style="margin-top:15px">
+        <label for="selectUnit">Select fiat currency:</label>
+        <select v-model="selectedCurrency" @change="changeCurrency()">
+          <option value="usd">USD</option>
+          <option value="eur">EUR</option>
+        </select>
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        <label for="selectUnit">Select Bitcoin Cash unit:</label>
+        <select v-model="selectedUnit" @change="changeUnit()">
+          <option value="bch">BCH</option>
+          <option value="sat">satoshis</option>
+        </select>
       </div>
     </div>
     <div v-else-if="displaySettingsMenu == 3">
@@ -344,20 +360,8 @@
         → UTXO Management <span v-if="utxosWithBchAndTokens?.length" style="color: orange">(important)</span>
       </div>
 
-      <div style="margin-top:15px">
-        <label for="selectUnit">Select fiat currency:</label>
-        <select v-model="selectedCurrency" @change="changeCurrency()">
-          <option value="usd">USD</option>
-          <option value="eur">EUR</option>
-        </select>
-      </div>
-
-      <div style="margin-top:15px">
-        <label for="selectUnit">Select Bitcoin Cash unit:</label>
-        <select v-model="selectedUnit" @change="changeUnit()">
-          <option value="bch">BCH</option>
-          <option value="sat">satoshis</option>
-        </select>
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(8)">
+        → Sweep Private Key
       </div>
 
       <div style="margin-top:15px; margin-bottom:15px;">
