@@ -192,7 +192,7 @@
 
 
 <template>
-  <fieldset style="margin-top: 20px; padding-top: 2rem; max-width: 75rem; margin: auto 10px;">
+  <fieldset style="margin-top: 20px; padding-top: 2rem; padding-bottom: 1rem; max-width: 75rem; margin: auto 10px;">
     <div v-if="store.network == 'mainnet'" style="font-size: 1.2em">
       {{ CurrencyShortNames[settingsStore.currency] }} balance:
       <span style="color: hsla(160, 100%, 37%, 1);">{{ displayCurrencyBalance }}</span>
@@ -235,10 +235,10 @@
     </qr-code>
     <div style="text-align: center;">
       <div class="icon" @click="switchAddressTypeQr()"
-        style="font-size: 20px;font-weight: 700;width: fit-content; margin: auto; margin-top: -5px; cursor: pointer;">⇄
+        style="font-size: 20px;font-weight: 700;width: fit-content; margin: auto; margin-top: -10px; padding: 5px; cursor: pointer;">⇄
       </div>
     </div>
-    <div style="margin-top: 5px;">
+    <div>
       Send {{ bchDisplayNetwork }}:
       <div style="display: flex; gap: 0.5rem;">
         <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address" name="addressInput">
@@ -274,7 +274,7 @@
   display: block;
   cursor: pointer;
   width: 230px;
-  height: 230px;
+  height: 225px;
   margin: 5px auto 0 auto;
   background-color: #fff;
 }
