@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref } from 'vue'
-  import { Wallet } from 'mainnet-js';
+  import { TestNetWallet, Wallet } from 'mainnet-js';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -24,13 +24,15 @@
         throw new Error("No private key WIF provided to sweep");
       }
       const wifToSweep = privateKeyToSweep.value.startsWith('bch-wif:') ? privateKeyToSweep.value.slice(8) : privateKeyToSweep.value;
+      const walletClass = (store.network == 'mainnet')? Wallet : TestNetWallet;
+      // TODO: is uncompressed WIF supported by mainnet-js?
+      const tempWallet = await walletClass.fromWIF(wifToSweep);
       $q.notify({
         spinner: true,
         message: 'Sending transaction...',
         color: 'grey-5',
         timeout: 1000
       })
-      const tempWallet = await Wallet.fromWIF(wifToSweep);
       const mainWalletAddress = store.wallet?.address as string
       await tempWallet.sendMax(mainWalletAddress)
       $q.notify({
@@ -52,8 +54,17 @@
     privateKeyToSweep.value = decodedContent;
   }
   const qrFilter = (content: string) => {
-    if (!content.startsWith('bch-wif:') && !content.startsWith('K') && !content.startsWith('L')) {
+    // see https://documentation.cash/protocol/blockchain/encoding/base58check.html#version-bytes
+    const mainnetWifEncoding = content.startsWith('bch-wif:') || content.startsWith('K') || content.startsWith('L') || content.startsWith('5')
+    const chipnetWifEncoding = content.startsWith('c') || content.startsWith('9')
+    if(!mainnetWifEncoding && !chipnetWifEncoding) {
       return "Not a QR code encoding a Private Key in WIF format";
+    }
+    if(store.network === 'mainnet' && !mainnetWifEncoding) {
+      return "Not a QR code encoding a Mainnet Private Key in WIF format";
+    }
+    if(store.network === 'chipnet' && !chipnetWifEncoding) {
+      return "Not a QR code encoding a Chipnet Private Key in WIF format";
     }
     return true;
   }
@@ -65,7 +76,7 @@
 
     Sweep BCH from a private key WIF:
     <div style="display: flex; gap: 0.5rem;">
-      <input v-model="privateKeyToSweep" type="text" placeholder="Enter Private Key WIF" />
+      <input v-model="privateKeyToSweep" @keyup.enter="() => sweep()"  type="text" placeholder="Enter Private Key WIF" />
       <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
           <img src="images/qrscan.svg" />
       </button>
