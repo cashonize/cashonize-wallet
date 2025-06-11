@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
+  import EmojiItem from './general/emojiItem.vue'
   import { computed, ref, watch } from 'vue'
   import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
@@ -405,6 +406,12 @@
         <a style="color: var(--font-color); cursor: pointer;" href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">
           Download Cashonize
           <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
+        </a>
+      </div>
+      
+      <div v-if="isBrowser" style="margin-bottom:15px;">
+        <a style="color: var(--font-color); cursor: pointer;" href="https://x.com/GeukensMathieu" target="_blank">
+          Made with <EmojiItem emoji="💚" :sizePx="18" style="vertical-align: sub;" /> by Mathieu G.
         </a>
       </div>
 

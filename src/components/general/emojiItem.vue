@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  emoji: '✅' | '⏳' | '❌' | '⚠️',
+  emoji: '✅' | '⏳' | '❌' | '⚠️' | '💚',
   sizePx?: number 
 }>()
 
@@ -13,6 +13,8 @@ const emojiSrc = (() => {switch (props.emoji) {
       return `./emoji-icons/cross.svg`;
     case '⚠️':
       return `./emoji-icons/warning.svg`;
+    case '💚':
+      return `./emoji-icons/greenhearth.svg`;
   }}
 )()
 </script>
