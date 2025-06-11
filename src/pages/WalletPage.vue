@@ -7,6 +7,7 @@
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/createTokens.vue'
   import UtxoManagement from 'src/components/utxoManagement.vue'
+  import SweepPrivateKey from 'src/components/sweepPrivateKey.vue'
   import { ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
   import { Wallet, TestNetWallet, DefaultProvider } from 'mainnet-js'
@@ -27,6 +28,7 @@
 
   const dappUriUrlParam = ref(undefined as undefined|string);
   const bchSendRequest = ref(undefined as undefined|string);
+  const wifToSweep = ref(undefined as undefined|string);
 
   DefaultProvider.servers.chipnet = ["wss://chipnet.bch.ninja:50004"];
   
@@ -63,6 +65,19 @@
     if(walletExists){
       bchSendRequest.value = props.uri
       store.changeView(1);
+    } else {
+      $q.notify({
+        message: "Need to initialize a wallet first",
+        icon: 'warning',
+        color: "grey-7"
+      })
+    }
+  }
+  // check if sweep request is passed through props
+  if(props?.uri?.startsWith('bch-wif:')){
+    if(walletExists){
+      wifToSweep.value = props.uri
+      store.changeView(8);
     } else {
       $q.notify({
         message: "Need to initialize a wallet first",
@@ -121,6 +136,7 @@
     <settingsMenu v-if="store.displayView == 5"/>
     <createTokensView v-if="store.displayView == 6"/>
     <UtxoManagement v-if="store.displayView == 7"/>
+    <SweepPrivateKey v-if="store.displayView == 8" :wif="wifToSweep"/>
   </main>
 </template>
 
