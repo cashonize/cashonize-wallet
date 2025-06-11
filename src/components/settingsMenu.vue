@@ -25,6 +25,7 @@
   // basic settings
   const selectedCurrency = ref(settingsStore.currency);
   const selectedUnit = ref(settingsStore.bchUnit);
+  const qrAnimation = ref(settingsStore.qrAnimation);
   const selectedExplorer = ref(store.explorerUrl);
   // backup wallet
   const displaySeedphrase = ref(false);
@@ -108,6 +109,12 @@
   function changeUnit(){
     settingsStore.bchUnit = selectedUnit.value;
     localStorage.setItem("unit", selectedUnit.value);
+    store.changeView(1)
+  }
+  function changeQrAnimation(){
+    settingsStore.qrAnimation = qrAnimation.value;
+    localStorage.setItem("qrAnimation", qrAnimation.value);
+    settingsStore.hasPlayedAnmation = false;
     store.changeView(1)
   }
   function changeBlockExplorer(){
@@ -265,11 +272,23 @@
         </select>
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px;">
+      <div style="margin-top:15px;">
         <label for="selectUnit">Select Bitcoin Cash unit:</label>
         <select v-model="selectedUnit" @change="changeUnit()">
           <option value="bch">BCH</option>
           <option value="sat">satoshis</option>
+        </select>
+      </div>
+      
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        <label for="selectUnit">Qr code animation:</label>
+        <select v-model="qrAnimation" @change="changeQrAnimation()">
+          <option value="MaterializeIn">MaterializeIn</option>
+          <option value="FadeInTopDown">FadeInTopDown</option>
+          <option value="FadeInCenterOut">FadeInCenterOut</option>
+          <option value="RadialRipple">RadialRipple</option>
+          <option value="RadialRippleIn">RadialRippleIn</option>
+          <option value="None">None</option>
         </select>
       </div>
     </div>

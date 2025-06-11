@@ -2,9 +2,8 @@
   import { ref, computed, watch } from 'vue'
   import { type BalanceResponse, convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
-  import { defineCustomElements } from '@bitjson/qr-code';
   import alertDialog from 'src/components/alertDialog.vue'
-  import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
+  import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
   import { useWindowSize } from '@vueuse/core'
   import { useStore } from '../stores/store'
@@ -23,9 +22,18 @@
   const { width } = useWindowSize();
   const isMobilePhone = computed(() => width.value < 480)
 
-  const nrTokenCategories = computed(() => store.tokenList?.length)
-
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
+
+  // reactive state
+  const displayBchQr = ref(true);
+  const bchSendAmount = ref(undefined as (number | undefined));
+  const currencySendAmount = ref(undefined as (number | undefined));
+  const destinationAddr = ref("");
+  const showQrCodeDialog = ref(false);
+  const qrCodeRef = ref<QrCodeElement | null>(null);
+
+  const nrTokenCategories = computed(() => store.tokenList?.length)
+  const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.address : store.wallet?.tokenaddr)
 
   const bchDisplayNetwork = computed(() => {
     return (store.network == "mainnet") ? 'BCH' : 'tBCH'
@@ -44,17 +52,7 @@
     return formatFiatAmount(balance, settingsStore.currency);
   });
 
-  defineCustomElements(window);
-
-  // reactive state
-  const displayBchQr = ref(true);
-  const bchSendAmount = ref(undefined as (number | undefined));
-  const currencySendAmount = ref(undefined as (number | undefined));
-  const destinationAddr = ref("");
-  const showQrCodeDialog = ref(false);
-
-  const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.address : store.wallet?.tokenaddr)
-
+  // handle props
   if(props.bchSendRequest?.startsWith('bitcoincash:')){
     destinationAddr.value = props.bchSendRequest
     parseAddrParams()
@@ -66,8 +64,16 @@
     }
   })
 
+  // geneal functions
+  const animateQrCode = () => {
+    if (qrCodeRef.value && !settingsStore.hasPlayedAnmation && settingsStore.qrAnimation != 'None') {
+      qrCodeRef.value.animateQRCode(settingsStore.qrAnimation);
+      settingsStore.hasPlayedAnmation = true;
+    }
+  };
   function switchAddressTypeQr(){
     displayBchQr.value = !displayBchQr.value;
+    settingsStore.hasPlayedAnmation = false;
   }
   function parseAddrParams(){
     const addressInput = destinationAddr.value;
@@ -75,8 +81,8 @@
       const [address, params] = addressInput.split("?");
       if(!address || !params) return;
       destinationAddr.value = address;
+
       // set the bch amount field
-      
       let bchAmount =  Number(params.split("amount=")[1]);
       if(settingsStore.bchUnit == "sat") bchAmount = Math.round(bchAmount * 100_000_000);
       bchSendAmount.value = bchAmount;
@@ -230,12 +236,11 @@
         <img class="copyIcon" src="images/copyGrey.svg"> 
       </span>
     </div>
-    <qr-code :contents="addressQrcode" @click="copyToClipboard(addressQrcode)" class="qr-code">
+    <qr-code ref="qrCodeRef" :contents="addressQrcode" @click="copyToClipboard(addressQrcode)" class="qr-code" @codeRendered="animateQrCode">
       <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
     </qr-code>
     <div style="text-align: center;">
-      <div class="icon" @click="switchAddressTypeQr()"
-        style="font-size: 20px;font-weight: 700;width: fit-content; margin: auto; margin-top: -10px; padding: 5px; cursor: pointer;">⇄
+      <div class="switchAddressButton icon" @click="switchAddressTypeQr()">⇄
       </div>
     </div>
     <div>
@@ -277,5 +282,15 @@
   height: 225px;
   margin: 5px auto 0 auto;
   background-color: #fff;
+}
+.switchAddressButton {
+  font-size: 20px;
+  font-weight: 700;
+  width: fit-content;
+  margin: auto;
+  margin-top: -10px;
+  padding: 5px;
+  cursor: pointer;
+  user-select: none;
 }
 </style>

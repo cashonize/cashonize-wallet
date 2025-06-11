@@ -1,6 +1,7 @@
 import { useWindowSize } from "@vueuse/core";
 import { Config } from "mainnet-js";
 import { defineStore } from "pinia"
+import { type QRCodeAnimationName } from "src/interfaces/interfaces";
 import { ref } from 'vue'
 
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
@@ -30,6 +31,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const showCauldronSwap = ref(false);
   const qrScan = ref(true);
   const featuredTokens = ref([] as string[]);
+  const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
+  const hasPlayedAnmation = ref(false as boolean)
   const hasSeedBackedUp = ref(false as boolean)
 
   // read local storage for stored settings
@@ -51,6 +54,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readQrScan = localStorage.getItem("qrScan");
   if(!readQrScan && (isDesktop || !isMobileDevice)) qrScan.value = false;
   if(readQrScan) qrScan.value = readQrScan == "true";
+
+  const readQrAnimation = localStorage.getItem("qrAnimation");
+  if(readQrAnimation) qrAnimation.value = readQrAnimation as QRCodeAnimationName | 'None';
 
   const readDarkMode = localStorage.getItem("darkMode");
   if(readDarkMode == "true"){
@@ -179,6 +185,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     tokenBurn,
     showCauldronSwap,
     qrScan,
+    qrAnimation,
+    hasPlayedAnmation,
     featuredTokens,
     hasSeedBackedUp,
     getAutoApproveState,

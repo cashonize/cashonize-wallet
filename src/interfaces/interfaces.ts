@@ -10,6 +10,16 @@ export const CurrencyShortNames = {
   eur: "EUR"
 } as const
 
+export type QRCodeAnimationName =
+  | 'FadeInTopDown'
+  | 'FadeInCenterOut'
+  | 'MaterializeIn'
+  | 'RadialRipple'
+  | 'RadialRippleIn';
+export interface QrCodeElement extends HTMLElement {
+  animateQRCode: (animationName: QRCodeAnimationName) => void;
+}
+
 export type TokenList = (TokenDataNFT | TokenDataFT)[]
 
 export interface TokenDataNFT {
