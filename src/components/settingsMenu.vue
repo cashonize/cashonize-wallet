@@ -409,7 +409,7 @@
         </a>
       </div>
       
-      <div v-if="isBrowser" style="margin-bottom:15px;">
+      <div style="margin-bottom:15px;">
         <a style="color: var(--font-color); cursor: pointer;" href="https://x.com/GeukensMathieu" target="_blank">
           Made with <EmojiItem emoji="💚" :sizePx="18" style="vertical-align: sub;" /> by Mathieu G.
         </a>
