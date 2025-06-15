@@ -60,6 +60,12 @@ export function getFungibleTokenBalances(tokenUtxos: UtxoI[]){
   return result
 }
 
+export function getBalanceFromUtxos(utxos: UtxoI[]) {
+  const bchUtxos = utxos.filter((utxo) => utxo.token === undefined);
+  const balanceSats = bchUtxos.reduce((currentBalance: number, utxo: UtxoI) => currentBalance + utxo.satoshis, 0);
+  return balanceSats
+}
+
 export function parseExtendedJson(jsonString: string){
   const uint8ArrayRegex = /^<Uint8Array: 0x(?<hex>[0-9a-f]*)>$/u;
   const bigIntRegex = /^<bigint: (?<bigint>[0-9]*)n>$/;

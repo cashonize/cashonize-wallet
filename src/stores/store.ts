@@ -8,6 +8,7 @@ import {
   Connection,
   binToHex,
   convert,
+  balanceResponseFromSatoshi,
   type BalanceResponse,
   type UtxoI,
   type ElectrumNetworkProvider,
@@ -23,7 +24,12 @@ import {
   type WalletHistoryReturnType
 } from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
-import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils"
+import {
+  getAllNftTokenBalances,
+  getBalanceFromUtxos,
+  getFungibleTokenBalances,
+  getTokenUtxos
+} from "src/utils/utils"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -118,20 +124,27 @@ export const useStore = defineStore('store', () => {
       await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
       console.timeEnd('initialize walletconnect and cashconnect');
       setUpWalletSubscriptions();
-      // fetch bch balance
-      console.time('fetch balance');
-      const promiseWalletBalance = wallet.value.getBalance();
-      const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend();
+      // fetch wallet utxos first, this result will be used in consecutive calls
+      // to avoid duplicate getAddressUtxos() calls
+      console.time('fetch wallet utxos');
+      const walletAddressUtxos = await wallet.value?.getAddressUtxos()
+      console.timeEnd('fetch wallet utxos');
+      const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
+      // Fetch fiat balance and max amount to send in parallel
+      // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
+      console.time('fetch fiat balance');
+      const promiseWalletBalance = balanceResponseFromSatoshi(balanceSats);
+      const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend({ options:{
+        utxoIds: walletAddressUtxos
+      }});
       const balancePromises = [promiseWalletBalance, promiseMaxAmountToSend];
       const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
-      console.timeEnd('fetch balance');
-      // fetch wallet utxos
-      console.time('fetch wallet utxos');
-      await updateWalletUtxos()
-      console.timeEnd('fetch wallet utxos');
+      console.timeEnd('fetch fiat balance');
       // set values simulatenously with tokenList so the UI elements load together
-      balance.value = resultWalletBalance as BalanceResponse;
-      maxAmountToSend.value = resultMaxAmountToSend as BalanceResponse;
+      balance.value = resultWalletBalance
+      walletUtxos.value = walletAddressUtxos
+      maxAmountToSend.value = resultMaxAmountToSend
+      updateTokenList()
       if(!tokenList.value) return // should never happen
       if(isDesktop) getLatestGithubRelease()
       console.time('import registries');
@@ -166,7 +179,11 @@ export const useStore = defineStore('store', () => {
           })
         }
       }
-      maxAmountToSend.value = await wallet.value?.getMaxAmountToSend();
+      const walletAddressUtxos = await wallet.value!.getAddressUtxos();
+      walletUtxos.value = walletAddressUtxos;
+      maxAmountToSend.value = await wallet.value?.getMaxAmountToSend({ options:{
+        utxoIds: walletAddressUtxos
+      }});
       updateWalletHistory()
     });
     const walletPkh = binToHex(wallet.value?.getPublicKeyHash() as Uint8Array);
@@ -380,7 +397,7 @@ export const useStore = defineStore('store', () => {
   }
 
   async function fetchTokenInfo(categoryId: string) {
-    const res = await fetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
+    const res = await cachedFetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
   
     return await res.json() as BcmrIndexerResponse;
