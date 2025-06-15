@@ -135,9 +135,14 @@
     if (!store.wallet || !store.walletUtxos) return undefined;
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n).length > 0;
   });
+  const newerReleaseAvailable = computed(() => {
+    if(!(process.env.MODE == "electron")) return false;
+    const applicationVersion = process.env.version
+    return store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion
+  });
   const showNotificationIcon = computed(() => {
     if (!store.wallet || !store.walletUtxos) return undefined;
-    return (!settingsStore.hasSeedBackedUp) || hasUtxosWithBchAndTokens.value;
+    return (!settingsStore.hasSeedBackedUp) || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value;
   });
 </script>
 

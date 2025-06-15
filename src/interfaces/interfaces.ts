@@ -1,4 +1,4 @@
-import type { UtxoI, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest } from "mainnet-js"
+import type { UtxoI, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest, Wallet } from "mainnet-js"
 
 export const CurrencySymbols = {
   usd: "$",
@@ -39,6 +39,8 @@ export type TokenSendRequestParams = ConstructorParameters<typeof TokenSendReque
 export type TokenMintRequestParams = ConstructorParameters<typeof TokenMintRequest>[0];
 
 export type TokeneGenesisRequestParams = ConstructorParameters<typeof TokenGenesisRequest>[0];
+
+export type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;
 
 // manual type because 'number' type on 'amount' causes issues in strict mode
 export type TokenBurnRequestParams = {

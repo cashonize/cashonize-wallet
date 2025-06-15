@@ -16,10 +16,9 @@
   const isBrowser = (process.env.MODE == "spa");
   const isDesktop = (process.env.MODE == "electron");
   const isCapacitor = (process.env.MODE == "capacitor");
-  const appVersion = process.env.version
+  const applicationVersion = process.env.version
 
   const displaySettingsMenu = ref(0);
-  const latestGithubRelease = ref(undefined as undefined | string);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -48,22 +47,6 @@
   });
 
   const platformString = isBrowser ? 'browser' : (isCapacitor ? 'app' : 'application');
-
-  if(isDesktop) getLatestGithubRelease()
-
-  async function getLatestGithubRelease(){
-    try {
-      const response = await fetch('https://api.github.com/repos/cashonize/cashonize-wallet/releases/latest');
-      if (!response.ok) throw new Error('Network response was not ok');
-        
-      const releaseData = await response.json();
-      // Extract the version tag (e.g., 'v0.2.4')
-      latestGithubRelease.value = releaseData.tag_name;
-      console.log(latestGithubRelease.value)
-    } catch (error) {
-      console.error('Error fetching latest GitHub release:', error);
-    }
-  }
 
   async function calculateIndexedDBSizeMB() {
     const totalSize = await getElectrumCacheSize();
@@ -213,11 +196,11 @@
   <fieldset class="item">
     <legend>Settings</legend>
     <div v-if="!isBrowser" style="margin-bottom: 15px;">
-      Version Cashonize App: {{ appVersion }}
-      <span v-if="isDesktop && latestGithubRelease && latestGithubRelease == 'v'+appVersion">(latest)</span>
-      <span v-if="isDesktop && latestGithubRelease && latestGithubRelease !== 'v'+appVersion">
+      Version Cashonize App: {{ applicationVersion }}
+      <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease == 'v'+applicationVersion">(latest)</span>
+      <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion">
         (latest release is 
-          <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{latestGithubRelease}}</a>)
+          <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{store.latestGithubRelease}}</a>)
       </span>
     </div>
 
@@ -409,7 +392,7 @@
         </a>
       </div>
       
-      <div v-if="isBrowser" style="margin-bottom:15px;">
+      <div style="margin-bottom:15px;">
         <a style="color: var(--font-color); cursor: pointer;" href="https://x.com/GeukensMathieu" target="_blank">
           Made with <EmojiItem emoji="💚" :sizePx="18" style="vertical-align: sub;" /> by Mathieu G.
         </a>

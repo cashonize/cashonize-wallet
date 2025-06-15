@@ -15,7 +15,13 @@ import {
   type HexHeaderI
 } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
-import { CurrencySymbols, type BcmrTokenMetadata, type TokenList, type BcmrIndexerResponse } from "../interfaces/interfaces"
+import {
+  CurrencySymbols,
+  type BcmrTokenMetadata,
+  type TokenList,
+  type BcmrIndexerResponse,
+  type WalletHistoryReturnType
+} from "../interfaces/interfaces"
 import { queryAuthHeadTxid } from "../queryChainGraph"
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils"
 import { convertElectrumTokenData } from "src/utils/utils"
@@ -37,7 +43,7 @@ const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
 const nameWallet = 'mywallet';
 
-type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;
+const isDesktop = (process.env.MODE == "electron");
 
 export const useStore = defineStore('store', () => {
   const displayView = ref(undefined as (number | undefined));
@@ -53,6 +59,7 @@ export const useStore = defineStore('store', () => {
   const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
+  const latestGithubRelease = ref(undefined as undefined | string);
 
   // Computed properties
   const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
@@ -125,14 +132,15 @@ export const useStore = defineStore('store', () => {
       // set values simulatenously with tokenList so the UI elements load together
       balance.value = resultWalletBalance as BalanceResponse;
       maxAmountToSend.value = resultMaxAmountToSend as BalanceResponse;
-      // get plannedTokenId
       if(!tokenList.value) return // should never happen
+      if(isDesktop) getLatestGithubRelease()
       console.time('import registries');
       await importRegistries(tokenList.value, false);
       console.timeEnd('import registries');
       console.time('fetch history');
       await updateWalletHistory()
       console.timeEnd('fetch history');
+      // get plannedTokenId
       hasPreGenesis()
       // fetchAuthUtxos start last because it is not critical
       console.time('fetch authUtxos');
@@ -435,6 +443,20 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  async function getLatestGithubRelease(){
+    try {
+      const response = await fetch('https://api.github.com/repos/cashonize/cashonize-wallet/releases/latest');
+      if (!response.ok) throw new Error('Network response was not ok');
+        
+      const releaseData = await response.json();
+      // Extract the version tag (e.g., 'v0.2.4')
+      latestGithubRelease.value = releaseData.tag_name;
+      console.log(latestGithubRelease.value)
+    } catch (error) {
+      console.error('Error fetching latest GitHub release:', error);
+    }
+  }
+
   return {
     nameWallet,
     displayView,
@@ -446,6 +468,7 @@ export const useStore = defineStore('store', () => {
     walletHistory,
     plannedTokenId,
     isWcAndCcInitialized,
+    latestGithubRelease,
     network,
     explorerUrl,
     bcmrRegistries,
