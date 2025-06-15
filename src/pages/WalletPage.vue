@@ -6,8 +6,8 @@
   import settingsMenu from 'src/components/settingsMenu.vue'
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/createTokens.vue'
-  import UtxoManagement from 'src/components/utxoManagement.vue'
-  import SweepPrivateKey from 'src/components/sweepPrivateKey.vue'
+  import utxoManagement from 'src/components/utxoManagement.vue'
+  import sweepPrivateKey from 'src/components/sweepPrivateKey.vue'
   import { ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
   import { Wallet, TestNetWallet, DefaultProvider } from 'mainnet-js'
@@ -31,6 +31,36 @@
   const wifToSweep = ref(undefined as undefined|string);
 
   DefaultProvider.servers.chipnet = ["wss://chipnet.bch.ninja:50004"];
+
+  // The currentView and its viewSpecificProps are computed based on 'store.displayView' 
+  // These view & prop refs are passed to a dynamic component rendering the current view
+  // This way each view can be wrapped with KeepAlive to preserve its state across view changes
+  const currentView = computed(() => {
+    if (!store.wallet) return newWalletView;
+
+    switch (store.displayView) {
+      case 1: return bchWalletView;
+      case 2: return myTokensView;
+      case 3: return historyView;
+      case 4: return connectDappView;
+      case 5: return settingsMenu;
+      case 6: return createTokensView;
+      case 7: return utxoManagement;
+      case 8: return sweepPrivateKey;
+      default: return null;
+    }
+  });
+
+  const viewSpecificProps = computed(() => {
+    if (!store.wallet) return {};
+
+    switch (store.displayView) {
+      case 1: return { bchSendRequest: bchSendRequest.value };
+      case 4: return { dappUriUrlParam: dappUriUrlParam.value };
+      case 8: return { wif: wifToSweep.value };
+      default: return {};
+    }
+  });
   
   // check if wallet exists
   const mainnetWalletExists = await Wallet.namedExists(store.nameWallet);
@@ -114,7 +144,7 @@
 <template>
   <header>
     <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
-    <nav v-if="store.displayView" style="display: flex; justify-content: center;" class="tabs">
+    <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs">
       <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ isMobile ? "Wallet" : "BchWallet" }} </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ isMobile ? "Tokens" : "MyTokens" }} </div>
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ isMobile ? "History" : "TxHistory" }} </div>
@@ -127,16 +157,9 @@
     </nav>
   </header>
   <main style="margin: 20px auto; max-width: 78rem;">
-    <newWalletView v-if="!store.wallet"/>
-
-    <bchWalletView v-if="store.displayView == 1" :bchSendRequest="bchSendRequest"/>
-    <myTokensView v-if="store.displayView == 2"/>
-    <historyView v-if="store.displayView == 3"/>
-    <connectDappView v-if="store.displayView == 4" :dappUriUrlParam="dappUriUrlParam"/>
-    <settingsMenu v-if="store.displayView == 5"/>
-    <createTokensView v-if="store.displayView == 6"/>
-    <UtxoManagement v-if="store.displayView == 7"/>
-    <SweepPrivateKey v-if="store.displayView == 8" :wif="wifToSweep"/>
+    <KeepAlive>
+      <component :is="currentView" v-bind="viewSpecificProps"/>
+    </KeepAlive>
   </main>
 </template>
 
