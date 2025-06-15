@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, watch } from 'vue'
+  import { ref, computed, watch, shallowRef } from 'vue'
   import { type BalanceResponse, convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/alertDialog.vue'
@@ -30,7 +30,12 @@
   const currencySendAmount = ref(undefined as (number | undefined));
   const destinationAddr = ref("");
   const showQrCodeDialog = ref(false);
-  const qrCodeRef = ref<QrCodeElement | null>(null);
+  // We keep the <qr-code> element in a ref so that we can call animateQrCode on codeRendered()
+  // This event handler calls the animation after rendering the qr-code web component
+  // Consecutive animations are only triggered when addressQrcode changes as reactive property of the qr-code
+  // Using shallowRef avoids Vue’s deep reactivity re-activation when re-navigating to this view
+  // This speeds up the rendering of the component
+  const qrCodeRef = shallowRef<QrCodeElement | null>(null);
 
   const nrTokenCategories = computed(() => store.tokenList?.length)
   const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.address : store.wallet?.tokenaddr)
