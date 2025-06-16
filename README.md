@@ -4,7 +4,7 @@
 
 **Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet** <br>
 Cashonize supports CashTokens and WalletConnect which makes it an ideal wallet for using dapps on BCH. <br>
-Currently Cashonize is available as a webwallet, a desktop application (for Windows & Linux) and an Android APK. <br>
+Currently Cashonize is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an Installable web app. <br>
 
 ### The wallet for you?
 
@@ -12,8 +12,8 @@ Because of its minimalist design, Cashonize is a user-friendly wallet, even for 
 Cashonize has an easy-to-understand transaction preview screen for WalletConnect and CashConnect, empowering users before signing DeFi transactions.
 Further, Cashonize nicely groups and displays your NFTs, making it ideal for NFT collectors.
 
-Cashonize is a single-address wallet, for privacy-focused users is recommended to use a HD-wallet for payments instead.
-However WalletConnect on BCH is currently always single-address based.
+Cashonize is a single-address wallet, for privacy-focused users is recommended to use a HD-wallet for payments instead (however BCH WalletConnect itself is single-address based in its design).
+Cashonize also does not currently support password or pin locked wallets and encrypted seed phrases.
 
 ## Platforms
 
@@ -23,7 +23,9 @@ However WalletConnect on BCH is currently always single-address based.
 
 🌐 Webwallet: [cashonize.com](cashonize.com) 
 
-**Note:** webwallets are great for convenience, but downloaded applications are more secure. <br>
+📲 Installable Web App: Look for the **Add to Home Screen / Install** setting in your browser on [cashonize.com](cashonize.com) 
+
+**Note:** a webwallets are great for convenience, but downloaded applications are more secure. (Installable web apps share the same security model as webwallets) <br>
 ⚠️ [cashonize.com](cashonize.com) is the only correct URL for the webwallet
 
 ## Local development 
