@@ -199,6 +199,11 @@
     }
     return true;
   }
+
+  // we want to play the animation when the user upddates the qrAnimation setting
+  watch(() => settingsStore.qrAnimation, () => {
+    if(!settingsStore.hasPlayedAnmation) animateQrCode()
+  })
 </script>
 
 
