@@ -107,6 +107,7 @@
     localStorage.setItem(explorerNetwork, selectedExplorer.value);
   }
   function changeNetwork(){
+    settingsStore.hasPlayedAnmation = false;
     store.changeNetwork(selectedNetwork.value)
   }
   function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){

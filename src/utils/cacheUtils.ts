@@ -72,7 +72,6 @@ export async function cachedFetch(input: string): Promise<Response> {
     responseData = await clonedResponse.json()
     if ('error' in responseData) {
       shouldCache = false;
-      console.warn("API response body indicates an error. Not caching the response.");
     }
   } catch (e) {
     console.error("Error parsing API response as JSON:", e);

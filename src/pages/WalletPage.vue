@@ -34,7 +34,8 @@
 
   // The currentView and its viewSpecificProps are computed based on 'store.displayView' 
   // These view & prop refs are passed to a dynamic component rendering the current view
-  // This way each view can be wrapped with KeepAlive to preserve its state across view changes
+  // This way views can be wrapped with KeepAlive to preserve its state across view changes
+  // Excluding the settingsMenu bc we want to rerender it when navigating to it
   const currentView = computed(() => {
     if (!store.wallet) return newWalletView;
 
@@ -43,7 +44,6 @@
       case 2: return myTokensView;
       case 3: return historyView;
       case 4: return connectDappView;
-      case 5: return settingsMenu;
       case 6: return createTokensView;
       case 7: return utxoManagement;
       case 8: return sweepPrivateKey;
@@ -162,9 +162,10 @@
     </nav>
   </header>
   <main style="margin: 20px auto; max-width: 78rem;">
-    <KeepAlive>
+    <KeepAlive v-if="store.displayView != 5">
       <component :is="currentView" v-bind="viewSpecificProps"/>
     </KeepAlive>
+    <settingsMenu v-if="store.displayView == 5" />
   </main>
 </template>
 
