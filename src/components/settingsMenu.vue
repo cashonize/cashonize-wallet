@@ -46,7 +46,8 @@
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
   });
 
-  const platformString = isBrowser ? 'browser' : (isCapacitor ? 'app' : 'application');
+  const isPwaMode = window.matchMedia('(display-mode: standalone)').matches;
+  const platformString = isBrowser ? (isPwaMode ? 'installed web app' : 'browser') : (isCapacitor ? 'app' : 'application');
 
   async function calculateIndexedDBSizeMB() {
     const totalSize = await getElectrumCacheSize();
@@ -170,7 +171,10 @@
     displaySeedphrase.value = !displaySeedphrase.value;
   }
   function confirmDeleteWallet(){
-    const text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
+    let text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
+    if (isPwaMode) {
+      text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nThis will also delete the wallet from your browser!\nAre you sure you want to delete it?`;
+    }
     if (confirm(text)){
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
@@ -328,6 +332,7 @@
       </div>
 
       <div style="margin-top:15px;">Remove wallet from {{ platformString }}
+        <div v-if="isPwaMode" style="color: red">In the 'Installed web-app' mode this will also delete the wallet from your browser! </div>
         <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
       </div>
 
