@@ -31,6 +31,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const showCauldronSwap = ref(false);
   const qrScan = ref(true);
   const featuredTokens = ref([] as string[]);
+  const hasInstalledPWA = ref(false as boolean);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const hasPlayedAnmation = ref(false as boolean)
   const hasSeedBackedUp = ref(false as boolean)
@@ -78,6 +79,15 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readFeaturedTokens) {
     featuredTokens.value = JSON.parse(readFeaturedTokens) as string[];
   }
+
+  const readHasInstalledPWA = localStorage.getItem("pwaInstalled");
+  if(readHasInstalledPWA == "true") hasInstalledPWA.value = true
+  // add event listener for pwa app installed, this will trigger on the pwa side
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem('pwaInstalled', 'true');
+    hasInstalledPWA.value = true
+    alert("Using Cashonize as an 'Installed Web app' links the wallet data to the browser usage. Deleting the browser data will also affect the installed web app.");
+  });
 
   const readElectrumMainnet = localStorage.getItem("electrum-mainnet") ?? "";
   if(readElectrumMainnet) electrumServerMainnet.value = readElectrumMainnet
@@ -188,6 +198,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     qrAnimation,
     hasPlayedAnmation,
     featuredTokens,
+    hasInstalledPWA,
     hasSeedBackedUp,
     getAutoApproveState,
     setAutoApproveState,

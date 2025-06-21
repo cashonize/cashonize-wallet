@@ -332,7 +332,12 @@
       </div>
 
       <div style="margin-top:15px;">Remove wallet from {{ platformString }}
-        <div v-if="isPwaMode" style="color: red">In the 'Installed web-app' mode this will also delete the wallet from your browser! </div>
+        <div v-if="isPwaMode" style="color: red">
+          Deleting the wallet data in the 'Installed web-app' will also delete the wallet from your browser!
+        </div>
+        <div v-if="!isPwaMode && settingsStore.hasInstalledPWA" style="color: red">
+          Deleting the wallet data from the browser will also remove the wallet from any 'Installed web-app'.
+        </div>
         <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
       </div>
 

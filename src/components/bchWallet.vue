@@ -200,7 +200,8 @@
     return true;
   }
 
-  // we want to play the animation when the user upddates the qrAnimation setting
+  // we want to play the animation when the user updates the qrAnimation setting
+  // @codeRendered does not trigger on 'qrAnimation' so we use a watcher for it
   watch(() => settingsStore.qrAnimation, () => {
     if(!settingsStore.hasPlayedAnmation) animateQrCode()
   })
