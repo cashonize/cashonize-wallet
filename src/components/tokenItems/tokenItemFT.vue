@@ -359,7 +359,7 @@
             auth transfer
           </span>
         </div>
-        <div v-if="displayTokenInfo" style="margin-top: 10px;">
+        <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
           <div v-if="tokenMetaData?.description" class="indentText"> Token description: {{ tokenMetaData.description }} </div>
           <div v-if="tokenData.amount && tokenMetaData">
@@ -398,7 +398,7 @@
           </div>
         </div>
 
-        <div v-if="displaySendTokens" style="margin-top: 10px;">
+        <div v-if="displaySendTokens" class="tokenAction">
           Send these tokens to
           <div class="inputGroup">
             <div class="addressInputFtSend">
@@ -421,7 +421,7 @@
           </div>
           <input @click="sendTokens()" type="button" class="primaryButton" value="Send">
         </div>
-        <div v-if="displayBurnFungibles" style="margin-top: 10px;">
+        <div v-if="displayBurnFungibles" class="tokenAction">
           <div>Burning tokens removes them from the supply forever</div>
           <div style="display: flex">
             <span style="width: 50%; position: relative; display: flex;">
@@ -434,11 +434,11 @@
           </div>
           <input @click="burnFungibles()" type="button" value="burn tokens" class="button error" style="margin-top: 10px;">
         </div>
-        <div v-if="displayAuthTransfer" style="margin-top: 10px;">
+        <div v-if="displayAuthTransfer" class="tokenAction">
           Transfer the authority to change the token's metadata <br>
           You can either transfer the Auth to a dedicated wallet or to the <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>.<br>
           Token supply kept at the Auth UTXO will be marked as reserved supply, not yet in circulation. <br>
-          <span class="grouped" style="margin-top: 10px;">
+          <span class="grouped tokenAction">
             <input v-model="destinationAddr" placeholder="destinationAddr">
             <span style="width: 100%; position: relative; display: flex; margin: 0">
               <input v-model="reservedSupplyInput" placeholder="reservedSupply" name="tokenAmountInput">

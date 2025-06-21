@@ -486,7 +486,7 @@
             <span>auth transfer</span>
           </span>
         </div>
-        <div v-if="displayTokenInfo" style="margin-top: 10px;">
+        <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
           <div v-if="tokenMetaData?.description" class="indentText">Token description: {{ tokenMetaData.description }} </div>
           <div v-if="isSingleNft">
@@ -515,7 +515,7 @@
           </details>
         </div>
 
-        <div v-if="displaySendNft" style="margin-top: 10px;">
+        <div v-if="displaySendNft" class="tokenAction">
           Send this NFT to
           <div class="inputGroup">
             <div class="addressInputNftSend">
@@ -527,7 +527,7 @@
             <input @click="sendNft()" type="button" class="primaryButton" value="Send NFT">
           </div>
         </div>
-        <div v-if="displaySendAllNfts" style="margin-top: 10px;">
+        <div v-if="displaySendAllNfts" class="tokenAction">
           Send all {{ tokenData.nfts?.length }} NFTs of this category to
           <div class="inputGroup">
             <div class="addressInputNftSend">
@@ -539,7 +539,7 @@
             <input @click="sendAllNfts()" type="button" class="primaryButton" value="Transfer NFTs">
           </div>
         </div>
-        <div v-if="displayMintNfts" style="margin-top: 10px;">
+        <div v-if="displayMintNfts" class="tokenAction">
           Mint a number of (unique) NFTs to a specific address
           <div>
             <input type="checkbox" v-model="mintUniqueNfts" style="margin: 0px; vertical-align: text-bottom;">
@@ -562,13 +562,13 @@
             <input @click="mintNfts()" type="button" value="Mint NFTs" class="primaryButton">
           </span>
         </div>
-        <div v-if="displayBurnNft" style="margin-top: 10px;">
+        <div v-if="displayBurnNft" class="tokenAction">
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'">Burn this NFT so no new NFTs of this category can be minted</span>
           <span v-else>Burning this NFT to remove it from your wallet forever</span>
           <br>
           <input @click="burnNft()" type="button" value="burn NFT" class="button error">
         </div>
-        <div v-if="displayAuthTransfer" style="margin-top: 10px;">
+        <div v-if="displayAuthTransfer" class="tokenAction">
           Transfer the authority to change the token's metadata to another wallet <br>
           You can either transfer the Auth to a dedicated wallet or to the <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>.<br>
           <span class="grouped" style="margin-top: 10px;">

@@ -166,7 +166,7 @@ input[type='number'] {
   margin-bottom: 5px;
 }
 .inputGroup {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   display: flex;
 }
 .actionBar span {
@@ -175,6 +175,10 @@ input[type='number'] {
 }
 .actionBar :first-of-type {
   margin-left: 0;
+}
+.tokenAction {
+  margin-top: 10px;
+  margin-bottom: 4px;
 }
 .sendTokenAmount {
   display: flex;
