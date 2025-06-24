@@ -375,10 +375,13 @@ export const useStore = defineStore('store', () => {
         metadataPromises.push(metadataPromise);
       }
     }
-    const resolveMetadataPromsises = Promise.all(metadataPromises);
-    const resultsMetadata = await resolveMetadataPromsises;
+    // MetadataPromises promises can be rejected in 'cachedFetch', the function should still return all fulfilled promises
+    // so we use Promise.allSettled and handle the fulfilled results
+    const resolveMetadataPromises = Promise.allSettled(metadataPromises);
+    const resultsMetadata = await resolveMetadataPromises;
     const registries = bcmrRegistries.value ?? {};
-    for(const response of resultsMetadata) {
+    for(const settledResult of resultsMetadata) {
+      const response = settledResult.status == "fulfilled" ? settledResult.value : undefined;
       if(response?.status == 200) {
         const jsonResponse:BcmrIndexerResponse = await response.json();
         const tokenId = jsonResponse?.token?.category
