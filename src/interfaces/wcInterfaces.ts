@@ -46,8 +46,8 @@ export interface LibauthTokenDetails {
 export type WcSourceOutputs = (Input & LibauthOutput & ContractInfo)[];
 
 export interface WcTransactionObj {
-  transaction: TransactionCommon<Input>,
+  transaction: TransactionCommon<Input> | string,
   sourceOutputs: WcSourceOutputs,
-  broadcast: boolean,
-  userPrompt: string
+  broadcast?: boolean,
+  userPrompt?: string
 }

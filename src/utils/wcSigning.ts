@@ -8,12 +8,11 @@ import {
   generateSigningSerializationBCH,
   generateTransaction,
   encodeTransaction,
+  decodeTransaction,
   importWalletTemplate,
   walletTemplateP2pkhNonHd,
   type CompilationContextBCH,
   type TransactionTemplate,
-  type AuthenticationProgramState,
-  type TransactionGenerationError,
 } from "@bitauth/libauth"
 import type { WcTransactionObj } from "src/interfaces/wcInterfaces";
 
@@ -22,17 +21,23 @@ export function createSignedWcTransaction(
   signingInfo: { privateKey: Uint8Array, pubkeyCompressed: Uint8Array },
   walletLockingBytecodeHex: string,
 ){
-  const { transaction: unsignedTransaction, sourceOutputs } = wcTransactionObj;
+  const { transaction: wcTransactionItem, sourceOutputs } = wcTransactionObj;
   const { privateKey, pubkeyCompressed } = signingInfo;
 
   // prepare libauth template for input signing
   const walletTemplate = importWalletTemplate(walletTemplateP2pkhNonHd);
   if (typeof walletTemplate === "string") throw new Error("Transaction template error");
 
+  const unsignedTransaction = typeof wcTransactionItem === "string" ? decodeTransaction(hexToBin(wcTransactionItem)) : wcTransactionItem;
+  // If unsignedTransaction is still a string that means decodeTransaction failed
+  if(typeof unsignedTransaction == "string") {
+    throw new Error("Transaction template error: " + unsignedTransaction);
+  }
+
   // configure compiler
   const compiler = walletTemplateToCompilerBCH(walletTemplate);
 
-  // TODO: investigate if this the correct type
+  // A Transaction representation that may use compilation directives in place of lockingBytecode and unlockingBytecode instances
   const txTemplate = {...unsignedTransaction} as TransactionTemplate<typeof compiler>;
 
   for (const [index, input] of txTemplate.inputs.entries()) {
@@ -92,8 +97,7 @@ export function createSignedWcTransaction(
   // generate and encode transaction
   const generated = generateTransaction(txTemplate);
   if (!generated.success){
-    // TODO: avoid typecasting to TransactionGenerationError
-    const generationError = generated as TransactionGenerationError<AuthenticationProgramState>;
+    const generationError = generated;
     throw Error(JSON.stringify(generationError, null, 2));
   }
 

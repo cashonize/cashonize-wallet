@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { toRefs } from 'vue';
-  import { binToHex, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
+  import { binToHex, decodeTransactionUnsafe, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
   import { type WcTransactionObj } from "src/interfaces/wcInterfaces"
@@ -25,7 +25,10 @@
   
   // parse params from transactionRequestWC
   const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params)) as WcTransactionObj;
-  const { transaction:txDetails, sourceOutputs } = requestParams;
+  const { transaction:wcTransactionItem, sourceOutputs } = requestParams;
+
+  // TODO: perform validation before rendering the component
+  const txDetails = typeof wcTransactionItem === "string" ? decodeTransactionUnsafe(hexToBin(wcTransactionItem)) : wcTransactionItem;
 
   const abs = (value: bigint) => (value < 0n) ? -value : value;
 
