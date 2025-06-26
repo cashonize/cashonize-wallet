@@ -23,11 +23,12 @@
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
   
-  // parse params from transactionRequestWC
+  // parse params from transactionRequestWC as extended JSON to handle stringified/encoded Uint8Array and BigInt
   const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params)) as WcTransactionObj;
   const { transaction:wcTransactionItem, sourceOutputs } = requestParams;
 
-  // TODO: perform validation before rendering the component
+  // We can use decodeTransactionUnsafe because we already perform validation in isValidSignTransactionRequest
+  // So we never expect decodeTransactionUnsafe to throw an error here.
   const txDetails = typeof wcTransactionItem === "string" ? decodeTransactionUnsafe(hexToBin(wcTransactionItem)) : wcTransactionItem;
 
   const abs = (value: bigint) => (value < 0n) ? -value : value;

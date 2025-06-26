@@ -51,3 +51,10 @@ export interface WcTransactionObj {
   broadcast?: boolean,
   userPrompt?: string
 }
+
+export interface WcSignMessageObj {
+  message: string,
+  userPrompt?: string,
+  address?: string, // no longer used but kept in the interface as dapps might still send it
+  account?: string, // no longer used but kept in the interface as dapps might still send i
+}

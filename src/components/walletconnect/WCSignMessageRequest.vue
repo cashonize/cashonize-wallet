@@ -3,6 +3,8 @@
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit'
+  import { useStore } from 'src/stores/store'
+  const store = useStore()
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
@@ -17,7 +19,6 @@
   
   const requestParams = signMessageRequestWC.value.params.request.params
   const message = requestParams.message as string
-  const signingAddress = requestParams?.address ?? requestParams?.account;
 </script>
 
 <template>
@@ -41,7 +42,7 @@
         <hr>
         <div style="margin: 15px 0;">
           <div>Signer:</div>
-          {{ signingAddress }}
+          {{ store.wallet!.address }}
         </div>
         <div style="margin: 15px 0;">
           <div>Message:</div>

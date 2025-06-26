@@ -8,7 +8,8 @@ import {
   hexToBin,
   binToHex,
   sha256,
-  encodeLockingBytecodeP2pkh
+  encodeLockingBytecodeP2pkh,
+  decodeTransaction
 } from "@bitauth/libauth"
 import { getSdkError } from '@walletconnect/utils';
 import { parseExtendedJson } from 'src/utils/utils'
@@ -16,11 +17,12 @@ import alertDialog from 'src/components/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
-import type { WcTransactionObj } from "src/interfaces/wcInterfaces"
+import type { WcSignMessageObj, WcTransactionObj } from "src/interfaces/wcInterfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { createSignedWcTransaction } from "src/utils/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
+import { EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 const settingsStore = useSettingsStore()
 
 type ChangeNetwork = (network: "mainnet" | "chipnet") => Promise<void>;
@@ -205,6 +207,8 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
           const session = sessions[topic];
           if (!session) return;
 
+          if(!isValidSignTransactionRequest(event)) return
+
           // Auto-approve early return
           if (settingsStore.isAutoApproveValid(topic)) {
             await signTransactionWC(event)
@@ -247,9 +251,40 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
       }
     }
 
+    async function isValidSignTransactionRequest(transactionRequestWC: WalletKitTypes.SessionRequest) {
+      const { id, topic } = transactionRequestWC;
+
+      // payload sent by the dapp over walletconnect
+      const wcSignTransactionParams = transactionRequestWC.params.request.params
+
+      // the wcSignTransactionParams is from an untrusted source, so we validate the schema with zod
+      try {
+        const encodedWcTransactionObj = EncodedWcTransactionObjSchema.parse(wcSignTransactionParams);
+        // Further validation whether the 
+        if(typeof encodedWcTransactionObj.transaction === "string") {
+          const decodedResult = decodeTransaction(hexToBin(encodedWcTransactionObj.transaction));
+          if(typeof decodedResult == "string") throw new Error("Invalid transaction hex string in encodedWcTransactionObj: " + decodedResult);
+        }
+        // TODO: do we also want to encode the decoded TransactionBCH as a way of validation?
+      } catch (error) {
+        const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in validating schema of encodedWcTransactionObj")
+        Notify.create({
+          type: 'negative',
+          message: errorMessage
+        })
+        // respond with error to dapp
+        const wcErrorMessage = 'Transaction signing request aborted with error: ' + errorMessage;
+        const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+        await web3wallet.value?.respondSessionRequest({ topic, response });
+        return false
+      }
+    }
+
     async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {
-      // Get wcTransactionObj from params of the transactionRequestWC
-      const wcTransactionObj = parseExtendedJson(JSON.stringify(transactionRequestWC.params.request.params)) as WcTransactionObj;
+      // isValidSignTransactionRequest has checked the params already when this function is called
+      const wcSignTransactionParams = transactionRequestWC.params.request.params
+      // parse as extended JSON to handle Uint8Array and BigInt
+      const wcTransactionObj = parseExtendedJson(JSON.stringify(wcSignTransactionParams)) as WcTransactionObj;
 
       const {privateKey, publicKeyCompressed:pubkeyCompressed } = wallet.value;
       if(!privateKey || !pubkeyCompressed) throw new Error("should never happen")
@@ -304,24 +339,38 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
       })
     }
 
-    function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
+    async function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
+      const { id, topic } = signMessageRequestWC;
       try{
-        const requestParams = signMessageRequestWC.params.request.params
-        const message = requestParams?.message;
+        // payload sent by the dapp over walletconnect
+        const wcSignMessageParams = signMessageRequestWC.params.request.params
+
+        // the wcSignMessageParams is from an untrusted source, so perform basic validation
+        // TODO: use zod for this validation
+        // note: historically '.address' or 'account' was used and even required
+        const message = wcSignMessageParams?.message;
         if(!message) throw new Error("Invalid request: No message provided to sign");
-        const signingAddress = requestParams?.address ?? requestParams?.account;
-        const walletAddress = wallet.value?.address
-        if(signingAddress !== walletAddress) throw new Error("Invalid request: Invalid signing address provided");
+        if(typeof message !== "string") throw new Error("Invalid request: Provided message is not a string");
         return true
       } catch (error) {
+        const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in validating schema of encodedWcTransactionObj")
+        Notify.create({
+          type: 'negative',
+          message: errorMessage
+        })
         displayAndLogError(error);
+        // respond with error to dapp
+        const wcErrorMessage = 'Message signing request aborted with error: ' + errorMessage;
+        const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+        await web3wallet.value?.respondSessionRequest({ topic, response });
         return false
       }
     }
 
     async function signMessage(signMessageRequestWC: WalletKitTypes.SessionRequest){
-      const requestParams = signMessageRequestWC.params.request.params
-      const message = requestParams?.message;
+      // isValidSignMessageRequest has checked the params already when this function is called
+      const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageObj
+      const message = wcSignMessageParams.message;
       const signedMessage = await wallet.value?.sign(message);
 
       const { id, topic } = signMessageRequestWC;
