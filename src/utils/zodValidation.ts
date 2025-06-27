@@ -13,6 +13,7 @@ const simpleTransactionCommonSchema = z.object({
 
 // TODO: could try to make this more strict
 // especially the token and contract fields as these are nested objects
+// Source outputs are transmitted using libauth's stringify, since they contain UInt8Array and BigInt.
 const simpleSourceOutputSchema = z.object({
   outpointIndex: z.number(),
   outpointTransactionHash: z.string(), // stringified UInt8Array
@@ -25,7 +26,6 @@ const simpleSourceOutputSchema = z.object({
 });
 
 // see the BCH wallet connect spec at https://github.com/mainnet-pat/wc2-bch-bcr
-// Source outputs are transmitted using libauth's stringify, since they contain UInt8Array and BigInt.
 export const EncodedWcTransactionObjSchema = z.object({
   transaction: z.union([hexEncodedStringSchema, simpleTransactionCommonSchema]),
   sourceOutputs: z.array(simpleSourceOutputSchema),
@@ -34,3 +34,13 @@ export const EncodedWcTransactionObjSchema = z.object({
 });
 
 export type encodedWcTransactionObj = z.infer<typeof EncodedWcTransactionObjSchema>;
+
+// note: historically in Cashonize 'address' or 'account' was used and even required
+export const WcMessageObjSchema = z.object({
+  message: z.string(),
+  userPrompt: z.optional(z.string()),
+  address: z.optional(z.boolean()), // no longer used but kept in the interface as dapps might still send it
+  account: z.optional(z.string()), // no longer used but kept in the interface as dapps might still send it
+});
+
+export type WcMessageObj = z.infer<typeof WcMessageObjSchema>;

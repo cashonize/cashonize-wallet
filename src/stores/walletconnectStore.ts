@@ -22,7 +22,7 @@ import { useSettingsStore } from 'src/stores/settingsStore';
 import { createSignedWcTransaction } from "src/utils/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
-import { EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
+import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 const settingsStore = useSettingsStore()
 
 type ChangeNetwork = (network: "mainnet" | "chipnet") => Promise<void>;
@@ -267,7 +267,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
         }
         // TODO: do we also want to encode the decoded TransactionBCH as a way of validation?
       } catch (error) {
-        const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in validating schema of encodedWcTransactionObj")
+        const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in validating schema of WalletConnect transaction request")
         Notify.create({
           type: 'negative',
           message: errorMessage
@@ -346,14 +346,10 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
         const wcSignMessageParams = signMessageRequestWC.params.request.params
 
         // the wcSignMessageParams is from an untrusted source, so perform basic validation
-        // TODO: use zod for this validation
-        // note: historically '.address' or 'account' was used and even required
-        const message = wcSignMessageParams?.message;
-        if(!message) throw new Error("Invalid request: No message provided to sign");
-        if(typeof message !== "string") throw new Error("Invalid request: Provided message is not a string");
+        WcMessageObjSchema.parse(wcSignMessageParams);
         return true
       } catch (error) {
-        const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in validating schema of encodedWcTransactionObj")
+        const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in validating schema of WalletConnect sign message request")
         Notify.create({
           type: 'negative',
           message: errorMessage
