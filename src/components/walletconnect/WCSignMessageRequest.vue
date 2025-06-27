@@ -4,6 +4,7 @@
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit'
   import { useStore } from 'src/stores/store'
+  import { type WcSignMessageObj } from 'src/interfaces/wcInterfaces';
   const store = useStore()
 
   const props = defineProps<{
@@ -17,8 +18,8 @@
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
   
-  const requestParams = signMessageRequestWC.value.params.request.params
-  const message = requestParams.message as string
+  const requestParams = signMessageRequestWC.value.params.request.params as WcSignMessageObj
+  const message = requestParams.message
 </script>
 
 <template>
@@ -27,8 +28,8 @@
       <fieldset class="dialogFieldsetSignMessage"> 
         <legend style="font-size: large;">Sign Message</legend>
 
-        <div style="display: flex; justify-content: center; font-size: larger;  margin-top: 1rem;">
-          Sign Message
+        <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
+          {{ requestParams.userPrompt ?? 'Sign Message' }}
         </div>
 
         <div style="font-size: large; margin-top: 1.5rem;">Origin:</div>
