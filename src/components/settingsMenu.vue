@@ -180,6 +180,8 @@
       indexedDB.deleteDatabase("bchtest");
       clearHistoryCache()
       clearMetadataCache()
+      // remove 'seedBackedUp' state from localStorage, other localstorage items are still persisted after wallet deletion
+      localStorage.removeItem("seedBackedUp")
       location.reload(); 
     }
   }
