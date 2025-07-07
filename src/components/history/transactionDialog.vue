@@ -103,7 +103,7 @@
               Link to BlockExplorer
             </a>
             <span @click="() => copyToClipboard(store.explorerUrl + `/${historyItem.hash}`)" style="cursor:pointer;">
-              <img class="copyIcon" src="images/copyGrey.svg" style="vertical-align: bottom;">
+              <img class="copyIcon" src="images/copyGrey.svg" style="vertical-align: text-bottom;">
             </span>
           </div>
           <div>
