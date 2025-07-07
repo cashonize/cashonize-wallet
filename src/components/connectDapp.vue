@@ -69,19 +69,19 @@
       const { isWcAndCcInitialized } = storeToRefs(store);
       await waitForInitialized(isWcAndCcInitialized); 
 
-      // If the URL begings with "wc:" (walletconnect)...
+      // If the URI begins with "wc:" (walletconnect)...
       if(dappUri.startsWith('wc:')) {
         await walletconnectRef.value?.connectDappUriInput(dappUri);
       }
 
-      // Otherwise, if the URL begins with "cc:" (cashconnect)...
+      // Otherwise, if the URI begins with "cc:" (cashconnect)...
       else if (dappUri.startsWith('cc:')) {
         await cashconnectRef.value?.connectDappUriInput(dappUri);
       }
 
       // Otherwise, if it does not match CC or WC, throw an error.
       else {
-        throw new Error('Invalid WalletConnect or CashConnect URL');
+        throw new Error('Invalid WalletConnect or CashConnect URI');
       }
 
       // Clear the input.
