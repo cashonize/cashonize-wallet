@@ -1,33 +1,65 @@
-import Dexie from 'dexie';
 import { binToHex, sha256, utf8ToBin } from 'mainnet-js';
 
-const electrumDb = new Dexie('ElectrumNetworkProviderCache');
-
-// version 0.1 matches 'version 1' used in indexedDb directly by mainnet-js 
-electrumDb.version(0.1).stores({
-  ElectrumNetworkProviderCache: ''   // key-value store
-});
-
-try {
-  await electrumDb.open();
-} catch (e) {
-  console.error('Unable to open Electrum cache DB:', e);
-}
-
-const electrumCacheStore = electrumDb.table<string, string>('ElectrumNetworkProviderCache');
-
 export async function getElectrumCacheSize(): Promise<number> {
-  const allItems = await electrumCacheStore.toArray();
-  let totalSize = 0;
-  for (const item of allItems) {
-    totalSize += new Blob([item]).size;
-  }
-  return totalSize;
+  const dbName = "ElectrumNetworkProviderCache";
+  const db = await openIndexedDB(dbName);
+  return await getIndexedDBObjectStoreSize(db, dbName);
 }
 
 export async function clearElectrumCache(): Promise<void> {
-  await electrumCacheStore.clear();
+  const dbName = "ElectrumNetworkProviderCache";
+  await clearIndexedDBObjectStore(dbName, dbName);
 }
+
+/* Native IndexedDB helper functions */
+// Using Dexie caused freezing issues with Capacitor when using '.toArray' because it runs on the main thread.
+
+export async function openIndexedDB(dbName: string): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const openRequest = indexedDB.open(dbName);
+    openRequest.onsuccess = () => resolve(openRequest.result);
+    openRequest.onerror = () => reject(new Error("Error opening IndexedDB"));
+  });
+}
+
+export async function getIndexedDBObjectStoreSize(
+  db: IDBDatabase,
+  storeName: string
+): Promise<number> {
+  return new Promise((resolve, reject) => {
+    let totalSize = 0;
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const cursorRequest = store.openCursor();
+
+    cursorRequest.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest).result;
+      if (cursor) {
+        totalSize += new Blob([JSON.stringify(cursor.value)]).size;
+        cursor.continue();
+      } else {
+        resolve(totalSize);
+      }
+    };
+
+    cursorRequest.onerror = () => reject(new Error("Error reading IndexedDB"));
+  });
+}
+
+export async function clearIndexedDBObjectStore(dbName: string, storeName: string): Promise<void> {
+  const db = await openIndexedDB(dbName);
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    const clearRequest = store.clear();
+
+    clearRequest.onsuccess = () => resolve();
+    clearRequest.onerror = () => reject(new Error("Error clearing object store"));
+  });
+}
+
+/* cachedFetch implementation using localStorage */
 
 interface LocalStorageCacheResponse {
   simpleResponse: {

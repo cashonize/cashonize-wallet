@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import EmojiItem from './general/emojiItem.vue'
-  import { computed, ref, watch } from 'vue'
+  import { computed, ref } from 'vue'
   import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -73,14 +73,8 @@
     localStorageSizeMB.value = calculateLocalStorageSizeMB()
   };
 
-  // Loading Cache data is expensive with capacitor so don't block UI on loading
-  watch(displaySettingsMenu, (newVal) => {
-    // Load cache sizes if the user opens the advanced settings menu
-    if (newVal === 3) {
-      // defer execution to allow UI to render first
-      setTimeout(async () => await loadCacheSizes(), 0);
-    }
-  });
+  // Loading cache sizes during setup to have the sizes available immediately in the 'advanced settings' submenu.
+  loadCacheSizes()
 
   async function changeCurrency(){
     Config.DefaultCurrency = selectedCurrency.value;

@@ -30,7 +30,6 @@
     "@walletconnect/core": "2.19.2",
     "cashconnect": "^0.0.18",
     "chota": "^0.9.2",
-    "dexie": "3.2.4",
     "electron-store": "^10.0.1",
     "mainnet-js": "^2.6.5",
     "pinia": "^3.0.3",
