@@ -189,7 +189,7 @@
       const decodedAddress = decodeCashAddress(destinationAddr.value)
       if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
-      if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
+      if(!supportsTokens) throw(`Not a Token Address (should start with z...)`);
       if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const tokenId = tokenData.value.tokenId;
       const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
@@ -367,7 +367,7 @@
     }
   }
   async function transferAuth() {
-    if(!store.wallet || !store.wallet.tokenaddr) return;
+    if(!store.wallet) return;
     if(!tokenData.value?.authUtxo) return;
     const tokenId = tokenData.value.tokenId;
     const authNft = tokenData.value.authUtxo?.token;

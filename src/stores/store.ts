@@ -12,7 +12,7 @@ import {
   type BalanceResponse,
   type UtxoI,
   type ElectrumNetworkProvider,
-  type CancelWatchFn,
+  type CancelFn,
   type HexHeaderI
 } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
@@ -75,9 +75,9 @@ export const useStore = defineStore('store', () => {
   const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
-  let cancelWatchBchtxs: undefined | CancelWatchFn;
-  let cancelWatchTokenTxs: undefined | CancelWatchFn;
-  let cancelWatchBlocks: undefined | CancelWatchFn;
+  let cancelWatchBchtxs: undefined | CancelFn;
+  let cancelWatchTokenTxs: undefined | CancelFn;
+  let cancelWatchBlocks: undefined | CancelFn;
 
   // Create a callback that triggers when we switch networks.
   let networkChangeCallbacks: Array<() => Promise<void>> = [];
@@ -110,7 +110,7 @@ export const useStore = defineStore('store', () => {
       (() => {
         let timeoutHandle: ReturnType<typeof setTimeout>
         const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
-        Promise.race([wallet.value.provider?.connect(),
+        Promise.race([wallet.value.provider.connect(),
           new Promise((_, reject) =>
             (timeoutHandle = setTimeout(() => {
               earlyError = true
@@ -164,8 +164,8 @@ export const useStore = defineStore('store', () => {
     } 
   }
 
-  function setUpWalletSubscriptions(){
-    cancelWatchBchtxs = wallet.value?.watchBalance(async (newBalance) => {
+  async function setUpWalletSubscriptions(){
+    cancelWatchBchtxs = await wallet.value?.watchBalance(async (newBalance) => {
       const oldBalance = balance.value;
       balance.value = newBalance;
       if(oldBalance?.sat && newBalance?.sat){
@@ -187,12 +187,12 @@ export const useStore = defineStore('store', () => {
       updateWalletHistory()
     });
     const walletPkh = binToHex(wallet.value?.getPublicKeyHash() as Uint8Array);
-    cancelWatchTokenTxs = wallet.value?.watchAddressTokenTransactions(async(tx) => {      
+    cancelWatchTokenTxs = await wallet.value?.watchAddressTokenTransactions(async(tx) => {      
       const receivedTokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
       const previousTokenList = tokenList.value;
       const listNewTokens:TokenList = []
       // Check if transaction not initiated by user
-      const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value?.address);
+      const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value?.cashaddr);
       for(const tokenOutput of receivedTokenOutputs){
         if(!userInputs.length){
           const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
@@ -213,7 +213,7 @@ export const useStore = defineStore('store', () => {
       await updateWalletUtxos();
       updateWalletHistory()
     });
-    cancelWatchBlocks = wallet.value?.watchBlocks((header: HexHeaderI) => {
+    cancelWatchBlocks = await wallet.value?.watchBlocks((header: HexHeaderI) => {
       currentBlockHeight.value = header.height;
     }, false);
   }
@@ -315,6 +315,7 @@ export const useStore = defineStore('store', () => {
     try {
       walletHistory.value = await wallet.value?.getHistory({});
     } catch(error){
+      console.error(error)
       const errorMessage = typeof error == 'string' ? error : "something went wrong";
       console.error(errorMessage)
       Notify.create({

@@ -31,7 +31,7 @@
         color: 'grey-5',
         timeout: 1000
       })
-      await store.wallet.sendMax(store.wallet.address as string)
+      await store.wallet.sendMax(store.wallet.cashaddr)
       $q.notify({
         type: 'positive',
         message: 'Consollidated BCH UTXOs successfully!'
@@ -72,7 +72,7 @@
       for(const uniqueTokenIdToSplit of uniqueTokenIdsToSplit) {
         const { txId } = await store.wallet.send([
           new TokenSendRequest({
-            cashaddr: store.wallet.tokenaddr as string,
+            cashaddr: store.wallet.tokenaddr,
             amount: fungibleTokensResult[uniqueTokenIdToSplit] as bigint,
             tokenId: uniqueTokenIdToSplit,
           }),

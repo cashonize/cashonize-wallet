@@ -33,7 +33,7 @@
         color: 'grey-5',
         timeout: 1000
       })
-      const mainWalletAddress = store.wallet?.address as string
+      const mainWalletAddress = store.wallet?.cashaddr as string
       await tempWallet.sendMax(mainWalletAddress)
       $q.notify({
         type: 'positive',

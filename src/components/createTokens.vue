@@ -25,7 +25,7 @@
     if(!store.wallet) return;
     try{
       store.plannedTokenId = undefined;
-      const walletAddr = store.wallet.address as string;
+      const walletAddr = store.wallet.cashaddr;
       $q.notify({
         spinner: true,
         message: 'Preparing pre-genesis...',

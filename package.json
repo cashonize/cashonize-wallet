@@ -17,21 +17,21 @@
     "build": "quasar build"
   },
   "dependencies": {
-    "@bitauth/libauth": "3.0.0",
+    "@bitauth/libauth": "3.1.0-next.2",
     "@bitjson/qr-code": "^1.0.2",
     "@capacitor-community/barcode-scanner": "^4.0.1",
     "@capacitor/core": "^7.2.0",
     "@download/blockies": "^1.0.3",
-    "@mainnet-cash/indexeddb-storage": "^2.6.5",
+    "@mainnet-cash/indexeddb-storage": "^2.7.1",
     "@quasar/extras": "^1.17.0",
     "@reown/walletkit": "^1.2.3",
     "@vueform/toggle": "^2.1.4",
     "@vueuse/core": "^13.4.0",
     "@walletconnect/core": "2.19.2",
-    "cashconnect": "^0.0.18",
+    "cashconnect": "^0.0.19",
     "chota": "^0.9.2",
     "electron-store": "^10.0.1",
-    "mainnet-js": "^2.6.5",
+    "mainnet-js": "^2.7.1",
     "pinia": "^3.0.3",
     "quasar": "^2.18.1",
     "vue": "^3.5.17",
@@ -63,5 +63,8 @@
     "node": "^24 || ^22 || ^20 || ^18",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
+  },
+  "resolutions": {
+    "@bitauth/libauth": "3.1.0-next.2"
   }
 }

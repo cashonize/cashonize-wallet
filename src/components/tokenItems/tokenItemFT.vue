@@ -235,7 +235,7 @@
     }
   }
   async function transferAuth() {
-    if(!store.wallet || !store.wallet.tokenaddr) return;
+    if(!store.wallet) return;
     if(!tokenData.value?.authUtxo) return;
     if(!reservedSupplyInput?.value) throw(`Amount tokens for reserved supply must be a valid integer`);
     const decimals = tokenMetaData.value?.token?.decimals ?? 0;

@@ -286,10 +286,8 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
       // parse as extended JSON to handle Uint8Array and BigInt
       const wcTransactionObj = parseExtendedJson(JSON.stringify(wcSignTransactionParams)) as WcTransactionObj;
 
-      const {privateKey, publicKeyCompressed:pubkeyCompressed } = wallet.value;
-      if(!privateKey || !pubkeyCompressed) throw new Error("should never happen")
-
-      const walletLockingBytecode = encodeLockingBytecodeP2pkh(wallet.value?.publicKeyHash as Uint8Array);
+      const { privateKey, publicKeyCompressed: pubkeyCompressed } = wallet.value;
+      const walletLockingBytecode = encodeLockingBytecodeP2pkh(wallet.value.publicKeyHash);
       const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
       const encodedTransaction = createSignedWcTransaction(
         wcTransactionObj, { privateKey, pubkeyCompressed }, walletLockingBytecodeHex

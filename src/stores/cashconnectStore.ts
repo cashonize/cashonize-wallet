@@ -39,13 +39,6 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
     // Store a state variable to make sure we don't call "start" more than once.
     const isStarted = ref(false);
 
-    // Ensure that the Mainnet Wallet has a Private Key.
-    if (!wallet.value.privateKey) {
-      throw new Error(
-        "Failed to create store: Mainnet wallet.privateKey is undefined"
-      );
-    }
-
     // Auto-approve the following RPC methods.
     // NOTE: We hard-code these for now, but they could be customized on a per-Dapp basis in the future.
     const autoApprovedMethods = [
@@ -240,8 +233,6 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       outpointTransactionHash: Uint8Array,
       outpointIndex: number
     ): Promise<Output> {
-      if (!wallet.value.provider) throw new Error("Wallet Provider is undefined");
-
       // wait for electrum to be initialized to avoid race-conditions
       if (document.visibilityState === 'visible') {
         try {
@@ -281,9 +272,6 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
     }
 
     async function getUnspents(): Promise<Array<Unspent>> {
-      if (!wallet.value.cashaddr) throw new Error('Wallet "cashaddr" is not available.');
-      if (!wallet.value.provider) throw new Error("Wallet Provider is undefined");
-
       // wait for electrum to be initialized to avoid race-conditions
       if (document.visibilityState === 'visible') {
         try {
@@ -296,7 +284,6 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
       const utxos = await wallet.value.getUtxos();
 
       const lockingBytecode = cashAddressToLockingBytecode(wallet.value.cashaddr);
-
       if (typeof lockingBytecode === "string") {
         throw new Error("Failed to convert CashAddr to Locking Bytecode");
       }
@@ -343,12 +330,6 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
     }
 
     async function getChangeTemplate() {
-      if (!wallet.value.privateKey) {
-        throw new Error(
-          "Failed to getChangeTemplate: Mainnet wallet.value.value.privateKey is undefined"
-        );
-      }
-
       return {
         template: walletTemplateP2pkhNonHd,
         data: {

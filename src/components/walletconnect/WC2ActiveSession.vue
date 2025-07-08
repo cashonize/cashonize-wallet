@@ -19,7 +19,7 @@
   }>()
   const { activeSessions } = toRefs(props);
 
-  const sessionSettingsWC = ref('' as string);
+  const sessionSettingsWC = ref('');
 
   const displaySessionId = computed(() => {
     const session = activeSessions.value[props.sessionId] as SessionTypes.Struct;

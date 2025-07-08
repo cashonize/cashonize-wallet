@@ -43,7 +43,7 @@
         <hr>
         <div style="margin: 15px 0;">
           <div>Signer:</div>
-          {{ store.wallet!.address }}
+          {{ store.wallet!.cashaddr }}
         </div>
         <div style="margin: 15px 0;">
           <div>Message:</div>
