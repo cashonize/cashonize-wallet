@@ -48,11 +48,11 @@
         <div>{{ dappMetadata.description }}</div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 18px;">
-        <img style="cursor: pointer;max-width: none;"
+        <img style="cursor: pointer; max-width: none;"
           @click="() => sessionSettingsWC = sessionId" 
           :src="settingsStore.darkMode? 'images/settingsLightGrey.svg': 'images/settings.svg'"
         />
-        <img style="cursor: pointer;max-width: none;"
+        <img style="cursor: pointer; max-width: none;"
           @click="emit('deleteSession', sessionId)"
           :src="settingsStore.darkMode? 'images/trashLightGrey.svg': 'images/trash.svg'"
         />
@@ -61,8 +61,8 @@
   </div>
 
   <div v-if="sessionSettingsWC">
-      <WC2SessionSettingsDialog :sessionId="sessionSettingsWC" @hide="sessionSettingsWC=''" :dapp-metadata="dappMetadata"/>
-    </div>
+    <WC2SessionSettingsDialog :sessionId="sessionSettingsWC" @hide="sessionSettingsWC=''" :dapp-metadata="dappMetadata"/>
+  </div>
 </template>
 
 <style scoped>
