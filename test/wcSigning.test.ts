@@ -10,12 +10,12 @@ import { Wallet } from "mainnet-js";
 const throwAwayTestKeyWif = 'L15RRkJJdgWARpbwHaZV4a99ciHhKEmWz8bR8aQ5T94FqhfAw3Ac'
 
 const throwAwayWallet = await Wallet.fromWIF(throwAwayTestKeyWif);
-const walletLockingBytecode = encodeLockingBytecodeP2pkh(throwAwayWallet.publicKeyHash);
+const walletLockingBytecode = encodeLockingBytecodeP2pkh(throwAwayWallet?.publicKeyHash as Uint8Array);
 const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
 
 const signingInfo = {
-  privateKey: throwAwayWallet.privateKey,
-  pubkeyCompressed: throwAwayWallet.publicKeyCompressed
+  privateKey: throwAwayWallet.privateKey as Uint8Array,
+  pubkeyCompressed: throwAwayWallet.publicKeyCompressed as Uint8Array
 };
 
 describe('test createSignedWcTransaction', () => {

@@ -38,7 +38,7 @@
   const qrCodeRef = shallowRef<QrCodeElement | null>(null);
 
   const nrTokenCategories = computed(() => store.tokenList?.length)
-  const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.cashaddr : store.wallet?.tokenaddr)
+  const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.address : store.wallet?.tokenaddr)
 
   const bchDisplayNetwork = computed(() => {
     return (store.network == "mainnet") ? 'BCH' : 'tBCH'
@@ -235,8 +235,8 @@
     </div>
     <div style="word-break: break-all;">
       {{ bchDisplayNetwork }} address: 
-      <span @click="() => copyToClipboard(store.wallet?.cashaddr)" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet?.cashaddr ?? "" }} </span>
+      <span @click="() => copyToClipboard(store.wallet?.address)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.wallet?.address ?? "" }} </span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
