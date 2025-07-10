@@ -301,7 +301,7 @@ export const useStore = defineStore('store', () => {
       walletUtxos.value = await wallet.value?.getAddressUtxos();
       updateTokenList()
     } catch(error) {
-      const errorMessage = typeof error == 'string' ? error : "something went wrong";
+      const errorMessage = typeof error == 'string' ? error : "Error in fetching wallet UTXOs";
       console.error(errorMessage)
       Notify.create({
         message: errorMessage,
@@ -316,7 +316,7 @@ export const useStore = defineStore('store', () => {
       walletHistory.value = await wallet.value?.getHistory({});
     } catch(error){
       console.error(error)
-      const errorMessage = typeof error == 'string' ? error : "something went wrong";
+      const errorMessage = typeof error == 'string' ? error : "Error in fetching wallet history";
       console.error(errorMessage)
       Notify.create({
         message: errorMessage,
