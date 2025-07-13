@@ -315,11 +315,8 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
             }
           })
         } catch(error){
+          displayAndLogError(error);
           const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in sending transaction")
-          Notify.create({
-            type: 'negative',
-            message: errorMessage
-          })
           // respond with error to dapp
           const wcErrorMessage = 'Transaction failed to send with error: ' + errorMessage;
           const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };

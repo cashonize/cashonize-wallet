@@ -1,17 +1,17 @@
 import {
   hexToBin,
   binToHex,
-  walletTemplateToCompilerBCH,
+  walletTemplateToCompilerBch,
   secp256k1,
   hash256,
   SigningSerializationFlag,
-  generateSigningSerializationBCH,
+  generateSigningSerializationBch,
   generateTransaction,
   encodeTransaction,
   decodeTransaction,
   importWalletTemplate,
   walletTemplateP2pkhNonHd,
-  type CompilationContextBCH,
+  type CompilationContextBch,
   type TransactionTemplate,
 } from "@bitauth/libauth"
 import type { WcTransactionObj } from "src/interfaces/wcInterfaces";
@@ -35,7 +35,7 @@ export function createSignedWcTransaction(
   }
 
   // configure compiler
-  const compiler = walletTemplateToCompilerBCH(walletTemplate);
+  const compiler = walletTemplateToCompilerBch(walletTemplate);
 
   // A Transaction representation that may use compilation directives in place of lockingBytecode and unlockingBytecode instances
   const txTemplate = {...unsignedTransaction} as TransactionTemplate<typeof compiler>;
@@ -53,14 +53,14 @@ export function createSignedWcTransaction(
       if (unlockingBytecodeHex.indexOf(sigPlaceholder) !== -1) {
         // compute the signature argument
         const hashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
-        const context: CompilationContextBCH = { inputIndex: index, sourceOutputs, transaction: unsignedTransaction };
+        const context: CompilationContextBch = { inputIndex: index, sourceOutputs, transaction: unsignedTransaction };
         const signingSerializationType = new Uint8Array([hashType]);
 
         const coveredBytecode = correspondingSourceOutput.contract?.redeemScript;
         if (!coveredBytecode) {
           throw new Error("Not enough information provided, please include contract redeemScript");
         }
-        const sighashPreimage = generateSigningSerializationBCH(context, { coveredBytecode, signingSerializationType });
+        const sighashPreimage = generateSigningSerializationBch(context, { coveredBytecode, signingSerializationType });
         const sighash = hash256(sighashPreimage);
         const signature = secp256k1.signMessageHashSchnorr(privateKey, sighash);
         if (typeof signature === "string") {
