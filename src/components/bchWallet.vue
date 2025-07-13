@@ -191,9 +191,13 @@
 
   const qrDecode = (content: string) => {
     destinationAddr.value = content;
+    parseAddrParams()
   }
   const qrFilter = (content: string) => {
-    const decoded = decodeCashAddress(content);
+    let addressInput = content;
+    // remove amount parameter if present before doing decoding check
+    if(addressInput.includes("?amount=")) addressInput = addressInput.split("?")[0] as string;
+    const decoded = decodeCashAddress(addressInput);
     if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
       return "Not a cashaddress on current network";
     }
