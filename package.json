@@ -22,7 +22,7 @@
     "@capacitor-community/barcode-scanner": "^4.0.1",
     "@capacitor/core": "^7.2.0",
     "@download/blockies": "^1.0.3",
-    "@mainnet-cash/indexeddb-storage": "^2.7.1",
+    "@mainnet-cash/indexeddb-storage": "^2.7.6",
     "@quasar/extras": "^1.17.0",
     "@reown/walletkit": "^1.2.3",
     "@vueform/toggle": "^2.1.4",
@@ -31,13 +31,13 @@
     "cashconnect": "^0.0.19",
     "chota": "^0.9.2",
     "electron-store": "^10.1.0",
-    "mainnet-js": "^2.7.1",
+    "mainnet-js": "^2.7.6",
     "pinia": "^3.0.3",
     "quasar": "^2.18.1",
     "vue": "^3.5.17",
     "vue-qrcode-reader": "^5.7.2",
     "vue-router": "^4.5.1",
-    "zod": "^3.25.75"
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.1",
@@ -46,7 +46,7 @@
     "@types/node": "^20.5.9",
     "@vue/eslint-config-typescript": "^14.6.0",
     "autoprefixer": "^10.4.21",
-    "electron": "^37.2.0",
+    "electron": "^37.2.1",
     "electron-builder": "^26.0.12",
     "eslint": "^9.25.1",
     "eslint-plugin-vue": "^10.3.0",
