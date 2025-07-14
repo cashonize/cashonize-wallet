@@ -4,7 +4,7 @@
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit'
   import { useStore } from 'src/stores/store'
-  import { type WcSignMessageObj } from 'src/interfaces/wcInterfaces';
+  import { type WcSignMessageRequest } from '@bch-wc2/interfaces';
   const store = useStore()
 
   const props = defineProps<{
@@ -18,7 +18,7 @@
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
   
-  const requestParams = signMessageRequestWC.value.params.request.params as WcSignMessageObj
+  const requestParams = signMessageRequestWC.value.params.request.params as WcSignMessageRequest
   const message = requestParams.message
 </script>
 

@@ -3,7 +3,7 @@
   import { binToHex, decodeTransactionUnsafe, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
-  import { type WcTransactionObj } from "src/interfaces/wcInterfaces"
+  import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { useStore } from 'src/stores/store'
   import { convertToCurrency, parseExtendedJson } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -24,7 +24,7 @@
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
   
   // parse params from transactionRequestWC as extended JSON to handle stringified/encoded Uint8Array and BigInt
-  const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params)) as WcTransactionObj;
+  const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params)) as WcSignTransactionRequest;
   const { transaction:wcTransactionItem, sourceOutputs } = requestParams;
 
   // We can use decodeTransactionUnsafe because we already perform validation in isValidSignTransactionRequest

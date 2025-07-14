@@ -82,7 +82,7 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.27.1"
 
-"@bch-wc2/interfaces@^0.0.4":
+"@bch-wc2/interfaces@0.0.4", "@bch-wc2/interfaces@^0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@bch-wc2/interfaces/-/interfaces-0.0.4.tgz#702714e31aa55710bb9b8c64c18dc60a9e89045c"
   integrity sha512-ROQjPxRBAYPvy7z0qiATWjI7Jwf4Zhag1/r68i9PJ5Wp0Uaq75krh0a5/UF+bnJ+AUm0aKwNR4zT5D7a1mZkzA==

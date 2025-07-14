@@ -2,7 +2,7 @@ import { parseExtendedJson } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaJsonString1 } from "./fixtures/wcFixtures";
 import { createSignedWcTransaction } from "../src/utils/wcSigning";
 import { encodeLockingBytecodeP2pkh, binToHex } from "@bitauth/libauth"
-import type { WcTransactionObj } from "../src/interfaces/wcInterfaces";
+import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
 import { Wallet } from "mainnet-js";
 
 // const throwAwayTestKey = generatePrivateKey()
@@ -20,7 +20,7 @@ const signingInfo = {
 
 describe('test createSignedWcTransaction', () => {
   it('should create a signed transaction from wc info using stringified transaction value', async() => {
-    const wcTransactionObj = parseExtendedJson(cashNinjaJsonString0) as WcTransactionObj;
+    const wcTransactionObj = parseExtendedJson(cashNinjaJsonString0) as WcSignTransactionRequest;
 
     // inputs in 'cashNinjaJsonString' need to be tweaked for the test to be spendable by the throwAway key
     const userInput = wcTransactionObj.sourceOutputs[1]
@@ -32,7 +32,7 @@ describe('test createSignedWcTransaction', () => {
     expect(binToHex(encodedTransaction)).toEqual(expectedResult);
   })
   it('should create a signed transaction from wc info using transaction hex string value', async() => {
-    const wcTransactionObj = parseExtendedJson(cashNinjaJsonString1) as WcTransactionObj;
+    const wcTransactionObj = parseExtendedJson(cashNinjaJsonString1) as WcSignTransactionRequest;
 
     // inputs in 'cashNinjaJsonString' need to be tweaked for the test to be spendable by the throwAway key
     const userInput = wcTransactionObj.sourceOutputs[1]

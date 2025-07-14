@@ -17,7 +17,7 @@ import alertDialog from 'src/components/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
-import type { WcSignMessageObj, WcTransactionObj } from "src/interfaces/wcInterfaces"
+import type { WcSignMessageRequest, WcSignTransactionRequest } from "@bch-wc2/interfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { createSignedWcTransaction } from "src/utils/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
@@ -284,7 +284,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
       // isValidSignTransactionRequest has checked the params already when this function is called
       const wcSignTransactionParams = transactionRequestWC.params.request.params
       // parse as extended JSON to handle Uint8Array and BigInt
-      const wcTransactionObj = parseExtendedJson(JSON.stringify(wcSignTransactionParams)) as WcTransactionObj;
+      const wcTransactionObj = parseExtendedJson(JSON.stringify(wcSignTransactionParams)) as WcSignTransactionRequest;
 
       const { privateKey, publicKeyCompressed: pubkeyCompressed } = wallet.value;
       const walletLockingBytecode = encodeLockingBytecodeP2pkh(wallet.value.publicKeyHash);
@@ -360,7 +360,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
 
     async function signMessage(signMessageRequestWC: WalletKitTypes.SessionRequest){
       // isValidSignMessageRequest has checked the params already when this function is called
-      const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageObj
+      const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageRequest
       const message = wcSignMessageParams.message;
       const signedMessage = await wallet.value?.sign(message);
 

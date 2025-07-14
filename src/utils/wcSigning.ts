@@ -14,10 +14,10 @@ import {
   type CompilationContextBch,
   type TransactionTemplate,
 } from "@bitauth/libauth"
-import type { WcTransactionObj } from "src/interfaces/wcInterfaces";
+import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
 
 export function createSignedWcTransaction(
-  wcTransactionObj: WcTransactionObj,
+  wcTransactionObj: WcSignTransactionRequest,
   signingInfo: { privateKey: Uint8Array, pubkeyCompressed: Uint8Array },
   walletLockingBytecodeHex: string,
 ){
