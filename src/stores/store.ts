@@ -65,6 +65,7 @@ export const useStore = defineStore('store', () => {
   const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
+  const walletInitialized = ref(false as boolean)
   const latestGithubRelease = ref(undefined as undefined | string);
 
   // Computed properties
@@ -123,7 +124,6 @@ export const useStore = defineStore('store', () => {
       console.time('initialize walletconnect and cashconnect');
       await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
       console.timeEnd('initialize walletconnect and cashconnect');
-      setUpWalletSubscriptions();
       // fetch wallet utxos first, this result will be used in consecutive calls
       // to avoid duplicate getAddressUtxos() calls
       console.time('fetch wallet utxos');
@@ -132,19 +132,22 @@ export const useStore = defineStore('store', () => {
       const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
       // Fetch fiat balance and max amount to send in parallel
       // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
-      console.time('fetch fiat balance');
+      console.time('fetch fiat balance & max amount to send');
       const promiseWalletBalance = balanceResponseFromSatoshi(balanceSats);
       const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend({ options:{
         utxoIds: walletAddressUtxos
       }});
       const balancePromises = [promiseWalletBalance, promiseMaxAmountToSend];
       const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
-      console.timeEnd('fetch fiat balance');
+      console.timeEnd('fetch fiat balance & max amount to send');
       // set values simulatenously with tokenList so the UI elements load together
       balance.value = resultWalletBalance
       walletUtxos.value = walletAddressUtxos
       maxAmountToSend.value = resultMaxAmountToSend
       updateTokenList()
+      console.time('set up wallet subscriptions');
+      await setUpWalletSubscriptions();
+      console.timeEnd('set up wallet subscriptions');
       if(!tokenList.value) return // should never happen
       if(isDesktop) getLatestGithubRelease()
       console.time('import registries');
@@ -153,6 +156,7 @@ export const useStore = defineStore('store', () => {
       console.time('fetch history');
       await updateWalletHistory()
       console.timeEnd('fetch history');
+      walletInitialized.value = true;
       // get plannedTokenId
       hasPreGenesis()
       // fetchAuthUtxos start last because it is not critical
@@ -168,7 +172,8 @@ export const useStore = defineStore('store', () => {
     cancelWatchBchtxs = await wallet.value?.watchBalance(async (newBalance) => {
       const oldBalance = balance.value;
       balance.value = newBalance;
-      if(oldBalance?.sat && newBalance?.sat){
+      if(oldBalance?.sat && newBalance?.sat && walletInitialized.value){
+        console.log("watchBalance")
         if(oldBalance.sat < newBalance.sat){
           const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
           const currencyValue = await convert(amountReceived, settingsStore.bchUnit, settingsStore.currency);
@@ -178,16 +183,17 @@ export const useStore = defineStore('store', () => {
             message: `Received ${amountReceived} ${unitString} (${currencyValue + CurrencySymbols[settingsStore.currency]})`
           })
         }
+        // update state (but not on the initial trigger when creating the subscription)
+        const walletAddressUtxos = await wallet.value!.getAddressUtxos();
+        walletUtxos.value = walletAddressUtxos;
+        maxAmountToSend.value = await wallet.value?.getMaxAmountToSend({ options:{
+          utxoIds: walletAddressUtxos
+        }});
+        updateWalletHistory()
       }
-      const walletAddressUtxos = await wallet.value!.getAddressUtxos();
-      walletUtxos.value = walletAddressUtxos;
-      maxAmountToSend.value = await wallet.value?.getMaxAmountToSend({ options:{
-        utxoIds: walletAddressUtxos
-      }});
-      updateWalletHistory()
     });
     const walletPkh = binToHex(wallet.value?.getPublicKeyHash() as Uint8Array);
-    cancelWatchTokenTxs = await wallet.value?.watchAddressTokenTransactions(async(tx) => {      
+    cancelWatchTokenTxs = await wallet.value?.watchAddressTokenTransactions(async(tx) => {
       const receivedTokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
       const previousTokenList = tokenList.value;
       const listNewTokens:TokenList = []
@@ -242,6 +248,7 @@ export const useStore = defineStore('store', () => {
 
   async function changeNetwork(newNetwork: 'mainnet' | 'chipnet'){
     resetWalletState()
+    walletInitialized.value = false;
     // set new wallet
     const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
     const newWallet = await walletClass.named(nameWallet);
@@ -313,6 +320,7 @@ export const useStore = defineStore('store', () => {
 
   async function updateWalletHistory() {
     try {
+      console.log("updateWalletHistory")
       walletHistory.value = await wallet.value?.getHistory({});
     } catch(error){
       console.error(error)
