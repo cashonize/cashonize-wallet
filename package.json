@@ -31,7 +31,7 @@
     "cashconnect": "^0.0.19",
     "chota": "^0.9.2",
     "electron-store": "^10.1.0",
-    "mainnet-js": "^2.7.6",
+    "mainnet-js": "^2.7.8",
     "pinia": "^3.0.3",
     "quasar": "^2.18.1",
     "vue": "^3.5.17",

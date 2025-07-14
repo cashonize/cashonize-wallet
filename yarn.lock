@@ -82,6 +82,11 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.27.1"
 
+"@bch-wc2/interfaces@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@bch-wc2/interfaces/-/interfaces-0.0.4.tgz#702714e31aa55710bb9b8c64c18dc60a9e89045c"
+  integrity sha512-ROQjPxRBAYPvy7z0qiATWjI7Jwf4Zhag1/r68i9PJ5Wp0Uaq75krh0a5/UF+bnJ+AUm0aKwNR4zT5D7a1mZkzA==
+
 "@bitauth/libauth@3.1.0-next.2", "@bitauth/libauth@^3.1.0-next.2":
   version "3.1.0-next.2"
   resolved "https://registry.yarnpkg.com/@bitauth/libauth/-/libauth-3.1.0-next.2.tgz#121782b38774d9fba8226406db9b9af0c8d8e464"
@@ -243,6 +248,18 @@
   integrity sha512-GU/CvRR9lZ0d8gy9CXGW7f//OHCIydBavv9q+JcxjGj8Xr7HwlGqHx+Wzhx9y3YmJrXfExpgClcd++gTjdEmzA==
   dependencies:
     debug "^4.3.7"
+
+"@electrum-cash/network@4.1.1-development.10647307155":
+  version "4.1.1-development.10647307155"
+  resolved "https://registry.yarnpkg.com/@electrum-cash/network/-/network-4.1.1-development.10647307155.tgz#d41d61db58814354f86fa3fb4aa718b5577ade36"
+  integrity sha512-IGvB1lHgY0ozgt2dvWD19Mx0aNrDd+wGh4WvQVDd1ax/GXLFhd7XmLxhHgXNAEm0IpwCTJD5mkiEBNdkvngYcQ==
+  dependencies:
+    "@electrum-cash/debug-logs" "^1.0.0"
+    "@electrum-cash/web-socket" "^1.0.0"
+    async-mutex "^0.5.0"
+    debug "^4.3.2"
+    eventemitter3 "^5.0.1"
+    lossless-json "^4.0.1"
 
 "@electrum-cash/network@^4.1.1":
   version "4.1.1"
@@ -5520,13 +5537,26 @@ magic-string@^0.30.17:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.0"
 
-mainnet-js@2.7.6, mainnet-js@^2.7.6:
+mainnet-js@2.7.6:
   version "2.7.6"
   resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.7.6.tgz#ecd4b0c6204b5cdd5bc753c4b14e603ad5ce4623"
   integrity sha512-t9Yq5S9LkEMQaHfox6y60vULeZWyQGlyoKXL8p/+/R2qm2YeXsjFwDdLIB9zdZqDmnjR0yD6MbmSlJ7uF3EVig==
   dependencies:
     "@bitauth/libauth" "^3.1.0-next.2"
     "@electrum-cash/network" "^4.1.1"
+    "@scure/bip39" "^1.2.2"
+    buffer "^6.0.3"
+  optionalDependencies:
+    dotenv "^10.0.0"
+
+mainnet-js@^2.7.8:
+  version "2.7.8"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.7.8.tgz#315c6bc76b3ba982bc670bdce081275db1c254fa"
+  integrity sha512-iWf5v+r/CKgOoasWoWBJUPQMQQ5foIoG1SvmjNqTXb+pvvrAgpn7gryMI96Qpt3R2/Q/4tPvfpVl0kKLIzMehg==
+  dependencies:
+    "@bch-wc2/interfaces" "^0.0.4"
+    "@bitauth/libauth" "^3.1.0-next.2"
+    "@electrum-cash/network" "4.1.1-development.10647307155"
     "@scure/bip39" "^1.2.2"
     buffer "^6.0.3"
   optionalDependencies:
