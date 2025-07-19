@@ -258,49 +258,67 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeWalletConnect() {
-    const walletconnectStore = await useWalletconnectStore(wallet as Ref<Wallet>, changeNetwork)
-    await walletconnectStore.initweb3wallet();
-    isWcInitialized.value = true;
+    try {
+      const walletconnectStore = await useWalletconnectStore(wallet as Ref<Wallet>, changeNetwork)
+      await walletconnectStore.initweb3wallet();
+      isWcInitialized.value = true;
 
-    // Setup network change callback to disconnect all sessions.
-    networkChangeCallbacks.push(async () => {
-      const sessions = walletconnectStore.web3wallet?.getActiveSessions();
-      if(!sessions) return
+      // Setup network change callback to disconnect all sessions.
+      networkChangeCallbacks.push(async () => {
+        const sessions = walletconnectStore.web3wallet?.getActiveSessions();
+        if(!sessions) return
 
-      for (const session of Object.values(sessions)) {
-        walletconnectStore.web3wallet?.disconnectSession({
-          topic: session.topic,
-          reason: {
-            code: 5000,
-            message: "User rejected",
-          },
-        });
-      }
-    });
+        for (const session of Object.values(sessions)) {
+          walletconnectStore.web3wallet?.disconnectSession({
+            topic: session.topic,
+            reason: {
+              code: 5000,
+              message: "User rejected",
+            },
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error initializing WalletConnect:", error);
+      Notify.create({
+        message: "Error initializing WalletConnect",
+        icon: 'warning',
+        color: "red"
+      });
+    }
   }
 
   async function initializeCashConnect() {
-    // Initialize CashConnect.
-    const cashconnectWallet = await useCashconnectStore(wallet as Ref<Wallet>);
+    try{
+      // Initialize CashConnect.
+      const cashconnectWallet = await useCashconnectStore(wallet as Ref<Wallet>);
 
-    // Start the wallet service.
-    await cashconnectWallet.start();
-    isCcInitialized.value = true;
+      // Start the wallet service.
+      await cashconnectWallet.start();
+      isCcInitialized.value = true;
 
-    // Setup network change callback to disconnect all sessions.
-    // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
-    networkChangeCallbacks.push(async () => {
-      cashconnectWallet.cashConnectWallet.disconnectAllSessions();
-    });
+      // Setup network change callback to disconnect all sessions.
+      // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
+      networkChangeCallbacks.push(async () => {
+        cashconnectWallet.cashConnectWallet.disconnectAllSessions();
+      });
 
-    // Monitor the wallet for balance changes.
-    wallet.value?.watchBalance(async () => {
-      // Convert the network into WC format,
-      const chainIdFormatted = wallet.value?.network === 'mainnet' ? 'bch:bitcoincash' : 'bch:bchtest';
+      // Monitor the wallet for balance changes.
+      wallet.value?.watchBalance(async () => {
+        // Convert the network into WC format,
+        const chainIdFormatted = wallet.value?.network === 'mainnet' ? 'bch:bitcoincash' : 'bch:bchtest';
 
-      // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
-      cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
-    });
+        // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
+        cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
+      });
+    } catch (error) {
+      console.error("Error initializing CashConnect:", error);
+      Notify.create({
+        message: "Error initializing CashConnect",
+        icon: 'warning',
+        color: "red"
+      });
+    }
   }
 
   async function updateWalletUtxos() {
