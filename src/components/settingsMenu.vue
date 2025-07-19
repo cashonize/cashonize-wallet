@@ -172,9 +172,12 @@
     if (confirm(text)){
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
+      indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
+      // TODO: should also clear CashConnect indexedDB
+      indexedDB.deleteDatabase("ElectrumNetworkProviderCache");
       clearHistoryCache()
       clearMetadataCache()
-      // remove 'seedBackedUp' state from localStorage, other localstorage items are still persisted after wallet deletion
+      // remove 'seedBackedUp' state from localStorage, settings are still persisted after wallet deletion
       localStorage.removeItem("seedBackedUp")
       location.reload(); 
     }
