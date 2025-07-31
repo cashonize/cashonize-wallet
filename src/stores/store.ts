@@ -23,13 +23,12 @@ import {
   type BcmrIndexerResponse,
   type WalletHistoryReturnType
 } from "../interfaces/interfaces"
-import { queryAuthHeadTxid } from "../queryChainGraph"
+import { getBalanceFromUtxos, getTokenUtxos } from "src/utils/utils"
 import {
-  getAllNftTokenBalances,
-  getBalanceFromUtxos,
-  getFungibleTokenBalances,
-  getTokenUtxos
-} from "src/utils/utils"
+  importBcmrRegistries,
+  tokenListFromUtxos,
+  updateTokenListWithAuthUtxos
+} from "./storeUtils"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -362,23 +361,11 @@ export const useStore = defineStore('store', () => {
   }
 
   function updateTokenList() {
+    // Uses the walletUtxos to create a tokenList
     if(!walletUtxos.value) return // should never happen
-    const tokenUtxos = getTokenUtxos(walletUtxos.value);
-    const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
-    const nftsResult = getAllNftTokenBalances(tokenUtxos);
-    if(!fungibleTokensResult || !nftsResult) return // should never happen
-    const arrayTokens: TokenList = [];
-    for (const tokenId of Object.keys(fungibleTokensResult)) {
-      const fungibleTokenAmount = fungibleTokensResult[tokenId]
-      if(!fungibleTokenAmount) continue // should never happen
-      arrayTokens.push({ tokenId, amount: fungibleTokenAmount });
-    }
-    for (const tokenId of Object.keys(nftsResult)) {
-      const utxosNftTokenid = tokenUtxos.filter((val) =>val.token?.tokenId === tokenId);
-      arrayTokens.push({ tokenId, nfts: utxosNftTokenid });
-    }
+    const newTokenList = tokenListFromUtxos(walletUtxos.value);
     // sort tokenList with featuredTokens first
-    sortTokenList(arrayTokens);
+    sortTokenList(newTokenList);
   }
 
   function sortTokenList(unsortedTokenList: TokenList) {
@@ -396,42 +383,7 @@ export const useStore = defineStore('store', () => {
 
   // Import onchain resolved BCMRs
   async function importRegistries(tokenList: TokenList, fetchNftInfo: boolean) {
-    const metadataPromises = [];
-    for (const item of tokenList) {
-      if('nfts' in item && (fetchNftInfo || Object.keys(item.nfts).length == 1)) {
-        const listCommitments = item.nfts.map(nftItem => nftItem.token?.commitment)
-        const uniqueCommitments = new Set(listCommitments);
-        for(const nftCommitment of uniqueCommitments) {
-          const nftEndpoint = nftCommitment ? nftCommitment : "empty"
-          const metadataPromise = cachedFetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/${nftEndpoint}/`);
-          metadataPromises.push(metadataPromise);
-        }
-      } else {
-        const metadataPromise = cachedFetch(`${bcmrIndexer.value}/tokens/${item.tokenId}/`);
-        metadataPromises.push(metadataPromise);
-      }
-    }
-    // MetadataPromises promises can be rejected in 'cachedFetch', the function should still return all fulfilled promises
-    // so we use Promise.allSettled and handle the fulfilled results
-    const resolveMetadataPromises = Promise.allSettled(metadataPromises);
-    const resultsMetadata = await resolveMetadataPromises;
-    const registries = bcmrRegistries.value ?? {};
-    for(const settledResult of resultsMetadata) {
-      const response = settledResult.status == "fulfilled" ? settledResult.value : undefined;
-      if(response?.status == 200) {
-        const jsonResponse:BcmrIndexerResponse = await response.json();
-        const tokenId = jsonResponse?.token?.category
-        if(jsonResponse?.type_metadata) {
-          const nftEndpoint = response.url.split("/").at(-2) as string;
-          const commitment = nftEndpoint != "empty"? nftEndpoint : "";
-          if(!registries[tokenId]) registries[tokenId] = jsonResponse;
-          if(!registries[tokenId]?.nfts) registries[tokenId].nfts = {}
-          registries[tokenId].nfts[commitment] = jsonResponse?.type_metadata
-        } else {
-          if(!registries[tokenId]) registries[tokenId] = jsonResponse;
-        }
-      }
-    }
+    const registries = await importBcmrRegistries(tokenList, fetchNftInfo, bcmrIndexer.value, bcmrRegistries.value);
     bcmrRegistries.value = registries
   }
 
@@ -444,35 +396,15 @@ export const useStore = defineStore('store', () => {
   
 
   function hasPreGenesis(){
-    plannedTokenId.value = undefined;
     const preGenesisUtxo = walletUtxos.value?.find(utxo => !utxo.token && utxo.vout === 0);
-    plannedTokenId.value = preGenesisUtxo?.txid ?? "";
+    plannedTokenId.value = preGenesisUtxo?.txid ?? undefined;
   }
 
   async function fetchAuthUtxos() {
-    if(!tokenList.value?.length) return
-    const copyTokenList = [...tokenList.value]
-    // get all tokenUtxos
-    const tokenUtxosPromise: Promise<UtxoI[]> = wallet.value.getTokenUtxos();
-    // get all authHeadTxIds in parallel
-    const authHeadTxIdPromises: Promise<string | undefined>[] = [];
-    for (const token of tokenList.value){
-      const fetchAuthHeadPromise = queryAuthHeadTxid(token.tokenId, settingsStore.chaingraph)
-      authHeadTxIdPromises.push(fetchAuthHeadPromise)
-    }
-    const tokenUtxosResult = await tokenUtxosPromise;
-    const authHeadTxIdResults = await Promise.all(authHeadTxIdPromises);
-    if(authHeadTxIdResults.includes(undefined)) console.error("ChainGraph instance not returning all authHeadTxIds")
-    // check if any tokenUtxo of category is the authUtxo for that category
-    copyTokenList.forEach((token, index) => {
-      const authHeadTxId = authHeadTxIdResults[index];
-      const filteredTokenUtxos = tokenUtxosResult.filter(
-        (tokenUtxos) => tokenUtxos.token?.tokenId === token.tokenId
-      );
-      const authUtxo = filteredTokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
-      if(authUtxo) token.authUtxo = authUtxo;
-    })
-    tokenList.value = copyTokenList;
+    if(!tokenList.value?.length || !walletUtxos.value) return
+    const tokenUtxos = getTokenUtxos(walletUtxos.value);
+    const newTokenList = await updateTokenListWithAuthUtxos(tokenList.value, settingsStore.chaingraph, tokenUtxos)
+    tokenList.value = newTokenList;
   }
 
   function toggleFavorite(tokenId: string) {
