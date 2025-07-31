@@ -10,20 +10,20 @@
     "@zxing/browser" "^0.1.3"
     "@zxing/library" "^0.20.0"
 
-"@capacitor/android@^7.2.0":
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/@capacitor/android/-/android-7.2.0.tgz#f30e313315ab92c500bd57d9f0c4716a46b42f40"
-  integrity sha512-zdhEy3jZPG5Toe/pGzKtDgIiBGywjaoEuQWnGVjBYPlSAEUtAhpZ2At7V0SCb26yluAuzrAUV0Ue+LQeEtHwFQ==
+"@capacitor/android@^7.4.2":
+  version "7.4.2"
+  resolved "https://registry.yarnpkg.com/@capacitor/android/-/android-7.4.2.tgz#8fa1b6fbedfbb8506df3444dddaea75cc09ee8a9"
+  integrity sha512-FZ7M9NwFkljR7EP5eXiE32mAIfZNcYw2CzRMCG3rQu0u0ZaIoeOeq5/oK4YcDnGpNmu8jpngKJqZ+9OiSQSwDg==
 
 "@capacitor/app@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@capacitor/app/-/app-7.0.1.tgz#0d0709fb4dde5046c24853f2d6b77a7ea411f748"
   integrity sha512-ArlVZAAla4MwQoKh26x2AaTDOBh5Vhp1VhMKR3RwqZSsZnazKTFGNrPbr9Ez5r1knnEDfApyjwp1uZnXK1WTYQ==
 
-"@capacitor/cli@^7.2.0":
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/@capacitor/cli/-/cli-7.2.0.tgz#ea279f14e575b059edb7fe8dc64a8e3379088616"
-  integrity sha512-RNW9vtYYYSDmOdguYBSW0VpRnG/d6lGydlc9DLrJ7qbSPxFrotTz9IjkM48O+SruUma61DyuSqJttdbay2xSxg==
+"@capacitor/cli@^7.4.2":
+  version "7.4.2"
+  resolved "https://registry.yarnpkg.com/@capacitor/cli/-/cli-7.4.2.tgz#bfd4672b811423cd2c70f1ec609ec6be229919c4"
+  integrity sha512-ckcRbg/kBSnJsuCTCLzowBxvgDTI+dcIN7LK+Nt71fbaUG3judpF279ymJRrgRDJshFR5D5dfcvTFh5N1z8liA==
   dependencies:
     "@ionic/cli-framework-output" "^2.2.8"
     "@ionic/utils-subprocess" "^3.0.1"
@@ -43,10 +43,10 @@
     tslib "^2.8.1"
     xml2js "^0.6.2"
 
-"@capacitor/core@^7.2.0":
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-7.2.0.tgz#fdd1c5d2fbfa257887ce6065f66151a51f0e6d1b"
-  integrity sha512-2zCnA6RJeZ9ec4470o8QMZEQTWpekw9FNoqm5TLc10jeCrhvHVI8MPgxdZVc3mOdFlyieYu4AS1fNxSqbS57Pw==
+"@capacitor/core@^7.4.2":
+  version "7.4.2"
+  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-7.4.2.tgz#9ed8f4fe80a24c51c6969dbf44b70142d1e8eb91"
+  integrity sha512-akCf9A1FUR8AWTtmgGjHEq6LmGsjA2U7igaJ9PxiCBfyxKqlDbuGHrlNdpvHEjV5tUPH3KYtkze6gtFcNKPU9A==
   dependencies:
     tslib "^2.1.0"
 
