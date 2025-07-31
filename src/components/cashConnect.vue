@@ -24,8 +24,8 @@
 
   // NOTE: Vue's reactive unwrapping appears to interfere with the types.
   //       So we just cast this to Ref<Wallet> here (which works and is compatible in practice).
-  const { wallet } = storeToRefs(store);
-  const cashconnectStore = await useCashconnectStore(wallet as Ref<Wallet>);
+  const { _wallet } = storeToRefs(store);
+  const cashconnectStore = await useCashconnectStore(_wallet as Ref<Wallet>);
 
   // Methods.
   async function connectDappUriInput(url: string){

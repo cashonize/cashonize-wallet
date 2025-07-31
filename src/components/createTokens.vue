@@ -22,7 +22,6 @@
   const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-8)}`:"");
 
   async function createPreGenesis(){
-    if(!store.wallet) return;
     try{
       store.plannedTokenId = undefined;
       const walletAddr = store.wallet.cashaddr;
@@ -82,7 +81,6 @@
   }
   
   async function createFungibles(){
-    if(!store.wallet) return;
     const validInput = isValidBigInt(inputFungibleSupply.value) && +inputFungibleSupply.value > 0;
     function isValidBigInt(value:string) {
       try { return BigInt(value) }
@@ -134,7 +132,6 @@
     }
   }
   async function createMintingNFT(){
-    if(!store.wallet) return;
     try{
       const opreturnData = await getOpreturnData();
       $q.notify({

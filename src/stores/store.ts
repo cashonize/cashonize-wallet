@@ -54,7 +54,9 @@ const isDesktop = (process.env.MODE == "electron");
 export const useStore = defineStore('store', () => {
   const displayView = ref(undefined as (number | undefined));
   // Wallet State
-  const wallet = ref(null as (Wallet | TestNetWallet | null));
+  // _wallet is the actual reactive wallet object and is null until the wallet is set
+  // so _wallet is used for mutating properties of the wallet, like changing the provider
+  const _wallet = ref(null as (Wallet | TestNetWallet | null));
   const balance = ref(undefined as (BalanceResponse | undefined));
   const maxAmountToSend = ref(undefined as (BalanceResponse | undefined));
   const walletUtxos = ref(undefined as (UtxoI[] | undefined));
@@ -72,6 +74,13 @@ export const useStore = defineStore('store', () => {
   const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
+  // The wallet computed property, throws if it were to be accessed when _wallet is null
+  // The computed property should not be mutated, use _wallet instead
+  const wallet = computed(() => {
+    if (!_wallet.value) throw new Error('No wallet set in global store');
+    return _wallet.value
+  })
+
   const isWcAndCcInitialized =  computed(() => isWcInitialized.value && isCcInitialized.value)
   const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
@@ -87,7 +96,7 @@ export const useStore = defineStore('store', () => {
     displayView.value = newView;
   }
 
-  async function setWallet(newWallet: TestNetWallet){
+  async function setWallet(newWallet: Wallet | TestNetWallet){
     changeView(1);
     if(newWallet.network == 'mainnet'){
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
@@ -97,7 +106,7 @@ export const useStore = defineStore('store', () => {
       const connectionChipnet = new Connection("testnet", `wss://${settingsStore.electrumServerChipnet}:50004`)
       newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
     }
-    wallet.value = newWallet;
+    _wallet.value = newWallet;
     await initializeWallet();
   }
 
@@ -127,7 +136,7 @@ export const useStore = defineStore('store', () => {
       // fetch wallet utxos first, this result will be used in consecutive calls
       // to avoid duplicate getAddressUtxos() calls
       console.time('fetch wallet utxos');
-      const walletAddressUtxos = await wallet.value?.getAddressUtxos()
+      const walletAddressUtxos = await wallet.value.getAddressUtxos()
       console.timeEnd('fetch wallet utxos');
       const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
       // Fetch fiat balance and max amount to send in parallel
@@ -169,7 +178,7 @@ export const useStore = defineStore('store', () => {
   }
 
   async function setUpWalletSubscriptions(){
-    cancelWatchBchtxs = await wallet.value?.watchBalance(async (newBalance) => {
+    cancelWatchBchtxs = await wallet.value.watchBalance(async (newBalance) => {
       const oldBalance = balance.value;
       balance.value = newBalance;
       if(oldBalance?.sat && newBalance?.sat && walletInitialized.value){
@@ -184,21 +193,21 @@ export const useStore = defineStore('store', () => {
           })
         }
         // update state (but not on the initial trigger when creating the subscription)
-        const walletAddressUtxos = await wallet.value!.getAddressUtxos();
+        const walletAddressUtxos = await wallet.value.getAddressUtxos();
         walletUtxos.value = walletAddressUtxos;
-        maxAmountToSend.value = await wallet.value?.getMaxAmountToSend({ options:{
+        maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
           utxoIds: walletAddressUtxos
         }});
         updateWalletHistory()
       }
     });
-    const walletPkh = binToHex(wallet.value?.getPublicKeyHash() as Uint8Array);
-    cancelWatchTokenTxs = await wallet.value?.watchAddressTokenTransactions(async(tx) => {
+    const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
+    cancelWatchTokenTxs = await wallet.value.watchAddressTokenTransactions(async(tx) => {
       const receivedTokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
       const previousTokenList = tokenList.value;
       const listNewTokens:TokenList = []
       // Check if transaction not initiated by user
-      const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value?.cashaddr);
+      const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value.cashaddr);
       for(const tokenOutput of receivedTokenOutputs){
         if(!userInputs.length){
           const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
@@ -219,7 +228,7 @@ export const useStore = defineStore('store', () => {
       await updateWalletUtxos();
       updateWalletHistory()
     });
-    cancelWatchBlocks = await wallet.value?.watchBlocks((header: HexHeaderI) => {
+    cancelWatchBlocks = await wallet.value.watchBlocks((header: HexHeaderI) => {
       currentBlockHeight.value = header.height;
     }, false);
   }
@@ -259,7 +268,7 @@ export const useStore = defineStore('store', () => {
 
   async function initializeWalletConnect() {
     try {
-      const walletconnectStore = await useWalletconnectStore(wallet as Ref<Wallet>, changeNetwork)
+      const walletconnectStore = await useWalletconnectStore(_wallet as Ref<Wallet>, changeNetwork)
       await walletconnectStore.initweb3wallet();
       isWcInitialized.value = true;
 
@@ -291,7 +300,7 @@ export const useStore = defineStore('store', () => {
   async function initializeCashConnect() {
     try{
       // Initialize CashConnect.
-      const cashconnectWallet = await useCashconnectStore(wallet as Ref<Wallet>);
+      const cashconnectWallet = await useCashconnectStore(_wallet as Ref<Wallet>);
 
       // Start the wallet service.
       await cashconnectWallet.start();
@@ -304,9 +313,9 @@ export const useStore = defineStore('store', () => {
       });
 
       // Monitor the wallet for balance changes.
-      wallet.value?.watchBalance(async () => {
+      wallet.value.watchBalance(async () => {
         // Convert the network into WC format,
-        const chainIdFormatted = wallet.value?.network === 'mainnet' ? 'bch:bitcoincash' : 'bch:bchtest';
+        const chainIdFormatted = wallet.value.network === 'mainnet' ? 'bch:bitcoincash' : 'bch:bchtest';
 
         // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
         cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
@@ -323,7 +332,7 @@ export const useStore = defineStore('store', () => {
 
   async function updateWalletUtxos() {
     try {
-      walletUtxos.value = await wallet.value?.getAddressUtxos();
+      walletUtxos.value = await wallet.value.getAddressUtxos();
       updateTokenList()
     } catch(error) {
       const errorMessage = typeof error == 'string' ? error : "Error in fetching wallet UTXOs";
@@ -339,7 +348,7 @@ export const useStore = defineStore('store', () => {
   async function updateWalletHistory() {
     try {
       console.log("updateWalletHistory")
-      walletHistory.value = await wallet.value?.getHistory({});
+      walletHistory.value = await wallet.value.getHistory({});
     } catch(error){
       console.error(error)
       const errorMessage = typeof error == 'string' ? error : "Error in fetching wallet history";
@@ -507,7 +516,8 @@ export const useStore = defineStore('store', () => {
   return {
     nameWallet,
     displayView,
-    wallet,
+    _wallet, // the _wallet is the actual reactive wallet object but this can be null
+    wallet, // computed property to access the wallet, always non-null
     balance,
     maxAmountToSend,
     walletUtxos,

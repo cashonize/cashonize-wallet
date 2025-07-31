@@ -113,7 +113,7 @@
   }
   const qrFilter = (content: string) => {
     const decoded = decodeCashAddress(content);
-    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
       return "Not a cashaddress on current network";
     }
     return true;
@@ -121,7 +121,6 @@
   // NFT Group specific functionality
   async function sendAllNfts(){
     try{
-      if(!store.wallet) return;
       if(!destinationAddr.value) throw("No destination address provided")
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
@@ -131,7 +130,7 @@
       if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
-      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const tokenId = tokenData.value.tokenId;
       const allNfts = tokenData.value.nfts;
       const outputArray:TokenSendRequest[] = [];
@@ -180,7 +179,6 @@
   // single NFT specific functionality
   async function sendNft(){
     try{
-      if(!store.wallet) return;
       if(!destinationAddr.value) throw("No destination address provided")
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
@@ -190,7 +188,7 @@
       if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens) throw(`Not a Token Address (should start with z...)`);
-      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       const tokenId = tokenData.value.tokenId;
       const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
       $q.notify({
@@ -236,11 +234,11 @@
   async function mintNfts() {
     const tokenId = tokenData.value.tokenId;
     const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
-    const tokenAddr = store.wallet!.tokenaddr;
+    const tokenAddr = store.wallet.tokenaddr;
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     try {
-      if(!store.wallet || !nftInfo) return;
+      if(!nftInfo) return;
       // mint amount should always be provided
       if(mintAmountNfts.value == undefined) throw('invalid amount NFTs to mint');
       const mintAmount = parseInt(mintAmountNfts.value);
@@ -252,7 +250,7 @@
       const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
       if(!validCommitment) throw(`nftCommitment '${nftCommitment}' must be a hexadecimal`);
 
-      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`); 
+      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`); 
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
@@ -315,8 +313,7 @@
   }
   async function burnNft() {
     try {
-      if(!store.wallet) return;
-      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
 
       const tokenId = tokenData.value.tokenId;
       const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
@@ -367,7 +364,6 @@
     }
   }
   async function transferAuth() {
-    if(!store.wallet) return;
     if(!tokenData.value?.authUtxo) return;
     const tokenId = tokenData.value.tokenId;
     const authNft = tokenData.value.authUtxo?.token;

@@ -96,7 +96,7 @@
   }
   const qrFilter = (content: string) => {
     const decoded = decodeCashAddress(content);
-    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
       return "Not a cashaddress on current network";
     }
     return true;
@@ -117,8 +117,7 @@
   }
   async function sendTokens(){
     try{
-      if(!store.wallet) return;
-      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       if(!destinationAddr.value) throw("No destination address provided")
       if(!tokenSendAmount?.value) throw(`No valid amount provided`);
       const sanitizedInput = tokenSendAmount.value.replace(/,/g, '');
@@ -183,8 +182,7 @@
   }
   async function burnFungibles(){
     try {
-      if(!store.wallet) return;
-      if((store?.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
       const sanitizedInput = burnAmountFTs.value.replace(/,/g, '');
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
@@ -235,7 +233,6 @@
     }
   }
   async function transferAuth() {
-    if(!store.wallet) return;
     if(!tokenData.value?.authUtxo) return;
     if(!reservedSupplyInput?.value) throw(`Amount tokens for reserved supply must be a valid integer`);
     const decimals = tokenMetaData.value?.token?.decimals ?? 0;
@@ -345,7 +342,7 @@
           <span @click="displayTokenInfo = !displayTokenInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
           </span>
-          <span v-if="settingsStore.showCauldronSwap && store.wallet?.network == 'mainnet'" style="white-space: nowrap;">
+          <span v-if="settingsStore.showCauldronSwap && store.wallet.network == 'mainnet'" style="white-space: nowrap;">
             <a :href="`https://app.cauldron.quest/swap/${tokenData.tokenId}`" target="_blank" style="color: var(--font-color);">
               <img class="icon" :src="settingsStore.darkMode? 'images/cauldronLightGrey.svg' : 'images/cauldron.svg'"> swap
             </a>

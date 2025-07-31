@@ -43,7 +43,7 @@
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
 
-  const ourAddress = store.wallet?.cashaddr ?? "";
+  const ourAddress = store.wallet.cashaddr ?? "";
   const feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.00";
   const currencySymbol = CurrencySymbols[settingsStore.currency];
 

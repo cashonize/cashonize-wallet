@@ -106,18 +106,18 @@
     store.changeNetwork(selectedNetwork.value)
   }
   function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
-    if(!store.wallet) return
+    if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
     store.resetWalletState()
     if(targetNetwork == "mainnet"){
       const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004` )
-      store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerMainnet = selectedElectrumServer.value
       localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
     }
     if(targetNetwork == "chipnet"){
       const newConnection = new Connection("testnet",`wss://${selectedElectrumServerChipnet.value}:50004` )
-      store.wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
       localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
     }
@@ -219,15 +219,15 @@
         <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
           :value="displaySeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
         >
-        <div v-if="displaySeedphrase" @click="copyToClipboard(store.wallet?.mnemonic)" style="cursor: pointer;">
-          {{ store.wallet?.mnemonic }}
+        <div v-if="displaySeedphrase" @click="copyToClipboard(store.wallet.mnemonic)" style="cursor: pointer;">
+          {{ store.wallet.mnemonic }}
         </div>
         <br>
         <div style="margin-bottom:15px;">
           Derivation path of this wallet is 
-          <span @click="copyToClipboard(store.wallet?.derivationPath)" style="cursor: pointer;">
-            {{ store.wallet?.derivationPath }}
-            ({{ store.wallet?.derivationPath == "m/44'/145'/0'/0/0" ? "default on BCH" : "custom, non-default" }})
+          <span @click="copyToClipboard(store.wallet.derivationPath)" style="cursor: pointer;">
+            {{ store.wallet.derivationPath }}
+            ({{ store.wallet.derivationPath == "m/44'/145'/0'/0/0" ? "default on BCH" : "custom, non-default" }})
           </span>
         </div>
     </div>

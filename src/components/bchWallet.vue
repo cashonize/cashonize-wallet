@@ -38,7 +38,7 @@
   const qrCodeRef = shallowRef<QrCodeElement | null>(null);
 
   const nrTokenCategories = computed(() => store.tokenList?.length)
-  const addressQrcode = computed(() => displayBchQr.value ? store.wallet?.cashaddr : store.wallet?.tokenaddr)
+  const addressQrcode = computed(() => displayBchQr.value ? store.wallet.cashaddr : store.wallet.tokenaddr)
 
   const bchDisplayNetwork = computed(() => {
     return (store.network == "mainnet") ? 'BCH' : 'tBCH'
@@ -139,7 +139,6 @@
   }
   async function sendBch(){
     try{
-      if(!store.wallet) return;
       // check for valid inputs
       if(!destinationAddr.value) throw("No destination address provided")
       if(!bchSendAmount.value) throw("No valid amount provided")
@@ -198,7 +197,7 @@
     // remove amount parameter if present before doing decoding check
     if(addressInput.includes("?amount=")) addressInput = addressInput.split("?")[0] as string;
     const decoded = decodeCashAddress(addressInput);
-    if (typeof decoded === "string" || decoded.prefix !== store.wallet?.networkPrefix) {
+    if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
       return "Not a cashaddress on current network";
     }
     return true;
@@ -239,15 +238,15 @@
     </div>
     <div style="word-break: break-all;">
       {{ bchDisplayNetwork }} address: 
-      <span @click="() => copyToClipboard(store.wallet?.cashaddr)" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet?.cashaddr ?? "" }} </span>
+      <span @click="() => copyToClipboard(store.wallet.cashaddr)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.wallet.cashaddr ?? "" }} </span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
     <div style="word-break: break-all;">
       Token address:
-      <span @click="() => copyToClipboard(store.wallet?.tokenaddr)" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet?.tokenaddr ?? "" }}</span>
+      <span @click="() => copyToClipboard(store.wallet.tokenaddr)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.wallet.tokenaddr ?? "" }}</span>
         <img class="copyIcon" src="images/copyGrey.svg"> 
       </span>
     </div>
