@@ -112,7 +112,7 @@ export const useStore = defineStore('store', () => {
 
   async function initializeWallet() {
     let earlyError = false
-    if(!wallet.value) throw new Error("No Wallet set in global store")
+    if(!_wallet.value) throw new Error("No Wallet set in global store")
     try {
       // attempt non-blocking connection to electrum server
       // wrapped the logic in an IIFE to avoid error bubbling up
@@ -362,12 +362,12 @@ export const useStore = defineStore('store', () => {
   }
 
   function updateTokenList() {
-    if(!wallet.value || !walletUtxos.value) return // should never happen
+    if(!walletUtxos.value) return // should never happen
     const tokenUtxos = getTokenUtxos(walletUtxos.value);
     const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
     const nftsResult = getAllNftTokenBalances(tokenUtxos);
     if(!fungibleTokensResult || !nftsResult) return // should never happen
-    const arrayTokens:TokenList = [];
+    const arrayTokens: TokenList = [];
     for (const tokenId of Object.keys(fungibleTokensResult)) {
       const fungibleTokenAmount = fungibleTokensResult[tokenId]
       if(!fungibleTokenAmount) continue // should never happen
@@ -383,7 +383,7 @@ export const useStore = defineStore('store', () => {
 
   function sortTokenList(unsortedTokenList: TokenList) {
     // order the featuredTokenList according to the order in the settingStore
-    const featuredTokenList:TokenList = []
+    const featuredTokenList: TokenList = []
     for(const featuredToken of settingsStore.featuredTokens){
       // if featuredToken in unsortedTokenList, add it to a featuredTokenList
       const featuredTokenItem = unsortedTokenList.find(token => token.tokenId === featuredToken);
@@ -450,7 +450,6 @@ export const useStore = defineStore('store', () => {
   }
 
   async function fetchAuthUtxos() {
-    if(!wallet.value) return // should never happen
     if(!tokenList.value?.length) return
     const copyTokenList = [...tokenList.value]
     // get all tokenUtxos
