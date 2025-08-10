@@ -37,7 +37,7 @@
   // This way views can be wrapped with KeepAlive to preserve its state across view changes
   // Excluding the settingsMenu bc we want to rerender it when navigating to it
   const currentView = computed(() => {
-    if (!store.wallet) return newWalletView;
+    if (!store._wallet) return newWalletView;
 
     switch (store.displayView) {
       case 1: return bchWalletView;
@@ -52,7 +52,7 @@
   });
 
   const viewSpecificProps = computed(() => {
-    if (!store.wallet) return {};
+    if (!store._wallet) return {};
 
     switch (store.displayView) {
       case 1: return { bchSendRequest: bchSendRequest.value };
