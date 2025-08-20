@@ -307,7 +307,6 @@
         <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
           <option value="chipnet.bch.ninja">chipnet.bch.ninja (default)</option>
           <option value="chipnet.imaginary.cash">chipnet.imaginary.cash</option>
-          <option value="cbch.loping.net">cbch.loping.net</option>
         </select>
       </div>
 
@@ -326,7 +325,6 @@
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph (default)</option>
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
-          <option value="https://gql.chaingraph.panmoni.com/v1/graphql">Panmoni Chaingraph </option>
         </select>
       </div>
 
