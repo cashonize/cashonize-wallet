@@ -68,9 +68,9 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
     }
 
     async function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
-      const { requiredNamespaces } = sessionProposal.params;
-  
-      if (!requiredNamespaces.bch) {
+      const namespaces = getNamespaces(sessionProposal)
+
+      if (!namespaces.bch) {
         const errorMessage = `Trying to connect an app from unsupported blockchain(s): ${Object.keys(requiredNamespaces).join(", ")}`;
         Notify.create({
           message: errorMessage,
@@ -80,8 +80,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
         return;
       }
       return await new Promise<void>((resolve, reject) => {
-        const { requiredNamespaces } = sessionProposal.params;
-        const dappNetworkPrefix = requiredNamespaces.bch?.chains?.[0]?.split(":")[1];
+        const dappNetworkPrefix = namespaces.bch?.chains?.[0]?.split(":")[1];
         const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
         Dialog.create({
           component: WC2SessionRequestDialog,
@@ -380,4 +379,9 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
   })();
 
   return store;
+}
+
+function getNamespaces(sessionProposal: WalletKitTypes.SessionProposal) {
+  const { requiredNamespaces, optionalNamespaces } = sessionProposal.params;
+  return Object.assign({}, requiredNamespaces, optionalNamespaces)
 }
