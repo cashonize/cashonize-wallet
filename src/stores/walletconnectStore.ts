@@ -71,7 +71,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
       const namespaces = getNamespaces(sessionProposal)
 
       if (!namespaces.bch) {
-        const errorMessage = `Trying to connect an app from unsupported blockchain(s): ${Object.keys(requiredNamespaces).join(", ")}`;
+        const errorMessage = `Trying to connect an app from unsupported blockchain(s): ${Object.keys(namespaces).join(", ")}`;
         Notify.create({
           message: errorMessage,
           icon: 'warning',
@@ -383,5 +383,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
 
 function getNamespaces(sessionProposal: WalletKitTypes.SessionProposal) {
   const { requiredNamespaces, optionalNamespaces } = sessionProposal.params;
-  return Object.assign({}, requiredNamespaces, optionalNamespaces)
+  // merge requiredNamespaces & optionalNamespaces into a single object
+  const namespaces = Object.assign({}, requiredNamespaces, optionalNamespaces);
+  return namespaces
 }
