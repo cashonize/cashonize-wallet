@@ -227,7 +227,7 @@
         same tokenId.
         </div>
         <div style="margin: 5px 0px;">
-          <i>Note:</i> to use a Minting NFT toggle the option "Enable mint NFTs" in the User Options settings.
+          <i>Note:</i> to use a Minting NFT toggle the option "Enable mint NFTs" in the developer settings.
         </div>
       </div>
       <div v-if="selectedTokenType != '-select-'">
@@ -238,7 +238,7 @@
           <br><br>
         </div>
 
-        <details  style="margin-bottom: 0.5em;">
+        <details style="margin-bottom: 0.5em;">
           <summary style="display: list-item">Link Token-Metadata</summary>
           To add metadata to your token you need to upload the token image(s), create a JSON file following the 
           <a href="https://github.com/bitjson/chip-bcmr" target="_blank">BCMR-standard</a>, upload it somewhere and then post that link on-chain. <br><br>
@@ -284,10 +284,13 @@
             <EmojiItem v-if="validitityCheck != undefined" :emoji="validitityCheck ? '✅':'❌'" style="vertical-align: baseline;"/>
             <span v-else>...</span>
           </b>
-        </details><br>
-        <b>Note:</b> Token metadata can still be added/updated after creation with the token's AuthUTXO.
-        That's why the AuthUTXO should be transferred to a dedicated wallet right after creation.<br><br>
-        <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" value="Create" style="margin-top: 8px;">
+        </details>
+        <div style="margin: 15px 0px;">
+          <b>Note:</b> Token metadata can still be added/updated after creation with the token's AuthUTXO.
+          To use this functionality toggle "Enable authchain resolution" in the developer settings.
+          Transfer the AuthUTXO to a dedicated wallet right after creation.
+        </div>
+        <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" value="Create" style="margin: 8px 0;">
       </div>
     </fieldset>
 </div></template>

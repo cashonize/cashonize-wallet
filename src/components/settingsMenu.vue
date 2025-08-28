@@ -35,13 +35,15 @@
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
-  const enableMintNfts = ref(settingsStore.mintNfts);
   // advanced settings
-  const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
   const selectedChaingraph = ref(settingsStore.chaingraph);
+  // developer options
+  const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
+  const enableMintNfts = ref(settingsStore.mintNfts);
+  const enableAuthchains = ref(settingsStore.authchains);
 
   const utxosWithBchAndTokens = computed(() => {
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
@@ -102,10 +104,6 @@
     settingsStore[explorerNetwork] = selectedExplorer.value;
     localStorage.setItem(explorerNetwork, selectedExplorer.value);
   }
-  function changeNetwork(){
-    settingsStore.hasPlayedAnmation = false;
-    store.changeNetwork(selectedNetwork.value)
-  }
   function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
@@ -160,10 +158,6 @@
     localStorage.setItem("qrScan", enableQrScan.value? "true" : "false");
     settingsStore.qrScan = enableQrScan.value;
   }
-  function changeMintNfts(){
-    localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
-    settingsStore.mintNfts = enableMintNfts.value;
-  }
   function toggleShowSeedphrase(){
     settingsStore.hasSeedBackedUp = true;
     localStorage.setItem("seedBackedUp", "true");
@@ -191,13 +185,32 @@
     clearElectrumCache();
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
   }
-
   function clearMetadataCache(){
     // remove cachedFetch- keys from localStorage
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('cachedFetch')) localStorage.removeItem(key);
     });
     localStorageSizeMB.value = calculateLocalStorageSizeMB();
+  }
+
+  function changeNetwork(){
+    settingsStore.hasPlayedAnmation = false;
+    store.changeNetwork(selectedNetwork.value)
+  }
+  function changeMintNfts(){
+    localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
+    settingsStore.mintNfts = enableMintNfts.value;
+  }
+  async function changeAuthchains(){
+    localStorage.setItem("authchains", enableAuthchains.value? "true" : "false");
+    settingsStore.authchains = enableAuthchains.value;
+    if(enableAuthchains.value) {
+      try{
+        await store.fetchAuthUtxos()
+      } catch (error) {
+        console.error("Error fetching auth UTXOs:", error)
+      }
+    }
   }
 </script>
 
@@ -258,10 +271,6 @@
       </div>
 
       <div style="margin-top:15px">
-        Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()" style="vertical-align: middle;display: inline-block;"/>
-      </div>
-
-      <div style="margin-top:15px">
         <label for="selectUnit">Select fiat currency:</label>
         <select v-model="selectedCurrency" @change="changeCurrency()">
           <option value="usd">USD</option>
@@ -290,13 +299,6 @@
       </div>
     </div>
     <div v-else-if="displaySettingsMenu == 3">
-      <div>
-        <label for="selectNetwork">Change network:</label>
-        <select v-model="selectedNetwork" @change="changeNetwork()">
-          <option value="mainnet">mainnet</option>
-          <option value="chipnet">chipnet</option>
-        </select>
-      </div>
 
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <label for="selectNetwork">Change Electrum server mainnet:</label>
@@ -359,6 +361,31 @@
         <input @click="clearMetadataCache()" type="button" value="Clear token cache" class="button" style="display: block; color: black;">
       </div>
     </div>
+    <div v-else-if="displaySettingsMenu == 4">
+      <div>
+        <label for="selectNetwork">Change network:</label>
+        <select v-model="selectedNetwork" @change="changeNetwork()">
+          <option value="mainnet">mainnet</option>
+          <option value="chipnet">chipnet</option>
+        </select>
+      </div>
+
+      <div  style="margin-top:15px">Token Creation Functionality:</div>
+      <div style="margin: 0px 10px;">
+
+        <div style="margin-top:15px">
+          Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()" style="vertical-align: middle;display: inline-block;"/>
+        </div>
+
+        <div style="margin-top:15px; margin-bottom: 15px">
+          Enable authchain resolution <Toggle v-model="enableAuthchains" @change="changeAuthchains()" style="vertical-align: middle;display: inline-block;"/>
+        </div>
+
+        <div v-if="!isMobile" style="margin-top:15px; margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
+          → Token Creation Page
+        </div>
+      </div>
+    </div>
     <div v-else>
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">
         ↳ Backup wallet <span v-if="!settingsStore.hasSeedBackedUp" style="color: var(--color-primary)">(important)</span>
@@ -372,8 +399,8 @@
         ↳ Advanced settings
       </div>
 
-      <div v-if="!isMobile" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
-        → Token Creation
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 4">
+        ↳ Developer settings
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">

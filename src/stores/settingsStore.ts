@@ -30,12 +30,13 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const tokenBurn = ref(false);
   const showCauldronSwap = ref(false);
   const qrScan = ref(true);
-  const mintNfts = ref(false);
   const featuredTokens = ref([] as string[]);
   const hasInstalledPWA = ref(false as boolean);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const hasPlayedAnmation = ref(false as boolean)
   const hasSeedBackedUp = ref(false as boolean)
+  const mintNfts = ref(false);
+  const authchains = ref(false);
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
@@ -109,6 +110,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readExplorerChipnet = localStorage.getItem("explorerChipnet") ?? "";
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
+
+  const readAuthchains = localStorage.getItem("authchains") ?? "";
+  if(readAuthchains) authchains.value = readAuthchains == "true";
 
   // --- Auto-approve session logic ---
 
@@ -199,12 +203,13 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     tokenBurn,
     showCauldronSwap,
     qrScan,
-    mintNfts,
     qrAnimation,
     hasPlayedAnmation,
     featuredTokens,
     hasInstalledPWA,
     hasSeedBackedUp,
+    mintNfts,
+    authchains,
     getAutoApproveState,
     setAutoApproveState,
     clearAutoApproveState,

@@ -168,9 +168,11 @@ export const useStore = defineStore('store', () => {
       // get plannedTokenId
       hasPreGenesis()
       // fetchAuthUtxos start last because it is not critical
-      console.time('fetch authUtxos');
-      await fetchAuthUtxos();
-      console.timeEnd('fetch authUtxos');
+      if(settingsStore.authchains){
+        console.time('fetch authUtxos');
+        await fetchAuthUtxos();
+        console.timeEnd('fetch authUtxos');
+      }
     } catch (error) {
       if(!earlyError) displayAndLogError(error);
     } 
