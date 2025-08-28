@@ -51,6 +51,7 @@
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? undefined;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
+  const isSingleMintingNft = computed(() => isSingleNft.value && tokenData.value.nfts?.[0]?.token?.capability == 'minting');
   const nftMetadata = computed(() => {
     if(!isSingleNft.value) return
     const nftData = tokenData.value.nfts?.[0];
@@ -470,7 +471,7 @@
           </span>
           <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displaySendAllNfts = !displaySendAllNfts" style="margin-left: 10px;">
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> transfer all </span>
-          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'" @click="displayMintNfts = !displayMintNfts">
+          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting' && settingsStore.mintNfts" @click="displayMintNfts = !displayMintNfts">
             <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> mint NFTs
           </span>
           <span v-if="isSingleNft && settingsStore.tokenBurn" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
@@ -486,6 +487,9 @@
           <div></div>
           <div v-if="tokenMetaData?.description" class="indentText">Token description: {{ tokenMetaData.description }} </div>
           <div v-if="isSingleNft">
+            NFT type: {{  tokenData?.nfts?.[0]?.token?.capability == "none" ? "immutable" : tokenData?.nfts?.[0]?.token?.capability }} NFT
+          </div>
+          <div >
             NFT commitment: {{ tokenData.nfts?.[0]?.token?.commitment ? tokenData.nfts?.[0].token?.commitment : "none" }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
@@ -495,7 +499,7 @@
           <div v-if="tokenData?.nfts?.length">
             Total supply NFTs: {{ totalNumberNFTs? totalNumberNFTs: "..."}}
           </div>
-          <div v-if="tokenData?.nfts?.length">
+          <div v-if="tokenData?.nfts?.length && !isSingleMintingNft">
             Has active minting NFT: {{ hasMintingNFT == undefined? "..." :( hasMintingNFT? "yes": "no")}}
           </div>
           <div>

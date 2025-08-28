@@ -35,6 +35,7 @@
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
+  const enableMintNfts = ref(settingsStore.mintNfts);
   // advanced settings
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
@@ -159,6 +160,10 @@
     localStorage.setItem("qrScan", enableQrScan.value? "true" : "false");
     settingsStore.qrScan = enableQrScan.value;
   }
+  function changeMintNfts(){
+    localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
+    settingsStore.mintNfts = enableMintNfts.value;
+  }
   function toggleShowSeedphrase(){
     settingsStore.hasSeedBackedUp = true;
     localStorage.setItem("seedBackedUp", "true");
@@ -244,12 +249,16 @@
         Show Cauldron Swap Button <Toggle v-model="selectedShowSwap" @change="toggleShowSwap" style="vertical-align: middle;display: inline-block;"/>
       </div>
 
-      <div style="margin-top: 15px; margin-bottom: 15px;">Enable token-burn  
-        <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle; display: inline-block;"/>
+      <div style="margin-top: 15px; margin-bottom: 15px;">
+        Enable token-burn <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle; display: inline-block;"/>
       </div>
 
-      <div v-if="!isCapacitor" style="margin-top: 15px;">Enable QR scan 
-        <Toggle v-model="enableQrScan" @change="changeQrScan()" style="vertical-align: middle; display: inline-block;"/>
+      <div v-if="!isCapacitor" style="margin-top: 15px;">
+        Enable QR scan <Toggle v-model="enableQrScan" @change="changeQrScan()" style="vertical-align: middle; display: inline-block;"/>
+      </div>
+
+      <div style="margin-top:15px">
+        Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()" style="vertical-align: middle;display: inline-block;"/>
       </div>
 
       <div style="margin-top:15px">

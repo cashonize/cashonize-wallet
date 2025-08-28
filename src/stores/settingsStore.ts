@@ -30,6 +30,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const tokenBurn = ref(false);
   const showCauldronSwap = ref(false);
   const qrScan = ref(true);
+  const mintNfts = ref(false);
   const featuredTokens = ref([] as string[]);
   const hasInstalledPWA = ref(false as boolean);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
@@ -55,6 +56,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readQrScan = localStorage.getItem("qrScan");
   if(!readQrScan && (isDesktop || !isMobileDevice)) qrScan.value = false;
   if(readQrScan) qrScan.value = readQrScan == "true";
+
+  const readMintNfts = localStorage.getItem("mintNfts");
+  if(readMintNfts) mintNfts.value = readMintNfts == "true";
 
   const readQrAnimation = localStorage.getItem("qrAnimation");
   if(readQrAnimation) qrAnimation.value = readQrAnimation as QRCodeAnimationName | 'None';
@@ -195,6 +199,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     tokenBurn,
     showCauldronSwap,
     qrScan,
+    mintNfts,
     qrAnimation,
     hasPlayedAnmation,
     featuredTokens,

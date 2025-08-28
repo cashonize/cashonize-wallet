@@ -304,7 +304,7 @@
           <span v-if="nftMetadata" @click="displayNftInfo = !displayNftInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
           </span>
-          <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.capability == 'minting'">
+          <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.capability == 'minting' && settingsStore.mintNfts">
             <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> mint NFTs
           </span>
           <span @click="displayBurnNft = !displayBurnNft" v-if="settingsStore.tokenBurn" style="white-space: nowrap;">

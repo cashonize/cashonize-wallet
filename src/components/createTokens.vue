@@ -220,11 +220,15 @@
       </select>
       <br>
       <div v-if="selectedTokenType == '-select-'">
+        <div>
         <b>Fungible Tokens</b> is used to create interchangeable tokens. The total supply of fungible tokens needs to be
         determined at creation. <br>
         <b>Minting NFT</b> is used to create an NFT collection. The minting NFT has the ability to mint new NFTs with the
         same tokenId.
-        <br><br>
+        </div>
+        <div style="margin: 5px 0px;">
+          <i>Note:</i> to use a Minting NFT toggle the option "Enable mint NFTs" in the User Options settings.
+        </div>
       </div>
       <div v-if="selectedTokenType != '-select-'">
         <div v-if="selectedTokenType == 'fungibles'">
