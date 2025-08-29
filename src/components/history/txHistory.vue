@@ -20,7 +20,7 @@
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
 
-  const exchangeRate = +(await ExchangeRate.get(settingsStore.currency, true)).toFixed(2)
+  const exchangeRate = await ExchangeRate.get(settingsStore.currency, true)
 
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
   const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");

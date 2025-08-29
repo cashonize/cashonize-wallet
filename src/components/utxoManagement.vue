@@ -10,7 +10,7 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
 
-  const exchangeRate = +(await ExchangeRate.get(settingsStore.currency, true)).toFixed(2)
+  const exchangeRate = await ExchangeRate.get(settingsStore.currency, true)
 
   // TODO: consider lowering this to 1000 satoshis in the future
   // note: the bliss airdrop tool uses 2000 sats so from that point, many users would have combined UTXOs
