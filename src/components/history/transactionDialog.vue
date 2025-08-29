@@ -21,6 +21,7 @@
   const props = defineProps<{
     historyItem: TransactionHistoryItem,
   }>();
+  const isCoinbase = computed(() => props.historyItem.inputs[0]?.address === "coinbase");
 
   const emit = defineEmits(['hide']);
 
@@ -125,9 +126,13 @@
             Size: 
               <span>{{ historyItem.size }} bytes</span>
           </div>
-          <div>
+          <div v-if="!isCoinbase">
             Fee: 
               <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee }} sat ( {{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte )</span>
+          </div>
+          <div v-else>
+            Fees collected: 
+              <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee }} sat</span>
           </div>
         </div>
 
@@ -135,7 +140,7 @@
           <legend style="font-size: medium;">Inputs</legend>
           <div v-for="(input, index) in historyItem.inputs" :key="index" class="input" :class="settingsStore.darkMode ? 'dark' : ''">
             <span>{{ index }}: </span>
-            <span class="break" :class="input.address === ourAddress ? 'thisWalletTag' : ''">{{ input.address.split(":")[1] }}</span>
+            <span class="break" :class="input.address === ourAddress ? 'thisWalletTag' : ''">{{ isCoinbase ? "coinbase" : input.address.split(":")[1] }}</span>
             <div style="margin-left: 25px;">
               <div v-if="input.value > 10_000">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</div>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer;">
