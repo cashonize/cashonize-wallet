@@ -82,6 +82,11 @@
   resolved "https://registry.yarnpkg.com/@bch-wc2/interfaces/-/interfaces-0.0.7.tgz#0d61b1c9c3ee0b4e7fb172c0f020bebff08c49f9"
   integrity sha512-QF9mSqG4nBvSLov8QQ7iCnndZpRKNwmUMMUB/vOqO42epCfNQSZLeFOeDU7CAOjG9RZEmq/R8GPNrb8+axO7IA==
 
+"@bch-wc2/interfaces@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@bch-wc2/interfaces/-/interfaces-0.0.8.tgz#2f994aeaa370f2ca506f87fc23e0837e21b475d6"
+  integrity sha512-gRt95azHVqoViGI4X3F1ObgTpYBh3//KaCHRBWSMJbAKNM09T+TA/h9kx9u9SZmE8otMtpFSy4awSHWHUQZmbg==
+
 "@bitauth/libauth@3.1.0-next.2", "@bitauth/libauth@^3.1.0-next.2":
   version "3.1.0-next.2"
   resolved "https://registry.yarnpkg.com/@bitauth/libauth/-/libauth-3.1.0-next.2.tgz#121782b38774d9fba8226406db9b9af0c8d8e464"
@@ -849,12 +854,12 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@mainnet-cash/indexeddb-storage@^2.7.10":
-  version "2.7.10"
-  resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-2.7.10.tgz#e841a7f346a086c26a2b5be2f149128e37ebd965"
-  integrity sha512-ke3qVJQBfBc/Y1/bHvUYFXdBjE9ui8MFkBOuHzkVcq8gRXwcc9iUGN3UjDo2L/y0waKafqqygqliQEMVLV06hA==
+"@mainnet-cash/indexeddb-storage@^2.7.17":
+  version "2.7.17"
+  resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-2.7.17.tgz#fe3c0a341dce1e2a6e4bec1033767302af14d45d"
+  integrity sha512-QAzDJZzpi3N7yruFeXKa7Oj0xs6bDJybLMXGrqKmiD08jaeVZFiqZqN9wJxdLVaivDAvM64YFZZreo+0me82mw==
   dependencies:
-    mainnet-js "2.7.10"
+    mainnet-js "2.7.17"
 
 "@malept/cross-spawn-promise@^2.0.0":
   version "2.0.0"
@@ -5517,12 +5522,12 @@ magic-string@^0.30.17:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.0"
 
-mainnet-js@2.7.10, mainnet-js@^2.7.10:
-  version "2.7.10"
-  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.7.10.tgz#d0d2391f0dbedddd1e59769cbb051d52037e9fd0"
-  integrity sha512-xc0gcvOoBdU2ZtQe7yrAuDavqFc9prXvP3lMaygTEIlhMgdEP/JktMAgzCbCLTyPn4qnHwz8Cxli7725uLNScA==
+mainnet-js@2.7.17, mainnet-js@^2.7.17:
+  version "2.7.17"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-2.7.17.tgz#ebd6c5f4de4e816646a5503484d01fcb48fc94ff"
+  integrity sha512-EvyhhAifdH86rRQUvw1wjDCEGAk+5tsYvWstiKR6kOSqhi1MAOCnQs6YNKASor0OKnU4jgnnfzYNK0HnYYPJEA==
   dependencies:
-    "@bch-wc2/interfaces" "^0.0.7"
+    "@bch-wc2/interfaces" "^0.0.8"
     "@bitauth/libauth" "^3.1.0-next.2"
     "@electrum-cash/network" "^4.1.3"
     "@scure/bip39" "^1.2.2"
