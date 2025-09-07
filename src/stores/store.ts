@@ -157,7 +157,8 @@ export const useStore = defineStore('store', () => {
       await setUpWalletSubscriptions();
       console.timeEnd('set up wallet subscriptions');
       if(!tokenList.value) return // should never happen
-      if(isDesktop) getLatestGithubRelease()
+      // fire-and-forget getLatestGithubRelease promise for desktop platform
+      if(isDesktop) void getLatestGithubRelease()
       console.time('import registries');
       await importRegistries(tokenList.value, false);
       console.timeEnd('import registries');
@@ -243,9 +244,9 @@ export const useStore = defineStore('store', () => {
 
     // cancel active listeners
     if(cancelWatchBchtxs && cancelWatchTokenTxs && cancelWatchBlocks){
-      cancelWatchBchtxs()
-      cancelWatchTokenTxs()
-      cancelWatchBlocks()
+      void cancelWatchBchtxs()
+      void cancelWatchTokenTxs()
+      void cancelWatchBlocks()
     }
     // reset wallet to default state
     balance.value = undefined;
@@ -438,7 +439,7 @@ export const useStore = defineStore('store', () => {
       if (!response.ok) throw new Error('Network response was not ok');
         
       const releaseData = await response.json();
-      // Extract the version tag (e.g., 'v0.2.4')
+      // Extract the version tag (e.g. 'v0.2.4')
       latestGithubRelease.value = releaseData.tag_name;
       console.log(latestGithubRelease.value)
     } catch (error) {

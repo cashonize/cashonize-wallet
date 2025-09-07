@@ -6,7 +6,7 @@ import { type Ref, watch, type WatchStopHandle } from "vue";
 
 export function copyToClipboard(copyText:string|undefined){
   if(!copyText) return
-  navigator.clipboard.writeText(copyText);
+  void navigator.clipboard.writeText(copyText);
   Notify.create({
     message: "Copied!",
     icon: 'info',

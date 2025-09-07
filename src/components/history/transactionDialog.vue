@@ -27,7 +27,7 @@
 
   function copyToClipboard(copyText: string|undefined){
     if(!copyText) return
-    navigator.clipboard.writeText(copyText);
+    void navigator.clipboard.writeText(copyText);
     $q.notify({
       message: "Copied!",
       icon: 'info',

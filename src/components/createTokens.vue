@@ -40,8 +40,8 @@
       store.plannedTokenId = txId;
       // update utxo list
       await store.updateWalletUtxos();
-      // update wallet history
-      store.updateWalletHistory();
+      // update wallet history as fire-and-forget promise
+      void store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
     }
@@ -125,8 +125,8 @@
       // update utxo list
       await store.updateWalletUtxos()
       store.hasPreGenesis()
-      // update wallet history
-      store.updateWalletHistory();
+      // update wallet history as fire-and-forget promise
+      void store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
     }
@@ -169,8 +169,8 @@
       // update utxo list
       await store.updateWalletUtxos()
       store.hasPreGenesis()
-      // update wallet history
-      store.updateWalletHistory();
+      // update wallet history as fire-and-forget promise
+      void store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
     }

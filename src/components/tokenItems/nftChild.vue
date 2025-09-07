@@ -133,8 +133,8 @@
       displaySendNft.value = false;
       // update utxo list
       await store.updateWalletUtxos();
-      // update wallet history
-      store.updateWalletHistory();
+      // update wallet history as fire-and-forget promise
+      void store.updateWalletHistory();
     }catch(error){
       handleTransactionError(error)
     }
@@ -215,8 +215,8 @@
       startingNumberNFTs.value = undefined;
       // update utxo list
       await store.updateWalletUtxos();
-      // update wallet history
-      store.updateWalletHistory();
+      // update wallet history as fire-and-forget promise
+      void store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
     }
@@ -261,8 +261,8 @@
       console.log(`${store.explorerUrl}/${txId}`);
       // update utxo list
       await store.updateWalletUtxos();
-      // update wallet history
-      store.updateWalletHistory();
+      // update wallet history as fire-and-forget promise
+      void store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
     }
