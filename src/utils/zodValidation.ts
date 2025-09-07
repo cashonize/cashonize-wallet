@@ -56,7 +56,7 @@ export type encodedWcTransactionObj = z.infer<typeof EncodedWcTransactionObjSche
 export const WcMessageObjSchema = z.object({
   message: z.string(),
   userPrompt: z.optional(z.string()),
-  address: z.optional(z.boolean()), // no longer used but kept in the interface as dapps might still send it
+  address: z.optional(z.string()), // no longer used but kept in the interface as dapps might still send it
   account: z.optional(z.string()), // no longer used but kept in the interface as dapps might still send it
 });
 

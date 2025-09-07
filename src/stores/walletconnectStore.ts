@@ -175,7 +175,15 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
           const session = sessions[topic];
           if (!session) return;
           const dappMetadata = session.peer.metadata;
-          if(!isValidSignMessageRequest(event)) return
+          const validOrErrorMessage = isValidSignMessageRequest(event);
+          if (typeof validOrErrorMessage === "string") {
+            const errorMessage = validOrErrorMessage
+            // respond with error to dapp
+            const wcErrorMessage = 'Message signing request aborted with error: ' + errorMessage;
+            const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+            await web3wallet.value?.respondSessionRequest({ topic, response });
+            return
+          }
           return await new Promise<void>((resolve, reject) => {
             Dialog.create({
               component: WC2SignMessageRequest,
@@ -206,7 +214,14 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
           const session = sessions[topic];
           if (!session) return;
 
-          if(!isValidSignTransactionRequest(event)) return
+          const validOrErrorMessage = isValidSignTransactionRequest(event);
+          if(typeof validOrErrorMessage === "string"){
+            const errorMessage = validOrErrorMessage
+            // respond with error to dapp
+            const wcErrorMessage = 'Transaction signing request aborted with error: ' + errorMessage;
+            const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+            await web3wallet.value?.respondSessionRequest({ topic, response });
+          }
 
           // Auto-approve early return
           if (settingsStore.isAutoApproveValid(topic)) {
@@ -250,9 +265,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
       }
     }
 
-    async function isValidSignTransactionRequest(transactionRequestWC: WalletKitTypes.SessionRequest) {
-      const { id, topic } = transactionRequestWC;
-
+    function isValidSignTransactionRequest(transactionRequestWC: WalletKitTypes.SessionRequest) {
       // payload sent by the dapp over walletconnect
       const wcSignTransactionParams = transactionRequestWC.params.request.params
 
@@ -266,16 +279,11 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
         }
         // TODO: do we also want to encode the decoded TransactionBCH as a way of validation?
       } catch (error) {
-        const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in validating schema of WalletConnect transaction request")
-        Notify.create({
-          type: 'negative',
-          message: errorMessage
-        })
-        // respond with error to dapp
-        const wcErrorMessage = 'Transaction signing request aborted with error: ' + errorMessage;
-        const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
-        await web3wallet.value?.respondSessionRequest({ topic, response });
-        return false
+        const userFacingError = "Error in validating schema of WalletConnect transaction request"
+        displayAndLogError(userFacingError);
+        if(error instanceof Error) console.error(error.message)
+        const returnError = error instanceof Error ? error.message : userFacingError
+        return returnError
       }
     }
 
@@ -333,8 +341,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
       })
     }
 
-    async function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
-      const { id, topic } = signMessageRequestWC;
+    function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
       try{
         // payload sent by the dapp over walletconnect
         const wcSignMessageParams = signMessageRequestWC.params.request.params
@@ -343,17 +350,11 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
         WcMessageObjSchema.parse(wcSignMessageParams);
         return true
       } catch (error) {
-        const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in validating schema of WalletConnect sign message request")
-        Notify.create({
-          type: 'negative',
-          message: errorMessage
-        })
-        displayAndLogError(error);
-        // respond with error to dapp
-        const wcErrorMessage = 'Message signing request aborted with error: ' + errorMessage;
-        const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
-        await web3wallet.value?.respondSessionRequest({ topic, response });
-        return false
+        const userFacingError = "Error in validating schema of WalletConnect sign message request"
+        displayAndLogError(userFacingError);
+        if(error instanceof Error) console.error(error.message)
+        const returnError = error instanceof Error ? error.message : userFacingError
+        return returnError
       }
     }
 
