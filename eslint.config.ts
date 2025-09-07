@@ -15,7 +15,9 @@ export default defineConfigWithVueTs(
      *
      * ESLint requires "ignores" key to be the only one in this object
      */
-    // ignores: []
+    ignores: [
+      'src-electron', // Exclude all files in src-electron
+    ],
   },
 
   pluginQuasar.configs.recommended(),
@@ -65,16 +67,18 @@ export default defineConfigWithVueTs(
     },
 
     // add your custom rules here
-    // TODO: consider re-enabling most of these rules
     rules: {
-      'prefer-promise-reject-errors': 'off',
       "@typescript-eslint/ban-ts-comment": 'off',
-      '@typescript-eslint/no-floating-promises': 'off',
-      '@typescript-eslint/only-throw-error': 'off',
-      '@typescript-eslint/prefer-promise-reject-errors': 'off',
+      // TODO: warn about unsafe enum comparison
       '@typescript-eslint/no-unsafe-enum-comparison': 'off',
-      '@typescript-eslint/no-misused-promises': 'off',
-      '@typescript-eslint/require-await': 'off',
+      // TODO: warn about error handling
+      '@typescript-eslint/only-throw-error': 'off',      
+      'prefer-promise-reject-errors': 'off',
+      '@typescript-eslint/prefer-promise-reject-errors': 'off',
+      // warn about the promise based issues
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/no-unused-expressions': [
         'error',
         { allowTernary: true } // Allow function calls and other expressions in ternaries
