@@ -91,7 +91,7 @@
       let bchAmount =  Number(params.split("amount=")[1]);
       if(settingsStore.bchUnit == "sat") bchAmount = Math.round(bchAmount * 100_000_000);
       bchSendAmount.value = bchAmount;
-      setCurrencyAmount()
+      void setCurrencyAmount()
     }
   }
   async function setCurrencyAmount() {
@@ -110,24 +110,20 @@
     const newBchValue = await convert(currencySendAmount.value, settingsStore.currency, settingsStore.bchUnit);
     bchSendAmount.value = Number(newBchValue);
   }
-  async function updateCurrencyBalance(){
-    if(store.balance && store.maxAmountToSend){
+  async function useMaxBchAmount(){
+    if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit] && store.balance){
+      bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
+      // update currency balance & set currency amount
       const newFiatValue = await convert(
-        store.maxAmountToSend[settingsStore.bchUnit], "bch", settingsStore.currency
-      )
+        store.maxAmountToSend[settingsStore.bchUnit], settingsStore.bchUnit, settingsStore.currency
+      );
+      currencySendAmount.value = Number(newFiatValue.toFixed(2))
+      // update store balance to reflect new fiat value
       const refreshedBalance: BalanceResponse = {
         ...store.balance,
         [settingsStore.currency]: newFiatValue
       }
       store.balance = refreshedBalance
-    }
-  }
-  function useMaxBchAmount(){
-    if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit]){
-      bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
-      // update currency balance & set currency amount
-      updateCurrencyBalance()
-      setCurrencyAmount()
     }
     else{
       $q.notify({
