@@ -166,7 +166,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
         case "bch_getAccounts": {
           const result = [walletAddress];
           const response = { id, jsonrpc: '2.0', result };
-          web3wallet.value.respondSessionRequest({ topic, response });
+          await web3wallet.value.respondSessionRequest({ topic, response });
         }
           break;
         case "bch_signMessage":

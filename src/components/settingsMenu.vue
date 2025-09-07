@@ -77,7 +77,8 @@
   };
 
   // Loading cache sizes during setup to have the sizes available immediately in the 'advanced settings' submenu.
-  loadCacheSizes()
+  // Use as fire-and-forget to avoid blocking the setup process.
+  void loadCacheSizes()
 
   async function changeCurrency(){
     Config.DefaultCurrency = selectedCurrency.value;
@@ -163,7 +164,7 @@
     localStorage.setItem("seedBackedUp", "true");
     displaySeedphrase.value = !displaySeedphrase.value;
   }
-  function confirmDeleteWallet(){
+  async function confirmDeleteWallet(){
     let text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
     if (isPwaMode) {
       text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nThis will also delete the wallet from your browser!\nAre you sure you want to delete it?`;
@@ -174,7 +175,7 @@
       indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
       // TODO: should also clear CashConnect indexedDB
       indexedDB.deleteDatabase("ElectrumNetworkProviderCache");
-      clearHistoryCache()
+      await clearHistoryCache()
       clearMetadataCache()
       // remove 'seedBackedUp' state from localStorage, settings are still persisted after wallet deletion
       localStorage.removeItem("seedBackedUp")
@@ -182,7 +183,7 @@
     }
   }
   async function clearHistoryCache(){
-    clearElectrumCache();
+    await clearElectrumCache();
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
   }
   function clearMetadataCache(){

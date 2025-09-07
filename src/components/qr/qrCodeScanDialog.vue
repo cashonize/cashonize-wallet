@@ -67,10 +67,11 @@
   }
 
   let BarcodeScanner: BarcodeScannerPlugin | undefined;
+  // TODO: investigate whether 'hideBackground' & 'showBackground' are best fire-and-forget or awaited
   const scanBarcode = async () => {
     try {
       if (!BarcodeScanner) return // should never happen
-      BarcodeScanner.hideBackground();
+      void BarcodeScanner.hideBackground();
 
       // Request camera permission
       const status = await BarcodeScanner.checkPermission({ force: true });
@@ -93,7 +94,7 @@
 
       // Restore background
       document.body.classList.remove('transparent-body')
-      BarcodeScanner.showBackground();
+      void BarcodeScanner.showBackground();
       document.body.classList.remove('scanner-active')
       await BarcodeScanner.stopScan();
       emit('hide')
@@ -108,7 +109,7 @@
   function handleBeforeHide() {
     if(isCapacitor && BarcodeScanner) {
       document.body.classList.remove('transparent-body')
-      BarcodeScanner.showBackground();
+      void BarcodeScanner.showBackground();
       document.body.classList.remove('scanner-active')
     }
 
@@ -122,11 +123,11 @@
       const module = await import('@capacitor-community/barcode-scanner');
       BarcodeScanner = module.BarcodeScanner;
     }
-    scanBarcode();
+    void scanBarcode();
     }
   });
   onUnmounted(() => {
-    if(isCapacitor && BarcodeScanner) BarcodeScanner.stopScan();
+    if(isCapacitor && BarcodeScanner) void BarcodeScanner.stopScan();
   });
 </script>
 
