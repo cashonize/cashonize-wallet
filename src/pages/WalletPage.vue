@@ -71,7 +71,8 @@
     const readNetwork = localStorage.getItem('network');
     const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
     const initWallet = await walletClass.named(store.nameWallet);
-    store.setWallet(initWallet);
+    // fire-and-forget promise does not wait on full wallet initialization
+    void store.setWallet(initWallet);
   }
   
   // check if session request in URL params passed through props
@@ -132,7 +133,7 @@
   })
 
   const hasUtxosWithBchAndTokens = computed(() => {
-    if (!store.wallet || !store.walletUtxos) return undefined;
+    if (!store._wallet || !store.walletUtxos) return undefined;
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n).length > 0;
   });
   const newerReleaseAvailable = computed(() => {
@@ -141,7 +142,7 @@
     return store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion
   });
   const showNotificationIcon = computed(() => {
-    if (!store.wallet || !store.walletUtxos) return undefined;
+    if (!store._wallet || !store.walletUtxos) return undefined;
     return (!settingsStore.hasSeedBackedUp) || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value;
   });
 </script>

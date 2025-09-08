@@ -17,7 +17,8 @@
     const mainnetWallet = await Wallet.named(nameWallet);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
     await TestNetWallet.replaceNamed(nameWallet, walletId);
-    store.setWallet(mainnetWallet)
+    // fire-and-forget promise does not wait on full wallet initialization
+    void store.setWallet(mainnetWallet)
   }
 
   async function importWallet() {
@@ -30,7 +31,8 @@
       const walletIdTestnet = `seed:testnet:${seedphrase.value}:${derivationPath}`;
       await TestNetWallet.replaceNamed(nameWallet, walletIdTestnet);
       const mainnetWallet = await Wallet.named(nameWallet);
-      store.setWallet(mainnetWallet)
+      // fire-and-forget promise does not wait on full wallet initialization
+      void store.setWallet(mainnetWallet)
     } catch (error) {
       const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase"
       $q.notify({
