@@ -240,7 +240,9 @@ export const useStore = defineStore('store', () => {
   function resetWalletState(){
     // Execute each of our network changed callbacks.
     // In practice, we're using these for WC/CC to disconnect their sessions.
-    networkChangeCallbacks.forEach((callback) => callback());
+    // TODO: investigate if disconnecting session this way is properly working
+    // Call disconnects as fire-and-forget promises
+    networkChangeCallbacks.forEach((callback) => void callback());
     // clear the networkChangeCallbacks before initialising newWallet 
     networkChangeCallbacks = []
 
@@ -291,7 +293,7 @@ export const useStore = defineStore('store', () => {
         if(!sessions) return
 
         for (const session of Object.values(sessions)) {
-          walletconnectStore.web3wallet?.disconnectSession({
+          await walletconnectStore.web3wallet?.disconnectSession({
             topic: session.topic,
             reason: {
               code: 5000,
@@ -322,16 +324,19 @@ export const useStore = defineStore('store', () => {
       // Setup network change callback to disconnect all sessions.
       // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
       networkChangeCallbacks.push(async () => {
-        cashconnectWallet.cashConnectWallet.disconnectAllSessions();
+        await cashconnectWallet.cashConnectWallet.disconnectAllSessions();
       });
 
       // Monitor the wallet for balance changes.
-      wallet.value.watchBalance(async () => {
+      // TODO: investigate if we should define the return CancelFn as 'cancelWatchBchtxsCashConnect'
+      // Then we can call this on network changes, however we would need to re-create the watch for the new network
+      void wallet.value.watchBalance(() => {
         // Convert the network into WC format,
         const chainIdFormatted = wallet.value.network === NetworkType.Mainnet ? 'bch:bitcoincash' : 'bch:bchtest';
 
         // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
-        cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
+        // fire-and-forget promise
+        void cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
       });
     } catch (error) {
       console.error("Error initializing CashConnect:", error);
