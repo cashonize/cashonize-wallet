@@ -24,7 +24,11 @@ import {
   type BcmrIndexerResponse,
   type WalletHistoryReturnType
 } from "../interfaces/interfaces"
-import { getBalanceFromUtxos, getTokenUtxos } from "src/utils/utils"
+import {
+  getBalanceFromUtxos,
+  getTokenUtxos,
+  runAsyncVoid
+} from "src/utils/utils"
 import {
   importBcmrRegistries,
   tokenListFromUtxos,
@@ -182,56 +186,66 @@ export const useStore = defineStore('store', () => {
   }
 
   async function setUpWalletSubscriptions(){
-    cancelWatchBchtxs = await wallet.value.watchBalance(async (newBalance) => {
-      const oldBalance = balance.value;
-      balance.value = newBalance;
-      if(oldBalance?.sat && newBalance?.sat && walletInitialized.value){
-        console.log("watchBalance")
-        if(oldBalance.sat < newBalance.sat){
-          const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
-          const currencyValue = await convert(amountReceived, settingsStore.bchUnit, settingsStore.currency);
-          const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
-          Notify.create({
-            type: 'positive',
-            message: `Received ${amountReceived} ${unitString} (${currencyValue + CurrencySymbols[settingsStore.currency]})`
-          })
+    cancelWatchBchtxs = await wallet.value.watchBalance(
+      // use runAsyncVoid to wrap an async function as a synchronous callback
+      // this means the promise is fire-and-forget
+      (newBalance) => runAsyncVoid(async () => {
+        const oldBalance = balance.value;
+        balance.value = newBalance;
+        if(oldBalance?.sat && newBalance?.sat && walletInitialized.value){
+          console.log("watchBalance")
+          if(oldBalance.sat < newBalance.sat){
+            const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
+            const currencyValue = await convert(amountReceived, settingsStore.bchUnit, settingsStore.currency);
+            const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
+            Notify.create({
+              type: 'positive',
+              message: `Received ${amountReceived} ${unitString} (${currencyValue + CurrencySymbols[settingsStore.currency]})`
+            })
+          }
+          // update state (but not on the initial trigger when creating the subscription)
+          const walletAddressUtxos = await wallet.value.getAddressUtxos();
+          walletUtxos.value = walletAddressUtxos;
+          maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
+            utxoIds: walletAddressUtxos
+          }});
+          // update wallet history as fire-and-forget promise
+          void updateWalletHistory()
         }
-        // update state (but not on the initial trigger when creating the subscription)
-        const walletAddressUtxos = await wallet.value.getAddressUtxos();
-        walletUtxos.value = walletAddressUtxos;
-        maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
-          utxoIds: walletAddressUtxos
-        }});
-        updateWalletHistory()
-      }
-    });
+      })
+    );
     const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
-    cancelWatchTokenTxs = await wallet.value.watchAddressTokenTransactions(async(tx) => {
-      const receivedTokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
-      const previousTokenList = tokenList.value;
-      const listNewTokens:TokenList = []
-      // Check if transaction not initiated by user
-      const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value.cashaddr);
-      for(const tokenOutput of receivedTokenOutputs){
-        if(!userInputs.length){
-          const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
-          Notify.create({
-            type: 'positive',
-            message: `Received new ${tokenType}`
-          })
+    cancelWatchTokenTxs = await wallet.value.watchAddressTokenTransactions(
+      // use runAsyncVoid to wrap an async function as a synchronous callback
+      // this means the promise is fire-and-forget
+      (tx) => runAsyncVoid(async () => {
+        const receivedTokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
+        const previousTokenList = tokenList.value;
+        const listNewTokens:TokenList = []
+        // Check if transaction not initiated by user
+        const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value.cashaddr);
+        for(const tokenOutput of receivedTokenOutputs){
+          if(!userInputs.length){
+            const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
+            Notify.create({
+              type: 'positive',
+              message: `Received new ${tokenType}`
+            })
+          }
+          const tokenId = tokenOutput?.tokenData?.category;
+          const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);
+          if(!tokenId && !isNewTokenItem) continue;
+          const newTokenItem = convertElectrumTokenData(tokenOutput?.tokenData)
+          if(newTokenItem) listNewTokens.push(newTokenItem)
         }
-        const tokenId = tokenOutput?.tokenData?.category;
-        const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);
-        if(!tokenId && !isNewTokenItem) continue;
-        const newTokenItem = convertElectrumTokenData(tokenOutput?.tokenData)
-        if(newTokenItem) listNewTokens.push(newTokenItem)
-      }
-      // Dynamically import tokenmetadata
-      await importRegistries(listNewTokens, true);
-      // refetch utxos to update tokenList
-      await updateWalletUtxos();
-      updateWalletHistory()
-    });
+        // Dynamically import tokenmetadata
+        await importRegistries(listNewTokens, true);
+        // refetch utxos to update tokenList
+        await updateWalletUtxos();
+        // update wallet history as fire-and-forget promise
+        void updateWalletHistory()
+      })
+    );
     cancelWatchBlocks = await wallet.value.watchBlocks((header: HexHeaderI) => {
       currentBlockHeight.value = header.height;
     }, false);

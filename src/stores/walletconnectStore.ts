@@ -12,7 +12,7 @@ import {
   decodeTransaction
 } from "@bitauth/libauth"
 import { getSdkError } from '@walletconnect/utils';
-import { parseExtendedJson } from 'src/utils/utils'
+import { parseExtendedJson, runAsyncVoid } from 'src/utils/utils'
 import alertDialog from 'src/components/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
@@ -60,8 +60,14 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         }
       })
 
-      newweb3wallet.on('session_proposal', wcSessionProposal);
-      newweb3wallet.on('session_request', async (event) => wcRequest(event, wallet.value.getDepositAddress()));
+      // web3wallet listeners expect synchronous callbacks, so we use runAsyncVoid
+      // this means the promise is fire-and-forget
+      newweb3wallet.on('session_proposal', (sessionProposal) => runAsyncVoid(
+        () => wcSessionProposal(sessionProposal)
+      ));
+      newweb3wallet.on('session_request', (event) => runAsyncVoid(
+        () => wcRequest(event, wallet.value.cashaddr)
+      ));
       web3wallet.value = newweb3wallet
       activeSessions.value = web3wallet.value.getActiveSessions();
 
@@ -91,7 +97,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
             dappTargetNetwork
           },
         })
-          .onOk(async() => {
+        // Dialog listeners expect synchronous callbacks, so we use runAsyncVoid
+        // this means the promise is fire-and-forget
+          .onOk(() => runAsyncVoid(async() => {
             try {
               await approveSession(sessionProposal, dappTargetNetwork);
               resolve();
@@ -103,14 +111,14 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
               });
               reject();
             }
-          })
-          .onCancel(async() => {
+          }))
+          .onCancel(() => runAsyncVoid(async() => {
             await web3wallet.value?.rejectSession({
               id: sessionProposal.id,
               reason: getSdkError('USER_REJECTED'),
             });
             reject();
-          })
+          }))
       });
   }
 
@@ -196,18 +204,20 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
                 signMessageRequestWC: event
               },
             })
-              .onOk(async() => {
+            // Dialog listeners expect synchronous callbacks, so we use runAsyncVoid
+            // this means the promise is fire-and-forget
+              .onOk(() => runAsyncVoid(async() => {
                 await signMessage(event)
                 resolve();
                 Notify.create({
                   color: "positive",
                   message: "Successfully signed message",
                 });
-              })
-              .onCancel(async() => {
+              }))
+              .onCancel(() => runAsyncVoid(async() => {
                 await rejectRequest(event)
                 reject();
-              })
+              }))
               .onDismiss(() => {
                 reject();
               });
@@ -249,14 +259,16 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
                 exchangeRate
               },
             })
-              .onOk(async() => {
+            // Dialog listeners expect synchronous callbacks, so we use runAsyncVoid
+            // this means the promise is fire-and-forget
+              .onOk(() => runAsyncVoid(async() => {
                 await signTransactionWC(event)
                 resolve();
-              })
-              .onCancel(async() => {
+              }))
+              .onCancel(() => runAsyncVoid(async() => {
                 await rejectRequest(event)
                 reject();
-              })
+              }))
               .onDismiss(() => {
                 reject();
               });

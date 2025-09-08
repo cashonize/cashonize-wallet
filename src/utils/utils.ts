@@ -15,6 +15,10 @@ export function copyToClipboard(copyText:string|undefined){
   })
 }
 
+export function runAsyncVoid(fn: () => Promise<void>) {
+  void fn();
+}
+
 export function formatTimestamp(timestamp?: number){
   if (!timestamp) return "Unconfirmed";
   const date = new Date(timestamp * 1000);
