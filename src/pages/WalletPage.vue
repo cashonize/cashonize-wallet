@@ -71,8 +71,9 @@
     const readNetwork = localStorage.getItem('network');
     const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
     const initWallet = await walletClass.named(store.nameWallet);
+    store.setWallet(initWallet);
     // fire-and-forget promise does not wait on full wallet initialization
-    void store.setWallet(initWallet);
+    void store.initializeWallet();
   }
   
   // check if session request in URL params passed through props

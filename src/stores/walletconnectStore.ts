@@ -25,7 +25,9 @@ import { displayAndLogError } from "src/utils/errorHandling"
 import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 const settingsStore = useSettingsStore()
 
-type ChangeNetwork = (network: "mainnet" | "chipnet") => Promise<void>;
+type ChangeNetwork = (
+  network: "mainnet" | "chipnet", awaitWalletInitialization: boolean
+) => Promise<void>;
 
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that WC cannot exist without a valid wallet.
@@ -116,7 +118,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       
       const currentNetwork = wallet.value?.network == "mainnet" ? "mainnet" : "chipnet"
       if(currentNetwork != dappTargetNetwork){
-        await changeNetwork(dappTargetNetwork)
+        // Await the new 'setWallet' call when changing networks, do not wait for full wallet initialization
+        const optionWaitForFullWalletInit = false
+        await changeNetwork(dappTargetNetwork, optionWaitForFullWalletInit)
       }
       
       const namespaces = {

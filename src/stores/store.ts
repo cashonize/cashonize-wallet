@@ -95,7 +95,9 @@ export const useStore = defineStore('store', () => {
     displayView.value = newView;
   }
 
-  async function setWallet(newWallet: Wallet | TestNetWallet){
+  // setWallet is a simple wrapper "set" function which also changes the view & adds the correct provider on the wallet
+  // to initialize the new wallet, call initializeWallet() afterwards
+  function setWallet(newWallet: Wallet | TestNetWallet){
     changeView(1);
     if(newWallet.network == 'mainnet'){
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
@@ -106,7 +108,6 @@ export const useStore = defineStore('store', () => {
       newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
     }
     _wallet.value = newWallet;
-    await initializeWallet();
   }
 
   async function initializeWallet() {
@@ -257,13 +258,22 @@ export const useStore = defineStore('store', () => {
     walletHistory.value = undefined;
   }
 
-  async function changeNetwork(newNetwork: 'mainnet' | 'chipnet'){
+  async function changeNetwork(
+    newNetwork: 'mainnet' | 'chipnet',
+    awaitWalletInitialization: boolean = false
+  ){
     resetWalletState()
     walletInitialized.value = false;
     // set new wallet
     const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
     const newWallet = await walletClass.named(nameWallet);
     setWallet(newWallet);
+    if (awaitWalletInitialization) {
+      await initializeWallet();
+    } else {
+      // fire-and-forget promise does not wait on full wallet initialization
+      void initializeWallet();
+    }
     localStorage.setItem('network', newNetwork);
     changeView(1);
   }

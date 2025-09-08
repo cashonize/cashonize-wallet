@@ -121,7 +121,8 @@
       settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
       localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
     }
-    store.initializeWallet()
+    // fire-and-forget promise does not wait on full wallet initialization
+    void store.initializeWallet();
   }
   function changeIpfsGateway(){
     settingsStore.ipfsGateway = selectedIpfsGateway.value
@@ -196,7 +197,8 @@
 
   function changeNetwork(){
     settingsStore.hasPlayedAnmation = false;
-    store.changeNetwork(selectedNetwork.value)
+    // fire-and-forget promise does not wait on full wallet initialization
+    void store.changeNetwork(selectedNetwork.value)
   }
   function changeMintNfts(){
     localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
