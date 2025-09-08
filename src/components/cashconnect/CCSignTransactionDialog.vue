@@ -96,15 +96,20 @@ function getTokenName(categoryId: string | number) {
   }
 }
 
-props.session.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId: string) => {
+async function fetchAndSetTokenInfo(tokenId: string) {
   try {
     const tokenInfo = await store.fetchTokenInfo(tokenId);
     tokens.value[tokenId] = tokenInfo;
   } catch(error) {
-    const errorMessage= caughtErrorToString(error)
+    const errorMessage = caughtErrorToString(error)
     console.error(errorMessage);
   }
-});
+}
+const allowedTokens = props.session.requiredNamespaces?.bch?.allowedTokens ?? [];
+// fire-and-forget promises
+for (const tokenId of allowedTokens) {
+  void fetchAndSetTokenInfo(tokenId);
+}
 
 //-----------------------------------------------------------------------------
 // Helpers

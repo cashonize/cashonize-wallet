@@ -82,7 +82,7 @@ function getTokenIcon(categoryId: string) {
   }
 }
 
-props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (tokenId: string) => {
+async function fetchAndSetTokenInfo(tokenId: string) {
   try {
     const tokenInfo = await store.fetchTokenInfo(tokenId);
     tokens.value[tokenId] = tokenInfo;
@@ -90,7 +90,12 @@ props.session.params.requiredNamespaces?.bch?.allowedTokens.forEach(async (token
     const errorMessage = caughtErrorToString(error)
     console.error(errorMessage)
   }
-});
+}
+const allowedTokens = props.session.params.requiredNamespaces?.bch?.allowedTokens ?? [];
+// fire-and-forget promises
+for (const tokenId of allowedTokens) {
+  void fetchAndSetTokenInfo(tokenId);
+}
 
 </script>
 

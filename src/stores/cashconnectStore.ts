@@ -114,6 +114,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
     // Session Hooks
     //-----------------------------------------------------------------------------
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     async function onSessionsUpdated(
       updatedSessions: Record<string, BchSession>
     ) {
@@ -170,6 +171,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       });
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     async function onSessionDelete() {
       console.log("Session deleted");
     }
@@ -329,6 +331,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       return transformed;
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     async function getChangeTemplate() {
       return {
         template: walletTemplateP2pkhNonHd,
