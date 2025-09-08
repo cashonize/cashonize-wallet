@@ -8,26 +8,22 @@
   import { caughtErrorToString } from 'src/utils/errorHandling';
   import { type Wallet } from 'mainnet-js';
 
-  // Expose to parent component.
+  // Expose to 'connectDapp' parent component.
   defineExpose({
     connectDappUriInput
   });
 
   const $q = useQuasar();
-
   const store = useStore()
   const settingsStore = useSettingsStore();
 
-  if(!store.wallet) {
-    throw new Error('store.wallet is falsy');
-  }
 
   // NOTE: Vue's reactive unwrapping appears to interfere with the types.
   //       So we just cast this to Ref<Wallet> here (which works and is compatible in practice).
   const { _wallet } = storeToRefs(store);
-  const cashconnectStore = await useCashconnectStore(_wallet as Ref<Wallet>);
+  const cashconnectStore = useCashconnectStore(_wallet as Ref<Wallet>);
 
-  // Methods.
+  // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
   async function connectDappUriInput(url: string){
     try {
       await cashconnectStore.pair(url);

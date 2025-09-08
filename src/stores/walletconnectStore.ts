@@ -30,7 +30,7 @@ type ChangeNetwork = (network: "mainnet" | "chipnet") => Promise<void>;
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that WC cannot exist without a valid wallet.
 // Passing in a Ref so it remains reactive (like when changing networks)
-export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>, changeNetwork: ChangeNetwork) => {
+export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, changeNetwork: ChangeNetwork) => {
   const store = defineStore("walletconnectStore", () => {
     const activeSessions = ref(undefined as undefined | Record<string, SessionTypes.Struct>);
     const web3wallet = ref(undefined as undefined | IWalletKit);
@@ -40,7 +40,7 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
 
     async function initweb3wallet() {
       // Make sure we don't ininialize WC more than once.
-      // Otherwise, we'll register multiple handlers and end up with multiple dialgos.
+      // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
       if (isIninialized.value) return;
 
       const core = new Core({
@@ -58,8 +58,8 @@ export const useWalletconnectStore = async (wallet: Ref<Wallet | TestNetWallet>,
         }
       })
 
-      newweb3wallet?.on('session_proposal', wcSessionProposal);
-      newweb3wallet?.on('session_request', async (event) => wcRequest(event, wallet.value.getDepositAddress()));
+      newweb3wallet.on('session_proposal', wcSessionProposal);
+      newweb3wallet.on('session_request', async (event) => wcRequest(event, wallet.value.getDepositAddress()));
       web3wallet.value = newweb3wallet
       activeSessions.value = web3wallet.value.getActiveSessions();
 

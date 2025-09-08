@@ -8,6 +8,7 @@
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
   
+  // Expose to 'connectDapp' parent component.
   defineExpose({
     connectDappUriInput
   });
@@ -16,15 +17,18 @@
   const store = useStore()
 
   const { _wallet } = storeToRefs(store);
-  const walletconnectStore = await useWalletconnectStore(_wallet as Ref<Wallet>, store.changeNetwork)
-  const web3wallet = walletconnectStore.web3wallet
+  const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>, store.changeNetwork)
+  // Note: web3wallet starts off undefined, so we want the reactive reference.
+  const { web3wallet } = storeToRefs(walletconnectStore)
 
   const activeSessions = computed(() => walletconnectStore.activeSessions ?? {})
 
   async function connectDappUriInput(url: string){
     try {
       if(!url) throw("Enter a BCH WalletConnect URI");
-      await web3wallet?.core.pairing.pair({ uri: url });
+      // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
+      if(!web3wallet.value) throw("WalletConnect not initialized yet. Please try again in a moment.");
+      await web3wallet.value.core.pairing.pair({ uri: url });
     } catch(error) {
       const errorMessage = typeof error == 'string' ? error : "Not a valid BCH WalletConnect URI"
       $q.notify({

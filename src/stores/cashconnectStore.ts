@@ -33,7 +33,7 @@ const settingsStore = useSettingsStore()
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that CC cannot exist without a valid wallet.
 // Passing in a Ref so it remains reactive (like when changing networks)
-export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) => {
+export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
   const store = defineStore("cashconnectStore", () => {
     
     // Store a state variable to make sure we don't call "start" more than once.
@@ -91,7 +91,7 @@ export const useCashconnectStore = async (wallet: Ref<Wallet | TestNetWallet>) =
 
     async function start() {
       // Make sure we don't start CC more than once.
-      // Otherwise, we'll register multiple handlers and end up with multiple dialgos.
+      // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
       if (isStarted.value) return;
 
       // Start CashConnect (WC Core) service.
