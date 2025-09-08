@@ -3,7 +3,7 @@ import { ref, type Ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { convert, type TestNetWallet, type Wallet } from "mainnet-js";
+import { convert, NetworkType, type TestNetWallet, type Wallet } from "mainnet-js";
 import {
   hexToBin,
   binToHex,
@@ -116,7 +116,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
 
     async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet"){
       
-      const currentNetwork = wallet.value?.network == "mainnet" ? "mainnet" : "chipnet"
+      const currentNetwork = wallet.value?.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
       if(currentNetwork != dappTargetNetwork){
         // Await the new 'setWallet' call when changing networks, do not wait for full wallet initialization
         const optionWaitForFullWalletInit = false

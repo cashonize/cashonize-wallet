@@ -13,7 +13,8 @@ import {
   type UtxoI,
   type ElectrumNetworkProvider,
   type CancelFn,
-  type HexHeaderI
+  type HexHeaderI,
+  NetworkType
 } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import {
@@ -70,7 +71,7 @@ export const useStore = defineStore('store', () => {
   const latestGithubRelease = ref(undefined as undefined | string);
 
   // Computed properties
-  const network = computed(() => wallet.value?.network == "mainnet" ? "mainnet" : "chipnet")
+  const network = computed(() => wallet.value?.network == NetworkType.Mainnet ? "mainnet" : "chipnet") 
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
   // The wallet computed property, throws if it were to be accessed when _wallet is null
@@ -99,11 +100,11 @@ export const useStore = defineStore('store', () => {
   // to initialize the new wallet, call initializeWallet() afterwards
   function setWallet(newWallet: Wallet | TestNetWallet){
     changeView(1);
-    if(newWallet.network == 'mainnet'){
+    if(newWallet.network == NetworkType.Mainnet){ 
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
     }
-    if(newWallet.network == 'testnet'){
+    if(newWallet.network == NetworkType.Testnet){ 
       const connectionChipnet = new Connection("testnet", `wss://${settingsStore.electrumServerChipnet}:50004`)
       newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
     }
@@ -327,7 +328,7 @@ export const useStore = defineStore('store', () => {
       // Monitor the wallet for balance changes.
       wallet.value.watchBalance(async () => {
         // Convert the network into WC format,
-        const chainIdFormatted = wallet.value.network === 'mainnet' ? 'bch:bitcoincash' : 'bch:bchtest';
+        const chainIdFormatted = wallet.value.network === NetworkType.Mainnet ? 'bch:bitcoincash' : 'bch:bchtest';
 
         // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
         cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);

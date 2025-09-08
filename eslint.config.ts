@@ -69,8 +69,8 @@ export default defineConfigWithVueTs(
     // add your custom rules here
     rules: {
       "@typescript-eslint/ban-ts-comment": 'off',
-      // TODO: warn about unsafe enum comparison
-      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      // warn about unsafe enum comparison
+      '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
       // TODO: warn about error handling
       '@typescript-eslint/only-throw-error': 'off',      
       'prefer-promise-reject-errors': 'off',
