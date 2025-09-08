@@ -3,11 +3,13 @@ import { boot } from 'quasar/wrappers'
 import { App, type URLOpenListenerEvent } from '@capacitor/app';
 import { Platform } from 'quasar'
 
-export default boot(async ( { router }) => {
-  if(Platform.is.capacitor) {
-    App.addListener('appUrlOpen', function (event: URLOpenListenerEvent) {
-      // Use router.push to navigate without a hard-refresh (redirect)
-      router.push({ path: '/', query:{uri: event.url} });
-    });
-  }
+// TODO: investigate the need for 'App.getLaunchUrl()' for cold starts
+// TODO: consider first doing 'await router.isReady()' before doing any router pushes
+
+export default boot(( { router }) => {
+  if(!Platform.is.capacitor) return
+  void App.addListener('appUrlOpen', function (event: URLOpenListenerEvent) {
+    // Use router.push to navigate without a hard-refresh (redirect)
+    void router.push({ path: '/', query:{uri: event.url} });
+  });
 })
