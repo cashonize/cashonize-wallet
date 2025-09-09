@@ -75,7 +75,7 @@ export const useStore = defineStore('store', () => {
   const latestGithubRelease = ref(undefined as undefined | string);
 
   // Computed properties
-  const network = computed(() => wallet.value?.network == NetworkType.Mainnet ? "mainnet" : "chipnet") 
+  const network = computed(() => wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet") 
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
   // The wallet computed property, throws if it were to be accessed when _wallet is null

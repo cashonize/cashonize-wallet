@@ -124,7 +124,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
 
     async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet"){
       
-      const currentNetwork = wallet.value?.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
+      const currentNetwork = wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
       if(currentNetwork != dappTargetNetwork){
         // Await the new 'setWallet' call when changing networks, do not wait for full wallet initialization
         const optionWaitForFullWalletInit = false
@@ -140,7 +140,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
           ],
           chains: dappTargetNetwork === "mainnet" ? ["bch:bitcoincash"] : ["bch:bchtest"],
           events: [ "addressesChanged" ],
-          accounts: [`bch:${wallet.value?.getDepositAddress()}`],
+          accounts: [`bch:${wallet.value.cashaddr}`],
         }
       }
       
@@ -329,7 +329,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
             color: 'grey-5',
             timeout: 750
           })
-          const txId = await wallet.value?.submitTransaction(hexToBin(signedTxObject.signedTransaction));
+          const txId = await wallet.value.submitTransaction(hexToBin(signedTxObject.signedTransaction));
           const alertMessage = `Sent WalletConnect transaction '${wcTransactionObj.userPrompt}'`
           Dialog.create({
             component: alertDialog,
@@ -378,7 +378,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       // isValidSignMessageRequest has checked the params already when this function is called
       const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageRequest
       const message = wcSignMessageParams.message;
-      const signedMessage = await wallet.value?.sign(message);
+      const signedMessage = await wallet.value.sign(message);
 
       const { id, topic } = signMessageRequestWC;
       const response = { id, jsonrpc: '2.0', result: signedMessage?.signature };
