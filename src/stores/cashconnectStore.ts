@@ -154,7 +154,8 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
         })
           .onOk(() => {
             resolve({
-              // NOTE: We return the methods that are auto-approved to the Dapp so that it knows it doesn't have to display a user prompt for them.
+              // NOTE: We return the methods that are auto-approved to the Dapp
+              // this way the dapp knows it doesn't have to display a user prompt for them.
               autoApprove: autoApprovedMethods,
             });
             Notify.create({
@@ -162,12 +163,8 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
               message: "Session approved",
             });
           })
-          .onCancel(() => {
-            reject();
-          })
-          .onDismiss(() => {
-            reject();
-          });
+          .onCancel(reject)
+          .onDismiss(reject);
       });
     }
 
@@ -203,12 +200,8 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
                   message: "Successfully signed transaction",
                 });
               })
-              .onCancel(() => {
-                reject();
-              })
-              .onDismiss(() => {
-                reject();
-              });
+            .onCancel(reject)
+            .onDismiss(reject);
           });
         }
       }
@@ -221,9 +214,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           componentProps: {
             error,
           },
-        }).onDismiss(() => {
-          resolve();
-        });
+        }).onDismiss(resolve);
       });
     }
 
