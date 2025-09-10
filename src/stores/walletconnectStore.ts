@@ -56,7 +56,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
           name: 'Cashonize',
           description: 'Cashonize, a Bitcoin Cash Wallet',
           url: 'https://cashonize.com',
-          icons: ['https://cashonize.com/images/favicon.ico'],
+          icons: ['https://cashonize.com/icons/favicon-128x128.png'],
         }
       })
 
