@@ -16,14 +16,12 @@ yarn quasar dev
 npx quasar dev
 ```
 
-
 ### Lint the files
 ```bash
 yarn lint
 # or
 npm run lint
 ```
-
 
 ### Format the files
 ```bash
@@ -32,14 +30,14 @@ yarn format
 npm run format
 ```
 
-
-
 ### Build the app for production
 ```bash
 yarn quasar build
 # or
 npx quasar dev
 ```
+
+you should see a generated `dist/stats.html` file which is the output of the `rollup-plugin-visualizer`
 
 ### Optionally Install the Quasar CLI
 [See the Quasar CLI instructions](https://quasar.dev/start/quick-start#optional-install-the-global-cli)

@@ -2,9 +2,7 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers';
-import topLevelAwait from 'vite-plugin-top-level-await';
 import packageJson from './package.json';
-import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig((ctx) => {
   return {
@@ -75,14 +73,13 @@ export default defineConfig((ctx) => {
         }
       },
       
-      // TODO: remove topLevelAwait plugin when possible
+      // TODO: investigate rollup-plugin-visualizer 'open: true' not triggering in Vite 7
       vitePlugins: [
-        topLevelAwait(),
-        visualizer({
+        ['rollup-plugin-visualizer', {
           open: true,
-          filename: 'dist/stats.html', 
-          gzipSize: true 
-        }),
+          filename: 'dist/stats.html',
+          gzipSize: true
+        }],
         ['vite-plugin-checker', {
           vueTsc: true,
           eslint: {
