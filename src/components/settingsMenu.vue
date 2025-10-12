@@ -416,19 +416,21 @@
 
       <div style="margin-top:15px; margin-bottom:15px;">
         <label for="selectUnit">Select BlockExplorer:</label>
-        <select v-model="selectedExplorer" @change="changeBlockExplorer()">
-          <option v-if="store.network == 'mainnet'" value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
-          <option v-if="store.network == 'mainnet'" value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
-          <option v-if="store.network == 'mainnet'" value="https://explorer.bch.ninja/tx">explorer.bch.ninja</option>
-          <option v-if="store.network == 'mainnet'" value="https://bch.loping.net/tx">bch.loping.net</option>
-          <option v-if="store.network == 'mainnet'" value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
-          <option v-if="store.network == 'mainnet'" value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
-          <option v-if="store.network == 'mainnet'" value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
-
-          <option v-if="store.network == 'chipnet'" value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
-          <option v-if="store.network == 'chipnet'" value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
-          <option v-if="store.network == 'chipnet'" value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
-          <option v-if="store.network == 'chipnet'" value="https://cbch.loping.net/tx">cbch.loping.net</option>
+        <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
+          <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
+          <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
+          <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
+          <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
+          <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>
+          <option value="https://bch.loping.net/tx">bch.loping.net (no Token Metadata)</option>
+          <option value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
+          <option value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
+        </select>
+        <select v-if="store.network == 'chipnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
+          <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
+          <option value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
+          <option value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
+          <option value="https://cbch.loping.net/tx">cbch.loping.net</option>
         </select>
       </div>
 
