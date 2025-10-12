@@ -97,7 +97,7 @@
   function changeQrAnimation(){
     settingsStore.qrAnimation = qrAnimation.value;
     localStorage.setItem("qrAnimation", qrAnimation.value);
-    settingsStore.hasPlayedAnmation = false;
+    settingsStore.hasPlayedAnimation = false;
     store.changeView(1)
   }
   function changeBlockExplorer(){
@@ -196,7 +196,7 @@
   }
 
   function changeNetwork(){
-    settingsStore.hasPlayedAnmation = false;
+    settingsStore.hasPlayedAnimation = false;
     // fire-and-forget promise does not wait on full wallet initialization
     void store.changeNetwork(selectedNetwork.value)
   }

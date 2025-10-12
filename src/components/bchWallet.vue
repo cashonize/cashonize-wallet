@@ -69,16 +69,16 @@
     }
   })
 
-  // geneal functions
+  // general functions
   const animateQrCode = () => {
-    if (qrCodeRef.value && !settingsStore.hasPlayedAnmation && settingsStore.qrAnimation != 'None') {
+    if (qrCodeRef.value && !settingsStore.hasPlayedAnimation && settingsStore.qrAnimation != 'None') {
       qrCodeRef.value.animateQRCode(settingsStore.qrAnimation);
-      settingsStore.hasPlayedAnmation = true;
+      settingsStore.hasPlayedAnimation = true;
     }
   };
   function switchAddressTypeQr(){
     displayBchQr.value = !displayBchQr.value;
-    settingsStore.hasPlayedAnmation = false;
+    settingsStore.hasPlayedAnimation = false;
   }
   function parseAddrParams(){
     const addressInput = destinationAddr.value;
@@ -202,7 +202,7 @@
   // we want to play the animation when the user updates the qrAnimation setting
   // @codeRendered does not trigger on 'qrAnimation' so we use a watcher for it
   watch(() => settingsStore.qrAnimation, () => {
-    if(!settingsStore.hasPlayedAnmation) animateQrCode()
+    if(!settingsStore.hasPlayedAnimation) animateQrCode()
   })
 </script>
 

@@ -33,7 +33,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const featuredTokens = ref([] as string[]);
   const hasInstalledPWA = ref(false as boolean);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
-  const hasPlayedAnmation = ref(false as boolean)
+  const hasPlayedAnimation = ref(false as boolean)
   const hasSeedBackedUp = ref(false as boolean)
   const mintNfts = ref(false);
   const authchains = ref(false);
@@ -204,7 +204,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     showCauldronSwap,
     qrScan,
     qrAnimation,
-    hasPlayedAnmation,
+    hasPlayedAnimation,
     featuredTokens,
     hasInstalledPWA,
     hasSeedBackedUp,
