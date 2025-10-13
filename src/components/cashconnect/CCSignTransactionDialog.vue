@@ -12,7 +12,7 @@ const store = useStore()
 const settingsStore = useSettingsStore()
 
 const props = defineProps<{
-  session: BchSession,
+  session: BchSession<true>,
   params: SignTransactionV0['request']['params'],
   response: SignTransactionV0['response'],
   exchangeRate: number,
@@ -105,7 +105,7 @@ async function fetchAndSetTokenInfo(tokenId: string) {
     console.error(errorMessage);
   }
 }
-const allowedTokens = props.session.requiredNamespaces?.bch?.allowedTokens ?? [];
+const allowedTokens = props.session.sessionProperties.allowedTokens ?? [];
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
   void fetchAndSetTokenInfo(tokenId);
@@ -253,12 +253,12 @@ function satsToBCH(satoshis: bigint) {
                         <tbody>
                           <tr>
                             <th colspan="2">
-                              {{ formatScriptName(input.params.script, session.requiredNamespaces.bch.template) }}
+                              {{ formatScriptName(input.params.script, session.sessionProperties.template) }}
                             </th>
                           </tr>
                           <template v-for="(value, id) of input.params.data" :key="id">
-                            <tr><th>{{ formatDataName(id, session.requiredNamespaces.bch.template) }}</th></tr>
-                            <tr><td>{{ formatDataValue(value, id, session.requiredNamespaces.bch.template) }}</td></tr>
+                            <tr><th>{{ formatDataName(id, session.sessionProperties.template) }}</th></tr>
+                            <tr><td>{{ formatDataValue(value, id, session.sessionProperties.template) }}</td></tr>
                           </template>
                         </tbody>
                       </table>
@@ -304,12 +304,12 @@ function satsToBCH(satoshis: bigint) {
                         <tbody>
                           <tr>
                             <th colspan="2">
-                              {{ formatScriptName(output.params.script, session.requiredNamespaces.bch.template) }}
+                              {{ formatScriptName(output.params.script, session.sessionProperties.template) }}
                             </th>
                           </tr>
                           <template v-for="(value, id) of output.params.data" :key="id">
-                            <tr><th>{{ formatDataName(id, session.requiredNamespaces.bch.template) }}</th></tr>
-                            <tr><td>{{ formatDataValue(value, id, session.requiredNamespaces.bch.template) }}</td></tr>
+                            <tr><th>{{ formatDataName(id, session.sessionProperties.template) }}</th></tr>
+                            <tr><td>{{ formatDataValue(value, id, session.sessionProperties.template) }}</td></tr>
                           </template>
                         </tbody>
                       </table>

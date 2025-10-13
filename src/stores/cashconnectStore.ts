@@ -13,6 +13,7 @@ import {
   type BchSession,
   type BchSessionProposal,
   type RpcRequestResponse,
+  type ChangeTemplate,
   type WalletProperties,
   type Unspent,
   CashConnectWallet,
@@ -35,7 +36,7 @@ const settingsStore = useSettingsStore()
 // Passing in a Ref so it remains reactive (like when changing networks)
 export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
   const store = defineStore("cashconnectStore", () => {
-    
+
     // Store a state variable to make sure we don't call "start" more than once.
     const isStarted = ref(false);
 
@@ -114,14 +115,15 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
     // Session Hooks
     //-----------------------------------------------------------------------------
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async function onSessionsUpdated(
+    function onSessionsUpdated(
       updatedSessions: Record<string, BchSession>
     ) {
       sessions.value = updatedSessions;
     }
 
     async function onSessionProposal(sessionProposal: BchSessionProposal) {
+      debugger;
+
       // Check the network and manually prompt user to switch if incorrect.
       // TODO: we can automatically invoke changeNetwork here instead of just instructing the user with an action.
 
@@ -129,7 +131,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       //       So we use the networkPrefix property to determine which chain we are currently on.
       const currentChain = wallet.value.networkPrefix;
       const targetChain =
-        sessionProposal.params.requiredNamespaces?.bch.chains?.[0]?.replace(
+        sessionProposal.params.optionalNamespaces?.bch?.chains?.[0]?.replace(
           "bch:",
           ""
         );
@@ -168,8 +170,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async function onSessionDelete() {
+    function onSessionDelete() {
       console.log("Session deleted");
     }
 
@@ -234,34 +235,37 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           console.error('Failed to reconnect:', error);
         }
       }
+
+      // Get the transaction containing this outpoint.
       const transaction = await wallet.value.provider.getRawTransactionObject(
         binToHex(outpointTransactionHash)
       );
 
+      // Get the outpoint.
       const outpoint = transaction.vout[outpointIndex] as ElectrumRawTransactionVout ;
 
-      let token;
+      // Build the output, converting from Mainnet to LibCash.
+      const output: Output = {
+        valueSatoshis: BigInt(Math.round(outpoint.value * 100_000_000)),
+        lockingBytecode: hexToBin(outpoint.scriptPubKey.hex),
+      };
 
+      // If a token is available, add it to the output.
       if ('tokenData' in outpoint) {
-        token = {
-          amount: BigInt(outpoint.tokenData.amount),
+        output.token = {
           category: hexToBin(outpoint.tokenData.category),
-          capability: outpoint.tokenData?.nft?.capability,
-          commitment: outpoint.tokenData?.nft?.commitment
-            ? hexToBin(outpoint.tokenData.nft.commitment)
-            : undefined,
+          amount: BigInt(outpoint.tokenData.amount),
+          nft: {
+            capability: outpoint.tokenData?.nft?.capability || 'none',
+            commitment: outpoint.tokenData?.nft?.commitment
+              ? hexToBin(outpoint.tokenData.nft.commitment)
+              : new Uint8Array(),
+          }
         };
       }
 
-      const formatted = {
-        valueSatoshis: BigInt(Math.round(outpoint.value * 100_000_000)),
-        lockingBytecode: hexToBin(outpoint.scriptPubKey.hex),
-        token,
-      };
-
-      // TODO: investigate this type error
-      // @ts-ignore
-      return formatted;
+      // Return the output.
+      return output;
     }
 
     async function getUnspents(): Promise<Array<Unspent>> {
@@ -273,7 +277,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           console.error('Failed to reconnect:', error);
         }
       }
-      
+
       const utxos = await wallet.value.getUtxos();
 
       const lockingBytecode = cashAddressToLockingBytecode(wallet.value.cashaddr);
@@ -322,8 +326,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       return transformed;
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async function getChangeTemplate() {
+    function getChangeTemplate(): ChangeTemplate {
       return {
         template: walletTemplateP2pkhNonHd,
         data: {
