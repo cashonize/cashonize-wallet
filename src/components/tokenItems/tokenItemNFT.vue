@@ -489,7 +489,7 @@
           <div v-if="isSingleNft">
             NFT type: {{  tokenData?.nfts?.[0]?.token?.capability == "none" ? "immutable" : tokenData?.nfts?.[0]?.token?.capability }} NFT
           </div>
-          <div >
+          <div v-if="isSingleNft">
             NFT commitment: {{ tokenData.nfts?.[0]?.token?.commitment ? tokenData.nfts?.[0].token?.commitment : "none" }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
