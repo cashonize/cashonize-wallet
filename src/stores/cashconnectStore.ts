@@ -1,4 +1,4 @@
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
 
@@ -13,19 +13,20 @@ import {
   type BchSession,
   type BchSessionProposal,
   type RpcRequestResponse,
-  type ChangeTemplate,
   type WalletProperties,
-  type Unspent,
   CashConnectWallet,
+  TransactionBuilder,
 } from "cashconnect";
 
 // Import Libauth.
 import {
   type Output,
+  type TransactionBch,
   binToHex,
   hexToBin,
   cashAddressToLockingBytecode,
   walletTemplateP2pkhNonHd,
+  walletTemplateToCompilerBch,
 } from "@bitauth/libauth";
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { type ElectrumRawTransactionVout } from "src/interfaces/interfaces";
@@ -76,16 +77,13 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           onRPCRequest,
           onError,
         },
-        // CashRPC Callbacks.
+        // Execution Context Data.
         {
-          // Network-related callbacks.
-          network: {
-            getSourceOutput,
-          },
-          wallet: {
-            getUnspents,
-            getChangeTemplate,
-          },
+          // Blockchain.
+          getSourceOutput,
+          // Wallet.
+          populateVariables,
+          processTransaction,
         }
       )
     );
@@ -122,8 +120,6 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
     }
 
     async function onSessionProposal(sessionProposal: BchSessionProposal) {
-      debugger;
-
       // Check the network and manually prompt user to switch if incorrect.
       // TODO: we can automatically invoke changeNetwork here instead of just instructing the user with an action.
 
@@ -180,7 +176,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       response: RpcRequestResponse["response"]
     ): Promise<void> {
       // If this is not a request that should be auto-approved...
-      if (!autoApprovedMethods.includes(request.method)) {
+      if (doesActionRequireApproval(session, 'example')) {
         // Handle bch_signTransaction_V0.
         if (request.method === "bch_signTransaction_V0") {
           const exchangeRate = await convert(1, "bch", settingsStore.currency);
@@ -219,6 +215,17 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       });
     }
 
+    function doesActionRequireApproval(session: BchSession, actionName: string) {
+      // Get the action being executed from the session:template.
+      const action = session.sessionProperties.template.actions[actionName];
+
+      // Check to see if it contains any instructions that should require approval.
+      // NOTE: Currently, only actions involving transactions require approval.
+      //       In future once we have auditing infrastructure, wallets can define their own policies.
+      //       For example, if a given template is unaudited, all actions could be set to require approval.
+      return action?.instructions?.some((instruction) => instruction.type !== 'transaction');
+    }
+
     //-----------------------------------------------------------------------------
     // Network/Wallet Hooks
     //-----------------------------------------------------------------------------
@@ -227,14 +234,8 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       outpointTransactionHash: Uint8Array,
       outpointIndex: number
     ): Promise<Output> {
-      // wait for electrum to be initialized to avoid race-conditions
-      if (document.visibilityState === 'visible') {
-        try {
-          await wallet.value.provider.connect();
-        } catch (error) {
-          console.error('Failed to reconnect:', error);
-        }
-      }
+      // Ensure that we are connected to the blockchain.
+      await waitForBlockchainConnection();
 
       // Get the transaction containing this outpoint.
       const transaction = await wallet.value.provider.getRawTransactionObject(
@@ -268,8 +269,65 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       return output;
     }
 
-    async function getUnspents(): Promise<Array<Unspent>> {
-      // wait for electrum to be initialized to avoid race-conditions
+    async function processTransaction(tx: TransactionBch, utxos: unknown): Promise<TransactionBuilder> {
+      // Ensure that we are connected to the blockchain.
+      await waitForBlockchainConnection();
+
+      // Get the UTXOs belonging to this wallet.
+      const walletUTXOs = await wallet.value.getUtxos();
+
+      // Create our Libauth P2PKH Compiler for Locking/Unlocking the P2PKH Wallet.
+      const compilerP2PKH = walletTemplateToCompilerBch(walletTemplateP2pkhNonHd);
+
+      // Convert them into LibAuth Template format for use with the Tx Builder.
+      const walletUTXOsTemplated = walletUTXOs.map((utxo) => ({
+        outpointTransactionHash: hexToBin(utxo.txid),
+        outpointIndex: utxo.vout,
+        sequenceNumber: 0,
+        lockingBytecode: getWalletLockingBytecode(),
+        unlockingBytecode: {
+          compiler: compilerP2PKH,
+          script: "unlock",
+          data: {
+            keys: {
+              privateKeys: {
+                key: wallet.value.privateKey,
+              },
+            },
+          },
+          valueSatoshis: BigInt(utxo.satoshis),
+          ...(utxo.token && {
+            token: {
+              amount: BigInt(utxo.token.amount),
+              category: hexToBin(utxo.token.tokenId),
+              ...(utxo.token.capability || utxo.token.commitment) && {
+                nft: {
+                  capability: utxo.token.capability || "none",
+                  commitment: hexToBin(utxo.token.commitment || ""),
+                },
+              },
+            },
+          }),
+        },
+      }));
+
+      // Append necessary inputs/outputs to the transaction from our parent wallet.
+      // TODO: Why'd I return an instance of Tx Builder? Was I in a haste to do something? Doesn't seem right.
+      return TransactionBuilder.build(tx, walletUTXOsTemplated, getWalletLockingBytecode());
+    }
+
+    function populateVariables(): Record<string, Uint8Array> {
+      // Return variables that should be populated upon execution of each action.
+      return {
+        payoutLockingBytecode: getWalletLockingBytecode(),
+      }
+    }
+
+    //-----------------------------------------------------------------------------
+    // Helpers
+    //-----------------------------------------------------------------------------
+
+    async function waitForBlockchainConnection() {
       if (document.visibilityState === 'visible') {
         try {
           await wallet.value.provider.connect();
@@ -277,66 +335,19 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           console.error('Failed to reconnect:', error);
         }
       }
-
-      const utxos = await wallet.value.getUtxos();
-
-      const lockingBytecode = cashAddressToLockingBytecode(wallet.value.cashaddr);
-      if (typeof lockingBytecode === "string") {
-        throw new Error("Failed to convert CashAddr to Locking Bytecode");
-      }
-
-      const transformed = utxos.map((utxo) => {
-        let token: Output["token"] | undefined = undefined;
-
-        if (utxo.token) {
-          token = {
-            amount: BigInt(utxo.token.amount),
-            category: hexToBin(utxo.token.tokenId),
-          };
-
-          if (utxo.token?.capability || utxo.token?.commitment) {
-            token.nft = {
-              capability: utxo.token.capability || "none",
-              commitment: hexToBin(utxo.token.commitment || ""),
-            };
-          }
-        }
-
-        return {
-          outpointTransactionHash: hexToBin(utxo.txid),
-          outpointIndex: utxo.vout,
-          sequenceNumber: 0,
-          lockingBytecode: lockingBytecode.bytecode,
-          unlockingBytecode: {
-            template: walletTemplateP2pkhNonHd,
-            valueSatoshis: BigInt(utxo.satoshis),
-            script: "unlock",
-            data: {
-              keys: {
-                privateKeys: {
-                  key: wallet.value.privateKey,
-                },
-              },
-            },
-            token,
-          },
-        } as Unspent;
-      });
-
-      return transformed;
     }
 
-    function getChangeTemplate(): ChangeTemplate {
-      return {
-        template: walletTemplateP2pkhNonHd,
-        data: {
-          keys: {
-            privateKeys: {
-              key: wallet.value.privateKey,
-            },
-          },
-        },
-      };
+    function getWalletLockingBytecode() {
+      // Convert the Address of the Wallet to Locking Bytecode.
+      const payoutLockingBytecode = cashAddressToLockingBytecode(wallet.value.cashaddr);
+
+      // If the Change/Payout Address could not be decoded, throw an error.
+      if(typeof payoutLockingBytecode === 'string') {
+        throw new Error(`Could not decode Wallet Change Address: ${payoutLockingBytecode}`);
+      }
+
+      // Return the raw locking bytecode.
+      return payoutLockingBytecode.bytecode;
     }
 
     //-----------------------------------------------------------------------------

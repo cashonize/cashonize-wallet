@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useDialogPluginComponent } from 'quasar'
-import type { CashRPCError } from 'cashconnect';
 
 defineProps<{
-  error: CashRPCError
+  error: Error
 }>()
 
 defineEmits([
@@ -21,9 +20,9 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
 
         <div v-if="error.message">{{ error.message }}</div>
 
-        <template v-if="error.stackTrace">
+        <template v-if="error.stack">
           <div>Stack Trace:</div>
-          <pre class="cc-pre">{{ error.stackTrace }}</pre>
+          <pre class="cc-pre">{{ error.stack }}</pre>
         </template>
 
         <!-- Bottom Buttons -->
