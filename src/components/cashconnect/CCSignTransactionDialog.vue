@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
-import type { BchSession, SignTransactionV0, SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
+import { type BchSession, type ExecuteActionPayload } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress, type WalletTemplate } from '@bitauth/libauth';
 import { type BcmrIndexerResponse, CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
@@ -12,9 +12,9 @@ const store = useStore()
 const settingsStore = useSettingsStore()
 
 const props = defineProps<{
-  session: BchSession<true>,
-  params: SignTransactionV0['request']['params'],
-  response: SignTransactionV0['response'],
+  session: BchSession,
+  request: ExecuteActionPayload['request'],
+  response: ExecuteActionPayload['response'],
   exchangeRate: number,
 }>()
 
@@ -24,49 +24,26 @@ defineEmits([
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
+const params = computed(() => {
+  return props.request.params.params;
+});
+
+const title = computed(() => {
+  return props.response.meta?.title || props.request.params.action;
+});
+
+const description = computed(() => {
+  return props.response.meta?.description || 'No description for this action available.'
+})
+
 const balanceChanges = computed(() => {
   interface Changes {
     sats: bigint;
     [other: string]: bigint;
   }
-  const changes: Changes= { sats: 0n }
+  const changes: Changes = { sats: 0n }
 
-  pairedTxs.value.forEach((pairTx) => {
-    // First, calculate our inputs.
-    pairTx.response.sourceOutputs.forEach((sourceOutput, i) => {
-      // If a script is being used for this source output, this is not coming from the user's wallet.
-      if('script' in (pairTx.params.transaction?.inputs?.[i] || {})) {
-        return;
-      }
-
-      changes.sats -= sourceOutput.valueSatoshis
-      if(sourceOutput.token) {
-        const catIdAsHex = binToHex(sourceOutput.token.category)
-
-        if(!changes[catIdAsHex]) {
-          changes[catIdAsHex] = 0n;
-        }
-
-        changes[catIdAsHex] -= BigInt(sourceOutput.token.amount || 0n);
-      }
-    });
-
-    // And then subtract our change ouputs.
-    pairOutputs(pairTx).forEach((pairedOutput) => {
-      if(!pairedOutput.params) {
-        changes.sats += pairedOutput.response.valueSatoshis;
-        if(pairedOutput.response.token) {
-          const catIdAsHex = binToHex(pairedOutput.response.token.category);
-
-          if(!changes[catIdAsHex]) {
-            changes[catIdAsHex] = 0n;
-          }
-
-          changes[catIdAsHex] += BigInt(pairedOutput.response.token.amount || 0n);
-        }
-      }
-    });
-  });
+  // TODO
 
   return changes;
 });
@@ -109,41 +86,6 @@ const allowedTokens = props.session.sessionProperties.allowedTokens ?? [];
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
   void fetchAndSetTokenInfo(tokenId);
-}
-
-//-----------------------------------------------------------------------------
-// Helpers
-//-----------------------------------------------------------------------------
-
-// NOTE: These are a bit dirty. Pre-Alpha CC doesn't, technically, have a concept of "actions".
-//       We emulate actions by allowing multiple transactions to pass into signTransaction.
-//       The following functions pair the params (tx templates) with the response (compiled txs).
-//       This simplifies the TS typing dramatically but will change with V1.
-
-type PairedTx = {
-  params: SignTransactionV0Params,
-  response: SignTransactionV0Response,
-}
-
-const pairedTxs = computed((): Array<PairedTx> => {
-  return props.response.map((responseTx, i) => ({
-    params: props.params[i] as SignTransactionV0Params,
-    response: responseTx,
-  }));
-});
-
-function pairInputs(pairedTx: PairedTx) {
-  return pairedTx.response.transaction.inputs.map((input, i) => ({
-    params: pairedTx.params.transaction?.inputs?.[i],
-    response: input
-  }));
-}
-
-function pairOutputs(pairedTx: PairedTx) {
-  return pairedTx.response.transaction.outputs.map((output, i) => ({
-    params: pairedTx.params.transaction?.outputs?.[i],
-    response: output
-  }));
 }
 
 //-----------------------------------------------------------------------------
@@ -196,10 +138,10 @@ function satsToBCH(satoshis: bigint) {
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale">
     <q-card>
       <fieldset class="cc-modal-fieldset">
-        <legend class="cc-modal-fieldset-legend">Sign Transaction</legend>
+        <legend class="cc-modal-fieldset-legend">{{ title }}</legend>
 
         <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
-          {{ pairedTxs[0]?.params.userPrompt }}
+          {{ description }}
         </div>
 
         <!-- Origin -->
@@ -229,98 +171,6 @@ function satsToBCH(satoshis: bigint) {
         </div>
 
         <hr style="margin-top: 2rem;"/>
-
-        <div class="cc-modal-heading">Transaction Details</div>
-        <div v-for="(pairedTx, i) of pairedTxs" :key="i" class="cc-modal-details">
-          <q-expansion-item
-            :label="`Tx #${i} - ${pairedTx.params.userPrompt}`"
-          >
-              <!-- Inputs -->
-              <div class="cc-modal-heading">Inputs</div>
-              <table class="cc-data-table">
-                <tbody v-for="(input, index) of pairInputs(pairedTx)" :key="index">
-                  <tr>
-                    <td>{{ index }}</td>
-                    <td>{{ formatBin(input.response.outpointTransactionHash) }}:{{ input.response.outpointIndex }}</td>
-                    <td class="satoshis">
-                      {{ satsToBCH(response?.[i]?.sourceOutputs?.[index]?.valueSatoshis as bigint) }}
-                    </td>
-                  </tr>
-                  <!-- If there is data available for this input -->
-                  <tr v-if="input.params && 'data' in input.params">
-                    <td colspan="3">
-                      <table class="tx-data-table">
-                        <tbody>
-                          <tr>
-                            <th colspan="2">
-                              {{ formatScriptName(input.params.script, session.sessionProperties.template) }}
-                            </th>
-                          </tr>
-                          <template v-for="(value, id) of input.params.data" :key="id">
-                            <tr><th>{{ formatDataName(id, session.sessionProperties.template) }}</th></tr>
-                            <tr><td>{{ formatDataValue(value, id, session.sessionProperties.template) }}</td></tr>
-                          </template>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <!-- Outputs -->
-              <div class="cc-modal-heading">Outputs</div>
-              <table class="cc-data-table">
-                <tbody v-for="(output, index) of pairOutputs(pairedTx)" :key="index">
-                  <tr>
-                    <td>{{ index }}</td>
-                    <td>{{ formatLockscript(output.response.lockingBytecode) }}</td>
-                    <td class="satoshis">{{ satsToBCH(output.response.valueSatoshis) }}</td>
-                  </tr>
-                  <!-- If there is a token available on this output -->
-                  <tr v-if="output.response.token">
-                    <td colspan="3">
-                      <table class="tx-data-table">
-                        <tbody>
-                          <tr>
-                            <td>
-                              Token: {{ getTokenName(binToHex(output.response.token.category)) }}
-                            </td>
-                            <td>
-                              Amount: {{ Number(output.response.token.amount) }}
-                            </td>
-                          </tr>
-                          <tr v-if="output.response.token?.nft">
-                            <td>Commitment: {{ formatBin(output.response.token.nft.commitment) }}</td>
-                            <td>Capability: {{ output.response.token.nft.capability }}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                  <!-- If there is data available for this output -->
-                  <tr v-if="output.params && 'data' in output.params">
-                    <td colspan="3">
-                      <table class="tx-data-table">
-                        <tbody>
-                          <tr>
-                            <th colspan="2">
-                              {{ formatScriptName(output.params.script, session.sessionProperties.template) }}
-                            </th>
-                          </tr>
-                          <template v-for="(value, id) of output.params.data" :key="id">
-                            <tr><th>{{ formatDataName(id, session.sessionProperties.template) }}</th></tr>
-                            <tr><td>{{ formatDataValue(value, id, session.sessionProperties.template) }}</td></tr>
-                          </template>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-          </q-expansion-item>
-        </div>
-
-        <hr/>
 
         <!-- Approve/Reject Buttons -->
         <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">

@@ -12,16 +12,16 @@ import { convert, type Wallet, type TestNetWallet } from "mainnet-js";
 import {
   type BchSession,
   type BchSessionProposal,
-  type RpcRequestResponse,
+  type ChangeTemplateDirective,
+  type Payloads,
+  type SpendableUTXO,
   type WalletProperties,
   CashConnectWallet,
-  TransactionBuilder,
 } from "cashconnect";
 
 // Import Libauth.
 import {
   type Output,
-  type TransactionBch,
   binToHex,
   hexToBin,
   cashAddressToLockingBytecode,
@@ -82,8 +82,8 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           // Blockchain.
           getSourceOutput,
           // Wallet.
-          populateVariables,
-          processTransaction,
+          getSpendableUTXOs,
+          getChangeTemplateDirective,
         }
       )
     );
@@ -172,35 +172,41 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
 
     async function onRPCRequest(
       session: BchSession,
-      request: RpcRequestResponse["request"],
-      response: RpcRequestResponse["response"]
+      request: Payloads["request"],
+      response: Payloads["response"]
     ): Promise<void> {
-      // If this is not a request that should be auto-approved...
-      if (doesActionRequireApproval(session, 'example')) {
-        // Handle bch_signTransaction_V0.
-        if (request.method === "bch_signTransaction_V0") {
-          const exchangeRate = await convert(1, "bch", settingsStore.currency);
-          return await new Promise<void>((resolve, reject) => {
-            Dialog.create({
-              component: CCSignTransactionDialogVue,
-              componentProps: {
-                session,
-                params: request.params,
-                response,
-                exchangeRate
-              },
-            })
-              .onOk(() => {
-                resolve();
-                Notify.create({
-                  color: "positive",
-                  message: "Successfully signed transaction",
-                });
-              })
-            .onCancel(reject)
-            .onDismiss(reject);
-          });
+      debugger;
+
+      if(request.method === 'executeAction') {
+        // If this is not a request that DOES NOT require approval...
+        if (!doesActionRequireApproval(session, request.params.action)) {
+          return;
         }
+
+        // Get the BCH exchange rate.
+        const exchangeRate = await convert(1, "bch", settingsStore.currency);
+
+        // Show a dialog, prompting the user for approval.
+        return await new Promise<void>((resolve, reject) => {
+          Dialog.create({
+            component: CCSignTransactionDialogVue,
+            componentProps: {
+              session,
+              request: request.params,
+              response,
+              exchangeRate
+            },
+          })
+            .onOk(() => {
+              resolve();
+              Notify.create({
+                color: "positive",
+                message: "Successfully signed transaction",
+              });
+            })
+          .onCancel(reject)
+          .onDismiss(reject);
+        });
       }
     }
 
@@ -223,7 +229,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       // NOTE: Currently, only actions involving transactions require approval.
       //       In future once we have auditing infrastructure, wallets can define their own policies.
       //       For example, if a given template is unaudited, all actions could be set to require approval.
-      return action?.instructions?.some((instruction) => instruction.type !== 'transaction');
+      return action?.instructions?.some((instruction) => instruction.type === 'transaction');
     }
 
     //-----------------------------------------------------------------------------
@@ -269,7 +275,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       return output;
     }
 
-    async function processTransaction(tx: TransactionBch, utxos: unknown): Promise<TransactionBuilder> {
+    async function getSpendableUTXOs(): Promise<Array<SpendableUTXO>> {
       // Ensure that we are connected to the blockchain.
       await waitForBlockchainConnection();
 
@@ -284,7 +290,6 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
         outpointTransactionHash: hexToBin(utxo.txid),
         outpointIndex: utxo.vout,
         sequenceNumber: 0,
-        lockingBytecode: getWalletLockingBytecode(),
         unlockingBytecode: {
           compiler: compilerP2PKH,
           script: "unlock",
@@ -295,6 +300,9 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
               },
             },
           },
+        },
+        sourceOutput: {
+          lockingBytecode: getWalletLockingBytecode(),
           valueSatoshis: BigInt(utxo.satoshis),
           ...(utxo.token && {
             token: {
@@ -308,18 +316,41 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
               },
             },
           }),
-        },
+        }
       }));
 
-      // Append necessary inputs/outputs to the transaction from our parent wallet.
-      // TODO: Why'd I return an instance of Tx Builder? Was I in a haste to do something? Doesn't seem right.
-      return TransactionBuilder.build(tx, walletUTXOsTemplated, getWalletLockingBytecode());
+      return walletUTXOsTemplated;
     }
 
-    function populateVariables(): Record<string, Uint8Array> {
-      // Return variables that should be populated upon execution of each action.
+    // NOTE: This is used to:
+    //       1. Provide a sandbox for Consolidation TXs/Category Genesis TXs.
+    //       2. Generate a <payoutLockingBytecode> placeholder variable.
+    function getChangeTemplateDirective(): ChangeTemplateDirective {
+      // Create a P2PKH Template.
+      const compiler = walletTemplateToCompilerBch(walletTemplateP2pkhNonHd);
+
+      // Set the data for this template.
+      const data = {
+        keys: {
+          privateKeys: {
+            key: wallet.value.privateKey,
+          },
+        },
+      };
+
+      // Return the lock and unlock directives.
       return {
-        payoutLockingBytecode: getWalletLockingBytecode(),
+        lock: {
+          compiler,
+          data,
+          script: 'lock',
+        },
+        unlock: {
+          compiler,
+          data,
+          script: 'unlock',
+        },
+        fee: 1000n,
       }
     }
 
