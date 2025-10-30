@@ -175,8 +175,6 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       request: Payloads["request"],
       response: Payloads["response"]
     ): Promise<void> {
-      debugger;
-
       if(request.method === 'executeAction') {
         // If this is not a request that DOES NOT require approval...
         if (!doesActionRequireApproval(session, request.params.action)) {

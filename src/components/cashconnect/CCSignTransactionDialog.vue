@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
-import { type BchSession, type ExecuteActionPayload } from 'cashconnect';
-import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress, type WalletTemplate } from '@bitauth/libauth';
+import { type BchSession, type ExecuteActionPayload, formatSegment } from 'cashconnect';
 import { type BcmrIndexerResponse, CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
@@ -29,24 +28,12 @@ const params = computed(() => {
 });
 
 const title = computed(() => {
-  return props.response.meta?.title || props.request.params.action;
+  return props.response.meta?.title || [props.request.params.action];
 });
 
 const description = computed(() => {
-  return props.response.meta?.description || 'No description for this action available.'
+  return props.response.meta?.description || ['No description for this action available.']
 })
-
-const balanceChanges = computed(() => {
-  interface Changes {
-    sats: bigint;
-    [other: string]: bigint;
-  }
-  const changes: Changes = { sats: 0n }
-
-  // TODO
-
-  return changes;
-});
 
 //-----------------------------------------------------------------------------
 // Tokens
@@ -97,38 +84,6 @@ function addSignPrefixToNumber(value: number | bigint): string {
   return Number(value) > 0 ? `+ ${value}` : `- ${-(value)}`;
 };
 
-function formatBin(bin: Uint8Array) {
-  return binToHex(bin);
-};
-
-function formatScriptName(scriptId: string | number, template: WalletTemplate) {
-  return template?.scripts?.[scriptId]?.name || scriptId;
-};
-
-function formatDataName(dataId: string | number, template: WalletTemplate) {
-  return template?.entities?.common?.variables?.[dataId]?.name || dataId;
-};
-
-function formatDataValue(value: Uint8Array, dataId: string | number, template: WalletTemplate) {
-  const type = template?.entities?.common?.variables?.[dataId]?.description;
-
-  switch (type) {
-    case 'lockscript': return formatLockscript(value);
-    case 'number': return binToNumberUintLE(value);
-    case 'unixTimestamp': return new Date(binToNumberUintLE(value) * 1000).toISOString();
-  }
-
-  return `0x${binToHex(value)}`;
-};
-
-function formatLockscript(lockingBytecode: Uint8Array) {
-  const result = lockingBytecodeToCashAddress({bytecode:lockingBytecode, prefix:'bitcoincash'});
-  if (typeof result == "string") {
-    return binToHex(lockingBytecode);
-  }
-  return result.address;
-};
-
 function satsToBCH(satoshis: bigint) {
   return Number(satoshis) / 100_000_000;
 };
@@ -138,11 +93,11 @@ function satsToBCH(satoshis: bigint) {
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale">
     <q-card>
       <fieldset class="cc-modal-fieldset">
-        <legend class="cc-modal-fieldset-legend">{{ title }}</legend>
-
-        <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
-          {{ description }}
-        </div>
+        <legend class="cc-modal-fieldset-legend">
+          <span v-for="(segment, i) in title" :key="i">
+            {{ segment }}
+          </span>
+        </legend>
 
         <!-- Origin -->
         <q-item>
@@ -157,10 +112,19 @@ function satsToBCH(satoshis: bigint) {
           </q-item-section>
         </q-item>
 
-        <hr />
+        <hr style="margin-top:1em; margin-bottom: 1em" />
 
-        <div class="cc-modal-heading" style="margin-top: 1.5rem;">Balance Change:</div>
-        <div v-for="(amount, category) of balanceChanges" :key="category">
+        <div style="text-align: center; font-size: medium;">
+          <template v-for="(segment, i) in description" :key="i">
+            <span v-if="typeof segment === 'string'">{{ segment }}</span>
+            <span v-else class="green" style="font-weight:bold">{{ formatSegment(segment) }}</span>
+          </template>
+        </div>
+
+        <hr style="margin-top:1em; margin-bottom: 1em" />
+
+        <div class="cc-modal-heading" style="margin-top: 1rem;">Balance Change:</div>
+        <div v-for="(amount, category) of props.response.balanceChanges" :key="category">
           <div v-if="(category === 'sats')">
             {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' }}
             ({{ convertToCurrency(amount, props.exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
@@ -170,7 +134,13 @@ function satsToBCH(satoshis: bigint) {
           </div>
         </div>
 
-        <hr style="margin-top: 2rem;"/>
+        <hr style="margin-top:1em; margin-bottom: 1em" />
+
+        <q-expansion-item label="Advanced">
+          Test test test
+        </q-expansion-item>
+
+        <hr style="margin-top: 1rem;"/>
 
         <!-- Approve/Reject Buttons -->
         <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
