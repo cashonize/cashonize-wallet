@@ -23,10 +23,6 @@ defineEmits([
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-const params = computed(() => {
-  return props.request.params.params;
-});
-
 const title = computed(() => {
   return props.response.meta?.title || [props.request.params.action];
 });
@@ -114,7 +110,7 @@ function satsToBCH(satoshis: bigint) {
 
         <hr style="margin-top:1em; margin-bottom: 1em" />
 
-        <div style="text-align: center; font-size: medium;">
+        <div style="font-size: medium; white-space: pre-wrap;">
           <template v-for="(segment, i) in description" :key="i">
             <span v-if="typeof segment === 'string'">{{ segment }}</span>
             <span v-else class="green" style="font-weight:bold">{{ formatSegment(segment) }}</span>
