@@ -12,6 +12,7 @@
   import { storeToRefs } from 'pinia'
   import { Wallet, TestNetWallet, DefaultProvider } from 'mainnet-js'
   import { waitForInitialized } from 'src/utils/utils'
+  import { namedWalletExistsInDb } from 'src/utils/dbUtils'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
@@ -62,9 +63,9 @@
     }
   });
   
-  // check if wallet exists
-  const mainnetWalletExists = await Wallet.namedExists(store.nameWallet);
-  const testnetWalletExists = await TestNetWallet.namedExists(store.nameWallet);
+  // check if wallet exists (use dbUtil to not initialize wallet class yet)
+  const mainnetWalletExists = await namedWalletExistsInDb(store.nameWallet, "bitcoincash");
+  const testnetWalletExists = await namedWalletExistsInDb(store.nameWallet, "bchtest");
   const walletExists = mainnetWalletExists || testnetWalletExists;
   if(walletExists){
     // initialise wallet on configured network
