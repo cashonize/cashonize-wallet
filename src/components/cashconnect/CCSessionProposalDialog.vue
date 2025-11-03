@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar, useDialogPluginComponent } from 'quasar'
-import type { BchSessionProposal } from 'cashconnect';
+import type { BchSessionProposal } from '@cashconnect-js/core';
 
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
@@ -49,7 +49,7 @@ function getTokenName(categoryId: string) {
       return categoryId;
     }
 
-    return tokenInfo.name;
+    return tokenInfo.name || categoryId;
   } catch(error) {
     const errorMessage = caughtErrorToString(error)
     console.error(errorMessage)

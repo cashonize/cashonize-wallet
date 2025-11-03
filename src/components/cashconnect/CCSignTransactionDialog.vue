@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
-import { type BchSession, type ExecuteActionPayload, formatSegment } from 'cashconnect';
+import { type BchSession, type ExecuteActionPayload } from '@cashconnect-js/core';
+import { formatSegment } from '@cashconnect-js/wallet';
 import { type BcmrIndexerResponse, CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';

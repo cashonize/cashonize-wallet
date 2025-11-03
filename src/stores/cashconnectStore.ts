@@ -16,8 +16,10 @@ import {
   type Payloads,
   type SpendableUTXO,
   type WalletProperties,
+} from "@cashconnect-js/core";
+import {
   CashConnectWallet,
-} from "cashconnect";
+} from "@cashconnect-js/wallet";
 
 // Import Libauth.
 import {
@@ -268,6 +270,8 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           }
         };
       }
+
+      debugger;
 
       // Return the output.
       return output;
