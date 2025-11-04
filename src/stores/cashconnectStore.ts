@@ -183,6 +183,8 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           return;
         }
 
+        debugger;
+
         // Get the BCH exchange rate.
         const exchangeRate = await convert(1, "bch", settingsStore.currency);
 
@@ -251,7 +253,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       // Get the outpoint.
       const outpoint = transaction.vout[outpointIndex] as ElectrumRawTransactionVout ;
 
-      // Build the output, converting from Mainnet to LibCash.
+      // Build the output, converting from Mainnet to LibAuth.
       const output: Output = {
         valueSatoshis: BigInt(Math.round(outpoint.value * 100_000_000)),
         lockingBytecode: hexToBin(outpoint.scriptPubKey.hex),

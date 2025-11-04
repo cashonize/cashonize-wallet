@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
 import { type BchSession, type ExecuteActionPayload } from '@cashconnect-js/core';
+import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
 import { formatSegment } from '@cashconnect-js/wallet';
 import { type BcmrIndexerResponse, CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
@@ -13,7 +14,7 @@ const settingsStore = useSettingsStore()
 
 const props = defineProps<{
   session: BchSession,
-  request: ExecuteActionPayload['request'],
+  request: ExecuteActionPayload['request']['params'],
   response: ExecuteActionPayload['response'],
   exchangeRate: number,
 }>()
@@ -23,6 +24,10 @@ defineEmits([
 ])
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+const instructions = computed(() => {
+  return props.session.sessionProperties.template.actions[props.request.action]?.instructions || [];
+});
 
 const title = computed(() => {
   return props.response.meta?.title || [props.request.params.action];
@@ -48,7 +53,7 @@ function getTokenName(categoryId: string | number) {
       return categoryId;
     }
 
-    return tokenInfo.name;
+    return tokenInfo.name || 'Unknown Token';
   } catch(error) {
     const errorMessage= caughtErrorToString(error)
     console.error(errorMessage);
@@ -71,6 +76,13 @@ const allowedTokens = props.session.sessionProperties.allowedTokens ?? [];
 for (const tokenId of allowedTokens) {
   void fetchAndSetTokenInfo(tokenId);
 }
+
+//-----------------------------------------------------------------------------
+// Advanced Tab
+//-----------------------------------------------------------------------------
+
+const activeTab = ref('params');
+const activeStep = ref(0);
 
 //-----------------------------------------------------------------------------
 // Formatting Utils
@@ -127,14 +139,41 @@ function satsToBCH(satoshis: bigint) {
             ({{ convertToCurrency(amount, props.exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
           </div>
           <div v-else>
-            <span>{{ addSignPrefixToNumber(amount) + ' ' + getTokenName(category) }}</span>
+            <span>{{ addSignPrefixToNumber(amount) }} <span>{{ getTokenName(category) }} <q-tooltip>{{ category }}</q-tooltip></span></span>
           </div>
         </div>
 
         <hr style="margin-top:1em; margin-bottom: 1em" />
 
         <q-expansion-item label="Advanced">
-          Test test test
+          <!-- Input Params -->
+          <q-expansion-item label="Input Parameters">
+            <q-list bordered>
+              <q-item v-for="(value, name) in request.params" :key="name" clickable v-ripple>
+                <q-item-section>
+                  <q-item-label>{{ name }}</q-item-label>
+                  <q-item-label class="break-hex-string"><small>{{ encodeExtendedJson(value) }}</small></q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-expansion-item>
+
+          <!-- Instructions -->
+          <q-expansion-item v-for="(instruction, i) in instructions" :key="i" :label="`Instruction #${i} (${instruction.type})`" :content-inset-level="0">
+            <pre class="wrapping-pre">{{ encodeExtendedJson(instruction.payload, 2) }}</pre>
+          </q-expansion-item>
+
+          <!-- Returned Params -->
+          <q-expansion-item label="Returned Parameters">
+            <q-list bordered>
+              <q-item v-for="(value, name) in response.data" :key="name" clickable v-ripple>
+                <q-item-section>
+                  <q-item-label>{{ name }}</q-item-label>
+                  <q-item-label class="break-hex-string"><small>{{ encodeExtendedJson(value) }}</small></q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-expansion-item>
         </q-expansion-item>
 
         <hr style="margin-top: 1rem;"/>
@@ -163,5 +202,16 @@ function satsToBCH(satoshis: bigint) {
   .q-card{
     box-shadow: none;
     background: none;
+  }
+  .break-hex-string {
+    word-wrap: break-word;      /* Legacy name */
+    overflow-wrap: break-word;  /* Modern name (same property) */
+    word-break: break-all;      /* Forces breaks at any character */
+  }
+  .wrapping-pre {
+    white-space: pre-wrap;       /* CSS3 standard */
+    word-wrap: break-word;       /* For older browsers */
+    overflow-wrap: break-word;   /* Modern property */
+    font-size: x-small;
   }
 </style>
