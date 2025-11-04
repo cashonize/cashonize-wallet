@@ -60,6 +60,7 @@ function formatSegmentCustom(segment: TemplateSegment) {
       //       Ideally, in future, wallets will store Oracles directly.
       // NOTE: We cannot have Actions provide Metadata directly yet as GP does not support an OPERATOR_SIGNATURE metadata type yet.
       //       See: https://gitlab.com/GeneralProtocols/priceoracle/relay-server/-/issues/182#note_2691853526
+      //       The implication here would be that someone could provide metadata for an untrusted Oracle Public Key.
       case 'priceOracle.priceValue': return formatOraclePrice(segment);
       case 'priceOracle.numeratorUnitCode': return formatOracleNumeratorUnitCode(segment);
       case 'priceOracle.denominatorUnitCode': return formatOracleDenominatorUnitCode(segment);
@@ -216,11 +217,6 @@ function satsToBCH(satoshis: bigint) {
   .q-card{
     box-shadow: none;
     background: none;
-  }
-
-  .advanced-item {
-    color:#fff;
-    background-color:#F00;
   }
 
   .break-hex-string {
