@@ -4,7 +4,7 @@ import { Dialog, Notify } from "quasar";
 
 // Components.
 import CCSessionProposalDialogVue from "src/components/cashconnect/CCSessionProposalDialog.vue";
-import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransactionDialog.vue";
+import CCExecuteActionDialogVue from "src/components/cashconnect/CCExecuteActionDialog.vue";
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import MainnetJs and CashConnect
@@ -191,7 +191,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
         // Show a dialog, prompting the user for approval.
         return await new Promise<void>((resolve, reject) => {
           Dialog.create({
-            component: CCSignTransactionDialogVue,
+            component: CCExecuteActionDialogVue,
             componentProps: {
               session,
               request: request.params,
