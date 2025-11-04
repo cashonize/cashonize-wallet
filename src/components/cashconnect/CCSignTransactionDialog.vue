@@ -9,6 +9,10 @@ import { convertToCurrency } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
+
+// Components.
+import CCExpansionItem from './CCExpansionItem.vue';
+
 const store = useStore()
 const settingsStore = useSettingsStore()
 
@@ -36,6 +40,17 @@ const title = computed(() => {
 const description = computed(() => {
   return props.response.meta?.description || ['No description for this action available.']
 })
+
+function getInstructionDescription(instructionType: string) {
+  switch (instructionType) {
+    case 'resolve':
+      return 'Resolves variables from CashASM expressions.';
+    case 'transaction':
+      return 'Resolves a transaction using CashASM placeholders.';
+    default:
+      return `Unknown instruction type "${instructionType}"`;
+  }
+}
 
 //-----------------------------------------------------------------------------
 // Tokens
@@ -99,7 +114,7 @@ function satsToBCH(satoshis: bigint) {
 </script>
 
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" transition-show="scale">
     <q-card>
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">
@@ -146,34 +161,22 @@ function satsToBCH(satoshis: bigint) {
         <hr style="margin-top:1em; margin-bottom: 1em" />
 
         <q-expansion-item label="Advanced">
-          <!-- Input Params -->
-          <q-expansion-item label="Input Parameters">
-            <q-list bordered>
-              <q-item v-for="(value, name) in request.params" :key="name" clickable v-ripple>
-                <q-item-section>
-                  <q-item-label>{{ name }}</q-item-label>
-                  <q-item-label class="break-hex-string"><small>{{ encodeExtendedJson(value) }}</small></q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-expansion-item>
+          <!-- NOTE: The "content-inset-level" property pushes these too far in, so we pad manually. -->
+          <div class="q-pl-md">
+            <CCExpansionItem title="Input Parameters" caption="Parameters provided by the Dapp to execute this action">
+              <pre class="wrapping-pre">{{ encodeExtendedJson(request.params, 2) }}</pre>
+            </CCExpansionItem>
 
-          <!-- Instructions -->
-          <q-expansion-item v-for="(instruction, i) in instructions" :key="i" :label="`Instruction #${i} (${instruction.type})`" :content-inset-level="0">
-            <pre class="wrapping-pre">{{ encodeExtendedJson(instruction.payload, 2) }}</pre>
-          </q-expansion-item>
+            <template v-for="(instruction, i) in instructions" :key="i">
+              <CCExpansionItem :title="`Step ${i+1}`" :caption="getInstructionDescription(instruction.type)">
+                <pre class="wrapping-pre">{{ encodeExtendedJson(instruction.payload, 2) }}</pre>
+              </CCExpansionItem>
+            </template>
 
-          <!-- Returned Params -->
-          <q-expansion-item label="Returned Parameters">
-            <q-list bordered>
-              <q-item v-for="(value, name) in response.data" :key="name" clickable v-ripple>
-                <q-item-section>
-                  <q-item-label>{{ name }}</q-item-label>
-                  <q-item-label class="break-hex-string"><small>{{ encodeExtendedJson(value) }}</small></q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-expansion-item>
+            <CCExpansionItem title="Returned Data" caption="Data that will be returned to the Dapp for execution.">
+              <pre class="wrapping-pre">{{ encodeExtendedJson(response.data, 2) }}</pre>
+            </CCExpansionItem>
+          </div>
         </q-expansion-item>
 
         <hr style="margin-top: 1rem;"/>
@@ -203,6 +206,12 @@ function satsToBCH(satoshis: bigint) {
     box-shadow: none;
     background: none;
   }
+
+  .advanced-item {
+    color:#fff;
+    background-color:#F00;
+  }
+
   .break-hex-string {
     word-wrap: break-word;      /* Legacy name */
     overflow-wrap: break-word;  /* Modern name (same property) */
@@ -210,8 +219,8 @@ function satsToBCH(satoshis: bigint) {
   }
   .wrapping-pre {
     white-space: pre-wrap;       /* CSS3 standard */
-    word-wrap: break-word;       /* For older browsers */
-    overflow-wrap: break-word;   /* Modern property */
+    word-wrap: break-word !important;       /* For older browsers */
+    overflow-wrap: break-word !important;   /* Modern property */
     font-size: x-small;
   }
 </style>
