@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
-import { type BchSession, type ExecuteActionPayload } from '@cashconnect-js/core';
+import { type BchSession, type ExecuteActionPayload, type TemplateSegment } from '@cashconnect-js/core';
 import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
-import { formatSegment } from '@cashconnect-js/wallet';
+import { formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode } from '@cashconnect-js/wallet';
 import { type BcmrIndexerResponse, CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
@@ -52,6 +52,24 @@ function getInstructionDescription(instructionType: string) {
   }
 }
 
+function formatSegmentCustom(segment: TemplateSegment) {
+  // Over-ride segment types that need dynamic data.
+  if(typeof segment === 'object') {
+    switch (segment.type) {
+      // NOTE: These utilities are provided as a convenience and use hard-coded GP Oracle Data.
+      //       Ideally, in future, wallets will store Oracles directly.
+      // NOTE: We cannot have Actions provide Metadata directly yet as GP does not support an OPERATOR_SIGNATURE metadata type yet.
+      //       See: https://gitlab.com/GeneralProtocols/priceoracle/relay-server/-/issues/182#note_2691853526
+      case 'priceOracle.priceValue': return formatOraclePrice(segment);
+      case 'priceOracle.numeratorUnitCode': return formatOracleNumeratorUnitCode(segment);
+      case 'priceOracle.denominatorUnitCode': return formatOracleDenominatorUnitCode(segment);
+    }
+  }
+
+  // Fallback to CashConnect default.
+  return formatSegment(segment);
+}
+
 //-----------------------------------------------------------------------------
 // Tokens
 //-----------------------------------------------------------------------------
@@ -93,13 +111,6 @@ for (const tokenId of allowedTokens) {
 }
 
 //-----------------------------------------------------------------------------
-// Advanced Tab
-//-----------------------------------------------------------------------------
-
-const activeTab = ref('params');
-const activeStep = ref(0);
-
-//-----------------------------------------------------------------------------
 // Formatting Utils
 //-----------------------------------------------------------------------------
 
@@ -119,7 +130,7 @@ function satsToBCH(satoshis: bigint) {
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">
           <span v-for="(segment, i) in title" :key="i">
-            {{ segment }}
+            {{ formatSegmentCustom(segment) }}
           </span>
         </legend>
 
@@ -141,7 +152,7 @@ function satsToBCH(satoshis: bigint) {
         <div style="font-size: medium; white-space: pre-wrap;">
           <template v-for="(segment, i) in description" :key="i">
             <span v-if="typeof segment === 'string'">{{ segment }}</span>
-            <span v-else class="green" style="font-weight:bold">{{ formatSegment(segment) }}</span>
+            <span v-else class="green" style="font-weight:bold">{{ formatSegmentCustom(segment) }}</span>
           </template>
         </div>
 
@@ -221,6 +232,7 @@ function satsToBCH(satoshis: bigint) {
     white-space: pre-wrap;       /* CSS3 standard */
     word-wrap: break-word !important;       /* For older browsers */
     overflow-wrap: break-word !important;   /* Modern property */
+    word-break: break-all;
     font-size: x-small;
   }
 </style>

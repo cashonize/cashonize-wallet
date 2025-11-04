@@ -20,7 +20,7 @@ const toggle = () => {
 </script>
 
 <template>
-  <div class="expansion-item">
+  <div class="expansion-item cursor-pointer">
     <div
       class="expansion-header"
       @click="toggle"
