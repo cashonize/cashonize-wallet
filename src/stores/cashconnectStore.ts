@@ -43,15 +43,6 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
     // Store a state variable to make sure we don't call "start" more than once.
     const isStarted = ref(false);
 
-    // Auto-approve the following RPC methods.
-    // NOTE: We hard-code these for now, but they could be customized on a per-Dapp basis in the future.
-    const autoApprovedMethods = [
-      "wc_authRequest",
-      "bch_getTokens_V0",
-      "bch_getBalance_V0",
-      "bch_getChangeLockingBytecode_V0",
-    ];
-
     // List of CashConnect sessions.
     // NOTE: This reactive state is synced with CashConnect via the onSessionsUpdated hook.
     const sessions = ref<Record<string, BchSession>>({});
@@ -154,9 +145,9 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
         })
           .onOk(() => {
             resolve({
-              // NOTE: We return the methods that are auto-approved to the Dapp
-              // this way the dapp knows it doesn't have to display a user prompt for them.
-              autoApprove: autoApprovedMethods,
+              // TODO: May want to keep something like this.
+              //       But, might want to list instruction types instead.
+              autoApprove: [],
             });
             Notify.create({
               color: "positive",
