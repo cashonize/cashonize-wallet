@@ -183,8 +183,6 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           return;
         }
 
-        debugger;
-
         // Get the BCH exchange rate.
         const exchangeRate = await convert(1, "bch", settingsStore.currency);
 
@@ -272,8 +270,6 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
           }
         };
       }
-
-      debugger;
 
       // Return the output.
       return output;

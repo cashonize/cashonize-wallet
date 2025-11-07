@@ -34,42 +34,12 @@ const instructions = computed(() => {
 });
 
 const title = computed(() => {
-  return props.response.meta?.title || [props.request.params.action];
+  return props.response.meta?.title || [props.request.action];
 });
 
 const description = computed(() => {
   return props.response.meta?.description || ['No description for this action available.']
 })
-
-function getInstructionDescription(instructionType: string) {
-  switch (instructionType) {
-    case 'resolve':
-      return 'Resolves variables from CashASM expressions.';
-    case 'transaction':
-      return 'Resolves a transaction using CashASM placeholders.';
-    default:
-      return `Unknown instruction type "${instructionType}"`;
-  }
-}
-
-function formatSegmentCustom(segment: TemplateSegment) {
-  // Over-ride segment types that need dynamic data.
-  if(typeof segment === 'object') {
-    switch (segment.type) {
-      // NOTE: These utilities are provided as a convenience and use hard-coded GP Oracle Data.
-      //       Ideally, in future, wallets will store Oracles directly.
-      // NOTE: We cannot have Actions provide Metadata directly yet as GP does not support an OPERATOR_SIGNATURE metadata type yet.
-      //       See: https://gitlab.com/GeneralProtocols/priceoracle/relay-server/-/issues/182#note_2691853526
-      //       The implication here would be that someone could provide metadata for an untrusted Oracle Public Key.
-      case 'priceOracle.priceValue': return formatOraclePrice(segment);
-      case 'priceOracle.numeratorUnitCode': return formatOracleNumeratorUnitCode(segment);
-      case 'priceOracle.denominatorUnitCode': return formatOracleDenominatorUnitCode(segment);
-    }
-  }
-
-  // Fallback to CashConnect default.
-  return formatSegment(segment);
-}
 
 //-----------------------------------------------------------------------------
 // Tokens
@@ -114,6 +84,36 @@ for (const tokenId of allowedTokens) {
 //-----------------------------------------------------------------------------
 // Formatting Utils
 //-----------------------------------------------------------------------------
+
+function getInstructionDescription(instructionType: string) {
+  switch (instructionType) {
+    case 'resolve':
+      return 'Resolves variables from CashASM expressions.';
+    case 'transaction':
+      return 'Resolves a transaction using CashASM placeholders.';
+    default:
+      return `Unknown instruction type "${instructionType}"`;
+  }
+}
+
+function formatSegmentCustom(segment: TemplateSegment) {
+  // Over-ride segment types that need dynamic data.
+  if(typeof segment === 'object') {
+    switch (segment.type) {
+      // NOTE: These utilities are provided as a convenience and use hard-coded GP Oracle Data.
+      //       Ideally, in future, wallets will store Oracles directly.
+      // NOTE: We cannot have Actions provide Metadata directly yet as GP does not support an OPERATOR_SIGNATURE metadata type yet.
+      //       See: https://gitlab.com/GeneralProtocols/priceoracle/relay-server/-/issues/182#note_2691853526
+      //       The implication here would be that someone could provide metadata for an untrusted Oracle Public Key.
+      case 'priceOracle.priceValue': return formatOraclePrice(segment);
+      case 'priceOracle.numeratorUnitCode': return formatOracleNumeratorUnitCode(segment);
+      case 'priceOracle.denominatorUnitCode': return formatOracleDenominatorUnitCode(segment);
+    }
+  }
+
+  // Fallback to CashConnect default.
+  return formatSegment(segment);
+}
 
 function addSignPrefixToNumber(value: number | bigint): string {
   if (Number(value) === 0) return `${value}`;
