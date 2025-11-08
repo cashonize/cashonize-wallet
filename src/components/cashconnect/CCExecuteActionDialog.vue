@@ -176,17 +176,28 @@ function satsToBCH(satoshis: bigint) {
           <!-- NOTE: The "content-inset-level" property pushes these too far in, so we pad manually. -->
           <div class="q-pl-md">
             <CCExpansionItem title="Input Parameters" caption="Parameters provided by the Dapp to execute this action">
+              <!--
+              <div v-for="(value, key) of request.params" :key="key">
+                <div style="font-size: x-small; font-weight: bold"><strong>{{ key }}</strong></div>
+                <div style="font-size: x-small;">{{ encodeExtendedJson(value) }}</div>
+              </div>
+              -->
               <pre class="wrapping-pre">{{ encodeExtendedJson(request.params, 2) }}</pre>
             </CCExpansionItem>
 
             <template v-for="(instruction, i) in instructions" :key="i">
               <CCExpansionItem :title="`Step ${i+1}`" :caption="getInstructionDescription(instruction.type)">
-                <pre class="wrapping-pre">{{ encodeExtendedJson(instruction.payload, 2) }}</pre>
+                <template #instruction>
+                  <pre class="wrapping-pre">{{ encodeExtendedJson(instruction.payload, 2) }}</pre>
+                </template>
               </CCExpansionItem>
             </template>
 
-            <CCExpansionItem title="Returned Data" caption="Data that will be returned to the Dapp for execution.">
+            <CCExpansionItem title="Returned Data/Transactions" caption="Information that will be returned to the Dapp for execution.">
+              <strong>Data</strong>
               <pre class="wrapping-pre">{{ encodeExtendedJson(response.data, 2) }}</pre>
+              <strong>Transactions</strong>
+              <pre v-for="(transaction, i) of response.transactions" :key="i" class="wrapping-pre">{{ encodeExtendedJson(transaction, 2) }}</pre>
             </CCExpansionItem>
           </div>
         </q-expansion-item>
