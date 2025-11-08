@@ -313,6 +313,7 @@
           <option value="electroncash.dk">electroncash.dk</option>
           <option value="fulcrum.jettscythe.xyz">fulcrum.jettscythe.xyz</option>
           <option value="bch.loping.net">bch.loping.net</option>
+          <option value="fulcrum.criptolayer.net">fulcrum.criptolayer.net</option>
         </select>
       </div>
 
