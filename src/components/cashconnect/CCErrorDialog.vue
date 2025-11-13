@@ -23,6 +23,7 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
         <template v-if="error.stack">
           <div>Stack Trace:</div>
           <pre class="cc-pre">{{ error.stack }}</pre>
+          <pre v-if="error.cause" class="cc-pre">{{ error.cause }}</pre>
         </template>
 
         <!-- Bottom Buttons -->

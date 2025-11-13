@@ -253,12 +253,12 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
         output.token = {
           category: hexToBin(outpoint.tokenData.category),
           amount: BigInt(outpoint.tokenData.amount),
-          nft: {
-            capability: outpoint.tokenData?.nft?.capability || 'none',
-            commitment: outpoint.tokenData?.nft?.commitment
-              ? hexToBin(outpoint.tokenData.nft.commitment)
-              : new Uint8Array(),
-          }
+          ...(outpoint.tokenData.nft) ? {
+            nft: {
+              capability: outpoint.tokenData?.nft.capability || 'none',
+              commitment: hexToBin(outpoint.tokenData.nft.commitment || '')
+            }
+          } : {},
         };
       }
 
