@@ -93,9 +93,17 @@ export async function cachedFetch(input: string): Promise<Response> {
     return resp;
   }
 
-  const response = await fetch(input);
+  // attach url to error if fetch fails
+  const response = await fetch(input).catch(err => {
+    err.url = input;
+    throw err;
+  });
+
   if (!response.ok) {
-    throw new Error(`Fetch ${input} failed: ${response.status} ${response.statusText}`);
+    const err = new Error(`Fetch ${input} failed: ${response.status} ${response.statusText}`)
+    type extendedError = Error & { url?: string };
+    (err as extendedError).url = response.url || input;
+    throw err;
   }
   const clonedResponse = response.clone();
   let shouldCache = true;

@@ -62,6 +62,27 @@ export async function importBcmrRegistries(
         if(!registries[tokenId]) registries[tokenId] = jsonResponse;
       }
     }
+    // This extra logic if for parsable nfts which don't have sequential metadata,
+    // and the indexer returns 500 for /<commitment>/ endpoint
+    if(settledResult?.status == "rejected") {
+      const reason = settledResult.reason as Error & { url?: string };
+      let failingUrl = reason.url;
+      if(failingUrl?.endsWith("/")) failingUrl = failingUrl.slice(0, -1);
+      // splitUrlRoute = ["", indexerRoute]
+      const urlRoutes = failingUrl?.split(`${bcmrIndexer}/tokens/`);
+      const splitUrlRoute = urlRoutes?.[1]?.split("/")
+      console.error(`BCMR indexer returned 500 for URL: ${failingUrl}`);
+      // splitUrlRoute = [<tokenId>, <commitment>]
+      if(failingUrl && splitUrlRoute && splitUrlRoute.length > 1) {
+        const tokenId = splitUrlRoute?.[0] as string;
+        const response2 = await cachedFetch(`${bcmrIndexer}/tokens/${tokenId}/`);
+        if(response2?.status == 200) {
+          const jsonResponse2:BcmrIndexerResponse = await response2.json();
+          const tokenId = jsonResponse2?.token?.category
+          if(!registries[tokenId]) registries[tokenId] = jsonResponse2;
+        }
+      }
+    }
   }
   return registries;
 }
