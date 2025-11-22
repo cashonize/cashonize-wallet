@@ -3,6 +3,7 @@ import { cachedFetch } from "src/utils/cacheUtils";
 import type { UtxoI } from "mainnet-js";
 import type { BcmrIndexerResponse, BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
+import { tryCatch } from "src/utils/errorHandling";
 
 export function tokenListFromUtxos(walletUtxos: UtxoI[]) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
@@ -75,7 +76,8 @@ export async function importBcmrRegistries(
       // splitUrlRoute = [<tokenId>, <commitment>]
       if(failingUrl && splitUrlRoute && splitUrlRoute.length > 1) {
         const tokenId = splitUrlRoute?.[0] as string;
-        const response2 = await cachedFetch(`${bcmrIndexer}/tokens/${tokenId}/`);
+        const fallbackBcmrPromise = cachedFetch(`${bcmrIndexer}/tokens/${tokenId}/`);
+        const { data:response2 } = await tryCatch(fallbackBcmrPromise)
         if(response2?.status == 200) {
           const jsonResponse2:BcmrIndexerResponse = await response2.json();
           const tokenId = jsonResponse2?.token?.category
