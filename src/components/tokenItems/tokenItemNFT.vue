@@ -579,8 +579,8 @@
       </div>
     </fieldset>
 
-    <div v-if="showNftImage && (nftMetadata?.uris?.image || nftMetadata?.uris?.icon)">
-      <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image ? nftMetadata.uris.image : nftMetadata.uris.icon as string" :nftName="tokenName" @close-dialog="() => showNftImage = false"/>
+    <div v-if="showNftImage && (nftMetadata?.uris?.image || httpsUrlTokenIcon)">
+      <dialogNftIcon :srcNftImage="nftMetadata?.uris?.image || httpsUrlTokenIcon as string" :nftName="tokenName" @close-dialog="() => showNftImage = false"/>
     </div>
 
     <div v-if="displayChildNfts && (tokenData.nfts?.length ?? 0) > 1">
