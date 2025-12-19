@@ -20,7 +20,7 @@
     "@bitauth/libauth": "^3.1.0-next.8",
     "@bitjson/qr-code": "^1.0.2",
     "@capacitor-community/barcode-scanner": "^4.0.1",
-    "@capacitor/core": "^7.4.2",
+    "@capacitor/core": "^8.0.0",
     "@download/blockies": "^1.0.3",
     "@mainnet-cash/indexeddb-storage": "^2.7.24",
     "@quasar/extras": "^1.17.0",

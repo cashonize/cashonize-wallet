@@ -110,10 +110,10 @@
     "@zxing/browser" "^0.1.3"
     "@zxing/library" "^0.20.0"
 
-"@capacitor/core@^7.4.2":
-  version "7.4.2"
-  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-7.4.2.tgz#9ed8f4fe80a24c51c6969dbf44b70142d1e8eb91"
-  integrity sha512-akCf9A1FUR8AWTtmgGjHEq6LmGsjA2U7igaJ9PxiCBfyxKqlDbuGHrlNdpvHEjV5tUPH3KYtkze6gtFcNKPU9A==
+"@capacitor/core@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-8.0.0.tgz#8418bd04c759aeb6dc951291a3a8f2521823dfe7"
+  integrity sha512-250HTVd/W/KdMygoqaedisvNbHbpbQTN2Hy/8ZYGm1nAqE0Fx7sGss4l0nDg33STxEdDhtVRoL2fIaaiukKseA==
   dependencies:
     tslib "^2.1.0"
 
