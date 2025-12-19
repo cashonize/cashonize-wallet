@@ -9,6 +9,11 @@ yarn
 npm install
 ```
 
+## Update the dependencies
+```bash
+yarn upgrade-interactive --latest
+```
+
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
 ```bash
 yarn quasar dev
