@@ -106,10 +106,12 @@ export const useStore = defineStore('store', () => {
     changeView(1);
     if(newWallet.network == NetworkType.Mainnet){ 
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
+      // @ts-ignore currently no other way to set a specific provider
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
     }
     if(newWallet.network == NetworkType.Testnet){ 
       const connectionChipnet = new Connection("testnet", `wss://${settingsStore.electrumServerChipnet}:50004`)
+      // @ts-ignore currently no other way to set a specific provider
       newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
     }
     _wallet.value = newWallet;

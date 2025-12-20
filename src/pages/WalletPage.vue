@@ -63,7 +63,8 @@
     }
   });
   
-  // check if wallet exists (use dbUtil to not initialize wallet class yet)
+  // check if named wallet already exists in indexedDB
+  // we use a dbUtil and avoid 'WalletClass.namedExists' which instantiates a wallet + provider
   const mainnetWalletExists = await namedWalletExistsInDb(store.nameWallet, "bitcoincash");
   const testnetWalletExists = await namedWalletExistsInDb(store.nameWallet, "bchtest");
   const walletExists = mainnetWalletExists || testnetWalletExists;

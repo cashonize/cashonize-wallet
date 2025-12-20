@@ -110,13 +110,15 @@
     store.changeView(1)
     store.resetWalletState()
     if(targetNetwork == "mainnet"){
-      const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004` )
+      const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004`)
+      // @ts-ignore currently no other way to set a specific provider
       store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerMainnet = selectedElectrumServer.value
       localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
     }
     if(targetNetwork == "chipnet"){
-      const newConnection = new Connection("testnet",`wss://${selectedElectrumServerChipnet.value}:50004` )
+      const newConnection = new Connection("testnet",`wss://${selectedElectrumServerChipnet.value}:50004`)
+      // @ts-ignore currently no other way to set a specific provider
       store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
       localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
