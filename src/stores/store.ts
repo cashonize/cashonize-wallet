@@ -13,7 +13,6 @@ import {
   type UtxoI,
   type ElectrumNetworkProvider,
   type CancelFn,
-  type HexHeaderI,
   NetworkType
 } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
@@ -100,7 +99,8 @@ export const useStore = defineStore('store', () => {
     displayView.value = newView;
   }
 
-  // setWallet is a simple wrapper "set" function which also changes the view & adds the correct provider on the wallet
+  // setWallet is a simple wrapper "set" function for the internal _wallet in the store
+  // it also changes the view & adds the correct provider on the wallet
   // to initialize the new wallet, call initializeWallet() afterwards
   function setWallet(newWallet: Wallet | TestNetWallet){
     changeView(1);
@@ -133,7 +133,7 @@ export const useStore = defineStore('store', () => {
             }, 3000))
           )
         ]).finally(() => clearTimeout(timeoutHandle))
-        .catch((error) => {displayAndLogError(error) });
+        .catch(error => displayAndLogError(error));
       })();
       console.time('initialize walletconnect and cashconnect');
       await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
@@ -148,9 +148,9 @@ export const useStore = defineStore('store', () => {
       // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
       console.time('fetch fiat balance & max amount to send');
       const promiseWalletBalance = balanceResponseFromSatoshi(balanceSats);
-      const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend({ options:{
-        utxoIds: walletAddressUtxos
-      }});
+      const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend({
+        options: { utxoIds: walletAddressUtxos }
+      });
       const balancePromises = [promiseWalletBalance, promiseMaxAmountToSend];
       const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
       console.timeEnd('fetch fiat balance & max amount to send');
@@ -192,7 +192,7 @@ export const useStore = defineStore('store', () => {
       (newBalance) => runAsyncVoid(async () => {
         const oldBalance = balance.value;
         balance.value = newBalance;
-        if(oldBalance?.sat && newBalance?.sat && walletInitialized.value){
+        if(oldBalance?.sat && newBalance.sat && walletInitialized.value){
           console.log("watchBalance")
           if(oldBalance.sat < newBalance.sat){
             const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
@@ -219,23 +219,25 @@ export const useStore = defineStore('store', () => {
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (tx) => runAsyncVoid(async () => {
-        const receivedTokenOutputs = tx.vout.filter(voutElem => voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh));
+        const receivedTokenOutputs = tx.vout.filter(voutElem =>
+          voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh)
+        );
         const previousTokenList = tokenList.value;
         const listNewTokens:TokenList = []
         // Check if transaction not initiated by user
         const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value.cashaddr);
         for(const tokenOutput of receivedTokenOutputs){
           if(!userInputs.length){
-            const tokenType = tokenOutput?.tokenData?.nft ? "NFT" : "tokens"
+            const tokenType = tokenOutput.tokenData?.nft ? "NFT" : "tokens"
             Notify.create({
               type: 'positive',
               message: `Received new ${tokenType}`
             })
           }
-          const tokenId = tokenOutput?.tokenData?.category;
+          const tokenId = tokenOutput.tokenData?.category;
           const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);
           if(!tokenId && !isNewTokenItem) continue;
-          const newTokenItem = convertElectrumTokenData(tokenOutput?.tokenData)
+          const newTokenItem = convertElectrumTokenData(tokenOutput.tokenData)
           if(newTokenItem) listNewTokens.push(newTokenItem)
         }
         // Dynamically import tokenmetadata
@@ -246,7 +248,7 @@ export const useStore = defineStore('store', () => {
         void updateWalletHistory()
       })
     );
-    cancelWatchBlocks = await wallet.value.watchBlocks((header: HexHeaderI) => {
+    cancelWatchBlocks = await wallet.value.watchBlocks(header => {
       currentBlockHeight.value = header.height;
     }, false);
   }
@@ -423,8 +425,8 @@ export const useStore = defineStore('store', () => {
   async function fetchTokenInfo(categoryId: string) {
     const res = await cachedFetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
-  
-    return await res.json() as BcmrIndexerResponse;
+    const tokenInfoResult = await res.json()
+    return tokenInfoResult as BcmrIndexerResponse;
   }
   
 
@@ -441,15 +443,16 @@ export const useStore = defineStore('store', () => {
   }
 
   function toggleFavorite(tokenId: string) {
+    if(!tokenList.value) return // should never happen
     // Remove token from featuredTokens if it's already there, otherwise add it
     const newFeaturedTokens = settingsStore.featuredTokens.includes(tokenId) ?
-      settingsStore.featuredTokens.filter((id) => id !== tokenId) :
+      settingsStore.featuredTokens.filter(id => id !== tokenId) :
       [...settingsStore.featuredTokens, tokenId];
     // save the new featuredTokens to local storage
     localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
     settingsStore.featuredTokens = newFeaturedTokens;
     // actually change the UI list by updating the state
-    sortTokenList(tokenList.value as TokenList);
+    sortTokenList(tokenList.value);
   }
 
   function tokenIconUrl(tokenId: string) {
