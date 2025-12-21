@@ -124,10 +124,11 @@ export const useStore = defineStore('store', () => {
       // attempt non-blocking connection to electrum server
       // wrapped the logic in an IIFE to avoid error bubbling up
       // otherwise this can cause the router to error (and UI to fail) in offline mode
+      let electrumConnectionPromise: Promise<unknown>
       (() => {
         let timeoutHandle: ReturnType<typeof setTimeout>
         const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
-        Promise.race([wallet.value.provider.connect(),
+        electrumConnectionPromise =Promise.race([wallet.value.provider.connect(),
           new Promise((_, reject) =>
             (timeoutHandle = setTimeout(() => {
               earlyError = true
@@ -140,6 +141,8 @@ export const useStore = defineStore('store', () => {
       console.time('initialize walletconnect and cashconnect');
       await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
       console.timeEnd('initialize walletconnect and cashconnect');
+      // wait until the electrum provider is connected
+      await electrumConnectionPromise;
       // fetch wallet utxos first, this result will be used in consecutive calls
       // to avoid duplicate getAddressUtxos() calls
       console.time('fetch wallet utxos');

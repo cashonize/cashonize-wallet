@@ -2,7 +2,7 @@ import { Notify } from "quasar";
 
 export function caughtErrorToString(error: unknown): string {
   if (typeof error === 'string') return error;
-  if (error instanceof Error) return error.message;
+  if (error instanceof Error && error.message) return error.message;
   return 'Something went wrong';
 }
 
