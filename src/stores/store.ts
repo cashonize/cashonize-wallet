@@ -118,7 +118,7 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeWallet() {
-    let earlyError = false
+    let failedToConnectElectrum = false
     if(!_wallet.value) throw new Error("No Wallet set in global store")
     try {
       // attempt non-blocking connection to electrum server
@@ -128,21 +128,28 @@ export const useStore = defineStore('store', () => {
       (() => {
         let timeoutHandle: ReturnType<typeof setTimeout>
         const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
-        electrumConnectionPromise =Promise.race([wallet.value.provider.connect(),
+        electrumConnectionPromise = Promise.race([
+          wallet.value.provider.connect(),
           new Promise((_, reject) =>
             (timeoutHandle = setTimeout(() => {
-              earlyError = true
-              reject(new Error(`Unable to connect to Electrum server '${electrumServer}'`));
+              reject(new Error("ELECTRUM_CONNECT_TIMEOUT"));
             }, 3000))
           )
         ]).finally(() => clearTimeout(timeoutHandle))
-        .catch(error => displayAndLogError(error));
+        .catch(error => {
+          failedToConnectElectrum = true;
+          displayAndLogError(new Error(`Unable to connect to Electrum server '${electrumServer}'`))
+          // still log the original error for debugging
+          console.error("Electrum connect error:", error)
+        });
       })();
       console.time('initialize walletconnect and cashconnect');
       await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
       console.timeEnd('initialize walletconnect and cashconnect');
-      // wait until the electrum provider is connected
+      // wait until the electrumConnectionPromise is resolved
       await electrumConnectionPromise;
+      // if electrum connection failed, cancel the rest of initialization
+      if(failedToConnectElectrum) return
       // fetch wallet utxos first, this result will be used in consecutive calls
       // to avoid duplicate getAddressUtxos() calls
       console.time('fetch wallet utxos');
@@ -186,7 +193,7 @@ export const useStore = defineStore('store', () => {
         console.timeEnd('fetch authUtxos');
       }
     } catch (error) {
-      if(!earlyError) displayAndLogError(error);
+      displayAndLogError(error);
     } 
   }
 
