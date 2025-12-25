@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar, useDialogPluginComponent } from 'quasar'
-import type { BchSessionProposal } from 'cashconnect';
+import type { BchSessionProposal } from '@cashconnect-js/core';
 
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
@@ -15,7 +15,7 @@ const store = useStore();
 const settingsStore = useSettingsStore();
 
 const props = defineProps<{
-  session: BchSessionProposal
+  session: BchSessionProposal<true>
 }>()
 
 defineEmits([
@@ -28,7 +28,7 @@ function viewTemplate() {
   $q.dialog({
     component: CCViewTemplateDialog,
     componentProps: {
-      template: props.session.params.requiredNamespaces?.bch?.template,
+      template: props.session.params.sessionProperties.template,
     },
   });
 }
@@ -49,7 +49,7 @@ function getTokenName(categoryId: string) {
       return categoryId;
     }
 
-    return tokenInfo.name;
+    return tokenInfo.name || categoryId;
   } catch(error) {
     const errorMessage = caughtErrorToString(error)
     console.error(errorMessage)
@@ -91,7 +91,7 @@ async function fetchAndSetTokenInfo(tokenId: string) {
     console.error(errorMessage)
   }
 }
-const allowedTokens = props.session.params.requiredNamespaces?.bch?.allowedTokens ?? [];
+const allowedTokens = props.session.params.sessionProperties.allowedTokens ?? [];
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
   void fetchAndSetTokenInfo(tokenId);
@@ -125,14 +125,14 @@ for (const tokenId of allowedTokens) {
             <!-- Template -->
             <div class="cc-modal-section">
               <div class="cc-modal-heading">Template:</div>
-              <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.requiredNamespaces?.bch?.template.name }}</a> (Untrusted)
+              <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.sessionProperties.template.name }}</a> (Untrusted)
             </div>
 
             <!-- Allowed Tokens -->
             <div class="cc-modal-section">
               <div class="cc-modal-heading">Will be able to see Tokens:</div>
               <ul>
-                <li v-for="(allowedToken, i) of session.params.requiredNamespaces?.bch?.allowedTokens" :key="i" class="q-mb-xs">
+                <li v-for="(allowedToken, i) of session.params.sessionProperties.allowedTokens" :key="i" class="q-mb-xs">
                   <q-avatar size="18px" class="q-mr-xs">
                     <q-img :src="getTokenIcon(allowedToken)" />
                   </q-avatar>
@@ -148,8 +148,8 @@ for (const tokenId of allowedTokens) {
             <div class="cc-modal-section">
               <div class="cc-modal-heading">Will be able to invoke Methods/Events:</div>
               <ul>
-                <li v-for="(method, i) of session.params.requiredNamespaces?.bch?.methods" :key="i">{{ method }}</li>
-                <li v-for="(event, i) of session.params.requiredNamespaces?.bch?.events" :key="i">{{ event }}</li>
+                <li v-for="(method, i) of session.params.optionalNamespaces?.bch?.methods" :key="i">{{ method }}</li>
+                <li v-for="(event, i) of session.params.optionalNamespaces?.bch?.events" :key="i">{{ event }}</li>
               </ul>
             </div>
           </div>
