@@ -3,7 +3,7 @@ import { cachedFetch } from "src/utils/cacheUtils";
 import type { UtxoI } from "mainnet-js";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
-import { tryCatch } from "src/utils/errorHandling";
+import { displayAndLogError, tryCatch } from "src/utils/errorHandling";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 
 export function tokenListFromUtxos(walletUtxos: UtxoI[]) {
@@ -54,7 +54,13 @@ export async function importBcmrRegistries(
     if(response?.status == 200) {
       const jsonResponse = await response.json();
       // validate the response to match expected schema
-      const tokenInfoResult = BcmrIndexerResponseSchema.parse(jsonResponse);
+      const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
+      if (!parseResult.success) {
+        console.error(`BCMR indexer response validation error for URL ${response.url}: ${parseResult.error.message}`);
+        displayAndLogError('BCMR indexer response validation error');
+        continue;
+      }
+      const tokenInfoResult = parseResult.data;
       if ('error' in tokenInfoResult) {
         console.error(`Indexer error for URL ${response.url}: ${tokenInfoResult.error}`);
         continue;
@@ -89,7 +95,13 @@ export async function importBcmrRegistries(
         if(response2?.status == 200) {
           const jsonResponse2 = await response2.json();
           // validate the response to match expected schema
-          const tokenInfoResult2 = BcmrIndexerResponseSchema.parse(jsonResponse2);
+          const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse2);
+          if (!parseResult.success) {
+            console.error(`BCMR indexer response validation error for URL ${response2.url}: ${parseResult.error.message}`);
+            displayAndLogError('BCMR indexer response validation error');
+            continue;
+          }
+          const tokenInfoResult2 = parseResult.data;
           if ('error' in tokenInfoResult2) {
             console.error(`Indexer error for URL ${response2.url}: ${tokenInfoResult2.error}`);
             continue;

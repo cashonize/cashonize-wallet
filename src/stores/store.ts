@@ -439,12 +439,18 @@ export const useStore = defineStore('store', () => {
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
     const jsonResponse = await res.json()
     // validate the response to match expected schema
-    const indexerResult = BcmrIndexerResponseSchema.parse(jsonResponse);
-    // check for error in indexerResult
-    if ('error' in indexerResult) {
-      throw new Error(`Indexer error: ${indexerResult.error}`);
+    const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
+    if (!parseResult.success) {
+      console.error(`BCMR indexer response validation error for URL ${res.url}: ${parseResult.error.message}`);
+      const errorMessage = 'BCMR indexer response validation error';
+      throw new Error(errorMessage)
     }
-    return indexerResult;
+    const bcmrIndexerResult = parseResult.data;
+    // check for error in bcmrIndexerResult
+    if ('error' in bcmrIndexerResult) {
+      throw new Error(`Indexer error: ${bcmrIndexerResult.error}`);
+    }
+    return bcmrIndexerResult;
   }
   
 
