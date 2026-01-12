@@ -1,9 +1,10 @@
 import { queryAuthHeadTxid } from "src/queryChainGraph";
 import { cachedFetch } from "src/utils/cacheUtils";
 import type { UtxoI } from "mainnet-js";
-import type { BcmrIndexerResponse, BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
+import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
 import { tryCatch } from "src/utils/errorHandling";
+import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 
 export function tokenListFromUtxos(walletUtxos: UtxoI[]) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
@@ -51,18 +52,25 @@ export async function importBcmrRegistries(
   for(const settledResult of resultsMetadata) {
     const response = settledResult.status == "fulfilled" ? settledResult.value : undefined;
     if(response?.status == 200) {
-      const jsonResponse:BcmrIndexerResponse = await response.json();
-      const tokenId = jsonResponse?.token?.category
-      if(jsonResponse?.type_metadata) {
+      const jsonResponse = await response.json();
+      // validate the response to match expected schema
+      const tokenInfoResult = BcmrIndexerResponseSchema.parse(jsonResponse);
+      if ('error' in tokenInfoResult) {
+        console.error(`Indexer error for URL ${response.url}: ${tokenInfoResult.error}`);
+        continue;
+      }
+      const tokenId = tokenInfoResult.token?.category
+      if(tokenInfoResult.type_metadata) {
         const nftEndpoint = response.url.split("/").at(-2) as string;
         const commitment = nftEndpoint != "empty"? nftEndpoint : "";
-        if(!registries[tokenId]) registries[tokenId] = jsonResponse;
+        if(!registries[tokenId]) registries[tokenId] = tokenInfoResult;
         if(!registries[tokenId]?.nfts) registries[tokenId].nfts = {}
-        registries[tokenId].nfts[commitment] = jsonResponse?.type_metadata
+        registries[tokenId].nfts[commitment] = tokenInfoResult.type_metadata
       } else {
-        if(!registries[tokenId]) registries[tokenId] = jsonResponse;
+        if(!registries[tokenId]) registries[tokenId] = tokenInfoResult;
       }
     }
+    // TODO: reconsider if this fallback is still needed after changes to BCMR indexer
     // This extra logic if for parsable nfts which don't have sequential metadata,
     // and the indexer returns 500 for /<commitment>/ endpoint
     if(settledResult?.status == "rejected") {
@@ -79,8 +87,14 @@ export async function importBcmrRegistries(
         const fallbackBcmrPromise = cachedFetch(`${bcmrIndexer}/tokens/${tokenId}/`);
         const { data:response2 } = await tryCatch(fallbackBcmrPromise)
         if(response2?.status == 200) {
-          const jsonResponse2:BcmrIndexerResponse = await response2.json();
-          const tokenId = jsonResponse2?.token?.category
+          const jsonResponse2 = await response2.json();
+          // validate the response to match expected schema
+          const tokenInfoResult2 = BcmrIndexerResponseSchema.parse(jsonResponse2);
+          if ('error' in tokenInfoResult2) {
+            console.error(`Indexer error for URL ${response2.url}: ${tokenInfoResult2.error}`);
+            continue;
+          }
+          const tokenId = tokenInfoResult2.token?.category
           if(!registries[tokenId]) registries[tokenId] = jsonResponse2;
         }
       }

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { hexToBin } from "@bitauth/libauth";
 
+/* WcMessageObjSchema */
+
 // TODO: could try to make this more strict
 // need to consider if there is a easy way to fully validate against the libauth TransactionBCH type
 // also the deeply nested UInt8Array and BigInts are stringified so not the original types yet
@@ -12,7 +14,7 @@ const simpleTransactionCommonSchema = z.object({
 });
 
 // Stringified BigInt: "<bigint: 123n>"
-export const stringifiedBigIntSchema = z.string()
+const stringifiedBigIntSchema = z.string()
   .regex(/^<bigint: \d+n>$/, "Must be a stringified BigInt")
   .transform((val) => {
     const match = val.match(/^<bigint: (?<bigint>\d+)n>$/);
@@ -20,7 +22,7 @@ export const stringifiedBigIntSchema = z.string()
   });
 
 // Stringified Uint8Array: "<Uint8Array: 0xdeadbeef>"
-export const stringifiedUint8ArraySchema = z.string()
+const stringifiedUint8ArraySchema = z.string()
   .regex(/^<Uint8Array: 0x[0-9a-fA-F]*>$/, "Must be a stringified Uint8Array")
   .transform((val) => {
     const match = val.match(/^<Uint8Array: 0x(?<hex>[0-9a-fA-F]*)>$/u);
@@ -61,3 +63,49 @@ export const WcMessageObjSchema = z.object({
 });
 
 export type WcMessageObj = z.infer<typeof WcMessageObjSchema>;
+
+
+/* BcmrIndexerResponseSchema */
+
+const Hex64Schema = z.string().regex(/^[0-9a-f]{64}$/i);
+
+const BcmrUrisSchema = z.record(z.string(), z.string());
+
+const BcmrExtensionsSchema = z.record(
+  z.string(),
+  z.union([
+    z.string(),
+    z.record(z.string(), z.string()),
+    z.record(z.string(), z.record(z.string(), z.string())),
+  ])
+);
+
+const BcmrNftMetadataSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  uris: BcmrUrisSchema.optional(),
+  extensions: BcmrExtensionsSchema.optional(),
+});
+
+const BcmrTokenResponseSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  token: z.object({
+    category: Hex64Schema,
+    decimals: z.number().int().nonnegative().optional(),
+    symbol: z.string(),
+  }),
+  is_nft: z.boolean().optional(),
+  type_metadata: BcmrNftMetadataSchema.optional(),
+  uris: BcmrUrisSchema.optional(),
+  extensions: BcmrExtensionsSchema.optional(),
+});
+
+const ErrorSchema = z.object({
+  category: Hex64Schema,
+  error: z.string(),
+});
+
+export type BcmrTokenResponse = z.infer<typeof BcmrTokenResponseSchema>;
+export const BcmrIndexerResponseSchema = z.union([BcmrTokenResponseSchema, ErrorSchema]);
+export type BcmrIndexerResponse = z.infer<typeof BcmrIndexerResponseSchema>;

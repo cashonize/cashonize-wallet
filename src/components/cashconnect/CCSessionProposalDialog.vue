@@ -8,7 +8,7 @@ import { useSettingsStore } from 'src/stores/settingsStore';
 
 import CCViewTemplateDialog from './CCViewTemplateDialog.vue';
 import { caughtErrorToString } from 'src/utils/errorHandling';
-import { type BcmrIndexerResponse } from 'src/interfaces/interfaces';
+import { type BcmrTokenResponse } from 'src/utils/zodValidation';
 
 const $q = useQuasar();
 const store = useStore();
@@ -38,7 +38,7 @@ function viewTemplate() {
 //-----------------------------------------------------------------------------
 
 // State to store fetched token info from BCMR.
-const tokens = ref<{ [categoryId: string]: BcmrIndexerResponse }>({});
+const tokens = ref<{ [categoryId: string]: BcmrTokenResponse }>({});
 
 function getTokenName(categoryId: string) {
   // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.

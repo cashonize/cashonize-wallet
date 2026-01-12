@@ -3,11 +3,12 @@ import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
 import type { BchSession, SignTransactionV0, SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress, type WalletTemplate } from '@bitauth/libauth';
-import { type BcmrIndexerResponse, CurrencySymbols } from 'src/interfaces/interfaces';
+import { CurrencySymbols } from 'src/interfaces/interfaces';
 import { convertToCurrency } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
+import { type BcmrTokenResponse } from 'src/utils/zodValidation';
 const store = useStore()
 const settingsStore = useSettingsStore()
 
@@ -76,7 +77,7 @@ const balanceChanges = computed(() => {
 //-----------------------------------------------------------------------------
 
 // State to store fetched token info from BCMR.
-const tokens = ref<{ [categoryId: string]: BcmrIndexerResponse }>({});
+const tokens = ref<{ [categoryId: string]: BcmrTokenResponse }>({});
 
 function getTokenName(categoryId: string | number) {
   // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.

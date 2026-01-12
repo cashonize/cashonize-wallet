@@ -68,34 +68,20 @@ export interface BcmrTokenMetadata {
   description: string
   token: {
     category: string
-    decimals: number
+    decimals?: number | undefined
     symbol: string
   }
-  is_nft: boolean
-  nfts?: Record<string, BcmrNftMetadata>
-  uris: Record<string, string>
-  extensions: BcmrExtensions
+  is_nft?: boolean | undefined
+  nfts?: Record<string, BcmrNftMetadata> | undefined
+  uris?: Record<string, string> | undefined
+  extensions?: BcmrExtensions | undefined
 }
 
 export interface BcmrNftMetadata {
   name: string
   description: string
-  uris: Record<string, string>
-  extensions: BcmrExtensions
-}
-
-export interface BcmrIndexerResponse {
-  name: string
-  description: string
-  token: {
-    category: string
-    decimals: number
-    symbol: string
-  }
-  is_nft: boolean
-  type_metadata: BcmrNftMetadata
-  uris: Record<string, string>
-  extensions: BcmrExtensions
+  uris?: Record<string, string> | undefined
+  extensions?: BcmrExtensions | undefined
 }
 
 export type BcmrExtensions = {

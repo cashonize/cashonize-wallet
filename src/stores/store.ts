@@ -20,7 +20,6 @@ import {
   CurrencySymbols,
   type BcmrTokenMetadata,
   type TokenList,
-  type BcmrIndexerResponse,
   type WalletHistoryReturnType
 } from "../interfaces/interfaces"
 import {
@@ -40,6 +39,7 @@ import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
+import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
@@ -437,8 +437,14 @@ export const useStore = defineStore('store', () => {
   async function fetchTokenInfo(categoryId: string) {
     const res = await cachedFetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
-    const tokenInfoResult = await res.json()
-    return tokenInfoResult as BcmrIndexerResponse;
+    const jsonResponse = await res.json()
+    // validate the response to match expected schema
+    const indexerResult = BcmrIndexerResponseSchema.parse(jsonResponse);
+    // check for error in indexerResult
+    if ('error' in indexerResult) {
+      throw new Error(`Indexer error: ${indexerResult.error}`);
+    }
+    return indexerResult;
   }
   
 
