@@ -229,6 +229,8 @@ export default defineConfig((ctx) => {
         linux: {
           target: ['AppImage']
         },
+        // only keep the en-US locale to reduce app size
+        electronLanguages: ["en-US"]
       },
 
     },
