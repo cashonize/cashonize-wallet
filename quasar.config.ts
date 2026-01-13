@@ -186,7 +186,16 @@ export default defineConfig((ctx) => {
       // extendElectronMainConf (esbuildConf) {},
       // extendElectronPreloadConf (esbuildConf) {},
 
-      // extendPackageJson (json) {},
+      extendPackageJson (pkg) {
+        // Keep only dependencies needed by the Electron environment (main/preload).
+        // Dependencies already bundled into the web build do not need to be included here.
+        pkg.dependencies = {
+          // electron main deps only
+          "electron-store": pkg.dependencies["electron-store"]
+        }
+
+        return pkg
+      },
 
       // Electron preload scripts (if any) from /src-electron, WITHOUT file extension
       preloadScripts: [ 'electron-preload' ],
