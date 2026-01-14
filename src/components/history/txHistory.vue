@@ -242,11 +242,15 @@ img.tokenIcon {
     align-items: center;
   }
   .tx-row {
-    grid-template-columns: 28px 62px 1fr 1fr minmax(110px, 160px);
-    min-width: 430px;
+    grid-template-columns: 30px 66px 1fr 1fr minmax(110px, 160px);
+    min-width: 330px;
   }
   .tx-body {
     font-size: small;
+  }
+  img.tokenIcon {
+    display: block;
+    margin: 4px auto 0;
   }
 }
 
@@ -254,11 +258,20 @@ img.tokenIcon {
   fieldset {
     padding: .5rem .5rem;
   }
+  .tx-row {
+    grid-template-columns: 28px 62px minmax(70px, 1fr) minmax(70px, 1fr) minmax(100px, 120px);
+  }
   .filter-row {
     margin-left: 0.5rem;
   }
   legend {
     margin-left: 0.5rem;
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  .tx-row {
+    grid-template-columns: 24px 62px minmax(70px, 1fr) minmax(70px, 1fr) minmax(100px, 120px);
   }
 }
 </style>
