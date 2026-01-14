@@ -59,7 +59,7 @@
           </select>
         </div>
 
-        <div v-if="!isMobile">{{ transactionCount?.toLocaleString() }} Transactions </div>
+        <div v-if="!isMobile">{{ transactionCount?.toLocaleString("en-US") }} Transactions </div>
       </div>
 
       <!-- CSS Grid table: provides fixed column widths unaffected by content like images -->

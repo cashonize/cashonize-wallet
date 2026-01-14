@@ -111,7 +111,7 @@
             Status: 
               <span v-if="historyItem.timestamp === undefined">unconfirmed</span>
               <span v-else>{{ store.currentBlockHeight as number - historyItem.blockHeight }} confirmations
-                (mined in block #{{ historyItem.blockHeight }})
+                (mined in block #{{ historyItem.blockHeight.toLocaleString("en-US") }})
               </span>
           </div>
           <div v-if="historyItem.timestamp">
@@ -123,16 +123,16 @@
               <span>{{ satsToBch(historyItem.valueChange) }} {{ bchDisplayUnit }}</span>
           </div>
           <div>
-            Size: 
-              <span>{{ historyItem.size }} bytes</span>
+            Size:
+              <span>{{ historyItem.size.toLocaleString("en-US") }} bytes</span>
           </div>
           <div v-if="!isCoinbase">
-            Fee: 
-              <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee }} sat ( {{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte )</span>
+            Fee:
+              <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee.toLocaleString("en-US") }} sat ({{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte)</span>
           </div>
           <div v-else>
-            Fees collected: 
-              <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee }} sat</span>
+            Fees collected:
+              <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee.toLocaleString("en-US") }} sat</span>
           </div>
         </div>
 
