@@ -20,6 +20,8 @@ export function runAsyncVoid(fn: () => Promise<void>) {
 }
 
 export function formatTime(timestamp: number): string {
+  // Uses 12-hour format (2:30 PM) for US/UK locales, 24-hour (14:30) for European locales
+  // Note: Electron only includes en-US locale, so this always uses 12-hour format there
   return new Date(timestamp * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -29,6 +31,8 @@ export function formatTimestamp(timestamp: number | undefined, dateFormat: DateF
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = short ? date.getFullYear().toString().slice(-2) : date.getFullYear().toString();
+  // Uses 12-hour format (2:30 PM) for US/UK locales, 24-hour (14:30) for European locales
+  // Note: Electron only includes en-US locale, so this always uses 12-hour format there
   const time = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
   let dateStr: string;

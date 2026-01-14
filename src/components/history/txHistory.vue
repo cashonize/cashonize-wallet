@@ -110,14 +110,20 @@
             <div class="tx-cell tokenChange">
               <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
                 <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
-                  <span v-if="tokenChange.amount > 0n" class="value">+{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
-                  <span v-else class="value" style="color: rgb(188,30,30)">{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
+                  <span v-if="tokenChange.amount > 0n" class="value">+{{
+                    (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}
+                  </span>
+                  <span v-else class="value" style="color: rgb(188,30,30)">
+                    {{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}
+                  </span>
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                 </span>
                 <span v-if="tokenChange.nftAmount !== 0n">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
                   <span v-else class="value" style="color: rgb(188,30,30)">{{ tokenChange.nftAmount }}</span>
-                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT</span>
+                  <span>
+                    {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT
+                  </span>
                 </span>
 
                 <img
@@ -143,7 +149,11 @@
     </fieldset>
   </div>
 
-  <TransactionDialog v-if="selectedTransaction" :history-item="selectedTransaction" @hide="() => {selectedTransaction = undefined}"></TransactionDialog>
+  <TransactionDialog
+    v-if="selectedTransaction"
+    :history-item="selectedTransaction"
+    @hide="() => {selectedTransaction = undefined}">
+  </TransactionDialog>
 </template>
 
 <style scoped>
