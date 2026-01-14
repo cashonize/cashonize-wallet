@@ -108,6 +108,7 @@
             </div>
 
             <div class="tx-cell tokenChange">
+               <!-- Tokens like BADGER have both fungibles and NFTs with the same tokenId in user wallets -->
               <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
                 <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
                   <span v-if="tokenChange.amount > 0n" class="value">+{{
@@ -117,21 +118,26 @@
                     {{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}
                   </span>
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
+                  <img
+                    v-if="tokenChange.amount && store.bcmrRegistries?.[tokenChange.tokenId]"
+                    class="tokenIcon"
+                    style="width: 28px; height: 28px; border-radius: 50%;"
+                    :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
+                  >
                 </span>
-                <span v-if="tokenChange.nftAmount !== 0n">
+                <span v-if="tokenChange.nftAmount" class="nftChange">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
                   <span v-else class="value" style="color: rgb(188,30,30)">{{ tokenChange.nftAmount }}</span>
                   <span>
                     {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT
                   </span>
+                  <img
+                    v-if="tokenChange.nftAmount && store.bcmrRegistries?.[tokenChange.tokenId]"
+                    class="tokenIcon"
+                    style="width: 28px; height: 28px; border-radius: 50%;"
+                    :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
+                    >
                 </span>
-
-                <img
-                  v-if="store.bcmrRegistries?.[tokenChange.tokenId]"
-                  class="tokenIcon"
-                  style="width: 28px; height: 28px; border-radius: 50%;"
-                  :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
-                  >
               </div>
             </div>
           </div>
@@ -225,6 +231,9 @@
 .tokenChangeItem {
   text-align: center;
   word-break: break-word;
+}
+.nftChange {
+  display: block;
 }
 
 img.tokenIcon {
