@@ -271,6 +271,7 @@ select, summary {
     gap: 0.5rem;
   }
 }
+/* Quasar dialog styling */
 .q-dialog__backdrop {
   backdrop-filter: blur(24px);
   background-color: transparent;
@@ -281,6 +282,29 @@ select, summary {
 }
 .q-btn .q-icon {
   margin: auto;
+}
+@media only screen and (max-width: 470px) {
+  .q-dialog__inner--minimized {
+    padding: 12px !important;
+  }
+}
+
+/* Quasar pagination styling */
+.q-pagination .q-btn {
+  background-color: transparent !important;
+}
+.q-pagination .q-field {
+  width: 5em !important;
+  margin: 10px 0px;
+}
+.q-pagination .q-field__inner {
+  width: 100%;
+}
+.q-pagination .q-field__control-container {
+  width: 100%;
+}
+.q-pagination .q-field__native {
+  color: var(--font-color);
 }
 
 /* change look of scrollbar */

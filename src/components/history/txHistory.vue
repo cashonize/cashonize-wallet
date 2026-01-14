@@ -14,7 +14,8 @@
   const itemsPerPage = 100
   const currentPage = ref(1)
   const { width } = useWindowSize();
-  const isMobile = computed(() => width.value < 570)
+  const isMobile = computed(() => width.value <= 600)
+  const hideUnit = computed(() => width.value <= 500)
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
@@ -48,7 +49,7 @@
     <fieldset class="item" v-if="store.walletHistory?.length">
       <legend>Transaction History</legend>
 
-      <div style="margin-top:5px; margin: auto; display: flex; align-items: baseline; gap: 20px;">
+      <div class="filter-row">
         <div style="margin-top:5px; width: 150px;  display: flex;">
           <label for="filterTransactions" style=" margin-right: 10px;">Show:</label>
           <select v-model="selectedFilter" name="filterTransactions" style="padding: 0px 4px">
@@ -58,60 +59,60 @@
           </select>
         </div>
 
-        <div v-if="!isMobile">{{ transactionCount }} Transactions </div>
+        <div v-if="!isMobile">{{ transactionCount?.toLocaleString() }} Transactions </div>
       </div>
 
-      <table>
-        <thead>
-          <tr style="padding-left: 10px;">
-            <th scope="col"></th>
-            <th scope="col">Date</th>
-            <th scope="col" class="valueHeader">Amount</th>
-            <th scope="col" class="valueHeader">Balance</th>
-            <th scope="col" style="text-align: right; padding-right: 40px;">Tokens</th>
-          </tr>
-        </thead>
-        <tbody class="transactionTable">
-          <tr
-            v-for="transaction in paginatedHistory"
+      <!-- CSS Grid table: provides fixed column widths unaffected by content like images -->
+      <div class="tx-table">
+        <div class="tx-header tx-row">
+          <div class="tx-cell"></div>
+          <div class="tx-cell">Date</div>
+          <div class="tx-cell">Amount</div>
+          <div class="tx-cell balance-header">Balance</div>
+          <div class="tx-cell tokens-header">Tokens</div>
+        </div>
+        <div class="tx-body">
+          <div
+            class="tx-row"
+            v-for="(transaction, index) in paginatedHistory"
             :key="transaction.hash"
             @click="() => selectedTransaction = transaction"
-            :class="settingsStore.darkMode ? 'dark' : ''"
+            :class="[settingsStore.darkMode ? 'dark' : '', index % 2 === 1 ? 'even' : '']"
           >
 
-            <td><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳' " style="margin: 0 5px; vertical-align: sub;"/> </td>
+            <div class="tx-cell"><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳'" :size-px="isMobile ? 14 : 16" style="margin: 0 5px; vertical-align: sub;"/> </div>
 
-            <td v-if="isMobile">
+            <div class="tx-cell" v-if="isMobile">
               <div v-if="transaction.timestamp" style="line-height: 1.3">
                 <div>{{ new Date(transaction.timestamp * 1000).toLocaleDateString().replace("202", "2") }}</div>
                 <div>{{new Date(transaction.timestamp * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) }}</div>
               </div>
               <div v-else>pending</div>
-            </td>
-            <td v-else>{{ transaction.timestamp ? formatTimestamp(transaction.timestamp) : "Unconfirmed" }}</td>
+            </div>
+            <div class="tx-cell" v-else>{{ transaction.timestamp ? formatTimestamp(transaction.timestamp) : "Unconfirmed" }}</div>
 
-            <td class="value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
+            <div class="tx-cell value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
               {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toFixed(5)}`}}
-              {{ isMobile? "" : (bchDisplayUnit) }}
+              {{ hideUnit ? "" : bchDisplayUnit }}
               <div v-if="settingsStore.showFiatValueHistory">
                 ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency)}})
               </div>
-            </td>
-              
-            <td class="value">
+            </div>
+
+            <div class="tx-cell value">
               {{ (transaction.balance / 100_000_000).toFixed(5) }}
-              {{ isMobile? "" : (bchDisplayUnit) }}
+              {{ hideUnit ? "" : bchDisplayUnit }}
               <div v-if="settingsStore.showFiatValueHistory">
                 ~{{formatFiatAmount(exchangeRate * transaction.balance / 100_000_000, settingsStore.currency) }}
               </div>
-            </td>
+            </div>
 
-            <td class="tokenChange">
+            <div class="tx-cell tokenChange">
               <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
                 <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
                   <span v-if="tokenChange.amount > 0n" class="value">+{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
                   <span v-else class="value" style="color: rgb(188,30,30)">{{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}</span>
-                  <span class="hideOnOverflow"> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
+                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                 </span>
                 <span v-if="tokenChange.nftAmount !== 0n">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
@@ -126,10 +127,10 @@
                   :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
                   >
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </div>
+        </div>
+      </div>
       <q-pagination
         v-if="totalPages > 1"
         v-model="currentPage"
@@ -146,96 +147,108 @@
 </template>
 
 <style scoped>
-tr:nth-child(even) {
+.filter-row {
+  margin-top: 5px;
+  margin: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+
+.tx-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tx-row {
+  display: grid;
+  grid-template-columns: 45px 1fr 1fr 1fr minmax(120px, 220px);
+  min-width: 550px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tx-header {
+  font-weight: bold;
+  cursor: default;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tx-cell.tokens-header {
+  text-align: right;
+  padding-right: 40px;
+}
+
+.tx-body .tx-row.even {
   background-color: var(--color-background-soft);
 }
-tr.dark:nth-child(even) {
+.tx-body .tx-row.dark.even {
   background-color: #232326;
 }
 
-.transactionTable > * {
+.tx-body {
   font-size: smaller;
+}
+
+.tx-body .tx-row {
+  min-height: 67px;
+}
+
+.tx-cell {
+  padding: 12px 2px;
+  min-width: 0;
 }
 
 .value {
   font-family: monospace;
+  white-space: nowrap;
 }
 
 .tokenChange {
   display: flex;
+  flex-direction: column;
   align-items: flex-end;
-  justify-content: flex-end;
+  justify-content: center;
   text-align: end;
-  width: auto;
-  margin-left: -30px;
+  gap: 4px;
 }
 .tokenChangeItem {
-  max-width: 160px;
-  display: flex;
-  align-items: center;
+  text-align: center;
+  word-break: break-word;
 }
 
 img.tokenIcon {
   margin-left: 5px;
+  vertical-align: middle;
 }
 
-.break {
-  word-break: keep-all;
-  text-align: end;
-}
-
-@media only screen and (max-width: 570px) {
-  fieldset {
-    padding: .5rem 1rem;
-  }
-  .tokenIcon {
-    margin-right: 0px;
-  }
-  .tokenChange{
-    margin-left: -10px;
-  }
-  .tokenChangeItem {
-    max-width: 120px;
+@media only screen and (max-width: 600px) {
+  .balance-header,
+  .tokens-header {
     text-align: center;
-    width: 100%;
-    flex-direction: column;
-    justify-content: center;
+    padding-right: 0;
   }
-  .transactionTable > * {
+  .tokenChange {
+    align-items: center;
+  }
+  .tx-row {
+    grid-template-columns: 28px 62px 1fr 1fr minmax(110px, 160px);
+    min-width: 430px;
+  }
+  .tx-body {
     font-size: small;
   }
 }
 
-@media only screen and (max-width: 450px) {
-  .tokenChangeItem {
-    max-width: 100px;
+@media only screen and (max-width: 500px) {
+  fieldset {
+    padding: .5rem .5rem;
   }
-  .tokenChange {
-    margin-left: 0px;
+  .filter-row {
+    margin-left: 0.5rem;
   }
-  .hideOnOverflow {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: clip;
+  legend {
+    margin-left: 0.5rem;
   }
-}
-</style>
-
-<style>
-.q-pagination .q-btn {
-  background-color: transparent !important;
-}
-.q-pagination .q-field {
-  width: 5em !important;
-  margin: 10px 0px;
-}
-.q-pagination .q-field__inner {
-  width: 100%;
-}
-.q-pagination .q-field__control-container {
-  width: 100%;
-}
-.q-pagination .q-field__native {
-  color: var(--font-color);
 }
 </style>
