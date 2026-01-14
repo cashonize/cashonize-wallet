@@ -19,7 +19,7 @@ const signingInfo = {
 };
 
 describe('test createSignedWcTransaction', () => {
-  it('should create a signed transaction from wc info using stringified transaction value', async() => {
+  it('should create a signed transaction from wc info using stringified transaction value', () => {
     const wcTransactionObj = parseExtendedJson(cashNinjaJsonString0) as WcSignTransactionRequest;
 
     // inputs in 'cashNinjaJsonString' need to be tweaked for the test to be spendable by the throwAway key
@@ -31,7 +31,7 @@ describe('test createSignedWcTransaction', () => {
 
     expect(binToHex(encodedTransaction)).toEqual(expectedResult);
   })
-  it('should create a signed transaction from wc info using transaction hex string value', async() => {
+  it('should create a signed transaction from wc info using transaction hex string value', () => {
     const wcTransactionObj = parseExtendedJson(cashNinjaJsonString1) as WcSignTransactionRequest;
 
     // inputs in 'cashNinjaJsonString' need to be tweaked for the test to be spendable by the throwAway key
