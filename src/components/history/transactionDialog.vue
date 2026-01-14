@@ -116,7 +116,7 @@
           </div>
           <div v-if="historyItem.timestamp">
             Date: 
-              <span>{{ formatTimestamp(historyItem.timestamp) }}</span>
+              <span>{{ formatTimestamp(historyItem.timestamp, settingsStore.dateFormat) }}</span>
           </div>
           <div>
             Balance change: 

@@ -26,6 +26,7 @@
   const selectedCurrency = ref(settingsStore.currency);
   const selectedUnit = ref(settingsStore.bchUnit);
   const qrAnimation = ref(settingsStore.qrAnimation);
+  const dateFormat = ref(settingsStore.dateFormat);
   const selectedExplorer = ref(store.explorerUrl);
   // backup wallet
   const displaySeedphrase = ref(false);
@@ -99,6 +100,10 @@
     localStorage.setItem("qrAnimation", qrAnimation.value);
     settingsStore.hasPlayedAnimation = false;
     store.changeView(1)
+  }
+  function changeDateFormat(){
+    settingsStore.dateFormat = dateFormat.value;
+    localStorage.setItem("dateFormat", dateFormat.value);
   }
   function changeBlockExplorer(){
     const explorerNetwork = store.network == "mainnet" ? "explorerMainnet" : "explorerChipnet";
@@ -291,7 +296,7 @@
         </select>
       </div>
       
-      <div style="margin-top:15px; margin-bottom: 15px;">
+      <div style="margin-top:15px;">
         <label for="selectUnit">Qr code animation:</label>
         <select v-model="qrAnimation" @change="changeQrAnimation()">
           <option value="MaterializeIn">MaterializeIn</option>
@@ -300,6 +305,15 @@
           <option value="RadialRipple">RadialRipple</option>
           <option value="RadialRippleIn">RadialRippleIn</option>
           <option value="None">None</option>
+        </select>
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        <label for="dateFormat">Date format:</label>
+        <select v-model="dateFormat" @change="changeDateFormat()">
+          <option value="DD/MM/YY">DD/MM/YY</option>
+          <option value="MM/DD/YY">MM/DD/YY</option>
+          <option value="YY-MM-DD">YY-MM-DD</option>
         </select>
       </div>
     </div>

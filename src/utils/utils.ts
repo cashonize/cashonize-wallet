@@ -1,7 +1,7 @@
-import { type UtxoI } from "mainnet-js"
 import { hexToBin } from "@bitauth/libauth"
-import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames } from "../interfaces/interfaces"
 import { Notify } from "quasar";
+import type { UtxoI } from "mainnet-js"
+import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 
 export function copyToClipboard(copyText:string|undefined){
@@ -19,11 +19,30 @@ export function runAsyncVoid(fn: () => Promise<void>) {
   void fn();
 }
 
-export function formatTimestamp(timestamp?: number){
+export function formatTime(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
+export function formatTimestamp(timestamp: number | undefined, dateFormat: DateFormat, short = false): string {
   if (!timestamp) return "Unconfirmed";
   const date = new Date(timestamp * 1000);
-  const hoursAndMinutes = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  return date.toLocaleDateString() + ' ' + hoursAndMinutes
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = short ? date.getFullYear().toString().slice(-2) : date.getFullYear().toString();
+  const time = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+  let dateStr: string;
+  switch (dateFormat) {
+    case 'MM/DD/YY':
+      dateStr = `${month}/${day}/${year}`;
+      break;
+    case 'YY-MM-DD':
+      dateStr = `${year}-${month}-${day}`;
+      break;
+    default: // DD/MM/YY
+      dateStr = `${day}/${month}/${year}`;
+  }
+  return short ? dateStr : `${dateStr} ${time}`;
 }
 
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {

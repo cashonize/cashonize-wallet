@@ -1,8 +1,8 @@
 import { useWindowSize } from "@vueuse/core";
 import { Config } from "mainnet-js";
 import { defineStore } from "pinia"
-import { type QRCodeAnimationName } from "src/interfaces/interfaces";
 import { ref } from 'vue'
+import type { QRCodeAnimationName, DateFormat } from "src/interfaces/interfaces";
 
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
@@ -37,6 +37,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const hasSeedBackedUp = ref(false as boolean)
   const mintNfts = ref(false);
   const authchains = ref(false);
+  const dateFormat = ref<DateFormat>("DD/MM/YY");
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
@@ -113,6 +114,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readAuthchains = localStorage.getItem("authchains") ?? "";
   if(readAuthchains) authchains.value = readAuthchains == "true";
+
+  const readDateFormat = localStorage.getItem("dateFormat");
+  if(readDateFormat && (readDateFormat=="DD/MM/YY" || readDateFormat=="MM/DD/YY" || readDateFormat=="YY-MM-DD")) {
+    dateFormat.value = readDateFormat;
+  }
 
   // --- Auto-approve session logic ---
 
@@ -210,6 +216,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     hasSeedBackedUp,
     mintNfts,
     authchains,
+    dateFormat,
     getAutoApproveState,
     setAutoApproveState,
     clearAutoApproveState,

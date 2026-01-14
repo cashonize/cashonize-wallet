@@ -10,6 +10,8 @@ export const CurrencyShortNames = {
   eur: "EUR"
 } as const
 
+export type DateFormat = "DD/MM/YY" | "MM/DD/YY" | "YY-MM-DD";
+
 export type QRCodeAnimationName =
   | 'FadeInTopDown'
   | 'FadeInCenterOut'

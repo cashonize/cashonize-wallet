@@ -6,7 +6,7 @@
   import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import EmojiItem from '../general/emojiItem.vue';
-  import { formatTimestamp, formatFiatAmount } from 'src/utils/utils';
+  import { formatTimestamp, formatTime, formatFiatAmount } from 'src/utils/utils';
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -84,12 +84,12 @@
 
             <div class="tx-cell" v-if="isMobile">
               <div v-if="transaction.timestamp" style="line-height: 1.3">
-                <div>{{ new Date(transaction.timestamp * 1000).toLocaleDateString().replace("202", "2") }}</div>
-                <div>{{new Date(transaction.timestamp * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) }}</div>
+                <div>{{ formatTimestamp(transaction.timestamp, settingsStore.dateFormat, true) }}</div>
+                <div>{{ formatTime(transaction.timestamp) }}</div>
               </div>
               <div v-else>pending</div>
             </div>
-            <div class="tx-cell" v-else>{{ transaction.timestamp ? formatTimestamp(transaction.timestamp) : "Unconfirmed" }}</div>
+            <div class="tx-cell" v-else>{{ formatTimestamp(transaction.timestamp, settingsStore.dateFormat) }}</div>
 
             <div class="tx-cell value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
               {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toFixed(5)}`}}
