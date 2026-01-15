@@ -20,9 +20,14 @@
   const props = defineProps<{
     nftData: UtxoI,
     tokenMetaData: BcmrTokenMetadata | undefined,
-    id: string
+    id: string,
+    isSelected?: boolean
   }>()
   const { nftData, tokenMetaData, id } = toRefs(props);
+
+  const emit = defineEmits<{
+    'toggle-select': []
+  }>();
 
   const showNftImage = ref(false);
   const displaySendNft = ref(false);
@@ -320,7 +325,7 @@
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
 
         <div class="tokenBaseInfo">
-          <div class="tokenBaseInfo1">
+          <div>
             <div v-if="tokenName">Name: {{ tokenName }}</div>
             <div style="word-break: break-all;"> Commitment: {{ nftData?.token?.commitment ? nftData?.token?.commitment : "none"  }}</div>
           </div>
@@ -340,6 +345,9 @@
           <span @click="displayBurnNft = !displayBurnNft" v-if="settingsStore.tokenBurn" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             <span class="hidemobile">burn NFT</span>
+          </span>
+          <span @click="emit('toggle-select')" :class="{ 'nft-selected': isSelected }">
+            {{ isSelected ? 'selected ✓' : 'select' }}
           </span>
         </div>
         <div v-if="displayNftInfo" class="tokenAction">
@@ -403,3 +411,9 @@
     <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>
+
+<style scoped>
+.nft-selected {
+  color: var(--color-primary);
+}
+</style>

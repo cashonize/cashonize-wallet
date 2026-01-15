@@ -29,7 +29,7 @@
 
   const showNftImage = ref(false);
   const displaySendNft = ref(false);
-  const displaySendAllNfts = ref(false);
+  const displayBatchTransfer = ref(false);
   const displayMintNfts = ref(false);
   const displayBurnNft = ref(false);
   const displayAuthTransfer = ref(false);
@@ -45,6 +45,8 @@
   const totalNumberNFTs = ref(undefined as number | undefined);
   const hasMintingNFT = ref(undefined as boolean | undefined);
   const showQrCodeDialog = ref(false);
+  // Local state for batch NFT selection - keyed by "txid:vout"
+  const selectedNfts = ref(new Set<string>());
 
   let fetchedMetadataChildren = false
 
@@ -75,6 +77,35 @@
     if(isSingleNft.value) tokenName = nftMetadata.value?.name;
     return tokenName;
   })
+  const selectedNftCount = computed(() => selectedNfts.value.size);
+
+  function getNftKey(txid: string, vout: number) {
+    return `${txid}:${vout}`;
+  }
+
+  function isNftSelected(txid: string, vout: number) {
+    return selectedNfts.value.has(getNftKey(txid, vout));
+  }
+
+  function toggleNftSelection(txid: string, vout: number) {
+    const key = getNftKey(txid, vout);
+    if (selectedNfts.value.has(key)) {
+      selectedNfts.value.delete(key);
+    } else {
+      selectedNfts.value.add(key);
+    }
+    // Trigger reactivity
+    selectedNfts.value = new Set(selectedNfts.value);
+  }
+
+  function clearSelection() {
+    selectedNfts.value = new Set();
+  }
+
+  function selectAllNfts() {
+    const allKeys = tokenData.value.nfts?.map(nft => getNftKey(nft.txid, nft.vout)) ?? [];
+    selectedNfts.value = new Set(allKeys);
+  }
 
   onMounted(() => {
     const icon = createIcon({
@@ -120,8 +151,9 @@
     return true;
   }
   // NFT Group specific functionality
-  async function sendAllNfts(){
+  async function sendBatchNfts(){
     try{
+      if(selectedNftCount.value === 0) throw("No NFTs selected")
       if(!destinationAddr.value) throw("No destination address provided")
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
@@ -133,15 +165,18 @@
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
 
+      const tokenId = tokenData.value.tokenId;
+      const isAllSelected = selectedNftCount.value === tokenData.value.nfts?.length;
+      const nftCount = selectedNftCount.value;
+
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.tokenId.slice(0, 8)
-        const nftCount = tokenData.value.nfts?.length ?? 0
+        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenId.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
             title: 'Confirm NFT Transfer',
-            message: `Send all ${nftCount} ${tokenSymbol} NFTs to<br>${truncatedAddr}`,
+            message: `Send ${isAllSelected ? 'all ' : ''}${nftCount} ${tokenSymbol} NFTs to<br>${truncatedAddr}`,
             html: true,
             cancel: { flat: true, color: 'dark' },
             ok: { label: 'Confirm', color: 'primary', textColor: 'white' },
@@ -152,10 +187,13 @@
         if (!confirmed) return
       }
 
-      const tokenId = tokenData.value.tokenId;
-      const allNfts = tokenData.value.nfts;
+      // Get selected NFTs from the full list
+      const selectedNftsList = tokenData.value.nfts?.filter(nft =>
+        selectedNfts.value.has(getNftKey(nft.txid, nft.vout))
+      ) ?? [];
+
       const outputArray:TokenSendRequest[] = [];
-      allNfts?.forEach(nftItem => {
+      selectedNftsList.forEach(nftItem => {
         const nftCommitment = nftItem?.token?.commitment;
         const nftCapability = nftItem?.token?.capability;
         outputArray.push(
@@ -174,11 +212,13 @@
       })
       const { txId } = await store.wallet.send(outputArray);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = `Sent all NFTs of category  ${displayId} to ${destinationAddr.value}`
+      const alertMessage = isAllSelected
+        ? `Sent all NFTs of category ${displayId} to ${destinationAddr.value}`
+        : `Sent ${nftCount} NFTs of category ${displayId} to ${destinationAddr.value}`
       $q.dialog({
         component: alertDialog,
         componentProps: {
-          alertInfo: { message: alertMessage, txid: txId } 
+          alertInfo: { message: alertMessage, txid: txId }
         }
       })
       $q.notify({
@@ -188,7 +228,8 @@
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
       destinationAddr.value = "";
-      displaySendAllNfts.value = false;
+      displayBatchTransfer.value = false;
+      clearSelection();
       // update utxo list
       await store.updateWalletUtxos();
       // update wallet history as fire-and-forget promise
@@ -512,8 +553,15 @@
           <span @click="displayTokenInfo = !displayTokenInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
           </span>
-          <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displaySendAllNfts = !displaySendAllNfts" style="margin-left: 10px;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> transfer all </span>
+          <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayBatchTransfer = !displayBatchTransfer" style="margin-left: 10px;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> batch transfer{{ selectedNftCount > 0 ? ` (${selectedNftCount === tokenData.nfts?.length ? 'all' : selectedNftCount})` : '' }}
+          </span>
+          <span v-if="selectedNftCount > 0 || displayBatchTransfer" @click="selectAllNfts()" class="batch-action-btn">
+            all
+          </span>
+          <span v-if="selectedNftCount > 0 || displayBatchTransfer" @click="clearSelection()" class="batch-action-btn">
+            clear
+          </span>
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting' && settingsStore.mintNfts" @click="displayMintNfts = !displayMintNfts">
             <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> mint NFTs
           </span>
@@ -570,8 +618,8 @@
             <input @click="sendNft()" type="button" class="primaryButton" value="Send NFT">
           </div>
         </div>
-        <div v-if="displaySendAllNfts" class="tokenAction">
-          Send all {{ tokenData.nfts?.length }} NFTs of this category to
+        <div v-if="displayBatchTransfer" class="tokenAction">
+          Send {{ selectedNftCount === tokenData.nfts?.length ? `all ${selectedNftCount} NFTs of this category` : `${selectedNftCount} selected NFTs` }} to
           <div class="inputGroup">
             <div class="addressInputNftSend">
               <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
@@ -579,7 +627,7 @@
                 <img src="images/qrscan.svg" />
               </button>
             </div>
-            <input @click="sendAllNfts()" type="button" class="primaryButton" value="Transfer NFTs">
+            <input @click="sendBatchNfts()" type="button" class="primaryButton" value="Batch Transfer">
           </div>
         </div>
         <div v-if="displayMintNfts" class="tokenAction">
@@ -628,7 +676,13 @@
 
     <div v-if="displayChildNfts && (tokenData.nfts?.length ?? 0) > 1">
       <div v-for="(nft, index) in tokenData.nfts" :key="'nft'+tokenData.tokenId.slice(0,4) + index">
-        <nftChild :nftData="nft" :tokenMetaData="store.bcmrRegistries?.[tokenData.tokenId]" :id="'nft'+tokenData.tokenId.slice(0,4) + index"/>
+        <nftChild
+          :nftData="nft"
+          :tokenMetaData="store.bcmrRegistries?.[tokenData.tokenId]"
+          :id="'nft'+tokenData.tokenId.slice(0,4) + index"
+          :isSelected="isNftSelected(nft.txid, nft.vout)"
+          @toggle-select="toggleNftSelection(nft.txid, nft.vout)"
+        />
       </div>
     </div>
   </div>
@@ -636,3 +690,15 @@
     <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>
+
+<style scoped>
+.batch-action-btn {
+  margin-left: 10px;
+  color: #888;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+.batch-action-btn:hover {
+  color: var(--color-primary);
+}
+</style>
