@@ -54,6 +54,7 @@
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
   const enableAuthchains = ref(settingsStore.authchains);
+  const enableLoadTokenIcons = ref(settingsStore.loadTokenIcons);
 
   const utxosWithBchAndTokens = computed(() => {
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
@@ -267,6 +268,10 @@
       }
     }
   }
+  function changeLoadTokenIcons(){
+    localStorage.setItem("loadTokenIcons", enableLoadTokenIcons.value? "true" : "false");
+    settingsStore.loadTokenIcons = enableLoadTokenIcons.value;
+  }
 </script>
 
 <template>
@@ -451,14 +456,30 @@
 
         <div style="margin-top:15px">
           Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()" style="vertical-align: middle;display: inline-block;"/>
+          <div style="font-size: smaller; color: grey;">
+            Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category
+          </div>
         </div>
 
         <div style="margin-top:15px; margin-bottom: 15px">
           Enable authchain resolution <Toggle v-model="enableAuthchains" @change="changeAuthchains()" style="vertical-align: middle;display: inline-block;"/>
+          <div style="font-size: smaller; color: grey;">
+            Checks if you hold the AuthHead (authority to update token metadata) and enables transferring it
+          </div>
         </div>
 
         <div v-if="!isMobile" style="margin-top:15px; margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
           → Token Creation Page
+        </div>
+      </div>
+
+      <div style="margin-top:15px">Privacy:</div>
+      <div style="margin: 0px 10px;">
+        <div style="margin-top:15px; margin-bottom: 15px">
+          Load token icons <Toggle v-model="enableLoadTokenIcons" @change="changeLoadTokenIcons()" style="vertical-align: middle;display: inline-block;"/>
+          <div style="font-size: smaller; color: grey;">
+            Disabling this prevents loading images from untrusted sources
+          </div>
         </div>
       </div>
     </div>

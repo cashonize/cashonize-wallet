@@ -532,12 +532,12 @@
   <div :id="`id${tokenData.tokenId.slice(0, 10)}nft`" class="item">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <video v-if="httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
+        <video v-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
         </video>
-        <img v-else-if="httpsUrlTokenIcon && isSingleNft" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
-        <img v-else-if="httpsUrlTokenIcon && !isSingleNft" class="tokenIcon" width="48" height="48" loading="lazy" :src="httpsUrlTokenIcon">
-        <div v-else-if="!httpsUrlTokenIcon" id="genericTokenIcon" loading="lazy" class="tokenIcon"></div>
+        <img v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && isSingleNft" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
+        <img v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && !isSingleNft" class="tokenIcon" width="48" height="48" loading="lazy" :src="httpsUrlTokenIcon">
+        <div v-else id="genericTokenIcon" loading="lazy" class="tokenIcon"></div>
 
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">

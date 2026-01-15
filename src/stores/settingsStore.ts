@@ -39,6 +39,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const authchains = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false);
+  const loadTokenIcons = ref(true);
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
@@ -123,6 +124,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readConfirmBeforeSending = localStorage.getItem("confirmBeforeSending");
   if(readConfirmBeforeSending) confirmBeforeSending.value = readConfirmBeforeSending == "true";
+
+  const readLoadTokenIcons = localStorage.getItem("loadTokenIcons");
+  if(readLoadTokenIcons) loadTokenIcons.value = readLoadTokenIcons == "true";
 
   // --- Auto-approve session logic ---
 
@@ -222,6 +226,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     authchains,
     dateFormat,
     confirmBeforeSending,
+    loadTokenIcons,
     getAutoApproveState,
     setAutoApproveState,
     clearAutoApproveState,

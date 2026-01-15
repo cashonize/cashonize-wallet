@@ -119,7 +119,7 @@
                   </span>
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                   <img
-                    v-if="tokenChange.amount && store.bcmrRegistries?.[tokenChange.tokenId]"
+                    v-if="settingsStore.loadTokenIcons && tokenChange.amount && store.bcmrRegistries?.[tokenChange.tokenId]"
                     class="tokenIcon"
                     style="width: 28px; height: 28px; border-radius: 50%;"
                     :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
@@ -132,7 +132,7 @@
                     {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT
                   </span>
                   <img
-                    v-if="tokenChange.nftAmount && store.bcmrRegistries?.[tokenChange.tokenId]"
+                    v-if="settingsStore.loadTokenIcons && tokenChange.nftAmount && store.bcmrRegistries?.[tokenChange.tokenId]"
                     class="tokenIcon"
                     style="width: 28px; height: 28px; border-radius: 50%;"
                     :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
