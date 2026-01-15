@@ -136,8 +136,18 @@
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if(tokenData.value?.authUtxo){
-        const authWarning = "You risk unintentionally sending the authority to update this token's metadata elsewhere. \nAre you sure you want to send the transaction anyways?";
-        if(confirm(authWarning) != true) return;
+        const authConfirmed = await new Promise<boolean>((resolve) => {
+          $q.dialog({
+            title: 'Auth Warning',
+            message: 'You risk unintentionally sending the authority to update this token\'s metadata elsewhere.<br>Are you sure you want to send the transaction anyways?',
+            html: true,
+            cancel: { flat: true, color: 'dark' },
+            ok: { label: 'Continue', color: 'red', textColor: 'white' },
+            persistent: true
+          }).onOk(() => resolve(true))
+            .onCancel(() => resolve(false))
+        })
+        if (!authConfirmed) return
       }
 
       // confirm payment if setting is enabled
@@ -211,8 +221,20 @@
       if(amountTokensInt > tokenData.value.amount) throw(`Insufficient token balance`);
       const tokenId = tokenData.value.tokenId;
 
-      const burnWarning = `You are about to burn ${amountTokensInt} tokens, this can not be undone. \nAre you sure you want to burn the tokens?`;
-      if (confirm(burnWarning) != true) return;
+      const amountBurnFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
+      const tokenSymbol = tokenMetaData.value?.token?.symbol ?? 'tokens'
+      const confirmed = await new Promise<boolean>((resolve) => {
+        $q.dialog({
+          title: 'Burn Tokens',
+          message: `You are about to burn ${amountBurnFormatted} ${tokenSymbol}, this cannot be undone.<br>Are you sure you want to burn the tokens?`,
+          html: true,
+          cancel: { flat: true, color: 'dark' },
+          ok: { label: 'Burn', color: 'red', textColor: 'white' },
+          persistent: true
+        }).onOk(() => resolve(true))
+          .onCancel(() => resolve(false))
+      })
+      if (!confirmed) return
 
       $q.notify({
         spinner: true,

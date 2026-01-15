@@ -248,8 +248,18 @@
       const nftInfo = nftData.value.token as TokenI;
       const tokenId = nftInfo.tokenId;
       const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
-      const burnWarning = `You are about to burn ${nftTypeString}, this can not be undone. \nAre you sure you want to burn the NFT?`;
-      if (confirm(burnWarning) != true) return;
+      const confirmed = await new Promise<boolean>((resolve) => {
+        $q.dialog({
+          title: 'Burn NFT',
+          message: `You are about to burn ${nftTypeString}, this cannot be undone.<br>Are you sure you want to burn the NFT?`,
+          html: true,
+          cancel: { flat: true, color: 'dark' },
+          ok: { label: 'Burn', color: 'red', textColor: 'white' },
+          persistent: true
+        }).onOk(() => resolve(true))
+          .onCancel(() => resolve(false))
+      })
+      if (!confirmed) return
 
       $q.notify({
         spinner: true,

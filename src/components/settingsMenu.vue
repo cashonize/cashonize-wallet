@@ -2,6 +2,7 @@
   import Toggle from '@vueform/toggle'
   import EmojiItem from './general/emojiItem.vue'
   import { computed, ref } from 'vue'
+  import { useQuasar } from 'quasar'
   import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -9,6 +10,7 @@
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const $q = useQuasar()
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
@@ -178,11 +180,22 @@
     displaySeedphrase.value = !displaySeedphrase.value;
   }
   async function confirmDeleteWallet(){
-    let text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nAre you sure you want to delete it?`;
+    let text = `You are about to delete your Cashonize wallet info from this ${platformString}.<br>Are you sure you want to delete it?`;
     if (isPwaMode) {
-      text = `You are about to delete your Cashonize wallet info from this ${platformString}.\nThis will also delete the wallet from your browser!\nAre you sure you want to delete it?`;
+      text = `You are about to delete your Cashonize wallet info from this ${platformString}.<br>This will also delete the wallet from your browser!<br>Are you sure you want to delete it?`;
     }
-    if (confirm(text)){
+    const confirmed = await new Promise<boolean>((resolve) => {
+      $q.dialog({
+        title: 'Delete Wallet',
+        message: text,
+        html: true,
+        cancel: { flat: true, color: 'dark' },
+        ok: { label: 'Delete', color: 'red', textColor: 'white' },
+        persistent: true
+      }).onOk(() => resolve(true))
+        .onCancel(() => resolve(false))
+    })
+    if (confirmed) {
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
       indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
@@ -192,7 +205,7 @@
       clearMetadataCache()
       // remove 'seedBackedUp' state from localStorage, settings are still persisted after wallet deletion
       localStorage.removeItem("seedBackedUp")
-      location.reload(); 
+      location.reload();
     }
   }
   async function clearHistoryCache(){
