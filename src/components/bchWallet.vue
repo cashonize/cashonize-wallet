@@ -145,6 +145,25 @@
       }
       const decodedAddress = decodeCashAddress(destinationAddr.value)
       if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
+
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending) {
+        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
+        const fiatStr = currencySendAmount.value ? ` (${formatFiatAmount(currencySendAmount.value, settingsStore.currency)})` : ''
+        const confirmed = await new Promise<boolean>((resolve) => {
+          $q.dialog({
+            title: 'Confirm Payment',
+            message: `Send ${bchSendAmount.value?.toLocaleString("en-US")}${displayUnitLong.value}${fiatStr} to<br>${truncatedAddr}`,
+            html: true,
+            cancel: { flat: true, color: 'dark' },
+            ok: { label: 'Confirm', color: 'primary', textColor: 'white' },
+            persistent: true
+          }).onOk(() => resolve(true))
+            .onCancel(() => resolve(false))
+        })
+        if (!confirmed) return
+      }
+
       const sendBchOutput = {cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: settingsStore.bchUnit}
       $q.notify({
         spinner: true,

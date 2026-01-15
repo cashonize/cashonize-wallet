@@ -38,6 +38,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const mintNfts = ref(false);
   const authchains = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
+  const confirmBeforeSending = ref(false);
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
@@ -119,6 +120,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readDateFormat && (readDateFormat=="DD/MM/YY" || readDateFormat=="MM/DD/YY" || readDateFormat=="YY-MM-DD")) {
     dateFormat.value = readDateFormat;
   }
+
+  const readConfirmBeforeSending = localStorage.getItem("confirmBeforeSending");
+  if(readConfirmBeforeSending) confirmBeforeSending.value = readConfirmBeforeSending == "true";
 
   // --- Auto-approve session logic ---
 
@@ -217,6 +221,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     mintNfts,
     authchains,
     dateFormat,
+    confirmBeforeSending,
     getAutoApproveState,
     setAutoApproveState,
     clearAutoApproveState,

@@ -132,6 +132,26 @@
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
       if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending) {
+        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.tokenId.slice(0, 8)
+        const nftCount = tokenData.value.nfts?.length ?? 0
+        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
+        const confirmed = await new Promise<boolean>((resolve) => {
+          $q.dialog({
+            title: 'Confirm NFT Transfer',
+            message: `Send all ${nftCount} ${tokenSymbol} NFTs to<br>${truncatedAddr}`,
+            html: true,
+            cancel: { flat: true, color: 'dark' },
+            ok: { label: 'Confirm', color: 'primary', textColor: 'white' },
+            persistent: true
+          }).onOk(() => resolve(true))
+            .onCancel(() => resolve(false))
+        })
+        if (!confirmed) return
+      }
+
       const tokenId = tokenData.value.tokenId;
       const allNfts = tokenData.value.nfts;
       const outputArray:TokenSendRequest[] = [];
@@ -190,6 +210,25 @@
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens) throw(`Not a Token Address (should start with z...)`);
       if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending) {
+        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.tokenId.slice(0, 8)
+        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
+        const confirmed = await new Promise<boolean>((resolve) => {
+          $q.dialog({
+            title: 'Confirm NFT Send',
+            message: `Send ${tokenSymbol} NFT to<br>${truncatedAddr}`,
+            html: true,
+            cancel: { flat: true, color: 'dark' },
+            ok: { label: 'Confirm', color: 'primary', textColor: 'white' },
+            persistent: true
+          }).onOk(() => resolve(true))
+            .onCancel(() => resolve(false))
+        })
+        if (!confirmed) return
+      }
+
       const tokenId = tokenData.value.tokenId;
       const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
       $q.notify({

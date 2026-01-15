@@ -125,6 +125,7 @@
       checkValidTokenInput(sanitizedInput, decimals)
       const amountTokensNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
       const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
+      const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       if(amountTokensInt > tokenData.value.amount) throw(`Insufficient token balance`);
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
@@ -138,6 +139,25 @@
         const authWarning = "You risk unintentionally sending the authority to update this token's metadata elsewhere. \nAre you sure you want to send the transaction anyways?";
         if(confirm(authWarning) != true) return;
       }
+
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending) {
+        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.tokenId.slice(0, 8)
+        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
+        const confirmed = await new Promise<boolean>((resolve) => {
+          $q.dialog({
+            title: 'Confirm Token Send',
+            message: `Send ${amountSentFormatted} ${tokenSymbol} to<br>${truncatedAddr}`,
+            html: true,
+            cancel: { flat: true, color: 'dark' },
+            ok: { label: 'Confirm', color: 'primary', textColor: 'white' },
+            persistent: true
+          }).onOk(() => resolve(true))
+            .onCancel(() => resolve(false))
+        })
+        if (!confirmed) return
+      }
+
       const tokenId = tokenData.value.tokenId;
       $q.notify({
         spinner: true,
@@ -153,7 +173,6 @@
         }),
       ]);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const alertMessage = tokenMetaData.value?.token?.symbol ?
         `Sent ${amountSentFormatted} ${tokenMetaData.value.token.symbol} to ${destinationAddr.value}`
         : `Sent ${amountSentFormatted} fungible tokens of category ${displayId} to ${destinationAddr.value}`
