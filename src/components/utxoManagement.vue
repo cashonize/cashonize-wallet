@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed } from 'vue';
+  import { computed, ref } from 'vue';
   import { formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import { ExchangeRate, TokenSendRequest, type UtxoI } from 'mainnet-js';
   import EmojiItem from './general/emojiItem.vue';
@@ -9,6 +9,7 @@
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const activeAction = ref<'consolidating' | 'splitting' | null>(null);
 
   const exchangeRate = await ExchangeRate.get(settingsStore.currency, true)
 
@@ -23,6 +24,8 @@
   })
 
   async function consollidateBchUtxos() {
+    if (activeAction.value) return;
+    activeAction.value = 'consolidating';
     try{
       $q.notify({
         spinner: true,
@@ -47,11 +50,15 @@
         icon: 'warning',
         color: "red"
       })
+    } finally {
+      activeAction.value = null;
     }
   }
 
   async function splitBchFromTokenUtxos() {
+    if (activeAction.value) return;
     if(!utxosWithBchAndTokens.value || !store.walletUtxos) return
+    activeAction.value = 'splitting';
     try{
       const tokenUtxos = getTokenUtxos(store.walletUtxos);
       const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
@@ -67,7 +74,7 @@
         color: 'grey-5',
         timeout: 1000 * uniqueTokenIdsToSplit.size
       })
-      // splitBchFromTokenUtxos esentially sends all fungible tokens 
+      // splitBchFromTokenUtxos esentially sends all fungible tokens
       for(const uniqueTokenIdToSplit of uniqueTokenIdsToSplit) {
         const { txId } = await store.wallet.send([
           new TokenSendRequest({
@@ -94,6 +101,8 @@
         icon: 'warning',
         color: "red"
       })
+    } finally {
+      activeAction.value = null;
     }
   }
 </script>
@@ -107,7 +116,7 @@
     <div style="margin: 8px 0px;">
       <div>Some Dapps may ask you to consollidate your BCH UTXOs <br/>
         Easily combine the balance of all your BCH-only UTXOs to 1 UTXO:</div>
-      <input @click="consollidateBchUtxos()" type="button" class="primaryButton" style="margin-top: 8px;" value="Consolidate BCH">
+      <input @click="consollidateBchUtxos()" type="button" class="primaryButton" style="margin-top: 8px;" :value="activeAction === 'consolidating' ? 'Consolidating...' : 'Consolidate BCH'" :disabled="activeAction !== null">
     </div>
 
     <div style="margin-bottom: 8px;">Number of token UTXOs: {{ getTokenUtxos(store.walletUtxos as UtxoI[]).length }}</div>
@@ -147,7 +156,7 @@
       <div>
         <span style="color: orange;">Important:</span> Split {{ satsToBch(satsToSplit) }} BCH 
         ({{ formatFiatAmount(exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }}) from Token UTXOs:</div>
-      <input @click="splitBchFromTokenUtxos()" type="button" class="secondaryButton" style="margin-top: 8px; background-color: orange; color:white" value="Split BCH from Tokens">
+      <input @click="splitBchFromTokenUtxos()" type="button" class="secondaryButton" style="margin-top: 8px; background-color: orange; color:white" :value="activeAction === 'splitting' ? 'Splitting...' : 'Split BCH from Tokens'" :disabled="activeAction !== null">
     </div>
   </fieldset>
   

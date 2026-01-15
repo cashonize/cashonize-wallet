@@ -17,8 +17,11 @@
 
   const privateKeyToSweep = ref(props.wif ?? "");
   const showQrCodeDialog = ref(false);
+  const isSweeping = ref(false);
 
   async function sweep(){
+    if (isSweeping.value) return;
+    isSweeping.value = true;
     try {
       if(!privateKeyToSweep.value) {
         throw new Error("No private key WIF provided to sweep");
@@ -46,6 +49,8 @@
       void store.updateWalletHistory();
     } catch (error) {
       displayAndLogError(error);
+    } finally {
+      isSweeping.value = false;
     }
   }
 
@@ -81,7 +86,7 @@
           <img src="images/qrscan.svg" />
       </button>
     </div>
-    <input @click="sweep()" type="button" class="primaryButton" value="Sweep" style="margin-top: 8px;">
+    <input @click="sweep()" type="button" class="primaryButton" :value="isSweeping ? 'Sweeping...' : 'Sweep'" style="margin-top: 8px;" :disabled="isSweeping">
   </fieldset>
   <div v-if="showQrCodeDialog">
     <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>

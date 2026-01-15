@@ -47,6 +47,7 @@
   const showQrCodeDialog = ref(false);
   // Local state for batch NFT selection - keyed by "txid:vout"
   const selectedNfts = ref(new Set<string>());
+  const activeAction = ref<'sending' | 'minting' | 'burning' | 'transferAuth' | null>(null);
 
   let fetchedMetadataChildren = false
 
@@ -152,6 +153,8 @@
   }
   // NFT Group specific functionality
   async function sendBatchNfts(){
+    if (activeAction.value) return;
+    activeAction.value = 'sending';
     try{
       if(selectedNftCount.value === 0) throw("No NFTs selected")
       if(!destinationAddr.value) throw("No destination address provided")
@@ -236,10 +239,14 @@
       void store.updateWalletHistory();
     }catch(error){
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   // single NFT specific functionality
   async function sendNft(){
+    if (activeAction.value) return;
+    activeAction.value = 'sending';
     try{
       if(!destinationAddr.value) throw("No destination address provided")
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
@@ -308,16 +315,20 @@
       void store.updateWalletHistory();
     }catch(error){
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
 
   async function mintNfts() {
+    if (activeAction.value) return;
     const tokenId = tokenData.value.tokenId;
     const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
     const tokenAddr = store.wallet.tokenaddr;
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
+    activeAction.value = 'minting';
     try {
       if(!nftInfo) return;
       // mint amount should always be provided
@@ -390,9 +401,13 @@
       void store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   async function burnNft() {
+    if (activeAction.value) return;
+    activeAction.value = 'burning';
     try {
       if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
 
@@ -446,12 +461,16 @@
       void store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   async function transferAuth() {
+    if (activeAction.value) return;
     if(!tokenData.value?.authUtxo) return;
     const tokenId = tokenData.value.tokenId;
     const authNft = tokenData.value.authUtxo?.token;
+    activeAction.value = 'transferAuth';
     try {
       const authTransfer = {
         cashaddr: destinationAddr.value,
@@ -491,8 +510,10 @@
       await store.updateWalletUtxos();
       // update wallet history as fire-and-forget promise
       void store.updateWalletHistory();
-    } catch (error) { 
+    } catch (error) {
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
 
@@ -615,7 +636,7 @@
                 <img src="images/qrscan.svg" />
               </button>
             </div>
-            <input @click="sendNft()" type="button" class="primaryButton" value="Send NFT">
+            <input @click="sendNft()" type="button" class="primaryButton" :value="activeAction === 'sending' ? 'Sending...' : 'Send NFT'" :disabled="activeAction !== null">
           </div>
         </div>
         <div v-if="displayBatchTransfer" class="tokenAction">
@@ -627,7 +648,7 @@
                 <img src="images/qrscan.svg" />
               </button>
             </div>
-            <input @click="sendBatchNfts()" type="button" class="primaryButton" value="Batch Transfer">
+            <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? 'Sending...' : 'Batch Transfer'" :disabled="activeAction !== null">
           </div>
         </div>
         <div v-if="displayMintNfts" class="tokenAction">
@@ -650,21 +671,21 @@
           </p>
           <span class="grouped">
             <input v-model="destinationAddr" placeholder="destinationAddress"> 
-            <input @click="mintNfts()" type="button" value="Mint NFTs" class="primaryButton">
+            <input @click="mintNfts()" type="button" :value="activeAction === 'minting' ? 'Minting...' : 'Mint NFTs'" class="primaryButton" :disabled="activeAction !== null">
           </span>
         </div>
         <div v-if="displayBurnNft" class="tokenAction">
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'">Burn this NFT so no new NFTs of this category can be minted</span>
           <span v-else>Burning this NFT to remove it from your wallet forever</span>
           <br>
-          <input @click="burnNft()" type="button" value="burn NFT" class="button error">
+          <input @click="burnNft()" type="button" :value="activeAction === 'burning' ? 'Burning...' : 'burn NFT'" class="button error" :disabled="activeAction !== null">
         </div>
         <div v-if="displayAuthTransfer" class="tokenAction">
           Transfer the authority to change the token's metadata to another wallet <br>
           You can either transfer the Auth to a dedicated wallet or to the <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>.<br>
           <span class="grouped" style="margin-top: 10px;">
             <input v-model="destinationAddr" placeholder="destinationAddress"> 
-            <input @click="transferAuth()" type="button" value="Transfer Auth" class="primaryButton">
+            <input @click="transferAuth()" type="button" :value="activeAction === 'transferAuth' ? 'Transferring Auth...' : 'Transfer Auth'" class="primaryButton" :disabled="activeAction !== null">
           </span>
         </div>
       </div>

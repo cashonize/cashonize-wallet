@@ -41,6 +41,7 @@
   const mintAmountNfts = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
   const showQrCodeDialog = ref(false);
+  const activeAction = ref<'sending' | 'minting' | 'burning' | null>(null);
 
   const nftMetadata = computed(() => {
     const commitment = nftData.value?.token?.commitment;
@@ -93,6 +94,8 @@
     return true;
   }
   async function sendNft(){
+    if (activeAction.value) return;
+    activeAction.value = 'sending';
     try{
       if(!destinationAddr.value) throw("No destination address provided")
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
@@ -162,16 +165,20 @@
       void store.updateWalletHistory();
     }catch(error){
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
 
   async function mintNfts() {
+    if (activeAction.value) return;
     const nftInfo = nftData.value.token as TokenI;
     const tokenId = nftInfo.tokenId;
     const tokenAddr = store.wallet.tokenaddr;
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
+    activeAction.value = 'minting';
     try {
       if(!nftInfo) return;
       // mint amount should always be provided
@@ -244,9 +251,13 @@
       void store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   async function burnNft() {
+    if (activeAction.value) return;
+    activeAction.value = 'burning';
     try {
       if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       
@@ -300,6 +311,8 @@
       void store.updateWalletHistory();
     } catch (error) {
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
 
@@ -369,7 +382,7 @@
                 <img src="images/qrscan.svg" />
               </button>
             </div>
-            <input @click="sendNft()" type="button" class="primaryButton" value="Send NFT">
+            <input @click="sendNft()" type="button" class="primaryButton" :value="activeAction === 'sending' ? 'Sending...' : 'Send NFT'" :disabled="activeAction !== null">
           </div>
         </div>
         <div v-if="displayMintNfts" class="tokenAction">
@@ -392,14 +405,14 @@
           </p>
           <span class="grouped">
             <input v-model="destinationAddr" placeholder="destinationAddress"> 
-            <input @click="mintNfts()" type="button" value="Mint NFTs">
+            <input @click="mintNfts()" type="button" :value="activeAction === 'minting' ? 'Minting...' : 'Mint NFTs'" :disabled="activeAction !== null">
           </span>
         </div>
         <div v-if="displayBurnNft" class="tokenAction">
           <span v-if="nftData?.token?.capability == 'minting'">Burn this NFT so no new NFTs of this category can be minted</span>
           <span v-else>Burning this NFT to remove it from your wallet forever</span>
           <br>
-          <input @click="burnNft()" type="button" value="burn NFT" class="button error">
+          <input @click="burnNft()" type="button" :value="activeAction === 'burning' ? 'Burning...' : 'burn NFT'" class="button error" :disabled="activeAction !== null">
         </div>
       </div>
     </fieldset>

@@ -19,9 +19,14 @@
   const selectedUri = ref("-select-");
   const inputBcmr = ref("");
   const validitityCheck = ref(undefined as boolean | undefined);
-  const displayPlannedTokenId = computed(() => store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-8)}`:"");
+  const displayPlannedTokenId = computed(() =>
+    store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-8)}` : ""
+  );
+  const activeAction = ref<'creatingPreGenesis' | 'creatingFungibles' | 'creatingMintingNFT' | null>(null);
 
   async function createPreGenesis(){
+    if (activeAction.value) return;
+    activeAction.value = 'creatingPreGenesis';
     try{
       store.plannedTokenId = undefined;
       const walletAddr = store.wallet.cashaddr;
@@ -44,6 +49,8 @@
       void store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
 
@@ -81,12 +88,14 @@
   }
   
   async function createFungibles(){
+    if (activeAction.value) return;
     const validInput = isValidBigInt(inputFungibleSupply.value) && +inputFungibleSupply.value > 0;
     function isValidBigInt(value:string) {
       try { return BigInt(value) }
       catch{ return false }
     }
     if(!validInput) throw(`Input total supply must be a valid integer`)
+    activeAction.value = 'creatingFungibles';
     try{
       const totalSupply = inputFungibleSupply.value;
       const opreturnData = await getOpreturnData();
@@ -101,7 +110,7 @@
           cashaddr: store.wallet.tokenaddr,
           amount: BigInt(totalSupply),    // fungible token amount
           value: 1000,                    // Satoshi value
-        } as TokeneGenesisRequestParams, 
+        } as TokeneGenesisRequestParams,
         opreturnData
       );
       const tokenId = genesisResponse?.tokenIds?.[0];
@@ -129,9 +138,13 @@
       void store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   async function createMintingNFT(){
+    if (activeAction.value) return;
+    activeAction.value = 'creatingMintingNFT';
     try{
       const opreturnData = await getOpreturnData();
       $q.notify({
@@ -146,7 +159,7 @@
           commitment: "",
           capability: "minting",
           value: 1000,
-        } as TokeneGenesisRequestParams, 
+        } as TokeneGenesisRequestParams,
         opreturnData
       );
       const tokenId = genesisResponse?.tokenIds?.[0];
@@ -173,6 +186,8 @@
       void store.updateWalletHistory();
     } catch(error){
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
 
@@ -200,7 +215,15 @@
       <div style="margin-bottom: 1em;">
         <div v-if="store.plannedTokenId == ''">
           Currently the wallet does not have any UTXOs capable of token creation. <br>
-          <a @click="createPreGenesis" style="cursor: pointer;">Click here</a> to prepare a UTXO for token-creation.
+          Prepare a UTXO for token-creation:
+          <input
+            @click="createPreGenesis"
+            type="button"
+            class="primaryButton"
+            :value="activeAction === 'creatingPreGenesis' ? 'Preparing...' : 'Prepare UTXO'"
+            :disabled="activeAction !== null"
+            style="margin-top: 8px;"
+          >
         </div>
         <div v-else>
            Planned tokenId:
@@ -290,7 +313,7 @@
           To use this functionality toggle "Enable authchain resolution" in the developer settings.
           Transfer the AuthUTXO to a dedicated wallet right after creation.
         </div>
-        <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" value="Create" style="margin: 8px 0;">
+        <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" :value="activeAction === 'creatingFungibles' ? 'Creating Tokens...' : (activeAction === 'creatingMintingNFT' ? 'Creating NFT...' : 'Create')" style="margin: 8px 0;" :disabled="activeAction !== null">
       </div>
     </fieldset>
 </div></template>

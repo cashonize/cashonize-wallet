@@ -30,6 +30,7 @@
   const currencySendAmount = ref(undefined as (number | undefined));
   const destinationAddr = ref("");
   const showQrCodeDialog = ref(false);
+  const isSending = ref(false);
   // We keep the <qr-code> element in a ref so that we can call animateQrCode on codeRendered()
   // This event handler calls the animation after rendering the qr-code web component
   // Consecutive animations are only triggered when addressQrcode changes as reactive property of the qr-code
@@ -134,6 +135,8 @@
     }
   }
   async function sendBch(){
+    if (isSending.value) return;
+    isSending.value = true;
     try{
       // check for valid inputs
       if(!destinationAddr.value) throw("No destination address provided")
@@ -200,6 +203,8 @@
         icon: 'warning',
         color: "red"
       })
+    } finally {
+      isSending.value = false;
     }
   }
 
@@ -296,7 +301,7 @@
       <div v-if="(store.maxAmountToSend?.[settingsStore.bchUnit] ?? 0) < (bchSendAmount ?? 0)" style="color: red;">Not enough BCH in wallet to send</div>
       
     </div>
-    <input @click="sendBch()" type="button" class="primaryButton" value="Send" style="margin-top: 8px;">
+    <input @click="sendBch()" type="button" class="primaryButton" :value="isSending ? 'Sending...' : 'Send'" :disabled="isSending" style="margin-top: 8px;">
   </fieldset>
   <div v-if="showQrCodeDialog">
     <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>

@@ -37,6 +37,7 @@
   const totalSupplyFT = ref(undefined as bigint | undefined);
   const reservedSupply = ref(undefined as bigint | undefined);
   const showQrCodeDialog = ref(false);
+  const activeAction = ref<'sending' | 'burning' | 'transferAuth' | null>(null);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
 
@@ -116,6 +117,8 @@
     targetState.value = numberFormatter.format(amountTokens);
   }
   async function sendTokens(){
+    if (activeAction.value) return;
+    activeAction.value = 'sending';
     try{
       if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       if(!destinationAddr.value) throw("No destination address provided")
@@ -207,9 +210,13 @@
       void store.updateWalletHistory();
     }catch(error){
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   async function burnFungibles(){
+    if (activeAction.value) return;
+    activeAction.value = 'burning';
     try {
       if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
       if(!burnAmountFTs?.value) throw(`Amount tokens to burn must be a valid integer`);
@@ -271,9 +278,12 @@
       await store.updateWalletUtxos();
     } catch (error) {
       handleTransactionError(error)
+    } finally {
+      activeAction.value = null;
     }
   }
   async function transferAuth() {
+    if (activeAction.value) return;
     if(!tokenData.value?.authUtxo) return;
     if(!reservedSupplyInput?.value) throw(`Amount tokens for reserved supply must be a valid integer`);
     const decimals = tokenMetaData.value?.token?.decimals ?? 0;
@@ -283,6 +293,7 @@
     const reservedSupply = typeof reservedSupplyNumber == "number" ? BigInt(Math.round(reservedSupplyNumber)): BigInt(reservedSupplyNumber)
     if(reservedSupply > tokenData.value.amount) throw(`Insufficient token balance`);
     const tokenId = tokenData.value.tokenId;
+    activeAction.value = 'transferAuth';
     try {
       const authTransfer = !reservedSupply? {
         cashaddr: destinationAddr.value,
@@ -330,8 +341,10 @@
       await store.updateWalletUtxos();
       // update wallet history as fire-and-forget promise
       void store.updateWalletHistory();
-    } catch (error) { 
+    } catch (error) {
       handleTransactionError(error);
+    } finally {
+      activeAction.value = null;
     }
   }
 
@@ -457,7 +470,7 @@
               <button @click="maxTokenAmount(true)" style="color: black;">max</button>
             </div>
           </div>
-          <input @click="sendTokens()" type="button" class="primaryButton" value="Send">
+          <input @click="sendTokens()" type="button" class="primaryButton" :value="activeAction === 'sending' ? 'Sending...' : 'Send'" :disabled="activeAction !== null">
         </div>
         <div v-if="displayBurnFungibles" class="tokenAction">
           <div>Burning tokens removes them from the supply forever</div>
@@ -470,7 +483,7 @@
             </span>
             <button @click="maxTokenAmount(false)" style="color: black;">max</button>
           </div>
-          <input @click="burnFungibles()" type="button" value="burn tokens" class="button error" style="margin-top: 10px;">
+          <input @click="burnFungibles()" type="button" :value="activeAction === 'burning' ? 'Burning...' : 'burn tokens'" class="button error" style="margin-top: 10px;" :disabled="activeAction !== null">
         </div>
         <div v-if="displayAuthTransfer" class="tokenAction">
           Transfer the authority to change the token's metadata <br>
@@ -485,7 +498,7 @@
               </i>
             </span>
           </span>
-          <input @click="transferAuth()" type="button" class="primaryButton" value="Transfer Auth"  style="margin-top: 10px;">
+          <input @click="transferAuth()" type="button" class="primaryButton" :value="activeAction === 'transferAuth' ? 'Transferring Auth...' : 'Transfer Auth'" style="margin-top: 10px;" :disabled="activeAction !== null">
         </div>
       </div>
     </fieldset>
