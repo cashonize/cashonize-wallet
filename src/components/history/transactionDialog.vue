@@ -7,7 +7,7 @@
   import { convert, type TransactionHistoryItem } from 'mainnet-js';
   import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols, type TokenDataNFT } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
-  import { formatTimestamp, satsToBch } from 'src/utils/utils';
+  import { formatTimestamp, formatRelativeTime, satsToBch } from 'src/utils/utils';
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -108,18 +108,18 @@
             </span>
           </div>
           <div>
-            Status: 
+            Status:
               <span v-if="historyItem.timestamp === undefined">unconfirmed</span>
               <span v-else>{{ store.currentBlockHeight as number - historyItem.blockHeight }} confirmations
                 (mined in block #{{ historyItem.blockHeight.toLocaleString("en-US") }})
               </span>
           </div>
           <div v-if="historyItem.timestamp">
-            Date: 
-              <span>{{ formatTimestamp(historyItem.timestamp, settingsStore.dateFormat) }}</span>
+            Date:
+              <span>{{ formatTimestamp(historyItem.timestamp, settingsStore.dateFormat) }} ({{ formatRelativeTime(historyItem.timestamp) }})</span>
           </div>
           <div>
-            Balance change: 
+            Balance change:
               <span>{{ satsToBch(historyItem.valueChange) }} {{ bchDisplayUnit }}</span>
           </div>
           <div>

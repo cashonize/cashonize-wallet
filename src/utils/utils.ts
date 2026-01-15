@@ -25,6 +25,32 @@ export function formatTime(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
+export function formatRelativeTime(timestamp: number): string {
+  const now = Math.floor(Date.now() / 1000);
+  const diff = now - timestamp;
+
+  if (diff < 60) return `${diff} seconds ago`;
+  if (diff < 3600) {
+    const mins = Math.floor(diff / 60);
+    return `${mins} minute${mins !== 1 ? 's' : ''} ago`;
+  }
+  if (diff < 86400) {
+    const hours = Math.floor(diff / 3600);
+    return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  }
+  if (diff < 2592000) { // less than 30 days
+    const days = Math.floor(diff / 86400);
+    return `${days} day${days !== 1 ? 's' : ''} ago`;
+  }
+  // months and days
+  const months = Math.floor(diff / 2592000);
+  const remainingDays = Math.floor((diff % 2592000) / 86400);
+  if (remainingDays === 0) {
+    return `${months}mo ago`;
+  }
+  return `${months}mo, ${remainingDays}d ago`;
+}
+
 export function formatTimestamp(timestamp: number | undefined, dateFormat: DateFormat, short = false): string {
   if (!timestamp) return "Unconfirmed";
   const date = new Date(timestamp * 1000);
