@@ -14,6 +14,12 @@
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
+  const derivationPathNote = computed(() => {
+    const path = store.wallet.derivationPath;
+    if (path === "m/44'/145'/0'/0/0") return "BCH standard";
+    if (path === "m/44'/0'/0'/0/0") return "legacy, Bitcoin.com wallet compatible";
+    return "custom";
+  })
 
   const isBrowser = (process.env.MODE == "spa");
   const isDesktop = (process.env.MODE == "electron");
@@ -179,6 +185,27 @@
     localStorage.setItem("seedBackedUp", "true");
     displaySeedphrase.value = !displaySeedphrase.value;
   }
+  async function copySeedphrase(){
+    const confirmed = await new Promise<boolean>((resolve) => {
+      $q.dialog({
+        title: 'Copy Seed Phrase',
+        message: 'Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.<br>You can clear your clipboard afterwards by copying something else.',
+        html: true,
+        cancel: { flat: true, color: 'dark' },
+        ok: { label: 'Copy', color: 'primary', textColor: 'white' },
+        persistent: true
+      }).onOk(() => resolve(true))
+        .onCancel(() => resolve(false))
+    })
+    if (!confirmed) return
+    void navigator.clipboard.writeText(store.wallet.mnemonic);
+    $q.notify({
+      message: "Seed phrase copied to clipboard",
+      icon: 'info',
+      timeout: 2000,
+      color: "grey-6"
+    })
+  }
   async function confirmDeleteWallet(){
     let text = `You are about to delete your Cashonize wallet info from this ${platformString}.<br>Are you sure you want to delete it?`;
     if (isPwaMode) {
@@ -265,16 +292,23 @@
         <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
           :value="displaySeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
         >
-        <div v-if="displaySeedphrase" @click="copyToClipboard(store.wallet.mnemonic)" style="cursor: pointer;">
-          {{ store.wallet.mnemonic }}
-        </div>
-        <br>
-        <div style="margin-bottom:15px;">
-          Derivation path of this wallet is 
-          <span @click="copyToClipboard(store.wallet.derivationPath)" style="cursor: pointer;">
-            {{ store.wallet.derivationPath }}
-            ({{ store.wallet.derivationPath == "m/44'/145'/0'/0/0" ? "default on BCH" : "custom, non-default" }})
+        <div v-if="displaySeedphrase" class="seedphrase-container">
+          <span v-for="(word, index) in store.wallet.mnemonic.split(' ')" :key="index" class="seedphrase-word">
+            <span class="seedphrase-number">{{ index + 1 }}</span>{{ word }}
           </span>
+        </div>
+        <button v-if="displaySeedphrase" @click="copySeedphrase" class="seedphrase-copy-btn">
+          Copy Seed Phrase
+        </button>
+        <div class="derivation-section">
+          <div class="derivation-label">
+            Derivation path
+            <span class="derivation-note">({{ derivationPathNote }})</span>
+          </div>
+          <div class="derivation-container" @click="copyToClipboard(store.wallet.derivationPath)">
+            <span class="derivation-path">{{ store.wallet.derivationPath }}</span>
+            <img class="copyIcon" src="images/copyGrey.svg">
+          </div>
         </div>
     </div>
     <div v-else-if="displaySettingsMenu == 2">
@@ -495,5 +529,82 @@
 <style scoped>
 .nowrap {
   white-space: nowrap;
+}
+.seedphrase-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 16px;
+  margin-top: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+@media (min-width: 600px) {
+  .seedphrase-container {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 600px;
+  }
+}
+body.dark .seedphrase-container {
+  background-color: #1a1a2e;
+}
+.seedphrase-word {
+  font-family: monospace;
+  font-size: 14px;
+  padding: 6px 8px;
+  background-color: white;
+  border-radius: 4px;
+  text-align: center;
+}
+body.dark .seedphrase-word {
+  background-color: #0f0f1a;
+}
+.seedphrase-number {
+  color: #888;
+  font-size: 11px;
+  margin-right: 4px;
+}
+.seedphrase-copy-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background-color: #e0e0e0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+body.dark .seedphrase-copy-btn {
+  background-color: #2a2a3e;
+  color: #f5f5f5;
+}
+.derivation-section {
+  margin-top: 24px;
+  margin-bottom: 15px;
+}
+.derivation-label {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.derivation-note {
+  font-size: 12px;
+  color: #888;
+  font-weight: normal;
+}
+.derivation-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  max-width: fit-content;
+  cursor: pointer;
+}
+body.dark .derivation-container {
+  background-color: #1a1a2e;
+}
+.derivation-path {
+  font-family: monospace;
+  font-size: 14px;
 }
 </style>
