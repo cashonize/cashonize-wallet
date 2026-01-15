@@ -50,6 +50,7 @@
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
   const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
   const selectedChaingraph = ref(settingsStore.chaingraph);
+  const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
@@ -148,6 +149,11 @@
   function changeChaingraph(){
     settingsStore.chaingraph = selectedChaingraph.value
     localStorage.setItem("chaingraph", selectedChaingraph.value);
+  }
+  function changeExchangeRateProvider(){
+    settingsStore.exchangeRateProvider = selectedExchangeRateProvider.value;
+    settingsStore.configureExchangeRateProvider(selectedExchangeRateProvider.value);
+    localStorage.setItem("exchangeRateProvider", selectedExchangeRateProvider.value);
   }
   function changeDarkMode(){
     settingsStore.darkMode = selectedDarkMode.value;
@@ -346,6 +352,9 @@
         <select v-model="selectedCurrency" @change="changeCurrency()">
           <option value="usd">USD</option>
           <option value="eur">EUR</option>
+          <option value="gbp">GBP</option>
+          <option value="cad">CAD</option>
+          <option value="aud">AUD</option>
         </select>
       </div>
 
@@ -417,6 +426,14 @@
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph (default)</option>
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
+        </select>
+      </div>
+
+      <div style="margin-top:15px">
+        <label for="selectExchangeRate">Exchange rate provider:</label>
+        <select v-model="selectedExchangeRateProvider" @change="changeExchangeRateProvider()">
+          <option value="default">Default (bitcoin.com for USD, BitPay for rest)</option>
+          <option value="bitpay">BitPay only</option>
         </select>
       </div>
 

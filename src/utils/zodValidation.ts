@@ -109,3 +109,13 @@ const ErrorSchema = z.object({
 export type BcmrTokenResponse = z.infer<typeof BcmrTokenResponseSchema>;
 export const BcmrIndexerResponseSchema = z.union([BcmrTokenResponseSchema, ErrorSchema]);
 export type BcmrIndexerResponse = z.infer<typeof BcmrIndexerResponseSchema>;
+
+
+/* BitpayRatesSchema */
+
+export const BitpayRatesSchema = z.object({
+  data: z.array(z.object({
+    code: z.string(),
+    rate: z.number()
+  }))
+});

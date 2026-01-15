@@ -2,15 +2,25 @@ import type { UtxoI, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest,
 
 export const CurrencySymbols = {
   usd: "$",
-  eur: "€"
+  eur: "€",
+  gbp: "£",
+  cad: "C$",
+  aud: "A$"
 } as const
 
 export const CurrencyShortNames = {
   usd: "USD",
-  eur: "EUR"
+  eur: "EUR",
+  gbp: "GBP",
+  cad: "CAD",
+  aud: "AUD"
 } as const
 
+export type Currency = keyof typeof CurrencySymbols;
+
 export type DateFormat = "DD/MM/YY" | "MM/DD/YY" | "YY-MM-DD";
+
+export type ExchangeRateProvider = "default" | "bitpay";
 
 export type QRCodeAnimationName =
   | 'FadeInTopDown'

@@ -2,7 +2,9 @@ import { useWindowSize } from "@vueuse/core";
 import { Config } from "mainnet-js";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
-import type { QRCodeAnimationName, DateFormat } from "src/interfaces/interfaces";
+import { BitpayRatesSchema } from "src/utils/zodValidation";
+import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
+import { CurrencySymbols } from "src/interfaces/interfaces";
 
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
@@ -17,7 +19,7 @@ const isMobileDevice = width.value / height.value < 1.5
 
 export const useSettingsStore = defineStore('settingsStore', () => {
   // Global settings
-  const currency = ref("usd" as ("usd" | "eur"));
+  const currency = ref<Currency>("usd");
   const bchUnit = ref("bch" as ("bch" | "sat"));
   const explorerMainnet = ref(defaultExplorerMainnet);
   const explorerChipnet = ref(defaultExplorerChipnet);
@@ -40,11 +42,12 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false);
   const loadTokenIcons = ref(true);
+  const exchangeRateProvider = ref<ExchangeRateProvider>("default");
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
-  if(readCurrency && (readCurrency=="usd" || readCurrency=="eur")) {
-    currency.value = readCurrency;
+  if(readCurrency && readCurrency in CurrencySymbols) {
+    currency.value = readCurrency as Currency;
     Config.DefaultCurrency = readCurrency;
   }
 
@@ -127,6 +130,41 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readLoadTokenIcons = localStorage.getItem("loadTokenIcons");
   if(readLoadTokenIcons) loadTokenIcons.value = readLoadTokenIcons == "true";
+
+  // --- Exchange rate provider configuration ---
+
+  const BITPAY_RATES_API = "https://bitpay.com/rates/BCH";
+
+  async function getExchangeRateBitpay(symbol: string): Promise<number> {
+    const response = await fetch(BITPAY_RATES_API);
+    const json = await response.json();
+    const parseResult = BitpayRatesSchema.safeParse(json);
+    if (!parseResult.success) {
+      console.error(`BitPay rates response validation error: ${parseResult.error.message}`);
+      throw Error("BitPay rates response validation error");
+    }
+    const normalizedSymbol = symbol.toLowerCase();
+    const match = parseResult.data.data.find(rate => rate.code.toLowerCase() === normalizedSymbol);
+    if (match) {
+      return match.rate;
+    }
+    throw Error(`Currency '${symbol}' is not supported.`);
+  }
+
+  function configureExchangeRateProvider(provider: ExchangeRateProvider) {
+    if (provider === "bitpay") {
+      Config.GetExchangeRateFn = getExchangeRateBitpay;
+    } else {
+      // "default" - use mainnet-js default behavior
+      Config.GetExchangeRateFn = undefined;
+    }
+  }
+
+  const readExchangeRateProvider = localStorage.getItem("exchangeRateProvider");
+  if (readExchangeRateProvider && (readExchangeRateProvider === "default" || readExchangeRateProvider === "bitpay")) {
+    exchangeRateProvider.value = readExchangeRateProvider;
+  }
+  configureExchangeRateProvider(exchangeRateProvider.value);
 
   // --- Auto-approve session logic ---
 
@@ -227,6 +265,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     dateFormat,
     confirmBeforeSending,
     loadTokenIcons,
+    exchangeRateProvider,
+    configureExchangeRateProvider,
     getAutoApproveState,
     setAutoApproveState,
     clearAutoApproveState,
