@@ -92,7 +92,7 @@
             <div class="tx-cell" v-else>{{ formatTimestamp(transaction.timestamp, settingsStore.dateFormat) }}</div>
 
             <div class="tx-cell value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
-              {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toFixed(5)}`}}
+              {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5})}`}}
               {{ hideUnit ? "" : bchDisplayUnit }}
               <div v-if="settingsStore.showFiatValueHistory">
                 ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency)}})
@@ -100,7 +100,7 @@
             </div>
 
             <div class="tx-cell value">
-              {{ (transaction.balance / 100_000_000).toFixed(5) }}
+              {{ (transaction.balance / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5}) }}
               {{ hideUnit ? "" : bchDisplayUnit }}
               <div v-if="settingsStore.showFiatValueHistory">
                 ~{{formatFiatAmount(exchangeRate * transaction.balance / 100_000_000, settingsStore.currency) }}
