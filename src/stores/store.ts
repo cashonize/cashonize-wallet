@@ -103,9 +103,9 @@ export const useStore = defineStore('store', () => {
     displayView.value = newView;
   }
 
-  // setWallet is a simple wrapper "set" function for the internal _wallet in the store
-  // it adds the correct provider on the wallet
-  // to initialize the new wallet, call initializeWallet() afterwards
+  // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
+  // It adds the configured electrum network provider on the wallet depending on the network.
+  // Call initializeWallet() afterwards to actually connect to the electrum client and to fetch initial data.
   function setWallet(newWallet: Wallet | TestNetWallet){
     if(newWallet.network == NetworkType.Mainnet){ 
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
