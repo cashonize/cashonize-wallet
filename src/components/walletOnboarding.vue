@@ -11,7 +11,6 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
-  const isBrowser = (process.env.MODE == "spa");
 
   // Step: 1 = choose create/import, 2 = enter details & create, 3 = preferences
   const step = ref(1);
@@ -168,13 +167,6 @@
 </script>
 
 <template>
-  <div v-if="isBrowser && step === 1" style="display:block; margin-top: -25px;">
-    <a style="color: var(--font-color); padding: 5px;" href="https://about.cashonize.com">
-      <span style="font-size: 24px; vertical-align: sub;">⬅</span>
-      <span> About page</span>
-    </a>
-  </div>
-
   <fieldset style="margin-top: 15px;">
     <!-- Step 1: Welcome & Choose Create or Import -->
     <div v-if="step === 1">
