@@ -113,6 +113,8 @@
       settingsStore.setBackupStatus(name, 'imported');
       // Store wallet creation date (import date)
       settingsStore.setWalletCreatedAt(name);
+      // Clear seed phrase from memory (defense in depth)
+      seedPhrase.value = '';
     } catch (error) {
       let errorMessage = "Not a valid seed phrase";
       if (isQuotaExceededError(error)) errorMessage = "Storage full - unable to save wallet. Check browser storage settings.";

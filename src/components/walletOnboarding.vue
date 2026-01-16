@@ -129,6 +129,9 @@
       // Store wallet creation date (import date)
       settingsStore.setWalletCreatedAt(name);
 
+      // Clear seed phrase from memory (defense in depth)
+      seedPhrase.value = '';
+
       step.value = 3;
     } catch (error) {
       let errorMessage = "Not a valid seed phrase";
