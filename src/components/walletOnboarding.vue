@@ -1,12 +1,13 @@
 <script setup lang="ts">
   import { ref } from "vue"
   import Toggle from '@vueform/toggle'
-  import { Wallet, TestNetWallet, Config } from "mainnet-js"
+  import { Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import seedPhraseInput from './seedPhraseInput.vue'
-  import { isQuotaExceededError } from 'src/utils/errorHandling'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil } from 'src/utils/walletUtils'
+  import type { DerivationPathType } from 'src/utils/walletUtils'
   import type { Currency } from 'src/interfaces/interfaces'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -20,7 +21,7 @@
   const walletName = ref("mywallet");
   const seedPhrase = ref('');
   const seedPhraseValid = ref(false);
-  const selectedDerivationPath = ref("standard" as ("standard" | "bitcoindotcom"));
+  const selectedDerivationPath = ref<DerivationPathType>("standard");
 
   // Preferences - initialize from settingsStore (which reads from localStorage/system preferences)
   const selectedCurrency = ref<Currency>(settingsStore.currency);
@@ -42,105 +43,34 @@
   }
 
   async function createNewWallet() {
-    const name = walletName.value.trim();
-    if (!name) {
-      $q.notify({
-        message: "Please enter a wallet name",
-        icon: 'warning',
-        color: "grey-7"
-      });
-      return;
-    }
-    try {
-      Config.DefaultParentDerivationPath = "m/44'/145'/0'";
-      const mainnetWallet = await Wallet.named(name);
-      const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
-      await TestNetWallet.replaceNamed(name, walletId);
-
-      // Set active wallet and start initialization in background
-      store.activeWalletName = name;
-      localStorage.setItem("activeWalletName", name);
-      store.setWallet(mainnetWallet);
-      void store.initializeWallet();
-
-      // Refresh available wallets list and store creation date
-      await store.refreshAvailableWallets();
-      settingsStore.setWalletCreatedAt(name);
-
+    const result = await createWallet(walletName.value);
+    if (result.success) {
       step.value = 3;
-    } catch (error) {
-      let errorMessage = "Failed to create wallet";
-      if (isQuotaExceededError(error)) errorMessage = "Storage full - unable to save wallet. Check browser storage settings.";
+    } else {
       $q.notify({
-        message: errorMessage,
+        message: result.message,
         icon: 'warning',
-        color: "red"
+        color: result.isUserError ? "grey-7" : "red"
       });
     }
   }
 
   async function importWallet() {
-    const name = walletName.value.trim();
-    if (!name) {
-      $q.notify({
-        message: "Please enter a wallet name",
-        icon: 'warning',
-        color: "grey-7"
-      });
-      return;
-    }
-    if (!seedPhrase.value) {
-      $q.notify({
-        message: "Enter a seed phrase to import wallet",
-        icon: 'warning',
-        color: "grey-7"
-      });
-      return;
-    }
-    if (!seedPhraseValid.value) {
-      $q.notify({
-        message: "Please fix invalid words in your seed phrase",
-        icon: 'warning',
-        color: "grey-7"
-      });
-      return;
-    }
-    try {
-      const derivationPath = selectedDerivationPath.value == "standard"? "m/44'/145'/0'/0/0" : "m/44'/0'/0'/0/0";
-      if(selectedDerivationPath.value == "standard") Config.DefaultParentDerivationPath = "m/44'/145'/0'";
-      const walletId = `seed:mainnet:${seedPhrase.value}:${derivationPath}`;
-      await Wallet.replaceNamed(name, walletId);
-      const walletIdTestnet = `seed:testnet:${seedPhrase.value}:${derivationPath}`;
-      await TestNetWallet.replaceNamed(name, walletIdTestnet);
-
-      // Set active wallet and start initialization in background
-      const mainnetWallet = await Wallet.named(name);
-      store.activeWalletName = name;
-      localStorage.setItem("activeWalletName", name);
-      store.setWallet(mainnetWallet);
-      void store.initializeWallet();
-
-      // Refresh available wallets list
-      await store.refreshAvailableWallets();
-
-      // Mark as 'imported' - user already demonstrated having the seed phrase
-      settingsStore.setBackupStatus(name, 'imported');
-
-      // Store wallet creation date (import date)
-      settingsStore.setWalletCreatedAt(name);
-
+    const result = await importWalletUtil({
+      name: walletName.value,
+      seedPhrase: seedPhrase.value,
+      seedPhraseValid: seedPhraseValid.value,
+      derivationPath: selectedDerivationPath.value
+    });
+    if (result.success) {
       // Clear seed phrase from memory (defense in depth)
       seedPhrase.value = '';
-
       step.value = 3;
-    } catch (error) {
-      let errorMessage = "Not a valid seed phrase";
-      if (isQuotaExceededError(error)) errorMessage = "Storage full - unable to save wallet. Check browser storage settings.";
-      else if (typeof error == 'string') errorMessage = error;
+    } else {
       $q.notify({
-        message: errorMessage,
+        message: result.message,
         icon: 'warning',
-        color: typeof error == 'string' ? "grey-7" : "red"
+        color: result.isUserError ? "grey-7" : "red"
       });
     }
   }
