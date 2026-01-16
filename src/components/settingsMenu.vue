@@ -230,15 +230,17 @@
         .onCancel(() => resolve(false))
     })
     if (confirmed) {
+      // TODO: see if we need 'resetWalletState' to cancle subscriptions, etc.
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
       indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
       // TODO: should also clear CashConnect indexedDB
       indexedDB.deleteDatabase("ElectrumNetworkProviderCache");
-      await clearHistoryCache()
       clearMetadataCache()
-      // remove 'seedBackedUp' state from localStorage, settings are still persisted after wallet deletion
-      localStorage.removeItem("seedBackedUp")
+      // remove 'seedBackedUp' state from localStorage, user settings are still persisted after wallet deletion
+      localStorage.removeItem("seedBackedUp");
+
+      // TODO: see if we can reset the state without force-reloading
       location.reload();
     }
   }
