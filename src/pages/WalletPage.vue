@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import newWalletView from 'src/components/newWallet.vue'
+  import walletOnboardingView from 'src/components/walletOnboarding.vue'
   import addWalletView from 'src/components/addWallet.vue'
   import bchWalletView from 'src/components/bchWallet.vue'
   import myTokensView from 'src/components/myTokens.vue'
@@ -39,8 +39,6 @@
   // This way views can be wrapped with KeepAlive to preserve its state across view changes
   // Excluding the settingsMenu bc we want to rerender it when navigating to it
   const currentView = computed(() => {
-    if (!store._wallet) return newWalletView;
-
     switch (store.displayView) {
       case 1: return bchWalletView;
       case 2: return myTokensView;
@@ -50,7 +48,7 @@
       case 7: return utxoManagement;
       case 8: return sweepPrivateKey;
       case 9: return addWalletView;
-      default: return null;
+      default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });
 
@@ -76,6 +74,7 @@
     const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
     const initWallet = await walletClass.named(store.activeWalletName);
     store.setWallet(initWallet);
+    store.changeView(1);
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }

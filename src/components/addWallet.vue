@@ -55,6 +55,7 @@
       store.activeWalletName = name;
       localStorage.setItem('activeWalletName', name);
       store.setWallet(mainnetWallet);
+      store.changeView(1);
       // Refresh available wallets list
       await store.refreshAvailableWallets();
       // fire-and-forget promise does not wait on full wallet initialization
@@ -89,6 +90,7 @@
       store.activeWalletName = name;
       localStorage.setItem('activeWalletName', name);
       store.setWallet(mainnetWallet);
+      store.changeView(1);
       // Refresh available wallets list
       await store.refreshAvailableWallets();
       // fire-and-forget promise does not wait on full wallet initialization

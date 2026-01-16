@@ -104,10 +104,9 @@ export const useStore = defineStore('store', () => {
   }
 
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store
-  // it also changes the view & adds the correct provider on the wallet
+  // it adds the correct provider on the wallet
   // to initialize the new wallet, call initializeWallet() afterwards
   function setWallet(newWallet: Wallet | TestNetWallet){
-    changeView(1);
     if(newWallet.network == NetworkType.Mainnet){ 
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       // @ts-ignore currently no other way to set a specific provider
@@ -324,6 +323,7 @@ export const useStore = defineStore('store', () => {
     const walletClass = (currentNetwork == 'mainnet') ? Wallet : TestNetWallet;
     const newWallet = await walletClass.named(walletName);
     setWallet(newWallet);
+    changeView(1);
     // fire-and-forget - don't await so UI is responsive
     void initializeWallet();
   }
