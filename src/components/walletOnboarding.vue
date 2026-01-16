@@ -6,6 +6,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import seedPhraseInput from './seedPhraseInput.vue'
+  import { isQuotaExceededError } from 'src/utils/errorHandling'
   import type { Currency } from 'src/interfaces/interfaces'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -68,9 +69,11 @@
       settingsStore.setWalletCreatedAt(name);
 
       step.value = 3;
-    } catch {
+    } catch (error) {
+      let errorMessage = "Failed to create wallet";
+      if (isQuotaExceededError(error)) errorMessage = "Storage full - unable to save wallet. Check browser storage settings.";
       $q.notify({
-        message: "Failed to create wallet",
+        message: errorMessage,
         icon: 'warning',
         color: "red"
       });
@@ -129,7 +132,9 @@
 
       step.value = 3;
     } catch (error) {
-      const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase";
+      let errorMessage = "Not a valid seed phrase";
+      if (isQuotaExceededError(error)) errorMessage = "Storage full - unable to save wallet. Check browser storage settings.";
+      else if (typeof error == 'string') errorMessage = error;
       $q.notify({
         message: errorMessage,
         icon: 'warning',

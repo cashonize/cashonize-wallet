@@ -16,6 +16,17 @@ export function displayAndLogError(error: unknown): void {
   })
 }
 
+// Detect IndexedDB quota exceeded errors (browser storage full).
+// mainnet-js's IndexedDBProvider rejects promises with the raw DOMException,
+// so we receive the actual error object in our catch blocks.
+export function isQuotaExceededError(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    if (error.name === 'QuotaExceededError') return true;
+    if (error.name === 'NS_ERROR_DOM_QUOTA_REACHED') return true; // Firefox
+  }
+  return false;
+}
+
 // Types for the result object with discriminated union
 type Success<T> = {
   data: T;
