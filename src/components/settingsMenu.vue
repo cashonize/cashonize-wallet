@@ -1,12 +1,12 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import EmojiItem from './general/emojiItem.vue'
+  import backupWallet from './backupWallet.vue'
   import { computed, ref } from 'vue'
   import { useQuasar } from 'quasar'
   import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
-  import { copyToClipboard } from 'src/utils/utils';
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -14,12 +14,6 @@
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
-  const derivationPathNote = computed(() => {
-    const path = store.wallet.derivationPath;
-    if (path === "m/44'/145'/0'/0/0") return "BCH standard";
-    if (path === "m/44'/0'/0'/0/0") return "legacy, Bitcoin.com wallet compatible";
-    return "custom";
-  })
 
   const isBrowser = (process.env.MODE == "spa");
   const isDesktop = (process.env.MODE == "electron");
@@ -36,8 +30,6 @@
   const qrAnimation = ref(settingsStore.qrAnimation);
   const dateFormat = ref(settingsStore.dateFormat);
   const selectedExplorer = ref(store.explorerUrl);
-  // backup wallet
-  const displaySeedphrase = ref(false);
   // user options
   const selectedDarkMode = ref(settingsStore.darkMode);
   const showFiatValueHistory = ref(settingsStore.showFiatValueHistory);
@@ -186,32 +178,6 @@
   function changeQrScan(){
     localStorage.setItem("qrScan", enableQrScan.value? "true" : "false");
     settingsStore.qrScan = enableQrScan.value;
-  }
-  function toggleShowSeedphrase(){
-    settingsStore.hasSeedBackedUp = true;
-    localStorage.setItem("seedBackedUp", "true");
-    displaySeedphrase.value = !displaySeedphrase.value;
-  }
-  async function copySeedphrase(){
-    const confirmed = await new Promise<boolean>((resolve) => {
-      $q.dialog({
-        title: 'Copy Seed Phrase',
-        message: 'Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.<br>You can clear your clipboard afterwards by copying something else.',
-        html: true,
-        cancel: { flat: true, color: 'dark' },
-        ok: { label: 'Copy', color: 'primary', textColor: 'white' },
-        persistent: true
-      }).onOk(() => resolve(true))
-        .onCancel(() => resolve(false))
-    })
-    if (!confirmed) return
-    void navigator.clipboard.writeText(store.wallet.mnemonic);
-    $q.notify({
-      message: "Seed phrase copied to clipboard",
-      icon: 'info',
-      timeout: 2000,
-      color: "grey-6"
-    })
   }
   async function confirmDeleteWallet(){
     let text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>Are you sure you want to delete everything?`;
@@ -365,33 +331,7 @@
       </div>
     </div>
 
-    <div v-if="displaySettingsMenu == 1">
-      <div style="margin-bottom: 15px;">
-        Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
-      </div>
-      <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
-        <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
-          :value="displaySeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
-        >
-        <div v-if="displaySeedphrase" class="seedphrase-container">
-          <span v-for="(word, index) in store.wallet.mnemonic.split(' ')" :key="index" class="seedphrase-word">
-            <span class="seedphrase-number">{{ index + 1 }}</span>{{ word }}
-          </span>
-        </div>
-        <button v-if="displaySeedphrase" @click="copySeedphrase" class="seedphrase-copy-btn">
-          Copy Seed Phrase
-        </button>
-        <div class="derivation-section">
-          <div class="derivation-label">
-            Derivation path
-            <span class="derivation-note">({{ derivationPathNote }})</span>
-          </div>
-          <div class="derivation-container" @click="copyToClipboard(store.wallet.derivationPath)">
-            <span class="derivation-path">{{ store.wallet.derivationPath }}</span>
-            <img class="copyIcon" src="images/copyGrey.svg">
-          </div>
-        </div>
-    </div>
+    <backupWallet v-if="displaySettingsMenu == 1" />
     <div v-else-if="displaySettingsMenu == 2">
       <div style="margin-bottom:15px;">
         Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle; display: inline-block;"/>
@@ -687,84 +627,6 @@
 .nowrap {
   white-space: nowrap;
 }
-.seedphrase-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 16px;
-  margin-top: 12px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-}
-@media (min-width: 600px) {
-  .seedphrase-container {
-    grid-template-columns: repeat(6, 1fr);
-    max-width: 600px;
-  }
-}
-body.dark .seedphrase-container {
-  background-color: #1a1a2e;
-}
-.seedphrase-word {
-  font-family: monospace;
-  font-size: 14px;
-  padding: 6px 8px;
-  background-color: white;
-  border-radius: 4px;
-  text-align: center;
-}
-body.dark .seedphrase-word {
-  background-color: #0f0f1a;
-}
-.seedphrase-number {
-  color: #888;
-  font-size: 11px;
-  margin-right: 4px;
-}
-.seedphrase-copy-btn {
-  margin-top: 12px;
-  padding: 8px 16px;
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-}
-body.dark .seedphrase-copy-btn {
-  background-color: #2a2a3e;
-  color: #f5f5f5;
-}
-.derivation-section {
-  margin-top: 24px;
-  margin-bottom: 15px;
-}
-.derivation-label {
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-.derivation-note {
-  font-size: 12px;
-  color: #888;
-  font-weight: normal;
-}
-.derivation-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  max-width: fit-content;
-  cursor: pointer;
-}
-body.dark .derivation-container {
-  background-color: #1a1a2e;
-}
-.derivation-path {
-  font-family: monospace;
-  font-size: 14px;
-}
-
 .wallet-item {
   display: flex;
   justify-content: space-between;
