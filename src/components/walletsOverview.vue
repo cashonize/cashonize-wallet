@@ -28,21 +28,20 @@
   function handleSwitchWallet(walletName: string) {
     if (walletName === store.activeWalletName) return;
     // Check if the wallet exists on current network
+    // Note: wallets are created for both networks by default, very old wallets may be the exception
     const walletInfo = store.availableWallets.find(w => w.name === walletName);
     if (!walletInfo) return;
-    const currentNetwork = store.network;
-    const walletExistsOnCurrentNetwork =
-      (currentNetwork === 'mainnet' && walletInfo.hasMainnet) ||
-      (currentNetwork === 'chipnet' && walletInfo.hasChipnet);
+    const networkSelector = store.network === 'mainnet' ? 'hasMainnet' : 'hasChipnet';
+    const walletExistsOnCurrentNetwork = walletInfo[networkSelector];
+    // If wallet does not exist on current network, use network where it exists
     if (!walletExistsOnCurrentNetwork) {
-      // Switch to the network where the wallet exists
-      const targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
+      const walletNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
       store.activeWalletName = walletName;
       localStorage.setItem('activeWalletName', walletName);
       settingsStore.hasPlayedAnimation = false;
-      void store.changeNetwork(targetNetwork);
+      void store.changeNetwork(walletNetwork);
       $q.notify({
-        message: `Switched to ${targetNetwork} for wallet "${walletName}"`,
+        message: `Switched to ${walletNetwork} for wallet "${walletName}"`,
         icon: 'info',
         color: "grey-6"
       });

@@ -54,6 +54,12 @@
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
   });
 
+  // Used to disable network options the current wallet doesn't exist on
+  // Note: wallets are created for both networks by default, very old wallets may be the exception
+  const currentWalletInfo = computed(() => {
+    return store.availableWallets.find(w => w.name === store.activeWalletName);
+  });
+
   const isPwaMode = window.matchMedia('(display-mode: standalone)').matches;
   const platformString = isBrowser ? (isPwaMode ? 'installed web app' : 'browser') : (isCapacitor ? 'app' : 'application');
 
@@ -411,8 +417,8 @@
       <div>
         <label for="selectNetwork">Change network:</label>
         <select v-model="selectedNetwork" @change="changeNetwork()">
-          <option value="mainnet">mainnet</option>
-          <option value="chipnet">chipnet</option>
+          <option value="mainnet" :disabled="!currentWalletInfo?.hasMainnet">mainnet</option>
+          <option value="chipnet" :disabled="!currentWalletInfo?.hasChipnet">chipnet</option>
         </select>
       </div>
 
