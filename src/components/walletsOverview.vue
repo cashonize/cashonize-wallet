@@ -84,7 +84,7 @@
         });
       } catch (error) {
         $q.notify({
-          message: typeof error === 'string' ? error : "Failed to delete wallet",
+          message: typeof error === 'string' ? error : (error instanceof Error ? error.message : "Failed to delete wallet"),
           icon: 'warning',
           color: "red"
         });

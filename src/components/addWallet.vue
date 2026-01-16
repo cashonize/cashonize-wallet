@@ -111,12 +111,12 @@
       // Store wallet creation date (import date)
       settingsStore.setWalletCreatedAt(name);
     } catch (error) {
-      const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase"
+      const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase";
       $q.notify({
         message: errorMessage,
         icon: 'warning',
         color: typeof error == 'string' ? "grey-7" : "red"
-      })
+      });
     }
   }
 </script>
