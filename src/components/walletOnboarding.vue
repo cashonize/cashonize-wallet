@@ -63,7 +63,8 @@
       store.setWallet(mainnetWallet);
       void store.initializeWallet();
 
-      // Store wallet creation date
+      // Refresh available wallets list and store creation date
+      await store.refreshAvailableWallets();
       settingsStore.setWalletCreatedAt(name);
 
       step.value = 3;
@@ -116,6 +117,9 @@
       localStorage.setItem("activeWalletName", name);
       store.setWallet(mainnetWallet);
       void store.initializeWallet();
+
+      // Refresh available wallets list
+      await store.refreshAvailableWallets();
 
       // Mark as 'imported' - user already demonstrated having the seed phrase
       settingsStore.setBackupStatus(name, 'imported');
