@@ -149,7 +149,8 @@
   });
   const showNotificationIcon = computed(() => {
     if (!store._wallet || !store.walletUtxos) return undefined;
-    return (!settingsStore.hasSeedBackedUp) || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value;
+    const needsBackup = settingsStore.getBackupStatus(store.activeWalletName) === 'none';
+    return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value;
   });
 </script>
 

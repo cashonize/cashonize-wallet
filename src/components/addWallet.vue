@@ -3,8 +3,10 @@
   import { Wallet, TestNetWallet, Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   import { namedWalletExistsInDb } from 'src/utils/dbUtils'
   const store = useStore()
+  const settingsStore = useSettingsStore()
   const $q = useQuasar()
 
   // Step: 1 = name, 2 = choose type, 3 = import details
@@ -95,6 +97,8 @@
       await store.refreshAvailableWallets();
       // fire-and-forget promise does not wait on full wallet initialization
       void store.initializeWallet();
+      // Mark as 'imported' - user already demonstrated having the seed phrase
+      settingsStore.setBackupStatus(name, 'imported');
     } catch (error) {
       const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase"
       $q.notify({

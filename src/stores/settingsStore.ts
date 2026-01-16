@@ -36,7 +36,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const hasInstalledPWA = ref(false as boolean);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const hasPlayedAnimation = ref(false as boolean)
-  const hasSeedBackedUp = ref(false as boolean)
+  // Per-wallet backup status: 'verified' (passed backup test), 'imported' (restored via seed), 'none' (needs backup)
+  // Stored in localStorage as JSON: { "walletName": "verified", ... }
+  const walletBackupStatus = ref<Record<string, 'verified' | 'imported' | 'none'>>({})
   const mintNfts = ref(false);
   const authchains = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
@@ -54,8 +56,23 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readUnit = localStorage.getItem("unit");
   if(readUnit && (readUnit=="bch" || readUnit=="sat")) bchUnit.value = readUnit;
 
-  const readHasSeedBackedUp = localStorage.getItem("seedBackedUp");
-  if(readHasSeedBackedUp) hasSeedBackedUp.value = readHasSeedBackedUp == "true";
+  // Load per-wallet backup status and migrate from old 'seedBackedUp' key if needed
+  const readWalletBackupStatus = localStorage.getItem("walletBackupStatus");
+  if (readWalletBackupStatus) {
+    try {
+      walletBackupStatus.value = JSON.parse(readWalletBackupStatus);
+    } catch { /* ignore parse errors */ }
+  }
+  // Migration: convert old global 'seedBackedUp' to per-wallet status for 'mywallet'
+  const oldSeedBackedUp = localStorage.getItem("seedBackedUp");
+  if (oldSeedBackedUp === "true" && !walletBackupStatus.value["mywallet"]) {
+    walletBackupStatus.value["mywallet"] = "verified";
+    localStorage.setItem("walletBackupStatus", JSON.stringify(walletBackupStatus.value));
+    localStorage.removeItem("seedBackedUp");
+  } else if (oldSeedBackedUp !== null) {
+    // Clean up old key even if it was "false"
+    localStorage.removeItem("seedBackedUp");
+  }
 
   const readFiatValueHistory = localStorage.getItem("fiatValueHistory");
   if(readFiatValueHistory) showFiatValueHistory.value = readFiatValueHistory == "true";
@@ -234,6 +251,25 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   removeOldCacheData();
 
+  // Helper functions for per-wallet backup status
+  function getBackupStatus(walletName: string): 'verified' | 'imported' | 'none' {
+    return walletBackupStatus.value[walletName] || 'none';
+  }
+
+  function setBackupStatus(walletName: string, status: 'verified' | 'imported' | 'none') {
+    if (status === 'none') {
+      delete walletBackupStatus.value[walletName];
+    } else {
+      walletBackupStatus.value[walletName] = status;
+    }
+    localStorage.setItem("walletBackupStatus", JSON.stringify(walletBackupStatus.value));
+  }
+
+  function clearBackupStatus(walletName: string) {
+    delete walletBackupStatus.value[walletName];
+    localStorage.setItem("walletBackupStatus", JSON.stringify(walletBackupStatus.value));
+  }
+
   function removeOldCacheData(){
     // remove tx- and header- keys from localStorage
     Object.keys(localStorage).forEach(key => {
@@ -259,7 +295,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     hasPlayedAnimation,
     featuredTokens,
     hasInstalledPWA,
-    hasSeedBackedUp,
+    getBackupStatus,
+    setBackupStatus,
+    clearBackupStatus,
     mintNfts,
     authchains,
     dateFormat,

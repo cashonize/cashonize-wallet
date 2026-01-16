@@ -176,6 +176,9 @@
       store.setWallet(mainnetWallet);
       void store.initializeWallet();
 
+      // Mark as 'imported' - user already demonstrated having the seed phrase
+      settingsStore.setBackupStatus(name, 'imported');
+
       step.value = 3;
     } catch (error) {
       const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase"

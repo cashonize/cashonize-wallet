@@ -15,6 +15,12 @@
     return "custom";
   })
 
+  // Computed property to check if current wallet's seed has been backed up
+  const hasSeedBackedUp = computed(() => {
+    const status = settingsStore.getBackupStatus(store.activeWalletName);
+    return status === 'verified' || status === 'imported';
+  })
+
   // Seedphrase display state
   const displaySeedphrase = ref(false);
   const showBackupVerification = ref(false);
@@ -83,8 +89,7 @@
     });
 
     if (allCorrect) {
-      settingsStore.hasSeedBackedUp = true;
-      localStorage.setItem("seedBackedUp", "true");
+      settingsStore.setBackupStatus(store.activeWalletName, 'verified');
       showBackupVerification.value = false;
       $q.notify({
         message: "Backup verified successfully!",
@@ -138,7 +143,7 @@
         <input @click="toggleShowSeedphrase()" class="button primary" type="button"
           :value="displaySeedphrase ? 'Hide seed phrase' : 'Show seed phrase'"
         >
-        <input v-if="!settingsStore.hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" value="Verify your backup">
+        <input v-if="!hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" value="Verify your backup">
       </div>
     </div>
     <div v-if="displaySeedphrase" class="seedphrase-container">
@@ -152,7 +157,7 @@
 
     <!-- Backup Status -->
     <div v-if="!showBackupVerification" class="backup-status-section">
-      <div v-if="settingsStore.hasSeedBackedUp" class="backup-status verified">
+      <div v-if="hasSeedBackedUp" class="backup-status verified">
         <span class="status-icon">✓</span>
         <span>Backup verified</span>
       </div>

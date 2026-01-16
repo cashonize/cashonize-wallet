@@ -179,7 +179,7 @@
     localStorage.setItem("qrScan", enableQrScan.value? "true" : "false");
     settingsStore.qrScan = enableQrScan.value;
   }
-  async function confirmDeleteWallet(){
+  async function confirmDeleteWallets(){
     let text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>Are you sure you want to delete everything?`;
     if (isPwaMode) {
       text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>This will also delete them from your browser!<br>Are you sure you want to delete everything?`;
@@ -203,8 +203,8 @@
       // TODO: should also clear CashConnect indexedDB
       indexedDB.deleteDatabase("ElectrumNetworkProviderCache");
       clearMetadataCache()
-      // remove 'seedBackedUp' state from localStorage, user settings are still persisted after wallet deletion
-      localStorage.removeItem("seedBackedUp");
+      // remove backup status from localStorage, user settings are still persisted after wallet deletion
+      localStorage.removeItem("walletBackupStatus");
 
       // TODO: see if we can reset the state without force-reloading
       location.reload();
@@ -273,7 +273,7 @@
     void store.switchWallet(walletName);
   }
 
-  async function handleDeleteWallet(walletName: string) {
+  async function deleteSingleWallet(walletName: string) {
     if (walletName === store.activeWalletName) {
       $q.notify({
         message: "Cannot delete the currently active wallet",
@@ -296,6 +296,8 @@
     if (confirmed) {
       try {
         await store.deleteWallet(walletName);
+        // Clear backup status for deleted wallet
+        settingsStore.clearBackupStatus(walletName);
         $q.notify({
           message: `Wallet "${walletName}" deleted`,
           icon: 'info',
@@ -454,7 +456,7 @@
         <div v-if="!isPwaMode && settingsStore.hasInstalledPWA" style="color: red">
           Deleting all wallets from the browser will also remove them from any 'Installed web-app'.
         </div>
-        <input @click="confirmDeleteWallet()" type="button" value="Delete all" class="button error" style="display: block;">
+        <input @click="confirmDeleteWallets()" type="button" value="Delete all" class="button error" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
@@ -516,7 +518,7 @@
       </div>
 
       <div v-if="store.availableWallets.length > 0" style="margin-bottom: 20px;">
-        <div style="margin-bottom: 10px;">All wallets:</div>
+        <div style="margin-bottom: 10px;">Your wallets ({{ store.availableWallets.length }}):</div>
         <div
           v-for="wallet in store.availableWallets"
           :key="wallet.name"
@@ -533,10 +535,13 @@
             <span v-if="!wallet.hasChipnet" class="network-badge">(mainnet only)</span>
             <span v-else-if="!wallet.hasMainnet" class="network-badge">(chipnet only)</span>
           </span>
+          <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name)">
+            {{ settingsStore.getBackupStatus(wallet.name) === 'none' ? 'not backed up' : settingsStore.getBackupStatus(wallet.name) === 'imported' ? 'imported' : 'backed up' }}
+          </span>
           <button
             v-if="wallet.name !== store.activeWalletName"
             class="delete-wallet-btn"
-            @click.stop="handleDeleteWallet(wallet.name)"
+            @click.stop="deleteSingleWallet(wallet.name)"
             title="Delete wallet"
           >
             ✕
@@ -554,7 +559,7 @@
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">
-        ↳ Backup wallet <span v-if="!settingsStore.hasSeedBackedUp" style="color: var(--color-primary)">(important)</span>
+        ↳ Backup wallet <span v-if="settingsStore.getBackupStatus(store.activeWalletName) === 'none'" style="color: var(--color-primary)">(important)</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 5">
@@ -682,5 +687,25 @@ body.dark .wallet-item {
 }
 body.dark .wallet-name-styled {
   background-color: #2a2a3e;
+}
+.backup-status-badge {
+  font-size: 12px;
+  color: #888;
+  margin-left: auto;
+  margin-right: 8px;
+}
+.backup-status-badge.none {
+  color: #e65100;
+}
+body.dark .backup-status-badge.none {
+  color: #ffcc80;
+}
+.backup-status-badge.verified,
+.backup-status-badge.imported {
+  color: #2e7d32;
+}
+body.dark .backup-status-badge.verified,
+body.dark .backup-status-badge.imported {
+  color: #a5d6a7;
 }
 </style>
