@@ -5,6 +5,7 @@ import { ref } from 'vue'
 import { BitpayRatesSchema } from "src/utils/zodValidation";
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
+import { defaultWalletName } from "./store";
 
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
@@ -49,7 +50,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const mintNfts = ref(false);
   const authchains = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
-  const confirmBeforeSending = ref(true);
+  const confirmBeforeSending = ref(false); // consider changing default to true
   const loadTokenIcons = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
 
@@ -70,10 +71,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
       walletBackupStatus.value = JSON.parse(readWalletBackupStatus);
     } catch { /* ignore parse errors */ }
   }
-  // Migration: convert old global 'seedBackedUp' to per-wallet status for 'mywallet'
+  // Migration: convert old global 'seedBackedUp' to per-wallet status for defaultWalletName 'mywallet'
   const oldSeedBackedUp = localStorage.getItem("seedBackedUp");
-  if (oldSeedBackedUp === "true" && !walletBackupStatus.value["mywallet"]) {
-    walletBackupStatus.value["mywallet"] = "verified";
+  if (oldSeedBackedUp === "true" && !walletBackupStatus.value[defaultWalletName]) {
+    walletBackupStatus.value[defaultWalletName] = "verified";
     localStorage.setItem("walletBackupStatus", JSON.stringify(walletBackupStatus.value));
     localStorage.removeItem("seedBackedUp");
   } else if (oldSeedBackedUp !== null) {

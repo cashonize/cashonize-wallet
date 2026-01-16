@@ -34,8 +34,8 @@ Cashonize also does not currently support password or pin locked wallets and enc
 
 📲 Installable Web App: Look for the **Add to Home Screen / Install** setting in your browser on [cashonize.com](cashonize.com) 
 
-⚠️ [cashonize.com](cashonize.com) is the only correct URL for the webwallet
-**Note:** webwallets are great for convenience, but downloaded applications are more secure. (Installable web apps share the same security model as webwallets) <br>
+⚠️ [cashonize.com](cashonize.com) is the only correct URL for the webwallet <br>
+**Note:** webwallets are great for convenience, but downloaded applications are more secure. (Installable web apps share the same security model as webwallets)
 
 ## Local development 
 

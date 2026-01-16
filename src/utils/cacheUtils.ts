@@ -1,7 +1,7 @@
 import { binToHex, sha256, utf8ToBin } from 'mainnet-js';
 
-const METADATA_CACHE_DAYS = 7;
-const METADATA_CACHE_MS = METADATA_CACHE_DAYS * 24 * 60 * 60 * 1000;
+const CACHE_TTL_DAYS = 7;
+const CACHE_TTL_MS = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
 
 export async function getElectrumCacheSize(): Promise<number> {
   const dbName = "ElectrumNetworkProviderCache";
@@ -81,7 +81,7 @@ export async function cachedFetch(input: string): Promise<Response> {
   );
 
   // If item exists in localStorage and is still valid, return it
-  if ((now - timestamp < METADATA_CACHE_MS) && simpleResponse.status) {
+  if ((now - timestamp < CACHE_TTL_MS) && simpleResponse.status) {
     // create a new Response object from the cached data
     const resp = new Response(simpleResponse.responseText, {
       status: simpleResponse.status,
