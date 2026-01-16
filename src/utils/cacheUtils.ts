@@ -28,9 +28,9 @@ export async function getIndexedDBObjectStoreSize(
 ): Promise<number> {
   return new Promise((resolve, reject) => {
     let totalSize = 0;
-    const tx = db.transaction(storeName, "readonly");
-    const store = tx.objectStore(storeName);
-    const cursorRequest = store.openCursor();
+    const dbTx = db.transaction(storeName, "readonly");
+    const objectStore = dbTx.objectStore(storeName);
+    const cursorRequest = objectStore.openCursor();
 
     cursorRequest.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest).result;
@@ -50,9 +50,9 @@ export async function clearIndexedDBObjectStore(dbName: string, storeName: strin
   const db = await openIndexedDB(dbName);
 
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, "readwrite");
-    const store = tx.objectStore(storeName);
-    const clearRequest = store.clear();
+    const dbTx = db.transaction(storeName, "readwrite");
+    const objectStore = dbTx.objectStore(storeName);
+    const clearRequest = objectStore.clear();
 
     clearRequest.onsuccess = () => resolve();
     clearRequest.onerror = () => reject(new Error("Error clearing object store"));

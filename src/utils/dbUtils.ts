@@ -77,8 +77,8 @@ export async function deleteWalletFromDb(
         return;
       }
 
-      const transaction = db.transaction(STORE_NAME, "readwrite");
-      const objectStore = transaction.objectStore(STORE_NAME);
+      const dbTx = db.transaction(STORE_NAME, "readwrite");
+      const objectStore = dbTx.objectStore(STORE_NAME);
       const deleteRequest = objectStore.delete(name);
 
       deleteRequest.onsuccess = () => {
