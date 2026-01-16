@@ -1,11 +1,11 @@
 <script setup lang="ts">
-  import { ref, computed } from "vue"
+  import { ref } from "vue"
   import Toggle from '@vueform/toggle'
   import { Wallet, TestNetWallet, Config } from "mainnet-js"
-  import { bip39WordListEnglish } from "@bitauth/libauth"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import seedPhraseInput from './seedPhraseInput.vue'
   import type { Currency } from 'src/interfaces/interfaces'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -18,71 +18,9 @@
 
   // Wallet creation
   const walletName = ref("mywallet");
-  const seedWords = ref<string[]>(Array(12).fill(''));
-  const seedWordCount = ref<12 | 24>(12);
+  const seedPhrase = ref('');
+  const seedPhraseValid = ref(false);
   const selectedDerivationPath = ref("standard" as ("standard" | "bitcoindotcom"));
-
-  // Track which word inputs have been touched (user moved away)
-  const touchedWords = ref<Set<number>>(new Set());
-
-  // Constructed full seed phrase from individual word inputs
-  const constructedSeedPhrase = computed(() => {
-    return seedWords.value.map(w => w.trim().toLowerCase()).filter(w => w).join(' ');
-  });
-
-  // Check if all seed words are valid BIP39 words
-  const allSeedWordsValid = computed(() => {
-    const filledWords = seedWords.value.map(w => w.trim().toLowerCase()).filter(w => w);
-    if (filledWords.length !== seedWordCount.value) return false;
-    return filledWords.every(word => bip39WordListEnglish.includes(word));
-  });
-
-  function isValidBip39Word(word: string): boolean {
-    return bip39WordListEnglish.includes(word.trim().toLowerCase());
-  }
-
-  function getWordValidationClass(index: number): string {
-    if (!touchedWords.value.has(index)) return '';
-    const word = seedWords.value[index]?.trim();
-    if (!word) return '';
-    return isValidBip39Word(word) ? 'valid-word' : 'invalid-word';
-  }
-
-  function onWordBlur(index: number) {
-    touchedWords.value.add(index);
-  }
-
-  function onWordInput(index: number) {
-    const value = seedWords.value[index];
-    if (!value) return;
-    // Check if input contains spaces (pasted multiple words)
-    if (value.includes(' ')) {
-      const words = value.trim().split(/\s+/);
-      // Distribute words starting from current index
-      for (let i = 0; i < words.length && (index + i) < seedWords.value.length; i++) {
-        const word = words[i];
-        if (word) seedWords.value[index + i] = word;
-        // Mark distributed words as touched for validation
-        if (i > 0) touchedWords.value.add(index + i);
-      }
-      // Focus the next empty field or the field after last distributed word
-      const nextIndex = Math.min(index + words.length, seedWords.value.length - 1);
-      const nextInput = document.querySelector(`.seed-word-input:nth-child(${nextIndex + 1}) input`) as HTMLInputElement;
-      if (nextInput) nextInput.focus();
-    }
-  }
-
-  function changeSeedWordCount(count: 12 | 24) {
-    seedWordCount.value = count;
-    // Preserve existing words, expand or truncate array
-    const newWords = Array(count).fill('');
-    for (let i = 0; i < Math.min(seedWords.value.length, count); i++) {
-      newWords[i] = seedWords.value[i];
-    }
-    seedWords.value = newWords;
-    // Reset touched state for removed words
-    touchedWords.value = new Set([...touchedWords.value].filter(i => i < count));
-  }
 
   // Preferences - initialize from settingsStore (which reads from localStorage/system preferences)
   const selectedCurrency = ref<Currency>(settingsStore.currency);
@@ -145,7 +83,7 @@
       });
       return;
     }
-    if (!constructedSeedPhrase.value) {
+    if (!seedPhrase.value) {
       $q.notify({
         message: "Enter a seed phrase to import wallet",
         icon: 'warning',
@@ -153,7 +91,7 @@
       });
       return;
     }
-    if (!allSeedWordsValid.value) {
+    if (!seedPhraseValid.value) {
       $q.notify({
         message: "Please fix invalid words in your seed phrase",
         icon: 'warning',
@@ -164,9 +102,9 @@
     try {
       const derivationPath = selectedDerivationPath.value == "standard"? "m/44'/145'/0'/0/0" : "m/44'/0'/0'/0/0";
       if(selectedDerivationPath.value == "standard") Config.DefaultParentDerivationPath = "m/44'/145'/0'";
-      const walletId = `seed:mainnet:${constructedSeedPhrase.value}:${derivationPath}`;
+      const walletId = `seed:mainnet:${seedPhrase.value}:${derivationPath}`;
       await Wallet.replaceNamed(name, walletId);
-      const walletIdTestnet = `seed:testnet:${constructedSeedPhrase.value}:${derivationPath}`;
+      const walletIdTestnet = `seed:testnet:${seedPhrase.value}:${derivationPath}`;
       await TestNetWallet.replaceNamed(name, walletIdTestnet);
 
       // Set active wallet and start initialization in background
@@ -295,30 +233,7 @@
           >
         </div>
         <div style="margin: 20px 0;">
-          <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 15px;">
-            <span>Seed phrase:</span>
-            <label class="word-count-option">
-              <input type="radio" :value="12" v-model="seedWordCount" @change="changeSeedWordCount(12)"> 12 words
-            </label>
-            <label class="word-count-option">
-              <input type="radio" :value="24" v-model="seedWordCount" @change="changeSeedWordCount(24)"> 24 words
-            </label>
-          </div>
-          <div class="seed-words-grid">
-            <div v-for="(_, index) in seedWords" :key="index" class="seed-word-input">
-              <span class="seed-word-number">{{ index + 1 }}</span>
-              <input
-                v-model="seedWords[index]"
-                :class="getWordValidationClass(index)"
-                @blur="onWordBlur(index)"
-                @input="onWordInput(index)"
-                type="text"
-                autocomplete="off"
-                autocapitalize="none"
-                spellcheck="false"
-              >
-            </div>
-          </div>
+          <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
         </div>
         <div style="margin-bottom: 20px;">
           <span>Derivation path: </span>
@@ -394,64 +309,5 @@
 .feature-icon {
   color: var(--color-primary);
   font-weight: bold;
-}
-.word-count-option {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.seed-words-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  max-width: 550px;
-}
-@media (max-width: 600px) {
-  .seed-words-grid {
-    grid-template-columns: repeat(3, 1fr);
-    max-width: 450px;
-  }
-}
-@media (max-width: 450px) {
-  .seed-words-grid {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 300px;
-  }
-}
-.seed-word-input {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.seed-word-number {
-  font-size: 12px;
-  color: grey;
-  min-width: 20px;
-  text-align: right;
-}
-.seed-word-input input {
-  flex: 1;
-  padding: 6px 8px;
-  font-size: 14px;
-  min-width: 0;
-}
-.seed-word-input input.valid-word {
-  border-color: #4caf50;
-  outline-color: #4caf50;
-  background-color: #e8f5e9;
-}
-.seed-word-input input.invalid-word {
-  border-color: #f44336;
-  outline-color: #f44336;
-  background-color: #ffebee;
-}
-body.dark .seed-word-input input.valid-word {
-  background-color: #1b3d1f;
-  color: #a5d6a7;
-}
-body.dark .seed-word-input input.invalid-word {
-  background-color: #3d1b1b;
-  color: #ef9a9a;
 }
 </style>

@@ -5,6 +5,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { namedWalletExistsInDb } from 'src/utils/dbUtils'
+  import seedPhraseInput from './seedPhraseInput.vue'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
@@ -12,7 +13,8 @@
   // Step: 1 = name, 2 = choose type, 3 = import details
   const step = ref(1);
   const walletName = ref('');
-  const seedphrase = ref('');
+  const seedPhrase = ref('');
+  const seedPhraseValid = ref(false);
   const selectedDerivationPath = ref("standard" as ("standard" | "bitcoindotcom"));
 
   const effectiveWalletName = computed(() => walletName.value.trim());
@@ -80,12 +82,17 @@
       if (exists) {
         throw `Wallet "${name}" already exists`;
       }
+      if (!seedPhrase.value) {
+        throw "Enter a seed phrase to import wallet";
+      }
+      if (!seedPhraseValid.value) {
+        throw "Please fix invalid words in your seed phrase";
+      }
       const derivationPath = selectedDerivationPath.value == "standard"? "m/44'/145'/0'/0/0" : "m/44'/0'/0'/0/0";
       if(selectedDerivationPath.value == "standard") Config.DefaultParentDerivationPath = "m/44'/145'/0'";
-      if(!seedphrase.value) throw("Enter a seed phrase to import wallet")
-      const walletId = `seed:mainnet:${seedphrase.value}:${derivationPath}`;
+      const walletId = `seed:mainnet:${seedPhrase.value}:${derivationPath}`;
       await Wallet.replaceNamed(name, walletId);
-      const walletIdTestnet = `seed:testnet:${seedphrase.value}:${derivationPath}`;
+      const walletIdTestnet = `seed:testnet:${seedPhrase.value}:${derivationPath}`;
       await TestNetWallet.replaceNamed(name, walletIdTestnet);
       const mainnetWallet = await Wallet.named(name);
       // Update active wallet name in store
@@ -169,13 +176,7 @@
         Importing wallet: <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
       </div>
       <div style="margin-bottom: 15px;">
-        <div style="margin-bottom: 8px;">Enter mnemonic seed phrase:</div>
-        <textarea
-          v-model="seedphrase"
-          style="resize: none; width: 100%; max-width: 400px; padding: 8px;"
-          rows="3"
-          placeholder="word1 word2 word3 ..."
-        ></textarea>
+        <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
         <div style="margin-top: 15px;">
           <label>Derivation path: </label>
           <select v-model="selectedDerivationPath">
