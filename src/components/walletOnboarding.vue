@@ -3,7 +3,7 @@
   import Toggle from '@vueform/toggle'
   import { Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
-  import { useStore } from 'src/stores/store'
+  import { useStore, defaultWalletName } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import seedPhraseInput from './seedPhraseInput.vue'
   import { createNewWallet as createWallet, importWallet as importWalletUtil } from 'src/utils/walletUtils'
@@ -18,7 +18,7 @@
   const mode = ref<"create" | "import">("create");
 
   // Wallet creation
-  const walletName = ref("mywallet");
+  const walletName = ref(defaultWalletName);
   const seedPhrase = ref('');
   const seedPhraseValid = ref(false);
   const selectedDerivationPath = ref<DerivationPathType>("standard");

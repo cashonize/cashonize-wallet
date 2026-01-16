@@ -51,7 +51,7 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
-const defaultWalletName = 'mywallet';
+export const defaultWalletName = 'mywallet';
 
 const isDesktop = (process.env.MODE == "electron");
 

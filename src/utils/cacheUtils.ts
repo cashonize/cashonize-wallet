@@ -1,5 +1,8 @@
 import { binToHex, sha256, utf8ToBin } from 'mainnet-js';
 
+const METADATA_CACHE_DAYS = 7;
+const METADATA_CACHE_MS = METADATA_CACHE_DAYS * 24 * 60 * 60 * 1000;
+
 export async function getElectrumCacheSize(): Promise<number> {
   const dbName = "ElectrumNetworkProviderCache";
   const db = await openIndexedDB(dbName);
@@ -12,7 +15,6 @@ export async function clearElectrumCache(): Promise<void> {
 }
 
 /* Native IndexedDB helper functions */
-// Using Dexie caused freezing issues with Capacitor when using '.toArray' because it runs on the main thread.
 
 export async function openIndexedDB(dbName: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -72,8 +74,6 @@ interface LocalStorageCacheResponse {
 
 export async function cachedFetch(input: string): Promise<Response> {
   const now = Date.now();
-  const cacheDuration = 7 * 24 * 60 * 60 * 1000; // 7 days
-
   const key = 'cachedFetch-' + binToHex(sha256.hash(utf8ToBin(input.toString())));
 
   const { simpleResponse, timestamp }: LocalStorageCacheResponse = JSON.parse(
@@ -81,7 +81,7 @@ export async function cachedFetch(input: string): Promise<Response> {
   );
 
   // If item exists in localStorage and is still valid, return it
-  if ((now - timestamp < cacheDuration) && simpleResponse.status) {
+  if ((now - timestamp < METADATA_CACHE_MS) && simpleResponse.status) {
     // create a new Response object from the cached data
     const resp = new Response(simpleResponse.responseText, {
       status: simpleResponse.status,
