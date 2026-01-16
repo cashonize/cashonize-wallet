@@ -40,6 +40,7 @@ import { useCashconnectStore } from "./cashconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
+import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/dbUtils"
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
@@ -50,12 +51,15 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
-const nameWallet = 'mywallet';
+const defaultWalletName = 'mywallet';
 
 const isDesktop = (process.env.MODE == "electron");
 
 export const useStore = defineStore('store', () => {
   const displayView = ref(undefined as (number | undefined));
+  // Multi-wallet state
+  const activeWalletName = ref(localStorage.getItem('activeWalletName') ?? defaultWalletName);
+  const availableWallets = ref([] as WalletInfo[]);
   // Wallet State
   // _wallet is the actual reactive wallet object and is null until the wallet is set
   // so _wallet is used for mutating properties of the wallet, like changing the provider
@@ -297,7 +301,7 @@ export const useStore = defineStore('store', () => {
     walletInitialized.value = false;
     // set new wallet
     const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
-    const newWallet = await walletClass.named(nameWallet);
+    const newWallet = await walletClass.named(activeWalletName.value);
     setWallet(newWallet);
     if (awaitWalletInitialization) {
       await initializeWallet();
@@ -307,6 +311,37 @@ export const useStore = defineStore('store', () => {
     }
     localStorage.setItem('network', newNetwork);
     changeView(1);
+  }
+
+  async function switchWallet(walletName: string) {
+    activeWalletName.value = walletName;
+    localStorage.setItem('activeWalletName', walletName);
+    // Get the current network from localStorage (default to mainnet)
+    const currentNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
+    // Re-initialize wallet
+    resetWalletState();
+    walletInitialized.value = false;
+    const walletClass = (currentNetwork == 'mainnet') ? Wallet : TestNetWallet;
+    const newWallet = await walletClass.named(walletName);
+    setWallet(newWallet);
+    // fire-and-forget - don't await so UI is responsive
+    void initializeWallet();
+  }
+
+  async function refreshAvailableWallets() {
+    // Get wallet info from both mainnet and chipnet databases
+    availableWallets.value = await getAllWalletsWithNetworkInfo();
+  }
+
+  async function deleteWallet(walletName: string) {
+    if (walletName === activeWalletName.value) {
+      throw new Error("Cannot delete the currently active wallet");
+    }
+    // Delete from both mainnet and testnet databases
+    await deleteWalletFromDb(walletName, 'bitcoincash');
+    await deleteWalletFromDb(walletName, 'bchtest');
+    // Refresh the available wallets list
+    await refreshAvailableWallets();
   }
 
   async function initializeWalletConnect() {
@@ -505,7 +540,8 @@ export const useStore = defineStore('store', () => {
   }
 
   return {
-    nameWallet,
+    activeWalletName,
+    availableWallets,
     displayView,
     _wallet, // the _wallet is the actual reactive wallet object but this can be null
     wallet, // computed property to access the wallet, always non-null
@@ -529,6 +565,9 @@ export const useStore = defineStore('store', () => {
     updateWalletUtxos,
     updateWalletHistory,
     changeNetwork,
+    switchWallet,
+    refreshAvailableWallets,
+    deleteWallet,
     fetchTokenInfo,
     hasPreGenesis,
     fetchAuthUtxos,

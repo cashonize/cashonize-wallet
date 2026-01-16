@@ -214,17 +214,17 @@
     })
   }
   async function confirmDeleteWallet(){
-    let text = `You are about to delete your Cashonize wallet info from this ${platformString}.<br>Are you sure you want to delete it?`;
+    let text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>Are you sure you want to delete everything?`;
     if (isPwaMode) {
-      text = `You are about to delete your Cashonize wallet info from this ${platformString}.<br>This will also delete the wallet from your browser!<br>Are you sure you want to delete it?`;
+      text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>This will also delete them from your browser!<br>Are you sure you want to delete everything?`;
     }
     const confirmed = await new Promise<boolean>((resolve) => {
       $q.dialog({
-        title: 'Delete Wallet',
+        title: 'Delete All Wallets',
         message: text,
         html: true,
         cancel: { flat: true, color: 'dark' },
-        ok: { label: 'Delete', color: 'red', textColor: 'white' },
+        ok: { label: 'Delete All', color: 'red', textColor: 'white' },
         persistent: true
       }).onOk(() => resolve(true))
         .onCancel(() => resolve(false))
@@ -280,6 +280,71 @@
     localStorage.setItem("loadTokenIcons", enableLoadTokenIcons.value? "true" : "false");
     settingsStore.loadTokenIcons = enableLoadTokenIcons.value;
   }
+
+  function handleSwitchWallet(walletName: string) {
+    if (walletName === store.activeWalletName) return;
+    // Check if the wallet exists on current network
+    const walletInfo = store.availableWallets.find(w => w.name === walletName);
+    if (!walletInfo) return;
+    const currentNetwork = store.network;
+    const walletExistsOnCurrentNetwork =
+      (currentNetwork === 'mainnet' && walletInfo.hasMainnet) ||
+      (currentNetwork === 'chipnet' && walletInfo.hasChipnet);
+    if (!walletExistsOnCurrentNetwork) {
+      // Switch to the network where the wallet exists
+      const targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
+      store.activeWalletName = walletName;
+      localStorage.setItem('activeWalletName', walletName);
+      settingsStore.hasPlayedAnimation = false;
+      void store.changeNetwork(targetNetwork);
+      $q.notify({
+        message: `Switched to ${targetNetwork} for wallet "${walletName}"`,
+        icon: 'info',
+        color: "grey-6"
+      });
+      return;
+    }
+    void store.switchWallet(walletName);
+  }
+
+  async function handleDeleteWallet(walletName: string) {
+    if (walletName === store.activeWalletName) {
+      $q.notify({
+        message: "Cannot delete the currently active wallet",
+        icon: 'warning',
+        color: "grey-7"
+      });
+      return;
+    }
+    const confirmed = await new Promise<boolean>((resolve) => {
+      $q.dialog({
+        title: 'Delete Wallet',
+        message: `Are you sure you want to delete the wallet "${walletName}"?<br>This action cannot be undone.`,
+        html: true,
+        cancel: { flat: true, color: 'dark' },
+        ok: { label: 'Delete', color: 'red', textColor: 'white' },
+        persistent: true
+      }).onOk(() => resolve(true))
+        .onCancel(() => resolve(false))
+    });
+    if (confirmed) {
+      try {
+        await store.deleteWallet(walletName);
+        $q.notify({
+          message: `Wallet "${walletName}" deleted`,
+          icon: 'info',
+          color: "grey-6"
+        });
+      } catch (error) {
+        $q.notify({
+          message: typeof error === 'string' ? error : "Failed to delete wallet",
+          icon: 'warning',
+          color: "red"
+        });
+      }
+    }
+  }
+
 </script>
 
 <template>
@@ -289,7 +354,7 @@
       Version Cashonize App: {{ applicationVersion }}
       <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease == 'v'+applicationVersion">(latest)</span>
       <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion">
-        (latest release is 
+        (latest release is
           <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{store.latestGithubRelease}}</a>)
       </span>
     </div>
@@ -301,6 +366,9 @@
     </div>
 
     <div v-if="displaySettingsMenu == 1">
+      <div style="margin-bottom: 15px;">
+        Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+      </div>
       <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
         <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
           :value="displaySeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
@@ -439,14 +507,14 @@
         </select>
       </div>
 
-      <div style="margin-top:15px;">Remove wallet from {{ platformString }}
+      <div style="margin-top:15px;">Remove all wallets and all data from {{ platformString }}
         <div v-if="isPwaMode" style="color: red">
-          Deleting the wallet data in the 'Installed web-app' will also delete the wallet from your browser!
+          Deleting all wallets from the 'Installed web-app' will also delete them from your browser!
         </div>
         <div v-if="!isPwaMode && settingsStore.hasInstalledPWA" style="color: red">
-          Deleting the wallet data from the browser will also remove the wallet from any 'Installed web-app'.
+          Deleting all wallets from the browser will also remove them from any 'Installed web-app'.
         </div>
-        <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
+        <input @click="confirmDeleteWallet()" type="button" value="Delete all" class="button error" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
@@ -502,9 +570,58 @@
         </div>
       </div>
     </div>
+    <div v-else-if="displaySettingsMenu == 5">
+      <div style="margin-bottom: 15px;">
+        Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+      </div>
+
+      <div v-if="store.availableWallets.length > 0" style="margin-bottom: 20px;">
+        <div style="margin-bottom: 10px;">All wallets:</div>
+        <div
+          v-for="wallet in store.availableWallets"
+          :key="wallet.name"
+          class="wallet-item"
+          :class="{ active: wallet.name === store.activeWalletName }"
+        >
+          <span
+            class="wallet-name"
+            :class="{ clickable: wallet.name !== store.activeWalletName }"
+            @click="handleSwitchWallet(wallet.name)"
+          >
+            <span class="wallet-name-styled">{{ wallet.name }}</span>
+            <span v-if="wallet.name === store.activeWalletName" class="active-badge">(current)</span>
+            <span v-if="!wallet.hasChipnet" class="network-badge">(mainnet only)</span>
+            <span v-else-if="!wallet.hasMainnet" class="network-badge">(chipnet only)</span>
+          </span>
+          <button
+            v-if="wallet.name !== store.activeWalletName"
+            class="delete-wallet-btn"
+            @click.stop="handleDeleteWallet(wallet.name)"
+            title="Delete wallet"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(9)">
+        → Add new wallet
+      </div>
+    </div>
     <div v-else>
+      <div style="margin-bottom: 15px;">
+        Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+      </div>
+
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">
         ↳ Backup wallet <span v-if="!settingsStore.hasSeedBackedUp" style="color: var(--color-primary)">(important)</span>
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 5">
+        ↳ Manage wallets
+        <span v-if="store.availableWallets.length > 1" style="color: grey; font-size: smaller;">
+          ({{ store.availableWallets.length }} wallets)
+        </span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 2">
@@ -646,5 +763,62 @@ body.dark .derivation-container {
 .derivation-path {
   font-family: monospace;
   font-size: 14px;
+}
+
+.wallet-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+}
+body.dark .wallet-item {
+  background-color: #1a1a2e;
+}
+.wallet-item.active {
+  border-left: 3px solid var(--color-primary);
+}
+.wallet-name {
+  flex: 1;
+}
+.wallet-name.clickable {
+  cursor: pointer;
+}
+.wallet-name.clickable:hover {
+  color: var(--color-primary);
+}
+.active-badge {
+  color: var(--color-primary);
+  font-size: smaller;
+  margin-left: 8px;
+}
+.network-badge {
+  color: grey;
+  font-size: smaller;
+  margin-left: 8px;
+}
+.delete-wallet-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+.delete-wallet-btn:hover {
+  background-color: rgba(188, 30, 30, 0.1);
+  color: rgb(188, 30, 30);
+}
+.wallet-name-styled {
+  font-family: monospace;
+  background-color: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+body.dark .wallet-name-styled {
+  background-color: #2a2a3e;
 }
 </style>
