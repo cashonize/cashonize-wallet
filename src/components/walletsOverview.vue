@@ -25,7 +25,7 @@
     return `${day}/${month}/${year}`; // DD/MM/YY default
   }
 
-  function handleSwitchWallet(walletName: string) {
+  async function handleSwitchWallet(walletName: string) {
     if (walletName === store.activeWalletName) return;
     // Check if the wallet exists on current network
     // Note: wallets are created for both networks by default, very old wallets may be the exception
@@ -47,7 +47,15 @@
       });
       return;
     }
-    void store.switchWallet(walletName);
+    try {
+      await store.switchWallet(walletName);
+    } catch (error) {
+      $q.notify({
+        message: `Failed to switch wallet: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        icon: 'warning',
+        color: "red"
+      });
+    }
   }
 
   async function deleteSingleWallet(walletName: string) {
