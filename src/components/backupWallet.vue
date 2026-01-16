@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
+  import { computed, ref, onMounted } from 'vue'
   import { useQuasar } from 'quasar'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -7,6 +7,37 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+
+    // Persistent storage (only relevant for browser/PWA, not Electron or Capacitor)
+  const isBrowser = process.env.MODE === 'spa'
+  const persistentStorageSupported = typeof navigator !== 'undefined' && !!navigator.storage?.persist
+  const persistentStorageStatus = ref<'unknown' | 'granted' | 'denied'>('unknown')
+
+  onMounted(async () => {
+    if (isBrowser && persistentStorageSupported) {
+      const persisted = await navigator.storage.persisted()
+      persistentStorageStatus.value = persisted ? 'granted' : 'denied'
+    }
+  })
+
+  async function requestPersistentStorage() {
+    if (!persistentStorageSupported) return
+    const granted = await navigator.storage.persist()
+    persistentStorageStatus.value = granted ? 'granted' : 'denied'
+    if (granted) {
+      $q.notify({
+        message: "Persistent storage granted - your wallet data is protected",
+        icon: 'check_circle',
+        color: "green"
+      })
+    } else {
+      $q.notify({
+        message: "Persistent storage denied - make sure you have a backup of your seed phrase",
+        icon: 'warning',
+        color: "grey-7"
+      })
+    }
+  }
 
   const derivationPathNote = computed(() => {
     const path = store.wallet.derivationPath;
@@ -162,12 +193,12 @@
       <div v-else-if="backupStatus === 'imported'" class="backup-status verified">
         <span class="status-icon">✓</span>
         <span>Imported wallet</span>
-        <span class="backup-hint">— no extra backup verification needed</span>
+        <span class="inline-hint">— no extra backup verification needed</span>
       </div>
       <div v-else class="backup-status not-verified">
         <span class="status-icon">!</span>
         <span>Not backed up yet</span>
-        <span class="backup-hint">— click "Verify your backup" to confirm</span>
+        <span class="inline-hint">— click "Verify your backup" to confirm</span>
       </div>
     </div>
 
@@ -202,6 +233,35 @@
         <span class="derivation-path">{{ store.wallet.derivationPath }}</span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </div>
+    </div>
+
+    <!-- Persistent Storage (browser only) -->
+    <div v-if="isBrowser && persistentStorageSupported" class="persistent-storage-section">
+      <div class="persistent-storage-info">
+        <span v-if="persistentStorageStatus === 'granted'" class="storage-status granted">
+          <span class="status-icon">✓</span> Data persistence granted by browser
+          <span class="inline-hint">— this protects wallet data from being cleared</span>
+        </span>
+        <span v-else-if="persistentStorageStatus === 'denied'" class="storage-status denied">
+          <span class="status-icon">!</span>
+          <span>Wallet data not protected</span>
+          <span class="inline-hint">— request data persistence from the browser</span>
+        </span>
+        <span v-else class="storage-status unknown">
+          Checking...
+        </span>
+      </div>
+      <div v-if="persistentStorageStatus !== 'granted'" class="persistent-storage-hint">
+        In rare cases, browsers may clear site data automatically. To protect against this, we are requesting data persistence.
+      </div>
+      <input
+        v-if="persistentStorageStatus !== 'granted'"
+        @click="requestPersistentStorage()"
+        class="button"
+        type="button"
+        value="Request data persistence"
+        style="margin-top: 10px; margin-bottom: 15px;"
+      >
     </div>
   </div>
 </template>
@@ -245,7 +305,7 @@ body.dark .backup-status.not-verified {
 .status-icon {
   font-weight: bold;
 }
-.backup-hint {
+.inline-hint {
   color: #888;
 }
 .seedphrase-container {
@@ -395,5 +455,46 @@ body.dark .verification-input.valid-word {
 body.dark .verification-input.invalid-word {
   background-color: #3d1b1b;
   color: #ef9a9a;
+}
+.persistent-storage-section {
+  margin-top: 24px;
+  margin-bottom: 15px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+body.dark .persistent-storage-section {
+  border-top-color: #333;
+}
+.persistent-storage-info {
+  margin-bottom: 8px;
+}
+.storage-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.storage-status.granted {
+  color: #2e7d32;
+}
+body.dark .storage-status.granted {
+  color: #a5d6a7;
+}
+.storage-status.denied {
+  color: #e65100;
+}
+body.dark .storage-status.denied {
+  color: #ffcc80;
+}
+.storage-status.unknown {
+  color: #888;
+}
+.persistent-storage-hint {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+body.dark .persistent-storage-hint {
+  color: #aaa;
 }
 </style>
