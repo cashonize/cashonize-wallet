@@ -12,8 +12,17 @@ Because of its minimalist design, Cashonize is a user-friendly wallet, even for 
 Cashonize has an easy-to-understand transaction preview screen for WalletConnect and CashConnect, empowering users before signing DeFi transactions.
 Further, Cashonize nicely groups and displays your NFTs, making it ideal for NFT collectors.
 
-Cashonize is a single-address wallet, for privacy-focused users is recommended to use a HD-wallet for payments instead (however BCH WalletConnect itself is single-address based in its design).
+Cashonize supports multiple wallets, but each wallet is single-address. For privacy-focused users, an HD-wallet is recommended for payments instead (however BCH WalletConnect itself is single-address based in its design).
 Cashonize also does not currently support password or pin locked wallets and encrypted seed phrases.
+
+### Features
+
+- **Send & receive BCH and CashTokens** - Full support for fungible tokens and NFTs
+- **Connect to dApps via WalletConnect** - Easy-to-understand transaction preview screen
+- **Open-source and non-custodial** - You control your keys
+- **Multi-wallet support** - Create and manage multiple wallets, easily switch between them
+- **Backup status tracking** - Visual indicators show which wallets need to be backed up
+- **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
 
 ## Platforms
 
@@ -25,8 +34,8 @@ Cashonize also does not currently support password or pin locked wallets and enc
 
 📲 Installable Web App: Look for the **Add to Home Screen / Install** setting in your browser on [cashonize.com](cashonize.com) 
 
-**Note:** a webwallets are great for convenience, but downloaded applications are more secure. (Installable web apps share the same security model as webwallets) <br>
 ⚠️ [cashonize.com](cashonize.com) is the only correct URL for the webwallet
+**Note:** webwallets are great for convenience, but downloaded applications are more secure. (Installable web apps share the same security model as webwallets) <br>
 
 ## Local development 
 
