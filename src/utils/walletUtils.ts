@@ -33,13 +33,13 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     return makeError("Please enter a wallet name", true);
   }
 
-  // Check if wallet already exists
-  const exists = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-  if (exists) {
-    return makeError(`Wallet "${trimmedName}" already exists`, true);
-  }
-
   try {
+    // Check if wallet already exists
+    const exists = await namedWalletExistsInDb(trimmedName, "bitcoincash");
+    if (exists) {
+      return makeError(`Wallet "${trimmedName}" already exists`, true);
+    }
+
     const store = useStore();
     const settingsStore = useSettingsStore();
 
@@ -93,12 +93,6 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     return makeError("Please enter a wallet name", true);
   }
 
-  // Check if wallet already exists
-  const exists = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-  if (exists) {
-    return makeError(`Wallet "${trimmedName}" already exists`, true);
-  }
-
   if (!seedPhrase) {
     return makeError("Enter a seed phrase to import wallet", true);
   }
@@ -108,6 +102,12 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
   }
 
   try {
+    // Check if wallet already exists
+    const exists = await namedWalletExistsInDb(trimmedName, "bitcoincash");
+    if (exists) {
+      return makeError(`Wallet "${trimmedName}" already exists`, true);
+    }
+
     const store = useStore();
     const settingsStore = useSettingsStore();
 

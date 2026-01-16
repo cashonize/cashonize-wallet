@@ -313,15 +313,16 @@ export const useStore = defineStore('store', () => {
   }
 
   async function switchWallet(walletName: string) {
-    activeWalletName.value = walletName;
-    localStorage.setItem('activeWalletName', walletName);
     // Get the current network from localStorage (default to mainnet)
     const currentNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
-    // Re-initialize wallet
-    resetWalletState();
-    walletInitialized.value = false;
+    // Load wallet first - if this fails, don't update any state
     const walletClass = (currentNetwork == 'mainnet') ? Wallet : TestNetWallet;
     const newWallet = await walletClass.named(walletName);
+    // Only update state after successful wallet load
+    activeWalletName.value = walletName;
+    localStorage.setItem('activeWalletName', walletName);
+    resetWalletState();
+    walletInitialized.value = false;
     setWallet(newWallet);
     changeView(1);
     // fire-and-forget - don't await so UI is responsive
