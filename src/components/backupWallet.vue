@@ -16,10 +16,8 @@
   })
 
   // Computed property to check if current wallet's seed has been backed up
-  const hasSeedBackedUp = computed(() => {
-    const status = settingsStore.getBackupStatus(store.activeWalletName);
-    return status === 'verified' || status === 'imported';
-  })
+  const backupStatus = computed(() => settingsStore.getBackupStatus(store.activeWalletName));
+  const hasSeedBackedUp = computed(() => backupStatus.value === 'verified' || backupStatus.value === 'imported');
 
   // Seedphrase display state
   const displaySeedphrase = ref(false);
@@ -138,7 +136,7 @@
 
     <!-- Show/Hide Seed Phrase -->
     <div style="margin-top: 15px;">
-      <div style="margin-bottom: 8px;">Seed phrase (mnemonic)</div>
+      <div style="margin-bottom: 8px;">Wallet seed phrase</div>
       <div class="seedphrase-actions">
         <input @click="toggleShowSeedphrase()" class="button primary" type="button"
           :value="displaySeedphrase ? 'Hide seed phrase' : 'Show seed phrase'"
@@ -157,9 +155,14 @@
 
     <!-- Backup Status -->
     <div v-if="!showBackupVerification" class="backup-status-section">
-      <div v-if="hasSeedBackedUp" class="backup-status verified">
+      <div v-if="backupStatus === 'verified'" class="backup-status verified">
         <span class="status-icon">✓</span>
         <span>Backup verified</span>
+      </div>
+      <div v-else-if="backupStatus === 'imported'" class="backup-status verified">
+        <span class="status-icon">✓</span>
+        <span>Imported wallet</span>
+        <span class="backup-hint">— no extra backup verification needed</span>
       </div>
       <div v-else class="backup-status not-verified">
         <span class="status-icon">!</span>

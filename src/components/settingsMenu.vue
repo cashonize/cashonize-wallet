@@ -391,7 +391,7 @@
         <div v-if="!isPwaMode && settingsStore.hasInstalledPWA" style="color: red">
           Deleting all wallets from the browser will also remove them from any 'Installed web-app'.
         </div>
-        <input @click="confirmDeleteWallets()" type="button" value="Delete all" class="button error" style="display: block;">
+        <input @click="confirmDeleteWallets()" type="button" value="Delete all wallets" class="button error" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
@@ -461,8 +461,8 @@
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 5">
         ↳ Manage wallets
-        <span v-if="store.availableWallets.length > 1" style="color: grey; font-size: smaller;">
-          ({{ store.availableWallets.length }} wallets)
+        <span style="color: grey; font-size: smaller;">
+          ({{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? 'wallet' : 'wallets' }})
         </span>
       </div>
 
