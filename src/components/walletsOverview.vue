@@ -1,11 +1,16 @@
 <script setup lang="ts">
+  import { computed } from 'vue'
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
 
+  const MAX_WALLETS = 20
+
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+
+  const canAddMoreWallets = computed(() => store.availableWallets.length < MAX_WALLETS)
 
   function formatCreationDate(walletName: string): string {
     const meta = settingsStore.getWalletMetadata(walletName);
@@ -131,8 +136,11 @@
       </div>
     </div>
 
-    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(9)">
+    <div v-if="canAddMoreWallets" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(9)">
       → Add new wallet
+    </div>
+    <div v-else style="margin-bottom: 15px; color: #888;">
+      Number of wallets limited to {{ MAX_WALLETS }} for now
     </div>
   </div>
 </template>
