@@ -7,6 +7,19 @@
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
 
+  function formatCreationDate(walletName: string): string {
+    const meta = settingsStore.getWalletMetadata(walletName);
+    if (!meta.createdAt) return '';
+    const date = new Date(meta.createdAt);
+    const dateFormat = settingsStore.dateFormat;
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString();
+    if (dateFormat === 'MM/DD/YY') return `${month}/${day}/${year}`;
+    if (dateFormat === 'YY-MM-DD') return `${year}-${month}-${day}`;
+    return `${day}/${month}/${year}`; // DD/MM/YY default
+  }
+
   function handleSwitchWallet(walletName: string) {
     if (walletName === store.activeWalletName) return;
     // Check if the wallet exists on current network
@@ -56,8 +69,9 @@
     if (confirmed) {
       try {
         await store.deleteWallet(walletName);
-        // Clear backup status for deleted wallet
+        // Clear backup status and metadata for deleted wallet
         settingsStore.clearBackupStatus(walletName);
+        settingsStore.clearWalletMetadata(walletName);
         $q.notify({
           message: `Wallet "${walletName}" deleted`,
           icon: 'info',
@@ -89,7 +103,7 @@
         :class="{ active: wallet.name === store.activeWalletName }"
       >
         <span
-          class="wallet-name"
+          class="wallet-section-left"
           :class="{ clickable: wallet.name !== store.activeWalletName }"
           @click="handleSwitchWallet(wallet.name)"
         >
@@ -98,17 +112,22 @@
           <span v-if="!wallet.hasChipnet" class="network-badge">(mainnet only)</span>
           <span v-else-if="!wallet.hasMainnet" class="network-badge">(chipnet only)</span>
         </span>
-        <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name)">
-          {{ settingsStore.getBackupStatus(wallet.name) === 'none' ? 'not backed up' : settingsStore.getBackupStatus(wallet.name) === 'imported' ? 'imported' : 'backed up' }}
+        <span class="wallet-section-center">
+          <span class="creation-date-prefix">{{ settingsStore.getBackupStatus(wallet.name) === 'imported' ? 'Import date: ' : 'Creation date: ' }}</span>{{ formatCreationDate(wallet.name) || 'Unknown' }}
         </span>
-        <button
-          v-if="wallet.name !== store.activeWalletName"
-          class="delete-wallet-btn"
-          @click.stop="deleteSingleWallet(wallet.name)"
-          title="Delete wallet"
-        >
-          ✕
-        </button>
+        <span class="wallet-section-right">
+          <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name)">
+            {{ settingsStore.getBackupStatus(wallet.name) === 'none' ? 'not backed up' : settingsStore.getBackupStatus(wallet.name) === 'imported' ? 'imported' : 'backed up' }}
+          </span>
+          <button
+            v-if="wallet.name !== store.activeWalletName"
+            class="delete-wallet-btn"
+            @click.stop="deleteSingleWallet(wallet.name)"
+            title="Delete wallet"
+          >
+            ✕
+          </button>
+        </span>
       </div>
     </div>
 
@@ -134,14 +153,28 @@ body.dark .wallet-item {
 .wallet-item.active {
   border-left: 3px solid var(--color-primary);
 }
-.wallet-name {
+.wallet-section-left {
   flex: 1;
+  min-width: 0;
 }
-.wallet-name.clickable {
+.wallet-section-left.clickable {
   cursor: pointer;
 }
-.wallet-name.clickable:hover {
+.wallet-section-left.clickable:hover {
   color: var(--color-primary);
+}
+.wallet-section-center {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  padding: 0 12px;
+}
+.wallet-section-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
 }
 .active-badge {
   color: var(--color-primary);
@@ -175,10 +208,17 @@ body.dark .wallet-item {
 body.dark .wallet-name-styled {
   background-color: #2a2a3e;
 }
+.creation-date-prefix {
+  display: none;
+}
+@media (min-width: 600px) {
+  .creation-date-prefix {
+    display: inline;
+  }
+}
 .backup-status-badge {
   font-size: 12px;
   color: #888;
-  margin-left: auto;
   margin-right: 8px;
 }
 .backup-status-badge.none {

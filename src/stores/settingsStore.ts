@@ -39,6 +39,13 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // Per-wallet backup status: 'verified' (passed backup test), 'imported' (restored via seed), 'none' (needs backup)
   // Stored in localStorage as JSON: { "walletName": "verified", ... }
   const walletBackupStatus = ref<Record<string, 'verified' | 'imported' | 'none'>>({})
+
+  // Per-wallet metadata (creation date, etc.)
+  // Stored in localStorage as JSON: { "walletName": { createdAt: "2025-01-16T..." }, ... }
+  interface WalletMetadata {
+    createdAt?: string; // ISO date string
+  }
+  const walletMetadata = ref<Record<string, WalletMetadata>>({})
   const mintNfts = ref(false);
   const authchains = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
@@ -72,6 +79,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   } else if (oldSeedBackedUp !== null) {
     // Clean up old key even if it was "false"
     localStorage.removeItem("seedBackedUp");
+  }
+
+  // Load per-wallet metadata
+  const readWalletMetadata = localStorage.getItem("walletMetadata");
+  if (readWalletMetadata) {
+    try {
+      walletMetadata.value = JSON.parse(readWalletMetadata);
+    } catch { /* ignore parse errors */ }
   }
 
   const readFiatValueHistory = localStorage.getItem("fiatValueHistory");
@@ -270,6 +285,24 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem("walletBackupStatus", JSON.stringify(walletBackupStatus.value));
   }
 
+  // Helper functions for per-wallet metadata
+  function getWalletMetadata(walletName: string): WalletMetadata {
+    return walletMetadata.value[walletName] || {};
+  }
+
+  function setWalletCreatedAt(walletName: string, date: Date = new Date()) {
+    if (!walletMetadata.value[walletName]) {
+      walletMetadata.value[walletName] = {};
+    }
+    walletMetadata.value[walletName].createdAt = date.toISOString();
+    localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
+  }
+
+  function clearWalletMetadata(walletName: string) {
+    delete walletMetadata.value[walletName];
+    localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
+  }
+
   function removeOldCacheData(){
     // remove tx- and header- keys from localStorage
     Object.keys(localStorage).forEach(key => {
@@ -298,6 +331,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     getBackupStatus,
     setBackupStatus,
     clearBackupStatus,
+    getWalletMetadata,
+    setWalletCreatedAt,
+    clearWalletMetadata,
     mintNfts,
     authchains,
     dateFormat,

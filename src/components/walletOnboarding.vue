@@ -63,6 +63,9 @@
       store.setWallet(mainnetWallet);
       void store.initializeWallet();
 
+      // Store wallet creation date
+      settingsStore.setWalletCreatedAt(name);
+
       step.value = 3;
     } catch {
       $q.notify({
@@ -116,6 +119,9 @@
 
       // Mark as 'imported' - user already demonstrated having the seed phrase
       settingsStore.setBackupStatus(name, 'imported');
+
+      // Store wallet creation date (import date)
+      settingsStore.setWalletCreatedAt(name);
 
       step.value = 3;
     } catch (error) {

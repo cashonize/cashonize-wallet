@@ -64,6 +64,8 @@
       await store.refreshAvailableWallets();
       // fire-and-forget promise does not wait on full wallet initialization
       void store.initializeWallet();
+      // Store wallet creation date
+      settingsStore.setWalletCreatedAt(name);
     } catch (err) {
       const errorMessage = typeof err == 'string' ? err : "Failed to create wallet";
       $q.notify({
@@ -106,6 +108,8 @@
       void store.initializeWallet();
       // Mark as 'imported' - user already demonstrated having the seed phrase
       settingsStore.setBackupStatus(name, 'imported');
+      // Store wallet creation date (import date)
+      settingsStore.setWalletCreatedAt(name);
     } catch (error) {
       const errorMessage = typeof error == 'string' ? error : "Not a valid seed phrase"
       $q.notify({
