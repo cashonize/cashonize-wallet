@@ -206,19 +206,13 @@
       </div>
 
       <div style="margin-bottom: 20px;">
-        <label style="display: flex; align-items: center; gap: 12px;">
-          <span>Dark mode</span>
-          <Toggle v-model="selectedDarkMode" @change="applyDarkMode" style="display: inline-block;" />
-        </label>
+        Dark mode <Toggle v-model="selectedDarkMode" @change="applyDarkMode" style="vertical-align: middle; display: inline-block;" />
       </div>
 
       <div style="margin-bottom: 25px;">
-        <label style="display: flex; align-items: center; gap: 12px;">
-          <span>Confirm payments before sending</span>
-          <Toggle v-model="confirmBeforeSending" style="display: inline-block;" />
-        </label>
-        <div style="font-size: smaller; color: grey; margin-top: 4px;">
-          Shows a confirmation dialog before sending transactions
+        Confirm payments before sending <Toggle v-model="confirmBeforeSending" style="vertical-align: middle; display: inline-block;" />
+        <div style="font-size: smaller; color: grey;">
+          Ask for confirmation after clicking send (recommended)
         </div>
       </div>
 

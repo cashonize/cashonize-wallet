@@ -287,6 +287,9 @@
 
       <div style="margin-top:15px">
         Confirm payments before sending <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending" style="vertical-align: middle;display: inline-block;"/>
+        <div style="font-size: smaller; color: grey;">
+          Ask for confirmation after clicking send (recommended)
+        </div>
       </div>
 
       <div style="margin-top:15px">

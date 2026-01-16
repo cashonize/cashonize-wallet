@@ -49,7 +49,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const mintNfts = ref(false);
   const authchains = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
-  const confirmBeforeSending = ref(false);
+  const confirmBeforeSending = ref(true);
   const loadTokenIcons = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
 
