@@ -148,22 +148,4 @@
   font-size: 14px;
   min-width: 0;
 }
-.seed-word-input input.valid-word {
-  border-color: #4caf50;
-  outline-color: #4caf50;
-  background-color: #e8f5e9;
-}
-.seed-word-input input.invalid-word {
-  border-color: #f44336;
-  outline-color: #f44336;
-  background-color: #ffebee;
-}
-body.dark .seed-word-input input.valid-word {
-  background-color: #1b3d1f;
-  color: #a5d6a7;
-}
-body.dark .seed-word-input input.invalid-word {
-  background-color: #3d1b1b;
-  color: #ef9a9a;
-}
 </style>

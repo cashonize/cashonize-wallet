@@ -430,22 +430,6 @@ body.dark .verification-input {
   border-color: #444;
   color: #f5f5f5;
 }
-.verification-input.valid-word {
-  border-color: #4caf50;
-  background-color: #e8f5e9;
-}
-.verification-input.invalid-word {
-  border-color: #f44336;
-  background-color: #ffebee;
-}
-body.dark .verification-input.valid-word {
-  background-color: #1b3d1f;
-  color: #a5d6a7;
-}
-body.dark .verification-input.invalid-word {
-  background-color: #3d1b1b;
-  color: #ef9a9a;
-}
 .persistent-storage-section {
   margin-top: 24px;
   margin-bottom: 15px;
