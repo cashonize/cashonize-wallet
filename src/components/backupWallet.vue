@@ -4,6 +4,7 @@
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils'
+  import { DERIVATION_PATHS } from 'src/utils/walletUtils'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
@@ -41,8 +42,8 @@
 
   const derivationPathNote = computed(() => {
     const path = store.wallet.derivationPath;
-    if (path === "m/44'/145'/0'/0/0") return "BCH standard";
-    if (path === "m/44'/0'/0'/0/0") return "legacy, Bitcoin.com wallet compatible";
+    if (path === DERIVATION_PATHS.standard.full) return "BCH standard";
+    if (path === DERIVATION_PATHS.bitcoindotcom.full) return "legacy, Bitcoin.com wallet compatible";
     return "custom";
   })
 

@@ -6,6 +6,20 @@ import { isQuotaExceededError } from 'src/utils/errorHandling'
 
 export type DerivationPathType = "standard" | "bitcoindotcom";
 
+// BIP44 derivation paths for BCH wallets
+// - parent: used by mainnet-js Config when generating new wallets via Wallet.named()
+// - full: used in explicit walletId strings for Wallet.replaceNamed() imports
+export const DERIVATION_PATHS = {
+  standard: {
+    parent: "m/44'/145'/0'",
+    full: "m/44'/145'/0'/0/0",
+  },
+  bitcoindotcom: {
+    parent: "m/44'/0'/0'",
+    full: "m/44'/0'/0'/0/0",
+  },
+} as const;
+
 export interface CreateWalletResult {
   success: true;
   walletName: string;
@@ -43,7 +57,8 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     const store = useStore();
     const settingsStore = useSettingsStore();
 
-    Config.DefaultParentDerivationPath = "m/44'/145'/0'";
+    // mainnet-js defaults to m/44'/0'/0' (bitcoindotcom), override to use BCH standard
+    Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
     const mainnetWallet = await Wallet.named(trimmedName);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
     await TestNetWallet.replaceNamed(trimmedName, walletId);
@@ -111,13 +126,7 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     const store = useStore();
     const settingsStore = useSettingsStore();
 
-    const fullDerivationPath = derivationPath === "standard"
-      ? "m/44'/145'/0'/0/0"
-      : "m/44'/0'/0'/0/0";
-
-    if (derivationPath === "standard") {
-      Config.DefaultParentDerivationPath = "m/44'/145'/0'";
-    }
+    const fullDerivationPath = DERIVATION_PATHS[derivationPath].full;
 
     const walletId = `seed:mainnet:${seedPhrase}:${fullDerivationPath}`;
     await Wallet.replaceNamed(trimmedName, walletId);
