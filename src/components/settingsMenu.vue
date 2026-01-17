@@ -21,7 +21,7 @@
   const isCapacitor = (process.env.MODE == "capacitor");
   const applicationVersion = process.env.version
 
-  const displaySettingsMenu = ref(0);
+  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5>(0);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -269,14 +269,14 @@
       </span>
     </div>
 
-    <div v-if="displaySettingsMenu != 0">
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 0">
+    <div v-if="settingsSection != 0">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 0">
         ↲ All settings
       </div>
     </div>
 
-    <backupWallet v-if="displaySettingsMenu == 1" />
-    <div v-else-if="displaySettingsMenu == 2">
+    <backupWallet v-if="settingsSection == 1" />
+    <div v-else-if="settingsSection == 2">
       <div style="margin-bottom:15px;">
         Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle; display: inline-block;"/>
       </div>
@@ -344,8 +344,7 @@
         </select>
       </div>
     </div>
-    <div v-else-if="displaySettingsMenu == 3">
-
+    <div v-else-if="settingsSection == 3">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <label for="selectNetwork">Change Electrum server mainnet:</label>
         <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
@@ -416,7 +415,7 @@
         <input @click="clearMetadataCache()" type="button" value="Clear token cache" class="button" style="display: block; color: black;">
       </div>
     </div>
-    <div v-else-if="displaySettingsMenu == 4">
+    <div v-else-if="settingsSection == 4">
       <div>
         <label for="selectNetwork">Change network:</label>
         <select v-model="selectedNetwork" @change="changeNetwork()">
@@ -457,34 +456,35 @@
         </div>
       </div>
     </div>
-    <div v-else-if="displaySettingsMenu == 5">
+    <div v-else-if="settingsSection == 5">
       <walletsOverview />
     </div>
+    <!-- settingsSection === 0: main settings menu -->
     <div v-else>
       <div style="margin-bottom: 15px;">
         Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 1">
         ↳ Backup wallet <span v-if="settingsStore.getBackupStatus(store.activeWalletName) === 'none'" style="color: var(--color-primary)">(important)</span>
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 5">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 5">
         ↳ Manage wallets
         <span style="color: grey; font-size: smaller;">
           ({{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? 'wallet' : 'wallets' }})
         </span>
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 2">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 2">
         ↳ User options
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 3">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 3">
         ↳ Advanced settings
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 4">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 4">
         ↳ Developer settings
       </div>
 
@@ -532,8 +532,6 @@
     </div>
   </fieldset>
 </template>
-
-<style src="@vueform/toggle/themes/default.css"></style>
 
 <style scoped>
 .nowrap {

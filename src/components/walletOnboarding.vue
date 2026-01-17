@@ -227,8 +227,6 @@
   </fieldset>
 </template>
 
-<style src="@vueform/toggle/themes/default.css"></style>
-
 <style scoped>
 .features-list {
   display: flex;

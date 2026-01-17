@@ -1,5 +1,7 @@
 @import './base.css';
 @import 'chota';
+/* Toggle component styles - globally applied for all components using @vueform/toggle */
+@import '@vueform/toggle/themes/default.css';
 
 :root {
   --color-primary: #0ac18f;
