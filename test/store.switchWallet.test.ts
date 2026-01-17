@@ -116,6 +116,89 @@ describe('switchWallet', () => {
     })
   })
 
+  describe('network fallback for network-specific wallets', () => {
+    it('switches to mainnet when wallet only exists on mainnet and current network is chipnet', async () => {
+      localStorageMock.setItem('network', 'chipnet')
+      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
+      const store = useStore()
+      store.setWallet(mockChipnetWallet as never)
+      // Set up availableWallets with a mainnet-only wallet
+      store.availableWallets = [
+        { name: 'mainnetOnlyWallet', hasMainnet: true, hasChipnet: false }
+      ]
+
+      const result = await store.switchWallet('mainnetOnlyWallet')
+
+      expect(result.success).toBe(true)
+      expect(result.networkChanged).toBe('mainnet')
+      expect(store.activeWalletName).toBe('mainnetOnlyWallet')
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('activeWalletName', 'mainnetOnlyWallet')
+      // Should NOT have called TestNetWallet.named (we're switching away from chipnet)
+      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+      // changeNetwork is fire-and-forget, wait a tick for its effects
+      await new Promise(r => setTimeout(r, 0))
+      // Verify network was changed and correct wallet loader was called
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'mainnet')
+      expect(mockWalletNamed).toHaveBeenCalledWith('mainnetOnlyWallet')
+    })
+
+    it('switches to chipnet when wallet only exists on chipnet and current network is mainnet', async () => {
+      localStorageMock.setItem('network', 'mainnet')
+      mockTestNetWalletNamed.mockResolvedValue(mockChipnetWallet)
+      const store = useStore()
+      store.setWallet(mockMainnetWallet as never)
+      // Set up availableWallets with a chipnet-only wallet
+      store.availableWallets = [
+        { name: 'chipnetOnlyWallet', hasMainnet: false, hasChipnet: true }
+      ]
+
+      const result = await store.switchWallet('chipnetOnlyWallet')
+
+      expect(result.success).toBe(true)
+      expect(result.networkChanged).toBe('chipnet')
+      expect(store.activeWalletName).toBe('chipnetOnlyWallet')
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('activeWalletName', 'chipnetOnlyWallet')
+      // Should NOT have called Wallet.named (we're switching away from mainnet)
+      expect(mockWalletNamed).not.toHaveBeenCalled()
+      // changeNetwork is fire-and-forget, wait a tick for its effects
+      await new Promise(r => setTimeout(r, 0))
+      // Verify network was changed and correct wallet loader was called
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'chipnet')
+      expect(mockTestNetWalletNamed).toHaveBeenCalledWith('chipnetOnlyWallet')
+    })
+
+    it('does not change network when wallet exists on current network', async () => {
+      localStorageMock.setItem('network', 'mainnet')
+      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
+      const store = useStore()
+      store.setWallet(mockMainnetWallet as never)
+      // Wallet exists on both networks
+      store.availableWallets = [
+        { name: 'bothNetworks', hasMainnet: true, hasChipnet: true }
+      ]
+
+      const result = await store.switchWallet('bothNetworks')
+
+      expect(result.success).toBe(true)
+      expect(result.networkChanged).toBeUndefined()
+      expect(mockWalletNamed).toHaveBeenCalledWith('bothNetworks')
+    })
+
+    it('loads wallet normally when not in availableWallets (fresh wallet)', async () => {
+      localStorageMock.setItem('network', 'mainnet')
+      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
+      const store = useStore()
+      store.setWallet(mockMainnetWallet as never)
+      store.availableWallets = [] // Empty list
+
+      const result = await store.switchWallet('unknownWallet')
+
+      expect(result.success).toBe(true)
+      expect(result.networkChanged).toBeUndefined()
+      expect(mockWalletNamed).toHaveBeenCalledWith('unknownWallet')
+    })
+  })
+
   describe('error handling', () => {
     it('throws when wallet loading fails', async () => {
       localStorageMock.setItem('network', 'mainnet')

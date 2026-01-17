@@ -38,28 +38,17 @@
 
   async function handleSwitchWallet(walletName: string) {
     if (walletName === store.activeWalletName) return;
-    // Check if the wallet exists on current network
-    // Note: wallets are created for both networks by default, very old wallets may be the exception
-    const walletInfo = store.availableWallets.find(w => w.name === walletName);
-    if (!walletInfo) return;
-    const networkSelector = store.network === 'mainnet' ? 'hasMainnet' : 'hasChipnet';
-    const walletExistsOnCurrentNetwork = walletInfo[networkSelector];
-    // If wallet does not exist on current network, use network where it exists
-    if (!walletExistsOnCurrentNetwork) {
-      const walletNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
-      store.activeWalletName = walletName;
-      localStorage.setItem('activeWalletName', walletName);
-      settingsStore.hasPlayedAnimation = false;
-      void store.changeNetwork(walletNetwork);
-      $q.notify({
-        message: `Switched to ${walletNetwork} for wallet "${walletName}"`,
-        icon: 'info',
-        color: "grey-6"
-      });
-      return;
-    }
     try {
-      await store.switchWallet(walletName);
+      const result = await store.switchWallet(walletName);
+      // If network was changed to accommodate wallet, notify user
+      if (result.networkChanged) {
+        settingsStore.hasPlayedAnimation = false;
+        $q.notify({
+          message: `Switched to ${result.networkChanged} for wallet "${walletName}"`,
+          icon: 'info',
+          color: "grey-6"
+        });
+      }
     } catch (error) {
       $q.notify({
         message: `Failed to switch wallet: ${error instanceof Error ? error.message : 'Unknown error'}`,

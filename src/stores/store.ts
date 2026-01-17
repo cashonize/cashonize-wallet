@@ -312,10 +312,33 @@ export const useStore = defineStore('store', () => {
     changeView(1);
   }
 
-  async function switchWallet(walletName: string) {
+  interface SwitchWalletResult {
+    success: true;
+    networkChanged?: 'mainnet' | 'chipnet'; // Set if network was changed to accommodate wallet
+  }
+
+  async function switchWallet(walletName: string): Promise<SwitchWalletResult> {
     // Get the current network from localStorage (default to mainnet)
     const currentNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
-    // Load wallet first - if this fails, don't update any state
+
+    // Check if wallet exists on current network (if we have wallet info available)
+    const walletInfo = availableWallets.value.find(w => w.name === walletName);
+    if (walletInfo) {
+      const networkSelector = currentNetwork === 'mainnet' ? 'hasMainnet' : 'hasChipnet';
+      const walletExistsOnCurrentNetwork = walletInfo[networkSelector];
+
+      // If wallet doesn't exist on current network, switch to a network where it does
+      if (!walletExistsOnCurrentNetwork) {
+        const targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
+        activeWalletName.value = walletName;
+        localStorage.setItem('activeWalletName', walletName);
+        // changeNetwork will reset state and initialize the wallet
+        void changeNetwork(targetNetwork);
+        return { success: true, networkChanged: targetNetwork };
+      }
+    }
+
+    // Load wallet on current network
     const walletClass = (currentNetwork == 'mainnet') ? Wallet : TestNetWallet;
     const newWallet = await walletClass.named(walletName);
     // Only update state after successful wallet load
@@ -327,6 +350,7 @@ export const useStore = defineStore('store', () => {
     changeView(1);
     // fire-and-forget - don't await so UI is responsive
     void initializeWallet();
+    return { success: true };
   }
 
   async function refreshAvailableWallets() {
