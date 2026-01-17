@@ -14,7 +14,6 @@
 
   const seedWords = ref<string[]>(Array(12).fill(''))
   const seedWordCount = ref<12 | 24>(12)
-  const touchedWords = ref<Set<number>>(new Set())
   // Template refs for input elements, used to programmatically focus the next field after paste
   const inputRefs = ref<(HTMLInputElement | null)[]>([])
 
@@ -44,14 +43,9 @@
   }
 
   function getWordValidationClass(index: number): string {
-    if (!touchedWords.value.has(index)) return ''
     const word = seedWords.value[index]?.trim()
     if (!word) return ''
     return isValidBip39Word(word) ? 'valid-word' : 'invalid-word'
-  }
-
-  function onWordBlur(index: number) {
-    touchedWords.value.add(index)
   }
 
   function onWordInput(index: number) {
@@ -64,8 +58,6 @@
       for (let i = 0; i < words.length && (index + i) < seedWords.value.length; i++) {
         const word = words[i]
         if (word) seedWords.value[index + i] = word
-        // Mark distributed words as touched for validation
-        if (i > 0) touchedWords.value.add(index + i)
       }
       // Focus the next empty field or the field after last distributed word
       const nextIndex = Math.min(index + words.length, seedWords.value.length - 1)
@@ -82,8 +74,6 @@
       newWords[i] = seedWords.value[i]
     }
     seedWords.value = newWords
-    // Reset touched state for removed words
-    touchedWords.value = new Set([...touchedWords.value].filter(i => i < count))
   }
 </script>
 
@@ -105,7 +95,6 @@
           :ref="(el) => inputRefs[index] = el as HTMLInputElement"
           v-model="seedWords[index]"
           :class="getWordValidationClass(index)"
-          @blur="onWordBlur(index)"
           @input="onWordInput(index)"
           type="text"
           autocomplete="off"

@@ -56,15 +56,15 @@
   const showBackupVerification = ref(false);
   const verificationIndices = ref<number[]>([]);
   const verificationWords = ref<string[]>([]);
-  const verificationTouched = ref<Set<number>>(new Set());
+
+  function resetVerificationState() {
+    showBackupVerification.value = false;
+    verificationWords.value = [];
+  }
 
   function toggleShowSeedphrase() {
     // Close verification if open
-    if (showBackupVerification.value) {
-      showBackupVerification.value = false;
-      verificationWords.value = [];
-      verificationTouched.value = new Set();
-    }
+    if (showBackupVerification.value) resetVerificationState();
     displaySeedphrase.value = !displaySeedphrase.value;
   }
 
@@ -74,9 +74,7 @@
 
     // Toggle verification
     if (showBackupVerification.value) {
-      showBackupVerification.value = false;
-      verificationWords.value = [];
-      verificationTouched.value = new Set();
+      resetVerificationState();
     } else {
       const words = store.wallet.mnemonic.split(' ');
       // Pick 4 random indices
@@ -90,13 +88,11 @@
       indices.sort((a, b) => a - b);
       verificationIndices.value = indices;
       verificationWords.value = Array(4).fill('');
-      verificationTouched.value = new Set();
       showBackupVerification.value = true;
     }
   }
 
   function getVerificationWordClass(position: number): string {
-    if (!verificationTouched.value.has(position)) return '';
     const enteredWord = verificationWords.value[position]?.trim().toLowerCase();
     if (!enteredWord) return '';
     const correctIndex = verificationIndices.value[position];
@@ -104,10 +100,6 @@
     const words = store.wallet.mnemonic.split(' ');
     const correctWord = words[correctIndex]?.toLowerCase();
     return enteredWord === correctWord ? 'valid-word' : 'invalid-word';
-  }
-
-  function onVerificationWordBlur(position: number) {
-    verificationTouched.value.add(position);
   }
 
   function verifyBackup() {
@@ -127,8 +119,6 @@
         color: "green"
       });
     } else {
-      // Mark all as touched to show validation
-      verificationTouched.value = new Set([0, 1, 2, 3]);
       $q.notify({
         message: "Some words don't match. Please check and try again.",
         icon: 'warning',
@@ -213,7 +203,6 @@
           <input
             v-model="verificationWords[position]"
             :class="getVerificationWordClass(position)"
-            @blur="onVerificationWordBlur(position)"
             type="text"
             autocomplete="off"
             autocapitalize="none"

@@ -9,8 +9,8 @@
   const store = useStore()
   const $q = useQuasar()
 
-  // Step: 1 = name, 2 = choose type, 3 = import details
-  const step = ref(1);
+  // Step: 1 = name, 2 = choose type (create exits here), 3 = import details (import only)
+  const step = ref<1 | 2 | 3>(1);
   const walletName = ref('');
   const seedPhrase = ref('');
   const seedPhraseValid = ref(false);
@@ -126,7 +126,7 @@
       </div>
     </div>
 
-    <!-- Step 3: Import wallet details -->
+    <!-- Step 3: Import wallet details (only reached when importing) -->
     <div v-else-if="step === 3">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 2">
         ← Back
