@@ -37,15 +37,32 @@ function makeError(message: string, isUserError: boolean): WalletError {
   return { success: false, message, isUserError };
 }
 
+// Invisible/zero-width chars that could be used for spoofing
+const INVALID_NAME_CHARS = /[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/;
+const MAX_WALLET_NAME_LENGTH = 50;
+
+export function validateWalletName(name: string): WalletError | null {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    return makeError("Please enter a wallet name", true);
+  }
+  if (trimmed.length > MAX_WALLET_NAME_LENGTH) {
+    return makeError(`Wallet name too long (max ${MAX_WALLET_NAME_LENGTH} characters)`, true);
+  }
+  if (INVALID_NAME_CHARS.test(trimmed)) {
+    return makeError("Wallet name contains invalid characters", true);
+  }
+  return null;
+}
+
 /**
  * Creates a new wallet with the given name.
  * Handles mainnet and testnet wallet creation, store updates, and metadata.
  */
 export async function createNewWallet(name: string): Promise<WalletOperationResult> {
+  const validationError = validateWalletName(name);
+  if (validationError) return validationError;
   const trimmedName = name.trim();
-  if (!trimmedName) {
-    return makeError("Please enter a wallet name", true);
-  }
 
   try {
     // Check if wallet already exists in either network DB
@@ -103,11 +120,10 @@ export interface ImportWalletParams {
  */
 export async function importWallet(params: ImportWalletParams): Promise<WalletOperationResult> {
   const { seedPhrase, seedPhraseValid, derivationPath } = params;
-  const trimmedName = params.name.trim();
 
-  if (!trimmedName) {
-    return makeError("Please enter a wallet name", true);
-  }
+  const validationError = validateWalletName(params.name);
+  if (validationError) return validationError;
+  const trimmedName = params.name.trim();
 
   if (!seedPhrase) {
     return makeError("Enter a seed phrase to import wallet", true);

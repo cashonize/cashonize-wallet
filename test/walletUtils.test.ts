@@ -17,7 +17,37 @@ import {
 } from './mocks/walletUtils.mocks'
 
 // Import module under test after mocks
-import { createNewWallet, importWallet } from '../src/utils/walletUtils'
+import { createNewWallet, importWallet, validateWalletName } from '../src/utils/walletUtils'
+
+describe('validateWalletName', () => {
+  it('returns null for valid names', () => {
+    expect(validateWalletName('mywallet')).toBeNull()
+    expect(validateWalletName('My Wallet 123')).toBeNull()
+    expect(validateWalletName('我的钱包')).toBeNull()
+    expect(validateWalletName('🔐 savings')).toBeNull()
+  })
+
+  it('rejects empty names', () => {
+    expect(validateWalletName('')?.message).toContain('enter a wallet name')
+    expect(validateWalletName('   ')?.message).toContain('enter a wallet name')
+  })
+
+  it('rejects names exceeding 50 characters', () => {
+    expect(validateWalletName('a'.repeat(50))).toBeNull()
+    expect(validateWalletName('a'.repeat(51))?.message).toContain('too long')
+  })
+
+  it('rejects zero-width characters (spoofing prevention)', () => {
+    expect(validateWalletName('my\u200Bwallet')?.message).toContain('invalid characters') // zero-width space
+    expect(validateWalletName('my\u200Dwallet')?.message).toContain('invalid characters') // zero-width joiner
+    expect(validateWalletName('my\uFEFFwallet')?.message).toContain('invalid characters') // BOM
+  })
+
+  it('rejects directional overrides (spoofing prevention)', () => {
+    expect(validateWalletName('my\u202Ewallet')?.message).toContain('invalid characters') // RTL override
+    expect(validateWalletName('my\u202Awallet')?.message).toContain('invalid characters') // LTR embedding
+  })
+})
 
 describe('createNewWallet', () => {
   beforeEach(() => {
