@@ -99,7 +99,7 @@
 
           <div>
             Enable Auto-Approvals
-            <Toggle v-model="enableAutoApprovals" @change="toggleRadioButtons" style="vertical-align: middle;display: inline-block;"/>
+            <Toggle v-model="enableAutoApprovals" @change="toggleRadioButtons"/>
           </div>
 
           <label class="radio-option">

@@ -25,6 +25,17 @@
     return `${day}/${month}/${year}`; // DD/MM/YY default
   }
 
+  function getDateLabel(walletName: string): string {
+    return settingsStore.getBackupStatus(walletName) === 'imported' ? 'Import date: ' : 'Creation date: ';
+  }
+
+  function getBackupStatusLabel(walletName: string): string {
+    const status = settingsStore.getBackupStatus(walletName);
+    if (status === 'none') return 'not backed up';
+    if (status === 'imported') return 'imported';
+    return 'backed up';
+  }
+
   async function handleSwitchWallet(walletName: string) {
     if (walletName === store.activeWalletName) return;
     // Check if the wallet exists on current network
@@ -125,11 +136,12 @@
           <span v-else-if="!wallet.hasMainnet" class="network-badge">(chipnet only)</span>
         </span>
         <span class="wallet-section-center">
-          <span class="creation-date-prefix">{{ settingsStore.getBackupStatus(wallet.name) === 'imported' ? 'Import date: ' : 'Creation date: ' }}</span>{{ formatCreationDate(wallet.name) || 'Unknown' }}
+          <span class="creation-date-prefix">{{ getDateLabel(wallet.name) }}</span>
+          {{ formatCreationDate(wallet.name) || 'Unknown' }}
         </span>
         <span class="wallet-section-right">
           <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name)">
-            {{ settingsStore.getBackupStatus(wallet.name) === 'none' ? 'not backed up' : settingsStore.getBackupStatus(wallet.name) === 'imported' ? 'imported' : 'backed up' }}
+            {{ getBackupStatusLabel(wallet.name) }}
           </span>
           <button
             v-if="wallet.name !== store.activeWalletName"

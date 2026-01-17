@@ -278,30 +278,30 @@
     <backupWallet v-if="settingsSection == 1" />
     <div v-else-if="settingsSection == 2">
       <div style="margin-bottom:15px;">
-        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle; display: inline-block;"/>
+        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()"/>
       </div>
 
       <div style="margin-top:15px">
-        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;display: inline-block;"/>
+        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory"/>
       </div>
 
       <div style="margin-top:15px">
-        Confirm payments before sending <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending" style="vertical-align: middle;display: inline-block;"/>
+        Confirm payments before sending <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending"/>
         <div style="font-size: smaller; color: grey;">
           Ask for confirmation after clicking send (recommended)
         </div>
       </div>
 
       <div style="margin-top:15px">
-        Show Cauldron Swap Button <Toggle v-model="selectedShowSwap" @change="toggleShowSwap" style="vertical-align: middle;display: inline-block;"/>
+        Show Cauldron Swap Button <Toggle v-model="selectedShowSwap" @change="toggleShowSwap"/>
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">
-        Enable token-burn <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle; display: inline-block;"/>
+        Enable token-burn <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()"/>
       </div>
 
       <div v-if="!isCapacitor" style="margin-top: 15px;">
-        Enable QR scan <Toggle v-model="enableQrScan" @change="changeQrScan()" style="vertical-align: middle; display: inline-block;"/>
+        Enable QR scan <Toggle v-model="enableQrScan" @change="changeQrScan()"/>
       </div>
 
       <div style="margin-top:15px">
@@ -428,14 +428,14 @@
       <div style="margin: 0px 10px;">
 
         <div style="margin-top:15px">
-          Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()" style="vertical-align: middle;display: inline-block;"/>
+          Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()"/>
           <div style="font-size: smaller; color: grey;">
             Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category
           </div>
         </div>
 
         <div style="margin-top:15px; margin-bottom: 15px">
-          Enable authchain resolution <Toggle v-model="enableAuthchains" @change="changeAuthchains()" style="vertical-align: middle;display: inline-block;"/>
+          Enable authchain resolution <Toggle v-model="enableAuthchains" @change="changeAuthchains()"/>
           <div style="font-size: smaller; color: grey;">
             Checks if you hold the AuthHead (authority to update token metadata) and enables transferring it
           </div>
@@ -449,7 +449,7 @@
       <div style="margin-top:15px">Privacy:</div>
       <div style="margin: 0px 10px;">
         <div style="margin-top:15px; margin-bottom: 15px">
-          Load token icons <Toggle v-model="enableLoadTokenIcons" @change="changeLoadTokenIcons()" style="vertical-align: middle;display: inline-block;"/>
+          Load token icons <Toggle v-model="enableLoadTokenIcons" @change="changeLoadTokenIcons()"/>
           <div style="font-size: smaller; color: grey;">
             Disabling this prevents loading images from untrusted sources
           </div>

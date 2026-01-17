@@ -206,11 +206,11 @@
       </div>
 
       <div style="margin-bottom: 20px;">
-        Dark mode <Toggle v-model="selectedDarkMode" @change="applyDarkMode" style="vertical-align: middle; display: inline-block;" />
+        Dark mode <Toggle v-model="selectedDarkMode" @change="applyDarkMode" />
       </div>
 
       <div style="margin-bottom: 25px;">
-        Confirm payments before sending <Toggle v-model="confirmBeforeSending" style="vertical-align: middle; display: inline-block;" />
+        Confirm payments before sending <Toggle v-model="confirmBeforeSending" />
         <div style="font-size: smaller; color: grey;">
           Ask for confirmation after clicking send (recommended)
         </div>

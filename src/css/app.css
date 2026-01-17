@@ -8,6 +8,11 @@
   --toggle-height: 1.7rem;
 }
 
+.toggle-container {
+  vertical-align: middle;
+  display: inline-block;
+}
+
 #app {
   width: 100%;
   margin: 0 auto;
