@@ -48,9 +48,10 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
   }
 
   try {
-    // Check if wallet already exists
-    const exists = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    if (exists) {
+    // Check if wallet already exists in either network DB
+    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    if (existsMainnet || existsChipnet) {
       return makeError(`Wallet "${trimmedName}" already exists`, true);
     }
 
@@ -117,9 +118,10 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
   }
 
   try {
-    // Check if wallet already exists
-    const exists = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    if (exists) {
+    // Check if wallet already exists in either network DB
+    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    if (existsMainnet || existsChipnet) {
       return makeError(`Wallet "${trimmedName}" already exists`, true);
     }
 

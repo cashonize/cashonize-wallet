@@ -58,6 +58,34 @@ describe('createNewWallet', () => {
       expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
       expect(mockSetWallet).not.toHaveBeenCalled()
     })
+
+    it('rejects whitespace variant of existing wallet name (security check)', async () => {
+      // "mywallet" exists, user tries "mywallet " or "  mywallet  "
+      mockNamedWalletExistsInDb.mockResolvedValue(true)
+
+      const result = await createNewWallet('  existingWallet  ')
+
+      expect(result.success).toBe(false)
+      expect(result.success === false && result.message).toContain('already exists')
+      // Trimmed name should be used for DB check
+      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
+      expect(mockWalletNamed).not.toHaveBeenCalled()
+    })
+
+    it('rejects wallet name that exists only in chipnet DB', async () => {
+      // Wallet exists in chipnet but not mainnet (edge case: old/corrupted state)
+      mockNamedWalletExistsInDb
+        .mockResolvedValueOnce(false)  // mainnet check
+        .mockResolvedValueOnce(true)   // chipnet check
+
+      const result = await createNewWallet('chipnetOnlyWallet')
+
+      expect(result.success).toBe(false)
+      expect(result.success === false && result.message).toContain('already exists')
+      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('chipnetOnlyWallet', 'bitcoincash')
+      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('chipnetOnlyWallet', 'bchtest')
+      expect(mockWalletNamed).not.toHaveBeenCalled()
+    })
   })
 
   describe('name handling', () => {
@@ -217,6 +245,42 @@ describe('importWallet', () => {
       expect(result.success).toBe(false)
       expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
       expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
+    })
+
+    it('rejects whitespace variant of existing wallet name (security check)', async () => {
+      mockNamedWalletExistsInDb.mockResolvedValue(true)
+
+      const result = await importWallet({
+        name: '  existingWallet  ',
+        seedPhrase: validSeedPhrase,
+        seedPhraseValid: true,
+        derivationPath: 'standard'
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.success === false && result.message).toContain('already exists')
+      // Trimmed name should be used for DB check
+      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
+      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
+    })
+
+    it('rejects wallet name that exists only in chipnet DB', async () => {
+      mockNamedWalletExistsInDb
+        .mockResolvedValueOnce(false)  // mainnet check
+        .mockResolvedValueOnce(true)   // chipnet check
+
+      const result = await importWallet({
+        name: 'chipnetOnlyWallet',
+        seedPhrase: validSeedPhrase,
+        seedPhraseValid: true,
+        derivationPath: 'standard'
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.success === false && result.message).toContain('already exists')
+      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('chipnetOnlyWallet', 'bitcoincash')
+      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('chipnetOnlyWallet', 'bchtest')
+      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
     })
 
     it('rejects empty seed phrase and makes no wallet calls', async () => {
