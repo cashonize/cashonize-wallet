@@ -15,6 +15,8 @@
   const seedWords = ref<string[]>(Array(12).fill(''))
   const seedWordCount = ref<12 | 24>(12)
   const touchedWords = ref<Set<number>>(new Set())
+  // Template refs for input elements, used to programmatically focus the next field after paste
+  const inputRefs = ref<(HTMLInputElement | null)[]>([])
 
   // Constructed full seed phrase from individual word inputs
   const constructedSeedPhrase = computed(() => {
@@ -67,7 +69,7 @@
       }
       // Focus the next empty field or the field after last distributed word
       const nextIndex = Math.min(index + words.length, seedWords.value.length - 1)
-      const nextInput = document.querySelector(`.seed-word-input:nth-child(${nextIndex + 1}) input`) as HTMLInputElement
+      const nextInput = inputRefs.value[nextIndex]
       if (nextInput) nextInput.focus()
     }
   }
@@ -100,6 +102,7 @@
       <div v-for="(_, index) in seedWords" :key="index" class="seed-word-input">
         <span class="seed-word-number">{{ index + 1 }}</span>
         <input
+          :ref="(el) => inputRefs[index] = el as HTMLInputElement"
           v-model="seedWords[index]"
           :class="getWordValidationClass(index)"
           @blur="onWordBlur(index)"
