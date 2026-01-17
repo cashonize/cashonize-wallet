@@ -156,7 +156,10 @@
             style="padding: 8px; min-width: 200px;"
           >
         </div>
-        <input @click="createNewWallet()" class="button primary" type="button" value="Create wallet" style="margin-top: 10px; margin-bottom: 15px;">
+        <div style="font-size: smaller; color: grey; margin: 10px 0;">
+          A new seed phrase will be generated. Back it up to secure your wallet.
+        </div>
+        <input @click="createNewWallet()" class="button primary" type="button" value="Create wallet" style="margin-bottom: 15px;">
       </div>
 
       <!-- Import mode -->
@@ -181,8 +184,9 @@
             <option value="standard">m/44'/145'/0' (standard)</option>
             <option value="bitcoindotcom">m/44'/0'/0' (bitcoin.com wallet)</option>
           </select>
-          <div style="margin-top: 5px;">
-            <i>Note:</i> Cashonize is a single-address wallet so you can't fully import HD wallets
+          <div style="margin-top: 5px; font-size: smaller; color: grey;">
+            Note: Only the first address from your seed phrase will be used.
+            If you've used this seed with other wallets, funds on other addresses won't appear.
           </div>
         </div>
         <input @click="importWallet()" class="button primary" type="button" value="Import wallet" style="margin-bottom: 15px;">

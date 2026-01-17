@@ -110,13 +110,19 @@
         Creating wallet: <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
       </div>
       <div style="margin-bottom: 15px;">
+        <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
+          A new seed phrase will be generated. Back it up to secure your wallet.
+        </div>
         <input
           @click="createNewWallet()"
           class="button primary"
           type="button"
           value="Create new wallet"
-          style="margin-bottom: 10px;"
-        ><br>
+          style="margin-bottom: 15px;"
+        >
+        <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
+          Or restore a wallet using your existing seed phrase.
+        </div>
         <input
           @click="step = 3"
           class="button"
@@ -144,7 +150,8 @@
           </select>
         </div>
         <div style="margin-top: 10px; font-size: smaller; color: grey;">
-          Note: Cashonize is a single-address wallet so you can't fully import HD wallets
+          Note: Only the first address from your seed phrase will be used.
+          If you've used this seed with other wallets, funds on other addresses won't appear.
         </div>
         <input
           @click="importWallet()"
