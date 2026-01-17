@@ -215,15 +215,6 @@ body.dark .wallet-item {
   background-color: rgba(188, 30, 30, 0.1);
   color: rgb(188, 30, 30);
 }
-.wallet-name-styled {
-  font-family: monospace;
-  background-color: #f0f0f0;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-body.dark .wallet-name-styled {
-  background-color: #2a2a3e;
-}
 .creation-date-prefix {
   display: none;
 }

@@ -257,15 +257,6 @@
 </template>
 
 <style scoped>
-.wallet-name-styled {
-  font-family: monospace;
-  background-color: #f0f0f0;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-body.dark .wallet-name-styled {
-  background-color: #2a2a3e;
-}
 .seedphrase-actions {
   display: flex;
   gap: 10px;
