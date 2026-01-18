@@ -155,5 +155,3 @@ export const ChaingraphAuthHeadSchema = z.object({
     }))
   })
 });
-
-export type ChaingraphAuthHeadData = z.infer<typeof ChaingraphAuthHeadSchema>['data']['transaction'][0];

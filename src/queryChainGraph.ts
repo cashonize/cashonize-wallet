@@ -2,7 +2,6 @@ import {
   ChaingraphTotalSupplyFTSchema,
   ChaingraphOutputArraySchema,
   ChaingraphAuthHeadSchema,
-  type ChaingraphAuthHeadData
 } from "src/utils/zodValidation";
 
 async function queryChainGraph(queryReq:string, chaingraphUrl:string){
@@ -70,7 +69,7 @@ export async function queryActiveMinting(tokenId:string, chaingraphUrl:string){
 
 export async function querySupplyNFTs(tokenId:string, chaingraphUrl:string){
   let offset = 0;
-  async function querySupplyNFTsOffset(offset=0): Promise<number> {
+  async function querySupplyNFTsOffset(offset=0) {
     const queryReqTotalSupply = `query {
         output(
           offset: ${offset}
@@ -102,7 +101,7 @@ export async function querySupplyNFTs(tokenId:string, chaingraphUrl:string){
   return supplyNFTs;
 }
 
-export async function queryAuthHead(tokenId:string, chaingraphUrl:string): Promise<ChaingraphAuthHeadData> {
+export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
   const queryReqAuthHead = `query {
     transaction(
       where: {
