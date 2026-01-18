@@ -119,3 +119,39 @@ export const BitpayRatesSchema = z.object({
     rate: z.number()
   }))
 });
+
+
+/* Chaingraph response schemas */
+
+export const ChaingraphTotalSupplyFTSchema = z.object({
+  data: z.object({
+    transaction: z.array(z.object({
+      outputs: z.array(z.object({
+        fungible_token_amount: z.string()
+      }))
+    }))
+  })
+});
+
+export const ChaingraphOutputArraySchema = z.object({
+  data: z.object({
+    output: z.array(z.object({
+      locking_bytecode: z.string()
+    }))
+  })
+});
+
+export const ChaingraphAuthHeadSchema = z.object({
+  data: z.object({
+    transaction: z.array(z.object({
+      authchains: z.array(z.object({
+        authhead: z.object({
+          hash: z.string(),
+          identity_output: z.array(z.object({
+            fungible_token_amount: z.string().nullable()
+          }))
+        })
+      }))
+    }))
+  })
+});

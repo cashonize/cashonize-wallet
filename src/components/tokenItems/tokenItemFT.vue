@@ -72,8 +72,16 @@
   // check if need to fetch onchain stats on displayTokenInfo
   watch(displayTokenInfo, async() => {
     if(!totalSupplyFT.value && tokenData.value?.amount){
-      totalSupplyFT.value = await queryTotalSupplyFT(tokenData.value.tokenId, settingsStore.chaingraph);
-      reservedSupply.value = await queryReservedSupply(tokenData.value.tokenId, settingsStore.chaingraph)
+      try {
+        const [totalSupply, reserved] = await Promise.all([
+          queryTotalSupplyFT(tokenData.value.tokenId, settingsStore.chaingraph),
+          queryReservedSupply(tokenData.value.tokenId, settingsStore.chaingraph)
+        ]);
+        totalSupplyFT.value = totalSupply;
+        reservedSupply.value = reserved;
+      } catch (error) {
+        console.error("Failed to fetch token supply stats:", error);
+      }
     }
   })
   
