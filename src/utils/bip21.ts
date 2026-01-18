@@ -70,7 +70,7 @@ export function parseBip21Uri(uri: string): Bip21ParseResult {
     for (const [key, value] of params.entries()) {
       const lowerKey = key.toLowerCase();
 
-      // Detect duplicate keys (potential security concern)
+      // Detect duplicate keys
       if (seenKeys.has(lowerKey)) {
         result.hasDuplicateKeys = true;
       }
@@ -81,7 +81,7 @@ export function parseBip21Uri(uri: string): Bip21ParseResult {
           const amount = parseAmount(value);
           if (amount !== undefined) {
             result.amount = amount;
-          } else if (value !== '') {
+          } else {
             result.hasInvalidAmount = true;
           }
           break;
@@ -110,22 +110,14 @@ export function parseBip21Uri(uri: string): Bip21ParseResult {
 }
 
 /**
- * Parse an amount string according to BIP21 rules
- * Amount must use period as decimal separator, no commas
+ * Parse an amount string according to BIP21 rules.
+ * Amount must use period as decimal separator, no commas.
+ * @returns The parsed amount, or undefined if invalid (empty, contains commas, NaN, or negative)
  */
 function parseAmount(value: string): number | undefined {
-  if (!value) return undefined;
-
-  // BIP21: "All amounts MUST contain no commas and use a period (.) as the separating character"
-  if (value.includes(',')) {
-    return undefined;
-  }
-
+  if (!value || value.includes(',')) return undefined;
   const amount = parseFloat(value);
-  if (isNaN(amount) || amount < 0) {
-    return undefined;
-  }
-
+  if (isNaN(amount) || amount < 0) return undefined;
   return amount;
 }
 
