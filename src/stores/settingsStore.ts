@@ -5,7 +5,7 @@ import { ref } from 'vue'
 import { BitpayRatesSchema } from "src/utils/zodValidation";
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
-import { defaultWalletName } from "./store";
+import { defaultWalletName } from "./constants";
 
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";

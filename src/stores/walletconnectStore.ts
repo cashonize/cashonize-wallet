@@ -23,6 +23,7 @@ import { createSignedWcTransaction } from "src/utils/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
+import { walletConnectProjectId } from "./constants"
 const settingsStore = useSettingsStore()
 
 type ChangeNetwork = (
@@ -46,7 +47,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       if (isIninialized.value) return;
 
       const core = new Core({
-        projectId: "3fd234b8e2cd0e1da4bc08a0011bbf64"
+        projectId: walletConnectProjectId
       });
 
       const newweb3wallet = await WalletKit.init({

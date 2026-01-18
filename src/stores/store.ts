@@ -41,6 +41,7 @@ import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
 import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/dbUtils"
+import { defaultWalletName } from './constants';
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
@@ -50,8 +51,6 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
-
-export const defaultWalletName = 'mywallet';
 
 const isDesktop = (process.env.MODE == "electron");
 
