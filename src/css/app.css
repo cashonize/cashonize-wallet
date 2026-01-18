@@ -1,9 +1,16 @@
 @import './base.css';
 @import 'chota';
+/* Toggle component styles - globally applied for all components using @vueform/toggle */
+@import '@vueform/toggle/themes/default.css';
 
 :root {
   --color-primary: #0ac18f;
   --toggle-height: 1.7rem;
+}
+
+.toggle-container {
+  vertical-align: middle;
+  display: inline-block;
 }
 
 #app {
@@ -196,6 +203,37 @@ select, summary {
   text-indent: -15px;
   display: inline-block;
   vertical-align: top;
+}
+
+/* Input validation styles - for seed phrase and backup verification inputs */
+input.valid-word {
+  border-color: #4caf50;
+  outline-color: #4caf50;
+  background-color: #e8f5e9;
+}
+input.invalid-word {
+  border-color: #f44336;
+  outline-color: #f44336;
+  background-color: #ffebee;
+}
+body.dark input.valid-word {
+  background-color: #1b3d1f;
+  color: #a5d6a7;
+}
+body.dark input.invalid-word {
+  background-color: #3d1b1b;
+  color: #ef9a9a;
+}
+
+/* Styled wallet name display - used across multiple components */
+.wallet-name-styled {
+  font-family: monospace;
+  background-color: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+body.dark .wallet-name-styled {
+  background-color: #2a2a3e;
 }
 
 @media (hover: hover) {

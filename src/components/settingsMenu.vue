@@ -1,12 +1,13 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import EmojiItem from './general/emojiItem.vue'
+  import backupWallet from './backupWallet.vue'
+  import walletsOverview from './walletsOverview.vue'
   import { computed, ref } from 'vue'
   import { useQuasar } from 'quasar'
   import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
-  import { copyToClipboard } from 'src/utils/utils';
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -14,19 +15,13 @@
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
-  const derivationPathNote = computed(() => {
-    const path = store.wallet.derivationPath;
-    if (path === "m/44'/145'/0'/0/0") return "BCH standard";
-    if (path === "m/44'/0'/0'/0/0") return "legacy, Bitcoin.com wallet compatible";
-    return "custom";
-  })
 
   const isBrowser = (process.env.MODE == "spa");
   const isDesktop = (process.env.MODE == "electron");
   const isCapacitor = (process.env.MODE == "capacitor");
   const applicationVersion = process.env.version
 
-  const displaySettingsMenu = ref(0);
+  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5>(0);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -36,8 +31,6 @@
   const qrAnimation = ref(settingsStore.qrAnimation);
   const dateFormat = ref(settingsStore.dateFormat);
   const selectedExplorer = ref(store.explorerUrl);
-  // backup wallet
-  const displaySeedphrase = ref(false);
   // user options
   const selectedDarkMode = ref(settingsStore.darkMode);
   const showFiatValueHistory = ref(settingsStore.showFiatValueHistory);
@@ -59,6 +52,12 @@
 
   const utxosWithBchAndTokens = computed(() => {
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
+  });
+
+  // Used to disable network options the current wallet doesn't exist on
+  // Note: wallets are created for both networks by default, very old wallets may be the exception
+  const currentWalletInfo = computed(() => {
+    return store.availableWallets.find(w => w.name === store.activeWalletName);
   });
 
   const isPwaMode = window.matchMedia('(display-mode: standalone)').matches;
@@ -187,58 +186,33 @@
     localStorage.setItem("qrScan", enableQrScan.value? "true" : "false");
     settingsStore.qrScan = enableQrScan.value;
   }
-  function toggleShowSeedphrase(){
-    settingsStore.hasSeedBackedUp = true;
-    localStorage.setItem("seedBackedUp", "true");
-    displaySeedphrase.value = !displaySeedphrase.value;
-  }
-  async function copySeedphrase(){
-    const confirmed = await new Promise<boolean>((resolve) => {
-      $q.dialog({
-        title: 'Copy Seed Phrase',
-        message: 'Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.<br>You can clear your clipboard afterwards by copying something else.',
-        html: true,
-        cancel: { flat: true, color: 'dark' },
-        ok: { label: 'Copy', color: 'primary', textColor: 'white' },
-        persistent: true
-      }).onOk(() => resolve(true))
-        .onCancel(() => resolve(false))
-    })
-    if (!confirmed) return
-    void navigator.clipboard.writeText(store.wallet.mnemonic);
-    $q.notify({
-      message: "Seed phrase copied to clipboard",
-      icon: 'info',
-      timeout: 2000,
-      color: "grey-6"
-    })
-  }
-  async function confirmDeleteWallet(){
-    let text = `You are about to delete your Cashonize wallet info from this ${platformString}.<br>Are you sure you want to delete it?`;
+  async function confirmDeleteWallets(){
+    let text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>Are you sure you want to delete everything?`;
     if (isPwaMode) {
-      text = `You are about to delete your Cashonize wallet info from this ${platformString}.<br>This will also delete the wallet from your browser!<br>Are you sure you want to delete it?`;
+      text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>This will also delete them from your browser!<br>Are you sure you want to delete everything?`;
     }
     const confirmed = await new Promise<boolean>((resolve) => {
       $q.dialog({
-        title: 'Delete Wallet',
+        title: 'Delete All Wallets',
         message: text,
         html: true,
         cancel: { flat: true, color: 'dark' },
-        ok: { label: 'Delete', color: 'red', textColor: 'white' },
+        ok: { label: 'Delete All', color: 'red', textColor: 'white' },
         persistent: true
       }).onOk(() => resolve(true))
         .onCancel(() => resolve(false))
     })
     if (confirmed) {
-      // TODO: see if we need 'resetWalletState' to cancle subscriptions, etc.
+      // TODO: see if we need 'resetWalletState' to cancel subscriptions, etc.
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
       indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
       // TODO: should also clear CashConnect indexedDB
       indexedDB.deleteDatabase("ElectrumNetworkProviderCache");
-      clearMetadataCache()
-      // remove 'seedBackedUp' state from localStorage, user settings are still persisted after wallet deletion
-      localStorage.removeItem("seedBackedUp");
+
+      // Wipe all localStorage for privacy (includes preferences, dApp history, wallet names, etc.)
+      // Note: IndexedDB deletion above is not exhaustive yet
+      localStorage.clear();
 
       // TODO: see if we can reset the state without force-reloading
       location.reload();
@@ -280,6 +254,7 @@
     localStorage.setItem("loadTokenIcons", enableLoadTokenIcons.value? "true" : "false");
     settingsStore.loadTokenIcons = enableLoadTokenIcons.value;
   }
+
 </script>
 
 <template>
@@ -289,64 +264,44 @@
       Version Cashonize App: {{ applicationVersion }}
       <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease == 'v'+applicationVersion">(latest)</span>
       <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion">
-        (latest release is 
+        (latest release is
           <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{store.latestGithubRelease}}</a>)
       </span>
     </div>
 
-    <div v-if="displaySettingsMenu != 0">
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 0">
+    <div v-if="settingsSection != 0">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 0">
         ↲ All settings
       </div>
     </div>
 
-    <div v-if="displaySettingsMenu == 1">
-      <div style="margin-top:15px">Make backup of seed phrase (mnemonic)</div>
-        <input @click="toggleShowSeedphrase()" class="button primary" type="button" style="padding: 1rem 1.5rem; display: block;" 
-          :value="displaySeedphrase? 'Hide seed phrase' : 'Show seed phrase'"
-        >
-        <div v-if="displaySeedphrase" class="seedphrase-container">
-          <span v-for="(word, index) in store.wallet.mnemonic.split(' ')" :key="index" class="seedphrase-word">
-            <span class="seedphrase-number">{{ index + 1 }}</span>{{ word }}
-          </span>
-        </div>
-        <button v-if="displaySeedphrase" @click="copySeedphrase" class="seedphrase-copy-btn">
-          Copy Seed Phrase
-        </button>
-        <div class="derivation-section">
-          <div class="derivation-label">
-            Derivation path
-            <span class="derivation-note">({{ derivationPathNote }})</span>
-          </div>
-          <div class="derivation-container" @click="copyToClipboard(store.wallet.derivationPath)">
-            <span class="derivation-path">{{ store.wallet.derivationPath }}</span>
-            <img class="copyIcon" src="images/copyGrey.svg">
-          </div>
-        </div>
-    </div>
-    <div v-else-if="displaySettingsMenu == 2">
+    <backupWallet v-if="settingsSection == 1" />
+    <div v-else-if="settingsSection == 2">
       <div style="margin-bottom:15px;">
-        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()" style="vertical-align: middle; display: inline-block;"/>
+        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()"/>
       </div>
 
       <div style="margin-top:15px">
-        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory" style="vertical-align: middle;display: inline-block;"/>
+        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory"/>
       </div>
 
       <div style="margin-top:15px">
-        Confirm payments before sending <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending" style="vertical-align: middle;display: inline-block;"/>
+        Confirm payments before sending <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending"/>
+        <div style="font-size: smaller; color: grey;">
+          Ask for confirmation after clicking send (recommended)
+        </div>
       </div>
 
       <div style="margin-top:15px">
-        Show Cauldron Swap Button <Toggle v-model="selectedShowSwap" @change="toggleShowSwap" style="vertical-align: middle;display: inline-block;"/>
+        Show Cauldron Swap Button <Toggle v-model="selectedShowSwap" @change="toggleShowSwap"/>
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">
-        Enable token-burn <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()" style="vertical-align: middle; display: inline-block;"/>
+        Enable token-burn <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()"/>
       </div>
 
       <div v-if="!isCapacitor" style="margin-top: 15px;">
-        Enable QR scan <Toggle v-model="enableQrScan" @change="changeQrScan()" style="vertical-align: middle; display: inline-block;"/>
+        Enable QR scan <Toggle v-model="enableQrScan" @change="changeQrScan()"/>
       </div>
 
       <div style="margin-top:15px">
@@ -389,8 +344,7 @@
         </select>
       </div>
     </div>
-    <div v-else-if="displaySettingsMenu == 3">
-
+    <div v-else-if="settingsSection == 3">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <label for="selectNetwork">Change Electrum server mainnet:</label>
         <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
@@ -439,14 +393,14 @@
         </select>
       </div>
 
-      <div style="margin-top:15px;">Remove wallet from {{ platformString }}
+      <div style="margin-top:15px;">Remove all wallets and all data from {{ platformString }}
         <div v-if="isPwaMode" style="color: red">
-          Deleting the wallet data in the 'Installed web-app' will also delete the wallet from your browser!
+          Deleting all wallets from the 'Installed web-app' will also delete them from your browser!
         </div>
         <div v-if="!isPwaMode && settingsStore.hasInstalledPWA" style="color: red">
-          Deleting the wallet data from the browser will also remove the wallet from any 'Installed web-app'.
+          Deleting all wallets from the browser will also remove them from any 'Installed web-app'.
         </div>
-        <input @click="confirmDeleteWallet()" type="button" value="Delete wallet" class="button error" style="display: block;">
+        <input @click="confirmDeleteWallets()" type="button" value="Delete all wallets" class="button error" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
@@ -461,12 +415,12 @@
         <input @click="clearMetadataCache()" type="button" value="Clear token cache" class="button" style="display: block; color: black;">
       </div>
     </div>
-    <div v-else-if="displaySettingsMenu == 4">
+    <div v-else-if="settingsSection == 4">
       <div>
         <label for="selectNetwork">Change network:</label>
         <select v-model="selectedNetwork" @change="changeNetwork()">
-          <option value="mainnet">mainnet</option>
-          <option value="chipnet">chipnet</option>
+          <option value="mainnet" :disabled="!currentWalletInfo?.hasMainnet">mainnet</option>
+          <option value="chipnet" :disabled="!currentWalletInfo?.hasChipnet">chipnet</option>
         </select>
       </div>
 
@@ -474,14 +428,14 @@
       <div style="margin: 0px 10px;">
 
         <div style="margin-top:15px">
-          Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()" style="vertical-align: middle;display: inline-block;"/>
+          Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()"/>
           <div style="font-size: smaller; color: grey;">
             Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category
           </div>
         </div>
 
         <div style="margin-top:15px; margin-bottom: 15px">
-          Enable authchain resolution <Toggle v-model="enableAuthchains" @change="changeAuthchains()" style="vertical-align: middle;display: inline-block;"/>
+          Enable authchain resolution <Toggle v-model="enableAuthchains" @change="changeAuthchains()"/>
           <div style="font-size: smaller; color: grey;">
             Checks if you hold the AuthHead (authority to update token metadata) and enables transferring it
           </div>
@@ -495,27 +449,42 @@
       <div style="margin-top:15px">Privacy:</div>
       <div style="margin: 0px 10px;">
         <div style="margin-top:15px; margin-bottom: 15px">
-          Load token icons <Toggle v-model="enableLoadTokenIcons" @change="changeLoadTokenIcons()" style="vertical-align: middle;display: inline-block;"/>
+          Load token icons <Toggle v-model="enableLoadTokenIcons" @change="changeLoadTokenIcons()"/>
           <div style="font-size: smaller; color: grey;">
             Disabling this prevents loading images from untrusted sources
           </div>
         </div>
       </div>
     </div>
+    <div v-else-if="settingsSection == 5">
+      <walletsOverview />
+    </div>
+    <!-- settingsSection === 0: main settings menu -->
     <div v-else>
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 1">
-        ↳ Backup wallet <span v-if="!settingsStore.hasSeedBackedUp" style="color: var(--color-primary)">(important)</span>
+      <div style="margin-bottom: 15px;">
+        Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 2">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 1">
+        ↳ Backup wallet <span v-if="settingsStore.getBackupStatus(store.activeWalletName) === 'none'" style="color: var(--color-primary)">(important)</span>
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 5">
+        ↳ Manage wallets
+        <span style="color: grey; font-size: smaller;">
+          ({{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? 'wallet' : 'wallets' }})
+        </span>
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 2">
         ↳ User options
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 3">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 3">
         ↳ Advanced settings
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => displaySettingsMenu = 4">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 4">
         ↳ Developer settings
       </div>
 
@@ -564,87 +533,8 @@
   </fieldset>
 </template>
 
-<style src="@vueform/toggle/themes/default.css"></style>
-
 <style scoped>
 .nowrap {
   white-space: nowrap;
-}
-.seedphrase-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 16px;
-  margin-top: 12px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-}
-@media (min-width: 600px) {
-  .seedphrase-container {
-    grid-template-columns: repeat(6, 1fr);
-    max-width: 600px;
-  }
-}
-body.dark .seedphrase-container {
-  background-color: #1a1a2e;
-}
-.seedphrase-word {
-  font-family: monospace;
-  font-size: 14px;
-  padding: 6px 8px;
-  background-color: white;
-  border-radius: 4px;
-  text-align: center;
-}
-body.dark .seedphrase-word {
-  background-color: #0f0f1a;
-}
-.seedphrase-number {
-  color: #888;
-  font-size: 11px;
-  margin-right: 4px;
-}
-.seedphrase-copy-btn {
-  margin-top: 12px;
-  padding: 8px 16px;
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-}
-body.dark .seedphrase-copy-btn {
-  background-color: #2a2a3e;
-  color: #f5f5f5;
-}
-.derivation-section {
-  margin-top: 24px;
-  margin-bottom: 15px;
-}
-.derivation-label {
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-.derivation-note {
-  font-size: 12px;
-  color: #888;
-  font-weight: normal;
-}
-.derivation-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  max-width: fit-content;
-  cursor: pointer;
-}
-body.dark .derivation-container {
-  background-color: #1a1a2e;
-}
-.derivation-path {
-  font-family: monospace;
-  font-size: 14px;
 }
 </style>

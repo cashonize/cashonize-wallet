@@ -23,6 +23,7 @@ import { createSignedWcTransaction } from "src/utils/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
+import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 const settingsStore = useSettingsStore()
 
 type ChangeNetwork = (
@@ -46,18 +47,13 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       if (isIninialized.value) return;
 
       const core = new Core({
-        projectId: "3fd234b8e2cd0e1da4bc08a0011bbf64"
+        projectId: walletConnectProjectId
       });
 
       const newweb3wallet = await WalletKit.init({
         // @ts-ignore: it complains about not having a 'relayUrl' property but it is not needed
         core,
-        metadata: {
-          name: 'Cashonize',
-          description: 'Cashonize, a Bitcoin Cash Wallet',
-          url: 'https://cashonize.com',
-          icons: ['https://cashonize.com/icons/favicon-128x128.png'],
-        }
+        metadata: walletConnectMetadata
       })
 
       // web3wallet listeners expect synchronous callbacks, this means the promise is fire-and-forget

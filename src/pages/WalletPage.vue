@@ -1,5 +1,6 @@
 <script setup lang="ts">
-  import newWalletView from 'src/components/newWallet.vue'
+  import walletOnboardingView from 'src/components/walletOnboarding.vue'
+  import addWalletView from 'src/components/addWallet.vue'
   import bchWalletView from 'src/components/bchWallet.vue'
   import myTokensView from 'src/components/myTokens.vue'
   import historyView from 'src/components/history/txHistory.vue'
@@ -38,8 +39,6 @@
   // This way views can be wrapped with KeepAlive to preserve its state across view changes
   // Excluding the settingsMenu bc we want to rerender it when navigating to it
   const currentView = computed(() => {
-    if (!store._wallet) return newWalletView;
-
     switch (store.displayView) {
       case 1: return bchWalletView;
       case 2: return myTokensView;
@@ -48,7 +47,8 @@
       case 6: return createTokensView;
       case 7: return utxoManagement;
       case 8: return sweepPrivateKey;
-      default: return null;
+      case 9: return addWalletView;
+      default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });
 
@@ -65,18 +65,21 @@
   
   // check if named wallet already exists in indexedDB
   // we use a dbUtil and avoid 'WalletClass.namedExists' which instantiates a wallet + provider
-  const mainnetWalletExists = await namedWalletExistsInDb(store.nameWallet, "bitcoincash");
-  const testnetWalletExists = await namedWalletExistsInDb(store.nameWallet, "bchtest");
+  const mainnetWalletExists = await namedWalletExistsInDb(store.activeWalletName, "bitcoincash");
+  const testnetWalletExists = await namedWalletExistsInDb(store.activeWalletName, "bchtest");
   const walletExists = mainnetWalletExists || testnetWalletExists;
   if(walletExists){
     // initialise wallet on configured network
     const readNetwork = localStorage.getItem('network');
     const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
-    const initWallet = await walletClass.named(store.nameWallet);
+    const initWallet = await walletClass.named(store.activeWalletName);
     store.setWallet(initWallet);
+    store.changeView(1);
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }
+  // Refresh the list of available wallets
+  void store.refreshAvailableWallets();
   
   // check if session request in URL params passed through props
   if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
@@ -146,7 +149,8 @@
   });
   const showNotificationIcon = computed(() => {
     if (!store._wallet || !store.walletUtxos) return undefined;
-    return (!settingsStore.hasSeedBackedUp) || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value;
+    const needsBackup = settingsStore.getBackupStatus(store.activeWalletName) === 'none';
+    return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value;
   });
 </script>
 

@@ -1,5 +1,8 @@
 import { binToHex, sha256, utf8ToBin } from 'mainnet-js';
 
+const CACHE_TTL_DAYS = 7;
+const CACHE_TTL_MS = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
+
 export async function getElectrumCacheSize(): Promise<number> {
   const dbName = "ElectrumNetworkProviderCache";
   const db = await openIndexedDB(dbName);
@@ -12,7 +15,6 @@ export async function clearElectrumCache(): Promise<void> {
 }
 
 /* Native IndexedDB helper functions */
-// Using Dexie caused freezing issues with Capacitor when using '.toArray' because it runs on the main thread.
 
 export async function openIndexedDB(dbName: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -28,9 +30,9 @@ export async function getIndexedDBObjectStoreSize(
 ): Promise<number> {
   return new Promise((resolve, reject) => {
     let totalSize = 0;
-    const tx = db.transaction(storeName, "readonly");
-    const store = tx.objectStore(storeName);
-    const cursorRequest = store.openCursor();
+    const dbTx = db.transaction(storeName, "readonly");
+    const objectStore = dbTx.objectStore(storeName);
+    const cursorRequest = objectStore.openCursor();
 
     cursorRequest.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest).result;
@@ -50,9 +52,9 @@ export async function clearIndexedDBObjectStore(dbName: string, storeName: strin
   const db = await openIndexedDB(dbName);
 
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, "readwrite");
-    const store = tx.objectStore(storeName);
-    const clearRequest = store.clear();
+    const dbTx = db.transaction(storeName, "readwrite");
+    const objectStore = dbTx.objectStore(storeName);
+    const clearRequest = objectStore.clear();
 
     clearRequest.onsuccess = () => resolve();
     clearRequest.onerror = () => reject(new Error("Error clearing object store"));
@@ -72,8 +74,6 @@ interface LocalStorageCacheResponse {
 
 export async function cachedFetch(input: string): Promise<Response> {
   const now = Date.now();
-  const cacheDuration = 7 * 24 * 60 * 60 * 1000; // 7 days
-
   const key = 'cachedFetch-' + binToHex(sha256.hash(utf8ToBin(input.toString())));
 
   const { simpleResponse, timestamp }: LocalStorageCacheResponse = JSON.parse(
@@ -81,7 +81,7 @@ export async function cachedFetch(input: string): Promise<Response> {
   );
 
   // If item exists in localStorage and is still valid, return it
-  if ((now - timestamp < cacheDuration) && simpleResponse.status) {
+  if ((now - timestamp < CACHE_TTL_MS) && simpleResponse.status) {
     // create a new Response object from the cached data
     const resp = new Response(simpleResponse.responseText, {
       status: simpleResponse.status,

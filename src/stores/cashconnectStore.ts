@@ -28,6 +28,7 @@ import {
 } from "@bitauth/libauth";
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { type ElectrumRawTransactionVout } from "src/interfaces/interfaces";
+import { walletConnectProjectId, walletConnectMetadata } from "./constants";
 const settingsStore = useSettingsStore()
 
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
@@ -58,14 +59,9 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
         // The master private key.
         wallet.value.privateKey,
         // Project ID.
-        "3fd234b8e2cd0e1da4bc08a0011bbf64",
+        walletConnectProjectId,
         // Metadata.
-        {
-          name: "Cashonize",
-          description: "Cashonize BitcoinCash Web Wallet",
-          url: "https://cashonize.com",
-          icons: ["https://cashonize.com/icons/favicon-128x128.png"],
-        },
+        walletConnectMetadata,
         // Event Callbacks.
         {
           // Session State Callbacks.

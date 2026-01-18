@@ -5,6 +5,7 @@ import { ref } from 'vue'
 import { BitpayRatesSchema } from "src/utils/zodValidation";
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
+import { defaultWalletName } from "./constants";
 
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
@@ -36,11 +37,20 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const hasInstalledPWA = ref(false as boolean);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const hasPlayedAnimation = ref(false as boolean)
-  const hasSeedBackedUp = ref(false as boolean)
+  // Per-wallet backup status: 'verified' (passed backup test), 'imported' (restored via seed), 'none' (needs backup)
+  // Stored in localStorage as JSON: { "walletName": "verified", ... }
+  const walletBackupStatus = ref<Record<string, 'verified' | 'imported' | 'none'>>({})
+
+  // Per-wallet metadata (creation date, etc.)
+  // Stored in localStorage as JSON: { "walletName": { createdAt: "2025-01-16T..." }, ... }
+  interface WalletMetadata {
+    createdAt?: string; // ISO date string
+  }
+  const walletMetadata = ref<Record<string, WalletMetadata>>({})
   const mintNfts = ref(false);
   const authchains = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
-  const confirmBeforeSending = ref(false);
+  const confirmBeforeSending = ref(false); // consider changing default to true
   const loadTokenIcons = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
 
@@ -54,8 +64,31 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readUnit = localStorage.getItem("unit");
   if(readUnit && (readUnit=="bch" || readUnit=="sat")) bchUnit.value = readUnit;
 
-  const readHasSeedBackedUp = localStorage.getItem("seedBackedUp");
-  if(readHasSeedBackedUp) hasSeedBackedUp.value = readHasSeedBackedUp == "true";
+  // Load per-wallet backup status and migrate from old 'seedBackedUp' key if needed
+  const readWalletBackupStatus = localStorage.getItem("walletBackupStatus");
+  if (readWalletBackupStatus) {
+    try {
+      walletBackupStatus.value = JSON.parse(readWalletBackupStatus);
+    } catch { /* ignore parse errors */ }
+  }
+  // Migration: convert old global 'seedBackedUp' to per-wallet status for defaultWalletName 'mywallet'
+  const oldSeedBackedUp = localStorage.getItem("seedBackedUp");
+  if (oldSeedBackedUp === "true" && !walletBackupStatus.value[defaultWalletName]) {
+    walletBackupStatus.value[defaultWalletName] = "verified";
+    localStorage.setItem("walletBackupStatus", JSON.stringify(walletBackupStatus.value));
+    localStorage.removeItem("seedBackedUp");
+  } else if (oldSeedBackedUp !== null) {
+    // Clean up old key even if it was "false"
+    localStorage.removeItem("seedBackedUp");
+  }
+
+  // Load per-wallet metadata
+  const readWalletMetadata = localStorage.getItem("walletMetadata");
+  if (readWalletMetadata) {
+    try {
+      walletMetadata.value = JSON.parse(readWalletMetadata);
+    } catch { /* ignore parse errors */ }
+  }
 
   const readFiatValueHistory = localStorage.getItem("fiatValueHistory");
   if(readFiatValueHistory) showFiatValueHistory.value = readFiatValueHistory == "true";
@@ -234,6 +267,43 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   removeOldCacheData();
 
+  // Helper functions for per-wallet backup status
+  function getBackupStatus(walletName: string): 'verified' | 'imported' | 'none' {
+    return walletBackupStatus.value[walletName] || 'none';
+  }
+
+  function setBackupStatus(walletName: string, status: 'verified' | 'imported' | 'none') {
+    if (status === 'none') {
+      delete walletBackupStatus.value[walletName];
+    } else {
+      walletBackupStatus.value[walletName] = status;
+    }
+    localStorage.setItem("walletBackupStatus", JSON.stringify(walletBackupStatus.value));
+  }
+
+  function clearBackupStatus(walletName: string) {
+    delete walletBackupStatus.value[walletName];
+    localStorage.setItem("walletBackupStatus", JSON.stringify(walletBackupStatus.value));
+  }
+
+  // Helper functions for per-wallet metadata
+  function getWalletMetadata(walletName: string): WalletMetadata {
+    return walletMetadata.value[walletName] || {};
+  }
+
+  function setWalletCreatedAt(walletName: string, date: Date = new Date()) {
+    if (!walletMetadata.value[walletName]) {
+      walletMetadata.value[walletName] = {};
+    }
+    walletMetadata.value[walletName].createdAt = date.toISOString();
+    localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
+  }
+
+  function clearWalletMetadata(walletName: string) {
+    delete walletMetadata.value[walletName];
+    localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
+  }
+
   function removeOldCacheData(){
     // remove tx- and header- keys from localStorage
     Object.keys(localStorage).forEach(key => {
@@ -259,7 +329,12 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     hasPlayedAnimation,
     featuredTokens,
     hasInstalledPWA,
-    hasSeedBackedUp,
+    getBackupStatus,
+    setBackupStatus,
+    clearBackupStatus,
+    getWalletMetadata,
+    setWalletCreatedAt,
+    clearWalletMetadata,
     mintNfts,
     authchains,
     dateFormat,
