@@ -5,6 +5,7 @@
   import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
+  import { parseBip21Uri, isBip21Uri } from 'src/utils/bip21';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -78,16 +79,63 @@
   }
   function parseAddrParams(){
     const addressInput = destinationAddr.value;
-    if(addressInput.includes("?amount=")){
-      const [address, params] = addressInput.split("?");
-      if(!address || !params) return;
-      destinationAddr.value = address;
+    if(!isBip21Uri(addressInput) || !addressInput.includes("?")) return;
 
-      // set the bch amount field
-      let bchAmount =  Number(params.split("amount=")[1]);
-      if(settingsStore.bchUnit == "sat") bchAmount = Math.round(bchAmount * 100_000_000);
-      bchSendAmount.value = bchAmount;
-      void setCurrencyAmount()
+    // Parse BIP21 URIs with query params (e.g. bitcoincash:qz...?amount=1&label=Shop)
+    try {
+      const parsed = parseBip21Uri(addressInput);
+
+      // Reject URIs with unknown required parameters per BIP21 spec
+      if(parsed.hasUnknownRequired){
+        $q.notify({
+          message: "Unsupported payment request",
+          icon: 'warning',
+          color: "red"
+        });
+        return;
+      }
+
+      // Reject URIs with duplicate keys (potential security concern)
+      if(parsed.hasDuplicateKeys){
+        $q.notify({
+          message: "Invalid payment request: duplicate parameters",
+          icon: 'warning',
+          color: "red"
+        });
+        return;
+      }
+
+      // Warn if this is a CashToken payment request (has c= param)
+      if(parsed.otherParams?.c){
+        $q.notify({
+          message: "This is a token payment request. Use the Tokens tab to send tokens.",
+          icon: 'warning',
+          color: "grey-7"
+        });
+        return;
+      }
+
+      // Set the address (without query params)
+      destinationAddr.value = parsed.address;
+
+      // Warn if amount was malformed (BIP21 violation)
+      if(parsed.hasInvalidAmount){
+        $q.notify({
+          message: "Payment request has invalid amount format",
+          icon: 'warning',
+          color: "red"
+        });
+      }
+
+      // Set the amount if present
+      if(parsed.amount !== undefined){
+        let bchAmount = parsed.amount;
+        if(settingsStore.bchUnit == "sat") bchAmount = Math.round(bchAmount * 100_000_000);
+        bchSendAmount.value = bchAmount;
+        void setCurrencyAmount();
+      }
+    } catch {
+      // If parsing fails, leave the input as-is for manual handling
     }
   }
   async function setCurrencyAmount() {
@@ -208,9 +256,16 @@
     parseAddrParams()
   }
   const qrFilter = (content: string) => {
+    // Extract address without query params if it's a BIP21 URI
     let addressInput = content;
-    // remove amount parameter if present before doing decoding check
-    if(addressInput.includes("?amount=")) addressInput = addressInput.split("?")[0] as string;
+    if(isBip21Uri(content) && content.includes("?")){
+      try {
+        const parsed = parseBip21Uri(content);
+        addressInput = parsed.address;
+      } catch {
+        // If parsing fails, try with original content
+      }
+    }
     const decoded = decodeCashAddress(addressInput);
     if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
       return "Not a cashaddress on current network";

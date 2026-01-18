@@ -11,6 +11,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
+  import { parseBip21Uri, isBip21Uri } from 'src/utils/bip21';
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
@@ -85,9 +86,56 @@
 
   const qrDecode = (content: string) => {
     destinationAddr.value = content;
+    parseAddrParams();
   }
+
+  function parseAddrParams(){
+    if(!isBip21Uri(destinationAddr.value) || !destinationAddr.value.includes("?")) return;
+
+    // Parse BIP21 URIs with query params
+    try {
+      const parsed = parseBip21Uri(destinationAddr.value);
+      const tokenId = (nftData.value.token as TokenI)?.tokenId;
+
+      // Reject URIs with duplicate keys (potential security concern)
+      if(parsed.hasDuplicateKeys){
+        $q.notify({
+          message: "Invalid payment request: duplicate parameters",
+          icon: 'warning',
+          color: "red"
+        });
+        return;
+      }
+
+      // Check if c= is for a different token
+      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenId){
+        $q.notify({
+          message: "This payment request is for a different token",
+          icon: 'warning',
+          color: "red"
+        });
+        return;
+      }
+
+      // Set the address (without query params)
+      destinationAddr.value = parsed.address;
+    } catch {
+      // If parsing fails, leave the input as-is
+    }
+  }
+
   const qrFilter = (content: string) => {
-    const decoded = decodeCashAddress(content);
+    // Extract address from BIP21 URI if needed
+    let addressToCheck = content;
+    if(isBip21Uri(content) && content.includes("?")){
+      try {
+        const parsed = parseBip21Uri(content);
+        addressToCheck = parsed.address;
+      } catch {
+        // If parsing fails, try with original content
+      }
+    }
+    const decoded = decodeCashAddress(addressToCheck);
     if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
       return "Not a cashaddress on current network";
     }
@@ -389,7 +437,7 @@
           Send this NFT to
           <div class="inputGroup">
             <div class="addressInputNftSend">
-              <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" placeholder="token address">
               <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
                 <img src="images/qrscan.svg" />
               </button>
@@ -416,7 +464,7 @@
             <input v-else v-model="mintCommitment" placeholder="commitment">
           </p>
           <span class="grouped">
-            <input v-model="destinationAddr" placeholder="destinationAddress"> 
+            <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="destinationAddress">
             <input @click="mintNfts()" type="button" :value="activeAction === 'minting' ? 'Minting...' : 'Mint NFTs'" :disabled="activeAction !== null">
           </span>
         </div>

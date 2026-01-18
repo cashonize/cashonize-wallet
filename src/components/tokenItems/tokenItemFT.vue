@@ -7,6 +7,7 @@
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
+  import { parseBip21Uri, isBip21Uri } from 'src/utils/bip21';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
@@ -100,9 +101,59 @@
   }
   const qrDecode = (content: string) => {
     destinationAddr.value = content;
+    parseAddrParams();
+  }
+  
+  function parseAddrParams(){
+    if(!isBip21Uri(destinationAddr.value) || !destinationAddr.value.includes("?")) return;
+
+    // Parse BIP21 URIs with query params
+    try {
+      const parsed = parseBip21Uri(destinationAddr.value);
+
+      // Reject URIs with duplicate keys (potential security concern)
+      if(parsed.hasDuplicateKeys){
+        $q.notify({
+          message: "Invalid payment request: duplicate parameters",
+          icon: 'warning',
+          color: "red"
+        });
+        return;
+      }
+
+      // Check if c= is for a different token
+      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.tokenId){
+        $q.notify({
+          message: "This payment request is for a different token",
+          icon: 'warning',
+          color: "grey-7"
+        });
+        return;
+      }
+
+      // Set the address (without query params)
+      destinationAddr.value = parsed.address;
+
+      // Auto-fill ft= amount if c= matches this token
+      if(parsed.otherParams?.c === tokenData.value.tokenId && parsed.otherParams?.ft){
+        tokenSendAmount.value = parsed.otherParams.ft;
+      }
+    } catch {
+      // If parsing fails, leave the input as-is
+    }
   }
   const qrFilter = (content: string) => {
-    const decoded = decodeCashAddress(content);
+    // Extract address from BIP21 URI if needed
+    let addressToCheck = content;
+    if(isBip21Uri(content) && content.includes("?")){
+      try {
+        const parsed = parseBip21Uri(content);
+        addressToCheck = parsed.address;
+      } catch {
+        // If parsing fails, try with original content
+      }
+    }
+    const decoded = decodeCashAddress(addressToCheck);
     if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
       return "Not a cashaddress on current network";
     }
@@ -470,7 +521,7 @@
           <div class="inputGroup">
             <div class="addressInputFtSend">
               <span style="width: 100%; position: relative;">
-                <input v-model="destinationAddr" name="tokenAddress" placeholder="token address">
+                <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" placeholder="token address">
               </span>
               <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
                 <img src="images/qrscan.svg" />
