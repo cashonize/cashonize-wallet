@@ -124,10 +124,16 @@
   // check if need to fetch onchain stats on displayTokenInfo
   watch(displayTokenInfo, async() => {
     if(!totalNumberNFTs.value && tokenData.value?.nfts && hasMintingNFT.value == undefined){
-      const supplyNFTs = await querySupplyNFTs(tokenData.value.tokenId, settingsStore.chaingraph);
-      const resultHasMintingNft = await queryActiveMinting(tokenData.value.tokenId, settingsStore.chaingraph);
-      totalNumberNFTs.value = supplyNFTs;
-      hasMintingNFT.value = resultHasMintingNft;
+      try {
+        const [supplyNFTs, activeMintingCount] = await Promise.all([
+          querySupplyNFTs(tokenData.value.tokenId, settingsStore.chaingraph),
+          queryActiveMinting(tokenData.value.tokenId, settingsStore.chaingraph)
+        ]);
+        totalNumberNFTs.value = supplyNFTs;
+        hasMintingNFT.value = activeMintingCount > 0;
+      } catch (error) {
+        console.error("Failed to fetch NFT stats:", error);
+      }
     }
   })
 

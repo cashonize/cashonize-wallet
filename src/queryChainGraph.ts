@@ -1,3 +1,10 @@
+import {
+  ChaingraphTotalSupplyFTSchema,
+  ChaingraphOutputArraySchema,
+  ChaingraphAuthHeadSchema,
+  type ChaingraphAuthHeadData
+} from "src/utils/zodValidation";
+
 async function queryChainGraph(queryReq:string, chaingraphUrl:string){
     const jsonObj = {
         "operationName": null,
@@ -35,12 +42,14 @@ export async function queryTotalSupplyFT(tokenId:string, chaingraphUrl:string){
         }
       }`;
     const responseJson = await queryChainGraph(queryReqTotalSupply, chaingraphUrl);
-    if(!responseJson) return
-    const totalAmount:bigint = responseJson.data.transaction[0].outputs.reduce(
-        (total:bigint, output:{fungible_token_amount:string}) => total +  BigInt(output.fungible_token_amount),
+    const parsed = ChaingraphTotalSupplyFTSchema.parse(responseJson);
+    const transaction = parsed.data.transaction[0];
+    if (!transaction) throw new Error("Token genesis transaction not found");
+    const totalAmount = transaction.outputs.reduce(
+        (total, output) => total + BigInt(output.fungible_token_amount),
         0n
       );
-    return totalAmount
+    return totalAmount;
 }
 
 export async function queryActiveMinting(tokenId:string, chaingraphUrl:string){
@@ -56,12 +65,13 @@ export async function queryActiveMinting(tokenId:string, chaingraphUrl:string){
         }
       }`;
     const responseJson = await queryChainGraph(queryReqActiveMinting, chaingraphUrl);
-    return responseJson.data.output.length;
+    const parsed = ChaingraphOutputArraySchema.parse(responseJson);
+    return parsed.data.output.length;
 }
 
 export async function querySupplyNFTs(tokenId:string, chaingraphUrl:string){
   let offset = 0;
-  async function querySupplyNFTsOffset(offset=0){
+  async function querySupplyNFTsOffset(offset=0): Promise<number> {
     const queryReqTotalSupply = `query {
         output(
           offset: ${offset}
@@ -79,20 +89,21 @@ export async function querySupplyNFTs(tokenId:string, chaingraphUrl:string){
         }
     }`;
     const responseJson = await queryChainGraph(queryReqTotalSupply, chaingraphUrl);
-    return responseJson.data.output.length;
+    const parsed = ChaingraphOutputArraySchema.parse(responseJson);
+    return parsed.data.output.length;
   }
   let resultFetchSupplyNFTs = await querySupplyNFTsOffset();
-  let supplyNFTs = resultFetchSupplyNFTs
-  // limit of items returned by chaingraphquery is 5000
-  while (resultFetchSupplyNFTs == 5000) {
+  let supplyNFTs = resultFetchSupplyNFTs;
+  // limit of items returned by chaingraph query is 5000
+  while (resultFetchSupplyNFTs === 5000) {
     offset += 5000;
     resultFetchSupplyNFTs = await querySupplyNFTsOffset(offset);
     supplyNFTs += resultFetchSupplyNFTs;
   }
-  return supplyNFTs
+  return supplyNFTs;
 }
 
-export async function queryAuthHead(tokenId:string, chaingraphUrl:string){
+export async function queryAuthHead(tokenId:string, chaingraphUrl:string): Promise<ChaingraphAuthHeadData> {
   const queryReqAuthHead = `query {
     transaction(
       where: {
@@ -112,21 +123,24 @@ export async function queryAuthHead(tokenId:string, chaingraphUrl:string){
     }
   }`;
   const jsonRespAuthHead = await queryChainGraph(queryReqAuthHead, chaingraphUrl);
-  return jsonRespAuthHead?.data?.transaction?.[0];
+  const parsed = ChaingraphAuthHeadSchema.parse(jsonRespAuthHead);
+  const transaction = parsed.data.transaction[0];
+  if (!transaction) throw new Error("Token not found");
+  return transaction;
 }
 
 export async function queryAuthHeadTxid(tokenId:string, chaingraphUrl:string){
-  const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl)
-  if(!authHeadObj) return
-  const authHead = authHeadObj.authchains[0].authhead;
-  const authHeadTxId = authHead.hash.slice(2) as string;
-  return authHeadTxId
+  const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
+  const authchain = authHeadObj.authchains[0];
+  if (!authchain) throw new Error("Authchain not found");
+  // hash is bytea type "\\xabcd..." - remove the "\\x" prefix
+  return authchain.authhead.hash.slice(2);
 }
 
 export async function queryReservedSupply(tokenId:string, chaingraphUrl:string){
-  const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl)
-  if(!authHeadObj) return
-  const authHead = authHeadObj.authchains[0].authhead
-  const reservedSupply = authHead.identity_output[0].fungible_token_amount ?? "0";
-  return reservedSupply ? BigInt(reservedSupply) : undefined
+  const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
+  const authchain = authHeadObj.authchains[0];
+  if (!authchain) throw new Error("Authchain not found");
+  const reservedSupply = authchain.authhead.identity_output[0]?.fungible_token_amount;
+  return reservedSupply ? BigInt(reservedSupply) : undefined;
 }

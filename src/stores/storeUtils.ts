@@ -120,13 +120,17 @@ export async function updateTokenListWithAuthUtxos(
 ) {
   const copyTokenList = [...tokenList]
   // get all authHeadTxIds in parallel
-  const authHeadTxIdPromises: Promise<string | undefined>[] = [];
+  const authHeadTxIdPromises: Promise<string>[] = [];
   for (const token of tokenList){
     const fetchAuthHeadPromise = queryAuthHeadTxid(token.tokenId, chaingraphUrl)
     authHeadTxIdPromises.push(fetchAuthHeadPromise)
   }
-  const authHeadTxIdResults = await Promise.all(authHeadTxIdPromises);
-  if(authHeadTxIdResults.includes(undefined)) console.error("ChainGraph instance not returning all authHeadTxIds")
+  const authHeadTxIdSettled = await Promise.allSettled(authHeadTxIdPromises);
+  const authHeadTxIdResults = authHeadTxIdSettled.map(result => {
+    if (result.status === 'fulfilled') return result.value;
+    console.error("ChainGraph query failed:", result.reason);
+    return undefined;
+  });
   // check if any tokenUtxo of category is the authUtxo for that category
   copyTokenList.forEach((token, index) => {
     const authHeadTxId = authHeadTxIdResults[index];
