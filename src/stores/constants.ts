@@ -4,6 +4,13 @@
 
 export const defaultWalletName = 'mywallet';
 
-// WalletConnect project ID used by both walletconnectStore.ts and cashconnectStore.ts.
+// WalletConnect/CashConnect configuration used by both walletconnectStore.ts and cashconnectStore.ts.
 // Centralized here to avoid duplication and ensure consistency.
 export const walletConnectProjectId = '3fd234b8e2cd0e1da4bc08a0011bbf64';
+
+export const walletConnectMetadata = {
+  name: 'Cashonize',
+  description: 'Cashonize Bitcoin Cash Wallet',
+  url: 'https://cashonize.com',
+  icons: ['https://cashonize.com/icons/favicon-128x128.png'],
+};
