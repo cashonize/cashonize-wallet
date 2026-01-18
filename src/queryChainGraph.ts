@@ -132,7 +132,7 @@ export async function queryAuthHeadTxid(tokenId:string, chaingraphUrl:string){
   const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
   const authchain = authHeadObj.authchains[0];
   if (!authchain) throw new Error("Authchain not found");
-  // hash is bytea type "\\xabcd..." - remove the "\\x" prefix
+  // hash is bytea type "\\xabcd..." - remove the "\\x" prefix (2 chars, looks like 3 due to escape notation)
   return authchain.authhead.hash.slice(2);
 }
 
