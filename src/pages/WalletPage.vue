@@ -13,7 +13,7 @@
   import { storeToRefs } from 'pinia'
   import { Wallet, TestNetWallet, DefaultProvider } from 'mainnet-js'
   import { waitForInitialized } from 'src/utils/utils'
-  import { namedWalletExistsInDb } from 'src/utils/dbUtils'
+  import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
@@ -65,21 +65,37 @@
   
   // check if named wallet already exists in indexedDB
   // we use a dbUtil and avoid 'WalletClass.namedExists' which instantiates a wallet + provider
-  const mainnetWalletExists = await namedWalletExistsInDb(store.activeWalletName, "bitcoincash");
-  const testnetWalletExists = await namedWalletExistsInDb(store.activeWalletName, "bchtest");
-  const walletExists = mainnetWalletExists || testnetWalletExists;
+  let walletToLoad = store.activeWalletName;
+  const mainnetWalletExists = await namedWalletExistsInDb(walletToLoad, "bitcoincash");
+  const testnetWalletExists = await namedWalletExistsInDb(walletToLoad, "bchtest");
+  let walletExists = mainnetWalletExists || testnetWalletExists;
+
+  // If active wallet doesn't exist somehow, try to fall back to any existing wallet
+  if (!walletExists) {
+    const allWallets = await getAllWalletsWithNetworkInfo();
+    const fallbackWallet = allWallets[0];
+    if (fallbackWallet) {
+      walletToLoad = fallbackWallet.name;
+      walletExists = true;
+      // Update stored active wallet name
+      store.activeWalletName = walletToLoad;
+      localStorage.setItem('activeWalletName', walletToLoad);
+    }
+  }
+
   if(walletExists){
     // initialise wallet on configured network
     const readNetwork = localStorage.getItem('network');
     const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
-    const initWallet = await walletClass.named(store.activeWalletName);
+    const initWallet = await walletClass.named(walletToLoad);
     store.setWallet(initWallet);
     store.changeView(1);
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
+    // Refresh the list of available wallets
+    void store.refreshAvailableWallets();
   }
-  // Refresh the list of available wallets
-  void store.refreshAvailableWallets();
+  // If no wallet exists, displayView stays undefined and onboarding is shown
   
   // check if session request in URL params passed through props
   if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
