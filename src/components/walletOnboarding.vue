@@ -6,7 +6,7 @@
   import { useStore } from 'src/stores/store'
   import { defaultWalletName } from 'src/stores/constants'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import seedPhraseInput from './seedPhraseInput.vue'
+  import seedPhraseInput from './general/seedPhraseInput.vue'
   import { createNewWallet as createWallet, importWallet as importWalletUtil } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import type { Currency } from 'src/interfaces/interfaces'

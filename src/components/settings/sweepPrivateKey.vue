@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import { TestNetWallet, Wallet } from 'mainnet-js';
-  import { useStore } from '../stores/store'
-  import { useSettingsStore } from '../stores/settingsStore'
+  import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { displayAndLogError } from 'src/utils/errorHandling';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';

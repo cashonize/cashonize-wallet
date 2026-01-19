@@ -13,7 +13,7 @@ import {
 } from "@bitauth/libauth"
 import { getSdkError } from '@walletconnect/utils';
 import { parseExtendedJson } from 'src/utils/utils'
-import alertDialog from 'src/components/alertDialog.vue'
+import alertDialog from 'src/components/general/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'

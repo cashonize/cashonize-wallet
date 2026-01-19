@@ -2,7 +2,7 @@
   import { ref, computed, watch, shallowRef } from 'vue'
   import { type BalanceResponse, convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
-  import alertDialog from 'src/components/alertDialog.vue'
+  import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
   import { useWindowSize } from '@vueuse/core'
