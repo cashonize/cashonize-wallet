@@ -101,7 +101,7 @@
 </script>
 
 <template>
-  <fieldset style="margin-top: 15px;">
+  <fieldset class="item">
     <!-- Step 1: Welcome & Choose Create or Import -->
     <div v-if="step === 1">
       <div style="margin-bottom: 25px;">

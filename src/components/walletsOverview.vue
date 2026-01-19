@@ -12,21 +12,24 @@
 
   const canAddMoreWallets = computed(() => store.availableWallets.length < MAX_WALLETS)
 
-  function formatCreationDate(walletName: string): string {
+  function formatCreationDate(walletName: string, shortYear = false): string {
     const meta = settingsStore.getWalletMetadata(walletName);
     if (!meta.createdAt) return '';
     const date = new Date(meta.createdAt);
     const dateFormat = settingsStore.dateFormat;
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear().toString();
+    let year = date.getFullYear().toString();
+    if (shortYear) year = year.slice(-2);
     if (dateFormat === 'MM/DD/YY') return `${month}/${day}/${year}`;
     if (dateFormat === 'YY-MM-DD') return `${year}-${month}-${day}`;
     return `${day}/${month}/${year}`; // DD/MM/YY default
   }
 
-  function getDateLabel(walletName: string): string {
-    return settingsStore.getBackupStatus(walletName) === 'imported' ? 'Import date: ' : 'Creation date: ';
+  function getDateLabel(walletName: string, short = false): string {
+    const isImported = settingsStore.getBackupStatus(walletName) === 'imported';
+    if (short) return isImported ? 'imported ' : 'created ';
+    return isImported ? 'Import date: ' : 'Creation date: ';
   }
 
   function getBackupStatusLabel(walletName: string): string {
@@ -125,8 +128,8 @@
           <span v-else-if="!wallet.hasMainnet" class="network-badge">(chipnet only)</span>
         </span>
         <span class="wallet-section-center">
-          <span class="creation-date-prefix">{{ getDateLabel(wallet.name) }}</span>
-          {{ formatCreationDate(wallet.name) || 'Unknown' }}
+          <span v-if="formatCreationDate(wallet.name)" class="date-mobile">{{ getDateLabel(wallet.name, true) }}{{ formatCreationDate(wallet.name, true) }}</span>
+          <span class="date-desktop">{{ getDateLabel(wallet.name) }}{{ formatCreationDate(wallet.name) || 'Unknown' }}</span>
         </span>
         <span class="wallet-section-right">
           <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name)">
@@ -197,6 +200,16 @@ body.dark .wallet-item {
   font-size: smaller;
   margin-left: 8px;
 }
+@media (max-width: 480px) {
+  .active-badge {
+    display: none;
+  }
+  .wallet-section-left {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
 .network-badge {
   color: grey;
   font-size: smaller;
@@ -215,11 +228,17 @@ body.dark .wallet-item {
   background-color: rgba(188, 30, 30, 0.1);
   color: rgb(188, 30, 30);
 }
-.creation-date-prefix {
+.date-mobile {
+  display: inline;
+}
+.date-desktop {
   display: none;
 }
 @media (min-width: 600px) {
-  .creation-date-prefix {
+  .date-mobile {
+    display: none;
+  }
+  .date-desktop {
     display: inline;
   }
 }

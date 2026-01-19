@@ -262,6 +262,11 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+@media (max-width: 480px) {
+  .seedphrase-actions .button + .button {
+    margin-left: 0;
+  }
+}
 .backup-status-section {
   margin-top: 20px;
 }

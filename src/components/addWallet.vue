@@ -77,7 +77,7 @@
 </script>
 
 <template>
-  <fieldset style="margin-top: 15px;">
+  <fieldset class="item">
     <legend>Add Wallet</legend>
 
     <!-- Step 1: Enter wallet name -->
