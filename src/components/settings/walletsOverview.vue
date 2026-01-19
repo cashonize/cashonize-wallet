@@ -132,7 +132,7 @@
           <span class="date-desktop">{{ getDateLabel(wallet.name) }}{{ formatCreationDate(wallet.name) || 'Unknown' }}</span>
         </span>
         <span class="wallet-section-right">
-          <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name)">
+          <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name) === 'none' ? 'none' : 'text-verified'">
             {{ getBackupStatusLabel(wallet.name) }}
           </span>
           <button
@@ -252,13 +252,5 @@ body.dark .wallet-item {
 }
 body.dark .backup-status-badge.none {
   color: #ffcc80;
-}
-.backup-status-badge.verified,
-.backup-status-badge.imported {
-  color: #2e7d32;
-}
-body.dark .backup-status-badge.verified,
-body.dark .backup-status-badge.imported {
-  color: #a5d6a7;
 }
 </style>

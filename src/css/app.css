@@ -225,6 +225,14 @@ body.dark input.invalid-word {
   color: #ef9a9a;
 }
 
+/* Success text color - for affirmative checks and confirmations */
+.text-verified {
+  color: #2e7d32;
+}
+body.dark .text-verified {
+  color: #a5d6a7;
+}
+
 /* Styled wallet name display - used across multiple components */
 .wallet-name-styled {
   font-family: monospace;

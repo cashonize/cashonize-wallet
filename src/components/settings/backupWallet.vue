@@ -177,11 +177,11 @@
 
     <!-- Backup Status -->
     <div v-if="!showBackupVerification" class="backup-status-section">
-      <div v-if="backupStatus === 'verified'" class="backup-status verified">
+      <div v-if="backupStatus === 'verified'" class="backup-status text-verified">
         <span class="status-icon">✓</span>
         <span>Backup verified</span>
       </div>
-      <div v-else-if="backupStatus === 'imported'" class="backup-status verified">
+      <div v-else-if="backupStatus === 'imported'" class="backup-status text-verified">
         <span class="status-icon">✓</span>
         <span>Imported wallet</span>
         <span class="inline-hint">— no extra backup verification needed</span>
@@ -228,7 +228,7 @@
     <!-- Persistent Storage (browser only) -->
     <div v-if="isBrowser && persistentStorageSupported" class="persistent-storage-section">
       <div class="persistent-storage-info">
-        <span v-if="persistentStorageStatus === 'granted'" class="storage-status granted">
+        <span v-if="persistentStorageStatus === 'granted'" class="storage-status text-verified">
           <span class="status-icon">✓</span> Data persistence granted by browser
           <span class="inline-hint">— this protects wallet data from being cleared</span>
         </span>
@@ -275,12 +275,6 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-}
-.backup-status.verified {
-  color: #2e7d32;
-}
-body.dark .backup-status.verified {
-  color: #a5d6a7;
 }
 .backup-status.not-verified {
   color: #e65100;
@@ -443,12 +437,6 @@ body.dark .persistent-storage-section {
   align-items: center;
   gap: 6px;
   font-size: 14px;
-}
-.storage-status.granted {
-  color: #2e7d32;
-}
-body.dark .storage-status.granted {
-  color: #a5d6a7;
 }
 .storage-status.denied {
   color: #e65100;
