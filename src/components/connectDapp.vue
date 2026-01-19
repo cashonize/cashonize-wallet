@@ -10,8 +10,8 @@
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   // Components.
-  import WalletconnectView from 'src/components/walletConnect.vue'
-  import CashconnectView from 'src/components/cashConnect.vue'
+  import WCSessions from 'src/components/walletconnect/WCSessions.vue'
+  import CCSessions from 'src/components/cashconnect/CCSessions.vue'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { caughtErrorToString } from 'src/utils/errorHandling';
 
@@ -30,8 +30,8 @@
   }>()
 
   // Component references.
-  const walletconnectRef = ref<InstanceType<typeof WalletconnectView> | null>(null);
-  const cashconnectRef = ref<InstanceType<typeof CashconnectView> | null>(null);
+  const walletconnectRef = ref<InstanceType<typeof WCSessions> | null>(null);
+  const cashconnectRef = ref<InstanceType<typeof CCSessions> | null>(null);
 
   // State.
   const dappUriInput = ref("");
@@ -128,8 +128,8 @@
       </div>
     </fieldset>
 
-    <WalletconnectView ref="walletconnectRef"/>
-    <CashconnectView ref="cashconnectRef" />
+    <WCSessions ref="walletconnectRef"/>
+    <CCSessions ref="cashconnectRef" />
 
     <div v-if="showQrCodeDialog">
       <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>

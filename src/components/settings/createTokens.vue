@@ -2,11 +2,11 @@
   import { ref, computed } from 'vue';
   import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
   import { copyToClipboard } from 'src/utils/utils';
-  import alertDialog from 'src/components/alertDialog.vue'
-  import EmojiItem from './general/emojiItem.vue';
+  import alertDialog from 'src/components/general/alertDialog.vue'
+  import EmojiItem from '../general/emojiItem.vue';
   import { type TokeneGenesisRequestParams } from 'src/interfaces/interfaces';
   import { caughtErrorToString } from 'src/utils/errorHandling';
-  import { useStore } from '../stores/store'
+  import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { cachedFetch } from 'src/utils/cacheUtils';

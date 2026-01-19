@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import Toggle from '@vueform/toggle'
   import EmojiItem from './general/emojiItem.vue'
-  import backupWallet from './backupWallet.vue'
-  import walletsOverview from './walletsOverview.vue'
+  import backupWallet from './settings/backupWallet.vue'
+  import walletsOverview from './settings/walletsOverview.vue'
   import { computed, ref } from 'vue'
   import { useQuasar } from 'quasar'
   import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"

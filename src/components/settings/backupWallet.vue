@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { computed, ref, onMounted } from 'vue'
   import { useQuasar } from 'quasar'
-  import { useStore } from '../stores/store'
-  import { useSettingsStore } from '../stores/settingsStore'
+  import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils'
   import { DERIVATION_PATHS } from 'src/utils/walletUtils'
   const store = useStore()
