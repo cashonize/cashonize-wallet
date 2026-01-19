@@ -156,9 +156,10 @@
     localStorage.setItem("ipfsGateway", selectedIpfsGateway.value);
   }
   function saveCustomIpfsGateway(){
-    if (!customIpfsGateway.value) return;
-    settingsStore.ipfsGateway = customIpfsGateway.value;
-    localStorage.setItem("ipfsGateway", customIpfsGateway.value);
+    const trimmedGateway = customIpfsGateway.value.trim();
+    if (!trimmedGateway) return;
+    settingsStore.ipfsGateway = trimmedGateway;
+    localStorage.setItem("ipfsGateway", trimmedGateway);
   }
   function changeChaingraph(){
     settingsStore.chaingraph = selectedChaingraph.value
