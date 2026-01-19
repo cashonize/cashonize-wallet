@@ -41,7 +41,16 @@
   // advanced settings
   const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
-  const selectedIpfsGateway = ref(settingsStore.ipfsGateway);
+  const predefinedIpfsGateways = [
+    "https://w3s.link/ipfs/",
+    "https://ipfs.io/ipfs/",
+    "https://dweb.link/ipfs/",
+    "https://nftstorage.link/ipfs/"
+  ];
+  const storedIpfsGateway = settingsStore.ipfsGateway;
+  const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);
+  const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
+  const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
   const selectedChaingraph = ref(settingsStore.chaingraph);
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
@@ -142,8 +151,15 @@
     void store.initializeWallet();
   }
   function changeIpfsGateway(){
-    settingsStore.ipfsGateway = selectedIpfsGateway.value
+    if (selectedIpfsGateway.value === "custom") return;
+    settingsStore.ipfsGateway = selectedIpfsGateway.value;
     localStorage.setItem("ipfsGateway", selectedIpfsGateway.value);
+  }
+  function saveCustomIpfsGateway(){
+    const trimmedGateway = customIpfsGateway.value.trim();
+    if (!trimmedGateway) return;
+    settingsStore.ipfsGateway = trimmedGateway;
+    localStorage.setItem("ipfsGateway", trimmedGateway);
   }
   function changeChaingraph(){
     settingsStore.chaingraph = selectedChaingraph.value
@@ -374,7 +390,17 @@
           <option value="https://ipfs.io/ipfs/">ipfs.io</option>
           <option value="https://dweb.link/ipfs/">dweb.link</option>
           <option value="https://nftstorage.link/ipfs/">nftstorage.link</option>
+          <option value="custom">Custom</option>
         </select>
+        <div v-if="selectedIpfsGateway === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customIpfsGateway"
+            @blur="saveCustomIpfsGateway()"
+            @keyup.enter="saveCustomIpfsGateway()"
+            type="text"
+            style="width: 100%;"
+          >
+        </div>
       </div>
 
       <div style="margin-top:15px">
