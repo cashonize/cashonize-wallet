@@ -5,7 +5,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { displayAndLogError } from 'src/utils/errorHandling';
-  import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
 
   const $q = useQuasar()
   const store = useStore()

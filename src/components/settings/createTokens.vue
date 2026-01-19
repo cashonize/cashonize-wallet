@@ -3,7 +3,7 @@
   import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
   import { copyToClipboard } from 'src/utils/utils';
   import alertDialog from 'src/components/general/alertDialog.vue'
-  import EmojiItem from './general/emojiItem.vue';
+  import EmojiItem from '../general/emojiItem.vue';
   import { type TokeneGenesisRequestParams } from 'src/interfaces/interfaces';
   import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useStore } from 'src/stores/store'

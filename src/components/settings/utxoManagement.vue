@@ -2,7 +2,7 @@
   import { computed, ref } from 'vue';
   import { formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import { ExchangeRate, TokenSendRequest, type UtxoI } from 'mainnet-js';
-  import EmojiItem from './general/emojiItem.vue';
+  import EmojiItem from '../general/emojiItem.vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
