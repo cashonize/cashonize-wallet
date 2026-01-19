@@ -39,7 +39,7 @@ npm run format
 ```bash
 yarn quasar build
 # or
-npx quasar dev
+npx quasar build
 ```
 
 you should see a generated `dist/stats.html` file which is the output of the `rollup-plugin-visualizer`
