@@ -264,6 +264,14 @@ body.dark .wallet-name-styled {
     margin: auto;
   }
 }
+/* Restore flex behavior for Quasar notifications broken by chota .col override */
+.q-notification__content {
+  flex-wrap: nowrap !important;
+}
+.q-notification__message.col {
+  flex: 1 1 0 !important;
+  min-width: 0;
+}
 
 @media (min-width: 1024px) {
   #app {
