@@ -1,12 +1,13 @@
 <script setup lang="ts">
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
-  import { computed, ref } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useWindowSize } from '@vueuse/core';
   import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import EmojiItem from '../general/emojiItem.vue';
   import { formatTimestamp, formatTime, formatFiatAmount } from 'src/utils/utils';
+  import Toggle from '@vueform/toggle'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -16,6 +17,29 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value <= 600)
   const hideUnit = computed(() => width.value <= 500)
+  const showOptions = ref(false)
+  function toggleOptions() {
+    showOptions.value = !showOptions.value
+  }
+
+  // Local refs for toggles that sync to settingsStore
+  const showFiatValue = ref(settingsStore.showFiatValueHistory)
+  const hideBalance = ref(settingsStore.hideBalanceColumn)
+
+  // Auto-hide balance column on small screens
+  watch(() => width.value <= 450, (isSmallScreen) => {
+    if (isSmallScreen) hideBalance.value = true
+  }, { immediate: true })
+
+  function toggleShowFiatValue() {
+    localStorage.setItem("fiatValueHistory", showFiatValue.value ? "true" : "false");
+    settingsStore.showFiatValueHistory = showFiatValue.value;
+  }
+
+  function toggleHideBalance() {
+    localStorage.setItem("hideBalanceColumn", hideBalance.value ? "true" : "false");
+    settingsStore.hideBalanceColumn = hideBalance.value;
+  }
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
@@ -50,25 +74,41 @@
       <legend>Transaction History</legend>
 
       <div class="filter-row">
-        <div style="margin-top:5px; width: 150px;  display: flex;">
-          <label for="filterTransactions" style=" margin-right: 10px;">Show:</label>
-          <select v-model="selectedFilter" name="filterTransactions" style="padding: 0px 4px">
+        <div>{{ transactionCount?.toLocaleString("en-US") }} Transactions</div>
+        <span class="options-toggle" @click="toggleOptions">
+          Options
+          <img
+            class="chevron-icon"
+            :class="{ 'expanded': showOptions }"
+            :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
+          >
+        </span>
+      </div>
+
+      <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
+        <div class="option-item">
+          <label for="filterTransactions">Show:</label>
+          <select v-model="selectedFilter" name="filterTransactions">
             <option value="allTransactions">All</option>
             <option value="bchTransactions">BCH txs</option>
             <option value="tokenTransactions">Token txs</option>
           </select>
         </div>
-
-        <div v-if="!isMobile">{{ transactionCount?.toLocaleString("en-US") }} Transactions </div>
+        <div class="option-item">
+          Show fiat value <Toggle v-model="showFiatValue" @change="toggleShowFiatValue"/>
+        </div>
+        <div class="option-item">
+          Hide balance column <Toggle v-model="hideBalance" @change="toggleHideBalance"/>
+        </div>
       </div>
 
       <!-- CSS Grid table: provides fixed column widths unaffected by content like images -->
-      <div class="tx-table">
+      <div class="tx-table" :class="{ 'hide-balance': hideBalance }">
         <div class="tx-header tx-row">
           <div class="tx-cell"></div>
           <div class="tx-cell">Date</div>
           <div class="tx-cell">Amount</div>
-          <div class="tx-cell balance-header">Balance</div>
+          <div class="tx-cell balance-header" v-if="!hideBalance">Balance</div>
           <div class="tx-cell tokens-header">Tokens</div>
         </div>
         <div class="tx-body">
@@ -99,7 +139,7 @@
               </div>
             </div>
 
-            <div class="tx-cell value">
+            <div class="tx-cell value" v-if="!hideBalance">
               {{ (transaction.balance / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5}) }}
               {{ hideUnit ? "" : bchDisplayUnit }}
               <div v-if="settingsStore.showFiatValueHistory">
@@ -164,11 +204,53 @@
 
 <style scoped>
 .filter-row {
-  margin-top: 5px;
-  margin: auto;
   display: flex;
   align-items: baseline;
   gap: 20px;
+  margin: 10px 0;
+}
+
+.options-toggle {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chevron-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.chevron-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.options-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px 25px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background-color: var(--color-background-soft);
+  border-radius: 6px;
+}
+
+.options-panel.dark {
+  background-color: #232326;
+}
+
+.option-item {
+  margin-top: -5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.option-item select {
+  width: 100px;
+  padding: 2px 8px;
 }
 
 .tx-table {
@@ -182,6 +264,16 @@
   min-width: 550px;
   align-items: center;
   cursor: pointer;
+}
+
+.hide-balance .tx-row {
+  grid-template-columns: 45px 1fr minmax(100px, 150px) minmax(150px, 1fr);
+  min-width: 400px;
+}
+
+.hide-balance .tx-cell.value,
+.hide-balance .tx-header .tx-cell:nth-child(3) {
+  text-align: center;
 }
 
 .tx-header {
@@ -242,7 +334,6 @@ img.tokenIcon {
 }
 
 @media only screen and (max-width: 600px) {
-  .balance-header,
   .tokens-header {
     text-align: center;
     padding-right: 0;
@@ -253,6 +344,10 @@ img.tokenIcon {
   .tx-row {
     grid-template-columns: 30px 66px 1fr 1fr minmax(110px, 160px);
     min-width: 330px;
+  }
+  .hide-balance .tx-row {
+    grid-template-columns: 30px 66px 1fr 1fr;
+    min-width: 260px;
   }
   .tx-body {
     font-size: small;
@@ -270,6 +365,9 @@ img.tokenIcon {
   .tx-row {
     grid-template-columns: 28px 62px minmax(70px, 1fr) minmax(70px, 1fr) minmax(100px, 120px);
   }
+  .hide-balance .tx-row {
+    grid-template-columns: 28px 62px 1fr 1fr;
+  }
   .filter-row {
     margin-left: 0.5rem;
   }
@@ -281,6 +379,9 @@ img.tokenIcon {
 @media only screen and (max-width: 400px) {
   .tx-row {
     grid-template-columns: 24px 62px minmax(70px, 1fr) minmax(70px, 1fr) minmax(100px, 120px);
+  }
+  .hide-balance .tx-row {
+    grid-template-columns: 24px 62px 1fr 1fr;
   }
 }
 </style>

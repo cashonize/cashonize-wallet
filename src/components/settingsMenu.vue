@@ -33,7 +33,6 @@
   const selectedExplorer = ref(store.explorerUrl);
   // user options
   const selectedDarkMode = ref(settingsStore.darkMode);
-  const showFiatValueHistory = ref(settingsStore.showFiatValueHistory);
   const confirmBeforeSending = ref(settingsStore.confirmBeforeSending);
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
@@ -183,10 +182,6 @@
       document.body.classList.remove('transition-enabled');
     }, 500);
   }
-  function toggleShowFiatValueHistory(){
-    localStorage.setItem("fiatValueHistory", showFiatValueHistory.value? "true" : "false");
-    settingsStore.showFiatValueHistory = showFiatValueHistory.value;
-  }
   function toggleConfirmBeforeSending(){
     localStorage.setItem("confirmBeforeSending", confirmBeforeSending.value? "true" : "false");
     settingsStore.confirmBeforeSending = confirmBeforeSending.value;
@@ -297,9 +292,6 @@
         Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()"/>
       </div>
 
-      <div style="margin-top:15px">
-        Show fiat value in History <Toggle v-model="showFiatValueHistory" @change="toggleShowFiatValueHistory"/>
-      </div>
 
       <div style="margin-top:15px">
         Confirm payments before sending <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending"/>

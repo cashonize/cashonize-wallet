@@ -12,14 +12,14 @@ const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultElectrumChipnet = "chipnet.bch.ninja"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
-const dafaultIpfsGateway = "https://w3s.link/ipfs/";
+const defaultIpfsGateway = "https://w3s.link/ipfs/";
 
 const { width,height } = useWindowSize();
 const isDesktop = (process.env.MODE == "electron");
 const isMobileDevice = width.value / height.value < 1.5
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  // Global settings
+  // Settings in settings menu
   const currency = ref<Currency>("usd");
   const bchUnit = ref("bch" as ("bch" | "sat"));
   const explorerMainnet = ref(defaultExplorerMainnet);
@@ -27,16 +27,27 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const electrumServerMainnet = ref(defaultElectrumMainnet);
   const electrumServerChipnet = ref(defaultElectrumChipnet);
   const chaingraph = ref(defaultChaingraph);
-  const ipfsGateway = ref(dafaultIpfsGateway);
+  const ipfsGateway = ref(defaultIpfsGateway);
   const darkMode  = ref(false);
-  const showFiatValueHistory = ref(true);
   const tokenBurn = ref(false);
   const showCauldronSwap = ref(false);
   const qrScan = ref(true);
   const featuredTokens = ref([] as string[]);
-  const hasInstalledPWA = ref(false as boolean);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
+  const dateFormat = ref<DateFormat>("DD/MM/YY");
+  const confirmBeforeSending = ref(false); // consider changing default to true
+  const exchangeRateProvider = ref<ExchangeRateProvider>("default");
+  // developer settings
+  const mintNfts = ref(false);
+  const authchains = ref(false);
+  const loadTokenIcons = ref(true);
+  // history settings
+  const showFiatValueHistory = ref(true);
+  const hideBalanceColumn = ref(false);
+  
+  // other remembered state
   const hasPlayedAnimation = ref(false as boolean)
+  const hasInstalledPWA = ref(false as boolean);
   // Per-wallet backup status: 'verified' (passed backup test), 'imported' (restored via seed), 'none' (needs backup)
   // Stored in localStorage as JSON: { "walletName": "verified", ... }
   const walletBackupStatus = ref<Record<string, 'verified' | 'imported' | 'none'>>({})
@@ -47,12 +58,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     createdAt?: string; // ISO date string
   }
   const walletMetadata = ref<Record<string, WalletMetadata>>({})
-  const mintNfts = ref(false);
-  const authchains = ref(false);
-  const dateFormat = ref<DateFormat>("DD/MM/YY");
-  const confirmBeforeSending = ref(false); // consider changing default to true
-  const loadTokenIcons = ref(true);
-  const exchangeRateProvider = ref<ExchangeRateProvider>("default");
 
   // read local storage for stored settings
   const readCurrency = localStorage.getItem("currency");
@@ -92,6 +97,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readFiatValueHistory = localStorage.getItem("fiatValueHistory");
   if(readFiatValueHistory) showFiatValueHistory.value = readFiatValueHistory == "true";
+
+  const readHideBalanceColumn = localStorage.getItem("hideBalanceColumn");
+  if(readHideBalanceColumn) hideBalanceColumn.value = readHideBalanceColumn == "true";
 
   const readQrScan = localStorage.getItem("qrScan");
   if(!readQrScan && (isDesktop || !isMobileDevice)) qrScan.value = false;
@@ -322,6 +330,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     ipfsGateway,
     darkMode,
     showFiatValueHistory,
+    hideBalanceColumn,
     tokenBurn,
     showCauldronSwap,
     qrScan,
