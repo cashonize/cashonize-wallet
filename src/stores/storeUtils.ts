@@ -3,7 +3,7 @@ import { cachedFetch } from "src/utils/cacheUtils";
 import type { UtxoI } from "mainnet-js";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
-import { displayAndLogError, tryCatch } from "src/utils/errorHandling";
+import { displayAndLogError } from "src/utils/errorHandling";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 
 export function tokenListFromUtxos(walletUtxos: UtxoI[]) {
@@ -74,41 +74,6 @@ export async function importBcmrRegistries(
         registries[tokenId].nfts[commitment] = tokenInfoResult.type_metadata
       } else {
         if(!registries[tokenId]) registries[tokenId] = tokenInfoResult;
-      }
-    }
-    // TODO: reconsider if this fallback is still needed after changes to BCMR indexer
-    // This extra logic if for parsable nfts which don't have sequential metadata,
-    // and the indexer returns 500 for /<commitment>/ endpoint
-    if(settledResult?.status == "rejected") {
-      const reason = settledResult.reason as Error & { url?: string };
-      let failingUrl = reason.url;
-      if(failingUrl?.endsWith("/")) failingUrl = failingUrl.slice(0, -1);
-      // splitUrlRoute = ["", indexerRoute]
-      const urlRoutes = failingUrl?.split(`${bcmrIndexer}/tokens/`);
-      const splitUrlRoute = urlRoutes?.[1]?.split("/")
-      console.error(`BCMR indexer returned 500 for URL: ${failingUrl}`);
-      // splitUrlRoute = [<tokenId>, <commitment>]
-      if(failingUrl && splitUrlRoute && splitUrlRoute.length > 1) {
-        const tokenId = splitUrlRoute?.[0] as string;
-        const fallbackBcmrPromise = cachedFetch(`${bcmrIndexer}/tokens/${tokenId}/`);
-        const { data:response2 } = await tryCatch(fallbackBcmrPromise)
-        if(response2?.status == 200) {
-          const jsonResponse2 = await response2.json();
-          // validate the response to match expected schema
-          const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse2);
-          if (!parseResult.success) {
-            console.error(`BCMR indexer response validation error for URL ${response2.url}: ${parseResult.error.message}`);
-            displayAndLogError('BCMR indexer response validation error');
-            continue;
-          }
-          const tokenInfoResult2 = parseResult.data;
-          if ('error' in tokenInfoResult2) {
-            console.error(`Indexer error for URL ${response2.url}: ${tokenInfoResult2.error}`);
-            continue;
-          }
-          const tokenId = tokenInfoResult2.token?.category
-          if(!registries[tokenId]) registries[tokenId] = jsonResponse2;
-        }
       }
     }
   }
