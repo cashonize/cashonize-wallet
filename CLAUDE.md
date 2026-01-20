@@ -52,6 +52,11 @@ The wallet functionality is powered by `mainnet-js`, built on `@bitauth/libauth`
 - **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages)
 - **cashconnect**: CashConnect protocol for BCH-native dApp connections
 
+### Token Metadata (BCMR)
+BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for CashTokens on BCH. Spec: https://github.com/bitjson/chip-bcmr
+
+Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.com/paytaca/bcmr-indexer) rather than importing full BCMR registry files. The `fetchTokenMetadata` function in `storeUtils.ts` handles this.
+
 ### Component Organization
 ```
 src/components/
