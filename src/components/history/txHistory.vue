@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
-  import { computed, ref, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import { useWindowSize } from '@vueuse/core';
   import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
@@ -11,44 +11,33 @@
 
   const store = useStore()
   const settingsStore = useSettingsStore()
-
   const itemsPerPage = 100
-  const currentPage = ref(1)
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value <= 600)
   const hideUnit = computed(() => width.value <= 500)
-  const showOptions = ref(false)
-  function toggleOptions() {
-    showOptions.value = !showOptions.value
-  }
 
-  // Local refs for toggles that sync to settingsStore
+  // state options menu
+  const showOptions = ref(false)
   const showFiatValue = ref(settingsStore.showFiatValueHistory)
   const hideBalance = ref(settingsStore.hideBalanceColumn)
+  const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");
+
+  const currentPage = ref(1)
+  const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
+  const exchangeRate = ref<number | undefined>(undefined);
+    
+  onMounted(async () => {
+    exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
+  });
 
   // Auto-hide balance column on small screens
   watch(() => width.value <= 450, (isSmallScreen) => {
     if (isSmallScreen) hideBalance.value = true
   }, { immediate: true })
 
-  function toggleShowFiatValue() {
-    localStorage.setItem("fiatValueHistory", showFiatValue.value ? "true" : "false");
-    settingsStore.showFiatValueHistory = showFiatValue.value;
-  }
-
-  function toggleHideBalance() {
-    localStorage.setItem("hideBalanceColumn", hideBalance.value ? "true" : "false");
-    settingsStore.hideBalanceColumn = hideBalance.value;
-  }
-
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
-
-  const exchangeRate = await ExchangeRate.get(settingsStore.currency, true)
-
-  const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
-  const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");
 
   const selectedHistory = computed(() => {
     if (selectedFilter.value === "bchTransactions") return store.walletHistory?.filter(tx => !tx.tokenAmountChanges.length);
@@ -63,6 +52,20 @@
     return selectedHistory.value?.slice(start, start + itemsPerPage)
   })
   const totalPages = computed(() => Math.ceil((selectedHistory.value?.length ?? 0) / itemsPerPage))
+
+  function toggleOptions() {
+    showOptions.value = !showOptions.value
+  }
+
+  function toggleShowFiatValue() {
+    localStorage.setItem("fiatValueHistory", showFiatValue.value ? "true" : "false");
+    settingsStore.showFiatValueHistory = showFiatValue.value;
+  }
+
+  function toggleHideBalance() {
+    localStorage.setItem("hideBalanceColumn", hideBalance.value ? "true" : "false");
+    settingsStore.hideBalanceColumn = hideBalance.value;
+  }
 </script>
 
 <template>
@@ -131,10 +134,10 @@
             </div>
             <div class="tx-cell" v-else>{{ formatTimestamp(transaction.timestamp, settingsStore.dateFormat) }}</div>
 
-            <div class="tx-cell value" :style="transaction.valueChange < 0 ? 'color: rgb(188,30,30)' : ''">
+            <div class="tx-cell value" :class="{ 'negative': transaction.valueChange < 0 }">
               {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5})}`}}
               {{ hideUnit ? "" : bchDisplayUnit }}
-              <div v-if="settingsStore.showFiatValueHistory">
+              <div v-if="settingsStore.showFiatValueHistory && exchangeRate !== undefined">
                 ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency)}})
               </div>
             </div>
@@ -142,7 +145,7 @@
             <div class="tx-cell value" v-if="!hideBalance">
               {{ (transaction.balance / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5}) }}
               {{ hideUnit ? "" : bchDisplayUnit }}
-              <div v-if="settingsStore.showFiatValueHistory">
+              <div v-if="settingsStore.showFiatValueHistory && exchangeRate !== undefined">
                 ~{{formatFiatAmount(exchangeRate * transaction.balance / 100_000_000, settingsStore.currency) }}
               </div>
             </div>
@@ -154,7 +157,7 @@
                   <span v-if="tokenChange.amount > 0n" class="value">+{{
                     (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}
                   </span>
-                  <span v-else class="value" style="color: rgb(188,30,30)">
+                  <span v-else class="value negative">
                     {{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}
                   </span>
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
@@ -167,7 +170,7 @@
                 </span>
                 <span v-if="tokenChange.nftAmount" class="nftChange">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
-                  <span v-else class="value" style="color: rgb(188,30,30)">{{ tokenChange.nftAmount }}</span>
+                  <span v-else class="value negative">{{ tokenChange.nftAmount }}</span>
                   <span>
                     {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT
                   </span>
@@ -310,6 +313,12 @@
 .value {
   font-family: monospace;
   white-space: nowrap;
+}
+.negative {
+  color: rgb(188, 30, 30);
+}
+body.dark .negative {
+  color: #ef9a9a;
 }
 
 .tokenChange {
