@@ -1,17 +1,16 @@
 <script setup lang="ts">
   import dialogNftIcon from './dialogNftIcon.vue'
-  import { ref, onMounted, toRefs, computed } from 'vue';
+  import { ref, onMounted, toRefs, computed, watch, nextTick } from 'vue';
   import { TokenSendRequest, TokenMintRequest, type TokenI } from "mainnet-js"
   import { type UtxoI } from "mainnet-js"
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
-  // @ts-ignore
-  import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { BcmrTokenMetadata, TokenBurnRequestParams, TokenSendRequestParams } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
+  import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
@@ -30,6 +29,7 @@
   }>();
 
   const showNftImage = ref(false);
+  const imageLoadFailed = ref(false);
   const displaySendNft = ref(false);
   const displayNftInfo = ref(false);
   const displayMintNfts = ref(false);
@@ -70,17 +70,17 @@
   })
 
   onMounted(() => {
-    const tokenId = (nftData.value.token as TokenI).tokenId;
-    const icon = createIcon({
-      seed: tokenId,
-      size: 12,
-      scale: 4,
-      spotcolor: '#000'
-    });
-    icon.style = "display: block; border-radius: 50%;"
-    const template = document.querySelector(`#${id.value}`);
-    const iconDiv = template?.querySelector("#genericTokenIcon")
-    iconDiv?.appendChild(icon);
+    const tokenId = nftData.value.token!.tokenId;
+    appendBlockieIcon(tokenId, `#${id.value}`);
+  })
+
+  watch(imageLoadFailed, async (failedToLoad) => {
+    if(failedToLoad) {
+      // waits for next tick, so the DOM updates and renders the genericTokenIcon div
+      await nextTick();
+      const tokenId = nftData.value.token!.tokenId;
+      appendBlockieIcon(tokenId, `#${id.value}`);
+    }
   })
 
   const qrDecode = (content: string) => {
@@ -331,10 +331,22 @@
   <div class="item" :id="id">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <video v-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
+        <video
+          v-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')"
+          class="tokenIcon" width="48" height="48" loading="lazy"
+          style="cursor: pointer;"
+          @click="() => showNftImage = true"
+        >
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
         </video>
-        <img v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon" class="tokenIcon" width="48" height="48" loading="lazy" :style="{ cursor: (nftMetadata?.uris?.image|| nftMetadata?.uris?.icon) ? 'pointer' : 'default' }" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
+        <img
+          v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && !imageLoadFailed"
+          class="tokenIcon" width="48" height="48" loading="lazy"
+          :style="{ cursor: (nftMetadata?.uris?.image || nftMetadata?.uris?.icon) ? 'pointer' : 'default' }"
+          :src="httpsUrlTokenIcon"
+          @click="() => showNftImage = true"
+          @error="() => imageLoadFailed = true"
+        >
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
 
         <div class="tokenBaseInfo">

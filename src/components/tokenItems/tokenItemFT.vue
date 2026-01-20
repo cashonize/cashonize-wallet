@@ -1,9 +1,7 @@
 <script setup lang="ts">
-  import { ref, onMounted, toRefs, computed, watch } from 'vue';
+  import { ref, onMounted, toRefs, computed, watch, nextTick } from 'vue';
   import { TokenSendRequest, type SendRequest } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
-  // @ts-ignore
-  import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
@@ -11,7 +9,8 @@
   import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import {caughtErrorToString} from 'src/utils/errorHandling'
+  import { caughtErrorToString } from 'src/utils/errorHandling'
+  import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
@@ -38,6 +37,7 @@
   const reservedSupply = ref(undefined as bigint | undefined);
   const showQrCodeDialog = ref(false);
   const activeAction = ref<'sending' | 'burning' | 'transferAuth' | null>(null);
+  const imageLoadFailed = ref(false);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
 
@@ -57,16 +57,14 @@
   })
 
   onMounted(() => {
-    const icon = createIcon({
-      seed: tokenData.value.tokenId,
-      size: 12,
-      scale: 4,
-      spotcolor: '#000'
-    });
-    icon.style = "display: block; border-radius: 50%;"
-    const template = document.querySelector(`#id${tokenData.value.tokenId.slice(0, 10)}`);
-    const iconDiv = template?.querySelector("#genericTokenIcon")
-    iconDiv?.appendChild(icon);
+    appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}`);
+  })
+
+  watch(imageLoadFailed, async (failedToLoad) => {
+    if(failedToLoad) {
+      await nextTick();
+      appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}`);
+    }
   })
 
   // check if need to fetch onchain stats on displayTokenInfo
@@ -371,7 +369,12 @@
   <div :id="`id${tokenData.tokenId.slice(0, 10)}`" class="item">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <img v-if="httpsUrlTokenIcon && settingsStore.loadTokenIcons" class="tokenIcon" width="48" height="48" loading="lazy" :src="httpsUrlTokenIcon">
+        <img
+          v-if="httpsUrlTokenIcon && settingsStore.loadTokenIcons && !imageLoadFailed"
+          class="tokenIcon" width="48" height="48" loading="lazy"
+          :src="httpsUrlTokenIcon"
+          @error="() => imageLoadFailed = true"
+        >
         <div v-else id="genericTokenIcon" class="tokenIcon"></div>
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">

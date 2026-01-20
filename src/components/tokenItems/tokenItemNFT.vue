@@ -1,11 +1,9 @@
 <script setup lang="ts">
-  import { ref, onMounted, toRefs, computed, watch } from 'vue';
+  import { ref, onMounted, toRefs, computed, watch, nextTick } from 'vue';
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
   import { TokenSendRequest, TokenMintRequest, type SendRequest, type TokenI } from "mainnet-js"
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
-  // @ts-ignore
-  import { createIcon } from '@download/blockies';
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenSendRequestParams, TokenMintRequestParams, TokenBurnRequestParams } from "src/interfaces/interfaces"
@@ -13,7 +11,8 @@
   import { copyToClipboard } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { caughtErrorToString } from 'src/utils/errorHandling';
+  import { caughtErrorToString } from 'src/utils/errorHandling'
+  import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
@@ -49,6 +48,7 @@
   // Local state for batch NFT selection - keyed by "txid:vout"
   const selectedNfts = ref(new Set<string>());
   const activeAction = ref<'sending' | 'minting' | 'burning' | 'transferAuth' | null>(null);
+  const imageLoadFailed = ref(false);
 
   let fetchedMetadataChildren = false
 
@@ -110,16 +110,14 @@
   }
 
   onMounted(() => {
-    const icon = createIcon({
-      seed: tokenData.value.tokenId,
-      size: 12,
-      scale: 4,
-      spotcolor: '#000'
-    });
-    icon.style = "display: block; border-radius: 50%;"
-    const template = document.querySelector(`#id${tokenData.value.tokenId.slice(0, 10)}nft`);
-    const iconDiv = template?.querySelector("#genericTokenIcon")
-    iconDiv?.appendChild(icon);
+    appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}nft`);
+  })
+
+  watch(imageLoadFailed, async (failedToLoad) => {
+    if(failedToLoad) {
+      await nextTick();
+      appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}nft`);
+    }
   })
 
   // check if need to fetch onchain stats on displayTokenInfo
@@ -541,11 +539,28 @@
   <div :id="`id${tokenData.tokenId.slice(0, 10)}nft`" class="item">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <video v-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" @click="() => showNftImage = true">
+        <video
+          v-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')"
+          class="tokenIcon" width="48" height="48" loading="lazy"
+          style="cursor: pointer;"
+          @click="() => showNftImage = true"
+        >
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
         </video>
-        <img v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && isSingleNft" class="tokenIcon" width="48" height="48" loading="lazy" style="cursor: pointer;" :src="httpsUrlTokenIcon" @click="() => showNftImage = true">
-        <img v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && !isSingleNft" class="tokenIcon" width="48" height="48" loading="lazy" :src="httpsUrlTokenIcon">
+        <img
+          v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && isSingleNft && !imageLoadFailed"
+          class="tokenIcon" width="48" height="48" loading="lazy"
+          style="cursor: pointer;"
+          :src="httpsUrlTokenIcon"
+          @click="() => showNftImage = true"
+          @error="() => imageLoadFailed = true"
+        >
+        <img
+          v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && !isSingleNft && !imageLoadFailed"
+          class="tokenIcon" width="48" height="48" loading="lazy"
+          :src="httpsUrlTokenIcon"
+          @error="() => imageLoadFailed = true"
+        >
         <div v-else id="genericTokenIcon" loading="lazy" class="tokenIcon"></div>
 
         <div class="tokenBaseInfo">
