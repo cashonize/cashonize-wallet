@@ -28,7 +28,7 @@ import {
   runAsyncVoid
 } from "src/utils/utils"
 import {
-  importBcmrRegistries,
+  fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   tokenListFromUtxos,
   updateTokenListWithAuthUtxos
 } from "./storeUtils"
@@ -179,9 +179,9 @@ export const useStore = defineStore('store', () => {
       if(!tokenList.value) return // should never happen
       // fire-and-forget getLatestGithubRelease promise for desktop platform
       if(isDesktop) void getLatestGithubRelease()
-      console.time('import registries');
-      await importRegistries(tokenList.value, false);
-      console.timeEnd('import registries');
+      console.time('fetch token metadata');
+      await fetchTokenMetadata(tokenList.value, false);
+      console.timeEnd('fetch token metadata');
       console.time('fetch history');
       await updateWalletHistory()
       console.timeEnd('fetch history');
@@ -254,8 +254,8 @@ export const useStore = defineStore('store', () => {
           const newTokenItem = convertElectrumTokenData(tokenOutput.tokenData)
           if(newTokenItem) listNewTokens.push(newTokenItem)
         }
-        // Dynamically import tokenmetadata
-        await importRegistries(listNewTokens, true);
+        // Dynamically fetch token metadata
+        await fetchTokenMetadata(listNewTokens, true);
         // refetch utxos to update tokenList
         await updateWalletUtxos();
         // update wallet history as fire-and-forget promise
@@ -487,9 +487,9 @@ export const useStore = defineStore('store', () => {
     tokenList.value = [...featuredTokenList, ...otherTokenList];
   }
 
-  // Import onchain resolved BCMRs
-  async function importRegistries(tokenList: TokenList, fetchNftInfo: boolean) {
-    const registries = await importBcmrRegistries(tokenList, fetchNftInfo, bcmrIndexer.value, bcmrRegistries.value);
+  // Fetch token metadata from BCMR indexer
+  async function fetchTokenMetadata(tokenList: TokenList, fetchNftInfo: boolean) {
+    const registries = await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, bcmrIndexer.value, bcmrRegistries.value);
     bcmrRegistries.value = registries
   }
 
@@ -595,7 +595,7 @@ export const useStore = defineStore('store', () => {
     fetchTokenInfo,
     hasPreGenesis,
     fetchAuthUtxos,
-    importRegistries,
+    fetchTokenMetadata,
     toggleFavorite,
     tokenIconUrl
   }

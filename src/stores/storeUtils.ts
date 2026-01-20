@@ -23,7 +23,7 @@ export function tokenListFromUtxos(walletUtxos: UtxoI[]) {
   return arrayTokens
 }
 
-export async function importBcmrRegistries(
+export async function fetchTokenMetadata(
   tokenList: TokenList,
   fetchNftInfo: boolean,
   bcmrIndexer: string,

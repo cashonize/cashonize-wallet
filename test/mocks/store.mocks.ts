@@ -135,7 +135,7 @@ vi.mock('src/utils/zodValidation', () => ({
 
 // Mock storeUtils
 vi.mock('src/stores/storeUtils', () => ({
-  importBcmrRegistries: vi.fn().mockResolvedValue({}),
+  fetchTokenMetadata: vi.fn().mockResolvedValue({}),
   tokenListFromUtxos: vi.fn().mockReturnValue([]),
   updateTokenListWithAuthUtxos: vi.fn().mockReturnValue([]),
 }))

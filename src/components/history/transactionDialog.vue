@@ -66,7 +66,7 @@
     }
 
     if (!store.bcmrRegistries[tokenId].nfts?.[commitment]) {
-      await store.importRegistries([{tokenId, nfts: [{token: {tokenId, commitment}}]} as TokenDataNFT], true);
+      await store.fetchTokenMetadata([{tokenId, nfts: [{token: {tokenId, commitment}}]} as TokenDataNFT], true);
     }
     tokenMetadata.value = store.bcmrRegistries[tokenId].nfts?.[commitment];
     selectedTokenCommitment.value = commitment;
