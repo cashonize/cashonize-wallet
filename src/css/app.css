@@ -192,7 +192,9 @@ input[type='number'] {
   width: 50%;
 }
 .showChildNfts {
-  cursor: pointer;
+  position: relative;
+  align-self: flex-start;
+  margin-top: 12px;
   margin-left: 35px;
 }
 select, summary {

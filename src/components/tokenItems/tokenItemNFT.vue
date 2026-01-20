@@ -35,6 +35,7 @@
   const displayAuthTransfer = ref(false);
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
+  const loadingChildNftMetadata = ref(false);
   const destinationAddr = ref("");
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   const mintUniqueNfts = ref(true);
@@ -139,10 +140,12 @@
 
   async function showChildNfts() {
     if(!fetchedMetadataChildren && tokenMetaData.value){
+      loadingChildNftMetadata.value = true;
       console.time('fetch NFT info');
       await store.fetchTokenMetadata([tokenData.value], true)
       fetchedMetadataChildren = true
       console.timeEnd('fetch NFT info');
+      loadingChildNftMetadata.value = false;
     }
     displayChildNfts.value = !displayChildNfts.value;
   }
@@ -559,12 +562,18 @@
             </div>
             <div style="word-break: break-all;" class="hide"></div>
           </div>
-          <div v-if="(tokenData.nfts?.length ?? 0) > 1" @click="showChildNfts()" class="showChildNfts">
-            <span class="nrChildNfts">Number NFTs: {{ tokenData.nfts?.length }}</span>
-            <span class="hide" style="margin-left: 10px;">
-              <img class="icon" :src="settingsStore.darkMode? (displayChildNfts? 'images/chevron-square-up-lightGrey.svg':'images/chevron-square-down-lightGrey.svg') : 
-                (displayChildNfts? 'images/chevron-square-up.svg':'images/chevron-square-down.svg')">
-            </span>
+          <div v-if="(tokenData.nfts?.length ?? 0) > 1" class="showChildNfts">
+            <div @click="showChildNfts()" class="showChildNftsToggle">
+              <span class="nrChildNfts">Number NFTs: {{ tokenData.nfts?.length }}</span>
+              <span class="hide" style="margin-left: 10px;">
+                <img class="icon" :src="settingsStore.darkMode? (displayChildNfts? 'images/chevron-square-up-lightGrey.svg':'images/chevron-square-down-lightGrey.svg') :
+                  (displayChildNfts? 'images/chevron-square-up.svg':'images/chevron-square-down.svg')">
+              </span>
+            </div>
+            <div v-if="loadingChildNftMetadata" class="loadingChildNftMetadata">
+              <span class="hide-mobile">loading NFT metadata...</span>
+              <span class="show-mobile">loading...</span>
+            </div>
           </div>
         </div>
         <span @click="store.toggleFavorite(tokenData.tokenId)" class="boxStarIcon">
@@ -727,5 +736,35 @@
 }
 .batch-action-btn:hover {
   color: var(--color-primary);
+}
+.showChildNftsToggle {
+  cursor: pointer;
+}
+.loadingChildNftMetadata {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  color: grey;
+  white-space: nowrap;
+}
+.show-mobile {
+  display: none;
+}
+@media only screen and (max-width: 850px) {
+  .showChildNfts {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  .loadingChildNftMetadata {
+    position: static;
+    margin-left: 10px;
+  }
+  .hide-mobile {
+    display: none;
+  }
+  .show-mobile {
+    display: inline;
+  }
 }
 </style>
