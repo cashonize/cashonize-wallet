@@ -1,7 +1,8 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { computed, ref, onMounted } from 'vue';
   import { copyToClipboard, formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
-  import { ExchangeRate, TokenSendRequest, type UtxoI } from 'mainnet-js';
+  import EmojiItem from 'src/components/general/emojiItem.vue';
+  import { ExchangeRate, TokenSendRequest } from 'mainnet-js';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -10,23 +11,24 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
   const activeAction = ref<'consolidating' | 'splitting' | null>(null);
+  const exchangeRate = ref<number | undefined>(undefined);
 
-  const exchangeRate = await ExchangeRate.get(settingsStore.currency, true)
+  onMounted(async () => {
+    exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
+  });
 
-  const totalUtxos = computed(() => store.walletUtxos?.length ?? 0);
-  const bchOnlyUtxos = computed(() => store.walletUtxos?.filter(utxo => !utxo.token)?.length ?? 0);
-  const tokenUtxos = computed(() => getTokenUtxos(store.walletUtxos as UtxoI[]).length);
+  const bchOnlyUtxos = computed(() => store.walletUtxos?.filter(utxo => !utxo.token)?.length);
   // TODO: consider lowering this to 1000 satoshis in the future
   // note: the bliss airdrop tool uses 2000 sats so from that point, many users would have combined UTXOs
   const utxosWithBchAndTokens = computed(() => {
-    return store.walletUtxos!.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 5_000n);
+    if (!store.walletUtxos) return undefined;
+    return store.walletUtxos.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 5_000n);
   });
 
-  const hasProblematicUtxos = computed(() => utxosWithBchAndTokens.value?.length > 0);
-  const hasNftUtxos = computed(() => utxosWithBchAndTokens.value.filter(utxo => utxo.token?.capability).length > 0);
-
+  // hasNftUtxos and satsToSplit are only used in template when utxosWithBchAndTokens is defined
+  const hasNftUtxos = computed(() => utxosWithBchAndTokens.value!.some(utxo => utxo.token?.capability));
   const satsToSplit = computed(() => {
-    return utxosWithBchAndTokens.value.reduce((sum:bigint, utxo) => sum + BigInt(utxo.satoshis) - 1000n, 0n)
+    return utxosWithBchAndTokens.value!.reduce((sum:bigint, utxo) => sum + BigInt(utxo.satoshis) - 1000n, 0n)
   })
 
   function truncateHash(hash: string) {
@@ -123,14 +125,14 @@
 
     <!-- Stats -->
     <div class="stats-row">
-      <div class="stat-item">
-        <span class="stat-value">{{ totalUtxos }}</span>Total UTXOs
+      <div>
+        <span class="stat-value">{{ store.walletUtxos?.length?.toLocaleString('en-US')  ?? '...'}}</span> Total UTXOs
       </div>
-      <div class="stat-item">
-        <span class="stat-value">{{ bchOnlyUtxos }}</span>BCH-only UTXOs
+      <div>
+        <span class="stat-value">{{ bchOnlyUtxos?.toLocaleString('en-US') ?? '...' }}</span> BCH-only UTXOs
       </div>
-      <div class="stat-item">
-        <span class="stat-value">{{ tokenUtxos }}</span>Token UTXOs
+      <div>
+        <span class="stat-value">{{ store.walletUtxos ? getTokenUtxos(store.walletUtxos).length.toLocaleString('en-US') : '...' }}</span> Token UTXOs
       </div>
     </div>
 
@@ -145,9 +147,9 @@
         type="button"
         class="primaryButton"
         :value="activeAction === 'consolidating' ? 'Consolidating...' : 'Consolidate BCH'"
-        :disabled="activeAction !== null || bchOnlyUtxos <= 1"
+        :disabled="activeAction !== null || (bchOnlyUtxos !== undefined && bchOnlyUtxos <= 1)"
       >
-      <div v-if="bchOnlyUtxos <= 1" class="hint">
+      <div v-if="bchOnlyUtxos !== undefined && bchOnlyUtxos <= 1" class="hint">
         Your wallet already has {{ bchOnlyUtxos === 0 ? 'no' : 'only 1' }} BCH-only UTXO.
       </div>
     </div>
@@ -155,15 +157,15 @@
     <!-- UTXO Status Section -->
     <div class="utxo-status-section">
       <!-- Combined BCH + Token UTXOs -->
-      <div v-if="hasProblematicUtxos">
+      <div v-if="utxosWithBchAndTokens?.length">
         <div class="status-line text-warning">
           <span class="status-icon">!</span>
-          <span>{{ utxosWithBchAndTokens.length }} UTXO{{ utxosWithBchAndTokens.length > 1 ? 's' : '' }} with combined BCH + Tokens</span>
+          <span>{{ utxosWithBchAndTokens.length }} UTXO{{ utxosWithBchAndTokens!.length > 1 ? 's' : '' }} with combined BCH + Tokens</span>
         </div>
         <div class="description">
           Some dApps return UTXOs that combine BCH with tokens, causing the BCH to not show in your balance.
           You have <strong>{{ satsToBch(satsToSplit) }} BCH</strong>
-          ({{ formatFiatAmount(exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})
+          <span v-if="exchangeRate">({{ formatFiatAmount(exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})</span>
           that can be split from token UTXOs.
         </div>
 
@@ -188,16 +190,17 @@
                 <th>Token</th>
                 <th>Type</th>
                 <th>TxId</th>
+                <th>Vout</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(utxo, index) in utxosWithBchAndTokens" :key="index">
+              <tr v-for="(utxo, index) in [...utxosWithBchAndTokens!].sort((a, b) => Number(b.satoshis - a.satoshis))" :key="index">
                 <td>{{ index + 1 }}</td>
                 <td class="mono">
                   {{ satsToBch(utxo.satoshis) }}
-                  <span v-if="utxo.satoshis > 100_000n" style="color: orange;">&#9888;</span>
+                  <EmojiItem v-if="utxo.satoshis > 100_000n" emoji="⚠️" :sizePx="20"/>
                 </td>
-                <td>{{ store.bcmrRegistries?.[utxo.token!.tokenId]?.name || truncateHash(utxo.token!.tokenId) }}</td>
+                <td class="token-name">{{ store.bcmrRegistries?.[utxo.token!.tokenId]?.name || truncateHash(utxo.token!.tokenId) }}</td>
                 <td>{{ utxo.token?.amount && utxo.token.capability ? 'FT+NFT' : (utxo.token?.amount ? 'FT' : 'NFT') }}</td>
                 <td>
                   <span @click="copyToClipboard(utxo.txid)" style="cursor: pointer;">
@@ -206,6 +209,7 @@
                     <img class="copyIcon" src="images/copyGrey.svg">
                   </span>
                 </td>
+                <td class="mono">{{ utxo.vout }}</td>
               </tr>
             </tbody>
           </table>
@@ -214,15 +218,14 @@
         <input
           @click="splitBchFromTokenUtxos()"
           type="button"
-          class="secondaryButton"
-          style="background-color: orange; color: white; margin-bottom: 15px;"
+          class="warningButton"
           :value="activeAction === 'splitting' ? 'Splitting...' : 'Split BCH from Tokens'"
           :disabled="activeAction !== null"
         >
       </div>
 
-      <!-- No issues -->
-      <div v-else>
+      <!-- No issues (only show when loaded) -->
+      <div v-else-if="store.walletUtxos">
         <div><strong>Combined BCH + Token UTXOs</strong></div>
         <div class="description">
           Some dApps return UTXOs that combine BCH with tokens, causing the BCH to not show in your balance.
@@ -278,7 +281,6 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
 }
 
 .status-icon {
@@ -290,6 +292,12 @@
 }
 .dark .text-warning {
   color: #ffcc80;
+}
+
+.warningButton {
+  background-color: orange;
+  color: white;
+  margin-bottom: 15px;
 }
 
 .utxo-details {
@@ -344,7 +352,7 @@
   font-family: monospace;
 }
 
-/* Responsive txid display */
+/* Responsive table display */
 .txid-mobile {
   display: none;
 }
@@ -354,6 +362,14 @@
   }
   .txid-mobile {
     display: inline;
+  }
+}
+@media (max-width: 500px) {
+  .token-name {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
