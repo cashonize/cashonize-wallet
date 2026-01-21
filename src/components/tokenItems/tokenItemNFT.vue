@@ -814,6 +814,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    margin-top: 0px;
   }
   .loadingChildNftMetadata {
     position: static;
