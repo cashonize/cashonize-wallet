@@ -178,7 +178,7 @@
           <summary>
             View affected UTXOs
             <img
-              class="chevron-icon"
+              class="icon"
               :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
             >
           </summary>
@@ -321,13 +321,7 @@
   content: '';
 }
 
-.chevron-icon {
-  width: 18px;
-  height: 18px;
-  transition: transform 0.2s;
-}
-
-.utxo-details[open] .chevron-icon {
+.utxo-details[open] .icon {
   transform: rotate(180deg);
 }
 
