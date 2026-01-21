@@ -53,6 +53,9 @@
     if (balance === undefined) return '';
     return formatFiatAmount(balance, settingsStore.currency);
   });
+  const currencyDisplayShortName = computed(() => {
+    return (store.network == "mainnet" ? "" : "t") + CurrencyShortNames[settingsStore.currency];
+  });
 
   // handle props
   if(props.bchSendRequest?.startsWith('bitcoincash:')){
@@ -257,8 +260,8 @@
 
 <template>
   <fieldset style="margin-top: 20px; padding-top: 2rem; padding-bottom: 1rem; max-width: 75rem; margin: auto 10px;">
-    <div v-if="store.network == 'mainnet'" style="font-size: 1.2em">
-      {{ CurrencyShortNames[settingsStore.currency] }} balance:
+    <div style="font-size: 1.2em">
+      {{ currencyDisplayShortName }} balance:
       <span style="color: hsla(160, 100%, 37%, 1);">{{ displayCurrencyBalance }}</span>
     </div>
     <span>
@@ -305,7 +308,7 @@
         <span class="sendCurrencyInput">
           <input v-model="currencySendAmount" @input="setBchAmount()" type="number" placeholder="amount" name="bchAmountInput">
           <i class="input-icon" style="color: black;">
-            {{(store.network == "mainnet"? "" : "t") + `${CurrencyShortNames[settingsStore.currency]} ${CurrencySymbols[settingsStore.currency]}`}}
+            {{`${currencyDisplayShortName} ${CurrencySymbols[settingsStore.currency]}`}}
           </i>
         </span> 
             <button @click="useMaxBchAmount()" class="fillInMaxBch">max</button>
