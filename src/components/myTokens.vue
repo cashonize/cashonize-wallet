@@ -55,10 +55,13 @@
     </div>
 
     <!-- Token list -->
-    <div v-if="store.filteredTokenList?.length == 0" style="text-align: center;">
+    <div v-if="store.tokenList?.length == 0" style="text-align: center;">
+      No tokens in wallet
+    </div>
+    <div v-else-if="store.filteredTokenList?.length == 0" style="text-align: center;">
       No tokens match filter
     </div>
-    <div v-for="tokenData in store.filteredTokenList" :key="tokenData.tokenId.slice(0,6)">
+    <div v-for="tokenData in store.filteredTokenList" :key="tokenData.tokenId">
       <tokenItemFT v-if="'amount' in tokenData" :tokenData="tokenData"/>
       <tokenItemNFT v-else :tokenData="tokenData"/>
     </div>

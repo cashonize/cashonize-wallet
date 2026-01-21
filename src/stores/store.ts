@@ -578,6 +578,10 @@ export const useStore = defineStore('store', () => {
       const newFeaturedTokens = settingsStore.featuredTokens.filter(id => id !== tokenId);
       localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
       settingsStore.featuredTokens = newFeaturedTokens;
+      // Re-sort token list since featured tokens changed
+      if (tokenList.value) {
+        sortTokenList(tokenList.value);
+      }
     }
   }
 

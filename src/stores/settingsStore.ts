@@ -138,7 +138,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readHiddenTokens = localStorage.getItem("hiddenTokens");
   if(readHiddenTokens) {
-    hiddenTokens.value = JSON.parse(readHiddenTokens) as string[];
+    try {
+      hiddenTokens.value = JSON.parse(readHiddenTokens) as string[];
+    } catch { /* ignore parse errors */ }
   }
 
   const readTokenDisplayFilter = localStorage.getItem("tokenDisplayFilter");
