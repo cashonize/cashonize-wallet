@@ -130,9 +130,18 @@
       // Set the address (without query params)
       destinationAddr.value = parsed.address;
 
-      // Auto-fill ft= amount if c= matches this token
-      if(parsed.otherParams?.c === tokenData.value.tokenId && parsed.otherParams?.ft){
-        tokenSendAmount.value = parsed.otherParams.ft;
+      // Auto-fill fungible token amount if c= matches this token
+      // Supports both ft= (spec proposal) and f= (Paytaca) - they are equivalent
+      // Amount is in base token units, so apply the decimals from token metadata
+      // e.g. ft=10000 with 2 decimals = 100 tokens displayed to user
+      const ftParam = parsed.otherParams?.ft ?? parsed.otherParams?.f;
+      if(parsed.otherParams?.c === tokenData.value.tokenId && ftParam){
+        const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+        const ftBaseUnits = parseInt(ftParam, 10);
+        if (!isNaN(ftBaseUnits) && ftBaseUnits >= 0) {
+          const humanReadable = decimals ? ftBaseUnits / (10 ** decimals) : ftBaseUnits;
+          tokenSendAmount.value = String(humanReadable);
+        }
       }
     } catch {
       // If parsing fails, leave the input as-is
