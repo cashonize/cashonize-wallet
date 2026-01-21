@@ -1,8 +1,8 @@
 <script setup lang="ts">
-  import { toRefs } from 'vue';
+  import { toRefs, ref } from 'vue';
   import { binToHex, decodeTransactionUnsafe, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
-  import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
+  import { type DappMetadata, type BcmrTokenMetadata, CurrencySymbols } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { useStore } from 'src/stores/store'
   import { convertToCurrency, parseExtendedJson } from 'src/utils/utils'
@@ -10,6 +10,10 @@
   import { type WalletKitTypes } from '@reown/walletkit';
   const store = useStore()
   const settingsStore = useSettingsStore()
+
+  // Local metadata for tokens not in wallet (kept separate from global store for security)
+  // Same approach as CCSignTransactionDialog.vue
+  const unverifiedTokenMetadata = ref<Record<string, BcmrTokenMetadata>>({});
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
@@ -80,10 +84,34 @@
     }
   }
 
+  async function fetchUnverifiedTokenInfo(categoryHex: string) {
+    try {
+      const tokenInfo = await store.fetchTokenInfo(categoryHex);
+      unverifiedTokenMetadata.value = { ...unverifiedTokenMetadata.value, [categoryHex]: tokenInfo };
+    } catch (error) {
+      console.error(`Failed to fetch metadata for ${categoryHex}:`, error);
+    }
+  }
+
+  // Fetch metadata for tokens not in wallet (stored locally, not in global store)
+  for (const categoryHex of [...Object.keys(tokensSpentInputs), ...Object.keys(tokensReceivedOutputs)]) {
+    if (!store.bcmrRegistries?.[categoryHex]) {
+      void fetchUnverifiedTokenInfo(categoryHex);
+    }
+  }
+
+  const getTokenMetadata = (categoryHex: string): BcmrTokenMetadata | undefined => {
+    return store.bcmrRegistries?.[categoryHex] ?? unverifiedTokenMetadata.value[categoryHex];
+  };
+
+  const isUnverifiedToken = (categoryHex: string): boolean => {
+    return categoryHex in unverifiedTokenMetadata.value;
+  };
+
   const calculateAmount = (tokenObject: NonNullable<Output['token']>): string => {
     if (!tokenObject.amount) return '';
     const categoryHex = binToHex(tokenObject.category);
-    const decimals = Number(store.bcmrRegistries?.[categoryHex]?.token?.decimals ?? 0);
+    const decimals = Number(getTokenMetadata(categoryHex)?.token?.decimals ?? 0);
 
     if (decimals === 0) {
       return tokenObject.amount.toString();
@@ -95,14 +123,15 @@
 
   const formatTokenDisplay = (tokenSpent: NonNullable<Output['token']>, displayFullName= true): string => {
     const categoryHex = binToHex(tokenSpent.category);
-    const tokenMetadata = store.bcmrRegistries?.[categoryHex];
+    const tokenMetadata = getTokenMetadata(categoryHex);
     const tokenName = tokenMetadata?.name;
     const tokenSymbol = tokenMetadata?.token?.symbol;
     const displayMetadata = displayFullName ? tokenName : tokenSymbol;
 
     if (displayMetadata) {
       const addNftPostfix = tokenSpent.nft ? " NFT" : "";
-      return displayMetadata + addNftPostfix;
+      const unverifiedMarker = isUnverifiedToken(categoryHex) ? " *" : "";
+      return displayMetadata + addNftPostfix + unverifiedMarker;
     } else {
       const tokenType = tokenSpent.nft ? "NFT" : "Tokens";
       return `${categoryHex.slice(0, 6)}... ${tokenType}`;
@@ -145,6 +174,9 @@
             <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="binToHex(tokenReceived.category) + index">
               {{ `+ ${calculateAmount(tokenReceived)} ${formatTokenDisplay(tokenReceived)}` }}
             </div>
+          </div>
+          <div v-if="Object.keys(unverifiedTokenMetadata).length > 0" class="unverified-note">
+            * {{ Object.keys(unverifiedTokenMetadata).length === 1 ? 'Token' : 'Tokens' }} not in your wallet. New metadata fetched for preview.
           </div>
 
           <hr style="margin-top: 2rem;">
@@ -279,6 +311,11 @@
 
   .hover {
     cursor: pointer;
+  }
+  .unverified-note {
+    font-size: small;
+    color: var(--color-grey);
+    margin-top: 0.5rem;
   }
 
   @media only screen and (max-width: 570px) {
