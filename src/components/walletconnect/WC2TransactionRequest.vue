@@ -2,18 +2,19 @@
   import { toRefs, ref } from 'vue';
   import { binToHex, decodeTransactionUnsafe, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
-  import { type DappMetadata, type BcmrTokenMetadata, CurrencySymbols } from "src/interfaces/interfaces"
+  import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { useStore } from 'src/stores/store'
   import { convertToCurrency, parseExtendedJson } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type WalletKitTypes } from '@reown/walletkit';
+  import { type BcmrTokenResponse } from 'src/utils/zodValidation';
   const store = useStore()
   const settingsStore = useSettingsStore()
 
   // Local metadata for tokens not in wallet (kept separate from global store for security)
   // Same approach as CCSignTransactionDialog.vue
-  const unverifiedTokenMetadata = ref<Record<string, BcmrTokenMetadata>>({});
+  const unverifiedTokenMetadata = ref<Record<string, BcmrTokenResponse>>({});
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
@@ -94,13 +95,15 @@
   }
 
   // Fetch metadata for tokens not in wallet (stored locally, not in global store)
-  for (const categoryHex of [...Object.keys(tokensSpentInputs), ...Object.keys(tokensReceivedOutputs)]) {
+  // Use Set to deduplicate tokens appearing in both inputs and outputs
+  const tokenCategories = new Set([...Object.keys(tokensSpentInputs), ...Object.keys(tokensReceivedOutputs)]);
+  for (const categoryHex of tokenCategories) {
     if (!store.bcmrRegistries?.[categoryHex]) {
       void fetchUnverifiedTokenInfo(categoryHex);
     }
   }
 
-  const getTokenMetadata = (categoryHex: string): BcmrTokenMetadata | undefined => {
+  const getTokenMetadata = (categoryHex: string): BcmrTokenResponse | undefined => {
     return store.bcmrRegistries?.[categoryHex] ?? unverifiedTokenMetadata.value[categoryHex];
   };
 
