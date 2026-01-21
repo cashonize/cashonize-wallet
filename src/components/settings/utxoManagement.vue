@@ -258,12 +258,12 @@
 }
 
 .description {
-  color: var(--color-text-muted, #666);
+  color: #888;
   margin: 5px 0 10px 0;
 }
 
 .hint {
-  color: var(--color-text-muted, #666);
+  color: #888;
   font-size: 13px;
   margin-top: 8px;
 }
@@ -339,7 +339,7 @@
 }
 
 .utxo-table th {
-  color: var(--color-text-muted, #666);
+  color: #888;
 }
 
 .mono {

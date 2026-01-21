@@ -163,7 +163,7 @@
         <input @click="toggleShowSeedphrase()" class="button primary" type="button"
           :value="displaySeedphrase ? 'Hide seed phrase' : 'Show seed phrase'"
         >
-        <input v-if="!hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" value="Verify your backup">
+        <input v-if="!hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" value="Verify your backup" style="color: black;">
       </div>
     </div>
     <div v-if="displaySeedphrase" class="seedphrase-container">
@@ -250,7 +250,7 @@
         class="button"
         type="button"
         value="Request data persistence"
-        style="margin-top: 10px; margin-bottom: 15px;"
+        style="margin-top: 10px; margin-bottom: 15px; color: black;"
       >
     </div>
   </div>
