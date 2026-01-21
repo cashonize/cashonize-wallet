@@ -93,11 +93,8 @@
 
       // Warn if this is a CashToken payment request (has c= param)
       if(parsed.otherParams?.c){
-        $q.notify({
-          message: "This is a token payment request. Use the Tokens tab to send tokens.",
-          icon: 'warning',
-          color: "grey-7"
-        });
+        const message = "This is a token payment request. Use the Tokens tab to send tokens.";
+        $q.notify({ message, icon: 'warning', color: "grey-7" });
         return;
       }
 

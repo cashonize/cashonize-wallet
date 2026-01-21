@@ -119,11 +119,8 @@
 
       // Check if c= is for a different token
       if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.tokenId){
-        $q.notify({
-          message: "This payment request is for a different token",
-          icon: 'warning',
-          color: "grey-7"
-        });
+        const message = "This payment request is for a different token";
+        $q.notify({ message, icon: 'warning', color: "grey-7" });
         return;
       }
 
