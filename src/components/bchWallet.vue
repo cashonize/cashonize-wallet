@@ -5,7 +5,6 @@
   import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
-  import { useWindowSize } from '@vueuse/core'
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -18,9 +17,6 @@
   const props = defineProps<{
     bchSendRequest: string | undefined
   }>()
-
-  const { width } = useWindowSize();
-  const isMobilePhone = computed(() => width.value < 480)
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
@@ -38,7 +34,6 @@
   // This speeds up the rendering of the component
   const qrCodeRef = shallowRef<QrCodeElement | null>(null);
 
-  const nrTokenCategories = computed(() => store.tokenList?.length)
   const addressQrcode = computed(() => displayBchQr.value ? store.wallet.cashaddr : store.wallet.tokenaddr)
 
   const bchDisplayNetwork = computed(() => {
@@ -244,18 +239,6 @@
           ? numberFormatter.format(store.balance[settingsStore.bchUnit]) + displayUnitLong : "" }}
       </span>
     </span>
-    <span v-if="!isMobilePhone">
-      , Tokens: 
-      <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ nrTokenCategories != undefined ? nrTokenCategories + " different categories" : ""}}
-      </span>
-    </span>
-    <div v-else style="margin-bottom: 10px;">
-      Tokens: 
-      <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ nrTokenCategories != undefined ? nrTokenCategories + " different categories" : ""}}
-      </span>
-    </div>
     <div style="word-break: break-all;">
       {{ bchDisplayNetwork }} address: 
       <span @click="() => copyToClipboard(store.wallet.cashaddr)" style="cursor:pointer;">

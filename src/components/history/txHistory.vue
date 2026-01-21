@@ -81,7 +81,7 @@
         <span class="options-toggle" @click="toggleOptions">
           Options
           <img
-            class="chevron-icon"
+            class="icon"
             :class="{ 'expanded': showOptions }"
             :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
           >
@@ -216,17 +216,9 @@
 .options-toggle {
   cursor: pointer;
   user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 5px;
 }
 
-.chevron-icon {
-  width: 18px;
-  height: 18px;
-}
-
-.chevron-icon.expanded {
+.expanded {
   transform: rotate(180deg);
 }
 

@@ -32,7 +32,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const tokenBurn = ref(false);
   const showCauldronSwap = ref(false);
   const qrScan = ref(true);
-  const featuredTokens = ref([] as string[]);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false); // consider changing default to true
@@ -44,6 +43,12 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // history settings
   const showFiatValueHistory = ref(true);
   const hideBalanceColumn = ref(false);
+  // token list settings
+  type TokenDisplayFilter = 'all' | 'default' | 'favoritesOnly' | 'hiddenOnly';
+  const tokenDisplayFilter = ref<TokenDisplayFilter>('default');
+  const showTokenVisibilityToggle = ref(false);
+  const featuredTokens = ref([] as string[]);
+  const hiddenTokens = ref([] as string[]);
   
   // other remembered state
   const hasPlayedAnimation = ref(false as boolean)
@@ -130,6 +135,19 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readFeaturedTokens = localStorage.getItem("featuredTokens");
   if(readFeaturedTokens) {
     featuredTokens.value = JSON.parse(readFeaturedTokens) as string[];
+  }
+
+  const readHiddenTokens = localStorage.getItem("hiddenTokens");
+  if(readHiddenTokens) {
+    try {
+      hiddenTokens.value = JSON.parse(readHiddenTokens) as string[];
+    } catch { /* ignore parse errors */ }
+  }
+
+  const readTokenDisplayFilter = localStorage.getItem("tokenDisplayFilter");
+  // TypeScript can't infer type narrowing from .includes(), so cast is needed
+  if(readTokenDisplayFilter && ['all', 'default', 'favoritesOnly', 'hiddenOnly'].includes(readTokenDisplayFilter)) {
+    tokenDisplayFilter.value = readTokenDisplayFilter as TokenDisplayFilter;
   }
 
   const readHasInstalledPWA = localStorage.getItem("pwaInstalled");
@@ -337,6 +355,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     qrAnimation,
     hasPlayedAnimation,
     featuredTokens,
+    hiddenTokens,
+    tokenDisplayFilter,
+    showTokenVisibilityToggle,
     hasInstalledPWA,
     getBackupStatus,
     setBackupStatus,
