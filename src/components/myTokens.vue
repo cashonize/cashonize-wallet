@@ -19,11 +19,11 @@
 </script>
 
 <template>
-  <div v-if="store.nrBcmrRegistries == undefined" style="text-align: center;">Loading tokendata ...</div>
+  <div v-if="store.bcmrRegistries == undefined" style="text-align: center;">Loading tokendata ...</div>
 
-  <div v-if="store.nrBcmrRegistries != undefined">
+  <div v-else>
     <!-- Options toggle row -->
-    <div class="filter-row">
+    <div v-if="store.tokenList?.length" class="filter-row">
       <div v-if="settingsStore.tokenDisplayFilter === 'favoritesOnly'">{{ store.filteredTokenList?.length ?? 0 }} favorite tokens</div>
       <div v-else-if="settingsStore.tokenDisplayFilter === 'hiddenOnly'">{{ store.filteredTokenList?.length ?? 0 }} hidden tokens</div>
       <div v-else-if="settingsStore.tokenDisplayFilter === 'all'">{{ store.filteredTokenList?.length ?? 0 }} tokens total</div>
@@ -39,7 +39,7 @@
     </div>
 
     <!-- Options panel (collapsed by default) -->
-    <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
+    <div v-if="store.tokenList?.length && showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
       <div class="option-item">
         <label for="filterTokens">Show:</label>
         <select v-model="settingsStore.tokenDisplayFilter" @change="setFilter(($event.target as HTMLSelectElement).value)" name="filterTokens">

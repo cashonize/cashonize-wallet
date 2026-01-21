@@ -88,7 +88,6 @@ export const useStore = defineStore('store', () => {
   })
 
   const isWcAndCcInitialized =  computed(() => isWcInitialized.value && isCcInitialized.value)
-  const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
   // Filtered token list based on display filter setting
@@ -628,7 +627,6 @@ export const useStore = defineStore('store', () => {
     network,
     explorerUrl,
     bcmrRegistries,
-    nrBcmrRegistries,
     currentBlockHeight,
     changeView,
     setWallet,
