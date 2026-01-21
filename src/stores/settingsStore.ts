@@ -48,6 +48,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // other remembered state
   const hasPlayedAnimation = ref(false as boolean)
   const hasInstalledPWA = ref(false as boolean);
+  const hiddenTokens = ref([] as string[]);
+  type TokenDisplayFilter = 'all' | 'default' | 'favoritesOnly' | 'hiddenOnly';
+  const tokenDisplayFilter = ref<TokenDisplayFilter>('default');
+  const tokenEditMode = ref(false);
   // Per-wallet backup status: 'verified' (passed backup test), 'imported' (restored via seed), 'none' (needs backup)
   // Stored in localStorage as JSON: { "walletName": "verified", ... }
   const walletBackupStatus = ref<Record<string, 'verified' | 'imported' | 'none'>>({})
@@ -130,6 +134,17 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readFeaturedTokens = localStorage.getItem("featuredTokens");
   if(readFeaturedTokens) {
     featuredTokens.value = JSON.parse(readFeaturedTokens) as string[];
+  }
+
+  const readHiddenTokens = localStorage.getItem("hiddenTokens");
+  if(readHiddenTokens) {
+    hiddenTokens.value = JSON.parse(readHiddenTokens) as string[];
+  }
+
+  const readTokenDisplayFilter = localStorage.getItem("tokenDisplayFilter");
+  // TypeScript can't infer type narrowing from .includes(), so cast is needed
+  if(readTokenDisplayFilter && ['all', 'default', 'favoritesOnly', 'hiddenOnly'].includes(readTokenDisplayFilter)) {
+    tokenDisplayFilter.value = readTokenDisplayFilter as TokenDisplayFilter;
   }
 
   const readHasInstalledPWA = localStorage.getItem("pwaInstalled");
@@ -337,6 +352,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     qrAnimation,
     hasPlayedAnimation,
     featuredTokens,
+    hiddenTokens,
+    tokenDisplayFilter,
+    tokenEditMode,
     hasInstalledPWA,
     getBackupStatus,
     setBackupStatus,

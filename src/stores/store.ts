@@ -91,6 +91,27 @@ export const useStore = defineStore('store', () => {
   const nrBcmrRegistries = computed(() => bcmrRegistries.value ? Object.keys(bcmrRegistries.value) : undefined);
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
+  // Filtered token list based on display filter setting
+  const filteredTokenList = computed(() => {
+    if (!tokenList.value) return null;
+
+    const filter = settingsStore.tokenDisplayFilter;
+
+    if (filter === 'all') {
+      return tokenList.value;
+    }
+    if (filter === 'default') {
+      return tokenList.value.filter(t => !settingsStore.hiddenTokens.includes(t.tokenId));
+    }
+    if (filter === 'favoritesOnly') {
+      return tokenList.value.filter(t => settingsStore.featuredTokens.includes(t.tokenId));
+    }
+    if (filter === 'hiddenOnly') {
+      return tokenList.value.filter(t => settingsStore.hiddenTokens.includes(t.tokenId));
+    }
+    return tokenList.value;
+  })
+
   let cancelWatchBchtxs: undefined | CancelFn;
   let cancelWatchTokenTxs: undefined | CancelFn;
   let cancelWatchBlocks: undefined | CancelFn;
@@ -534,8 +555,30 @@ export const useStore = defineStore('store', () => {
     // save the new featuredTokens to local storage
     localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
     settingsStore.featuredTokens = newFeaturedTokens;
+    // If favoriting, also unhide the token (mutual exclusivity)
+    if (newFeaturedTokens.includes(tokenId) && settingsStore.hiddenTokens.includes(tokenId)) {
+      const newHiddenTokens = settingsStore.hiddenTokens.filter(id => id !== tokenId);
+      localStorage.setItem("hiddenTokens", JSON.stringify(newHiddenTokens));
+      settingsStore.hiddenTokens = newHiddenTokens;
+    }
     // actually change the UI list by updating the state
     sortTokenList(tokenList.value);
+  }
+
+  function toggleHidden(tokenId: string) {
+    // Remove token from hiddenTokens if it's already there, otherwise add it
+    const newHiddenTokens = settingsStore.hiddenTokens.includes(tokenId) ?
+      settingsStore.hiddenTokens.filter(id => id !== tokenId) :
+      [...settingsStore.hiddenTokens, tokenId];
+    // save the new hiddenTokens to local storage
+    localStorage.setItem("hiddenTokens", JSON.stringify(newHiddenTokens));
+    settingsStore.hiddenTokens = newHiddenTokens;
+    // If hiding, also unfavorite the token (mutual exclusivity)
+    if (newHiddenTokens.includes(tokenId) && settingsStore.featuredTokens.includes(tokenId)) {
+      const newFeaturedTokens = settingsStore.featuredTokens.filter(id => id !== tokenId);
+      localStorage.setItem("featuredTokens", JSON.stringify(newFeaturedTokens));
+      settingsStore.featuredTokens = newFeaturedTokens;
+    }
   }
 
   function tokenIconUrl(tokenId: string) {
@@ -573,6 +616,7 @@ export const useStore = defineStore('store', () => {
     maxAmountToSend,
     walletUtxos,
     tokenList,
+    filteredTokenList,
     walletHistory,
     plannedTokenId,
     isWcAndCcInitialized,
@@ -597,6 +641,7 @@ export const useStore = defineStore('store', () => {
     fetchAuthUtxos,
     fetchTokenMetadata,
     toggleFavorite,
+    toggleHidden,
     tokenIconUrl
   }
 })

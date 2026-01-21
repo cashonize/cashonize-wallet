@@ -21,6 +21,7 @@ Cashonize also does not currently support password or pin locked wallets and enc
 - **Connect to dApps via WalletConnect** - Easy-to-understand transaction preview screen
 - **Open-source and non-custodial** - You control your keys
 - **Multi-wallet support** - Create and manage multiple wallets, easily switch between them
+- **Token management** - Favorite, hide tokens, and batch transfer NFTs
 - **Backup status tracking** - Visual indicators show which wallets need to be backed up
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
 
