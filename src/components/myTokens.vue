@@ -50,7 +50,7 @@
         </select>
       </div>
       <div class="option-item">
-        Edit visibility <Toggle v-model="settingsStore.tokenEditMode"/>
+        Edit visibility <Toggle v-model="settingsStore.showTokenVisibilityToggle"/>
       </div>
     </div>
 

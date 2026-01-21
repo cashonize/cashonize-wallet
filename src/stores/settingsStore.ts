@@ -32,7 +32,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const tokenBurn = ref(false);
   const showCauldronSwap = ref(false);
   const qrScan = ref(true);
-  const featuredTokens = ref([] as string[]);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false); // consider changing default to true
@@ -44,14 +43,16 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // history settings
   const showFiatValueHistory = ref(true);
   const hideBalanceColumn = ref(false);
+  // token list settings
+  type TokenDisplayFilter = 'all' | 'default' | 'favoritesOnly' | 'hiddenOnly';
+  const tokenDisplayFilter = ref<TokenDisplayFilter>('default');
+  const showTokenVisibilityToggle = ref(false);
+  const featuredTokens = ref([] as string[]);
+  const hiddenTokens = ref([] as string[]);
   
   // other remembered state
   const hasPlayedAnimation = ref(false as boolean)
   const hasInstalledPWA = ref(false as boolean);
-  const hiddenTokens = ref([] as string[]);
-  type TokenDisplayFilter = 'all' | 'default' | 'favoritesOnly' | 'hiddenOnly';
-  const tokenDisplayFilter = ref<TokenDisplayFilter>('default');
-  const tokenEditMode = ref(false);
   // Per-wallet backup status: 'verified' (passed backup test), 'imported' (restored via seed), 'none' (needs backup)
   // Stored in localStorage as JSON: { "walletName": "verified", ... }
   const walletBackupStatus = ref<Record<string, 'verified' | 'imported' | 'none'>>({})
@@ -356,7 +357,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     featuredTokens,
     hiddenTokens,
     tokenDisplayFilter,
-    tokenEditMode,
+    showTokenVisibilityToggle,
     hasInstalledPWA,
     getBackupStatus,
     setBackupStatus,

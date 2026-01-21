@@ -591,7 +591,7 @@
             </div>
           </div>
         </div>
-        <span v-if="settingsStore.tokenEditMode" @click="store.toggleHidden(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.tokenId) ? 'Unhide token' : 'Hide token'">
+        <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.tokenId) ? 'Unhide token' : 'Hide token'">
           <img :src="settingsStore.hiddenTokens.includes(tokenData.tokenId)
             ? (settingsStore.darkMode ? 'images/eye-off-outline-lightGrey.svg' : 'images/eye-off-outline.svg')
             : (settingsStore.darkMode ? 'images/eye-outline-lightGrey.svg' : 'images/eye-outline.svg')">
