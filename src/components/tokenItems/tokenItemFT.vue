@@ -7,7 +7,7 @@
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri } from 'src/utils/bip21';
+  import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
@@ -111,13 +111,9 @@
     try {
       const parsed = parseBip21Uri(destinationAddr.value);
 
-      // Reject URIs with duplicate keys (potential security concern)
-      if(parsed.hasDuplicateKeys){
-        $q.notify({
-          message: "Invalid payment request: duplicate parameters",
-          icon: 'warning',
-          color: "red"
-        });
+      const validationError = getBip21ValidationError(parsed);
+      if (validationError) {
+        $q.notify({ message: validationError, icon: 'warning', color: "red" });
         return;
       }
 

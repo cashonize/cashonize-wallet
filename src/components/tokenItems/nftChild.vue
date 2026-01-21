@@ -11,7 +11,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
-  import { parseBip21Uri, isBip21Uri } from 'src/utils/bip21';
+  import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
@@ -97,13 +97,9 @@
       const parsed = parseBip21Uri(destinationAddr.value);
       const tokenId = (nftData.value.token as TokenI)?.tokenId;
 
-      // Reject URIs with duplicate keys (potential security concern)
-      if(parsed.hasDuplicateKeys){
-        $q.notify({
-          message: "Invalid payment request: duplicate parameters",
-          icon: 'warning',
-          color: "red"
-        });
+      const validationError = getBip21ValidationError(parsed);
+      if (validationError) {
+        $q.notify({ message: validationError, icon: 'warning', color: "red" });
         return;
       }
 
@@ -112,7 +108,7 @@
         $q.notify({
           message: "This payment request is for a different token",
           icon: 'warning',
-          color: "red"
+          color: "grey-7"
         });
         return;
       }

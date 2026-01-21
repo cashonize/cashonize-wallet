@@ -132,3 +132,14 @@ export function isBip21Uri(uri: string): boolean {
   const lowerUri = uri.toLowerCase();
   return VALID_SCHEMES.some(s => lowerUri.startsWith(s));
 }
+
+/**
+ * Check a parsed BIP21 result for validation errors that should block payment.
+ * @returns Error message string if invalid, null if valid
+ */
+export function getBip21ValidationError(parsed: Bip21ParseResult): string | null {
+  if (parsed.hasUnknownRequired) return "Unsupported payment request";
+  if (parsed.hasDuplicateKeys) return "Invalid payment request: duplicate parameters";
+  if (parsed.hasInvalidAmount) return "Payment request has invalid amount format";
+  return null;
+}

@@ -5,7 +5,7 @@
   import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri } from 'src/utils/bip21';
+  import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -85,23 +85,9 @@
     try {
       const parsed = parseBip21Uri(addressInput);
 
-      // Reject URIs with unknown required parameters per BIP21 spec
-      if(parsed.hasUnknownRequired){
-        $q.notify({
-          message: "Unsupported payment request",
-          icon: 'warning',
-          color: "red"
-        });
-        return;
-      }
-
-      // Reject URIs with duplicate keys (potential security concern)
-      if(parsed.hasDuplicateKeys){
-        $q.notify({
-          message: "Invalid payment request: duplicate parameters",
-          icon: 'warning',
-          color: "red"
-        });
+      const validationError = getBip21ValidationError(parsed);
+      if (validationError) {
+        $q.notify({ message: validationError, icon: 'warning', color: "red" });
         return;
       }
 
@@ -117,15 +103,6 @@
 
       // Set the address (without query params)
       destinationAddr.value = parsed.address;
-
-      // Warn if amount was malformed (BIP21 violation)
-      if(parsed.hasInvalidAmount){
-        $q.notify({
-          message: "Payment request has invalid amount format",
-          icon: 'warning',
-          color: "red"
-        });
-      }
 
       // Set the amount if present
       if(parsed.amount !== undefined){
