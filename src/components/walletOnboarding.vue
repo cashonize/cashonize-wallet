@@ -103,7 +103,7 @@
 <template>
   <fieldset class="item">
     <!-- Step 1: Welcome & Choose Create or Import -->
-    <div v-if="step === 1">
+    <div v-if="step === 1" data-testid="step-1">
       <div style="margin-bottom: 25px;">
         <h3 style="margin-bottom: 10px;">Welcome to Cashonize</h3>
         <p style="color: grey; margin-bottom: 20px;">
@@ -128,19 +128,19 @@
       <div style="margin: 20px 0;">
         <h4><img class="icon plusIcon" :src="settingsStore.darkMode ? 'images/plus-square-lightGrey.svg' : 'images/plus-square.svg'"> Create new wallet</h4>
         <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">Get started with a fresh wallet in seconds</p>
-        <input @click="selectCreate()" class="button primary" type="button" value="Create new wallet">
+        <input @click="selectCreate()" class="button primary" type="button" value="Create new wallet" data-testid="create-wallet-cta">
       </div>
       <hr style="margin: 25px 0;">
       <div style="margin: 20px 0;">
         <h4><img class="icon importIcon" :src="settingsStore.darkMode ? 'images/import-lightGrey.svg' : 'images/import.svg'"> Import existing wallet</h4>
         <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">Restore using your seed phrase</p>
-        <input @click="selectImport()" class="button primary" type="button" value="Import wallet">
+        <input @click="selectImport()" class="button primary" type="button" value="Import wallet" data-testid="import-wallet-cta">
       </div>
     </div>
 
     <!-- Step 2: Enter details and create/import -->
-    <div v-else-if="step === 2">
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="goBack()">
+    <div v-else-if="step === 2" data-testid="step-2">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="goBack()" data-testid="back-button">
         ← Back
       </div>
 
@@ -160,7 +160,7 @@
         <div style="font-size: smaller; color: grey; margin: 10px 0;">
           A new seed phrase will be generated. Back it up to secure your wallet.
         </div>
-        <input @click="createNewWallet()" class="button primary" type="button" value="Create wallet" style="margin-bottom: 15px;">
+        <input @click="createNewWallet()" class="button primary" type="button" value="Create wallet" data-testid="create-wallet-submit" style="margin-bottom: 15px;">
       </div>
 
       <!-- Import mode -->
@@ -190,12 +190,12 @@
             If you've used this seed with other wallets, funds on other addresses won't appear.
           </div>
         </div>
-        <input @click="importWallet()" class="button primary" type="button" value="Import wallet" style="margin-bottom: 15px;">
+        <input @click="importWallet()" class="button primary" type="button" value="Import wallet" data-testid="import-wallet-submit" style="margin-bottom: 15px;">
       </div>
     </div>
 
     <!-- Step 3: Preferences -->
-    <div v-else-if="step === 3">
+    <div v-else-if="step === 3" data-testid="step-3">
       <legend>Set up your preferences</legend>
       <p style="margin-top: 15px; margin-bottom: 20px;">Almost done! Configure your preferences below.</p>
 
