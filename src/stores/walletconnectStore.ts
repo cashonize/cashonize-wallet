@@ -204,7 +204,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
               }
             }
             for (const requestId of cancelledIds) {
-              pendingRequests.delete(requestId);
+              removePendingRequest(requestId);
             }
             // Respond to the cancel request itself
             const response = { id, jsonrpc: '2.0', result: { cancelledCount: cancelledIds.length } };
@@ -328,9 +328,12 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
                 removePendingRequest(id);
                 reject();
               });
+            const wasEmpty = pendingRequests.size === 0;
             pendingRequests.set(id, { topic, event, dialogHandle });
             console.log("Added signTransaction to pendingRequests, id:", id, "size:", pendingRequests.size);
-            startCancelPolling();
+            if (wasEmpty) {
+              startCancelPolling();
+            }
           });
         }
         case "bch_cancelPendingRequests": {
@@ -348,7 +351,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
             }
           }
           for (const requestId of cancelledIds) {
-            pendingRequests.delete(requestId);
+            removePendingRequest(requestId);
           }
           const response = { id, jsonrpc: '2.0', result: { cancelledCount: cancelledIds.length } };
           console.log("bch_cancelPendingRequests done, cancelled:", cancelledIds);
