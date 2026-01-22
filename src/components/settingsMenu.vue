@@ -407,7 +407,9 @@
         <label for="selectExchangeRate">Exchange rate provider:</label>
         <select v-model="selectedExchangeRateProvider" @change="changeExchangeRateProvider()">
           <option value="default">Default (bitcoin.com for USD, BitPay for rest)</option>
-          <option value="bitpay">BitPay only</option>
+          <option value="bitpay">BitPay</option>
+          <option value="coingecko">CoinGecko</option>
+          <option value="coinbase">Coinbase</option>
         </select>
       </div>
 
