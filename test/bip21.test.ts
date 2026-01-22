@@ -58,10 +58,10 @@ describe("parseBip21Uri", () => {
       expect(result.hasInvalidAmount).toBe(true);
     });
 
-    it("should not flag empty amount as invalid", () => {
+    it("should flag empty amount as invalid", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=");
       expect(result.amount).toBeUndefined();
-      expect(result.hasInvalidAmount).toBeUndefined();
+      expect(result.hasInvalidAmount).toBe(true);
     });
   });
 
