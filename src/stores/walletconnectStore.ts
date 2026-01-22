@@ -20,7 +20,6 @@ import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageReq
 import type { WcSignMessageRequest, WcSignTransactionRequest } from "@bch-wc2/interfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { createSignedWcTransaction } from "src/utils/wcSigning"
-import { signMessage as signMessageLocal } from "src/utils/signMessage"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
@@ -348,8 +347,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       // isValidSignMessageRequest has checked the params already when this function is called
       const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageRequest
       const message = wcSignMessageParams.message;
-      // Use local signing function to work around mainnet-js 2.7.27 varint encoding bug
-      const signedMessage = signMessageLocal(message, wallet.value.privateKey);
+      const signedMessage = await wallet.value.sign(message);
 
       const { id, topic } = signMessageRequestWC;
       const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
