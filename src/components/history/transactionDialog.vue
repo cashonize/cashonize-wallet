@@ -151,7 +151,7 @@
                 <TokenIcon
                   style="margin-left: 0.5rem; vertical-align: sub;"
                   :token-id="input.token.tokenId"
-                  :icon-url="store.tokenIconUrl(input.token.tokenId)"
+                  :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(input.token.tokenId) : undefined"
                   :size="20"
                 />
               </span>
@@ -173,7 +173,7 @@
                 <TokenIcon
                   style="margin-left: 0.5rem; vertical-align: sub;"
                   :token-id="output.token.tokenId"
-                  :icon-url="store.tokenIconUrl(output.token.tokenId)"
+                  :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(output.token.tokenId) : undefined"
                   :size="20"
                 />
               </span>

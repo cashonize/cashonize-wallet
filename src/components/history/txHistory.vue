@@ -163,10 +163,10 @@
                   </span>
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
                   <TokenIcon
-                    v-if="settingsStore.loadTokenIcons && tokenChange.amount"
+                    v-if="tokenChange.amount"
                     class="historyTokenIcon"
                     :token-id="tokenChange.tokenId"
-                    :icon-url="store.tokenIconUrl(tokenChange.tokenId)"
+                    :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(tokenChange.tokenId) : undefined"
                     :size="28"
                   />
                 </span>
@@ -177,10 +177,10 @@
                     {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT
                   </span>
                   <TokenIcon
-                    v-if="settingsStore.loadTokenIcons && tokenChange.nftAmount"
+                    v-if="tokenChange.nftAmount"
                     class="historyTokenIcon"
                     :token-id="tokenChange.tokenId"
-                    :icon-url="store.tokenIconUrl(tokenChange.tokenId)"
+                    :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(tokenChange.tokenId) : undefined"
                     :size="28"
                   />
                 </span>

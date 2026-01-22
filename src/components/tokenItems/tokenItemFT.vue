@@ -404,10 +404,9 @@
     <fieldset style="position: relative;">
       <div class="tokenInfo">
         <TokenIcon
-          v-if="settingsStore.loadTokenIcons"
           class="tokenIcon"
           :token-id="tokenData.tokenId"
-          :icon-url="store.tokenIconUrl(tokenData.tokenId)"
+          :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(tokenData.tokenId) : undefined"
           :size="48"
         />
         <div class="tokenBaseInfo">
