@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'yarn'
+      - run: npm install -g yarn@1.22.22
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn vue-tsc --noEmit
+      - run: yarn test
