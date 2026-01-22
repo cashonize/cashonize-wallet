@@ -332,12 +332,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
                 removePendingRequest(id);
                 reject();
               });
-            const wasEmpty = pendingRequests.value.size === 0;
             pendingRequests.value.set(id, { topic, event, dialogHandle });
             console.log("Added signTransaction to pendingRequests, id:", id, "size:", pendingRequests.value.size);
-            if (wasEmpty) {
-              startCancelPolling();
-            }
+            startCancelPolling();
           });
         }
         case "bch_cancelPendingRequests": {
