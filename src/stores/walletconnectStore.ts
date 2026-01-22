@@ -58,12 +58,17 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       })
 
       // web3wallet listeners expect synchronous callbacks, this means the promise is fire-and-forget
-      newweb3wallet.on('session_proposal', (sessionProposal) => 
+      newweb3wallet.on('session_proposal', (sessionProposal) =>
         void wcSessionProposal(sessionProposal).catch(console.error)
       );
-      newweb3wallet.on('session_request', (event) => 
+      newweb3wallet.on('session_request', (event) =>
         void wcRequest(event, wallet.value.cashaddr).catch(console.error)
       );
+      newweb3wallet.on('session_delete', ({ topic }) => {
+        console.log("Session deleted by dapp:", topic);
+        settingsStore.clearAutoApproveState(topic);
+        activeSessions.value = newweb3wallet.getActiveSessions();
+      });
       web3wallet.value = newweb3wallet
       activeSessions.value = web3wallet.value.getActiveSessions();
 
