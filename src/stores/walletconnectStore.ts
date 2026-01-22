@@ -27,25 +27,11 @@ import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zod
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 const settingsStore = useSettingsStore()
 
-// Track pending request dialogs so they can be cancelled by dapp
+// Type for tracking pending request dialogs
 type PendingRequest = {
   topic: string;
   event: WalletKitTypes.SessionRequest;
   dialogHandle: ReturnType<typeof Dialog.create>;
-}
-const pendingRequests = new Map<number, PendingRequest>();
-
-// Polling interval for checking queued cancel requests
-let cancellationPollingInterval: ReturnType<typeof setInterval> | null = null;
-
-function removePendingRequest(id: number) {
-  pendingRequests.delete(id);
-  // Stop polling when no more pending requests
-  if (pendingRequests.size === 0 && cancellationPollingInterval) {
-    clearInterval(cancellationPollingInterval);
-    cancellationPollingInterval = null;
-    console.log("Stopped cancel request polling");
-  }
 }
 
 type ChangeNetwork = (
@@ -62,6 +48,20 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
     
     // Store a state variable to make sure we don't call "initweb3wallet" more than once.
     const isIninialized = ref(false);
+
+    // Track pending request dialogs so they can be cancelled by dapp
+    const pendingRequests = ref(new Map<number, PendingRequest>());
+    let cancellationPollingInterval: ReturnType<typeof setInterval> | null = null;
+
+    function removePendingRequest(id: number) {
+      pendingRequests.value.delete(id);
+      // Stop polling when no more pending requests
+      if (pendingRequests.value.size === 0 && cancellationPollingInterval) {
+        clearInterval(cancellationPollingInterval);
+        cancellationPollingInterval = null;
+        console.log("Stopped cancel request polling");
+      }
+    }
 
     async function initweb3wallet() {
       // Make sure we don't ininialize WC more than once.
@@ -184,7 +184,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
     }
 
     async function checkForCancelRequests() {
-      if (!web3wallet.value || pendingRequests.size === 0) return;
+      if (!web3wallet.value || pendingRequests.value.size === 0) return;
       try {
         const queuedRequests = web3wallet.value.getPendingSessionRequests();
 
@@ -194,7 +194,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
             // Process the cancel request directly
             const { topic, id } = request;
             const cancelledIds: number[] = [];
-            for (const [requestId, pending] of pendingRequests) {
+            for (const [requestId, pending] of pendingRequests.value) {
               if (pending.topic === topic) {
                 console.log("Polling: hiding dialog for request:", requestId);
                 pending.dialogHandle.hide();
@@ -274,8 +274,8 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
                 removePendingRequest(id);
                 reject();
               });
-            pendingRequests.set(id, { topic, event, dialogHandle });
-            console.log("Added signMessage to pendingRequests, id:", id, "size:", pendingRequests.size);
+            pendingRequests.value.set(id, { topic, event, dialogHandle });
+            console.log("Added signMessage to pendingRequests, id:", id, "size:", pendingRequests.value.size);
             startCancelPolling();
           });
         }
@@ -328,9 +328,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
                 removePendingRequest(id);
                 reject();
               });
-            const wasEmpty = pendingRequests.size === 0;
-            pendingRequests.set(id, { topic, event, dialogHandle });
-            console.log("Added signTransaction to pendingRequests, id:", id, "size:", pendingRequests.size);
+            const wasEmpty = pendingRequests.value.size === 0;
+            pendingRequests.value.set(id, { topic, event, dialogHandle });
+            console.log("Added signTransaction to pendingRequests, id:", id, "size:", pendingRequests.value.size);
             if (wasEmpty) {
               startCancelPolling();
             }
@@ -338,9 +338,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         }
         case "bch_cancelPendingRequests": {
           // Cancel all pending requests from this session (topic)
-          console.log("bch_cancelPendingRequests received, pendingRequests:", pendingRequests.size);
+          console.log("bch_cancelPendingRequests received, pendingRequests:", pendingRequests.value.size);
           const cancelledIds: number[] = [];
-          for (const [requestId, pending] of pendingRequests) {
+          for (const [requestId, pending] of pendingRequests.value) {
             console.log("Checking pending request:", requestId, "topic:", pending.topic, "vs", topic);
             if (pending.topic === topic) {
               console.log("Hiding dialog for request:", requestId);
