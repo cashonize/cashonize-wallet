@@ -38,7 +38,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
   const store = defineStore("walletconnectStore", () => {
     const activeSessions = ref(undefined as undefined | Record<string, SessionTypes.Struct>);
     const web3wallet = ref(undefined as undefined | IWalletKit);
-    
+
     // Store a state variable to make sure we don't call "initweb3wallet" more than once.
     const isIninialized = ref(false);
 
@@ -65,10 +65,15 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         void wcRequest(event, wallet.value.cashaddr).catch(console.error)
       );
       newweb3wallet.on('session_delete', ({ topic }) => {
-        console.log("Session deleted by dapp:", topic);
-        settingsStore.clearAutoApproveState(topic);
-        activeSessions.value = newweb3wallet.getActiveSessions();
+        try {
+          console.debug("Session deleted by dapp:", topic);
+          settingsStore.clearAutoApproveState(topic);
+          activeSessions.value = newweb3wallet.getActiveSessions();
+        } catch (error) {
+          console.error("Error when processing walletConnect session_delete event:", error);
+        }
       });
+
       web3wallet.value = newweb3wallet
       activeSessions.value = web3wallet.value.getActiveSessions();
 
@@ -114,14 +119,14 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
   }
 
     async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet"){
-      
+
       const currentNetwork = wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
       if(currentNetwork != dappTargetNetwork){
         // Await the new 'setWallet' call when changing networks, do not wait for full wallet initialization
         const optionWaitForFullWalletInit = false
         await changeNetwork(dappTargetNetwork, optionWaitForFullWalletInit)
       }
-      
+
       const namespaces = {
         bch: {
           methods: [
@@ -134,7 +139,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
           accounts: [`bch:${wallet.value.cashaddr}`],
         }
       }
-      
+
       try {
         await web3wallet.value?.approveSession({
           id: sessionProposal.id,
@@ -146,7 +151,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       }
     }
 
-    
+
     async function deleteSession(sessionId :string){
       await web3wallet.value?.disconnectSession({
         topic: sessionId,
@@ -156,7 +161,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
 
       activeSessions.value = web3wallet.value?.getActiveSessions();
     }
-    
+
     // Wallet connect dialog functionality
     async function wcRequest(event: WalletKitTypes.SessionRequest, walletAddress: string) {
       if(!web3wallet.value) throw new Error("No web3wallet initialized")
@@ -263,7 +268,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       // the wcSignTransactionParams is from an untrusted source, so we validate the schema with zod
       try {
         const encodedWcTransactionObj = EncodedWcTransactionObjSchema.parse(wcSignTransactionParams);
-        // Further validation whether the 
+        // Further validation whether the
         if(typeof encodedWcTransactionObj.transaction === "string") {
           const decodedResult = decodeTransaction(hexToBin(encodedWcTransactionObj.transaction));
           if(typeof decodedResult == "string") throw new Error("Invalid transaction hex string in encodedWcTransactionObj: " + decodedResult);
@@ -309,7 +314,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
           Dialog.create({
             component: alertDialog,
             componentProps: {
-              alertInfo: { message: alertMessage, txid: txId } 
+              alertInfo: { message: alertMessage, txid: txId }
             }
           })
         } catch(error){
@@ -320,7 +325,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
           const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
           await web3wallet.value?.respondSessionRequest({ topic, response });
           return
-        }   
+        }
       }
       const response = { id, jsonrpc: '2.0', result: signedTxObject };
       await web3wallet.value?.respondSessionRequest({ topic, response });
@@ -375,7 +380,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
     }
 
     return { web3wallet, activeSessions, initweb3wallet, wcRequest, deleteSession }
-  
+
   })();
 
   return store;
