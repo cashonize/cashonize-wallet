@@ -7,6 +7,7 @@
   import { convert, type TransactionHistoryItem } from 'mainnet-js';
   import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols, type TokenDataNFT } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
+  import TokenIcon from '../general/TokenIcon.vue';
   import { formatTimestamp, formatRelativeTime, satsToBch } from 'src/utils/utils';
 
   const store = useStore()
@@ -147,10 +148,12 @@
                 <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="input.token.capability"> NFT</span>
-                <img v-if="store.bcmrRegistries?.[input.token.tokenId]"
-                  style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;"
-                  :src="store.tokenIconUrl(input.token.tokenId) ?? ''"
-                >
+                <TokenIcon
+                  style="margin-left: 0.5rem; vertical-align: sub;"
+                  :token-id="input.token.tokenId"
+                  :icon-url="store.tokenIconUrl(input.token.tokenId)"
+                  :size="20"
+                />
               </span>
             </div>
           </div>
@@ -167,10 +170,12 @@
                 <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
                 <span v-if="output.token.capability"> NFT</span>
-                <img v-if="store.bcmrRegistries?.[output.token.tokenId]"
-                  style="margin-left: 0.5rem; width: 20px; height: 20px; border-radius: 50%; vertical-align: sub;"
-                  :src="store.tokenIconUrl(output.token.tokenId) ?? ''"
-                >
+                <TokenIcon
+                  style="margin-left: 0.5rem; vertical-align: sub;"
+                  :token-id="output.token.tokenId"
+                  :icon-url="store.tokenIconUrl(output.token.tokenId)"
+                  :size="20"
+                />
               </span>
             </div>
           </div>
