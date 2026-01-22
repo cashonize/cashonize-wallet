@@ -1,9 +1,10 @@
 <script setup lang="ts">
-  import { ref, onMounted, toRefs, computed, watch, nextTick } from 'vue';
+  import { ref, toRefs, computed, watch } from 'vue';
   import { TokenSendRequest, type SendRequest } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
+  import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
@@ -11,7 +12,6 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
-  import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   const store = useStore()
@@ -38,7 +38,6 @@
   const reservedSupply = ref(undefined as bigint | undefined);
   const showQrCodeDialog = ref(false);
   const activeAction = ref<'sending' | 'burning' | 'transferAuth' | null>(null);
-  const imageLoadFailed = ref(false);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
 
@@ -46,26 +45,8 @@
 
   const MAX_SUPPLY_FTS = 9_223_372_036_854_775_807n
 
-  const httpsUrlTokenIcon = computed(() => {
-    const tokenIconUri = tokenMetaData.value?.uris?.icon;
-    if(tokenIconUri?.startsWith('ipfs://')){
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    }
-    return tokenIconUri;
-  })
   const tokenName = computed(() => {
     return tokenMetaData.value?.name;
-  })
-
-  onMounted(() => {
-    appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}`);
-  })
-
-  watch(imageLoadFailed, async (failedToLoad) => {
-    if(failedToLoad) {
-      await nextTick();
-      appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}`);
-    }
   })
 
   // check if need to fetch onchain stats on displayTokenInfo
@@ -419,16 +400,16 @@
 </script>
 
 <template>
-  <div :id="`id${tokenData.tokenId.slice(0, 10)}`" class="item">
+  <div class="item">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
-        <img
-          v-if="httpsUrlTokenIcon && settingsStore.loadTokenIcons && !imageLoadFailed"
-          class="tokenIcon" width="48" height="48" loading="lazy"
-          :src="httpsUrlTokenIcon"
-          @error="() => imageLoadFailed = true"
-        >
-        <div v-else id="genericTokenIcon" class="tokenIcon"></div>
+        <TokenIcon
+          v-if="settingsStore.loadTokenIcons"
+          class="tokenIcon"
+          :token-id="tokenData.tokenId"
+          :icon-url="store.tokenIconUrl(tokenData.tokenId)"
+          :size="48"
+        />
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
             <div v-if="tokenName">Name: {{ tokenName }}</div>

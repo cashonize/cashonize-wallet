@@ -8,6 +8,7 @@
   import EmojiItem from '../general/emojiItem.vue';
   import { formatTimestamp, formatTime, formatFiatAmount } from 'src/utils/utils';
   import Toggle from '@vueform/toggle'
+  import TokenIcon from '../general/TokenIcon.vue';
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -123,7 +124,7 @@
             :class="[settingsStore.darkMode ? 'dark' : '', index % 2 === 1 ? 'even' : '']"
           >
 
-            <div class="tx-cell"><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳'" :size-px="isMobile ? 14 : 16" style="margin: 0 5px; vertical-align: sub;"/> </div>
+            <div class="tx-cell status-cell"><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳'" :size-px="isMobile ? 14 : 16" style="vertical-align: sub;"/> </div>
 
             <div class="tx-cell" v-if="isMobile">
               <div v-if="transaction.timestamp" style="line-height: 1.3">
@@ -161,12 +162,13 @@
                     {{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}
                   </span>
                   <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
-                  <img
-                    v-if="settingsStore.loadTokenIcons && tokenChange.amount && store.bcmrRegistries?.[tokenChange.tokenId]"
-                    class="tokenIcon"
-                    style="width: 28px; height: 28px; border-radius: 50%;"
-                    :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
-                  >
+                  <TokenIcon
+                    v-if="settingsStore.loadTokenIcons && tokenChange.amount"
+                    class="historyTokenIcon"
+                    :token-id="tokenChange.tokenId"
+                    :icon-url="store.tokenIconUrl(tokenChange.tokenId)"
+                    :size="28"
+                  />
                 </span>
                 <span v-if="tokenChange.nftAmount" class="nftChange">
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
@@ -174,12 +176,13 @@
                   <span>
                     {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT
                   </span>
-                  <img
-                    v-if="settingsStore.loadTokenIcons && tokenChange.nftAmount && store.bcmrRegistries?.[tokenChange.tokenId]"
-                    class="tokenIcon"
-                    style="width: 28px; height: 28px; border-radius: 50%;"
-                    :src="store.tokenIconUrl(tokenChange.tokenId) ?? ''"
-                    >
+                  <TokenIcon
+                    v-if="settingsStore.loadTokenIcons && tokenChange.nftAmount"
+                    class="historyTokenIcon"
+                    :token-id="tokenChange.tokenId"
+                    :icon-url="store.tokenIconUrl(tokenChange.tokenId)"
+                    :size="28"
+                  />
                 </span>
               </div>
             </div>
@@ -302,6 +305,10 @@
   min-width: 0;
 }
 
+.tx-cell.status-cell {
+  padding-left: 6px;
+}
+
 .value {
   font-family: monospace;
   white-space: nowrap;
@@ -320,6 +327,7 @@ body.dark .negative {
   justify-content: center;
   text-align: end;
   gap: 4px;
+  padding-right: 6px;
 }
 .tokenChangeItem {
   text-align: center;
@@ -329,7 +337,7 @@ body.dark .negative {
   display: block;
 }
 
-img.tokenIcon {
+.historyTokenIcon {
   margin-left: 5px;
   vertical-align: middle;
 }
@@ -353,7 +361,7 @@ img.tokenIcon {
   .tx-body {
     font-size: small;
   }
-  img.tokenIcon {
+  .historyTokenIcon {
     display: block;
     margin: 4px auto 0;
   }

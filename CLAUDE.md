@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, and CashConnect. Built with Vue 3 (Composition API with `<script setup>`), TypeScript, Quasar Framework, and Pinia for state management. Targets multiple platforms: web (SPA), desktop (Electron), and mobile (Capacitor).
+Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, and CashConnect. Built with Quasar Framework and TypeScript. Uses Vue 3 Composition API (`<script setup>`) and Pinia for state management. Targets multiple platforms: web (SPA), desktop (Electron), and mobile (Capacitor).
 
 ## Commands
 
@@ -37,7 +37,7 @@ Views use `<KeepAlive>` to preserve state across navigation, except settingsMenu
 - Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet)
 - `activeWalletName` persisted in localStorage
 - `dbUtils.ts`: Direct IndexedDB operations for checking wallet existence, listing wallets, deletion
-- Wallets can exist on one or both networks; UI disables unavailable network options
+- Wallets are stored in both IndexedDB databases by default (mainnet and chipnet)
 
 ### mainnet-js (Core Wallet Library)
 
@@ -49,8 +49,8 @@ The wallet functionality is powered by `mainnet-js`, built on `@bitauth/libauth`
 
 ### Other Key Dependencies
 - **@bitauth/libauth**: Cryptographic primitives, transaction encoding (https://libauth.org/)
-- **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages)
-- **cashconnect**: CashConnect protocol for BCH-native dApp connections
+- **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages). Uses BCH-specific payloads per the WC2-BCH spec: https://github.com/mainnet-pat/wc2-bch-bcr
+- **cashconnect**: CashConnect protocol for BCH-native dApp connections (https://cashconnect.developers.cash/)
 
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for CashTokens on BCH. Spec: https://github.com/bitjson/chip-bcmr
@@ -68,7 +68,7 @@ src/components/
 ├── history/           # Transaction history components
 ├── tokenItems/        # Token display components (FT, NFT)
 ├── qr/                # QR scanning components
-└── general/           # Reusable components (alertDialog, seedPhraseInput, emojiItem)
+└── general/           # Reusable components (alertDialog, seedPhraseInput, TokenIcon, ...)
 ```
 
 ### Validation

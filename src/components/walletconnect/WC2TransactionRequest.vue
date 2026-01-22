@@ -9,6 +9,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type WalletKitTypes } from '@reown/walletkit';
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
+  import TokenIcon from '../general/TokenIcon.vue';
   const store = useStore()
   const settingsStore = useSettingsStore()
 
@@ -111,6 +112,15 @@
     return categoryHex in unverifiedTokenMetadata.value;
   };
 
+  const getTokenIconUrl = (categoryHex: string): string | undefined => {
+    const tokenIconUri = getTokenMetadata(categoryHex)?.uris?.icon;
+    if (!tokenIconUri) return undefined;
+    if (tokenIconUri.startsWith('ipfs://')) {
+      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
+    }
+    return tokenIconUri;
+  };
+
   const calculateAmount = (tokenObject: NonNullable<Output['token']>): string => {
     if (!tokenObject.amount) return '';
     const categoryHex = binToHex(tokenObject.category);
@@ -133,8 +143,7 @@
 
     if (displayMetadata) {
       const addNftPostfix = tokenSpent.nft ? " NFT" : "";
-      const unverifiedMarker = isUnverifiedToken(categoryHex) ? " *" : "";
-      return displayMetadata + addNftPostfix + unverifiedMarker;
+      return displayMetadata + addNftPostfix;
     } else {
       const tokenType = tokenSpent.nft ? "NFT" : "Tokens";
       return `${categoryHex.slice(0, 6)}... ${tokenType}`;
@@ -169,13 +178,25 @@
             ({{ currencyBalanceChange + ` ${CurrencySymbols[settingsStore.currency]}`}})
           </div>
           <div v-for="(tokenArrayInput, firstIndex) in tokensSpentInputs" :key="firstIndex">
-            <div v-for="(tokenSpent, index) in tokenArrayInput" :key="binToHex(tokenSpent.category) + index">
-              {{ `- ${calculateAmount(tokenSpent)} ${formatTokenDisplay(tokenSpent)}` }}
+            <div v-for="(tokenSpent, index) in tokenArrayInput" :key="binToHex(tokenSpent.category) + index" class="token-change-row">
+              <span>{{ `- ${calculateAmount(tokenSpent)} ${formatTokenDisplay(tokenSpent)}` }}</span>
+              <TokenIcon
+                :token-id="binToHex(tokenSpent.category)"
+                :icon-url="getTokenIconUrl(binToHex(tokenSpent.category))"
+                :size="24"
+              />
+              <span v-if="isUnverifiedToken(binToHex(tokenSpent.category))">*</span>
             </div>
           </div>
           <div v-for="(tokenArrayRecived, firstIndex) in tokensReceivedOutputs" :key="firstIndex">
-            <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="binToHex(tokenReceived.category) + index">
-              {{ `+ ${calculateAmount(tokenReceived)} ${formatTokenDisplay(tokenReceived)}` }}
+            <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="binToHex(tokenReceived.category) + index" class="token-change-row">
+              <span>{{ `+ ${calculateAmount(tokenReceived)} ${formatTokenDisplay(tokenReceived)}` }}</span>
+              <TokenIcon
+                :token-id="binToHex(tokenReceived.category)"
+                :icon-url="getTokenIconUrl(binToHex(tokenReceived.category))"
+                :size="24"
+              />
+              <span v-if="isUnverifiedToken(binToHex(tokenReceived.category))">*</span>
             </div>
           </div>
           <div v-if="Object.keys(unverifiedTokenMetadata).length > 0" class="unverified-note">
@@ -209,6 +230,12 @@
                   <td>
                     {{input?.token?.nft && !input?.token?.amount ? 'NFT:' : 'Token:'}}
                     {{ formatTokenDisplay(input.token as NonNullable<Output['token']>) }}
+                    <TokenIcon
+                      :token-id="binToHex(input.token.category)"
+                      :icon-url="getTokenIconUrl(binToHex(input.token.category))"
+                      :size="20"
+                    />
+                    <span v-if="isUnverifiedToken(binToHex(input.token.category))">*</span>
                   </td>
                   <td v-if="input.token.amount">
                     Amount: {{ calculateAmount(input.token as NonNullable<Output['token']>) }}
@@ -241,6 +268,12 @@
                   <td>
                     {{output?.token?.nft && !output?.token?.amount ? 'NFT:' : 'Token:'}}
                     {{ formatTokenDisplay(output.token as NonNullable<Output['token']>) }}
+                    <TokenIcon
+                      :token-id="binToHex(output.token.category)"
+                      :icon-url="getTokenIconUrl(binToHex(output.token.category))"
+                      :size="20"
+                    />
+                    <span v-if="isUnverifiedToken(binToHex(output.token.category))">*</span>
                   </td>
                   <td v-if="output.token.amount">
                     Amount: {{ calculateAmount(output.token as NonNullable<Output['token']>) }}
@@ -319,6 +352,11 @@
     font-size: small;
     color: var(--color-grey);
     margin-top: 0.5rem;
+  }
+  .token-change-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   @media only screen and (max-width: 570px) {

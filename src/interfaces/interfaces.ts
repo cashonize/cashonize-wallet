@@ -20,7 +20,7 @@ export type Currency = keyof typeof CurrencySymbols;
 
 export type DateFormat = "DD/MM/YY" | "MM/DD/YY" | "YY-MM-DD";
 
-export type ExchangeRateProvider = "default" | "bitpay";
+export type ExchangeRateProvider = "default" | "bitpay" | "coingecko" | "coinbase";
 
 export type QRCodeAnimationName =
   | 'FadeInTopDown'

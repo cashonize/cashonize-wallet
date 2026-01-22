@@ -121,6 +121,23 @@ export const BitpayRatesSchema = z.object({
 });
 
 
+/* CoinGeckoRatesSchema */
+
+export const CoinGeckoRatesSchema = z.object({
+  "bitcoin-cash": z.record(z.string(), z.number())
+});
+
+
+/* CoinbaseRatesSchema */
+
+export const CoinbaseRatesSchema = z.object({
+  data: z.object({
+    currency: z.string(),
+    rates: z.record(z.string(), z.string())
+  })
+});
+
+
 /* Chaingraph response schemas */
 
 export const ChaingraphTotalSupplyFTSchema = z.object({

@@ -2,7 +2,7 @@ import { useWindowSize } from "@vueuse/core";
 import { Config } from "mainnet-js";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
-import { BitpayRatesSchema } from "src/utils/zodValidation";
+import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "src/utils/zodValidation";
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
 import { defaultWalletName } from "./constants";
@@ -210,9 +210,49 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     throw Error(`Currency '${symbol}' is not supported.`);
   }
 
+  const COINGECKO_RATES_API = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=";
+
+  async function getExchangeRateCoinGecko(symbol: string): Promise<number> {
+    const normalizedSymbol = symbol.toLowerCase();
+    const response = await fetch(COINGECKO_RATES_API + normalizedSymbol);
+    const json = await response.json();
+    const parseResult = CoinGeckoRatesSchema.safeParse(json);
+    if (!parseResult.success) {
+      console.error(`CoinGecko rates response validation error: ${parseResult.error.message}`);
+      throw Error("CoinGecko rates response validation error");
+    }
+    const rate = parseResult.data["bitcoin-cash"][normalizedSymbol];
+    if (rate !== undefined) {
+      return rate;
+    }
+    throw Error(`Currency '${symbol}' is not supported.`);
+  }
+
+  const COINBASE_RATES_API = "https://api.coinbase.com/v2/exchange-rates?currency=BCH";
+
+  async function getExchangeRateCoinbase(symbol: string): Promise<number> {
+    const response = await fetch(COINBASE_RATES_API);
+    const json = await response.json();
+    const parseResult = CoinbaseRatesSchema.safeParse(json);
+    if (!parseResult.success) {
+      console.error(`Coinbase rates response validation error: ${parseResult.error.message}`);
+      throw Error("Coinbase rates response validation error");
+    }
+    const normalizedSymbol = symbol.toUpperCase();
+    const rate = parseResult.data.data.rates[normalizedSymbol];
+    if (rate !== undefined) {
+      return parseFloat(rate);
+    }
+    throw Error(`Currency '${symbol}' is not supported.`);
+  }
+
   function configureExchangeRateProvider(provider: ExchangeRateProvider) {
     if (provider === "bitpay") {
       Config.GetExchangeRateFn = getExchangeRateBitpay;
+    } else if (provider === "coingecko") {
+      Config.GetExchangeRateFn = getExchangeRateCoinGecko;
+    } else if (provider === "coinbase") {
+      Config.GetExchangeRateFn = getExchangeRateCoinbase;
     } else {
       // "default" - use mainnet-js default behavior
       Config.GetExchangeRateFn = undefined;
@@ -220,8 +260,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   }
 
   const readExchangeRateProvider = localStorage.getItem("exchangeRateProvider");
-  if (readExchangeRateProvider && (readExchangeRateProvider === "default" || readExchangeRateProvider === "bitpay")) {
-    exchangeRateProvider.value = readExchangeRateProvider;
+  const validProviders = ["default", "bitpay", "coingecko", "coinbase"];
+  if (readExchangeRateProvider && validProviders.includes(readExchangeRateProvider)) {
+    exchangeRateProvider.value = readExchangeRateProvider as ExchangeRateProvider;
   }
   configureExchangeRateProvider(exchangeRateProvider.value);
 
