@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    root: './test'
+    root: './test',
+    exclude: ['browser/**', 'node_modules/**'],
   },
 })
