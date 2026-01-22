@@ -63,6 +63,24 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       }
     }
 
+    async function cancelPendingRequestsForTopic(topic: string): Promise<number[]> {
+      if (!web3wallet.value) return [];
+      const cancelledIds: number[] = [];
+      for (const [requestId, pending] of pendingRequests.value) {
+        if (pending.topic === topic) {
+          console.log("Hiding dialog for request:", requestId);
+          pending.dialogHandle.hide();
+          const cancelResponse = { id: requestId, jsonrpc: '2.0', error: { code: 4001, message: 'Request cancelled by dapp' } };
+          await web3wallet.value.respondSessionRequest({ topic, response: cancelResponse });
+          cancelledIds.push(requestId);
+        }
+      }
+      for (const requestId of cancelledIds) {
+        removePendingRequest(requestId);
+      }
+      return cancelledIds;
+    }
+
     async function initweb3wallet() {
       // Make sure we don't ininialize WC more than once.
       // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
@@ -191,22 +209,8 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         for (const request of queuedRequests) {
           if (request.params.request.method === 'bch_cancelPendingRequests') {
             console.log("Found queued cancel request via polling, processing...");
-            // Process the cancel request directly
             const { topic, id } = request;
-            const cancelledIds: number[] = [];
-            for (const [requestId, pending] of pendingRequests.value) {
-              if (pending.topic === topic) {
-                console.log("Polling: hiding dialog for request:", requestId);
-                pending.dialogHandle.hide();
-                const cancelResponse = { id: requestId, jsonrpc: '2.0', error: { code: 4001, message: 'Request cancelled by dapp' } };
-                await web3wallet.value.respondSessionRequest({ topic, response: cancelResponse });
-                cancelledIds.push(requestId);
-              }
-            }
-            for (const requestId of cancelledIds) {
-              removePendingRequest(requestId);
-            }
-            // Respond to the cancel request itself
+            const cancelledIds = await cancelPendingRequestsForTopic(topic);
             const response = { id, jsonrpc: '2.0', result: { cancelledCount: cancelledIds.length } };
             await web3wallet.value.respondSessionRequest({ topic, response });
             console.log("Polling: cancel request processed, cancelled:", cancelledIds);
@@ -337,22 +341,8 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
           });
         }
         case "bch_cancelPendingRequests": {
-          // Cancel all pending requests from this session (topic)
           console.log("bch_cancelPendingRequests received, pendingRequests:", pendingRequests.value.size);
-          const cancelledIds: number[] = [];
-          for (const [requestId, pending] of pendingRequests.value) {
-            console.log("Checking pending request:", requestId, "topic:", pending.topic, "vs", topic);
-            if (pending.topic === topic) {
-              console.log("Hiding dialog for request:", requestId);
-              pending.dialogHandle.hide();
-              const cancelResponse = { id: requestId, jsonrpc: '2.0', error: { code: 4001, message: 'Request cancelled by dapp' } };
-              await web3wallet.value.respondSessionRequest({ topic, response: cancelResponse });
-              cancelledIds.push(requestId);
-            }
-          }
-          for (const requestId of cancelledIds) {
-            removePendingRequest(requestId);
-          }
+          const cancelledIds = await cancelPendingRequestsForTopic(topic);
           const response = { id, jsonrpc: '2.0', result: { cancelledCount: cancelledIds.length } };
           console.log("bch_cancelPendingRequests done, cancelled:", cancelledIds);
           await web3wallet.value.respondSessionRequest({ topic, response });
