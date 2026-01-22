@@ -20,6 +20,7 @@ jobs:
           cache: 'yarn'
       - run: npm install -g yarn@1.22.22
       - run: yarn install --frozen-lockfile
+      - run: npx quasar prepare  # generates .quasar/tsconfig.json for path aliases
       - run: yarn lint
       - run: yarn vue-tsc --noEmit
       - run: yarn test
