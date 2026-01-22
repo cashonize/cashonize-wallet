@@ -363,6 +363,7 @@ body.dark .negative {
   }
   .historyTokenIcon {
     display: block;
+    width: fit-content;
     margin: 4px auto 0;
   }
 }
