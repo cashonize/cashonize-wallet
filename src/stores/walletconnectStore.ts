@@ -65,17 +65,17 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
     async function cancelPendingRequestsForTopic(topic: string): Promise<number[]> {
       if (!web3wallet.value) return [];
       const cancelledIds: number[] = [];
-      for (const [requestId, pending] of pendingRequests.value) {
-        if (pending.topic === topic) {
-          console.log("Hiding dialog for request:", requestId);
+
+      const queuedRequests = web3wallet.value.getPendingSessionRequests();
+      for (const request of queuedRequests) {
+        if (request.topic !== topic) continue;
+
+        const pending = pendingRequests.value.get(request.id);
+        if (pending) {
           pending.dialogHandle.hide();
-          const cancelResponse = { id: requestId, jsonrpc: '2.0', error: { code: 4001, message: 'Request cancelled by dapp' } };
-          await web3wallet.value.respondSessionRequest({ topic, response: cancelResponse });
-          cancelledIds.push(requestId);
         }
-      }
-      for (const requestId of cancelledIds) {
-        removePendingRequest(requestId);
+        await rejectRequest(request);
+        cancelledIds.push(request.id);
       }
       return cancelledIds;
     }
@@ -202,15 +202,15 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
     }
 
     // Poll for queued cancel requests that bypass the normal event queue
-    function startCancelPolling() {
+    function startPollingForCancellationRequest() {
       if (cancellationPollingInterval) return; // Already polling
-      console.log("Started cancel request polling");
+      console.log("Started polling for cancellation request");
       cancellationPollingInterval = setInterval(() => {
-        void checkForCancelRequests();
+        void checkForCancellationRequest();
       }, 500); // Poll every 500ms
     }
 
-    async function checkForCancelRequests() {
+    async function checkForCancellationRequest() {
       if (!web3wallet.value || pendingRequests.value.size === 0) return;
       try {
         const queuedRequests = web3wallet.value.getPendingSessionRequests();
@@ -218,11 +218,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         for (const request of queuedRequests) {
           if (request.params.request.method === 'bch_cancelPendingRequests') {
             console.log("Found queued cancel request via polling, processing...");
-            const { topic, id } = request;
-            const cancelledIds = await cancelPendingRequestsForTopic(topic);
-            const response = { id, jsonrpc: '2.0', result: { cancelledCount: cancelledIds.length } };
-            await web3wallet.value.respondSessionRequest({ topic, response });
-            console.log("Polling: cancel request processed, cancelled:", cancelledIds);
+            await cancelPendingRequestsForTopic(request.topic);
           }
         }
       } catch (e) {
@@ -281,15 +277,15 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
               })
               .onCancel(() => {
                 removePendingRequest(id);
-                void rejectRequest(event).then(reject);
+                void rejectRequest(event).then(() => reject("Sign message dialog was cancelled"));
               })
               .onDismiss(() => {
                 removePendingRequest(id);
-                reject();
+                reject("Sign message dialog was dismissed");
               });
             pendingRequests.value.set(id, { topic, event, dialogHandle });
             console.log("Added signMessage to pendingRequests, id:", id, "size:", pendingRequests.value.size);
-            startCancelPolling();
+            startPollingForCancellationRequest();
           });
         }
         case "bch_signTransaction": {
@@ -335,25 +331,22 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
               })
               .onCancel(() => {
                 removePendingRequest(id);
-                void rejectRequest(event).then(reject);
+                void rejectRequest(event).then(() => reject("Sign transaction dialog was cancelled"));
               })
               .onDismiss(() => {
                 removePendingRequest(id);
-                reject();
+                reject("Sign transaction dialog was dismissed");
               });
             pendingRequests.value.set(id, { topic, event, dialogHandle });
             console.log("Added signTransaction to pendingRequests, id:", id, "size:", pendingRequests.value.size);
-            startCancelPolling();
+            startPollingForCancellationRequest();
           });
         }
-        case "bch_cancelPendingRequests": {
-          console.log("bch_cancelPendingRequests received, pendingRequests:", pendingRequests.value.size);
-          const cancelledIds = await cancelPendingRequestsForTopic(topic);
-          const response = { id, jsonrpc: '2.0', result: { cancelledCount: cancelledIds.length } };
-          console.log("bch_cancelPendingRequests done, cancelled:", cancelledIds);
-          await web3wallet.value.respondSessionRequest({ topic, response });
+        // bch_cancelPendingRequests is handled by polling since WalletConnect won't deliver a new
+        // request until the current one receives a response. Therefore by the time the cancellation
+        // request is processed is processed here, there is nothing to cancel
+        case "bch_cancelPendingRequests":
           break;
-        }
         default:{
           const response = { id, jsonrpc: '2.0', error: {code: 1001, message: `Unsupported method ${method}`} };
           await web3wallet.value.respondSessionRequest({ topic, response });
@@ -474,6 +467,10 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
 
     async function rejectRequest(wcRequest: WalletKitTypes.SessionRequest){
       const { id, topic } = wcRequest;
+      // Check request is still pending (may have been cancelled by dapp already)
+      const stillPending = web3wallet.value?.getPendingSessionRequests()
+        .some(r => r.id === id);
+      if (!stillPending) return;
       const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
       await web3wallet.value?.respondSessionRequest({ topic, response });
     }
