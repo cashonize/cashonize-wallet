@@ -166,7 +166,7 @@
                     v-if="tokenChange.amount"
                     class="historyTokenIcon"
                     :token-id="tokenChange.tokenId"
-                    :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(tokenChange.tokenId) : undefined"
+                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenChange.tokenId) : undefined"
                     :size="28"
                   />
                 </span>
@@ -180,7 +180,7 @@
                     v-if="tokenChange.nftAmount"
                     class="historyTokenIcon"
                     :token-id="tokenChange.tokenId"
-                    :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(tokenChange.tokenId) : undefined"
+                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenChange.tokenId) : undefined"
                     :size="28"
                   />
                 </span>

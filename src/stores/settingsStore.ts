@@ -39,7 +39,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // developer settings
   const mintNfts = ref(false);
   const authchains = ref(false);
-  const loadTokenIcons = ref(true);
+  const disableTokenIcons = ref(false);
   // history settings
   const showFiatValueHistory = ref(true);
   const hideBalanceColumn = ref(false);
@@ -187,8 +187,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readConfirmBeforeSending = localStorage.getItem("confirmBeforeSending");
   if(readConfirmBeforeSending) confirmBeforeSending.value = readConfirmBeforeSending == "true";
 
-  const readLoadTokenIcons = localStorage.getItem("loadTokenIcons");
-  if(readLoadTokenIcons) loadTokenIcons.value = readLoadTokenIcons == "true";
+  const readDisableTokenIcons = localStorage.getItem("disableTokenIcons");
+  if(readDisableTokenIcons) disableTokenIcons.value = readDisableTokenIcons === "true";
 
   // --- Exchange rate provider configuration ---
 
@@ -410,7 +410,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     authchains,
     dateFormat,
     confirmBeforeSending,
-    loadTokenIcons,
+    disableTokenIcons,
     exchangeRateProvider,
     configureExchangeRateProvider,
     getAutoApproveState,

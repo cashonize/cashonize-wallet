@@ -579,7 +579,7 @@
     <fieldset style="position: relative;">
       <div class="tokenInfo">
         <video
-          v-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')"
+          v-if="!settingsStore.disableTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')"
           class="tokenIcon" width="48" height="48" loading="lazy"
           style="cursor: pointer;"
           @click="() => showNftImage = true"
@@ -587,7 +587,7 @@
           <source :src="httpsUrlTokenIcon" type="video/mp4" />
         </video>
         <img
-          v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && isSingleNft && !imageLoadFailed"
+          v-else-if="!settingsStore.disableTokenIcons && httpsUrlTokenIcon && isSingleNft && !imageLoadFailed"
           class="tokenIcon" width="48" height="48" loading="lazy"
           style="cursor: pointer;"
           :src="httpsUrlTokenIcon"
@@ -595,7 +595,7 @@
           @error="() => imageLoadFailed = true"
         >
         <img
-          v-else-if="settingsStore.loadTokenIcons && httpsUrlTokenIcon && !isSingleNft && !imageLoadFailed"
+          v-else-if="!settingsStore.disableTokenIcons && httpsUrlTokenIcon && !isSingleNft && !imageLoadFailed"
           class="tokenIcon" width="48" height="48" loading="lazy"
           :src="httpsUrlTokenIcon"
           @error="() => imageLoadFailed = true"

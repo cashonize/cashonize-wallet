@@ -182,7 +182,7 @@
               <span>{{ `- ${calculateAmount(tokenSpent)} ${formatTokenDisplay(tokenSpent)}` }}</span>
               <TokenIcon
                 :token-id="binToHex(tokenSpent.category)"
-                :icon-url="settingsStore.loadTokenIcons ? getTokenIconUrl(binToHex(tokenSpent.category)) : undefined"
+                :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(tokenSpent.category)) : undefined"
                 :size="24"
               />
               <span v-if="isUnverifiedToken(binToHex(tokenSpent.category))">*</span>
@@ -193,7 +193,7 @@
               <span>{{ `+ ${calculateAmount(tokenReceived)} ${formatTokenDisplay(tokenReceived)}` }}</span>
               <TokenIcon
                 :token-id="binToHex(tokenReceived.category)"
-                :icon-url="settingsStore.loadTokenIcons ? getTokenIconUrl(binToHex(tokenReceived.category)) : undefined"
+                :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(tokenReceived.category)) : undefined"
                 :size="24"
               />
               <span v-if="isUnverifiedToken(binToHex(tokenReceived.category))">*</span>
@@ -232,7 +232,7 @@
                     {{ formatTokenDisplay(input.token as NonNullable<Output['token']>) }}
                     <TokenIcon
                       :token-id="binToHex(input.token.category)"
-                      :icon-url="settingsStore.loadTokenIcons ? getTokenIconUrl(binToHex(input.token.category)) : undefined"
+                      :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(input.token.category)) : undefined"
                       :size="20"
                     />
                     <span v-if="isUnverifiedToken(binToHex(input.token.category))">*</span>
@@ -270,7 +270,7 @@
                     {{ formatTokenDisplay(output.token as NonNullable<Output['token']>) }}
                     <TokenIcon
                       :token-id="binToHex(output.token.category)"
-                      :icon-url="settingsStore.loadTokenIcons ? getTokenIconUrl(binToHex(output.token.category)) : undefined"
+                      :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(output.token.category)) : undefined"
                       :size="20"
                     />
                     <span v-if="isUnverifiedToken(binToHex(output.token.category))">*</span>

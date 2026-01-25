@@ -56,7 +56,7 @@
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
   const enableAuthchains = ref(settingsStore.authchains);
-  const enableLoadTokenIcons = ref(settingsStore.loadTokenIcons);
+  const disableTokenIcons = ref(settingsStore.disableTokenIcons);
 
   const utxosWithBchAndTokens = computed(() => {
     return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
@@ -261,9 +261,9 @@
       }
     }
   }
-  function changeLoadTokenIcons(){
-    localStorage.setItem("loadTokenIcons", enableLoadTokenIcons.value? "true" : "false");
-    settingsStore.loadTokenIcons = enableLoadTokenIcons.value;
+  function changeDisableTokenIcons(){
+    localStorage.setItem("disableTokenIcons", disableTokenIcons.value ? "true" : "false");
+    settingsStore.disableTokenIcons = disableTokenIcons.value;
   }
 
 </script>
@@ -466,13 +466,10 @@
         </div>
       </div>
 
-      <div style="margin-top:15px">Privacy:</div>
-      <div style="margin: 0px 10px;">
-        <div style="margin-top:15px; margin-bottom: 15px">
-          Load token icons <Toggle v-model="enableLoadTokenIcons" @change="changeLoadTokenIcons()"/>
-          <div style="font-size: smaller; color: grey;">
-            Disabling this prevents loading images from untrusted sources
-          </div>
+      <div style="margin-top:15px; margin-bottom: 15px">
+        Disable token image loading <Toggle v-model="disableTokenIcons" @change="changeDisableTokenIcons()"/>
+        <div style="font-size: smaller; color: grey;">
+          Prevents loading token images from external servers
         </div>
       </div>
     </div>
@@ -521,6 +518,7 @@
         <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
           <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
+          <option value="https://bchexplorer.info/tx">bchexplorer by Paytaca</option>
           <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
           <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
           <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>

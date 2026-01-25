@@ -406,7 +406,7 @@
         <TokenIcon
           class="tokenIcon"
           :token-id="tokenData.tokenId"
-          :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(tokenData.tokenId) : undefined"
+          :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenData.tokenId) : undefined"
           :size="48"
         />
         <div class="tokenBaseInfo">
