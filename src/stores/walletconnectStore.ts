@@ -58,17 +58,19 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       if (pendingRequests.value.size === 0 && cancellationPollingInterval) {
         clearInterval(cancellationPollingInterval);
         cancellationPollingInterval = null;
-        console.log("Stopped cancel request polling");
+        console.debug("Stopped polling for WalletConnect cancellation requests");
       }
     }
 
-    async function cancelPendingRequestsForTopic(topic: string): Promise<number[]> {
-      if (!web3wallet.value) return [];
+    async function cancelPendingRequestsForTopic(cancellationRequest: WalletKitTypes.SessionRequest): Promise<void> {
+      if (!web3wallet.value) return;
+      const { topic, id: cancellationRequestId } = cancellationRequest;
       const cancelledIds: number[] = [];
 
       const queuedRequests = web3wallet.value.getPendingSessionRequests();
       for (const request of queuedRequests) {
         if (request.topic !== topic) continue;
+        if (request.id === cancellationRequestId) continue;
 
         const pending = pendingRequests.value.get(request.id);
         if (pending) {
@@ -77,7 +79,14 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         await rejectRequest(request);
         cancelledIds.push(request.id);
       }
-      return cancelledIds;
+
+      // Respond to the cancel request itself with success (if still pending)
+      const stillPending = web3wallet.value.getPendingSessionRequests()
+        .some(r => r.id === cancellationRequestId);
+      if (stillPending) {
+        const response = { id: cancellationRequestId, jsonrpc: '2.0', result: { cancelledCount: cancelledIds.length } };
+        await web3wallet.value.respondSessionRequest({ topic, response });
+      }
     }
 
     async function initweb3wallet() {
@@ -201,10 +210,10 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       activeSessions.value = web3wallet.value?.getActiveSessions();
     }
 
-    // Poll for queued cancel requests that bypass the normal event queue
+    // Poll for queued cancellation requests
     function startPollingForCancellationRequest() {
       if (cancellationPollingInterval) return; // Already polling
-      console.log("Started polling for cancellation request");
+      console.debug("Started polling for WalletConnect cancellation requests");
       cancellationPollingInterval = setInterval(() => {
         void checkForCancellationRequest();
       }, 500); // Poll every 500ms
@@ -217,12 +226,12 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
 
         for (const request of queuedRequests) {
           if (request.params.request.method === 'bch_cancelPendingRequests') {
-            console.log("Found queued cancel request via polling, processing...");
-            await cancelPendingRequestsForTopic(request.topic);
+            console.log("Cancelling pending WalletConnect requests as requested by dapp");
+            await cancelPendingRequestsForTopic(request);
           }
         }
       } catch (e) {
-        console.error("Error polling for cancel requests:", e);
+        console.error("Error looking for or processing WC cancellation requests:", e);
       }
     }
 
@@ -342,10 +351,12 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
             startPollingForCancellationRequest();
           });
         }
-        // bch_cancelPendingRequests is handled by polling since WalletConnect won't deliver a new
-        // request until the current one receives a response. Therefore by the time the cancellation
-        // request is processed is processed here, there is nothing to cancel
+        // bch_cancelPendingRequests is usually handled by polling of the request queue since
+        // WalletConnect won't deliver a new request until the current one receives a response.
+        // The cancellation request only reaches this point if there is nothing to cancel,
+        // but we must still respond to it to avoid blocking the request queue.
         case "bch_cancelPendingRequests":
+          await cancelPendingRequestsForTopic(event);
           break;
         default:{
           const response = { id, jsonrpc: '2.0', error: {code: 1001, message: `Unsupported method ${method}`} };
