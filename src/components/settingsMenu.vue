@@ -409,10 +409,13 @@
           >
           <div style="font-size: smaller; color: grey;">
             Requires WSS on port 50004.
-            <span v-if="isLocalElectrumServer">
+            <span v-if="isLocalElectrumServer && isBrowser">
               Using self-signed certs?
               <a :href="`https://${customElectrumServer.trim()}:50004`" target="_blank">Visit here</a>
               to accept the certificate first.
+            </span>
+            <span v-if="isLocalElectrumServer && !isBrowser">
+              Note: self-signed certs are not currently supported in the app.
             </span>
           </div>
         </div>
