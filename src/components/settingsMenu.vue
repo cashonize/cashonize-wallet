@@ -38,7 +38,24 @@
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   // advanced settings
-  const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
+  const predefinedElectrumServersMainnet = [
+    "electrum.imaginary.cash",
+    "bch.imaginary.cash",
+    "cashnode.bch.ninja",
+    "fulcrum.greyh.at",
+    "electroncash.dk",
+    "fulcrum.jettscythe.xyz",
+    "bch.loping.net",
+    "fulcrum.criptolayer.net"
+  ];
+  const storedElectrumServer = settingsStore.electrumServerMainnet;
+  const isCustomElectrumServer = !predefinedElectrumServersMainnet.includes(storedElectrumServer);
+  const selectedElectrumServer = ref(isCustomElectrumServer ? "custom" : storedElectrumServer);
+  const customElectrumServer = ref(isCustomElectrumServer ? storedElectrumServer : "127.0.0.1");
+  const isLocalElectrumServer = computed(() => {
+    const server = customElectrumServer.value.trim();
+    return server === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(server);
+  });
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
   const predefinedIpfsGateways = [
     "https://w3s.link/ipfs/",
@@ -70,6 +87,11 @@
 
   const isPwaMode = window.matchMedia('(display-mode: standalone)').matches;
   const platformString = isBrowser ? (isPwaMode ? 'installed web app' : 'browser') : (isCapacitor ? 'app' : 'application');
+
+
+  function getHostname(url: string) {
+    return new URL(url).hostname;
+  }
 
   async function calculateIndexedDBSizeMB() {
     const totalSize = await getElectrumCacheSize();
@@ -129,6 +151,7 @@
     localStorage.setItem(explorerNetwork, selectedExplorer.value);
   }
   function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
+    if (targetNetwork === "mainnet" && selectedElectrumServer.value === "custom") return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
     store.resetWalletState()
@@ -146,6 +169,20 @@
       settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
       localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
     }
+    // fire-and-forget promise does not wait on full wallet initialization
+    void store.initializeWallet();
+  }
+  function saveCustomElectrumServer(){
+    const trimmedServer = customElectrumServer.value.trim();
+    if (!trimmedServer) return;
+    if(!store._wallet) throw new Error('No wallet set in global store');
+    store.changeView(1)
+    store.resetWalletState()
+    const newConnection = new Connection("mainnet",`wss://${trimmedServer}:50004`)
+    // @ts-ignore currently no other way to set a specific provider
+    store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+    settingsStore.electrumServerMainnet = trimmedServer;
+    localStorage.setItem("electrum-mainnet", trimmedServer);
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }
@@ -354,21 +391,35 @@
     </div>
     <div v-else-if="settingsSection == 3">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <label for="selectNetwork">Change Electrum server mainnet:</label>
+        <label for="selectNetwork">Electrum server mainnet:</label>
         <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
-          <option value="electrum.imaginary.cash">electrum.imaginary.cash (default)</option>
-          <option value="bch.imaginary.cash">bch.imaginary.cash</option>
-          <option value="cashnode.bch.ninja">cashnode.bch.ninja</option>
-          <option value="fulcrum.greyh.at">fulcrum.greyh.at</option>
-          <option value="electroncash.dk">electroncash.dk</option>
-          <option value="fulcrum.jettscythe.xyz">fulcrum.jettscythe.xyz</option>
-          <option value="bch.loping.net">bch.loping.net</option>
-          <option value="fulcrum.criptolayer.net">fulcrum.criptolayer.net</option>
+          <option v-for="(server, index) in predefinedElectrumServersMainnet" :key="server" :value="server">
+            {{ server }}{{ index === 0 ? ' (default)' : '' }}
+          </option>
+          <option value="custom">Custom</option>
         </select>
+        <div v-if="selectedElectrumServer === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customElectrumServer"
+            @blur="saveCustomElectrumServer()"
+            @keyup.enter="saveCustomElectrumServer()"
+            type="text"
+            placeholder="e.g. 127.0.0.1"
+            style="width: 100%;"
+          >
+          <div style="font-size: smaller; color: grey;">
+            Requires WSS on port 50004.
+            <span v-if="isLocalElectrumServer">
+              Using self-signed certs?
+              <a :href="`https://${customElectrumServer.trim()}:50004`" target="_blank">Visit here</a>
+              to accept the certificate first.
+            </span>
+          </div>
+        </div>
       </div>
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <label for="selectNetwork">Change Electrum server chipnet:</label>
+        <label for="selectNetwork">Electrum server chipnet:</label>
         <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
           <option value="chipnet.bch.ninja">chipnet.bch.ninja (default)</option>
           <option value="chipnet.imaginary.cash">chipnet.imaginary.cash</option>
@@ -376,12 +427,11 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">Change IPFS gateway:</label>
+        <label for="selectNetwork">IPFS gateway:</label>
         <select v-model="selectedIpfsGateway" @change="changeIpfsGateway()">
-          <option value="https://w3s.link/ipfs/">w3s.link (default)</option>
-          <option value="https://ipfs.io/ipfs/">ipfs.io</option>
-          <option value="https://dweb.link/ipfs/">dweb.link</option>
-          <option value="https://nftstorage.link/ipfs/">nftstorage.link</option>
+          <option v-for="(gateway, index) in predefinedIpfsGateways" :key="gateway" :value="gateway">
+            {{ getHostname(gateway) }}{{ index === 0 ? ' (default)' : '' }}
+          </option>
           <option value="custom">Custom</option>
         </select>
         <div v-if="selectedIpfsGateway === 'custom'" style="margin-top: 8px;">
@@ -396,7 +446,7 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">Change ChainGraph:</label>
+        <label for="selectNetwork">Chaingraph server:</label>
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph (default)</option>
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
