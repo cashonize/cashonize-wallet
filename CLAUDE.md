@@ -94,6 +94,8 @@ Tests are in `/test` directory using vitest. Run a single test file:
 yarn test test/walletUtils.test.ts
 ```
 
+Tests run in Node environment with minimal browser mocks (`localStorage`, `navigator`) in `test/setup.ts`. We use mocks instead of jsdom to keep tests lightweight.
+
 ## Code Style Preferences
 
 This is a crypto wallet - a security-sensitive environment where being overly careful is preferred over under-careful.
