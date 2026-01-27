@@ -420,9 +420,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
           })
         } catch(error){
           displayAndLogError(error);
-          const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : "Error in sending transaction")
+          const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : t('walletConnect.errors.errorSendingTransaction'))
           // respond with error to dapp
-          const wcErrorMessage = 'Transaction failed to send with error: ' + errorMessage;
+          const wcErrorMessage = t('walletConnect.errors.transactionFailedToSend', { error: errorMessage });
           const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
           await web3wallet.value?.respondSessionRequest({ topic, response });
           return

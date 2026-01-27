@@ -27,7 +27,9 @@
       "errorInitializingWalletConnect": "Error initializing WalletConnect",
       "errorInitializingCashConnect": "Error initializing CashConnect",
       "errorFetchingUtxos": "Error in fetching wallet UTXOs",
-      "errorFetchingHistory": "Error in fetching wallet history"
+      "errorFetchingHistory": "Error in fetching wallet history",
+      "unableToConnectElectrum": "Unable to connect to Electrum server '{server}'",
+      "bcmrIndexerValidationError": "BCMR indexer response validation error"
     }
   },
   "onboarding": {
@@ -690,7 +692,9 @@
       "unsupportedBlockchain": "Trying to connect an app from unsupported blockchain(s): {chains}",
       "failedToApproveSession": "Failed to approve session",
       "invalidTransactionSchema": "Error in validating schema of WalletConnect transaction request",
-      "invalidSignMessageSchema": "Error in validating schema of WalletConnect sign message request"
+      "invalidSignMessageSchema": "Error in validating schema of WalletConnect sign message request",
+      "errorSendingTransaction": "Error in sending transaction",
+      "transactionFailedToSend": "Transaction failed to send with error: {error}"
     },
     "notifications": {
       "successfullySignedMessage": "Successfully signed message",

@@ -162,7 +162,7 @@ export const useStore = defineStore('store', () => {
         ]).finally(() => clearTimeout(timeoutHandle))
         .catch(error => {
           failedToConnectElectrum = true;
-          displayAndLogError(new Error(`Unable to connect to Electrum server '${electrumServer}'`))
+          displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
           // still log the original error for debugging
           console.error("Electrum connect error:", error)
         });
@@ -527,8 +527,7 @@ export const useStore = defineStore('store', () => {
     const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
     if (!parseResult.success) {
       console.error(`BCMR indexer response validation error for URL ${res.url}: ${parseResult.error.message}`);
-      const errorMessage = 'BCMR indexer response validation error';
-      throw new Error(errorMessage)
+      throw new Error(t('store.errors.bcmrIndexerValidationError'))
     }
     const bcmrIndexerResult = parseResult.data;
     // check for error in bcmrIndexerResult
