@@ -9,10 +9,12 @@
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import { formatTimestamp, formatRelativeTime, satsToBch } from 'src/utils/utils';
+  import { useI18n } from 'vue-i18n'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+  const { t } = useI18n()
 
   const { width } = useWindowSize();
   const isMobilePhone = computed(() => width.value < 480)
@@ -30,7 +32,7 @@
     if(!copyText) return
     void navigator.clipboard.writeText(copyText);
     $q.notify({
-      message: "Copied!",
+      message: t('transactionDialog.copied'),
       icon: 'info',
       timeout : 1000,
       color: "grey-6"
@@ -52,7 +54,7 @@
   const loadTokenMetadata = async (tokenId: string, commitment: string | undefined) => {
     if (!store.bcmrRegistries?.[tokenId]) {
       $q.notify({
-        message: "Unknown token",
+        message: t('transactionDialog.unknownToken'),
         icon: 'info',
         timeout : 1000,
         color: "grey-6"
@@ -88,11 +90,11 @@
       </div>
 
       <fieldset class="dialogFieldset">
-        <legend style="font-size: large;">Transaction</legend>
+        <legend style="font-size: large;">{{ t('transactionDialog.title') }}</legend>
 
         <div style="display: flex; flex-direction: column; gap: 1rem">
           <div>
-            {{ isMobilePhone? 'TxId: ' : 'Transaction ID: ' }}
+            {{ isMobilePhone? t('transactionDialog.txIdShort') : t('transactionDialog.txIdFull') }}
             <span :href="store.explorerUrl + `/${historyItem.hash}`" @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer; color: var(--color-grey);">
               {{ historyItem.hash.slice(0, 12) + "..." + historyItem.hash.slice(52) }}
             </span>
@@ -102,46 +104,45 @@
           </div>
           <div>
             <a :href="store.explorerUrl + `/${historyItem.hash}`" target="_blank" style="display: inline-block;">
-              Link to BlockExplorer
+              {{ t('transactionDialog.linkToExplorer') }}
             </a>
             <span @click="() => copyToClipboard(store.explorerUrl + `/${historyItem.hash}`)" style="cursor:pointer;">
               <img class="copyIcon" src="images/copyGrey.svg" style="vertical-align: text-bottom;">
             </span>
           </div>
           <div>
-            Status:
-              <span v-if="historyItem.timestamp === undefined">unconfirmed</span>
-              <span v-else>{{ store.currentBlockHeight as number - historyItem.blockHeight }} confirmations
-                (mined in block #{{ historyItem.blockHeight.toLocaleString("en-US") }})
+            {{ t('transactionDialog.status') }}
+              <span v-if="historyItem.timestamp === undefined">{{ t('transactionDialog.unconfirmed') }}</span>
+              <span v-else>{{ t('transactionDialog.confirmations', { count: store.currentBlockHeight as number - historyItem.blockHeight, block: historyItem.blockHeight.toLocaleString("en-US") }) }}
               </span>
           </div>
           <div v-if="historyItem.timestamp">
-            Date:
+            {{ t('transactionDialog.date') }}
               <span>{{ formatTimestamp(historyItem.timestamp, settingsStore.dateFormat) }} ({{ formatRelativeTime(historyItem.timestamp) }})</span>
           </div>
           <div>
-            Balance change:
+            {{ t('transactionDialog.balanceChange') }}
               <span>{{ satsToBch(historyItem.valueChange) }} {{ bchDisplayUnit }}</span>
           </div>
           <div>
-            Size:
-              <span>{{ historyItem.size.toLocaleString("en-US") }} bytes</span>
+            {{ t('transactionDialog.size') }}
+              <span>{{ t('transactionDialog.sizeValue', { bytes: historyItem.size.toLocaleString("en-US") }) }}</span>
           </div>
           <div v-if="!isCoinbase">
-            Fee:
+            {{ t('transactionDialog.fee') }}
               <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee.toLocaleString("en-US") }} sat ({{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte)</span>
           </div>
           <div v-else>
-            Fees collected:
+            {{ t('transactionDialog.feesCollected') }}
               <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee.toLocaleString("en-US") }} sat</span>
           </div>
         </div>
 
         <fieldset style="max-height: 200px; overflow: scroll; margin-top: 1rem;">
-          <legend style="font-size: medium;">Inputs</legend>
+          <legend style="font-size: medium;">{{ t('transactionDialog.inputs') }}</legend>
           <div v-for="(input, index) in historyItem.inputs" :key="index" class="input" :class="settingsStore.darkMode ? 'dark' : ''">
             <span>{{ index }}: </span>
-            <span class="break" :class="input.address === ourAddress ? 'thisWalletTag' : ''">{{ isCoinbase ? "coinbase" : input.address.split(":")[1] }}</span>
+            <span class="break" :class="input.address === ourAddress ? 'thisWalletTag' : ''">{{ isCoinbase ? t('transactionDialog.coinbase') : input.address.split(":")[1] }}</span>
             <div style="margin-left: 25px;">
               <div v-if="input.value > 10_000">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</div>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer;">
@@ -160,7 +161,7 @@
         </fieldset>
 
         <fieldset style="max-height: 200px; overflow: scroll; margin-top: 1rem;">
-          <legend style="font-size: medium;">Outputs</legend>
+          <legend style="font-size: medium;">{{ t('transactionDialog.outputs') }}</legend>
           <div v-for="(output, index) in historyItem.outputs" :key="index" class="output" :class="settingsStore.darkMode ? 'dark' : ''">
             <span v-if="output.value === 0" class="break">{{ index }}: {{ output.address }}</span>
             <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'thisWalletTag' : ''">{{ output.address.split(":")[1] }}</span></span>

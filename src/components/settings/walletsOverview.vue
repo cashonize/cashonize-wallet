@@ -3,12 +3,14 @@
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useI18n } from 'vue-i18n'
 
   const MAX_WALLETS = 20
 
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+  const { t } = useI18n()
 
   const canAddMoreWallets = computed(() => store.availableWallets.length < MAX_WALLETS)
 
@@ -28,15 +30,15 @@
 
   function getDateLabel(walletName: string, short = false): string {
     const isImported = settingsStore.getBackupStatus(walletName) === 'imported';
-    if (short) return isImported ? 'imported ' : 'created ';
-    return isImported ? 'Import date: ' : 'Creation date: ';
+    if (short) return isImported ? t('walletsOverview.dateLabels.imported') + ' ' : t('walletsOverview.dateLabels.created') + ' ';
+    return isImported ? t('walletsOverview.dateLabels.importDate') + ' ' : t('walletsOverview.dateLabels.creationDate') + ' ';
   }
 
   function getBackupStatusLabel(walletName: string): string {
     const status = settingsStore.getBackupStatus(walletName);
-    if (status === 'none') return 'not backed up';
-    if (status === 'imported') return 'imported';
-    return 'backed up';
+    if (status === 'none') return t('walletsOverview.backupLabels.notBackedUp');
+    if (status === 'imported') return t('walletsOverview.backupLabels.imported');
+    return t('walletsOverview.backupLabels.backedUp');
   }
 
   async function handleSwitchWallet(walletName: string) {
@@ -47,14 +49,14 @@
       if (result.networkChanged) {
         settingsStore.hasPlayedAnimation = false;
         $q.notify({
-          message: `Switched to ${result.networkChanged} for wallet "${walletName}"`,
+          message: t('walletsOverview.switchedNetwork', { network: result.networkChanged, name: walletName }),
           icon: 'info',
           color: "grey-6"
         });
       }
     } catch (error) {
       $q.notify({
-        message: `Failed to switch wallet: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: t('walletsOverview.switchFailed', { error: error instanceof Error ? error.message : 'Unknown error' }),
         icon: 'warning',
         color: "red"
       });
@@ -64,7 +66,7 @@
   async function deleteSingleWallet(walletName: string) {
     if (walletName === store.activeWalletName) {
       $q.notify({
-        message: "Cannot delete the currently active wallet",
+        message: t('walletsOverview.deleteWallet.cannotDeleteActive'),
         icon: 'warning',
         color: "grey-7"
       });
@@ -72,11 +74,11 @@
     }
     const confirmed = await new Promise<boolean>((resolve) => {
       $q.dialog({
-        title: 'Delete Wallet',
-        message: `Are you sure you want to delete the wallet "${walletName}"?<br>This action cannot be undone.`,
+        title: t('walletsOverview.deleteWallet.title'),
+        message: t('walletsOverview.deleteWallet.message', { name: walletName }),
         html: true,
         cancel: { flat: true, color: 'dark' },
-        ok: { label: 'Delete', color: 'red', textColor: 'white' },
+        ok: { label: t('walletsOverview.deleteWallet.title'), color: 'red', textColor: 'white' },
         persistent: true
       }).onOk(() => resolve(true))
         .onCancel(() => resolve(false))
@@ -88,13 +90,13 @@
         settingsStore.clearBackupStatus(walletName);
         settingsStore.clearWalletMetadata(walletName);
         $q.notify({
-          message: `Wallet "${walletName}" deleted`,
+          message: t('walletsOverview.deleteWallet.deleted', { name: walletName }),
           icon: 'info',
           color: "grey-6"
         });
       } catch (error) {
         $q.notify({
-          message: typeof error === 'string' ? error : (error instanceof Error ? error.message : "Failed to delete wallet"),
+          message: typeof error === 'string' ? error : (error instanceof Error ? error.message : t('walletsOverview.deleteWallet.failed')),
           icon: 'warning',
           color: "red"
         });
@@ -106,11 +108,11 @@
 <template>
   <div>
     <div style="margin-bottom: 15px;">
-      Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+      {{ t('walletsOverview.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
     </div>
 
     <div v-if="store.availableWallets.length > 0" style="margin-bottom: 20px;">
-      <div style="margin-bottom: 10px;">Your wallets ({{ store.availableWallets.length }}):</div>
+      <div style="margin-bottom: 10px;">{{ t('walletsOverview.yourWallets', { count: store.availableWallets.length }) }}</div>
       <div
         v-for="wallet in store.availableWallets"
         :key="wallet.name"
@@ -123,13 +125,13 @@
           @click="handleSwitchWallet(wallet.name)"
         >
           <span class="wallet-name-styled">{{ wallet.name }}</span>
-          <span v-if="wallet.name === store.activeWalletName" class="active-badge">(current)</span>
-          <span v-if="!wallet.hasChipnet" class="network-badge">(mainnet only)</span>
-          <span v-else-if="!wallet.hasMainnet" class="network-badge">(chipnet only)</span>
+          <span v-if="wallet.name === store.activeWalletName" class="active-badge">{{ t('walletsOverview.current') }}</span>
+          <span v-if="!wallet.hasChipnet" class="network-badge">{{ t('walletsOverview.mainnetOnly') }}</span>
+          <span v-else-if="!wallet.hasMainnet" class="network-badge">{{ t('walletsOverview.chipnetOnly') }}</span>
         </span>
         <span class="wallet-section-center">
           <span v-if="formatCreationDate(wallet.name)" class="date-mobile">{{ getDateLabel(wallet.name, true) }}{{ formatCreationDate(wallet.name, true) }}</span>
-          <span class="date-desktop">{{ getDateLabel(wallet.name) }}{{ formatCreationDate(wallet.name) || 'Unknown' }}</span>
+          <span class="date-desktop">{{ getDateLabel(wallet.name) }}{{ formatCreationDate(wallet.name) || t('walletsOverview.dateLabels.unknown') }}</span>
         </span>
         <span class="wallet-section-right">
           <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name) === 'none' ? 'none' : 'text-verified'">
@@ -139,7 +141,7 @@
             v-if="wallet.name !== store.activeWalletName"
             class="delete-wallet-btn"
             @click.stop="deleteSingleWallet(wallet.name)"
-            title="Delete wallet"
+            :title="t('walletsOverview.deleteWallet.buttonTitle')"
           >
             ✕
           </button>
@@ -148,10 +150,10 @@
     </div>
 
     <div v-if="canAddMoreWallets" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(9)">
-      → Add new wallet
+      {{ t('walletsOverview.addNewWallet') }}
     </div>
     <div v-else style="margin-bottom: 15px; color: #888;">
-      Number of wallets limited to {{ MAX_WALLETS }} for now
+      {{ t('walletsOverview.walletLimitReached', { max: MAX_WALLETS }) }}
     </div>
   </div>
 </template>

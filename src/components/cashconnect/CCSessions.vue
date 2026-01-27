@@ -7,6 +7,8 @@
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
   import { caughtErrorToString } from 'src/utils/errorHandling';
   import { type Wallet } from 'mainnet-js';
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
 
   // Expose to 'connectDapp' parent component.
   defineExpose({
@@ -43,7 +45,7 @@
 <template>
     <!-- Sessions -->
     <fieldset class="item">
-      <legend>CashConnect (Pre-Alpha) Sessions</legend>
+      <legend>{{ t('cashConnect.sessions.title') }}</legend>
       <!-- Sessions -->
       <div class="cc-session-items-container">
         <!-- Iterate over active sessions -->
@@ -64,7 +66,7 @@
         </template>
         <!-- Show Empty Message if no Sessions are active -->
         <template v-if="!Object.keys(cashconnectStore.sessions).length">
-          <div class="q-pa-md">No sessions currently active.</div>
+          <div class="q-pa-md">{{ t('cashConnect.sessions.noActiveSessions') }}</div>
         </template>
       </div>
     </fieldset>

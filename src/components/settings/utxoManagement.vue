@@ -6,10 +6,12 @@
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { useI18n } from 'vue-i18n'
 
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
   const activeAction = ref<'consolidating' | 'splitting' | null>(null);
   const exchangeRate = ref<number | undefined>(undefined);
 
@@ -41,14 +43,14 @@
     try{
       $q.notify({
         spinner: true,
-        message: 'Consolidating BCH UTXOs...',
+        message: t('utxoManagement.notifications.consolidating'),
         color: 'grey-5',
         timeout: 1000
       })
       await store.wallet.sendMax(store.wallet.cashaddr)
       $q.notify({
         type: 'positive',
-        message: 'Consolidated BCH UTXOs successfully!'
+        message: t('utxoManagement.notifications.consolidatedSuccess')
       })
       // update wallet state
       await store.updateWalletUtxos()
@@ -56,7 +58,7 @@
       void store.updateWalletHistory();
     } catch(error){
       console.log(error)
-      const errorMessage = typeof error == 'string' ? error : "something went wrong";
+      const errorMessage = typeof error == 'string' ? error : t('utxoManagement.notifications.somethingWentWrong');
       $q.notify({
         message: errorMessage,
         icon: 'warning',
@@ -82,7 +84,7 @@
       })
       $q.notify({
         spinner: true,
-        message: 'Splitting BCH from Token UTXOs...',
+        message: t('utxoManagement.notifications.splitting'),
         color: 'grey-5',
         timeout: 1000 * uniqueTokenIdsToSplit.size
       })
@@ -99,7 +101,7 @@
       }
       $q.notify({
         type: 'positive',
-        message: 'Split BCH from Token UTXO successfully!'
+        message: t('utxoManagement.notifications.splitSuccess')
       })
       // update wallet state once at the end
       await store.updateWalletUtxos()
@@ -107,7 +109,7 @@
       void store.updateWalletHistory();
     } catch(error){
       console.log(error)
-      const errorMessage = typeof error == 'string' ? error : "something went wrong";
+      const errorMessage = typeof error == 'string' ? error : t('utxoManagement.notifications.somethingWentWrong');
       $q.notify({
         message: errorMessage,
         icon: 'warning',
@@ -121,36 +123,36 @@
 
 <template>
   <fieldset class="item" :class="{ dark: settingsStore.darkMode }">
-    <legend>UTXO Management</legend>
+    <legend>{{ t('utxoManagement.title') }}</legend>
 
     <!-- Stats -->
     <div class="stats-row">
       <div>
-        <span class="stat-value">{{ store.walletUtxos?.length?.toLocaleString('en-US')  ?? '...'}}</span> Total UTXOs
+        <span class="stat-value">{{ store.walletUtxos?.length?.toLocaleString('en-US')  ?? '...'}}</span> {{ t('utxoManagement.stats.totalUtxos') }}
       </div>
       <div>
-        <span class="stat-value">{{ bchOnlyUtxos?.toLocaleString('en-US') ?? '...' }}</span> BCH-only UTXOs
+        <span class="stat-value">{{ bchOnlyUtxos?.toLocaleString('en-US') ?? '...' }}</span> {{ t('utxoManagement.stats.bchOnlyUtxos') }}
       </div>
       <div>
-        <span class="stat-value">{{ store.walletUtxos ? getTokenUtxos(store.walletUtxos).length.toLocaleString('en-US') : '...' }}</span> Token UTXOs
+        <span class="stat-value">{{ store.walletUtxos ? getTokenUtxos(store.walletUtxos).length.toLocaleString('en-US') : '...' }}</span> {{ t('utxoManagement.stats.tokenUtxos') }}
       </div>
     </div>
 
     <!-- Consolidate BCH Section -->
     <div class="section">
-      <div><strong>Consolidate BCH UTXOs</strong></div>
+      <div><strong>{{ t('utxoManagement.consolidate.title') }}</strong></div>
       <div class="description">
-        Combine all BCH-only UTXOs into a single UTXO. If a dApp asks you to "consolidate your funds" even though you have enough balance, it means you have too many small UTXOs.
+        {{ t('utxoManagement.consolidate.description') }}
       </div>
       <input
         @click="consolidateBchUtxos()"
         type="button"
         class="primaryButton"
-        :value="activeAction === 'consolidating' ? 'Consolidating...' : 'Consolidate BCH'"
+        :value="activeAction === 'consolidating' ? t('utxoManagement.consolidate.consolidatingButton') : t('utxoManagement.consolidate.consolidateButton')"
         :disabled="activeAction !== null || (bchOnlyUtxos !== undefined && bchOnlyUtxos <= 1)"
       >
       <div v-if="bchOnlyUtxos !== undefined && bchOnlyUtxos <= 1" class="hint">
-        Your wallet already has {{ bchOnlyUtxos === 0 ? 'no' : 'only 1' }} BCH-only UTXO.
+        {{ t('utxoManagement.consolidate.alreadyConsolidated', { status: bchOnlyUtxos === 0 ? t('utxoManagement.consolidate.noUtxos') : t('utxoManagement.consolidate.oneUtxo') }) }}
       </div>
     </div>
 
@@ -160,23 +162,22 @@
       <div v-if="utxosWithBchAndTokens?.length">
         <div class="status-line text-warning">
           <span class="status-icon">!</span>
-          <span>{{ utxosWithBchAndTokens.length }} UTXO{{ utxosWithBchAndTokens!.length > 1 ? 's' : '' }} with combined BCH + Tokens</span>
+          <span>{{ utxosWithBchAndTokens.length > 1 ? t('utxoManagement.combined.warningCountPlural', { count: utxosWithBchAndTokens.length }) : t('utxoManagement.combined.warningCountSingle', { count: utxosWithBchAndTokens.length }) }}</span>
         </div>
         <div class="description">
-          Some dApps return UTXOs that combine BCH with tokens, causing the BCH to not show in your balance.
-          You have <strong>{{ satsToBch(satsToSplit) }} BCH</strong>
+          {{ t('utxoManagement.combined.description') }}
+          {{ t('utxoManagement.combined.splittableAmount', { bch: satsToBch(satsToSplit) }) }}
           <span v-if="exchangeRate">({{ formatFiatAmount(exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})</span>
-          that can be split from token UTXOs.
         </div>
 
         <div v-if="hasNftUtxos" class="description" style="font-style: italic;">
-          Note: This tool can only split BCH from fungible token UTXOs, not NFTs.
+          {{ t('utxoManagement.combined.nftNote') }}
         </div>
 
         <!-- Affected UTXOs List -->
         <details class="utxo-details">
           <summary>
-            View affected UTXOs
+            {{ t('utxoManagement.combined.viewAffected') }}
             <img
               class="icon"
               :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
@@ -185,12 +186,12 @@
           <table class="utxo-table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>BCH</th>
-                <th>Token</th>
-                <th>Type</th>
-                <th>TxId</th>
-                <th>Vout</th>
+                <th>{{ t('utxoManagement.tableHeaders.number') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.bch') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.token') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.type') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.txId') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.vout') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -205,7 +206,7 @@
                 <td>
                   <span @click="copyToClipboard(utxo.txid)" style="cursor: pointer;">
                     <span class="txid-full mono" style="color: var(--color-grey);">{{ truncateHash(utxo.txid) }}</span>
-                    <span class="txid-mobile" style="color: var(--color-grey);">copy</span>
+                    <span class="txid-mobile" style="color: var(--color-grey);">{{ t('utxoManagement.tableHeaders.copy') }}</span>
                     <img class="copyIcon" src="images/copyGrey.svg">
                   </span>
                 </td>
@@ -219,20 +220,20 @@
           @click="splitBchFromTokenUtxos()"
           type="button"
           class="warningButton"
-          :value="activeAction === 'splitting' ? 'Splitting...' : 'Split BCH from Tokens'"
+          :value="activeAction === 'splitting' ? t('utxoManagement.combined.splittingButton') : t('utxoManagement.combined.splitButton')"
           :disabled="activeAction !== null"
         >
       </div>
 
       <!-- No issues (only show when loaded) -->
       <div v-else-if="store.walletUtxos">
-        <div><strong>Combined BCH + Token UTXOs</strong></div>
+        <div><strong>{{ t('utxoManagement.combined.title') }}</strong></div>
         <div class="description">
-          Some dApps return UTXOs that combine BCH with tokens, causing the BCH to not show in your balance.
+          {{ t('utxoManagement.combined.description') }}
         </div>
         <div class="status-line text-verified" style="margin-bottom: 15px;">
           <span class="status-icon">✓</span>
-          <span>You have no such UTXOs</span>
+          <span>{{ t('utxoManagement.combined.noIssues') }}</span>
         </div>
       </div>
     </div>

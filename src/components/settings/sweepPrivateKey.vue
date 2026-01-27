@@ -6,10 +6,12 @@
   import { useQuasar } from 'quasar'
   import { displayAndLogError } from 'src/utils/errorHandling';
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
+  import { useI18n } from 'vue-i18n'
 
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
 
   const props = defineProps<{
     wif: string | undefined
@@ -24,7 +26,7 @@
     isSweeping.value = true;
     try {
       if(!privateKeyToSweep.value) {
-        throw new Error("No private key WIF provided to sweep");
+        throw new Error(t('sweepPrivateKey.notifications.noWifProvided'));
       }
       const wifToSweep = privateKeyToSweep.value.startsWith('bch-wif:') ? privateKeyToSweep.value.slice(8) : privateKeyToSweep.value;
       const walletClass = (store.network == 'mainnet')? Wallet : TestNetWallet;
@@ -32,7 +34,7 @@
       const tempWallet = await walletClass.fromWIF(wifToSweep);
       $q.notify({
         spinner: true,
-        message: 'Sending transaction...',
+        message: t('sweepPrivateKey.notifications.sendingTransaction'),
         color: 'grey-5',
         timeout: 1000
       })
@@ -40,7 +42,7 @@
       await tempWallet.sendMax(mainWalletAddress)
       $q.notify({
         type: 'positive',
-        message: `Successfully swept funds on Private Key`
+        message: t('sweepPrivateKey.notifications.success')
       })
       privateKeyToSweep.value = "";
       // update utxo list
@@ -63,13 +65,13 @@
     const mainnetWifEncoding = content.startsWith('bch-wif:') || content.startsWith('K') || content.startsWith('L') || content.startsWith('5')
     const chipnetWifEncoding = content.startsWith('c') || content.startsWith('9')
     if(!mainnetWifEncoding && !chipnetWifEncoding) {
-      return "Not a QR code encoding a Private Key in WIF format";
+      return t('sweepPrivateKey.qrErrors.notWif');
     }
     if(store.network === 'mainnet' && !mainnetWifEncoding) {
-      return "Not a QR code encoding a Mainnet Private Key in WIF format";
+      return t('sweepPrivateKey.qrErrors.notMainnetWif');
     }
     if(store.network === 'chipnet' && !chipnetWifEncoding) {
-      return "Not a QR code encoding a Chipnet Private Key in WIF format";
+      return t('sweepPrivateKey.qrErrors.notChipnetWif');
     }
     return true;
   }
@@ -77,16 +79,16 @@
 
 <template>
   <fieldset class="item" style="padding-bottom: 20px;">
-    <legend>Sweep Private Key</legend>
+    <legend>{{ t('sweepPrivateKey.title') }}</legend>
 
-    Sweep BCH from a private key WIF:
+    {{ t('sweepPrivateKey.description') }}
     <div style="display: flex; gap: 0.5rem;">
-      <input v-model="privateKeyToSweep" @keyup.enter="() => sweep()"  type="text" placeholder="Enter Private Key WIF" />
+      <input v-model="privateKeyToSweep" @keyup.enter="() => sweep()"  type="text" :placeholder="t('sweepPrivateKey.placeholder')" />
       <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
           <img src="images/qrscan.svg" />
       </button>
     </div>
-    <input @click="sweep()" type="button" class="primaryButton" :value="isSweeping ? 'Sweeping...' : 'Sweep'" style="margin-top: 8px;" :disabled="isSweeping">
+    <input @click="sweep()" type="button" class="primaryButton" :value="isSweeping ? t('sweepPrivateKey.sweepingButton') : t('sweepPrivateKey.sweepButton')" style="margin-top: 8px;" :disabled="isSweeping">
   </fieldset>
   <div v-if="showQrCodeDialog">
     <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>

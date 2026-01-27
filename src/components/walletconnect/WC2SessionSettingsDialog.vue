@@ -4,9 +4,11 @@
   import { type DappMetadata } from 'src/interfaces/interfaces';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWindowSize } from '@vueuse/core'
+  import { useI18n } from 'vue-i18n'
   const settingsStore = useSettingsStore()
   const { width } = useWindowSize();
   const isMobilePhone = width.value < 480
+  const { t } = useI18n()
 
   const props = defineProps<{
     sessionId: string,
@@ -24,7 +26,7 @@
   const autoDuration = ref(undefined as number | undefined);
   const autoTimeLeft = ref(undefined as number | undefined);
 
-  const displaySessionId = `- ${!isMobilePhone ?'session ' : ''} ${sessionId.value.slice(0, 6)}`
+  const displaySessionId = `- ${!isMobilePhone ? t('walletConnect.sessions.session') + ' ' : ''} ${sessionId.value.slice(0, 6)}`
 
   function toggleRadioButtons() {
     if (!enableAutoApprovals.value) {
@@ -85,8 +87,8 @@
 <template>
   <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @hide="emit('hide')">
     <q-card>
-      <fieldset class="dialogFieldset"> 
-        <legend style="font-size: large;">Manage Session</legend>
+      <fieldset class="dialogFieldset">
+        <legend style="font-size: large;">{{ t('walletConnect.sessionSettings.title') }}</legend>
 
         <div style="display: flex; flex-direction: column; gap: 1rem">
           <div style="display: flex; align-items: center;">
@@ -98,28 +100,28 @@
           </div>
 
           <div>
-            Enable Auto-Approvals
+            {{ t('walletConnect.sessionSettings.enableAutoApprovals') }}
             <Toggle v-model="enableAutoApprovals" @change="toggleRadioButtons"/>
           </div>
 
           <label class="radio-option">
             <input type="radio" value="forever" v-model="autoMode" :disabled="!enableAutoApprovals"/>
-            Forever
+            {{ t('walletConnect.sessionSettings.forever') }}
           </label>
-          
+
           <label class="radio-option">
             <input type="radio" value="count" v-model="autoMode" :disabled="!enableAutoApprovals" />
-            For
+            {{ t('walletConnect.sessionSettings.for') }}
             <input type="number" min="1" v-model.number="autoCount" :disabled="autoMode !== 'count'" />
-            requests
-            <span v-if="autoMode === 'count' && autoCountLeft != undefined">({{ autoCountLeft }} left)</span>
+            {{ t('walletConnect.sessionSettings.requests') }}
+            <span v-if="autoMode === 'count' && autoCountLeft != undefined">({{ autoCountLeft }} {{ t('walletConnect.sessionSettings.left') }})</span>
           </label>
           <label class="radio-option">
             <input type="radio" value="time" v-model="autoMode" :disabled="!enableAutoApprovals" />
-            For
+            {{ t('walletConnect.sessionSettings.for') }}
             <input type="number" min="1" v-model.number="autoDuration" :disabled="autoMode !== 'time'" />
-            minutes
-            <span v-if="autoMode === 'time' && autoTimeLeft != undefined">({{ autoTimeLeft }} left)</span>
+            {{ t('walletConnect.sessionSettings.minutes') }}
+            <span v-if="autoMode === 'time' && autoTimeLeft != undefined">({{ autoTimeLeft }} {{ t('walletConnect.sessionSettings.left') }})</span>
           </label>
 
         </div>

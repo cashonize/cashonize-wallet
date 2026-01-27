@@ -10,8 +10,10 @@
   import { type WalletKitTypes } from '@reown/walletkit';
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
   import TokenIcon from '../general/TokenIcon.vue';
+  import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
 
   // Local metadata for tokens not in wallet (kept separate from global store for security)
   // Same approach as CCSignTransactionDialog.vue
@@ -145,7 +147,7 @@
       const addNftPostfix = tokenSpent.nft ? " NFT" : "";
       return displayMetadata + addNftPostfix;
     } else {
-      const tokenType = tokenSpent.nft ? "NFT" : "Tokens";
+      const tokenType = tokenSpent.nft ? "NFT" : t('tokenItem.tokens');
       return `${categoryHex.slice(0, 6)}... ${tokenType}`;
     }
   };
@@ -154,14 +156,14 @@
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
     <q-card>
-      <fieldset class="dialogFieldsetTxRequest"> 
-        <legend style="font-size: large;">Sign Transaction</legend>
+      <fieldset class="dialogFieldsetTxRequest">
+        <legend style="font-size: large;">{{ t('walletConnect.transactionRequest.title') }}</legend>
 
         <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
           {{ requestParams.userPrompt }}
         </div>
 
-        <div style="font-size: large; margin-top: 1.5rem;">Origin:</div>
+        <div style="font-size: large; margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.origin') }}</div>
         <div style="display: flex;">
           <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
@@ -172,7 +174,7 @@
 
         <hr style="margin-top: 1.5rem;">
 
-        <div class="wc-modal-heading" style="margin-top: 1.5rem;">Balance Change:</div>
+        <div class="wc-modal-heading" style="margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.balanceChange') }}</div>
           <div>
             {{ bchBalanceChange > 0 ? '+ ': '- '}} {{ satoshiToBCHString(abs(bchBalanceChange)) }}
             ({{ currencyBalanceChange + ` ${CurrencySymbols[settingsStore.currency]}`}})
@@ -200,15 +202,15 @@
             </div>
           </div>
           <div v-if="Object.keys(unverifiedTokenMetadata).length > 0" class="unverified-note">
-            * {{ Object.keys(unverifiedTokenMetadata).length === 1 ? 'Token' : 'Tokens' }} not in your wallet. New metadata fetched for preview.
+            * {{ Object.keys(unverifiedTokenMetadata).length === 1 ? t('walletConnect.transactionRequest.unverifiedTokenNoteSingular') : t('walletConnect.transactionRequest.unverifiedTokenNotePlural') }}
           </div>
 
           <hr style="margin-top: 2rem;">
 
         <details>
-          <summary style="display: list-item" class="hover">Full Transaction Details</summary>
+          <summary style="display: list-item" class="hover">{{ t('walletConnect.transactionRequest.fullDetails') }}</summary>
           <div class="wc-modal-details" style="margin-top: 1rem;">
-            <div class="wc-modal-heading">Inputs:</div>
+            <div class="wc-modal-heading">{{ t('walletConnect.transactionRequest.inputs') }}</div>
             <table class="wc-data-table">
               <tbody v-for="(input, inputIndex) in sourceOutputs" :key="binToHex(input.outpointTransactionHash) + inputIndex">
                 <tr>
@@ -216,19 +218,19 @@
                   <td>
                     {{ toCashaddr(input.lockingBytecode).slice(0,25)  + '...' }}
                     <span v-if="toCashaddr(input.lockingBytecode) == store.wallet.getDepositAddress()" class="thisWalletTag">
-                      (this wallet)
+                      {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
                   <td>{{ satoshiToBCHString(input.valueSatoshis) }}</td>
                 </tr>
                 <tr v-if="input.contract">
                   <td></td>
-                  <td style="font-weight: 600;">Contract: {{input.contract.artifact.contractName}}, Function: {{ input.contract.abiFunction.name }}</td>
+                  <td style="font-weight: 600;">{{ t('walletConnect.transactionRequest.contract') }} {{input.contract.artifact.contractName}}, {{ t('walletConnect.transactionRequest.function') }} {{ input.contract.abiFunction.name }}</td>
                 </tr>
                 <tr v-if="input?.token">
                   <td></td>
                   <td>
-                    {{input?.token?.nft && !input?.token?.amount ? 'NFT:' : 'Token:'}}
+                    {{input?.token?.nft && !input?.token?.amount ? t('walletConnect.transactionRequest.nft') : t('walletConnect.transactionRequest.token')}}
                     {{ formatTokenDisplay(input.token as NonNullable<Output['token']>) }}
                     <TokenIcon
                       :token-id="binToHex(input.token.category)"
@@ -238,19 +240,19 @@
                     <span v-if="isUnverifiedToken(binToHex(input.token.category))">*</span>
                   </td>
                   <td v-if="input.token.amount">
-                    Amount: {{ calculateAmount(input.token as NonNullable<Output['token']>) }}
+                    {{ t('walletConnect.transactionRequest.amount') }} {{ calculateAmount(input.token as NonNullable<Output['token']>) }}
                   </td>
                 </tr>
                 <tr v-if="input?.token?.nft">
                   <td></td>
-                  <td class="commitment">Commitment: {{ binToHex(input.token.nft.commitment) }}</td>
-                  <td>Capability: {{ input.token.nft.capability }}</td>
+                  <td class="commitment">{{ t('walletConnect.transactionRequest.commitment') }} {{ binToHex(input.token.nft.commitment) }}</td>
+                  <td>{{ t('walletConnect.transactionRequest.capability') }} {{ input.token.nft.capability }}</td>
                 </tr>
               </tbody>
             </table>
             <div>
             </div>
-            <div class="wc-modal-heading">Outputs:</div>
+            <div class="wc-modal-heading">{{ t('walletConnect.transactionRequest.outputs') }}</div>
             <table class="wc-data-table">
               <tbody v-for="(output, outputIndex) in txDetails.outputs" :key="binToHex(output.lockingBytecode) + outputIndex">
                 <tr>
@@ -258,7 +260,7 @@
                   <td>
                     {{ toCashaddr(output.lockingBytecode).slice(0,25)  + '...' }}
                     <span v-if="toCashaddr(output.lockingBytecode) == store.wallet.getDepositAddress()" class="thisWalletTag">
-                      (this wallet)
+                      {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
                   <td>{{ satoshiToBCHString(output.valueSatoshis) }}</td>
@@ -266,7 +268,7 @@
                 <tr v-if="output?.token">
                   <td></td>
                   <td>
-                    {{output?.token?.nft && !output?.token?.amount ? 'NFT:' : 'Token:'}}
+                    {{output?.token?.nft && !output?.token?.amount ? t('walletConnect.transactionRequest.nft') : t('walletConnect.transactionRequest.token')}}
                     {{ formatTokenDisplay(output.token as NonNullable<Output['token']>) }}
                     <TokenIcon
                       :token-id="binToHex(output.token.category)"
@@ -276,21 +278,21 @@
                     <span v-if="isUnverifiedToken(binToHex(output.token.category))">*</span>
                   </td>
                   <td v-if="output.token.amount">
-                    Amount: {{ calculateAmount(output.token as NonNullable<Output['token']>) }}
+                    {{ t('walletConnect.transactionRequest.amount') }} {{ calculateAmount(output.token as NonNullable<Output['token']>) }}
                   </td>
                 </tr>
                 <tr v-if="output?.token?.nft">
                   <td></td>
-                  <td class="commitment">Commitment: {{ binToHex(output.token.nft.commitment) }}</td>
-                  <td>Capability: {{ output.token.nft.capability }}</td>
+                  <td class="commitment">{{ t('walletConnect.transactionRequest.commitment') }} {{ binToHex(output.token.nft.commitment) }}</td>
+                  <td>{{ t('walletConnect.transactionRequest.capability') }} {{ output.token.nft.capability }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </details>
         <div class="wc-modal-bottom-buttons">
-          <input type="button" class="primaryButton" value="Sign" @click="onDialogOK">
-          <input type="button" value="Cancel" @click="onDialogCancel" v-close-popup>
+          <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="onDialogOK">
+          <input type="button" :value="t('walletConnect.transactionRequest.cancelButton')" @click="onDialogCancel" v-close-popup>
         </div>
       </fieldset>
     </q-card>

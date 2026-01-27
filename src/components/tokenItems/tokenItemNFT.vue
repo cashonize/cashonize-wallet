@@ -15,9 +15,11 @@
   import { caughtErrorToString } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useQuasar } from 'quasar'
+  import { useI18n } from 'vue-i18n'
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
@@ -169,8 +171,7 @@
 
       // Check if c= is for a different token
       if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.tokenId){
-        const message = "This payment request is for a different token";
-        $q.notify({ message, icon: 'warning', color: "grey-7" });
+        $q.notify({ message: t('tokenItem.errors.differentTokenRequest'), icon: 'warning', color: "grey-7" });
         return;
       }
 
@@ -193,7 +194,7 @@
     }
     const decoded = decodeCashAddress(addressToCheck);
     if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
-      return "Not a cashaddress on current network";
+      return t('tokenItem.errors.notCashaddress');
     }
     return true;
   }
@@ -202,17 +203,17 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if(selectedNftCount.value === 0) throw("No NFTs selected")
-      if(!destinationAddr.value) throw("No destination address provided")
+      if(selectedNftCount.value === 0) throw(t('tokenItem.errors.noNftsSelected'))
+      if(!destinationAddr.value) throw(t('tokenItem.errors.noDestination'))
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         destinationAddr.value = networkPrefix + destinationAddr.value
       }
       const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
+      if(typeof decodedAddress == 'string') throw(t('tokenItem.errors.invalidAddress'))
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
-      if(!supportsTokens ) throw(`Not a Token Address (should start with z...)`);
-      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      if(!supportsTokens ) throw(t('tokenItem.errors.notTokenAddress'));
+      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
 
       const tokenId = tokenData.value.tokenId;
       const isAllSelected = selectedNftCount.value === tokenData.value.nfts?.length;
@@ -224,11 +225,11 @@
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
-            title: 'Confirm NFT Transfer',
-            message: `Send ${isAllSelected ? 'all ' : ''}${nftCount} ${tokenSymbol} NFTs to<br>${truncatedAddr}`,
+            title: t('tokenItem.dialogs.confirmNftTransfer.title'),
+            message: t('tokenItem.dialogs.confirmNftTransfer.message', { prefix: isAllSelected ? 'all ' : '', count: nftCount, symbol: tokenSymbol, address: truncatedAddr }),
             html: true,
             cancel: { flat: true, color: 'dark' },
-            ok: { label: 'Confirm', color: 'primary', textColor: 'white' },
+            ok: { label: t('tokenItem.dialogs.confirmButton'), color: 'primary', textColor: 'white' },
             persistent: true
           }).onOk(() => resolve(true))
             .onCancel(() => resolve(false))
@@ -255,15 +256,16 @@
       })
       $q.notify({
         spinner: true,
-        message: 'Sending transaction...',
+        message: t('common.status.sending'),
         color: 'grey-5',
         timeout: 1000
       })
       const { txId } = await store.wallet.send(outputArray);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = isAllSelected
-        ? `Sent all NFTs of category ${displayId} to ${destinationAddr.value}`
-        : `Sent ${nftCount} NFTs of category ${displayId} to ${destinationAddr.value}`
+      let alertMessage = t('tokenItem.alerts.sentNfts', { count: nftCount, tokenId: displayId, address: destinationAddr.value });
+      if (isAllSelected) {
+        alertMessage = t('tokenItem.alerts.sentAllNfts', { tokenId: displayId, address: destinationAddr.value });
+      }
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -272,7 +274,7 @@
       })
       $q.notify({
         type: 'positive',
-        message: 'Transaction succesfully sent!'
+        message: t('tokenItem.success.transactionSent')
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
@@ -294,16 +296,16 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if(!destinationAddr.value) throw("No destination address provided")
+      if(!destinationAddr.value) throw(t('tokenItem.errors.noDestination'))
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         destinationAddr.value = networkPrefix + destinationAddr.value
       }
       const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
+      if(typeof decodedAddress == 'string') throw(t('tokenItem.errors.invalidAddress'))
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
-      if(!supportsTokens) throw(`Not a Token Address (should start with z...)`);
-      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      if(!supportsTokens) throw(t('tokenItem.errors.notTokenAddress'));
+      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -311,11 +313,11 @@
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
-            title: 'Confirm NFT Send',
-            message: `Send ${tokenSymbol} NFT to<br>${truncatedAddr}`,
+            title: t('tokenItem.dialogs.confirmNftSend.title'),
+            message: t('tokenItem.dialogs.confirmNftSend.message', { symbol: tokenSymbol, address: truncatedAddr }),
             html: true,
             cancel: { flat: true, color: 'dark' },
-            ok: { label: 'Confirm', color: 'primary', textColor: 'white' },
+            ok: { label: t('tokenItem.dialogs.confirmButton'), color: 'primary', textColor: 'white' },
             persistent: true
           }).onOk(() => resolve(true))
             .onCancel(() => resolve(false))
@@ -327,7 +329,7 @@
       const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
       $q.notify({
         spinner: true,
-        message: 'Sending transaction...',
+        message: t('common.status.sending'),
         color: 'grey-5',
         timeout: 1000
       })
@@ -340,7 +342,7 @@
         } as TokenSendRequestParams),
       ]);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = `Sent NFT of category ${displayId} to ${destinationAddr.value}`
+      const alertMessage = t('tokenItem.alerts.sentNft', { tokenId: displayId, address: destinationAddr.value });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -349,7 +351,7 @@
       })
       $q.notify({
         type: 'positive',
-        message: 'Transaction succesfully sent!'
+        message: t('tokenItem.success.transactionSent')
       })
       console.log(alertMessage)
       console.log(`${store.explorerUrl}/${txId}`);
@@ -378,17 +380,17 @@
     try {
       if(!nftInfo) return;
       // mint amount should always be provided
-      if(mintAmountNfts.value == undefined) throw('invalid amount NFTs to mint');
+      if(mintAmountNfts.value == undefined) throw(t('tokenItem.errors.invalidAmountNfts'));
       const mintAmount = parseInt(mintAmountNfts.value);
 
       // startingNumberNFTs should be provided if mintUniqueNfts is checked
-      if(mintUniqueNfts.value && startingNumberNFTs.value == undefined) throw('invalid starting number');
+      if(mintUniqueNfts.value && startingNumberNFTs.value == undefined) throw(t('tokenItem.errors.invalidStartingNumber'));
       // initialize commitment with mintCommitment or empty string
       let nftCommitment = mintUniqueNfts.value? "" : mintCommitment.value;
       const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
-      if(!validCommitment) throw(`nftCommitment '${nftCommitment}' must be a hexadecimal`);
+      if(!validCommitment) throw(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
 
-      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`); 
+      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee')); 
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
@@ -414,16 +416,17 @@
       }
       $q.notify({
         spinner: true,
-        message: 'Sending transaction...',
+        message: t('common.status.sending'),
         color: 'grey-5',
         timeout: 1000
       })
       const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
       const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
-      const alertMessage = mintAmount == 1 ?
-        `Minted immutable NFT of category ${displayId} ${commitmentText}`
-        : `Minted ${mintAmount} NFTs of category ${displayId}`
+      let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
+      if (mintAmount == 1) {
+        alertMessage = t('tokenItem.alerts.mintedNft', { tokenId: displayId, commitmentText });
+      }
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -432,7 +435,7 @@
       })
        $q.notify({
         type: 'positive',
-        message: 'Mint successful'
+        message: t('tokenItem.success.mintSuccessful')
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
@@ -455,18 +458,18 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance?.sat ?? 0) < 550) throw(`Need some BCH to cover transaction fee`);
+      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
 
       const tokenId = tokenData.value.tokenId;
       const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
-      const nftTypeString = nftInfo?.capability == 'minting' ? "a minting NFT" : "an NFT"
+      const nftTypeString = nftInfo?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
       const confirmed = await new Promise<boolean>((resolve) => {
         $q.dialog({
-          title: 'Burn NFT',
-          message: `You are about to burn ${nftTypeString}, this cannot be undone.<br>Are you sure you want to burn the NFT?`,
+          title: t('tokenItem.dialogs.burnNft.title'),
+          message: t('tokenItem.dialogs.burnNft.message', { nftType: nftTypeString }),
           html: true,
           cancel: { flat: true, color: 'dark' },
-          ok: { label: 'Burn', color: 'red', textColor: 'white' },
+          ok: { label: t('tokenItem.dialogs.burnNft.burnButton'), color: 'red', textColor: 'white' },
           persistent: true
         }).onOk(() => resolve(true))
           .onCancel(() => resolve(false))
@@ -475,7 +478,7 @@
 
       $q.notify({
         spinner: true,
-        message: 'Sending transaction...',
+        message: t('common.status.sending'),
         color: 'grey-5',
         timeout: 1000
       })
@@ -488,7 +491,7 @@
         "burn", // optional OP_RETURN message
       );
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage= `Burned ${nftTypeString} of category ${displayId}`;
+      const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, tokenId: displayId });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -497,7 +500,7 @@
       })
        $q.notify({
         type: 'positive',
-        message: 'Burn successful'
+        message: t('tokenItem.success.burnSuccessful')
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
@@ -531,13 +534,13 @@
       } as TokenSendRequestParams);
       $q.notify({
         spinner: true,
-        message: 'Sending transaction...',
+        message: t('common.status.sending'),
         color: 'grey-5',
         timeout: 1000
       })
       const { txId } = await store.wallet.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
       const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = `Transferred the Auth of utxo ${displayId} to ${destinationAddr.value}`
+      const alertMessage = t('tokenItem.alerts.transferredAuth', { tokenId: displayId, address: destinationAddr.value });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -546,7 +549,7 @@
       })
        $q.notify({
         type: 'positive',
-        message: 'Auth transfer successful'
+        message: t('tokenItem.success.authTransferSuccessful')
       })
       displayAuthTransfer.value = false;
       destinationAddr.value = "";
@@ -604,9 +607,9 @@
 
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
-            <div v-if="tokenName">Name: {{ tokenName }}</div>
+            <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
-              TokenId:
+              {{ t('tokenItem.tokenId') }}
               <span @click="copyToClipboard(tokenData.tokenId)" style="cursor: pointer;">
                 <span class="tokenId">
                   {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-8)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-8)}`}}
@@ -618,24 +621,24 @@
           </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" class="showChildNfts">
             <div @click="showChildNfts()" class="showChildNftsToggle">
-              <span class="nrChildNfts">Number NFTs: {{ tokenData.nfts?.length }}</span>
+              <span class="nrChildNfts">{{ t('tokenItem.info.numberNfts') }} {{ tokenData.nfts?.length }}</span>
               <span class="hide" style="margin-left: 10px;">
                 <img class="icon" :src="settingsStore.darkMode? (displayChildNfts? 'images/chevron-square-up-lightGrey.svg':'images/chevron-square-down-lightGrey.svg') :
                   (displayChildNfts? 'images/chevron-square-up.svg':'images/chevron-square-down.svg')">
               </span>
             </div>
             <div v-if="loadingChildNftMetadata" class="loadingChildNftMetadata">
-              <span class="hide-mobile">loading NFT metadata...</span>
-              <span class="show-mobile">loading...</span>
+              <span class="hide-mobile">{{ t('tokenItem.loading.nftMetadata') }}</span>
+              <span class="show-mobile">{{ t('tokenItem.loading.nftMetadataShort') }}</span>
             </div>
           </div>
         </div>
-        <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.tokenId) ? 'Unhide token' : 'Hide token'">
+        <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.tokenId) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
           <img :src="settingsStore.hiddenTokens.includes(tokenData.tokenId)
             ? (settingsStore.darkMode ? 'images/eye-off-outline-lightGrey.svg' : 'images/eye-off-outline.svg')
             : (settingsStore.darkMode ? 'images/eye-outline-lightGrey.svg' : 'images/eye-outline.svg')">
         </span>
-        <span @click="store.toggleFavorite(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.tokenId) ? 'Unfavorite token' : 'Favorite token'">
+        <span @click="store.toggleFavorite(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.tokenId) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
           <img :src="settingsStore.featuredTokens.includes(tokenData.tokenId) ? 'images/star-full.svg' :
             settingsStore.darkMode? 'images/star-empty-grey.svg' : 'images/star-empty.svg'">
         </span>
@@ -644,122 +647,126 @@
       <div class="tokenActions">
         <div class="actionBar">
           <span v-if="tokenData?.nfts?.length == 1" @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> send </span>
+            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
           <span @click="displayTokenInfo = !displayTokenInfo">
-            <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> info
+            <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
           </span>
           <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayBatchTransfer = !displayBatchTransfer" style="margin-left: 10px;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> batch transfer{{ selectedNftCount > 0 ? ` (${selectedNftCount === tokenData.nfts?.length ? 'all' : selectedNftCount})` : '' }}
+            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.batchTransfer') }}{{ selectedNftCount > 0 ? ` (${selectedNftCount === tokenData.nfts?.length ? t('tokenItem.actions.all') : selectedNftCount})` : '' }}
           </span>
           <span v-if="selectedNftCount > 0 || displayBatchTransfer" @click="selectAllNfts()" class="batch-action-btn">
-            all
+            {{ t('tokenItem.actions.all') }}
           </span>
           <span v-if="selectedNftCount > 0 || displayBatchTransfer" @click="clearSelection()" class="batch-action-btn">
-            clear
+            {{ t('tokenItem.actions.clear') }}
           </span>
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting' && settingsStore.mintNfts" @click="displayMintNfts = !displayMintNfts">
-            <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> mint NFTs
+            <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> {{ t('tokenItem.actions.mintNfts') }}
           </span>
           <span v-if="isSingleNft && settingsStore.tokenBurn" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
-            <span>burn NFT</span>
+            <span>{{ t('tokenItem.actions.burnNft') }}</span>
           </span>
           <span v-if="settingsStore.authchains && tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
-            <span>auth transfer</span>
+            <span>{{ t('tokenItem.actions.authTransfer') }}</span>
           </span>
         </div>
         <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
-          <div v-if="tokenMetaData?.description" class="indentText">Token description: {{ tokenMetaData.description }} </div>
+          <div v-if="tokenMetaData?.description" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenMetaData.description }} </div>
           <div v-if="isSingleNft">
-            NFT type: {{  tokenData?.nfts?.[0]?.token?.capability == "none" ? "immutable" : tokenData?.nfts?.[0]?.token?.capability }} NFT
+            {{ t('tokenItem.info.nftType') }} {{  tokenData?.nfts?.[0]?.token?.capability == "none" ? t('tokenItem.info.immutable') : tokenData?.nfts?.[0]?.token?.capability }} NFT
           </div>
           <div v-if="isSingleNft">
-            NFT commitment: {{ tokenData.nfts?.[0]?.token?.commitment ? tokenData.nfts?.[0].token?.commitment : "none" }}
+            {{ t('tokenItem.info.nftCommitment') }} {{ tokenData.nfts?.[0]?.token?.commitment ? tokenData.nfts?.[0].token?.commitment : t('tokenItem.none') }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
-            Token web link:
+            {{ t('tokenItem.info.tokenWebLink') }}
             <a :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
           </div>
           <div v-if="tokenData?.nfts?.length">
-            Total supply NFTs: {{ totalNumberNFTs? totalNumberNFTs: "..."}}
+            {{ t('tokenItem.info.totalSupplyNfts') }} {{ totalNumberNFTs? totalNumberNFTs: "..."}}
           </div>
           <div v-if="tokenData?.nfts?.length && !isSingleMintingNft">
-            Has active minting NFT: {{ hasMintingNFT == undefined? "..." :( hasMintingNFT? "yes": "no")}}
+            {{ t('tokenItem.info.hasActiveMintingNft') }} {{ hasMintingNFT == undefined? "..." :( hasMintingNFT? t('tokenItem.info.yes'): t('tokenItem.info.no'))}}
           </div>
           <div>
             <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.tokenId" target="_blank">
-              See details on TokenExplorer <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
+              {{ t('tokenItem.info.seeDetailsOnExplorer') }} <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
             </a>
           </div>
           <details v-if="isSingleNft && nftMetadata?.extensions?.attributes" style="cursor:pointer;">
-            <summary style="display: list-item">NFT attributes</summary>
+            <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
             <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap; margin-left:15px">
-              {{ attributeKey }}: {{ attributeValue ? attributeValue : "none" }}
+              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.none') }}
             </div>
           </details>
         </div>
 
         <div v-if="displaySendNft" class="tokenAction">
-          Send this NFT to
+          {{ t('tokenItem.sendNft.title') }}
           <div class="inputGroup">
             <div class="addressInputNftSend">
-              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" placeholder="token address">
+              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
                 <img src="images/qrscan.svg" />
               </button>
             </div>
-            <input @click="sendNft()" type="button" class="primaryButton" :value="activeAction === 'sending' ? 'Sending...' : 'Send NFT'" :disabled="activeAction !== null">
+            <input @click="sendNft()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendNft.sendingButton') : t('tokenItem.sendNft.sendButton')" :disabled="activeAction !== null">
           </div>
         </div>
         <div v-if="displayBatchTransfer" class="tokenAction">
-          Send {{ selectedNftCount === tokenData.nfts?.length ? `all ${selectedNftCount} NFTs of this category` : `${selectedNftCount} selected NFTs` }} to
+          {{ selectedNftCount === tokenData.nfts?.length ? t('tokenItem.batchTransfer.titleAll', { count: selectedNftCount }) : t('tokenItem.batchTransfer.titleSelected', { count: selectedNftCount }) }}
           <div class="inputGroup">
             <div class="addressInputNftSend">
-              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" placeholder="token address">
+              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
                 <img src="images/qrscan.svg" />
               </button>
             </div>
-            <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? 'Sending...' : 'Batch Transfer'" :disabled="activeAction !== null">
+            <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.batchTransfer.transferringButton') : t('tokenItem.batchTransfer.transferButton')" :disabled="activeAction !== null">
           </div>
         </div>
         <div v-if="displayMintNfts" class="tokenAction">
-          Mint a number of (unique) NFTs to a specific address
+          {{ t('tokenItem.mint.title') }}
           <div>
             <input type="checkbox" v-model="mintUniqueNfts" style="margin: 0px; vertical-align: text-bottom;">
-            make each NFT unique by numbering each one in the collection
+            {{ t('tokenItem.mint.uniqueCheckbox') }}
           </div>
           <div v-if="mintUniqueNfts" style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
-            <label for="numbering" style="width: 80px;">Numbering:</label>
+            <label for="numbering" style="width: 80px;">{{ t('tokenItem.mint.numberingLabel') }}</label>
             <select id="numbering" v-model="numberingUniqueNfts" style="max-width: 260px; padding: 4px 8px;">
-              <option value="vm-numbers">VM numbers (default)</option>
-              <option value="hex-numbers">Hex numbers (old cashonize)</option>
+              <option value="vm-numbers">{{ t('tokenItem.mint.vmNumbers') }}</option>
+              <option value="hex-numbers">{{ t('tokenItem.mint.hexNumbers') }}</option>
             </select>
           </div>
           <p class="grouped" style="align-items: center; margin-bottom: 5px;">
-            <input v-model="mintAmountNfts" type="number" placeholder="amount NFTs">
-            <input v-if="mintUniqueNfts" v-model="startingNumberNFTs" type="number" placeholder="starting number" style="margin-right: 0px;">
-            <input v-if="!mintUniqueNfts" v-model="mintCommitment" placeholder="commitment">
+            <input v-model="mintAmountNfts" type="number" :placeholder="t('tokenItem.mint.amountPlaceholder')">
+            <input v-if="mintUniqueNfts" v-model="startingNumberNFTs" type="number" :placeholder="t('tokenItem.mint.startingNumberPlaceholder')" style="margin-right: 0px;">
+            <input v-if="!mintUniqueNfts" v-model="mintCommitment" :placeholder="t('tokenItem.mint.commitmentPlaceholder')">
           </p>
           <span class="grouped">
-            <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="destinationAddress">
-            <input @click="mintNfts()" type="button" :value="activeAction === 'minting' ? 'Minting...' : 'Mint NFTs'" class="primaryButton" :disabled="activeAction !== null">
+            <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('tokenItem.mint.destinationPlaceholder')">
+            <input @click="mintNfts()" type="button" :value="activeAction === 'minting' ? t('tokenItem.mint.mintingButton') : t('tokenItem.mint.mintButton')" class="primaryButton" :disabled="activeAction !== null">
           </span>
         </div>
         <div v-if="displayBurnNft" class="tokenAction">
-          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'">Burn this NFT so no new NFTs of this category can be minted</span>
-          <span v-else>Burning this NFT to remove it from your wallet forever</span>
+          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
+          <span v-else>{{ t('tokenItem.burn.burnNftDescription') }}</span>
           <br>
-          <input @click="burnNft()" type="button" :value="activeAction === 'burning' ? 'Burning...' : 'burn NFT'" class="button error" :disabled="activeAction !== null">
+          <input @click="burnNft()" type="button" :value="activeAction === 'burning' ? t('tokenItem.burn.burningButton') : t('tokenItem.burn.burnNftButton')" class="button error" :disabled="activeAction !== null">
         </div>
         <div v-if="displayAuthTransfer" class="tokenAction">
-          Transfer the authority to change the token's metadata to another wallet <br>
-          You can either transfer the Auth to a dedicated wallet or to the <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>.<br>
+          {{ t('tokenItem.authTransfer.descriptionNft') }} <br>
+          <i18n-t keypath="tokenItem.authTransfer.dedicatedWalletNote" tag="span">
+            <template #link>
+              <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>
+            </template>
+          </i18n-t><br>
           <span class="grouped" style="margin-top: 10px;">
-            <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="destinationAddress">
-            <input @click="transferAuth()" type="button" :value="activeAction === 'transferAuth' ? 'Transferring Auth...' : 'Transfer Auth'" class="primaryButton" :disabled="activeAction !== null">
+            <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('tokenItem.mint.destinationPlaceholder')">
+            <input @click="transferAuth()" type="button" :value="activeAction === 'transferAuth' ? t('tokenItem.authTransfer.transferringButton') : t('tokenItem.authTransfer.transferButton')" class="primaryButton" :disabled="activeAction !== null">
           </span>
         </div>
       </div>

@@ -5,7 +5,9 @@
   import type { SessionTypes } from '@walletconnect/types'
   import { useWindowSize } from '@vueuse/core'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useI18n } from 'vue-i18n'
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
 
   const { width } = useWindowSize();
   const isMobilePhone = width.value < 480
@@ -33,7 +35,7 @@
     );
 
     // If duplicated, return part of the session id
-    const sessionPrefix = !isMobilePhone ?'session ' : ''
+    const sessionPrefix = !isMobilePhone ? t('walletConnect.sessions.session') + ' ' : ''
     return hasDuplicateName? `- ${sessionPrefix} ${session.topic.slice(0, 6)}`: '';
   });
 </script>

@@ -12,7 +12,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ('capacitor' in ctx.mode ? ['deepLinking', 'qrCodeComponent'] : ['qrCodeComponent']),
+    boot: ('capacitor' in ctx.mode ? ['i18n', 'deepLinking', 'qrCodeComponent'] : ['i18n', 'qrCodeComponent']),
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: [

@@ -1,6 +1,8 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
   import { bip39WordListEnglish } from '@bitauth/libauth'
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
 
   const emit = defineEmits<{
     'update:modelValue': [value: string]
@@ -80,12 +82,12 @@
 <template>
   <div>
     <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 15px;">
-      <span>Seed phrase:</span>
+      <span>{{ t('seedPhraseInput.label') }}</span>
       <label class="word-count-option">
-        <input type="radio" :value="12" v-model="seedWordCount" @change="changeSeedWordCount(12)"> 12 words
+        <input type="radio" :value="12" v-model="seedWordCount" @change="changeSeedWordCount(12)"> {{ t('seedPhraseInput.words12') }}
       </label>
       <label class="word-count-option">
-        <input type="radio" :value="24" v-model="seedWordCount" @change="changeSeedWordCount(24)"> 24 words
+        <input type="radio" :value="24" v-model="seedWordCount" @change="changeSeedWordCount(24)"> {{ t('seedPhraseInput.words24') }}
       </label>
     </div>
     <div class="seed-words-grid">

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useDialogPluginComponent } from 'quasar'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 defineProps<{
   template: string
@@ -16,13 +18,13 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card>
       <fieldset class="cc-modal-fieldset">
-        <legend class="cc-modal-fieldset-legend">Template</legend>
+        <legend class="cc-modal-fieldset-legend">{{ t('cashConnect.viewTemplate.title') }}</legend>
 
         <pre style="font-size: 10px;">{{ template }}</pre>
 
         <!-- Bottom Buttons -->
         <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" value="Close" @click="onDialogOK" v-close-popup>
+          <input type="button" class="primaryButton" :value="t('cashConnect.viewTemplate.closeButton')" @click="onDialogOK" v-close-popup>
         </div>
       </fieldset>
     </q-card>

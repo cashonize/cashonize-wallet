@@ -20,6 +20,7 @@ const isMobileDevice = width.value / height.value < 1.5
 
 export const useSettingsStore = defineStore('settingsStore', () => {
   // Settings in settings menu
+  const locale = ref("en");
   const currency = ref<Currency>("usd");
   const bchUnit = ref("bch" as ("bch" | "sat"));
   const explorerMainnet = ref(defaultExplorerMainnet);
@@ -65,6 +66,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const walletMetadata = ref<Record<string, WalletMetadata>>({})
 
   // read local storage for stored settings
+  const readLocale = localStorage.getItem("locale");
+  if(readLocale) locale.value = readLocale;
+
   const readCurrency = localStorage.getItem("currency");
   if(readCurrency && readCurrency in CurrencySymbols) {
     currency.value = readCurrency as Currency;
@@ -379,6 +383,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   }
 
   return {
+    locale,
     currency,
     bchUnit,
     explorerMainnet,
