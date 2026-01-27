@@ -24,6 +24,8 @@ import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequ
 import { displayAndLogError } from "src/utils/errorHandling"
 import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 const settingsStore = useSettingsStore()
 
 // Type for tracking pending request dialogs
@@ -123,9 +125,8 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       const namespaces = getNamespaces(sessionProposal)
 
       if (!namespaces.bch) {
-        const errorMessage = `Trying to connect an app from unsupported blockchain(s): ${Object.keys(namespaces).join(", ")}`;
         Notify.create({
-          message: errorMessage,
+          message: t('walletConnect.errors.unsupportedBlockchain', { chains: Object.keys(namespaces).join(", ") }),
           icon: 'warning',
           color: "red"
         })
@@ -148,7 +149,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
               .then(resolve)
               .catch((error) => {
                 console.error('Failed to approve session:', error)
-                Notify.create({ type: 'negative', message: 'Failed to approve session' })
+                Notify.create({ type: 'negative', message: t('walletConnect.errors.failedToApproveSession') })
                 reject()
               })
           })
@@ -274,7 +275,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
                 void signMessage(event).then(() => {
                   Notify.create({
                     color: "positive",
-                    message: "Successfully signed message",
+                    message: t('walletConnect.notifications.successfullySignedMessage'),
                   });
                   resolve();
                 });
@@ -375,7 +376,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         }
         // TODO: do we also want to encode the decoded TransactionBCH as a way of validation?
       } catch (error) {
-        const userFacingError = "Error in validating schema of WalletConnect transaction request"
+        const userFacingError = t('walletConnect.errors.invalidTransactionSchema')
         displayAndLogError(userFacingError);
         if(error instanceof Error) console.error(error.message)
         const returnError = error instanceof Error ? error.message : userFacingError
@@ -405,12 +406,12 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         try{
           Notify.create({
             spinner: true,
-            message: 'Sending transaction...',
+            message: t('walletConnect.notifications.sendingTransaction'),
             color: 'grey-5',
             timeout: 750
           })
           const txId = await wallet.value.submitTransaction(hexToBin(signedTxObject.signedTransaction));
-          const alertMessage = `Sent WalletConnect transaction '${wcTransactionObj.userPrompt}'`
+          const alertMessage = t('walletConnect.notifications.sentTransaction', { userPrompt: wcTransactionObj.userPrompt })
           Dialog.create({
             component: alertDialog,
             componentProps: {
@@ -430,7 +431,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       const response = { id, jsonrpc: '2.0', result: signedTxObject };
       await web3wallet.value?.respondSessionRequest({ topic, response });
 
-      const message = wcTransactionObj.broadcast ? 'Transaction succesfully sent!' : 'Transaction succesfully signed!'
+      const message = wcTransactionObj.broadcast
+        ? t('walletConnect.notifications.transactionSent')
+        : t('walletConnect.notifications.transactionSigned')
       Notify.create({
         type: 'positive',
         message
@@ -446,7 +449,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         WcMessageObjSchema.parse(wcSignMessageParams);
         return true
       } catch (error) {
-        const userFacingError = "Error in validating schema of WalletConnect sign message request"
+        const userFacingError = t('walletConnect.errors.invalidSignMessageSchema')
         displayAndLogError(userFacingError);
         if(error instanceof Error) console.error(error.message)
         const returnError = error instanceof Error ? error.message : userFacingError

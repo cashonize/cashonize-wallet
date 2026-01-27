@@ -17,6 +17,19 @@
     "wallet": "wallet",
     "wallets": "wallets"
   },
+  "store": {
+    "notifications": {
+      "receivedBch": "Received {amount} {unit} ({fiatValue})",
+      "receivedTokens": "Received new {tokenType}"
+    },
+    "errors": {
+      "cannotDeleteActiveWallet": "Cannot delete the currently active wallet",
+      "errorInitializingWalletConnect": "Error initializing WalletConnect",
+      "errorInitializingCashConnect": "Error initializing CashConnect",
+      "errorFetchingUtxos": "Error in fetching wallet UTXOs",
+      "errorFetchingHistory": "Error in fetching wallet history"
+    }
+  },
   "onboarding": {
     "welcome": {
       "title": "Welcome to Cashonize",
@@ -241,7 +254,7 @@
       "confirmButton": "Confirm"
     },
     "success": {
-      "transactionSent": "Transaction succesfully sent!",
+      "transactionSent": "Transaction successfully sent!",
       "burnSuccessful": "Burn successful",
       "mintSuccessful": "Mint successful",
       "authTransferSuccessful": "Auth transfer successful"
@@ -477,7 +490,7 @@
     "createButton": "Create",
     "notifications": {
       "preparingPreGenesis": "Preparing pre-genesis...",
-      "transactionSent": "Transaction succesfully sent!",
+      "transactionSent": "Transaction successfully sent!",
       "creatingTokens": "Creating tokens...",
       "creatingMintingNft": "Creating minting NFT...",
       "urlPrefixError": "Urls should not have any prefix!",
@@ -613,6 +626,11 @@
       "title": "Error",
       "stackTrace": "Stack Trace:",
       "okButton": "OK"
+    },
+    "notifications": {
+      "sessionApproved": "Session approved",
+      "successfullySignedTransaction": "Successfully signed transaction",
+      "networkMismatch": "This Dapp requires wallet to be on {network}. Please navigate to settings and change network to use this Dapp."
     }
   },
   "walletConnect": {
@@ -668,7 +686,18 @@
     "errors": {
       "enterUri": "Enter a BCH WalletConnect URI",
       "notInitialized": "WalletConnect not initialized yet. Please try again in a moment.",
-      "invalidUri": "Not a valid BCH WalletConnect URI"
+      "invalidUri": "Not a valid BCH WalletConnect URI",
+      "unsupportedBlockchain": "Trying to connect an app from unsupported blockchain(s): {chains}",
+      "failedToApproveSession": "Failed to approve session",
+      "invalidTransactionSchema": "Error in validating schema of WalletConnect transaction request",
+      "invalidSignMessageSchema": "Error in validating schema of WalletConnect sign message request"
+    },
+    "notifications": {
+      "successfullySignedMessage": "Successfully signed message",
+      "sendingTransaction": "Sending transaction...",
+      "sentTransaction": "Sent WalletConnect transaction '{userPrompt}'",
+      "transactionSent": "Transaction successfully sent!",
+      "transactionSigned": "Transaction successfully signed!"
     }
   },
   "settings": {

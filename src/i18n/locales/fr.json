@@ -17,6 +17,19 @@
     "wallet": "portefeuille",
     "wallets": "portefeuilles"
   },
+  "store": {
+    "notifications": {
+      "receivedBch": "Reçu {amount} {unit} ({fiatValue})",
+      "receivedTokens": "Reçu nouveau {tokenType}"
+    },
+    "errors": {
+      "cannotDeleteActiveWallet": "Impossible de supprimer le portefeuille actuellement actif",
+      "errorInitializingWalletConnect": "Erreur lors de l'initialisation de WalletConnect",
+      "errorInitializingCashConnect": "Erreur lors de l'initialisation de CashConnect",
+      "errorFetchingUtxos": "Erreur lors de la récupération des UTXOs du portefeuille",
+      "errorFetchingHistory": "Erreur lors de la récupération de l'historique du portefeuille"
+    }
+  },
   "onboarding": {
     "welcome": {
       "title": "Bienvenue sur Cashonize",
@@ -613,6 +626,11 @@
       "title": "Erreur",
       "stackTrace": "Trace de la pile :",
       "okButton": "OK"
+    },
+    "notifications": {
+      "sessionApproved": "Session approuvée",
+      "successfullySignedTransaction": "Transaction signée avec succès",
+      "networkMismatch": "Cette dApp nécessite que le portefeuille soit sur {network}. Veuillez aller dans les paramètres et changer de réseau pour utiliser cette dApp."
     }
   },
   "walletConnect": {
@@ -668,7 +686,18 @@
     "errors": {
       "enterUri": "Entrez une URI BCH WalletConnect",
       "notInitialized": "WalletConnect pas encore initialisé. Veuillez réessayer dans un moment.",
-      "invalidUri": "Ce n'est pas une URI BCH WalletConnect valide"
+      "invalidUri": "Ce n'est pas une URI BCH WalletConnect valide",
+      "unsupportedBlockchain": "Tentative de connexion à une app de blockchain(s) non supportée(s) : {chains}",
+      "failedToApproveSession": "Échec de l'approbation de la session",
+      "invalidTransactionSchema": "Erreur lors de la validation du schéma de la demande de transaction WalletConnect",
+      "invalidSignMessageSchema": "Erreur lors de la validation du schéma de la demande de signature de message WalletConnect"
+    },
+    "notifications": {
+      "successfullySignedMessage": "Message signé avec succès",
+      "sendingTransaction": "Envoi de la transaction...",
+      "sentTransaction": "Transaction WalletConnect envoyée '{userPrompt}'",
+      "transactionSent": "Transaction envoyée avec succès !",
+      "transactionSigned": "Transaction signée avec succès !"
     }
   },
   "settings": {

@@ -9,6 +9,8 @@ import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import MainnetJs and CashConnect
 import { convert, type Wallet, type TestNetWallet } from "mainnet-js";
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 import {
   type BchSession,
   type BchSessionProposal,
@@ -137,7 +139,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       // Check if the current chain is the target chain.
       if (currentChain !== targetChain) {
         throw new Error(
-          `This Dapp requires wallet to be on ${targetChainCashonizeFormat}. Please navigate to settings and change network to use this Dapp.`
+          t('cashConnect.notifications.networkMismatch', { network: targetChainCashonizeFormat })
         );
       }
 
@@ -156,7 +158,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
             });
             Notify.create({
               color: "positive",
-              message: "Session approved",
+              message: t('cashConnect.notifications.sessionApproved'),
             });
           })
           .onCancel(reject)
@@ -193,7 +195,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
                 resolve();
                 Notify.create({
                   color: "positive",
-                  message: "Successfully signed transaction",
+                  message: t('cashConnect.notifications.successfullySignedTransaction'),
                 });
               })
             .onCancel(reject)
