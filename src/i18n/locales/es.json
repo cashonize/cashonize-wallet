@@ -20,7 +20,7 @@
   "onboarding": {
     "welcome": {
       "title": "Bienvenido a Cashonize",
-      "description": "Una billetera de Bitcoin Cash fácil de usar con enfoque en CashTokens y dApps de BCH.",
+      "description": "Una billetera de Bitcoin Cash fácil de usar, con enfoque en CashTokens y dApps de BCH.",
       "featureSendReceive": "Envía y recibe BCH y CashTokens",
       "featureWalletConnect": "Conéctate a dApps mediante WalletConnect",
       "featureOpenSource": "Código abierto y sin custodia"
@@ -29,7 +29,7 @@
       "title": "Crear nueva billetera",
       "description": "Comienza con una billetera nueva en segundos",
       "button": "Crear nueva billetera",
-      "seedPhraseNote": "Se generará una nueva frase semilla. Guárdala para asegurar tu billetera.",
+      "seedPhraseNote": "Se generará una nueva frase semilla. Haz un respaldo para asegurar tu billetera.",
       "submitButton": "Crear billetera"
     },
     "import": {
@@ -71,21 +71,21 @@
     "tokenAddress": "Dirección de token:",
     "send": "Enviar {network}:",
     "addressPlaceholder": "dirección",
-    "amountPlaceholder": "cantidad",
+    "amountPlaceholder": "monto",
     "max": "máx",
     "notEnoughBch": "No hay suficiente BCH en la billetera para enviar",
     "confirmPayment": "Confirmar pago",
     "confirmPaymentMessage": "Enviar {amount}{unit}{fiat} a",
     "sendingTransaction": "Enviando transacción...",
     "sent": "Enviado {amount} a {address}",
-    "transactionSuccess": "¡Transacción enviada exitosamente!",
+    "transactionSuccess": "¡Transacción enviada correctamente!",
     "errors": {
       "tokenPaymentRequest": "Esta es una solicitud de pago de tokens. Usa la pestaña Tokens para enviar tokens.",
       "noBalance": "La billetera no tiene Bitcoin Cash",
-      "noDestination": "No se proporcionó dirección de destino",
-      "noAmount": "No se proporcionó una cantidad válida",
+      "noDestination": "No se proporcionó una dirección de destino",
+      "noAmount": "No se proporcionó un monto válido",
       "insufficientFunds": "No hay suficiente BCH en la billetera",
-      "invalidAddress": "Dirección BCH inválida proporcionada",
+      "invalidAddress": "Se proporcionó una dirección BCH inválida",
       "notCashaddress": "No es una cashaddress en la red actual"
     }
   },
@@ -111,18 +111,18 @@
     "name": "Nombre:",
     "tokenId": "TokenId:",
     "amount": "Cantidad:",
-    "commitment": "Compromiso:",
+    "commitment": "Commitment:",
     "none": "ninguno",
     "tokens": "tokens",
     "actions": {
       "send": "enviar",
       "info": "info",
-      "swap": "intercambiar",
+      "swap": "swap",
       "burnTokens": "quemar tokens",
       "burnNft": "quemar NFT",
-      "authTransfer": "transferir auth",
+      "authTransfer": "transferir Auth",
       "mintNfts": "acuñar NFTs",
-      "batchTransfer": "transferencia masiva",
+      "batchTransfer": "transferencia en lote",
       "all": "todos",
       "clear": "limpiar",
       "select": "seleccionar",
@@ -146,7 +146,7 @@
       "seeDetailsOnExplorer": "Ver detalles en TokenExplorer",
       "nftType": "Tipo de NFT:",
       "immutable": "inmutable",
-      "nftCommitment": "Compromiso del NFT:",
+      "nftCommitment": "Commitment del NFT:",
       "totalSupplyNfts": "Suministro total de NFTs:",
       "hasActiveMintingNft": "Tiene NFT de acuñación activo:",
       "yes": "sí",
@@ -157,7 +157,7 @@
     "sendTokens": {
       "title": "Enviar estos tokens a",
       "addressPlaceholder": "dirección de token",
-      "amountPlaceholder": "cantidad",
+      "amountPlaceholder": "monto",
       "amountTokensPlaceholder": "cantidad de tokens",
       "sendButton": "Enviar",
       "sendingButton": "Enviando..."
@@ -170,7 +170,7 @@
     "batchTransfer": {
       "titleAll": "Enviar los {count} NFTs de esta categoría a",
       "titleSelected": "Enviar {count} NFTs seleccionados a",
-      "transferButton": "Transferencia masiva",
+      "transferButton": "Transferencia en lote",
       "transferringButton": "Enviando..."
     },
     "burn": {
@@ -178,16 +178,16 @@
       "burnButton": "quemar tokens",
       "burningButton": "Quemando...",
       "burnNftButton": "quemar NFT",
-      "burnMintingDescription": "Quemar este NFT para que no se puedan acuñar nuevos NFTs de esta categoría",
-      "burnNftDescription": "Quemar este NFT para eliminarlo de tu billetera para siempre"
+      "burnMintingDescription": "Quema este NFT para que no se puedan acuñar nuevos NFTs de esta categoría",
+      "burnNftDescription": "Quema este NFT para eliminarlo de tu billetera para siempre"
     },
     "authTransfer": {
       "description": "Transferir la autoridad para cambiar los metadatos del token",
       "descriptionNft": "Transferir la autoridad para cambiar los metadatos del token a otra billetera",
       "dedicatedWalletNote": "Puedes transferir el Auth a una billetera dedicada o al {link}.",
       "reservedSupplyNote": "El suministro de tokens mantenido en el Auth UTXO se marcará como suministro reservado, aún no en circulación.",
-      "destinationPlaceholder": "direcciónDestino",
-      "reservedSupplyPlaceholder": "suministroReservado",
+      "destinationPlaceholder": "dirección de destino",
+      "reservedSupplyPlaceholder": "suministro reservado",
       "transferButton": "Transferir Auth",
       "transferringButton": "Transfiriendo Auth..."
     },
@@ -199,8 +199,8 @@
       "hexNumbers": "Números Hex (cashonize antiguo)",
       "amountPlaceholder": "cantidad de NFTs",
       "startingNumberPlaceholder": "número inicial",
-      "commitmentPlaceholder": "compromiso",
-      "destinationPlaceholder": "direcciónDestino",
+      "commitmentPlaceholder": "commitment",
+      "destinationPlaceholder": "dirección de destino",
       "mintButton": "Acuñar NFTs",
       "mintingButton": "Acuñando..."
     },
@@ -241,7 +241,7 @@
       "confirmButton": "Confirmar"
     },
     "success": {
-      "transactionSent": "¡Transacción enviada exitosamente!",
+      "transactionSent": "¡Transacción enviada correctamente!",
       "burnSuccessful": "Quema exitosa",
       "mintSuccessful": "Acuñación exitosa",
       "authTransferSuccessful": "Transferencia de Auth exitosa"
@@ -260,30 +260,30 @@
       "transferredAuth": "Transferido el Auth del utxo {tokenId} a {address}"
     },
     "errors": {
-      "needBchForFee": "Se necesita algo de BCH para cubrir la comisión de transacción",
-      "noDestination": "No se proporcionó dirección de destino",
-      "noValidAmount": "No se proporcionó una cantidad válida",
+      "needBchForFee": "Se necesita algo de BCH para cubrir la comisión de la transacción",
+      "noDestination": "No se proporcionó una dirección de destino",
+      "noValidAmount": "No se proporcionó un monto válido",
       "insufficientBalance": "Saldo de tokens insuficiente",
-      "invalidAddress": "Dirección BCH inválida proporcionada",
+      "invalidAddress": "Se proporcionó una dirección BCH inválida",
       "notTokenAddress": "No es una dirección de token (debe comenzar con z...)",
       "invalidNumberFormat": "Formato de número inválido",
-      "enterValidAmount": "Ingresa una cantidad positiva válida",
+      "enterValidAmount": "Ingresa un monto positivo válido",
       "noDecimalsAllowed": "Este token no permite decimales",
       "maxDecimalsAllowed": "Este token solo permite hasta {decimals} decimales",
       "differentTokenRequest": "Esta solicitud de pago es para un token diferente",
       "amountMustBeInteger": "La cantidad de tokens a quemar debe ser un número entero válido",
       "invalidAmountNfts": "cantidad de NFTs a acuñar inválida",
       "invalidStartingNumber": "número inicial inválido",
-      "commitmentMustBeHex": "el compromiso del NFT '{commitment}' debe ser hexadecimal",
+      "commitmentMustBeHex": "el commitment del NFT '{commitment}' debe ser hexadecimal",
       "reservedSupplyInvalid": "La cantidad de tokens para suministro reservado debe ser un número entero válido",
       "noNftsSelected": "No se seleccionaron NFTs",
       "notCashaddress": "No es una cashaddress en la red actual"
     }
   },
   "dapp": {
-    "title": "Conectar a Dapp",
+    "title": "Conectar a dApp",
     "exploreText": "Visita {link} para explorar la lista completa de dApps de BCH con WalletConnect",
-    "uriPlaceholder": "URI de Wallet Connect",
+    "uriPlaceholder": "URI de WalletConnect",
     "connectButton": "Conectar nueva dApp",
     "errors": {
       "invalidUri": "URI de WalletConnect o CashConnect inválida",
@@ -457,11 +457,11 @@
     "fungibleTokens": "Tokens fungibles",
     "mintingNFT": "NFT de acuñación",
     "fungibleDescription": "Los tokens fungibles se usan para crear tokens intercambiables. El suministro total de tokens fungibles debe determinarse en la creación.",
-    "mintingDescription": "El NFT de acuñación se usa para crear una colección de NFTs. El NFT de acuñación tiene la capacidad de crear nuevos NFTs con el mismo tokenId.",
+    "mintingDescription": "El NFT de acuñación se usa para crear una colección de NFTs. El NFT de acuñación tiene la capacidad de acuñar nuevos NFTs con el mismo tokenId.",
     "mintingNote": "Nota: para usar un NFT de acuñación activa la opción \"Habilitar acuñar NFTs\" en la configuración de desarrollador.",
     "supplyLabel": "Elige el suministro total de tokens fungibles",
     "supplyPlaceholder": "suministro total",
-    "supplyNote": "nota: agrega ceros adicionales para el número de decimales establecido en los metadatos BCMR",
+    "supplyNote": "Nota: agrega ceros adicionales según el número de decimales establecido en los metadatos BCMR",
     "linkMetadata": "Vincular metadatos del token",
     "metadataIntro": "Para agregar metadatos a tu token necesitas subir la(s) imagen(es) del token, crear un archivo JSON siguiendo el {link}, subirlo en algún lugar y luego publicar ese enlace en la cadena.",
     "bcmrStandard": "estándar BCMR",
@@ -469,7 +469,7 @@
     "selectPlaceholder": "- seleccionar -",
     "ipfs": "IPFS",
     "httpsWebsite": "HTTPS: sitio web propio",
-    "httpsGithub": "HTTPS: gist de github",
+    "httpsGithub": "HTTPS: gist de GitHub",
     "validityCheck": "Verificación de validez de metadatos:",
     "metadataNote": "Nota: Los metadatos del token aún se pueden agregar/actualizar después de la creación con el AuthUTXO del token. Para usar esta funcionalidad activa \"Habilitar resolución de authchain\" en la configuración de desarrollador. Transfiere el AuthUTXO a una billetera dedicada justo después de la creación.",
     "creatingTokensButton": "Creando tokens...",
@@ -481,7 +481,7 @@
       "creatingTokens": "Creando tokens...",
       "creatingMintingNft": "Creando NFT de acuñación...",
       "urlPrefixError": "¡Las URLs no deben tener ningún prefijo!",
-      "ipfsCidError": "La ubicación de Ipfs debe ser un CID v1"
+      "ipfsCidError": "La ubicación de IPFS debe ser un CID v1"
     }
   },
   "utxoManagement": {
@@ -533,11 +533,11 @@
   "sweepPrivateKey": {
     "title": "Barrer clave privada",
     "description": "Barrer BCH de una clave privada WIF:",
-    "placeholder": "Ingresa clave privada WIF",
+    "placeholder": "Ingresa la clave privada (WIF)",
     "sweepingButton": "Barriendo...",
     "sweepButton": "Barrer",
     "notifications": {
-      "noWifProvided": "No se proporcionó clave privada WIF para barrer",
+      "noWifProvided": "No se proporcionó una clave privada WIF para barrer",
       "sendingTransaction": "Enviando transacción...",
       "success": "Fondos barridos exitosamente de la clave privada"
     },
@@ -600,7 +600,7 @@
       "outputs": "Salidas",
       "token": "Token:",
       "amount": "Cantidad:",
-      "commitment": "Compromiso:",
+      "commitment": "Commitment:",
       "capability": "Capacidad:",
       "approveButton": "Aprobar",
       "rejectButton": "Rechazar"
@@ -634,13 +634,13 @@
       "nft": "NFT:",
       "token": "Token:",
       "amount": "Cantidad:",
-      "commitment": "Compromiso:",
+      "commitment": "Commitment:",
       "capability": "Capacidad:",
       "signButton": "Firmar",
       "cancelButton": "Cancelar",
-      "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} no está en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
-      "unverifiedTokenNoteSingular": "Token no está en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
-      "unverifiedTokenNotePlural": "Tokens no están en tu billetera. Se obtuvieron nuevos metadatos para vista previa."
+      "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} no {count, plural, one {está} other {están}} en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
+      "unverifiedTokenNoteSingular": "El token no está en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
+      "unverifiedTokenNotePlural": "Los tokens no están en tu billetera. Se obtuvieron nuevos metadatos para vista previa."
     },
     "sessionRequest": {
       "title": "¿Aprobar sesión?",
@@ -699,7 +699,7 @@
       "darkMode": "Modo oscuro",
       "confirmPayments": "Confirmar pagos antes de enviar",
       "confirmPaymentsHint": "Pedir confirmación después de hacer clic en enviar (recomendado)",
-      "showCauldronSwap": "Mostrar botón de intercambio Cauldron",
+      "showCauldronSwap": "Mostrar botón de Cauldron Swap",
       "enableTokenBurn": "Habilitar quema de tokens",
       "enableQrScan": "Habilitar escaneo QR",
       "selectUnit": "Seleccionar unidad de Bitcoin Cash:",
