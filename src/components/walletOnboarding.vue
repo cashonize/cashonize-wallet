@@ -107,11 +107,11 @@
   <fieldset class="item">
     <!-- Step 1: Welcome & Choose Create or Import -->
     <div v-if="step === 1">
-      <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-        <LanguageSelector />
-      </div>
       <div style="margin-bottom: 25px;">
-        <h3 style="margin-bottom: 10px;">{{ t('onboarding.welcome.title') }}</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h3 style="margin-bottom: 0;">{{ t('onboarding.welcome.title') }}</h3>
+          <LanguageSelector style="width: 120px;" />
+        </div>
         <p style="color: grey; margin-bottom: 20px;">
           {{ t('onboarding.welcome.description') }}
         </p>

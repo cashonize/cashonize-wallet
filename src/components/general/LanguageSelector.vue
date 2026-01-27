@@ -34,6 +34,5 @@
 <style scoped>
 .language-selector {
   padding: 4px 8px;
-  min-width: 100px;
 }
 </style>
