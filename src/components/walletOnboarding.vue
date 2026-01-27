@@ -108,9 +108,9 @@
     <!-- Step 1: Welcome & Choose Create or Import -->
     <div v-if="step === 1">
       <div style="margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div class="welcome-header">
           <h3 style="margin-bottom: 0;">{{ t('onboarding.welcome.title') }}</h3>
-          <LanguageSelector style="width: 120px;" />
+          <LanguageSelector style="width: 124px;" />
         </div>
         <p style="color: grey; margin-bottom: 20px;">
           {{ t('onboarding.welcome.description') }}
@@ -238,6 +238,19 @@
 </template>
 
 <style scoped>
+.welcome-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+@media (max-width: 500px) {
+  .welcome-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
 .features-list {
   display: flex;
   flex-direction: column;

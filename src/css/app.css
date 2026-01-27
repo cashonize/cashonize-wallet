@@ -253,7 +253,11 @@ body.dark .wallet-name-styled {
 }
 
 /* offset chota styling for quasar notify plugin */
-.row {
+.q-notifications .row {
+  margin: auto;
+  margin-right: auto !important;
+}
+.q-dialog .row {
   margin: auto;
   margin-right: auto !important;
 }
