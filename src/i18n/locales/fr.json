@@ -11,7 +11,8 @@
       "sending": "Envoi en cours..."
     },
     "errors": {
-      "somethingWentWrong": "Une erreur s'est produite"
+      "somethingWentWrong": "Une erreur s'est produite",
+      "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille"
     },
     "copied": "Copié !",
     "wallet": "portefeuille",

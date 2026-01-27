@@ -11,7 +11,8 @@
       "sending": "Enviando..."
     },
     "errors": {
-      "somethingWentWrong": "Algo salió mal"
+      "somethingWentWrong": "Algo salió mal",
+      "needToInitializeWallet": "Necesitas inicializar una billetera primero"
     },
     "copied": "¡Copiado!",
     "wallet": "billetera",

@@ -23,6 +23,8 @@
   const isMobile = computed(() => width.value < 480)
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
 
   const props = defineProps<{
     uri: string | undefined
@@ -107,7 +109,7 @@
       store.changeView(4);
     } else {
       $q.notify({
-        message: "Need to initialize a wallet first",
+        message: t('common.errors.needToInitializeWallet'),
         icon: 'warning',
         color: "grey-7"
       })
@@ -120,7 +122,7 @@
       store.changeView(1);
     } else {
       $q.notify({
-        message: "Need to initialize a wallet first",
+        message: t('common.errors.needToInitializeWallet'),
         icon: 'warning',
         color: "grey-7"
       })
@@ -133,7 +135,7 @@
       store.changeView(8);
     } else {
       $q.notify({
-        message: "Need to initialize a wallet first",
+        message: t('common.errors.needToInitializeWallet'),
         icon: 'warning',
         color: "grey-7"
       })

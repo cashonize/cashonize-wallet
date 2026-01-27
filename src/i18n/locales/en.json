@@ -11,7 +11,8 @@
       "sending": "Sending..."
     },
     "errors": {
-      "somethingWentWrong": "Something went wrong"
+      "somethingWentWrong": "Something went wrong",
+      "needToInitializeWallet": "Need to initialize a wallet first"
     },
     "copied": "Copied!",
     "wallet": "wallet",
