@@ -5,7 +5,10 @@ import { translations, defaultLocale } from 'src/i18n';
 function getInitialLocale(): string {
   const stored = localStorage.getItem('locale');
   if (stored) return stored;
-  return navigator.language.split('-')[0] || defaultLocale;
+  // Only use browser language if it's a supported locale
+  const browserLang = navigator.language?.split('-')[0] ?? '';
+  const supportedLocales = Object.keys(translations);
+  return supportedLocales.includes(browserLang) ? browserLang : defaultLocale;
 }
 
 export const i18n = createI18n({
