@@ -683,26 +683,30 @@
       "important": "(important)",
       "manageWallets": "Manage wallets",
       "userOptions": "User options",
+      "localization": "Localization",
       "advancedSettings": "Advanced settings",
       "developerSettings": "Developer settings",
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
       "tokenCreationPage": "Token Creation Page"
     },
-    "userOptions": {
+    "localization": {
       "language": "Language:",
+      "currency": "Currency:",
+      "dateFormat": "Date format:"
+    },
+    "userOptions": {
       "darkMode": "Dark mode",
       "confirmPayments": "Confirm payments before sending",
       "confirmPaymentsHint": "Ask for confirmation after clicking send (recommended)",
       "showCauldronSwap": "Show Cauldron Swap Button",
       "enableTokenBurn": "Enable token-burn",
       "enableQrScan": "Enable QR scan",
-      "selectCurrency": "Select fiat currency:",
       "selectUnit": "Select Bitcoin Cash unit:",
       "bchUnit": "BCH",
       "satUnit": "satoshis",
-      "qrAnimation": "Qr code animation:",
-      "dateFormat": "Date format:"
+      "blockExplorer": "Block explorer:",
+      "qrAnimation": "QR code animation:"
     },
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",
@@ -745,7 +749,6 @@
       "disableTokenIcons": "Disable token image loading",
       "disableTokenIconsHint": "Prevents loading token images from external servers"
     },
-    "blockExplorer": "Select BlockExplorer:",
     "downloadCashonize": "Download Cashonize",
     "madeWith": "Made with {heart} by Mathieu G."
   }

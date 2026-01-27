@@ -24,7 +24,7 @@
   const isCapacitor = (process.env.MODE == "capacitor");
   const applicationVersion = process.env.version
 
-  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5>(0);
+  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6>(0);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -332,11 +332,6 @@
     <backupWallet v-if="settingsSection == 1" />
     <div v-else-if="settingsSection == 2">
       <div style="margin-bottom:15px;">
-        <label>{{ t('settings.userOptions.language') }}</label>
-        <LanguageSelector />
-      </div>
-
-      <div style="margin-bottom:15px;">
         {{ t('settings.userOptions.darkMode') }} <Toggle v-model="selectedDarkMode" @change="changeDarkMode()"/>
       </div>
 
@@ -359,17 +354,6 @@
         {{ t('settings.userOptions.enableQrScan') }} <Toggle v-model="enableQrScan" @change="changeQrScan()"/>
       </div>
 
-      <div style="margin-top:15px">
-        <label for="selectUnit">{{ t('settings.userOptions.selectCurrency') }}</label>
-        <select v-model="selectedCurrency" @change="changeCurrency()">
-          <option value="usd">USD</option>
-          <option value="eur">EUR</option>
-          <option value="gbp">GBP</option>
-          <option value="cad">CAD</option>
-          <option value="aud">AUD</option>
-        </select>
-      </div>
-
       <div style="margin-top:15px;">
         <label for="selectUnit">{{ t('settings.userOptions.selectUnit') }}</label>
         <select v-model="selectedUnit" @change="changeUnit()">
@@ -379,7 +363,28 @@
       </div>
 
       <div style="margin-top:15px;">
-        <label for="selectUnit">{{ t('settings.userOptions.qrAnimation') }}</label>
+        <label for="selectExplorer">{{ t('settings.userOptions.blockExplorer') }}</label>
+        <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
+          <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
+          <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
+          <option value="https://bchexplorer.info/tx">bchexplorer by Paytaca</option>
+          <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
+          <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
+          <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>
+          <option value="https://bch.loping.net/tx">bch.loping.net (no Token Metadata)</option>
+          <option value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
+          <option value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
+        </select>
+        <select v-if="store.network == 'chipnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
+          <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
+          <option value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
+          <option value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
+          <option value="https://cbch.loping.net/tx">cbch.loping.net</option>
+        </select>
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        <label for="selectQrAnimation">{{ t('settings.userOptions.qrAnimation') }}</label>
         <select v-model="qrAnimation" @change="changeQrAnimation()">
           <option value="MaterializeIn">MaterializeIn</option>
           <option value="FadeInTopDown">FadeInTopDown</option>
@@ -390,14 +395,6 @@
         </select>
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px;">
-        <label for="dateFormat">{{ t('settings.userOptions.dateFormat') }}</label>
-        <select v-model="dateFormat" @change="changeDateFormat()">
-          <option value="DD/MM/YY">DD/MM/YY</option>
-          <option value="MM/DD/YY">MM/DD/YY</option>
-          <option value="YY-MM-DD">YY-MM-DD</option>
-        </select>
-      </div>
     </div>
     <div v-else-if="settingsSection == 3">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
@@ -541,6 +538,32 @@
     <div v-else-if="settingsSection == 5">
       <walletsOverview />
     </div>
+    <div v-else-if="settingsSection == 6">
+      <div style="margin-bottom:15px;">
+        <label>{{ t('settings.localization.language') }}</label>
+        <LanguageSelector />
+      </div>
+
+      <div style="margin-bottom:15px">
+        <label for="selectCurrency">{{ t('settings.localization.currency') }}</label>
+        <select v-model="selectedCurrency" @change="changeCurrency()">
+          <option value="usd">USD</option>
+          <option value="eur">EUR</option>
+          <option value="gbp">GBP</option>
+          <option value="cad">CAD</option>
+          <option value="aud">AUD</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label for="dateFormat">{{ t('settings.localization.dateFormat') }}</label>
+        <select v-model="dateFormat" @change="changeDateFormat()">
+          <option value="DD/MM/YY">DD/MM/YY</option>
+          <option value="MM/DD/YY">MM/DD/YY</option>
+          <option value="YY-MM-DD">YY-MM-DD</option>
+        </select>
+      </div>
+    </div>
     <!-- settingsSection === 0: main settings menu -->
     <div v-else>
       <div style="margin-bottom: 15px;">
@@ -562,6 +585,10 @@
         ↳ {{ t('settings.menu.userOptions') }}
       </div>
 
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 6">
+        ↳ {{ t('settings.menu.localization') }}
+      </div>
+
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 3">
         ↳ {{ t('settings.menu.advancedSettings') }}
       </div>
@@ -576,27 +603,6 @@
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(8)">
         → {{ t('settings.menu.sweepPrivateKey') }}
-      </div>
-
-      <div style="margin-top:15px; margin-bottom:15px;">
-        <label for="selectUnit">{{ t('settings.blockExplorer') }}</label>
-        <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
-          <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
-          <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
-          <option value="https://bchexplorer.info/tx">bchexplorer by Paytaca</option>
-          <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
-          <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
-          <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>
-          <option value="https://bch.loping.net/tx">bch.loping.net (no Token Metadata)</option>
-          <option value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
-          <option value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
-        </select>
-        <select v-if="store.network == 'chipnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
-          <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
-          <option value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
-          <option value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
-          <option value="https://cbch.loping.net/tx">cbch.loping.net</option>
-        </select>
       </div>
 
       <div v-if="isBrowser" style="margin-bottom:15px;">
