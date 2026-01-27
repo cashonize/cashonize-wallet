@@ -1,7 +1,9 @@
 import en from './locales/en.json';
+import es from './locales/es.json';
 
 export const translations = {
-  en
+  en,
+  es
 };
 
 export const defaultLocale = 'en';

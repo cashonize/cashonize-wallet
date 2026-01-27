@@ -7,9 +7,9 @@
   const settingsStore = useSettingsStore()
 
   const availableLocales = [
-    { code: 'en', name: 'English' }
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Español' }
     // Add more languages here as they become available
-    // { code: 'es', name: 'Español' },
     // { code: 'zh', name: '中文' },
   ]
 
