@@ -11,11 +11,31 @@
       "sending": "Sending..."
     },
     "errors": {
-      "somethingWentWrong": "something went wrong"
+      "somethingWentWrong": "Something went wrong"
     },
     "copied": "Copied!",
     "wallet": "wallet",
     "wallets": "wallets"
+  },
+  "walletUtils": {
+    "errors": {
+      "enterWalletName": "Please enter a wallet name",
+      "walletNameTooLong": "Wallet name too long (max {max} characters)",
+      "walletNameInvalidChars": "Wallet name contains invalid characters",
+      "walletAlreadyExists": "Wallet \"{name}\" already exists",
+      "storageFull": "Storage full - unable to save wallet. Check browser storage settings.",
+      "failedToCreateWallet": "Failed to create wallet",
+      "enterSeedPhrase": "Enter a seed phrase to import wallet",
+      "fixInvalidWords": "Please fix invalid words in your seed phrase",
+      "invalidSeedPhrase": "Not a valid seed phrase"
+    }
+  },
+  "bip21": {
+    "errors": {
+      "unsupportedPaymentRequest": "Unsupported payment request",
+      "duplicateParameters": "Invalid payment request: duplicate parameters",
+      "invalidAmountFormat": "Payment request has invalid amount format"
+    }
   },
   "store": {
     "notifications": {

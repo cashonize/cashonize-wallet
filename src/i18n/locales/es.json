@@ -11,11 +11,31 @@
       "sending": "Enviando..."
     },
     "errors": {
-      "somethingWentWrong": "algo salió mal"
+      "somethingWentWrong": "Algo salió mal"
     },
     "copied": "¡Copiado!",
     "wallet": "billetera",
     "wallets": "billeteras"
+  },
+  "walletUtils": {
+    "errors": {
+      "enterWalletName": "Por favor ingresa un nombre de billetera",
+      "walletNameTooLong": "Nombre de billetera muy largo (máximo {max} caracteres)",
+      "walletNameInvalidChars": "El nombre de la billetera contiene caracteres inválidos",
+      "walletAlreadyExists": "La billetera \"{name}\" ya existe",
+      "storageFull": "Almacenamiento lleno - no se puede guardar la billetera. Revisa la configuración de almacenamiento del navegador.",
+      "failedToCreateWallet": "Error al crear la billetera",
+      "enterSeedPhrase": "Ingresa una frase de recuperación para importar la billetera",
+      "fixInvalidWords": "Por favor corrige las palabras inválidas en tu frase de recuperación",
+      "invalidSeedPhrase": "Frase de recuperación no válida"
+    }
+  },
+  "bip21": {
+    "errors": {
+      "unsupportedPaymentRequest": "Solicitud de pago no soportada",
+      "duplicateParameters": "Solicitud de pago inválida: parámetros duplicados",
+      "invalidAmountFormat": "La solicitud de pago tiene un formato de monto inválido"
+    }
   },
   "store": {
     "notifications": {

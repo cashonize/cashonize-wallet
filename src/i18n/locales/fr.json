@@ -11,11 +11,31 @@
       "sending": "Envoi en cours..."
     },
     "errors": {
-      "somethingWentWrong": "une erreur s'est produite"
+      "somethingWentWrong": "Une erreur s'est produite"
     },
     "copied": "Copié !",
     "wallet": "portefeuille",
     "wallets": "portefeuilles"
+  },
+  "walletUtils": {
+    "errors": {
+      "enterWalletName": "Veuillez entrer un nom de portefeuille",
+      "walletNameTooLong": "Nom de portefeuille trop long (maximum {max} caractères)",
+      "walletNameInvalidChars": "Le nom du portefeuille contient des caractères invalides",
+      "walletAlreadyExists": "Le portefeuille \"{name}\" existe déjà",
+      "storageFull": "Stockage plein - impossible de sauvegarder le portefeuille. Vérifiez les paramètres de stockage du navigateur.",
+      "failedToCreateWallet": "Échec de la création du portefeuille",
+      "enterSeedPhrase": "Entrez une phrase de récupération pour importer le portefeuille",
+      "fixInvalidWords": "Veuillez corriger les mots invalides dans votre phrase de récupération",
+      "invalidSeedPhrase": "Phrase de récupération invalide"
+    }
+  },
+  "bip21": {
+    "errors": {
+      "unsupportedPaymentRequest": "Demande de paiement non supportée",
+      "duplicateParameters": "Demande de paiement invalide : paramètres en double",
+      "invalidAmountFormat": "La demande de paiement a un format de montant invalide"
+    }
   },
   "store": {
     "notifications": {
