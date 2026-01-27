@@ -110,7 +110,7 @@
       <div style="margin-bottom: 25px;">
         <div class="welcome-header">
           <h3 style="margin-bottom: 0;">{{ t('onboarding.welcome.title') }}</h3>
-          <LanguageSelector style="width: 124px;" />
+          <LanguageSelector class="language-selector" style="width: 124px;" />
         </div>
         <p style="color: grey; margin-bottom: 20px;">
           {{ t('onboarding.welcome.description') }}
@@ -243,6 +243,9 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+}
+.language-selector {
+  padding: 4px 8px;
 }
 @media (max-width: 500px) {
   .welcome-header {

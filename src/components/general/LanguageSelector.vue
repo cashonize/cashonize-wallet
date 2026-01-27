@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { computed } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useSettingsStore } from 'src/stores/settingsStore'
 
@@ -8,22 +7,19 @@
 
   const availableLocales = [
     { code: 'en', name: 'English' },
-    { code: 'es', name: 'Español' }
-    // Add more languages here as they become available
+    { code: 'es', name: 'Español' },
+    { code: 'fr', name: 'Français' }
   ]
 
-  const selectedLocale = computed({
-    get: () => locale.value,
-    set: (value: string) => {
-      locale.value = value
-      settingsStore.locale = value
-      localStorage.setItem('locale', value)
-    }
-  })
+  function updateLocale(value: string) {
+    locale.value = value
+    settingsStore.locale = value
+    localStorage.setItem('locale', value)
+  }
 </script>
 
 <template>
-  <select v-model="selectedLocale">
+  <select :value="locale" @change="updateLocale(($event.target as HTMLSelectElement).value)">
     <option v-for="loc in availableLocales" :key="loc.code" :value="loc.code">
       {{ loc.name }}
     </option>
