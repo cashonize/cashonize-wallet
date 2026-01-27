@@ -37,6 +37,20 @@
       "invalidAmountFormat": "Payment request has invalid amount format"
     }
   },
+  "chaingraph": {
+    "errors": {
+      "requestFailed": "Chaingraph request failed: {status}",
+      "tokenGenesisNotFound": "Token genesis transaction not found",
+      "tokenNotFound": "Token not found",
+      "authchainNotFound": "Authchain not found"
+    }
+  },
+  "exchangeRate": {
+    "errors": {
+      "validationError": "{provider} rates response validation error",
+      "currencyNotSupported": "Currency '{symbol}' is not supported"
+    }
+  },
   "store": {
     "notifications": {
       "receivedBch": "Received {amount} {unit} ({fiatValue})",
