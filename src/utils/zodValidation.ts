@@ -172,3 +172,13 @@ export const ChaingraphAuthHeadSchema = z.object({
     }))
   })
 });
+
+
+/* CauldronValueLockedSchema */
+
+// Cauldron DEX valuelocked endpoint response
+export const CauldronValueLockedSchema = z.object({
+  satoshis: z.number(),
+  token_amount: z.number()
+});
+export type CauldronValueLocked = z.infer<typeof CauldronValueLockedSchema>;

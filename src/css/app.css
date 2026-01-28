@@ -156,6 +156,7 @@ input[type='number'] {
 }
 .tokenAmount {
   margin-left: 30px;
+  max-width: 240px;
 }
 .addressInputFtSend {
   margin-right: 14px;

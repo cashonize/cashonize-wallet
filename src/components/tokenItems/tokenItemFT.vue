@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, type SendRequest } from "mainnet-js"
+  import { TokenSendRequest, type SendRequest, convert } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
@@ -12,6 +12,8 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
+  import { calculateHoldingsFiatValue } from 'src/utils/cauldronApi'
+  import { CurrencySymbols } from 'src/interfaces/interfaces'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   const $q = useQuasar()
@@ -50,6 +52,40 @@
   const tokenName = computed(() => {
     return tokenMetaData.value?.name;
   })
+
+  // Compute fiat value of total holdings using Cauldron DEX price data
+  const holdingsFiatValue = ref<number | null>(null);
+
+  // Watch for changes in the relevant data and recalculate
+  watch(
+    () => [settingsStore.showCauldronFTValue, store.cauldronPrices, tokenData.value.amount] as const,
+    async ([showValue, prices]) => {
+      if (!showValue || store.network !== 'mainnet') {
+        holdingsFiatValue.value = null;
+        return;
+      }
+
+      const priceData = prices?.[tokenData.value.tokenId];
+      if (!priceData?.hasSufficientLiquidity) {
+        holdingsFiatValue.value = null;
+        return;
+      }
+
+      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+      try {
+        const bchRate = await convert(1, 'bch', settingsStore.currency);
+        holdingsFiatValue.value = calculateHoldingsFiatValue(
+          tokenData.value.amount,
+          decimals,
+          priceData,
+          bchRate
+        );
+      } catch {
+        holdingsFiatValue.value = null;
+      }
+    },
+    { immediate: true }
+  );
 
   // check if need to fetch onchain stats on displayTokenInfo
   watch(displayTokenInfo, async() => {
@@ -428,6 +464,9 @@
           </div>
           <div v-if="tokenData?.amount" class="tokenAmount">{{ t('tokenItem.amount') }}
             {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
+            <span v-if="holdingsFiatValue" style="font-size: smaller; color: grey; white-space: nowrap;">
+              ≈ {{ CurrencySymbols[settingsStore.currency] }}{{ holdingsFiatValue.toFixed(2) }}
+            </span>
           </div>
         </div>
         <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.tokenId) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
