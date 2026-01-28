@@ -39,11 +39,10 @@ export async function fetchCauldronPrices(
     }
   });
 
-  const settled = await Promise.allSettled(fetchPromises);
+  const responses = await Promise.all(fetchPromises);
 
-  for (const result of settled) {
-    if (result.status === 'fulfilled' && result.value.data) {
-      const { tokenId, data } = result.value;
+  for (const { tokenId, data } of responses) {
+    if (data) {
       results[tokenId] = {
         satoshis: data.satoshis,
         tokenAmount: data.token_amount,

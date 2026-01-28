@@ -140,9 +140,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   }
 
   const readShowCauldronFTValue = localStorage.getItem("showCauldronFTValue");
-  if(readShowCauldronFTValue == "true"){
-    showCauldronFTValue.value = true;
-  }
+  if(readShowCauldronFTValue) showCauldronFTValue.value = readShowCauldronFTValue == "true";
 
   const readFeaturedTokens = localStorage.getItem("featuredTokens");
   if(readFeaturedTokens) {

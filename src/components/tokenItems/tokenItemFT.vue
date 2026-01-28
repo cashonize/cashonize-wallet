@@ -73,6 +73,7 @@
 
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       try {
+        // Exchange rate should already be cached from store's fetchCauldronPricesForTokens
         const bchRate = await convert(1, 'bch', settingsStore.currency);
         holdingsFiatValue.value = calculateHoldingsFiatValue(
           tokenData.value.amount,
@@ -464,7 +465,7 @@
           </div>
           <div v-if="tokenData?.amount" class="tokenAmount">{{ t('tokenItem.amount') }}
             {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
-            <span v-if="holdingsFiatValue" style="font-size: smaller; color: grey; white-space: nowrap;">
+            <span v-if="holdingsFiatValue !== null" style="font-size: smaller; color: grey; white-space: nowrap;">
               ≈ {{ CurrencySymbols[settingsStore.currency] }}{{ holdingsFiatValue.toFixed(2) }}
             </span>
           </div>

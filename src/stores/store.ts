@@ -535,6 +535,9 @@ export const useStore = defineStore('store', () => {
     if (fungibleTokens?.length === 0) return;
 
     const ftTokenIds = fungibleTokens?.map(token => token.tokenId) ?? [];
+
+    // Warm the exchange rate cache first, then fetch prices
+    await convert(1, 'bch', settingsStore.currency);
     cauldronPrices.value = await fetchCauldronPrices(ftTokenIds);
   }
 
