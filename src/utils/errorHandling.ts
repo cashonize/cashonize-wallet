@@ -1,9 +1,11 @@
 import { Notify } from "quasar";
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 
 export function caughtErrorToString(error: unknown): string {
   if (typeof error === 'string') return error;
   if (error instanceof Error && error.message) return error.message;
-  return 'Something went wrong';
+  return t('common.errors.somethingWentWrong');
 }
 
 export function displayAndLogError(error: unknown): void {

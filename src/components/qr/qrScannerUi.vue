@@ -1,4 +1,7 @@
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
+
   defineProps<{
     filterHint: string;
   }>();
@@ -20,7 +23,7 @@
         <div class="line-design4"></div>
       </div>
     </div>
-    <span class="scanner-text text-center full-width">Scan QR Code</span>
+    <span class="scanner-text text-center full-width">{{ t('qrScanner.scanQrCode') }}</span>
 		<span class="scanner-text text-center full-width" style="top: 315px; color: tomato;">{{ filterHint }}</span>
   </div>
 </template>

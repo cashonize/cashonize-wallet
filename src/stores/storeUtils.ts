@@ -5,6 +5,8 @@ import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
 import { displayAndLogError } from "src/utils/errorHandling";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 
 export function tokenListFromUtxos(walletUtxos: UtxoI[]) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
@@ -57,7 +59,7 @@ export async function fetchTokenMetadata(
       const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
       if (!parseResult.success) {
         console.error(`BCMR indexer response validation error for URL ${response.url}: ${parseResult.error.message}`);
-        displayAndLogError('BCMR indexer response validation error');
+        displayAndLogError(t('store.errors.bcmrIndexerValidationError'));
         continue;
       }
       const tokenInfoResult = parseResult.data;

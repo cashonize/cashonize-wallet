@@ -4,7 +4,9 @@
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit';
   import { useStore } from 'src/stores/store'
+  import { useI18n } from 'vue-i18n'
   const store = useStore()
+  const { t } = useI18n()
 
   const props = defineProps<{
     sessionProposalWC: WalletKitTypes.SessionProposal,
@@ -27,8 +29,8 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
     <q-card>
-      <fieldset class="dialogFieldset"> 
-        <legend style="font-size: large;">Approve Session?</legend>
+      <fieldset class="dialogFieldset">
+        <legend style="font-size: large;">{{ t('walletConnect.sessionRequest.title') }}</legend>
         <div style="display: flex;">
           <img :src="dappMetadata.icons?.[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
@@ -37,8 +39,8 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
           </div>
         </div>
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-          <input type="button" class="primaryButton" :value="needsNetworkSwitch ?`Switch to ${dappTargetNetwork} and approve`: 'Approve'" @click="onDialogOK" v-close-popup>
-          <input type="button" value="Reject" @click="onDialogCancel">
+          <input type="button" class="primaryButton" :value="needsNetworkSwitch ? t('walletConnect.sessionRequest.switchAndApprove', { network: dappTargetNetwork }): t('walletConnect.sessionRequest.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" :value="t('walletConnect.sessionRequest.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>
     </q-card>

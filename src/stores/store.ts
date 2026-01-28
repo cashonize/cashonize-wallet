@@ -42,6 +42,8 @@ import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
 import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/dbUtils"
 import { defaultWalletName } from './constants';
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 const settingsStore = useSettingsStore()
 
 // set mainnet-js config
@@ -160,7 +162,7 @@ export const useStore = defineStore('store', () => {
         ]).finally(() => clearTimeout(timeoutHandle))
         .catch(error => {
           failedToConnectElectrum = true;
-          displayAndLogError(new Error(`Unable to connect to Electrum server '${electrumServer}'`))
+          displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
           // still log the original error for debugging
           console.error("Electrum connect error:", error)
         });
@@ -234,7 +236,11 @@ export const useStore = defineStore('store', () => {
             const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
             Notify.create({
               type: 'positive',
-              message: `Received ${amountReceived} ${unitString} (${currencyValue + CurrencySymbols[settingsStore.currency]})`
+              message: t('store.notifications.receivedBch', {
+                amount: amountReceived,
+                unit: unitString,
+                fiatValue: currencyValue + CurrencySymbols[settingsStore.currency]
+              })
             })
           }
           // update state (but not on the initial trigger when creating the subscription)
@@ -265,7 +271,7 @@ export const useStore = defineStore('store', () => {
             const tokenType = tokenOutput.tokenData?.nft ? "NFT" : "tokens"
             Notify.create({
               type: 'positive',
-              message: `Received new ${tokenType}`
+              message: t('store.notifications.receivedTokens', { tokenType })
             })
           }
           const tokenId = tokenOutput.tokenData?.category;
@@ -379,7 +385,7 @@ export const useStore = defineStore('store', () => {
 
   async function deleteWallet(walletName: string) {
     if (walletName === activeWalletName.value) {
-      throw new Error("Cannot delete the currently active wallet");
+      throw new Error(t('store.errors.cannotDeleteActiveWallet'));
     }
     // Delete from both mainnet and testnet databases
     await deleteWalletFromDb(walletName, 'bitcoincash');
@@ -412,7 +418,7 @@ export const useStore = defineStore('store', () => {
     } catch (error) {
       console.error("Error initializing WalletConnect:", error);
       Notify.create({
-        message: "Error initializing WalletConnect",
+        message: t('store.errors.errorInitializingWalletConnect'),
         icon: 'warning',
         color: "red"
       });
@@ -448,7 +454,7 @@ export const useStore = defineStore('store', () => {
     } catch (error) {
       console.error("Error initializing CashConnect:", error);
       Notify.create({
-        message: "Error initializing CashConnect",
+        message: t('store.errors.errorInitializingCashConnect'),
         icon: 'warning',
         color: "red"
       });
@@ -460,7 +466,7 @@ export const useStore = defineStore('store', () => {
       walletUtxos.value = await wallet.value.getAddressUtxos();
       updateTokenList()
     } catch(error) {
-      const errorMessage = typeof error == 'string' ? error : "Error in fetching wallet UTXOs";
+      const errorMessage = typeof error == 'string' ? error : t('store.errors.errorFetchingUtxos');
       console.error(errorMessage)
       Notify.create({
         message: errorMessage,
@@ -476,7 +482,7 @@ export const useStore = defineStore('store', () => {
       walletHistory.value = await wallet.value.getHistory({});
     } catch(error){
       console.error(error)
-      const errorMessage = typeof error == 'string' ? error : "Error in fetching wallet history";
+      const errorMessage = typeof error == 'string' ? error : t('store.errors.errorFetchingHistory');
       console.error(errorMessage)
       Notify.create({
         message: errorMessage,
@@ -521,8 +527,7 @@ export const useStore = defineStore('store', () => {
     const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
     if (!parseResult.success) {
       console.error(`BCMR indexer response validation error for URL ${res.url}: ${parseResult.error.message}`);
-      const errorMessage = 'BCMR indexer response validation error';
-      throw new Error(errorMessage)
+      throw new Error(t('store.errors.bcmrIndexerValidationError'))
     }
     const bcmrIndexerResult = parseResult.data;
     // check for error in bcmrIndexerResult

@@ -9,11 +9,13 @@
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
+  import { useI18n } from 'vue-i18n'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
 
   const props = defineProps<{
     bchSendRequest: string | undefined
@@ -96,8 +98,7 @@
 
       // Warn if this is a CashToken payment request (has c= param)
       if(parsed.otherParams?.c){
-        const message = "This is a token payment request. Use the Tokens tab to send tokens.";
-        $q.notify({ message, icon: 'warning', color: "grey-7" });
+        $q.notify({ message: t('wallet.errors.tokenPaymentRequest'), icon: 'warning', color: "grey-7" });
         return;
       }
 
@@ -148,7 +149,7 @@
     }
     else{
       $q.notify({
-        message: "Wallet doesn't hold any Bitcoin Cash",
+        message: t('wallet.errors.noBalance'),
         icon: 'warning',
         color: "grey-7"
       })
@@ -159,15 +160,15 @@
     isSending.value = true;
     try{
       // check for valid inputs
-      if(!destinationAddr.value) throw("No destination address provided")
-      if(!bchSendAmount.value) throw("No valid amount provided")
-      if(bchSendAmount.value > (store.maxAmountToSend?.sat ?? 0)) throw("Not enough BCH in wallet")
+      if(!destinationAddr.value) throw(t('wallet.errors.noDestination'))
+      if(!bchSendAmount.value) throw(t('wallet.errors.noAmount'))
+      if(bchSendAmount.value > (store.maxAmountToSend?.sat ?? 0)) throw(t('wallet.errors.insufficientFunds'))
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         destinationAddr.value = networkPrefix + destinationAddr.value
       }
       const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw("Invalid BCH address provided")
+      if(typeof decodedAddress == 'string') throw(t('wallet.errors.invalidAddress'))
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -175,11 +176,11 @@
         const fiatStr = currencySendAmount.value ? ` (${formatFiatAmount(currencySendAmount.value, settingsStore.currency)})` : ''
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
-            title: 'Confirm Payment',
-            message: `Send ${bchSendAmount.value?.toLocaleString("en-US")}${displayUnitLong.value}${fiatStr} to<br>${truncatedAddr}`,
+            title: t('wallet.confirmPayment'),
+            message: `${t('wallet.confirmPaymentMessage', { amount: bchSendAmount.value?.toLocaleString("en-US"), unit: displayUnitLong.value, fiat: fiatStr })}<br>${truncatedAddr}`,
             html: true,
             cancel: { flat: true, color: 'dark' },
-            ok: { label: 'Confirm', color: 'primary', textColor: 'white' },
+            ok: { label: t('common.actions.confirm'), color: 'primary', textColor: 'white' },
             persistent: true
           }).onOk(() => resolve(true))
             .onCancel(() => resolve(false))
@@ -190,12 +191,12 @@
       const sendBchOutput = {cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: settingsStore.bchUnit}
       $q.notify({
         spinner: true,
-        message: 'Sending transaction...',
+        message: t('wallet.sendingTransaction'),
         color: 'grey-5',
         timeout: 1000
       })
       const { txId } = await store.wallet.send([ sendBchOutput ]);
-      const alertMessage = `Sent ${bchSendAmount.value + displayUnitLong.value} to ${destinationAddr.value}`
+      const alertMessage = t('wallet.sent', { amount: bchSendAmount.value + displayUnitLong.value, address: destinationAddr.value })
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -204,7 +205,7 @@
       })
       $q.notify({
         type: 'positive',
-        message: 'Transaction succesfully sent!'
+        message: t('wallet.transactionSuccess')
       })
       console.log(alertMessage);
       // reset fields
@@ -217,7 +218,7 @@
       void store.updateWalletHistory();
     } catch(error){
       console.log(error)
-      const errorMessage = typeof error == 'string' ? error : "something went wrong";
+      const errorMessage = typeof error == 'string' ? error : t('common.errors.somethingWentWrong');
       $q.notify({
         message: errorMessage,
         icon: 'warning',
@@ -245,7 +246,7 @@
     }
     const decoded = decodeCashAddress(addressInput);
     if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
-      return "Not a cashaddress on current network";
+      return t('wallet.errors.notCashaddress');
     }
     return true;
   }
@@ -261,28 +262,28 @@
 <template>
   <fieldset style="margin-top: 20px; padding-top: 2rem; padding-bottom: 1rem; max-width: 75rem; margin: auto 10px;">
     <div style="font-size: 1.2em">
-      {{ currencyDisplayShortName }} balance:
+      {{ t('wallet.balance', { currency: currencyDisplayShortName }) }}
       <span style="color: hsla(160, 100%, 37%, 1);">{{ displayCurrencyBalance }}</span>
     </div>
     <span>
-      {{ bchDisplayNetwork }} balance:  
+      {{ t('wallet.balance', { currency: bchDisplayNetwork }) }}
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance && store.balance[settingsStore.bchUnit] != undefined 
+        {{ store.balance && store.balance[settingsStore.bchUnit] != undefined
           ? numberFormatter.format(store.balance[settingsStore.bchUnit]) + displayUnitLong : "" }}
       </span>
     </span>
     <div style="word-break: break-all;">
-      {{ bchDisplayNetwork }} address: 
+      {{ t('wallet.address', { network: bchDisplayNetwork }) }}
       <span @click="() => copyToClipboard(store.wallet.cashaddr)" style="cursor:pointer;">
         <span class="depositAddr">{{ store.wallet.cashaddr ?? "" }} </span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
     <div style="word-break: break-all;">
-      Token address:
+      {{ t('wallet.tokenAddress') }}
       <span @click="() => copyToClipboard(store.wallet.tokenaddr)" style="cursor:pointer;">
         <span class="depositAddr">{{ store.wallet.tokenaddr ?? "" }}</span>
-        <img class="copyIcon" src="images/copyGrey.svg"> 
+        <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
     <qr-code ref="qrCodeRef" :contents="addressQrcode" @click="copyToClipboard(addressQrcode)" class="qr-code" @codeRendered="animateQrCode">
@@ -293,30 +294,30 @@
       </div>
     </div>
     <div>
-      Send {{ bchDisplayNetwork }}:
+      {{ t('wallet.send', { network: bchDisplayNetwork }) }}
       <div style="display: flex; gap: 0.5rem;">
-        <input v-model="destinationAddr" @input="parseAddrParams()" placeholder="address" name="addressInput">
+        <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('wallet.addressPlaceholder')" name="addressInput">
         <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
             <img src="images/qrscan.svg" />
         </button>
       </div>
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
-          <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="number" placeholder="amount" name="currencyInput">
+          <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="number" :placeholder="t('wallet.amountPlaceholder')" name="currencyInput">
           <i class="input-icon" style="color: black;">{{ bchDisplayUnit }}</i>
         </span>
         <span class="sendCurrencyInput">
-          <input v-model="currencySendAmount" @input="setBchAmount()" type="number" placeholder="amount" name="bchAmountInput">
+          <input v-model="currencySendAmount" @input="setBchAmount()" type="number" :placeholder="t('wallet.amountPlaceholder')" name="bchAmountInput">
           <i class="input-icon" style="color: black;">
             {{`${currencyDisplayShortName} ${CurrencySymbols[settingsStore.currency]}`}}
           </i>
-        </span> 
-            <button @click="useMaxBchAmount()" class="fillInMaxBch">max</button>
+        </span>
+            <button @click="useMaxBchAmount()" class="fillInMaxBch">{{ t('wallet.max') }}</button>
       </span>
-      <div v-if="(store.maxAmountToSend?.[settingsStore.bchUnit] ?? 0) < (bchSendAmount ?? 0)" style="color: red;">Not enough BCH in wallet to send</div>
-      
+      <div v-if="(store.maxAmountToSend?.[settingsStore.bchUnit] ?? 0) < (bchSendAmount ?? 0)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
+
     </div>
-    <input @click="sendBch()" type="button" class="primaryButton" :value="isSending ? 'Sending...' : 'Send'" :disabled="isSending" style="margin-top: 8px;">
+    <input @click="sendBch()" type="button" class="primaryButton" :value="isSending ? t('common.status.sending') : t('common.actions.send')" :disabled="isSending" style="margin-top: 8px;">
   </fieldset>
   <div v-if="showQrCodeDialog">
     <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>

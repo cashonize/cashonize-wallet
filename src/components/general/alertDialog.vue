@@ -4,8 +4,10 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import type { DialogInfo } from 'src/interfaces/interfaces'
   import { copyToClipboard } from 'src/utils/utils';
+  import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
   const emit = defineEmits(['closeDialog']);
 
   const showDialog = ref(true);
@@ -24,7 +26,7 @@
     <q-card style="width: 500px" class="alertDialog">
 
       <q-card-section class="row items-center q-pb-none">
-        <div class="text-h6">Transaction Sent!</div>
+        <div class="text-h6">{{ t('alertDialog.transactionSent') }}</div>
         <q-space />
         <q-btn icon="close" :color="settingsStore.darkMode? 'white':'black'" flat round dense v-close-popup />
       </q-card-section>
@@ -32,12 +34,12 @@
       <q-card-section class="q-pt-none">
         {{ alertInfo.message }} <br><br>
         <span @click="copyToClipboard(alertInfo.txid)" style="cursor: pointer;">
-          Transaction ID:
+          {{ t('alertDialog.txId') }}
           <span style="color: var(--color-grey)">{{ alertInfo.txid.slice(0, 20) + "..." + alertInfo.txid.slice(-10) }}</span>
           <img class="copyIcon icon" src="images/copyGrey.svg">
         </span>
         <br><br>
-        <a :href="store.explorerUrl + `/${alertInfo.txid}`" target="_blank">Link blockexplorer</a>
+        <a :href="store.explorerUrl + `/${alertInfo.txid}`" target="_blank">{{ t('alertDialog.linkExplorer') }}</a>
         <span @click="copyToClipboard(store.explorerUrl + `/${alertInfo.txid}`)" style="cursor: pointer;">
           <img class="copyIcon icon" :src="settingsStore.darkMode? 'images/copyGrey.svg':'images/copy.svg'">
         </span>

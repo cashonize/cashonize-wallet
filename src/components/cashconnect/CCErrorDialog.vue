@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useDialogPluginComponent } from 'quasar'
 import type { CashRPCError } from 'cashconnect';
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 defineProps<{
   error: CashRPCError
@@ -17,18 +19,18 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card>
       <fieldset class="cc-modal-fieldset" style="width:1024px">
-        <legend class="cc-modal-fieldset-legend">Error</legend>
+        <legend class="cc-modal-fieldset-legend">{{ t('cashConnect.error.title') }}</legend>
 
         <div v-if="error.message">{{ error.message }}</div>
 
         <template v-if="error.stackTrace">
-          <div>Stack Trace:</div>
+          <div>{{ t('cashConnect.error.stackTrace') }}</div>
           <pre class="cc-pre">{{ error.stackTrace }}</pre>
         </template>
 
         <!-- Bottom Buttons -->
         <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" value="OK" @click="onDialogOK" v-close-popup>
+          <input type="button" class="primaryButton" :value="t('cashConnect.error.okButton')" @click="onDialogOK" v-close-popup>
         </div>
       </fieldset>
     </q-card>

@@ -9,9 +9,11 @@
   import { formatTimestamp, formatTime, formatFiatAmount } from 'src/utils/utils';
   import Toggle from '@vueform/toggle'
   import TokenIcon from '../general/TokenIcon.vue';
+  import { useI18n } from 'vue-i18n'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
   const itemsPerPage = 100
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value <= 600)
@@ -71,16 +73,16 @@
 
 <template>
   <div>
-    <div v-if="store.walletHistory == undefined" style="text-align: center;">Loading transaction history ...</div>
-    <div v-if="store.walletHistory?.length == 0" style="text-align: center;">No transactions in this wallet</div>
+    <div v-if="store.walletHistory == undefined" style="text-align: center;">{{ t('history.loading') }}</div>
+    <div v-if="store.walletHistory?.length == 0" style="text-align: center;">{{ t('history.noTransactions') }}</div>
 
     <fieldset class="item" v-if="store.walletHistory?.length">
-      <legend>Transaction History</legend>
+      <legend>{{ t('history.title') }}</legend>
 
       <div class="filter-row">
-        <div>{{ transactionCount?.toLocaleString("en-US") }} Transactions</div>
+        <div>{{ t('history.transactionCount', { count: transactionCount?.toLocaleString("en-US") }) }}</div>
         <span class="options-toggle" @click="toggleOptions">
-          Options
+          {{ t('history.options') }}
           <img
             class="icon"
             :class="{ 'expanded': showOptions }"
@@ -91,18 +93,18 @@
 
       <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
         <div class="option-item">
-          <label for="filterTransactions">Show:</label>
+          <label for="filterTransactions">{{ t('history.filter.label') }}</label>
           <select v-model="selectedFilter" name="filterTransactions">
-            <option value="allTransactions">All</option>
-            <option value="bchTransactions">BCH txs</option>
-            <option value="tokenTransactions">Token txs</option>
+            <option value="allTransactions">{{ t('history.filter.all') }}</option>
+            <option value="bchTransactions">{{ t('history.filter.bchTxs') }}</option>
+            <option value="tokenTransactions">{{ t('history.filter.tokenTxs') }}</option>
           </select>
         </div>
         <div class="option-item">
-          Show fiat value <Toggle v-model="showFiatValue" @change="toggleShowFiatValue"/>
+          {{ t('history.showFiatValue') }} <Toggle v-model="showFiatValue" @change="toggleShowFiatValue"/>
         </div>
         <div class="option-item">
-          Hide balance column <Toggle v-model="hideBalance" @change="toggleHideBalance"/>
+          {{ t('history.hideBalanceColumn') }} <Toggle v-model="hideBalance" @change="toggleHideBalance"/>
         </div>
       </div>
 
@@ -110,10 +112,10 @@
       <div class="tx-table" :class="{ 'hide-balance': hideBalance }">
         <div class="tx-header tx-row">
           <div class="tx-cell"></div>
-          <div class="tx-cell">Date</div>
-          <div class="tx-cell">Amount</div>
-          <div class="tx-cell balance-header" v-if="!hideBalance">Balance</div>
-          <div class="tx-cell tokens-header">Tokens</div>
+          <div class="tx-cell">{{ t('history.columns.date') }}</div>
+          <div class="tx-cell">{{ t('history.columns.amount') }}</div>
+          <div class="tx-cell balance-header" v-if="!hideBalance">{{ t('history.columns.balance') }}</div>
+          <div class="tx-cell tokens-header">{{ t('history.columns.tokens') }}</div>
         </div>
         <div class="tx-body">
           <div
@@ -131,7 +133,7 @@
                 <div>{{ formatTimestamp(transaction.timestamp, settingsStore.dateFormat, true) }}</div>
                 <div>{{ formatTime(transaction.timestamp) }}</div>
               </div>
-              <div v-else>pending</div>
+              <div v-else>{{ t('history.pending') }}</div>
             </div>
             <div class="tx-cell" v-else>{{ formatTimestamp(transaction.timestamp, settingsStore.dateFormat) }}</div>
 

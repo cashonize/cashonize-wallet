@@ -5,6 +5,8 @@ import type { BchSessionProposal } from 'cashconnect';
 
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 import CCViewTemplateDialog from './CCViewTemplateDialog.vue';
 import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -103,7 +105,7 @@ for (const tokenId of allowedTokens) {
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale">
     <q-card>
       <fieldset class="cc-modal-fieldset">
-        <legend style="font-size: larger;">Approve Session?</legend>
+        <legend style="font-size: larger;">{{ t('cashConnect.sessionProposal.title') }}</legend>
         <div  style="display: flex; flex-direction: column; gap: 1rem;">
           <!-- App Info -->
           <div style="display: flex; align-items: center; flex-direction: row; gap: 10px; padding: 7px;">
@@ -124,13 +126,13 @@ for (const tokenId of allowedTokens) {
           <div class="cc-modal-details">
             <!-- Template -->
             <div class="cc-modal-section">
-              <div class="cc-modal-heading">Template:</div>
-              <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.requiredNamespaces?.bch?.template.name }}</a> (Untrusted)
+              <div class="cc-modal-heading">{{ t('cashConnect.sessionProposal.template') }}</div>
+              <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.requiredNamespaces?.bch?.template.name }}</a> {{ t('cashConnect.sessionProposal.untrusted') }}
             </div>
 
             <!-- Allowed Tokens -->
             <div class="cc-modal-section">
-              <div class="cc-modal-heading">Will be able to see Tokens:</div>
+              <div class="cc-modal-heading">{{ t('cashConnect.sessionProposal.willSeeTokens') }}</div>
               <ul>
                 <li v-for="(allowedToken, i) of session.params.requiredNamespaces?.bch?.allowedTokens" :key="i" class="q-mb-xs">
                   <q-avatar size="18px" class="q-mr-xs">
@@ -146,7 +148,7 @@ for (const tokenId of allowedTokens) {
 
             <!-- Methods -->
             <div class="cc-modal-section">
-              <div class="cc-modal-heading">Will be able to invoke Methods/Events:</div>
+              <div class="cc-modal-heading">{{ t('cashConnect.sessionProposal.willInvokeMethods') }}</div>
               <ul>
                 <li v-for="(method, i) of session.params.requiredNamespaces?.bch?.methods" :key="i">{{ method }}</li>
                 <li v-for="(event, i) of session.params.requiredNamespaces?.bch?.events" :key="i">{{ event }}</li>
@@ -156,8 +158,8 @@ for (const tokenId of allowedTokens) {
         </div>
         <!-- Approve/Reject Buttons -->
         <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" value="Approve" @click="onDialogOK" v-close-popup>
-          <input type="button" value="Reject" @click="onDialogCancel">
+          <input type="button" class="primaryButton" :value="t('cashConnect.sessionProposal.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" :value="t('cashConnect.sessionProposal.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>
     </q-card>

@@ -3,12 +3,14 @@ import { Notify } from "quasar";
 import type { UtxoI } from "mainnet-js"
 import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 
 export function copyToClipboard(copyText:string|undefined){
   if(!copyText) return
   void navigator.clipboard.writeText(copyText);
   Notify.create({
-    message: "Copied!",
+    message: t('common.copied'),
     icon: 'info',
     timeout : 1000,
     color: "grey-6"
@@ -29,26 +31,26 @@ export function formatRelativeTime(timestamp: number): string {
   const now = Math.floor(Date.now() / 1000);
   const diff = now - timestamp;
 
-  if (diff < 60) return `${diff} seconds ago`;
+  if (diff < 60) return t('relativeTime.secondsAgo', { count: diff });
   if (diff < 3600) {
     const mins = Math.floor(diff / 60);
-    return `${mins} minute${mins !== 1 ? 's' : ''} ago`;
+    return mins === 1 ? t('relativeTime.minuteAgo', { count: mins }) : t('relativeTime.minutesAgo', { count: mins });
   }
   if (diff < 86400) {
     const hours = Math.floor(diff / 3600);
-    return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    return hours === 1 ? t('relativeTime.hourAgo', { count: hours }) : t('relativeTime.hoursAgo', { count: hours });
   }
   if (diff < 2592000) { // less than 30 days
     const days = Math.floor(diff / 86400);
-    return `${days} day${days !== 1 ? 's' : ''} ago`;
+    return days === 1 ? t('relativeTime.dayAgo', { count: days }) : t('relativeTime.daysAgo', { count: days });
   }
   // months and days
   const months = Math.floor(diff / 2592000);
   const remainingDays = Math.floor((diff % 2592000) / 86400);
   if (remainingDays === 0) {
-    return `${months}mo ago`;
+    return t('relativeTime.monthsAgo', { months });
   }
-  return `${months}mo, ${remainingDays}d ago`;
+  return t('relativeTime.monthsDaysAgo', { months, days: remainingDays });
 }
 
 export function formatTimestamp(timestamp: number | undefined, dateFormat: DateFormat, short = false): string {

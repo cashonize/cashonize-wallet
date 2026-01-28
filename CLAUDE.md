@@ -77,12 +77,15 @@ Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect pa
 ### Quasar Framework
 Docs: https://quasar.dev/docs
 
-- **Boot files** (`src/boot/`): Run at app startup - `qrCodeComponent.ts` (always), `deepLinking.ts` (Capacitor only)
+- **Boot files** (`src/boot/`): Run at app startup - `i18n.ts`, `qrCodeComponent.ts`, `deepLinking.ts` (Capacitor only)
 - **Plugins**: `Notify` for toasts, `Dialog` for confirmations and custom dialogs (configured in quasar.config.ts)
 - **MODE detection**: `process.env.MODE` is `"spa"` (browser), `"electron"` (desktop), or `"capacitor"` (mobile)
 
 ### Styling
 Base CSS from `chota` (minimal CSS framework), custom styles in `src/css/`.
+
+### Internationalization (i18n)
+Uses `vue-i18n`. Translations in `src/i18n/locales`, initialized via `src/boot/i18n.ts`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from the boot file.
 
 ## Testing
 
@@ -90,6 +93,8 @@ Tests are in `/test` directory using vitest. Run a single test file:
 ```bash
 yarn test test/walletUtils.test.ts
 ```
+
+Tests run in Node environment with minimal browser mocks (`localStorage`, `navigator`) in `test/setup.ts`. We use mocks instead of jsdom to keep tests lightweight.
 
 ## Code Style Preferences
 

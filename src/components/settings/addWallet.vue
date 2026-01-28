@@ -3,11 +3,13 @@
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { namedWalletExistsInDb } from 'src/utils/dbUtils'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil } from 'src/utils/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, DERIVATION_PATHS } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import seedPhraseInput from '../general/seedPhraseInput.vue'
+  import { useI18n } from 'vue-i18n'
   const store = useStore()
   const $q = useQuasar()
+  const { t } = useI18n()
 
   // Step: 1 = name, 2 = choose type (create exits here), 3 = import details (import only)
   const step = ref<1 | 2 | 3>(1);
@@ -22,7 +24,7 @@
     const name = walletName.value.trim();
     if (!name) {
       $q.notify({
-        message: "Please enter a wallet name",
+        message: t('addWallet.walletName.emptyError'),
         icon: 'warning',
         color: "grey-7"
       });
@@ -33,7 +35,7 @@
     const existsChipnet = await namedWalletExistsInDb(name, "bchtest");
     if (existsMainnet || existsChipnet) {
       $q.notify({
-        message: `Wallet "${name}" already exists`,
+        message: t('addWallet.walletName.existsError', { name }),
         icon: 'warning',
         color: "grey-7"
       });
@@ -78,17 +80,17 @@
 
 <template>
   <fieldset class="item">
-    <legend>Add Wallet</legend>
+    <legend>{{ t('addWallet.title') }}</legend>
 
     <!-- Step 1: Enter wallet name -->
     <div v-if="step === 1">
       <div style="margin-bottom: 20px;">
-        <label for="walletName" style="display: block; margin-bottom: 8px;">Wallet name:</label>
+        <label for="walletName" style="display: block; margin-bottom: 8px;">{{ t('addWallet.walletName.label') }}</label>
         <input
           v-model="walletName"
           type="text"
           id="walletName"
-          placeholder="Enter wallet name"
+          :placeholder="t('addWallet.walletName.placeholder')"
           style="width: 100%; max-width: 300px; padding: 8px;"
         >
       </div>
@@ -96,7 +98,7 @@
         @click="proceedToStep2()"
         class="button primary"
         type="button"
-        value="Continue"
+        :value="t('addWallet.continueButton')"
         style="margin-bottom: 15px;"
       >
     </div>
@@ -104,30 +106,30 @@
     <!-- Step 2: Choose wallet type -->
     <div v-else-if="step === 2">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 1">
-        ← Back
+        {{ t('addWallet.backButton') }}
       </div>
       <div style="margin-bottom: 20px;">
-        Creating wallet: <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
+        {{ t('addWallet.creating') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
       </div>
       <div style="margin-bottom: 15px;">
         <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
-          A new seed phrase will be generated. Back it up to secure your wallet.
+          {{ t('addWallet.createNew.hint') }}
         </div>
         <input
           @click="createNewWallet()"
           class="button primary"
           type="button"
-          value="Create new wallet"
+          :value="t('addWallet.createNew.button')"
           style="margin-bottom: 15px;"
         >
         <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
-          Or restore a wallet using your existing seed phrase.
+          {{ t('addWallet.importExisting.hint') }}
         </div>
         <input
           @click="step = 3"
           class="button"
           type="button"
-          value="Import existing wallet"
+          :value="t('addWallet.importExisting.button')"
         >
       </div>
     </div>
@@ -135,30 +137,29 @@
     <!-- Step 3: Import wallet details (only reached when importing) -->
     <div v-else-if="step === 3">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 2">
-        ← Back
+        {{ t('addWallet.backButton') }}
       </div>
       <div style="margin-bottom: 20px;">
-        Importing wallet: <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
+        {{ t('addWallet.importing') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
       </div>
       <div style="margin-bottom: 15px;">
         <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
         <div style="margin-top: 15px;">
-          <label>Derivation path: </label>
+          <label>{{ t('addWallet.derivationPath.label') }} </label>
           <select v-model="selectedDerivationPath">
-            <option value="standard">m/44'/145'/0' (standard)</option>
-            <option value="bitcoindotcom">m/44'/0'/0' (bitcoin.com wallet)</option>
+            <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('addWallet.derivationPath.standard') }})</option>
+            <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('addWallet.derivationPath.bitcoindotcom') }})</option>
           </select>
         </div>
         <div style="margin-top: 10px; font-size: smaller; color: grey;">
-          Note: Only the first address from your seed phrase will be used.
-          If you've used this seed with other wallets, funds on other addresses won't appear.
+          {{ t('addWallet.derivationPath.note') }}
         </div>
         <input
           @click="importWallet()"
           class="button primary"
           type="button"
           style="margin-top: 15px; margin-bottom: 15px;"
-          value="Import"
+          :value="t('addWallet.importButton')"
         >
       </div>
     </div>

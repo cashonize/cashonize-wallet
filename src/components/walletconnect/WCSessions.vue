@@ -7,14 +7,16 @@
   import { storeToRefs } from 'pinia';
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
-  
+  import { useI18n } from 'vue-i18n'
+
   // Expose to 'connectDapp' parent component.
   defineExpose({
     connectDappUriInput
   });
-  
+
   const $q = useQuasar()
   const store = useStore()
+  const { t } = useI18n()
 
   const { _wallet } = storeToRefs(store);
   const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>, store.changeNetwork)
@@ -25,12 +27,12 @@
 
   async function connectDappUriInput(url: string){
     try {
-      if(!url) throw("Enter a BCH WalletConnect URI");
+      if(!url) throw(t('walletConnect.errors.enterUri'));
       // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
-      if(!web3wallet.value) throw("WalletConnect not initialized yet. Please try again in a moment.");
+      if(!web3wallet.value) throw(t('walletConnect.errors.notInitialized'));
       await web3wallet.value.core.pairing.pair({ uri: url });
     } catch(error) {
-      const errorMessage = typeof error == 'string' ? error : "Not a valid BCH WalletConnect URI"
+      const errorMessage = typeof error == 'string' ? error : t('walletConnect.errors.invalidUri')
       $q.notify({
         message: errorMessage,
         icon: 'warning',
@@ -42,16 +44,16 @@
 
 <template>
   <fieldset class="item">
-    <legend>WalletConnect Sessions</legend>
+    <legend>{{ t('walletConnect.sessions.title') }}</legend>
 
     <div v-for="sessionInfo in Object.values(activeSessions || {}).reverse()" :key="sessionInfo.topic" class="wc2sessions" >
       <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" :activeSessions="activeSessions" @delete-session="(arg) => walletconnectStore.deleteSession(arg)"/>
     </div>
     <!-- Show Empty Message if no Sessions are active -->
     <template v-if="!Object.keys(activeSessions || {}).length">
-      <div class="q-pa-md">No sessions currently active.</div>
+      <div class="q-pa-md">{{ t('walletConnect.sessions.noActiveSessions') }}</div>
     </template>
-    
+
   </fieldset>
 </template>
 
