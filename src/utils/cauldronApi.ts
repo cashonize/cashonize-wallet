@@ -2,7 +2,7 @@ import { CauldronValueLockedSchema } from "./zodValidation";
 import { cachedFetch } from "./cacheUtils";
 
 const CAULDRON_INDEXER_URL = "https://indexer.cauldron.quest";
-const MIN_LIQUIDITY_SATS = 1_000_000_000; // 10 BCH minimum
+const MIN_LIQUIDITY_SATS = 100_000_000; // 1 BCH minimum
 const CAULDRON_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export interface CauldronPriceData {
@@ -54,27 +54,20 @@ export async function fetchCauldronPrices(
   return results;
 }
 
-// Calculate fiat value of user's total holdings
-// Accounts for the 0.3% LP fee that would apply to any swap
+// Calculate fiat value of user's fungible token holdings from Cauldron price data
+// Clamps as a maximum to the pool's BCH amount to avoid overstating value due to limited liquidity
 // Note: slippage/price impact is ignored as it varies with trade size
-const PRICE_AFTER_LP_FEE = 0.997; // 100% - 0.3% = 99.7%
-
-export function calculateHoldingsFiatValue(
+export function calculateTokenFiatValue(
   userAmount: bigint,
-  decimals: number,
-  priceData: CauldronPriceData,
+  poolInfo: CauldronPriceData,
   bchExchangeRate: number
 ): number | null {
-  if (!priceData.hasSufficientLiquidity || priceData.tokenAmount === 0) return null;
+  if (!poolInfo.hasSufficientLiquidity || poolInfo.tokenAmount === 0) return null;
+  const poolPrice = poolInfo.satoshis / poolInfo.tokenAmount;
+  const tokenBchValue = Number(userAmount) * poolPrice;
 
-  // Convert user's amount to display units
-  const displayAmount = Number(userAmount) / Math.pow(10, decimals);
-
-  // Price per display unit in sats
-  const pricePerUnitSats = (priceData.satoshis / priceData.tokenAmount) * Math.pow(10, decimals);
-
-  // Total value in fiat (after 0.3% LP fee)
-  const totalSats = displayAmount * pricePerUnitSats;
+  const totalSats = Math.min(tokenBchValue, poolInfo.satoshis);
   const totalBch = totalSats / 1e8;
-  return totalBch * bchExchangeRate * PRICE_AFTER_LP_FEE;
+  const fiatValueTokens = totalBch * bchExchangeRate;
+  return fiatValueTokens;
 }

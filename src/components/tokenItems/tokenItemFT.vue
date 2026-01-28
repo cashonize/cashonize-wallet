@@ -12,7 +12,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
-  import { calculateHoldingsFiatValue } from 'src/utils/cauldronApi'
+  import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
   import { CurrencySymbols } from 'src/interfaces/interfaces'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
@@ -53,34 +53,28 @@
     return tokenMetaData.value?.name;
   })
 
-  // Compute fiat value of total holdings using Cauldron DEX price data
+  // Fiat value of fungible token holdings using Cauldron DEX price data
   const holdingsFiatValue = ref<number | null>(null);
 
-  // Watch for changes in the relevant data and recalculate
+  // Watch for changes in the relevant data and recalculate fiat value
+  // Note: could be a computed if BCH exchange rate was available synchronously
   watch(
-    () => [settingsStore.showCauldronFTValue, store.cauldronPrices, tokenData.value.amount] as const,
-    async ([showValue, prices]) => {
-      if (!showValue || store.network !== 'mainnet') {
+    [() => settingsStore.showCauldronFTValue, () => store.cauldronPrices, () => tokenData.value.amount, () => settingsStore.currency],
+    async () => {
+      if (!settingsStore.showCauldronFTValue || store.network !== 'mainnet') {
         holdingsFiatValue.value = null;
         return;
       }
 
-      const priceData = prices?.[tokenData.value.tokenId];
-      if (!priceData?.hasSufficientLiquidity) {
+      const poolPriceData = store.cauldronPrices?.[tokenData.value.tokenId];
+      if (!poolPriceData?.hasSufficientLiquidity) {
         holdingsFiatValue.value = null;
         return;
       }
 
-      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       try {
-        // Exchange rate should already be cached from store's fetchCauldronPricesForTokens
         const bchRate = await convert(1, 'bch', settingsStore.currency);
-        holdingsFiatValue.value = calculateHoldingsFiatValue(
-          tokenData.value.amount,
-          decimals,
-          priceData,
-          bchRate
-        );
+        holdingsFiatValue.value = calculateTokenFiatValue(tokenData.value.amount, poolPriceData, bchRate);
       } catch {
         holdingsFiatValue.value = null;
       }
