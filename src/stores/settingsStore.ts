@@ -34,6 +34,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
   const showCauldronSwap = ref(false);
+  const showCauldronFTValue = ref(true);
   const qrScan = ref(true);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const dateFormat = ref<DateFormat>("DD/MM/YY");
@@ -137,6 +138,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readShowSwap == "true"){
     showCauldronSwap.value = true;
   }
+
+  const readShowCauldronFTValue = localStorage.getItem("showCauldronFTValue");
+  if(readShowCauldronFTValue) showCauldronFTValue.value = readShowCauldronFTValue == "true";
 
   const readFeaturedTokens = localStorage.getItem("featuredTokens");
   if(readFeaturedTokens) {
@@ -399,6 +403,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     hideBalanceColumn,
     tokenBurn,
     showCauldronSwap,
+    showCauldronFTValue,
     qrScan,
     qrAnimation,
     hasPlayedAnimation,

@@ -38,6 +38,7 @@
   const selectedDarkMode = ref(settingsStore.darkMode);
   const confirmBeforeSending = ref(settingsStore.confirmBeforeSending);
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
+  const selectedShowCauldronFTValue = ref(settingsStore.showCauldronFTValue);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   // advanced settings
@@ -230,6 +231,14 @@
     localStorage.setItem("showCauldronSwap", selectedShowSwap.value? "true" : "false");
     settingsStore.showCauldronSwap = selectedShowSwap.value;
   }
+  function toggleShowCauldronFTValue(){
+    localStorage.setItem("showCauldronFTValue", selectedShowCauldronFTValue.value? "true" : "false");
+    settingsStore.showCauldronFTValue = selectedShowCauldronFTValue.value;
+    // Trigger fetch if enabling
+    if (selectedShowCauldronFTValue.value) {
+      void store.fetchCauldronPricesForTokens();
+    }
+  }
   function changeTokenBurn(){
     settingsStore.tokenBurn = selectedTokenBurn.value;
   }
@@ -344,6 +353,13 @@
 
       <div style="margin-top:15px">
         {{ t('settings.userOptions.showCauldronSwap') }} <Toggle v-model="selectedShowSwap" @change="toggleShowSwap"/>
+      </div>
+
+      <div style="margin-top:15px">
+        {{ t('settings.userOptions.showCauldronFTValue') }} <Toggle v-model="selectedShowCauldronFTValue" @change="toggleShowCauldronFTValue"/>
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.userOptions.showCauldronFTValueHint') }}
+        </div>
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">

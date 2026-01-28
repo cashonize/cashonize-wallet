@@ -768,6 +768,8 @@
       "confirmPayments": "Confirmer les paiements avant l'envoi",
       "confirmPaymentsHint": "Demander une confirmation après avoir cliqué sur envoyer (recommandé)",
       "showCauldronSwap": "Afficher le bouton Cauldron Swap",
+      "showCauldronFTValue": "Afficher la valeur en devise pour les tokens fongibles",
+      "showCauldronFTValueHint": "Afficher la valeur en devise pour les tokens fongibles avec au moins 1 BCH de liquidité sur Cauldron DEX",
       "enableTokenBurn": "Activer la destruction de tokens",
       "enableQrScan": "Activer le scan QR",
       "selectUnit": "Sélectionner l'unité Bitcoin Cash :",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, type SendRequest } from "mainnet-js"
+  import { TokenSendRequest, type SendRequest, convert } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
@@ -12,6 +12,8 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
+  import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
+  import { CurrencySymbols } from 'src/interfaces/interfaces'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   const $q = useQuasar()
@@ -50,6 +52,35 @@
   const tokenName = computed(() => {
     return tokenMetaData.value?.name;
   })
+
+  // Fiat value of fungible token holdings using Cauldron DEX price data
+  const holdingsFiatValue = ref<number | null>(null);
+
+  // Watch for changes in the relevant data and recalculate fiat value
+  // Note: could be a computed if BCH exchange rate was available synchronously
+  watch(
+    [() => settingsStore.showCauldronFTValue, () => store.cauldronPrices, () => tokenData.value.amount, () => settingsStore.currency],
+    async () => {
+      if (!settingsStore.showCauldronFTValue || store.network !== 'mainnet') {
+        holdingsFiatValue.value = null;
+        return;
+      }
+
+      const poolPriceData = store.cauldronPrices?.[tokenData.value.tokenId];
+      if (!poolPriceData?.hasSufficientLiquidity) {
+        holdingsFiatValue.value = null;
+        return;
+      }
+
+      try {
+        const bchRate = await convert(1, 'bch', settingsStore.currency);
+        holdingsFiatValue.value = calculateTokenFiatValue(tokenData.value.amount, poolPriceData, bchRate);
+      } catch {
+        holdingsFiatValue.value = null;
+      }
+    },
+    { immediate: true }
+  );
 
   // check if need to fetch onchain stats on displayTokenInfo
   watch(displayTokenInfo, async() => {
@@ -427,6 +458,9 @@
           </div>
           <div v-if="tokenData?.amount" class="tokenAmount">{{ t('tokenItem.amount') }}
             {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
+            <span v-if="holdingsFiatValue !== null" style="font-size: smaller; color: grey; white-space: nowrap;">
+              ≈ {{ CurrencySymbols[settingsStore.currency] }}{{ holdingsFiatValue.toFixed(2) }}
+            </span>
           </div>
         </div>
         <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.category)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.category) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
