@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch, shallowRef } from 'vue'
-  import { type BalanceResponse, convert } from 'mainnet-js'
+  import { convert, toBch, toCurrency } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
@@ -11,6 +11,7 @@
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import { asyncComputed } from '@vueuse/core'
 
   const $q = useQuasar()
   const store = useStore()
@@ -50,13 +51,20 @@
     if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " satoshis"
     else return settingsStore.bchUnit == "bch"? " tBCH" : " testnet satoshis"
   })
-  const displayCurrencyBalance = computed(() => {
-    const balance = store.balance?.[settingsStore.currency];
-    if (balance === undefined) return '';
+  const displayCurrencyBalance = asyncComputed(async () => {
+    const balance = await toCurrency(store.balance ?? 0n, settingsStore.currency);
     return formatFiatAmount(balance, settingsStore.currency);
   });
   const currencyDisplayShortName = computed(() => {
     return (store.network == "mainnet" ? "" : "t") + CurrencyShortNames[settingsStore.currency];
+  });
+  const balanceInBchUnit = asyncComputed(async () => {
+    const balanceInUnit = await convert(Number(store.balance ?? 0n), "sat", settingsStore.bchUnit);
+    return balanceInUnit;
+  });
+  const maxAmountToSendInBchUnit = asyncComputed(async () => {
+    const maxAmountToSendUnit = await convert(Number(store.maxAmountToSend ?? 0n), "sat", settingsStore.bchUnit);
+    return maxAmountToSendUnit;
   });
 
   // handle props
@@ -132,20 +140,12 @@
     const newBchValue = await convert(currencySendAmount.value, settingsStore.currency, settingsStore.bchUnit);
     bchSendAmount.value = Number(newBchValue);
   }
-  async function useMaxBchAmount(){
-    if(store.maxAmountToSend && store.maxAmountToSend[settingsStore.bchUnit] && store.balance){
-      bchSendAmount.value = store.maxAmountToSend[settingsStore.bchUnit];
+  async function useMaxBchAmount() {
+    if(store.maxAmountToSend && store.balance){
+      bchSendAmount.value = await convert(Number(store.maxAmountToSend), "sat", settingsStore.bchUnit);
       // update currency balance & set currency amount
-      const newFiatValue = await convert(
-        store.maxAmountToSend[settingsStore.bchUnit], settingsStore.bchUnit, settingsStore.currency
-      );
+      const newFiatValue = await toCurrency(store.maxAmountToSend, settingsStore.currency);
       currencySendAmount.value = Number(newFiatValue.toFixed(2))
-      // update store balance to reflect new fiat value
-      const refreshedBalance: BalanceResponse = {
-        ...store.balance,
-        [settingsStore.currency]: newFiatValue
-      }
-      store.balance = refreshedBalance
     }
     else{
       $q.notify({
@@ -162,7 +162,7 @@
       // check for valid inputs
       if(!destinationAddr.value) throw(t('wallet.errors.noDestination'))
       if(!bchSendAmount.value) throw(t('wallet.errors.noAmount'))
-      if(bchSendAmount.value > (store.maxAmountToSend?.sat ?? 0)) throw(t('wallet.errors.insufficientFunds'))
+      if(bchSendAmount.value > toBch(store.maxAmountToSend ?? 0n)) throw(t('wallet.errors.insufficientFunds'))
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         destinationAddr.value = networkPrefix + destinationAddr.value
@@ -188,7 +188,7 @@
         if (!confirmed) return
       }
 
-      const sendBchOutput = {cashaddr: destinationAddr.value, value: bchSendAmount.value, unit: settingsStore.bchUnit}
+      const sendBchOutput = {cashaddr: destinationAddr.value, value: BigInt(await convert(bchSendAmount.value, settingsStore.bchUnit, "sat"))} ;
       $q.notify({
         spinner: true,
         message: t('wallet.sendingTransaction'),
@@ -268,8 +268,8 @@
     <span>
       {{ t('wallet.balance', { currency: bchDisplayNetwork }) }}
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance && store.balance[settingsStore.bchUnit] != undefined
-          ? numberFormatter.format(store.balance[settingsStore.bchUnit]) + displayUnitLong : "" }}
+        {{ store.balance
+          ? numberFormatter.format(balanceInBchUnit ?? 0) + displayUnitLong : "" }}
       </span>
     </span>
     <div style="word-break: break-all;">
@@ -314,7 +314,7 @@
         </span>
             <button @click="useMaxBchAmount()" class="fillInMaxBch">{{ t('wallet.max') }}</button>
       </span>
-      <div v-if="(store.maxAmountToSend?.[settingsStore.bchUnit] ?? 0) < (bchSendAmount ?? 0)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
+      <div v-if="(maxAmountToSendInBchUnit ?? 0) < (bchSendAmount ?? 0)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
 
     </div>
     <input @click="sendBch()" type="button" class="primaryButton" :value="isSending ? t('common.status.sending') : t('common.actions.send')" :disabled="isSending" style="margin-top: 8px;">

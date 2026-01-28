@@ -158,7 +158,7 @@
 
   const hasUtxosWithBchAndTokens = computed(() => {
     if (!store._wallet || !store.walletUtxos) return undefined;
-    return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n).length > 0;
+    return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n).length > 0;
   });
   const newerReleaseAvailable = computed(() => {
     if(!(process.env.MODE == "electron")) return false;

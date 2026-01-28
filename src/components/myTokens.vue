@@ -63,7 +63,7 @@
     <div v-else-if="store.filteredTokenList?.length == 0" style="text-align: center;">
       {{ t('tokens.noMatch') }}
     </div>
-    <div v-for="tokenData in store.filteredTokenList" :key="tokenData.tokenId">
+    <div v-for="tokenData in store.filteredTokenList" :key="tokenData.category">
       <tokenItemFT v-if="'amount' in tokenData" :tokenData="tokenData"/>
       <tokenItemNFT v-else :tokenData="tokenData"/>
     </div>

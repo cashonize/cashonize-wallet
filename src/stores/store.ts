@@ -8,9 +8,7 @@ import {
   Connection,
   binToHex,
   convert,
-  balanceResponseFromSatoshi,
-  type BalanceResponse,
-  type UtxoI,
+  type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
   NetworkType
@@ -65,9 +63,9 @@ export const useStore = defineStore('store', () => {
   // _wallet is the actual reactive wallet object and is null until the wallet is set
   // so _wallet is used for mutating properties of the wallet, like changing the provider
   const _wallet = ref(null as (Wallet | TestNetWallet | null));
-  const balance = ref(undefined as (BalanceResponse | undefined));
-  const maxAmountToSend = ref(undefined as (BalanceResponse | undefined));
-  const walletUtxos = ref(undefined as (UtxoI[] | undefined));
+  const balance = ref(undefined as (bigint | undefined));
+  const maxAmountToSend = ref(undefined as (bigint | undefined));
+  const walletUtxos = ref(undefined as (Utxo[] | undefined));
   const walletHistory = ref(undefined as (WalletHistoryReturnType | undefined));
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
@@ -102,13 +100,13 @@ export const useStore = defineStore('store', () => {
       return tokenList.value;
     }
     if (filter === 'default') {
-      return tokenList.value.filter(t => !settingsStore.hiddenTokens.includes(t.tokenId));
+      return tokenList.value.filter(t => !settingsStore.hiddenTokens.includes(t.category));
     }
     if (filter === 'favoritesOnly') {
-      return tokenList.value.filter(t => settingsStore.featuredTokens.includes(t.tokenId));
+      return tokenList.value.filter(t => settingsStore.featuredTokens.includes(t.category));
     }
     if (filter === 'hiddenOnly') {
-      return tokenList.value.filter(t => settingsStore.hiddenTokens.includes(t.tokenId));
+      return tokenList.value.filter(t => settingsStore.hiddenTokens.includes(t.category));
     }
     return tokenList.value;
   })
@@ -177,21 +175,20 @@ export const useStore = defineStore('store', () => {
       // fetch wallet utxos first, this result will be used in consecutive calls
       // to avoid duplicate getAddressUtxos() calls
       console.time('fetch wallet utxos');
-      const walletAddressUtxos = await wallet.value.getAddressUtxos()
+      const walletAddressUtxos = await wallet.value.getUtxos()
       console.timeEnd('fetch wallet utxos');
       const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
       // Fetch fiat balance and max amount to send in parallel
       // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
       console.time('fetch fiat balance & max amount to send');
-      const promiseWalletBalance = balanceResponseFromSatoshi(balanceSats);
       const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend({
         options: { utxoIds: walletAddressUtxos }
       });
-      const balancePromises = [promiseWalletBalance, promiseMaxAmountToSend];
-      const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
+      const balancePromises = [promiseMaxAmountToSend];
+      const [resultMaxAmountToSend] = await Promise.all(balancePromises);
       console.timeEnd('fetch fiat balance & max amount to send');
       // set values simulatenously with tokenList so the UI elements load together
-      balance.value = resultWalletBalance
+      balance.value = balanceSats
       walletUtxos.value = walletAddressUtxos
       maxAmountToSend.value = resultMaxAmountToSend
       updateTokenList()
@@ -228,10 +225,10 @@ export const useStore = defineStore('store', () => {
       (newBalance) => runAsyncVoid(async () => {
         const oldBalance = balance.value;
         balance.value = newBalance;
-        if(oldBalance?.sat && newBalance.sat && walletInitialized.value){
+        if(oldBalance && newBalance && walletInitialized.value){
           console.log("watchBalance")
-          if(oldBalance.sat < newBalance.sat){
-            const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
+          if(oldBalance < newBalance){
+            const amountReceived = Number(newBalance - oldBalance) / 100_000_000
             const currencyValue = await convert(amountReceived, settingsStore.bchUnit, settingsStore.currency);
             const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
             Notify.create({
@@ -244,7 +241,7 @@ export const useStore = defineStore('store', () => {
             })
           }
           // update state (but not on the initial trigger when creating the subscription)
-          const walletAddressUtxos = await wallet.value.getAddressUtxos();
+          const walletAddressUtxos = await wallet.value.getUtxos();
           walletUtxos.value = walletAddressUtxos;
           maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
             utxoIds: walletAddressUtxos
@@ -274,9 +271,9 @@ export const useStore = defineStore('store', () => {
               message: t('store.notifications.receivedTokens', { tokenType })
             })
           }
-          const tokenId = tokenOutput.tokenData?.category;
-          const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);
-          if(!tokenId && !isNewTokenItem) continue;
+          const category = tokenOutput.tokenData?.category;
+          const isNewTokenItem = !previousTokenList?.find(elem => elem.category == category);
+          if(!category && !isNewTokenItem) continue;
           const newTokenItem = convertElectrumTokenData(tokenOutput.tokenData)
           if(newTokenItem) listNewTokens.push(newTokenItem)
         }
@@ -463,7 +460,7 @@ export const useStore = defineStore('store', () => {
 
   async function updateWalletUtxos() {
     try {
-      walletUtxos.value = await wallet.value.getAddressUtxos();
+      walletUtxos.value = await wallet.value.getUtxos();
       updateTokenList()
     } catch(error) {
       const errorMessage = typeof error == 'string' ? error : t('store.errors.errorFetchingUtxos');
@@ -505,10 +502,10 @@ export const useStore = defineStore('store', () => {
     const featuredTokenList: TokenList = []
     for(const featuredToken of settingsStore.featuredTokens){
       // if featuredToken in unsortedTokenList, add it to a featuredTokenList
-      const featuredTokenItem = unsortedTokenList.find(token => token.tokenId === featuredToken);
+      const featuredTokenItem = unsortedTokenList.find(token => token.category === featuredToken);
       if(featuredTokenItem) featuredTokenList.push(featuredTokenItem)
     }
-    const otherTokenList = unsortedTokenList.filter(token => !settingsStore.featuredTokens.includes(token.tokenId));
+    const otherTokenList = unsortedTokenList.filter(token => !settingsStore.featuredTokens.includes(token.category));
 
     tokenList.value = [...featuredTokenList, ...otherTokenList];
   }

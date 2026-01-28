@@ -285,13 +285,13 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
         if (utxo.token) {
           token = {
             amount: BigInt(utxo.token.amount),
-            category: hexToBin(utxo.token.tokenId),
+            category: hexToBin(utxo.token.category),
           };
 
-          if (utxo.token?.capability || utxo.token?.commitment) {
+          if (utxo.token?.nft?.capability || utxo.token?.nft?.commitment) {
             token.nft = {
-              capability: utxo.token.capability || "none",
-              commitment: hexToBin(utxo.token.commitment || ""),
+              capability: utxo.token.nft?.capability || "none",
+              commitment: hexToBin(utxo.token.nft?.commitment || ""),
             };
           }
         }

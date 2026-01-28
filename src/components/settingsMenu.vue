@@ -7,7 +7,7 @@
   import { computed, ref } from 'vue'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
+  import { Connection, type ElectrumNetworkProvider, Config } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
@@ -79,7 +79,7 @@
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
 
   const utxosWithBchAndTokens = computed(() => {
-    return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
+    return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n);
   });
 
   // Used to disable network options the current wallet doesn't exist on
@@ -130,7 +130,7 @@
     localStorage.setItem("currency", selectedCurrency.value);
     store.changeView(1);
     if (store.wallet) {
-      store.balance = await store.wallet.getBalance() as BalanceResponse;
+      store.balance = await store.wallet.getBalance();
     }
   }
   function changeUnit(){

@@ -1,4 +1,4 @@
-import type { UtxoI, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest, Wallet } from "mainnet-js"
+import type { Utxo, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest, Wallet } from "mainnet-js"
 
 export const CurrencySymbols = {
   usd: "$",
@@ -35,15 +35,15 @@ export interface QrCodeElement extends HTMLElement {
 export type TokenList = (TokenDataNFT | TokenDataFT)[]
 
 export interface TokenDataNFT {
-  tokenId: string,
-  nfts: UtxoI[],
-  authUtxo?: UtxoI
+  category: string,
+  nfts: Utxo[],
+  authUtxo?: Utxo
 }
 
 export interface TokenDataFT {
-  tokenId: string,
+  category: string,
   amount: bigint,
-  authUtxo?: UtxoI
+  authUtxo?: Utxo
 }
 
 export type TokenSendRequestParams = ConstructorParameters<typeof TokenSendRequest>[0];
@@ -56,9 +56,11 @@ export type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;
 
 // manual type because 'number' type on 'amount' causes issues in strict mode
 export type TokenBurnRequestParams = {
-  tokenId: string;
-  capability?: NFTCapability;
-  commitment?: string;
+  category: string;
+  nft?: {
+    capability: NFTCapability;
+    commitment: string;
+  },
   amount?: bigint;
   cashaddr?: string;
 };

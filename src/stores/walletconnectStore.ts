@@ -394,7 +394,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       const walletLockingBytecode = encodeLockingBytecodeP2pkh(wallet.value.publicKeyHash);
       const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
       const encodedTransaction = createSignedWcTransaction(
-        wcTransactionObj, { privateKey, pubkeyCompressed }, walletLockingBytecodeHex
+        wcTransactionObj, { privateKey, pubkeyCompressed: pubkeyCompressed! }, walletLockingBytecodeHex
       );
 
       const hash = binToHex(sha256.hash(sha256.hash(encodedTransaction)).reverse());
@@ -461,7 +461,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       // isValidSignMessageRequest has checked the params already when this function is called
       const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageRequest
       const message = wcSignMessageParams.message;
-      const signedMessage = await wallet.value.sign(message);
+      const signedMessage = wallet.value.sign(message);
 
       const { id, topic } = signMessageRequestWC;
       const response = { id, jsonrpc: '2.0', result: signedMessage.signature };

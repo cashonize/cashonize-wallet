@@ -51,8 +51,8 @@
   const feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.00";
   const currencySymbol = CurrencySymbols[settingsStore.currency];
 
-  const loadTokenMetadata = async (tokenId: string, commitment: string | undefined) => {
-    if (!store.bcmrRegistries?.[tokenId]) {
+  const loadTokenMetadata = async (category: string, commitment: string | undefined) => {
+    if (!store.bcmrRegistries?.[category]) {
       $q.notify({
         message: t('transactionDialog.unknownToken'),
         icon: 'info',
@@ -62,16 +62,16 @@
       return;
     }
 
-    selectedTokenId.value = tokenId;
+    selectedTokenId.value = category;
     if (commitment === undefined) {
-      tokenMetadata.value = store.bcmrRegistries[tokenId];
+      tokenMetadata.value = store.bcmrRegistries[category];
       return;
     }
 
-    if (!store.bcmrRegistries[tokenId].nfts?.[commitment]) {
-      await store.fetchTokenMetadata([{tokenId, nfts: [{token: {tokenId, commitment}}]} as TokenDataNFT], true);
+    if (!store.bcmrRegistries[category].nfts?.[commitment]) {
+      await store.fetchTokenMetadata([{category, nfts: [{token: {nft: {category, commitment}}}]} as unknown as TokenDataNFT], true);
     }
-    tokenMetadata.value = store.bcmrRegistries[tokenId].nfts?.[commitment];
+    tokenMetadata.value = store.bcmrRegistries[category].nfts?.[commitment];
     selectedTokenCommitment.value = commitment;
   }
 </script>
@@ -145,14 +145,14 @@
             <span class="break" :class="input.address === ourAddress ? 'thisWalletTag' : ''">{{ isCoinbase ? t('transactionDialog.coinbase') : input.address.split(":")[1] }}</span>
             <div style="margin-left: 25px;">
               <div v-if="input.value > 10_000">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</div>
-              <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer;">
-                <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
-                <span> {{ " " + (store.bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
-                <span v-if="input.token.capability"> NFT</span>
+              <span v-if="input.token" @click="loadTokenMetadata(input.token!.category, input.token!.nft?.commitment!)" style="cursor: pointer;">
+                <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.category]?.token.decimals ?? 0)) }}</span>
+                <span> {{ " " + (store.bcmrRegistries?.[input.token.category]?.token?.symbol ?? input.token.category.slice(0, 8)) }}</span>
+                <span v-if="input.token.nft?.capability"> NFT</span>
                 <TokenIcon
                   style="margin-left: 0.5rem; vertical-align: sub;"
-                  :token-id="input.token.tokenId"
-                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(input.token.tokenId) : undefined"
+                  :token-id="input.token.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(input.token.category) : undefined"
                   :size="20"
                 />
               </span>
@@ -167,14 +167,14 @@
             <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'thisWalletTag' : ''">{{ output.address.split(":")[1] }}</span></span>
             <div style="margin-left: 25px;">
               <div v-if="output.value > 10_000">{{ satsToBch(output.value) }} {{ bchDisplayUnit }}</div>
-              <span v-if="output.token" @click="loadTokenMetadata(output.token!.tokenId, output.token!.commitment!)" style="cursor: pointer;">
-                <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
-                <span> {{ " " + (store.bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
-                <span v-if="output.token.capability"> NFT</span>
+              <span v-if="output.token" @click="loadTokenMetadata(output.token!.category, output.token!.nft?.commitment!)" style="cursor: pointer;">
+                <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.category]?.token.decimals ?? 0)) }}</span>
+                <span> {{ " " + (store.bcmrRegistries?.[output.token.category]?.token?.symbol ?? output.token.category.slice(0, 8)) }}</span>
+                <span v-if="output.token.nft?.capability"> NFT</span>
                 <TokenIcon
                   style="margin-left: 0.5rem; vertical-align: sub;"
-                  :token-id="output.token.tokenId"
-                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(output.token.tokenId) : undefined"
+                  :token-id="output.token.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(output.token.category) : undefined"
                   :size="20"
                 />
               </span>

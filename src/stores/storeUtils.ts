@@ -1,6 +1,6 @@
 import { queryAuthHeadTxid } from "src/queryChainGraph";
 import { cachedFetch } from "src/utils/cacheUtils";
-import type { UtxoI } from "mainnet-js";
+import type { Utxo } from "mainnet-js";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
 import { displayAndLogError } from "src/utils/errorHandling";
@@ -8,19 +8,19 @@ import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
-export function tokenListFromUtxos(walletUtxos: UtxoI[]) {
+export function tokenListFromUtxos(walletUtxos: Utxo[]) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
   const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
   const nftsResult = getAllNftTokenBalances(tokenUtxos);
   const arrayTokens: TokenList = [];
-  for (const tokenId of Object.keys(fungibleTokensResult)) {
-    const fungibleTokenAmount = fungibleTokensResult[tokenId]
+  for (const category of Object.keys(fungibleTokensResult)) {
+    const fungibleTokenAmount = fungibleTokensResult[category]
     if(!fungibleTokenAmount) continue // should never happen
-    arrayTokens.push({ tokenId, amount: fungibleTokenAmount });
+    arrayTokens.push({ category, amount: fungibleTokenAmount });
   }
-  for (const tokenId of Object.keys(nftsResult)) {
-    const utxosNftTokenid = tokenUtxos.filter((val) =>val.token?.tokenId === tokenId);
-    arrayTokens.push({ tokenId, nfts: utxosNftTokenid });
+  for (const category of Object.keys(nftsResult)) {
+    const utxosNftCategory = tokenUtxos.filter((val) =>val.token?.category === category);
+    arrayTokens.push({ category, nfts: utxosNftCategory });
   }
   return arrayTokens
 }
@@ -34,15 +34,15 @@ export async function fetchTokenMetadata(
   const metadataPromises = [];
   for (const item of tokenList) {
     if('nfts' in item && (fetchNftInfo || Object.keys(item.nfts).length == 1)) {
-      const listCommitments = item.nfts.map(nftItem => nftItem.token?.commitment)
+      const listCommitments = item.nfts.map(nftItem => nftItem.token?.nft?.commitment)
       const uniqueCommitments = new Set(listCommitments);
       for(const nftCommitment of uniqueCommitments) {
         const nftEndpoint = nftCommitment ? nftCommitment : "empty"
-        const metadataPromise = cachedFetch(`${bcmrIndexer}/tokens/${item.tokenId}/${nftEndpoint}/`);
+        const metadataPromise = cachedFetch(`${bcmrIndexer}/tokens/${item.category}/${nftEndpoint}/`);
         metadataPromises.push(metadataPromise);
       }
     } else {
-      const metadataPromise = cachedFetch(`${bcmrIndexer}/tokens/${item.tokenId}/`);
+      const metadataPromise = cachedFetch(`${bcmrIndexer}/tokens/${item.category}/`);
       metadataPromises.push(metadataPromise);
     }
   }
@@ -83,13 +83,13 @@ export async function fetchTokenMetadata(
 }
 
 export async function updateTokenListWithAuthUtxos(
-  tokenList: TokenList, chaingraphUrl: string, tokenUtxos: UtxoI[]
+  tokenList: TokenList, chaingraphUrl: string, tokenUtxos: Utxo[]
 ) {
   const copyTokenList = [...tokenList]
   // get all authHeadTxIds in parallel
   const authHeadTxIdPromises: Promise<string>[] = [];
   for (const token of tokenList){
-    const fetchAuthHeadPromise = queryAuthHeadTxid(token.tokenId, chaingraphUrl)
+    const fetchAuthHeadPromise = queryAuthHeadTxid(token.category, chaingraphUrl)
     authHeadTxIdPromises.push(fetchAuthHeadPromise)
   }
   const authHeadTxIdSettled = await Promise.allSettled(authHeadTxIdPromises);
@@ -102,7 +102,7 @@ export async function updateTokenListWithAuthUtxos(
   copyTokenList.forEach((token, index) => {
     const authHeadTxId = authHeadTxIdResults[index];
     const filteredTokenUtxos = tokenUtxos.filter(
-      (tokenUtxo) => tokenUtxo.token?.tokenId === token.tokenId
+      (tokenUtxo) => tokenUtxo.token?.category === token.category
     );
     const authUtxo = filteredTokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
     if(authUtxo) token.authUtxo = authUtxo;
