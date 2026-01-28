@@ -41,6 +41,7 @@ import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
 import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/dbUtils"
+import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -73,6 +74,7 @@ export const useStore = defineStore('store', () => {
   const plannedTokenId = ref(undefined as (undefined | string));
   const currentBlockHeight = ref(undefined as (number | undefined));
   const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
+  const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
   const walletInitialized = ref(false as boolean)
@@ -204,6 +206,8 @@ export const useStore = defineStore('store', () => {
       console.time('fetch token metadata');
       await fetchTokenMetadata(tokenList.value, false);
       console.timeEnd('fetch token metadata');
+      // fetch Cauldron prices as fire-and-forget (non-critical)
+      void fetchCauldronPricesForTokens();
       console.time('fetch history');
       await updateWalletHistory()
       console.timeEnd('fetch history');
@@ -284,6 +288,8 @@ export const useStore = defineStore('store', () => {
         await fetchTokenMetadata(listNewTokens, true);
         // refetch utxos to update tokenList
         await updateWalletUtxos();
+        // fetch Cauldron prices for new FTs
+        void fetchCauldronPricesForTokens();
         // update wallet history as fire-and-forget promise
         void updateWalletHistory()
       })
@@ -314,6 +320,7 @@ export const useStore = defineStore('store', () => {
     plannedTokenId.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = undefined;
+    cauldronPrices.value = null;
     walletHistory.value = undefined;
   }
 
@@ -519,6 +526,21 @@ export const useStore = defineStore('store', () => {
     bcmrRegistries.value = registries
   }
 
+  // Fetch Cauldron prices for fungible tokens
+  async function fetchCauldronPricesForTokens() {
+    if (!settingsStore.showCauldronFTValue) return;
+    if (network.value !== 'mainnet') return;
+
+    const fungibleTokens = tokenList.value?.filter(token => 'amount' in token)
+    if (fungibleTokens?.length === 0) return;
+
+    const ftTokenIds = fungibleTokens?.map(token => token.tokenId) ?? [];
+
+    // Warm the exchange rate cache first, then fetch prices
+    await convert(1, 'bch', settingsStore.currency);
+    cauldronPrices.value = await fetchCauldronPrices(ftTokenIds);
+  }
+
   async function fetchTokenInfo(categoryId: string) {
     const res = await cachedFetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
@@ -632,6 +654,7 @@ export const useStore = defineStore('store', () => {
     network,
     explorerUrl,
     bcmrRegistries,
+    cauldronPrices,
     currentBlockHeight,
     changeView,
     setWallet,
@@ -647,6 +670,7 @@ export const useStore = defineStore('store', () => {
     hasPreGenesis,
     fetchAuthUtxos,
     fetchTokenMetadata,
+    fetchCauldronPricesForTokens,
     toggleFavorite,
     toggleHidden,
     tokenIconUrl
