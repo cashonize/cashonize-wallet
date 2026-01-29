@@ -375,7 +375,7 @@
     if (activeAction.value) return;
     const category = tokenData.value.category;
     const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
-    const tokenAddr = store.wallet.tokenaddr;
+    const tokenAddr = store.wallet.getTokenDepositAddress();
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     activeAction.value = 'minting';
@@ -532,7 +532,7 @@
         value: 1000n,
       } as SendRequest;
       const changeOutputNft = new TokenSendRequest({
-        cashaddr: store.wallet.tokenaddr,
+        cashaddr: store.wallet.getTokenDepositAddress(),
         category: tokenData.value.category,
         nft: {
           commitment: authNft?.nft?.commitment,

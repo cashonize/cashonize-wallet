@@ -8,7 +8,7 @@ import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransac
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import MainnetJs and CashConnect
-import { convert, type Wallet, type TestNetWallet } from "mainnet-js";
+import { convert, type Wallet, type TestNetWallet, type HDWallet, type TestNetHDWallet } from "mainnet-js";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 import {
@@ -36,7 +36,7 @@ const settingsStore = useSettingsStore()
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that CC cannot exist without a valid wallet.
 // Passing in a Ref so it remains reactive (like when changing networks)
-export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
+export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWallet | TestNetHDWallet>) => {
   const store = defineStore("cashconnectStore", () => {
     
     // Store a state variable to make sure we don't call "start" more than once.
@@ -59,7 +59,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
     const cashConnectWallet = ref<CashConnectWallet>(
       new CashConnectWallet(
         // The master private key.
-        wallet.value.privateKey,
+        (wallet.value as Wallet).privateKey,
         // Project ID.
         walletConnectProjectId,
         // Metadata.
@@ -274,7 +274,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
       
       const utxos = await wallet.value.getUtxos();
 
-      const lockingBytecode = cashAddressToLockingBytecode(wallet.value.cashaddr);
+      const lockingBytecode = cashAddressToLockingBytecode(wallet.value.getDepositAddress());
       if (typeof lockingBytecode === "string") {
         throw new Error("Failed to convert CashAddr to Locking Bytecode");
       }
@@ -308,7 +308,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
             data: {
               keys: {
                 privateKeys: {
-                  key: wallet.value.privateKey,
+                  key: (wallet.value as Wallet).privateKey,
                 },
               },
             },
@@ -327,7 +327,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet>) => {
         data: {
           keys: {
             privateKeys: {
-              key: wallet.value.privateKey,
+              key: (wallet.value as Wallet).privateKey,
             },
           },
         },

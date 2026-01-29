@@ -14,6 +14,8 @@ export const mockMainnetWallet = {
   cashaddr: 'bitcoincash:qtest',
   tokenaddr: 'bitcoincash:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
+  getDepositAddress: () => 'bitcoincash:qtest',
+  getTokenDepositAddress: () => 'bitcoincash:ztest',
 }
 
 export const mockChipnetWallet = {
@@ -22,6 +24,8 @@ export const mockChipnetWallet = {
   cashaddr: 'bchtest:qtest',
   tokenaddr: 'bchtest:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
+  getDepositAddress: () => 'bchtest:qtest',
+  getTokenDepositAddress: () => 'bchtest:ztest',
 }
 
 // Mock functions for wallet classes

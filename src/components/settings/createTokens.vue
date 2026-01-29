@@ -31,7 +31,7 @@
     activeAction.value = 'creatingPreGenesis';
     try{
       store.plannedTokenId = undefined;
-      const walletAddr = store.wallet.cashaddr;
+      const walletAddr = store.wallet.getDepositAddress();
       $q.notify({
         spinner: true,
         message: t('createTokens.notifications.preparingPreGenesis'),
@@ -109,7 +109,7 @@
       })
       const genesisResponse = await store.wallet.tokenGenesis(
         {
-          cashaddr: store.wallet.tokenaddr,
+          cashaddr: store.wallet.getTokenDepositAddress(),
           amount: BigInt(totalSupply),    // fungible token amount
           value: 1000n,                    // Satoshi value
         } as TokeneGenesisRequestParams,
@@ -157,7 +157,7 @@
       })
       const genesisResponse = await store.wallet.tokenGenesis(
         {
-          cashaddr: store.wallet.tokenaddr,
+          cashaddr: store.wallet.getTokenDepositAddress(),
           commitment: "",
           capability: "minting",
           value: 1000n,

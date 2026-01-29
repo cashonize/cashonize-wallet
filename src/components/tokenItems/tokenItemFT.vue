@@ -66,7 +66,7 @@
         return;
       }
 
-      const poolPriceData = store.cauldronPrices?.[tokenData.value.tokenId];
+      const poolPriceData = store.cauldronPrices?.[tokenData.value.category];
       if (!poolPriceData?.hasSufficientLiquidity) {
         holdingsFiatValue.value = null;
         return;
@@ -381,7 +381,7 @@
       const changeAmount = reservedSupply? tokenData.value.amount - reservedSupply : tokenData.value.amount;
       if(changeAmount){
         const changeOutput = new TokenSendRequest({
-          cashaddr: store.wallet.tokenaddr,
+          cashaddr: store.wallet.getTokenDepositAddress(),
           category: category,
           amount: changeAmount
         });

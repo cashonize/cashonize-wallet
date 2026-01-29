@@ -3,7 +3,7 @@ import { ref, type Ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { convert, NetworkType, type TestNetWallet, type Wallet } from "mainnet-js";
+import { convert, NetworkType, type TestNetWallet, type Wallet, type HDWallet, type TestNetHDWallet } from "mainnet-js";
 import {
   hexToBin,
   binToHex,
@@ -42,7 +42,7 @@ type ChangeNetwork = (
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that WC cannot exist without a valid wallet.
 // Passing in a Ref so it remains reactive (like when changing networks)
-export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, changeNetwork: ChangeNetwork) => {
+export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWallet | TestNetHDWallet>, changeNetwork: ChangeNetwork) => {
   const store = defineStore("walletconnectStore", () => {
     const activeSessions = ref(undefined as undefined | Record<string, SessionTypes.Struct>);
     const web3wallet = ref(undefined as undefined | IWalletKit);
@@ -102,7 +102,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
         void wcSessionProposal(sessionProposal).catch(console.error)
       );
       newweb3wallet.on('session_request', (event) =>
-        void wcRequest(event, wallet.value.cashaddr).catch(console.error)
+        void wcRequest(event, wallet.value.getDepositAddress()).catch(console.error)
       );
       newweb3wallet.on('session_delete', ({ topic }) => {
         try {
@@ -176,7 +176,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
           ],
           chains: dappTargetNetwork === "mainnet" ? ["bch:bitcoincash"] : ["bch:bchtest"],
           events: [ "addressesChanged" ],
-          accounts: [`bch:${wallet.value.cashaddr}`],
+          accounts: [`bch:${wallet.value.getDepositAddress()}`],
         }
       }
 
@@ -390,8 +390,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet>, chang
       // parse as extended JSON to handle Uint8Array and BigInt
       const wcTransactionObj = parseExtendedJson(JSON.stringify(wcSignTransactionParams)) as WcSignTransactionRequest;
 
-      const { privateKey, publicKeyCompressed: pubkeyCompressed } = wallet.value;
-      const walletLockingBytecode = encodeLockingBytecodeP2pkh(wallet.value.publicKeyHash);
+      const singleAddrWallet = wallet.value as Wallet;
+      const { privateKey, publicKeyCompressed: pubkeyCompressed } = singleAddrWallet;
+      const walletLockingBytecode = encodeLockingBytecodeP2pkh(singleAddrWallet.publicKeyHash);
       const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
       const encodedTransaction = createSignedWcTransaction(
         wcTransactionObj, { privateKey, pubkeyCompressed: pubkeyCompressed! }, walletLockingBytecodeHex

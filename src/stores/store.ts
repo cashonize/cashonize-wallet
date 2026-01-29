@@ -3,6 +3,8 @@ import { ref, computed, type Ref } from 'vue'
 import {
   Wallet,
   TestNetWallet,
+  HDWallet,
+  TestNetHDWallet,
   BaseWallet,
   Config,
   Connection,
@@ -13,6 +15,7 @@ import {
   type CancelFn,
   NetworkType
 } from "mainnet-js"
+import { decodeCashAddress } from "@bitauth/libauth"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import {
   CurrencySymbols,
@@ -63,7 +66,8 @@ export const useStore = defineStore('store', () => {
   // Wallet State
   // _wallet is the actual reactive wallet object and is null until the wallet is set
   // so _wallet is used for mutating properties of the wallet, like changing the provider
-  const _wallet = ref(null as (Wallet | TestNetWallet | null));
+  type WalletType = Wallet | TestNetWallet | HDWallet | TestNetHDWallet;
+  const _wallet = ref(null as (WalletType | null));
   const balance = ref(undefined as (bigint | undefined));
   const maxAmountToSend = ref(undefined as (bigint | undefined));
   const walletUtxos = ref(undefined as (Utxo[] | undefined));
@@ -127,7 +131,7 @@ export const useStore = defineStore('store', () => {
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
   // It adds the configured electrum network provider on the wallet depending on the network.
   // Call initializeWallet() afterwards to actually connect to the electrum client and to fetch initial data.
-  function setWallet(newWallet: Wallet | TestNetWallet){
+  function setWallet(newWallet: WalletType){
     if(newWallet.network == NetworkType.Mainnet){ 
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       // @ts-ignore currently no other way to set a specific provider
@@ -175,7 +179,7 @@ export const useStore = defineStore('store', () => {
       // if electrum connection failed, cancel the rest of initialization
       if(failedToConnectElectrum) return
       // fetch wallet utxos first, this result will be used in consecutive calls
-      // to avoid duplicate getAddressUtxos() calls
+      // to avoid duplicate getUtxos() calls
       console.time('fetch wallet utxos');
       const walletAddressUtxos = await wallet.value.getUtxos()
       console.timeEnd('fetch wallet utxos');
@@ -255,7 +259,9 @@ export const useStore = defineStore('store', () => {
         }
       })
     );
-    const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
+    const depositAddr = wallet.value.getDepositAddress();
+    const decoded = decodeCashAddress(depositAddr);
+    const walletPkh = typeof decoded === 'string' ? '' : binToHex(decoded.payload);
     cancelWatchTokenTxs = await wallet.value.watchAddressTokenTransactions(
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
@@ -266,7 +272,7 @@ export const useStore = defineStore('store', () => {
         const previousTokenList = tokenList.value;
         const listNewTokens:TokenList = []
         // Check if transaction not initiated by user
-        const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value.cashaddr);
+        const userInputs = tx.vin.filter(vinElem => vinElem.address == depositAddr);
         for(const tokenOutput of receivedTokenOutputs){
           if(!userInputs.length){
             const tokenType = tokenOutput.tokenData?.nft ? "NFT" : "tokens"
@@ -321,6 +327,12 @@ export const useStore = defineStore('store', () => {
     walletHistory.value = undefined;
   }
 
+  function getWalletClass(walletName: string, network: string) {
+    const isHD = settingsStore.getWalletType(walletName) === 'hd';
+    if (network === 'mainnet') return isHD ? HDWallet : Wallet;
+    return isHD ? TestNetHDWallet : TestNetWallet;
+  }
+
   async function changeNetwork(
     newNetwork: 'mainnet' | 'chipnet',
     awaitWalletInitialization: boolean = false
@@ -328,7 +340,7 @@ export const useStore = defineStore('store', () => {
     resetWalletState()
     walletInitialized.value = false;
     // set new wallet
-    const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
+    const walletClass = getWalletClass(activeWalletName.value, newNetwork);
     const newWallet = await walletClass.named(activeWalletName.value);
     setWallet(newWallet);
     if (awaitWalletInitialization) {
@@ -368,7 +380,7 @@ export const useStore = defineStore('store', () => {
     }
 
     // Load wallet on current network
-    const walletClass = (currentNetwork == 'mainnet') ? Wallet : TestNetWallet;
+    const walletClass = getWalletClass(walletName, currentNetwork);
     const newWallet = await walletClass.named(walletName);
     // Only update state after successful wallet load
     activeWalletName.value = walletName;
@@ -531,7 +543,7 @@ export const useStore = defineStore('store', () => {
     const fungibleTokens = tokenList.value?.filter(token => 'amount' in token)
     if (fungibleTokens?.length === 0) return;
 
-    const ftTokenIds = fungibleTokens?.map(token => token.tokenId) ?? [];
+    const ftTokenIds = fungibleTokens?.map(token => token.category) ?? [];
 
     // Warm the exchange rate cache first, then fetch prices
     await convert(1, 'bch', settingsStore.currency);
@@ -670,6 +682,7 @@ export const useStore = defineStore('store', () => {
     fetchCauldronPricesForTokens,
     toggleFavorite,
     toggleHidden,
-    tokenIconUrl
+    tokenIconUrl,
+    getWalletClass
   }
 })

@@ -92,6 +92,13 @@
       "label": "Wallet name:",
       "placeholder": "Enter wallet name"
     },
+    "walletType": {
+      "label": "Wallet type:",
+      "hd": "HD Wallet (multiple addresses)",
+      "single": "Single address",
+      "hdDescription": "Uses a new address for each transaction (BIP44). Better privacy and standard for most wallets.",
+      "singleDescription": "Uses one fixed address for all transactions. Simpler but less private."
+    },
     "derivationPath": {
       "label": "Derivation path:",
       "standard": "standard",

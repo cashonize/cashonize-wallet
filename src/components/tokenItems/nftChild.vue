@@ -217,7 +217,7 @@
     if (activeAction.value) return;
     const nftInfo = nftData.value.token as TokenI;
     const category = nftInfo.category;
-    const tokenAddr = store.wallet.tokenaddr;
+    const tokenAddr = store.wallet.getTokenDepositAddress();
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     activeAction.value = 'minting';

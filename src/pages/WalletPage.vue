@@ -11,7 +11,7 @@
   import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
   import { ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
-  import { Wallet, TestNetWallet, DefaultProvider } from 'mainnet-js'
+  import { DefaultProvider } from 'mainnet-js'
   import { waitForInitialized } from 'src/utils/utils'
   import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
   import { useStore } from 'src/stores/store'
@@ -87,8 +87,8 @@
 
   if(walletExists){
     // initialise wallet on configured network
-    const readNetwork = localStorage.getItem('network');
-    const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
+    const readNetwork = localStorage.getItem('network') ?? 'mainnet';
+    const walletClass = store.getWalletClass(walletToLoad, readNetwork);
     const initWallet = await walletClass.named(walletToLoad);
     store.setWallet(initWallet);
     store.changeView(1);

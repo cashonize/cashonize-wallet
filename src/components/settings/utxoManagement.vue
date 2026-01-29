@@ -47,7 +47,7 @@
         color: 'grey-5',
         timeout: 1000
       })
-      await store.wallet.sendMax(store.wallet.cashaddr)
+      await store.wallet.sendMax(store.wallet.getDepositAddress())
       $q.notify({
         type: 'positive',
         message: t('utxoManagement.notifications.consolidatedSuccess')
@@ -92,7 +92,7 @@
       for(const uniqueTokenIdToSplit of uniqueTokenIdsToSplit) {
         const { txId } = await store.wallet.send([
           new TokenSendRequest({
-            cashaddr: store.wallet.tokenaddr,
+            cashaddr: store.wallet.getTokenDepositAddress(),
             amount: fungibleTokensResult[uniqueTokenIdToSplit] as bigint,
             category: uniqueTokenIdToSplit,
           }),

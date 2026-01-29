@@ -3,7 +3,7 @@
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { namedWalletExistsInDb } from 'src/utils/dbUtils'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, DERIVATION_PATHS } from 'src/utils/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, DERIVATION_PATHS } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import seedPhraseInput from '../general/seedPhraseInput.vue'
   import { useI18n } from 'vue-i18n'
@@ -17,6 +17,7 @@
   const seedPhrase = ref('');
   const seedPhraseValid = ref(false);
   const selectedDerivationPath = ref<DerivationPathType>("standard");
+  const walletType = ref<'single' | 'hd'>('hd');
 
   const effectiveWalletName = computed(() => walletName.value.trim());
 
@@ -45,7 +46,8 @@
   }
 
   async function createNewWallet() {
-    const result = await createWallet(walletName.value);
+    const createFn = walletType.value === 'hd' ? createNewHDWallet : createWallet;
+    const result = await createFn(walletName.value);
     if (result.success) {
       store.changeView(1);
     } else {
@@ -58,7 +60,8 @@
   }
 
   async function importWallet() {
-    const result = await importWalletUtil({
+    const importFn = walletType.value === 'hd' ? importHDWallet : importWalletUtil;
+    const result = await importFn({
       name: walletName.value,
       seedPhrase: seedPhrase.value,
       seedPhraseValid: seedPhraseValid.value,
@@ -110,6 +113,16 @@
       </div>
       <div style="margin-bottom: 20px;">
         {{ t('addWallet.creating') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
+        <select v-model="walletType" style="padding: 8px; min-width: 200px;">
+          <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
+          <option value="single">{{ t('onboarding.walletType.single') }}</option>
+        </select>
+        <div style="margin-top: 5px; font-size: smaller; color: grey;">
+          {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
+        </div>
       </div>
       <div style="margin-bottom: 15px;">
         <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
