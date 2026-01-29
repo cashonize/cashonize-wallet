@@ -442,6 +442,12 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeCashConnect() {
+    // CashConnect requires a single-address wallet with a private key
+    const walletPrivateKey = (_wallet.value as Wallet | null)?.privateKey;
+    if (settingsStore.getWalletType(activeWalletName.value) === 'hd' || !walletPrivateKey) {
+      isCcInitialized.value = true;
+      return;
+    }
     try{
       // Initialize CashConnect.
       const cashconnectWallet = useCashconnectStore(_wallet as Ref<Wallet>);

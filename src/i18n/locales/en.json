@@ -344,7 +344,8 @@
     "connectButton": "Connect New dApp",
     "errors": {
       "invalidUri": "Invalid WalletConnect or CashConnect URI",
-      "notValidUri": "Not a valid WalletConnect or CashConnect URI"
+      "notValidUri": "Not a valid WalletConnect or CashConnect URI",
+      "cashConnectNotSupported": "CashConnect is not supported with HD wallets"
     }
   },
   "history": {
