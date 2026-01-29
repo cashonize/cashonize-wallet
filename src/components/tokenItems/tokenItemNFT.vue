@@ -10,8 +10,9 @@
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
-  import { useStore } from 'src/stores/store'
+  import { useStore, PARSABLE_CATEGORIES } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import type { ParseResult } from 'src/parsing/nftParsing'
   import { caughtErrorToString } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useQuasar } from 'quasar'
@@ -52,6 +53,9 @@
   const selectedNfts = ref(new Set<string>());
   const activeAction = ref<'sending' | 'minting' | 'burning' | 'transferAuth' | null>(null);
   const imageLoadFailed = ref(false);
+  const parseResult = ref(undefined as ParseResult | undefined);
+
+  const isParsable = computed(() => PARSABLE_CATEGORIES.includes(tokenData.value.tokenId));
 
   let fetchedMetadataChildren = false
 
@@ -112,8 +116,15 @@
     selectedNfts.value = new Set(allKeys);
   }
 
-  onMounted(() => {
+  onMounted(async () => {
     appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}nft`);
+    // Parse NFT commitment if this is a parsable single NFT
+    if (isSingleNft.value && isParsable.value) {
+      const nftUtxo = tokenData.value.nfts?.[0];
+      if (nftUtxo) {
+        parseResult.value = await store.parseNftCommitment(tokenData.value.tokenId, nftUtxo);
+      }
+    }
   })
 
   watch(imageLoadFailed, async (failedToLoad) => {
@@ -700,6 +711,12 @@
             <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
             <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap; margin-left:15px">
               {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.none') }}
+            </div>
+          </details>
+          <details v-if="parseResult?.success && parseResult.namedFields?.length" open style="cursor:pointer;">
+            <summary style="display: list-item">Parsed Fields</summary>
+            <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
+              {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
             </div>
           </details>
         </div>
