@@ -48,9 +48,14 @@
   const activeAction = ref<'sending' | 'minting' | 'burning' | null>(null);
   const parseResult = ref(undefined as ParseResult | undefined);
 
+  const hasExtensions = computed(() => {
+    const tokenId = nftData.value.token?.tokenId;
+    return tokenId ? !!store.bcmrRegistries?.[tokenId]?.extensions?.parityusd : false;
+  });
   const isParsable = computed(() => {
     const tokenId = nftData.value.token?.tokenId;
-    return tokenId ? PARSABLE_CATEGORIES.includes(tokenId) : false;
+    if (!tokenId) return false;
+    return PARSABLE_CATEGORIES.includes(tokenId) || hasExtensions.value;
   });
 
   const nftMetadata = computed(() => {
@@ -67,15 +72,18 @@
     return tokenIconUri;
   })
   const tokenName = computed(() => {
+    // Prefer parsed type name when available (e.g. extension-resolved loan keys)
+    if(parseResult.value?.success && parseResult.value.nftTypeName) return parseResult.value.nftTypeName;
     let tokenName = tokenMetaData.value?.name;
     const nftName = nftMetadata.value?.name;
     if(nftName) tokenName = nftName;
     return tokenName;
   })
   const nftDescription = computed(() => {
+    if(parseResult.value?.success && parseResult.value.nftTypeDescription) return parseResult.value.nftTypeDescription;
     let tokenDescription = tokenMetaData.value?.description;
-    const nftDescription = nftMetadata.value?.description;
-    if(tokenDescription) tokenDescription = nftDescription;
+    const nftDesc = nftMetadata.value?.description;
+    if(tokenDescription) tokenDescription = nftDesc;
     return tokenDescription;
   })
 
@@ -84,6 +92,14 @@
     appendBlockieIcon(tokenId, `#${id.value}`);
     // Parse NFT commitment if this is a parsable NFT
     if (isParsable.value) {
+      parseResult.value = await store.parseNftCommitment(tokenId, nftData.value);
+    }
+  })
+
+  // Watch for isParsable becoming true after mount (e.g. bcmrRegistries loads async)
+  watch(isParsable, async (nowParsable) => {
+    if (nowParsable && !parseResult.value) {
+      const tokenId = nftData.value.token!.tokenId;
       parseResult.value = await store.parseNftCommitment(tokenId, nftData.value);
     }
   })
@@ -406,7 +422,7 @@
         <div class="tokenBaseInfo">
           <div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
-            <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ nftData?.token?.commitment ? nftData?.token?.commitment : t('tokenItem.none')  }}</div>
+            <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ nftData?.token?.commitment ? nftData?.token?.commitment : t('tokenItem.empty')  }}</div>
           </div>
         </div>
       </div>
@@ -430,18 +446,17 @@
           </span>
         </div>
         <div v-if="displayNftInfo" class="tokenAction">
-          <div v-if="tokenMetaData?.description" class="indentText"> {{ t('tokenItem.info.nftDescription') }} {{ nftDescription }} </div>
-          <div style="white-space: pre-line;"></div>
+          <div v-if="nftDescription" class="indentText"> {{ t('tokenItem.info.nftDescription') }} {{ nftDescription }} </div>
+          <div v-if="parseResult?.success && parseResult.namedFields?.length">
+            <div>{{ hasExtensions ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
+            <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
+              {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+            </div>
+          </div>
           <details v-if="nftMetadata?.extensions?.attributes" style="cursor:pointer;">
             <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
             <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap; margin-left:15px">
-              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.none') }}
-            </div>
-          </details>
-          <details v-if="parseResult?.success && parseResult.namedFields?.length" open style="cursor:pointer;">
-            <summary style="display: list-item">Parsed Fields</summary>
-            <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
-              {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.empty') }}
             </div>
           </details>
         </div>

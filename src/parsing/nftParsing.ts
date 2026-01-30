@@ -71,6 +71,7 @@ export interface ParseResult {
   success: boolean;
   nftType?: string;
   nftTypeName?: string;
+  nftTypeDescription?: string;
   nftTypeIcon?: string;
   fields?: string[];
   namedFields?: ParsedField[];
@@ -389,7 +390,11 @@ export function parseNft(
       ? result[result.length - 1]
       : result;
 
-    if (finalState.error) {
+    // Parse bytecodes may leave multiple items on the main stack, which the VM
+    // reports as an error ("unexpected number of items on the stack").
+    // This is expected — we only care about the altstack contents.
+    // Only fail if there's an error AND the altstack is empty (real failure).
+    if (finalState.error && finalState.alternateStack.length === 0) {
       return { success: false, error: `VM Error: ${finalState.error}` };
     }
 
@@ -408,6 +413,7 @@ export function parseNft(
 
     // Try to match against registry types
     let nftTypeName = nftType;
+    let nftTypeDescription: string | undefined;
     let nftTypeIcon: string | undefined;
     let namedFields: ParsedField[] = [];
 
@@ -415,6 +421,7 @@ export function parseNft(
       const typeDefinition = registryParsingInfo.nftTypes[nftType];
       if (typeDefinition) {
         nftTypeName = typeDefinition.name || nftType;
+        nftTypeDescription = typeDefinition.description;
 
         // Only use type-specific icon if defined
         if (typeDefinition.uris?.icon) {
@@ -468,6 +475,7 @@ export function parseNft(
       namedFields,
       fullAltstack: altstack,
     };
+    if (nftTypeDescription) parseResult.nftTypeDescription = nftTypeDescription;
     if (nftTypeIcon) parseResult.nftTypeIcon = nftTypeIcon;
     return parseResult;
   } catch (error) {

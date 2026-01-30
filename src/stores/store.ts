@@ -37,6 +37,8 @@ import type { Registry } from "src/parsing/bcmr-v2.schema"
 import type { ParseResult } from "src/parsing/nftParsing"
 import { parseNft, getNftParsingInfo } from "src/parsing/nftParsing"
 import { utxoIToLibauthOutput } from "src/parsing/utxoConverter"
+import { invokeExtensions } from "src/parsing/extensions/index"
+import { createElectrumAdapter } from "src/parsing/electrumAdapter"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -577,7 +579,8 @@ export const useStore = defineStore('store', () => {
     categoryId: string,
     utxo: UtxoI
   ): Promise<ParseResult | undefined> {
-    if (!PARSABLE_CATEGORIES.includes(categoryId)) return undefined;
+    const hasExtensions = !!bcmrRegistries.value?.[categoryId]?.extensions?.parityusd;
+    if (!PARSABLE_CATEGORIES.includes(categoryId) && !hasExtensions) return undefined;
 
     // Fetch full registry if not cached
     if (!fullRegistries.value[categoryId]) {
@@ -590,7 +593,25 @@ export const useStore = defineStore('store', () => {
     const parsingInfo = getNftParsingInfo(registry, categoryId);
     if (!parsingInfo?.parseBytecode) return undefined;
 
-    const libauthOutput = utxoIToLibauthOutput(utxo);
+    let libauthOutput = utxoIToLibauthOutput(utxo);
+
+    // If the identity has extensions, invoke them to modify the UTXO before parsing
+    if (parsingInfo.identity.extensions) {
+      try {
+        const electrumClient = createElectrumAdapter(wallet.value.provider);
+        const networkPrefix = wallet.value.networkPrefix;
+        libauthOutput = await invokeExtensions(
+          libauthOutput,
+          parsingInfo.identity,
+          electrumClient,
+          networkPrefix,
+        );
+      } catch (error) {
+        console.error("Extension invocation failed, parsing unmodified UTXO:", error);
+        // Fall back to parsing the unmodified UTXO
+      }
+    }
+
     return parseNft(libauthOutput, registry);
   }
 

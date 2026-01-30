@@ -162,7 +162,7 @@
     "tokenId": "TokenId:",
     "amount": "Amount:",
     "commitment": "Commitment:",
-    "none": "none",
+    "empty": "empty",
     "tokens": "tokens",
     "actions": {
       "send": "send",
@@ -202,6 +202,8 @@
       "yes": "yes",
       "no": "no",
       "nftAttributes": "NFT attributes",
+      "extensionNote": "Loan data fetched from blockchain:",
+      "parsedFields": "Parsed NFT data:",
       "numberNfts": "Number NFTs:"
     },
     "sendTokens": {
