@@ -588,6 +588,20 @@
       "somethingWentWrong": "something went wrong"
     }
   },
+  "hdAddresses": {
+    "title": "HD Wallet Addresses",
+    "depositAddresses": "Deposit Addresses",
+    "changeAddresses": "Change Addresses",
+    "usedAddresses": "Used",
+    "unusedAddresses": "Unused",
+    "noAddresses": "No addresses scanned yet",
+    "columns": {
+      "index": "Index",
+      "address": "Address",
+      "balance": "Balance",
+      "txs": "Txs"
+    }
+  },
   "sweepPrivateKey": {
     "title": "Sweep Private Key",
     "description": "Sweep BCH from a private key WIF:",
@@ -762,6 +776,7 @@
       "localization": "Localization",
       "advancedSettings": "Advanced settings",
       "developerSettings": "Developer settings",
+      "hdAddresses": "HD Addresses",
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
       "tokenCreationPage": "Token Creation Page"

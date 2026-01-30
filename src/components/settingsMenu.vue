@@ -613,6 +613,10 @@
         ↳ {{ t('settings.menu.developerSettings') }}
       </div>
 
+      <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd'" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(10)">
+        → {{ t('settings.menu.hdAddresses') }}
+      </div>
+
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">
         → {{ t('settings.menu.utxoManagement') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
       </div>
