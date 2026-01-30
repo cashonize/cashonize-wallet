@@ -47,7 +47,6 @@
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
 
-  const ourAddress = store.wallet.getDepositAddress() ?? "";
   const feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.00";
   const currencySymbol = CurrencySymbols[settingsStore.currency];
 
@@ -142,7 +141,7 @@
           <legend style="font-size: medium;">{{ t('transactionDialog.inputs') }}</legend>
           <div v-for="(input, index) in historyItem.inputs" :key="index" class="input" :class="settingsStore.darkMode ? 'dark' : ''">
             <span>{{ index }}: </span>
-            <span class="break" :class="input.address === ourAddress ? 'thisWalletTag' : ''">{{ isCoinbase ? t('transactionDialog.coinbase') : input.address.split(":")[1] }}</span>
+            <span class="break" :class="store.wallet.hasAddress(input.address) ? 'thisWalletTag' : ''">{{ isCoinbase ? t('transactionDialog.coinbase') : input.address.split(":")[1] }}</span>
             <div style="margin-left: 25px;">
               <div v-if="input.value > 10_000">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</div>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.category, input.token!.nft?.commitment!)" style="cursor: pointer;">
@@ -164,7 +163,7 @@
           <legend style="font-size: medium;">{{ t('transactionDialog.outputs') }}</legend>
           <div v-for="(output, index) in historyItem.outputs" :key="index" class="output" :class="settingsStore.darkMode ? 'dark' : ''">
             <span v-if="output.value === 0" class="break">{{ index }}: {{ output.address }}</span>
-            <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'thisWalletTag' : ''">{{ output.address.split(":")[1] }}</span></span>
+            <span v-else>{{ index }}: <span class="break" :class="store.wallet.hasAddress(output.address) ? 'thisWalletTag' : ''">{{ output.address.split(":")[1] }}</span></span>
             <div style="margin-left: 25px;">
               <div v-if="output.value > 10_000">{{ satsToBch(output.value) }} {{ bchDisplayUnit }}</div>
               <span v-if="output.token" @click="loadTokenMetadata(output.token!.category, output.token!.nft?.commitment!)" style="cursor: pointer;">

@@ -262,7 +262,7 @@ export const useStore = defineStore('store', () => {
     const depositAddr = wallet.value.getDepositAddress();
     const decoded = decodeCashAddress(depositAddr);
     const walletPkh = typeof decoded === 'string' ? '' : binToHex(decoded.payload);
-    cancelWatchTokenTxs = await wallet.value.watchAddressTokenTransactions(
+    cancelWatchTokenTxs = await wallet.value.watchTokenTransactions(
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (tx) => runAsyncVoid(async () => {
