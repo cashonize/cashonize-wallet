@@ -12,3 +12,20 @@ const localStorageMock = {
 
 Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock, configurable: true });
 Object.defineProperty(globalThis, 'navigator', { value: { language: 'en-US' }, configurable: true });
+Object.defineProperty(globalThis, 'history', {
+  value: { pushState: () => {}, replaceState: () => {}, back: () => {}, length: 1 },
+  configurable: true,
+});
+
+// Minimal EventTarget on globalThis so addEventListener/dispatchEvent work (used by popstate listener)
+import { setMaxListeners } from 'events';
+const eventTarget = new EventTarget();
+setMaxListeners(100, eventTarget); // suppress MaxListenersExceededWarning in tests
+Object.defineProperty(globalThis, 'addEventListener', {
+  value: eventTarget.addEventListener.bind(eventTarget),
+  configurable: true,
+});
+Object.defineProperty(globalThis, 'dispatchEvent', {
+  value: eventTarget.dispatchEvent.bind(eventTarget),
+  configurable: true,
+});
