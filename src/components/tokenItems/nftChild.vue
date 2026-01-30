@@ -7,8 +7,9 @@
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { BcmrTokenMetadata, TokenBurnRequestParams, TokenSendRequestParams } from "src/interfaces/interfaces"
-  import { useStore } from 'src/stores/store'
+  import { useStore, PARSABLE_CATEGORIES } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import type { ParseResult } from 'src/parsing/nftParsing'
   import { caughtErrorToString } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
@@ -45,6 +46,17 @@
   const startingNumberNFTs = ref(undefined as string | undefined);
   const showQrCodeDialog = ref(false);
   const activeAction = ref<'sending' | 'minting' | 'burning' | null>(null);
+  const parseResult = ref(undefined as ParseResult | undefined);
+
+  const hasExtensions = computed(() => {
+    const tokenId = nftData.value.token?.tokenId;
+    return tokenId ? !!store.bcmrRegistries?.[tokenId]?.extensions?.parityusd : false;
+  });
+  const isParsable = computed(() => {
+    const tokenId = nftData.value.token?.tokenId;
+    if (!tokenId) return false;
+    return PARSABLE_CATEGORIES.includes(tokenId) || hasExtensions.value;
+  });
 
   const nftMetadata = computed(() => {
     const commitment = nftData.value?.token?.commitment;
@@ -60,21 +72,36 @@
     return tokenIconUri;
   })
   const tokenName = computed(() => {
+    // Prefer parsed type name when available (e.g. extension-resolved loan keys)
+    if(parseResult.value?.success && parseResult.value.nftTypeName) return parseResult.value.nftTypeName;
     let tokenName = tokenMetaData.value?.name;
     const nftName = nftMetadata.value?.name;
     if(nftName) tokenName = nftName;
     return tokenName;
   })
   const nftDescription = computed(() => {
+    if(parseResult.value?.success && parseResult.value.nftTypeDescription) return parseResult.value.nftTypeDescription;
     let tokenDescription = tokenMetaData.value?.description;
-    const nftDescription = nftMetadata.value?.description;
-    if(tokenDescription) tokenDescription = nftDescription;
+    const nftDesc = nftMetadata.value?.description;
+    if(tokenDescription) tokenDescription = nftDesc;
     return tokenDescription;
   })
 
-  onMounted(() => {
+  onMounted(async () => {
     const tokenId = nftData.value.token!.tokenId;
     appendBlockieIcon(tokenId, `#${id.value}`);
+    // Parse NFT commitment if this is a parsable NFT
+    if (isParsable.value) {
+      parseResult.value = await store.parseNftCommitment(tokenId, nftData.value);
+    }
+  })
+
+  // Watch for isParsable becoming true after mount (e.g. bcmrRegistries loads async)
+  watch(isParsable, async (nowParsable) => {
+    if (nowParsable && !parseResult.value) {
+      const tokenId = nftData.value.token!.tokenId;
+      parseResult.value = await store.parseNftCommitment(tokenId, nftData.value);
+    }
   })
 
   watch(imageLoadFailed, async (failedToLoad) => {
@@ -395,7 +422,7 @@
         <div class="tokenBaseInfo">
           <div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
-            <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ nftData?.token?.commitment ? nftData?.token?.commitment : t('tokenItem.none')  }}</div>
+            <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ nftData?.token?.commitment ? nftData?.token?.commitment : t('tokenItem.empty')  }}</div>
           </div>
         </div>
       </div>
@@ -404,7 +431,7 @@
         <div class="actionBar">
           <span @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
-          <span v-if="nftMetadata" @click="displayNftInfo = !displayNftInfo">
+          <span v-if="nftMetadata || isParsable" @click="displayNftInfo = !displayNftInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
           </span>
           <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.capability == 'minting' && settingsStore.mintNfts">
@@ -419,12 +446,17 @@
           </span>
         </div>
         <div v-if="displayNftInfo" class="tokenAction">
-          <div v-if="tokenMetaData?.description" class="indentText"> {{ t('tokenItem.info.nftDescription') }} {{ nftDescription }} </div>
-          <div style="white-space: pre-line;"></div>
+          <div v-if="nftDescription" class="indentText"> {{ t('tokenItem.info.nftDescription') }} {{ nftDescription }} </div>
+          <div v-if="parseResult?.success && parseResult.namedFields?.length">
+            <div>{{ hasExtensions ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
+            <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
+              {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+            </div>
+          </div>
           <details v-if="nftMetadata?.extensions?.attributes" style="cursor:pointer;">
             <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
             <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap; margin-left:15px">
-              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.none') }}
+              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.empty') }}
             </div>
           </details>
         </div>

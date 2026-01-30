@@ -7,6 +7,7 @@ import { displayAndLogError } from "src/utils/errorHandling";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
+import type { Registry } from "src/parsing/bcmr-v2.schema";
 
 export function tokenListFromUtxos(walletUtxos: UtxoI[]) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
@@ -108,4 +109,22 @@ export async function updateTokenListWithAuthUtxos(
     if(authUtxo) token.authUtxo = authUtxo;
   })
   return copyTokenList
+}
+
+export async function fetchFullRegistry(
+  categoryId: string,
+  bcmrIndexer: string
+): Promise<Registry | undefined> {
+  try {
+    const response = await cachedFetch(`${bcmrIndexer}/registries/${categoryId}/latest/`);
+    if (!response.ok) {
+      console.error(`Failed to fetch full registry for ${categoryId}: ${response.status}`);
+      return undefined;
+    }
+    const registry: Registry = await response.json();
+    return registry;
+  } catch (error) {
+    console.error(`Error fetching full registry for ${categoryId}:`, error);
+    return undefined;
+  }
 }
