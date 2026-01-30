@@ -201,8 +201,8 @@
         <div style="margin: 15px 0;">
           <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
           <select v-model="walletType" style="padding: 8px; min-width: 200px;">
-            <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
             <option value="single">{{ t('onboarding.walletType.single') }}</option>
+            <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
           </select>
           <div style="margin-top: 5px; font-size: smaller; color: grey;">
             {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
