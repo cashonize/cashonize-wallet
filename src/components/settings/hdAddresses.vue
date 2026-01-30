@@ -5,10 +5,14 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
   import { type HDWallet, type TestNetHDWallet, GAP_SIZE } from 'mainnet-js';
+  import { useWindowSize } from '@vueuse/core'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
+
+  const { width } = useWindowSize();
+  const isMobile = computed(() => width.value < 480);
 
   interface AddressRow {
     index: number;
@@ -28,7 +32,9 @@
   const unusedChangeAddresses = computed(() => changeAddresses.value.filter(r => r.txCount === 0));
 
   function truncateAddress(address: string) {
-    return address.split(':')[1];
+    const body = address.split(':')[1] ?? "";
+    const chars = isMobile.value ? 5 : 8;
+    return body.slice(0, chars) + '...' + body.slice(-chars);
   }
 
   function getAddressBalance(utxos: { satoshis: bigint }[]): bigint {
