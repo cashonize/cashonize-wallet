@@ -8,6 +8,7 @@ import {
   hexToBin,
   binToHex,
   sha256,
+  secp256k1,
   encodeLockingBytecodeP2pkh,
   decodeTransaction
 } from "@bitauth/libauth"
@@ -21,6 +22,7 @@ import type { WcSignMessageRequest, WcSignTransactionRequest } from "@bch-wc2/in
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { createSignedWcTransaction } from "src/utils/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
+import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
@@ -101,9 +103,10 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       newweb3wallet.on('session_proposal', (sessionProposal) =>
         void wcSessionProposal(sessionProposal).catch(console.error)
       );
-      newweb3wallet.on('session_request', (event) =>
-        void wcRequest(event, wallet.value.getDepositAddress()).catch(console.error)
-      );
+      newweb3wallet.on('session_request', (event) => {
+        const sessionAddress = getSessionAddress(event.topic) ?? wallet.value.getDepositAddress();
+        void wcRequest(event, sessionAddress).catch(console.error);
+      });
       newweb3wallet.on('session_delete', ({ topic }) => {
         try {
           console.debug("Session deleted by dapp:", topic);
@@ -132,9 +135,34 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
         })
         return;
       }
+      const dappNetworkPrefix = namespaces.bch?.chains?.[0]?.split(":")[1];
+      const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
+      const activeWalletName = localStorage.getItem('activeWalletName') ?? '';
+      const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
+
+      if (isHD) {
+        return await new Promise<void>((resolve, reject) => {
+          Dialog.create({
+            component: WC2AddressSelectDialog,
+            componentProps: {
+              sessionProposalWC: sessionProposal,
+              dappTargetNetwork
+            },
+          })
+            .onOk((selectedAddress: string) => {
+              void approveSession(sessionProposal, dappTargetNetwork, selectedAddress)
+                .then(resolve)
+                .catch((error) => {
+                  console.error('Failed to approve session:', error)
+                  Notify.create({ type: 'negative', message: t('walletConnect.errors.failedToApproveSession') })
+                  reject()
+                })
+            })
+            .onCancel(() => void rejectSession(sessionProposal).then(reject))
+        });
+      }
+
       return await new Promise<void>((resolve, reject) => {
-        const dappNetworkPrefix = namespaces.bch?.chains?.[0]?.split(":")[1];
-        const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
         Dialog.create({
           component: WC2SessionRequestDialog,
           componentProps: {
@@ -157,7 +185,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       });
   }
 
-    async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet"){
+    async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet", selectedAddress?: string){
 
       const currentNetwork = wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
       if(currentNetwork != dappTargetNetwork){
@@ -176,7 +204,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
           ],
           chains: dappTargetNetwork === "mainnet" ? ["bch:bitcoincash"] : ["bch:bchtest"],
           events: [ "addressesChanged" ],
-          accounts: [`bch:${wallet.value.getDepositAddress()}`],
+          accounts: [`bch:${selectedAddress ?? wallet.value.getDepositAddress()}`],
         }
       }
 
@@ -200,6 +228,44 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       settingsStore.clearAutoApproveState(sessionId);
 
       activeSessions.value = web3wallet.value?.getActiveSessions();
+    }
+
+    // Read the connected address from a session's namespaces
+    function getSessionAddress(topic: string): string | undefined {
+      const sessions = web3wallet.value?.getActiveSessions();
+      const account = sessions?.[topic]?.namespaces?.bch?.accounts?.[0];
+      if (!account) return undefined;
+      // account format is "bch:bitcoincash:..." or "bch:bchtest:...", strip the first "bch:" prefix
+      return account.substring(4);
+    }
+
+    // Get signing key material for the session's connected address
+    function getSessionSigningInfo(topic: string) {
+      const activeWalletName = localStorage.getItem('activeWalletName') ?? '';
+      const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
+
+      if (isHD) {
+        const sessionAddress = getSessionAddress(topic);
+        if (!sessionAddress) throw new Error("No address found for session");
+        const hdWallet = wallet.value as HDWallet | TestNetHDWallet;
+        const cacheEntry = hdWallet.walletCache.get(sessionAddress);
+        if (!cacheEntry) throw new Error("Address not found in HD wallet cache: " + sessionAddress);
+        if (!cacheEntry.privateKey) throw new Error("No private key available for address (watch-only wallet)");
+        const pubkeyCompressed = secp256k1.compressPublicKey(cacheEntry.publicKey);
+        if (typeof pubkeyCompressed === 'string') throw new Error("Failed to compress public key");
+        return {
+          privateKey: cacheEntry.privateKey,
+          pubkeyCompressed,
+          publicKeyHash: cacheEntry.publicKeyHash,
+        };
+      }
+
+      const singleAddrWallet = wallet.value as Wallet;
+      return {
+        privateKey: singleAddrWallet.privateKey,
+        pubkeyCompressed: singleAddrWallet.publicKeyCompressed!,
+        publicKeyHash: singleAddrWallet.publicKeyHash,
+      };
     }
 
     // Poll for queued cancel requests that bypass the normal event queue
@@ -390,19 +456,18 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       // parse as extended JSON to handle Uint8Array and BigInt
       const wcTransactionObj = parseExtendedJson(JSON.stringify(wcSignTransactionParams)) as WcSignTransactionRequest;
 
-      const singleAddrWallet = wallet.value as Wallet;
-      const { privateKey, publicKeyCompressed: pubkeyCompressed } = singleAddrWallet;
-      const walletLockingBytecode = encodeLockingBytecodeP2pkh(singleAddrWallet.publicKeyHash);
+      const { id, topic } = transactionRequestWC;
+      const { privateKey, pubkeyCompressed, publicKeyHash } = getSessionSigningInfo(topic);
+      const walletLockingBytecode = encodeLockingBytecodeP2pkh(publicKeyHash);
       const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
       const encodedTransaction = createSignedWcTransaction(
-        wcTransactionObj, { privateKey, pubkeyCompressed: pubkeyCompressed! }, walletLockingBytecodeHex
+        wcTransactionObj, { privateKey, pubkeyCompressed }, walletLockingBytecodeHex
       );
 
       const hash = binToHex(sha256.hash(sha256.hash(encodedTransaction)).reverse());
       const signedTxObject = { signedTransaction: binToHex(encodedTransaction), signedTransactionHash: hash };
 
       // send transaction
-      const { id, topic } = transactionRequestWC;
       if (wcTransactionObj.broadcast) {
         try{
           Notify.create({
@@ -462,9 +527,22 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       // isValidSignMessageRequest has checked the params already when this function is called
       const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageRequest
       const message = wcSignMessageParams.message;
-      const signedMessage = wallet.value.sign(message);
-
       const { id, topic } = signMessageRequestWC;
+
+      // Get the address connected to this session and resolve the correct private key
+      const sessionAddress = getSessionAddress(topic);
+      const activeWalletName = localStorage.getItem('activeWalletName') ?? '';
+      const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
+
+      let signingKey: Uint8Array | undefined;
+      if (isHD && sessionAddress) {
+        const hdWallet = wallet.value as HDWallet | TestNetHDWallet;
+        const cacheEntry = hdWallet.walletCache.get(sessionAddress);
+        signingKey = cacheEntry?.privateKey;
+      }
+
+      const signedMessage = wallet.value.sign(message, signingKey);
+
       const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
       await web3wallet.value?.respondSessionRequest({ topic, response });
     }

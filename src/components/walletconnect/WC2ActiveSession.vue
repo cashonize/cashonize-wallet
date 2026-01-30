@@ -5,8 +5,10 @@
   import type { SessionTypes } from '@walletconnect/types'
   import { useWindowSize } from '@vueuse/core'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useStore } from 'src/stores/store'
   import { useI18n } from 'vue-i18n'
   const settingsStore = useSettingsStore()
+  const store = useStore()
   const { t } = useI18n()
 
   const { width } = useWindowSize();
@@ -38,6 +40,16 @@
     const sessionPrefix = !isMobilePhone ? t('walletConnect.sessions.session') + ' ' : ''
     return hasDuplicateName? `- ${sessionPrefix} ${session.topic.slice(0, 6)}`: '';
   });
+
+  const connectedAddress = computed(() => {
+    const isHD = settingsStore.getWalletType(store.activeWalletName) === 'hd';
+    if (!isHD) return '';
+    const session = activeSessions.value[props.sessionId] as SessionTypes.Struct;
+    const account = session.namespaces?.bch?.accounts?.[0];
+    if (!account) return '';
+    // account format is "bch:<address>", strip the "bch:" prefix
+    return account.split(':').slice(1).join(':');
+  });
 </script>
 
 <template>
@@ -48,6 +60,7 @@
         <div>{{ dappMetadata.name + displaySessionId }}</div>
         <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
         <div>{{ dappMetadata.description }}</div>
+        <div v-if="connectedAddress" class="connected-address mono">{{ connectedAddress }}</div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 18px;">
         <img style="cursor: pointer; max-width: none;"
@@ -70,5 +83,13 @@
 <style scoped>
   body.dark .dialogFieldset {
     background-color: #050a14;
+  }
+  .connected-address {
+    color: #888;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .mono {
+    font-family: monospace;
   }
 </style>

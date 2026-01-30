@@ -595,6 +595,7 @@
     "usedAddresses": "Used",
     "unusedAddresses": "Unused",
     "noAddresses": "No addresses scanned yet",
+    "hideZeroBalances": "Hide zero balances",
     "columns": {
       "index": "Index",
       "address": "Address",
@@ -724,6 +725,10 @@
       "approveButton": "Approve",
       "switchAndApprove": "Switch to {network} and approve",
       "rejectButton": "Reject"
+    },
+    "addressSelect": {
+      "title": "Select Address to Connect",
+      "hint": "Choose which address to share with this dApp"
     },
     "sessionSettings": {
       "title": "Manage Session",
