@@ -22,7 +22,7 @@
   });
 
   const emit = defineEmits<{
-    addressSelected: [address: string];
+    selectionChanged: [addresses: string[]];
   }>();
 
   const { width } = useWindowSize();
@@ -41,6 +41,7 @@
   const showUsedChange = ref(props.defaultShowUsed);
   const hideZeroBalances = ref(props.defaultHideZeroBalances);
   const changeDetailsOpen = ref(props.defaultShowUsed);
+  const selectedAddresses = ref(new Set<string>());
 
   watch(hideZeroBalances, (newVal) => {
     if (newVal) {
@@ -89,9 +90,18 @@
     return rows;
   }
 
+  function toggleAddress(address: string) {
+    if (selectedAddresses.value.has(address)) {
+      selectedAddresses.value = new Set();
+    } else {
+      selectedAddresses.value = new Set([address]);
+    }
+    emit('selectionChanged', [...selectedAddresses.value]);
+  }
+
   function onRowClick(address: string) {
     if (props.selectable) {
-      emit('addressSelected', address);
+      toggleAddress(address);
     } else {
       copyToClipboard(address);
     }
@@ -236,6 +246,7 @@
       <table v-if="filteredDepositCount" class="address-table">
         <thead>
           <tr>
+            <th></th>
             <th>{{ t('hdAddresses.columns.index') }}</th>
             <th>{{ t('hdAddresses.columns.address') }}</th>
             <th>{{ t('hdAddresses.columns.balance') }}</th>
@@ -245,7 +256,7 @@
         <!-- Used deposit addresses (collapsible) -->
         <tbody v-if="usedDepositAddresses.length">
           <tr class="section-toggle" @click="showUsedDeposit = !showUsedDeposit">
-            <td colspan="4">
+            <td colspan="5">
               {{ t('hdAddresses.usedAddresses') }} ({{ usedDepositAddresses.length }})
               <img class="icon" :class="{ open: showUsedDeposit }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
             </td>
@@ -253,6 +264,7 @@
         </tbody>
         <tbody v-if="showUsedDeposit" class="used-addresses">
           <tr v-for="row in usedDepositAddresses" :key="row.index" class="selectable-row" @click="onRowClick(row.address)">
+            <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="onRowClick(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
             <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
@@ -262,6 +274,7 @@
         <!-- Unused deposit addresses -->
         <tbody>
           <tr v-for="row in unusedDepositAddresses" :key="row.index" class="selectable-row" @click="onRowClick(row.address)">
+            <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="onRowClick(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
             <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
@@ -281,6 +294,7 @@
       <table v-if="filteredChangeCount" class="address-table">
         <thead>
           <tr>
+            <th></th>
             <th>{{ t('hdAddresses.columns.index') }}</th>
             <th>{{ t('hdAddresses.columns.address') }}</th>
             <th>{{ t('hdAddresses.columns.balance') }}</th>
@@ -290,7 +304,7 @@
         <!-- Used change addresses (collapsible) -->
         <tbody v-if="usedChangeAddresses.length">
           <tr class="section-toggle" @click="showUsedChange = !showUsedChange">
-            <td colspan="4">
+            <td colspan="5">
               {{ t('hdAddresses.usedAddresses') }} ({{ usedChangeAddresses.length }})
               <img class="icon" :class="{ open: showUsedChange }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
             </td>
@@ -298,6 +312,7 @@
         </tbody>
         <tbody v-if="showUsedChange" class="used-addresses">
           <tr v-for="row in usedChangeAddresses" :key="row.index" class="selectable-row" @click="onRowClick(row.address)">
+            <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="onRowClick(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
             <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
@@ -307,6 +322,7 @@
         <!-- Unused change addresses -->
         <tbody>
           <tr v-for="row in unusedChangeAddresses" :key="row.index" class="selectable-row" @click="onRowClick(row.address)">
+            <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="onRowClick(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
             <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>

@@ -41,14 +41,14 @@
     return hasDuplicateName? `- ${sessionPrefix} ${session.topic.slice(0, 6)}`: '';
   });
 
-  const connectedAddress = computed(() => {
+  const connectedAddresses = computed(() => {
     const isHD = settingsStore.getWalletType(store.activeWalletName) === 'hd';
-    if (!isHD) return '';
+    if (!isHD) return [];
     const session = activeSessions.value[props.sessionId] as SessionTypes.Struct;
-    const account = session.namespaces?.bch?.accounts?.[0];
-    if (!account) return '';
+    const accounts = session.namespaces?.bch?.accounts;
+    if (!accounts?.length) return [];
     // account format is "bch:<address>", strip the "bch:" prefix
-    return account.split(':').slice(1).join(':');
+    return accounts.map(account => account.split(':').slice(1).join(':'));
   });
 </script>
 
@@ -60,7 +60,7 @@
         <div>{{ dappMetadata.name + displaySessionId }}</div>
         <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
         <div>{{ dappMetadata.description }}</div>
-        <div v-if="connectedAddress" class="connected-address mono">{{ connectedAddress }}</div>
+        <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono">{{ addr }}</div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 18px;">
         <img style="cursor: pointer; max-width: none;"

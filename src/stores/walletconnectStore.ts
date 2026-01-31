@@ -104,8 +104,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
         void wcSessionProposal(sessionProposal).catch(console.error)
       );
       newweb3wallet.on('session_request', (event) => {
-        const sessionAddress = getSessionAddress(event.topic) ?? wallet.value.getDepositAddress();
-        void wcRequest(event, sessionAddress).catch(console.error);
+        const sessionAddresses = getSessionAddresses(event.topic);
+        const walletAddress = sessionAddresses[0] ?? wallet.value.getDepositAddress();
+        void wcRequest(event, walletAddress, sessionAddresses).catch(console.error);
       });
       newweb3wallet.on('session_delete', ({ topic }) => {
         try {
@@ -149,8 +150,8 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
               dappTargetNetwork
             },
           })
-            .onOk((selectedAddress: string) => {
-              void approveSession(sessionProposal, dappTargetNetwork, selectedAddress)
+            .onOk((selectedAddresses: string[]) => {
+              void approveSession(sessionProposal, dappTargetNetwork, selectedAddresses)
                 .then(resolve)
                 .catch((error) => {
                   console.error('Failed to approve session:', error)
@@ -185,7 +186,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       });
   }
 
-    async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet", selectedAddress?: string){
+    async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet", selectedAddresses?: string[]){
 
       const currentNetwork = wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
       if(currentNetwork != dappTargetNetwork){
@@ -204,7 +205,9 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
           ],
           chains: dappTargetNetwork === "mainnet" ? ["bch:bitcoincash"] : ["bch:bchtest"],
           events: [ "addressesChanged" ],
-          accounts: [`bch:${selectedAddress ?? wallet.value.getDepositAddress()}`],
+          accounts: selectedAddresses?.length
+            ? selectedAddresses.map(addr => `bch:${addr}`)
+            : [`bch:${wallet.value.getDepositAddress()}`],
         }
       }
 
@@ -230,13 +233,18 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       activeSessions.value = web3wallet.value?.getActiveSessions();
     }
 
-    // Read the connected address from a session's namespaces
-    function getSessionAddress(topic: string): string | undefined {
+    // Read the connected addresses from a session's namespaces
+    function getSessionAddresses(topic: string): string[] {
       const sessions = web3wallet.value?.getActiveSessions();
-      const account = sessions?.[topic]?.namespaces?.bch?.accounts?.[0];
-      if (!account) return undefined;
+      const accounts = sessions?.[topic]?.namespaces?.bch?.accounts;
+      if (!accounts?.length) return [];
       // account format is "bch:bitcoincash:..." or "bch:bchtest:...", strip the first "bch:" prefix
-      return account.substring(4);
+      return accounts.map(account => account.substring(4));
+    }
+
+    // Read the first connected address (used for signing)
+    function getSessionAddress(topic: string): string | undefined {
+      return getSessionAddresses(topic)[0];
     }
 
     // Get signing key material for the session's connected address
@@ -298,7 +306,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
     }
 
     // Wallet connect dialog functionality
-    async function wcRequest(event: WalletKitTypes.SessionRequest, walletAddress: string) {
+    async function wcRequest(event: WalletKitTypes.SessionRequest, walletAddress: string, sessionAddresses?: string[]) {
       if(!web3wallet.value) throw new Error("No web3wallet initialized")
       const { topic, params, id } = event;
       const { request } = params;
@@ -307,7 +315,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       switch (method) {
         case "bch_getAddresses":
         case "bch_getAccounts": {
-          const result = [walletAddress];
+          const result = sessionAddresses?.length ? sessionAddresses : [walletAddress];
           const response = { id, jsonrpc: '2.0', result };
           await web3wallet.value.respondSessionRequest({ topic, response });
         }
