@@ -155,7 +155,9 @@
       "all": "Todos los tokens",
       "hiddenOnly": "Solo ocultos"
     },
-    "editVisibility": "Editar visibilidad"
+    "editVisibility": "Editar visibilidad",
+    "searchPlaceholder": "Buscar tokens...",
+    "searchMatches": "{count} resultados"
   },
   "tokenItem": {
     "name": "Nombre:",
