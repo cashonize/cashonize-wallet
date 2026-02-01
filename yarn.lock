@@ -4816,10 +4816,10 @@ mainnet-js@2.7.34:
   optionalDependencies:
     dotenv "^10.0.0"
 
-mainnet-js@3.0.0-next.8:
-  version "3.0.0-next.8"
-  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-3.0.0-next.8.tgz#c73d3ae7e1f7eacb7e0f1abbdb571047700db2df"
-  integrity sha512-srOjrscVbpbCOycGo+pz94hXQEnKdcF5/N/L9OsmoIORoRkpIWGUzumqmNeelQpe6+w8G9d2u89vWiK1k/zzdg==
+mainnet-js@3.0.0-next.10:
+  version "3.0.0-next.10"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-3.0.0-next.10.tgz#318f00375a49a718fa8c39af9e17ccef122386f2"
+  integrity sha512-cAJfzPt1Yq9Vz7Yi5PKrQ6HbUbFN/muL7MOrY3eeziY4yRS69rgOSIOCWlM+emsaUvKUUtXo3k8xvWAoVv3WoA==
   dependencies:
     "@bitauth/libauth" "^3.1.0-next.8"
     "@electrum-cash/network" "^4.1.3"

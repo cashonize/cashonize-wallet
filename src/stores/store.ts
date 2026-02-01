@@ -142,6 +142,7 @@ export const useStore = defineStore('store', () => {
       // @ts-ignore currently no other way to set a specific provider
       newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
     }
+    _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
   }
 
