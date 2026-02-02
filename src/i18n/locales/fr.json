@@ -95,9 +95,9 @@
     "derivationPath": {
       "label": "Chemin de dérivation :",
       "standard": "standard",
-      "bitcoindotcom": "Portefeuille Bitcoin.com",
-      "note": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
+      "bitcoindotcom": "Portefeuille Bitcoin.com"
     },
+    "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
     "preferences": {
       "title": "Configurez vos préférences",
       "description": "Presque terminé ! Configurez vos préférences ci-dessous.",
@@ -457,9 +457,9 @@
     "derivationPath": {
       "label": "Chemin de dérivation :",
       "standard": "standard",
-      "bitcoindotcom": "Portefeuille Bitcoin.com",
-      "note": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
+      "bitcoindotcom": "Portefeuille Bitcoin.com"
     },
+    "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
     "importButton": "Importer"
   },
   "walletsOverview": {

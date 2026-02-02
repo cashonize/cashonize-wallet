@@ -95,9 +95,9 @@
     "derivationPath": {
       "label": "Ruta de derivación:",
       "standard": "estándar",
-      "bitcoindotcom": "Billetera Bitcoin.com",
-      "note": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
+      "bitcoindotcom": "Billetera Bitcoin.com"
     },
+    "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
     "preferences": {
       "title": "Configura tus preferencias",
       "description": "¡Casi listo! Configura tus preferencias a continuación.",
@@ -457,9 +457,9 @@
     "derivationPath": {
       "label": "Ruta de derivación:",
       "standard": "estándar",
-      "bitcoindotcom": "Billetera Bitcoin.com",
-      "note": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
+      "bitcoindotcom": "Billetera Bitcoin.com"
     },
+    "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
     "importButton": "Importar"
   },
   "walletsOverview": {

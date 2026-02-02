@@ -204,8 +204,11 @@
             <option value="single">{{ t('onboarding.walletType.single') }}</option>
             <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
           </select>
-          <div style="margin-top: 5px; font-size: smaller; color: grey;">
+          <div style="margin-top: 5px;">
             {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
+          </div>
+          <div v-if="walletType === 'single'" style="margin-top: 5px; font-size: smaller; color: grey;">
+            {{ t('onboarding.walletType.singleAddressNote') }}
           </div>
         </div>
         <div style="margin-bottom: 20px;">
@@ -214,9 +217,6 @@
             <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('onboarding.derivationPath.standard') }})</option>
             <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('onboarding.derivationPath.bitcoindotcom') }})</option>
           </select>
-          <div style="margin-top: 5px; font-size: smaller; color: grey;">
-            {{ t('onboarding.derivationPath.note') }}
-          </div>
         </div>
         <input @click="importWallet()" class="button primary" type="button" :value="t('onboarding.import.submitButton')" style="margin-bottom: 15px;">
       </div>

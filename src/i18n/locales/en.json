@@ -97,13 +97,13 @@
       "hd": "HD Wallet (multiple addresses)",
       "single": "Single address",
       "hdDescription": "Uses a new address for each transaction (BIP44). Better privacy and standard for most wallets.",
-      "singleDescription": "Uses one fixed address for all transactions. Simpler but less private."
+      "singleDescription": "Uses one fixed address for all transactions. Simpler but less private.",
+      "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear."
     },
     "derivationPath": {
       "label": "Derivation path:",
       "standard": "standard",
-      "bitcoindotcom": "Bitcoin.com wallet",
-      "note": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear."
+      "bitcoindotcom": "Bitcoin.com wallet"
     },
     "preferences": {
       "title": "Set up your preferences",
@@ -465,9 +465,9 @@
     "derivationPath": {
       "label": "Derivation path:",
       "standard": "standard",
-      "bitcoindotcom": "Bitcoin.com wallet",
-      "note": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear."
+      "bitcoindotcom": "Bitcoin.com wallet"
     },
+    "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear.",
     "importButton": "Import"
   },
   "walletsOverview": {
