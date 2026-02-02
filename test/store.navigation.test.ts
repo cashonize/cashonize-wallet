@@ -31,6 +31,26 @@ describe('navigation stack', () => {
     expect(pushStateSpy).not.toHaveBeenCalled()
   })
 
+  it('changeView with the same view consecutively is a no-op', () => {
+    store.changeView(1)
+    store.changeView(1)
+    expect(store.canGoBack).toBe(false)
+    expect(pushStateSpy).not.toHaveBeenCalled()
+  })
+
+  it('canGoBack reflects whether the view stack has history', () => {
+    expect(store.canGoBack).toBe(false)
+
+    store.changeView(1)
+    expect(store.canGoBack).toBe(false)
+
+    store.changeView(2)
+    expect(store.canGoBack).toBe(true)
+
+    dispatchEvent(new Event('popstate'))
+    expect(store.canGoBack).toBe(false)
+  })
+
   it('move-to-front deduplication produces correct back-navigation order', () => {
     store.changeView(1)
     store.changeView(2)
