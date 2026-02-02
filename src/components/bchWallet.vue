@@ -1,17 +1,16 @@
 <script setup lang="ts">
   import { ref, computed, watch, shallowRef } from 'vue'
-  import { convert, toBch, toCurrency } from 'mainnet-js'
+  import { convert, toBch, ExchangeRate } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
-  import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, convertToCurrency } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
-  import { asyncComputed } from '@vueuse/core'
 
   const $q = useQuasar()
   const store = useStore()
@@ -23,6 +22,14 @@
   }>()
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
+
+  // Prefetch exchange rate for the selected fiat currency
+  const exchangeRate = ref<number | undefined>(undefined);
+  async function fetchExchangeRate() {
+    exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
+  }
+  void fetchExchangeRate();
+  watch(() => settingsStore.currency, () => void fetchExchangeRate());
 
   // reactive state
   const displayBchQr = ref(true);
@@ -51,20 +58,21 @@
     if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " satoshis"
     else return settingsStore.bchUnit == "bch"? " tBCH" : " testnet satoshis"
   })
-  const displayCurrencyBalance = asyncComputed(async () => {
-    const balance = await toCurrency(store.balance ?? 0n, settingsStore.currency);
+  const displayCurrencyBalance = computed(() => {
+    if (exchangeRate.value === undefined) return '';
+    const balance = convertToCurrency(store.balance ?? 0n, exchangeRate.value);
     return formatFiatAmount(balance, settingsStore.currency);
   });
   const currencyDisplayShortName = computed(() => {
     return (store.network == "mainnet" ? "" : "t") + CurrencyShortNames[settingsStore.currency];
   });
-  const balanceInBchUnit = asyncComputed(async () => {
-    const balanceInUnit = await convert(Number(store.balance ?? 0n), "sat", settingsStore.bchUnit);
-    return balanceInUnit;
+  const balanceInBchUnit = computed(() => {
+    const sats = Number(store.balance ?? 0n);
+    return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
-  const maxAmountToSendInBchUnit = asyncComputed(async () => {
-    const maxAmountToSendUnit = await convert(Number(store.maxAmountToSend ?? 0n), "sat", settingsStore.bchUnit);
-    return maxAmountToSendUnit;
+  const maxAmountToSendInBchUnit = computed(() => {
+    const sats = Number(store.maxAmountToSend ?? 0n);
+    return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
 
   // handle props
@@ -144,8 +152,9 @@
     if(store.maxAmountToSend && store.balance){
       bchSendAmount.value = await convert(Number(store.maxAmountToSend), "sat", settingsStore.bchUnit);
       // update currency balance & set currency amount
-      const newFiatValue = await toCurrency(store.maxAmountToSend, settingsStore.currency);
-      currencySendAmount.value = Number(newFiatValue.toFixed(2))
+      if (exchangeRate.value !== undefined) {
+        currencySendAmount.value = convertToCurrency(store.maxAmountToSend, exchangeRate.value);
+      }
     }
     else{
       $q.notify({
