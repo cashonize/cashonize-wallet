@@ -92,12 +92,20 @@
       "label": "Nom du portefeuille :",
       "placeholder": "Entrez le nom du portefeuille"
     },
+    "walletType": {
+      "label": "Type de portefeuille :",
+      "hd": "Portefeuille HD (adresses multiples)",
+      "single": "Adresse unique",
+      "hdDescription": "Utilise une nouvelle adresse pour chaque transaction. Meilleure confidentialité, mais nécessite de sélectionner une adresse lors de la connexion aux dApps.",
+      "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé.",
+      "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
+      "hdNote": "Remarque : CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD."
+    },
     "derivationPath": {
       "label": "Chemin de dérivation :",
       "standard": "standard",
       "bitcoindotcom": "Portefeuille Bitcoin.com"
     },
-    "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
     "preferences": {
       "title": "Configurez vos préférences",
       "description": "Presque terminé ! Configurez vos préférences ci-dessous.",
@@ -339,7 +347,8 @@
     "connectButton": "Connecter nouvelle dApp",
     "errors": {
       "invalidUri": "URI WalletConnect ou CashConnect invalide",
-      "notValidUri": "Ce n'est pas une URI WalletConnect ou CashConnect valide"
+      "notValidUri": "Ce n'est pas une URI WalletConnect ou CashConnect valide",
+      "cashConnectNotSupported": "CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD"
     }
   },
   "history": {
@@ -460,6 +469,7 @@
       "bitcoindotcom": "Portefeuille Bitcoin.com"
     },
     "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
+    "hdNote": "Remarque : CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD.",
     "importButton": "Importer"
   },
   "walletsOverview": {
@@ -719,6 +729,10 @@
       "approveButton": "Approuver",
       "switchAndApprove": "Basculer vers {network} et approuver",
       "rejectButton": "Rejeter"
+    },
+    "addressSelect": {
+      "title": "Sélectionner l'adresse à connecter",
+      "hint": "Choisissez quelle adresse partager avec cette dApp"
     },
     "sessionSettings": {
       "title": "Gérer la session",

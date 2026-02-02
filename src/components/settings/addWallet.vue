@@ -167,6 +167,9 @@
         <div v-if="walletType === 'single'" style="margin-top: 10px; font-size: smaller; color: grey;">
           {{ t('addWallet.singleAddressNote') }}
         </div>
+        <div v-if="walletType === 'hd'" style="margin-top: 10px; font-size: smaller; color: grey;">
+          {{ t('addWallet.hdNote') }}
+        </div>
         <input
           @click="importWallet()"
           class="button primary"

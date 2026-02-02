@@ -92,12 +92,20 @@
       "label": "Nombre de billetera:",
       "placeholder": "Ingresa el nombre de la billetera"
     },
+    "walletType": {
+      "label": "Tipo de billetera:",
+      "hd": "Billetera HD (múltiples direcciones)",
+      "single": "Dirección única",
+      "hdDescription": "Usa una nueva dirección para cada transacción. Mayor privacidad, pero requiere seleccionar una dirección al conectarse a dApps.",
+      "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado.",
+      "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
+      "hdNote": "Nota: CashConnect actualmente no es compatible con billeteras HD."
+    },
     "derivationPath": {
       "label": "Ruta de derivación:",
       "standard": "estándar",
       "bitcoindotcom": "Billetera Bitcoin.com"
     },
-    "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
     "preferences": {
       "title": "Configura tus preferencias",
       "description": "¡Casi listo! Configura tus preferencias a continuación.",
@@ -339,7 +347,8 @@
     "connectButton": "Conectar nueva dApp",
     "errors": {
       "invalidUri": "URI de WalletConnect o CashConnect inválida",
-      "notValidUri": "No es una URI válida de WalletConnect o CashConnect"
+      "notValidUri": "No es una URI válida de WalletConnect o CashConnect",
+      "cashConnectNotSupported": "CashConnect actualmente no es compatible con billeteras HD"
     }
   },
   "history": {
@@ -460,6 +469,7 @@
       "bitcoindotcom": "Billetera Bitcoin.com"
     },
     "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
+    "hdNote": "Nota: CashConnect actualmente no es compatible con billeteras HD.",
     "importButton": "Importar"
   },
   "walletsOverview": {
@@ -719,6 +729,10 @@
       "approveButton": "Aprobar",
       "switchAndApprove": "Cambiar a {network} y aprobar",
       "rejectButton": "Rechazar"
+    },
+    "addressSelect": {
+      "title": "Seleccionar dirección para conectar",
+      "hint": "Elige qué dirección compartir con esta dApp"
     },
     "sessionSettings": {
       "title": "Administrar sesión",
