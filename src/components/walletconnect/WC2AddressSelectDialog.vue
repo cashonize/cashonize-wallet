@@ -5,7 +5,7 @@
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useI18n } from 'vue-i18n'
-  import HdAddresses from 'src/components/settings/hdAddresses.vue'
+  import HdAddressSelect from 'src/components/walletconnect/hdAddressSelect.vue'
 
   const store = useStore()
   const { t } = useI18n()
@@ -55,7 +55,7 @@
         <div style="margin-top: 1rem; color: #888;">{{ t('walletConnect.addressSelect.hint') }}</div>
 
         <div style="margin-top: 0.5rem; max-height: 350px; overflow-y: auto;">
-          <HdAddresses :selectable="true" :default-hide-zero-balances="true" :default-show-used="true" @selection-changed="onSelectionChanged" />
+          <HdAddressSelect @selection-changed="onSelectionChanged" />
         </div>
 
         <div style="margin-top: 1rem; display: flex; gap: 1rem;">

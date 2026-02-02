@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, watch, watchEffect } from 'vue';
   import Toggle from '@vueform/toggle'
-  import { copyToClipboard, satsToBch } from 'src/utils/utils';
+  import { satsToBch } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
@@ -11,6 +11,10 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
+
+  const emit = defineEmits<{
+    selectionChanged: [addresses: string[]];
+  }>();
 
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480);
@@ -24,10 +28,11 @@
 
   const receivingAddresses = ref<AddressRow[]>([]);
   const changeAddresses = ref<AddressRow[]>([]);
-  const showUsedReceiving = ref(false);
-  const showUsedChange = ref(false);
-  const hideZeroBalances = ref(false);
-  const changeDetailsOpen = ref(false);
+  const showUsedReceiving = ref(true);
+  const showUsedChange = ref(true);
+  const hideZeroBalances = ref(true);
+  const changeDetailsOpen = ref(true);
+  const selectedAddresses = ref(new Set<string>());
 
   watch(hideZeroBalances, (newVal) => {
     if (newVal) {
@@ -76,6 +81,15 @@
     return rows;
   }
 
+  function toggleAddress(address: string) {
+    if (selectedAddresses.value.has(address)) {
+      selectedAddresses.value = new Set();
+    } else {
+      selectedAddresses.value = new Set([address]);
+    }
+    emit('selectionChanged', [...selectedAddresses.value]);
+  }
+
   // Rebuild when walletUtxos changes (triggers on balance/address updates)
   watchEffect(() => {
     // Access walletUtxos to establish reactive dependency
@@ -87,9 +101,7 @@
 </script>
 
 <template>
-  <fieldset class="item" :class="{ dark: settingsStore.darkMode }">
-    <legend>{{ t('hdAddresses.title') }}</legend>
-
+  <div>
     <div class="balance-filter">
       {{ t('hdAddresses.hideZeroBalances') }} <Toggle v-model="hideZeroBalances" />
     </div>
@@ -103,6 +115,7 @@
       <table v-if="filteredReceivingCount" class="address-table">
         <thead>
           <tr>
+            <th></th>
             <th>{{ t('hdAddresses.columns.index') }}</th>
             <th>{{ t('hdAddresses.columns.address') }}</th>
             <th>{{ t('hdAddresses.columns.balance') }}</th>
@@ -112,31 +125,27 @@
         <!-- Used receiving addresses (collapsible) -->
         <tbody v-if="usedReceivingAddresses.length">
           <tr class="section-toggle" @click="showUsedReceiving = !showUsedReceiving">
-            <td colspan="4">
+            <td colspan="5">
               {{ t('hdAddresses.usedAddresses') }} ({{ usedReceivingAddresses.length }})
               <img class="icon" :class="{ open: showUsedReceiving }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
             </td>
           </tr>
         </tbody>
         <tbody v-if="showUsedReceiving" class="used-addresses">
-          <tr v-for="row in usedReceivingAddresses" :key="row.index">
+          <tr v-for="row in usedReceivingAddresses" :key="row.index" class="selectable-row" @click="toggleAddress(row.address)">
+            <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="toggleAddress(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(row.address)" class="address-cell" :title="row.address">
-              <span class="mono">{{ truncateAddress(row.address) }}</span>
-              <img class="copyIcon" src="images/copyGrey.svg">
-            </td>
+            <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
             <td>{{ row.txCount }}</td>
           </tr>
         </tbody>
         <!-- Unused receiving addresses -->
         <tbody>
-          <tr v-for="row in unusedReceivingAddresses" :key="row.index">
+          <tr v-for="row in unusedReceivingAddresses" :key="row.index" class="selectable-row" @click="toggleAddress(row.address)">
+            <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="toggleAddress(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(row.address)" class="address-cell" :title="row.address">
-              <span class="mono">{{ truncateAddress(row.address) }}</span>
-              <img class="copyIcon" src="images/copyGrey.svg">
-            </td>
+            <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
             <td>{{ row.txCount }}</td>
           </tr>
@@ -154,6 +163,7 @@
       <table v-if="filteredChangeCount" class="address-table">
         <thead>
           <tr>
+            <th></th>
             <th>{{ t('hdAddresses.columns.index') }}</th>
             <th>{{ t('hdAddresses.columns.address') }}</th>
             <th>{{ t('hdAddresses.columns.balance') }}</th>
@@ -163,31 +173,27 @@
         <!-- Used change addresses (collapsible) -->
         <tbody v-if="usedChangeAddresses.length">
           <tr class="section-toggle" @click="showUsedChange = !showUsedChange">
-            <td colspan="4">
+            <td colspan="5">
               {{ t('hdAddresses.usedAddresses') }} ({{ usedChangeAddresses.length }})
               <img class="icon" :class="{ open: showUsedChange }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
             </td>
           </tr>
         </tbody>
         <tbody v-if="showUsedChange" class="used-addresses">
-          <tr v-for="row in usedChangeAddresses" :key="row.index">
+          <tr v-for="row in usedChangeAddresses" :key="row.index" class="selectable-row" @click="toggleAddress(row.address)">
+            <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="toggleAddress(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(row.address)" class="address-cell" :title="row.address">
-              <span class="mono">{{ truncateAddress(row.address) }}</span>
-              <img class="copyIcon" src="images/copyGrey.svg">
-            </td>
+            <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
             <td>{{ row.txCount }}</td>
           </tr>
         </tbody>
         <!-- Unused change addresses -->
         <tbody>
-          <tr v-for="row in unusedChangeAddresses" :key="row.index">
+          <tr v-for="row in unusedChangeAddresses" :key="row.index" class="selectable-row" @click="toggleAddress(row.address)">
+            <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="toggleAddress(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(row.address)" class="address-cell" :title="row.address">
-              <span class="mono">{{ truncateAddress(row.address) }}</span>
-              <img class="copyIcon" src="images/copyGrey.svg">
-            </td>
+            <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
             <td>{{ row.txCount }}</td>
           </tr>
@@ -195,7 +201,7 @@
       </table>
       <div v-else class="description">{{ t('hdAddresses.noAddresses') }}</div>
     </details>
-  </fieldset>
+  </div>
 </template>
 
 <style scoped>
@@ -259,11 +265,12 @@
   font-family: monospace;
 }
 
-.address-cell {
+.selectable-row {
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+}
+
+.selectable-row:hover {
+  background-color: rgba(0, 123, 255, 0.1);
 }
 
 .section-toggle {
@@ -293,20 +300,5 @@
 
 .used-addresses tr td:first-child {
   padding-left: 2rem;
-}
-
-.dark .used-addresses tr {
-  border-left-color: #555;
-}
-
-/* Dark mode */
-.dark .description,
-.dark .address-table th {
-  color: #aaa;
-}
-
-.dark .address-table th,
-.dark .address-table td {
-  border-bottom-color: #444;
 }
 </style>
