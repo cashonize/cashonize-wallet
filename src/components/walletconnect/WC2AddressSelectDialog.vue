@@ -3,16 +3,13 @@
   import { useDialogPluginComponent } from 'quasar'
   import { type WalletKitTypes } from '@reown/walletkit';
   import type { DappMetadata } from "src/interfaces/interfaces"
-  import { useStore } from 'src/stores/store'
   import { useI18n } from 'vue-i18n'
   import HdAddressSelect from 'src/components/walletconnect/hdAddressSelect.vue'
 
-  const store = useStore()
   const { t } = useI18n()
 
   const props = defineProps<{
     sessionProposalWC: WalletKitTypes.SessionProposal,
-    dappTargetNetwork: "mainnet" | "chipnet"
   }>()
 
   defineEmits([
@@ -22,7 +19,6 @@
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
   const dappMetadata = props.sessionProposalWC.params.proposer.metadata as DappMetadata;
-  const needsNetworkSwitch = (props.dappTargetNetwork !== store.network);
 
   const selectedAddresses = ref<string[]>([]);
 
@@ -48,10 +44,6 @@
           </div>
         </div>
 
-        <div v-if="needsNetworkSwitch" style="margin-top: 0.5rem; color: orange;">
-          {{ t('walletConnect.sessionRequest.switchAndApprove', { network: dappTargetNetwork }) }}
-        </div>
-
         <div style="margin-top: 1rem; color: #888;">{{ t('walletConnect.addressSelect.hint') }}</div>
 
         <div style="margin-top: 0.5rem; max-height: 350px; overflow-y: auto;">
@@ -59,7 +51,7 @@
         </div>
 
         <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-          <input type="button" class="primaryButton" :value="needsNetworkSwitch ? t('walletConnect.sessionRequest.switchAndApprove', { network: dappTargetNetwork }) : t('walletConnect.sessionRequest.approveButton')" :disabled="!selectedAddresses.length" @click="approve">
+          <input type="button" class="primaryButton" :value="t('walletConnect.sessionRequest.approveButton')" :disabled="!selectedAddresses.length" @click="approve">
           <input type="button" :value="t('walletConnect.sessionRequest.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>

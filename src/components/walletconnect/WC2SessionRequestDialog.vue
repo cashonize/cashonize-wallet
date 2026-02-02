@@ -3,14 +3,11 @@
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit';
-  import { useStore } from 'src/stores/store'
   import { useI18n } from 'vue-i18n'
-  const store = useStore()
   const { t } = useI18n()
 
   const props = defineProps<{
     sessionProposalWC: WalletKitTypes.SessionProposal,
-    dappTargetNetwork: "mainnet" | "chipnet"
   }>()
   const { sessionProposalWC } = toRefs(props);
 
@@ -22,8 +19,6 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
 
   const sessionProposal = sessionProposalWC.value;
   const dappMetadata = sessionProposal.params.proposer.metadata as DappMetadata;
-
-  const needsNetworkSwitch = (props.dappTargetNetwork !== store.network);
 </script>
 
 <template>
@@ -39,7 +34,7 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
           </div>
         </div>
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-          <input type="button" class="primaryButton" :value="needsNetworkSwitch ? t('walletConnect.sessionRequest.switchAndApprove', { network: dappTargetNetwork }): t('walletConnect.sessionRequest.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" class="primaryButton" :value="t('walletConnect.sessionRequest.approveButton')" @click="onDialogOK" v-close-popup>
           <input type="button" :value="t('walletConnect.sessionRequest.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>

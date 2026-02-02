@@ -35,7 +35,7 @@ const settingsStore = useSettingsStore()
 
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that CC cannot exist without a valid wallet.
-// Passing in a Ref so it remains reactive (like when changing networks)
+// Passing in a Ref so it remains reactive (like when changing wallets)
 export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWallet | TestNetHDWallet>) => {
   const store = defineStore("cashconnectStore", () => {
     
@@ -120,8 +120,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWalle
     }
 
     async function onSessionProposal(sessionProposal: BchSessionProposal) {
-      // Check the network and manually prompt user to switch if incorrect.
-      // TODO: we can automatically invoke changeNetwork here instead of just instructing the user with an action.
+      // Check the network and prompt user to switch if incorrect.
 
       // NOTE: The walletClass.network property appears to return quirky values (e.g. undefined).
       //       So we use the networkPrefix property to determine which chain we are currently on.
@@ -133,8 +132,7 @@ export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWalle
         );
 
       // Cashonize expects network to be either mainnet or chipnet.
-      const targetChainCashonizeFormat =
-        targetChain === "bitcoincash" ? "mainnet" : "chipnet";
+      const targetChainCashonizeFormat = targetChain === "bitcoincash" ? "mainnet" : "chipnet";
 
       // Check if the current chain is the target chain.
       if (currentChain !== targetChain) {

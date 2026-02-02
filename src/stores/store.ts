@@ -412,7 +412,7 @@ export const useStore = defineStore('store', () => {
 
   async function initializeWalletConnect() {
     try {
-      const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>, changeNetwork)
+      const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>)
       await walletconnectStore.initweb3wallet();
       isWcInitialized.value = true;
 

@@ -22,7 +22,7 @@
   const { t } = useI18n()
 
   const { _wallet } = storeToRefs(store);
-  const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>, store.changeNetwork)
+  const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>)
   const web3wallet = walletconnectStore.web3wallet
   const isHDWallet = settingsStore.getWalletType(store.activeWalletName) === 'hd';
   const hasCashConnect = !isHDWallet && !!(_wallet.value as Wallet | null)?.privateKey;

@@ -37,14 +37,10 @@ type PendingRequest = {
   dialogHandle: ReturnType<typeof Dialog.create>;
 }
 
-type ChangeNetwork = (
-  network: "mainnet" | "chipnet", awaitWalletInitialization: boolean
-) => Promise<void>;
-
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that WC cannot exist without a valid wallet.
-// Passing in a Ref so it remains reactive (like when changing networks)
-export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWallet | TestNetHDWallet>, changeNetwork: ChangeNetwork) => {
+// Passing in a Ref so it remains reactive (like when changing wallets)
+export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWallet | TestNetHDWallet>) => {
   const store = defineStore("walletconnectStore", () => {
     const activeSessions = ref(undefined as undefined | Record<string, SessionTypes.Struct>);
     const web3wallet = ref(undefined as undefined | IWalletKit);
@@ -138,6 +134,17 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       }
       const dappNetworkPrefix = namespaces.bch?.chains?.[0]?.split(":")[1];
       const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
+
+      const currentNetwork = wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
+      if (currentNetwork != dappTargetNetwork) {
+        Dialog.create({
+          message: t('cashConnect.notifications.networkMismatch', { network: dappTargetNetwork }),
+          ok: { label: 'OK', color: 'primary', unelevated: true },
+          class: 'flex justify-center',
+        })
+        return;
+      }
+
       const activeWalletName = localStorage.getItem('activeWalletName') ?? '';
       const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
 
@@ -147,7 +154,6 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
             component: WC2AddressSelectDialog,
             componentProps: {
               sessionProposalWC: sessionProposal,
-              dappTargetNetwork
             },
           })
             .onOk((selectedAddresses: string[]) => {
@@ -168,7 +174,6 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
           component: WC2SessionRequestDialog,
           componentProps: {
             sessionProposalWC: sessionProposal,
-            dappTargetNetwork
           },
         })
         // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
@@ -187,14 +192,6 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
   }
 
     async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet", selectedAddresses?: string[]){
-
-      const currentNetwork = wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
-      if(currentNetwork != dappTargetNetwork){
-        // Await the new 'setWallet' call when changing networks, do not wait for full wallet initialization
-        const optionWaitForFullWalletInit = false
-        await changeNetwork(dappTargetNetwork, optionWaitForFullWalletInit)
-      }
-
       const namespaces = {
         bch: {
           methods: [
