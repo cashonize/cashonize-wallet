@@ -748,12 +748,12 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@mainnet-cash/indexeddb-storage@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-3.0.0.tgz#543492d6dc62914f824dc949c9966a05515f7a12"
-  integrity sha512-yINnbSc3dad4HfdKVvliErIYMW453OgY49FaFxMBWTZuzafsyn9Z59s1oPapnvMZsGvB8OZZI7mXH13HT6MGng==
+"@mainnet-cash/indexeddb-storage@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-3.0.1.tgz#9d4fe4cf75e6d220fc92c6e144317e41b9b88272"
+  integrity sha512-YJnUfuweUnKZN6PxIWwHYF14YDrWsPp07mxVrcIXO/IOocZiRbepnOOYFl0T7jqf1CjzmLwS9hGNDNxxts3+Kw==
   dependencies:
-    mainnet-js "3.0.0"
+    mainnet-js "3.0.1"
 
 "@malept/cross-spawn-promise@^2.0.0":
   version "2.0.0"
@@ -4806,10 +4806,10 @@ magic-string@^0.30.21:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.5"
 
-mainnet-js@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-3.0.0.tgz#9282fd6622dbced86a83ea64b9a3168572ee9305"
-  integrity sha512-7oz0dloVRtExQ/fsDH7KCJUf9acxwCmy/u5rsN+/KuNdsOFSpG9aDDUD5/VENkKKMk2J/lcmDoZDuD5e+PQC+A==
+mainnet-js@3.0.1, mainnet-js@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-3.0.1.tgz#ea54d8dcf2f5879120e62020b5a10112f3dcf858"
+  integrity sha512-AezzoG9PbjxzS1cUzMkRpqJNHtWI3GK8dJTji1GUTb58RxxfBnJSWF9KX15BziPFiyNCvQCgrqGbgGZExFpgww==
   dependencies:
     "@bitauth/libauth" "^3.1.0-next.8"
     "@electrum-cash/network" "^4.1.3"

@@ -262,9 +262,8 @@ export const useStore = defineStore('store', () => {
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (tx) => runAsyncVoid(async () => {
-        // do not send notifications if wallet not yet initialized
-        // otherwise user gets flooded with notifications on startup for HD wallets
-        // (mainnet-js watchTransactionHashes replays all history as "new" on first trigger)
+        // guard against race condition: if an Electrum notification arrives during init
+        // (e.g. new block), mainnet-js replays all history as "new" causing a cascade
         if(!walletInitialized.value) return
         const receivedTokenOutputs = tx.vout.filter(voutElem =>
           voutElem.tokenData && voutElem.scriptPubKey.addresses[0] &&
