@@ -582,6 +582,21 @@
       "somethingWentWrong": "une erreur s'est produite"
     }
   },
+  "hdAddresses": {
+    "title": "Adresses du portefeuille HD",
+    "receivingAddresses": "Adresses de réception",
+    "changeAddresses": "Adresses de monnaie",
+    "usedAddresses": "Utilisées",
+    "unusedAddresses": "Non utilisées",
+    "noAddresses": "Aucune adresse analysée pour le moment",
+    "hideZeroBalances": "Masquer les soldes nuls",
+    "columns": {
+      "index": "Index",
+      "address": "Adresse",
+      "balance": "Solde",
+      "txs": "Txs"
+    }
+  },
   "sweepPrivateKey": {
     "title": "Balayer une clé privée",
     "description": "Balayer les BCH d'une clé privée WIF :",
@@ -756,6 +771,7 @@
       "localization": "Localisation",
       "advancedSettings": "Paramètres avancés",
       "developerSettings": "Paramètres développeur",
+      "hdAddresses": "Adresses HD",
       "utxoManagement": "Gestion des UTXO",
       "sweepPrivateKey": "Balayer une clé privée",
       "tokenCreationPage": "Page de création de tokens"

@@ -592,7 +592,7 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Addresses",
-    "depositAddresses": "Deposit Addresses",
+    "receivingAddresses": "Receiving Addresses",
     "changeAddresses": "Change Addresses",
     "usedAddresses": "Used",
     "unusedAddresses": "Unused",

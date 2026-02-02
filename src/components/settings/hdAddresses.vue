@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch, watchEffect } from 'vue';
+  import Toggle from '@vueform/toggle'
   import { copyToClipboard, satsToBch } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -35,9 +36,9 @@
     txCount: number;
   }
 
-  const depositAddresses = ref<AddressRow[]>([]);
+  const receivingAddresses = ref<AddressRow[]>([]);
   const changeAddresses = ref<AddressRow[]>([]);
-  const showUsedDeposit = ref(props.defaultShowUsed);
+  const showUsedReceiving = ref(props.defaultShowUsed);
   const showUsedChange = ref(props.defaultShowUsed);
   const hideZeroBalances = ref(props.defaultHideZeroBalances);
   const changeDetailsOpen = ref(props.defaultShowUsed);
@@ -45,7 +46,7 @@
 
   watch(hideZeroBalances, (newVal) => {
     if (newVal) {
-      showUsedDeposit.value = true;
+      showUsedReceiving.value = true;
       showUsedChange.value = true;
       changeDetailsOpen.value = true;
     }
@@ -56,12 +57,12 @@
     return rows.filter(r => r.balance > 0n);
   }
 
-  const usedDepositAddresses = computed(() => applyBalanceFilter(depositAddresses.value.filter(r => r.txCount > 0)));
-  const unusedDepositAddresses = computed(() => applyBalanceFilter(depositAddresses.value.filter(r => r.txCount === 0)));
+  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(r => r.txCount > 0)));
+  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(r => r.txCount === 0)));
   const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(r => r.txCount > 0)));
   const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(r => r.txCount === 0)));
 
-  const filteredDepositCount = computed(() => usedDepositAddresses.value.length + unusedDepositAddresses.value.length);
+  const filteredReceivingCount = computed(() => usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length);
   const filteredChangeCount = computed(() => usedChangeAddresses.value.length + unusedChangeAddresses.value.length);
 
   function truncateAddress(address: string) {
@@ -112,7 +113,7 @@
     // Access walletUtxos to establish reactive dependency
     void store.walletUtxos;
     const hdWallet = store.wallet as HDWallet | TestNetHDWallet;
-    depositAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
+    receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
     changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true);
   });
 </script>
@@ -122,18 +123,17 @@
   <fieldset v-if="!selectable" class="item" :class="{ dark: settingsStore.darkMode }">
     <legend>{{ t('hdAddresses.title') }}</legend>
 
-    <label class="balance-filter">
-      <input type="checkbox" v-model="hideZeroBalances">
-      {{ t('hdAddresses.hideZeroBalances') }}
-    </label>
+    <div class="balance-filter">
+      {{ t('hdAddresses.hideZeroBalances') }} <Toggle v-model="hideZeroBalances" />
+    </div>
 
-    <!-- Deposit Addresses -->
+    <!-- Receiving Addresses -->
     <details class="collapsible-section" open>
       <summary>
-        <strong>{{ t('hdAddresses.depositAddresses') }}</strong> ({{ filteredDepositCount }})
+        <strong>{{ t('hdAddresses.receivingAddresses') }}</strong> ({{ filteredReceivingCount }})
         <img class="icon" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
       </summary>
-      <table v-if="filteredDepositCount" class="address-table">
+      <table v-if="filteredReceivingCount" class="address-table">
         <thead>
           <tr>
             <th>{{ t('hdAddresses.columns.index') }}</th>
@@ -142,17 +142,17 @@
             <th>{{ t('hdAddresses.columns.txs') }}</th>
           </tr>
         </thead>
-        <!-- Used deposit addresses (collapsible) -->
-        <tbody v-if="usedDepositAddresses.length">
-          <tr class="section-toggle" @click="showUsedDeposit = !showUsedDeposit">
+        <!-- Used receiving addresses (collapsible) -->
+        <tbody v-if="usedReceivingAddresses.length">
+          <tr class="section-toggle" @click="showUsedReceiving = !showUsedReceiving">
             <td colspan="4">
-              {{ t('hdAddresses.usedAddresses') }} ({{ usedDepositAddresses.length }})
-              <img class="icon" :class="{ open: showUsedDeposit }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
+              {{ t('hdAddresses.usedAddresses') }} ({{ usedReceivingAddresses.length }})
+              <img class="icon" :class="{ open: showUsedReceiving }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
             </td>
           </tr>
         </tbody>
-        <tbody v-if="showUsedDeposit" class="used-addresses">
-          <tr v-for="row in usedDepositAddresses" :key="row.index">
+        <tbody v-if="showUsedReceiving" class="used-addresses">
+          <tr v-for="row in usedReceivingAddresses" :key="row.index">
             <td class="mono">{{ row.index }}</td>
             <td @click="onRowClick(row.address)" class="address-cell" :title="row.address">
               <span class="mono">{{ truncateAddress(row.address) }}</span>
@@ -162,9 +162,9 @@
             <td>{{ row.txCount }}</td>
           </tr>
         </tbody>
-        <!-- Unused deposit addresses -->
+        <!-- Unused receiving addresses -->
         <tbody>
-          <tr v-for="row in unusedDepositAddresses" :key="row.index">
+          <tr v-for="row in unusedReceivingAddresses" :key="row.index">
             <td class="mono">{{ row.index }}</td>
             <td @click="onRowClick(row.address)" class="address-cell" :title="row.address">
               <span class="mono">{{ truncateAddress(row.address) }}</span>
@@ -232,18 +232,17 @@
 
   <!-- Embedded selectable mode -->
   <div v-else>
-    <label class="balance-filter">
-      <input type="checkbox" v-model="hideZeroBalances">
-      {{ t('hdAddresses.hideZeroBalances') }}
-    </label>
+    <div class="balance-filter">
+      {{ t('hdAddresses.hideZeroBalances') }} <Toggle v-model="hideZeroBalances" />
+    </div>
 
-    <!-- Deposit Addresses -->
+    <!-- Receiving Addresses -->
     <details class="collapsible-section" open>
       <summary>
-        <strong>{{ t('hdAddresses.depositAddresses') }}</strong> ({{ filteredDepositCount }})
+        <strong>{{ t('hdAddresses.receivingAddresses') }}</strong> ({{ filteredReceivingCount }})
         <img class="icon" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
       </summary>
-      <table v-if="filteredDepositCount" class="address-table">
+      <table v-if="filteredReceivingCount" class="address-table">
         <thead>
           <tr>
             <th></th>
@@ -253,17 +252,17 @@
             <th>{{ t('hdAddresses.columns.txs') }}</th>
           </tr>
         </thead>
-        <!-- Used deposit addresses (collapsible) -->
-        <tbody v-if="usedDepositAddresses.length">
-          <tr class="section-toggle" @click="showUsedDeposit = !showUsedDeposit">
+        <!-- Used receiving addresses (collapsible) -->
+        <tbody v-if="usedReceivingAddresses.length">
+          <tr class="section-toggle" @click="showUsedReceiving = !showUsedReceiving">
             <td colspan="5">
-              {{ t('hdAddresses.usedAddresses') }} ({{ usedDepositAddresses.length }})
-              <img class="icon" :class="{ open: showUsedDeposit }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
+              {{ t('hdAddresses.usedAddresses') }} ({{ usedReceivingAddresses.length }})
+              <img class="icon" :class="{ open: showUsedReceiving }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
             </td>
           </tr>
         </tbody>
-        <tbody v-if="showUsedDeposit" class="used-addresses">
-          <tr v-for="row in usedDepositAddresses" :key="row.index" class="selectable-row" @click="onRowClick(row.address)">
+        <tbody v-if="showUsedReceiving" class="used-addresses">
+          <tr v-for="row in usedReceivingAddresses" :key="row.index" class="selectable-row" @click="onRowClick(row.address)">
             <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="onRowClick(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
             <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
@@ -271,9 +270,9 @@
             <td>{{ row.txCount }}</td>
           </tr>
         </tbody>
-        <!-- Unused deposit addresses -->
+        <!-- Unused receiving addresses -->
         <tbody>
-          <tr v-for="row in unusedDepositAddresses" :key="row.index" class="selectable-row" @click="onRowClick(row.address)">
+          <tr v-for="row in unusedReceivingAddresses" :key="row.index" class="selectable-row" @click="onRowClick(row.address)">
             <td><input type="checkbox" :checked="selectedAddresses.has(row.address)" @click.stop="onRowClick(row.address)"></td>
             <td class="mono">{{ row.index }}</td>
             <td class="mono" :title="row.address">{{ truncateAddress(row.address) }}</td>
@@ -341,8 +340,6 @@
   align-items: center;
   gap: 5px;
   margin-bottom: 10px;
-  cursor: pointer;
-  user-select: none;
 }
 
 .collapsible-section {
