@@ -142,9 +142,8 @@ export const useStore = defineStore('store', () => {
     displayView.value = newView;
   }
 
-  // Note: browser forward button won't work correctly — popstate can't distinguish
-  // back from forward, so forward acts as another back. Fixing this would require
-  // a forward stack + direction detection via history.state.
+  // Note: browser forward button won't work correctly with this implementation.
+  // popstate can't distinguish back from forward, so forward acts as another back. 
   addEventListener('popstate', () => {
     if (viewStack.length <= 1) return;
     viewStack.pop();
