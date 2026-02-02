@@ -446,7 +446,7 @@
           <div class="tokenBaseInfo1">
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
-              {{ t('tokenItem.category') }}
+              {{ t('tokenItem.tokenId') }}
               <span @click="copyToClipboard(tokenData.category)">
                 <span class="category" style="cursor: pointer;">
                   {{ !isMobile ? `${tokenData.category.slice(0, 20)}...${tokenData.category.slice(-8)}` :  `${tokenData.category.slice(0, 10)}...${tokenData.category.slice(-8)}`}}

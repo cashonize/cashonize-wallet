@@ -59,8 +59,8 @@
     else return settingsStore.bchUnit == "bch"? " tBCH" : " testnet satoshis"
   })
   const displayCurrencyBalance = computed(() => {
-    if (exchangeRate.value === undefined) return '';
-    const balance = convertToCurrency(store.balance ?? 0n, exchangeRate.value);
+    if (exchangeRate.value === undefined || store.balance === undefined) return '';
+    const balance = convertToCurrency(store.balance, exchangeRate.value);
     return formatFiatAmount(balance, settingsStore.currency);
   });
   const currencyDisplayShortName = computed(() => {
