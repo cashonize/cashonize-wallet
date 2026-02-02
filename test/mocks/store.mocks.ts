@@ -16,6 +16,7 @@ export const mockMainnetWallet = {
   publicKeyHash: new Uint8Array([1, 2, 3]),
   getDepositAddress: () => 'bitcoincash:qtest',
   getTokenDepositAddress: () => 'bitcoincash:ztest',
+  stop: vi.fn().mockResolvedValue(undefined),
 }
 
 export const mockChipnetWallet = {
@@ -26,11 +27,14 @@ export const mockChipnetWallet = {
   publicKeyHash: new Uint8Array([1, 2, 3]),
   getDepositAddress: () => 'bchtest:qtest',
   getTokenDepositAddress: () => 'bchtest:ztest',
+  stop: vi.fn().mockResolvedValue(undefined),
 }
 
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
 export const mockTestNetWalletNamed = vi.fn()
+export const mockHDWalletNamed = vi.fn()
+export const mockTestNetHDWalletNamed = vi.fn()
 
 // Mock localStorage
 export const localStorageMock = {
@@ -57,6 +61,12 @@ vi.mock('mainnet-js', () => ({
   },
   TestNetWallet: {
     named: mockTestNetWalletNamed,
+  },
+  HDWallet: {
+    named: mockHDWalletNamed,
+  },
+  TestNetHDWallet: {
+    named: mockTestNetHDWalletNamed,
   },
   Config: {
     EnforceCashTokenReceiptAddresses: true,
@@ -97,6 +107,7 @@ vi.mock('src/stores/settingsStore', () => ({
     explorerMainnet: 'https://blockchair.com',
     explorerChipnet: 'https://chipnet.chaingraph.cash',
     ipfsGateway: 'https://ipfs.io/ipfs/',
+    getWalletType: vi.fn().mockReturnValue('single'),
   })),
 }))
 
