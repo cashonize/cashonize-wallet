@@ -383,13 +383,13 @@
         <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
           <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
-          <option value="https://bchexplorer.info/tx">bchexplorer by Paytaca</option>
+          <option value="https://bchexplorer.info/tx">bchexplorer.info by Paytaca</option>
           <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
           <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
           <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>
           <option value="https://bch.loping.net/tx">bch.loping.net (no Token Metadata)</option>
+          <option value="https://bchexplorer.cash/tx">bchexplorer.cash by Melroy (no Token Metadata)</option>
           <option value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
-          <option value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
         </select>
         <select v-if="store.network == 'chipnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>

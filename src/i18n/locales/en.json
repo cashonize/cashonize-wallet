@@ -162,7 +162,9 @@
       "all": "All tokens",
       "hiddenOnly": "Hidden only"
     },
-    "editVisibility": "Edit visibility"
+    "editVisibility": "Edit visibility",
+    "searchPlaceholder": "Search tokens...",
+    "searchMatches": "{count} search matches"
   },
   "tokenItem": {
     "name": "Name:",
