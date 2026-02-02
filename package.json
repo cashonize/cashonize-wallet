@@ -22,7 +22,7 @@
     "@capacitor-community/barcode-scanner": "^4.0.1",
     "@capacitor/core": "^8.0.0",
     "@download/blockies": "^1.0.3",
-    "@mainnet-cash/indexeddb-storage": "2.7.34",
+    "@mainnet-cash/indexeddb-storage": "^3.0.0",
     "@quasar/extras": "^1.17.0",
     "@reown/walletkit": "^1.2.10",
     "@vueform/toggle": "^2.1.4",
