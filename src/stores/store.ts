@@ -8,14 +8,12 @@ import {
   BaseWallet,
   Config,
   Connection,
-  binToHex,
   convert,
   type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
   NetworkType
 } from "mainnet-js"
-import { decodeCashAddress } from "@bitauth/libauth"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
 import {
   CurrencySymbols,
@@ -260,21 +258,23 @@ export const useStore = defineStore('store', () => {
         }
       })
     );
-    const depositAddr = wallet.value.getDepositAddress();
-    const decoded = decodeCashAddress(depositAddr);
-    const walletPkh = typeof decoded === 'string' ? '' : binToHex(decoded.payload);
     cancelWatchTokenTxs = await wallet.value.watchTokenTransactions(
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (tx) => runAsyncVoid(async () => {
+        // do not send notifications if wallet not yet initialized
+        // otherwise user gets flooded with notifications on startup for HD wallets
+        // (mainnet-js watchTransactionHashes replays all history as "new" on first trigger)
+        if(!walletInitialized.value) return
         const receivedTokenOutputs = tx.vout.filter(voutElem =>
-          voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh)
+          voutElem.tokenData && voutElem.scriptPubKey.addresses[0] &&
+          wallet.value.hasAddress(voutElem.scriptPubKey.addresses[0])
         );
         const previousTokenList = tokenList.value;
         const listNewTokens:TokenList = []
-        // Check if transaction not initiated by user
-        const userInputs = tx.vin.filter(vinElem => vinElem.address == depositAddr);
+        const userInputs = tx.vin.filter(vinElem => vinElem.address && wallet.value.hasAddress(vinElem.address));
         for(const tokenOutput of receivedTokenOutputs){
+          // Check if transaction not initiated by user
           if(!userInputs.length){
             const tokenType = tokenOutput.tokenData?.nft ? "NFT" : "tokens"
             Notify.create({
