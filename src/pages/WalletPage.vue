@@ -179,7 +179,7 @@
     <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
     <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs">
       <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ isMobile ? "Wallet" : "BchWallet" }} </div>
-      <div v-if="!isMobile && store.wallet.walletType === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> Addresses </div>
+      <div v-if="width > 570 && store.wallet.walletType === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> Addresses </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ isMobile ? "Tokens" : "MyTokens" }} </div>
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ isMobile ? "History" : "TxHistory" }} </div>
       <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ isMobile ? "Connect" : "WalletConnect" }} </div>

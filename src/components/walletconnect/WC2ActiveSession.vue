@@ -12,7 +12,7 @@
   const { t } = useI18n()
 
   const { width } = useWindowSize();
-  const isMobilePhone = width.value < 480
+  const isMobilePhone = computed(() => width.value < 480);
 
   const emit = defineEmits(['deleteSession']);
 
@@ -37,7 +37,7 @@
     );
 
     // If duplicated, return part of the session id
-    const sessionPrefix = !isMobilePhone ? t('walletConnect.sessions.session') + ' ' : ''
+    const sessionPrefix = !isMobilePhone.value ? t('walletConnect.sessions.session') + ' ' : ''
     return hasDuplicateName? `- ${sessionPrefix} ${session.topic.slice(0, 6)}`: '';
   });
 
@@ -50,6 +50,11 @@
     // account format is "bch:<address>", strip the "bch:" prefix
     return accounts.map(account => account.split(':').slice(1).join(':'));
   });
+
+  function shortenAddress(address: string) {
+    const addrWithoutPrefix = address.split(':')[1] ?? "";
+    return addrWithoutPrefix.slice(0, 10) + '...' + addrWithoutPrefix.slice(-8);
+  }
 </script>
 
 <template>
@@ -60,7 +65,10 @@
         <div>{{ dappMetadata.name + displaySessionId }}</div>
         <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
         <div>{{ dappMetadata.description }}</div>
-        <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono">{{ addr }}</div>
+        <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono" :title="addr">
+          <template v-if="width < 550">{{ shortenAddress(addr) }}</template>
+          <template v-else>{{ addr }}</template>
+        </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 18px;">
         <img style="cursor: pointer; max-width: none;"
@@ -76,7 +84,7 @@
   </div>
 
   <div v-if="sessionSettingsWC">
-    <WC2SessionSettingsDialog :sessionId="sessionSettingsWC" @hide="sessionSettingsWC=''" :dapp-metadata="dappMetadata"/>
+    <WC2SessionSettingsDialog :sessionId="sessionSettingsWC" @hide="sessionSettingsWC=''" :dapp-metadata="dappMetadata" :connected-addresses="connectedAddresses"/>
   </div>
 </template>
 
