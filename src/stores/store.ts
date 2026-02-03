@@ -243,8 +243,9 @@ export const useStore = defineStore('store', () => {
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (newBalance) => runAsyncVoid(async () => {
-        const oldBalance = balance.value;
-        balance.value = newBalance;
+        // Compute oldBalance including bch on token utxos
+        // to match way newBalance is calculated in watchBalance
+        const oldBalance = walletUtxos.value?.reduce((acc, utxo) => acc + utxo.satoshis, BigInt(0));
         if(oldBalance && newBalance && walletInitialized.value){
           console.log("watchBalance")
           if(oldBalance < newBalance){
@@ -262,6 +263,9 @@ export const useStore = defineStore('store', () => {
           }
           // update state (but not on the initial trigger when creating the subscription)
           const walletAddressUtxos = await wallet.value.getUtxos();
+          // update balance with the amount on bch-only utxos
+          const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
+          balance.value = balanceSats;
           walletUtxos.value = walletAddressUtxos;
           maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
             utxoIds: walletAddressUtxos
