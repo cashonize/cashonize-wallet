@@ -114,7 +114,7 @@
       <div style="margin-bottom: 20px;">
         {{ t('addWallet.creating') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
       </div>
-      <div style="margin-bottom: 15px;">
+      <div style="margin-bottom: 5px;">
         <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
         <select v-model="walletType" style="padding: 8px; min-width: 200px;">
           <option value="single">{{ t('onboarding.walletType.single') }}</option>
@@ -124,7 +124,10 @@
           {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
         </div>
       </div>
-      <div style="margin-bottom: 15px;">
+      <div v-if="walletType === 'hd'" style="font-size: smaller; color: grey;">
+        {{ t('addWallet.hdNote') }}
+      </div>
+      <div style="margin-top:10px; margin-bottom: 15px;">
         <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
           {{ t('addWallet.createNew.hint') }}
         </div>
@@ -152,8 +155,12 @@
       <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 2">
         {{ t('addWallet.backButton') }}
       </div>
-      <div style="margin-bottom: 20px;">
+      <div style="margin-bottom: 10px;">
         {{ t('addWallet.importing') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
+        <span v-if="walletType === 'single'"> as single address wallet</span>
+      </div>
+      <div v-if="walletType === 'single'" style="margin-bottom: 10px; font-size: smaller; color: grey;">
+        {{ t('addWallet.singleAddressNote') }}
       </div>
       <div style="margin-bottom: 15px;">
         <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
@@ -163,12 +170,6 @@
             <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('addWallet.derivationPath.standard') }})</option>
             <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('addWallet.derivationPath.bitcoindotcom') }})</option>
           </select>
-        </div>
-        <div v-if="walletType === 'single'" style="margin-top: 10px; font-size: smaller; color: grey;">
-          {{ t('addWallet.singleAddressNote') }}
-        </div>
-        <div v-if="walletType === 'hd'" style="margin-top: 10px; font-size: smaller; color: grey;">
-          {{ t('addWallet.hdNote') }}
         </div>
         <input
           @click="importWallet()"
