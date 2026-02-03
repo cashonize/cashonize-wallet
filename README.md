@@ -12,15 +12,16 @@ Because of its minimalist design, Cashonize is a user-friendly wallet, even for 
 Cashonize has an easy-to-understand transaction preview screen for WalletConnect and CashConnect, empowering users before signing DeFi transactions.
 Further, Cashonize nicely groups and displays your NFTs, making it ideal for NFT collectors.
 
-Cashonize has multi-wallet support, but each wallet is used as a single-address wallet. For privacy-focused users, an HD-wallet is recommended for payments instead (however BCH WalletConnect itself is single-address based in its design).
-Cashonize also does not currently support password or pin locked wallets and encrypted seed phrases.
+Cashonize has multi-wallet support with both single-address and HD wallet options. HD wallets use a new address for each transaction, providing basic privacy for everyday payments.
+
+Cashonize does not currently support password or pin locked wallets and encrypted seed phrases.
 
 ### Features
 
 - **Send & receive BCH and CashTokens** - Full support for fungible tokens and NFTs
 - **Connect to dApps via WalletConnect** - Easy-to-understand transaction preview screen
 - **Open-source and non-custodial** - You control your keys
-- **Multi-wallet support** - Create and manage multiple wallets, easily switch between them
+- **Multi-wallet support** - Create and manage multiple wallets (single-address or HD) and easily switch between them
 - **Token management** - Favorite, hide tokens, and batch transfer NFTs
 - **Backup status tracking** - Visual indicators show which wallets need to be backed up
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup

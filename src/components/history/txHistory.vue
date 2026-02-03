@@ -154,21 +154,21 @@
             </div>
 
             <div class="tx-cell tokenChange">
-               <!-- Tokens like BADGER have both fungibles and NFTs with the same tokenId in user wallets -->
-              <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.tokenId">
+               <!-- Tokens like BADGER have both fungibles and NFTs with the same category in user wallets -->
+              <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.category">
                 <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
                   <span v-if="tokenChange.amount > 0n" class="value">+{{
-                    (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}
+                    (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.category]?.token.decimals ?? 0)).toLocaleString("en-US") }}
                   </span>
                   <span v-else class="value negative">
-                    {{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.tokenId]?.token.decimals ?? 0)).toLocaleString("en-US") }}
+                    {{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.category]?.token.decimals ?? 0)).toLocaleString("en-US") }}
                   </span>
-                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }}</span>
+                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.category]?.token?.symbol ?? tokenChange.category.slice(0, 8)) }}</span>
                   <TokenIcon
                     v-if="tokenChange.amount"
                     class="historyTokenIcon"
-                    :token-id="tokenChange.tokenId"
-                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenChange.tokenId) : undefined"
+                    :token-id="tokenChange.category"
+                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenChange.category) : undefined"
                     :size="28"
                   />
                 </span>
@@ -176,13 +176,13 @@
                   <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
                   <span v-else class="value negative">{{ tokenChange.nftAmount }}</span>
                   <span>
-                    {{ " " + (store.bcmrRegistries?.[tokenChange.tokenId]?.token?.symbol ?? tokenChange.tokenId.slice(0, 8)) }} NFT
+                    {{ " " + (store.bcmrRegistries?.[tokenChange.category]?.token?.symbol ?? tokenChange.category.slice(0, 8)) }} NFT
                   </span>
                   <TokenIcon
                     v-if="tokenChange.nftAmount"
                     class="historyTokenIcon"
-                    :token-id="tokenChange.tokenId"
-                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenChange.tokenId) : undefined"
+                    :token-id="tokenChange.category"
+                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenChange.category) : undefined"
                     :size="28"
                   />
                 </span>

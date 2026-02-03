@@ -65,6 +65,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // Stored in localStorage as JSON: { "walletName": { createdAt: "2025-01-16T..." }, ... }
   interface WalletMetadata {
     createdAt?: string; // ISO date string
+    walletType?: 'single' | 'hd';
   }
   const walletMetadata = ref<Record<string, WalletMetadata>>({})
 
@@ -376,6 +377,18 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
   }
 
+  function getWalletType(walletName: string): 'single' | 'hd' {
+    return walletMetadata.value[walletName]?.walletType || 'single';
+  }
+
+  function setWalletType(walletName: string, type: 'single' | 'hd') {
+    if (!walletMetadata.value[walletName]) {
+      walletMetadata.value[walletName] = {};
+    }
+    walletMetadata.value[walletName].walletType = type;
+    localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
+  }
+
   function clearWalletMetadata(walletName: string) {
     delete walletMetadata.value[walletName];
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
@@ -417,6 +430,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     clearBackupStatus,
     getWalletMetadata,
     setWalletCreatedAt,
+    getWalletType,
+    setWalletType,
     clearWalletMetadata,
     mintNfts,
     authchains,

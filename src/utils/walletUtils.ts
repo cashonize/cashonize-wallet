@@ -1,4 +1,4 @@
-import { Wallet, TestNetWallet, Config } from "mainnet-js"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "mainnet-js"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { namedWalletExistsInDb } from 'src/utils/dbUtils'
@@ -171,6 +171,114 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     settingsStore.setBackupStatus(trimmedName, 'imported');
 
     // Store wallet creation date (import date)
+    settingsStore.setWalletCreatedAt(trimmedName);
+
+    return { success: true, walletName: trimmedName };
+  } catch (error) {
+    if (isQuotaExceededError(error)) {
+      return makeError(t('walletUtils.errors.storageFull'), false);
+    }
+    if (typeof error === 'string') {
+      return makeError(error, true);
+    }
+    return makeError(t('walletUtils.errors.invalidSeedPhrase'), false);
+  }
+}
+
+/**
+ * Creates a new HD wallet with the given name.
+ * HD wallets support multiple addresses (BIP44) with automatic address discovery.
+ */
+export async function createNewHDWallet(name: string): Promise<WalletOperationResult> {
+  const validationError = validateWalletName(name);
+  if (validationError) return validationError;
+  const trimmedName = name.trim();
+
+  try {
+    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    if (existsMainnet || existsChipnet) {
+      return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
+    }
+
+    const store = useStore();
+    const settingsStore = useSettingsStore();
+
+    Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
+    const mainnetWallet = await HDWallet.named(trimmedName);
+    const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
+    await TestNetHDWallet.replaceNamed(trimmedName, walletId);
+
+    store.activeWalletName = trimmedName;
+    localStorage.setItem('activeWalletName', trimmedName);
+    store.setWallet(mainnetWallet);
+
+    await store.refreshAvailableWallets();
+    void store.initializeWallet();
+
+    settingsStore.setWalletType(trimmedName, 'hd');
+    settingsStore.setWalletCreatedAt(trimmedName);
+
+    return { success: true, walletName: trimmedName };
+  } catch (error) {
+    if (isQuotaExceededError(error)) {
+      return makeError(t('walletUtils.errors.storageFull'), false);
+    }
+    if (typeof error === 'string') {
+      return makeError(error, true);
+    }
+    return makeError(t('walletUtils.errors.failedToCreateWallet'), false);
+  }
+}
+
+/**
+ * Imports an HD wallet from a seed phrase.
+ * HD wallets support multiple addresses (BIP44) with automatic address discovery.
+ */
+export async function importHDWallet(params: ImportWalletParams): Promise<WalletOperationResult> {
+  const { seedPhrase, seedPhraseValid, derivationPath } = params;
+
+  const validationError = validateWalletName(params.name);
+  if (validationError) return validationError;
+  const trimmedName = params.name.trim();
+
+  if (!seedPhrase) {
+    return makeError(t('walletUtils.errors.enterSeedPhrase'), true);
+  }
+
+  if (!seedPhraseValid) {
+    return makeError(t('walletUtils.errors.fixInvalidWords'), true);
+  }
+
+  try {
+    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    if (existsMainnet || existsChipnet) {
+      return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
+    }
+
+    const store = useStore();
+    const settingsStore = useSettingsStore();
+
+    const parentDerivationPath = DERIVATION_PATHS[derivationPath].parent;
+
+    const walletId = `hd:mainnet:${seedPhrase}:${parentDerivationPath}:0:0`;
+    await HDWallet.replaceNamed(trimmedName, walletId);
+
+    const walletIdTestnet = `hd:testnet:${seedPhrase}:${parentDerivationPath}:0:0`;
+    await TestNetHDWallet.replaceNamed(trimmedName, walletIdTestnet);
+
+    const mainnetWallet = await HDWallet.named(trimmedName);
+
+    store.activeWalletName = trimmedName;
+    localStorage.setItem('activeWalletName', trimmedName);
+    store.setWallet(mainnetWallet);
+
+    await store.refreshAvailableWallets();
+    void store.initializeWallet();
+
+    settingsStore.setWalletType(trimmedName, 'hd');
+    settingsStore.setBackupStatus(trimmedName, 'imported');
     settingsStore.setWalletCreatedAt(trimmedName);
 
     return { success: true, walletName: trimmedName };

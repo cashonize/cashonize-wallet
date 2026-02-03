@@ -6,7 +6,7 @@
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
-  import type { TokenDataNFT, BcmrTokenMetadata, TokenSendRequestParams, TokenMintRequestParams, TokenBurnRequestParams } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
@@ -55,14 +55,14 @@
 
   let fetchedMetadataChildren = false
 
-  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId] ?? undefined;
+  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category] ?? undefined;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
-  const isSingleMintingNft = computed(() => isSingleNft.value && tokenData.value.nfts?.[0]?.token?.capability == 'minting');
+  const isSingleMintingNft = computed(() => isSingleNft.value && tokenData.value.nfts?.[0]?.token?.nft?.capability == 'minting');
   const nftMetadata = computed(() => {
     if(!isSingleNft.value) return
     const nftData = tokenData.value.nfts?.[0];
-    const commitment = nftData?.token?.commitment;
+    const commitment = nftData?.token?.nft?.commitment;
     const matchedNftMetadata = tokenMetaData?.value?.nfts?.[commitment ?? ""]
     return matchedNftMetadata ? matchedNftMetadata : tokenMetaData?.value
   })
@@ -113,13 +113,13 @@
   }
 
   onMounted(() => {
-    appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}nft`);
+    appendBlockieIcon(tokenData.value.category, `#id${tokenData.value.category.slice(0, 10)}nft`);
   })
 
   watch(imageLoadFailed, async (failedToLoad) => {
     if(failedToLoad) {
       await nextTick();
-      appendBlockieIcon(tokenData.value.tokenId, `#id${tokenData.value.tokenId.slice(0, 10)}nft`);
+      appendBlockieIcon(tokenData.value.category, `#id${tokenData.value.category.slice(0, 10)}nft`);
     }
   })
 
@@ -128,8 +128,8 @@
     if(!totalNumberNFTs.value && tokenData.value?.nfts && hasMintingNFT.value == undefined){
       try {
         const [supplyNFTs, activeMintingCount] = await Promise.all([
-          querySupplyNFTs(tokenData.value.tokenId, settingsStore.chaingraph),
-          queryActiveMinting(tokenData.value.tokenId, settingsStore.chaingraph)
+          querySupplyNFTs(tokenData.value.category, settingsStore.chaingraph),
+          queryActiveMinting(tokenData.value.category, settingsStore.chaingraph)
         ]);
         totalNumberNFTs.value = supplyNFTs;
         hasMintingNFT.value = activeMintingCount > 0;
@@ -170,7 +170,7 @@
       }
 
       // Check if c= is for a different token
-      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.tokenId){
+      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.category){
         $q.notify({ message: t('tokenItem.errors.differentTokenRequest'), icon: 'warning', color: "grey-7" });
         return;
       }
@@ -213,15 +213,15 @@
       if(typeof decodedAddress == 'string') throw(t('tokenItem.errors.invalidAddress'))
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(t('tokenItem.errors.notTokenAddress'));
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
 
-      const tokenId = tokenData.value.tokenId;
+      const category = tokenData.value.category;
       const isAllSelected = selectedNftCount.value === tokenData.value.nfts?.length;
       const nftCount = selectedNftCount.value;
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenId.slice(0, 8)
+        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? category.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
@@ -244,15 +244,15 @@
 
       const outputArray:TokenSendRequest[] = [];
       selectedNftsList.forEach(nftItem => {
-        const nftCommitment = nftItem?.token?.commitment;
-        const nftCapability = nftItem?.token?.capability;
         outputArray.push(
           new TokenSendRequest({
           cashaddr: destinationAddr.value,
-          tokenId: tokenId,
-          commitment: nftCommitment,
-          capability: nftCapability,
-        } as TokenSendRequestParams))
+          category: category,
+          nft: {
+            commitment: nftItem.token!.nft!.commitment,
+            capability: nftItem.token!.nft!.capability,
+          },
+        }))
       })
       $q.notify({
         spinner: true,
@@ -261,10 +261,10 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send(outputArray);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      let alertMessage = t('tokenItem.alerts.sentNfts', { count: nftCount, tokenId: displayId, address: destinationAddr.value });
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
+      let alertMessage = t('tokenItem.alerts.sentNfts', { count: nftCount, category: displayId, address: destinationAddr.value });
       if (isAllSelected) {
-        alertMessage = t('tokenItem.alerts.sentAllNfts', { tokenId: displayId, address: destinationAddr.value });
+        alertMessage = t('tokenItem.alerts.sentAllNfts', { category: displayId, address: destinationAddr.value });
       }
       $q.dialog({
         component: alertDialog,
@@ -305,11 +305,11 @@
       if(typeof decodedAddress == 'string') throw(t('tokenItem.errors.invalidAddress'))
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens) throw(t('tokenItem.errors.notTokenAddress'));
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.tokenId.slice(0, 8)
+        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.category.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
@@ -325,7 +325,7 @@
         if (!confirmed) return
       }
 
-      const tokenId = tokenData.value.tokenId;
+      const category = tokenData.value.category;
       const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
       $q.notify({
         spinner: true,
@@ -336,13 +336,15 @@
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
-          tokenId: tokenId,
-          commitment: nftInfo.commitment,
-          capability: nftInfo.capability,
-        } as TokenSendRequestParams),
+          category: category,
+          nft: {
+            commitment: nftInfo.nft!.commitment,
+            capability: nftInfo.nft!.capability,
+          },
+        }),
       ]);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.sentNft', { tokenId: displayId, address: destinationAddr.value });
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
+      const alertMessage = t('tokenItem.alerts.sentNft', { category: displayId, address: destinationAddr.value });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -371,9 +373,9 @@
 
   async function mintNfts() {
     if (activeAction.value) return;
-    const tokenId = tokenData.value.tokenId;
+    const category = tokenData.value.category;
     const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
-    const tokenAddr = store.wallet.tokenaddr;
+    const tokenAddr = store.wallet.getTokenDepositAddress();
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     activeAction.value = 'minting';
@@ -390,7 +392,7 @@
       const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
       if(!validCommitment) throw(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
 
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee')); 
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee')); 
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
@@ -408,10 +410,12 @@
         }
         const mintRequest = new TokenMintRequest({
           cashaddr: recipientAddr,
-          commitment: nftCommitment,
-          capability: "none",
-          value: 1000,
-        } as TokenMintRequestParams)
+          nft: {
+            commitment: nftCommitment,
+            capability: "none",
+          },
+          value: 1000n,
+        })
         arraySendrequests.push(mintRequest);
       }
       $q.notify({
@@ -420,12 +424,12 @@
         color: 'grey-5',
         timeout: 1000
       })
-      const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
+      const { txId } = await store.wallet.tokenMint(category, arraySendrequests);
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
-      let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
+      let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, category: displayId });
       if (mintAmount == 1) {
-        alertMessage = t('tokenItem.alerts.mintedNft', { tokenId: displayId, commitmentText });
+        alertMessage = t('tokenItem.alerts.mintedNft', { category: displayId, commitmentText });
       }
       $q.dialog({
         component: alertDialog,
@@ -458,11 +462,11 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
 
-      const tokenId = tokenData.value.tokenId;
+      const category = tokenData.value.category;
       const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
-      const nftTypeString = nftInfo?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
+      const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
       const confirmed = await new Promise<boolean>((resolve) => {
         $q.dialog({
           title: t('tokenItem.dialogs.burnNft.title'),
@@ -484,14 +488,16 @@
       })
       const { txId } = await store.wallet.tokenBurn(
         {
-          tokenId: tokenId,
-          capability: nftInfo?.capability,
-          commitment: nftInfo?.commitment,
-        } as TokenBurnRequestParams,
+          category: category,
+          nft: {
+            capability: nftInfo.nft!.capability,
+            commitment: nftInfo.nft!.commitment,
+          }
+        },
         "burn", // optional OP_RETURN message
       );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, tokenId: displayId });
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
+      const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, category: displayId });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -517,21 +523,22 @@
   async function transferAuth() {
     if (activeAction.value) return;
     if(!tokenData.value?.authUtxo) return;
-    const tokenId = tokenData.value.tokenId;
+    const category = tokenData.value.category;
     const authNft = tokenData.value.authUtxo?.token;
     activeAction.value = 'transferAuth';
     try {
-      const authTransfer = {
+      const authTransfer: SendRequest = {
         cashaddr: destinationAddr.value,
-        value: 1000,
-        unit: 'sats',
-      } as SendRequest;
+        value: 1000n,
+      };
       const changeOutputNft = new TokenSendRequest({
-        cashaddr: store.wallet.tokenaddr,
-        tokenId: tokenData.value.tokenId,
-        commitment: authNft?.commitment,
-        capability: authNft?.capability
-      } as TokenSendRequestParams);
+        cashaddr: store.wallet.getTokenDepositAddress(),
+        category: tokenData.value.category,
+        nft: {
+          commitment: authNft!.nft!.commitment,
+          capability: authNft!.nft!.capability
+        },
+      });
       $q.notify({
         spinner: true,
         message: t('common.status.sending'),
@@ -539,8 +546,8 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.transferredAuth', { tokenId: displayId, address: destinationAddr.value });
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
+      const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -578,7 +585,7 @@
 </script>
 
 <template>
-  <div :id="`id${tokenData.tokenId.slice(0, 10)}nft`" class="item">
+  <div :id="`id${tokenData.category.slice(0, 10)}nft`" class="item">
     <fieldset style="position: relative;">
       <div class="tokenInfo">
         <video
@@ -610,9 +617,9 @@
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
-              <span @click="copyToClipboard(tokenData.tokenId)" style="cursor: pointer;">
-                <span class="tokenId">
-                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-8)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-8)}`}}
+              <span @click="copyToClipboard(tokenData.category)" style="cursor: pointer;">
+                <span class="category">
+                  {{ !isMobile ? `${tokenData.category.slice(0, 20)}...${tokenData.category.slice(-8)}` :  `${tokenData.category.slice(0, 10)}...${tokenData.category.slice(-8)}`}}
                 </span>
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
@@ -633,13 +640,13 @@
             </div>
           </div>
         </div>
-        <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.tokenId) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
-          <img :src="settingsStore.hiddenTokens.includes(tokenData.tokenId)
+        <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.category)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.category) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
+          <img :src="settingsStore.hiddenTokens.includes(tokenData.category)
             ? (settingsStore.darkMode ? 'images/eye-off-outline-lightGrey.svg' : 'images/eye-off-outline.svg')
             : (settingsStore.darkMode ? 'images/eye-outline-lightGrey.svg' : 'images/eye-outline.svg')">
         </span>
-        <span @click="store.toggleFavorite(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.tokenId) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
-          <img :src="settingsStore.featuredTokens.includes(tokenData.tokenId) ? 'images/star-full.svg' :
+        <span @click="store.toggleFavorite(tokenData.category)" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.category) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
+          <img :src="settingsStore.featuredTokens.includes(tokenData.category) ? 'images/star-full.svg' :
             settingsStore.darkMode? 'images/star-empty-grey.svg' : 'images/star-empty.svg'">
         </span>
       </div>
@@ -660,7 +667,7 @@
           <span v-if="selectedNftCount > 0 || displayBatchTransfer" @click="clearSelection()" class="batch-action-btn">
             {{ t('tokenItem.actions.clear') }}
           </span>
-          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting' && settingsStore.mintNfts" @click="displayMintNfts = !displayMintNfts">
+          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting' && settingsStore.mintNfts" @click="displayMintNfts = !displayMintNfts">
             <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> {{ t('tokenItem.actions.mintNfts') }}
           </span>
           <span v-if="isSingleNft && settingsStore.tokenBurn" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
@@ -676,10 +683,10 @@
           <div></div>
           <div v-if="tokenMetaData?.description" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenMetaData.description }} </div>
           <div v-if="isSingleNft">
-            {{ t('tokenItem.info.nftType') }} {{  tokenData?.nfts?.[0]?.token?.capability == "none" ? t('tokenItem.info.immutable') : tokenData?.nfts?.[0]?.token?.capability }} NFT
+            {{ t('tokenItem.info.nftType') }} {{  tokenData?.nfts?.[0]?.token?.nft?.capability == "none" ? t('tokenItem.info.immutable') : tokenData?.nfts?.[0]?.token?.nft?.capability }} NFT
           </div>
           <div v-if="isSingleNft">
-            {{ t('tokenItem.info.nftCommitment') }} {{ tokenData.nfts?.[0]?.token?.commitment ? tokenData.nfts?.[0].token?.commitment : t('tokenItem.none') }}
+            {{ t('tokenItem.info.nftCommitment') }} {{ tokenData.nfts?.[0]?.token?.nft?.commitment ? tokenData.nfts?.[0].token?.nft?.commitment : t('tokenItem.none') }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
             {{ t('tokenItem.info.tokenWebLink') }}
@@ -692,7 +699,7 @@
             {{ t('tokenItem.info.hasActiveMintingNft') }} {{ hasMintingNFT == undefined? "..." :( hasMintingNFT? t('tokenItem.info.yes'): t('tokenItem.info.no'))}}
           </div>
           <div>
-            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.tokenId" target="_blank">
+            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">
               {{ t('tokenItem.info.seeDetailsOnExplorer') }} <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
             </a>
           </div>
@@ -752,7 +759,7 @@
           </span>
         </div>
         <div v-if="displayBurnNft" class="tokenAction">
-          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
+          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
           <span v-else>{{ t('tokenItem.burn.burnNftDescription') }}</span>
           <br>
           <input @click="burnNft()" type="button" :value="activeAction === 'burning' ? t('tokenItem.burn.burningButton') : t('tokenItem.burn.burnNftButton')" class="button error" :disabled="activeAction !== null">
@@ -777,11 +784,11 @@
     </div>
 
     <div v-if="displayChildNfts && (tokenData.nfts?.length ?? 0) > 1">
-      <div v-for="(nft, index) in tokenData.nfts" :key="'nft'+tokenData.tokenId.slice(0,4) + index">
+      <div v-for="(nft, index) in tokenData.nfts" :key="'nft'+tokenData.category.slice(0,4) + index">
         <nftChild
           :nftData="nft"
-          :tokenMetaData="store.bcmrRegistries?.[tokenData.tokenId]"
-          :id="'nft'+tokenData.tokenId.slice(0,4) + index"
+          :tokenMetaData="store.bcmrRegistries?.[tokenData.category]"
+          :id="'nft'+tokenData.category.slice(0,4) + index"
           :isSelected="isNftSelected(nft.txid, nft.vout)"
           @toggle-select="toggleNftSelection(nft.txid, nft.vout)"
         />
