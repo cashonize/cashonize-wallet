@@ -768,6 +768,7 @@
     },
     "notifications": {
       "successfullySignedMessage": "Mensaje firmado exitosamente",
+      "failedToSignMessage": "Error al firmar el mensaje",
       "sendingTransaction": "Enviando transacción...",
       "sentTransaction": "Enviada transacción WalletConnect '{userPrompt}'",
       "transactionSent": "¡Transacción enviada exitosamente!",

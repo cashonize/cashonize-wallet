@@ -354,6 +354,14 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
                     message: t('walletConnect.notifications.successfullySignedMessage'),
                   });
                   resolve();
+                }).catch((error) => {
+                  console.error('Failed to sign message:', error);
+                  Notify.create({
+                    color: "negative",
+                    message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignMessage'),
+                  });
+                  void rejectRequest(event);
+                  reject(error);
                 });
               })
               .onCancel(() => {
@@ -540,15 +548,18 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       const { id, topic } = signMessageRequestWC;
 
       // Get the address connected to this session and resolve the correct private key
-      const sessionAddress = getSessionAddress(topic);
       const activeWalletName = localStorage.getItem('activeWalletName') ?? '';
       const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
 
       let signingKey: Uint8Array | undefined;
-      if (isHD && sessionAddress) {
+      if (isHD) {
+        const sessionAddress = getSessionAddress(topic);
+        if (!sessionAddress) throw new Error(t('walletConnect.errors.noAddressForSession'));
         const hdWallet = wallet.value as HDWallet | TestNetHDWallet;
         const cacheEntry = hdWallet.walletCache.get(sessionAddress);
-        signingKey = cacheEntry?.privateKey;
+        if (!cacheEntry) throw new Error(t('walletConnect.errors.addressNotInHdCache', { address: sessionAddress }));
+        if (!cacheEntry.privateKey) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
+        signingKey = cacheEntry.privateKey;
       }
 
       const signedMessage = wallet.value.sign(message, signingKey);
