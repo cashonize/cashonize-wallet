@@ -5,7 +5,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWindowSize } from '@vueuse/core'
   import { convert, type TransactionHistoryItem } from 'mainnet-js';
-  import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols, type TokenDataNFT } from 'src/interfaces/interfaces';
+  import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import { formatTimestamp, formatRelativeTime, satsToBch } from 'src/utils/utils';
@@ -68,7 +68,7 @@
     }
 
     if (!store.bcmrRegistries[category].nfts?.[commitment]) {
-      await store.fetchTokenMetadata([{category, nfts: [{token: {nft: {category, commitment}}}]} as unknown as TokenDataNFT], true);
+      await store.fetchNftMetadata(category, commitment);
     }
     tokenMetadata.value = store.bcmrRegistries[category].nfts?.[commitment];
     selectedTokenCommitment.value = commitment;

@@ -29,6 +29,7 @@ import {
 } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
+  fetchNftMetadata as fetchNftMetadataFromIndexer,
   tokenListFromUtxos,
   updateTokenListWithAuthUtxos
 } from "./storeUtils"
@@ -573,6 +574,12 @@ export const useStore = defineStore('store', () => {
     }
     return bcmrIndexerResult;
   }
+
+  // Fetch NFT metadata for a specific category and commitment, updating bcmrRegistries
+  async function fetchNftMetadata(category: string, commitment: string) {
+    const registries = await fetchNftMetadataFromIndexer(category, commitment, bcmrIndexer.value, bcmrRegistries.value);
+    bcmrRegistries.value = registries;
+  }
   
 
   function hasPreGenesis(){
@@ -682,6 +689,7 @@ export const useStore = defineStore('store', () => {
     refreshAvailableWallets,
     deleteWallet,
     fetchTokenInfo,
+    fetchNftMetadata,
     hasPreGenesis,
     fetchAuthUtxos,
     fetchTokenMetadata,

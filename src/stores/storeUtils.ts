@@ -82,6 +82,40 @@ export async function fetchTokenMetadata(
   return registries;
 }
 
+// Fetch NFT metadata for a specific category and commitment
+export async function fetchNftMetadata(
+  category: string,
+  commitment: string,
+  bcmrIndexer: string,
+  bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
+) {
+  const nftEndpoint = commitment || "empty";
+  const res = await cachedFetch(`${bcmrIndexer}/tokens/${category}/${nftEndpoint}/`);
+  if (res.status !== 200) return bcmrRegistries ?? {};
+  const jsonResponse = await res.json();
+  const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
+  if (!parseResult.success) {
+    console.error(`BCMR indexer response validation error for URL ${res.url}: ${parseResult.error.message}`);
+    displayAndLogError(t('store.errors.bcmrIndexerValidationError'));
+    return bcmrRegistries ?? {};
+  }
+  const tokenInfoResult = parseResult.data;
+  if ('error' in tokenInfoResult) {
+    console.error(`Indexer error for URL ${res.url}: ${tokenInfoResult.error}`);
+    return bcmrRegistries ?? {};
+  }
+  const tokenId = tokenInfoResult.token?.category;
+  const registries = bcmrRegistries ?? {};
+  if (tokenInfoResult.type_metadata) {
+    if (!registries[tokenId]) registries[tokenId] = tokenInfoResult;
+    if (!registries[tokenId]?.nfts) registries[tokenId].nfts = {};
+    registries[tokenId].nfts[commitment] = tokenInfoResult.type_metadata;
+  } else {
+    if (!registries[tokenId]) registries[tokenId] = tokenInfoResult;
+  }
+  return registries;
+}
+
 export async function updateTokenListWithAuthUtxos(
   tokenList: TokenList, chaingraphUrl: string, tokenUtxos: Utxo[]
 ) {
