@@ -760,7 +760,11 @@
       "invalidTransactionSchema": "Error in validating schema of WalletConnect transaction request",
       "invalidSignMessageSchema": "Error in validating schema of WalletConnect sign message request",
       "errorSendingTransaction": "Error in sending transaction",
-      "transactionFailedToSend": "Transaction failed to send with error: {error}"
+      "transactionFailedToSend": "Transaction failed to send with error: {error}",
+      "noAddressForSession": "No address found for session",
+      "addressNotInHdCache": "Address not found in HD wallet cache: {address}",
+      "noPrivateKeyForAddress": "No private key available for address (watch-only wallet)",
+      "failedToCompressPublicKey": "Failed to compress public key"
     },
     "notifications": {
       "successfullySignedMessage": "Successfully signed message",

@@ -760,7 +760,11 @@
       "invalidTransactionSchema": "Erreur lors de la validation du schéma de la demande de transaction WalletConnect",
       "invalidSignMessageSchema": "Erreur lors de la validation du schéma de la demande de signature de message WalletConnect",
       "errorSendingTransaction": "Erreur lors de l'envoi de la transaction",
-      "transactionFailedToSend": "Échec de l'envoi de la transaction : {error}"
+      "transactionFailedToSend": "Échec de l'envoi de la transaction : {error}",
+      "noAddressForSession": "Aucune adresse trouvée pour la session",
+      "addressNotInHdCache": "Adresse non trouvée dans le cache du portefeuille HD : {address}",
+      "noPrivateKeyForAddress": "Aucune clé privée disponible pour l'adresse (portefeuille en lecture seule)",
+      "failedToCompressPublicKey": "Échec de la compression de la clé publique"
     },
     "notifications": {
       "successfullySignedMessage": "Message signé avec succès",

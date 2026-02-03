@@ -191,7 +191,13 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
       });
   }
 
-    async function approveSession(sessionProposal: WalletKitTypes.SessionProposal, dappTargetNetwork: "mainnet" | "chipnet", selectedAddresses?: string[]){
+    async function approveSession(
+      sessionProposal: WalletKitTypes.SessionProposal,
+      dappTargetNetwork: "mainnet" | "chipnet",
+      selectedAddresses?: string[]
+    ){
+      const newWcAddress = wallet.value.getDepositAddress();
+      const wcAccounts = selectedAddresses?.length ? selectedAddresses.map(addr => `bch:${addr}`) : [`bch:${newWcAddress}`]
       const namespaces = {
         bch: {
           methods: [
@@ -202,9 +208,7 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
           ],
           chains: dappTargetNetwork === "mainnet" ? ["bch:bitcoincash"] : ["bch:bchtest"],
           events: [ "addressesChanged" ],
-          accounts: selectedAddresses?.length
-            ? selectedAddresses.map(addr => `bch:${addr}`)
-            : [`bch:${wallet.value.getDepositAddress()}`],
+          accounts: wcAccounts,
         }
       }
 
@@ -251,13 +255,13 @@ export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWal
 
       if (isHD) {
         const sessionAddress = getSessionAddress(topic);
-        if (!sessionAddress) throw new Error("No address found for session");
+        if (!sessionAddress) throw new Error(t('walletConnect.errors.noAddressForSession'));
         const hdWallet = wallet.value as HDWallet | TestNetHDWallet;
         const cacheEntry = hdWallet.walletCache.get(sessionAddress);
-        if (!cacheEntry) throw new Error("Address not found in HD wallet cache: " + sessionAddress);
-        if (!cacheEntry.privateKey) throw new Error("No private key available for address (watch-only wallet)");
+        if (!cacheEntry) throw new Error(t('walletConnect.errors.addressNotInHdCache', { address: sessionAddress }));
+        if (!cacheEntry.privateKey) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
         const pubkeyCompressed = secp256k1.compressPublicKey(cacheEntry.publicKey);
-        if (typeof pubkeyCompressed === 'string') throw new Error("Failed to compress public key");
+        if (typeof pubkeyCompressed === 'string') throw new Error(t('walletConnect.errors.failedToCompressPublicKey'));
         return {
           privateKey: cacheEntry.privateKey,
           pubkeyCompressed,
