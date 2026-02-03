@@ -148,6 +148,18 @@ export const useStore = defineStore('store', () => {
   async function initializeWallet() {
     let failedToConnectElectrum = false
     if(!_wallet.value) throw new Error("No Wallet set in global store")
+
+    // Verify wallet type metadata matches the actual wallet class
+    // Use 'walletCache' property to detect HD wallets (exists on HDWallet, not on single-address Wallet)
+    const metadataType = settingsStore.getWalletType(activeWalletName.value);
+    const isActuallyHD = 'walletCache' in _wallet.value;
+    if (metadataType === 'hd' && !isActuallyHD) {
+      throw new Error(`Wallet type mismatch: metadata says 'hd' but wallet is single-address. This may indicate corrupted settings.`);
+    }
+    if (metadataType === 'single' && isActuallyHD) {
+      throw new Error(`Wallet type mismatch: metadata says 'single' but wallet is HD. This may indicate corrupted settings.`);
+    }
+
     try {
       // attempt non-blocking connection to electrum server
       // wrapped the logic in an IIFE to avoid error bubbling up
