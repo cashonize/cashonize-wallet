@@ -1,4 +1,4 @@
-import type { Utxo, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest, Wallet, TestNetWallet, HDWallet, TestNetHDWallet } from "mainnet-js"
+import type { Utxo, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, TokenBurnRequest, TokenGenesisRequest, Wallet, TestNetWallet, HDWallet, TestNetHDWallet } from "mainnet-js"
 
 export type WalletType = Wallet | TestNetWallet | HDWallet | TestNetHDWallet;
 
@@ -56,16 +56,7 @@ export type TokeneGenesisRequestParams = ConstructorParameters<typeof TokenGenes
 
 export type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;
 
-// manual type because 'number' type on 'amount' causes issues in strict mode
-export type TokenBurnRequestParams = {
-  category: string;
-  nft?: {
-    capability: NFTCapability;
-    commitment: string;
-  },
-  amount?: bigint;
-  cashaddr?: string;
-};
+export type TokenBurnRequestParams = ConstructorParameters<typeof TokenBurnRequest>[0];
 
 export interface DappMetadata {
   description: string,
