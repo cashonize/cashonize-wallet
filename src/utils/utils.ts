@@ -1,6 +1,6 @@
 import { hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import type { UtxoI } from "mainnet-js"
+import type { Utxo } from "mainnet-js"
 import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
@@ -90,34 +90,34 @@ export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };
 
-export function getTokenUtxos(utxos:  UtxoI[]){
+export function getTokenUtxos(utxos:  Utxo[]){
   return utxos.filter((val) =>val.token);
 }
 
-export function getAllNftTokenBalances(tokenUtxos: UtxoI[]){
+export function getAllNftTokenBalances(tokenUtxos: Utxo[]){
   const result:Record<string, number> = {};
-  const nftUtxos = tokenUtxos.filter((val) => val.token?.commitment !== undefined);
+  const nftUtxos = tokenUtxos.filter((val) => val.token?.nft?.commitment !== undefined);
   for (const utxo of nftUtxos) {
-    if(!utxo.token?.tokenId) continue // should never happen
-    result[utxo.token.tokenId] = (result[utxo.token.tokenId] ?? 0) + 1;
+    if(!utxo.token?.category) continue // should never happen
+    result[utxo.token.category] = (result[utxo.token.category] ?? 0) + 1;
   }
   return result
 }
 
-export function getFungibleTokenBalances(tokenUtxos: UtxoI[]){
+export function getFungibleTokenBalances(tokenUtxos: Utxo[]){
   const result:Record<string, bigint> = {};
   const fungiblesUtxos = tokenUtxos.filter((val) => val.token?.amount);
   for (const utxo of fungiblesUtxos) {
-    if(!utxo.token?.tokenId) continue  // should never happen
-    const tokenId = utxo.token.tokenId;
-    result[tokenId] = (result[tokenId] ?? 0n) + utxo.token.amount;
+    if(!utxo.token?.category) continue  // should never happen
+    const category = utxo.token.category;
+    result[category] = (result[category] ?? 0n) + utxo.token.amount;
   }
   return result
 }
 
-export function getBalanceFromUtxos(utxos: UtxoI[]) {
+export function getBalanceFromUtxos(utxos: Utxo[]) {
   const bchUtxos = utxos.filter((utxo) => utxo.token === undefined);
-  const balanceSats = bchUtxos.reduce((currentBalance: number, utxo: UtxoI) => currentBalance + utxo.satoshis, 0);
+  const balanceSats = bchUtxos.reduce((currentBalance: bigint, utxo: Utxo) => currentBalance + utxo.satoshis, 0n);
   return balanceSats
 }
 
@@ -145,16 +145,18 @@ export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | 
   if(electrumTokenData.amount && BigInt(electrumTokenData.amount)){
     return {
       amount: BigInt(electrumTokenData.amount),
-      tokenId: electrumTokenData.category,
+      category: electrumTokenData.category,
     } as TokenDataFT
   }
   return {
-    tokenId: electrumTokenData.category,
+    category: electrumTokenData.category,
     nfts: [
       {
-        token:{
-          capability: electrumTokenData.nft?.capability,
-          commitment: electrumTokenData.nft?.commitment
+        token: {
+          nft: {
+            capability: electrumTokenData.nft?.capability,
+            commitment: electrumTokenData.nft?.commitment
+          }
         }
       }
     ]

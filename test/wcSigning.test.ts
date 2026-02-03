@@ -15,7 +15,7 @@ const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
 
 const signingInfo = {
   privateKey: throwAwayWallet.privateKey,
-  pubkeyCompressed: throwAwayWallet.publicKeyCompressed
+  pubkeyCompressed: throwAwayWallet.publicKeyCompressed!,
 };
 
 describe('test createSignedWcTransaction', () => {

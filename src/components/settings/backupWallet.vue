@@ -42,10 +42,16 @@
     }
   }
 
+  const walletDerivationPath = computed(() => {
+    const w = store.wallet;
+    if ('derivationPath' in w) return (w as { derivationPath: string }).derivationPath;
+    if ('derivation' in w) return (w as { derivation: string }).derivation;
+    return '';
+  });
   const derivationPathNote = computed(() => {
-    const path = store.wallet.derivationPath;
-    if (path === DERIVATION_PATHS.standard.full) return t('backupWallet.derivationPath.standard');
-    if (path === DERIVATION_PATHS.bitcoindotcom.full) return t('backupWallet.derivationPath.bitcoindotcom');
+    const path = walletDerivationPath.value;
+    if (path === DERIVATION_PATHS.standard.full || path === DERIVATION_PATHS.standard.parent) return t('backupWallet.derivationPath.standard');
+    if (path === DERIVATION_PATHS.bitcoindotcom.full || path === DERIVATION_PATHS.bitcoindotcom.parent) return t('backupWallet.derivationPath.bitcoindotcom');
     return t('backupWallet.derivationPath.custom');
   })
 
@@ -221,8 +227,8 @@
         {{ t('backupWallet.derivationPath.label') }}
         <span class="derivation-note">({{ derivationPathNote }})</span>
       </div>
-      <div class="derivation-container" @click="copyToClipboard(store.wallet.derivationPath)">
-        <span class="derivation-path">{{ store.wallet.derivationPath }}</span>
+      <div class="derivation-container" @click="copyToClipboard(walletDerivationPath)">
+        <span class="derivation-path">{{ walletDerivationPath }}</span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </div>
     </div>

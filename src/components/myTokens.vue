@@ -36,8 +36,8 @@
     const query = searchQuery.value.toLowerCase().trim();
     if (!query) return tokens;
     return tokens.filter(tokenData => {
-      if (tokenData.tokenId.toLowerCase().includes(query)) return true;
-      const metadata = store.bcmrRegistries?.[tokenData.tokenId];
+      if (tokenData.category.toLowerCase().includes(query)) return true;
+      const metadata = store.bcmrRegistries?.[tokenData.category];
       if (!metadata) return false;
       if (metadata.name.toLowerCase().includes(query)) return true;
       if (metadata.token.symbol.toLowerCase().includes(query)) return true;
@@ -99,7 +99,7 @@
     <div v-else-if="searchFilteredTokenList?.length == 0" style="text-align: center;">
       {{ t('tokens.noMatch') }}
     </div>
-    <div v-for="tokenData in searchFilteredTokenList" :key="tokenData.tokenId">
+    <div v-for="tokenData in searchFilteredTokenList" :key="tokenData.category">
       <tokenItemFT v-if="'amount' in tokenData" :tokenData="tokenData"/>
       <tokenItemNFT v-else :tokenData="tokenData"/>
     </div>

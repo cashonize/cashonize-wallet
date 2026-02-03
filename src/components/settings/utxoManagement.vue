@@ -24,11 +24,11 @@
   // note: the bliss airdrop tool uses 2000 sats so from that point, many users would have combined UTXOs
   const utxosWithBchAndTokens = computed(() => {
     if (!store.walletUtxos) return undefined;
-    return store.walletUtxos.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 5_000n);
+    return store.walletUtxos.filter(utxo => utxo.token?.category && utxo.satoshis > 5_000n);
   });
 
   // hasNftUtxos and satsToSplit are only used in template when utxosWithBchAndTokens is defined
-  const hasNftUtxos = computed(() => utxosWithBchAndTokens.value!.some(utxo => utxo.token?.capability));
+  const hasNftUtxos = computed(() => utxosWithBchAndTokens.value!.some(utxo => utxo.token?.nft?.capability));
   const satsToSplit = computed(() => {
     return utxosWithBchAndTokens.value!.reduce((sum:bigint, utxo) => sum + BigInt(utxo.satoshis) - 1000n, 0n)
   })
@@ -47,7 +47,7 @@
         color: 'grey-5',
         timeout: 1000
       })
-      await store.wallet.sendMax(store.wallet.cashaddr)
+      await store.wallet.sendMax(store.wallet.getDepositAddress())
       $q.notify({
         type: 'positive',
         message: t('utxoManagement.notifications.consolidatedSuccess')
@@ -78,8 +78,8 @@
       const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
       const uniqueTokenIdsToSplit: Set<string> = new Set()
       utxosWithBchAndTokens.value.forEach(utxo => {
-        if(utxo.token?.amount && !utxo.token?.capability) {
-          uniqueTokenIdsToSplit.add(utxo.token.tokenId)
+        if(utxo.token?.amount && !utxo.token?.nft?.capability) {
+          uniqueTokenIdsToSplit.add(utxo.token.category)
         }
       })
       $q.notify({
@@ -92,9 +92,9 @@
       for(const uniqueTokenIdToSplit of uniqueTokenIdsToSplit) {
         const { txId } = await store.wallet.send([
           new TokenSendRequest({
-            cashaddr: store.wallet.tokenaddr,
+            cashaddr: store.wallet.getTokenDepositAddress(),
             amount: fungibleTokensResult[uniqueTokenIdToSplit] as bigint,
-            tokenId: uniqueTokenIdToSplit,
+            category: uniqueTokenIdToSplit,
           }),
         ]);
         console.log(`Split BCH from Token UTXO ${uniqueTokenIdToSplit} with txid: ${txId}`);
@@ -201,8 +201,8 @@
                   {{ satsToBch(utxo.satoshis) }}
                   <EmojiItem v-if="utxo.satoshis > 100_000n" emoji="⚠️" :sizePx="20"/>
                 </td>
-                <td class="token-name">{{ store.bcmrRegistries?.[utxo.token!.tokenId]?.name || truncateHash(utxo.token!.tokenId) }}</td>
-                <td>{{ utxo.token?.amount && utxo.token.capability ? 'FT+NFT' : (utxo.token?.amount ? 'FT' : 'NFT') }}</td>
+                <td class="token-name">{{ store.bcmrRegistries?.[utxo.token!.category]?.name || truncateHash(utxo.token!.category) }}</td>
+                <td>{{ utxo.token?.amount && utxo.token.nft?.capability ? 'FT+NFT' : (utxo.token?.amount ? 'FT' : 'NFT') }}</td>
                 <td>
                   <span @click="copyToClipboard(utxo.txid)" style="cursor: pointer;">
                     <span class="txid-full mono" style="color: var(--color-grey);">{{ truncateHash(utxo.txid) }}</span>

@@ -12,12 +12,18 @@ export const mockWalletNamed = vi.fn()
 export const mockWalletReplaceNamed = vi.fn()
 export const mockTestNetWalletReplaceNamed = vi.fn()
 
+// Mock functions for HD wallet classes
+export const mockHDWalletNamed = vi.fn()
+export const mockHDWalletReplaceNamed = vi.fn()
+export const mockTestNetHDWalletReplaceNamed = vi.fn()
+
 // Mock functions for dependencies
 export const mockNamedWalletExistsInDb = vi.fn()
 export const mockSetWallet = vi.fn()
 export const mockRefreshAvailableWallets = vi.fn()
 export const mockSetWalletCreatedAt = vi.fn()
 export const mockSetBackupStatus = vi.fn()
+export const mockSetWalletType = vi.fn()
 
 // Mock localStorage
 export const localStorageMock = {
@@ -42,6 +48,7 @@ vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     setWalletCreatedAt: mockSetWalletCreatedAt,
     setBackupStatus: mockSetBackupStatus,
+    setWalletType: mockSetWalletType,
   }))
 }))
 
@@ -56,6 +63,13 @@ vi.mock('mainnet-js', () => ({
   },
   TestNetWallet: {
     replaceNamed: mockTestNetWalletReplaceNamed,
+  },
+  HDWallet: {
+    named: mockHDWalletNamed,
+    replaceNamed: mockHDWalletReplaceNamed,
+  },
+  TestNetHDWallet: {
+    replaceNamed: mockTestNetHDWalletReplaceNamed,
   },
   Config: {
     DefaultParentDerivationPath: '',

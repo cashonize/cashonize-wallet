@@ -31,14 +31,14 @@
     activeAction.value = 'creatingPreGenesis';
     try{
       store.plannedTokenId = undefined;
-      const walletAddr = store.wallet.cashaddr;
+      const walletAddr = store.wallet.getDepositAddress();
       $q.notify({
         spinner: true,
         message: t('createTokens.notifications.preparingPreGenesis'),
         color: 'grey-5',
         timeout: 1000
       })
-      const { txId } = await store.wallet.send([{ cashaddr: walletAddr, value: 10000, unit: "sat" }]);
+      const { txId } = await store.wallet.send([{ cashaddr: walletAddr, value: 10000n }]);
       $q.notify({
         type: 'positive',
         message: t('createTokens.notifications.transactionSent')
@@ -109,13 +109,13 @@
       })
       const genesisResponse = await store.wallet.tokenGenesis(
         {
-          cashaddr: store.wallet.tokenaddr,
+          cashaddr: store.wallet.getTokenDepositAddress(),
           amount: BigInt(totalSupply),    // fungible token amount
-          value: 1000,                    // Satoshi value
+          value: 1000n,                    // Satoshi value
         } as TokeneGenesisRequestParams,
         opreturnData
       );
-      const tokenId = genesisResponse?.tokenIds?.[0];
+      const tokenId = genesisResponse?.categories?.[0];
       const { txId } = genesisResponse;
       const alertMessage = `Created ${totalSupply} fungible tokens of category ${tokenId}`;
       $q.dialog({
@@ -157,14 +157,14 @@
       })
       const genesisResponse = await store.wallet.tokenGenesis(
         {
-          cashaddr: store.wallet.tokenaddr,
+          cashaddr: store.wallet.getTokenDepositAddress(),
           commitment: "",
           capability: "minting",
-          value: 1000,
+          value: 1000n,
         } as TokeneGenesisRequestParams,
         opreturnData
       );
-      const tokenId = genesisResponse?.tokenIds?.[0];
+      const tokenId = genesisResponse?.categories?.[0];
       const { txId } = genesisResponse;
       const alertMessage = `Created minting NFT with category ${tokenId}`;
       $q.dialog({
@@ -217,7 +217,7 @@
         <br><br>
       </div>
 
-      <div v-if="store.balance?.bch === 0" style="color: red;">{{ t('createTokens.needBch') }}</div>
+      <div v-if="store.balance === 0n" style="color: red;">{{ t('createTokens.needBch') }}</div>
       <div style="margin-bottom: 1em;">
         <div v-if="store.plannedTokenId == ''">
           {{ t('createTokens.noUtxos') }} <br>

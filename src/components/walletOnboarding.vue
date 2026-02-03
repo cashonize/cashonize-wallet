@@ -9,7 +9,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import seedPhraseInput from './general/seedPhraseInput.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, DERIVATION_PATHS } from 'src/utils/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, DERIVATION_PATHS } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import type { Currency } from 'src/interfaces/interfaces'
   const store = useStore()
@@ -26,6 +26,7 @@
   const seedPhrase = ref('');
   const seedPhraseValid = ref(false);
   const selectedDerivationPath = ref<DerivationPathType>("standard");
+  const walletType = ref<'single' | 'hd'>('single');
 
   // Preferences - initialize from settingsStore (which reads from localStorage/system preferences)
   const selectedCurrency = ref<Currency>(settingsStore.currency);
@@ -47,7 +48,8 @@
   }
 
   async function createNewWallet() {
-    const result = await createWallet(walletName.value);
+    const createFn = walletType.value === 'hd' ? createNewHDWallet : createWallet;
+    const result = await createFn(walletName.value);
     if (result.success) {
       step.value = 3;
     } else {
@@ -60,7 +62,8 @@
   }
 
   async function importWallet() {
-    const result = await importWalletUtil({
+    const importFn = walletType.value === 'hd' ? importHDWallet : importWalletUtil;
+    const result = await importFn({
       name: walletName.value,
       seedPhrase: seedPhrase.value,
       seedPhraseValid: seedPhraseValid.value,
@@ -163,6 +166,16 @@
             style="padding: 8px; min-width: 200px;"
           >
         </div>
+        <div style="margin: 15px 0;">
+          <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
+          <select v-model="walletType" style="padding: 8px; min-width: 200px;">
+            <option value="single">{{ t('onboarding.walletType.single') }}</option>
+            <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
+          </select>
+          <div style="margin-top: 5px; font-size: smaller; color: grey;">
+            {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
+          </div>
+        </div>
         <div style="font-size: smaller; color: grey; margin: 10px 0;">
           {{ t('onboarding.create.seedPhraseNote') }}
         </div>
@@ -185,15 +198,28 @@
         <div style="margin: 20px 0;">
           <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
         </div>
+        <div style="margin: 15px 0;">
+          <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
+          <select v-model="walletType" style="padding: 8px; min-width: 200px;">
+            <option value="single">{{ t('onboarding.walletType.single') }}</option>
+            <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
+          </select>
+          <div style="margin-top: 5px;">
+            {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
+          </div>
+          <div v-if="walletType === 'single'" style="margin-top: 5px; font-size: smaller; color: grey;">
+            {{ t('onboarding.walletType.singleAddressNote') }}
+          </div>
+          <div v-if="walletType === 'hd'" style="margin-top: 5px; font-size: smaller; color: grey;">
+            {{ t('onboarding.walletType.hdNote') }}
+          </div>
+        </div>
         <div style="margin-bottom: 20px;">
           <span>{{ t('onboarding.derivationPath.label') }} </span>
           <select v-model="selectedDerivationPath">
             <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('onboarding.derivationPath.standard') }})</option>
             <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('onboarding.derivationPath.bitcoindotcom') }})</option>
           </select>
-          <div style="margin-top: 5px; font-size: smaller; color: grey;">
-            {{ t('onboarding.derivationPath.note') }}
-          </div>
         </div>
         <input @click="importWallet()" class="button primary" type="button" :value="t('onboarding.import.submitButton')" style="margin-bottom: 15px;">
       </div>

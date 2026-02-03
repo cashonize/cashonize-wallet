@@ -92,11 +92,19 @@
       "label": "Nombre de billetera:",
       "placeholder": "Ingresa el nombre de la billetera"
     },
+    "walletType": {
+      "label": "Tipo de billetera:",
+      "hd": "Billetera HD (múltiples direcciones)",
+      "single": "Dirección única",
+      "hdDescription": "Usa una nueva dirección para cada transacción. Mayor privacidad, pero requiere seleccionar una dirección al conectarse a dApps.",
+      "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado.",
+      "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
+      "hdNote": "Nota: CashConnect actualmente no es compatible con billeteras HD."
+    },
     "derivationPath": {
       "label": "Ruta de derivación:",
       "standard": "estándar",
-      "bitcoindotcom": "Billetera Bitcoin.com",
-      "note": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
+      "bitcoindotcom": "Billetera Bitcoin.com"
     },
     "preferences": {
       "title": "Configura tus preferencias",
@@ -339,7 +347,8 @@
     "connectButton": "Conectar nueva dApp",
     "errors": {
       "invalidUri": "URI de WalletConnect o CashConnect inválida",
-      "notValidUri": "No es una URI válida de WalletConnect o CashConnect"
+      "notValidUri": "No es una URI válida de WalletConnect o CashConnect",
+      "cashConnectNotSupported": "CashConnect actualmente no es compatible con billeteras HD"
     }
   },
   "history": {
@@ -457,9 +466,10 @@
     "derivationPath": {
       "label": "Ruta de derivación:",
       "standard": "estándar",
-      "bitcoindotcom": "Billetera Bitcoin.com",
-      "note": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
+      "bitcoindotcom": "Billetera Bitcoin.com"
     },
+    "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
+    "hdNote": "Nota: CashConnect actualmente no es compatible con billeteras HD.",
     "importButton": "Importar"
   },
   "walletsOverview": {
@@ -580,6 +590,21 @@
       "splitting": "Separando BCH de UTXOs de tokens...",
       "splitSuccess": "¡BCH separado del UTXO de token exitosamente!",
       "somethingWentWrong": "algo salió mal"
+    }
+  },
+  "hdAddresses": {
+    "title": "Direcciones de billetera HD",
+    "receivingAddresses": "Direcciones de recepción",
+    "changeAddresses": "Direcciones de cambio",
+    "usedAddresses": "Usadas",
+    "unusedAddresses": "Sin usar",
+    "noAddresses": "Aún no se han escaneado direcciones",
+    "hideZeroBalances": "Ocultar saldos en cero",
+    "columns": {
+      "index": "Índice",
+      "address": "Dirección",
+      "balance": "Saldo",
+      "txs": "Txs"
     }
   },
   "sweepPrivateKey": {
@@ -705,6 +730,10 @@
       "switchAndApprove": "Cambiar a {network} y aprobar",
       "rejectButton": "Rechazar"
     },
+    "addressSelect": {
+      "title": "Seleccionar dirección para conectar",
+      "hint": "Elige qué dirección compartir con esta dApp"
+    },
     "sessionSettings": {
       "title": "Administrar sesión",
       "enableAutoApprovals": "Habilitar aprobaciones automáticas",
@@ -731,7 +760,11 @@
       "invalidTransactionSchema": "Error al validar el esquema de la solicitud de transacción de WalletConnect",
       "invalidSignMessageSchema": "Error al validar el esquema de la solicitud de firma de mensaje de WalletConnect",
       "errorSendingTransaction": "Error al enviar la transacción",
-      "transactionFailedToSend": "Error al enviar la transacción: {error}"
+      "transactionFailedToSend": "Error al enviar la transacción: {error}",
+      "noAddressForSession": "No se encontró dirección para la sesión",
+      "addressNotInHdCache": "Dirección no encontrada en la caché de la billetera HD: {address}",
+      "noPrivateKeyForAddress": "No hay clave privada disponible para la dirección (billetera de solo lectura)",
+      "failedToCompressPublicKey": "Error al comprimir la clave pública"
     },
     "notifications": {
       "successfullySignedMessage": "Mensaje firmado exitosamente",
@@ -756,6 +789,7 @@
       "localization": "Localización",
       "advancedSettings": "Configuración avanzada",
       "developerSettings": "Configuración de desarrollador",
+      "hdAddresses": "Direcciones HD",
       "utxoManagement": "Gestión de UTXO",
       "sweepPrivateKey": "Barrer clave privada",
       "tokenCreationPage": "Página de creación de tokens"
