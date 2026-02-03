@@ -85,7 +85,7 @@ img {
   cursor: pointer;
 }
 .depositAddr,
-.tokenId {
+.category {
   overflow-wrap: anywhere;
   color: var(--color-grey);
 }
