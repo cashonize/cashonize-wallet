@@ -1,4 +1,4 @@
-import type { Utxo, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, TokenBurnRequest, TokenGenesisRequest, Wallet, TestNetWallet, HDWallet, TestNetHDWallet } from "mainnet-js"
+import type { Utxo, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest, Wallet, TestNetWallet, HDWallet, TestNetHDWallet } from "mainnet-js"
 
 export type WalletType = Wallet | TestNetWallet | HDWallet | TestNetHDWallet;
 
@@ -56,7 +56,17 @@ export type TokeneGenesisRequestParams = ConstructorParameters<typeof TokenGenes
 
 export type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;
 
-export type TokenBurnRequestParams = ConstructorParameters<typeof TokenBurnRequest>[0];
+// Manual type because mainnet-js TokenBurnRequest constructor accepts 'number | bigint'
+// but class property is 'bigint', wich causes type issues
+export type TokenBurnRequestParams = {
+  category: string;
+  nft?: {
+    capability: NFTCapability;
+    commitment: string;
+  },
+  amount?: bigint;
+  cashaddr?: string;
+};
 
 export interface DappMetadata {
   description: string,
