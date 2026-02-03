@@ -19,7 +19,8 @@ import {
   CurrencySymbols,
   type BcmrTokenMetadata,
   type TokenList,
-  type WalletHistoryReturnType
+  type WalletHistoryReturnType,
+  type WalletType
 } from "../interfaces/interfaces"
 import {
   getBalanceFromUtxos,
@@ -64,7 +65,6 @@ export const useStore = defineStore('store', () => {
   // Wallet State
   // _wallet is the actual reactive wallet object and is null until the wallet is set
   // so _wallet is used for mutating properties of the wallet, like changing the provider
-  type WalletType = Wallet | TestNetWallet | HDWallet | TestNetHDWallet;
   const _wallet = ref(null as (WalletType | null));
   const balance = ref(undefined as (bigint | undefined));
   const maxAmountToSend = ref(undefined as (bigint | undefined));

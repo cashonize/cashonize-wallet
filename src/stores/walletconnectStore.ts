@@ -3,7 +3,8 @@ import { ref, type Ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { convert, NetworkType, type TestNetWallet, type Wallet, type HDWallet, type TestNetHDWallet } from "mainnet-js";
+import { convert, NetworkType, type Wallet, type HDWallet, type TestNetHDWallet } from "mainnet-js";
+import type { WalletType } from "src/interfaces/interfaces"
 import {
   hexToBin,
   binToHex,
@@ -40,7 +41,7 @@ type PendingRequest = {
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that WC cannot exist without a valid wallet.
 // Passing in a Ref so it remains reactive (like when changing wallets)
-export const useWalletconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWallet | TestNetHDWallet>) => {
+export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
   const store = defineStore("walletconnectStore", () => {
     const activeSessions = ref(undefined as undefined | Record<string, SessionTypes.Struct>);
     const web3wallet = ref(undefined as undefined | IWalletKit);

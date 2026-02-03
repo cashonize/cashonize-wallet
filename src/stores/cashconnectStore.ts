@@ -8,7 +8,8 @@ import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransac
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import MainnetJs and CashConnect
-import { convert, type Wallet, type TestNetWallet, type HDWallet, type TestNetHDWallet } from "mainnet-js";
+import { convert, type Wallet } from "mainnet-js";
+import type { WalletType } from "src/interfaces/interfaces"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 import {
@@ -36,7 +37,7 @@ const settingsStore = useSettingsStore()
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that CC cannot exist without a valid wallet.
 // Passing in a Ref so it remains reactive (like when changing wallets)
-export const useCashconnectStore = (wallet: Ref<Wallet | TestNetWallet | HDWallet | TestNetHDWallet>) => {
+export const useCashconnectStore = (wallet: Ref<WalletType>) => {
   const store = defineStore("cashconnectStore", () => {
     
     // Store a state variable to make sure we don't call "start" more than once.

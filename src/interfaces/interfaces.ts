@@ -1,4 +1,6 @@
-import type { Utxo, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest, Wallet } from "mainnet-js"
+import type { Utxo, ElectrumRawTransaction, TokenSendRequest, TokenMintRequest, NFTCapability, TokenGenesisRequest, Wallet, TestNetWallet, HDWallet, TestNetHDWallet } from "mainnet-js"
+
+export type WalletType = Wallet | TestNetWallet | HDWallet | TestNetHDWallet;
 
 export const CurrencySymbols = {
   usd: "$",
