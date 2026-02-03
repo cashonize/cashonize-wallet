@@ -6,7 +6,7 @@
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
-  import type { TokenDataNFT, BcmrTokenMetadata, TokenSendRequestParams, TokenMintRequestParams, TokenBurnRequestParams } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
@@ -244,15 +244,15 @@
 
       const outputArray:TokenSendRequest[] = [];
       selectedNftsList.forEach(nftItem => {
-        const nftCommitment = nftItem?.token?.nft?.commitment;
-        const nftCapability = nftItem?.token?.nft?.capability;
         outputArray.push(
           new TokenSendRequest({
           cashaddr: destinationAddr.value,
           category: category,
-          commitment: nftCommitment,
-          capability: nftCapability,
-        } as TokenSendRequestParams))
+          nft: {
+            commitment: nftItem.token!.nft!.commitment,
+            capability: nftItem.token!.nft!.capability,
+          },
+        }))
       })
       $q.notify({
         spinner: true,
@@ -338,10 +338,10 @@
           cashaddr: destinationAddr.value,
           category: category,
           nft: {
-            commitment: nftInfo.nft?.commitment,
-            capability: nftInfo.nft?.capability,
+            commitment: nftInfo.nft!.commitment,
+            capability: nftInfo.nft!.capability,
           },
-        } as TokenSendRequestParams),
+        }),
       ]);
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.sentNft', { category: displayId, address: destinationAddr.value });
@@ -415,7 +415,7 @@
             capability: "none",
           },
           value: 1000n,
-        } as TokenMintRequestParams)
+        })
         arraySendrequests.push(mintRequest);
       }
       $q.notify({
@@ -490,10 +490,10 @@
         {
           category: category,
           nft: {
-            capability: nftInfo?.nft?.capability,
-            commitment: nftInfo?.nft?.commitment,
+            capability: nftInfo.nft!.capability,
+            commitment: nftInfo.nft!.commitment,
           }
-        } as TokenBurnRequestParams,
+        },
         "burn", // optional OP_RETURN message
       );
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
@@ -527,18 +527,18 @@
     const authNft = tokenData.value.authUtxo?.token;
     activeAction.value = 'transferAuth';
     try {
-      const authTransfer = {
+      const authTransfer: SendRequest = {
         cashaddr: destinationAddr.value,
         value: 1000n,
-      } as SendRequest;
+      };
       const changeOutputNft = new TokenSendRequest({
         cashaddr: store.wallet.getTokenDepositAddress(),
         category: tokenData.value.category,
         nft: {
-          commitment: authNft?.nft?.commitment,
-          capability: authNft?.nft?.capability
+          commitment: authNft!.nft!.commitment,
+          capability: authNft!.nft!.capability
         },
-      } as TokenSendRequestParams);
+      });
       $q.notify({
         spinner: true,
         message: t('common.status.sending'),

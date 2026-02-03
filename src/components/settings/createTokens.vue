@@ -4,8 +4,7 @@
   import { copyToClipboard } from 'src/utils/utils';
   import alertDialog from 'src/components/general/alertDialog.vue'
   import EmojiItem from '../general/emojiItem.vue';
-  import { type TokeneGenesisRequestParams } from 'src/interfaces/interfaces';
-  import { caughtErrorToString } from 'src/utils/errorHandling';
+    import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -112,7 +111,7 @@
           cashaddr: store.wallet.getTokenDepositAddress(),
           amount: BigInt(totalSupply),    // fungible token amount
           value: 1000n,                    // Satoshi value
-        } as TokeneGenesisRequestParams,
+        },
         opreturnData
       );
       const tokenId = genesisResponse?.categories?.[0];
@@ -158,10 +157,12 @@
       const genesisResponse = await store.wallet.tokenGenesis(
         {
           cashaddr: store.wallet.getTokenDepositAddress(),
-          commitment: "",
-          capability: "minting",
+          nft: {
+            commitment: "",
+            capability: "minting",
+          },
           value: 1000n,
-        } as TokeneGenesisRequestParams,
+        },
         opreturnData
       );
       const tokenId = genesisResponse?.categories?.[0];

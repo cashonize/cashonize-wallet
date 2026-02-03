@@ -6,7 +6,7 @@
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
-  import type { BcmrTokenMetadata, TokenBurnRequestParams, TokenSendRequestParams } from "src/interfaces/interfaces"
+  import type { BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
@@ -181,9 +181,11 @@
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
           category: nftInfo.category,
-          commitment: nftInfo.nft?.commitment,
-          capability: nftInfo.nft?.capability,
-        } as TokenSendRequestParams),
+          nft: {
+            commitment: nftInfo.nft!.commitment,
+            capability: nftInfo.nft!.capability,
+          },
+        }),
       ]);
       const displayId = `${nftInfo.category.slice(0, 20)}...${nftInfo.category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.sentNft', { category: displayId, address: destinationAddr.value });
@@ -257,7 +259,7 @@
             capability: "none",
           },
           value: 1000n,
-        } as TokenSendRequestParams)
+        })
         arraySendrequests.push(mintRequest);
       }
       $q.notify({
@@ -332,10 +334,10 @@
         {
           category: category,
           nft: {
-            capability: nftInfo?.nft?.capability,
-            commitment: nftInfo?.nft?.commitment,
+            capability: nftInfo.nft!.capability,
+            commitment: nftInfo.nft!.commitment,
           },
-        } as TokenBurnRequestParams,
+        },
         "burn", // optional OP_RETURN message
       );
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
