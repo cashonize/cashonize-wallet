@@ -67,11 +67,13 @@
     return (store.network == "mainnet" ? "" : "t") + CurrencyShortNames[settingsStore.currency];
   });
   const balanceInBchUnit = computed(() => {
-    const sats = Number(store.balance ?? 0n);
+    if (store.balance === undefined) return undefined;
+    const sats = Number(store.balance);
     return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
   const maxAmountToSendInBchUnit = computed(() => {
-    const sats = Number(store.maxAmountToSend ?? 0n);
+    if (store.maxAmountToSend === undefined) return undefined;
+    const sats = Number(store.maxAmountToSend);
     return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
 
@@ -197,7 +199,8 @@
         if (!confirmed) return
       }
 
-      const sendBchOutput = {cashaddr: destinationAddr.value, value: BigInt(await convert(bchSendAmount.value, settingsStore.bchUnit, "sat"))} ;
+      const amountSats = BigInt(await convert(bchSendAmount.value, settingsStore.bchUnit, "sat"))
+      const sendBchOutput = { cashaddr: destinationAddr.value, value:amountSats } ;
       $q.notify({
         spinner: true,
         message: t('wallet.sendingTransaction'),
@@ -277,21 +280,20 @@
     <span>
       {{ t('wallet.balance', { currency: bchDisplayNetwork }) }}
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance !== undefined
-          ? numberFormatter.format(balanceInBchUnit ?? 0) + displayUnitLong : "" }}
+        {{ store.balance !== undefined && balanceInBchUnit ? numberFormatter.format(balanceInBchUnit) + displayUnitLong : "" }}
       </span>
     </span>
     <div style="word-break: break-all;">
       {{ t('wallet.address', { network: bchDisplayNetwork }) }}
       <span @click="() => copyToClipboard(store.wallet.getDepositAddress())" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet.getDepositAddress() ?? "" }} </span>
+        <span class="depositAddr">{{ store.wallet.getDepositAddress() }} </span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
     <div style="word-break: break-all;">
       {{ t('wallet.tokenAddress') }}
       <span @click="() => copyToClipboard(store.wallet.getTokenDepositAddress())" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet.getTokenDepositAddress() ?? "" }}</span>
+        <span class="depositAddr">{{ store.wallet.getTokenDepositAddress() }}</span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
