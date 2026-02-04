@@ -213,11 +213,12 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     localStorage.setItem('activeWalletName', trimmedName);
     store.setWallet(mainnetWallet);
 
-    await store.refreshAvailableWallets();
-    void store.initializeWallet();
-
+    // Set wallet type BEFORE initializeWallet (which validates type matches)
     settingsStore.setWalletType(trimmedName, 'hd');
     settingsStore.setWalletCreatedAt(trimmedName);
+
+    await store.refreshAvailableWallets();
+    void store.initializeWallet();
 
     return { success: true, walletName: trimmedName };
   } catch (error) {
@@ -274,12 +275,13 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
     localStorage.setItem('activeWalletName', trimmedName);
     store.setWallet(mainnetWallet);
 
-    await store.refreshAvailableWallets();
-    void store.initializeWallet();
-
+    // Set wallet type BEFORE initializeWallet (which validates type matches)
     settingsStore.setWalletType(trimmedName, 'hd');
     settingsStore.setBackupStatus(trimmedName, 'imported');
     settingsStore.setWalletCreatedAt(trimmedName);
+
+    await store.refreshAvailableWallets();
+    void store.initializeWallet();
 
     return { success: true, walletName: trimmedName };
   } catch (error) {

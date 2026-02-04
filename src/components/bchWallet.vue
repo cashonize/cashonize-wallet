@@ -280,7 +280,7 @@
     <span>
       {{ t('wallet.balance', { currency: bchDisplayNetwork }) }}
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ store.balance !== undefined && balanceInBchUnit ? numberFormatter.format(balanceInBchUnit) + displayUnitLong : "" }}
+        {{ balanceInBchUnit !== undefined ? numberFormatter.format(balanceInBchUnit) + displayUnitLong : "" }}
       </span>
     </span>
     <div style="word-break: break-all;">
