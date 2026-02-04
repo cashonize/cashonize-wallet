@@ -175,6 +175,9 @@
           <div style="margin-top: 5px;">
             {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
           </div>
+          <div v-if="walletType === 'hd'" style="margin-top: 5px; font-size: smaller; color: grey;">
+            {{ t('onboarding.walletType.hdNote') }}
+          </div>
         </div>
         <div style="font-size: smaller; color: grey; margin: 10px 0;">
           {{ t('onboarding.create.seedPhraseNote') }}
