@@ -164,7 +164,7 @@
       "hiddenOnly": "Masqués uniquement"
     },
     "editVisibility": "Modifier la visibilité",
-    "searchPlaceholder": "Rechercher des tokens...",
+    "searchPlaceholder": "Rechercher...",
     "searchMatches": "{count} résultats"
   },
   "tokenItem": {
