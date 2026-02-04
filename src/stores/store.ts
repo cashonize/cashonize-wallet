@@ -41,7 +41,7 @@ import { useCashconnectStore } from "./cashconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/dbUtils"
+import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getWalletTypeFromDb, type WalletInfo } from "src/utils/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -344,7 +344,15 @@ export const useStore = defineStore('store', () => {
     walletHistory.value = undefined;
   }
 
-  function getWalletClass(walletName: string, network: string) {
+  async function getWalletClass(walletName: string, network: string) {
+    // Ensure wallet type metadata exists, detect from IndexedDB if missing
+    const metadata = settingsStore.getWalletMetadata(walletName);
+    if (!metadata?.walletType) {
+      const dbName = network === 'mainnet' ? 'bitcoincash' : 'bchtest';
+      const detectedType = await getWalletTypeFromDb(walletName, dbName);
+      settingsStore.setWalletType(walletName, detectedType);
+    }
+
     const isHD = settingsStore.getWalletType(walletName) === 'hd';
     if (network === 'mainnet') return isHD ? HDWallet : Wallet;
     return isHD ? TestNetHDWallet : TestNetWallet;
@@ -357,7 +365,7 @@ export const useStore = defineStore('store', () => {
     resetWalletState()
     walletInitialized.value = false;
     // set new wallet
-    const walletClass = getWalletClass(activeWalletName.value, newNetwork);
+    const walletClass = await getWalletClass(activeWalletName.value, newNetwork);
     const newWallet = await walletClass.named(activeWalletName.value);
     setWallet(newWallet);
     if (awaitWalletInitialization) {
@@ -397,7 +405,7 @@ export const useStore = defineStore('store', () => {
     }
 
     // Load wallet on current network
-    const walletClass = getWalletClass(walletName, currentNetwork);
+    const walletClass = await getWalletClass(walletName, currentNetwork);
     const newWallet = await walletClass.named(walletName);
     // Only update state after successful wallet load
     activeWalletName.value = walletName;

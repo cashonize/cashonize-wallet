@@ -94,9 +94,12 @@ vi.mock('@mainnet-cash/indexeddb-storage', () => ({
 export const mockGetAllWalletsWithNetworkInfo = vi.fn()
 export const mockDeleteWalletFromDb = vi.fn()
 
+export const mockGetWalletTypeFromDb = vi.fn().mockResolvedValue('single')
+
 vi.mock('src/utils/dbUtils', () => ({
   getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
   deleteWalletFromDb: mockDeleteWalletFromDb,
+  getWalletTypeFromDb: mockGetWalletTypeFromDb,
 }))
 
 // Mock settingsStore
@@ -108,6 +111,8 @@ vi.mock('src/stores/settingsStore', () => ({
     explorerChipnet: 'https://chipnet.chaingraph.cash',
     ipfsGateway: 'https://ipfs.io/ipfs/',
     getWalletType: vi.fn().mockReturnValue('single'),
+    getWalletMetadata: vi.fn().mockReturnValue({ walletType: 'single' }),
+    setWalletType: vi.fn(),
   })),
 }))
 

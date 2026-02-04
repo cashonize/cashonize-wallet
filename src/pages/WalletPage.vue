@@ -90,7 +90,7 @@
   if(walletExists){
     // initialise wallet on configured network
     const readNetwork = localStorage.getItem('network') ?? 'mainnet';
-    const walletClass = store.getWalletClass(walletToLoad, readNetwork);
+    const walletClass = await store.getWalletClass(walletToLoad, readNetwork);
     const initWallet = await walletClass.named(walletToLoad);
     store.setWallet(initWallet);
     store.changeView(1);
