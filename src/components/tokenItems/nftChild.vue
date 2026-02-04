@@ -2,11 +2,11 @@
   import dialogNftIcon from './dialogNftIcon.vue'
   import { ref, onMounted, toRefs, computed, watch, nextTick } from 'vue';
   import { TokenSendRequest, TokenMintRequest, type TokenI } from "mainnet-js"
-  import { type UtxoI } from "mainnet-js"
+  import { type Utxo } from "mainnet-js"
   import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
-  import type { BcmrTokenMetadata, TokenBurnRequestParams, TokenSendRequestParams } from "src/interfaces/interfaces"
+  import type { BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
@@ -20,7 +20,7 @@
   const { t } = useI18n()
 
   const props = defineProps<{
-    nftData: UtxoI,
+    nftData: Utxo,
     tokenMetaData: BcmrTokenMetadata | undefined,
     id: string,
     isSelected?: boolean
@@ -47,7 +47,7 @@
   const activeAction = ref<'sending' | 'minting' | 'burning' | null>(null);
 
   const nftMetadata = computed(() => {
-    const commitment = nftData.value?.token?.commitment;
+    const commitment = nftData.value?.token?.nft?.commitment;
     return tokenMetaData?.value?.nfts?.[commitment ?? ""];
   })
   const httpsUrlTokenIcon = computed(() => {
@@ -73,16 +73,16 @@
   })
 
   onMounted(() => {
-    const tokenId = nftData.value.token!.tokenId;
-    appendBlockieIcon(tokenId, `#${id.value}`);
+    const category = nftData.value.token!.category;
+    appendBlockieIcon(category, `#${id.value}`);
   })
 
   watch(imageLoadFailed, async (failedToLoad) => {
     if(failedToLoad) {
       // waits for next tick, so the DOM updates and renders the genericTokenIcon div
       await nextTick();
-      const tokenId = nftData.value.token!.tokenId;
-      appendBlockieIcon(tokenId, `#${id.value}`);
+      const category = nftData.value.token!.category;
+      appendBlockieIcon(category, `#${id.value}`);
     }
   })
 
@@ -97,7 +97,7 @@
     // Parse BIP21 URIs with query params
     try {
       const parsed = parseBip21Uri(destinationAddr.value);
-      const tokenId = (nftData.value.token as TokenI)?.tokenId;
+      const category = (nftData.value.token as TokenI)?.category;
 
       const validationError = getBip21ValidationError(parsed);
       if (validationError) {
@@ -106,7 +106,7 @@
       }
 
       // Check if c= is for a different token
-      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenId){
+      if(parsed.otherParams?.c && parsed.otherParams.c !== category){
         $q.notify({ message: t('tokenItem.errors.differentTokenRequest'), icon: 'warning', color: "grey-7" });
         return;
       }
@@ -148,12 +148,12 @@
       if(typeof decodedAddress == 'string') throw(t('tokenItem.errors.invalidAddress'))
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw(t('tokenItem.errors.notTokenAddress'));
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
         const nftInfo = nftData.value.token as TokenI;
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? nftInfo.tokenId.slice(0, 8)
+        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? nftInfo.category.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
@@ -180,13 +180,15 @@
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
-          tokenId: nftInfo.tokenId,
-          commitment: nftInfo.commitment,
-          capability: nftInfo.capability,
-        } as TokenSendRequestParams),
+          category: nftInfo.category,
+          nft: {
+            commitment: nftInfo.nft!.commitment,
+            capability: nftInfo.nft!.capability,
+          },
+        }),
       ]);
-      const displayId = `${nftInfo.tokenId.slice(0, 20)}...${nftInfo.tokenId.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.sentNft', { tokenId: displayId, address: destinationAddr.value });
+      const displayId = `${nftInfo.category.slice(0, 20)}...${nftInfo.category.slice(-8)}`;
+      const alertMessage = t('tokenItem.alerts.sentNft', { category: displayId, address: destinationAddr.value });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -216,8 +218,8 @@
   async function mintNfts() {
     if (activeAction.value) return;
     const nftInfo = nftData.value.token as TokenI;
-    const tokenId = nftInfo.tokenId;
-    const tokenAddr = store.wallet.tokenaddr;
+    const category = nftInfo.category;
+    const tokenAddr = store.wallet.getTokenDepositAddress();
     const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     activeAction.value = 'minting';
@@ -234,7 +236,7 @@
       const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
       if(!validCommitment) throw(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
 
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee')); 
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee')); 
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
@@ -252,10 +254,12 @@
         }
         const mintRequest = new TokenMintRequest({
           cashaddr: recipientAddr,
-          commitment: nftCommitment,
-          capability: "none",
-          value: 1000,
-        } as TokenSendRequestParams)
+          nft: {
+            commitment: nftCommitment,
+            capability: "none",
+          },
+          value: 1000n,
+        })
         arraySendrequests.push(mintRequest);
       }
       $q.notify({
@@ -264,12 +268,12 @@
         color: 'grey-5',
         timeout: 1000
       })
-      const { txId } = await store.wallet.tokenMint(tokenId, arraySendrequests);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
+      const { txId } = await store.wallet.tokenMint(category, arraySendrequests);
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
-      let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
+      let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, category: displayId });
       if (mintAmount == 1) {
-        alertMessage = t('tokenItem.alerts.mintedNft', { tokenId: displayId, commitmentText });
+        alertMessage = t('tokenItem.alerts.mintedNft', { category: displayId, commitmentText });
       }
       $q.dialog({
         component: alertDialog,
@@ -302,11 +306,11 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
 
       const nftInfo = nftData.value.token as TokenI;
-      const tokenId = nftInfo.tokenId;
-      const nftTypeString = nftInfo?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
+      const category = nftInfo.category;
+      const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
       const confirmed = await new Promise<boolean>((resolve) => {
         $q.dialog({
           title: t('tokenItem.dialogs.burnNft.title'),
@@ -328,14 +332,16 @@
       })
       const { txId } = await store.wallet.tokenBurn(
         {
-          tokenId: tokenId,
-          capability: nftInfo?.capability,
-          commitment: nftInfo?.commitment,
-        } as TokenBurnRequestParams,
+          category: category,
+          nft: {
+            capability: nftInfo.nft!.capability,
+            commitment: nftInfo.nft!.commitment,
+          },
+        },
         "burn", // optional OP_RETURN message
       );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, tokenId: displayId });
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
+      const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, category: displayId });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -395,7 +401,7 @@
         <div class="tokenBaseInfo">
           <div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
-            <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ nftData?.token?.commitment ? nftData?.token?.commitment : t('tokenItem.none')  }}</div>
+            <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ nftData?.token?.nft?.commitment ? nftData?.token?.nft?.commitment : t('tokenItem.none')  }}</div>
           </div>
         </div>
       </div>
@@ -407,7 +413,7 @@
           <span v-if="nftMetadata" @click="displayNftInfo = !displayNftInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
           </span>
-          <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.capability == 'minting' && settingsStore.mintNfts">
+          <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.nft?.capability == 'minting' && settingsStore.mintNfts">
             <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> {{ t('tokenItem.actions.mintNfts') }}
           </span>
           <span @click="displayBurnNft = !displayBurnNft" v-if="settingsStore.tokenBurn" style="white-space: nowrap;">
@@ -464,7 +470,7 @@
           </span>
         </div>
         <div v-if="displayBurnNft" class="tokenAction">
-          <span v-if="nftData?.token?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
+          <span v-if="nftData?.token?.nft?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
           <span v-else>{{ t('tokenItem.burn.burnNftDescription') }}</span>
           <br>
           <input @click="burnNft()" type="button" :value="activeAction === 'burning' ? t('tokenItem.burn.burningButton') : t('tokenItem.burn.burnNftButton')" class="button error" :disabled="activeAction !== null">

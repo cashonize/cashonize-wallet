@@ -7,7 +7,7 @@
   import { computed, ref } from 'vue'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
+  import { Connection, type ElectrumNetworkProvider, Config } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
@@ -80,7 +80,7 @@
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
 
   const utxosWithBchAndTokens = computed(() => {
-    return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
+    return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n);
   });
 
   // Used to disable network options the current wallet doesn't exist on
@@ -131,7 +131,7 @@
     localStorage.setItem("currency", selectedCurrency.value);
     store.changeView(1);
     if (store.wallet) {
-      store.balance = await store.wallet.getBalance() as BalanceResponse;
+      store.balance = await store.wallet.getBalance();
     }
   }
   function changeUnit(){
@@ -383,13 +383,13 @@
         <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
           <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
-          <option value="https://bchexplorer.info/tx">bchexplorer by Paytaca</option>
+          <option value="https://bchexplorer.info/tx">bchexplorer.info by Paytaca</option>
           <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
           <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
           <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>
           <option value="https://bch.loping.net/tx">bch.loping.net (no Token Metadata)</option>
+          <option value="https://bchexplorer.cash/tx">bchexplorer.cash by Melroy (no Token Metadata)</option>
           <option value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
-          <option value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
         </select>
         <select v-if="store.network == 'chipnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
@@ -611,6 +611,10 @@
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 4">
         ↳ {{ t('settings.menu.developerSettings') }}
+      </div>
+
+      <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd'" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(10)">
+        → {{ t('settings.menu.hdAddresses') }}
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">

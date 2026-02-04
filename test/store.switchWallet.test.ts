@@ -99,7 +99,7 @@ describe('switchWallet', () => {
 
       // Verify wallet was set by checking its properties
       expect(store._wallet?.network).toBe('mainnet')
-      expect(store._wallet?.cashaddr).toBe(mockMainnetWallet.cashaddr)
+      expect(store._wallet?.getDepositAddress()).toBe(mockMainnetWallet.cashaddr)
     })
 
     it('sets _wallet to chipnet wallet instance', async () => {
@@ -112,7 +112,7 @@ describe('switchWallet', () => {
 
       // Verify chipnet wallet was set by checking its properties
       expect(store._wallet?.network).toBe('chipnet')
-      expect(store._wallet?.cashaddr).toBe(mockChipnetWallet.cashaddr)
+      expect(store._wallet?.getDepositAddress()).toBe(mockChipnetWallet.cashaddr)
     })
   })
 

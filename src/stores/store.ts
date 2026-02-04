@@ -3,14 +3,13 @@ import { ref, reactive, computed, type Ref } from 'vue'
 import {
   Wallet,
   TestNetWallet,
+  HDWallet,
+  TestNetHDWallet,
   BaseWallet,
   Config,
   Connection,
-  binToHex,
   convert,
-  balanceResponseFromSatoshi,
-  type BalanceResponse,
-  type UtxoI,
+  type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
   NetworkType
@@ -20,7 +19,8 @@ import {
   CurrencySymbols,
   type BcmrTokenMetadata,
   type TokenList,
-  type WalletHistoryReturnType
+  type WalletHistoryReturnType,
+  type WalletType
 } from "../interfaces/interfaces"
 import {
   getBalanceFromUtxos,
@@ -29,6 +29,7 @@ import {
 } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
+  fetchNftMetadata as fetchNftMetadataFromIndexer,
   tokenListFromUtxos,
   updateTokenListWithAuthUtxos
 } from "./storeUtils"
@@ -40,7 +41,7 @@ import { useCashconnectStore } from "./cashconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/dbUtils"
+import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getWalletTypeFromDb, type WalletInfo } from "src/utils/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -66,10 +67,10 @@ export const useStore = defineStore('store', () => {
   // Wallet State
   // _wallet is the actual reactive wallet object and is null until the wallet is set
   // so _wallet is used for mutating properties of the wallet, like changing the provider
-  const _wallet = ref(null as (Wallet | TestNetWallet | null));
-  const balance = ref(undefined as (BalanceResponse | undefined));
-  const maxAmountToSend = ref(undefined as (BalanceResponse | undefined));
-  const walletUtxos = ref(undefined as (UtxoI[] | undefined));
+  const _wallet = ref(null as (WalletType | null));
+  const balance = ref(undefined as (bigint | undefined));
+  const maxAmountToSend = ref(undefined as (bigint | undefined));
+  const walletUtxos = ref(undefined as (Utxo[] | undefined));
   const walletHistory = ref(undefined as (WalletHistoryReturnType | undefined));
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
@@ -105,13 +106,13 @@ export const useStore = defineStore('store', () => {
       return tokenList.value;
     }
     if (filter === 'default') {
-      return tokenList.value.filter(t => !settingsStore.hiddenTokens.includes(t.tokenId));
+      return tokenList.value.filter(t => !settingsStore.hiddenTokens.includes(t.category));
     }
     if (filter === 'favoritesOnly') {
-      return tokenList.value.filter(t => settingsStore.featuredTokens.includes(t.tokenId));
+      return tokenList.value.filter(t => settingsStore.featuredTokens.includes(t.category));
     }
     if (filter === 'hiddenOnly') {
-      return tokenList.value.filter(t => settingsStore.hiddenTokens.includes(t.tokenId));
+      return tokenList.value.filter(t => settingsStore.hiddenTokens.includes(t.category));
     }
     return tokenList.value;
   })
@@ -158,7 +159,7 @@ export const useStore = defineStore('store', () => {
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
   // It adds the configured electrum network provider on the wallet depending on the network.
   // Call initializeWallet() afterwards to actually connect to the electrum client and to fetch initial data.
-  function setWallet(newWallet: Wallet | TestNetWallet){
+  function setWallet(newWallet: WalletType){
     if(newWallet.network == NetworkType.Mainnet){ 
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       // @ts-ignore currently no other way to set a specific provider
@@ -169,12 +170,25 @@ export const useStore = defineStore('store', () => {
       // @ts-ignore currently no other way to set a specific provider
       newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
     }
+    _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
   }
 
   async function initializeWallet() {
     let failedToConnectElectrum = false
     if(!_wallet.value) throw new Error("No Wallet set in global store")
+
+    // Verify wallet type metadata matches the actual wallet class
+    // Use 'walletCache' property to detect HD wallets (exists on HDWallet, not on single-address Wallet)
+    const metadataType = settingsStore.getWalletType(activeWalletName.value);
+    const isActuallyHD = 'walletCache' in _wallet.value;
+    if (metadataType === 'hd' && !isActuallyHD) {
+      throw new Error(`Wallet type mismatch: metadata says 'hd' but wallet is single-address. This may indicate corrupted settings.`);
+    }
+    if (metadataType === 'single' && isActuallyHD) {
+      throw new Error(`Wallet type mismatch: metadata says 'single' but wallet is HD. This may indicate corrupted settings.`);
+    }
+
     try {
       // attempt non-blocking connection to electrum server
       // wrapped the logic in an IIFE to avoid error bubbling up
@@ -206,23 +220,22 @@ export const useStore = defineStore('store', () => {
       // if electrum connection failed, cancel the rest of initialization
       if(failedToConnectElectrum) return
       // fetch wallet utxos first, this result will be used in consecutive calls
-      // to avoid duplicate getAddressUtxos() calls
+      // to avoid duplicate getUtxos() calls
       console.time('fetch wallet utxos');
-      const walletAddressUtxos = await wallet.value.getAddressUtxos()
+      const walletAddressUtxos = await wallet.value.getUtxos()
       console.timeEnd('fetch wallet utxos');
       const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
       // Fetch fiat balance and max amount to send in parallel
       // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
       console.time('fetch fiat balance & max amount to send');
-      const promiseWalletBalance = balanceResponseFromSatoshi(balanceSats);
       const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend({
         options: { utxoIds: walletAddressUtxos }
       });
-      const balancePromises = [promiseWalletBalance, promiseMaxAmountToSend];
-      const [resultWalletBalance, resultMaxAmountToSend] = await Promise.all(balancePromises);
+      const balancePromises = [promiseMaxAmountToSend];
+      const [resultMaxAmountToSend] = await Promise.all(balancePromises);
       console.timeEnd('fetch fiat balance & max amount to send');
       // set values simulatenously with tokenList so the UI elements load together
-      balance.value = resultWalletBalance
+      balance.value = balanceSats
       walletUtxos.value = walletAddressUtxos
       maxAmountToSend.value = resultMaxAmountToSend
       updateTokenList()
@@ -259,12 +272,13 @@ export const useStore = defineStore('store', () => {
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (newBalance) => runAsyncVoid(async () => {
-        const oldBalance = balance.value;
-        balance.value = newBalance;
-        if(oldBalance?.sat && newBalance.sat && walletInitialized.value){
+        // Compute oldBalance including bch on token utxos
+        // to match way newBalance is calculated in watchBalance
+        const oldBalance = walletUtxos.value?.reduce((acc, utxo) => acc + utxo.satoshis, BigInt(0));
+        if(oldBalance && newBalance && walletInitialized.value){
           console.log("watchBalance")
-          if(oldBalance.sat < newBalance.sat){
-            const amountReceived = (newBalance.sat - oldBalance.sat) / 100_000_000
+          if(oldBalance < newBalance){
+            const amountReceived = Number(newBalance - oldBalance) / 100_000_000
             const currencyValue = await convert(amountReceived, settingsStore.bchUnit, settingsStore.currency);
             const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
             Notify.create({
@@ -277,7 +291,10 @@ export const useStore = defineStore('store', () => {
             })
           }
           // update state (but not on the initial trigger when creating the subscription)
-          const walletAddressUtxos = await wallet.value.getAddressUtxos();
+          const walletAddressUtxos = await wallet.value.getUtxos();
+          // update balance with the amount on bch-only utxos
+          const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
+          balance.value = balanceSats;
           walletUtxos.value = walletAddressUtxos;
           maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
             utxoIds: walletAddressUtxos
@@ -287,19 +304,22 @@ export const useStore = defineStore('store', () => {
         }
       })
     );
-    const walletPkh = binToHex(wallet.value.getPublicKeyHash() as Uint8Array);
-    cancelWatchTokenTxs = await wallet.value.watchAddressTokenTransactions(
+    cancelWatchTokenTxs = await wallet.value.watchTokenTransactions(
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (tx) => runAsyncVoid(async () => {
+        // guard against race condition: if an Electrum notification arrives during init
+        // (e.g. new block), mainnet-js replays all history as "new" causing a cascade
+        if(!walletInitialized.value) return
         const receivedTokenOutputs = tx.vout.filter(voutElem =>
-          voutElem.tokenData && voutElem.scriptPubKey.hex.includes(walletPkh)
+          voutElem.tokenData && voutElem.scriptPubKey.addresses[0] &&
+          wallet.value.hasAddress(voutElem.scriptPubKey.addresses[0])
         );
         const previousTokenList = tokenList.value;
         const listNewTokens:TokenList = []
-        // Check if transaction not initiated by user
-        const userInputs = tx.vin.filter(vinElem => vinElem.address == wallet.value.cashaddr);
+        const userInputs = tx.vin.filter(vinElem => vinElem.address && wallet.value.hasAddress(vinElem.address));
         for(const tokenOutput of receivedTokenOutputs){
+          // Check if transaction not initiated by user
           if(!userInputs.length){
             const tokenType = tokenOutput.tokenData?.nft ? "NFT" : "tokens"
             Notify.create({
@@ -307,9 +327,9 @@ export const useStore = defineStore('store', () => {
               message: t('store.notifications.receivedTokens', { tokenType })
             })
           }
-          const tokenId = tokenOutput.tokenData?.category;
-          const isNewTokenItem = !previousTokenList?.find(elem => elem.tokenId == tokenId);
-          if(!tokenId && !isNewTokenItem) continue;
+          const category = tokenOutput.tokenData?.category;
+          const isNewTokenItem = !previousTokenList?.find(elem => elem.category == category);
+          if(!category && !isNewTokenItem) continue;
           const newTokenItem = convertElectrumTokenData(tokenOutput.tokenData)
           if(newTokenItem) listNewTokens.push(newTokenItem)
         }
@@ -354,6 +374,20 @@ export const useStore = defineStore('store', () => {
     walletHistory.value = undefined;
   }
 
+  async function getWalletClass(walletName: string, network: string) {
+    // Ensure wallet type metadata exists, detect from IndexedDB if missing
+    const metadata = settingsStore.getWalletMetadata(walletName);
+    if (!metadata?.walletType) {
+      const dbName = network === 'mainnet' ? 'bitcoincash' : 'bchtest';
+      const detectedType = await getWalletTypeFromDb(walletName, dbName);
+      settingsStore.setWalletType(walletName, detectedType);
+    }
+
+    const isHD = settingsStore.getWalletType(walletName) === 'hd';
+    if (network === 'mainnet') return isHD ? HDWallet : Wallet;
+    return isHD ? TestNetHDWallet : TestNetWallet;
+  }
+
   async function changeNetwork(
     newNetwork: 'mainnet' | 'chipnet',
     awaitWalletInitialization: boolean = false
@@ -361,7 +395,7 @@ export const useStore = defineStore('store', () => {
     resetWalletState()
     walletInitialized.value = false;
     // set new wallet
-    const walletClass = (newNetwork == 'mainnet')? Wallet : TestNetWallet;
+    const walletClass = await getWalletClass(activeWalletName.value, newNetwork);
     const newWallet = await walletClass.named(activeWalletName.value);
     setWallet(newWallet);
     if (awaitWalletInitialization) {
@@ -401,7 +435,7 @@ export const useStore = defineStore('store', () => {
     }
 
     // Load wallet on current network
-    const walletClass = (currentNetwork == 'mainnet') ? Wallet : TestNetWallet;
+    const walletClass = await getWalletClass(walletName, currentNetwork);
     const newWallet = await walletClass.named(walletName);
     // Only update state after successful wallet load
     activeWalletName.value = walletName;
@@ -433,7 +467,7 @@ export const useStore = defineStore('store', () => {
 
   async function initializeWalletConnect() {
     try {
-      const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>, changeNetwork)
+      const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>)
       await walletconnectStore.initweb3wallet();
       isWcInitialized.value = true;
 
@@ -463,6 +497,12 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeCashConnect() {
+    // CashConnect requires a single-address wallet with a private key
+    const walletPrivateKey = (_wallet.value as Wallet | null)?.privateKey;
+    if (settingsStore.getWalletType(activeWalletName.value) === 'hd' || !walletPrivateKey) {
+      isCcInitialized.value = true;
+      return;
+    }
     try{
       // Initialize CashConnect.
       const cashconnectWallet = useCashconnectStore(_wallet as Ref<Wallet>);
@@ -500,7 +540,7 @@ export const useStore = defineStore('store', () => {
 
   async function updateWalletUtxos() {
     try {
-      walletUtxos.value = await wallet.value.getAddressUtxos();
+      walletUtxos.value = await wallet.value.getUtxos();
       updateTokenList()
     } catch(error) {
       const errorMessage = typeof error == 'string' ? error : t('store.errors.errorFetchingUtxos');
@@ -542,10 +582,10 @@ export const useStore = defineStore('store', () => {
     const featuredTokenList: TokenList = []
     for(const featuredToken of settingsStore.featuredTokens){
       // if featuredToken in unsortedTokenList, add it to a featuredTokenList
-      const featuredTokenItem = unsortedTokenList.find(token => token.tokenId === featuredToken);
+      const featuredTokenItem = unsortedTokenList.find(token => token.category === featuredToken);
       if(featuredTokenItem) featuredTokenList.push(featuredTokenItem)
     }
-    const otherTokenList = unsortedTokenList.filter(token => !settingsStore.featuredTokens.includes(token.tokenId));
+    const otherTokenList = unsortedTokenList.filter(token => !settingsStore.featuredTokens.includes(token.category));
 
     tokenList.value = [...featuredTokenList, ...otherTokenList];
   }
@@ -564,7 +604,7 @@ export const useStore = defineStore('store', () => {
     const fungibleTokens = tokenList.value?.filter(token => 'amount' in token)
     if (fungibleTokens?.length === 0) return;
 
-    const ftTokenIds = fungibleTokens?.map(token => token.tokenId) ?? [];
+    const ftTokenIds = fungibleTokens?.map(token => token.category) ?? [];
 
     // Warm the exchange rate cache first, then fetch prices
     await convert(1, 'bch', settingsStore.currency);
@@ -587,6 +627,12 @@ export const useStore = defineStore('store', () => {
       throw new Error(`Indexer error: ${bcmrIndexerResult.error}`);
     }
     return bcmrIndexerResult;
+  }
+
+  // Fetch NFT metadata for a specific category and commitment, updating bcmrRegistries
+  async function fetchNftMetadata(category: string, commitment: string) {
+    const registries = await fetchNftMetadataFromIndexer(category, commitment, bcmrIndexer.value, bcmrRegistries.value);
+    bcmrRegistries.value = registries;
   }
   
 
@@ -698,12 +744,14 @@ export const useStore = defineStore('store', () => {
     refreshAvailableWallets,
     deleteWallet,
     fetchTokenInfo,
+    fetchNftMetadata,
     hasPreGenesis,
     fetchAuthUtxos,
     fetchTokenMetadata,
     fetchCauldronPricesForTokens,
     toggleFavorite,
     toggleHidden,
-    tokenIconUrl
+    tokenIconUrl,
+    getWalletClass
   }
 })

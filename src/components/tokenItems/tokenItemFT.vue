@@ -43,7 +43,7 @@
   const showQrCodeDialog = ref(false);
   const activeAction = ref<'sending' | 'burning' | 'transferAuth' | null>(null);
 
-  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.tokenId];
+  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category];
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
@@ -66,7 +66,7 @@
         return;
       }
 
-      const poolPriceData = store.cauldronPrices?.[tokenData.value.tokenId];
+      const poolPriceData = store.cauldronPrices?.[tokenData.value.category];
       if (!poolPriceData?.hasSufficientLiquidity) {
         holdingsFiatValue.value = null;
         return;
@@ -87,8 +87,8 @@
     if(!totalSupplyFT.value && tokenData.value?.amount){
       try {
         const [totalSupply, reserved] = await Promise.all([
-          queryTotalSupplyFT(tokenData.value.tokenId, settingsStore.chaingraph),
-          queryReservedSupply(tokenData.value.tokenId, settingsStore.chaingraph)
+          queryTotalSupplyFT(tokenData.value.category, settingsStore.chaingraph),
+          queryReservedSupply(tokenData.value.category, settingsStore.chaingraph)
         ]);
         totalSupplyFT.value = totalSupply;
         reservedSupply.value = reserved;
@@ -132,7 +132,7 @@
       }
 
       // Check if c= is for a different token
-      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.tokenId){
+      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.category){
         $q.notify({ message: t('tokenItem.errors.differentTokenRequest'), icon: 'warning', color: "grey-7" });
         return;
       }
@@ -145,7 +145,7 @@
       // Amount is in base token units, so apply the decimals from token metadata
       // e.g. ft=10000 with 2 decimals = 100 tokens displayed to user
       const ftParam = parsed.otherParams?.ft ?? parsed.otherParams?.f;
-      if(parsed.otherParams?.c === tokenData.value.tokenId && ftParam){
+      if(parsed.otherParams?.c === tokenData.value.category && ftParam){
         const decimals = tokenMetaData.value?.token?.decimals ?? 0;
         const ftBaseUnits = parseInt(ftParam, 10);
         if (!isNaN(ftBaseUnits) && ftBaseUnits >= 0) {
@@ -192,7 +192,7 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
       if(!destinationAddr.value) throw(t('tokenItem.errors.noDestination'));
       if(!tokenSendAmount?.value) throw(t('tokenItem.errors.noValidAmount'));
       const sanitizedInput = tokenSendAmount.value.replace(/,/g, '');
@@ -227,7 +227,7 @@
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.tokenId.slice(0, 8)
+        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.category.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
@@ -243,7 +243,7 @@
         if (!confirmed) return
       }
 
-      const tokenId = tokenData.value.tokenId;
+      const category = tokenData.value.category;
       $q.notify({
         spinner: true,
         message: t('common.status.sending'),
@@ -254,11 +254,11 @@
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
           amount: amountTokensInt,
-          tokenId: tokenId,
+          category: category,
         }),
       ]);
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      let alertMessage = t('tokenItem.alerts.sentTokensNoSymbol', { amount: amountSentFormatted, tokenId: displayId, address: destinationAddr.value });
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
+      let alertMessage = t('tokenItem.alerts.sentTokensNoSymbol', { amount: amountSentFormatted, category: displayId, address: destinationAddr.value });
       if (tokenMetaData.value?.token?.symbol) {
         alertMessage = t('tokenItem.alerts.sentTokens', { amount: amountSentFormatted, symbol: tokenMetaData.value.token.symbol, address: destinationAddr.value });
       }
@@ -291,7 +291,7 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance?.sat ?? 0) < 550) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
       if(!burnAmountFTs?.value) throw(t('tokenItem.errors.amountMustBeInteger'));
       const sanitizedInput = burnAmountFTs.value.replace(/,/g, '');
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
@@ -299,7 +299,7 @@
       const amountTokensNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
       const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
       if(amountTokensInt > tokenData.value.amount) throw(t('tokenItem.errors.insufficientBalance'));
-      const tokenId = tokenData.value.tokenId;
+      const category = tokenData.value.category;
 
       const amountBurnFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const tokenSymbol = tokenMetaData.value?.token?.symbol ?? t('tokenItem.tokens')
@@ -323,14 +323,14 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.tokenBurn({
-          tokenId: tokenId,
+          category: category,
           amount: amountTokensInt,
         },
         "burn", // optional OP_RETURN message
       );
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const amountBurntFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
-      let alertMessage = t('tokenItem.alerts.burnedTokensNoSymbol', { amount: amountBurntFormatted, tokenId: displayId });
+      let alertMessage = t('tokenItem.alerts.burnedTokensNoSymbol', { amount: amountBurntFormatted, category: displayId });
       if (tokenMetaData.value?.token?.symbol) {
         alertMessage = t('tokenItem.alerts.burnedTokens', { amount: amountBurntFormatted, symbol: tokenMetaData.value.token.symbol });
       }
@@ -366,24 +366,23 @@
     const reservedSupplyNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
     const reservedSupply = typeof reservedSupplyNumber == "number" ? BigInt(Math.round(reservedSupplyNumber)): BigInt(reservedSupplyNumber)
     if(reservedSupply > tokenData.value.amount) throw(t('tokenItem.errors.insufficientBalance'));
-    const tokenId = tokenData.value.tokenId;
+    const category = tokenData.value.category;
     activeAction.value = 'transferAuth';
     try {
       const authTransfer = !reservedSupply? {
         cashaddr: destinationAddr.value,
-        value: 1000,
-        unit: 'sats',
+        value: 1000n,
       } as SendRequest : new TokenSendRequest({
         cashaddr: destinationAddr.value,
-        tokenId: tokenId,
+        category: category,
         amount: reservedSupply
       });
       const outputs = [authTransfer];
       const changeAmount = reservedSupply? tokenData.value.amount - reservedSupply : tokenData.value.amount;
       if(changeAmount){
         const changeOutput = new TokenSendRequest({
-          cashaddr: store.wallet.tokenaddr,
-          tokenId: tokenId,
+          cashaddr: store.wallet.getTokenDepositAddress(),
+          category: category,
           amount: changeAmount
         });
         outputs.push(changeOutput)
@@ -395,8 +394,8 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${tokenId.slice(0, 20)}...${tokenId.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.transferredAuth', { tokenId: displayId, address: destinationAddr.value });
+      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
+      const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -439,8 +438,8 @@
       <div class="tokenInfo">
         <TokenIcon
           class="tokenIcon"
-          :token-id="tokenData.tokenId"
-          :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenData.tokenId) : undefined"
+          :token-id="tokenData.category"
+          :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenData.category) : undefined"
           :size="48"
         />
         <div class="tokenBaseInfo">
@@ -448,9 +447,9 @@
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
-              <span @click="copyToClipboard(tokenData.tokenId)">
-                <span class="tokenId" style="cursor: pointer;">
-                  {{ !isMobile ? `${tokenData.tokenId.slice(0, 20)}...${tokenData.tokenId.slice(-8)}` :  `${tokenData.tokenId.slice(0, 10)}...${tokenData.tokenId.slice(-8)}`}}
+              <span @click="copyToClipboard(tokenData.category)">
+                <span class="category" style="cursor: pointer;">
+                  {{ !isMobile ? `${tokenData.category.slice(0, 20)}...${tokenData.category.slice(-8)}` :  `${tokenData.category.slice(0, 10)}...${tokenData.category.slice(-8)}`}}
                 </span>
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
@@ -464,13 +463,13 @@
             </span>
           </div>
         </div>
-        <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.tokenId) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
-          <img :src="settingsStore.hiddenTokens.includes(tokenData.tokenId)
+        <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.category)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.category) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
+          <img :src="settingsStore.hiddenTokens.includes(tokenData.category)
             ? (settingsStore.darkMode ? 'images/eye-off-outline-lightGrey.svg' : 'images/eye-off-outline.svg')
             : (settingsStore.darkMode ? 'images/eye-outline-lightGrey.svg' : 'images/eye-outline.svg')">
         </span>
-        <span @click="store.toggleFavorite(tokenData.tokenId)" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.tokenId) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
-          <img :src="settingsStore.featuredTokens.includes(tokenData.tokenId) ? 'images/star-full.svg' :
+        <span @click="store.toggleFavorite(tokenData.category)" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.category) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
+          <img :src="settingsStore.featuredTokens.includes(tokenData.category) ? 'images/star-full.svg' :
             settingsStore.darkMode? 'images/star-empty-grey.svg' : 'images/star-empty.svg'">
         </span>
       </div>
@@ -483,7 +482,7 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
           </span>
           <span v-if="settingsStore.showCauldronSwap && store.wallet.network == 'mainnet'" style="white-space: nowrap;">
-            <a :href="`https://app.cauldron.quest/swap/${tokenData.tokenId}`" target="_blank" style="color: var(--font-color);">
+            <a :href="`https://app.cauldron.quest/swap/${tokenData.category}`" target="_blank" style="color: var(--font-color);">
               <img class="icon" :src="settingsStore.darkMode? 'images/cauldronLightGrey.svg' : 'images/cauldron.svg'"> {{ t('tokenItem.actions.swap') }}
             </a>
           </span>
@@ -529,7 +528,7 @@
             </span><span v-else>...</span>
           </div>
           <div>
-            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.tokenId" target="_blank">
+            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">
               {{ t('tokenItem.info.seeDetailsOnExplorer') }} <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
             </a>
           </div>

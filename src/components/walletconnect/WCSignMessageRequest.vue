@@ -45,7 +45,7 @@
         <hr>
         <div style="margin: 15px 0;">
           <div>{{ t('walletConnect.signMessage.signer') }}</div>
-          {{ store.wallet.cashaddr }}
+          {{ store.wallet.getDepositAddress() }}
         </div>
         <div style="margin: 15px 0;">
           <div>{{ t('walletConnect.signMessage.message') }}</div>

@@ -3,7 +3,7 @@
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { namedWalletExistsInDb } from 'src/utils/dbUtils'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, DERIVATION_PATHS } from 'src/utils/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, DERIVATION_PATHS } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import seedPhraseInput from '../general/seedPhraseInput.vue'
   import { useI18n } from 'vue-i18n'
@@ -17,6 +17,7 @@
   const seedPhrase = ref('');
   const seedPhraseValid = ref(false);
   const selectedDerivationPath = ref<DerivationPathType>("standard");
+  const walletType = ref<'single' | 'hd'>('single');
 
   const effectiveWalletName = computed(() => walletName.value.trim());
 
@@ -45,7 +46,8 @@
   }
 
   async function createNewWallet() {
-    const result = await createWallet(walletName.value);
+    const createFn = walletType.value === 'hd' ? createNewHDWallet : createWallet;
+    const result = await createFn(walletName.value);
     if (result.success) {
       store.changeView(1);
     } else {
@@ -58,7 +60,8 @@
   }
 
   async function importWallet() {
-    const result = await importWalletUtil({
+    const importFn = walletType.value === 'hd' ? importHDWallet : importWalletUtil;
+    const result = await importFn({
       name: walletName.value,
       seedPhrase: seedPhrase.value,
       seedPhraseValid: seedPhraseValid.value,
@@ -111,7 +114,20 @@
       <div style="margin-bottom: 20px;">
         {{ t('addWallet.creating') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
       </div>
-      <div style="margin-bottom: 15px;">
+      <div style="margin-bottom: 5px;">
+        <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
+        <select v-model="walletType" style="padding: 8px; min-width: 200px;">
+          <option value="single">{{ t('onboarding.walletType.single') }}</option>
+          <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
+        </select>
+        <div style="margin-top: 5px;">
+          {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
+        </div>
+      </div>
+      <div v-if="walletType === 'hd'" style="font-size: smaller; color: grey;">
+        {{ t('addWallet.hdNote') }}
+      </div>
+      <div style="margin-top:10px; margin-bottom: 15px;">
         <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
           {{ t('addWallet.createNew.hint') }}
         </div>
@@ -139,8 +155,12 @@
       <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 2">
         {{ t('addWallet.backButton') }}
       </div>
-      <div style="margin-bottom: 20px;">
+      <div style="margin-bottom: 10px;">
         {{ t('addWallet.importing') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
+        <span v-if="walletType === 'single'"> as single address wallet</span>
+      </div>
+      <div v-if="walletType === 'single'" style="margin-bottom: 10px; font-size: smaller; color: grey;">
+        {{ t('addWallet.singleAddressNote') }}
       </div>
       <div style="margin-bottom: 15px;">
         <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
@@ -150,9 +170,6 @@
             <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('addWallet.derivationPath.standard') }})</option>
             <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('addWallet.derivationPath.bitcoindotcom') }})</option>
           </select>
-        </div>
-        <div style="margin-top: 10px; font-size: smaller; color: grey;">
-          {{ t('addWallet.derivationPath.note') }}
         </div>
         <input
           @click="importWallet()"

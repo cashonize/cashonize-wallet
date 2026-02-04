@@ -1,0 +1,76 @@
+<script setup lang="ts">
+  import { ref } from 'vue';
+  import { useDialogPluginComponent } from 'quasar'
+  import { type WalletKitTypes } from '@reown/walletkit';
+  import type { DappMetadata } from "src/interfaces/interfaces"
+  import { useI18n } from 'vue-i18n'
+  import HdAddressSelect from 'src/components/walletconnect/hdAddressSelect.vue'
+
+  const { t } = useI18n()
+
+  const props = defineProps<{
+    sessionProposalWC: WalletKitTypes.SessionProposal,
+  }>()
+
+  defineEmits([
+    ...useDialogPluginComponent.emits
+  ])
+
+  const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+  const dappMetadata = props.sessionProposalWC.params.proposer.metadata as DappMetadata;
+
+  const selectedAddresses = ref<string[]>([]);
+
+  function onSelectionChanged(addresses: string[]) {
+    selectedAddresses.value = addresses;
+  }
+
+  function approve() {
+    onDialogOK(selectedAddresses.value);
+  }
+</script>
+
+<template>
+  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
+    <q-card>
+      <fieldset class="dialogFieldset">
+        <legend style="font-size: large;">{{ t('walletConnect.addressSelect.title') }}</legend>
+        <div style="display: flex;">
+          <img :src="dappMetadata.icons?.[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
+          <div style="margin-left: 10px;">
+            <div>{{ dappMetadata.name }}</div>
+            <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; color: #888;">{{ t('walletConnect.addressSelect.hint') }}</div>
+
+        <div style="margin-top: 0.5rem; max-height: 350px; overflow-y: auto;">
+          <HdAddressSelect @selection-changed="onSelectionChanged" />
+        </div>
+
+        <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+          <input type="button" class="primaryButton" :value="t('walletConnect.sessionRequest.approveButton')" :disabled="!selectedAddresses.length" @click="approve">
+          <input type="button" :value="t('walletConnect.sessionRequest.rejectButton')" @click="onDialogCancel">
+        </div>
+      </fieldset>
+    </q-card>
+  </q-dialog>
+</template>
+
+<style scoped>
+  .dialogFieldset{
+    padding: 2rem;
+    width: 550px;
+    max-width: 100%;
+    background-color: white;
+  }
+  body.dark .dialogFieldset {
+    background-color: #050a14;
+  }
+  .q-card{
+    box-shadow: none;
+    background: none;
+  }
+</style>

@@ -41,9 +41,14 @@ Views use `<KeepAlive>` to preserve state across navigation, except settingsMenu
 
 ### mainnet-js (Core Wallet Library)
 
-The wallet functionality is powered by `mainnet-js`, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers.
+The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers.
 
-- `Wallet` for mainnet, `TestNetWallet` for chipnet
+v3 introduced breaking changes including HD wallet support with new classes (`HDWallet`, `TestNetHDWallet`) and a `walletCache` for address/key management.
+
+- Single-address wallets: `Wallet` for mainnet, `TestNetWallet` for chipnet
+- HD wallets: `HDWallet` for mainnet, `TestNetHDWallet` for chipnet
+- The wallet type (`WalletType`) is a union of all four classes
+- `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB via `@mainnet-cash/indexeddb-storage`
 - Docs: https://mainnet.cash/tutorial/
 

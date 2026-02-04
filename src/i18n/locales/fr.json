@@ -92,11 +92,19 @@
       "label": "Nom du portefeuille :",
       "placeholder": "Entrez le nom du portefeuille"
     },
+    "walletType": {
+      "label": "Type de portefeuille :",
+      "hd": "Portefeuille HD (adresses multiples)",
+      "single": "Adresse unique",
+      "hdDescription": "Utilise une nouvelle adresse pour chaque transaction. Meilleure confidentialité, mais nécessite de sélectionner une adresse lors de la connexion aux dApps.",
+      "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé.",
+      "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
+      "hdNote": "Remarque : CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD."
+    },
     "derivationPath": {
       "label": "Chemin de dérivation :",
       "standard": "standard",
-      "bitcoindotcom": "Portefeuille Bitcoin.com",
-      "note": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
+      "bitcoindotcom": "Portefeuille Bitcoin.com"
     },
     "preferences": {
       "title": "Configurez vos préférences",
@@ -155,7 +163,9 @@
       "all": "Tous les tokens",
       "hiddenOnly": "Masqués uniquement"
     },
-    "editVisibility": "Modifier la visibilité"
+    "editVisibility": "Modifier la visibilité",
+    "searchPlaceholder": "Rechercher des tokens...",
+    "searchMatches": "{count} résultats"
   },
   "tokenItem": {
     "name": "Nom :",
@@ -337,7 +347,8 @@
     "connectButton": "Connecter nouvelle dApp",
     "errors": {
       "invalidUri": "URI WalletConnect ou CashConnect invalide",
-      "notValidUri": "Ce n'est pas une URI WalletConnect ou CashConnect valide"
+      "notValidUri": "Ce n'est pas une URI WalletConnect ou CashConnect valide",
+      "cashConnectNotSupported": "CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD"
     }
   },
   "history": {
@@ -455,9 +466,10 @@
     "derivationPath": {
       "label": "Chemin de dérivation :",
       "standard": "standard",
-      "bitcoindotcom": "Portefeuille Bitcoin.com",
-      "note": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
+      "bitcoindotcom": "Portefeuille Bitcoin.com"
     },
+    "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
+    "hdNote": "Remarque : CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD.",
     "importButton": "Importer"
   },
   "walletsOverview": {
@@ -578,6 +590,21 @@
       "splitting": "Séparation du BCH des UTXOs de tokens...",
       "splitSuccess": "BCH séparé de l'UTXO de token avec succès !",
       "somethingWentWrong": "une erreur s'est produite"
+    }
+  },
+  "hdAddresses": {
+    "title": "Adresses du portefeuille HD",
+    "receivingAddresses": "Adresses de réception",
+    "changeAddresses": "Adresses de monnaie",
+    "usedAddresses": "Utilisées",
+    "unusedAddresses": "Non utilisées",
+    "noAddresses": "Aucune adresse analysée pour le moment",
+    "hideZeroBalances": "Masquer les soldes nuls",
+    "columns": {
+      "index": "Index",
+      "address": "Adresse",
+      "balance": "Solde",
+      "txs": "Txs"
     }
   },
   "sweepPrivateKey": {
@@ -703,6 +730,10 @@
       "switchAndApprove": "Basculer vers {network} et approuver",
       "rejectButton": "Rejeter"
     },
+    "addressSelect": {
+      "title": "Sélectionner l'adresse à connecter",
+      "hint": "Choisissez quelle adresse partager avec cette dApp"
+    },
     "sessionSettings": {
       "title": "Gérer la session",
       "enableAutoApprovals": "Activer les approbations automatiques",
@@ -729,10 +760,15 @@
       "invalidTransactionSchema": "Erreur lors de la validation du schéma de la demande de transaction WalletConnect",
       "invalidSignMessageSchema": "Erreur lors de la validation du schéma de la demande de signature de message WalletConnect",
       "errorSendingTransaction": "Erreur lors de l'envoi de la transaction",
-      "transactionFailedToSend": "Échec de l'envoi de la transaction : {error}"
+      "transactionFailedToSend": "Échec de l'envoi de la transaction : {error}",
+      "noAddressForSession": "Aucune adresse trouvée pour la session",
+      "addressNotInHdCache": "Adresse non trouvée dans le cache du portefeuille HD : {address}",
+      "noPrivateKeyForAddress": "Aucune clé privée disponible pour l'adresse (portefeuille en lecture seule)",
+      "failedToCompressPublicKey": "Échec de la compression de la clé publique"
     },
     "notifications": {
       "successfullySignedMessage": "Message signé avec succès",
+      "failedToSignMessage": "Échec de la signature du message",
       "sendingTransaction": "Envoi de la transaction...",
       "sentTransaction": "Transaction WalletConnect envoyée '{userPrompt}'",
       "transactionSent": "Transaction envoyée avec succès !",
@@ -754,6 +790,7 @@
       "localization": "Localisation",
       "advancedSettings": "Paramètres avancés",
       "developerSettings": "Paramètres développeur",
+      "hdAddresses": "Adresses HD",
       "utxoManagement": "Gestion des UTXO",
       "sweepPrivateKey": "Balayer une clé privée",
       "tokenCreationPage": "Page de création de tokens"

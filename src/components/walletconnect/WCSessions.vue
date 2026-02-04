@@ -19,7 +19,7 @@
   const { t } = useI18n()
 
   const { _wallet } = storeToRefs(store);
-  const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>, store.changeNetwork)
+  const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>)
   // Note: web3wallet starts off undefined, so we want the reactive reference.
   const { web3wallet } = storeToRefs(walletconnectStore)
 

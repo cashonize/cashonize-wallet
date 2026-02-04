@@ -12,7 +12,8 @@
 
   const props = defineProps<{
     sessionId: string,
-    dappMetadata: DappMetadata
+    dappMetadata: DappMetadata,
+    connectedAddresses: string[]
   }>();
   const { sessionId } = toRefs(props);
 
@@ -27,6 +28,11 @@
   const autoTimeLeft = ref(undefined as number | undefined);
 
   const displaySessionId = `- ${!isMobilePhone ? t('walletConnect.sessions.session') + ' ' : ''} ${sessionId.value.slice(0, 6)}`
+
+  function shortenAddress(address: string) {
+    const addrWithoutPrefix = address.split(':')[1] ?? "";
+    return addrWithoutPrefix.slice(0, 10) + '...' + addrWithoutPrefix.slice(-8);
+  }
 
   function toggleRadioButtons() {
     if (!enableAutoApprovals.value) {
@@ -96,6 +102,10 @@
             <div style="margin-left: 10px;">
               <div>{{ dappMetadata.name + displaySessionId }}</div>
               <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
+              <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono" :title="addr">
+                <template v-if="isMobilePhone">{{ shortenAddress(addr) }}</template>
+                <template v-else>{{ addr }}</template>
+              </div>
             </div>
           </div>
 
@@ -152,5 +162,13 @@
   }
   .radio-option input[type="number"] {
     width: 60px;
+  }
+  .connected-address {
+    color: #888;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .mono {
+    font-family: monospace;
   }
 </style>
