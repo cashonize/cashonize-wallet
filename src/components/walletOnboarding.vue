@@ -172,7 +172,7 @@
             <option value="single">{{ t('onboarding.walletType.single') }}</option>
             <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
           </select>
-          <div style="margin-top: 5px; font-size: smaller; color: grey;">
+          <div style="margin-top: 5px;">
             {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
           </div>
         </div>
