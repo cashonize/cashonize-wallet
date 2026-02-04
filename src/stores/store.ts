@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, computed, type Ref } from 'vue'
+import { ref, reactive, computed, type Ref } from 'vue'
 import {
   Wallet,
   TestNetWallet,
@@ -60,6 +60,7 @@ const isDesktop = (process.env.MODE == "electron");
 
 export const useStore = defineStore('store', () => {
   const displayView = ref(undefined as (number | undefined));
+  const viewStack = reactive<number[]>([]);
   // Multi-wallet state
   const activeWalletName = ref(localStorage.getItem('activeWalletName') ?? defaultWalletName);
   const availableWallets = ref([] as WalletInfo[]);
@@ -124,8 +125,36 @@ export const useStore = defineStore('store', () => {
   let networkChangeCallbacks: Array<() => Promise<void>> = [];
 
   function changeView(newView: number) {
+    // Skip if already on this view
+    if (viewStack.length > 0 && viewStack[viewStack.length - 1] === newView) return;
+
+    // Remove newView from its current position (move-to-front)
+    const existingIndex = viewStack.indexOf(newView);
+    if (existingIndex !== -1) {
+      viewStack.splice(existingIndex, 1);
+    }
+
+    // Push browser history entry (skip for the very first view)
+    if (viewStack.length > 0) {
+      history.pushState(null, '');
+    }
+
+    viewStack.push(newView);
     displayView.value = newView;
   }
+
+  // Note: browser forward button won't work correctly with this implementation.
+  // popstate can't distinguish back from forward, so forward acts as another back. 
+  addEventListener('popstate', () => {
+    if (viewStack.length <= 1) return;
+    viewStack.pop();
+    const previousView = viewStack[viewStack.length - 1];
+    if (previousView !== undefined) {
+      displayView.value = previousView;
+    }
+  });
+
+  const canGoBack = computed(() => viewStack.length > 1);
 
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
   // It adds the configured electrum network provider on the wallet depending on the network.
@@ -320,6 +349,7 @@ export const useStore = defineStore('store', () => {
   }
 
   function resetWalletState(){
+    viewStack.length = 0;
     // Execute each of our network changed callbacks.
     // In practice, we're using these for WC/CC to disconnect their sessions.
     // TODO: investigate if disconnecting session this way is properly working
@@ -702,6 +732,7 @@ export const useStore = defineStore('store', () => {
     bcmrRegistries,
     cauldronPrices,
     currentBlockHeight,
+    canGoBack,
     changeView,
     setWallet,
     initializeWallet,
