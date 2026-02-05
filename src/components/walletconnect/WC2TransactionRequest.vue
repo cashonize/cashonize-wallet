@@ -60,11 +60,11 @@
     return result.address;
   }
 
-  const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput) => 
-    toCashaddr(sourceOutput.lockingBytecode) == store.wallet.getDepositAddress() ? total + sourceOutput.valueSatoshis : total, 0n
+  const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput) =>
+    store.wallet.hasAddress(toCashaddr(sourceOutput.lockingBytecode)) ? total + sourceOutput.valueSatoshis : total, 0n
   );
-  const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs) => 
-    toCashaddr(outputs.lockingBytecode) == store.wallet.getDepositAddress() ? total + outputs.valueSatoshis : total, 0n
+  const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs) =>
+    store.wallet.hasAddress(toCashaddr(outputs.lockingBytecode)) ? total + outputs.valueSatoshis : total, 0n
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
   const currencyBalanceChange = convertToCurrency(bchBalanceChange, exchangeRate.value);
@@ -72,7 +72,7 @@
   const tokensSpentInputs:Record<string, NonNullable<Output['token']>[]> = {}
   const tokensReceivedOutputs:Record<string, NonNullable<Output['token']>[]> = {}
   for (const input of sourceOutputs) {
-    const walletOrigin = toCashaddr(input.lockingBytecode) == store.wallet.getDepositAddress();
+    const walletOrigin = store.wallet.hasAddress(toCashaddr(input.lockingBytecode));
     if(input.token && walletOrigin){
       const tokenCategory = binToHex(input.token.category);
       if(tokensSpentInputs[tokenCategory])tokensSpentInputs[tokenCategory].push(input.token);
@@ -80,7 +80,7 @@
     }
   }
   for (const output of txDetails.outputs) {
-    const walletDestination = toCashaddr(output.lockingBytecode) == store.wallet.getDepositAddress();
+    const walletDestination = store.wallet.hasAddress(toCashaddr(output.lockingBytecode));
     if(output.token && walletDestination){
       const tokenCategory = binToHex(output.token.category);
       if(tokensReceivedOutputs[tokenCategory]) tokensReceivedOutputs[tokenCategory].push(output.token);
@@ -217,7 +217,7 @@
                   <td>{{ inputIndex }}</td>
                   <td>
                     {{ toCashaddr(input.lockingBytecode).slice(0,25)  + '...' }}
-                    <span v-if="toCashaddr(input.lockingBytecode) == store.wallet.getDepositAddress()" class="thisWalletTag">
+                    <span v-if="store.wallet.hasAddress(toCashaddr(input.lockingBytecode))" class="thisWalletTag">
                       {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
@@ -259,7 +259,7 @@
                   <td>{{ outputIndex }}</td>
                   <td>
                     {{ toCashaddr(output.lockingBytecode).slice(0,25)  + '...' }}
-                    <span v-if="toCashaddr(output.lockingBytecode) == store.wallet.getDepositAddress()" class="thisWalletTag">
+                    <span v-if="store.wallet.hasAddress(toCashaddr(output.lockingBytecode))" class="thisWalletTag">
                       {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
