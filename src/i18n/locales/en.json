@@ -478,6 +478,9 @@
     "current": "(current)",
     "mainnetOnly": "(mainnet only)",
     "chipnetOnly": "(chipnet only)",
+    "walletTypeLabel": "Type: ",
+    "walletTypeHD": "HD Wallet",
+    "walletTypeSingle": "single address",
     "addNewWallet": "→ Add new wallet",
     "walletLimitReached": "Number of wallets limited to {max} for now",
     "dateLabels": {

@@ -478,6 +478,9 @@
     "current": "(actual)",
     "mainnetOnly": "(solo mainnet)",
     "chipnetOnly": "(solo chipnet)",
+    "walletTypeLabel": "Tipo: ",
+    "walletTypeHD": "Billetera HD",
+    "walletTypeSingle": "dirección única",
     "addNewWallet": "→ Agregar nueva billetera",
     "walletLimitReached": "Número de billeteras limitado a {max} por ahora",
     "dateLabels": {

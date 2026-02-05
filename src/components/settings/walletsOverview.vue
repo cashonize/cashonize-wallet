@@ -41,6 +41,11 @@
     return t('walletsOverview.backupLabels.backedUp');
   }
 
+  function getWalletTypeLabel(walletName: string): string {
+    const walletType = settingsStore.getWalletType(walletName);
+    return walletType === 'hd' ? t('walletsOverview.walletTypeHD') : t('walletsOverview.walletTypeSingle');
+  }
+
   async function handleSwitchWallet(walletName: string) {
     if (walletName === store.activeWalletName) return;
     try {
@@ -119,33 +124,41 @@
         class="wallet-item"
         :class="{ active: wallet.name === store.activeWalletName }"
       >
-        <span
-          class="wallet-section-left"
-          :class="{ clickable: wallet.name !== store.activeWalletName }"
-          @click="handleSwitchWallet(wallet.name)"
-        >
-          <span class="wallet-name-styled">{{ wallet.name }}</span>
-          <span v-if="wallet.name === store.activeWalletName" class="active-badge">{{ t('walletsOverview.current') }}</span>
-          <span v-if="!wallet.hasChipnet" class="network-badge">{{ t('walletsOverview.mainnetOnly') }}</span>
-          <span v-else-if="!wallet.hasMainnet" class="network-badge">{{ t('walletsOverview.chipnetOnly') }}</span>
-        </span>
-        <span class="wallet-section-center">
-          <span v-if="formatCreationDate(wallet.name)" class="date-mobile">{{ getDateLabel(wallet.name, true) }}{{ formatCreationDate(wallet.name, true) }}</span>
-          <span class="date-desktop">{{ getDateLabel(wallet.name) }}{{ formatCreationDate(wallet.name) || t('walletsOverview.dateLabels.unknown') }}</span>
-        </span>
-        <span class="wallet-section-right">
-          <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name) === 'none' ? 'none' : 'text-verified'">
-            {{ getBackupStatusLabel(wallet.name) }}
-          </span>
-          <button
-            v-if="wallet.name !== store.activeWalletName"
-            class="delete-wallet-btn"
-            @click.stop="deleteSingleWallet(wallet.name)"
-            :title="t('walletsOverview.deleteWallet.buttonTitle')"
+        <div class="wallet-row">
+          <span
+            class="wallet-section-left"
+            :class="{ clickable: wallet.name !== store.activeWalletName }"
+            @click="handleSwitchWallet(wallet.name)"
           >
-            ✕
-          </button>
-        </span>
+            <span class="wallet-name-styled">{{ wallet.name }}</span>
+            <span v-if="wallet.name === store.activeWalletName" class="active-badge">{{ t('walletsOverview.current') }}</span>
+            <span v-if="!wallet.hasChipnet" class="network-badge">{{ t('walletsOverview.mainnetOnly') }}</span>
+            <span v-else-if="!wallet.hasMainnet" class="network-badge">{{ t('walletsOverview.chipnetOnly') }}</span>
+          </span>
+          <span class="wallet-section-center show-desktop-only">
+            <span class="wallet-type-col">{{ t('walletsOverview.walletTypeLabel') }}{{ getWalletTypeLabel(wallet.name) }}</span>
+            <span class="date-separator">|</span>
+            <span class="date-col">{{ getDateLabel(wallet.name) }}{{ formatCreationDate(wallet.name) || t('walletsOverview.dateLabels.unknown') }}</span>
+          </span>
+          <span class="wallet-section-right">
+            <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name) === 'none' ? 'none' : 'text-verified'">
+              {{ getBackupStatusLabel(wallet.name) }}
+            </span>
+            <button
+              v-if="wallet.name !== store.activeWalletName"
+              class="delete-wallet-btn"
+              @click.stop="deleteSingleWallet(wallet.name)"
+              :title="t('walletsOverview.deleteWallet.buttonTitle')"
+            >
+              ✕
+            </button>
+          </span>
+        </div>
+        <div class="wallet-row-mobile show-mobile-only">
+          <span>{{ t('walletsOverview.walletTypeLabel') }}{{ getWalletTypeLabel(wallet.name) }}</span>
+          <span class="date-separator">|</span>
+          <span>{{ getDateLabel(wallet.name, true) }}{{ formatCreationDate(wallet.name, true) || t('walletsOverview.dateLabels.unknown') }}</span>
+        </div>
       </div>
     </div>
 
@@ -160,9 +173,6 @@
 
 <style scoped>
 .wallet-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 10px 12px;
   margin-bottom: 8px;
   background-color: #f5f5f5;
@@ -174,9 +184,18 @@ body.dark .wallet-item {
 .wallet-item.active {
   border-left: 3px solid var(--color-primary);
 }
+.wallet-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.wallet-row-mobile {
+  font-size: 12px;
+  color: #888;
+  margin-top: 6px;
+}
 .wallet-section-left {
-  flex: 1;
-  min-width: 0;
+  min-width: 180px;
 }
 .wallet-section-left.clickable {
   cursor: pointer;
@@ -190,17 +209,38 @@ body.dark .wallet-item {
   text-align: center;
   padding: 0 12px;
 }
+.wallet-type-col {
+  display: inline-block;
+  min-width: 110px;
+  text-align: right;
+}
+.date-col {
+  display: inline-block;
+  min-width: 140px;
+}
 .wallet-section-right {
-  flex: 1;
+  min-width: 120px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  min-width: 0;
 }
 .active-badge {
   color: var(--color-primary);
   font-size: smaller;
   margin-left: 8px;
+}
+.show-mobile-only {
+  display: none;
+}
+@media (max-width: 599px) {
+  .show-mobile-only {
+    display: block;
+  }
+}
+@media (max-width: 600px) {
+  .show-desktop-only {
+    display: none;
+  }
 }
 @media (max-width: 480px) {
   .active-badge {
@@ -210,7 +250,12 @@ body.dark .wallet-item {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 120px;
   }
+}
+.date-separator {
+  color: #ccc;
+  margin: 0 12px;
 }
 .network-badge {
   color: grey;
@@ -229,20 +274,6 @@ body.dark .wallet-item {
 .delete-wallet-btn:hover {
   background-color: rgba(188, 30, 30, 0.1);
   color: rgb(188, 30, 30);
-}
-.date-mobile {
-  display: inline;
-}
-.date-desktop {
-  display: none;
-}
-@media (min-width: 600px) {
-  .date-mobile {
-    display: none;
-  }
-  .date-desktop {
-    display: inline;
-  }
 }
 .backup-status-badge {
   font-size: 12px;

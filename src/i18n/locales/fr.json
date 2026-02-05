@@ -478,6 +478,9 @@
     "current": "(actuel)",
     "mainnetOnly": "(mainnet uniquement)",
     "chipnetOnly": "(chipnet uniquement)",
+    "walletTypeLabel": "Type : ",
+    "walletTypeHD": "Portefeuille HD",
+    "walletTypeSingle": "adresse unique",
     "addNewWallet": "→ Ajouter un nouveau portefeuille",
     "walletLimitReached": "Nombre de portefeuilles limité à {max} pour l'instant",
     "dateLabels": {
