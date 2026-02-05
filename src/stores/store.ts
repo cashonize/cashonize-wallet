@@ -312,7 +312,7 @@ export const useStore = defineStore('store', () => {
         // (e.g. new block), mainnet-js replays all history as "new" causing a cascade
         if(!walletInitialized.value) return
         const receivedTokenOutputs = tx.vout.filter(voutElem =>
-          voutElem.tokenData && voutElem.scriptPubKey.addresses[0] &&
+          voutElem.tokenData && voutElem.scriptPubKey.addresses?.[0] &&
           wallet.value.hasAddress(voutElem.scriptPubKey.addresses[0])
         );
         const previousTokenList = tokenList.value;
