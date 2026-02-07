@@ -172,7 +172,8 @@
     "tokenId": "TokenId:",
     "amount": "Amount:",
     "commitment": "Commitment:",
-    "none": "none",
+    "empty": "empty",
+    "seeParsedData": "See parsed NFT data under 'info'",
     "tokens": "tokens",
     "actions": {
       "send": "send",
@@ -212,6 +213,7 @@
       "yes": "yes",
       "no": "no",
       "nftAttributes": "NFT attributes",
+      "parsedFields": "Parsed NFT data:",
       "numberNfts": "Number NFTs:"
     },
     "sendTokens": {

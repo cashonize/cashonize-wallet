@@ -143,3 +143,4 @@ export async function updateTokenListWithAuthUtxos(
   })
   return copyTokenList
 }
+

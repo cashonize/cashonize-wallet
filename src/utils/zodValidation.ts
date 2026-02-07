@@ -87,15 +87,62 @@ const BcmrNftMetadataSchema = z.object({
   extensions: BcmrExtensionsSchema.optional(),
 });
 
+// Schemas for NFT parse info returned by the Paytaca indexer
+const BcmrFieldEncodingSchema = z.union([
+  z.object({
+    type: z.enum(["binary", "boolean", "hex", "https-url", "ipfs-cid", "utf8", "locktime"]),
+  }),
+  z.object({
+    type: z.literal("number"),
+    aggregate: z.enum(["add"]).optional(),
+    decimals: z.number().int().nonnegative().max(18).optional(),
+    unit: z.string().optional(),
+  }),
+]);
+
+const BcmrNftFieldSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  encoding: BcmrFieldEncodingSchema,
+  uris: BcmrUrisSchema.optional(),
+  extensions: BcmrExtensionsSchema.optional(),
+});
+
+const BcmrNftTypeSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  fields: z.array(z.string()).optional(),
+  uris: BcmrUrisSchema.optional(),
+  extensions: BcmrExtensionsSchema.optional(),
+});
+
+const BcmrNftParseSchema = z.union([
+  z.object({
+    bytecode: z.string(),
+    types: z.record(z.string(), BcmrNftTypeSchema),
+  }),
+  z.object({
+    types: z.record(z.string(), BcmrNftTypeSchema),
+  }),
+]);
+
+const BcmrTokenNftsSchema = z.object({
+  description: z.string().optional(),
+  fields: z.record(z.string(), BcmrNftFieldSchema).optional(),
+  parse: BcmrNftParseSchema,
+});
+
 const BcmrTokenResponseSchema = z.object({
   name: z.string(),
   description: z.string(),
   token: z.object({
     category: Hex64Schema,
-    decimals: z.number().int().nonnegative().optional(),
+    decimals: z.number().int().nonnegative().max(18).optional(),
     symbol: z.string(),
+    nfts: BcmrTokenNftsSchema.optional(),
   }),
   is_nft: z.boolean().optional(),
+  nft_type: z.enum(["parsable", "sequential"]).optional(),
   type_metadata: BcmrNftMetadataSchema.optional(),
   uris: BcmrUrisSchema.optional(),
   extensions: BcmrExtensionsSchema.optional(),
