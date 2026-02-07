@@ -155,7 +155,14 @@ export function parseFieldValue(
   fieldValue: string,
   encoding: FieldEncoding,
 ): ParsedValue | undefined {
-  if (!encoding) return undefined;
+  // Spec: boolean must be exactly 0x01 or 0x00; anything else means
+  // the NFT is unparsable. Throw before the try/catch so the error
+  // propagates to parseNft and fails the entire parse.
+  if (encoding.type === "boolean") {
+    if (fieldValue === "01") return { type: "boolean", formatted: "true", value: true };
+    if (fieldValue === "00") return { type: "boolean", formatted: "false", value: false };
+    throw new Error("Invalid boolean field value: must be exactly 0x00 or 0x01");
+  }
 
   try {
     switch (encoding.type) {
@@ -166,7 +173,7 @@ export function parseFieldValue(
 
         let formatted: string;
         if (decimals > 0) {
-          const divisor = BigInt(10 ** decimals);
+          const divisor = 10n ** BigInt(decimals);
           const integerPart = bigintValue / divisor;
           const fractionalPart = bigintValue % divisor;
           const fractionalStr = fractionalPart
@@ -198,17 +205,6 @@ export function parseFieldValue(
         return {
           type: "utf8",
           formatted: utf8String,
-        };
-      }
-
-      case "boolean": {
-        const hexBytes = hexToBin(fieldValue);
-        const isTrue =
-          hexBytes.length > 0 && hexBytes.some((byte) => byte !== 0);
-        return {
-          type: "boolean",
-          formatted: isTrue ? "true" : "false",
-          value: isTrue,
         };
       }
 
@@ -378,9 +374,9 @@ export function parseNft(
         return {
           success: false,
           error:
-            `VM Error: ${errorMessage}. This typically occurs when parsing` +
-            `bytecode mixes BigInt operations(like OP_UTXOVALUE) with regular ` +
-            `numbers.Ensure all arithmetic operations use compatible types.`,
+            `VM Error: ${errorMessage}. This typically occurs when parsing ` +
+            `bytecode mixes BigInt operations (like OP_UTXOVALUE) with regular ` +
+            `numbers. Ensure all arithmetic operations use compatible types.`,
         };
       }
       return { success: false, error: `VM Error: ${errorMessage}` };
@@ -393,9 +389,15 @@ export function parseNft(
     // Parse bytecodes may leave multiple items on the main stack, which the VM
     // reports as an error ("unexpected number of items on the stack").
     // This is expected — we only care about the altstack contents.
-    // Only fail if there's an error AND the altstack is empty (real failure).
-    if (finalState.error && finalState.alternateStack.length === 0) {
-      return { success: false, error: `VM Error: ${finalState.error}` };
+    // Only tolerate this specific benign error; treat all others as real
+    // failures, since partial execution may leave unreliable data on the altstack.
+    if (finalState.error) {
+      const isBenignStackDepthError = String(finalState.error).includes(
+        "unexpected number of items on the stack",
+      );
+      if (!isBenignStackDepthError) {
+        return { success: false, error: `VM Error: ${finalState.error}` };
+      }
     }
 
     if (finalState.alternateStack.length === 0) {

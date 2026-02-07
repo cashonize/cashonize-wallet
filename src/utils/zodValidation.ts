@@ -95,7 +95,7 @@ const BcmrFieldEncodingSchema = z.union([
   z.object({
     type: z.literal("number"),
     aggregate: z.enum(["add"]).optional(),
-    decimals: z.number().int().nonnegative().optional(),
+    decimals: z.number().int().nonnegative().max(18).optional(),
     unit: z.string().optional(),
   }),
 ]);
@@ -137,7 +137,7 @@ const BcmrTokenResponseSchema = z.object({
   description: z.string(),
   token: z.object({
     category: Hex64Schema,
-    decimals: z.number().int().nonnegative().optional(),
+    decimals: z.number().int().nonnegative().max(18).optional(),
     symbol: z.string(),
     nfts: BcmrTokenNftsSchema.optional(),
   }),
