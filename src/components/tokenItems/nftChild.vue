@@ -430,7 +430,15 @@
         <div class="tokenBaseInfo">
           <div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
-            <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ commitmentDisplay }}</div>
+            <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 3">
+              <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
+                {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+              </div>
+            </div>
+            <div v-else-if="parseResult?.success && parseResult.namedFields?.length">
+              {{ t('tokenItem.seeParsedData') }}
+            </div>
+            <div v-else style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ commitmentDisplay }}</div>
           </div>
         </div>
       </div>
@@ -455,12 +463,13 @@
         </div>
         <div v-if="displayNftInfo" class="tokenAction">
           <div v-if="nftDescription" class="indentText"> {{ t('tokenItem.info.nftDescription') }} {{ nftDescription }} </div>
-          <div v-if="parseResult?.success && parseResult.namedFields?.length">
+          <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 3">
             <div>{{ t('tokenItem.info.parsedFields') }}</div>
             <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
               {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
             </div>
           </div>
+          <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ commitmentDisplay }}</div>
           <details v-if="nftMetadata?.extensions?.attributes" style="cursor:pointer;">
             <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
             <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap; margin-left:15px">

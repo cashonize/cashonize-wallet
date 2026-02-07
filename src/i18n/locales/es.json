@@ -173,6 +173,7 @@
     "amount": "Cantidad:",
     "commitment": "Commitment:",
     "empty": "vacío",
+    "seeParsedData": "Ver datos NFT parseados en 'info'",
     "tokens": "tokens",
     "actions": {
       "send": "enviar",

@@ -659,7 +659,15 @@
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
             </div>
-            <div style="word-break: break-all;" class="hide"></div>
+            <div v-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 2">
+              <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
+                {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+              </div>
+            </div>
+            <div v-else-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length" style="word-break: break-all;">
+              {{ t('tokenItem.seeParsedData') }}
+            </div>
+            <div v-else style="word-break: break-all;" class="hide"></div>
           </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" class="showChildNfts">
             <div @click="showChildNfts()" class="showChildNftsToggle">
@@ -717,7 +725,7 @@
         <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
           <div v-if="tokenDescription" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenDescription }} </div>
-          <div v-if="parseResult?.success && parseResult.namedFields?.length">
+          <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 2">
             <div>{{ t('tokenItem.info.parsedFields') }}</div>
             <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
               {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
