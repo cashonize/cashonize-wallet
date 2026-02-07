@@ -172,7 +172,7 @@
     "tokenId": "TokenId:",
     "amount": "Cantidad:",
     "commitment": "Commitment:",
-    "none": "ninguno",
+    "empty": "vacío",
     "tokens": "tokens",
     "actions": {
       "send": "enviar",
@@ -212,6 +212,7 @@
       "yes": "sí",
       "no": "no",
       "nftAttributes": "Atributos del NFT",
+      "parsedFields": "Datos NFT analizados:",
       "numberNfts": "Número de NFTs:"
     },
     "sendTokens": {

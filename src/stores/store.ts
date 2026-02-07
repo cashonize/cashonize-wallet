@@ -31,8 +31,12 @@ import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
   tokenListFromUtxos,
-  updateTokenListWithAuthUtxos
+  updateTokenListWithAuthUtxos,
 } from "./storeUtils"
+import type { ParseResult } from "src/parsing/nftParsing"
+import { parseNft, getNftParsingInfo } from "src/parsing/nftParsing"
+import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
+import { buildSyntheticRegistry } from "src/parsing/registryBuilder"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -636,6 +640,26 @@ export const useStore = defineStore('store', () => {
   }
   
 
+  function parseNftCommitment(
+    categoryId: string,
+    utxo: Utxo
+  ): ParseResult | undefined {
+    const metadata = bcmrRegistries.value?.[categoryId];
+    if (!metadata) return undefined;
+
+    if (metadata.nft_type !== 'parsable') return undefined;
+
+    const registry = buildSyntheticRegistry(categoryId, metadata);
+    if (!registry) return undefined;
+
+    const parsingInfo = getNftParsingInfo(registry, categoryId);
+    if (!parsingInfo?.parseBytecode) return undefined;
+
+    const libauthOutput = utxoToLibauthOutput(utxo);
+
+    return parseNft(libauthOutput, registry);
+  }
+
   function hasPreGenesis(){
     const preGenesisUtxo = walletUtxos.value?.find(utxo => !utxo.token && utxo.vout === 0);
     plannedTokenId.value = preGenesisUtxo?.txid ?? undefined;
@@ -745,6 +769,7 @@ export const useStore = defineStore('store', () => {
     deleteWallet,
     fetchTokenInfo,
     fetchNftMetadata,
+    parseNftCommitment,
     hasPreGenesis,
     fetchAuthUtxos,
     fetchTokenMetadata,

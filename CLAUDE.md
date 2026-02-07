@@ -62,6 +62,14 @@ BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for CashTokens 
 
 Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.com/paytaca/bcmr-indexer) rather than importing full BCMR registry files. The `fetchTokenMetadata` function in `storeUtils.ts` handles this.
 
+### Parsable NFTs
+Cashonize is the first wallet to support parsable BCMR NFTs. When the indexer returns `nft_type: "parsable"` with `token.nfts` parse info (bytecode, types, fields), the wallet runs the parsing bytecode locally in a libauth VM to extract and display structured data from NFT commitments.
+
+Key files:
+- `src/parsing/nftParsing.ts`: VM-based commitment parsing engine
+- `src/parsing/registryBuilder.ts`: Converts indexer metadata into a BCMR Registry structure for the parser
+- `src/parsing/bcmr-v2.schema.ts`: TypeScript types for the BCMR v2 spec
+
 ### Component Organization
 ```
 src/components/

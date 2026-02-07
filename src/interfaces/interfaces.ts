@@ -62,6 +62,22 @@ export interface DialogInfo {
   txid: string
 }
 
+export interface BcmrTokenNftsParseInfo {
+  description?: string | undefined
+  fields?: Record<string, {
+    name?: string | undefined
+    description?: string | undefined
+    encoding:
+      | { type: "binary" | "boolean" | "hex" | "https-url" | "ipfs-cid" | "utf8" | "locktime" }
+      | { type: "number"; aggregate?: "add" | undefined; decimals?: number | undefined; unit?: string | undefined }
+    uris?: Record<string, string> | undefined
+    extensions?: BcmrExtensions | undefined
+  }> | undefined
+  parse:
+    | { bytecode: string; types: Record<string, { name: string; description?: string | undefined; fields?: string[] | undefined; uris?: Record<string, string> | undefined; extensions?: BcmrExtensions | undefined }> }
+    | { types: Record<string, { name: string; description?: string | undefined; fields?: string[] | undefined; uris?: Record<string, string> | undefined; extensions?: BcmrExtensions | undefined }> }
+}
+
 export interface BcmrTokenMetadata {
   name: string
   description: string
@@ -69,8 +85,10 @@ export interface BcmrTokenMetadata {
     category: string
     decimals?: number | undefined
     symbol: string
+    nfts?: BcmrTokenNftsParseInfo | undefined
   }
   is_nft?: boolean | undefined
+  nft_type?: "parsable" | "sequential" | undefined
   nfts?: Record<string, BcmrNftMetadata> | undefined
   uris?: Record<string, string> | undefined
   extensions?: BcmrExtensions | undefined
