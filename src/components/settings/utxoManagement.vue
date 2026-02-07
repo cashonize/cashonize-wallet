@@ -28,9 +28,13 @@
   });
 
   // hasNftUtxos and satsToSplit are only used in template when utxosWithBchAndTokens is defined
-  const hasNftUtxos = computed(() => utxosWithBchAndTokens.value!.some(utxo => utxo.token?.nft?.capability));
+  const hasNftUtxos = computed(() => {
+    if(!utxosWithBchAndTokens.value) return undefined;
+    return utxosWithBchAndTokens.value.some(utxo => utxo.token?.nft?.capability)
+  });
   const satsToSplit = computed(() => {
-    return utxosWithBchAndTokens.value!.reduce((sum:bigint, utxo) => sum + BigInt(utxo.satoshis) - 1000n, 0n)
+    if(!utxosWithBchAndTokens.value) return undefined;
+    return utxosWithBchAndTokens.value.reduce((sum:bigint, utxo) => sum + utxo.satoshis - 1000n, 0n)
   })
 
   function truncateHash(hash: string) {
@@ -164,7 +168,7 @@
           <span class="status-icon">!</span>
           <span>{{ utxosWithBchAndTokens.length > 1 ? t('utxoManagement.combined.warningCountPlural', { count: utxosWithBchAndTokens.length }) : t('utxoManagement.combined.warningCountSingle', { count: utxosWithBchAndTokens.length }) }}</span>
         </div>
-        <div class="description">
+        <div class="description" v-if="satsToSplit !== undefined">
           {{ t('utxoManagement.combined.description') }}
           {{ t('utxoManagement.combined.splittableAmount', { bch: satsToBch(satsToSplit) }) }}
           <span v-if="exchangeRate">({{ formatFiatAmount(exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})</span>

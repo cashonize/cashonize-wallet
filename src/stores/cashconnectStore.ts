@@ -302,7 +302,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
           lockingBytecode: lockingBytecode.bytecode,
           unlockingBytecode: {
             template: walletTemplateP2pkhNonHd,
-            valueSatoshis: BigInt(utxo.satoshis),
+            valueSatoshis: utxo.satoshis,
             script: "unlock",
             data: {
               keys: {
