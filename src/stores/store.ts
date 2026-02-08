@@ -120,6 +120,8 @@ export const useStore = defineStore('store', () => {
   let cancelWatchBchtxs: undefined | CancelFn;
   let cancelWatchTokenTxs: undefined | CancelFn;
   let cancelWatchBlocks: undefined | CancelFn;
+  // Track processed txids to prevent re-processing historical txs replayed by HD address discovery
+  const processedTokenTxIds = new Set<string>();
 
   // Create a callback that triggers when we switch networks.
   let networkChangeCallbacks: Array<() => Promise<void>> = [];
@@ -276,7 +278,6 @@ export const useStore = defineStore('store', () => {
         // to match way newBalance is calculated in watchBalance
         const oldBalance = walletUtxos.value?.reduce((acc, utxo) => acc + utxo.satoshis, BigInt(0));
         if(oldBalance && newBalance && walletInitialized.value){
-          console.log("watchBalance")
           if(oldBalance < newBalance){
             const balanceDifferenceSats = newBalance - oldBalance;
             let amountInUnit = Number(balanceDifferenceSats) / 100_000_000;
@@ -313,6 +314,9 @@ export const useStore = defineStore('store', () => {
         }
       })
     );
+    // Note: mainnet-js HD wallets have a bug where address discovery replays historical txs
+    // as "new" through watchTokenTransactions. The confirmations and dedup guards below work
+    // around this until fixed upstream.
     cancelWatchTokenTxs = await wallet.value.watchTokenTransactions(
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
@@ -320,16 +324,30 @@ export const useStore = defineStore('store', () => {
         // guard against race condition: if an Electrum notification arrives during init
         // (e.g. new block), mainnet-js replays all history as "new" causing a cascade
         if(!walletInitialized.value) return
+        // Deduplicate: HD wallet address discovery can cause historical tx replays
+        if(processedTokenTxIds.has(tx.txid)) return
+        processedTokenTxIds.add(tx.txid);
+        // Skip historical transactions replayed by HD address discovery
+        // Genuinely new txs arrive with 0 or undefined confirmations (mempool) or 1 (just mined)
+        // Note: mainnet-js returns confirmations as undefined for unconfirmed txs
+        if(tx.confirmations !== undefined && tx.confirmations > 1) return
         const receivedTokenOutputs = tx.vout.filter(voutElem =>
           voutElem.tokenData && voutElem.scriptPubKey.addresses?.[0] &&
           wallet.value.hasAddress(voutElem.scriptPubKey.addresses[0])
         );
         const previousTokenList = tokenList.value;
         const listNewTokens:TokenList = []
-        const userInputs = tx.vin.filter(vinElem => vinElem.address && wallet.value.hasAddress(vinElem.address));
+        // Note: mainnet-js watchTransactions doesn't expose vin.address (requires loadInputValues=true),
+        // so we detect self-sends via change output heuristic instead
+        // User-initiated token txs need a BCH input for fees, producing BCH change back to the wallet
+        const hasChangeToWallet = tx.vout.some(voutElem =>
+          !voutElem.tokenData && voutElem.scriptPubKey.addresses?.[0] &&
+          wallet.value.hasAddress(voutElem.scriptPubKey.addresses[0])
+        );
+        const isUserInitiated = hasChangeToWallet;
         for(const tokenOutput of receivedTokenOutputs){
           // Check if transaction not initiated by user
-          if(!userInputs.length){
+          if(!isUserInitiated){
             const tokenType = tokenOutput.tokenData?.nft ? "NFT" : "tokens"
             Notify.create({
               type: 'positive',
@@ -373,6 +391,7 @@ export const useStore = defineStore('store', () => {
       void cancelWatchTokenTxs()
       void cancelWatchBlocks()
     }
+    processedTokenTxIds.clear();
     // reset wallet to default state
     balance.value = undefined;
     maxAmountToSend.value = undefined;
