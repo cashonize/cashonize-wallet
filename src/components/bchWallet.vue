@@ -199,7 +199,8 @@
         if (!confirmed) return
       }
 
-      const amountSats = BigInt(await convert(bchSendAmount.value, settingsStore.bchUnit, "sat"))
+      let amountSats = BigInt(Math.round(bchSendAmount.value * 100_000_000))
+      if(settingsStore.bchUnit === 'sat') amountSats = BigInt(bchSendAmount.value)
       const sendBchOutput = { cashaddr: destinationAddr.value, value:amountSats } ;
       $q.notify({
         spinner: true,
@@ -208,7 +209,8 @@
         timeout: 1000
       })
       const { txId } = await store.wallet.send([ sendBchOutput ]);
-      const alertMessage = t('wallet.sent', { amount: bchSendAmount.value + displayUnitLong.value, address: destinationAddr.value })
+      const formattedAmount = numberFormatter.format(bchSendAmount.value)
+      const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address: destinationAddr.value })
       $q.dialog({
         component: alertDialog,
         componentProps: {
