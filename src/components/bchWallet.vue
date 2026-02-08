@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch, shallowRef } from 'vue'
-  import { convert, toBch, ExchangeRate } from 'mainnet-js'
+  import { convert, ExchangeRate } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
@@ -173,7 +173,7 @@
       // check for valid inputs
       if(!destinationAddr.value) throw(t('wallet.errors.noDestination'))
       if(!bchSendAmount.value) throw(t('wallet.errors.noAmount'))
-      if(bchSendAmount.value > toBch(store.maxAmountToSend ?? 0n)) throw(t('wallet.errors.insufficientFunds'))
+      if(bchSendAmount.value > (maxAmountToSendInBchUnit.value ?? 0)) throw(t('wallet.errors.insufficientFunds'))
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         destinationAddr.value = networkPrefix + destinationAddr.value
