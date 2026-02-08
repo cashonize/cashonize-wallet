@@ -612,13 +612,26 @@
   },
   "sweepPrivateKey": {
     "title": "Balayer une clé privée",
-    "description": "Balayer les BCH d'une clé privée WIF :",
-    "placeholder": "Entrez la clé privée (WIF)",
+    "description": "Balayer les BCH et tokens d'un portefeuille papier, cashstamp ou clé privée :",
+    "placeholder": "Entrez la clé privée",
     "sweepingButton": "Balayage...",
     "sweepButton": "Balayer",
+    "previewButton": "Aperçu",
+    "loadingButton": "Chargement...",
+    "sweepAllButton": "Tout balayer",
+    "emptyWallet": "Aucun solde trouvé sur cette clé privée",
+    "preview": {
+      "bchBalance": "Solde BCH :",
+      "tokens": "Tokens :",
+      "nfts": "NFTs :",
+      "noTokens": "Aucun token"
+    },
     "notifications": {
       "noWifProvided": "Aucune clé privée WIF fournie pour le balayage",
       "sendingTransaction": "Envoi de la transaction...",
+      "sweepingTokens": "Balayage des tokens...",
+      "sweepingNfts": "Balayage des NFTs...",
+      "sweepingBch": "Balayage des BCH...",
       "success": "Fonds balayés avec succès depuis la clé privée"
     },
     "qrErrors": {
