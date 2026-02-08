@@ -278,15 +278,24 @@ export const useStore = defineStore('store', () => {
         if(oldBalance && newBalance && walletInitialized.value){
           console.log("watchBalance")
           if(oldBalance < newBalance){
-            const amountReceived = Number(newBalance - oldBalance) / 100_000_000
-            const currencyValue = await convert(amountReceived, settingsStore.bchUnit, settingsStore.currency);
-            const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
+            const balanceDifferenceSats = newBalance - oldBalance;
+            let amountInUnit = Number(balanceDifferenceSats) / 100_000_000;
+            let unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH';
+            let maxFractionDigits = 8;
+            if(settingsStore.bchUnit === 'sat'){
+              amountInUnit = Number(balanceDifferenceSats);
+              unitString = network.value == 'mainnet' ? 'sats' : 'tsats';
+              maxFractionDigits = 0;
+            }
+            const currencyValue = await convert(amountInUnit, settingsStore.bchUnit, settingsStore.currency);
+            const formattedAmount = amountInUnit.toLocaleString("en-US", { maximumFractionDigits: maxFractionDigits })
+            const formattedFiat = currencyValue.toLocaleString("en-US", { maximumFractionDigits: 2 }) + CurrencySymbols[settingsStore.currency]
             Notify.create({
               type: 'positive',
               message: t('store.notifications.receivedBch', {
-                amount: amountReceived,
+                amount: formattedAmount,
                 unit: unitString,
-                fiatValue: currencyValue + CurrencySymbols[settingsStore.currency]
+                fiatValue: formattedFiat
               })
             })
           }
