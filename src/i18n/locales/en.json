@@ -627,7 +627,7 @@
       "noTokens": "No tokens"
     },
     "notifications": {
-      "noWifProvided": "No private key WIF provided to sweep",
+      "noWifProvided": "No private key provided to sweep",
       "sendingTransaction": "Sending transaction...",
       "sweepingTokens": "Sweeping tokens...",
       "sweepingNfts": "Sweeping NFTs...",

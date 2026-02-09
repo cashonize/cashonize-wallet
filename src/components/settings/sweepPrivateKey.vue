@@ -8,7 +8,7 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
-  import { getTokenUtxos, getBalanceFromUtxos, convertToCurrency, formatFiatAmount } from 'src/utils/utils'
+  import { getTokenUtxos, convertToCurrency, formatFiatAmount } from 'src/utils/utils'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import type { TokenList } from 'src/interfaces/interfaces'
   import type { BcmrTokenResponse } from 'src/utils/zodValidation'
@@ -124,7 +124,8 @@
       const tempWallet = await createTempWallet(wif);
       const utxos = await tempWallet.getUtxos();
 
-      bchBalanceSats.value = getBalanceFromUtxos(utxos);
+      // Include sats from token UTXOs since those will be recovered after sweeping the tokens
+      bchBalanceSats.value = utxos.reduce((sum, utxo) => sum + utxo.satoshis, 0n);
       const tokenUtxos = getTokenUtxos(utxos);
 
       // Fetch fiat value for BCH balance
@@ -209,7 +210,9 @@
         });
         for (const token of nftsToSweep) {
           if (!('nfts' in token)) continue;
-          const nftOutputs = token.nfts.map(nftUtxo => {
+          const nftUtxos = token.nfts.filter(utxo => utxo.token?.nft);
+          if (nftUtxos.length === 0) continue;
+          const nftOutputs = nftUtxos.map(nftUtxo => {
             const nftInfo = nftUtxo.token!.nft!;
             return new TokenSendRequest({
               cashaddr: tokenAwareAddress,

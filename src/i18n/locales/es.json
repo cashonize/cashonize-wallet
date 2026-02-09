@@ -627,7 +627,7 @@
       "noTokens": "Sin tokens"
     },
     "notifications": {
-      "noWifProvided": "No se proporcionó una clave privada WIF para barrer",
+      "noWifProvided": "No se proporcionó una clave privada para barrer",
       "sendingTransaction": "Enviando transacción...",
       "sweepingTokens": "Barriendo tokens...",
       "sweepingNfts": "Barriendo NFTs...",

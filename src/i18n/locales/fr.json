@@ -627,7 +627,7 @@
       "noTokens": "Aucun token"
     },
     "notifications": {
-      "noWifProvided": "Aucune clé privée WIF fournie pour le balayage",
+      "noWifProvided": "Aucune clé privée fournie pour le balayage",
       "sendingTransaction": "Envoi de la transaction...",
       "sweepingTokens": "Balayage des tokens...",
       "sweepingNfts": "Balayage des NFTs...",
