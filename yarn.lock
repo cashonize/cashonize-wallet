@@ -767,7 +767,7 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@mainnet-cash/indexeddb-storage@^3.0.1":
+"@mainnet-cash/indexeddb-storage@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-3.1.0.tgz#fbaddc8049bbd4100f8d4a7cbbabcfba36ea6bad"
   integrity sha512-tQT3SatDIunBNUoKMNJRuhHjX12bCCgWNdejE10bXCmPawsTGkOurhW9QVxhiqqcaDCgOoFRl7pOXoOf+WrFCg==
@@ -4860,7 +4860,7 @@ magic-string@^0.30.21:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.5"
 
-mainnet-js@3.1.0, mainnet-js@^3.0.1:
+mainnet-js@3.1.0, mainnet-js@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-3.1.0.tgz#22060623003390fd16c93159dff9c9c4ec2efb50"
   integrity sha512-diokx9AQfa6c9DDJal+VnlDmemzrajugFlOGqWZ4fEjX1qvtXafxOJTg824JJcYt8VjUIAJVlDqufLGPuMxmQQ==
