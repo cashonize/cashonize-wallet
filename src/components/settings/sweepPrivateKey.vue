@@ -154,12 +154,10 @@
       insufficientFeeBch.value = hasTokens && allUtxosAreDustTokens;
 
       // Fetch BCMR metadata for tokens not already in the store's registries
-      if (previewTokenList.value.length > 0) {
-        const fetchPromises = previewTokenList.value
-          .filter(token => !store.bcmrRegistries?.[token.category])
-          .map(token => fetchUnverifiedTokenInfo(token.category));
-        await Promise.all(fetchPromises);
-      }
+      const categories = new Set(previewTokenList.value.map(token => token.category));
+      const categoriesToFetch = [...categories].filter(category => !store.bcmrRegistries?.[category]);
+      const fetchPromises = categoriesToFetch.map(category => fetchUnverifiedTokenInfo(category));
+      await Promise.all(fetchPromises);
 
       previewReady.value = true;
     } catch (error) {
