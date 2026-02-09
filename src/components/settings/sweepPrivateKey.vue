@@ -71,9 +71,9 @@
     if (!privateKeyToSweep.value) {
       throw new Error(t('sweepPrivateKey.notifications.noWifProvided'));
     }
-    return privateKeyToSweep.value.startsWith('bch-wif:')
-      ? privateKeyToSweep.value.slice(8)
-      : privateKeyToSweep.value;
+    let wif = privateKeyToSweep.value;
+    if (wif.startsWith('bch-wif:')) wif = wif.slice(8);
+    return wif;
   }
 
   async function fetchUnverifiedTokenInfo(categoryHex: string) {
@@ -101,8 +101,8 @@
   }
 
   function tokenName(categoryHex: string): string {
-    return getTokenMetadata(categoryHex)?.name
-      ?? `${categoryHex.slice(0, 8)}...${categoryHex.slice(-4)}`;
+    const truncatedId = `${categoryHex.slice(0, 8)}...${categoryHex.slice(-4)}`;
+    return getTokenMetadata(categoryHex)?.name ?? truncatedId;
   }
 
   function getTokenIconUrl(tokenId: string): string | undefined {
@@ -168,8 +168,7 @@
     try {
       const wif = getWifToSweep();
       const tempWallet = await createTempWallet(wif);
-      const tokenDepositAddress = store.wallet.getTokenDepositAddress();
-      const mainWalletAddress = store.wallet.getDepositAddress();
+      const tokenAwareAddress = store.wallet.getTokenDepositAddress();
 
       // If no preview was done, fetch UTXOs to check for tokens
       let tokensToSweep = previewTokenList.value;
@@ -191,7 +190,7 @@
           if (!('amount' in token)) continue;
           await tempWallet.send([
             new TokenSendRequest({
-              cashaddr: tokenDepositAddress,
+              cashaddr: tokenAwareAddress,
               amount: token.amount,
               category: token.category,
             }),
@@ -213,7 +212,7 @@
           const nftOutputs = token.nfts.map(nftUtxo => {
             const nftInfo = nftUtxo.token!.nft!;
             return new TokenSendRequest({
-              cashaddr: tokenDepositAddress,
+              cashaddr: tokenAwareAddress,
               category: token.category,
               nft: {
                 commitment: nftInfo.commitment,
@@ -232,7 +231,7 @@
         color: 'grey-5',
         timeout: 1000
       });
-      await tempWallet.sendMax(mainWalletAddress);
+      await tempWallet.sendMax(tokenAwareAddress);
 
       $q.notify({
         type: 'positive',
