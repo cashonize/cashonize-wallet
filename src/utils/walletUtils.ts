@@ -1,8 +1,10 @@
-import { Wallet, TestNetWallet, Config } from "mainnet-js"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "mainnet-js"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { namedWalletExistsInDb } from 'src/utils/dbUtils'
 import { isQuotaExceededError } from 'src/utils/errorHandling'
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 
 export type DerivationPathType = "standard" | "bitcoindotcom";
 
@@ -44,13 +46,13 @@ const MAX_WALLET_NAME_LENGTH = 50;
 export function validateWalletName(name: string): WalletError | null {
   const trimmed = name.trim();
   if (!trimmed) {
-    return makeError("Please enter a wallet name", true);
+    return makeError(t('walletUtils.errors.enterWalletName'), true);
   }
   if (trimmed.length > MAX_WALLET_NAME_LENGTH) {
-    return makeError(`Wallet name too long (max ${MAX_WALLET_NAME_LENGTH} characters)`, true);
+    return makeError(t('walletUtils.errors.walletNameTooLong', { max: MAX_WALLET_NAME_LENGTH }), true);
   }
   if (INVALID_NAME_CHARS.test(trimmed)) {
-    return makeError("Wallet name contains invalid characters", true);
+    return makeError(t('walletUtils.errors.walletNameInvalidChars'), true);
   }
   return null;
 }
@@ -69,7 +71,7 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
     const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
-      return makeError(`Wallet "${trimmedName}" already exists`, true);
+      return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
 
     const store = useStore();
@@ -98,12 +100,12 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     return { success: true, walletName: trimmedName };
   } catch (error) {
     if (isQuotaExceededError(error)) {
-      return makeError("Storage full - unable to save wallet. Check browser storage settings.", false);
+      return makeError(t('walletUtils.errors.storageFull'), false);
     }
     if (typeof error === 'string') {
       return makeError(error, true);
     }
-    return makeError("Failed to create wallet", false);
+    return makeError(t('walletUtils.errors.failedToCreateWallet'), false);
   }
 }
 
@@ -126,11 +128,11 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
   const trimmedName = params.name.trim();
 
   if (!seedPhrase) {
-    return makeError("Enter a seed phrase to import wallet", true);
+    return makeError(t('walletUtils.errors.enterSeedPhrase'), true);
   }
 
   if (!seedPhraseValid) {
-    return makeError("Please fix invalid words in your seed phrase", true);
+    return makeError(t('walletUtils.errors.fixInvalidWords'), true);
   }
 
   try {
@@ -138,7 +140,7 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
     const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
-      return makeError(`Wallet "${trimmedName}" already exists`, true);
+      return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
 
     const store = useStore();
@@ -174,11 +176,121 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     return { success: true, walletName: trimmedName };
   } catch (error) {
     if (isQuotaExceededError(error)) {
-      return makeError("Storage full - unable to save wallet. Check browser storage settings.", false);
+      return makeError(t('walletUtils.errors.storageFull'), false);
     }
     if (typeof error === 'string') {
       return makeError(error, true);
     }
-    return makeError("Not a valid seed phrase", false);
+    return makeError(t('walletUtils.errors.invalidSeedPhrase'), false);
+  }
+}
+
+/**
+ * Creates a new HD wallet with the given name.
+ * HD wallets support multiple addresses (BIP44) with automatic address discovery.
+ */
+export async function createNewHDWallet(name: string): Promise<WalletOperationResult> {
+  const validationError = validateWalletName(name);
+  if (validationError) return validationError;
+  const trimmedName = name.trim();
+
+  try {
+    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    if (existsMainnet || existsChipnet) {
+      return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
+    }
+
+    const store = useStore();
+    const settingsStore = useSettingsStore();
+
+    Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
+    const mainnetWallet = await HDWallet.named(trimmedName);
+    const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
+    await TestNetHDWallet.replaceNamed(trimmedName, walletId);
+
+    store.activeWalletName = trimmedName;
+    localStorage.setItem('activeWalletName', trimmedName);
+    store.setWallet(mainnetWallet);
+
+    // Set wallet type BEFORE initializeWallet (which validates type matches)
+    settingsStore.setWalletType(trimmedName, 'hd');
+    settingsStore.setWalletCreatedAt(trimmedName);
+
+    await store.refreshAvailableWallets();
+    void store.initializeWallet();
+
+    return { success: true, walletName: trimmedName };
+  } catch (error) {
+    if (isQuotaExceededError(error)) {
+      return makeError(t('walletUtils.errors.storageFull'), false);
+    }
+    if (typeof error === 'string') {
+      return makeError(error, true);
+    }
+    return makeError(t('walletUtils.errors.failedToCreateWallet'), false);
+  }
+}
+
+/**
+ * Imports an HD wallet from a seed phrase.
+ * HD wallets support multiple addresses (BIP44) with automatic address discovery.
+ */
+export async function importHDWallet(params: ImportWalletParams): Promise<WalletOperationResult> {
+  const { seedPhrase, seedPhraseValid, derivationPath } = params;
+
+  const validationError = validateWalletName(params.name);
+  if (validationError) return validationError;
+  const trimmedName = params.name.trim();
+
+  if (!seedPhrase) {
+    return makeError(t('walletUtils.errors.enterSeedPhrase'), true);
+  }
+
+  if (!seedPhraseValid) {
+    return makeError(t('walletUtils.errors.fixInvalidWords'), true);
+  }
+
+  try {
+    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    if (existsMainnet || existsChipnet) {
+      return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
+    }
+
+    const store = useStore();
+    const settingsStore = useSettingsStore();
+
+    const parentDerivationPath = DERIVATION_PATHS[derivationPath].parent;
+
+    const walletId = `hd:mainnet:${seedPhrase}:${parentDerivationPath}:0:0`;
+    await HDWallet.replaceNamed(trimmedName, walletId);
+
+    const walletIdTestnet = `hd:testnet:${seedPhrase}:${parentDerivationPath}:0:0`;
+    await TestNetHDWallet.replaceNamed(trimmedName, walletIdTestnet);
+
+    const mainnetWallet = await HDWallet.named(trimmedName);
+
+    store.activeWalletName = trimmedName;
+    localStorage.setItem('activeWalletName', trimmedName);
+    store.setWallet(mainnetWallet);
+
+    // Set wallet type BEFORE initializeWallet (which validates type matches)
+    settingsStore.setWalletType(trimmedName, 'hd');
+    settingsStore.setBackupStatus(trimmedName, 'imported');
+    settingsStore.setWalletCreatedAt(trimmedName);
+
+    await store.refreshAvailableWallets();
+    void store.initializeWallet();
+
+    return { success: true, walletName: trimmedName };
+  } catch (error) {
+    if (isQuotaExceededError(error)) {
+      return makeError(t('walletUtils.errors.storageFull'), false);
+    }
+    if (typeof error === 'string') {
+      return makeError(error, true);
+    }
+    return makeError(t('walletUtils.errors.invalidSeedPhrase'), false);
   }
 }

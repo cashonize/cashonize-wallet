@@ -3,16 +3,19 @@
   import Toggle from '@vueform/toggle'
   import { Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
+  import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
   import { defaultWalletName } from 'src/stores/constants'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import seedPhraseInput from './general/seedPhraseInput.vue'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil } from 'src/utils/walletUtils'
+  import LanguageSelector from './general/LanguageSelector.vue'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, DERIVATION_PATHS } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import type { Currency } from 'src/interfaces/interfaces'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+  const { t } = useI18n()
 
   // Step: 1 = choose create/import, 2 = enter details & create, 3 = preferences
   const step = ref(1);
@@ -23,6 +26,7 @@
   const seedPhrase = ref('');
   const seedPhraseValid = ref(false);
   const selectedDerivationPath = ref<DerivationPathType>("standard");
+  const walletType = ref<'single' | 'hd'>('single');
 
   // Preferences - initialize from settingsStore (which reads from localStorage/system preferences)
   const selectedCurrency = ref<Currency>(settingsStore.currency);
@@ -44,7 +48,8 @@
   }
 
   async function createNewWallet() {
-    const result = await createWallet(walletName.value);
+    const createFn = walletType.value === 'hd' ? createNewHDWallet : createWallet;
+    const result = await createFn(walletName.value);
     if (result.success) {
       step.value = 3;
     } else {
@@ -57,7 +62,8 @@
   }
 
   async function importWallet() {
-    const result = await importWalletUtil({
+    const importFn = walletType.value === 'hd' ? importHDWallet : importWalletUtil;
+    const result = await importFn({
       name: walletName.value,
       seedPhrase: seedPhrase.value,
       seedPhraseValid: seedPhraseValid.value,
@@ -105,119 +111,147 @@
     <!-- Step 1: Welcome & Choose Create or Import -->
     <div v-if="step === 1">
       <div style="margin-bottom: 25px;">
-        <h3 style="margin-bottom: 10px;">Welcome to Cashonize</h3>
+        <div class="welcome-header">
+          <h3 style="margin-bottom: 0;">{{ t('onboarding.welcome.title') }}</h3>
+          <LanguageSelector class="language-selector" style="width: 124px;" />
+        </div>
         <p style="color: grey; margin-bottom: 20px;">
-          An easy-to-use Bitcoin Cash wallet with a focus on CashTokens and BCH dApps.
+          {{ t('onboarding.welcome.description') }}
         </p>
         <div class="features-list">
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>Send &amp; receive BCH and CashTokens</span>
+            <span>{{ t('onboarding.welcome.featureSendReceive') }}</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>Connect to dApps via WalletConnect</span>
+            <span>{{ t('onboarding.welcome.featureWalletConnect') }}</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>Open-source and non-custodial</span>
+            <span>{{ t('onboarding.welcome.featureOpenSource') }}</span>
           </div>
         </div>
       </div>
       <hr style="margin: 25px 0;">
       <div style="margin: 20px 0;">
-        <h4><img class="icon plusIcon" :src="settingsStore.darkMode ? 'images/plus-square-lightGrey.svg' : 'images/plus-square.svg'"> Create new wallet</h4>
-        <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">Get started with a fresh wallet in seconds</p>
-        <input @click="selectCreate()" class="button primary" type="button" value="Create new wallet">
+        <h4><img class="icon plusIcon" :src="settingsStore.darkMode ? 'images/plus-square-lightGrey.svg' : 'images/plus-square.svg'"> {{ t('onboarding.create.title') }}</h4>
+        <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">{{ t('onboarding.create.description') }}</p>
+        <input @click="selectCreate()" class="button primary" type="button" :value="t('onboarding.create.button')">
       </div>
       <hr style="margin: 25px 0;">
       <div style="margin: 20px 0;">
-        <h4><img class="icon importIcon" :src="settingsStore.darkMode ? 'images/import-lightGrey.svg' : 'images/import.svg'"> Import existing wallet</h4>
-        <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">Restore using your seed phrase</p>
-        <input @click="selectImport()" class="button primary" type="button" value="Import wallet">
+        <h4><img class="icon importIcon" :src="settingsStore.darkMode ? 'images/import-lightGrey.svg' : 'images/import.svg'"> {{ t('onboarding.import.title') }}</h4>
+        <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">{{ t('onboarding.import.description') }}</p>
+        <input @click="selectImport()" class="button primary" type="button" :value="t('onboarding.import.button')">
       </div>
     </div>
 
     <!-- Step 2: Enter details and create/import -->
     <div v-else-if="step === 2">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="goBack()">
-        ← Back
+        ← {{ t('common.actions.back') }}
       </div>
 
       <!-- Create mode -->
       <div v-if="mode === 'create'">
-        <legend>Create new wallet</legend>
+        <legend>{{ t('onboarding.create.title') }}</legend>
         <div style="margin: 20px 0;">
-          <label for="walletName" style="display: block; margin-bottom: 8px;">Wallet name:</label>
+          <label for="walletName" style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletName.label') }}</label>
           <input
             v-model="walletName"
             id="walletName"
             type="text"
-            placeholder="Enter wallet name"
+            :placeholder="t('onboarding.walletName.placeholder')"
             style="padding: 8px; min-width: 200px;"
           >
         </div>
-        <div style="font-size: smaller; color: grey; margin: 10px 0;">
-          A new seed phrase will be generated. Back it up to secure your wallet.
+        <div style="margin: 15px 0;">
+          <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
+          <select v-model="walletType" style="padding: 8px; min-width: 200px;">
+            <option value="single">{{ t('onboarding.walletType.single') }}</option>
+            <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
+          </select>
+          <div style="margin-top: 5px;">
+            {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
+          </div>
+          <div v-if="walletType === 'hd'" style="margin-top: 5px; font-size: smaller; color: grey;">
+            {{ t('onboarding.walletType.hdNote') }}
+          </div>
         </div>
-        <input @click="createNewWallet()" class="button primary" type="button" value="Create wallet" style="margin-bottom: 15px;">
+        <div style="font-size: smaller; color: grey; margin: 10px 0;">
+          {{ t('onboarding.create.seedPhraseNote') }}
+        </div>
+        <input @click="createNewWallet()" class="button primary" type="button" :value="t('onboarding.create.submitButton')" style="margin-bottom: 15px;">
       </div>
 
       <!-- Import mode -->
       <div v-else>
-        <legend>Import existing wallet</legend>
+        <legend>{{ t('onboarding.import.title') }}</legend>
         <div style="margin: 20px 0;">
-          <label for="walletNameImport" style="display: block; margin-bottom: 8px;">Wallet name:</label>
+          <label for="walletNameImport" style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletName.label') }}</label>
           <input
             v-model="walletName"
             id="walletNameImport"
             type="text"
-            placeholder="Enter wallet name"
+            :placeholder="t('onboarding.walletName.placeholder')"
             style="padding: 8px; min-width: 200px;"
           >
         </div>
         <div style="margin: 20px 0;">
           <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
         </div>
-        <div style="margin-bottom: 20px;">
-          <span>Derivation path: </span>
-          <select v-model="selectedDerivationPath">
-            <option value="standard">m/44'/145'/0' (standard)</option>
-            <option value="bitcoindotcom">m/44'/0'/0' (bitcoin.com wallet)</option>
+        <div style="margin: 15px 0;">
+          <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
+          <select v-model="walletType" style="padding: 8px; min-width: 200px;">
+            <option value="single">{{ t('onboarding.walletType.single') }}</option>
+            <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
           </select>
-          <div style="margin-top: 5px; font-size: smaller; color: grey;">
-            Note: Only the first address from your seed phrase will be used.
-            If you've used this seed with other wallets, funds on other addresses won't appear.
+          <div style="margin-top: 5px;">
+            {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
+          </div>
+          <div v-if="walletType === 'single'" style="margin-top: 5px; font-size: smaller; color: grey;">
+            {{ t('onboarding.walletType.singleAddressNote') }}
+          </div>
+          <div v-if="walletType === 'hd'" style="margin-top: 5px; font-size: smaller; color: grey;">
+            {{ t('onboarding.walletType.hdNote') }}
           </div>
         </div>
-        <input @click="importWallet()" class="button primary" type="button" value="Import wallet" style="margin-bottom: 15px;">
+        <div style="margin-bottom: 20px;">
+          <span>{{ t('onboarding.derivationPath.label') }} </span>
+          <select v-model="selectedDerivationPath">
+            <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('onboarding.derivationPath.standard') }})</option>
+            <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('onboarding.derivationPath.bitcoindotcom') }})</option>
+          </select>
+        </div>
+        <input @click="importWallet()" class="button primary" type="button" :value="t('onboarding.import.submitButton')" style="margin-bottom: 15px;">
       </div>
     </div>
 
     <!-- Step 3: Preferences -->
     <div v-else-if="step === 3">
-      <legend>Set up your preferences</legend>
-      <p style="margin-top: 15px; margin-bottom: 20px;">Almost done! Configure your preferences below.</p>
+      <legend>{{ t('onboarding.preferences.title') }}</legend>
+      <p style="margin-top: 15px; margin-bottom: 20px;">{{ t('onboarding.preferences.description') }}</p>
 
       <div style="margin-bottom: 20px;">
-        <label for="selectCurrency" style="display: block; margin-bottom: 8px;">Preferred currency:</label>
+        <label for="selectCurrency" style="display: block; margin-bottom: 8px;">{{ t('onboarding.preferences.currency.label') }}</label>
         <select v-model="selectedCurrency" id="selectCurrency" style="padding: 8px; min-width: 150px;">
-          <option value="usd">USD - US Dollar (default)</option>
-          <option value="eur">EUR - Euro</option>
-          <option value="gbp">GBP - British Pound</option>
-          <option value="cad">CAD - Canadian Dollar</option>
-          <option value="aud">AUD - Australian Dollar</option>
+          <option value="usd">{{ t('onboarding.preferences.currency.usd') }}</option>
+          <option value="eur">{{ t('onboarding.preferences.currency.eur') }}</option>
+          <option value="gbp">{{ t('onboarding.preferences.currency.gbp') }}</option>
+          <option value="cad">{{ t('onboarding.preferences.currency.cad') }}</option>
+          <option value="aud">{{ t('onboarding.preferences.currency.aud') }}</option>
         </select>
       </div>
 
       <div style="margin-bottom: 20px;">
-        Dark mode <Toggle v-model="selectedDarkMode" @change="applyDarkMode" />
+        {{ t('onboarding.preferences.darkMode') }} <Toggle v-model="selectedDarkMode" @change="applyDarkMode" />
       </div>
 
       <div style="margin-bottom: 25px;">
-        Confirm payments before sending <Toggle v-model="confirmBeforeSending" />
+        {{ t('onboarding.preferences.confirmPayments') }} <Toggle v-model="confirmBeforeSending" />
         <div style="font-size: smaller; color: grey;">
-          Ask for confirmation after clicking send (recommended)
+          {{ t('onboarding.preferences.confirmPaymentsHint') }}
         </div>
       </div>
 
@@ -225,7 +259,7 @@
         @click="savePreferencesAndFinish()"
         class="button primary"
         type="button"
-        value="Finish Setup"
+        :value="t('onboarding.preferences.finishButton')"
         style="padding: 12px 24px; margin-bottom: 15px;"
       >
     </div>
@@ -233,6 +267,22 @@
 </template>
 
 <style scoped>
+.welcome-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.language-selector {
+  padding: 4px 8px;
+}
+@media (max-width: 500px) {
+  .welcome-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
 .features-list {
   display: flex;
   flex-direction: column;

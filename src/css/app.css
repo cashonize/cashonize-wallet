@@ -85,7 +85,7 @@ img {
   cursor: pointer;
 }
 .depositAddr,
-.tokenId {
+.category {
   overflow-wrap: anywhere;
   color: var(--color-grey);
 }
@@ -156,6 +156,7 @@ input[type='number'] {
 }
 .tokenAmount {
   margin-left: 30px;
+  max-width: 240px;
 }
 .addressInputFtSend {
   margin-right: 14px;
@@ -252,10 +253,23 @@ body.dark .wallet-name-styled {
   }
 }
 
-/* offset chota styling for quasar notify plugin */
-.row {
+/* offset chota .row styling for quasar components */
+.q-notifications .row {
   margin: auto;
   margin-right: auto !important;
+}
+.q-dialog .row {
+  margin: auto;
+  margin-right: auto !important;
+}
+.q-pagination {
+  justify-content: center;
+  margin-left: 0;
+  margin-right: 0;
+}
+.q-pagination .row {
+  margin-left: 0;
+  margin-right: 0;
 }
 .col {
   margin: 0;

@@ -5,14 +5,16 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWindowSize } from '@vueuse/core'
   import { convert, type TransactionHistoryItem } from 'mainnet-js';
-  import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols, type TokenDataNFT } from 'src/interfaces/interfaces';
+  import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import { formatTimestamp, formatRelativeTime, satsToBch } from 'src/utils/utils';
+  import { useI18n } from 'vue-i18n'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+  const { t } = useI18n()
 
   const { width } = useWindowSize();
   const isMobilePhone = computed(() => width.value < 480)
@@ -30,7 +32,7 @@
     if(!copyText) return
     void navigator.clipboard.writeText(copyText);
     $q.notify({
-      message: "Copied!",
+      message: t('transactionDialog.copied'),
       icon: 'info',
       timeout : 1000,
       color: "grey-6"
@@ -45,14 +47,19 @@
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
 
-  const ourAddress = store.wallet.cashaddr ?? "";
+  function formatTokenAmount(amount: bigint, category: string) {
+    const decimals = store.bcmrRegistries?.[category]?.token.decimals ?? 0;
+    const value = Number(amount) / 10 ** decimals;
+    return value.toLocaleString("en-US", { maximumFractionDigits: decimals });
+  }
+
   const feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.00";
   const currencySymbol = CurrencySymbols[settingsStore.currency];
 
-  const loadTokenMetadata = async (tokenId: string, commitment: string | undefined) => {
-    if (!store.bcmrRegistries?.[tokenId]) {
+  const loadTokenMetadata = async (category: string, commitment: string | undefined) => {
+    if (!store.bcmrRegistries?.[category]) {
       $q.notify({
-        message: "Unknown token",
+        message: t('transactionDialog.unknownToken'),
         icon: 'info',
         timeout : 1000,
         color: "grey-6"
@@ -60,16 +67,16 @@
       return;
     }
 
-    selectedTokenId.value = tokenId;
+    selectedTokenId.value = category;
     if (commitment === undefined) {
-      tokenMetadata.value = store.bcmrRegistries[tokenId];
+      tokenMetadata.value = store.bcmrRegistries[category];
       return;
     }
 
-    if (!store.bcmrRegistries[tokenId].nfts?.[commitment]) {
-      await store.fetchTokenMetadata([{tokenId, nfts: [{token: {tokenId, commitment}}]} as TokenDataNFT], true);
+    if (!store.bcmrRegistries[category].nfts?.[commitment]) {
+      await store.fetchNftMetadata(category, commitment);
     }
-    tokenMetadata.value = store.bcmrRegistries[tokenId].nfts?.[commitment];
+    tokenMetadata.value = store.bcmrRegistries[category].nfts?.[commitment];
     selectedTokenCommitment.value = commitment;
   }
 </script>
@@ -88,11 +95,11 @@
       </div>
 
       <fieldset class="dialogFieldset">
-        <legend style="font-size: large;">Transaction</legend>
+        <legend style="font-size: large;">{{ t('transactionDialog.title') }}</legend>
 
         <div style="display: flex; flex-direction: column; gap: 1rem">
           <div>
-            {{ isMobilePhone? 'TxId: ' : 'Transaction ID: ' }}
+            {{ isMobilePhone? t('transactionDialog.txIdShort') : t('transactionDialog.txIdFull') }}
             <span :href="store.explorerUrl + `/${historyItem.hash}`" @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer; color: var(--color-grey);">
               {{ historyItem.hash.slice(0, 12) + "..." + historyItem.hash.slice(52) }}
             </span>
@@ -102,56 +109,55 @@
           </div>
           <div>
             <a :href="store.explorerUrl + `/${historyItem.hash}`" target="_blank" style="display: inline-block;">
-              Link to BlockExplorer
+              {{ t('transactionDialog.linkToExplorer') }}
             </a>
             <span @click="() => copyToClipboard(store.explorerUrl + `/${historyItem.hash}`)" style="cursor:pointer;">
               <img class="copyIcon" src="images/copyGrey.svg" style="vertical-align: text-bottom;">
             </span>
           </div>
           <div>
-            Status:
-              <span v-if="historyItem.timestamp === undefined">unconfirmed</span>
-              <span v-else>{{ store.currentBlockHeight as number - historyItem.blockHeight }} confirmations
-                (mined in block #{{ historyItem.blockHeight.toLocaleString("en-US") }})
+            {{ t('transactionDialog.status') }}
+              <span v-if="historyItem.timestamp === undefined">{{ t('transactionDialog.unconfirmed') }}</span>
+              <span v-else>{{ t('transactionDialog.confirmations', { count: store.currentBlockHeight as number - historyItem.blockHeight, block: historyItem.blockHeight.toLocaleString("en-US") }) }}
               </span>
           </div>
           <div v-if="historyItem.timestamp">
-            Date:
+            {{ t('transactionDialog.date') }}
               <span>{{ formatTimestamp(historyItem.timestamp, settingsStore.dateFormat) }} ({{ formatRelativeTime(historyItem.timestamp) }})</span>
           </div>
           <div>
-            Balance change:
+            {{ t('transactionDialog.balanceChange') }}
               <span>{{ satsToBch(historyItem.valueChange) }} {{ bchDisplayUnit }}</span>
           </div>
           <div>
-            Size:
-              <span>{{ historyItem.size.toLocaleString("en-US") }} bytes</span>
+            {{ t('transactionDialog.size') }}
+              <span>{{ t('transactionDialog.sizeValue', { bytes: historyItem.size.toLocaleString("en-US") }) }}</span>
           </div>
           <div v-if="!isCoinbase">
-            Fee:
+            {{ t('transactionDialog.fee') }}
               <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee.toLocaleString("en-US") }} sat ({{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte)</span>
           </div>
           <div v-else>
-            Fees collected:
+            {{ t('transactionDialog.feesCollected') }}
               <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee.toLocaleString("en-US") }} sat</span>
           </div>
         </div>
 
         <fieldset style="max-height: 200px; overflow: scroll; margin-top: 1rem;">
-          <legend style="font-size: medium;">Inputs</legend>
+          <legend style="font-size: medium;">{{ t('transactionDialog.inputs') }}</legend>
           <div v-for="(input, index) in historyItem.inputs" :key="index" class="input" :class="settingsStore.darkMode ? 'dark' : ''">
             <span>{{ index }}: </span>
-            <span class="break" :class="input.address === ourAddress ? 'thisWalletTag' : ''">{{ isCoinbase ? "coinbase" : input.address.split(":")[1] }}</span>
+            <span class="break" :class="store.wallet.hasAddress(input.address) ? 'thisWalletTag' : ''">{{ isCoinbase ? t('transactionDialog.coinbase') : input.address.split(":")[1] }}</span>
             <div style="margin-left: 25px;">
               <div v-if="input.value > 10_000">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</div>
-              <span v-if="input.token" @click="loadTokenMetadata(input.token!.tokenId, input.token!.commitment!)" style="cursor: pointer;">
-                <span> {{ " " + (input.token.amount === 0n ? 1 : Number(input.token.amount) / 10**(store.bcmrRegistries?.[input.token.tokenId]?.token.decimals ?? 0)) }}</span>
-                <span> {{ " " + (store.bcmrRegistries?.[input.token.tokenId]?.token?.symbol ?? input.token.tokenId.slice(0, 8)) }}</span>
-                <span v-if="input.token.capability"> NFT</span>
+              <span v-if="input.token" @click="loadTokenMetadata(input.token!.category, input.token?.nft?.commitment)" style="cursor: pointer;">
+                <span v-if="input.token.amount > 0n"> {{ " " + formatTokenAmount(input.token.amount, input.token.category) }}</span>
+                <span> {{ " " + (store.bcmrRegistries?.[input.token.category]?.token?.symbol ?? input.token.category.slice(0, 8)) }}</span>
+                <span v-if="input.token?.nft"> NFT</span>
                 <TokenIcon
                   style="margin-left: 0.5rem; vertical-align: sub;"
-                  :token-id="input.token.tokenId"
-                  :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(input.token.tokenId) : undefined"
+                  :token-id="input.token.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(input.token.category) : undefined"
                   :size="20"
                 />
               </span>
@@ -160,20 +166,20 @@
         </fieldset>
 
         <fieldset style="max-height: 200px; overflow: scroll; margin-top: 1rem;">
-          <legend style="font-size: medium;">Outputs</legend>
+          <legend style="font-size: medium;">{{ t('transactionDialog.outputs') }}</legend>
           <div v-for="(output, index) in historyItem.outputs" :key="index" class="output" :class="settingsStore.darkMode ? 'dark' : ''">
             <span v-if="output.value === 0" class="break">{{ index }}: {{ output.address }}</span>
-            <span v-else>{{ index }}: <span class="break" :class="output.address === ourAddress ? 'thisWalletTag' : ''">{{ output.address.split(":")[1] }}</span></span>
+            <span v-else>{{ index }}: <span class="break" :class="store.wallet.hasAddress(output.address) ? 'thisWalletTag' : ''">{{ output.address.split(":")[1] }}</span></span>
             <div style="margin-left: 25px;">
               <div v-if="output.value > 10_000">{{ satsToBch(output.value) }} {{ bchDisplayUnit }}</div>
-              <span v-if="output.token" @click="loadTokenMetadata(output.token!.tokenId, output.token!.commitment!)" style="cursor: pointer;">
-                <span> {{ " " + (output.token.amount === 0n ? 1 : Number(output.token.amount) / 10**(store.bcmrRegistries?.[output.token.tokenId]?.token.decimals ?? 0)) }}</span>
-                <span> {{ " " + (store.bcmrRegistries?.[output.token.tokenId]?.token?.symbol ?? output.token.tokenId.slice(0, 8)) }}</span>
-                <span v-if="output.token.capability"> NFT</span>
+              <span v-if="output.token" @click="loadTokenMetadata(output.token!.category, output.token?.nft?.commitment)" style="cursor: pointer;">
+                <span v-if="output.token.amount > 0n"> {{ " " + formatTokenAmount(output.token.amount, output.token.category) }}</span>
+                <span> {{ " " + (store.bcmrRegistries?.[output.token.category]?.token?.symbol ?? output.token.category.slice(0, 8)) }}</span>
+                <span v-if="output.token?.nft"> NFT</span>
                 <TokenIcon
                   style="margin-left: 0.5rem; vertical-align: sub;"
-                  :token-id="output.token.tokenId"
-                  :icon-url="settingsStore.loadTokenIcons ? store.tokenIconUrl(output.token.tokenId) : undefined"
+                  :token-id="output.token.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(output.token.category) : undefined"
                   :size="20"
                 />
               </span>

@@ -3,15 +3,18 @@
   import EmojiItem from './general/emojiItem.vue'
   import backupWallet from './settings/backupWallet.vue'
   import walletsOverview from './settings/walletsOverview.vue'
+  import LanguageSelector from './general/LanguageSelector.vue'
   import { computed, ref } from 'vue'
   import { useQuasar } from 'quasar'
-  import { Connection, type ElectrumNetworkProvider, Config, type BalanceResponse } from "mainnet-js"
+  import { useI18n } from 'vue-i18n'
+  import { Connection, type ElectrumNetworkProvider, Config } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+  const { t } = useI18n()
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
@@ -21,7 +24,7 @@
   const isCapacitor = (process.env.MODE == "capacitor");
   const applicationVersion = process.env.version
 
-  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5>(0);
+  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6>(0);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -35,10 +38,28 @@
   const selectedDarkMode = ref(settingsStore.darkMode);
   const confirmBeforeSending = ref(settingsStore.confirmBeforeSending);
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
+  const selectedShowCauldronFTValue = ref(settingsStore.showCauldronFTValue);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   // advanced settings
-  const selectedElectrumServer = ref(settingsStore.electrumServerMainnet);
+  const predefinedElectrumServersMainnet = [
+    "electrum.imaginary.cash",
+    "bch.imaginary.cash",
+    "cashnode.bch.ninja",
+    "fulcrum.greyh.at",
+    "electroncash.dk",
+    "fulcrum.jettscythe.xyz",
+    "bch.loping.net",
+    "fulcrum.criptolayer.net"
+  ];
+  const storedElectrumServer = settingsStore.electrumServerMainnet;
+  const isCustomElectrumServer = !predefinedElectrumServersMainnet.includes(storedElectrumServer);
+  const selectedElectrumServer = ref(isCustomElectrumServer ? "custom" : storedElectrumServer);
+  const customElectrumServer = ref(isCustomElectrumServer ? storedElectrumServer : "127.0.0.1");
+  const isLocalElectrumServer = computed(() => {
+    const server = customElectrumServer.value.trim();
+    return server === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(server);
+  });
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
   const predefinedIpfsGateways = [
     "https://w3s.link/ipfs/",
@@ -56,10 +77,10 @@
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
   const enableAuthchains = ref(settingsStore.authchains);
-  const enableLoadTokenIcons = ref(settingsStore.loadTokenIcons);
+  const disableTokenIcons = ref(settingsStore.disableTokenIcons);
 
   const utxosWithBchAndTokens = computed(() => {
-    return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n);
+    return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n);
   });
 
   // Used to disable network options the current wallet doesn't exist on
@@ -70,6 +91,11 @@
 
   const isPwaMode = window.matchMedia('(display-mode: standalone)').matches;
   const platformString = isBrowser ? (isPwaMode ? 'installed web app' : 'browser') : (isCapacitor ? 'app' : 'application');
+
+
+  function getHostname(url: string) {
+    return new URL(url).hostname;
+  }
 
   async function calculateIndexedDBSizeMB() {
     const totalSize = await getElectrumCacheSize();
@@ -105,7 +131,7 @@
     localStorage.setItem("currency", selectedCurrency.value);
     store.changeView(1);
     if (store.wallet) {
-      store.balance = await store.wallet.getBalance() as BalanceResponse;
+      store.balance = await store.wallet.getBalance();
     }
   }
   function changeUnit(){
@@ -129,6 +155,7 @@
     localStorage.setItem(explorerNetwork, selectedExplorer.value);
   }
   function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
+    if (targetNetwork === "mainnet" && selectedElectrumServer.value === "custom") return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
     store.resetWalletState()
@@ -146,6 +173,20 @@
       settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
       localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
     }
+    // fire-and-forget promise does not wait on full wallet initialization
+    void store.initializeWallet();
+  }
+  function saveCustomElectrumServer(){
+    const trimmedServer = customElectrumServer.value.trim();
+    if (!trimmedServer) return;
+    if(!store._wallet) throw new Error('No wallet set in global store');
+    store.changeView(1)
+    store.resetWalletState()
+    const newConnection = new Connection("mainnet",`wss://${trimmedServer}:50004`)
+    // @ts-ignore currently no other way to set a specific provider
+    store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+    settingsStore.electrumServerMainnet = trimmedServer;
+    localStorage.setItem("electrum-mainnet", trimmedServer);
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }
@@ -190,6 +231,14 @@
     localStorage.setItem("showCauldronSwap", selectedShowSwap.value? "true" : "false");
     settingsStore.showCauldronSwap = selectedShowSwap.value;
   }
+  function toggleShowCauldronFTValue(){
+    localStorage.setItem("showCauldronFTValue", selectedShowCauldronFTValue.value? "true" : "false");
+    settingsStore.showCauldronFTValue = selectedShowCauldronFTValue.value;
+    // Trigger fetch if enabling
+    if (selectedShowCauldronFTValue.value) {
+      void store.fetchCauldronPricesForTokens();
+    }
+  }
   function changeTokenBurn(){
     settingsStore.tokenBurn = selectedTokenBurn.value;
   }
@@ -198,17 +247,17 @@
     settingsStore.qrScan = enableQrScan.value;
   }
   async function confirmDeleteWallets(){
-    let text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>Are you sure you want to delete everything?`;
+    let text = t('settings.advanced.deleteAllWalletsConfirm', { platform: platformString });
     if (isPwaMode) {
-      text = `You are about to delete all Cashonize wallets and data from this ${platformString}.<br>This will also delete them from your browser!<br>Are you sure you want to delete everything?`;
+      text = t('settings.advanced.deleteAllWalletsPwaWarning', { platform: platformString });
     }
     const confirmed = await new Promise<boolean>((resolve) => {
       $q.dialog({
-        title: 'Delete All Wallets',
+        title: t('settings.advanced.deleteAllWalletsTitle'),
         message: text,
         html: true,
         cancel: { flat: true, color: 'dark' },
-        ok: { label: 'Delete All', color: 'red', textColor: 'white' },
+        ok: { label: t('settings.advanced.deleteAllButton'), color: 'red', textColor: 'white' },
         persistent: true
       }).onOk(() => resolve(true))
         .onCancel(() => resolve(false))
@@ -261,78 +310,97 @@
       }
     }
   }
-  function changeLoadTokenIcons(){
-    localStorage.setItem("loadTokenIcons", enableLoadTokenIcons.value? "true" : "false");
-    settingsStore.loadTokenIcons = enableLoadTokenIcons.value;
+  function changeDisableTokenIcons(){
+    localStorage.setItem("disableTokenIcons", disableTokenIcons.value ? "true" : "false");
+    settingsStore.disableTokenIcons = disableTokenIcons.value;
   }
 
 </script>
 
 <template>
   <fieldset class="item">
-    <legend>Settings</legend>
+    <legend>{{ t('settings.title') }}</legend>
     <div v-if="!isBrowser" style="margin-bottom: 15px;">
-      Version Cashonize App: {{ applicationVersion }}
-      <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease == 'v'+applicationVersion">(latest)</span>
+      {{ t('settings.version', { version: applicationVersion }) }}
+      <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease == 'v'+applicationVersion">{{ t('settings.latest') }}</span>
       <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion">
-        (latest release is
-          <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{store.latestGithubRelease}}</a>)
+        <i18n-t keypath="settings.latestRelease" tag="span">
+          <template #version>
+            <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{store.latestGithubRelease}}</a>
+          </template>
+        </i18n-t>
       </span>
     </div>
 
     <div v-if="settingsSection != 0">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 0">
-        ↲ All settings
+        ↲ {{ t('settings.allSettings') }}
       </div>
     </div>
 
     <backupWallet v-if="settingsSection == 1" />
     <div v-else-if="settingsSection == 2">
       <div style="margin-bottom:15px;">
-        Dark mode <Toggle v-model="selectedDarkMode" @change="changeDarkMode()"/>
+        {{ t('settings.userOptions.darkMode') }} <Toggle v-model="selectedDarkMode" @change="changeDarkMode()"/>
       </div>
 
-
       <div style="margin-top:15px">
-        Confirm payments before sending <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending"/>
+        {{ t('settings.userOptions.confirmPayments') }} <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending"/>
         <div style="font-size: smaller; color: grey;">
-          Ask for confirmation after clicking send (recommended)
+          {{ t('settings.userOptions.confirmPaymentsHint') }}
         </div>
       </div>
 
       <div style="margin-top:15px">
-        Show Cauldron Swap Button <Toggle v-model="selectedShowSwap" @change="toggleShowSwap"/>
-      </div>
-
-      <div style="margin-top: 15px; margin-bottom: 15px;">
-        Enable token-burn <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()"/>
-      </div>
-
-      <div v-if="!isCapacitor" style="margin-top: 15px;">
-        Enable QR scan <Toggle v-model="enableQrScan" @change="changeQrScan()"/>
+        {{ t('settings.userOptions.showCauldronSwap') }} <Toggle v-model="selectedShowSwap" @change="toggleShowSwap"/>
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectUnit">Select fiat currency:</label>
-        <select v-model="selectedCurrency" @change="changeCurrency()">
-          <option value="usd">USD</option>
-          <option value="eur">EUR</option>
-          <option value="gbp">GBP</option>
-          <option value="cad">CAD</option>
-          <option value="aud">AUD</option>
+        {{ t('settings.userOptions.showCauldronFTValue') }} <Toggle v-model="selectedShowCauldronFTValue" @change="toggleShowCauldronFTValue"/>
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.userOptions.showCauldronFTValueHint') }}
+        </div>
+      </div>
+
+      <div style="margin-top: 15px; margin-bottom: 15px;">
+        {{ t('settings.userOptions.enableTokenBurn') }} <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()"/>
+      </div>
+
+      <div v-if="!isCapacitor" style="margin-top: 15px;">
+        {{ t('settings.userOptions.enableQrScan') }} <Toggle v-model="enableQrScan" @change="changeQrScan()"/>
+      </div>
+
+      <div style="margin-top:15px;">
+        <label for="selectUnit">{{ t('settings.userOptions.selectUnit') }}</label>
+        <select v-model="selectedUnit" @change="changeUnit()">
+          <option value="bch">{{ t('settings.userOptions.bchUnit') }}</option>
+          <option value="sat">{{ t('settings.userOptions.satUnit') }}</option>
         </select>
       </div>
 
       <div style="margin-top:15px;">
-        <label for="selectUnit">Select Bitcoin Cash unit:</label>
-        <select v-model="selectedUnit" @change="changeUnit()">
-          <option value="bch">BCH</option>
-          <option value="sat">satoshis</option>
+        <label for="selectExplorer">{{ t('settings.userOptions.blockExplorer') }}</label>
+        <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
+          <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
+          <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
+          <option value="https://bchexplorer.info/tx">bchexplorer.info by Paytaca</option>
+          <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
+          <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
+          <option value="https://bchexplorer.cash/tx">bchexplorer.cash by Melroy</option>
+          <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>
+          <option value="https://bch.loping.net/tx">bch.loping.net (no Token Metadata)</option>
+          <option value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
+        </select>
+        <select v-if="store.network == 'chipnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
+          <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
+          <option value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
+          <option value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
+          <option value="https://cbch.loping.net/tx">cbch.loping.net</option>
         </select>
       </div>
-      
-      <div style="margin-top:15px;">
-        <label for="selectUnit">Qr code animation:</label>
+
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        <label for="selectQrAnimation">{{ t('settings.userOptions.qrAnimation') }}</label>
         <select v-model="qrAnimation" @change="changeQrAnimation()">
           <option value="MaterializeIn">MaterializeIn</option>
           <option value="FadeInTopDown">FadeInTopDown</option>
@@ -343,46 +411,56 @@
         </select>
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px;">
-        <label for="dateFormat">Date format:</label>
-        <select v-model="dateFormat" @change="changeDateFormat()">
-          <option value="DD/MM/YY">DD/MM/YY</option>
-          <option value="MM/DD/YY">MM/DD/YY</option>
-          <option value="YY-MM-DD">YY-MM-DD</option>
-        </select>
-      </div>
     </div>
     <div v-else-if="settingsSection == 3">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <label for="selectNetwork">Change Electrum server mainnet:</label>
+        <label for="selectNetwork">{{ t('settings.advanced.electrumMainnet') }}</label>
         <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
-          <option value="electrum.imaginary.cash">electrum.imaginary.cash (default)</option>
-          <option value="bch.imaginary.cash">bch.imaginary.cash</option>
-          <option value="cashnode.bch.ninja">cashnode.bch.ninja</option>
-          <option value="fulcrum.greyh.at">fulcrum.greyh.at</option>
-          <option value="electroncash.dk">electroncash.dk</option>
-          <option value="fulcrum.jettscythe.xyz">fulcrum.jettscythe.xyz</option>
-          <option value="bch.loping.net">bch.loping.net</option>
-          <option value="fulcrum.criptolayer.net">fulcrum.criptolayer.net</option>
+          <option v-for="(server, index) in predefinedElectrumServersMainnet" :key="server" :value="server">
+            {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
+        <div v-if="selectedElectrumServer === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customElectrumServer"
+            @blur="saveCustomElectrumServer()"
+            @keyup.enter="saveCustomElectrumServer()"
+            type="text"
+            :placeholder="t('settings.advanced.electrumCustomPlaceholder')"
+            style="width: 100%;"
+          >
+          <div style="font-size: smaller; color: grey;">
+            {{ t('settings.advanced.electrumCustomHint') }}
+            <span v-if="isLocalElectrumServer && isBrowser">
+              <i18n-t keypath="settings.advanced.electrumSelfSignedBrowser" tag="span">
+                <template #link>
+                  <a :href="`https://${customElectrumServer.trim()}:50004`" target="_blank">{{ t('settings.advanced.electrumSelfSignedVisit') }}</a>
+                </template>
+              </i18n-t>
+            </span>
+            <span v-if="isLocalElectrumServer && !isBrowser">
+              {{ t('settings.advanced.electrumSelfSignedApp') }}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <label for="selectNetwork">Change Electrum server chipnet:</label>
+        <label for="selectNetwork">{{ t('settings.advanced.electrumChipnet') }}</label>
         <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
-          <option value="chipnet.bch.ninja">chipnet.bch.ninja (default)</option>
+          <option value="chipnet.bch.ninja">chipnet.bch.ninja {{ t('settings.advanced.default') }}</option>
           <option value="chipnet.imaginary.cash">chipnet.imaginary.cash</option>
         </select>
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">Change IPFS gateway:</label>
+        <label for="selectNetwork">{{ t('settings.advanced.ipfsGateway') }}</label>
         <select v-model="selectedIpfsGateway" @change="changeIpfsGateway()">
-          <option value="https://w3s.link/ipfs/">w3s.link (default)</option>
-          <option value="https://ipfs.io/ipfs/">ipfs.io</option>
-          <option value="https://dweb.link/ipfs/">dweb.link</option>
-          <option value="https://nftstorage.link/ipfs/">nftstorage.link</option>
-          <option value="custom">Custom</option>
+          <option v-for="(gateway, index) in predefinedIpfsGateways" :key="gateway" :value="gateway">
+            {{ getHostname(gateway) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
         <div v-if="selectedIpfsGateway === 'custom'" style="margin-top: 8px;">
           <input
@@ -396,156 +474,171 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">Change ChainGraph:</label>
+        <label for="selectNetwork">{{ t('settings.advanced.chaingraph') }}</label>
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
-          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph (default)</option>
+          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
         </select>
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectExchangeRate">Exchange rate provider:</label>
+        <label for="selectExchangeRate">{{ t('settings.advanced.exchangeRate') }}</label>
         <select v-model="selectedExchangeRateProvider" @change="changeExchangeRateProvider()">
-          <option value="default">Default (bitcoin.com for USD, BitPay for rest)</option>
+          <option value="default">{{ t('settings.advanced.exchangeRateDefault') }}</option>
           <option value="bitpay">BitPay</option>
           <option value="coingecko">CoinGecko</option>
           <option value="coinbase">Coinbase</option>
         </select>
       </div>
 
-      <div style="margin-top:15px;">Remove all wallets and all data from {{ platformString }}
+      <div style="margin-top:15px;">{{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}
         <div v-if="isPwaMode" style="color: red">
-          Deleting all wallets from the 'Installed web-app' will also delete them from your browser!
+          {{ t('settings.advanced.pwaDeleteWarning') }}
         </div>
         <div v-if="!isPwaMode && settingsStore.hasInstalledPWA" style="color: red">
-          Deleting all wallets from the browser will also remove them from any 'Installed web-app'.
+          {{ t('settings.advanced.browserDeleteWarning') }}
         </div>
-        <input @click="confirmDeleteWallets()" type="button" value="Delete all wallets" class="button error" style="display: block;">
+        <input @click="confirmDeleteWallets()" type="button" :value="t('settings.advanced.deleteAllWalletsButton')" class="button error" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear wallet history cache {{ isMobile? '' : 'from ' + platformString }}
+        {{ isMobile ? t('settings.advanced.clearHistoryCache') : t('settings.advanced.clearHistoryCacheFrom', { platform: platformString }) }}
         <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
-        <input @click="clearHistoryCache()" type="button" value="Clear history cache" class="button" style="display: block; color: black;">
+        <input @click="clearHistoryCache()" type="button" :value="t('settings.advanced.clearHistoryCacheButton')" class="button" style="display: block; color: black;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        Clear token-metadata cache {{ isMobile? '' : 'from ' + platformString }}
+        {{ isMobile ? t('settings.advanced.clearMetadataCache') : t('settings.advanced.clearMetadataCacheFrom', { platform: platformString }) }}
         <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
-        <input @click="clearMetadataCache()" type="button" value="Clear token cache" class="button" style="display: block; color: black;">
+        <input @click="clearMetadataCache()" type="button" :value="t('settings.advanced.clearMetadataCacheButton')" class="button" style="display: block; color: black;">
       </div>
     </div>
     <div v-else-if="settingsSection == 4">
       <div>
-        <label for="selectNetwork">Change network:</label>
+        <label for="selectNetwork">{{ t('settings.developer.changeNetwork') }}</label>
         <select v-model="selectedNetwork" @change="changeNetwork()">
-          <option value="mainnet" :disabled="!currentWalletInfo?.hasMainnet">mainnet</option>
-          <option value="chipnet" :disabled="!currentWalletInfo?.hasChipnet">chipnet</option>
+          <option value="mainnet" :disabled="!currentWalletInfo?.hasMainnet">{{ t('settings.developer.mainnet') }}</option>
+          <option value="chipnet" :disabled="!currentWalletInfo?.hasChipnet">{{ t('settings.developer.chipnet') }}</option>
         </select>
       </div>
 
-      <div  style="margin-top:15px">Token Creation Functionality:</div>
+      <div style="margin-top:15px">{{ t('settings.developer.tokenCreation') }}</div>
       <div style="margin: 0px 10px;">
 
         <div style="margin-top:15px">
-          Enable mint NFTs <Toggle v-model="enableMintNfts" @change="changeMintNfts()"/>
+          {{ t('settings.developer.enableMintNfts') }} <Toggle v-model="enableMintNfts" @change="changeMintNfts()"/>
           <div style="font-size: smaller; color: grey;">
-            Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category
+            {{ t('settings.developer.enableMintNftsHint') }}
           </div>
         </div>
 
         <div style="margin-top:15px; margin-bottom: 15px">
-          Enable authchain resolution <Toggle v-model="enableAuthchains" @change="changeAuthchains()"/>
+          {{ t('settings.developer.enableAuthchains') }} <Toggle v-model="enableAuthchains" @change="changeAuthchains()"/>
           <div style="font-size: smaller; color: grey;">
-            Checks if you hold the AuthHead (authority to update token metadata) and enables transferring it
+            {{ t('settings.developer.enableAuthchainsHint') }}
           </div>
         </div>
 
         <div v-if="!isMobile" style="margin-top:15px; margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
-          → Token Creation Page
+          → {{ t('settings.menu.tokenCreationPage') }}
         </div>
       </div>
 
-      <div style="margin-top:15px">Privacy:</div>
-      <div style="margin: 0px 10px;">
-        <div style="margin-top:15px; margin-bottom: 15px">
-          Load token icons <Toggle v-model="enableLoadTokenIcons" @change="changeLoadTokenIcons()"/>
-          <div style="font-size: smaller; color: grey;">
-            Disabling this prevents loading images from untrusted sources
-          </div>
+      <div style="margin-top:15px; margin-bottom: 15px">
+        {{ t('settings.developer.disableTokenIcons') }} <Toggle v-model="disableTokenIcons" @change="changeDisableTokenIcons()"/>
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.developer.disableTokenIconsHint') }}
         </div>
       </div>
     </div>
     <div v-else-if="settingsSection == 5">
       <walletsOverview />
     </div>
+    <div v-else-if="settingsSection == 6">
+      <div style="margin-bottom:15px;">
+        <label>{{ t('settings.localization.language') }}</label>
+        <LanguageSelector />
+      </div>
+
+      <div style="margin-bottom:15px">
+        <label for="selectCurrency">{{ t('settings.localization.currency') }}</label>
+        <select v-model="selectedCurrency" @change="changeCurrency()">
+          <option value="usd">USD</option>
+          <option value="eur">EUR</option>
+          <option value="gbp">GBP</option>
+          <option value="cad">CAD</option>
+          <option value="aud">AUD</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label for="dateFormat">{{ t('settings.localization.dateFormat') }}</label>
+        <select v-model="dateFormat" @change="changeDateFormat()">
+          <option value="DD/MM/YY">DD/MM/YY</option>
+          <option value="MM/DD/YY">MM/DD/YY</option>
+          <option value="YY-MM-DD">YY-MM-DD</option>
+        </select>
+      </div>
+    </div>
     <!-- settingsSection === 0: main settings menu -->
     <div v-else>
       <div style="margin-bottom: 15px;">
-        Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+        {{ t('settings.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 1">
-        ↳ Backup wallet <span v-if="settingsStore.getBackupStatus(store.activeWalletName) === 'none'" style="color: var(--color-primary)">(important)</span>
+        ↳ {{ t('settings.menu.backupWallet') }} <span v-if="settingsStore.getBackupStatus(store.activeWalletName) === 'none'" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 5">
-        ↳ Manage wallets
+        ↳ {{ t('settings.menu.manageWallets') }}
         <span style="color: grey; font-size: smaller;">
-          ({{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? 'wallet' : 'wallets' }})
+          ({{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? t('common.wallet') : t('common.wallets') }})
         </span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 2">
-        ↳ User options
+        ↳ {{ t('settings.menu.userOptions') }}
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 6">
+        ↳ {{ t('settings.menu.localization') }}
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 3">
-        ↳ Advanced settings
+        ↳ {{ t('settings.menu.advancedSettings') }}
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 4">
-        ↳ Developer settings
+        ↳ {{ t('settings.menu.developerSettings') }}
+      </div>
+
+      <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd'" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(10)">
+        → {{ t('settings.menu.hdAddresses') }}
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">
-        → UTXO Management <span v-if="utxosWithBchAndTokens?.length" style="color: orange">(important)</span>
+        → {{ t('settings.menu.utxoManagement') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(8)">
-        → Sweep Private Key
-      </div>
-
-      <div style="margin-top:15px; margin-bottom:15px;">
-        <label for="selectUnit">Select BlockExplorer:</label>
-        <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
-          <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
-          <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
-          <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
-          <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
-          <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>
-          <option value="https://bch.loping.net/tx">bch.loping.net (no Token Metadata)</option>
-          <option value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
-          <option value="https://explorer.melroy.org/tx">Melroy explorer (no CashTokens support)</option>
-        </select>
-        <select v-if="store.network == 'chipnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
-          <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
-          <option value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
-          <option value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
-          <option value="https://cbch.loping.net/tx">cbch.loping.net</option>
-        </select>
+        → {{ t('settings.menu.sweepPrivateKey') }}
       </div>
 
       <div v-if="isBrowser" style="margin-bottom:15px;">
         <a style="color: var(--font-color); cursor: pointer;" href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">
-          Download Cashonize
+          {{ t('settings.downloadCashonize') }}
           <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
         </a>
       </div>
-      
+
       <div style="margin-bottom:15px;">
         <a style="color: var(--font-color); cursor: pointer;" href="https://x.com/GeukensMathieu" target="_blank">
-          Made with <EmojiItem emoji="💚" :sizePx="18" style="vertical-align: sub;" /> by Mathieu G.
+          <i18n-t keypath="settings.madeWith" tag="span">
+            <template #heart>
+              <EmojiItem emoji="💚" :sizePx="18" style="vertical-align: sub;" />
+            </template>
+          </i18n-t>
         </a>
       </div>
 

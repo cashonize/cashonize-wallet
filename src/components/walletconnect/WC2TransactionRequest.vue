@@ -10,8 +10,10 @@
   import { type WalletKitTypes } from '@reown/walletkit';
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
   import TokenIcon from '../general/TokenIcon.vue';
+  import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
 
   // Local metadata for tokens not in wallet (kept separate from global store for security)
   // Same approach as CCSignTransactionDialog.vue
@@ -58,31 +60,42 @@
     return result.address;
   }
 
-  const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput) => 
-    toCashaddr(sourceOutput.lockingBytecode) == store.wallet.getDepositAddress() ? total + sourceOutput.valueSatoshis : total, 0n
+  const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput) =>
+    store.wallet.hasAddress(toCashaddr(sourceOutput.lockingBytecode)) ? total + sourceOutput.valueSatoshis : total, 0n
   );
-  const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs) => 
-    toCashaddr(outputs.lockingBytecode) == store.wallet.getDepositAddress() ? total + outputs.valueSatoshis : total, 0n
+  const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs) =>
+    store.wallet.hasAddress(toCashaddr(outputs.lockingBytecode)) ? total + outputs.valueSatoshis : total, 0n
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
   const currencyBalanceChange = convertToCurrency(bchBalanceChange, exchangeRate.value);
 
-  const tokensSpentInputs:Record<string, NonNullable<Output['token']>[]> = {}
-  const tokensReceivedOutputs:Record<string, NonNullable<Output['token']>[]> = {}
+  // Track net fungible token changes and separate NFT changes
+  const ftNetChanges: Record<string, bigint> = {};
+  const nftsSpent: NonNullable<Output['token']>[] = [];
+  const nftsReceived: NonNullable<Output['token']>[] = [];
+
   for (const input of sourceOutputs) {
-    const walletOrigin = toCashaddr(input.lockingBytecode) == store.wallet.getDepositAddress();
+    const walletOrigin = store.wallet.hasAddress(toCashaddr(input.lockingBytecode));
     if(input.token && walletOrigin){
       const tokenCategory = binToHex(input.token.category);
-      if(tokensSpentInputs[tokenCategory])tokensSpentInputs[tokenCategory].push(input.token);
-      else tokensSpentInputs[tokenCategory] = [input.token];
+      if(input.token.nft){
+        nftsSpent.push(input.token);
+      }
+      if(input.token.amount) {
+        ftNetChanges[tokenCategory] = (ftNetChanges[tokenCategory] ?? 0n) - input.token.amount;
+      }
     }
   }
   for (const output of txDetails.outputs) {
-    const walletDestination = toCashaddr(output.lockingBytecode) == store.wallet.getDepositAddress();
-    if(output.token && walletDestination){
+    const walletDestination = store.wallet.hasAddress(toCashaddr(output.lockingBytecode));
+    if(output.token && walletDestination) {
       const tokenCategory = binToHex(output.token.category);
-      if(tokensReceivedOutputs[tokenCategory]) tokensReceivedOutputs[tokenCategory].push(output.token);
-      else tokensReceivedOutputs[tokenCategory] = [output.token];
+      if(output.token.nft) {
+        nftsReceived.push(output.token);
+      }
+      if(output.token.amount) {
+        ftNetChanges[tokenCategory] = (ftNetChanges[tokenCategory] ?? 0n) + output.token.amount;
+      }
     }
   }
 
@@ -97,7 +110,9 @@
 
   // Fetch metadata for tokens not in wallet (stored locally, not in global store)
   // Use Set to deduplicate tokens appearing in both inputs and outputs
-  const tokenCategories = new Set([...Object.keys(tokensSpentInputs), ...Object.keys(tokensReceivedOutputs)]);
+  const nftCategories = [...nftsSpent, ...nftsReceived].map(t => binToHex(t.category));
+  const ftCategories = Object.keys(ftNetChanges);
+  const tokenCategories = new Set([...nftCategories, ...ftCategories]);
   for (const categoryHex of tokenCategories) {
     if (!store.bcmrRegistries?.[categoryHex]) {
       void fetchUnverifiedTokenInfo(categoryHex);
@@ -108,8 +123,10 @@
     return store.bcmrRegistries?.[categoryHex] ?? unverifiedTokenMetadata.value[categoryHex];
   };
 
+  // Token is "unverified" if user doesn't already own it (not in their tokenList)
   const isUnverifiedToken = (categoryHex: string): boolean => {
-    return categoryHex in unverifiedTokenMetadata.value;
+    const userOwnsToken = store.tokenList?.some(t => t.category === categoryHex);
+    return !userOwnsToken && categoryHex in unverifiedTokenMetadata.value;
   };
 
   const getTokenIconUrl = (categoryHex: string): string | undefined => {
@@ -124,13 +141,16 @@
   const calculateAmount = (tokenObject: NonNullable<Output['token']>): string => {
     if (!tokenObject.amount) return '';
     const categoryHex = binToHex(tokenObject.category);
-    const decimals = Number(getTokenMetadata(categoryHex)?.token?.decimals ?? 0);
+    return formatTokenAmount(tokenObject.amount, categoryHex);
+  };
 
+  const formatTokenAmount = (amount: bigint, categoryHex: string): string => {
+    const decimals = Number(getTokenMetadata(categoryHex)?.token?.decimals ?? 0);
     if (decimals === 0) {
-      return tokenObject.amount.toString();
+      return amount.toString();
     } else {
-      const amount = Number(tokenObject.amount);
-      return (amount / (10 ** decimals)).toFixed(decimals);
+      const numAmount = Number(amount);
+      return (numAmount / (10 ** decimals)).toFixed(decimals);
     }
   };
 
@@ -145,23 +165,28 @@
       const addNftPostfix = tokenSpent.nft ? " NFT" : "";
       return displayMetadata + addNftPostfix;
     } else {
-      const tokenType = tokenSpent.nft ? "NFT" : "Tokens";
+      const tokenType = tokenSpent.nft ? "NFT" : t('tokenItem.tokens');
       return `${categoryHex.slice(0, 6)}... ${tokenType}`;
     }
+  };
+
+  const getTokenDisplayName = (categoryHex: string): string => {
+    const tokenMetadata = getTokenMetadata(categoryHex);
+    return tokenMetadata?.name ?? `${categoryHex.slice(0, 6)}...`;
   };
 </script>
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
     <q-card>
-      <fieldset class="dialogFieldsetTxRequest"> 
-        <legend style="font-size: large;">Sign Transaction</legend>
+      <fieldset class="dialogFieldsetTxRequest">
+        <legend style="font-size: large;">{{ t('walletConnect.transactionRequest.title') }}</legend>
 
         <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
           {{ requestParams.userPrompt }}
         </div>
 
-        <div style="font-size: large; margin-top: 1.5rem;">Origin:</div>
+        <div style="font-size: large; margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.origin') }}</div>
         <div style="display: flex;">
           <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
@@ -172,93 +197,101 @@
 
         <hr style="margin-top: 1.5rem;">
 
-        <div class="wc-modal-heading" style="margin-top: 1.5rem;">Balance Change:</div>
+        <div class="wc-modal-heading" style="margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.balanceChange') }}</div>
           <div>
             {{ bchBalanceChange > 0 ? '+ ': '- '}} {{ satoshiToBCHString(abs(bchBalanceChange)) }}
             ({{ currencyBalanceChange + ` ${CurrencySymbols[settingsStore.currency]}`}})
           </div>
-          <div v-for="(tokenArrayInput, firstIndex) in tokensSpentInputs" :key="firstIndex">
-            <div v-for="(tokenSpent, index) in tokenArrayInput" :key="binToHex(tokenSpent.category) + index" class="token-change-row">
-              <span>{{ `- ${calculateAmount(tokenSpent)} ${formatTokenDisplay(tokenSpent)}` }}</span>
-              <TokenIcon
-                :token-id="binToHex(tokenSpent.category)"
-                :icon-url="settingsStore.loadTokenIcons ? getTokenIconUrl(binToHex(tokenSpent.category)) : undefined"
-                :size="24"
-              />
-              <span v-if="isUnverifiedToken(binToHex(tokenSpent.category))">*</span>
-            </div>
+          <!-- Net fungible token changes -->
+          <div v-for="[categoryHex, amount] in Object.entries(ftNetChanges)" :key="categoryHex" class="token-change-row">
+            <span>{{ amount > 0n ? '+ ' : amount < 0n ? '- ' : '' }}{{ formatTokenAmount(abs(amount), categoryHex) }} {{ getTokenDisplayName(categoryHex) }}</span>
+            <TokenIcon
+              :token-id="categoryHex"
+              :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(categoryHex) : undefined"
+              :size="24"
+            />
+            <span v-if="isUnverifiedToken(categoryHex)">*</span>
           </div>
-          <div v-for="(tokenArrayRecived, firstIndex) in tokensReceivedOutputs" :key="firstIndex">
-            <div v-for="(tokenReceived, index) in tokenArrayRecived" :key="binToHex(tokenReceived.category) + index" class="token-change-row">
-              <span>{{ `+ ${calculateAmount(tokenReceived)} ${formatTokenDisplay(tokenReceived)}` }}</span>
-              <TokenIcon
-                :token-id="binToHex(tokenReceived.category)"
-                :icon-url="settingsStore.loadTokenIcons ? getTokenIconUrl(binToHex(tokenReceived.category)) : undefined"
-                :size="24"
-              />
-              <span v-if="isUnverifiedToken(binToHex(tokenReceived.category))">*</span>
-            </div>
+          <!-- NFTs spent -->
+          <div v-for="(nft, index) in nftsSpent" :key="'spent-' + binToHex(nft.category) + index" class="token-change-row">
+            <span>{{ `- ${formatTokenDisplay(nft)}` }}</span>
+            <TokenIcon
+              :token-id="binToHex(nft.category)"
+              :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(nft.category)) : undefined"
+              :size="24"
+            />
+            <span v-if="isUnverifiedToken(binToHex(nft.category))">*</span>
+          </div>
+          <!-- NFTs received -->
+          <div v-for="(nft, index) in nftsReceived" :key="'received-' + binToHex(nft.category) + index" class="token-change-row">
+            <span>{{ `+ ${formatTokenDisplay(nft)}` }}</span>
+            <TokenIcon
+              :token-id="binToHex(nft.category)"
+              :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(nft.category)) : undefined"
+              :size="24"
+            />
+            <span v-if="isUnverifiedToken(binToHex(nft.category))">*</span>
           </div>
           <div v-if="Object.keys(unverifiedTokenMetadata).length > 0" class="unverified-note">
-            * {{ Object.keys(unverifiedTokenMetadata).length === 1 ? 'Token' : 'Tokens' }} not in your wallet. New metadata fetched for preview.
+            * {{ Object.keys(unverifiedTokenMetadata).length === 1 ? t('walletConnect.transactionRequest.unverifiedTokenNoteSingular') : t('walletConnect.transactionRequest.unverifiedTokenNotePlural') }}
           </div>
 
           <hr style="margin-top: 2rem;">
 
         <details>
-          <summary style="display: list-item" class="hover">Full Transaction Details</summary>
+          <summary style="display: list-item" class="hover">{{ t('walletConnect.transactionRequest.fullDetails') }}</summary>
           <div class="wc-modal-details" style="margin-top: 1rem;">
-            <div class="wc-modal-heading">Inputs:</div>
+            <div class="wc-modal-heading">{{ t('walletConnect.transactionRequest.inputs') }}</div>
             <table class="wc-data-table">
               <tbody v-for="(input, inputIndex) in sourceOutputs" :key="binToHex(input.outpointTransactionHash) + inputIndex">
                 <tr>
                   <td>{{ inputIndex }}</td>
                   <td>
                     {{ toCashaddr(input.lockingBytecode).slice(0,25)  + '...' }}
-                    <span v-if="toCashaddr(input.lockingBytecode) == store.wallet.getDepositAddress()" class="thisWalletTag">
-                      (this wallet)
+                    <span v-if="store.wallet.hasAddress(toCashaddr(input.lockingBytecode))" class="thisWalletTag">
+                      {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
                   <td>{{ satoshiToBCHString(input.valueSatoshis) }}</td>
                 </tr>
                 <tr v-if="input.contract">
                   <td></td>
-                  <td style="font-weight: 600;">Contract: {{input.contract.artifact.contractName}}, Function: {{ input.contract.abiFunction.name }}</td>
+                  <td style="font-weight: 600;">{{ t('walletConnect.transactionRequest.contract') }} {{input.contract.artifact.contractName}}, {{ t('walletConnect.transactionRequest.function') }} {{ input.contract.abiFunction.name }}</td>
                 </tr>
                 <tr v-if="input?.token">
                   <td></td>
                   <td>
-                    {{input?.token?.nft && !input?.token?.amount ? 'NFT:' : 'Token:'}}
+                    {{input?.token?.nft && !input?.token?.amount ? t('walletConnect.transactionRequest.nft') : t('walletConnect.transactionRequest.token')}}
                     {{ formatTokenDisplay(input.token as NonNullable<Output['token']>) }}
                     <TokenIcon
                       :token-id="binToHex(input.token.category)"
-                      :icon-url="settingsStore.loadTokenIcons ? getTokenIconUrl(binToHex(input.token.category)) : undefined"
+                      :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(input.token.category)) : undefined"
                       :size="20"
                     />
                     <span v-if="isUnverifiedToken(binToHex(input.token.category))">*</span>
                   </td>
                   <td v-if="input.token.amount">
-                    Amount: {{ calculateAmount(input.token as NonNullable<Output['token']>) }}
+                    {{ t('walletConnect.transactionRequest.amount') }} {{ calculateAmount(input.token as NonNullable<Output['token']>) }}
                   </td>
                 </tr>
                 <tr v-if="input?.token?.nft">
                   <td></td>
-                  <td class="commitment">Commitment: {{ binToHex(input.token.nft.commitment) }}</td>
-                  <td>Capability: {{ input.token.nft.capability }}</td>
+                  <td class="commitment">{{ t('walletConnect.transactionRequest.commitment') }} {{ binToHex(input.token.nft.commitment) }}</td>
+                  <td>{{ t('walletConnect.transactionRequest.capability') }} {{ input.token.nft.capability }}</td>
                 </tr>
               </tbody>
             </table>
             <div>
             </div>
-            <div class="wc-modal-heading">Outputs:</div>
+            <div class="wc-modal-heading">{{ t('walletConnect.transactionRequest.outputs') }}</div>
             <table class="wc-data-table">
               <tbody v-for="(output, outputIndex) in txDetails.outputs" :key="binToHex(output.lockingBytecode) + outputIndex">
                 <tr>
                   <td>{{ outputIndex }}</td>
                   <td>
                     {{ toCashaddr(output.lockingBytecode).slice(0,25)  + '...' }}
-                    <span v-if="toCashaddr(output.lockingBytecode) == store.wallet.getDepositAddress()" class="thisWalletTag">
-                      (this wallet)
+                    <span v-if="store.wallet.hasAddress(toCashaddr(output.lockingBytecode))" class="thisWalletTag">
+                      {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
                   <td>{{ satoshiToBCHString(output.valueSatoshis) }}</td>
@@ -266,31 +299,31 @@
                 <tr v-if="output?.token">
                   <td></td>
                   <td>
-                    {{output?.token?.nft && !output?.token?.amount ? 'NFT:' : 'Token:'}}
+                    {{output?.token?.nft && !output?.token?.amount ? t('walletConnect.transactionRequest.nft') : t('walletConnect.transactionRequest.token')}}
                     {{ formatTokenDisplay(output.token as NonNullable<Output['token']>) }}
                     <TokenIcon
                       :token-id="binToHex(output.token.category)"
-                      :icon-url="settingsStore.loadTokenIcons ? getTokenIconUrl(binToHex(output.token.category)) : undefined"
+                      :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(output.token.category)) : undefined"
                       :size="20"
                     />
                     <span v-if="isUnverifiedToken(binToHex(output.token.category))">*</span>
                   </td>
                   <td v-if="output.token.amount">
-                    Amount: {{ calculateAmount(output.token as NonNullable<Output['token']>) }}
+                    {{ t('walletConnect.transactionRequest.amount') }} {{ calculateAmount(output.token as NonNullable<Output['token']>) }}
                   </td>
                 </tr>
                 <tr v-if="output?.token?.nft">
                   <td></td>
-                  <td class="commitment">Commitment: {{ binToHex(output.token.nft.commitment) }}</td>
-                  <td>Capability: {{ output.token.nft.capability }}</td>
+                  <td class="commitment">{{ t('walletConnect.transactionRequest.commitment') }} {{ binToHex(output.token.nft.commitment) }}</td>
+                  <td>{{ t('walletConnect.transactionRequest.capability') }} {{ output.token.nft.capability }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </details>
         <div class="wc-modal-bottom-buttons">
-          <input type="button" class="primaryButton" value="Sign" @click="onDialogOK">
-          <input type="button" value="Cancel" @click="onDialogCancel" v-close-popup>
+          <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="onDialogOK">
+          <input type="button" :value="t('walletConnect.transactionRequest.cancelButton')" @click="onDialogCancel" v-close-popup>
         </div>
       </fieldset>
     </q-card>

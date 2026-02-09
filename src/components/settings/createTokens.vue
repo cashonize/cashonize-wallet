@@ -4,15 +4,16 @@
   import { copyToClipboard } from 'src/utils/utils';
   import alertDialog from 'src/components/general/alertDialog.vue'
   import EmojiItem from '../general/emojiItem.vue';
-  import { type TokeneGenesisRequestParams } from 'src/interfaces/interfaces';
-  import { caughtErrorToString } from 'src/utils/errorHandling';
+    import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { cachedFetch } from 'src/utils/cacheUtils';
+  import { useI18n } from 'vue-i18n'
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const { t } = useI18n()
 
   const selectedTokenType = ref("-select-");
   const inputFungibleSupply = ref("");
@@ -29,17 +30,17 @@
     activeAction.value = 'creatingPreGenesis';
     try{
       store.plannedTokenId = undefined;
-      const walletAddr = store.wallet.cashaddr;
+      const walletAddr = store.wallet.getDepositAddress();
       $q.notify({
         spinner: true,
-        message: 'Preparing pre-genesis...',
+        message: t('createTokens.notifications.preparingPreGenesis'),
         color: 'grey-5',
         timeout: 1000
       })
-      const { txId } = await store.wallet.send([{ cashaddr: walletAddr, value: 10000, unit: "sat" }]);
+      const { txId } = await store.wallet.send([{ cashaddr: walletAddr, value: 10000n }]);
       $q.notify({
         type: 'positive',
-        message: 'Transaction succesfully sent!'
+        message: t('createTokens.notifications.transactionSent')
       })
       console.log(`Created valid pre-genesis for token creation \n${store.explorerUrl}/${txId}`);
       store.plannedTokenId = txId;
@@ -60,7 +61,7 @@
     if(selectedUri.value == "-select-") return
     const validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("baf");
     if(!validinput){
-      const errorMessage = selectedUri.value != "IPFS" ? "Urls should not have any prefix!" : "Ipfs location should be a v1 CID";
+      const errorMessage = selectedUri.value != "IPFS" ? t('createTokens.notifications.urlPrefixError') : t('createTokens.notifications.ipfsCidError');
       $q.notify({
         message: errorMessage,
         icon: 'warning',
@@ -101,19 +102,19 @@
       const opreturnData = await getOpreturnData();
       $q.notify({
         spinner: true,
-        message: 'Creating tokens...',
+        message: t('createTokens.notifications.creatingTokens'),
         color: 'grey-5',
         timeout: 1000
       })
       const genesisResponse = await store.wallet.tokenGenesis(
         {
-          cashaddr: store.wallet.tokenaddr,
+          cashaddr: store.wallet.getTokenDepositAddress(),
           amount: BigInt(totalSupply),    // fungible token amount
-          value: 1000,                    // Satoshi value
-        } as TokeneGenesisRequestParams,
+          value: 1000n,                    // Satoshi value
+        },
         opreturnData
       );
-      const tokenId = genesisResponse?.tokenIds?.[0];
+      const tokenId = genesisResponse?.categories?.[0];
       const { txId } = genesisResponse;
       const alertMessage = `Created ${totalSupply} fungible tokens of category ${tokenId}`;
       $q.dialog({
@@ -124,7 +125,7 @@
       })
        $q.notify({
         type: 'positive',
-        message: 'Transaction succesfully sent!'
+        message: t('createTokens.notifications.transactionSent')
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
@@ -149,20 +150,22 @@
       const opreturnData = await getOpreturnData();
       $q.notify({
         spinner: true,
-        message: 'Creating minting NFT...',
+        message: t('createTokens.notifications.creatingMintingNft'),
         color: 'grey-5',
         timeout: 1000
       })
       const genesisResponse = await store.wallet.tokenGenesis(
         {
-          cashaddr: store.wallet.tokenaddr,
-          commitment: "",
-          capability: "minting",
-          value: 1000,
-        } as TokeneGenesisRequestParams,
+          cashaddr: store.wallet.getTokenDepositAddress(),
+          nft: {
+            commitment: "",
+            capability: "minting",
+          },
+          value: 1000n,
+        },
         opreturnData
       );
-      const tokenId = genesisResponse?.tokenIds?.[0];
+      const tokenId = genesisResponse?.categories?.[0];
       const { txId } = genesisResponse;
       const alertMessage = `Created minting NFT with category ${tokenId}`;
       $q.dialog({
@@ -173,7 +176,7 @@
       })
        $q.notify({
         type: 'positive',
-        message: 'Transaction succesfully sent!'
+        message: t('createTokens.notifications.transactionSent')
       })
       console.log(alertMessage);
       console.log(`${store.explorerUrl}/${txId}`);
@@ -205,73 +208,79 @@
 <template>
   <div>
     <fieldset class="item">
-      <legend>Create new tokens</legend>
+      <legend>{{ t('createTokens.title') }}</legend>
       <div>
-        You can use the <a :href="store.network == 'mainnet'? 'https://cashtokens.studio/': 'https://chipnet.cashtokens.studio/'" target="_blank">CashTokens Studio</a> 
-        for the easiest token creation, or you can use the built-in process below for fine-grained control. <br><br>
+        <i18n-t keypath="createTokens.intro" tag="span">
+          <template #link>
+            <a :href="store.network == 'mainnet'? 'https://cashtokens.studio/': 'https://chipnet.cashtokens.studio/'" target="_blank">{{ t('createTokens.cashTokensStudio') }}</a>
+          </template>
+        </i18n-t>
+        <br><br>
       </div>
 
-      <div v-if="store.balance?.bch === 0" style="color: red;">Need BCH in wallet to create tokens</div>
+      <div v-if="store.balance === 0n" style="color: red;">{{ t('createTokens.needBch') }}</div>
       <div style="margin-bottom: 1em;">
         <div v-if="store.plannedTokenId == ''">
-          Currently the wallet does not have any UTXOs capable of token creation. <br>
-          Prepare a UTXO for token-creation:
+          {{ t('createTokens.noUtxos') }} <br>
+          {{ t('createTokens.prepareUtxo') }}
           <input
             @click="createPreGenesis"
             type="button"
             class="primaryButton"
-            :value="activeAction === 'creatingPreGenesis' ? 'Preparing...' : 'Prepare UTXO'"
+            :value="activeAction === 'creatingPreGenesis' ? t('createTokens.preparingButton') : t('createTokens.prepareButton')"
             :disabled="activeAction !== null"
             style="margin-top: 8px;"
           >
         </div>
         <div v-else>
-           Planned tokenId:
-          <span v-if="store.plannedTokenId == undefined">loading...</span>
+           {{ t('createTokens.plannedTokenId') }}
+          <span v-if="store.plannedTokenId == undefined">{{ t('createTokens.loading') }}</span>
           <span v-if="store.plannedTokenId" @click="copyToClipboard(store.plannedTokenId)" style="cursor: pointer;">
             <span class="tokenId"> {{ displayPlannedTokenId }} </span>
             <img class="copyIcon icon" src="images/copyGrey.svg">
           </span>
-        </div> 
+        </div>
       </div>
 
-      <label for="newtokens">Select token-type:</label>
+      <label for="newtokens">{{ t('createTokens.selectTokenType') }}</label>
       <select name="newtokens" id="newtokens"  v-model="selectedTokenType" :disabled="!store.plannedTokenId">
-        <option autocomplete="off" selected value="-select-">-select-</option>
-        <option autocomplete="off" value="fungibles">Fungible Tokens</option>
-        <option autocomplete="off" value="mintingNFT">Minting NFT</option>
+        <option autocomplete="off" selected value="-select-">{{ t('createTokens.selectOption') }}</option>
+        <option autocomplete="off" value="fungibles">{{ t('createTokens.fungibleTokens') }}</option>
+        <option autocomplete="off" value="mintingNFT">{{ t('createTokens.mintingNFT') }}</option>
       </select>
       <br>
       <div v-if="selectedTokenType == '-select-'">
         <div>
-        <b>Fungible Tokens</b> is used to create interchangeable tokens. The total supply of fungible tokens needs to be
-        determined at creation. <br>
-        <b>Minting NFT</b> is used to create an NFT collection. The minting NFT has the ability to mint new NFTs with the
-        same tokenId.
+        <b>{{ t('createTokens.fungibleTokens') }}</b> {{ t('createTokens.fungibleDescription') }} <br>
+        <b>{{ t('createTokens.mintingNFT') }}</b> {{ t('createTokens.mintingDescription') }}
         </div>
         <div style="margin: 5px 0px;">
-          <i>Note:</i> to use a Minting NFT toggle the option "Enable mint NFTs" in the developer settings.
+          <i>{{ t('createTokens.mintingNote') }}</i>
         </div>
       </div>
       <div v-if="selectedTokenType != '-select-'">
         <div v-if="selectedTokenType == 'fungibles'">
-          Choose the total supply of fungible tokens
-          <input v-model="inputFungibleSupply" placeholder="total supply" type="number">
-          <i>note:</i> add extra zeroes for the number of decimals set in the BCMR metadata
+          {{ t('createTokens.supplyLabel') }}
+          <input v-model="inputFungibleSupply" :placeholder="t('createTokens.supplyPlaceholder')" type="number">
+          <i>{{ t('createTokens.supplyNote') }}</i>
           <br><br>
         </div>
 
         <details style="margin-bottom: 0.5em;">
-          <summary style="display: list-item">Link Token-Metadata</summary>
-          To add metadata to your token you need to upload the token image(s), create a JSON file following the 
-          <a href="https://github.com/bitjson/chip-bcmr" target="_blank">BCMR-standard</a>, upload it somewhere and then post that link on-chain. <br><br>
-    
-          <label for="selectUri">Select where to upload your metadata (IPFS recommended): </label>
+          <summary style="display: list-item">{{ t('createTokens.linkMetadata') }}</summary>
+          <i18n-t keypath="createTokens.metadataIntro" tag="span">
+            <template #link>
+              <a href="https://github.com/bitjson/chip-bcmr" target="_blank">{{ t('createTokens.bcmrStandard') }}</a>
+            </template>
+          </i18n-t>
+          <br><br>
+
+          <label for="selectUri">{{ t('createTokens.selectUploadLocation') }} </label>
           <select name="selectUri" v-model="selectedUri">
-            <option value="-select-">- select -</option>
-            <option value="IPFS">IPFS</option>
-            <option value="website">HTTPS: own website</option>
-            <option value="github">HTTPS: github gist</option>
+            <option value="-select-">{{ t('createTokens.selectPlaceholder') }}</option>
+            <option value="IPFS">{{ t('createTokens.ipfs') }}</option>
+            <option value="website">{{ t('createTokens.httpsWebsite') }}</option>
+            <option value="github">{{ t('createTokens.httpsGithub') }}</option>
           </select>
           <div v-if="selectedUri == 'github'">
             If you have a GitHub account and know how to use git, you can easily host your BCMR on Github Gist, similar to 
@@ -303,17 +312,15 @@
             The BCMR location together with the hash of its content will be stored on the blockchain.
             <input v-model="inputBcmr" @input="getOpreturnData" placeholder="bafkreiaqpmlrtsdf5cvwgh46mpyric2r44ikqzqgtevny74qdmrjc5dkxy">
           </div><br>
-          <b>Validity check metadata:
+          <b>{{ t('createTokens.validityCheck') }}
             <EmojiItem v-if="validitityCheck != undefined" :emoji="validitityCheck ? '✅':'❌'" style="vertical-align: baseline;"/>
             <span v-else>...</span>
           </b>
         </details>
         <div style="margin: 15px 0px;">
-          <b>Note:</b> Token metadata can still be added/updated after creation with the token's AuthUTXO.
-          To use this functionality toggle "Enable authchain resolution" in the developer settings.
-          Transfer the AuthUTXO to a dedicated wallet right after creation.
+          <b>{{ t('createTokens.metadataNote') }}</b>
         </div>
-        <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" :value="activeAction === 'creatingFungibles' ? 'Creating Tokens...' : (activeAction === 'creatingMintingNFT' ? 'Creating NFT...' : 'Create')" style="margin: 8px 0;" :disabled="activeAction !== null">
+        <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" :value="activeAction === 'creatingFungibles' ? t('createTokens.creatingTokensButton') : (activeAction === 'creatingMintingNFT' ? t('createTokens.creatingNftButton') : t('createTokens.createButton'))" style="margin: 8px 0;" :disabled="activeAction !== null">
       </div>
     </fieldset>
 </div></template>

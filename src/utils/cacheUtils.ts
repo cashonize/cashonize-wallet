@@ -72,7 +72,7 @@ interface LocalStorageCacheResponse {
   timestamp: number
 }
 
-export async function cachedFetch(input: string): Promise<Response> {
+export async function cachedFetch(input: string, ttlMs: number = CACHE_TTL_MS): Promise<Response> {
   const now = Date.now();
   const key = 'cachedFetch-' + binToHex(sha256.hash(utf8ToBin(input.toString())));
 
@@ -81,7 +81,7 @@ export async function cachedFetch(input: string): Promise<Response> {
   );
 
   // If item exists in localStorage and is still valid, return it
-  if ((now - timestamp < CACHE_TTL_MS) && simpleResponse.status) {
+  if ((now - timestamp < ttlMs) && simpleResponse.status) {
     // create a new Response object from the cached data
     const resp = new Response(simpleResponse.responseText, {
       status: simpleResponse.status,

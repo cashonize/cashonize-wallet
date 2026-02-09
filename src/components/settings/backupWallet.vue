@@ -5,9 +5,11 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils'
   import { DERIVATION_PATHS } from 'src/utils/walletUtils'
+  import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
+  const { t } = useI18n()
 
     // Persistent storage (only relevant for browser/PWA, not Electron or Capacitor)
   const isBrowser = process.env.MODE === 'spa'
@@ -27,24 +29,30 @@
     persistentStorageStatus.value = granted ? 'granted' : 'denied'
     if (granted) {
       $q.notify({
-        message: "Persistent storage granted - your wallet data is protected",
+        message: t('backupWallet.persistentStorage.grantedNotification'),
         icon: 'check_circle',
         color: "green"
       })
     } else {
       $q.notify({
-        message: "Persistent storage denied - make sure you have a backup of your seed phrase",
+        message: t('backupWallet.persistentStorage.deniedNotification'),
         icon: 'warning',
         color: "grey-7"
       })
     }
   }
 
+  const walletDerivationPath = computed(() => {
+    const w = store.wallet;
+    if ('derivationPath' in w) return (w as { derivationPath: string }).derivationPath;
+    if ('derivation' in w) return (w as { derivation: string }).derivation;
+    return '';
+  });
   const derivationPathNote = computed(() => {
-    const path = store.wallet.derivationPath;
-    if (path === DERIVATION_PATHS.standard.full) return "BCH standard";
-    if (path === DERIVATION_PATHS.bitcoindotcom.full) return "legacy, Bitcoin.com wallet compatible";
-    return "custom";
+    const path = walletDerivationPath.value;
+    if (path === DERIVATION_PATHS.standard.full || path === DERIVATION_PATHS.standard.parent) return t('backupWallet.derivationPath.standard');
+    if (path === DERIVATION_PATHS.bitcoindotcom.full || path === DERIVATION_PATHS.bitcoindotcom.parent) return t('backupWallet.derivationPath.bitcoindotcom');
+    return t('backupWallet.derivationPath.custom');
   })
 
   // Computed property to check if current wallet's seed has been backed up
@@ -114,13 +122,13 @@
       settingsStore.setBackupStatus(store.activeWalletName, 'verified');
       showBackupVerification.value = false;
       $q.notify({
-        message: "Backup verified successfully!",
+        message: t('backupWallet.verification.successNotification'),
         icon: 'check_circle',
         color: "green"
       });
     } else {
       $q.notify({
-        message: "Some words don't match. Please check and try again.",
+        message: t('backupWallet.verification.failureNotification'),
         icon: 'warning',
         color: "grey-7"
       });
@@ -130,11 +138,11 @@
   async function copySeedphrase() {
     const confirmed = await new Promise<boolean>((resolve) => {
       $q.dialog({
-        title: 'Copy Seed Phrase',
-        message: 'Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.<br>You can clear your clipboard afterwards by copying something else.',
+        title: t('backupWallet.seedPhrase.copyTitle'),
+        message: t('backupWallet.seedPhrase.copyMessage'),
         html: true,
         cancel: { flat: true, color: 'dark' },
-        ok: { label: 'Copy', color: 'primary', textColor: 'white' },
+        ok: { label: t('backupWallet.seedPhrase.copyButton'), color: 'primary', textColor: 'white' },
         persistent: true
       }).onOk(() => resolve(true))
         .onCancel(() => resolve(false))
@@ -142,7 +150,7 @@
     if (!confirmed) return
     void navigator.clipboard.writeText(store.wallet.mnemonic);
     $q.notify({
-      message: "Seed phrase copied to clipboard",
+      message: t('backupWallet.seedPhrase.copiedNotification'),
       icon: 'info',
       timeout: 2000,
       color: "grey-6"
@@ -153,17 +161,17 @@
 <template>
   <div>
     <div style="margin-bottom: 15px;">
-      Current wallet: <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+      {{ t('backupWallet.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
     </div>
 
     <!-- Show/Hide Seed Phrase -->
     <div style="margin-top: 15px;">
-      <div style="margin-bottom: 8px;">Wallet seed phrase</div>
+      <div style="margin-bottom: 8px;">{{ t('backupWallet.seedPhrase.title') }}</div>
       <div class="seedphrase-actions">
         <input @click="toggleShowSeedphrase()" class="button primary" type="button"
-          :value="displaySeedphrase ? 'Hide seed phrase' : 'Show seed phrase'"
+          :value="displaySeedphrase ? t('backupWallet.seedPhrase.hideButton') : t('backupWallet.seedPhrase.showButton')"
         >
-        <input v-if="!hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" value="Verify your backup" style="color: black;">
+        <input v-if="!hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" :value="t('backupWallet.seedPhrase.verifyButton')" style="color: black;">
       </div>
     </div>
     <div v-if="displaySeedphrase" class="seedphrase-container">
@@ -172,34 +180,34 @@
       </span>
     </div>
     <button v-if="displaySeedphrase" @click="copySeedphrase" class="seedphrase-copy-btn">
-      Copy Seed Phrase
+      {{ t('backupWallet.seedPhrase.copyButton') }}
     </button>
 
     <!-- Backup Status -->
     <div v-if="!showBackupVerification" class="backup-status-section">
       <div v-if="backupStatus === 'verified'" class="backup-status text-verified">
         <span class="status-icon">✓</span>
-        <span>Backup verified</span>
+        <span>{{ t('backupWallet.backupStatus.verified') }}</span>
       </div>
       <div v-else-if="backupStatus === 'imported'" class="backup-status text-verified">
         <span class="status-icon">✓</span>
-        <span>Imported wallet</span>
-        <span class="inline-hint">— no extra backup verification needed</span>
+        <span>{{ t('backupWallet.backupStatus.imported') }}</span>
+        <span class="inline-hint">{{ t('backupWallet.backupStatus.importedHint') }}</span>
       </div>
       <div v-else class="backup-status not-verified">
         <span class="status-icon">!</span>
-        <span>Not backed up yet</span>
-        <span class="inline-hint">— click "Verify your backup" to confirm</span>
+        <span>{{ t('backupWallet.backupStatus.notBackedUp') }}</span>
+        <span class="inline-hint">{{ t('backupWallet.backupStatus.notBackedUpHint') }}</span>
       </div>
     </div>
 
     <!-- Backup Verification UI -->
     <div v-if="showBackupVerification" class="verification-container">
-      <div class="verification-title">Backup verification test</div>
-      <div class="verification-subtitle">Enter the following words from your written backup to confirm you've saved it correctly.</div>
+      <div class="verification-title">{{ t('backupWallet.verification.title') }}</div>
+      <div class="verification-subtitle">{{ t('backupWallet.verification.subtitle') }}</div>
       <div class="verification-grid">
         <div v-for="(wordIndex, position) in verificationIndices" :key="position" class="verification-input-group">
-          <label class="verification-label">Word {{ wordIndex + 1 }}</label>
+          <label class="verification-label">{{ t('backupWallet.verification.wordLabel', { index: wordIndex + 1 }) }}</label>
           <input
             v-model="verificationWords[position]"
             :class="getVerificationWordClass(position)"
@@ -211,16 +219,16 @@
           >
         </div>
       </div>
-      <button @click="verifyBackup" class="button primary" style="margin-top: 15px;">Verify</button>
+      <button @click="verifyBackup" class="button primary" style="margin-top: 15px;">{{ t('backupWallet.verification.verifyButton') }}</button>
     </div>
 
     <div class="derivation-section">
       <div class="derivation-label">
-        Derivation path
+        {{ t('backupWallet.derivationPath.label') }}
         <span class="derivation-note">({{ derivationPathNote }})</span>
       </div>
-      <div class="derivation-container" @click="copyToClipboard(store.wallet.derivationPath)">
-        <span class="derivation-path">{{ store.wallet.derivationPath }}</span>
+      <div class="derivation-container" @click="copyToClipboard(walletDerivationPath)">
+        <span class="derivation-path">{{ walletDerivationPath }}</span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </div>
     </div>
@@ -229,27 +237,27 @@
     <div v-if="isBrowser && persistentStorageSupported" class="persistent-storage-section">
       <div class="persistent-storage-info">
         <span v-if="persistentStorageStatus === 'granted'" class="storage-status text-verified">
-          <span class="status-icon">✓</span> Data persistence granted by browser
-          <span class="inline-hint">— this protects wallet data from being cleared</span>
+          <span class="status-icon">✓</span> {{ t('backupWallet.persistentStorage.granted') }}
+          <span class="inline-hint">{{ t('backupWallet.persistentStorage.grantedHint') }}</span>
         </span>
         <span v-else-if="persistentStorageStatus === 'denied'" class="storage-status denied">
           <span class="status-icon">!</span>
-          <span>Wallet data not protected</span>
-          <span class="inline-hint">— request data persistence from the browser</span>
+          <span>{{ t('backupWallet.persistentStorage.denied') }}</span>
+          <span class="inline-hint">{{ t('backupWallet.persistentStorage.deniedHint') }}</span>
         </span>
         <span v-else class="storage-status unknown">
-          Checking...
+          {{ t('backupWallet.persistentStorage.checking') }}
         </span>
       </div>
       <div v-if="persistentStorageStatus !== 'granted'" class="persistent-storage-hint">
-        In rare cases, browsers may clear site data automatically. To protect against this, we are requesting data persistence.
+        {{ t('backupWallet.persistentStorage.hint') }}
       </div>
       <input
         v-if="persistentStorageStatus !== 'granted'"
         @click="requestPersistentStorage()"
         class="button"
         type="button"
-        value="Request data persistence"
+        :value="t('backupWallet.persistentStorage.requestButton')"
         style="margin-top: 10px; margin-bottom: 15px; color: black;"
       >
     </div>

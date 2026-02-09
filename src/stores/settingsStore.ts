@@ -6,6 +6,8 @@ import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "sr
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
 import { defaultWalletName } from "./constants";
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
@@ -20,6 +22,7 @@ const isMobileDevice = width.value / height.value < 1.5
 
 export const useSettingsStore = defineStore('settingsStore', () => {
   // Settings in settings menu
+  const locale = ref("en");
   const currency = ref<Currency>("usd");
   const bchUnit = ref("bch" as ("bch" | "sat"));
   const explorerMainnet = ref(defaultExplorerMainnet);
@@ -31,6 +34,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
   const showCauldronSwap = ref(false);
+  const showCauldronFTValue = ref(true);
   const qrScan = ref(true);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const dateFormat = ref<DateFormat>("DD/MM/YY");
@@ -39,7 +43,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // developer settings
   const mintNfts = ref(false);
   const authchains = ref(false);
-  const loadTokenIcons = ref(true);
+  const disableTokenIcons = ref(false);
   // history settings
   const showFiatValueHistory = ref(true);
   const hideBalanceColumn = ref(false);
@@ -61,10 +65,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // Stored in localStorage as JSON: { "walletName": { createdAt: "2025-01-16T..." }, ... }
   interface WalletMetadata {
     createdAt?: string; // ISO date string
+    walletType?: 'single' | 'hd';
   }
   const walletMetadata = ref<Record<string, WalletMetadata>>({})
 
   // read local storage for stored settings
+  const readLocale = localStorage.getItem("locale");
+  if(readLocale) locale.value = readLocale;
+
   const readCurrency = localStorage.getItem("currency");
   if(readCurrency && readCurrency in CurrencySymbols) {
     currency.value = readCurrency as Currency;
@@ -132,6 +140,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     showCauldronSwap.value = true;
   }
 
+  const readShowCauldronFTValue = localStorage.getItem("showCauldronFTValue");
+  if(readShowCauldronFTValue) showCauldronFTValue.value = readShowCauldronFTValue == "true";
+
   const readFeaturedTokens = localStorage.getItem("featuredTokens");
   if(readFeaturedTokens) {
     featuredTokens.value = JSON.parse(readFeaturedTokens) as string[];
@@ -187,8 +198,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readConfirmBeforeSending = localStorage.getItem("confirmBeforeSending");
   if(readConfirmBeforeSending) confirmBeforeSending.value = readConfirmBeforeSending == "true";
 
-  const readLoadTokenIcons = localStorage.getItem("loadTokenIcons");
-  if(readLoadTokenIcons) loadTokenIcons.value = readLoadTokenIcons == "true";
+  const readDisableTokenIcons = localStorage.getItem("disableTokenIcons");
+  if(readDisableTokenIcons) disableTokenIcons.value = readDisableTokenIcons === "true";
 
   // --- Exchange rate provider configuration ---
 
@@ -200,14 +211,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     const parseResult = BitpayRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`BitPay rates response validation error: ${parseResult.error.message}`);
-      throw Error("BitPay rates response validation error");
+      throw Error(t('exchangeRate.errors.validationError', { provider: 'BitPay' }));
     }
     const normalizedSymbol = symbol.toLowerCase();
     const match = parseResult.data.data.find(rate => rate.code.toLowerCase() === normalizedSymbol);
     if (match) {
       return match.rate;
     }
-    throw Error(`Currency '${symbol}' is not supported.`);
+    throw Error(t('exchangeRate.errors.currencyNotSupported', { symbol }));
   }
 
   const COINGECKO_RATES_API = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=";
@@ -219,13 +230,13 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     const parseResult = CoinGeckoRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`CoinGecko rates response validation error: ${parseResult.error.message}`);
-      throw Error("CoinGecko rates response validation error");
+      throw Error(t('exchangeRate.errors.validationError', { provider: 'CoinGecko' }));
     }
     const rate = parseResult.data["bitcoin-cash"][normalizedSymbol];
     if (rate !== undefined) {
       return rate;
     }
-    throw Error(`Currency '${symbol}' is not supported.`);
+    throw Error(t('exchangeRate.errors.currencyNotSupported', { symbol }));
   }
 
   const COINBASE_RATES_API = "https://api.coinbase.com/v2/exchange-rates?currency=BCH";
@@ -236,14 +247,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     const parseResult = CoinbaseRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`Coinbase rates response validation error: ${parseResult.error.message}`);
-      throw Error("Coinbase rates response validation error");
+      throw Error(t('exchangeRate.errors.validationError', { provider: 'Coinbase' }));
     }
     const normalizedSymbol = symbol.toUpperCase();
     const rate = parseResult.data.data.rates[normalizedSymbol];
     if (rate !== undefined) {
       return parseFloat(rate);
     }
-    throw Error(`Currency '${symbol}' is not supported.`);
+    throw Error(t('exchangeRate.errors.currencyNotSupported', { symbol }));
   }
 
   function configureExchangeRateProvider(provider: ExchangeRateProvider) {
@@ -366,6 +377,18 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
   }
 
+  function getWalletType(walletName: string): 'single' | 'hd' {
+    return walletMetadata.value[walletName]?.walletType || 'single';
+  }
+
+  function setWalletType(walletName: string, type: 'single' | 'hd') {
+    if (!walletMetadata.value[walletName]) {
+      walletMetadata.value[walletName] = {};
+    }
+    walletMetadata.value[walletName].walletType = type;
+    localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
+  }
+
   function clearWalletMetadata(walletName: string) {
     delete walletMetadata.value[walletName];
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
@@ -379,6 +402,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   }
 
   return {
+    locale,
     currency,
     bchUnit,
     explorerMainnet,
@@ -392,6 +416,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     hideBalanceColumn,
     tokenBurn,
     showCauldronSwap,
+    showCauldronFTValue,
     qrScan,
     qrAnimation,
     hasPlayedAnimation,
@@ -405,12 +430,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     clearBackupStatus,
     getWalletMetadata,
     setWalletCreatedAt,
+    getWalletType,
+    setWalletType,
     clearWalletMetadata,
     mintNfts,
     authchains,
     dateFormat,
     confirmBeforeSending,
-    loadTokenIcons,
+    disableTokenIcons,
     exchangeRateProvider,
     configureExchangeRateProvider,
     getAutoApproveState,

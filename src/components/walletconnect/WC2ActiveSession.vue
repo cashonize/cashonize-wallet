@@ -5,10 +5,14 @@
   import type { SessionTypes } from '@walletconnect/types'
   import { useWindowSize } from '@vueuse/core'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useStore } from 'src/stores/store'
+  import { useI18n } from 'vue-i18n'
   const settingsStore = useSettingsStore()
+  const store = useStore()
+  const { t } = useI18n()
 
   const { width } = useWindowSize();
-  const isMobilePhone = width.value < 480
+  const isMobilePhone = computed(() => width.value < 480);
 
   const emit = defineEmits(['deleteSession']);
 
@@ -33,9 +37,24 @@
     );
 
     // If duplicated, return part of the session id
-    const sessionPrefix = !isMobilePhone ?'session ' : ''
+    const sessionPrefix = !isMobilePhone.value ? t('walletConnect.sessions.session') + ' ' : ''
     return hasDuplicateName? `- ${sessionPrefix} ${session.topic.slice(0, 6)}`: '';
   });
+
+  const connectedAddresses = computed(() => {
+    const isHD = settingsStore.getWalletType(store.activeWalletName) === 'hd';
+    if (!isHD) return [];
+    const session = activeSessions.value[props.sessionId] as SessionTypes.Struct;
+    const accounts = session.namespaces?.bch?.accounts;
+    if (!accounts?.length) return [];
+    // account format is "bch:<address>", strip the "bch:" prefix
+    return accounts.map(account => account.split(':').slice(1).join(':'));
+  });
+
+  function shortenAddress(address: string) {
+    const addrWithoutPrefix = address.split(':')[1] ?? "";
+    return addrWithoutPrefix.slice(0, 10) + '...' + addrWithoutPrefix.slice(-8);
+  }
 </script>
 
 <template>
@@ -46,6 +65,10 @@
         <div>{{ dappMetadata.name + displaySessionId }}</div>
         <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
         <div>{{ dappMetadata.description }}</div>
+        <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono" :title="addr">
+          <template v-if="width < 550">{{ shortenAddress(addr) }}</template>
+          <template v-else>{{ addr }}</template>
+        </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 18px;">
         <img style="cursor: pointer; max-width: none;"
@@ -61,12 +84,20 @@
   </div>
 
   <div v-if="sessionSettingsWC">
-    <WC2SessionSettingsDialog :sessionId="sessionSettingsWC" @hide="sessionSettingsWC=''" :dapp-metadata="dappMetadata"/>
+    <WC2SessionSettingsDialog :sessionId="sessionSettingsWC" @hide="sessionSettingsWC=''" :dapp-metadata="dappMetadata" :connected-addresses="connectedAddresses"/>
   </div>
 </template>
 
 <style scoped>
   body.dark .dialogFieldset {
     background-color: #050a14;
+  }
+  .connected-address {
+    color: #888;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .mono {
+    font-family: monospace;
   }
 </style>

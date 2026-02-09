@@ -4,11 +4,13 @@
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import type { BarcodeScannerPlugin } from '@capacitor-community/barcode-scanner';
   import { caughtErrorToString } from 'src/utils/errorHandling';
+  import { useI18n } from 'vue-i18n'
 
   import { useWindowSize } from '@vueuse/core'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
   const isCapacitor = (process.env.MODE == "capacitor");
+  const { t } = useI18n()
 
   const props = defineProps<{
     filter?: (decoded: string) => string | true
@@ -25,29 +27,22 @@
     () => import('vue-qrcode-reader').then(m => m.QrcodeStream)
   ) : undefined;
 
-  const CameraPermissionErrMsg1 = "Permission required to access the camera";
-  const CameraPermissionErrMsg2 = "No camera found on this device";
-  const CameraPermissionErrMsg3 = "Unable to acccess camera in non-secure context";
-  const CameraPermissionErrMsg4 = "Unable to access camera";
-  const CameraPermissionErrMsg5 = "Constraints don\"t match any installed camera. Did you ask for the front camera although there is none?";
-  const UnknownErrorOccurred = "Unknown error occurred";
-
   const emit = defineEmits(['hide', 'decode']);
 
   const onScannerError = (err: Error) => {
     if (err.name === 'NotAllowedError') {
-      error.value = CameraPermissionErrMsg1;
+      error.value = t('qrScanner.errors.permissionRequired');
     } else if (err.name === 'NotFoundError') {
-      error.value = CameraPermissionErrMsg2;
+      error.value = t('qrScanner.errors.noCamera');
     } else if (err.name === 'NotSupportedError') {
-      error.value = CameraPermissionErrMsg3;
+      error.value = t('qrScanner.errors.nonSecureContext');
     } else if (err.name === 'NotReadableError') {
-      error.value = CameraPermissionErrMsg4;
+      error.value = t('qrScanner.errors.unableToAccess');
     } else if (err.name === 'OverconstrainedError') {
       frontCamera.value = false;
-      error.value = CameraPermissionErrMsg5;
+      error.value = t('qrScanner.errors.constraintsMismatch');
     } else {
-      error.value = UnknownErrorOccurred + ': ' + err.message;
+      error.value = t('qrScanner.errors.unknownError') + ': ' + err.message;
     }
   }
   const onScannerDecode = (content: DetectedBarcode[]) => {
@@ -76,7 +71,7 @@
       // Request camera permission
       const status = await BarcodeScanner.checkPermission({ force: true });
       if (!status.granted) {
-        error.value = "Camera permission required";
+        error.value = t('qrScanner.errors.cameraPermissionRequired');
         return;
       }
 
@@ -89,7 +84,7 @@
       if (result.hasContent) {
         emit('decode', result.content);
       } else {
-        error.value = "Scan failed, try again.";
+        error.value = t('qrScanner.errors.scanFailed');
       }
 
       // Restore background
@@ -102,7 +97,7 @@
     } catch (err) {
       const errorMessage = caughtErrorToString(err)
       console.error("Scan error:", errorMessage);
-      error.value = "Error scanning barcode: " + errorMessage;
+      error.value = t('qrScanner.errors.errorScanning') + ' ' + errorMessage;
     }
   };
 

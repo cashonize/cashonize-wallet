@@ -9,8 +9,10 @@ import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
 import { type BcmrTokenResponse } from 'src/utils/zodValidation';
+import { useI18n } from 'vue-i18n'
 const store = useStore()
 const settingsStore = useSettingsStore()
+const { t } = useI18n()
 
 const props = defineProps<{
   session: BchSession,
@@ -197,7 +199,7 @@ function satsToBCH(satoshis: bigint) {
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale">
     <q-card>
       <fieldset class="cc-modal-fieldset">
-        <legend class="cc-modal-fieldset-legend">Sign Transaction</legend>
+        <legend class="cc-modal-fieldset-legend">{{ t('cashConnect.signTransaction.title') }}</legend>
 
         <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
           {{ pairedTxs[0]?.params.userPrompt }}
@@ -218,7 +220,7 @@ function satsToBCH(satoshis: bigint) {
 
         <hr />
 
-        <div class="cc-modal-heading" style="margin-top: 1.5rem;">Balance Change:</div>
+        <div class="cc-modal-heading" style="margin-top: 1.5rem;">{{ t('cashConnect.signTransaction.balanceChange') }}</div>
         <div v-for="(amount, category) of balanceChanges" :key="category">
           <div v-if="(category === 'sats')">
             {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' }}
@@ -231,13 +233,13 @@ function satsToBCH(satoshis: bigint) {
 
         <hr style="margin-top: 2rem;"/>
 
-        <div class="cc-modal-heading">Transaction Details</div>
+        <div class="cc-modal-heading">{{ t('cashConnect.signTransaction.transactionDetails') }}</div>
         <div v-for="(pairedTx, i) of pairedTxs" :key="i" class="cc-modal-details">
           <q-expansion-item
-            :label="`Tx #${i} - ${pairedTx.params.userPrompt}`"
+            :label="t('cashConnect.signTransaction.txLabel', { index: i, prompt: pairedTx.params.userPrompt })"
           >
               <!-- Inputs -->
-              <div class="cc-modal-heading">Inputs</div>
+              <div class="cc-modal-heading">{{ t('cashConnect.signTransaction.inputs') }}</div>
               <table class="cc-data-table">
                 <tbody v-for="(input, index) of pairInputs(pairedTx)" :key="index">
                   <tr>
@@ -269,7 +271,7 @@ function satsToBCH(satoshis: bigint) {
               </table>
 
               <!-- Outputs -->
-              <div class="cc-modal-heading">Outputs</div>
+              <div class="cc-modal-heading">{{ t('cashConnect.signTransaction.outputs') }}</div>
               <table class="cc-data-table">
                 <tbody v-for="(output, index) of pairOutputs(pairedTx)" :key="index">
                   <tr>
@@ -284,15 +286,15 @@ function satsToBCH(satoshis: bigint) {
                         <tbody>
                           <tr>
                             <td>
-                              Token: {{ getTokenName(binToHex(output.response.token.category)) }}
+                              {{ t('cashConnect.signTransaction.token') }} {{ getTokenName(binToHex(output.response.token.category)) }}
                             </td>
                             <td>
-                              Amount: {{ Number(output.response.token.amount) }}
+                              {{ t('cashConnect.signTransaction.amount') }} {{ Number(output.response.token.amount) }}
                             </td>
                           </tr>
                           <tr v-if="output.response.token?.nft">
-                            <td>Commitment: {{ formatBin(output.response.token.nft.commitment) }}</td>
-                            <td>Capability: {{ output.response.token.nft.capability }}</td>
+                            <td>{{ t('cashConnect.signTransaction.commitment') }} {{ formatBin(output.response.token.nft.commitment) }}</td>
+                            <td>{{ t('cashConnect.signTransaction.capability') }} {{ output.response.token.nft.capability }}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -325,8 +327,8 @@ function satsToBCH(satoshis: bigint) {
 
         <!-- Approve/Reject Buttons -->
         <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" value="Approve" @click="onDialogOK" v-close-popup>
-          <input type="button" value="Reject" @click="onDialogCancel">
+          <input type="button" class="primaryButton" :value="t('cashConnect.signTransaction.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" :value="t('cashConnect.signTransaction.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>
     </q-card>

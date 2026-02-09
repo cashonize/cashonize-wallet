@@ -11,6 +11,9 @@
  * BCH-specific extensions (c, ft, nft for CashTokens, op_return) also land in otherParams.
  */
 
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
+
 export interface Bip21ParseResult {
   address: string;
   amount?: number;
@@ -138,8 +141,8 @@ export function isBip21Uri(uri: string): boolean {
  * @returns Error message string if invalid, null if valid
  */
 export function getBip21ValidationError(parsed: Bip21ParseResult): string | null {
-  if (parsed.hasUnknownRequired) return "Unsupported payment request";
-  if (parsed.hasDuplicateKeys) return "Invalid payment request: duplicate parameters";
-  if (parsed.hasInvalidAmount) return "Payment request has invalid amount format";
+  if (parsed.hasUnknownRequired) return t('bip21.errors.unsupportedPaymentRequest');
+  if (parsed.hasDuplicateKeys) return t('bip21.errors.duplicateParameters');
+  if (parsed.hasInvalidAmount) return t('bip21.errors.invalidAmountFormat');
   return null;
 }

@@ -9,9 +9,10 @@
   import createTokensView from 'src/components/settings/createTokens.vue'
   import utxoManagement from 'src/components/settings/utxoManagement.vue'
   import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
+  import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import { ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
-  import { Wallet, TestNetWallet, DefaultProvider } from 'mainnet-js'
+  import { DefaultProvider } from 'mainnet-js'
   import { waitForInitialized } from 'src/utils/utils'
   import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
   import { useStore } from 'src/stores/store'
@@ -23,6 +24,8 @@
   const isMobile = computed(() => width.value < 480)
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
 
   const props = defineProps<{
     uri: string | undefined
@@ -48,6 +51,7 @@
       case 7: return utxoManagement;
       case 8: return sweepPrivateKey;
       case 9: return addWalletView;
+      case 10: return hdAddressesView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });
@@ -85,8 +89,8 @@
 
   if(walletExists){
     // initialise wallet on configured network
-    const readNetwork = localStorage.getItem('network');
-    const walletClass = (readNetwork != 'chipnet')? Wallet : TestNetWallet;
+    const readNetwork = localStorage.getItem('network') ?? 'mainnet';
+    const walletClass = await store.getWalletClass(walletToLoad, readNetwork);
     const initWallet = await walletClass.named(walletToLoad);
     store.setWallet(initWallet);
     store.changeView(1);
@@ -107,7 +111,7 @@
       store.changeView(4);
     } else {
       $q.notify({
-        message: "Need to initialize a wallet first",
+        message: t('common.errors.needToInitializeWallet'),
         icon: 'warning',
         color: "grey-7"
       })
@@ -120,7 +124,7 @@
       store.changeView(1);
     } else {
       $q.notify({
-        message: "Need to initialize a wallet first",
+        message: t('common.errors.needToInitializeWallet'),
         icon: 'warning',
         color: "grey-7"
       })
@@ -133,7 +137,7 @@
       store.changeView(8);
     } else {
       $q.notify({
-        message: "Need to initialize a wallet first",
+        message: t('common.errors.needToInitializeWallet'),
         icon: 'warning',
         color: "grey-7"
       })
@@ -156,7 +160,7 @@
 
   const hasUtxosWithBchAndTokens = computed(() => {
     if (!store._wallet || !store.walletUtxos) return undefined;
-    return store.walletUtxos?.filter(utxo => utxo.token?.tokenId && utxo.satoshis > 100_000n).length > 0;
+    return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n).length > 0;
   });
   const newerReleaseAvailable = computed(() => {
     if(!(process.env.MODE == "electron")) return false;
@@ -175,6 +179,7 @@
     <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
     <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs">
       <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ isMobile ? "Wallet" : "BchWallet" }} </div>
+      <div v-if="width > 570 && store.wallet.walletType === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> Addresses </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ isMobile ? "Tokens" : "MyTokens" }} </div>
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ isMobile ? "History" : "TxHistory" }} </div>
       <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ isMobile ? "Connect" : "WalletConnect" }} </div>

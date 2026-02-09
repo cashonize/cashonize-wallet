@@ -55,6 +55,30 @@ export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
   }
 }
 
+/**
+ * Detects wallet type from the walletId stored in IndexedDB.
+ * Returns 'hd' if the walletId starts with 'hd:', 'single' otherwise.
+ * This is a fallback for when localStorage metadata is missing.
+ */
+export async function getWalletTypeFromDb(
+  name: string,
+  dbName: "bitcoincash" | "bchtest"
+): Promise<'single' | 'hd'> {
+  if (!name) throw new Error("Named wallets must have a non-empty name");
+
+  const db = new IndexedDBProvider(dbName);
+  await db.init();
+  try {
+    const walletEntry = await db.getWallet(name);
+    if (!walletEntry) return 'single';
+    // walletEntry.wallet contains the walletId string (e.g., 'hd:mainnet:...' or 'seed:mainnet:...')
+    const walletId = (walletEntry as { wallet?: string }).wallet ?? '';
+    return walletId.startsWith('hd:') ? 'hd' : 'single';
+  } finally {
+    await db.close();
+  }
+}
+
 export async function deleteWalletFromDb(
   name: string,
   dbName: "bitcoincash" | "bchtest"
