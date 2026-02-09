@@ -624,7 +624,8 @@
       "bchBalance": "Saldo BCH:",
       "tokens": "Tokens:",
       "nfts": "NFTs:",
-      "noTokens": "Sin tokens"
+      "noTokens": "Sin tokens",
+      "noFreeBchWarning": "Esta dirección tiene tokens pero no tiene BCH disponible para pagar las comisiones de transacción. Envía una pequeña cantidad de BCH a esta dirección primero para cubrir las comisiones del barrido de tokens."
     },
     "notifications": {
       "noWifProvided": "No se proporcionó una clave privada para barrer",

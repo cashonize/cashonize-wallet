@@ -624,7 +624,8 @@
       "bchBalance": "BCH Balance:",
       "tokens": "Tokens:",
       "nfts": "NFTs:",
-      "noTokens": "No tokens"
+      "noTokens": "No tokens",
+      "noFreeBchWarning": "This address has tokens but no available BCH to pay for transaction fees. Send a small amount of BCH to this address first to cover the fees for sweeping tokens."
     },
     "notifications": {
       "noWifProvided": "No private key provided to sweep",

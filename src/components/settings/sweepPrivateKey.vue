@@ -8,7 +8,7 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
-  import { getTokenUtxos, convertToCurrency, formatFiatAmount } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import type { TokenList } from 'src/interfaces/interfaces'
   import type { BcmrTokenResponse } from 'src/utils/zodValidation'
@@ -28,6 +28,7 @@
   const isLoading = ref(false);
   const previewReady = ref(false);
   const isEmpty = ref(false);
+  const insufficientFeeBch = ref(false);
   const bchBalanceSats = ref(0n);
   const previewTokenList = ref<TokenList>([]);
   const unverifiedTokenMetadata = ref<Record<string, BcmrTokenResponse>>({});
@@ -56,6 +57,7 @@
   watch(privateKeyToSweep, () => {
     previewReady.value = false;
     isEmpty.value = false;
+    insufficientFeeBch.value = false;
     bchBalanceSats.value = 0n;
     fiatBalance.value = undefined;
     previewTokenList.value = [];
@@ -126,7 +128,6 @@
 
       // Include sats from token UTXOs since those will be recovered after sweeping the tokens
       bchBalanceSats.value = utxos.reduce((sum, utxo) => sum + utxo.satoshis, 0n);
-      const tokenUtxos = getTokenUtxos(utxos);
 
       // Fetch fiat value for BCH balance
       if (bchBalanceSats.value > 0n) {
@@ -139,13 +140,18 @@
         }
       }
 
-      if (bchBalanceSats.value === 0n && tokenUtxos.length === 0) {
+      if (utxos.length === 0) {
         isEmpty.value = true;
         previewReady.value = true;
         return;
       }
 
       previewTokenList.value = tokenListFromUtxos(utxos);
+
+      // Warn if all UTXOs are token UTXOs with at most dust-level sats (no free BCH for fees)
+      const hasTokens = previewTokenList.value.length > 0;
+      const allUtxosAreDustTokens = utxos.every(utxo => utxo.token !== undefined && utxo.satoshis <= 1000n);
+      insufficientFeeBch.value = hasTokens && allUtxosAreDustTokens;
 
       // Fetch BCMR metadata for tokens not already in the store's registries
       if (previewTokenList.value.length > 0) {
@@ -245,6 +251,7 @@
       privateKeyToSweep.value = "";
       previewReady.value = false;
       isEmpty.value = false;
+      insufficientFeeBch.value = false;
       previewTokenList.value = [];
       unverifiedTokenMetadata.value = {};
       bchBalanceSats.value = 0n;
@@ -315,7 +322,7 @@
         type="button"
         class="primaryButton"
         :value="isSweeping ? t('sweepPrivateKey.sweepingButton') : t('sweepPrivateKey.sweepButton')"
-        :disabled="isSweeping || isLoading || !privateKeyToSweep"
+        :disabled="isSweeping || isLoading || !privateKeyToSweep || insufficientFeeBch"
       >
     </div>
 
@@ -332,6 +339,11 @@
         {{ balanceInBchUnit.toLocaleString('en-US', { maximumFractionDigits: balanceMaxFractionDigits }) }}
         {{ bchDisplayUnit }}
         <span v-if="fiatBalance" style="color: grey;"> ({{ fiatBalance }})</span>
+      </div>
+
+      <!-- Warning: tokens but no free BCH for fees -->
+      <div v-if="insufficientFeeBch" style="margin-bottom: 8px; color: orange;">
+        {{ t('sweepPrivateKey.preview.noFreeBchWarning') }}
       </div>
 
       <!-- Fungible tokens -->

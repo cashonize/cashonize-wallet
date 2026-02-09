@@ -624,7 +624,8 @@
       "bchBalance": "Solde BCH :",
       "tokens": "Tokens :",
       "nfts": "NFTs :",
-      "noTokens": "Aucun token"
+      "noTokens": "Aucun token",
+      "noFreeBchWarning": "Cette adresse contient des tokens mais pas de BCH disponible pour payer les frais de transaction. Envoyez d'abord un petit montant de BCH à cette adresse pour couvrir les frais de balayage des tokens."
     },
     "notifications": {
       "noWifProvided": "Aucune clé privée fournie pour le balayage",
