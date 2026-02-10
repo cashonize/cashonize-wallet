@@ -612,13 +612,27 @@
   },
   "sweepPrivateKey": {
     "title": "Barrer clave privada",
-    "description": "Barrer BCH de una clave privada WIF:",
-    "placeholder": "Ingresa la clave privada (WIF)",
+    "description": "Barrer BCH y tokens de una billetera de papel, cashstamp o clave privada:",
+    "placeholder": "Ingresa la clave privada",
     "sweepingButton": "Barriendo...",
     "sweepButton": "Barrer",
+    "previewButton": "Vista previa",
+    "loadingButton": "Cargando...",
+    "sweepAllButton": "Barrer todo",
+    "emptyWallet": "No se encontró saldo en esta clave privada",
+    "preview": {
+      "bchBalance": "Saldo BCH:",
+      "tokens": "Tokens:",
+      "nfts": "NFTs:",
+      "noTokens": "Sin tokens",
+      "noFreeBchWarning": "Esta dirección tiene tokens pero no tiene BCH disponible para pagar las comisiones de transacción. Envía una pequeña cantidad de BCH a esta dirección primero para cubrir las comisiones del barrido de tokens."
+    },
     "notifications": {
-      "noWifProvided": "No se proporcionó una clave privada WIF para barrer",
+      "noWifProvided": "No se proporcionó una clave privada para barrer",
       "sendingTransaction": "Enviando transacción...",
+      "sweepingTokens": "Barriendo tokens...",
+      "sweepingNfts": "Barriendo NFTs...",
+      "sweepingBch": "Barriendo BCH...",
       "success": "Fondos barridos exitosamente de la clave privada"
     },
     "qrErrors": {
