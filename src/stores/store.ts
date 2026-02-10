@@ -124,6 +124,19 @@ export const useStore = defineStore('store', () => {
   let cancelWatchTokenTxs: undefined | CancelFn;
   let cancelWatchBlocks: undefined | CancelFn;
 
+  async function cancelWalletSubscriptions() {
+    const cancelSubscriptionCallbacks = [cancelWatchBchtxs, cancelWatchTokenTxs, cancelWatchBlocks];
+    const activeCancels = cancelSubscriptionCallbacks.filter((cancelFn): cancelFn is CancelFn => cancelFn !== undefined);
+
+    cancelWatchBchtxs = undefined;
+    cancelWatchTokenTxs = undefined;
+    cancelWatchBlocks = undefined;
+
+    await Promise.all(activeCancels.map((cancelFn) =>
+      cancelFn().catch(() => {})
+    ));
+  }
+
   // Create a callback that triggers when we switch networks.
   let networkChangeCallbacks: Array<() => Promise<void>> = [];
 
@@ -180,6 +193,9 @@ export const useStore = defineStore('store', () => {
   async function initializeWallet() {
     let failedToConnectElectrum = false
     if(!_wallet.value) throw new Error("No Wallet set in global store")
+
+    walletInitialized.value = false;
+    await cancelWalletSubscriptions();
 
     // Verify wallet type metadata matches the actual wallet class
     // Use 'walletCache' property to detect HD wallets (exists on HDWallet, not on single-address Wallet)
@@ -271,6 +287,9 @@ export const useStore = defineStore('store', () => {
   }
 
   async function setUpWalletSubscriptions(){
+    // Dedupe txids to avoid duplicate token processing during reconnect/resubscribe bursts.
+    const seenTokenTxIds = new Set<string>();
+
     cancelWatchBchtxs = await wallet.value.watchBalance(
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
@@ -291,7 +310,8 @@ export const useStore = defineStore('store', () => {
             }
             const currencyValue = await convert(amountInUnit, settingsStore.bchUnit, settingsStore.currency);
             const formattedAmount = amountInUnit.toLocaleString("en-US", { maximumFractionDigits: maxFractionDigits })
-            const formattedFiat = currencyValue.toLocaleString("en-US", { maximumFractionDigits: 2 }) + CurrencySymbols[settingsStore.currency]
+            const formattedCurrencyValue = currencyValue.toLocaleString("en-US", { maximumFractionDigits: 2 });
+            const formattedFiat = formattedCurrencyValue + CurrencySymbols[settingsStore.currency]
             Notify.create({
               type: 'positive',
               message: t('store.notifications.receivedBch', {
@@ -303,13 +323,14 @@ export const useStore = defineStore('store', () => {
           }
           // update state (but not on the initial trigger when creating the subscription)
           const walletAddressUtxos = await wallet.value.getUtxos();
+          const maxAmount = await wallet.value.getMaxAmountToSend({ options:{
+            utxoIds: walletAddressUtxos
+          }});
           // update balance with the amount on bch-only utxos
           const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
           balance.value = balanceSats;
           walletUtxos.value = walletAddressUtxos;
-          maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
-            utxoIds: walletAddressUtxos
-          }});
+          maxAmountToSend.value = maxAmount;
           // update wallet history as fire-and-forget promise
           void updateWalletHistory()
         }
@@ -322,6 +343,11 @@ export const useStore = defineStore('store', () => {
         // Guard: the initial watchStatus invocation fires callbacks for all existing txs
         // before walletInitialized is set to true, so skip those
         if(!walletInitialized.value) return
+
+        // Defensive dedupe for reconnect/re-subscribe bursts.
+        if (seenTokenTxIds.has(tx.txid)) return;
+        seenTokenTxIds.add(tx.txid);
+
         const receivedTokenOutputs = tx.vout.filter(voutElem =>
           voutElem.tokenData && voutElem.scriptPubKey.addresses?.[0] &&
           wallet.value.hasAddress(voutElem.scriptPubKey.addresses[0])
@@ -377,6 +403,7 @@ export const useStore = defineStore('store', () => {
 
   function resetWalletState(){
     viewStack.length = 0;
+    walletInitialized.value = false;
     // Execute each of our network changed callbacks.
     // In practice, we're using these for WC/CC to disconnect their sessions.
     // TODO: investigate if disconnecting session this way is properly working
@@ -386,11 +413,7 @@ export const useStore = defineStore('store', () => {
     networkChangeCallbacks = []
 
     // cancel active listeners
-    if(cancelWatchBchtxs && cancelWatchTokenTxs && cancelWatchBlocks){
-      void cancelWatchBchtxs()
-      void cancelWatchTokenTxs()
-      void cancelWatchBlocks()
-    }
+    void cancelWalletSubscriptions();
     // reset wallet to default state
     balance.value = undefined;
     maxAmountToSend.value = undefined;
@@ -420,7 +443,6 @@ export const useStore = defineStore('store', () => {
     awaitWalletInitialization: boolean = false
   ){
     resetWalletState()
-    walletInitialized.value = false;
     // set new wallet
     const walletClass = await getWalletClass(activeWalletName.value, newNetwork);
     const newWallet = await walletClass.named(activeWalletName.value);
@@ -468,7 +490,6 @@ export const useStore = defineStore('store', () => {
     activeWalletName.value = walletName;
     localStorage.setItem('activeWalletName', walletName);
     resetWalletState();
-    walletInitialized.value = false;
     setWallet(newWallet);
     changeView(1);
     // fire-and-forget - don't await so UI is responsive
@@ -494,7 +515,7 @@ export const useStore = defineStore('store', () => {
 
   async function initializeWalletConnect() {
     try {
-      const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>)
+      const walletconnectStore = useWalletconnectStore(_wallet as Ref<WalletType>)
       await walletconnectStore.initweb3wallet();
       isWcInitialized.value = true;
 
