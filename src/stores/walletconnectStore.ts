@@ -62,8 +62,6 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       const queuedRequests = web3wallet.value.getPendingSessionRequests();
 
       for (const request of queuedRequests) {
-        console.debug("Checking request:", request);
-
         if (request.topic !== cancellationRequestTopic) continue;
 
         // We'll process the cancellation request itself once we've cancelled all other requests
