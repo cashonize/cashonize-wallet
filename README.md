@@ -30,6 +30,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **CashConnect support** - Connect to BCH-native dApps through the CashConnect protocol
 - **Sweep tokens from private keys** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
 - **Token management** - Favorite, hide, and search tokens
+- **Parsable NFTs** - Decode NFT commitments and display their data as human-readable attributes (parsable BCMR support)
 
 ## Platforms
 
