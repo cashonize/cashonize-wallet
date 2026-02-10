@@ -336,18 +336,28 @@ export const useStore = defineStore('store', () => {
           wallet.value.hasAddress(vinElem.scriptPubKey.addresses[0])
         );
         for(const tokenOutput of receivedTokenOutputs){
+          const outputTokenData = tokenOutput.tokenData!;
           // Only notify for externally received tokens, not user-sent change outputs
           if(!isUserInitiatedTx){
-            const tokenType = tokenOutput.tokenData?.nft ? "NFT" : "tokens"
+            const tokenType = outputTokenData.nft ? "NFT" : "tokens"
             Notify.create({
               type: 'positive',
               message: t('store.notifications.receivedTokens', { tokenType })
             })
           }
-          const category = tokenOutput.tokenData?.category;
-          const isNewTokenItem = !previousTokenList?.find(elem => elem.category == category);
-          if(!category && !isNewTokenItem) continue;
-          const newTokenItem = convertElectrumTokenData(tokenOutput.tokenData)
+          const category = outputTokenData.category;
+          const isKnownCategory = previousTokenList?.some(elem => elem.category === category) ?? false;
+          if (isKnownCategory) {
+            // Skip fetching metadata if we already know this category for fungible tokens
+            if (!outputTokenData.nft) continue;
+
+            // Skip fetching metadata if we already know this category with this commitment for NFTs
+            const commitment = outputTokenData.nft.commitment ?? "";
+            const hasCommitmentMetadata = bcmrRegistries.value?.[category]?.nfts?.[commitment] !== undefined;
+            if (hasCommitmentMetadata) continue;
+          }
+
+          const newTokenItem = convertElectrumTokenData(outputTokenData)
           if(newTokenItem) listNewTokens.push(newTokenItem)
         }
         // Dynamically fetch token metadata
