@@ -123,14 +123,21 @@ export const useStore = defineStore('store', () => {
   let cancelWatchBchtxs: undefined | CancelFn;
   let cancelWatchTokenTxs: undefined | CancelFn;
   let cancelWatchBlocks: undefined | CancelFn;
+  let cancelWatchBchBalanceCashConnect: undefined | CancelFn;
 
   async function cancelWalletSubscriptions() {
-    const cancelSubscriptionCallbacks = [cancelWatchBchtxs, cancelWatchTokenTxs, cancelWatchBlocks];
+    const cancelSubscriptionCallbacks = [
+      cancelWatchBchtxs,
+      cancelWatchTokenTxs,
+      cancelWatchBlocks,
+      cancelWatchBchBalanceCashConnect,
+    ];
     const activeCancels = cancelSubscriptionCallbacks.filter((cancelFn): cancelFn is CancelFn => cancelFn !== undefined);
 
     cancelWatchBchtxs = undefined;
     cancelWatchTokenTxs = undefined;
     cancelWatchBlocks = undefined;
+    cancelWatchBchBalanceCashConnect = undefined;
 
     await Promise.all(activeCancels.map((cancelFn) =>
       cancelFn().catch(() => {})
@@ -565,10 +572,8 @@ export const useStore = defineStore('store', () => {
         await cashconnectWallet.cashConnectWallet.disconnectAllSessions();
       });
 
-      // Monitor the wallet for balance changes.
-      // TODO: investigate if we should define the return CancelFn as 'cancelWatchBchtxsCashConnect'
-      // Then we can call this on network changes, however we would need to re-create the watch for the new network
-      void wallet.value.watchBalance(() => {
+      // Monitor the wallet for balance changes and notify CashConnect to refresh wallet state.
+      cancelWatchBchBalanceCashConnect = await wallet.value.watchBalance(() => {
         // Convert the network into WC format,
         const chainIdFormatted = wallet.value.network === NetworkType.Mainnet ? 'bch:bitcoincash' : 'bch:bchtest';
 
