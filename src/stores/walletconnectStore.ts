@@ -31,13 +31,6 @@ import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 const settingsStore = useSettingsStore()
 
-// Type for tracking pending request dialogs
-type PendingRequest = {
-  topic: string;
-  event: WalletKitTypes.SessionRequest;
-  dialogHandle: ReturnType<typeof Dialog.create>;
-}
-
 // NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
 //       This keeps the mutable state more managable in the sense that WC cannot exist without a valid wallet.
 // Passing in a Ref so it remains reactive (like when changing wallets)
@@ -49,44 +42,47 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
     // Store a state variable to make sure we don't call "initweb3wallet" more than once.
     const isIninialized = ref(false);
 
-    // Track pending request dialogs so they can be cancelled by dapp
-    const pendingRequests = ref(new Map<number, PendingRequest>());
+    // Track the approval dialog so it can be cleared if a cancellation request is received over walletconnect
+    let pendingDialog: { id: number; handle: ReturnType<typeof Dialog.create> } | null = null;
     let cancellationPollingInterval: ReturnType<typeof setInterval> | null = null;
 
-    function removePendingRequest(id: number) {
-      pendingRequests.value.delete(id);
-      // Stop polling when no more pending requests
-      if (pendingRequests.value.size === 0 && cancellationPollingInterval) {
+    function stopPollingForCancellationRequest() {
+      pendingDialog = null;
+      if (cancellationPollingInterval) {
         clearInterval(cancellationPollingInterval);
         cancellationPollingInterval = null;
-        console.debug("Stopped polling for WalletConnect cancellation requests");
       }
     }
 
     async function cancelPendingRequestsForTopic(cancellationRequest: WalletKitTypes.SessionRequest): Promise<void> {
       if (!web3wallet.value) return;
-      const { topic, id: cancellationRequestId } = cancellationRequest;
-      const cancelledIds: number[] = [];
+      const { topic: cancellationRequestTopic, id: cancellationRequestId } = cancellationRequest;
+      let cancelledCount: number = 0;
 
       const queuedRequests = web3wallet.value.getPendingSessionRequests();
+
       for (const request of queuedRequests) {
-        if (request.topic !== topic) continue;
+        if (request.topic !== cancellationRequestTopic) continue;
+
+        // We'll process the cancellation request itself once we've cancelled all other requests
         if (request.id === cancellationRequestId) continue;
 
-        const pending = pendingRequests.value.get(request.id);
-        if (pending) {
-          pending.dialogHandle.hide();
+        // Hide the pending dialog if it matches this request
+        if (pendingDialog?.id === request.id) {
+          pendingDialog.handle.hide();
         }
         await rejectRequest(request);
-        cancelledIds.push(request.id);
+        cancelledCount++;
       }
 
       // Respond to the cancel request itself with success (if still pending)
-      const stillPending = web3wallet.value.getPendingSessionRequests()
+      const cancellationRequestIsStillPending = web3wallet.value.getPendingSessionRequests()
         .some(r => r.id === cancellationRequestId);
-      if (stillPending) {
-        const response = { id: cancellationRequestId, jsonrpc: '2.0', result: { cancelledCount: cancelledIds.length } };
-        await web3wallet.value.respondSessionRequest({ topic, response });
+
+      if (cancellationRequestIsStillPending) {
+        const response = { id: cancellationRequestId, jsonrpc: '2.0', result: { cancelledCount } };
+
+        await web3wallet.value.respondSessionRequest({ topic: cancellationRequestTopic, response });
       }
     }
 
@@ -297,10 +293,9 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
     }
 
     async function checkForCancellationRequest() {
-      if (!web3wallet.value || pendingRequests.value.size === 0) return;
+      if (!web3wallet.value || !pendingDialog) return;
       try {
         const queuedRequests = web3wallet.value.getPendingSessionRequests();
-
         for (const request of queuedRequests) {
           if (request.params.request.method === 'bch_cancelPendingRequests') {
             console.log("Cancelling pending WalletConnect requests as requested by dapp");
@@ -343,7 +338,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             return
           }
           return await new Promise<void>((resolve, reject) => {
-            const dialogHandle = Dialog.create({
+            const handle = Dialog.create({
               component: WC2SignMessageRequest,
               componentProps: {
                 dappMetadata,
@@ -352,7 +347,6 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             })
             // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
               .onOk(() => {
-                removePendingRequest(id);
                 void signMessage(event).then(() => {
                   Notify.create({
                     color: "positive",
@@ -370,15 +364,13 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
                 });
               })
               .onCancel(() => {
-                removePendingRequest(id);
                 void rejectRequest(event).then(() => reject("Sign message dialog was cancelled"));
               })
               .onDismiss(() => {
-                removePendingRequest(id);
+                stopPollingForCancellationRequest();
                 reject("Sign message dialog was dismissed");
               });
-            pendingRequests.value.set(id, { topic, event, dialogHandle });
-            console.log("Added signMessage to pendingRequests, id:", id, "size:", pendingRequests.value.size);
+            pendingDialog = { id, handle };
             startPollingForCancellationRequest();
           });
         }
@@ -410,7 +402,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
           const dappMetadata = session.peer.metadata;
           const exchangeRate = await convert(1, "bch", settingsStore.currency);
           return await new Promise<void>((resolve, reject) => {
-            const dialogHandle = Dialog.create({
+            const handle = Dialog.create({
               component: WC2TransactionRequest,
               componentProps: {
                 dappMetadata,
@@ -420,19 +412,16 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             })
             // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
               .onOk(() => {
-                removePendingRequest(id);
                 void signTransactionWC(event).then(resolve);
               })
               .onCancel(() => {
-                removePendingRequest(id);
                 void rejectRequest(event).then(() => reject("Sign transaction dialog was cancelled"));
               })
               .onDismiss(() => {
-                removePendingRequest(id);
+                stopPollingForCancellationRequest();
                 reject("Sign transaction dialog was dismissed");
               });
-            pendingRequests.value.set(id, { topic, event, dialogHandle });
-            console.log("Added signTransaction to pendingRequests, id:", id, "size:", pendingRequests.value.size);
+            pendingDialog = { id, handle };
             startPollingForCancellationRequest();
           });
         }
