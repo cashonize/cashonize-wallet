@@ -12,7 +12,9 @@
     },
     "errors": {
       "somethingWentWrong": "Une erreur s'est produite",
-      "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille"
+      "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
+      "secureStorageUnavailable": "Le stockage securise du portefeuille n'est pas disponible. Les portefeuilles existants restent utilisables, mais la creation/importation peut echouer tant que l'acces au trousseau systeme n'est pas retabli.",
+      "secureStoragePartialMigration": "Certains portefeuilles n'ont pas pu etre migres vers le stockage securise ({wallets}). Ils restent utilisables, mais sont encore stockes en clair sur disque."
     },
     "copied": "Copié !",
     "wallet": "portefeuille",

@@ -15,6 +15,7 @@
   import { DefaultProvider } from 'mainnet-js'
   import { waitForInitialized } from 'src/utils/utils'
   import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
+  import { migrateLegacyPlaintextWalletStorage } from 'src/security/encryptedStorageMigration'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
@@ -34,6 +35,34 @@
   const dappUriUrlParam = ref(undefined as undefined|string);
   const bchSendRequest = ref(undefined as undefined|string);
   const wifToSweep = ref(undefined as undefined|string);
+
+  if (process.env.MODE === 'electron') {
+    try {
+      const migrationStats = await migrateLegacyPlaintextWalletStorage();
+      if (migrationStats.migrated > 0 || migrationStats.failed > 0) {
+        console.info('Wallet storage migration stats:', migrationStats);
+      }
+      if (migrationStats.failed > 0) {
+        const failedPreview = migrationStats.failedWallets.slice(0, 3).join(', ');
+        const hasMoreFailures = migrationStats.failedWallets.length > 3;
+        const failedWalletsText = hasMoreFailures ? `${failedPreview}, ...` : failedPreview;
+        $q.notify({
+          message: t('common.errors.secureStoragePartialMigration', { wallets: failedWalletsText }),
+          icon: 'warning',
+          color: 'red',
+          timeout: 10000
+        });
+      }
+    } catch (error) {
+      console.error('Failed to migrate wallet storage to encrypted format:', error);
+      $q.notify({
+        message: t('common.errors.secureStorageUnavailable'),
+        icon: 'warning',
+        color: 'red',
+        timeout: 7000
+      });
+    }
+  }
 
   DefaultProvider.servers.chipnet = ["wss://chipnet.bch.ninja:50004"];
 

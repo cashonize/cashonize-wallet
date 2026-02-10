@@ -15,6 +15,7 @@ import {
   NetworkType
 } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
+import EncryptedIndexedDBProvider from "src/security/EncryptedIndexedDBProvider"
 import {
   CurrencySymbols,
   type BcmrTokenMetadata,
@@ -54,7 +55,7 @@ const settingsStore = useSettingsStore()
 // set mainnet-js config
 Config.EnforceCashTokenReceiptAddresses = true;
 Config.UseIndexedDBCache = true;
-BaseWallet.StorageProvider = IndexedDBProvider;
+BaseWallet.StorageProvider = process.env.MODE === 'electron' ? EncryptedIndexedDBProvider : IndexedDBProvider;
 
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';

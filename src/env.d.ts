@@ -5,3 +5,14 @@ declare namespace NodeJS {
     VUE_ROUTER_BASE: string | undefined;
   }
 }
+
+interface Window {
+  cashonizeSecureStorage?: {
+    isAvailable: () => Promise<boolean>;
+    encrypt: (plaintext: string) => Promise<string>;
+    decrypt: (encryptedBase64: string) => Promise<string>;
+  };
+  cashonizeElectronSecurity?: {
+    onLockRequested: (callback: (reason: string) => void) => () => void;
+  };
+}

@@ -27,3 +27,32 @@
  *   }
  * }
  */
+import { contextBridge, ipcRenderer } from 'electron';
+
+const SECURE_STORAGE_CHANNELS = {
+  available: 'secure-storage:is-available',
+  encrypt: 'secure-storage:encrypt',
+  decrypt: 'secure-storage:decrypt',
+} as const;
+
+const SECURITY_EVENT_CHANNELS = {
+  lockRequested: 'security:lock-requested',
+} as const;
+
+contextBridge.exposeInMainWorld('cashonizeSecureStorage', {
+  isAvailable: () => ipcRenderer.invoke(SECURE_STORAGE_CHANNELS.available) as Promise<boolean>,
+  encrypt: (plaintext: string) => ipcRenderer.invoke(SECURE_STORAGE_CHANNELS.encrypt, plaintext) as Promise<string>,
+  decrypt: (encryptedBase64: string) => ipcRenderer.invoke(SECURE_STORAGE_CHANNELS.decrypt, encryptedBase64) as Promise<string>,
+});
+
+contextBridge.exposeInMainWorld('cashonizeElectronSecurity', {
+  onLockRequested: (callback: (reason: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, reason: unknown) => {
+      if (typeof reason === 'string') callback(reason);
+    };
+    ipcRenderer.on(SECURITY_EVENT_CHANNELS.lockRequested, listener);
+    return () => {
+      ipcRenderer.removeListener(SECURITY_EVENT_CHANNELS.lockRequested, listener);
+    };
+  },
+});
