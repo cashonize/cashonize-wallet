@@ -1,51 +1,28 @@
-import { hexToBin, binToHex, bigIntToVmNumber, type Output } from "@bitauth/libauth";
+import { hexToBin, bigIntToVmNumber, type Output } from "@bitauth/libauth";
 import { utxoToLibauthOutput } from "src/parsing/utxoConverter";
-import { parseNft, getNftParsingInfo } from "src/parsing/nftParsing";
-import { buildSyntheticRegistry } from "src/parsing/registryBuilder";
-import type { Registry, NftCategoryField } from "src/parsing/bcmr-v2.schema";
-import type { BcmrTokenMetadata } from "src/interfaces/interfaces";
+import { parseNft, type NftParseInfo, type FieldEncoding } from "src/parsing/nftParsing";
 import type { Utxo } from "mainnet-js";
 
-// A minimal registry for the ParityUSD Staking Receipt, matching the structure
-// from the parsable-bcmr reference implementation.
-// Category ID used here is the one from the studio registry for testing purposes.
+// Parse info for the ParityUSD Staking Receipt
 const stakingReceiptCategoryId =
   "5f3663beefecdf4f08d35717df4f9c93a5b763e75735d6c9de8d648d0d4b7857";
 
-const stakingReceiptRegistry: Registry = {
-  version: { major: 1, minor: 0, patch: 0 },
-  latestRevision: "2025-01-01T00:00:00.000Z",
-  registryIdentity: { name: "Test Registry" },
-  identities: {
-    [stakingReceiptCategoryId]: {
-      "2025-01-01T00:00:00.000Z": {
-        name: "ParityUSD Staking Receipt",
-        token: {
-          category: stakingReceiptCategoryId,
-          symbol: "PUSD-STAKE",
-          nfts: {
-            fields: {
-              stakeCreatedInPeriod: {
-                name: "Creation Period",
-                encoding: { type: "number" },
-              },
-              stakedAmount: {
-                name: "Staked Amount",
-                encoding: { type: "number", decimals: 2, unit: "PUSD" },
-              },
-            },
-            parse: {
-              bytecode: "006b00cf547f7c816b816b",
-              types: {
-                "": {
-                  name: "ParityUSD Staking Receipt",
-                  fields: ["stakeCreatedInPeriod", "stakedAmount"],
-                },
-              },
-            },
-          },
-        },
-      },
+const stakingReceiptParseInfo: NftParseInfo = {
+  bytecode: "006b00cf547f7c816b816b",
+  types: {
+    "": {
+      name: "ParityUSD Staking Receipt",
+      fields: ["stakeCreatedInPeriod", "stakedAmount"],
+    },
+  },
+  fields: {
+    stakeCreatedInPeriod: {
+      name: "Creation Period",
+      encoding: { type: "number" },
+    },
+    stakedAmount: {
+      name: "Staked Amount",
+      encoding: { type: "number", decimals: 2, unit: "PUSD" },
     },
   },
 };
@@ -120,7 +97,7 @@ describe("utxoToLibauthOutput", () => {
   });
 });
 
-describe("parseNft with staking receipt registry", () => {
+describe("parseNft with staking receipt parse info", () => {
   function createStakingReceiptOutput(commitment: string): Output {
     return {
       lockingBytecode: new Uint8Array(),
@@ -138,7 +115,7 @@ describe("parseNft with staking receipt registry", () => {
 
   it("should parse a staking receipt commitment into named fields", () => {
     const output = createStakingReceiptOutput(testCommitment);
-    const result = parseNft(output, stakingReceiptRegistry);
+    const result = parseNft(output, stakingReceiptParseInfo);
 
     expect(result.success).toBe(true);
     expect(result.nftType).toBe("");
@@ -172,13 +149,13 @@ describe("parseNft with staking receipt registry", () => {
       lockingBytecode: new Uint8Array(),
       valueSatoshis: 10000n,
     };
-    const result = parseNft(output, stakingReceiptRegistry);
+    const result = parseNft(output, stakingReceiptParseInfo);
 
     expect(result.success).toBe(false);
     expect(result.error).toContain("No NFT found");
   });
 
-  it("should fail when no registry is provided and no bytecode given", () => {
+  it("should fail when no parse info is provided and no bytecode given", () => {
     const output = createStakingReceiptOutput(testCommitment);
     const result = parseNft(output);
 
@@ -203,7 +180,7 @@ describe("parseNft with staking receipt registry", () => {
     };
 
     const output = utxoToLibauthOutput(utxo);
-    const result = parseNft(output, stakingReceiptRegistry);
+    const result = parseNft(output, stakingReceiptParseInfo);
 
     expect(result.success).toBe(true);
     expect(result.nftTypeName).toBe("ParityUSD Staking Receipt");
@@ -231,43 +208,24 @@ function createTestUtxo(commitment: Uint8Array): Output {
   };
 }
 
-function createTestRegistry(
-  utxo: Output,
+function createTestParseInfo(
   fieldId: string,
   fieldName: string,
-  encoding: NftCategoryField[string]["encoding"],
+  encoding: FieldEncoding,
   typeName: string,
-): Registry {
+): NftParseInfo {
   return {
-    version: { major: 0, minor: 1, patch: 0 },
-    latestRevision: "2025-01-01T00:00:00.000Z",
-    registryIdentity: { name: "Test" },
-    identities: {
-      [binToHex(utxo.token!.category)]: {
-        "2025-01-01T00:00:00.000Z": {
-          name: `${typeName} Test`,
-          token: {
-            category: binToHex(utxo.token!.category),
-            symbol: "TEST",
-            nfts: {
-              fields: {
-                [fieldId]: {
-                  name: fieldName,
-                  encoding,
-                },
-              },
-              parse: {
-                bytecode: "00cf517f7c6b6b",
-                types: {
-                  "01": {
-                    name: `${typeName} NFT`,
-                    fields: [fieldId],
-                  },
-                },
-              },
-            },
-          },
-        },
+    bytecode: "00cf517f7c6b6b",
+    types: {
+      "01": {
+        name: `${typeName} NFT`,
+        fields: [fieldId],
+      },
+    },
+    fields: {
+      [fieldId]: {
+        name: fieldName,
+        encoding,
       },
     },
   };
@@ -279,9 +237,9 @@ describe("Field encoding and decoding", () => {
       const helloBytes = new TextEncoder().encode("Hello");
       const commitment = new Uint8Array([0x01, ...helloBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "message", "Message", { type: "utf8" }, "Text");
+      const parseInfo = createTestParseInfo("message", "Message", { type: "utf8" }, "Text");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
 
       expect(result.success).toBe(true);
       expect(result.namedFields![0]!.parsedValue?.type).toBe("utf8");
@@ -293,9 +251,9 @@ describe("Field encoding and decoding", () => {
       const emojiBytes = new TextEncoder().encode(emojiText);
       const commitment = new Uint8Array([0x01, ...emojiBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "text", "Text", { type: "utf8" }, "Emoji");
+      const parseInfo = createTestParseInfo("text", "Text", { type: "utf8" }, "Emoji");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
 
       expect(result.success).toBe(true);
       expect(result.namedFields![0]!.parsedValue?.formatted).toBe(emojiText);
@@ -306,9 +264,9 @@ describe("Field encoding and decoding", () => {
     it("should decode true value (0x01)", () => {
       const commitment = new Uint8Array([0x01, 0x01]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "flag", "Flag", { type: "boolean" }, "Boolean");
+      const parseInfo = createTestParseInfo("flag", "Flag", { type: "boolean" }, "Boolean");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -320,9 +278,9 @@ describe("Field encoding and decoding", () => {
     it("should decode false value (0x00)", () => {
       const commitment = new Uint8Array([0x01, 0x00]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "flag", "Flag", { type: "boolean" }, "Boolean");
+      const parseInfo = createTestParseInfo("flag", "Flag", { type: "boolean" }, "Boolean");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -336,9 +294,9 @@ describe("Field encoding and decoding", () => {
     it("should format binary data correctly", () => {
       const commitment = new Uint8Array([0x01, 0xaa]); // 0b10101010
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "data", "Data", { type: "binary" }, "Binary");
+      const parseInfo = createTestParseInfo("data", "Data", { type: "binary" }, "Binary");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
 
       expect(result.success).toBe(true);
       expect(result.namedFields![0]!.parsedValue?.type).toBe("binary");
@@ -350,9 +308,9 @@ describe("Field encoding and decoding", () => {
     it("should format hex data correctly", () => {
       const commitment = new Uint8Array([0x01, 0xde, 0xad, 0xbe, 0xef]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "hash", "Hash", { type: "hex" }, "Hex");
+      const parseInfo = createTestParseInfo("hash", "Hash", { type: "hex" }, "Hex");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
 
       expect(result.success).toBe(true);
       expect(result.namedFields![0]!.parsedValue?.type).toBe("hex");
@@ -366,9 +324,9 @@ describe("Field encoding and decoding", () => {
       const urlBytes = new TextEncoder().encode(url);
       const commitment = new Uint8Array([0x01, ...urlBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "website", "Website", { type: "https-url" }, "URL");
+      const parseInfo = createTestParseInfo("website", "Website", { type: "https-url" }, "URL");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -384,9 +342,9 @@ describe("Field encoding and decoding", () => {
       const cidBytes = new TextEncoder().encode(cid);
       const commitment = new Uint8Array([0x01, ...cidBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "content", "Content", { type: "ipfs-cid" }, "IPFS");
+      const parseInfo = createTestParseInfo("content", "Content", { type: "ipfs-cid" }, "IPFS");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -401,9 +359,9 @@ describe("Field encoding and decoding", () => {
       const blockHeightBytes = bigIntToVmNumber(850000n);
       const commitment = new Uint8Array([0x01, ...blockHeightBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "unlockTime", "Unlock Time", { type: "locktime" }, "Locktime");
+      const parseInfo = createTestParseInfo("unlockTime", "Unlock Time", { type: "locktime" }, "Locktime");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -417,9 +375,9 @@ describe("Field encoding and decoding", () => {
       const timestampBytes = bigIntToVmNumber(1735689600n); // 2025-01-01 00:00:00 UTC
       const commitment = new Uint8Array([0x01, ...timestampBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "unlockTime", "Unlock Time", { type: "locktime" }, "Locktime");
+      const parseInfo = createTestParseInfo("unlockTime", "Unlock Time", { type: "locktime" }, "Locktime");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -434,9 +392,9 @@ describe("Field encoding and decoding", () => {
       const valueBytes = bigIntToVmNumber(12345n);
       const commitment = new Uint8Array([0x01, ...valueBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "count", "Count", { type: "number", decimals: 0 }, "Number");
+      const parseInfo = createTestParseInfo("count", "Count", { type: "number", decimals: 0 }, "Number");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -448,9 +406,9 @@ describe("Field encoding and decoding", () => {
       const valueBytes = bigIntToVmNumber(100000000n); // 1.00000000
       const commitment = new Uint8Array([0x01, ...valueBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "amount", "Amount", { type: "number", decimals: 8, unit: "BCH" }, "BCH");
+      const parseInfo = createTestParseInfo("amount", "Amount", { type: "number", decimals: 8, unit: "BCH" }, "BCH");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -462,9 +420,9 @@ describe("Field encoding and decoding", () => {
       const valueBytes = bigIntToVmNumber(140737488355327n);
       const commitment = new Uint8Array([0x01, ...valueBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "max6", "Max 6-Byte", { type: "number" }, "Number");
+      const parseInfo = createTestParseInfo("max6", "Max 6-Byte", { type: "number" }, "Number");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -476,9 +434,9 @@ describe("Field encoding and decoding", () => {
       const valueBytes = bigIntToVmNumber(-140737488355328n);
       const commitment = new Uint8Array([0x01, ...valueBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "min6", "Min 6-Byte", { type: "number" }, "Number");
+      const parseInfo = createTestParseInfo("min6", "Min 6-Byte", { type: "number" }, "Number");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -490,9 +448,9 @@ describe("Field encoding and decoding", () => {
       const valueBytes = bigIntToVmNumber(0n);
       const commitment = new Uint8Array([0x01, ...valueBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "zero", "Zero", { type: "number" }, "Number");
+      const parseInfo = createTestParseInfo("zero", "Zero", { type: "number" }, "Number");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -504,9 +462,9 @@ describe("Field encoding and decoding", () => {
       const valueBytes = bigIntToVmNumber(-1n);
       const commitment = new Uint8Array([0x01, ...valueBytes]);
       const utxo = createTestUtxo(commitment);
-      const registry = createTestRegistry(utxo, "negOne", "Negative One", { type: "number" }, "Number");
+      const parseInfo = createTestParseInfo("negOne", "Negative One", { type: "number" }, "Number");
 
-      const result = parseNft(utxo, registry);
+      const result = parseNft(utxo, parseInfo);
       const parsedValue = result.namedFields![0]!.parsedValue;
 
       expect(result.success).toBe(true);
@@ -516,53 +474,34 @@ describe("Field encoding and decoding", () => {
   });
 });
 
-// ========== Multi-type registry and nftTypeDescription ==========
+// ========== Multi-type parse info and nftTypeDescription ==========
 
-const multiTypeCategoryId = "aa".repeat(32);
-
-// A registry with two types: "00" (default) and "01" (active)
-const multiTypeRegistry: Registry = {
-  version: { major: 1, minor: 0, patch: 0 },
-  latestRevision: "2025-01-01T00:00:00.000Z",
-  registryIdentity: { name: "Test Registry" },
-  identities: {
-    [multiTypeCategoryId]: {
-      "2025-01-01T00:00:00.000Z": {
-        name: "Multi Type Token",
-        token: {
-          category: multiTypeCategoryId,
-          symbol: "MTT",
-          nfts: {
-            fields: {
-              status: {
-                name: "Status",
-                encoding: { type: "hex" },
-              },
-            },
-            parse: {
-              // OP_0 OP_UTXOTOKENCOMMITMENT OP_1 OP_SPLIT OP_SWAP OP_TOALTSTACK OP_TOALTSTACK
-              // Splits commitment at byte 1: first byte → type (altstack[0]), rest → field (altstack[1])
-              // Unlocking OP_1 remains on main stack (exactly 1 item)
-              bytecode: "00cf517f7c6b6b",
-              types: {
-                "00": {
-                  name: "Inactive Token",
-                  description: "This token has no data",
-                  fields: [],
-                },
-                "01": {
-                  name: "Active Token",
-                  description: "This token is active with status data",
-                  fields: ["status"],
-                },
-              },
-            },
-          },
-        },
-      },
+const multiTypeParseInfo: NftParseInfo = {
+  // OP_0 OP_UTXOTOKENCOMMITMENT OP_1 OP_SPLIT OP_SWAP OP_TOALTSTACK OP_TOALTSTACK
+  // Splits commitment at byte 1: first byte → type (altstack[0]), rest → field (altstack[1])
+  // Unlocking OP_1 remains on main stack (exactly 1 item)
+  bytecode: "00cf517f7c6b6b",
+  types: {
+    "00": {
+      name: "Inactive Token",
+      description: "This token has no data",
+      fields: [],
+    },
+    "01": {
+      name: "Active Token",
+      description: "This token is active with status data",
+      fields: ["status"],
+    },
+  },
+  fields: {
+    status: {
+      name: "Status",
+      encoding: { type: "hex" },
     },
   },
 };
+
+const multiTypeCategoryId = "aa".repeat(32);
 
 function createMultiTypeOutput(commitment: string): Output {
   return {
@@ -579,11 +518,11 @@ function createMultiTypeOutput(commitment: string): Output {
   };
 }
 
-describe("parseNft with multi-type registry", () => {
+describe("parseNft with multi-type parse info", () => {
   it("should match type '00' for default commitment", () => {
     // commitment "00" → type byte is 0x00 → type "00", empty rest field
     const output = createMultiTypeOutput("00");
-    const result = parseNft(output, multiTypeRegistry);
+    const result = parseNft(output, multiTypeParseInfo);
 
     expect(result.success).toBe(true);
     expect(result.nftType).toBe("00");
@@ -594,7 +533,7 @@ describe("parseNft with multi-type registry", () => {
   it("should match type '01' and populate nftTypeDescription", () => {
     // commitment: type byte "01" + status byte "ff"
     const output = createMultiTypeOutput("01ff");
-    const result = parseNft(output, multiTypeRegistry);
+    const result = parseNft(output, multiTypeParseInfo);
 
     expect(result.success).toBe(true);
     expect(result.nftType).toBe("01");
@@ -609,7 +548,7 @@ describe("parseNft with multi-type registry", () => {
   it("should use generic fields for unknown type", () => {
     // commitment: type byte "02" + some data — "02" not defined in types
     const output = createMultiTypeOutput("02aabb");
-    const result = parseNft(output, multiTypeRegistry);
+    const result = parseNft(output, multiTypeParseInfo);
 
     expect(result.success).toBe(true);
     expect(result.nftType).toBe("02");
@@ -623,35 +562,13 @@ describe("parseNft with multi-type registry", () => {
 // ========== VM stack-depth tolerance ==========
 
 describe("parseNft VM stack-depth tolerance", () => {
-  const categoryId = "bb".repeat(32);
-
   // Bytecode that leaves 2 items on main stack + puts type on altstack.
   // This should NOT fail — we only care about the altstack.
   // OP_0 OP_TOALTSTACK OP_1 OP_1 (pushes type "" to altstack, leaves two 1s on main stack)
-  const stackLeavingBytecode = "006b5151";
-
-  const registry: Registry = {
-    version: { major: 1, minor: 0, patch: 0 },
-    latestRevision: "2025-01-01T00:00:00.000Z",
-    registryIdentity: { name: "Test" },
-    identities: {
-      [categoryId]: {
-        "2025-01-01T00:00:00.000Z": {
-          name: "Stack Test",
-          token: {
-            category: categoryId,
-            symbol: "ST",
-            nfts: {
-              parse: {
-                bytecode: stackLeavingBytecode,
-                types: {
-                  "": { name: "Default", fields: [] },
-                },
-              },
-            },
-          },
-        },
-      },
+  const stackLeavingParseInfo: NftParseInfo = {
+    bytecode: "006b5151",
+    types: {
+      "": { name: "Default", fields: [] },
     },
   };
 
@@ -660,7 +577,7 @@ describe("parseNft VM stack-depth tolerance", () => {
       lockingBytecode: new Uint8Array(),
       valueSatoshis: 1000n,
       token: {
-        category: hexToBin(categoryId),
+        category: hexToBin("bb".repeat(32)),
         amount: 0n,
         nft: {
           commitment: hexToBin("aabb"),
@@ -669,7 +586,7 @@ describe("parseNft VM stack-depth tolerance", () => {
       },
     };
 
-    const result = parseNft(output, registry);
+    const result = parseNft(output, stackLeavingParseInfo);
 
     // Should succeed despite VM "error" about stack depth
     expect(result.success).toBe(true);
@@ -678,75 +595,37 @@ describe("parseNft VM stack-depth tolerance", () => {
   });
 });
 
-// ========== buildSyntheticRegistry integration test ==========
+// ========== End-to-end parsing with NftParseInfo ==========
 
-describe("buildSyntheticRegistry end-to-end parsing", () => {
-  // Simulates what the Paytaca indexer would return for PUSD Staking Receipt
-  const pusdCategoryId = "5f3663beefecdf4f08d35717df4f9c93a5b763e75735d6c9de8d648d0d4b7857";
-
-  const indexerMetadata: BcmrTokenMetadata = {
-    name: "ParityUSD Staking Receipt",
-    description: "A staking receipt for ParityUSD",
-    token: {
-      category: pusdCategoryId,
-      symbol: "PUSD-STAKE",
-      nfts: {
-        fields: {
-          stakeCreatedInPeriod: {
-            name: "Creation Period",
-            encoding: { type: "number" },
-          },
-          stakedAmount: {
-            name: "Staked Amount",
-            encoding: { type: "number", decimals: 2, unit: "PUSD" },
-          },
-        },
-        parse: {
-          bytecode: "006b00cf547f7c816b816b",
-          types: {
-            "": {
-              name: "ParityUSD Staking Receipt",
-              fields: ["stakeCreatedInPeriod", "stakedAmount"],
-            },
-          },
-        },
+describe("parseNft end-to-end with PUSD staking receipt", () => {
+  const pusdParseInfo: NftParseInfo = {
+    bytecode: "006b00cf547f7c816b816b",
+    types: {
+      "": {
+        name: "ParityUSD Staking Receipt",
+        fields: ["stakeCreatedInPeriod", "stakedAmount"],
       },
     },
-    nft_type: "parsable",
-    is_nft: true,
+    fields: {
+      stakeCreatedInPeriod: {
+        name: "Creation Period",
+        encoding: { type: "number" },
+      },
+      stakedAmount: {
+        name: "Staked Amount",
+        encoding: { type: "number", decimals: 2, unit: "PUSD" },
+      },
+    },
   };
 
-  it("should build a valid Registry from indexer metadata", () => {
-    const registry = buildSyntheticRegistry(pusdCategoryId, indexerMetadata);
-    expect(registry).toBeDefined();
-    expect(registry!.identities).toBeDefined();
-    expect(registry!.identities![pusdCategoryId]).toBeDefined();
-
-    const parsingInfo = getNftParsingInfo(registry, pusdCategoryId);
-    expect(parsingInfo).not.toBeNull();
-    expect(parsingInfo!.parseBytecode).toBe("006b00cf547f7c816b816b");
-  });
-
-  it("should return undefined when metadata has no parse info", () => {
-    const metadataWithoutNfts: BcmrTokenMetadata = {
-      name: "Simple Token",
-      description: "No NFT parse info",
-      token: { category: pusdCategoryId, symbol: "SIMPLE" },
-    };
-    const registry = buildSyntheticRegistry(pusdCategoryId, metadataWithoutNfts);
-    expect(registry).toBeUndefined();
-  });
-
-  it("should parse PUSD staking receipt end-to-end with synthetic registry", () => {
-    const registry = buildSyntheticRegistry(pusdCategoryId, indexerMetadata)!;
-
+  it("should parse PUSD staking receipt end-to-end", () => {
     // commitment: period=100 (4 bytes LE), amount=50000 (VM number LE)
     const commitment = "6400000050c300";
     const output: Output = {
       lockingBytecode: new Uint8Array(),
       valueSatoshis: 10000n,
       token: {
-        category: hexToBin(pusdCategoryId),
+        category: hexToBin(stakingReceiptCategoryId),
         amount: 0n,
         nft: {
           commitment: hexToBin(commitment),
@@ -755,7 +634,7 @@ describe("buildSyntheticRegistry end-to-end parsing", () => {
       },
     };
 
-    const result = parseNft(output, registry);
+    const result = parseNft(output, pusdParseInfo);
 
     expect(result.success).toBe(true);
     expect(result.nftTypeName).toBe("ParityUSD Staking Receipt");
@@ -767,15 +646,13 @@ describe("buildSyntheticRegistry end-to-end parsing", () => {
   });
 
   it("should work with utxo conversion end-to-end", () => {
-    const registry = buildSyntheticRegistry(pusdCategoryId, indexerMetadata)!;
-
     const utxo: Utxo = {
       txid: "e".repeat(64),
       vout: 0,
       satoshis: 10000n,
       address: "",
       token: {
-        category: pusdCategoryId,
+        category: stakingReceiptCategoryId,
         amount: 0n,
         nft: {
           capability: "none",
@@ -785,7 +662,7 @@ describe("buildSyntheticRegistry end-to-end parsing", () => {
     };
 
     const output = utxoToLibauthOutput(utxo);
-    const result = parseNft(output, registry);
+    const result = parseNft(output, pusdParseInfo);
 
     expect(result.success).toBe(true);
     expect(result.namedFields).toHaveLength(2);

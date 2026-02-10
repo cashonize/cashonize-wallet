@@ -8,13 +8,27 @@ import {
   type Output,
 } from "@bitauth/libauth";
 
-import type {
-  Registry,
-  NftCategoryField,
-} from "./bcmr-v2.schema";
 
-// Extract the field encoding type from the schema
-type FieldEncoding = NftCategoryField[string]["encoding"];
+// Field encoding type compatible with both the strict BCMR schema and the
+// indexer interface under exactOptionalPropertyTypes.
+export type FieldEncoding =
+  | { type: "binary" | "boolean" | "hex" | "https-url" | "ipfs-cid" | "utf8" | "locktime" }
+  | { type: "number"; aggregate?: "add" | undefined; decimals?: number | undefined; unit?: string | undefined };
+
+export interface NftParseInfo {
+  bytecode: string;
+  types: Record<string, {
+    name: string;
+    description?: string | undefined;
+    fields?: string[] | undefined;
+    uris?: Record<string, string> | undefined;
+  }>;
+  fields?: Record<string, {
+    name?: string | undefined;
+    description?: string | undefined;
+    encoding: FieldEncoding;
+  }> | undefined;
+}
 
 export type ParsedValue =
   | {
@@ -77,43 +91,6 @@ export interface ParseResult {
   namedFields?: ParsedField[];
   fullAltstack?: string[];
   error?: string;
-}
-
-// Helper function to get NFT parsing info from registry
-export function getNftParsingInfo(registry?: Registry, category?: string) {
-  if (!registry || !registry.identities || !category) return null;
-
-  // Look for the identity that matches this category
-  const identity = registry.identities[category];
-  if (!identity) return null;
-
-  // Get the most recent snapshot
-  const timestamps = Object.keys(identity).sort().reverse();
-  if (timestamps.length === 0) return null;
-
-  const firstTimestamp = timestamps[0];
-  if (!firstTimestamp) return null;
-  const latestSnapshot = identity[firstTimestamp];
-  if (!latestSnapshot) return null;
-
-  // Check if it has token.nfts with parsing info
-  const token = latestSnapshot.token;
-  if (!token || !token.nfts) return null;
-
-  return {
-    nftCollection: token.nfts,
-    parseBytecode:
-      "parse" in token.nfts &&
-      token.nfts.parse &&
-      "bytecode" in token.nfts.parse
-        ? token.nfts.parse.bytecode
-        : null,
-    nftTypes:
-      "parse" in token.nfts && token.nfts.parse && "types" in token.nfts.parse
-        ? token.nfts.parse.types || {}
-        : {},
-    identity: latestSnapshot,
-  };
 }
 
 /**
@@ -290,7 +267,7 @@ export function parseFieldValue(
 // Main NFT parsing function that works with full outputs
 export function parseNft(
   nftOutput: Output,
-  registry?: Registry,
+  parseInfo?: NftParseInfo,
   parsingBytecode?: Uint8Array,
 ): ParseResult {
   try {
@@ -301,18 +278,13 @@ export function parseNft(
       };
     }
 
-    const category = binToHex(nftOutput.token.category);
-
-    // Get parsing info from registry
-    const registryParsingInfo = getNftParsingInfo(registry, category);
-
-    // Use provided bytecode, or fall back to registry bytecode
+    // Use provided bytecode, or fall back to parseInfo bytecode
     let bytecodeToUse = parsingBytecode;
-    if (!bytecodeToUse && registryParsingInfo?.parseBytecode) {
+    if (!bytecodeToUse && parseInfo?.bytecode) {
       try {
-        bytecodeToUse = hexToBin(registryParsingInfo.parseBytecode);
+        bytecodeToUse = hexToBin(parseInfo.bytecode);
       } catch (error) {
-        console.warn("Invalid bytecode in registry", error);
+        console.warn("Invalid bytecode in parseInfo", error);
       }
     }
 
@@ -416,14 +388,14 @@ export function parseNft(
     const nftType = altstack[0];
     const fields = altstack.slice(1);
 
-    // Try to match against registry types
+    // Try to match against parse info types
     let nftTypeName = nftType;
     let nftTypeDescription: string | undefined;
     let nftTypeIcon: string | undefined;
     let namedFields: ParsedField[] = [];
 
-    if (registryParsingInfo?.nftTypes) {
-      const typeDefinition = registryParsingInfo.nftTypes[nftType];
+    if (parseInfo?.types) {
+      const typeDefinition = parseInfo.types[nftType];
       if (typeDefinition) {
         nftTypeName = typeDefinition.name || nftType;
         nftTypeDescription = typeDefinition.description;
@@ -440,9 +412,9 @@ export function parseNft(
           let fieldDescription: string | undefined = undefined;
           let parsedValue: ParsedValue | undefined = undefined;
 
-          // Look up field definition in nfts.fields if we have a field ID
-          if (fieldId && registryParsingInfo.nftCollection.fields?.[fieldId]) {
-            const fieldDef = registryParsingInfo.nftCollection.fields[fieldId];
+          // Look up field definition in parseInfo.fields if we have a field ID
+          if (fieldId && parseInfo.fields?.[fieldId]) {
+            const fieldDef = parseInfo.fields[fieldId];
             fieldName = fieldDef.name;
             fieldDescription = fieldDef.description;
 
@@ -466,7 +438,7 @@ export function parseNft(
         }));
       }
     } else {
-      // No registry types available, use generic names
+      // No parse info types available, use generic names
       namedFields = fields.map((fieldValue: string) => ({
         value: fieldValue,
       }));

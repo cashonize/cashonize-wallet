@@ -34,9 +34,8 @@ import {
   updateTokenListWithAuthUtxos,
 } from "./storeUtils"
 import type { ParseResult } from "src/parsing/nftParsing"
-import { parseNft, getNftParsingInfo } from "src/parsing/nftParsing"
+import { parseNft, type NftParseInfo } from "src/parsing/nftParsing"
 import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
-import { buildSyntheticRegistry } from "src/parsing/registryBuilder"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -659,19 +658,19 @@ export const useStore = defineStore('store', () => {
     utxo: Utxo
   ): ParseResult | undefined {
     const metadata = bcmrRegistries.value?.[categoryId];
-    if (!metadata) return undefined;
+    if (!metadata?.token.nfts?.parse || metadata.nft_type !== 'parsable') return undefined;
 
-    if (metadata.nft_type !== 'parsable') return undefined;
+    const parse = metadata.token.nfts.parse;
+    if (!('bytecode' in parse)) return undefined;
 
-    const registry = buildSyntheticRegistry(categoryId, metadata);
-    if (!registry) return undefined;
-
-    const parsingInfo = getNftParsingInfo(registry, categoryId);
-    if (!parsingInfo?.parseBytecode) return undefined;
+    const parseInfo: NftParseInfo = {
+      bytecode: parse.bytecode,
+      types: parse.types,
+      fields: metadata.token.nfts.fields,
+    };
 
     const libauthOutput = utxoToLibauthOutput(utxo);
-
-    return parseNft(libauthOutput, registry);
+    return parseNft(libauthOutput, parseInfo);
   }
 
   function hasPreGenesis(){
