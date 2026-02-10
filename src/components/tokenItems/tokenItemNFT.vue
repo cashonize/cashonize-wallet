@@ -12,6 +12,7 @@
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import type { ParseResult } from 'src/parsing/nftParsing'
   import { caughtErrorToString } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useQuasar } from 'quasar'
@@ -52,6 +53,11 @@
   const selectedNfts = ref(new Set<string>());
   const activeAction = ref<'sending' | 'minting' | 'burning' | 'transferAuth' | null>(null);
   const imageLoadFailed = ref(false);
+  const parseResult = ref(undefined as ParseResult | undefined);
+
+  const isParsable = computed(() =>
+    store.bcmrRegistries?.[tokenData.value.category]?.nft_type === 'parsable'
+  );
 
   let fetchedMetadataChildren = false
 
@@ -78,9 +84,21 @@
     return tokenIconUri;
   })
   const tokenName = computed(() => {
+    // Prefer parsed type name when available (e.g. extension-resolved loan keys)
+    if(parseResult.value?.success && parseResult.value.nftTypeName) return parseResult.value.nftTypeName;
     let tokenName = tokenMetaData.value?.name;
     if(isSingleNft.value) tokenName = nftMetadata.value?.name;
     return tokenName;
+  })
+  const tokenDescription = computed(() => {
+    if(parseResult.value?.success && parseResult.value.nftTypeDescription) return parseResult.value.nftTypeDescription;
+    return tokenMetaData.value?.description;
+  })
+  const commitmentDisplay = computed(() => {
+    const commitment = tokenData.value.nfts?.[0]?.token?.nft?.commitment;
+    if (!commitment) return t('tokenItem.empty');
+    if (commitment.length > 40) return commitment.slice(0, 20) + '...' + commitment.slice(-20);
+    return commitment;
   })
   const selectedNftCount = computed(() => selectedNfts.value.size);
 
@@ -114,6 +132,23 @@
 
   onMounted(() => {
     appendBlockieIcon(tokenData.value.category, `#id${tokenData.value.category.slice(0, 10)}nft`);
+    // Parse NFT commitment if this is a parsable single NFT
+    if (isSingleNft.value && isParsable.value) {
+      const nftUtxo = tokenData.value.nfts?.[0];
+      if (nftUtxo) {
+        parseResult.value = store.parseNftCommitment(tokenData.value.category, nftUtxo);
+      }
+    }
+  })
+
+  // Watch for isParsable becoming true after mount (e.g. bcmrRegistries loads async)
+  watch(isParsable, (nowParsable) => {
+    if (nowParsable && isSingleNft.value && !parseResult.value) {
+      const nftUtxo = tokenData.value.nfts?.[0];
+      if (nftUtxo) {
+        parseResult.value = store.parseNftCommitment(tokenData.value.category, nftUtxo);
+      }
+    }
   })
 
   watch(imageLoadFailed, async (failedToLoad) => {
@@ -624,7 +659,15 @@
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
             </div>
-            <div style="word-break: break-all;" class="hide"></div>
+            <div v-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 2">
+              <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
+                {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+              </div>
+            </div>
+            <div v-else-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length" style="word-break: break-all;">
+              {{ t('tokenItem.seeParsedData') }}
+            </div>
+            <div v-else style="word-break: break-all;" class="hide"></div>
           </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" class="showChildNfts">
             <div @click="showChildNfts()" class="showChildNftsToggle">
@@ -681,21 +724,27 @@
         </div>
         <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
-          <div v-if="tokenMetaData?.description" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenMetaData.description }} </div>
+          <div v-if="tokenDescription" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenDescription }} </div>
+          <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 2">
+            <div>{{ t('tokenItem.info.parsedFields') }}</div>
+            <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
+              {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+            </div>
+          </div>
           <div v-if="isSingleNft">
             {{ t('tokenItem.info.nftType') }} {{  tokenData?.nfts?.[0]?.token?.nft?.capability == "none" ? t('tokenItem.info.immutable') : tokenData?.nfts?.[0]?.token?.nft?.capability }} NFT
           </div>
           <div v-if="isSingleNft">
-            {{ t('tokenItem.info.nftCommitment') }} {{ tokenData.nfts?.[0]?.token?.nft?.commitment ? tokenData.nfts?.[0].token?.nft?.commitment : t('tokenItem.none') }}
+            {{ t('tokenItem.info.nftCommitment') }} {{ commitmentDisplay }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
             {{ t('tokenItem.info.tokenWebLink') }}
             <a :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
           </div>
-          <div v-if="tokenData?.nfts?.length">
+          <div v-if="tokenData?.nfts?.length && !isParsable">
             {{ t('tokenItem.info.totalSupplyNfts') }} {{ totalNumberNFTs? totalNumberNFTs: "..."}}
           </div>
-          <div v-if="tokenData?.nfts?.length && !isSingleMintingNft">
+          <div v-if="tokenData?.nfts?.length && !isSingleMintingNft && !isParsable">
             {{ t('tokenItem.info.hasActiveMintingNft') }} {{ hasMintingNFT == undefined? "..." :( hasMintingNFT? t('tokenItem.info.yes'): t('tokenItem.info.no'))}}
           </div>
           <div>
@@ -706,7 +755,7 @@
           <details v-if="isSingleNft && nftMetadata?.extensions?.attributes" style="cursor:pointer;">
             <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
             <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap; margin-left:15px">
-              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.none') }}
+              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.empty') }}
             </div>
           </details>
         </div>
