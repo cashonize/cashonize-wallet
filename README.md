@@ -21,10 +21,15 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Send & receive BCH and CashTokens** - Full support for fungible tokens and NFTs
 - **Connect to dApps via WalletConnect** - Easy-to-understand transaction preview screen
 - **Open-source and non-custodial** - You control your keys
-- **Multi-wallet support** - Create and manage multiple wallets (single-address or HD) and easily switch between them
-- **Token management** - Favorite, hide tokens, and batch transfer NFTs
-- **Backup status tracking** - Visual indicators show which wallets need to be backed up
+- **Multi-wallet support** - Create and manage multiple wallets (single-address or HD)
+- **Minimalist design** - Easy to use with a clean, simple interface
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
+
+### Exclusive Features
+
+- **CashConnect support** - Connect to BCH-native dApps through the CashConnect protocol
+- **Sweep tokens from private keys** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
+- **Token management** - Favorite, hide, and search tokens
 
 ## Platforms
 

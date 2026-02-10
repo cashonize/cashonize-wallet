@@ -280,17 +280,25 @@ export const useStore = defineStore('store', () => {
         // to match way newBalance is calculated in watchBalance
         const oldBalance = walletUtxos.value?.reduce((acc, utxo) => acc + utxo.satoshis, BigInt(0));
         if(oldBalance && newBalance && walletInitialized.value){
-          console.log("watchBalance")
           if(oldBalance < newBalance){
-            const amountReceived = Number(newBalance - oldBalance) / 100_000_000
-            const currencyValue = await convert(amountReceived, settingsStore.bchUnit, settingsStore.currency);
-            const unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH'
+            const balanceDifferenceSats = newBalance - oldBalance;
+            let amountInUnit = Number(balanceDifferenceSats) / 100_000_000;
+            let unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH';
+            let maxFractionDigits = 8;
+            if(settingsStore.bchUnit === 'sat'){
+              amountInUnit = Number(balanceDifferenceSats);
+              unitString = network.value == 'mainnet' ? 'sats' : 'tsats';
+              maxFractionDigits = 0;
+            }
+            const currencyValue = await convert(amountInUnit, settingsStore.bchUnit, settingsStore.currency);
+            const formattedAmount = amountInUnit.toLocaleString("en-US", { maximumFractionDigits: maxFractionDigits })
+            const formattedFiat = currencyValue.toLocaleString("en-US", { maximumFractionDigits: 2 }) + CurrencySymbols[settingsStore.currency]
             Notify.create({
               type: 'positive',
               message: t('store.notifications.receivedBch', {
-                amount: amountReceived,
+                amount: formattedAmount,
                 unit: unitString,
-                fiatValue: currencyValue + CurrencySymbols[settingsStore.currency]
+                fiatValue: formattedFiat
               })
             })
           }
@@ -312,8 +320,8 @@ export const useStore = defineStore('store', () => {
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (tx) => runAsyncVoid(async () => {
-        // guard against race condition: if an Electrum notification arrives during init
-        // (e.g. new block), mainnet-js replays all history as "new" causing a cascade
+        // Guard: the initial watchStatus invocation fires callbacks for all existing txs
+        // before walletInitialized is set to true, so skip those
         if(!walletInitialized.value) return
         const receivedTokenOutputs = tx.vout.filter(voutElem =>
           voutElem.tokenData && voutElem.scriptPubKey.addresses?.[0] &&
@@ -321,10 +329,16 @@ export const useStore = defineStore('store', () => {
         );
         const previousTokenList = tokenList.value;
         const listNewTokens:TokenList = []
-        const userInputs = tx.vin.filter(vinElem => vinElem.address && wallet.value.hasAddress(vinElem.address));
+        // Fetch extended tx with loaded input values to check if any input belongs to this wallet
+        const extendedTx = await wallet.value.provider.getRawTransactionObject(tx.txid, true);
+        // User-sent txs produce token change outputs that trigger this subscription, skip notification for those
+        const isUserInitiatedTx = extendedTx.vin.some(vinElem =>
+          vinElem.scriptPubKey?.addresses?.[0] &&
+          wallet.value.hasAddress(vinElem.scriptPubKey.addresses[0])
+        );
         for(const tokenOutput of receivedTokenOutputs){
-          // Check if transaction not initiated by user
-          if(!userInputs.length){
+          // Only notify for externally received tokens, not user-sent change outputs
+          if(!isUserInitiatedTx){
             const tokenType = tokenOutput.tokenData?.nft ? "NFT" : "tokens"
             Notify.create({
               type: 'positive',

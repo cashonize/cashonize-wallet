@@ -605,6 +605,7 @@
     "unusedAddresses": "Unused",
     "noAddresses": "No addresses scanned yet",
     "hideZeroBalances": "Hide zero balances",
+    "showTokenAddresses": "Show addresses in token format",
     "columns": {
       "index": "Index",
       "address": "Address",
@@ -614,14 +615,28 @@
   },
   "sweepPrivateKey": {
     "title": "Sweep Private Key",
-    "description": "Sweep BCH from a private key WIF:",
-    "placeholder": "Enter Private Key WIF",
+    "description": "Sweep BCH and tokens from a paper wallet, cashstamp, or private key:",
+    "placeholder": "Enter private key",
     "sweepingButton": "Sweeping...",
     "sweepButton": "Sweep",
+    "previewButton": "Preview",
+    "loadingButton": "Loading...",
+    "sweepAllButton": "Sweep All",
+    "emptyWallet": "No balance found on this private key",
+    "preview": {
+      "bchBalance": "BCH Balance:",
+      "tokens": "Tokens:",
+      "nfts": "NFTs:",
+      "noTokens": "No tokens",
+      "noFreeBchWarning": "This address has tokens but no available BCH to pay for transaction fees. Send a small amount of BCH to this address first to cover the fees for sweeping tokens."
+    },
     "notifications": {
-      "noWifProvided": "No private key WIF provided to sweep",
+      "noWifProvided": "No private key provided to sweep",
       "sendingTransaction": "Sending transaction...",
-      "success": "Successfully swept funds on Private Key"
+      "sweepingTokens": "Sweeping tokens...",
+      "sweepingNfts": "Sweeping NFTs...",
+      "sweepingBch": "Sweeping BCH...",
+      "success": "Successfully swept funds from private key"
     },
     "qrErrors": {
       "notWif": "Not a QR code encoding a Private Key in WIF format",
