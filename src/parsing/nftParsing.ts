@@ -172,16 +172,19 @@ export function parseFieldValue(
         const decimals = encoding.decimals || 0;
 
         let formatted: string;
+        // Format with decimal point using bigint math (e.g. 1050n with 3 decimals → "1.05")
+        // Handles negative values, leading zeros in fractional part, and trailing zero removal
         if (decimals > 0) {
+          const isNegative = bigintValue < 0n;
+          const absValue = isNegative ? -bigintValue : bigintValue;
           const divisor = 10n ** BigInt(decimals);
-          const integerPart = bigintValue / divisor;
-          const fractionalPart = bigintValue % divisor;
-          const fractionalStr = fractionalPart
-            .toString()
-            .padStart(decimals, "0");
+          const integerPart = absValue / divisor;
+          const fractionalPart = absValue % divisor;
+          const fractionalStr = fractionalPart.toString().padStart(decimals, "0");
           formatted = `${integerPart}.${fractionalStr}`;
           formatted = formatted.replace(/\.?0+$/, "");
           if (formatted === "") formatted = "0";
+          if (isNegative) formatted = `-${formatted}`;
         } else {
           formatted = bigintValue.toString();
         }
