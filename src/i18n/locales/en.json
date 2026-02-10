@@ -603,6 +603,7 @@
     "unusedAddresses": "Unused",
     "noAddresses": "No addresses scanned yet",
     "hideZeroBalances": "Hide zero balances",
+    "showTokenAddresses": "Show addresses in token format",
     "columns": {
       "index": "Index",
       "address": "Address",

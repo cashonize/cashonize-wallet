@@ -603,6 +603,7 @@
     "unusedAddresses": "Non utilisées",
     "noAddresses": "Aucune adresse analysée pour le moment",
     "hideZeroBalances": "Masquer les soldes nuls",
+    "showTokenAddresses": "Afficher les adresses au format token",
     "columns": {
       "index": "Index",
       "address": "Adresse",

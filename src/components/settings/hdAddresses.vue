@@ -18,6 +18,7 @@
   interface AddressRow {
     index: number;
     address: string;
+    tokenAddress: string;
     balance: bigint;
     txCount: number;
   }
@@ -27,6 +28,7 @@
   const showUsedReceiving = ref(false);
   const showUsedChange = ref(false);
   const hideZeroBalances = ref(false);
+  const showTokenAddresses = ref(false);
   const changeDetailsOpen = ref(false);
 
   watch(hideZeroBalances, (newVal) => {
@@ -50,6 +52,10 @@
   const filteredReceivingCount = computed(() => usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length);
   const filteredChangeCount = computed(() => usedChangeAddresses.value.length + unusedChangeAddresses.value.length);
 
+  function displayAddress(row: AddressRow) {
+    return showTokenAddresses.value ? row.tokenAddress : row.address;
+  }
+
   function truncateAddress(address: string) {
     const body = address.split(':')[1] ?? "";
     const chars = isMobile.value ? 5 : 8;
@@ -69,6 +75,7 @@
       rows.push({
         index: i,
         address: entry.address,
+        tokenAddress: entry.tokenAddress,
         balance: getAddressBalance(entry.utxos),
         txCount: rawHistory[i]?.length ?? 0,
       });
@@ -90,8 +97,13 @@
   <fieldset class="item" :class="{ dark: settingsStore.darkMode }">
     <legend>{{ t('hdAddresses.title') }}</legend>
 
-    <div class="balance-filter">
-      {{ t('hdAddresses.hideZeroBalances') }} <Toggle v-model="hideZeroBalances" />
+    <div class="filter-toggles">
+      <div class="filter-toggle">
+        {{ t('hdAddresses.hideZeroBalances') }} <Toggle v-model="hideZeroBalances" />
+      </div>
+      <div class="filter-toggle">
+        {{ t('hdAddresses.showTokenAddresses') }} <Toggle v-model="showTokenAddresses" />
+      </div>
     </div>
 
     <!-- Receiving Addresses -->
@@ -121,8 +133,8 @@
         <tbody v-if="showUsedReceiving" class="used-addresses">
           <tr v-for="row in usedReceivingAddresses" :key="row.index">
             <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(row.address)" class="address-cell" :title="row.address">
-              <span class="mono">{{ truncateAddress(row.address) }}</span>
+            <td @click="copyToClipboard(displayAddress(row))" class="address-cell" :title="displayAddress(row)">
+              <span class="mono">{{ truncateAddress(displayAddress(row)) }}</span>
               <img class="copyIcon" src="images/copyGrey.svg">
             </td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
@@ -133,8 +145,8 @@
         <tbody>
           <tr v-for="row in unusedReceivingAddresses" :key="row.index">
             <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(row.address)" class="address-cell" :title="row.address">
-              <span class="mono">{{ truncateAddress(row.address) }}</span>
+            <td @click="copyToClipboard(displayAddress(row))" class="address-cell" :title="displayAddress(row)">
+              <span class="mono">{{ truncateAddress(displayAddress(row)) }}</span>
               <img class="copyIcon" src="images/copyGrey.svg">
             </td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
@@ -172,8 +184,8 @@
         <tbody v-if="showUsedChange" class="used-addresses">
           <tr v-for="row in usedChangeAddresses" :key="row.index">
             <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(row.address)" class="address-cell" :title="row.address">
-              <span class="mono">{{ truncateAddress(row.address) }}</span>
+            <td @click="copyToClipboard(displayAddress(row))" class="address-cell" :title="displayAddress(row)">
+              <span class="mono">{{ truncateAddress(displayAddress(row)) }}</span>
               <img class="copyIcon" src="images/copyGrey.svg">
             </td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
@@ -184,8 +196,8 @@
         <tbody>
           <tr v-for="row in unusedChangeAddresses" :key="row.index">
             <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(row.address)" class="address-cell" :title="row.address">
-              <span class="mono">{{ truncateAddress(row.address) }}</span>
+            <td @click="copyToClipboard(displayAddress(row))" class="address-cell" :title="displayAddress(row)">
+              <span class="mono">{{ truncateAddress(displayAddress(row)) }}</span>
               <img class="copyIcon" src="images/copyGrey.svg">
             </td>
             <td class="mono">{{ satsToBch(row.balance) }}</td>
@@ -199,11 +211,17 @@
 </template>
 
 <style scoped>
-.balance-filter {
+.filter-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-bottom: 10px;
+}
+
+.filter-toggle {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 10px;
 }
 
 .collapsible-section {
