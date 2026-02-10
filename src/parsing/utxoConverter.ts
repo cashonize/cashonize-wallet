@@ -17,15 +17,15 @@ export function utxoToLibauthOutput(utxo: Utxo): Output {
   };
 
   if (utxo.token) {
-    const hasNft = utxo.token.nft?.capability !== undefined || utxo.token.nft?.commitment !== undefined;
     output.token = {
       category: hexToBin(utxo.token.category),
-      amount: utxo.token.amount ?? 0n,
+      amount: utxo.token.amount,
     };
-    if (hasNft) {
+    if (utxo.token.nft) {
+      const nft = utxo.token.nft;
       output.token.nft = {
-        capability: utxo.token.nft?.capability ?? "none",
-        commitment: hexToBin(utxo.token.nft?.commitment ?? ""),
+        capability: nft.capability,
+        commitment: hexToBin(nft.commitment),
       };
     }
   }
