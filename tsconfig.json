@@ -3,4 +3,5 @@
   "compilerOptions": {
     "types": ["vitest/globals"]
   },
+  "exclude": [ "test/e2e" ]
 }
