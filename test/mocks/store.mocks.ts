@@ -48,7 +48,10 @@ vi.stubGlobal('localStorage', localStorageMock)
 
 // Mock Connection class
 class MockConnection {
-  networkProvider = { /* mock provider */ }
+  networkProvider = {
+    connect: vi.fn().mockResolvedValue(undefined),
+    getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
+  }
   constructor() {
     // Constructor does nothing, just provides networkProvider
   }
@@ -110,6 +113,7 @@ vi.mock('src/stores/settingsStore', () => ({
     explorerMainnet: 'https://blockchair.com',
     explorerChipnet: 'https://chipnet.chaingraph.cash',
     ipfsGateway: 'https://ipfs.io/ipfs/',
+    featuredTokens: [],
     getWalletType: vi.fn().mockReturnValue('single'),
     getWalletMetadata: vi.fn().mockReturnValue({ walletType: 'single' }),
     setWalletType: vi.fn(),

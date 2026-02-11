@@ -125,6 +125,10 @@ export const useStore = defineStore('store', () => {
   let cancelWatchBlocks: undefined | CancelFn;
   let cancelWatchBchBalanceCashConnect: undefined | CancelFn;
 
+  // Counter to detect stale async operations after network/wallet switches.
+  // Bumped at the start of initializeWallet(); checked after long awaits.
+  let currentInitialization = 0;
+
   async function cancelWalletSubscriptions() {
     const cancelSubscriptionCallbacks = [
       cancelWatchBchtxs,
@@ -183,7 +187,7 @@ export const useStore = defineStore('store', () => {
   // It adds the configured electrum network provider on the wallet depending on the network.
   // Call initializeWallet() afterwards to actually connect to the electrum client and to fetch initial data.
   function setWallet(newWallet: WalletType){
-    if(newWallet.network == NetworkType.Mainnet){ 
+    if(newWallet.network == NetworkType.Mainnet){
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       // @ts-ignore currently no other way to set a specific provider
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
@@ -200,6 +204,10 @@ export const useStore = defineStore('store', () => {
   async function initializeWallet() {
     let failedToConnectElectrum = false
     if(!_wallet.value) throw new Error("No Wallet set in global store")
+    currentInitialization++;
+    console.log(`Wallet initialization #${currentInitialization}`);
+    // Capture value for closures to detect stale async operations
+    const initialization = currentInitialization;
 
     walletInitialized.value = false;
     await cancelWalletSubscriptions();
@@ -243,6 +251,7 @@ export const useStore = defineStore('store', () => {
       console.timeEnd('initialize walletconnect and cashconnect');
       // wait until the electrumConnectionPromise is resolved
       await electrumConnectionPromise;
+      if (initialization !== currentInitialization) return;
       // if electrum connection failed, cancel the rest of initialization
       if(failedToConnectElectrum) return
       // fetch wallet utxos first, this result will be used in consecutive calls
@@ -250,6 +259,7 @@ export const useStore = defineStore('store', () => {
       console.time('fetch wallet utxos');
       const walletAddressUtxos = await wallet.value.getUtxos()
       console.timeEnd('fetch wallet utxos');
+      if (initialization !== currentInitialization) return;
       const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
       // Fetch fiat balance and max amount to send in parallel
       // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
@@ -260,6 +270,7 @@ export const useStore = defineStore('store', () => {
       const balancePromises = [promiseMaxAmountToSend];
       const [resultMaxAmountToSend] = await Promise.all(balancePromises);
       console.timeEnd('fetch fiat balance & max amount to send');
+      if (initialization !== currentInitialization) return;
       // set values simulatenously with tokenList so the UI elements load together
       balance.value = balanceSats
       walletUtxos.value = walletAddressUtxos
@@ -296,11 +307,14 @@ export const useStore = defineStore('store', () => {
   async function setUpWalletSubscriptions(){
     // Dedupe txids to avoid duplicate token processing during reconnect/resubscribe bursts.
     const seenTokenTxIds = new Set<string>();
+    // Capture initialization so subscription callbacks become no-ops after a wallet/network switch
+    const initialization = currentInitialization;
 
     cancelWatchBchtxs = await wallet.value.watchBalance(
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (newBalance) => runAsyncVoid(async () => {
+        if (initialization !== currentInitialization) return;
         // Compute oldBalance including bch on token utxos
         // to match way newBalance is calculated in watchBalance
         const oldBalance = walletUtxos.value?.reduce((acc, utxo) => acc + utxo.satoshis, BigInt(0));
@@ -347,6 +361,7 @@ export const useStore = defineStore('store', () => {
       // use runAsyncVoid to wrap an async function as a synchronous callback
       // this means the promise is fire-and-forget
       (tx) => runAsyncVoid(async () => {
+        if (initialization !== currentInitialization) return;
         // Guard: the initial watchStatus invocation fires callbacks for all existing txs
         // before walletInitialized is set to true, so skip those
         if(!walletInitialized.value) return
@@ -404,6 +419,7 @@ export const useStore = defineStore('store', () => {
       })
     );
     cancelWatchBlocks = await wallet.value.watchBlocks(header => {
+      if (initialization !== currentInitialization) return;
       currentBlockHeight.value = header.height;
     }, false);
   }
@@ -609,7 +625,10 @@ export const useStore = defineStore('store', () => {
   async function updateWalletHistory() {
     try {
       console.log("updateWalletHistory")
-      walletHistory.value = await wallet.value.getHistory({});
+      const initialization = currentInitialization;
+      const history = await wallet.value.getHistory({});
+      if (initialization !== currentInitialization) return;
+      walletHistory.value = history;
     } catch(error){
       console.error(error)
       const errorMessage = typeof error == 'string' ? error : t('store.errors.errorFetchingHistory');
@@ -645,7 +664,9 @@ export const useStore = defineStore('store', () => {
 
   // Fetch token metadata from BCMR indexer
   async function fetchTokenMetadata(tokenList: TokenList, fetchNftInfo: boolean) {
+    const initialization = currentInitialization;
     const registries = await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, bcmrIndexer.value, bcmrRegistries.value);
+    if (initialization !== currentInitialization) return;
     bcmrRegistries.value = registries
   }
 
