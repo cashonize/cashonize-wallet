@@ -15,6 +15,9 @@ const chainId = computed(() => network.value === 'mainnet' ? 'bch:bitcoincash' :
 // Incremented to invalidate a pending connect when network switches
 let connectGeneration = 0
 
+// Only the most recently initiated request writes to the response box
+let responseGeneration = 0
+
 watch(network, () => {
   if (loading.value && !session.value) {
     // Abort pending connect
@@ -90,7 +93,9 @@ onMounted(async () => {
 })
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error)
+  if (error instanceof Error) return error.message
+  if (typeof error === 'object' && error !== null) return JSON.stringify(error)
+  return String(error)
 }
 
 function copyUri() {
@@ -121,6 +126,7 @@ async function connect() {
 
 async function getAddresses() {
   if (!client.value || !session.value) return
+  const owned = ++responseGeneration
   response.value = ''
   loading.value = true
   try {
@@ -129,16 +135,17 @@ async function getAddresses() {
       chainId: chainId.value,
       request: { method: 'bch_getAddresses', params: {} }
     })
-    response.value = JSON.stringify(result)
+    if (owned === responseGeneration) response.value = JSON.stringify(result)
   } catch (error: unknown) {
-    response.value = JSON.stringify({ error: errorMessage(error) })
+    if (owned === responseGeneration) response.value = JSON.stringify({ error: errorMessage(error) })
   } finally {
-    loading.value = false
+    if (owned === responseGeneration) loading.value = false
   }
 }
 
 async function signMessage() {
   if (!client.value || !session.value) return
+  const owned = ++responseGeneration
   response.value = ''
   loading.value = true
   try {
@@ -150,16 +157,17 @@ async function signMessage() {
         params: { message: 'Hello BCH' }
       }
     })
-    response.value = JSON.stringify(result)
+    if (owned === responseGeneration) response.value = JSON.stringify(result)
   } catch (error: unknown) {
-    response.value = JSON.stringify({ error: errorMessage(error) })
+    if (owned === responseGeneration) response.value = JSON.stringify({ error: errorMessage(error) })
   } finally {
-    loading.value = false
+    if (owned === responseGeneration) loading.value = false
   }
 }
 
 async function signTransaction() {
   if (!client.value || !session.value) return
+  const owned = ++responseGeneration
   response.value = ''
   loading.value = true
   try {
@@ -171,16 +179,17 @@ async function signTransaction() {
         params: txFixture
       }
     })
-    response.value = JSON.stringify(result)
+    if (owned === responseGeneration) response.value = JSON.stringify(result)
   } catch (error: unknown) {
-    response.value = JSON.stringify({ error: errorMessage(error) })
+    if (owned === responseGeneration) response.value = JSON.stringify({ error: errorMessage(error) })
   } finally {
-    loading.value = false
+    if (owned === responseGeneration) loading.value = false
   }
 }
 
 async function cancelPending() {
   if (!client.value || !session.value) return
+  const owned = ++responseGeneration
   response.value = ''
   loading.value = true
   try {
@@ -189,16 +198,17 @@ async function cancelPending() {
       chainId: chainId.value,
       request: { method: 'bch_cancelPendingRequests', params: {} }
     })
-    response.value = JSON.stringify(result)
+    if (owned === responseGeneration) response.value = JSON.stringify(result)
   } catch (error: unknown) {
-    response.value = JSON.stringify({ error: errorMessage(error) })
+    if (owned === responseGeneration) response.value = JSON.stringify({ error: errorMessage(error) })
   } finally {
-    loading.value = false
+    if (owned === responseGeneration) loading.value = false
   }
 }
 
 async function disconnect() {
   if (!client.value || !session.value) return
+  const owned = ++responseGeneration
   response.value = ''
   loading.value = true
   try {
@@ -208,11 +218,11 @@ async function disconnect() {
     })
     session.value = null
     sessionStatus.value = 'disconnected'
-    response.value = JSON.stringify({ disconnected: true })
+    if (owned === responseGeneration) response.value = JSON.stringify({ disconnected: true })
   } catch (error: unknown) {
-    response.value = JSON.stringify({ error: errorMessage(error) })
+    if (owned === responseGeneration) response.value = JSON.stringify({ error: errorMessage(error) })
   } finally {
-    loading.value = false
+    if (owned === responseGeneration) loading.value = false
   }
 }
 </script>
