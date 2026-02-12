@@ -14,7 +14,11 @@ try {
 export default defineConfig({
   testDir: '.',
   timeout: 60_000,
-  use: { headless: true },
+  use: {
+    headless: true,
+    locale: 'en-US',
+    timezoneId: 'UTC',
+  },
   webServer: [
     {
       command: 'yarn dev',
