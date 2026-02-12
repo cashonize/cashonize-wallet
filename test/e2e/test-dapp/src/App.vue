@@ -65,6 +65,7 @@ function copyUri() {
 
 async function connect() {
   if (!client.value) return
+  response.value = ''
   loading.value = true
   const gen = ++connectGeneration
   try {
@@ -86,6 +87,7 @@ async function connect() {
 
 async function getAddresses() {
   if (!client.value || !session.value) return
+  response.value = ''
   loading.value = true
   try {
     const result = await client.value.request({
@@ -103,6 +105,7 @@ async function getAddresses() {
 
 async function signMessage() {
   if (!client.value || !session.value) return
+  response.value = ''
   loading.value = true
   try {
     const result = await client.value.request({
@@ -123,6 +126,7 @@ async function signMessage() {
 
 async function signTransaction() {
   if (!client.value || !session.value) return
+  response.value = ''
   loading.value = true
   try {
     const result = await client.value.request({
@@ -143,6 +147,7 @@ async function signTransaction() {
 
 async function cancelPending() {
   if (!client.value || !session.value) return
+  response.value = ''
   loading.value = true
   try {
     const result = await client.value.request({
@@ -160,6 +165,7 @@ async function cancelPending() {
 
 async function disconnect() {
   if (!client.value || !session.value) return
+  response.value = ''
   loading.value = true
   try {
     await client.value.disconnect({

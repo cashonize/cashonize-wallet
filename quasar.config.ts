@@ -42,8 +42,11 @@ export default defineConfig((ctx) => {
 
       typescript: {
         strict: true,
-        vueShim: true
-        // extendTsConfig (tsConfig) {}
+        vueShim: true,
+        extendTsConfig (tsConfig) {
+          tsConfig.exclude ??= []
+          tsConfig.exclude.push('test/e2e/test-dapp')
+        }
       },
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
