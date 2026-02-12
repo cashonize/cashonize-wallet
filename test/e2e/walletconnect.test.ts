@@ -1,14 +1,12 @@
 // WalletConnect E2E tests for Cashonize Wallet.
 // If a seed phrase is provided in the E2E_SEED_PHRASE environment variable or top level .env file,
-// the test will import a funded chipnet wallet and test all methods. Otherwise,
-// a new wallet will be created with a zero balance and the signTransaction method will be skipped.
+// the test will import that wallet. Otherwise a new wallet will be created.
 
 import { test, expect, type Page } from '@playwright/test'
 
 const CASHONIZE_URL = 'http://localhost:9000'
 const DAPP_URL = 'http://localhost:5188'
 const SEED_PHRASE = process.env.E2E_SEED_PHRASE
-const hasFunds = !!SEED_PHRASE
 
 let walletPage: Page
 let dappPage: Page
@@ -121,8 +119,6 @@ test.describe.serial('WalletConnect E2E', () => {
   })
 
   test('signTransaction', async () => {
-    test.skip(!hasFunds, 'Requires E2E_SEED_PHRASE with funded chipnet wallet')
-
     await dappPage.click('#btn-sign-transaction')
 
     // Wallet: Wait for transaction dialog, click Sign
@@ -136,8 +132,6 @@ test.describe.serial('WalletConnect E2E', () => {
   })
 
   test('cancelPendingRequests', async () => {
-    test.skip(!hasFunds, 'Requires E2E_SEED_PHRASE with funded chipnet wallet')
-
     // dApp: Start a sign transaction request (opens dialog in wallet)
     await dappPage.click('#btn-sign-transaction')
 
