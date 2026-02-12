@@ -156,6 +156,11 @@
       bchSendRequest.value = props.uri
       store.changeView(1);
     }
+    // check if sweep request is passed through props
+    if(props?.uri?.startsWith('bch-wif:')){
+      wifToSweep.value = props.uri
+      store.changeView(8);
+    }
   })
 
   const hasUtxosWithBchAndTokens = computed(() => {
