@@ -373,7 +373,9 @@
       "balance": "Solde",
       "tokens": "Tokens"
     },
-    "pending": "en attente"
+    "pending": "en attente",
+    "transactionCountPartial": "{count}+ Transactions",
+    "loadingFullHistory": "Chargement de l'historique complet..."
   },
   "transactionDialog": {
     "title": "Transaction",

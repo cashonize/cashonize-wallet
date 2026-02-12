@@ -28,7 +28,7 @@
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
   const exchangeRate = ref<number | undefined>(undefined);
-    
+
   onMounted(async () => {
     exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
   });
@@ -80,7 +80,8 @@
       <legend>{{ t('history.title') }}</legend>
 
       <div class="filter-row">
-        <div>{{ t('history.transactionCount', { count: transactionCount?.toLocaleString("en-US") }) }}</div>
+        <div v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: transactionCount?.toLocaleString("en-US") }) }}</div>
+        <div v-else>{{ t('history.transactionCount', { count: transactionCount?.toLocaleString("en-US") }) }}</div>
         <span class="options-toggle" @click="toggleOptions">
           {{ t('history.options') }}
           <img
@@ -200,6 +201,7 @@
         boundary-numbers
         color="primary"
       />
+      <div v-if="store.isHistoryPartial" class="loading-full-history">{{ t('history.loadingFullHistory') }}</div>
     </fieldset>
   </div>
 
@@ -211,6 +213,11 @@
 </template>
 
 <style scoped>
+.loading-full-history {
+  text-align: center;
+  padding: 15px 0;
+}
+
 .filter-row {
   display: flex;
   align-items: baseline;

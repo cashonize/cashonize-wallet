@@ -75,6 +75,7 @@ export const useStore = defineStore('store', () => {
   const maxAmountToSend = ref(undefined as (bigint | undefined));
   const walletUtxos = ref(undefined as (Utxo[] | undefined));
   const walletHistory = ref(undefined as (WalletHistoryReturnType | undefined));
+  const isHistoryPartial = ref(false);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   const currentBlockHeight = ref(undefined as (number | undefined));
@@ -287,9 +288,9 @@ export const useStore = defineStore('store', () => {
       console.timeEnd('fetch token metadata');
       // fetch Cauldron prices as fire-and-forget (non-critical)
       void fetchCauldronPricesForTokens();
-      console.time('fetch history');
-      await updateWalletHistory()
-      console.timeEnd('fetch history');
+      console.time('fetch initial history');
+      await updateWalletHistory({ count: 100 })
+      console.timeEnd('fetch initial history');
       walletInitialized.value = true;
       // get plannedTokenId
       hasPreGenesis()
@@ -352,8 +353,7 @@ export const useStore = defineStore('store', () => {
           balance.value = balanceSats;
           walletUtxos.value = walletAddressUtxos;
           maxAmountToSend.value = maxAmount;
-          // update wallet history as fire-and-forget promise
-          void updateWalletHistory()
+          void updateWalletHistory();
         }
       })
     );
@@ -414,8 +414,7 @@ export const useStore = defineStore('store', () => {
         await updateWalletUtxos();
         // fetch Cauldron prices for new FTs
         void fetchCauldronPricesForTokens();
-        // update wallet history as fire-and-forget promise
-        void updateWalletHistory()
+        void updateWalletHistory();
       })
     );
     cancelWatchBlocks = await wallet.value.watchBlocks(header => {
@@ -445,6 +444,7 @@ export const useStore = defineStore('store', () => {
     bcmrRegistries.value = undefined;
     cauldronPrices.value = null;
     walletHistory.value = undefined;
+    isHistoryPartial.value = false;
   }
 
   async function getWalletClass(walletName: string, network: string) {
@@ -622,13 +622,25 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  async function updateWalletHistory() {
+  // Fetches wallet history via mainnet-js getHistory().
+  // When called with a capped count, auto-schedules a full background refresh via requestIdleCallback.
+  let historyRequestId = 0;
+  async function updateWalletHistory({ count = -1 }: { count?: number } = {}) {
+    const requestId = ++historyRequestId;
     try {
-      console.log("updateWalletHistory")
       const initialization = currentInitialization;
-      const history = await wallet.value.getHistory({});
+      const history = await wallet.value.getHistory({ count });
       if (initialization !== currentInitialization) return;
+      if (requestId !== historyRequestId) return; // newer request in-flight, discard stale result
       walletHistory.value = history;
+      // Track whether this is a partial load (capped fetch that may have more)
+      isHistoryPartial.value = count > 0 && history.length >= count;
+      // Automatically schedule background full load when partial
+      if (isHistoryPartial.value) {
+        // Schedule full history load when idle, fall back to setTimeout for unsupported environments
+        const loadFullHistoryCallback = () => void updateWalletHistory();
+        'requestIdleCallback' in globalThis ? requestIdleCallback(loadFullHistoryCallback) : setTimeout(loadFullHistoryCallback, 1000);
+      }
     } catch(error){
       console.error(error)
       const errorMessage = typeof error == 'string' ? error : t('store.errors.errorFetchingHistory');
@@ -818,6 +830,7 @@ export const useStore = defineStore('store', () => {
     tokenList,
     filteredTokenList,
     walletHistory,
+    isHistoryPartial,
     plannedTokenId,
     isWcAndCcInitialized,
     latestGithubRelease,
