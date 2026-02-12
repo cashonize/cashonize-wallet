@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
 import {
@@ -128,5 +128,103 @@ describe('network switch race conditions', () => {
     await flushAsyncWork()
 
     expect(store.bcmrRegistries).toEqual(freshMetadata)
+  })
+})
+
+describe('partial history loading', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.clear()
+    setActivePinia(createPinia())
+    localStorageMock.setItem('network', 'mainnet')
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('calls getHistory with count: 100 during init', async () => {
+    const wallet = createMockWallet()
+    const store = useStore()
+    store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    expect(wallet.getHistory).toHaveBeenCalledWith({ count: 100 })
+  })
+
+  it('sets isHistoryPartial when capped fetch returns full count', async () => {
+    const wallet = createMockWallet()
+    const items100 = Array.from({ length: 100 }, (_, i) => ({ txid: `tx-${i}` }))
+    wallet.getHistory.mockResolvedValueOnce(items100)
+
+    const store = useStore()
+    store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    expect(store.isHistoryPartial).toBe(true)
+    expect(store.walletHistory).toEqual(items100)
+  })
+
+  it('does not set isHistoryPartial when fewer items returned', async () => {
+    const wallet = createMockWallet()
+    const items50 = Array.from({ length: 50 }, (_, i) => ({ txid: `tx-${i}` }))
+    wallet.getHistory.mockResolvedValueOnce(items50)
+
+    const store = useStore()
+    store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    expect(store.isHistoryPartial).toBe(false)
+    expect(store.walletHistory).toEqual(items50)
+  })
+
+  it('schedules background full refresh that clears isHistoryPartial', async () => {
+    vi.useFakeTimers()
+
+    const wallet = createMockWallet()
+    const items100 = Array.from({ length: 100 }, (_, i) => ({ txid: `tx-${i}` }))
+    const fullHistory = Array.from({ length: 500 }, (_, i) => ({ txid: `tx-${i}` }))
+    // First call (capped): returns 100, second call (full): returns 500
+    wallet.getHistory
+      .mockResolvedValueOnce(items100)
+      .mockResolvedValueOnce(fullHistory)
+
+    const store = useStore()
+    store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    expect(store.isHistoryPartial).toBe(true)
+
+    // Advance past the setTimeout fallback (1000ms) to trigger background full load
+    await vi.advanceTimersByTimeAsync(1000)
+
+    expect(store.isHistoryPartial).toBe(false)
+    expect(store.walletHistory).toEqual(fullHistory)
+  })
+
+  it('discards stale history when newer updateWalletHistory completes first', async () => {
+    const wallet = createMockWallet()
+    const store = useStore()
+    store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    // Start a slow history fetch
+    const staleDeferred = createDeferred<unknown[]>()
+    wallet.getHistory.mockImplementationOnce(() => staleDeferred.promise)
+    const slowCall = store.updateWalletHistory()
+
+    // Start and complete a fast history fetch (bumps historyRequestId)
+    const freshHistory = [{ txid: 'fresh' }]
+    wallet.getHistory.mockResolvedValueOnce(freshHistory)
+    await store.updateWalletHistory()
+
+    expect(store.walletHistory).toEqual(freshHistory)
+
+    // Slow call resolves late — should be discarded by historyRequestId guard
+    staleDeferred.resolve([{ txid: 'stale' }])
+    await slowCall
+    await flushAsyncWork()
+
+    expect(store.walletHistory).toEqual(freshHistory)
   })
 })
