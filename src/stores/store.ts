@@ -36,6 +36,9 @@ import {
 import type { ParseResult } from "src/parsing/nftParsing"
 import { parseNft, type NftParseInfo } from "src/parsing/nftParsing"
 import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
+import { invokeExtensions } from "src/parsing/extensions/index"
+import { createElectrumAdapter } from "src/parsing/electrumAdapter"
+import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -721,10 +724,10 @@ export const useStore = defineStore('store', () => {
   }
   
 
-  function parseNftCommitment(
+  async function parseNftCommitment(
     categoryId: string,
     utxo: Utxo
-  ): ParseResult | undefined {
+  ): Promise<ParseResult | undefined> {
     const metadata = bcmrRegistries.value?.[categoryId];
     if (!metadata?.token.nfts?.parse || metadata.nft_type !== 'parsable') return undefined;
 
@@ -737,7 +740,28 @@ export const useStore = defineStore('store', () => {
       fields: metadata.token.nfts.fields,
     };
 
-    const libauthOutput = utxoToLibauthOutput(utxo);
+    let libauthOutput = utxoToLibauthOutput(utxo);
+
+    // If the metadata has extensions, invoke them to modify the UTXO before parsing
+    if (metadata.extensions) {
+      try {
+        const identitySnapshot: IdentitySnapshot = {
+          name: metadata.name,
+          extensions: metadata.extensions,
+        };
+        const electrumClient = createElectrumAdapter(wallet.value.provider);
+        const networkPrefix = wallet.value.networkPrefix;
+        libauthOutput = await invokeExtensions(
+          libauthOutput,
+          identitySnapshot,
+          electrumClient,
+          networkPrefix,
+        );
+      } catch (error) {
+        console.error("Extension invocation failed, parsing unmodified UTXO:", error);
+      }
+    }
+
     return parseNft(libauthOutput, parseInfo);
   }
 

@@ -55,6 +55,9 @@
   const imageLoadFailed = ref(false);
   const parseResult = ref(undefined as ParseResult | undefined);
 
+  const hasParityusdExtension = computed(() => {
+    return !!store.bcmrRegistries?.[tokenData.value.category]?.extensions?.parityusd;
+  });
   const isParsable = computed(() =>
     store.bcmrRegistries?.[tokenData.value.category]?.nft_type === 'parsable'
   );
@@ -130,23 +133,23 @@
     selectedNfts.value = new Set(allKeys);
   }
 
-  onMounted(() => {
+  onMounted(async () => {
     appendBlockieIcon(tokenData.value.category, `#id${tokenData.value.category.slice(0, 10)}nft`);
     // Parse NFT commitment if this is a parsable single NFT
     if (isSingleNft.value && isParsable.value) {
       const nftUtxo = tokenData.value.nfts?.[0];
       if (nftUtxo) {
-        parseResult.value = store.parseNftCommitment(tokenData.value.category, nftUtxo);
+        parseResult.value = await store.parseNftCommitment(tokenData.value.category, nftUtxo);
       }
     }
   })
 
   // Watch for isParsable becoming true after mount (e.g. bcmrRegistries loads async)
-  watch(isParsable, (nowParsable) => {
+  watch(isParsable, async (nowParsable) => {
     if (nowParsable && isSingleNft.value && !parseResult.value) {
       const nftUtxo = tokenData.value.nfts?.[0];
       if (nftUtxo) {
-        parseResult.value = store.parseNftCommitment(tokenData.value.category, nftUtxo);
+        parseResult.value = await store.parseNftCommitment(tokenData.value.category, nftUtxo);
       }
     }
   })
@@ -726,7 +729,7 @@
           <div></div>
           <div v-if="tokenDescription" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenDescription }} </div>
           <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 2">
-            <div>{{ t('tokenItem.info.parsedFields') }}</div>
+            <div>{{ hasParityusdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
             <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
               {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
             </div>

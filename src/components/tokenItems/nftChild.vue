@@ -48,6 +48,10 @@
   const activeAction = ref<'sending' | 'minting' | 'burning' | null>(null);
   const parseResult = ref(undefined as ParseResult | undefined);
 
+  const hasParityusdExtension = computed(() => {
+    const category = nftData.value.token?.category;
+    return category ? !!store.bcmrRegistries?.[category]?.extensions?.parityusd : false;
+  });
   const isParsable = computed(() => {
     const category = nftData.value.token?.category;
     if (!category) return false;
@@ -89,20 +93,20 @@
     return commitment;
   })
 
-  onMounted(() => {
+  onMounted(async () => {
     const category = nftData.value.token!.category;
     appendBlockieIcon(category, `#${id.value}`);
     // Parse NFT commitment if this is a parsable NFT
     if (isParsable.value) {
-      parseResult.value = store.parseNftCommitment(category, nftData.value);
+      parseResult.value = await store.parseNftCommitment(category, nftData.value);
     }
   })
 
   // Watch for isParsable becoming true after mount (e.g. bcmrRegistries loads async)
-  watch(isParsable, (nowParsable) => {
+  watch(isParsable, async (nowParsable) => {
     if (nowParsable && !parseResult.value) {
       const category = nftData.value.token!.category;
-      parseResult.value = store.parseNftCommitment(category, nftData.value);
+      parseResult.value = await store.parseNftCommitment(category, nftData.value);
     }
   })
 
@@ -464,7 +468,7 @@
         <div v-if="displayNftInfo" class="tokenAction">
           <div v-if="nftDescription" class="indentText"> {{ t('tokenItem.info.nftDescription') }} {{ nftDescription }} </div>
           <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 3">
-            <div>{{ t('tokenItem.info.parsedFields') }}</div>
+            <div>{{ hasParityusdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
             <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
               {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
             </div>

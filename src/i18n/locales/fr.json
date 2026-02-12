@@ -213,6 +213,7 @@
       "yes": "oui",
       "no": "non",
       "nftAttributes": "Attributs du NFT",
+      "extensionNote": "Données du prêt récupérées de la blockchain :",
       "parsedFields": "Données NFT analysées :",
       "numberNfts": "Nombre de NFTs :"
     },
