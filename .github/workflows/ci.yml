@@ -24,4 +24,5 @@ jobs:
       - run: yarn lint
       - run: yarn vue-tsc --noEmit
       - run: yarn test
+      - run: yarn playwright install
       - run: yarn test:e2e
