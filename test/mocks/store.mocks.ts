@@ -57,20 +57,18 @@ class MockConnection {
   }
 }
 
+// Mock wallet classes (must be real classes so instanceof checks work)
+class MockWallet { static named = mockWalletNamed }
+class MockTestNetWallet { static named = mockTestNetWalletNamed }
+class MockHDWallet { static named = mockHDWalletNamed }
+class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed }
+
 // Mock mainnet-js
 vi.mock('mainnet-js', () => ({
-  Wallet: {
-    named: mockWalletNamed,
-  },
-  TestNetWallet: {
-    named: mockTestNetWalletNamed,
-  },
-  HDWallet: {
-    named: mockHDWalletNamed,
-  },
-  TestNetHDWallet: {
-    named: mockTestNetHDWalletNamed,
-  },
+  Wallet: MockWallet,
+  TestNetWallet: MockTestNetWallet,
+  HDWallet: MockHDWallet,
+  TestNetHDWallet: MockTestNetHDWallet,
   Config: {
     EnforceCashTokenReceiptAddresses: true,
     UseIndexedDBCache: true,

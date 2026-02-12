@@ -214,9 +214,8 @@ export const useStore = defineStore('store', () => {
     await cancelWalletSubscriptions();
 
     // Verify wallet type metadata matches the actual wallet class
-    // Use 'walletCache' property to detect HD wallets (exists on HDWallet, not on single-address Wallet)
     const metadataType = settingsStore.getWalletType(activeWalletName.value);
-    const isActuallyHD = 'walletCache' in _wallet.value;
+    const isActuallyHD = _wallet.value instanceof HDWallet || _wallet.value instanceof TestNetHDWallet;
     if (metadataType === 'hd' && !isActuallyHD) {
       throw new Error(`Wallet type mismatch: metadata says 'hd' but wallet is single-address. This may indicate corrupted settings.`);
     }
