@@ -63,15 +63,11 @@ export async function invokeExtensions(
     for (const methodName of Object.keys(extensionConfig as object)) {
       const handler = extensionHandlers[methodName];
       if (!handler) {
-        console.warn(
-          `Unknown method ${methodName} in extension ${extensionName}`,
-        );
+        console.warn(`Unknown method ${methodName} in extension ${extensionName}`);
         continue;
       }
 
-      console.log(
-        `Invoking extension: ${extensionName}.${methodName}`,
-      );
+      console.log(`Invoking extension: ${extensionName}.${methodName}`);
 
       try {
         modifiedUtxo = await handler(
@@ -81,10 +77,7 @@ export async function invokeExtensions(
           networkPrefix,
         );
       } catch (error) {
-        console.error(
-          `Error invoking extension ${extensionName}.${methodName}:`,
-          error,
-        );
+        console.error(`Error invoking extension ${extensionName}.${methodName}:`, error);
         // Continue with unmodified UTXO on error
       }
     }

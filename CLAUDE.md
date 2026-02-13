@@ -69,6 +69,9 @@ Key files:
 - `src/parsing/nftParsing.ts`: VM-based commitment parsing engine (`NftParseInfo` interface, `parseNft` function)
 - `src/parsing/bcmr-v2.schema.ts`: TypeScript types for the BCMR v2 spec
 
+### BCMR Extensions
+BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method.
+
 ### Component Organization
 ```
 src/components/
