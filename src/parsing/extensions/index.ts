@@ -5,13 +5,15 @@ import type { IdentitySnapshot } from "../bcmr-v2.schema";
 // Import extension handlers
 import { fetchLoanState } from "./parityusd";
 
+const parityusdHandlers = { fetchLoanState };
+
 /**
  * Registry of all available extensions
  */
 export const extensions: ExtensionRegistry = {
-  parityusd: {
-    fetchLoanState,
-  },
+  parityusd: parityusdHandlers,
+  pusd: parityusdHandlers,
+  paryonusd: parityusdHandlers,
 };
 
 /**

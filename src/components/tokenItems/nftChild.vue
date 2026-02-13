@@ -49,12 +49,12 @@
   const parseResult = ref(undefined as ParseResult | undefined);
 
   const hasParityusdExtension = computed(() => {
-    const category = nftData.value.token?.category;
-    return category ? !!store.bcmrRegistries?.[category]?.extensions?.parityusd : false;
+    const category = nftData.value.token!.category;
+    const ext = store.bcmrRegistries?.[category]?.extensions;
+    return Boolean(ext?.parityusd ?? ext?.pusd ?? ext?.paryonusd);
   });
   const isParsable = computed(() => {
-    const category = nftData.value.token?.category;
-    if (!category) return false;
+    const category = nftData.value.token!.category;
     return store.bcmrRegistries?.[category]?.nft_type === 'parsable';
   });
 

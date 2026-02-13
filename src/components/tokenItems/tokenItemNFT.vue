@@ -56,7 +56,8 @@
   const parseResult = ref(undefined as ParseResult | undefined);
 
   const hasParityusdExtension = computed(() => {
-    return !!store.bcmrRegistries?.[tokenData.value.category]?.extensions?.parityusd;
+    const ext = store.bcmrRegistries?.[tokenData.value.category]?.extensions;
+    return Boolean(ext?.parityusd ?? ext?.pusd ?? ext?.paryonusd);
   });
   const isParsable = computed(() =>
     store.bcmrRegistries?.[tokenData.value.category]?.nft_type === 'parsable'
