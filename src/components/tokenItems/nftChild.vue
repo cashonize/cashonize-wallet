@@ -47,6 +47,7 @@
   const showQrCodeDialog = ref(false);
   const activeAction = ref<'sending' | 'minting' | 'burning' | null>(null);
   const parseResult = ref(undefined as ParseResult | undefined);
+  const parsingNft = ref(false);
 
   const hasParityusdExtension = computed(() => {
     const category = nftData.value.token!.category;
@@ -98,7 +99,9 @@
     appendBlockieIcon(category, `#${id.value}`);
     // Parse NFT commitment if this is a parsable NFT
     if (isParsable.value) {
+      parsingNft.value = true;
       parseResult.value = await store.parseNftCommitment(category, nftData.value);
+      parsingNft.value = false;
     }
   })
 
@@ -106,7 +109,9 @@
   watch(isParsable, async (nowParsable) => {
     if (nowParsable && !parseResult.value) {
       const category = nftData.value.token!.category;
+      parsingNft.value = true;
       parseResult.value = await store.parseNftCommitment(category, nftData.value);
+      parsingNft.value = false;
     }
   })
 
@@ -434,7 +439,8 @@
         <div class="tokenBaseInfo">
           <div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
-            <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 3">
+            <div v-if="parsingNft && hasParityusdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
+            <div v-else-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 3">
               <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
                 {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
               </div>
