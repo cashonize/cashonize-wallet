@@ -25,6 +25,7 @@ function createMockWallet() {
     getUtxos: vi.fn().mockResolvedValue([]),
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
     getHistory: vi.fn().mockResolvedValue([]),
+    getRawHistory: vi.fn().mockResolvedValue([]),
     watchBalance: vi.fn().mockResolvedValue(async () => {}),
     watchTokenTransactions: vi.fn().mockResolvedValue(async () => {}),
     watchBlocks: vi.fn().mockResolvedValue(async () => {}),

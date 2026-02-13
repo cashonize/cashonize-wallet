@@ -254,8 +254,8 @@ export const useStore = defineStore('store', () => {
       if (initialization !== currentInitialization) return;
       // if electrum connection failed, cancel the rest of initialization
       if(failedToConnectElectrum) return
-      // fetch wallet utxos first, this result will be used in consecutive calls
-      // to avoid duplicate getUtxos() calls
+      // Fetch wallet utxos first, this result will be used in consecutive calls to avoid duplicate getUtxos() calls.
+      // For HD wallets this also awaits address discovery (watchPromise), which primes per-address utxos and history.
       console.time('fetch wallet utxos');
       const walletAddressUtxos = await wallet.value.getUtxos()
       console.timeEnd('fetch wallet utxos');
@@ -305,8 +305,18 @@ export const useStore = defineStore('store', () => {
   }
 
   async function setUpWalletSubscriptions(){
-    // Dedupe txids to avoid duplicate token processing during reconnect/resubscribe bursts.
+    // watchTokenTransactions fires unawaited getRawTransactionObject calls for all existing txids on setup.
+    // Some resolve after walletInitialized flips true, bypassing the init guard below.
+    // Prefilling from getRawHistory prevents those late arrivals from triggering false "new token" notifications.
+    // Remove seenTokenTxIds (prefill + check) if mainnet-js starts awaiting the initial watchTransactionHashes burst.
     const seenTokenTxIds = new Set<string>();
+    try {
+      // For single-address wallets this is one extra electrum call; for HD wallets it reads from in-memory cache (free).
+      const existingHistory = await wallet.value.getRawHistory();
+      existingHistory.forEach((tx) => seenTokenTxIds.add(tx.tx_hash));
+    } catch (error) {
+      console.error("Failed to prefill token transaction dedupe set:", error);
+    }
     // Capture initialization so subscription callbacks become no-ops after a wallet/network switch
     const initialization = currentInitialization;
 
@@ -365,7 +375,7 @@ export const useStore = defineStore('store', () => {
         // before walletInitialized is set to true, so skip those
         if(!walletInitialized.value) return
 
-        // Defensive dedupe for reconnect/re-subscribe bursts.
+        // Catch late-resolving initial burst callbacks (see prefill above)
         if (seenTokenTxIds.has(tx.txid)) return;
         seenTokenTxIds.add(tx.txid);
 
