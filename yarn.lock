@@ -2834,10 +2834,10 @@ caniuse-lite@^1.0.30001766:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001767.tgz#0279c498e862efb067938bba0a0aabafe8d0b730"
   integrity sha512-34+zUAMhSH+r+9eKmYG+k2Rpt8XttfE4yXAjoZvkAPs15xcYQhyBYdalJ65BzivAvGRMViEjy6oKr/S91loekQ==
 
-cashconnect@0.0.24:
-  version "0.0.24"
-  resolved "https://registry.yarnpkg.com/cashconnect/-/cashconnect-0.0.24.tgz#c94e1391cdcce10efd51637ffed14b46bc4ba453"
-  integrity sha512-PCAegXdr08RGzUPFAhXEf69Y2ow4Xx6lDUU7Yw9nOXn0uvSy9KrrhhZecIThXxToVtVM5RPhHSr9+Om0f2/IkQ==
+cashconnect@0.0.25:
+  version "0.0.25"
+  resolved "https://registry.yarnpkg.com/cashconnect/-/cashconnect-0.0.25.tgz#d11a494b3415a9614c33f5893a4a97a3b94e6db1"
+  integrity sha512-D/LIo89iNysaMprGr/vWTciDdWny4F6euhbDLb87QLbUFkDWZOjI5YJ2a62hu0gEmexH9/11AR5ZBvyl5eQD6g==
   dependencies:
     "@bitauth/libauth" "^3.1.0-next.2"
     "@reown/walletkit" "^1.2.10"

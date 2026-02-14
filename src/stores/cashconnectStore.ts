@@ -124,7 +124,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
 
     async function pair(wcUri: string) {
       if(!cashConnectWallet.value) {
-        throw new Error('CashConnect is not started.');
+        throw new Error(t('cashConnect.notifications.notStarted'));
       }
 
       try {
@@ -147,8 +147,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
     // Session Hooks
     //-----------------------------------------------------------------------------
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async function onSessionsUpdated(
+    function onSessionsUpdated(
       updatedSessions: Record<string, BchSession>
     ) {
       sessions.value = updatedSessions;
@@ -199,8 +198,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async function onSessionDelete() {
+    function onSessionDelete() {
       console.log("Session deleted");
     }
 
@@ -310,19 +308,20 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
       const utxos = await wallet.value.getUtxos();
 
       const transformed = utxos.map((utxo) => {
-        // Get the Wallet's Internal Information about this address (we need the Private Key for signing!).
-        // NOTE:
+        // Get the Wallet's Internal Information about this address (we need the Private Key for signing).
         const walletUTXO = wallet.value.walletCache.get(utxo.address);
 
         // If the Private Key cannot be retrieved, throw an error.
         if(!walletUTXO || !('privateKey' in walletUTXO)) {
-          throw new Error(`Private key could not be found for address: ${utxo.address}`);
+          throw new Error(
+            t('cashConnect.notifications.privateKeyNotFound', { address: utxo.address })
+          );
         }
 
         // Convert the Address of this UTXO to Locking Bytecode.
         const lockingBytecode = cashAddressToLockingBytecode(utxo.address);
         if (typeof lockingBytecode === "string") {
-          throw new Error("Failed to convert CashAddr to Locking Bytecode");
+          throw new Error(t('cashConnect.notifications.failedToConvertCashAddr'));
         }
 
         // If this UTXO has a token, include it.
@@ -375,7 +374,9 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
 
       // If the Private Key cannot be retrieved, throw an error.
       if(!walletUTXO || !walletUTXO.privateKey) {
-        throw new Error(`Private key could not be found for address: ${changeAddress}`);
+        throw new Error(
+          t('cashConnect.notifications.privateKeyNotFound', { address: changeAddress })
+        );
       }
 
       // Return the Libauth Change Template.
@@ -395,6 +396,19 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
     // Utils
     //-----------------------------------------------------------------------------
 
+    function derivationPathToCashConnectPath(derivationPath: string, purpose = 5001) {
+        const parts = derivationPath.split('/');
+
+        if (parts.length < 4) {
+            throw new Error(
+              t('cashConnect.notifications.invalidDerivationPath', { length: parts.length })
+            )
+        }
+
+        parts[1] = `${purpose}'`;
+        return parts.join('/');
+    }
+
     function getMasterPrivateKeyForWallet(wallet: WalletType) {
       // If this is a single address (WIF) wallet, we just use the WIF's Private Key.
       if('privateKey' in wallet) {
@@ -407,15 +421,17 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
         const seed = deriveSeedFromBip39Mnemonic(wallet.mnemonic);
         const hdNode = deriveHdPrivateNodeFromSeed(seed);
         if(!hdNode) {
-          throw new Error(`Failed to derive HDNode from seed`);
+          throw new Error(
+            t('cashConnect.notifications.failedToDeriveHdNode')
+          );
         }
 
         // Take the existing derivation, but set the 'purpose' to 5001 (CashConnectV1).
         // NOTE: We put CashConnect on its own derivation to improve security and keep it detached from other Wallet UTXOs.
-        //       I.e. It keeps CashConnect in the dark about the top-level mnemonic.
-        const pathParts = wallet.derivation.split('/');
-        pathParts[1] = "5001'";
-        const cashConnectPath = pathParts.join('/');
+        //       I.e. We deliberately keep CashConnect in the dark about the top-level mnemonic to enhance security.
+        // NOTE: It is important we don't make assumptions (i.e. hard-code the path) here:
+        //       If we do this, we could get conflicting CashConnect instances due to the "account" part of the standard derivation paths.
+        const cashConnectPath = derivationPathToCashConnectPath(wallet.derivation);
 
         // Derive the master key for CashConnect.
         const masterKeyNode = deriveHdPath(hdNode, cashConnectPath);
@@ -424,7 +440,9 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
         return masterKeyNode.privateKey;
       }
 
-      throw new Error('WalletType not supported: Must be a Single Address (WIF) Wallet or HDWallet.');
+      throw new Error(
+        t('cashConnect.notifications.walletTypeNotSupported')
+      );
     }
 
     //-----------------------------------------------------------------------------
