@@ -397,14 +397,13 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
     //-----------------------------------------------------------------------------
 
     function derivationPathToCashConnectPath(derivationPath: string, purpose = 5001) {
+        // Replace the "purpose" in the derivation path with "5001" (CashConnect).
         const parts = derivationPath.split('/');
-
         if (parts.length < 4) {
             throw new Error(
               t('cashConnect.notifications.invalidDerivationPath', { length: parts.length })
             )
         }
-
         parts[1] = `${purpose}'`;
         return parts.join('/');
     }
@@ -415,7 +414,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
         return wallet.privateKey;
       }
 
-      // If this is a HD Wallet, we use
+      // If this is a HD Wallet, we use the Wallet's Derivation Path, but replace the purpose with 5001 (CashConnect).
       if('mnemonic' in wallet) {
         // Derive the seed and HDNode from the Wallet's mnemonic.
         const seed = deriveSeedFromBip39Mnemonic(wallet.mnemonic);
