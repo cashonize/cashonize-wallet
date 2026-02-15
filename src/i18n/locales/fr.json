@@ -98,8 +98,7 @@
       "single": "Adresse unique",
       "hdDescription": "Utilise une nouvelle adresse pour chaque transaction. Meilleure confidentialité, mais nécessite de sélectionner une adresse lors de la connexion aux dApps.",
       "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé.",
-      "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
-      "hdNote": "Remarque : CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD."
+      "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
     },
     "derivationPath": {
       "label": "Chemin de dérivation :",
@@ -351,8 +350,7 @@
     "connectButton": "Connecter nouvelle dApp",
     "errors": {
       "invalidUri": "URI WalletConnect ou CashConnect invalide",
-      "notValidUri": "Ce n'est pas une URI WalletConnect ou CashConnect valide",
-      "cashConnectNotSupported": "CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD"
+      "notValidUri": "Ce n'est pas une URI WalletConnect ou CashConnect valide"
     }
   },
   "history": {
@@ -475,7 +473,6 @@
       "bitcoindotcom": "Portefeuille Bitcoin.com"
     },
     "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
-    "hdNote": "Remarque : CashConnect n'est actuellement pas pris en charge avec les portefeuilles HD.",
     "importButton": "Importer"
   },
   "walletsOverview": {
@@ -718,7 +715,13 @@
     "notifications": {
       "sessionApproved": "Session approuvée",
       "successfullySignedTransaction": "Transaction signée avec succès",
-      "networkMismatch": "Cette dApp nécessite que le portefeuille soit sur {network}. Veuillez aller dans les paramètres et changer de réseau pour utiliser cette dApp."
+      "networkMismatch": "Cette dApp nécessite que le portefeuille soit sur {network}. Veuillez aller dans les paramètres et changer de réseau pour utiliser cette dApp.",
+      "notStarted": "CashConnect n'est pas démarré.",
+      "privateKeyNotFound": "La clé privée est introuvable pour l'adresse : {address}",
+      "failedToConvertCashAddr": "Échec de la conversion de CashAddr en Locking Bytecode",
+      "invalidDerivationPath": "Chemin de dérivation invalide pour CashConnect : au moins 4 composants attendus, {length} reçu(s).",
+      "failedToDeriveHdNode": "Échec de la dérivation du HDNode à partir de la seed",
+      "walletTypeNotSupported": "Type de portefeuille non pris en charge : doit être un portefeuille à adresse unique ou un HDWallet."
     }
   },
   "walletConnect": {

@@ -752,7 +752,7 @@
             <a :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
           </div>
           <div v-if="tokenData?.nfts?.length && !isParsable">
-            {{ t('tokenItem.info.totalSupplyNfts') }} {{ totalNumberNFTs? totalNumberNFTs: "..."}}
+            {{ t('tokenItem.info.totalSupplyNfts') }} {{ totalNumberNFTs? totalNumberNFTs.toLocaleString("en-US"): "..."}}
           </div>
           <div v-if="tokenData?.nfts?.length && !isSingleMintingNft && !isParsable">
             {{ t('tokenItem.info.hasActiveMintingNft') }} {{ hasMintingNFT == undefined? "..." :( hasMintingNFT? t('tokenItem.info.yes'): t('tokenItem.info.no'))}}

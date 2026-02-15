@@ -98,8 +98,7 @@
       "single": "Single address",
       "hdDescription": "Uses a new address for each transaction. Better privacy, but requires selecting an address when connecting to dApps.",
       "singleDescription": "Uses one fixed address for all transactions. All assets in one place, but less private.",
-      "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear.",
-      "hdNote": "Note: CashConnect is currently not supported with HD wallets."
+      "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear."
     },
     "derivationPath": {
       "label": "Derivation path:",
@@ -351,8 +350,7 @@
     "connectButton": "Connect New dApp",
     "errors": {
       "invalidUri": "Invalid WalletConnect or CashConnect URI",
-      "notValidUri": "Not a valid WalletConnect or CashConnect URI",
-      "cashConnectNotSupported": "CashConnect is currently not supported with HD wallets"
+      "notValidUri": "Not a valid WalletConnect or CashConnect URI"
     }
   },
   "history": {
@@ -475,7 +473,6 @@
       "bitcoindotcom": "Bitcoin.com wallet"
     },
     "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear.",
-    "hdNote": "Note: CashConnect is currently not supported with HD wallets.",
     "importButton": "Import"
   },
   "walletsOverview": {
@@ -718,7 +715,13 @@
     "notifications": {
       "sessionApproved": "Session approved",
       "successfullySignedTransaction": "Successfully signed transaction",
-      "networkMismatch": "This Dapp requires wallet to be on {network}. Please navigate to settings and change network to use this Dapp."
+      "networkMismatch": "This Dapp requires wallet to be on {network}. Please navigate to settings and change network to use this Dapp.",
+      "notStarted": "CashConnect is not started.",
+      "privateKeyNotFound": "Private key could not be found for address: {address}",
+      "failedToConvertCashAddr": "Failed to convert CashAddr to Locking Bytecode",
+      "invalidDerivationPath": "Invalid derivation path for CashConnect: expected at least 4 components, got {length}.",
+      "failedToDeriveHdNode": "Failed to derive HDNode from seed",
+      "walletTypeNotSupported": "WalletType not supported: Must be a Single Address Wallet or HDWallet."
     }
   },
   "walletConnect": {
