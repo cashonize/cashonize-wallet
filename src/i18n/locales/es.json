@@ -98,8 +98,7 @@
       "single": "Dirección única",
       "hdDescription": "Usa una nueva dirección para cada transacción. Mayor privacidad, pero requiere seleccionar una dirección al conectarse a dApps.",
       "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado.",
-      "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
-      "hdNote": "Nota: CashConnect actualmente no es compatible con billeteras HD."
+      "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
     },
     "derivationPath": {
       "label": "Ruta de derivación:",
@@ -349,8 +348,7 @@
     "connectButton": "Conectar nueva dApp",
     "errors": {
       "invalidUri": "URI de WalletConnect o CashConnect inválida",
-      "notValidUri": "No es una URI válida de WalletConnect o CashConnect",
-      "cashConnectNotSupported": "CashConnect actualmente no es compatible con billeteras HD"
+      "notValidUri": "No es una URI válida de WalletConnect o CashConnect"
     }
   },
   "history": {
@@ -473,7 +471,6 @@
       "bitcoindotcom": "Billetera Bitcoin.com"
     },
     "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
-    "hdNote": "Nota: CashConnect actualmente no es compatible con billeteras HD.",
     "importButton": "Importar"
   },
   "walletsOverview": {
@@ -716,7 +713,13 @@
     "notifications": {
       "sessionApproved": "Sesión aprobada",
       "successfullySignedTransaction": "Transacción firmada exitosamente",
-      "networkMismatch": "Esta dApp requiere que la billetera esté en {network}. Por favor navega a configuración y cambia la red para usar esta dApp."
+      "networkMismatch": "Esta dApp requiere que la billetera esté en {network}. Por favor navega a configuración y cambia la red para usar esta dApp.",
+      "notStarted": "CashConnect no está iniciado.",
+      "privateKeyNotFound": "No se pudo encontrar la clave privada para la dirección: {address}",
+      "failedToConvertCashAddr": "Error al convertir CashAddr a Locking Bytecode",
+      "invalidDerivationPath": "Ruta de derivación inválida para CashConnect: se esperaban al menos 4 componentes, se recibieron {length}.",
+      "failedToDeriveHdNode": "Error al derivar el HDNode a partir de la semilla",
+      "walletTypeNotSupported": "Tipo de billetera no compatible: debe ser una billetera de dirección única (WIF) o una HDWallet."
     }
   },
   "walletConnect": {

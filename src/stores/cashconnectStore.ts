@@ -8,7 +8,7 @@ import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransac
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import MainnetJs and CashConnect
-import { convert, type Wallet } from "mainnet-js";
+import { convert } from "mainnet-js";
 import type { WalletType } from "src/interfaces/interfaces"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -27,6 +27,9 @@ import {
   binToHex,
   hexToBin,
   cashAddressToLockingBytecode,
+  deriveHdPath,
+  deriveSeedFromBip39Mnemonic,
+  deriveHdPrivateNodeFromSeed,
   walletTemplateP2pkhNonHd,
 } from "@bitauth/libauth";
 import { useSettingsStore } from 'src/stores/settingsStore';
@@ -39,10 +42,6 @@ const settingsStore = useSettingsStore()
 // Passing in a Ref so it remains reactive (like when changing wallets)
 export const useCashconnectStore = (wallet: Ref<WalletType>) => {
   const store = defineStore("cashconnectStore", () => {
-    
-    // Store a state variable to make sure we don't call "start" more than once.
-    const isStarted = ref(false);
-
     // Auto-approve the following RPC methods.
     // NOTE: We hard-code these for now, but they could be customized on a per-Dapp basis in the future.
     const autoApprovedMethods = [
@@ -57,10 +56,22 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
     const sessions = ref<Record<string, BchSession>>({});
 
     // The CashConnect Wallet instance.
-    const cashConnectWallet = ref<CashConnectWallet>(
-      new CashConnectWallet(
-        // The master private key.
-        (wallet.value as Wallet).privateKey,
+    const cashConnectWallet = ref<CashConnectWallet | undefined>();
+
+    async function start() {
+      // Make sure we don't start CC more than once.
+      // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
+      if (cashConnectWallet.value) {
+        return;
+      }
+
+      // Get the Master Private Key to use for CashConnect.
+      const masterPrivateKey = getMasterPrivateKeyForWallet(wallet.value);
+
+      // Instantiate CashConnect.
+      cashConnectWallet.value = new CashConnectWallet(
+        // The master private key for use with CashConnect.
+        masterPrivateKey,
         // Project ID.
         walletConnectProjectId,
         // Metadata.
@@ -86,21 +97,36 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
           },
         }
       )
-    );
-
-    async function start() {
-      // Make sure we don't start CC more than once.
-      // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
-      if (isStarted.value) return;
 
       // Start CashConnect (WC Core) service.
       await cashConnectWallet.value.start();
+    }
 
-      // Set our state variable so we don't start it again when switching wallets.
-      isStarted.value = true;
+    async function stop() {
+      // If already stopped, do nothing.
+      if(!cashConnectWallet.value) {
+        return;
+      }
+
+      // NOTE: This is a bit of a work-around.
+      //       When Cashonize resets wallet state, it does a fire-and-forget.
+      //       This causes a race-condition whereby CashConnect hasn't finished closing connections yet.
+      //       And the `start()` call thinks that the existing instance still exists.
+      const cashConnectPrevInstance = cashConnectWallet.value;
+      cashConnectWallet.value = undefined;
+
+      // Stop the previous instance.
+      await cashConnectPrevInstance.stop();
+
+      // Disconnect all sessions and stop the previous instance.
+      await cashConnectPrevInstance.disconnectAllSessions();
     }
 
     async function pair(wcUri: string) {
+      if(!cashConnectWallet.value) {
+        throw new Error(t('cashConnect.notifications.notStarted'));
+      }
+
       try {
         // Pair with the service.
         await cashConnectWallet.value.pair(wcUri);
@@ -109,12 +135,19 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
       }
     }
 
+    async function disconnectSession(topicId: string) {
+      if(!cashConnectWallet.value) {
+        return;
+      }
+
+      await cashConnectWallet.value.disconnectSession(topicId);
+    }
+
     //-----------------------------------------------------------------------------
     // Session Hooks
     //-----------------------------------------------------------------------------
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async function onSessionsUpdated(
+    function onSessionsUpdated(
       updatedSessions: Record<string, BchSession>
     ) {
       sessions.value = updatedSessions;
@@ -165,8 +198,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async function onSessionDelete() {
+    function onSessionDelete() {
       console.log("Session deleted");
     }
 
@@ -270,17 +302,30 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
           console.error('Failed to reconnect:', error);
         }
       }
-      
+
+      // Get the UTXOs from the wallet.
+      // NOTE: For Mainnet, we need to marry them up with their Private Key later using the wallet's "walletCache".
       const utxos = await wallet.value.getUtxos();
 
-      const lockingBytecode = cashAddressToLockingBytecode(wallet.value.getDepositAddress());
-      if (typeof lockingBytecode === "string") {
-        throw new Error("Failed to convert CashAddr to Locking Bytecode");
-      }
-
       const transformed = utxos.map((utxo) => {
-        let token: Output["token"] | undefined = undefined;
+        // Get the Wallet's Internal Information about this address (we need the Private Key for signing).
+        const walletUTXO = wallet.value.walletCache.get(utxo.address);
 
+        // If the Private Key cannot be retrieved, throw an error.
+        if(!walletUTXO || !('privateKey' in walletUTXO)) {
+          throw new Error(
+            t('cashConnect.notifications.privateKeyNotFound', { address: utxo.address })
+          );
+        }
+
+        // Convert the Address of this UTXO to Locking Bytecode.
+        const lockingBytecode = cashAddressToLockingBytecode(utxo.address);
+        if (typeof lockingBytecode === "string") {
+          throw new Error(t('cashConnect.notifications.failedToConvertCashAddr'));
+        }
+
+        // If this UTXO has a token, include it.
+        let token: Output["token"] | undefined = undefined;
         if (utxo.token) {
           token = {
             amount: BigInt(utxo.token.amount),
@@ -295,6 +340,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
           }
         }
 
+        // Return the LibAuth Template.
         return {
           outpointTransactionHash: hexToBin(utxo.txid),
           outpointIndex: utxo.vout,
@@ -307,7 +353,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
             data: {
               keys: {
                 privateKeys: {
-                  key: (wallet.value as Wallet).privateKey,
+                  key: walletUTXO.privateKey,
                 },
               },
             },
@@ -319,18 +365,83 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
       return transformed;
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async function getChangeTemplate() {
+    function getChangeTemplate() {
+      // Get the latest deposit address.
+      const changeAddress = wallet.value.getChangeAddress();
+
+      // Get the Private Key for this Change Address.
+      const walletUTXO = wallet.value.walletCache.get(changeAddress);
+
+      // If the Private Key cannot be retrieved, throw an error.
+      if(!walletUTXO || !walletUTXO.privateKey) {
+        throw new Error(
+          t('cashConnect.notifications.privateKeyNotFound', { address: changeAddress })
+        );
+      }
+
+      // Return the Libauth Change Template.
       return {
         template: walletTemplateP2pkhNonHd,
         data: {
           keys: {
             privateKeys: {
-              key: (wallet.value as Wallet).privateKey,
+              key: walletUTXO.privateKey,
             },
           },
         },
       };
+    }
+
+    //-----------------------------------------------------------------------------
+    // Utils
+    //-----------------------------------------------------------------------------
+
+    function derivationPathToCashConnectPath(derivationPath: string, purpose = 5001) {
+        // Replace the "purpose" in the derivation path with "5001" (CashConnect).
+        const parts = derivationPath.split('/');
+        if (parts.length < 4) {
+            throw new Error(
+              t('cashConnect.notifications.invalidDerivationPath', { length: parts.length })
+            )
+        }
+        parts[1] = `${purpose}'`;
+        return parts.join('/');
+    }
+
+    function getMasterPrivateKeyForWallet(wallet: WalletType) {
+      // If this is a single address (WIF) wallet, we just use the WIF's Private Key.
+      if('privateKey' in wallet) {
+        return wallet.privateKey;
+      }
+
+      // If this is a HD Wallet, we use the Wallet's Derivation Path, but replace the purpose with 5001 (CashConnect).
+      if('mnemonic' in wallet) {
+        // Derive the seed and HDNode from the Wallet's mnemonic.
+        const seed = deriveSeedFromBip39Mnemonic(wallet.mnemonic);
+        const hdNode = deriveHdPrivateNodeFromSeed(seed);
+        if(!hdNode) {
+          throw new Error(
+            t('cashConnect.notifications.failedToDeriveHdNode')
+          );
+        }
+
+        // Take the existing derivation, but set the 'purpose' to 5001 (CashConnectV1).
+        // NOTE: We put CashConnect on its own derivation to improve security and keep it detached from other Wallet UTXOs.
+        //       I.e. We deliberately keep CashConnect in the dark about the top-level mnemonic to enhance security.
+        // NOTE: It is important we don't make assumptions (i.e. hard-code the path) here:
+        //       If we do this, we could get conflicting CashConnect instances due to the "account" part of the standard derivation paths.
+        const cashConnectPath = derivationPathToCashConnectPath(wallet.derivation);
+
+        // Derive the master key for CashConnect.
+        const masterKeyNode = deriveHdPath(hdNode, cashConnectPath);
+
+        // Return the master private key.
+        return masterKeyNode.privateKey;
+      }
+
+      throw new Error(
+        t('cashConnect.notifications.walletTypeNotSupported')
+      );
     }
 
     //-----------------------------------------------------------------------------
@@ -340,7 +451,9 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
     return {
       // Methods
       start,
+      stop,
       pair,
+      disconnectSession,
 
       // Properties
       cashConnectWallet,
