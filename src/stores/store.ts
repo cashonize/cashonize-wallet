@@ -87,7 +87,7 @@ export const useStore = defineStore('store', () => {
   const latestGithubRelease = ref(undefined as undefined | string);
 
   // Computed properties
-  const network = computed(() => wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet") 
+  const network = computed(() => wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet")
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
   // The wallet computed property, throws if it were to be accessed when _wallet is null
@@ -172,7 +172,7 @@ export const useStore = defineStore('store', () => {
   }
 
   // Note: browser forward button won't work correctly with this implementation.
-  // popstate can't distinguish back from forward, so forward acts as another back. 
+  // popstate can't distinguish back from forward, so forward acts as another back.
   addEventListener('popstate', () => {
     if (viewStack.length <= 1) return;
     viewStack.pop();
@@ -191,12 +191,12 @@ export const useStore = defineStore('store', () => {
     if(newWallet.network == NetworkType.Mainnet){
       const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
       // @ts-ignore currently no other way to set a specific provider
-      newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider 
+      newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider
     }
-    if(newWallet.network == NetworkType.Testnet){ 
+    if(newWallet.network == NetworkType.Testnet){
       const connectionChipnet = new Connection("testnet", `wss://${settingsStore.electrumServerChipnet}:50004`)
       // @ts-ignore currently no other way to set a specific provider
-      newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider 
+      newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider
     }
     _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
@@ -301,7 +301,7 @@ export const useStore = defineStore('store', () => {
       }
     } catch (error) {
       displayAndLogError(error);
-    } 
+    }
   }
 
   async function setUpWalletSubscriptions(){
@@ -440,7 +440,7 @@ export const useStore = defineStore('store', () => {
     // TODO: investigate if disconnecting session this way is properly working
     // Call disconnects as fire-and-forget promises
     networkChangeCallbacks.forEach((callback) => void callback());
-    // clear the networkChangeCallbacks before initialising newWallet 
+    // clear the networkChangeCallbacks before initialising newWallet
     networkChangeCallbacks = []
 
     // cancel active listeners
@@ -577,15 +577,9 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeCashConnect() {
-    // CashConnect requires a single-address wallet with a private key
-    const walletPrivateKey = (_wallet.value as Wallet | null)?.privateKey;
-    if (settingsStore.getWalletType(activeWalletName.value) === 'hd' || !walletPrivateKey) {
-      isCcInitialized.value = true;
-      return;
-    }
     try{
       // Initialize CashConnect.
-      const cashconnectWallet = useCashconnectStore(_wallet as Ref<Wallet>);
+      const cashconnectWallet = useCashconnectStore(_wallet as Ref<WalletType>);
 
       // Start the wallet service.
       await cashconnectWallet.start();
@@ -594,7 +588,7 @@ export const useStore = defineStore('store', () => {
       // Setup network change callback to disconnect all sessions.
       // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
       networkChangeCallbacks.push(async () => {
-        await cashconnectWallet.cashConnectWallet.disconnectAllSessions();
+        await cashconnectWallet.stop();
       });
 
       // Monitor the wallet for balance changes and notify CashConnect to refresh wallet state.
@@ -604,7 +598,9 @@ export const useStore = defineStore('store', () => {
 
         // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
         // fire-and-forget promise
-        void cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
+        if(cashconnectWallet.cashConnectWallet) {
+          void cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
+        }
       });
     } catch (error) {
       console.error("Error initializing CashConnect:", error);
@@ -729,7 +725,7 @@ export const useStore = defineStore('store', () => {
     const registries = await fetchNftMetadataFromIndexer(category, commitment, bcmrIndexer.value, bcmrRegistries.value);
     bcmrRegistries.value = registries;
   }
-  
+
 
   function parseNftCommitment(
     categoryId: string,
@@ -817,7 +813,7 @@ export const useStore = defineStore('store', () => {
     try {
       const response = await fetch('https://api.github.com/repos/cashonize/cashonize-wallet/releases/latest');
       if (!response.ok) throw new Error('Network response was not ok');
-        
+
       const releaseData = await response.json();
       // Extract the version tag (e.g. 'v0.2.4')
       latestGithubRelease.value = releaseData.tag_name;
