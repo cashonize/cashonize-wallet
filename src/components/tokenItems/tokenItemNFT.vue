@@ -54,7 +54,12 @@
   const activeAction = ref<'sending' | 'minting' | 'burning' | 'transferAuth' | null>(null);
   const imageLoadFailed = ref(false);
   const parseResult = ref(undefined as ParseResult | undefined);
+  const parsingNft = ref(false);
 
+  const hasParityusdExtension = computed(() => {
+    const ext = store.bcmrRegistries?.[tokenData.value.category]?.extensions;
+    return Boolean(ext?.parityusd ?? ext?.pusd ?? ext?.paryonusd);
+  });
   const isParsable = computed(() =>
     store.bcmrRegistries?.[tokenData.value.category]?.nft_type === 'parsable'
   );
@@ -130,23 +135,27 @@
     selectedNfts.value = new Set(allKeys);
   }
 
-  onMounted(() => {
+  onMounted(async () => {
     appendBlockieIcon(tokenData.value.category, `#id${tokenData.value.category.slice(0, 10)}nft`);
     // Parse NFT commitment if this is a parsable single NFT
     if (isSingleNft.value && isParsable.value) {
       const nftUtxo = tokenData.value.nfts?.[0];
       if (nftUtxo) {
-        parseResult.value = store.parseNftCommitment(tokenData.value.category, nftUtxo);
+        parsingNft.value = true;
+        parseResult.value = await store.parseNftCommitment(tokenData.value.category, nftUtxo);
+        parsingNft.value = false;
       }
     }
   })
 
   // Watch for isParsable becoming true after mount (e.g. bcmrRegistries loads async)
-  watch(isParsable, (nowParsable) => {
+  watch(isParsable, async (nowParsable) => {
     if (nowParsable && isSingleNft.value && !parseResult.value) {
       const nftUtxo = tokenData.value.nfts?.[0];
       if (nftUtxo) {
-        parseResult.value = store.parseNftCommitment(tokenData.value.category, nftUtxo);
+        parsingNft.value = true;
+        parseResult.value = await store.parseNftCommitment(tokenData.value.category, nftUtxo);
+        parsingNft.value = false;
       }
     }
   })
@@ -659,7 +668,8 @@
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
             </div>
-            <div v-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 2">
+            <div v-if="isSingleNft && parsingNft && hasParityusdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
+            <div v-else-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 2">
               <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
                 {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
               </div>
@@ -726,7 +736,7 @@
           <div></div>
           <div v-if="tokenDescription" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenDescription }} </div>
           <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 2">
-            <div>{{ t('tokenItem.info.parsedFields') }}</div>
+            <div>{{ hasParityusdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
             <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
               {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
             </div>

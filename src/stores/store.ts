@@ -32,10 +32,8 @@ import {
   fetchNftMetadata as fetchNftMetadataFromIndexer,
   tokenListFromUtxos,
   updateTokenListWithAuthUtxos,
+  parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
-import type { ParseResult } from "src/parsing/nftParsing"
-import { parseNft, type NftParseInfo } from "src/parsing/nftParsing"
-import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -727,24 +725,9 @@ export const useStore = defineStore('store', () => {
   }
 
 
-  function parseNftCommitment(
-    categoryId: string,
-    utxo: Utxo
-  ): ParseResult | undefined {
+  async function parseNftCommitment(categoryId: string, utxo: Utxo) {
     const metadata = bcmrRegistries.value?.[categoryId];
-    if (!metadata?.token.nfts?.parse || metadata.nft_type !== 'parsable') return undefined;
-
-    const parse = metadata.token.nfts.parse;
-    if (!('bytecode' in parse)) return undefined;
-
-    const parseInfo: NftParseInfo = {
-      bytecode: parse.bytecode,
-      types: parse.types,
-      fields: metadata.token.nfts.fields,
-    };
-
-    const libauthOutput = utxoToLibauthOutput(utxo);
-    return parseNft(libauthOutput, parseInfo);
+    return parseNftCommitmentUtil(utxo, metadata, wallet.value.provider, wallet.value.networkPrefix);
   }
 
   function hasPreGenesis(){

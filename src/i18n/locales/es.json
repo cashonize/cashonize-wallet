@@ -173,6 +173,7 @@
     "commitment": "Commitment:",
     "empty": "vacío",
     "seeParsedData": "Ver datos NFT parseados en 'info'",
+    "loadingLoanData": "Cargando datos del préstamo...",
     "tokens": "tokens",
     "actions": {
       "send": "enviar",
@@ -212,6 +213,7 @@
       "yes": "sí",
       "no": "no",
       "nftAttributes": "Atributos del NFT",
+      "extensionNote": "Datos del préstamo obtenidos de la blockchain:",
       "parsedFields": "Datos NFT analizados:",
       "numberNfts": "Número de NFTs:"
     },

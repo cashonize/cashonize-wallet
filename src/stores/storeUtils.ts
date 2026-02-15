@@ -5,6 +5,11 @@ import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
 import { displayAndLogError } from "src/utils/errorHandling";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
+import { parseNft, type NftParseInfo, type ParseResult } from "src/parsing/nftParsing"
+import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
+import { invokeExtensions } from "src/parsing/extensions/index"
+import { createElectrumAdapter } from "src/parsing/electrumAdapter"
+import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -114,6 +119,47 @@ export async function fetchNftMetadata(
     if (!registries[tokenId]) registries[tokenId] = tokenInfoResult;
   }
   return registries;
+}
+
+export async function parseNftCommitment(
+  utxo: Utxo,
+  metadata: BcmrTokenMetadata | undefined,
+  provider: Parameters<typeof createElectrumAdapter>[0],
+  networkPrefix: string,
+): Promise<ParseResult | undefined> {
+  if (!metadata?.token.nfts?.parse || metadata.nft_type !== 'parsable') return undefined;
+
+  const parse = metadata.token.nfts.parse;
+  if (!('bytecode' in parse)) return undefined;
+
+  const parseInfo: NftParseInfo = {
+    bytecode: parse.bytecode,
+    types: parse.types,
+    fields: metadata.token.nfts.fields,
+  };
+
+  let libauthOutput = utxoToLibauthOutput(utxo);
+
+  // If the metadata has extensions, invoke them to modify the UTXO before parsing
+  if (metadata.extensions) {
+    try {
+      const identitySnapshot: IdentitySnapshot = {
+        name: metadata.name,
+        extensions: metadata.extensions,
+      };
+      const electrumClient = createElectrumAdapter(provider);
+      libauthOutput = await invokeExtensions(
+        libauthOutput,
+        identitySnapshot,
+        electrumClient,
+        networkPrefix,
+      );
+    } catch (error) {
+      console.error("Extension invocation failed, parsing unmodified UTXO:", error);
+    }
+  }
+
+  return parseNft(libauthOutput, parseInfo);
 }
 
 export async function updateTokenListWithAuthUtxos(
