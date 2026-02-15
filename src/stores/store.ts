@@ -32,13 +32,8 @@ import {
   fetchNftMetadata as fetchNftMetadataFromIndexer,
   tokenListFromUtxos,
   updateTokenListWithAuthUtxos,
+  parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
-import type { ParseResult } from "src/parsing/nftParsing"
-import { parseNft, type NftParseInfo } from "src/parsing/nftParsing"
-import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
-import { invokeExtensions } from "src/parsing/extensions/index"
-import { createElectrumAdapter } from "src/parsing/electrumAdapter"
-import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -730,45 +725,9 @@ export const useStore = defineStore('store', () => {
   }
 
 
-  async function parseNftCommitment(
-    categoryId: string,
-    utxo: Utxo
-  ): Promise<ParseResult | undefined> {
+  async function parseNftCommitment(categoryId: string, utxo: Utxo) {
     const metadata = bcmrRegistries.value?.[categoryId];
-    if (!metadata?.token.nfts?.parse || metadata.nft_type !== 'parsable') return undefined;
-
-    const parse = metadata.token.nfts.parse;
-    if (!('bytecode' in parse)) return undefined;
-
-    const parseInfo: NftParseInfo = {
-      bytecode: parse.bytecode,
-      types: parse.types,
-      fields: metadata.token.nfts.fields,
-    };
-
-    let libauthOutput = utxoToLibauthOutput(utxo);
-
-    // If the metadata has extensions, invoke them to modify the UTXO before parsing
-    if (metadata.extensions) {
-      try {
-        const identitySnapshot: IdentitySnapshot = {
-          name: metadata.name,
-          extensions: metadata.extensions,
-        };
-        const electrumClient = createElectrumAdapter(wallet.value.provider);
-        const networkPrefix = wallet.value.networkPrefix;
-        libauthOutput = await invokeExtensions(
-          libauthOutput,
-          identitySnapshot,
-          electrumClient,
-          networkPrefix,
-        );
-      } catch (error) {
-        console.error("Extension invocation failed, parsing unmodified UTXO:", error);
-      }
-    }
-
-    return parseNft(libauthOutput, parseInfo);
+    return parseNftCommitmentUtil(categoryId, utxo, metadata, wallet.value.provider, wallet.value.networkPrefix);
   }
 
   function hasPreGenesis(){
