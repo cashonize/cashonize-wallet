@@ -579,7 +579,7 @@ export const useStore = defineStore('store', () => {
   async function initializeCashConnect() {
     try{
       // Initialize CashConnect.
-      const cashconnectWallet = useCashconnectStore(_wallet as Ref<Wallet>);
+      const cashconnectWallet = useCashconnectStore(_wallet as Ref<WalletType>);
 
       // Start the wallet service.
       await cashconnectWallet.start();

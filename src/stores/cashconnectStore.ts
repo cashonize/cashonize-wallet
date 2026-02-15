@@ -312,7 +312,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
         const walletUTXO = wallet.value.walletCache.get(utxo.address);
 
         // If the Private Key cannot be retrieved, throw an error.
-        if(!walletUTXO || !('privateKey' in walletUTXO)) {
+        if(!walletUTXO || !walletUTXO.privateKey) {
           throw new Error(
             t('cashConnect.notifications.privateKeyNotFound', { address: utxo.address })
           );

@@ -719,7 +719,7 @@
       "failedToConvertCashAddr": "Failed to convert CashAddr to Locking Bytecode",
       "invalidDerivationPath": "Invalid derivation path for CashConnect: expected at least 4 components, got {length}.",
       "failedToDeriveHdNode": "Failed to derive HDNode from seed",
-      "walletTypeNotSupported": "WalletType not supported: Must be a Single Address (WIF) Wallet or HDWallet."
+      "walletTypeNotSupported": "WalletType not supported: Must be a Single Address Wallet or HDWallet."
     }
   },
   "walletConnect": {

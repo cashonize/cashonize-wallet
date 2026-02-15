@@ -210,9 +210,6 @@
           <div v-if="walletType === 'single'" style="margin-top: 5px; font-size: smaller; color: grey;">
             {{ t('onboarding.walletType.singleAddressNote') }}
           </div>
-          <div v-if="walletType === 'hd'" style="margin-top: 5px; font-size: smaller; color: grey;">
-            {{ t('onboarding.walletType.hdNote') }}
-          </div>
         </div>
         <div style="margin-bottom: 20px;">
           <span>{{ t('onboarding.derivationPath.label') }} </span>

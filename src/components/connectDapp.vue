@@ -55,6 +55,8 @@
       }
     }
     if(props.dappUriUrlParam?.startsWith('cc:')){
+      const { isWcAndCcInitialized } = storeToRefs(store);
+      await waitForInitialized(isWcAndCcInitialized);
       await cashconnectStore?.pair(props.dappUriUrlParam);
     }
   }

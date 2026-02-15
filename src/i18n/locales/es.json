@@ -719,7 +719,7 @@
       "failedToConvertCashAddr": "Error al convertir CashAddr a Locking Bytecode",
       "invalidDerivationPath": "Ruta de derivación inválida para CashConnect: se esperaban al menos 4 componentes, se recibieron {length}.",
       "failedToDeriveHdNode": "Error al derivar el HDNode a partir de la semilla",
-      "walletTypeNotSupported": "Tipo de billetera no compatible: debe ser una billetera de dirección única (WIF) o una HDWallet."
+      "walletTypeNotSupported": "Tipo de billetera no compatible: debe ser una billetera de dirección única o una HDWallet."
     }
   },
   "walletConnect": {
