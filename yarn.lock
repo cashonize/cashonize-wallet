@@ -238,7 +238,7 @@
   dependencies:
     debug "^4.3.7"
 
-"@electrum-cash/network@^4.1.3":
+"@electrum-cash/network@^4.2.2":
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/@electrum-cash/network/-/network-4.2.2.tgz#867b849938d196e887d56cf2cbecb8a1f2c9ea71"
   integrity sha512-v2Wwt2o0VBBALPArx2dJEDvSqewKjiTW5KAd+jEXxxgdSxFygjJIrFcXryKOCv2CDbpE5+lXAogPAjx6FqW/nw==
@@ -767,12 +767,12 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@mainnet-cash/indexeddb-storage@^3.1.6":
-  version "3.1.6"
-  resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-3.1.6.tgz#67a38658a8cd685a4416da3d39e2d51fb74b4fe3"
-  integrity sha512-BZb7fVNTH95CM6ttGBEZAKSTd1LKhoD0EU56R0Dn9UWxFe2TGyYMYhEJYf/oHBo45k4NAHoBSYAHLRSPbGTxRg==
+"@mainnet-cash/indexeddb-storage@^3.1.7":
+  version "3.1.7"
+  resolved "https://registry.yarnpkg.com/@mainnet-cash/indexeddb-storage/-/indexeddb-storage-3.1.7.tgz#ea82a2901394ecedc80d91667dbecce2d4c86469"
+  integrity sha512-VUKtH9N1uUndNJOT+vA86K9B4j5OFvqv82s36lZSLHP2UpGh+sAAbQYw7YHiFNDuWb4arJAzX9N1sCZwOySQ2w==
   dependencies:
-    mainnet-js "3.1.6"
+    mainnet-js "3.1.7"
 
 "@malept/cross-spawn-promise@^2.0.0":
   version "2.0.0"
@@ -3476,10 +3476,10 @@ electron-to-chromium@^1.5.263:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.267.tgz#5d84f2df8cdb6bfe7e873706bb21bd4bfb574dc7"
   integrity sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==
 
-electron@^40.4.0:
-  version "40.4.0"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-40.4.0.tgz#e2e73d837df141216dcd91fb6c3f754e771387c2"
-  integrity sha512-31l4V7Ys4oUuXyaN/cCNnyBdDXN9RwOVOG+JhiHCf4zx5tZkHd43PKGY6KLEWpeYCxaphsuGSEjagJLfPqKj8g==
+electron@^40.4.1:
+  version "40.4.1"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-40.4.1.tgz#1332fe3fb4d89ab4cb749176e7f42caab1c2b412"
+  integrity sha512-N1ZXybQZL8kYemO8vAeh9nrk4mSvqlAO8xs0QCHkXIvRnuB/7VGwEehjvQbsU5/f4bmTKpG+2GQERe/zmKpudQ==
   dependencies:
     "@electron/get" "^2.0.0"
     "@types/node" "^24.9.0"
@@ -3657,10 +3657,10 @@ escape-string-regexp@^4.0.0:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-4.0.0.tgz#14ba83a5d373e3d311e5afca29cf5bfad965bf34"
   integrity sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==
 
-eslint-plugin-vue@^10.7.0:
-  version "10.7.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-vue/-/eslint-plugin-vue-10.7.0.tgz#108264d16a4b03b49fe7b4d446661d15aab85bd3"
-  integrity sha512-r2XFCK4qlo1sxEoAMIoTTX0PZAdla0JJDt1fmYiworZUX67WeEGqm+JbyAg3M+pGiJ5U6Mp5WQbontXWtIW7TA==
+eslint-plugin-vue@^10.8.0:
+  version "10.8.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-vue/-/eslint-plugin-vue-10.8.0.tgz#a856d73b53ba5f4b2b4bb6cd8051ca7ac65cb21d"
+  integrity sha512-f1J/tcbnrpgC8suPN5AtdJ5MQjuXbSU9pGRSSYAuF3SHoiYCOdEX6O22pLaRyLHXvDcOe+O5ENgc1owQ587agA==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
     natural-compare "^1.4.0"
@@ -4856,13 +4856,13 @@ magic-string@^0.30.21:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.5"
 
-mainnet-js@3.1.6, mainnet-js@^3.1.6:
-  version "3.1.6"
-  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-3.1.6.tgz#6938c9812857d21c6ba2e1bc5d07f2f8f23ae1f1"
-  integrity sha512-GhMJ3KwAFqJoskm3f4TkZnuATUPogN3vXAnj1k+/bL7ZU0PKEDYbEdU8BzTygOBilR+isu8+b8BOq3xtg267BA==
+mainnet-js@3.1.7, mainnet-js@^3.1.7:
+  version "3.1.7"
+  resolved "https://registry.yarnpkg.com/mainnet-js/-/mainnet-js-3.1.7.tgz#bd982e6fd07e9b530ece087d4a5d6ca14b070cd7"
+  integrity sha512-rOBN+qVON7Lhh2jrMwIA26xv23dAFULMR+DT+g9al9GnmNSdsUL2RuN50eWwkUxE2T4YFdTWT30FUKZczl8hRw==
   dependencies:
     "@bitauth/libauth" "^3.1.0-next.8"
-    "@electrum-cash/network" "^4.1.3"
+    "@electrum-cash/network" "^4.2.2"
   optionalDependencies:
     dotenv "^10.0.0"
 
