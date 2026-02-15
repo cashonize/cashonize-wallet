@@ -8,11 +8,8 @@ import { useStore } from 'src/stores/store'
 // These arrive via two paths depending on whether the app was already running:
 //   - "warm start": app is in background, appUrlOpen event fires
 //   - "cold start": app was not running, the launch URL is retrieved after startup
-export default boot(async ( { router }) => {
+export default boot(( { router }) => {
   if(!Platform.is.capacitor) return
-
-  // Wait for router to be fully initialized before pushing any routes
-  await router.isReady();
 
   // Warm start: user taps a deep link while the app is already open in the background
   void App.addListener('appUrlOpen', function (event: URLOpenListenerEvent) {
@@ -21,10 +18,13 @@ export default boot(async ( { router }) => {
 
   // Cold start: user taps a deep link that launches the app from scratch
   // The appUrlOpen listener above won't catch this, so we check the launch URL separately
-  const launchUrl = await App.getLaunchUrl();
-  if (launchUrl?.url) {
-    void router.push({ path: '/', query:{uri: launchUrl.url} });
-  }
+  // Wait for router to be ready before pushing since boot files run before the app mounts
+  void router.isReady().then(async () => {
+    const launchUrl = await App.getLaunchUrl();
+    if (launchUrl?.url) {
+      void router.push({ path: '/', query:{uri: launchUrl.url} });
+    }
+  });
 
   void App.addListener('backButton', () => {
     const store = useStore();
