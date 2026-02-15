@@ -309,10 +309,10 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
 
       const transformed = utxos.map((utxo) => {
         // Get the Wallet's Internal Information about this address (we need the Private Key for signing).
-        const walletUTXO = wallet.value.walletCache.get(utxo.address);
+        const addressKeyPair = wallet.value.walletCache.get(utxo.address);
 
         // If the Private Key cannot be retrieved, throw an error.
-        if(!walletUTXO || !walletUTXO.privateKey) {
+        if(!addressKeyPair || !addressKeyPair.privateKey) {
           throw new Error(
             t('cashConnect.notifications.privateKeyNotFound', { address: utxo.address })
           );
@@ -353,7 +353,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
             data: {
               keys: {
                 privateKeys: {
-                  key: walletUTXO.privateKey,
+                  key: addressKeyPair.privateKey,
                 },
               },
             },
@@ -370,10 +370,10 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
       const changeAddress = wallet.value.getChangeAddress();
 
       // Get the Private Key for this Change Address.
-      const walletUTXO = wallet.value.walletCache.get(changeAddress);
+      const addressKeyPair = wallet.value.walletCache.get(changeAddress);
 
       // If the Private Key cannot be retrieved, throw an error.
-      if(!walletUTXO || !walletUTXO.privateKey) {
+      if(!addressKeyPair || !addressKeyPair.privateKey) {
         throw new Error(
           t('cashConnect.notifications.privateKeyNotFound', { address: changeAddress })
         );
@@ -385,7 +385,7 @@ export const useCashconnectStore = (wallet: Ref<WalletType>) => {
         data: {
           keys: {
             privateKeys: {
-              key: walletUTXO.privateKey,
+              key: addressKeyPair.privateKey,
             },
           },
         },
