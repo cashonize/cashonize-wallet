@@ -122,7 +122,6 @@ export async function fetchNftMetadata(
 }
 
 export async function parseNftCommitment(
-  categoryId: string,
   utxo: Utxo,
   metadata: BcmrTokenMetadata | undefined,
   provider: Parameters<typeof createElectrumAdapter>[0],

@@ -727,7 +727,7 @@ export const useStore = defineStore('store', () => {
 
   async function parseNftCommitment(categoryId: string, utxo: Utxo) {
     const metadata = bcmrRegistries.value?.[categoryId];
-    return parseNftCommitmentUtil(categoryId, utxo, metadata, wallet.value.provider, wallet.value.networkPrefix);
+    return parseNftCommitmentUtil(utxo, metadata, wallet.value.provider, wallet.value.networkPrefix);
   }
 
   function hasPreGenesis(){
