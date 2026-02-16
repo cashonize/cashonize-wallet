@@ -4,6 +4,8 @@
 
 `bch_cancelPendingRequests` is a custom WalletConnect RPC method that allows a dapp to request cancellation of pending signing requests. This enables better UX when users cancel an operation in the dapp UI. The wallet can dismiss its signing dialog rather than leaving it open and allowing the user to sign a transaction that is no longer required or valid.
 
+<img width="1284" height="618" alt="Screenshot 2026-02-16 at 12 35 57" src="https://github.com/user-attachments/assets/f1730123-79b4-45b3-b2de-f30d68def8da" />
+
 ## Method Specification
 
 ### Request
