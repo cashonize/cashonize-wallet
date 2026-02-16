@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5188"
+    "dev": "vite --port 5188",
+    "build": "vite build",
+    "start": "vite preview"
   },
   "dependencies": {
     "@walletconnect/sign-client": "^2.23.3",

@@ -75,8 +75,8 @@ onMounted(async () => {
       metadata: {
         name: 'BCH WC Test dApp',
         description: 'Test dApp for Cashonize E2E tests',
-        url: 'http://localhost:5188',
-        icons: ['http://localhost:5188/icon.png'],
+        url: window.location.origin,
+        icons: [`${window.location.origin}/icon.png`],
       }
     })
 
