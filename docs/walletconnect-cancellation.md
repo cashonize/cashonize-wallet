@@ -53,7 +53,7 @@ Dapps SHOULD check for this method in `session.namespaces.bch.methods` before se
 
 ### Background
 
-WalletConnect v2 implements an internal request queue. When a dapp sends a request (e.g., `bch_signTransaction`), subsequent requests are queued and **not delivered to the wallet until the previous request receives a response**.
+WalletConnect v2 implements an internal request queue. When a dapp sends a request (e.g., `bch_signTransaction`), subsequent requests are queued and not delivered to the wallet until the previous request receives a response.
 
 This is by design to prevent unresponded requests, but it creates a problem for cancellation:
 
@@ -65,7 +65,7 @@ This is by design to prevent unresponded requests, but it creates a problem for 
 6. Wallet dialog remains open, user has to dismiss it manually
 7. Only after user approves/rejects #1 does wallet receive #2
 
-### Solution: Wallet-Side Polling
+### Solution: Wallet-Side Queue Polling
 
 Since cancellation requests get queued behind the very requests they're trying to cancel, wallets MUST implement polling to detect queued cancellation requests.
 
