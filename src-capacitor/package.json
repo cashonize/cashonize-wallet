@@ -1,14 +1,14 @@
 {
   "name": "cashonize-wallet",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Cashonize is a Bitcoin Cash (BCH) Wallet which supports CashTokens, WalletConnect and CashConnect.",
   "private": true,
   "dependencies": {
     "@capacitor-community/barcode-scanner": "^4.0.1",
-    "@capacitor/android": "^8.0.0",
-    "@capacitor/app": "^8.0.0",
-    "@capacitor/cli": "^8.0.0",
-    "@capacitor/core": "^8.0.0"
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0"
   },
   "author": "Mathieu Geukens"
 }

@@ -10,7 +10,7 @@
   import utxoManagement from 'src/components/settings/utxoManagement.vue'
   import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
-  import { ref, computed, watch } from 'vue'
+  import { defineComponent, ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
   import { DefaultProvider } from 'mainnet-js'
   import { waitForInitialized } from 'src/utils/utils'
@@ -37,16 +37,18 @@
 
   DefaultProvider.servers.chipnet = ["wss://chipnet.bch.ninja:50004"];
 
-  // The currentView and its viewSpecificProps are computed based on 'store.displayView' 
-  // These view & prop refs are passed to a dynamic component rendering the current view
-  // This way views can be wrapped with KeepAlive to preserve its state across view changes
-  // Excluding the settingsMenu bc we want to rerender it when navigating to it
+  // The currentView and its viewSpecificProps are computed based on 'store.displayView'
+  // and passed to a dynamic component wrapped in KeepAlive to preserve state.
+  // KeepAlive stays mounted permanently so the views are cached regardless of navigation.
+  // Settings View re-renders on navigation, a placeholder component used for the KeepAlive
+  const emptyView = defineComponent({ render: () => null })
   const currentView = computed(() => {
     switch (store.displayView) {
       case 1: return bchWalletView;
       case 2: return myTokensView;
       case 3: return historyView;
       case 4: return connectDappView;
+      case 5: return emptyView;
       case 6: return createTokensView;
       case 7: return utxoManagement;
       case 8: return sweepPrivateKey;
@@ -156,6 +158,11 @@
       bchSendRequest.value = props.uri
       store.changeView(1);
     }
+    // check if sweep request is passed through props
+    if(props?.uri?.startsWith('bch-wif:')){
+      wifToSweep.value = props.uri
+      store.changeView(8);
+    }
   })
 
   const hasUtxosWithBchAndTokens = computed(() => {
@@ -191,7 +198,7 @@
     </nav>
   </header>
   <main style="margin: 20px auto; max-width: 78rem;">
-    <KeepAlive v-if="store.displayView != 5">
+    <KeepAlive>
       <component :is="currentView" v-bind="viewSpecificProps"/>
     </KeepAlive>
     <settingsMenu v-if="store.displayView == 5" />

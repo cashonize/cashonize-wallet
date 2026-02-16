@@ -24,9 +24,7 @@
   const { _wallet } = storeToRefs(store);
   const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>)
   const web3wallet = walletconnectStore.web3wallet
-  const isHDWallet = settingsStore.getWalletType(store.activeWalletName) === 'hd';
-  const hasCashConnect = !isHDWallet && !!(_wallet.value as Wallet | null)?.privateKey;
-  const cashconnectStore = hasCashConnect ? useCashconnectStore(_wallet as Ref<Wallet>) : undefined;
+  const cashconnectStore = useCashconnectStore(_wallet as Ref<Wallet>);
 
   // Props.
   const props = defineProps<{
@@ -57,6 +55,8 @@
       }
     }
     if(props.dappUriUrlParam?.startsWith('cc:')){
+      const { isWcAndCcInitialized } = storeToRefs(store);
+      await waitForInitialized(isWcAndCcInitialized);
       await cashconnectStore?.pair(props.dappUriUrlParam);
     }
   }
@@ -71,7 +71,7 @@
     try {
       // Promise will wait for state indicating whether WC and CC are initialized
       const { isWcAndCcInitialized } = storeToRefs(store);
-      await waitForInitialized(isWcAndCcInitialized); 
+      await waitForInitialized(isWcAndCcInitialized);
 
       // If the URI begins with "wc:" (walletconnect)...
       if(dappUri.startsWith('wc:')) {
@@ -80,9 +80,6 @@
 
       // Otherwise, if the URI begins with "cc:" (cashconnect)...
       else if (dappUri.startsWith('cc:')) {
-        if (!hasCashConnect) {
-          throw new Error(t('dapp.errors.cashConnectNotSupported'));
-        }
         await cashconnectRef.value?.connectDappUriInput(dappUri);
       }
 
@@ -140,7 +137,7 @@
     </fieldset>
 
     <WCSessions ref="walletconnectRef"/>
-    <CCSessions v-if="hasCashConnect" ref="cashconnectRef" />
+    <CCSessions ref="cashconnectRef" />
 
     <div v-if="showQrCodeDialog">
       <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>

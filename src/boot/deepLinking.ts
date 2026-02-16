@@ -4,15 +4,28 @@ import { App, type URLOpenListenerEvent } from '@capacitor/app';
 import { Platform } from 'quasar'
 import { useStore } from 'src/stores/store'
 
-// TODO: investigate the need for 'App.getLaunchUrl()' for cold starts
-// TODO: consider first doing 'await router.isReady()' before doing any router pushes
-
+// Deep linking on mobile: handles URIs like bitcoincash:, wc:, cc:, bch-wif:
+// These arrive via two paths depending on whether the app was already running:
+//   - "warm start": app is in background, appUrlOpen event fires
+//   - "cold start": app was not running, the launch URL is retrieved after startup
 export default boot(( { router }) => {
   if(!Platform.is.capacitor) return
+
+  // Warm start: user taps a deep link while the app is already open in the background
   void App.addListener('appUrlOpen', function (event: URLOpenListenerEvent) {
-    // Use router.push to navigate without a hard-refresh (redirect)
     void router.push({ path: '/', query:{uri: event.url} });
   });
+
+  // Cold start: user taps a deep link that launches the app from scratch
+  // The appUrlOpen listener above won't catch this, so we check the launch URL separately
+  // Wait for router to be ready before pushing since boot files run before the app mounts
+  void router.isReady().then(async () => {
+    const launchUrl = await App.getLaunchUrl();
+    if (launchUrl?.url) {
+      void router.push({ path: '/', query:{uri: launchUrl.url} });
+    }
+  });
+
   void App.addListener('backButton', () => {
     const store = useStore();
     if (store.canGoBack) {

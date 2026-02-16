@@ -58,7 +58,7 @@
               <div>{{ session.peer.metadata.description }}</div>
             </div>
             <div class="cc-session-item-action-container">
-              <div class="cc-session-item-action-icon" @click="cashconnectStore.cashConnectWallet.disconnectSession(topic)">
+              <div class="cc-session-item-action-icon" @click="cashconnectStore.disconnectSession(topic)">
                 <img :src="settingsStore.darkMode? 'images/trashLightGrey.svg': 'images/trash.svg'" style="max-width: none" />
               </div>
             </div>

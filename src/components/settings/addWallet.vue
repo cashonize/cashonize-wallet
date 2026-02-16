@@ -124,9 +124,6 @@
           {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
         </div>
       </div>
-      <div v-if="walletType === 'hd'" style="font-size: smaller; color: grey;">
-        {{ t('addWallet.hdNote') }}
-      </div>
       <div style="margin-top:10px; margin-bottom: 15px;">
         <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
           {{ t('addWallet.createNew.hint') }}

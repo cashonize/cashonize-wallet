@@ -54,8 +54,14 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 
 ### Other Key Dependencies
 - **@bitauth/libauth**: Cryptographic primitives, transaction encoding (https://libauth.org/)
+- **@electrum-cash/network**: Electrum client used under mainnet-js (https://gitlab.com/electrum-cash/network)
 - **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages). Uses BCH-specific payloads per the WC2-BCH spec: https://github.com/mainnet-pat/wc2-bch-bcr
 - **cashconnect**: CashConnect protocol for BCH-native dApp connections (https://cashconnect.developers.cash/)
+
+### Electrum Connections
+mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
+
+***Note:*** some environments (e.g. Safari, iOS) aggressively kill idle WebSocket connections in backgrounded tabs, which may cause stale connections when returning — mainnet-js handles reconnection on actual connection failures separately.
 
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for CashTokens on BCH. Spec: https://github.com/bitjson/chip-bcmr
@@ -68,6 +74,9 @@ Cashonize is the first wallet to support parsable BCMR NFTs. When the indexer re
 Key files:
 - `src/parsing/nftParsing.ts`: VM-based commitment parsing engine (`NftParseInfo` interface, `parseNft` function)
 - `src/parsing/bcmr-v2.schema.ts`: TypeScript types for the BCMR v2 spec
+
+### BCMR Extensions
+BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method.
 
 ### Component Organization
 ```
