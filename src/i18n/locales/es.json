@@ -12,7 +12,9 @@
     },
     "errors": {
       "somethingWentWrong": "Algo salió mal",
-      "needToInitializeWallet": "Necesitas inicializar una billetera primero"
+      "needToInitializeWallet": "Necesitas inicializar una billetera primero",
+      "secureStorageUnavailable": "El almacenamiento seguro de la billetera no está disponible. Las billeteras existentes siguen siendo utilizables, pero crear/importar billeteras puede fallar hasta que se restaure el acceso al llavero del sistema.",
+      "secureStoragePartialMigration": "Algunas billeteras no pudieron migrarse al almacenamiento seguro ({wallets}). Siguen siendo utilizables, pero aun estan guardadas sin cifrar en disco."
     },
     "copied": "¡Copiado!",
     "wallet": "billetera",

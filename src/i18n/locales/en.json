@@ -12,7 +12,9 @@
     },
     "errors": {
       "somethingWentWrong": "Something went wrong",
-      "needToInitializeWallet": "Need to initialize a wallet first"
+      "needToInitializeWallet": "Need to initialize a wallet first",
+      "secureStorageUnavailable": "Secure wallet storage is unavailable. Existing wallets remain usable, but creating/importing wallets may fail until desktop keychain access is restored.",
+      "secureStoragePartialMigration": "Some wallets could not be migrated to secure storage ({wallets}). They remain usable, but are still stored unencrypted on disk."
     },
     "copied": "Copied!",
     "wallet": "wallet",

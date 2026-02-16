@@ -1,4 +1,5 @@
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
+import { decryptWalletIdFromStorage } from "src/security/walletIdEncryption"
 
 export interface WalletInfo {
   name: string;
@@ -72,7 +73,8 @@ export async function getWalletTypeFromDb(
     const walletEntry = await db.getWallet(name);
     if (!walletEntry) return 'single';
     // walletEntry.wallet contains the walletId string (e.g., 'hd:mainnet:...' or 'seed:mainnet:...')
-    const walletId = (walletEntry as { wallet?: string }).wallet ?? '';
+    const walletIdStored = (walletEntry as { wallet?: string }).wallet ?? '';
+    const walletId = await decryptWalletIdFromStorage(walletIdStored);
     return walletId.startsWith('hd:') ? 'hd' : 'single';
   } finally {
     await db.close();
