@@ -148,6 +148,7 @@ async function cancelPendingRequestsForTopic(cancellationRequest) {
           }
         }
       });
+
       continue;
     }
 
@@ -165,7 +166,7 @@ async function cancelPendingRequestsForTopic(cancellationRequest) {
 
 #### 3. Handle Direct Delivery (Edge Case)
 
-If there are no pending requests when cancellation arrives, it will be delivered normally through the `session_request` event. Handle this case in your request handler:
+If there are no pending requests when cancellation arrives, it will be delivered normally through the `session_request` event. Handle this case in your request handler. It should result in a response with `cancelledCount: 0`.
 
 ```typescript
 case "bch_cancelPendingRequests":
@@ -177,14 +178,27 @@ case "bch_cancelPendingRequests":
 
 ## Future Improvements
 
-### Should this be proposed as a standard WalletConnect method such as `wc_cancelPendingRequests`?
+### 1. Should this be proposed as a standard WalletConnect method such as `wc_cancelPendingRequests`?
 
 It's possible this feature has been omitted from WalletConnect for a reason. We are proposing this as a
 experimental feature scoped to BCH so that we can get feedback before proposing it to the WalletConnect.
 
-### Response code for cancelled requests
+### 2. Response code for cancelled requests
 
-It may be desirable to return a different response code to distinquish cancelled requests (e.g. `REQUEST_CANCELLED`) from rejected requests (`USER_REJECTED`).
+It may be desirable to return a different response code to distinguish cancelled requests (e.g. `REQUEST_CANCELLED`) from rejected requests (`USER_REJECTED`).
+
+### 3. Should the requests be cancellable by ID?
+
+It may be desirable to allow requests to be cancelled by ID, rather than only as a batch:
+
+```json
+{
+  "method": "bch_cancelPendingRequests",
+  "params": {
+    "requestIds": ["1771322090000", "1771322091000"]
+  }
+}
+```
 
 ## Security Considerations
 
