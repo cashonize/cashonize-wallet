@@ -64,8 +64,16 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       for (const request of queuedRequests) {
         if (request.topic !== cancellationRequestTopic) continue;
 
-        // We'll process the cancellation request itself once we've cancelled all other requests
-        if (request.id === cancellationRequestId) continue;
+        // When we reach the cancellation request itself we respond to it with the number
+        // of requests cancelled  and we don't cancel any futher requests as these would
+        // be queued behind the cancellation request.
+        if (request.id === cancellationRequestId) {
+          const response = { id: cancellationRequestId, jsonrpc: '2.0', result: { cancelledCount } };
+
+          await web3wallet.value.respondSessionRequest({ topic: cancellationRequestTopic, response });
+
+          continue;
+        }
 
         // Hide the pending dialog if it matches this request
         if (pendingDialog?.id === request.id) {
@@ -73,16 +81,6 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
         }
         await rejectRequest(request);
         cancelledCount++;
-      }
-
-      // Respond to the cancel request itself with success (if still pending)
-      const cancellationRequestIsStillPending = web3wallet.value.getPendingSessionRequests()
-        .some(r => r.id === cancellationRequestId);
-
-      if (cancellationRequestIsStillPending) {
-        const response = { id: cancellationRequestId, jsonrpc: '2.0', result: { cancelledCount } };
-
-        await web3wallet.value.respondSessionRequest({ topic: cancellationRequestTopic, response });
       }
     }
 
