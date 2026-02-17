@@ -114,7 +114,8 @@
         "eur": "EUR - Euro",
         "gbp": "GBP - British Pound",
         "cad": "CAD - Canadian Dollar",
-        "aud": "AUD - Australian Dollar"
+        "aud": "AUD - Australian Dollar",
+        "chf": "CHF - Swiss Franc"
       },
       "darkMode": "Dark mode",
       "confirmPayments": "Confirm payments before sending",
