@@ -2,20 +2,25 @@ import type { Utxo, ElectrumRawTransaction, Wallet, TestNetWallet, HDWallet, Tes
 
 export type WalletType = Wallet | TestNetWallet | HDWallet | TestNetHDWallet;
 
+// Currency symbols for inline template use (e.g. send input label "EUR €", notification suffix).
+// Avoid symbols that match the CurrencyShortNames entry, as some templates show both (e.g. "CHF CHF").
 export const CurrencySymbols = {
   usd: "$",
   eur: "€",
   gbp: "£",
   cad: "C$",
-  aud: "A$"
+  aud: "A$",
+  chf: "Fr."
 } as const
 
+// Must be valid Intl API currency codes (used by formatFiatAmount).
 export const CurrencyShortNames = {
   usd: "USD",
   eur: "EUR",
   gbp: "GBP",
   cad: "CAD",
-  aud: "AUD"
+  aud: "AUD",
+  chf: "CHF"
 } as const
 
 export type Currency = keyof typeof CurrencySymbols;
