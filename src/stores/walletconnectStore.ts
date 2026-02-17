@@ -87,7 +87,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
     }
 
     async function initweb3wallet() {
-      // Make sure we don't ininialize WC more than once.
+      // Make sure we don't initialize WC more than once.
       // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
       if (isIninialized.value) return;
 
@@ -386,6 +386,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             const wcErrorMessage = 'Transaction signing request aborted with error: ' + errorMessage;
             const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
             await web3wallet.value?.respondSessionRequest({ topic, response });
+            return;
           }
 
           // Auto-approve early return
