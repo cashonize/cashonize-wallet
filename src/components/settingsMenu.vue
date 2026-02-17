@@ -568,6 +568,7 @@
           <option value="gbp">GBP</option>
           <option value="cad">CAD</option>
           <option value="aud">AUD</option>
+          <option value="chf">CHF</option>
         </select>
       </div>
 
