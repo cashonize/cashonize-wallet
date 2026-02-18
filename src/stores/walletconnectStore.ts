@@ -40,7 +40,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
     const web3wallet = ref(undefined as undefined | IWalletKit);
 
     // Store a state variable to make sure we don't call "initweb3wallet" more than once.
-    const isIninialized = ref(false);
+    const isInitialized = ref(false);
 
     // Track the approval dialog so it can be cleared if a cancellation request is received over walletconnect
     let pendingDialog: { id: number; handle: ReturnType<typeof Dialog.create> } | null = null;
@@ -64,8 +64,16 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       for (const request of queuedRequests) {
         if (request.topic !== cancellationRequestTopic) continue;
 
-        // We'll process the cancellation request itself once we've cancelled all other requests
-        if (request.id === cancellationRequestId) continue;
+        // When we reach the cancellation request itself we respond to it with the number
+        // of requests cancelled and we don't cancel any further requests as these would
+        // be queued behind the cancellation request.
+        if (request.id === cancellationRequestId) {
+          const response = { id: cancellationRequestId, jsonrpc: '2.0', result: { cancelledCount } };
+
+          await web3wallet.value.respondSessionRequest({ topic: cancellationRequestTopic, response });
+
+          return;
+        }
 
         // Hide the pending dialog if it matches this request
         if (pendingDialog?.id === request.id) {
@@ -74,22 +82,12 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
         await rejectRequest(request);
         cancelledCount++;
       }
-
-      // Respond to the cancel request itself with success (if still pending)
-      const cancellationRequestIsStillPending = web3wallet.value.getPendingSessionRequests()
-        .some(r => r.id === cancellationRequestId);
-
-      if (cancellationRequestIsStillPending) {
-        const response = { id: cancellationRequestId, jsonrpc: '2.0', result: { cancelledCount } };
-
-        await web3wallet.value.respondSessionRequest({ topic: cancellationRequestTopic, response });
-      }
     }
 
     async function initweb3wallet() {
-      // Make sure we don't ininialize WC more than once.
+      // Make sure we don't initialize WC more than once.
       // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
-      if (isIninialized.value) return;
+      if (isInitialized.value) return;
 
       const core = new Core({
         projectId: walletConnectProjectId
@@ -124,7 +122,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       activeSessions.value = web3wallet.value.getActiveSessions();
 
       // Set our state variable so we don't initialize it again when switching networks.
-      isIninialized.value = true;
+      isInitialized.value = true;
     }
 
     async function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
@@ -386,6 +384,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             const wcErrorMessage = 'Transaction signing request aborted with error: ' + errorMessage;
             const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
             await web3wallet.value?.respondSessionRequest({ topic, response });
+            return;
           }
 
           // Auto-approve early return

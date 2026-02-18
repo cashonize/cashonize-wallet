@@ -253,6 +253,21 @@ function createMockElectrumClient(): ElectrumClient {
 }
 
 describe("fetchLoanState via invokeExtensions", () => {
+  it("should skip transplant for management keys (non-minting)", async () => {
+    const utxo = createLoanKeyUtxo();
+    utxo.token!.nft!.capability = "none";
+    utxo.token!.nft!.commitment = hexToBin("01"); // management key commitment
+
+    const identity = createIdentityWithExtension();
+    const mockClient = createMockElectrumClient();
+
+    const result = await invokeExtensions(utxo, identity, mockClient, "bchtest");
+
+    // Should NOT transplant — management key left untouched
+    expect(binToHex(result.token!.nft!.commitment)).toBe("01");
+    expect(result.valueSatoshis).toBe(1000n);
+  });
+
   it("should transplant loan commitment and value into loan key UTXO", async () => {
     const utxo = createLoanKeyUtxo();
     const identity = createIdentityWithExtension();

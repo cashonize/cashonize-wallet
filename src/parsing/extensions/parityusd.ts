@@ -29,6 +29,15 @@ export async function fetchLoanState(
   console.log("[fetchLoanState] Fetching loan state");
 
   try {
+    // Only transplant for owner loan keys (minting capability).
+    // Management keys (non-minting) should not be modified.
+    if (utxo.token?.nft?.capability !== "minting") {
+      console.log(
+        "[fetchLoanState] UTXO is not a minting NFT, skipping transplant",
+      );
+      return utxo;
+    }
+
     // Step 1: Get the sidecar locking bytecode from the registry
     const ext = identitySnapshot.extensions;
     const extensionConfig = (ext?.parityusd ?? ext?.pusd ?? ext?.paryonusd) as Record<string, Record<string, string>> | undefined;
@@ -130,9 +139,9 @@ export async function fetchLoanState(
       ...utxo,
       valueSatoshis: loanValueSatoshis,
       token: {
-        ...utxo.token!,
+        ...utxo.token,
         nft: {
-          ...utxo.token!.nft!,
+          ...utxo.token.nft,
           commitment: loanCommitment,
         },
       },
