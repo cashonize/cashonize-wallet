@@ -144,7 +144,7 @@ async function cancelPendingRequestsForTopic(cancellationRequest) {
           id: cancellationRequestId,
           jsonrpc: '2.0',
           result: {
-            cancelledCount: 1
+            cancelledCount
           }
         }
       });
