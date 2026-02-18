@@ -13,7 +13,7 @@ yarn dev
 Then open http://localhost:5188 in your browser. Port 5188 is an arbitrary choice
 intended to be high enough to avoid conflicts with other dev servers which might be running.
 
-Also launched automatically by Playwright via the `webServer` config in `test/e2e/playwright.config.ts`.
+In CI this is launched automatically by Playwright via the `webServer` config in `test/e2e/playwright.config.ts`.
 
 ## Manual testing
 
