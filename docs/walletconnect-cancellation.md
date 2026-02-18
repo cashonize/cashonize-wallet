@@ -149,7 +149,7 @@ async function cancelPendingRequestsForTopic(cancellationRequest) {
         }
       });
 
-      continue;
+      return;
     }
 
     // close the pending approvaldialog if it matches this request
