@@ -199,7 +199,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(utxo, index) in [...utxosWithBchAndTokens!].sort((a, b) => Number(b.satoshis - a.satoshis))" :key="index">
+              <tr v-for="(utxo, index) in [...utxosWithBchAndTokens!].sort((a, b) => Number(b.satoshis - a.satoshis))" :key="utxo.txid + ':' + utxo.vout">
                 <td>{{ index + 1 }}</td>
                 <td class="mono">
                   {{ satsToBch(utxo.satoshis) }}
