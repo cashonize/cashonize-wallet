@@ -395,7 +395,7 @@
           <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
           <option value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
           <option value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
-          <option value="https://cbch.loping.net/tx">cbch.loping.net</option>
+          <option value="https://chipnet.bchexplorer.info/tx">chipnet.bchexplorer.info</option>
         </select>
       </div>
 
