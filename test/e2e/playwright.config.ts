@@ -27,7 +27,7 @@ export default defineConfig({
       reuseExistingServer: true,
     },
     {
-      command: 'yarn dev',
+      command: 'yarn install && yarn dev',
       cwd: './test-dapp',
       port: 5188,
       reuseExistingServer: true,
