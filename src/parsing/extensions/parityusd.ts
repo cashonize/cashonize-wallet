@@ -139,9 +139,9 @@ export async function fetchLoanState(
       ...utxo,
       valueSatoshis: loanValueSatoshis,
       token: {
-        ...utxo.token!,
+        ...utxo.token,
         nft: {
-          ...utxo.token!.nft!,
+          ...utxo.token.nft,
           commitment: loanCommitment,
         },
       },
