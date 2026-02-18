@@ -65,7 +65,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
         if (request.topic !== cancellationRequestTopic) continue;
 
         // When we reach the cancellation request itself we respond to it with the number
-        // of requests cancelled  and we don't cancel any further requests as these would
+        // of requests cancelled and we don't cancel any further requests as these would
         // be queued behind the cancellation request.
         if (request.id === cancellationRequestId) {
           const response = { id: cancellationRequestId, jsonrpc: '2.0', result: { cancelledCount } };

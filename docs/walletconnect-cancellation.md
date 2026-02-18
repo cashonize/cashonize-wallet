@@ -104,7 +104,7 @@ function cancelWalletAction() {
 
 ### Wallet Implementation
 
-WalletConnect doesn't provide a way to listen for the arrival of messages into the queue. Therefore, wallets MUST implement polling to detect queued cancellation requests. This can be conditional on the queue being non-empty. An interval of 100-500ms is recommended for responsiveness.
+WalletConnect doesn't provide a way to listen for the arrival of messages into the queue. Therefore, wallets MUST implement polling to detect queued cancellation requests. This can be conditional on the presence of pending requests. An interval of 100-500ms is recommended for responsiveness.
 
 #### 1. Poll for cancellation requests in the queue
 
@@ -180,7 +180,7 @@ case "bch_cancelPendingRequests":
 
 ### 1. Should this be proposed as a standard WalletConnect method such as `wc_cancelPendingRequests`?
 
-It's possible this feature has been omitted from WalletConnect for a reason. We are proposing this as a
+It's possible this feature has been omitted from WalletConnect for a reason. We are proposing this as an
 experimental feature scoped to BCH so that we can get feedback before proposing it to the WalletConnect.
 
 ### 2. Response code for cancelled requests
