@@ -40,7 +40,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
     const web3wallet = ref(undefined as undefined | IWalletKit);
 
     // Store a state variable to make sure we don't call "initweb3wallet" more than once.
-    const isIninialized = ref(false);
+    const isInitialized = ref(false);
 
     // Track the approval dialog so it can be cleared if a cancellation request is received over walletconnect
     let pendingDialog: { id: number; handle: ReturnType<typeof Dialog.create> } | null = null;
@@ -87,7 +87,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
     async function initweb3wallet() {
       // Make sure we don't initialize WC more than once.
       // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
-      if (isIninialized.value) return;
+      if (isInitialized.value) return;
 
       const core = new Core({
         projectId: walletConnectProjectId
@@ -122,7 +122,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       activeSessions.value = web3wallet.value.getActiveSessions();
 
       // Set our state variable so we don't initialize it again when switching networks.
-      isIninialized.value = true;
+      isInitialized.value = true;
     }
 
     async function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
