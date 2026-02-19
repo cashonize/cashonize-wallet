@@ -259,7 +259,7 @@
       }
     }
     const decoded = decodeCashAddress(addressInput);
-    if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
+    if (typeof decoded === "string" || decoded.prefix !== `${store.wallet.networkPrefix}`) {
       return t('wallet.errors.notCashaddress');
     }
     return true;
