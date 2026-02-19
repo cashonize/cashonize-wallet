@@ -237,7 +237,7 @@
       }
     }
     const decoded = decodeCashAddress(addressToCheck);
-    if (typeof decoded === "string" || decoded.prefix !== store.wallet.networkPrefix) {
+    if (typeof decoded === "string" || decoded.prefix !== `${store.wallet.networkPrefix}`) {
       return t('tokenItem.errors.notCashaddress');
     }
     return true;

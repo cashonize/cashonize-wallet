@@ -34,4 +34,7 @@ yarn-error.log*
 *.sln
 
 # local .env files
-.env.local*
+.env*
+
+# test results
+test-results/

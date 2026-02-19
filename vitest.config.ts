@@ -11,6 +11,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     root: './test',
+    exclude: ['e2e/**'],
     setupFiles: ['./setup.ts'],
   },
 })
