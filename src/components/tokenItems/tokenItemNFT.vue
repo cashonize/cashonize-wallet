@@ -843,11 +843,11 @@
     </div>
 
     <div v-if="displayChildNfts && (tokenData.nfts?.length ?? 0) > 1">
-      <div v-for="nft in tokenData.nfts" :key="nft.txid + ':' + nft.vout">
+      <div v-for="nft in tokenData.nfts" :key="'nft-utxo-' + nft.txid + '-' + nft.vout">
         <nftChild
           :nftData="nft"
           :tokenMetaData="store.bcmrRegistries?.[tokenData.category]"
-          :id="'nft' + nft.txid + ':' + nft.vout"
+          :id="'nft-utxo-' + nft.txid + '-' + nft.vout"
           :isSelected="isNftSelected(nft.txid, nft.vout)"
           @toggle-select="toggleNftSelection(nft.txid, nft.vout)"
         />
