@@ -333,7 +333,8 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             const errorMessage = validOrErrorMessage
             // respond with error to dapp
             const wcErrorMessage = 'Message signing request aborted with error: ' + errorMessage;
-            const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+            // There is no suitable code for failed message signing, so we'll use 7 which is UNKNOWN_TYPE
+            const response = { id, jsonrpc: '2.0', error: { message : wcErrorMessage, code: 7 } };
             await web3wallet.value?.respondSessionRequest({ topic, response });
             return
           }
@@ -382,7 +383,8 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             const errorMessage = validOrErrorMessage
             // respond with error to dapp
             const wcErrorMessage = 'Transaction signing request aborted with error: ' + errorMessage;
-            const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+            // There is no suitable code for failed transaction signing, so we'll use 7 which is UNKNOWN_TYPE
+            const response = { id, jsonrpc: '2.0', error: { message : wcErrorMessage, code: 7 } };
             await web3wallet.value?.respondSessionRequest({ topic, response });
             return;
           }
@@ -512,7 +514,8 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
           const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : t('walletConnect.errors.errorSendingTransaction'))
           // respond with error to dapp
           const wcErrorMessage = t('walletConnect.errors.transactionFailedToSend', { error: errorMessage });
-          const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+          // There is no suitable code for failed broadcast, so we'll use 7 which is UNKNOWN_TYPE
+          const response = { id, jsonrpc: '2.0', error: { message : wcErrorMessage, code: 7 } };
           await web3wallet.value?.respondSessionRequest({ topic, response });
           return
         }
