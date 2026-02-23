@@ -347,20 +347,18 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
             .onOk(() => {
               console.log("Sign message dialog was approved by user clicking Sign");
-              signMessage(event).then(() => {
-                Notify.create({
-                  color: "positive",
-                  message: t('walletConnect.notifications.successfullySignedMessage'),
+              signMessageWC(event)
+                .then(() => {
+                  console.log("Successfully signed message");
+                })
+                .catch((error) => {
+                  console.error('Failed to sign message:', error);
+                  Notify.create({
+                    color: "negative",
+                    message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignMessage'),
+                  });
+                  void rejectRequest(event);
                 });
-                console.log("Successfully signed message");
-              }).catch((error) => {
-                console.error('Failed to sign message:', error);
-                Notify.create({
-                  color: "negative",
-                  message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignMessage'),
-                });
-                void rejectRequest(event);
-              });
             })
             .onCancel(() => {
               void rejectRequest(event);
@@ -548,7 +546,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       }
     }
 
-    async function signMessage(signMessageRequestWC: WalletKitTypes.SessionRequest){
+    async function signMessageWC(signMessageRequestWC: WalletKitTypes.SessionRequest){
       // isValidSignMessageRequest has checked the params already when this function is called
       const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageRequest
       const message = wcSignMessageParams.message;
@@ -573,6 +571,10 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
 
       const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
       await web3wallet.value?.respondSessionRequest({ topic, response });
+      Notify.create({
+        color: "positive",
+        message: t('walletConnect.notifications.successfullySignedMessage'),
+      });
     }
 
     async function rejectSession(wcSessionProposal: WalletKitTypes.SessionProposal){
