@@ -101,7 +101,8 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
 
       // web3wallet listeners expect synchronous callbacks, this means the promise is fire-and-forget
       newweb3wallet.on('session_proposal', (sessionProposal) => {
-        wcSessionProposal(sessionProposal).catch(console.error)
+        wcSessionProposal(sessionProposal);
+
       });
 
       newweb3wallet.on('session_request', (event) => {
@@ -127,7 +128,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       isInitialized.value = true;
     }
 
-    async function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
+    function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
       const namespaces = getNamespaces(sessionProposal)
 
       if (!namespaces.bch) {
@@ -155,46 +156,42 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
 
       if (isHD) {
-        return await new Promise<void>((resolve, reject) => {
-          Dialog.create({
-            component: WC2AddressSelectDialog,
-            componentProps: {
-              sessionProposalWC: sessionProposal,
-            },
-          })
-            .onOk((selectedAddresses: string[]) => {
-              void approveSession(sessionProposal, dappTargetNetwork, selectedAddresses)
-                .then(resolve)
-                .catch((error) => {
-                  console.error('Failed to approve session:', error)
-                  Notify.create({ type: 'negative', message: t('walletConnect.errors.failedToApproveSession') })
-                  reject()
-                })
-            })
-            .onCancel(() => void rejectSession(sessionProposal).then(reject))
-        });
-      }
-
-      return await new Promise<void>((resolve, reject) => {
         Dialog.create({
-          component: WC2SessionRequestDialog,
+          component: WC2AddressSelectDialog,
           componentProps: {
             sessionProposalWC: sessionProposal,
           },
         })
-        // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
-        // For this we use promise chaining instead of async/await to keep the code more readable
-          .onOk(() => {
-            void approveSession(sessionProposal, dappTargetNetwork)
-              .then(resolve)
+          .onOk((selectedAddresses: string[]) => {
+            approveSession(sessionProposal, dappTargetNetwork, selectedAddresses)
               .catch((error) => {
                 console.error('Failed to approve session:', error)
                 Notify.create({ type: 'negative', message: t('walletConnect.errors.failedToApproveSession') })
-                reject()
               })
           })
-          .onCancel(() => void rejectSession(sessionProposal).then(reject))
-      });
+          .onCancel(() => {
+            void rejectSession(sessionProposal);
+          });
+        return;
+      }
+
+      Dialog.create({
+        component: WC2SessionRequestDialog,
+        componentProps: {
+          sessionProposalWC: sessionProposal,
+        },
+      })
+        // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
+        .onOk(() => {
+          approveSession(sessionProposal, dappTargetNetwork)
+            .catch((error) => {
+              console.error('Failed to approve session:', error)
+              Notify.create({ type: 'negative', message: t('walletConnect.errors.failedToApproveSession') })
+            })
+        })
+        .onCancel(() => {
+          void rejectSession(sessionProposal);
+        });
   }
 
     async function approveSession(
