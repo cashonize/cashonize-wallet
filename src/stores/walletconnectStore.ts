@@ -101,8 +101,11 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
 
       // web3wallet listeners expect synchronous callbacks, this means the promise is fire-and-forget
       newweb3wallet.on('session_proposal', (sessionProposal) => {
-        wcSessionProposal(sessionProposal);
-
+        try {
+          wcSessionProposal(sessionProposal);
+        } catch (error) {
+          console.error("Error when processing walletConnect session_proposal event:", error);
+        }
       });
 
       newweb3wallet.on('session_request', (event) => {
