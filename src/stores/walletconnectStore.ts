@@ -100,14 +100,16 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       })
 
       // web3wallet listeners expect synchronous callbacks, this means the promise is fire-and-forget
-      newweb3wallet.on('session_proposal', (sessionProposal) =>
-        void wcSessionProposal(sessionProposal).catch(console.error)
-      );
+      newweb3wallet.on('session_proposal', (sessionProposal) => {
+        wcSessionProposal(sessionProposal).catch(console.error)
+      });
+
       newweb3wallet.on('session_request', (event) => {
         const sessionAddresses = getSessionAddresses(event.topic);
         const walletAddress = sessionAddresses[0] ?? wallet.value.getDepositAddress();
         wcRequest(event, walletAddress, sessionAddresses).catch(console.error);
       });
+
       newweb3wallet.on('session_delete', ({ topic }) => {
         try {
           console.debug("Session deleted by dapp:", topic);
@@ -345,7 +347,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
             .onOk(() => {
               console.log("Sign message dialog was approved by user clicking Sign");
-              void signMessage(event).then(() => {
+              signMessage(event).then(() => {
                 Notify.create({
                   color: "positive",
                   message: t('walletConnect.notifications.successfullySignedMessage'),
@@ -414,10 +416,6 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
               console.log("Sign transaction dialog was approved by user clicking Sign");
               signTransactionWC(event)
                 .then(() => {
-                  Notify.create({
-                    color: "positive",
-                    message: t('walletConnect.notifications.successfullySignedTransaction'),
-                  });
                   console.log("Successfully signed transaction");
                 })
                 .catch((error) => {
