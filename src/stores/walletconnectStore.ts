@@ -195,7 +195,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
         .onCancel(() => {
           void rejectSession(sessionProposal);
         });
-  }
+    }
 
     async function approveSession(
       sessionProposal: WalletKitTypes.SessionProposal,
@@ -580,10 +580,12 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       });
     }
 
-    async function rejectSession(wcSessionProposal: WalletKitTypes.SessionProposal){
-      await web3wallet.value?.rejectSession({
+    function rejectSession(wcSessionProposal: WalletKitTypes.SessionProposal){
+      return web3wallet.value?.rejectSession({
         id: wcSessionProposal.id,
         reason: getSdkError('USER_REJECTED'),
+      }).catch((error) => {
+        console.error("Error rejecting session:", error);
       });
     }
 
