@@ -100,14 +100,20 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       })
 
       // web3wallet listeners expect synchronous callbacks, this means the promise is fire-and-forget
-      newweb3wallet.on('session_proposal', (sessionProposal) =>
-        void wcSessionProposal(sessionProposal).catch(console.error)
-      );
+      newweb3wallet.on('session_proposal', (sessionProposal) => {
+        try {
+          wcSessionProposal(sessionProposal);
+        } catch (error) {
+          console.error("Error when processing walletConnect session_proposal event:", error);
+        }
+      });
+
       newweb3wallet.on('session_request', (event) => {
         const sessionAddresses = getSessionAddresses(event.topic);
         const walletAddress = sessionAddresses[0] ?? wallet.value.getDepositAddress();
-        void wcRequest(event, walletAddress, sessionAddresses).catch(console.error);
+        wcRequest(event, walletAddress, sessionAddresses).catch(console.error);
       });
+
       newweb3wallet.on('session_delete', ({ topic }) => {
         try {
           console.debug("Session deleted by dapp:", topic);
@@ -125,7 +131,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       isInitialized.value = true;
     }
 
-    async function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
+    function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
       const namespaces = getNamespaces(sessionProposal)
 
       if (!namespaces.bch) {
@@ -153,47 +159,43 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
 
       if (isHD) {
-        return await new Promise<void>((resolve, reject) => {
-          Dialog.create({
-            component: WC2AddressSelectDialog,
-            componentProps: {
-              sessionProposalWC: sessionProposal,
-            },
-          })
-            .onOk((selectedAddresses: string[]) => {
-              void approveSession(sessionProposal, dappTargetNetwork, selectedAddresses)
-                .then(resolve)
-                .catch((error) => {
-                  console.error('Failed to approve session:', error)
-                  Notify.create({ type: 'negative', message: t('walletConnect.errors.failedToApproveSession') })
-                  reject()
-                })
-            })
-            .onCancel(() => void rejectSession(sessionProposal).then(reject))
-        });
-      }
-
-      return await new Promise<void>((resolve, reject) => {
         Dialog.create({
-          component: WC2SessionRequestDialog,
+          component: WC2AddressSelectDialog,
           componentProps: {
             sessionProposalWC: sessionProposal,
           },
         })
-        // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
-        // For this we use promise chaining instead of async/await to keep the code more readable
-          .onOk(() => {
-            void approveSession(sessionProposal, dappTargetNetwork)
-              .then(resolve)
+          .onOk((selectedAddresses: string[]) => {
+            approveSession(sessionProposal, dappTargetNetwork, selectedAddresses)
               .catch((error) => {
                 console.error('Failed to approve session:', error)
                 Notify.create({ type: 'negative', message: t('walletConnect.errors.failedToApproveSession') })
-                reject()
               })
           })
-          .onCancel(() => void rejectSession(sessionProposal).then(reject))
-      });
-  }
+          .onCancel(() => {
+            void rejectSession(sessionProposal);
+          });
+        return;
+      }
+
+      Dialog.create({
+        component: WC2SessionRequestDialog,
+        componentProps: {
+          sessionProposalWC: sessionProposal,
+        },
+      })
+        // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
+        .onOk(() => {
+          approveSession(sessionProposal, dappTargetNetwork)
+            .catch((error) => {
+              console.error('Failed to approve session:', error)
+              Notify.create({ type: 'negative', message: t('walletConnect.errors.failedToApproveSession') })
+            })
+        })
+        .onCancel(() => {
+          void rejectSession(sessionProposal);
+        });
+    }
 
     async function approveSession(
       sessionProposal: WalletKitTypes.SessionProposal,
@@ -318,8 +320,8 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
           const result = sessionAddresses?.length ? sessionAddresses : [walletAddress];
           const response = { id, jsonrpc: '2.0', result };
           await web3wallet.value.respondSessionRequest({ topic, response });
-        }
           break;
+        }
         case "bch_signMessage":
         case "personal_sign": {
           const sessions = web3wallet.value.getActiveSessions();
@@ -331,46 +333,45 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             const errorMessage = validOrErrorMessage
             // respond with error to dapp
             const wcErrorMessage = 'Message signing request aborted with error: ' + errorMessage;
-            const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+            // There is no suitable code for failed message signing, so we'll use 7 which is UNKNOWN_TYPE
+            const response = { id, jsonrpc: '2.0', error: { message : wcErrorMessage, code: 7 } };
             await web3wallet.value?.respondSessionRequest({ topic, response });
             return
           }
-          return await new Promise<void>((resolve, reject) => {
-            const handle = Dialog.create({
-              component: WC2SignMessageRequest,
-              componentProps: {
-                dappMetadata,
-                signMessageRequestWC: event
-              },
-            })
+          const handle = Dialog.create({
+            component: WC2SignMessageRequest,
+            componentProps: {
+              dappMetadata,
+              signMessageRequestWC: event
+            },
+          })
             // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
-              .onOk(() => {
-                void signMessage(event).then(() => {
-                  Notify.create({
-                    color: "positive",
-                    message: t('walletConnect.notifications.successfullySignedMessage'),
-                  });
-                  resolve();
-                }).catch((error) => {
+            .onOk(() => {
+              console.log("Sign message dialog was approved by user clicking Sign");
+              signMessageWC(event)
+                .then(() => {
+                  console.log("Successfully signed message");
+                })
+                .catch((error) => {
                   console.error('Failed to sign message:', error);
                   Notify.create({
                     color: "negative",
                     message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignMessage'),
                   });
                   void rejectRequest(event);
-                  reject(error);
                 });
-              })
-              .onCancel(() => {
-                void rejectRequest(event).then(() => reject("Sign message dialog was cancelled"));
-              })
-              .onDismiss(() => {
-                stopPollingForCancellationRequest();
-                reject("Sign message dialog was dismissed");
-              });
-            pendingDialog = { id, handle };
-            startPollingForCancellationRequest();
-          });
+            })
+            .onCancel(() => {
+              void rejectRequest(event);
+              console.log("Sign message dialog was cancelled by user clicking Cancel");
+            })
+            .onDismiss(() => {
+              stopPollingForCancellationRequest();
+              console.debug("The sign message dialog was closed (approved, cancelled, or closed programmatically)");
+            });
+          pendingDialog = { id, handle };
+          startPollingForCancellationRequest();
+          break;
         }
         case "bch_signTransaction": {
           const sessions = web3wallet.value.getActiveSessions();
@@ -382,7 +383,8 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             const errorMessage = validOrErrorMessage
             // respond with error to dapp
             const wcErrorMessage = 'Transaction signing request aborted with error: ' + errorMessage;
-            const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+            // There is no suitable code for failed transaction signing, so we'll use 7 which is UNKNOWN_TYPE
+            const response = { id, jsonrpc: '2.0', error: { message : wcErrorMessage, code: 7 } };
             await web3wallet.value?.respondSessionRequest({ topic, response });
             return;
           }
@@ -400,29 +402,42 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
           // Manually approve
           const dappMetadata = session.peer.metadata;
           const exchangeRate = await convert(1, "bch", settingsStore.currency);
-          return await new Promise<void>((resolve, reject) => {
-            const handle = Dialog.create({
-              component: WC2TransactionRequest,
-              componentProps: {
-                dappMetadata,
-                transactionRequestWC: event,
-                exchangeRate
-              },
-            })
+
+          const handle = Dialog.create({
+            component: WC2TransactionRequest,
+            componentProps: {
+              dappMetadata,
+              transactionRequestWC: event,
+              exchangeRate
+            },
+          })
             // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
-              .onOk(() => {
-                void signTransactionWC(event).then(resolve);
-              })
-              .onCancel(() => {
-                void rejectRequest(event).then(() => reject("Sign transaction dialog was cancelled"));
-              })
-              .onDismiss(() => {
-                stopPollingForCancellationRequest();
-                reject("Sign transaction dialog was dismissed");
-              });
-            pendingDialog = { id, handle };
-            startPollingForCancellationRequest();
-          });
+            .onOk(() => {
+              console.log("Sign transaction dialog was approved by user clicking Sign");
+              signTransactionWC(event)
+                .then(() => {
+                  console.log("Successfully signed transaction");
+                })
+                .catch((error) => {
+                  console.error('Failed to sign transaction:', error);
+                  Notify.create({
+                    color: "negative",
+                    message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignTransaction'),
+                  });
+                  void rejectRequest(event);
+                });
+            })
+            .onCancel(() => {
+              void rejectRequest(event);
+              console.log("Sign transaction dialog was cancelled by user clicking Cancel");
+            })
+            .onDismiss(() => {
+              stopPollingForCancellationRequest();
+              console.debug("The sign transaction dialog was closed (approved, cancelled, or closed programmatically)");
+            });
+          pendingDialog = { id, handle };
+          startPollingForCancellationRequest();
+          break;
         }
         // bch_cancelPendingRequests is usually handled by polling of the request queue since
         // WalletConnect won't deliver a new request until the current one receives a response.
@@ -499,7 +514,8 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
           const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : t('walletConnect.errors.errorSendingTransaction'))
           // respond with error to dapp
           const wcErrorMessage = t('walletConnect.errors.transactionFailedToSend', { error: errorMessage });
-          const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
+          // There is no suitable code for failed broadcast, so we'll use 7 which is UNKNOWN_TYPE
+          const response = { id, jsonrpc: '2.0', error: { message : wcErrorMessage, code: 7 } };
           await web3wallet.value?.respondSessionRequest({ topic, response });
           return
         }
@@ -533,7 +549,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       }
     }
 
-    async function signMessage(signMessageRequestWC: WalletKitTypes.SessionRequest){
+    async function signMessageWC(signMessageRequestWC: WalletKitTypes.SessionRequest){
       // isValidSignMessageRequest has checked the params already when this function is called
       const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageRequest
       const message = wcSignMessageParams.message;
@@ -558,23 +574,33 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
 
       const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
       await web3wallet.value?.respondSessionRequest({ topic, response });
-    }
-
-    async function rejectSession(wcSessionProposal: WalletKitTypes.SessionProposal){
-      await web3wallet.value?.rejectSession({
-        id: wcSessionProposal.id,
-        reason: getSdkError('USER_REJECTED'),
+      Notify.create({
+        color: "positive",
+        message: t('walletConnect.notifications.successfullySignedMessage'),
       });
     }
 
-    async function rejectRequest(wcRequest: WalletKitTypes.SessionRequest){
+    function rejectSession(wcSessionProposal: WalletKitTypes.SessionProposal){
+      return web3wallet.value?.rejectSession({
+        id: wcSessionProposal.id,
+        reason: getSdkError('USER_REJECTED'),
+      }).catch((error) => {
+        console.error("Error rejecting session:", error);
+      });
+    }
+
+    function rejectRequest(wcRequest: WalletKitTypes.SessionRequest){
       const { id, topic } = wcRequest;
       // Check request is still pending (may have been cancelled by dapp already)
       const stillPending = web3wallet.value?.getPendingSessionRequests()
         .some(r => r.id === id);
       if (!stillPending) return;
       const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
-      await web3wallet.value?.respondSessionRequest({ topic, response });
+      return web3wallet.value?.respondSessionRequest({ topic, response }).then(() => {
+        console.log("Request rejected successfully");
+      }).catch((error) => {
+        console.error("Error rejecting request:", error);
+      });
     }
 
     return { web3wallet, activeSessions, initweb3wallet, wcRequest, deleteSession }
