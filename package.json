@@ -36,7 +36,7 @@
     "mainnet-js": "^3.1.7",
     "pinia": "^3.0.4",
     "quasar": "^2.18.6",
-    "vue": "^3.5.28",
+    "vue": "^3.5.29",
     "vue-i18n": "^11.2.8",
     "vue-qrcode-reader": "^5.7.3",
     "vue-router": "^4.6.4",
@@ -51,7 +51,7 @@
     "@types/node": "^24.10.0",
     "@vue/eslint-config-typescript": "^14.7.0",
     "autoprefixer": "^10.4.24",
-    "electron": "^40.5.0",
+    "electron": "^40.6.1",
     "electron-builder": "^26.8.1",
     "eslint": "^9.39.2",
     "eslint-plugin-vue": "^10.8.0",
@@ -61,7 +61,7 @@
     "typescript": "^5.9.3",
     "vite-plugin-checker": "^0.12.0",
     "vitest": "^4.0.18",
-    "vue-tsc": "^3.2.4"
+    "vue-tsc": "^3.2.5"
   },
   "engines": {
     "node": "^24 || ^22.12.0 || ^20.19.0",
@@ -72,7 +72,8 @@
     "@bitauth/libauth": "3.1.0-next.8",
     "@walletconnect/core": "2.23.5",
     "tar": ">=7.5.8",
-    "elliptic": ">=6.6.1"
+    "elliptic": ">=6.6.1",
+    "rollup": ">=4.59.0"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
