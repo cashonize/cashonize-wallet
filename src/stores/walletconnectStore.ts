@@ -101,6 +101,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
 
       // web3wallet listeners expect synchronous callbacks, this means the promise is fire-and-forget
       newweb3wallet.on('session_proposal', (sessionProposal) => {
+        console.debug("Session proposal received:", sessionProposal);
         try {
           wcSessionProposal(sessionProposal);
         } catch (error) {
@@ -109,18 +110,20 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
       });
 
       newweb3wallet.on('session_request', (event) => {
+        console.debug("Session request received:", event);
         const sessionAddresses = getSessionAddresses(event.topic);
         const walletAddress = sessionAddresses[0] ?? wallet.value.getDepositAddress();
         wcRequest(event, walletAddress, sessionAddresses).catch(console.error);
       });
 
       newweb3wallet.on('session_request_expire', (event) => {
-        console.log("Session request expired:", event);
+        console.debug("Session request expired:", event);
         if (pendingDialog?.id === event.id) {
+          const { dappName } = pendingDialog;
           pendingDialog.handle.hide();
           Notify.create({
             color: "negative",
-            message: t('walletConnect.notifications.requestExpired', { dappName: pendingDialog.dappName }),
+            message: t('walletConnect.notifications.requestExpired', { dappName }),
           });
         }
       });
