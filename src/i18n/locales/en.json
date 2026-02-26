@@ -801,7 +801,7 @@
       "sentTransaction": "Sent WalletConnect transaction '{userPrompt}'",
       "transactionSent": "Transaction successfully sent!",
       "transactionSigned": "Transaction successfully signed!",
-      "requestExpired": "WalletConnect request expired"
+      "requestExpired": "Request expired, please return to {dappName} if you would like to retry"
     }
   },
   "settings": {

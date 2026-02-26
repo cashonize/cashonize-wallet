@@ -43,7 +43,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
     const isInitialized = ref(false);
 
     // Track the approval dialog so it can be cleared if a cancellation request is received over walletconnect
-    let pendingDialog: { id: number; handle: ReturnType<typeof Dialog.create> } | null = null;
+    let pendingDialog: { id: number; handle: ReturnType<typeof Dialog.create>; dappName: string } | null = null;
     let cancellationPollingInterval: ReturnType<typeof setInterval> | null = null;
 
     function stopPollingForCancellationRequest() {
@@ -120,7 +120,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
           pendingDialog.handle.hide();
           Notify.create({
             color: "negative",
-            message: t('walletConnect.notifications.requestExpired'),
+            message: t('walletConnect.notifications.requestExpired', { dappName: pendingDialog.dappName }),
           });
         }
       });
@@ -380,7 +380,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
               stopPollingForCancellationRequest();
               console.debug("The sign message dialog was closed (approved, cancelled, or closed programmatically)");
             });
-          pendingDialog = { id, handle };
+          pendingDialog = { id, handle, dappName: dappMetadata.name };
           startPollingForCancellationRequest();
           break;
         }
@@ -446,7 +446,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
               stopPollingForCancellationRequest();
               console.debug("The sign transaction dialog was closed (approved, cancelled, or closed programmatically)");
             });
-          pendingDialog = { id, handle };
+          pendingDialog = { id, handle, dappName: dappMetadata.name };
           startPollingForCancellationRequest();
           break;
         }
