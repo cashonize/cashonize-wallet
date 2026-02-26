@@ -800,7 +800,8 @@
       "sendingTransaction": "Sending transaction...",
       "sentTransaction": "Sent WalletConnect transaction '{userPrompt}'",
       "transactionSent": "Transaction successfully sent!",
-      "transactionSigned": "Transaction successfully signed!"
+      "transactionSigned": "Transaction successfully signed!",
+      "requestExpired": "WalletConnect request expired"
     }
   },
   "settings": {

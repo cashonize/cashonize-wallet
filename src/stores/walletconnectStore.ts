@@ -114,6 +114,17 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
         wcRequest(event, walletAddress, sessionAddresses).catch(console.error);
       });
 
+      newweb3wallet.on('session_request_expire', (event) => {
+        console.log("Session request expired:", event);
+        if (pendingDialog?.id === event.id) {
+          pendingDialog.handle.hide();
+          Notify.create({
+            color: "negative",
+            message: t('walletConnect.notifications.requestExpired'),
+          });
+        }
+      });
+
       newweb3wallet.on('session_delete', ({ topic }) => {
         try {
           console.debug("Session deleted by dapp:", topic);
