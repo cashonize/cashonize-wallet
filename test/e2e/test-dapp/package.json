@@ -14,5 +14,8 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.4",
     "vite": "^6.3.5"
+  },
+  "resolutions": {
+    "rollup": ">=4.59.0"
   }
 }
