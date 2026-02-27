@@ -51,12 +51,14 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 
 ## Special Thanks to
 
-🙏 Special thanks to mainnet-pat, jimtendo, damascene & bitjson for helping with the project!
+🙏 Special thanks to mainnet-pat, jimtendo and rnbrady for their major contributions to the project!
+
+Thanks to damascene & bitjson for helping with the early formation of the project.
 
 The 2024 work on the project was enabled by the financial support of the [flipstarter contributors](https://flipstarter.cashonize.com/). <br>
 In special: molecular, Mike Komaransky, 'BCH Conference', toorik and majamalu.
 
-Futher thanks to bitcoincashautist, Joemar, Romit and Kallisti for being very helpful responding to questions. <br>
+Further thanks to bitcoincashautist, Joemar, Romit and Kallisti for being very helpful responding to questions. <br>
 Also a thank you to users reporting bugs: samrock5000, Stockleezy and Steve Thurmond.
 
 ## Historic version
