@@ -21,12 +21,7 @@ yarn vue-tsc --noEmit # Type check (Vue projects use vue-tsc, not plain tsc)
 ## Architecture
 
 ### View Navigation
-The app uses a single-page architecture where `WalletPage.vue` is the only route. Views are switched via `store.displayView` number:
-- 1: BchWallet, 2: MyTokens, 3: TxHistory, 4: ConnectDapp, 5: SettingsMenu
-- 6: CreateTokens, 7: UtxoManagement, 8: SweepPrivateKey, 9: AddWallet
-- undefined/0: WalletOnboarding (shown when no wallet exists)
-
-Views use `<KeepAlive>` to preserve state across navigation, except settingsMenu which re-renders.
+Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.
 
 ### State Management (Pinia Stores)
 - **store.ts**: Main wallet state - `_wallet` (mutable ref), `wallet` (computed, throws if null), balance, UTXOs, token list, BCMR registries. Handles wallet initialization, network switching, transaction watching.
@@ -106,16 +101,11 @@ Docs: https://quasar.dev/docs
 Base CSS from `chota` (minimal CSS framework), custom styles in `src/css/`.
 
 ### Internationalization (i18n)
-Uses `vue-i18n`. Translations in `src/i18n/locales`, initialized via `src/boot/i18n.ts`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from the boot file.
+Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from `src/boot/i18n.ts`.
 
 ## Testing
 
-Tests are in `/test` directory using vitest. Run a single test file:
-```bash
-yarn test test/walletUtils.test.ts
-```
-
-Tests run in Node environment with minimal browser mocks (`localStorage`, `navigator`) in `test/setup.ts`. We use mocks instead of jsdom to keep tests lightweight.
+Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). See `development.md` for full setup details.
 
 ## Code Style Preferences
 

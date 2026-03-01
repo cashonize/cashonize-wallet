@@ -800,7 +800,8 @@
       "sendingTransaction": "Envoi de la transaction...",
       "sentTransaction": "Transaction WalletConnect envoyée '{userPrompt}'",
       "transactionSent": "Transaction envoyée avec succès !",
-      "transactionSigned": "Transaction signée avec succès !"
+      "transactionSigned": "Transaction signée avec succès !",
+      "requestExpired": "Requête expirée, veuillez retourner à {dappName} pour réessayer"
     }
   },
   "settings": {

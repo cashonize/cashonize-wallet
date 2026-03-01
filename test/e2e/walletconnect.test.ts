@@ -18,6 +18,10 @@ test.describe.serial('WalletConnect E2E', () => {
     walletPage = await walletContext.newPage()
     dappPage = await dappContext.newPage()
 
+    // Install fake clocks before any WC code runs so we can fast-forward in the expiry test
+    await walletPage.clock.install()
+    await dappPage.clock.install()
+
     // Set up wallet via onboarding
     await walletPage.goto(CASHONIZE_URL)
 
@@ -147,6 +151,27 @@ test.describe.serial('WalletConnect E2E', () => {
 
     // dApp: Cancel response should contain cancelledCount
     await expect(dappPage.locator('#response')).toContainText('cancelledCount', { timeout: 15_000 })
+  })
+
+  test('requestExpiry', async () => {
+    // dApp sends a signMessage request
+    await dappPage.click('#btn-sign-message')
+
+    // Wallet: Wait for sign message dialog
+    const signDialog = walletPage.locator('.q-dialog')
+    await signDialog.waitFor({ timeout: 5_000 })
+
+    // Fast-forward past the 5-minute WC request expiry on both pages
+    await walletPage.clock.fastForward('05:00')
+    await dappPage.clock.fastForward('05:00')
+
+    // dApp: Should receive expiry error
+    await expect(dappPage.locator('#response')).toContainText('Request expired', { timeout: 5_000 })
+
+    // Wallet: Expiry notification should appear
+    const expiryNotification = walletPage.locator('.q-notification.bg-negative')
+    await expect(expiryNotification).toContainText('Request expired', { timeout: 5_000 })
+    await expect(expiryNotification).toBeInViewport()
   })
 
   test('disconnect', async () => {
