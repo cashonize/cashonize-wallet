@@ -7,13 +7,12 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
-  import { copyToClipboard } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
-  import { CurrencySymbols } from 'src/interfaces/interfaces'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   const $q = useQuasar()
@@ -459,7 +458,7 @@
           <div v-if="tokenData?.amount" class="tokenAmount">{{ t('tokenItem.amount') }}
             {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
             <span v-if="holdingsFiatValue !== null" style="font-size: smaller; color: grey; white-space: nowrap;">
-              ≈ {{ CurrencySymbols[settingsStore.currency] }}{{ holdingsFiatValue.toFixed(2) }}
+              ≈ {{ formatFiatAmount(holdingsFiatValue, settingsStore.currency) }}
             </span>
           </div>
         </div>
