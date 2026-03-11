@@ -29,25 +29,43 @@ const stringifiedUint8ArraySchema = z.string()
     return match?.groups?.hex !== undefined ? hexToBin(match.groups.hex) : val;
   });
 
-// TODO: could try to make this more strict
-// especially the token and contract fields as these are nested objects
-// Source outputs are transmitted using libauth's stringify, since they contain UInt8Array and BigInt.
-const simpleSourceOutputSchema = z.object({
+// The contract schema only validates the fields Cashonize uses (contractName, abiFunction.name, redeemScript).
+// Extra fields from the WC2-BCH spec (e.g. artifact.source, artifact.bytecode) are not required,
+// so dapps can trim their WalletConnect payloads for efficiency.
+const contractSchema = z.object({
+  abiFunction: z.object({ name: z.string() }),
+  redeemScript: stringifiedUint8ArraySchema,
+  artifact: z.object({ contractName: z.string() }),
+});
+
+const nftSchema = z.object({
+  capability: z.enum(["none", "mutable", "minting"]),
+  commitment: stringifiedUint8ArraySchema,
+});
+
+const tokenSchema = z.object({
+  amount: stringifiedBigIntSchema,
+  category: stringifiedUint8ArraySchema,
+  nft: z.optional(nftSchema),
+});
+
+// WC source outputs are transmitted using libauth's stringify, since they contain UInt8Array and BigInt.
+const wcSourceOutputSchema = z.object({
   outpointIndex: z.number(),
   outpointTransactionHash: stringifiedUint8ArraySchema,
   sequenceNumber: z.number(),
   lockingBytecode: stringifiedUint8ArraySchema,
   unlockingBytecode: stringifiedUint8ArraySchema,
   valueSatoshis: stringifiedBigIntSchema,
-  token: z.optional(z.any()),
-  contract: z.optional(z.any()),
+  token: z.optional(tokenSchema),
+  contract: z.optional(contractSchema),
 });
 
 const hexEncodedStringSchema = z.string().regex(/^[0-9a-fA-F]+$/, "Must be a hex-encoded string");
 // see the BCH wallet connect spec at https://github.com/mainnet-pat/wc2-bch-bcr
 export const EncodedWcTransactionObjSchema = z.object({
   transaction: z.union([hexEncodedStringSchema, simpleTransactionCommonSchema]),
-  sourceOutputs: z.array(simpleSourceOutputSchema),
+  sourceOutputs: z.array(wcSourceOutputSchema),
   broadcast: z.optional(z.boolean()),
   userPrompt: z.optional(z.string()),
 });
