@@ -445,7 +445,8 @@
       "hint": "En casos raros, los navegadores pueden eliminar datos del sitio automáticamente. Para protegerse contra esto, estamos solicitando persistencia de datos.",
       "requestButton": "Solicitar persistencia de datos",
       "grantedNotification": "Almacenamiento persistente otorgado - los datos de tu billetera están protegidos",
-      "deniedNotification": "Almacenamiento persistente denegado - asegúrate de tener un respaldo de tu frase semilla"
+      "deniedNotification": "Almacenamiento persistente denegado - en casos raros el navegador puede eliminar datos del sitio. Asegúrate de tener un respaldo de tu frase semilla",
+      "deniedNotificationBrave": "Almacenamiento persistente denegado - intenta agregar Cashonize a marcadores primero, luego solicita de nuevo"
     }
   },
   "addWallet": {

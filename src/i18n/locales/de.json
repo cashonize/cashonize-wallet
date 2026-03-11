@@ -445,7 +445,8 @@
       "hint": "In seltenen Fällen kann der Browser Websitedaten automatisch löschen. Um davor zu schützen, fordern wir Datenpersistenz an.",
       "requestButton": "Datenpersistenz anfordern",
       "grantedNotification": "Persistenter Speicher gewährt – deine Wallet-Daten sind geschützt",
-      "deniedNotification": "Persistenter Speicher verweigert – stelle sicher, dass du ein Backup deiner seed phrase hast"
+      "deniedNotification": "Persistenter Speicher verweigert – in seltenen Fällen kann der Browser Websitedaten löschen. Stelle sicher, dass du ein Backup deiner Seed Phrase hast",
+      "deniedNotificationBrave": "Persistenter Speicher verweigert – versuche Cashonize zuerst als Lesezeichen zu speichern, dann erneut anfordern"
     }
   },
   "addWallet": {

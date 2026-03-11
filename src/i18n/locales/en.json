@@ -445,7 +445,8 @@
       "hint": "In rare cases, browsers may clear site data automatically. To protect against this, we are requesting data persistence.",
       "requestButton": "Request data persistence",
       "grantedNotification": "Persistent storage granted - your wallet data is protected",
-      "deniedNotification": "Persistent storage denied - make sure you have a backup of your seed phrase"
+      "deniedNotification": "Persistent storage denied - in rare cases the browser may clear site data. Make sure you have a backup of your seed phrase",
+      "deniedNotificationBrave": "Persistent storage denied - try bookmarking Cashonize first, then request again"
     }
   },
   "addWallet": {

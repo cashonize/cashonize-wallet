@@ -16,10 +16,18 @@
   const persistentStorageSupported = typeof navigator !== 'undefined' && !!navigator.storage?.persist
   const persistentStorageStatus = ref<'unknown' | 'granted' | 'denied'>('unknown')
 
+  // Brave browser detection
+  const isBrave = ref(false)
+
   onMounted(async () => {
     if (isBrowser && persistentStorageSupported) {
       const persisted = await navigator.storage.persisted()
       persistentStorageStatus.value = persisted ? 'granted' : 'denied'
+    }
+    // Brave browser detection (navigator.brave is Brave-only, no official typings)
+    if ('brave' in navigator) {
+      const brave = navigator.brave as { isBrave?: () => Promise<boolean> }
+      isBrave.value = await brave.isBrave?.() ?? false
     }
   })
 
@@ -34,8 +42,10 @@
         color: "green"
       })
     } else {
+      let deniedMessage = t('backupWallet.persistentStorage.deniedNotification')
+      if (isBrave.value) deniedMessage = t('backupWallet.persistentStorage.deniedNotificationBrave')
       $q.notify({
-        message: t('backupWallet.persistentStorage.deniedNotification'),
+        message: deniedMessage,
         icon: 'warning',
         color: "grey-7"
       })

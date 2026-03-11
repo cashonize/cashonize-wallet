@@ -445,7 +445,8 @@
       "hint": "Dans de rares cas, les navigateurs peuvent supprimer automatiquement les données du site. Pour vous protéger contre cela, nous demandons la persistance des données.",
       "requestButton": "Demander la persistance des données",
       "grantedNotification": "Stockage persistant accordé - les données de votre portefeuille sont protégées",
-      "deniedNotification": "Stockage persistant refusé - assurez-vous d'avoir une sauvegarde de votre phrase de récupération"
+      "deniedNotification": "Stockage persistant refusé - dans de rares cas le navigateur peut supprimer les données du site. Assurez-vous d'avoir une sauvegarde de votre phrase de récupération",
+      "deniedNotificationBrave": "Stockage persistant refusé - essayez d'ajouter Cashonize aux favoris d'abord, puis réessayez"
     }
   },
   "addWallet": {
