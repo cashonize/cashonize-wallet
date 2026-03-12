@@ -16,6 +16,16 @@ import {
 } from "@bitauth/libauth"
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
 
+// Flexible contract info to support both old and new CashScript versions
+// redeemScript is deprecated in CashScript v0.13, so dapps using the new version won't include it
+// bytecode is a property on the CashScript Contract class, dapps using v0.13+ can include it in the WC payload
+interface FlexibleContractInfo {
+  abiFunction: { name: string };
+  redeemScript?: Uint8Array;
+  bytecode?: string;
+  artifact: { contractName: string };
+}
+
 export function createSignedWcTransaction(
   wcTransactionObj: WcSignTransactionRequest,
   signingInfo: { privateKey: Uint8Array, pubkeyCompressed: Uint8Array },
@@ -41,7 +51,7 @@ export function createSignedWcTransaction(
   const txTemplate = {...unsignedTransaction} as TransactionTemplate<typeof compiler>;
 
   for (const [index, input] of txTemplate.inputs.entries()) {
-    const correspondingSourceOutput = sourceOutputs[index] as (typeof sourceOutputs)[number];
+    const correspondingSourceOutput = sourceOutputs[index] as (typeof sourceOutputs)[number] & { contract?: FlexibleContractInfo };
 
     if (correspondingSourceOutput.contract?.artifact.contractName) {
       // instruct compiler to produce signatures for relevant contract inputs
@@ -56,9 +66,14 @@ export function createSignedWcTransaction(
         const context: CompilationContextBch = { inputIndex: index, sourceOutputs, transaction: unsignedTransaction };
         const signingSerializationType = new Uint8Array([hashType]);
 
-        const coveredBytecode = correspondingSourceOutput.contract?.redeemScript;
+        // coveredBytecode is the encoded script being executed, used by libauth for sighash computation
+        // uses redeemScript if present (CashScript pre-0.13), otherwise bytecode (CashScript 0.13+)
+        let coveredBytecode = correspondingSourceOutput.contract?.redeemScript;
+        if (!coveredBytecode && correspondingSourceOutput.contract?.bytecode) {
+          coveredBytecode = hexToBin(correspondingSourceOutput.contract.bytecode);
+        }
         if (!coveredBytecode) {
-          throw new Error("Not enough information provided, please include contract redeemScript");
+          throw new Error("Not enough information provided, please include contract redeemScript or bytecode");
         }
         const sighashPreimage = generateSigningSerializationBch(context, { coveredBytecode, signingSerializationType });
         const sighash = hash256(sighashPreimage);

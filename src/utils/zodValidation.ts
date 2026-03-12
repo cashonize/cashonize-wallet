@@ -29,12 +29,20 @@ const stringifiedUint8ArraySchema = z.string()
     return match?.groups?.hex !== undefined ? hexToBin(match.groups.hex) : val;
   });
 
-// The contract schema only validates the fields Cashonize uses (contractName, abiFunction.name, redeemScript).
-// Extra fields from the WC2-BCH spec (e.g. artifact.source, artifact.bytecode) are not required,
+// redeemScript should be a stringified Uint8Array per the WC2-BCH spec,
+// but the FundMe.cash dapp passes the raw CashScript Script type (OpOrData[])
+// instead of converting it with scriptToBytecode() first.
+// For FundMe.cash compatibility we also allow an array of script chunks
+const redeemScriptSchema = z.union([stringifiedUint8ArraySchema, z.array(z.any())]);
+
+// The contract schema only validates the fields Cashonize uses (contractName, abiFunction.name, redeemScript/bytecode).
+// redeemScript is deprecated in CashScript v0.13, bytecode serves as a fallback for dapps using v0.13+.
+// Extra fields from the WC2-BCH spec (e.g. artifact.source, artifact.abi) are not required,
 // so dapps can trim their WalletConnect payloads for efficiency.
 const contractSchema = z.object({
   abiFunction: z.object({ name: z.string() }),
-  redeemScript: stringifiedUint8ArraySchema,
+  redeemScript: z.optional(redeemScriptSchema),
+  bytecode: z.optional(z.string()),
   artifact: z.object({ contractName: z.string() }),
 });
 
