@@ -693,11 +693,22 @@ export const useStore = defineStore('store', () => {
     const fungibleTokens = tokenList.value?.filter(token => 'amount' in token)
     if (fungibleTokens?.length === 0) return;
 
+    // Sort token IDs so featured tokens are fetched first (they display at the top)
+    const featuredSet = new Set(settingsStore.featuredTokens);
     const ftTokenIds = fungibleTokens?.map(token => token.category) ?? [];
+    ftTokenIds.sort((a, b) => {
+      const aFeatured = featuredSet.has(a);
+      const bFeatured = featuredSet.has(b);
+      if (aFeatured && !bFeatured) return -1;
+      if (!aFeatured && bFeatured) return 1;
+      return 0;
+    });
 
     // Warm the exchange rate cache first, then fetch prices
     await convert(1, 'bch', settingsStore.currency);
-    cauldronPrices.value = await fetchCauldronPrices(ftTokenIds);
+    cauldronPrices.value = await fetchCauldronPrices(ftTokenIds, (batchResults) => {
+      cauldronPrices.value = batchResults;
+    });
   }
 
   async function fetchTokenInfo(categoryId: string) {
