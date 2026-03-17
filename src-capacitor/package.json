@@ -10,5 +10,8 @@
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0"
   },
-  "author": "Mathieu Geukens"
+  "author": "Mathieu Geukens",
+  "resolutions": {
+    "tar": "^7.5.11"
+  }
 }

@@ -36,8 +36,8 @@ export default defineConfig((ctx) => {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
       target: {
-        browser: [ 'es2022' ],
-        node: 'node20'
+        browser: ['es2022'],
+        node: 'node22'
       },
 
       typescript: {
@@ -76,7 +76,6 @@ export default defineConfig((ctx) => {
         }
       },
       
-      // TODO: investigate rollup-plugin-visualizer 'open: true' not triggering in Vite 7
       vitePlugins: [
         ['rollup-plugin-visualizer', {
           open: true,
