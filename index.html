@@ -17,6 +17,15 @@
     <link rel="manifest" href="manifest.json">
   </head>
   <body>
+    <!-- @walletconnect/utils uses Node's Buffer in P-256 JWT verification (verify API).
+         Provide it as a global so the attestation check works in browser/Vite environments.
+         The buffer package is assumed to be installed as a transitive dependency and so is
+         not explicitly installed in package.json
+         TODO: remove when fixed upstream (https://github.com/WalletConnect/walletconnect-monorepo) -->
+    <script type="module">
+      import { Buffer } from "buffer";
+      globalThis.Buffer = Buffer;
+    </script>
     <!-- quasar:entry-point -->
   </body>
   <script defer data-domain="cashonize.com" src="https://plausible.io/js/script.js"></script>
