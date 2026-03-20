@@ -22,7 +22,7 @@
     "@bitauth/libauth": "^3.1.0-next.8",
     "@bitjson/qr-code": "^1.0.2",
     "@capacitor-community/barcode-scanner": "^4.0.1",
-    "@capacitor/core": "^8.1.0",
+    "@capacitor/core": "^8.2.0",
     "@download/blockies": "^1.0.3",
     "@mainnet-cash/indexeddb-storage": "^3.1.7",
     "@quasar/extras": "^1.17.0",
@@ -35,7 +35,7 @@
     "electron-store": "^11.0.2",
     "mainnet-js": "^3.1.7",
     "pinia": "^3.0.4",
-    "quasar": "^2.18.6",
+    "quasar": "^2.18.7",
     "vue": "^3.5.30",
     "vue-i18n": "^11.3.0",
     "vue-qrcode-reader": "^5.7.3",
@@ -46,12 +46,12 @@
     "@bch-wc2/interfaces": "^0.0.16",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.58.2",
-    "@quasar/app-vite": "^2.5.0",
+    "@quasar/app-vite": "^2.5.2",
     "@types/blockies": "^0.0.4",
     "@types/node": "^24.10.0",
     "@vue/eslint-config-typescript": "^14.7.0",
     "autoprefixer": "^10.4.24",
-    "electron": "^40.6.1",
+    "electron": "^41.0.3",
     "electron-builder": "^26.8.1",
     "eslint": "^9.39.2",
     "eslint-plugin-vue": "^10.8.0",
@@ -71,8 +71,8 @@
   "resolutions": {
     "@bitauth/libauth": "3.1.0-next.8",
     "@walletconnect/core": "2.23.5",
-    "tar": ">=7.5.10",
-    "elliptic": ">=6.6.1"
+    "tar": "7.5.12",
+    "elliptic": "6.6.1"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

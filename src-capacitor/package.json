@@ -5,13 +5,13 @@
   "private": true,
   "dependencies": {
     "@capacitor-community/barcode-scanner": "^4.0.1",
-    "@capacitor/android": "^8.1.0",
+    "@capacitor/android": "^8.2.0",
     "@capacitor/app": "^8.0.1",
-    "@capacitor/cli": "^8.1.0",
-    "@capacitor/core": "^8.1.0"
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0"
   },
   "author": "Mathieu Geukens",
   "resolutions": {
-    "tar": "^7.5.11"
+    "tar": "^7.5.12"
   }
 }
