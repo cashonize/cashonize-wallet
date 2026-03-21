@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { ref, watch, onMounted, toRefs } from 'vue';
-  import Toggle from '@vueform/toggle';
   import { type DappMetadata } from 'src/interfaces/interfaces';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWindowSize } from '@vueuse/core'
@@ -111,7 +110,7 @@
 
           <div>
             {{ t('walletConnect.sessionSettings.enableAutoApprovals') }}
-            <Toggle v-model="enableAutoApprovals" @change="toggleRadioButtons"/>
+            <q-toggle v-model="enableAutoApprovals" @update:model-value="toggleRadioButtons" dense />
           </div>
 
           <label class="radio-option">

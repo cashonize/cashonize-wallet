@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { ref, computed, watch, watchEffect } from 'vue';
-  import Toggle from '@vueform/toggle'
   import { copyToClipboard, satsToBch } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -99,10 +98,10 @@
 
     <div class="filter-toggles">
       <div class="filter-toggle">
-        {{ t('hdAddresses.hideZeroBalances') }} <Toggle v-model="hideZeroBalances" />
+        {{ t('hdAddresses.hideZeroBalances') }} <q-toggle v-model="hideZeroBalances" dense />
       </div>
       <div class="filter-toggle">
-        {{ t('hdAddresses.showTokenAddresses') }} <Toggle v-model="showTokenAddresses" />
+        {{ t('hdAddresses.showTokenAddresses') }} <q-toggle v-model="showTokenAddresses" dense />
       </div>
     </div>
 

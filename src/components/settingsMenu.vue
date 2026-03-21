@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import Toggle from '@vueform/toggle'
   import EmojiItem from './general/emojiItem.vue'
   import backupWallet from './settings/backupWallet.vue'
   import walletsOverview from './settings/walletsOverview.vue'
@@ -342,33 +341,33 @@
     <backupWallet v-if="settingsSection == 1" />
     <div v-else-if="settingsSection == 2">
       <div style="margin-bottom:15px;">
-        {{ t('settings.userOptions.darkMode') }} <Toggle v-model="selectedDarkMode" @change="changeDarkMode()"/>
+        {{ t('settings.userOptions.darkMode') }} <q-toggle v-model="selectedDarkMode" @update:model-value="changeDarkMode()" dense />
       </div>
 
       <div style="margin-top:15px">
-        {{ t('settings.userOptions.confirmPayments') }} <Toggle v-model="confirmBeforeSending" @change="toggleConfirmBeforeSending"/>
+        {{ t('settings.userOptions.confirmPayments') }} <q-toggle v-model="confirmBeforeSending" @update:model-value="toggleConfirmBeforeSending" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.userOptions.confirmPaymentsHint') }}
         </div>
       </div>
 
       <div style="margin-top:15px">
-        {{ t('settings.userOptions.showCauldronSwap') }} <Toggle v-model="selectedShowSwap" @change="toggleShowSwap"/>
+        {{ t('settings.userOptions.showCauldronSwap') }} <q-toggle v-model="selectedShowSwap" @update:model-value="toggleShowSwap" dense />
       </div>
 
       <div style="margin-top:15px">
-        {{ t('settings.userOptions.showCauldronFTValue') }} <Toggle v-model="selectedShowCauldronFTValue" @change="toggleShowCauldronFTValue"/>
+        {{ t('settings.userOptions.showCauldronFTValue') }} <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.userOptions.showCauldronFTValueHint') }}
         </div>
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">
-        {{ t('settings.userOptions.enableTokenBurn') }} <Toggle v-model="selectedTokenBurn" @change="changeTokenBurn()"/>
+        {{ t('settings.userOptions.enableTokenBurn') }} <q-toggle v-model="selectedTokenBurn" @update:model-value="changeTokenBurn()" dense />
       </div>
 
       <div v-if="!isCapacitor" style="margin-top: 15px;">
-        {{ t('settings.userOptions.enableQrScan') }} <Toggle v-model="enableQrScan" @change="changeQrScan()"/>
+        {{ t('settings.userOptions.enableQrScan') }} <q-toggle v-model="enableQrScan" @update:model-value="changeQrScan()" dense />
       </div>
 
       <div style="margin-top:15px;">
@@ -527,14 +526,14 @@
       <div style="margin: 0px 10px;">
 
         <div style="margin-top:15px">
-          {{ t('settings.developer.enableMintNfts') }} <Toggle v-model="enableMintNfts" @change="changeMintNfts()"/>
+          {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
           <div style="font-size: smaller; color: grey;">
             {{ t('settings.developer.enableMintNftsHint') }}
           </div>
         </div>
 
         <div style="margin-top:15px; margin-bottom: 15px">
-          {{ t('settings.developer.enableAuthchains') }} <Toggle v-model="enableAuthchains" @change="changeAuthchains()"/>
+          {{ t('settings.developer.enableAuthchains') }} <q-toggle v-model="enableAuthchains" @update:model-value="changeAuthchains()" dense />
           <div style="font-size: smaller; color: grey;">
             {{ t('settings.developer.enableAuthchainsHint') }}
           </div>
@@ -546,7 +545,7 @@
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
-        {{ t('settings.developer.disableTokenIcons') }} <Toggle v-model="disableTokenIcons" @change="changeDisableTokenIcons()"/>
+        {{ t('settings.developer.disableTokenIcons') }} <q-toggle v-model="disableTokenIcons" @update:model-value="changeDisableTokenIcons()" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.disableTokenIconsHint') }}
         </div>

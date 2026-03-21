@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { ref } from "vue"
-  import Toggle from '@vueform/toggle'
   import { Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
@@ -240,11 +239,11 @@
       </div>
 
       <div style="margin-bottom: 20px;">
-        {{ t('onboarding.preferences.darkMode') }} <Toggle v-model="selectedDarkMode" @change="applyDarkMode" />
+        {{ t('onboarding.preferences.darkMode') }} <q-toggle v-model="selectedDarkMode" @update:model-value="applyDarkMode" dense />
       </div>
 
       <div style="margin-bottom: 25px;">
-        {{ t('onboarding.preferences.confirmPayments') }} <Toggle v-model="confirmBeforeSending" />
+        {{ t('onboarding.preferences.confirmPayments') }} <q-toggle v-model="confirmBeforeSending" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('onboarding.preferences.confirmPaymentsHint') }}
         </div>

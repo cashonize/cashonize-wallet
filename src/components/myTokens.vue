@@ -1,7 +1,6 @@
 
 <script setup lang="ts">
   import { ref, computed, onActivated, onDeactivated } from 'vue'
-  import Toggle from '@vueform/toggle'
   import { useI18n } from 'vue-i18n'
   import tokenItemNFT from './tokenItems/tokenItemNFT.vue'
   import tokenItemFT from './tokenItems/tokenItemFT.vue'
@@ -88,7 +87,7 @@
         </select>
       </div>
       <div class="option-item">
-        {{ t('tokens.editVisibility') }} <Toggle v-model="settingsStore.showTokenVisibilityToggle"/>
+        {{ t('tokens.editVisibility') }} <q-toggle v-model="settingsStore.showTokenVisibilityToggle" dense />
       </div>
     </div>
 

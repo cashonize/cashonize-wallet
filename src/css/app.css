@@ -1,16 +1,7 @@
 @import './base.css';
 @import 'chota';
-/* Toggle component styles - globally applied for all components using @vueform/toggle */
-@import '@vueform/toggle/themes/default.css';
-
 :root {
   --color-primary: #0ac18f;
-  --toggle-height: 1.7rem;
-}
-
-.toggle-container {
-  vertical-align: middle;
-  display: inline-block;
 }
 
 #app {
@@ -251,6 +242,48 @@ body.dark .wallet-name-styled {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
   }
+}
+
+/* Quasar q-toggle: restyle as pill toggle */
+.q-toggle {
+  vertical-align: middle;
+  display: inline-flex;
+  margin-left: 1px;
+}
+.q-toggle--dense .q-toggle__inner {
+  font-size: 30px;
+  width: 1.15em;
+  min-width: 1.15em;
+  height: 0.65em;
+  padding: 0;
+}
+.q-toggle--dense .q-toggle__track {
+  height: 100%;
+  border-radius: 0.325em;
+  opacity: 1;
+  background: #e0e0e0;
+}
+.q-toggle--dense .q-toggle__thumb {
+  top: 0.075em;
+  left: 0.05em;
+  width: 0.5em;
+  height: 0.5em;
+}
+.q-toggle--dense .q-toggle__thumb:after {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.q-toggle--dense .q-toggle__inner--truthy .q-toggle__track {
+  opacity: 1;
+  background: var(--color-primary);
+}
+.q-toggle--dense .q-toggle__inner--truthy .q-toggle__thumb {
+  left: 0.6em;
+}
+.q-toggle--dense .q-toggle__inner--truthy .q-toggle__thumb:after {
+  background: #fff;
+}
+body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-toggle__track {
+  background: #555;
 }
 
 /* offset chota .row styling for quasar components */

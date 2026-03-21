@@ -7,7 +7,6 @@
   import TransactionDialog from './transactionDialog.vue';
   import EmojiItem from '../general/emojiItem.vue';
   import { formatTimestamp, formatTime, formatFiatAmount } from 'src/utils/utils';
-  import Toggle from '@vueform/toggle'
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
 
@@ -97,10 +96,10 @@
           </select>
         </div>
         <div class="option-item">
-          {{ t('history.showFiatValue') }} <Toggle v-model="showFiatValue" @change="toggleShowFiatValue"/>
+          {{ t('history.showFiatValue') }} <q-toggle v-model="showFiatValue" @update:model-value="toggleShowFiatValue" dense />
         </div>
         <div class="option-item">
-          {{ t('history.hideBalanceColumn') }} <Toggle v-model="hideBalance" @change="toggleHideBalance"/>
+          {{ t('history.hideBalanceColumn') }} <q-toggle v-model="hideBalance" @update:model-value="toggleHideBalance" dense />
         </div>
       </div>
 
