@@ -228,6 +228,9 @@ export const useStore = defineStore('store', () => {
     }
 
     try {
+      // // Kick off exchange rate fetch immediately, so it's available as soon as possible for fiat balance display during initialization
+      void fetchExchangeRate();
+
       // attempt non-blocking connection to electrum server
       // wrapped the logic in an IIFE to avoid error bubbling up
       // otherwise this can cause the router to error (and UI to fail) in offline mode
@@ -289,8 +292,7 @@ export const useStore = defineStore('store', () => {
       console.time('fetch token metadata');
       await fetchTokenMetadata(tokenList.value, false);
       console.timeEnd('fetch token metadata');
-      // fetch exchange rate and Cauldron prices as fire-and-forget (non-critical)
-      void fetchExchangeRate();
+      // fetch Cauldron prices as fire-and-forget (non-critical)
       void fetchCauldronPricesForTokens();
       startRefetchIntervals();
       console.time('fetch initial history');
