@@ -133,6 +133,9 @@ test.describe.serial('WalletConnect E2E', () => {
     // dApp: Assert response contains signed transaction
     await expect(dappPage.locator('#response')).toContainText('signedTransaction', { timeout: 15_000 })
     await expect(dappPage.locator('#response')).toContainText('signedTransactionHash')
+
+    // Wallet: Dismiss the "Transaction Signed" alert dialog
+    await walletPage.keyboard.press('Escape')
   })
 
   test('cancelPendingRequests', async () => {

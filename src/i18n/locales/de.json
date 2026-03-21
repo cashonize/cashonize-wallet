@@ -800,6 +800,8 @@
       "failedToSignMessage": "Nachricht konnte nicht signiert werden",
       "sendingTransaction": "Transaktion wird gesendet...",
       "sentTransaction": "WalletConnect-Transaktion '{userPrompt}' gesendet",
+      "signedTransaction": "WalletConnect-Transaktion '{userPrompt}' signiert. Bitte kehren Sie zur Dapp zurück.",
+      "transactionSignedTitle": "Transaktion signiert",
       "transactionSent": "Transaktion erfolgreich gesendet!",
       "transactionSigned": "Transaktion erfolgreich signiert!",
       "requestExpired": "Anfrage abgelaufen, bitte kehren Sie zu {dappName} zurück, um es erneut zu versuchen"

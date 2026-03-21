@@ -800,6 +800,8 @@
       "failedToSignMessage": "Failed to sign message",
       "sendingTransaction": "Sending transaction...",
       "sentTransaction": "Sent WalletConnect transaction '{userPrompt}'",
+      "signedTransaction": "Signed WalletConnect transaction '{userPrompt}'. Please return to the dapp.",
+      "transactionSignedTitle": "Transaction Signed",
       "transactionSent": "Transaction successfully sent!",
       "transactionSigned": "Transaction successfully signed!",
       "requestExpired": "Request expired, please return to {dappName} if you would like to retry"

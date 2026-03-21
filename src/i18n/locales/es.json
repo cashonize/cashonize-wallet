@@ -800,6 +800,8 @@
       "failedToSignMessage": "Error al firmar el mensaje",
       "sendingTransaction": "Enviando transacción...",
       "sentTransaction": "Enviada transacción WalletConnect '{userPrompt}'",
+      "signedTransaction": "Transacción WalletConnect '{userPrompt}' firmada. Por favor, regresa a la dapp.",
+      "transactionSignedTitle": "Transacción firmada",
       "transactionSent": "¡Transacción enviada exitosamente!",
       "transactionSigned": "¡Transacción firmada exitosamente!",
       "requestExpired": "Solicitud expirada, por favor regrese a {dappName} para reintentar"

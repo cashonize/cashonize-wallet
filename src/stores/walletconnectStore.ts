@@ -534,6 +534,20 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
           return
         }
       }
+      if (!wcTransactionObj.broadcast) {
+        const alertMessage = t('walletConnect.notifications.signedTransaction', { userPrompt: wcTransactionObj.userPrompt })
+        Dialog.create({
+          component: alertDialog,
+          componentProps: {
+            alertInfo: {
+              message: alertMessage,
+              txid: hash,
+              title: t('walletConnect.notifications.transactionSignedTitle'),
+              hideExplorerLink: true,
+            }
+          }
+        })
+      }
       const response = { id, jsonrpc: '2.0', result: signedTxObject };
       await web3wallet.value?.respondSessionRequest({ topic, response });
 

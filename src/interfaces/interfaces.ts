@@ -65,6 +65,8 @@ export interface DappMetadata {
 export interface DialogInfo {
   message: string
   txid: string
+  title?: string
+  hideExplorerLink?: boolean
 }
 
 export interface BcmrTokenNftsParseInfo {
