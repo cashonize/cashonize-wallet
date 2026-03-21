@@ -26,17 +26,23 @@
   const activeSessions = computed(() => walletconnectStore.activeSessions ?? {})
 
   async function connectDappUriInput(url: string){
+    if(!url){
+      $q.notify({ message: t('walletConnect.errors.enterUri'), icon: 'warning', color: "grey-7" });
+      return;
+    }
+    // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
+    if(!web3wallet.value){
+      $q.notify({ message: t('walletConnect.errors.notInitialized'), icon: 'warning', color: "grey-7" });
+      return;
+    }
     try {
-      if(!url) throw(t('walletConnect.errors.enterUri'));
-      // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
-      if(!web3wallet.value) throw(t('walletConnect.errors.notInitialized'));
       await web3wallet.value.core.pairing.pair({ uri: url });
     } catch(error) {
-      const errorMessage = typeof error == 'string' ? error : t('walletConnect.errors.invalidUri')
+      const errorMessage = error instanceof Error ? error.message : t('walletConnect.errors.invalidUri')
       $q.notify({
         message: errorMessage,
         icon: 'warning',
-        color: typeof error == 'string' ? "grey-7" : "red"
+        color: "red"
       })
     }
   }

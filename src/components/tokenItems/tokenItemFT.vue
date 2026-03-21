@@ -78,18 +78,18 @@
 
   function checkValidTokenInput(numberInput: string, decimals: number){
     // Validate the input format (no separting commas allowed here)
-    if (!/^\d*\.?\d*$/.test(numberInput)) throw (t('tokenItem.errors.invalidNumberFormat'));
+    if (!/^\d*\.?\d*$/.test(numberInput)) throw new Error(t('tokenItem.errors.invalidNumberFormat'));
 
     // Validate if the input can be converted to a number
     const number = parseFloat(numberInput);
-    if (isNaN(number) || number <= 0) throw(t('tokenItem.errors.enterValidAmount'));
+    if (isNaN(number) || number <= 0) throw new Error(t('tokenItem.errors.enterValidAmount'));
 
     // check number of decimal places
     const decimalPart = numberInput.split('.')[1];
     const decimalPlaces = decimalPart ? decimalPart.length : 0;
     const validInput = decimalPlaces <= decimals
-    if(!validInput && !decimals) throw(t('tokenItem.errors.noDecimalsAllowed'));
-    if(!validInput) throw (t('tokenItem.errors.maxDecimalsAllowed', { decimals }));
+    if(!validInput && !decimals) throw new Error(t('tokenItem.errors.noDecimalsAllowed'));
+    if(!validInput) throw new Error(t('tokenItem.errors.maxDecimalsAllowed', { decimals }));
   }
   const qrDecode = (content: string) => {
     destinationAddr.value = content;
@@ -170,24 +170,24 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
-      if(!destinationAddr.value) throw(t('tokenItem.errors.noDestination'));
-      if(!tokenSendAmount?.value) throw(t('tokenItem.errors.noValidAmount'));
+      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'));
+      if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
       const sanitizedInput = tokenSendAmount.value.replace(/,/g, '');
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       checkValidTokenInput(sanitizedInput, decimals)
       const amountTokensNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
       const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
       const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
-      if(amountTokensInt > tokenData.value.amount) throw(t('tokenItem.errors.insufficientBalance'));
+      if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         destinationAddr.value = networkPrefix + destinationAddr.value
       }
       const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw(t('tokenItem.errors.invalidAddress'));
+      if(typeof decodedAddress == 'string') throw new Error(t('tokenItem.errors.invalidAddress'));
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
-      if(!supportsTokens ) throw(t('tokenItem.errors.notTokenAddress'));
+      if(!supportsTokens ) throw new Error(t('tokenItem.errors.notTokenAddress'));
       if(tokenData.value?.authUtxo){
         const authConfirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
@@ -269,14 +269,14 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
-      if(!burnAmountFTs?.value) throw(t('tokenItem.errors.amountMustBeInteger'));
+      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if(!burnAmountFTs?.value) throw new Error(t('tokenItem.errors.amountMustBeInteger'));
       const sanitizedInput = burnAmountFTs.value.replace(/,/g, '');
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       checkValidTokenInput(sanitizedInput, decimals)
       const amountTokensNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
       const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
-      if(amountTokensInt > tokenData.value.amount) throw(t('tokenItem.errors.insufficientBalance'));
+      if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
 
       const amountBurnFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
@@ -337,13 +337,13 @@
   async function transferAuth() {
     if (activeAction.value) return;
     if(!tokenData.value?.authUtxo) return;
-    if(!reservedSupplyInput?.value) throw(t('tokenItem.errors.reservedSupplyInvalid'));
+    if(!reservedSupplyInput?.value) throw new Error(t('tokenItem.errors.reservedSupplyInvalid'));
     const decimals = tokenMetaData.value?.token?.decimals ?? 0;
     const sanitizedInput = reservedSupplyInput.value.replace(/,/g, '');
     checkValidTokenInput(sanitizedInput, decimals)
     const reservedSupplyNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
     const reservedSupply = typeof reservedSupplyNumber == "number" ? BigInt(Math.round(reservedSupplyNumber)): BigInt(reservedSupplyNumber)
-    if(reservedSupply > tokenData.value.amount) throw(t('tokenItem.errors.insufficientBalance'));
+    if(reservedSupply > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
     const category = tokenData.value.category;
     activeAction.value = 'transferAuth';
     try {

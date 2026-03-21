@@ -56,7 +56,7 @@
     // check for opreturn
     if(binToHex(lockingBytecode).startsWith("6a")) return "opreturn:" +  binToHex(lockingBytecode)
     const result = lockingBytecodeToCashAddress({bytecode:lockingBytecode, prefix});
-    if (typeof result == "string") throw result;
+    if (typeof result == "string") throw new Error(result);
     return result.address;
   }
 

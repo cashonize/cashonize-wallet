@@ -10,6 +10,7 @@
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
+  import { caughtErrorToString } from 'src/utils/errorHandling'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   const $q = useQuasar()
@@ -164,15 +165,15 @@
     isSending.value = true;
     try{
       // check for valid inputs
-      if(!destinationAddr.value) throw(t('wallet.errors.noDestination'))
-      if(!bchSendAmount.value) throw(t('wallet.errors.noAmount'))
-      if(bchSendAmount.value > (maxAmountToSendInBchUnit.value ?? 0)) throw(t('wallet.errors.insufficientFunds'))
+      if(!destinationAddr.value) throw new Error(t('wallet.errors.noDestination'))
+      if(!bchSendAmount.value) throw new Error(t('wallet.errors.noAmount'))
+      if(bchSendAmount.value > (maxAmountToSendInBchUnit.value ?? 0)) throw new Error(t('wallet.errors.insufficientFunds'))
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         destinationAddr.value = networkPrefix + destinationAddr.value
       }
       const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw(t('wallet.errors.invalidAddress'))
+      if(typeof decodedAddress == 'string') throw new Error(t('wallet.errors.invalidAddress'))
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -225,7 +226,7 @@
       void store.updateWalletHistory();
     } catch(error){
       console.log(error)
-      const errorMessage = typeof error == 'string' ? error : t('common.errors.somethingWentWrong');
+      const errorMessage = caughtErrorToString(error);
       $q.notify({
         message: errorMessage,
         icon: 'warning',

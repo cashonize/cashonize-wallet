@@ -95,7 +95,7 @@
       try { return BigInt(value) }
       catch{ return false }
     }
-    if(!validInput) throw(`Input total supply must be a valid integer`)
+    if(!validInput) throw new Error(`Input total supply must be a valid integer`)
     activeAction.value = 'creatingFungibles';
     try{
       const totalSupply = inputFungibleSupply.value;

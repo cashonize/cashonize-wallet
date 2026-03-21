@@ -178,16 +178,16 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if(!destinationAddr.value) throw(t('tokenItem.errors.noDestination'))
+      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'))
       if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
         const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
         destinationAddr.value = networkPrefix + destinationAddr.value
       }
       const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw(t('tokenItem.errors.invalidAddress'))
+      if(typeof decodedAddress == 'string') throw new Error(t('tokenItem.errors.invalidAddress'))
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
-      if(!supportsTokens ) throw(t('tokenItem.errors.notTokenAddress'));
-      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
+      if(!supportsTokens ) throw new Error(t('tokenItem.errors.notTokenAddress'));
+      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -264,18 +264,18 @@
     activeAction.value = 'minting';
     try {
       if(!nftInfo) return;
-      if(mintQuantity.value == undefined) throw(t('tokenItem.errors.invalidAmountNfts'));
+      if(mintQuantity.value == undefined) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
       const mintAmount = parseInt(mintQuantity.value);
 
       if(mintMode.value === "collection" && startingNumberNFTs.value == undefined) {
-        throw(t('tokenItem.errors.invalidStartingNumber'));
+        throw new Error(t('tokenItem.errors.invalidStartingNumber'));
       }
       // single mode: validate commitment is valid hex
       let nftCommitment = mintMode.value === "collection" ? "" : mintCommitment.value;
       const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
-      if(!validCommitment) throw(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
+      if(!validCommitment) throw new Error(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
 
-      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
@@ -345,7 +345,7 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
+      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const nftInfo = nftData.value.token as TokenI;
       const category = nftInfo.category;
