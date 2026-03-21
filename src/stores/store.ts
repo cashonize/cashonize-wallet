@@ -438,20 +438,25 @@ export const useStore = defineStore('store', () => {
     }, false);
   }
 
-  function resetWalletState(){
+  async function resetWalletState({ resetDappConnections = true } = {}){
     viewStack.length = 0;
     walletInitialized.value = false;
-    // Execute each of our network changed callbacks.
-    // In practice, we're using these for WC/CC to disconnect their sessions.
-    // TODO: investigate if disconnecting session this way is properly working
-    // Call disconnects as fire-and-forget promises
-    networkChangeCallbacks.forEach((callback) => void callback());
-    // clear the networkChangeCallbacks before initialising newWallet
-    networkChangeCallbacks = []
+
+    if (resetDappConnections) {
+      // Reset WC/CC initialized flags so re-initialization runs after reset
+      isWcInitialized.value = false;
+      isCcInitialized.value = false;
+
+      // Await WC/CC cleanup so stop() finishes before start() can be called again
+      const cleanupPromises = networkChangeCallbacks.map(callback => callback().catch(() => {}));
+      await Promise.all(cleanupPromises);
+      // Clear the networkChangeCallbacks before initialising newWallet
+      networkChangeCallbacks = [];
+    }
 
     // cancel active listeners and intervals
     stopRefetchIntervals();
-    void cancelWalletSubscriptions();
+    await cancelWalletSubscriptions();
     // reset wallet to default state
     balance.value = undefined;
     maxAmountToSend.value = undefined;
@@ -478,11 +483,12 @@ export const useStore = defineStore('store', () => {
     return isHD ? TestNetHDWallet : TestNetWallet;
   }
 
+  // Switching networks resets all wallet state and reinitializes the wallet on the new network
   async function changeNetwork(
     newNetwork: 'mainnet' | 'chipnet',
     awaitWalletInitialization: boolean = false
   ){
-    resetWalletState()
+    await resetWalletState()
     // set new wallet
     const walletClass = await getWalletClass(activeWalletName.value, newNetwork);
     const newWallet = await walletClass.named(activeWalletName.value);
@@ -529,7 +535,7 @@ export const useStore = defineStore('store', () => {
     // Only update state after successful wallet load
     activeWalletName.value = walletName;
     localStorage.setItem('activeWalletName', walletName);
-    resetWalletState();
+    await resetWalletState();
     setWallet(newWallet);
     changeView(1);
     // fire-and-forget - don't await so UI is responsive

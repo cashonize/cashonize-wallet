@@ -154,11 +154,13 @@
     settingsStore[explorerNetwork] = selectedExplorer.value;
     localStorage.setItem(explorerNetwork, selectedExplorer.value);
   }
-  function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
+  // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
+  async function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
     if (targetNetwork === "mainnet" && selectedElectrumServer.value === "custom") return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
-    store.resetWalletState()
+    // Only reset electrum state, keep WC/CC sessions alive
+    await store.resetWalletState({ resetDappConnections: false })
     if(targetNetwork == "mainnet"){
       const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004`)
       // @ts-ignore currently no other way to set a specific provider
@@ -176,12 +178,14 @@
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }
-  function saveCustomElectrumServer(){
+  // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
+  async function saveCustomElectrumServer(){
     const trimmedServer = customElectrumServer.value.trim();
     if (!trimmedServer) return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
-    store.resetWalletState()
+    // Only reset electrum state, keep WC/CC sessions alive
+    await store.resetWalletState({ resetDappConnections: false })
     const newConnection = new Connection("mainnet",`wss://${trimmedServer}:50004`)
     // @ts-ignore currently no other way to set a specific provider
     store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
