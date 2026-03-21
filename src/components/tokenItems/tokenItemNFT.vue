@@ -7,7 +7,6 @@
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
-  import { querySupplyNFTs, queryActiveMinting } from "src/queryChainGraph"
   import { copyToClipboard } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useStore } from 'src/stores/store'
@@ -47,8 +46,6 @@
   const mintCommitment = ref("");
   const mintQuantity = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
-  const totalNumberNFTs = ref(undefined as number | undefined);
-  const hasMintingNFT = ref(undefined as boolean | undefined);
   const showQrCodeDialog = ref(false);
   // Local state for batch NFT selection - keyed by "txid:vout"
   const selectedNfts = ref(new Set<string>());
@@ -70,7 +67,6 @@
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category] ?? undefined;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
-  const isSingleMintingNft = computed(() => isSingleNft.value && tokenData.value.nfts?.[0]?.token?.nft?.capability == 'minting');
   const nftMetadata = computed(() => {
     if(!isSingleNft.value) return
     const nftData = tokenData.value.nfts?.[0];
@@ -165,22 +161,6 @@
     if(failedToLoad) {
       await nextTick();
       appendBlockieIcon(tokenData.value.category, `#id${tokenData.value.category.slice(0, 10)}nft`);
-    }
-  })
-
-  // check if need to fetch onchain stats on displayTokenInfo
-  watch(displayTokenInfo, async() => {
-    if(!totalNumberNFTs.value && tokenData.value?.nfts && hasMintingNFT.value == undefined){
-      try {
-        const [supplyNFTs, activeMintingCount] = await Promise.all([
-          querySupplyNFTs(tokenData.value.category, settingsStore.chaingraph),
-          queryActiveMinting(tokenData.value.category, settingsStore.chaingraph)
-        ]);
-        totalNumberNFTs.value = supplyNFTs;
-        hasMintingNFT.value = activeMintingCount > 0;
-      } catch (error) {
-        console.error("Failed to fetch NFT stats:", error);
-      }
     }
   })
 
@@ -751,12 +731,6 @@
           <div v-if="tokenMetaData?.uris?.web">
             {{ t('tokenItem.info.tokenWebLink') }}
             <a :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
-          </div>
-          <div v-if="tokenData?.nfts?.length && !isParsable">
-            {{ t('tokenItem.info.totalSupplyNfts') }} {{ totalNumberNFTs? totalNumberNFTs.toLocaleString("en-US"): "..."}}
-          </div>
-          <div v-if="tokenData?.nfts?.length && !isSingleMintingNft && !isParsable">
-            {{ t('tokenItem.info.hasActiveMintingNft') }} {{ hasMintingNFT == undefined? "..." :( hasMintingNFT? t('tokenItem.info.yes'): t('tokenItem.info.no'))}}
           </div>
           <div>
             <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">

@@ -6,7 +6,6 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
-  import { queryTotalSupplyFT, queryReservedSupply } from "src/queryChainGraph"
   import { copyToClipboard, formatFiatAmount } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useStore } from 'src/stores/store'
@@ -37,16 +36,12 @@
   const burnAmountFTs = ref("");
   const reservedSupplyInput = ref("")
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
-  const totalSupplyFT = ref(undefined as bigint | undefined);
-  const reservedSupply = ref(undefined as bigint | undefined);
   const showQrCodeDialog = ref(false);
   const activeAction = ref<'sending' | 'burning' | 'transferAuth' | null>(null);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category];
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
-
-  const MAX_SUPPLY_FTS = 9_223_372_036_854_775_807n
 
   const tokenName = computed(() => {
     return tokenMetaData.value?.name;
@@ -81,22 +76,6 @@
     { immediate: true }
   );
 
-  // check if need to fetch onchain stats on displayTokenInfo
-  watch(displayTokenInfo, async() => {
-    if(!totalSupplyFT.value && tokenData.value?.amount){
-      try {
-        const [totalSupply, reserved] = await Promise.all([
-          queryTotalSupplyFT(tokenData.value.category, settingsStore.chaingraph),
-          queryReservedSupply(tokenData.value.category, settingsStore.chaingraph)
-        ]);
-        totalSupplyFT.value = totalSupply;
-        reservedSupply.value = reserved;
-      } catch (error) {
-        console.error("Failed to fetch token supply stats:", error);
-      }
-    }
-  })
-  
   function checkValidTokenInput(numberInput: string, decimals: number){
     // Validate the input format (no separting commas allowed here)
     if (!/^\d*\.?\d*$/.test(numberInput)) throw (t('tokenItem.errors.invalidNumberFormat'));
@@ -497,34 +476,15 @@
         <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
           <div v-if="tokenMetaData?.description" class="indentText"> {{ t('tokenItem.info.tokenDescription') }} {{ tokenMetaData.description }} </div>
+          <div v-if="tokenMetaData?.token?.symbol">
+            {{ t('tokenItem.info.tokenSymbol') }} {{ tokenMetaData.token.symbol }}
+          </div>
           <div v-if="tokenData.amount && tokenMetaData">
             {{ t('tokenItem.info.numberOfDecimals') }} {{ tokenMetaData?.token?.decimals ?? 0 }}
           </div>
           <div v-if="tokenMetaData?.uris?.web">
             {{ t('tokenItem.info.tokenWebLink') }}
             <a :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
-          </div>
-          <div>
-            {{ t('tokenItem.info.maxSupply') }}
-            <span v-if="totalSupplyFT">
-              {{ totalSupplyFT!= MAX_SUPPLY_FTS ?
-                  numberFormatter.format(toAmountDecimals(totalSupplyFT)) +
-                  (tokenMetaData?.token?.symbol ? " " + tokenMetaData?.token?.symbol : " " + t('tokenItem.tokens'))
-                : t('tokenItem.info.openEnded')
-              }}
-            </span><span v-else>...</span>
-          </div>
-          <div>
-            {{ t('tokenItem.info.circulatingSupply') }}
-            <span v-if="totalSupplyFT && reservedSupply != undefined">
-              {{ numberFormatter.format(toAmountDecimals(totalSupplyFT - reservedSupply)) +
-                (tokenMetaData?.token?.symbol ? " " + tokenMetaData?.token?.symbol: " " + t('tokenItem.tokens'))
-              }}
-              {{ totalSupplyFT!= MAX_SUPPLY_FTS ?
-                `(${((Number((totalSupplyFT - reservedSupply)*1000n/totalSupplyFT))/10).toFixed(1)}%)`
-                :""
-              }}
-            </span><span v-else>...</span>
           </div>
           <div>
             <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">

@@ -474,20 +474,20 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.chaingraph') }}</label>
-        <select v-model="selectedChaingraph" @change="changeChaingraph()">
-          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
-          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
-        </select>
-      </div>
-
-      <div style="margin-top:15px">
         <label for="selectExchangeRate">{{ t('settings.advanced.exchangeRate') }}</label>
         <select v-model="selectedExchangeRateProvider" @change="changeExchangeRateProvider()">
           <option value="default">{{ t('settings.advanced.exchangeRateDefault') }}</option>
           <option value="bitpay">BitPay</option>
           <option value="coingecko">CoinGecko</option>
           <option value="coinbase">Coinbase</option>
+        </select>
+      </div>
+
+      <div style="margin-top:15px">
+        <label for="selectNetwork">{{ t('settings.advanced.chaingraph') }}</label>
+        <select v-model="selectedChaingraph" @change="changeChaingraph()">
+          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
+          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
         </select>
       </div>
 

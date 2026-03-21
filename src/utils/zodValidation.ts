@@ -213,24 +213,6 @@ export const CoinbaseRatesSchema = z.object({
 
 /* Chaingraph response schemas */
 
-export const ChaingraphTotalSupplyFTSchema = z.object({
-  data: z.object({
-    transaction: z.array(z.object({
-      outputs: z.array(z.object({
-        fungible_token_amount: z.string()
-      }))
-    }))
-  })
-});
-
-export const ChaingraphOutputArraySchema = z.object({
-  data: z.object({
-    output: z.array(z.object({
-      locking_bytecode: z.string()
-    }))
-  })
-});
-
 export const ChaingraphAuthHeadSchema = z.object({
   data: z.object({
     transaction: z.array(z.object({

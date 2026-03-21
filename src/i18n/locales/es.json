@@ -41,7 +41,6 @@
   "chaingraph": {
     "errors": {
       "requestFailed": "Solicitud a Chaingraph falló: {status}",
-      "tokenGenesisNotFound": "Transacción genesis del token no encontrada",
       "tokenNotFound": "Token no encontrado",
       "authchainNotFound": "Authchain no encontrada"
     }
@@ -200,19 +199,13 @@
     "info": {
       "tokenDescription": "Descripción del token:",
       "nftDescription": "Descripción del NFT:",
+      "tokenSymbol": "Símbolo del token:",
       "numberOfDecimals": "Número de decimales:",
       "tokenWebLink": "Enlace web del token:",
-      "maxSupply": "Suministro máximo:",
-      "openEnded": "sin límite",
-      "circulatingSupply": "Suministro circulante:",
-      "seeDetailsOnExplorer": "Ver detalles en TokenExplorer",
+      "seeDetailsOnExplorer": "Ver información completa del token en TokenExplorer",
       "nftType": "Tipo de NFT:",
       "immutable": "inmutable",
       "nftCommitment": "Commitment del NFT:",
-      "totalSupplyNfts": "Suministro total de NFTs:",
-      "hasActiveMintingNft": "Tiene NFT de acuñación activo:",
-      "yes": "sí",
-      "no": "no",
       "nftAttributes": "Atributos del NFT",
       "extensionNote": "Datos del préstamo obtenidos de la blockchain:",
       "parsedFields": "Datos NFT analizados:",

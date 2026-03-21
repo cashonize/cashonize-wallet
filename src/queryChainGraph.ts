@@ -1,6 +1,4 @@
 import {
-  ChaingraphTotalSupplyFTSchema,
-  ChaingraphOutputArraySchema,
   ChaingraphAuthHeadSchema,
 } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n'
@@ -24,83 +22,6 @@ async function queryChainGraph(queryReq:string, chaingraphUrl:string){
     });
     if (!response.ok) throw new Error(t('chaingraph.errors.requestFailed', { status: response.status }));
     return await response.json();
-}
-
-export async function queryTotalSupplyFT(tokenId:string, chaingraphUrl:string){
-    const queryReqTotalSupply = `query {
-        transaction(
-          where: {
-            inputs: {
-              outpoint_transaction_hash: { _eq: "\\\\x${tokenId}" }
-              outpoint_index: { _eq: 0 }
-            }
-          }
-        ) {
-          outputs(where: { token_category: { _eq: "\\\\x${tokenId}" } }) {
-            fungible_token_amount
-          }
-        }
-      }`;
-    const responseJson = await queryChainGraph(queryReqTotalSupply, chaingraphUrl);
-    const parsed = ChaingraphTotalSupplyFTSchema.parse(responseJson);
-    const transaction = parsed.data.transaction[0];
-    if (!transaction) throw new Error(t('chaingraph.errors.tokenGenesisNotFound'));
-    const totalAmount = transaction.outputs.reduce(
-        (total, output) => total + BigInt(output.fungible_token_amount),
-        0n
-      );
-    return totalAmount;
-}
-
-export async function queryActiveMinting(tokenId:string, chaingraphUrl:string){
-    const queryReqActiveMinting = `query {
-        output(
-          where: {
-            token_category: { _eq: "\\\\x${tokenId}" }
-            _and: { nonfungible_token_capability: { _eq: "minting" } }
-            _not: { spent_by: {} }
-          }
-        ) {
-          locking_bytecode
-        }
-      }`;
-    const responseJson = await queryChainGraph(queryReqActiveMinting, chaingraphUrl);
-    const parsed = ChaingraphOutputArraySchema.parse(responseJson);
-    return parsed.data.output.length;
-}
-
-export async function querySupplyNFTs(tokenId:string, chaingraphUrl:string){
-  let offset = 0;
-  async function querySupplyNFTsOffset(offset=0) {
-    const queryReqTotalSupply = `query {
-        output(
-          offset: ${offset}
-          where: {
-            token_category: {
-              _eq: "\\\\x${tokenId}"
-            }
-            _and: [
-              { nonfungible_token_capability: { _eq: "none" } }
-            ]
-            _not: { spent_by: {} }
-          }
-        ) {
-          locking_bytecode
-        }
-    }`;
-    const responseJson = await queryChainGraph(queryReqTotalSupply, chaingraphUrl);
-    const parsed = ChaingraphOutputArraySchema.parse(responseJson);
-    return parsed.data.output.length;
-  }
-  let resultFetchSupplyNFTs = await querySupplyNFTsOffset();
-  let supplyNFTs = resultFetchSupplyNFTs;
-  // limit of items returned by chaingraph query is 5000
-  while (resultFetchSupplyNFTs === 5000) {
-    offset += 5000;
-    resultFetchSupplyNFTs = await querySupplyNFTsOffset(offset);
-    supplyNFTs += resultFetchSupplyNFTs;
-  }
-  return supplyNFTs;
 }
 
 export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
@@ -137,10 +58,3 @@ export async function queryAuthHeadTxid(tokenId:string, chaingraphUrl:string){
   return authchain.authhead.hash.slice(2);
 }
 
-export async function queryReservedSupply(tokenId:string, chaingraphUrl:string){
-  const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
-  const authchain = authHeadObj.authchains[0];
-  if (!authchain) throw new Error(t('chaingraph.errors.authchainNotFound'));
-  const reservedSupply = authchain.authhead.identity_output[0]?.fungible_token_amount;
-  return reservedSupply ? BigInt(reservedSupply) : undefined;
-}
