@@ -1,9 +1,7 @@
 
 <script setup lang="ts">
-  import { computed, type Ref } from 'vue'
+  import { computed } from 'vue'
   import WC2ActiveSession from 'src/components/walletconnect/WC2ActiveSession.vue'
-  import { type Wallet } from 'mainnet-js';
-  import { useStore } from 'src/stores/store'
   import { storeToRefs } from 'pinia';
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useQuasar } from 'quasar'
@@ -15,11 +13,9 @@
   });
 
   const $q = useQuasar()
-  const store = useStore()
   const { t } = useI18n()
 
-  const { _wallet } = storeToRefs(store);
-  const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>)
+  const walletconnectStore = useWalletconnectStore()
   // Note: web3wallet starts off undefined, so we want the reactive reference.
   const { web3wallet } = storeToRefs(walletconnectStore)
 

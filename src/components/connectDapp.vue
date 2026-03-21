@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, watch, type Ref } from 'vue'
+  import { ref, watch } from 'vue'
   import { useQuasar } from 'quasar';
   import { storeToRefs } from 'pinia';
   import { useI18n } from 'vue-i18n'
@@ -7,7 +7,6 @@
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
-  import { type Wallet } from 'mainnet-js';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   // Components.
@@ -21,10 +20,9 @@
   const settingsStore = useSettingsStore();
   const { t } = useI18n()
 
-  const { _wallet } = storeToRefs(store);
-  const walletconnectStore = useWalletconnectStore(_wallet as Ref<Wallet>)
+  const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
-  const cashconnectStore = useCashconnectStore(_wallet as Ref<Wallet>);
+  const cashconnectStore = useCashconnectStore();
 
   // Props.
   const props = defineProps<{

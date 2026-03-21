@@ -1,12 +1,8 @@
 <script setup lang="ts">
-  import { type Ref } from 'vue';
-  import { storeToRefs } from 'pinia';
   import { useQuasar } from 'quasar';
-  import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
   import { caughtErrorToString } from 'src/utils/errorHandling';
-  import { type Wallet } from 'mainnet-js';
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
@@ -16,14 +12,9 @@
   });
 
   const $q = useQuasar();
-  const store = useStore()
   const settingsStore = useSettingsStore();
 
-
-  // NOTE: Vue's reactive unwrapping appears to interfere with the types.
-  //       So we just cast this to Ref<Wallet> here (which works and is compatible in practice).
-  const { _wallet } = storeToRefs(store);
-  const cashconnectStore = useCashconnectStore(_wallet as Ref<Wallet>);
+  const cashconnectStore = useCashconnectStore();
 
   // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
   async function connectDappUriInput(url: string){

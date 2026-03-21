@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, reactive, computed, watch, type Ref } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import {
   Wallet,
   TestNetWallet,
@@ -561,7 +561,7 @@ export const useStore = defineStore('store', () => {
 
   async function initializeWalletConnect() {
     try {
-      const walletconnectStore = useWalletconnectStore(_wallet as Ref<WalletType>)
+      const walletconnectStore = useWalletconnectStore()
       await walletconnectStore.initweb3wallet();
       isWcInitialized.value = true;
 
@@ -593,7 +593,7 @@ export const useStore = defineStore('store', () => {
   async function initializeCashConnect() {
     try{
       // Initialize CashConnect.
-      const cashconnectWallet = useCashconnectStore(_wallet as Ref<WalletType>);
+      const cashconnectWallet = useCashconnectStore();
 
       // Start the wallet service.
       await cashconnectWallet.start();
