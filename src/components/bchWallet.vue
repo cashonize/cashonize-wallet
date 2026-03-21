@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch, shallowRef } from 'vue'
-  import { convert, ExchangeRate } from 'mainnet-js'
+  import { convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
@@ -23,13 +23,6 @@
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
-  // Prefetch exchange rate for the selected fiat currency
-  const exchangeRate = ref<number | undefined>(undefined);
-  async function fetchExchangeRate() {
-    exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
-  }
-  void fetchExchangeRate();
-  watch(() => settingsStore.currency, () => void fetchExchangeRate());
 
   // reactive state
   const displayBchQr = ref(true);
@@ -59,8 +52,8 @@
     else return settingsStore.bchUnit == "bch"? " tBCH" : " testnet satoshis"
   })
   const displayCurrencyBalance = computed(() => {
-    if (exchangeRate.value === undefined || store.balance === undefined) return '';
-    const balance = convertToCurrency(store.balance, exchangeRate.value);
+    if (store.exchangeRate === undefined || store.balance === undefined) return '';
+    const balance = convertToCurrency(store.balance, store.exchangeRate);
     return formatFiatAmount(balance, settingsStore.currency);
   });
   const currencyDisplayShortName = computed(() => {
@@ -154,8 +147,8 @@
     if(store.maxAmountToSend && store.balance){
       bchSendAmount.value = await convert(Number(store.maxAmountToSend), "sat", settingsStore.bchUnit);
       // update currency balance & set currency amount
-      if (exchangeRate.value !== undefined) {
-        currencySendAmount.value = convertToCurrency(store.maxAmountToSend, exchangeRate.value);
+      if (store.exchangeRate !== undefined) {
+        currencySendAmount.value = convertToCurrency(store.maxAmountToSend, store.exchangeRate);
       }
     }
     else{

@@ -125,6 +125,7 @@
   // Use as fire-and-forget to avoid blocking the setup process.
   void loadCacheSizes()
 
+  // store watches settingsStore.currency and refetches the exchange rate automatically
   async function changeCurrency(){
     Config.DefaultCurrency = selectedCurrency.value;
     settingsStore.currency = selectedCurrency.value;

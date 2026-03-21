@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, reactive, computed, type Ref } from 'vue'
+import { ref, reactive, computed, watch, type Ref } from 'vue'
 import {
   Wallet,
   TestNetWallet,
@@ -9,6 +9,7 @@ import {
   Config,
   Connection,
   convert,
+  ExchangeRate,
   type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
@@ -58,6 +59,8 @@ const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
 const isDesktop = (process.env.MODE == "electron");
+const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const CAULDRON_REFETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 export const useStore = defineStore('store', () => {
   const displayView = ref(undefined as (number | undefined));
@@ -79,6 +82,9 @@ export const useStore = defineStore('store', () => {
   const currentBlockHeight = ref(undefined as (number | undefined));
   const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
   const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
+  const exchangeRate = ref<number | undefined>(undefined);
+  let exchangeRateInterval: ReturnType<typeof setInterval> | undefined;
+  let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
   const walletInitialized = ref(false as boolean)
@@ -283,8 +289,10 @@ export const useStore = defineStore('store', () => {
       console.time('fetch token metadata');
       await fetchTokenMetadata(tokenList.value, false);
       console.timeEnd('fetch token metadata');
-      // fetch Cauldron prices as fire-and-forget (non-critical)
+      // fetch exchange rate and Cauldron prices as fire-and-forget (non-critical)
+      void fetchExchangeRate();
       void fetchCauldronPricesForTokens();
+      startRefetchIntervals();
       console.time('fetch initial history');
       await updateWalletHistory({ count: 100 })
       console.timeEnd('fetch initial history');
@@ -441,7 +449,8 @@ export const useStore = defineStore('store', () => {
     // clear the networkChangeCallbacks before initialising newWallet
     networkChangeCallbacks = []
 
-    // cancel active listeners
+    // cancel active listeners and intervals
+    stopRefetchIntervals();
     void cancelWalletSubscriptions();
     // reset wallet to default state
     balance.value = undefined;
@@ -450,6 +459,7 @@ export const useStore = defineStore('store', () => {
     tokenList.value = null;
     bcmrRegistries.value = undefined;
     cauldronPrices.value = null;
+    exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
   }
@@ -685,6 +695,16 @@ export const useStore = defineStore('store', () => {
     bcmrRegistries.value = registries
   }
 
+  // Fetch BCH exchange rate for fiat display
+  // mainnet-js has its own ~4 min TTL cache but we store the rate centrally for reactive access
+  async function fetchExchangeRate() {
+    try {
+      exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
+    } catch (error) {
+      console.error("Failed to fetch exchange rate:", error);
+    }
+  }
+
   // Fetch Cauldron prices for fungible tokens
   async function fetchCauldronPricesForTokens() {
     if (!settingsStore.showCauldronFTValue) return;
@@ -694,11 +714,29 @@ export const useStore = defineStore('store', () => {
     if (fungibleTokens?.length === 0) return;
 
     const ftTokenIds = fungibleTokens?.map(token => token.category) ?? [];
-
-    // Warm the exchange rate cache first, then fetch prices
-    await convert(1, 'bch', settingsStore.currency);
     cauldronPrices.value = await fetchCauldronPrices(ftTokenIds);
   }
+
+  // Periodically refetch exchange rate and Cauldron prices on separate intervals
+  function startRefetchIntervals() {
+    stopRefetchIntervals();
+    exchangeRateInterval = setInterval(() => void fetchExchangeRate(), EXCHANGE_RATE_REFETCH_INTERVAL_MS);
+    cauldronPriceInterval = setInterval(() => void fetchCauldronPricesForTokens(), CAULDRON_REFETCH_INTERVAL_MS);
+  }
+
+  function stopRefetchIntervals() {
+    if (exchangeRateInterval) {
+      clearInterval(exchangeRateInterval);
+      exchangeRateInterval = undefined;
+    }
+    if (cauldronPriceInterval) {
+      clearInterval(cauldronPriceInterval);
+      cauldronPriceInterval = undefined;
+    }
+  }
+
+  // Refetch exchange rate when user changes currency
+  watch(() => settingsStore.currency, () => void fetchExchangeRate());
 
   async function fetchTokenInfo(categoryId: string) {
     const res = await cachedFetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
@@ -826,6 +864,7 @@ export const useStore = defineStore('store', () => {
     explorerUrl,
     bcmrRegistries,
     cauldronPrices,
+    exchangeRate,
     currentBlockHeight,
     canGoBack,
     changeView,

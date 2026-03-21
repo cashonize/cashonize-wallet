@@ -1,9 +1,9 @@
 <script setup lang="ts">
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
-  import { computed, onMounted, ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useWindowSize } from '@vueuse/core';
-  import { ExchangeRate, type TransactionHistoryItem } from 'mainnet-js';
+  import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import EmojiItem from '../general/emojiItem.vue';
   import { formatTimestamp, formatTime, formatFiatAmount } from 'src/utils/utils';
@@ -27,11 +27,6 @@
 
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
-  const exchangeRate = ref<number | undefined>(undefined);
-
-  onMounted(async () => {
-    exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
-  });
 
   // Auto-hide balance column on small screens
   watch(() => width.value <= 450, (isSmallScreen) => {
@@ -141,16 +136,16 @@
             <div class="tx-cell value" :class="{ 'negative': transaction.valueChange < 0 }">
               {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5})}`}}
               {{ hideUnit ? "" : bchDisplayUnit }}
-              <div v-if="settingsStore.showFiatValueHistory && exchangeRate !== undefined">
-                ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency)}})
+              <div v-if="settingsStore.showFiatValueHistory && store.exchangeRate !== undefined">
+                ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(store.exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency)}})
               </div>
             </div>
 
             <div class="tx-cell value" v-if="!hideBalance">
               {{ (transaction.balance / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5}) }}
               {{ hideUnit ? "" : bchDisplayUnit }}
-              <div v-if="settingsStore.showFiatValueHistory && exchangeRate !== undefined">
-                ~{{formatFiatAmount(exchangeRate * transaction.balance / 100_000_000, settingsStore.currency) }}
+              <div v-if="settingsStore.showFiatValueHistory && store.exchangeRate !== undefined">
+                ~{{formatFiatAmount(store.exchangeRate * transaction.balance / 100_000_000, settingsStore.currency) }}
               </div>
             </div>
 

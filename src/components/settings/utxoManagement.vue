@@ -1,8 +1,8 @@
 <script setup lang="ts">
-  import { computed, ref, onMounted } from 'vue';
+  import { computed, ref } from 'vue';
   import { copyToClipboard, formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
-  import { ExchangeRate, TokenSendRequest } from 'mainnet-js';
+  import { TokenSendRequest } from 'mainnet-js';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -13,11 +13,6 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
   const activeAction = ref<'consolidating' | 'splitting' | null>(null);
-  const exchangeRate = ref<number | undefined>(undefined);
-
-  onMounted(async () => {
-    exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
-  });
 
   const bchOnlyUtxos = computed(() => store.walletUtxos?.filter(utxo => !utxo.token)?.length);
   // TODO: consider lowering this to 1000 satoshis in the future
@@ -171,7 +166,7 @@
         <div class="description" v-if="satsToSplit !== undefined">
           {{ t('utxoManagement.combined.description') }}
           {{ t('utxoManagement.combined.splittableAmount', { bch: satsToBch(satsToSplit) }) }}
-          <span v-if="exchangeRate">({{ formatFiatAmount(exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})</span>
+          <span v-if="store.exchangeRate">({{ formatFiatAmount(store.exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})</span>
         </div>
 
         <div v-if="hasNftUtxos" class="description" style="font-style: italic;">
