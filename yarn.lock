@@ -3154,11 +3154,6 @@ chokidar@^5.0.0:
   dependencies:
     readdirp "^5.0.0"
 
-chota@^0.9.2:
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/chota/-/chota-0.9.2.tgz#0f9306619e9263efba0ee2fb581b3658129990dd"
-  integrity sha512-DmCHT/R+yMr/aYQuokkJeNIjknSgpMpM9mR0tDlqPu8A+lGo9TS/KFPpze5Q9PPrCWenp/VG7Y10usyNDoIygQ==
-
 chownr@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-3.0.0.tgz#9855e64ecd240a9cc4267ce8a4aa5d24a1da15e4"

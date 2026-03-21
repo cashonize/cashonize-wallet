@@ -1,5 +1,5 @@
 @import './base.css';
-@import 'chota';
+@import './chota-subset.css';
 :root {
   --color-primary: #0ac18f;
 }
@@ -286,40 +286,8 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
   background: #555;
 }
 
-/* offset chota .row styling for quasar components */
-.q-notifications .row {
-  margin: auto;
-  margin-right: auto !important;
-}
-.q-dialog .row {
-  margin: auto;
-  margin-right: auto !important;
-}
 .q-pagination {
   justify-content: center;
-  margin-left: 0;
-  margin-right: 0;
-}
-.q-pagination .row {
-  margin-left: 0;
-  margin-right: 0;
-}
-.col {
-  margin: 0;
-}
-@media screen and (max-width: 599px) {
-  .col {
-    flex: none;
-    margin: auto;
-  }
-}
-/* Restore flex behavior for Quasar notifications broken by chota .col override */
-.q-notification__content {
-  flex-wrap: nowrap !important;
-}
-.q-notification__message.col {
-  flex: 1 1 0 !important;
-  min-width: 0;
 }
 
 @media (min-width: 1024px) {

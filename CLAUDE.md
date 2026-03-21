@@ -98,7 +98,7 @@ Docs: https://quasar.dev/docs
 - **MODE detection**: `process.env.MODE` is `"spa"` (browser), `"electron"` (desktop), or `"capacitor"` (mobile)
 
 ### Styling
-Base CSS from `chota` (minimal CSS framework), custom styles in `src/css/`.
+Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom styles in `src/css/`.
 
 ### Internationalization (i18n)
 Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from `src/boot/i18n.ts`.

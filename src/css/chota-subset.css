@@ -1,0 +1,315 @@
+/*
+ * Curated subset of chota v0.9.2 (https://jenil.github.io/chota/)
+ * Includes only what the app actually uses from _base, _form, and _tab.
+ * See issue #165 for rationale.
+ */
+
+/* ==========================================================================
+   Variables and reset
+   ========================================================================== */
+
+:root {
+  --bg-color: #fff;
+  --bg-secondary-color: #f3f3f6;
+  --color-primary: #14854f;
+  --color-lightGrey: #d2d6dd;
+  --color-grey: #747681;
+  --color-darkGrey: #3f4144;
+  --color-error: #d43939;
+  --color-success: #28bd14;
+  --font-size: 1.6rem;
+  --font-color: #333;
+  --font-family-sans: -apple-system, "BlinkMacSystemFont", "Avenir",
+    "Avenir Next", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+
+html {
+  box-sizing: border-box;
+  font-size: 62.5%;
+  line-height: 1.15;
+  text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  background-color: var(--bg-color);
+  line-height: 1.6;
+  font-size: var(--font-size);
+  color: var(--font-color);
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif; /* fallback */
+  font-family: var(--font-family-sans);
+  margin: 0;
+  padding: 0;
+}
+
+/* ==========================================================================
+   Element defaults
+   ========================================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 500;
+  margin: 0.35em 0 0.7em;
+}
+
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.75em;
+}
+
+h3 {
+  font-size: 1.5em;
+}
+
+h4 {
+  font-size: 1.25em;
+}
+
+h5 {
+  font-size: 1em;
+}
+
+h6 {
+  font-size: 0.85em;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover:not(.button) {
+  opacity: 0.75;
+}
+
+button {
+  font-family: inherit;
+}
+
+p {
+  margin-top: 0;
+}
+
+hr {
+  border: none;
+  background-color: var(--color-lightGrey);
+  height: 1px;
+  margin: 1rem 0;
+}
+
+table {
+  width: 100%;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  text-align: left;
+}
+
+td,
+th {
+  vertical-align: middle;
+  padding: 1.2rem 0.4rem;
+}
+
+thead {
+  border-bottom: 2px solid var(--color-lightGrey);
+}
+
+img {
+  max-width: 100%;
+}
+
+fieldset {
+  border: 1px solid var(--color-lightGrey);
+  padding: 0.5rem 2rem;
+}
+
+legend {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  letter-spacing: 0.1rem;
+}
+
+/* ==========================================================================
+   Form controls
+   ========================================================================== */
+
+input:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"]),
+select,
+textarea,
+textarea[type="text"] {
+  font-family: inherit;
+  padding: 0.8rem 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-lightGrey);
+  font-size: 1em;
+  transition: all 0.2s ease;
+  display: block;
+  width: 100%;
+}
+
+select {
+  appearance: none;
+  background: #f3f3f6 no-repeat 100%;
+  background-size: 1ex;
+  background-origin: content-box;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>");
+}
+
+input:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"], :disabled):hover,
+select:hover,
+textarea:hover,
+textarea[type="text"]:hover {
+  border-color: var(--color-grey);
+}
+
+input:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"]):focus,
+select:focus,
+textarea:focus,
+textarea[type="text"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 1px var(--color-primary);
+}
+
+input.error:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"]),
+textarea.error {
+  border-color: var(--color-error);
+}
+
+input.success:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"]),
+textarea.success {
+  border-color: var(--color-success);
+}
+
+[type="checkbox"],
+[type="radio"] {
+  width: 2rem;
+  height: 1.6rem;
+}
+
+input:disabled,
+input:disabled:hover,
+button:disabled,
+button:disabled:hover {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+::placeholder {
+  color: #bdbfc4;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.button,
+[type="button"],
+[type="reset"],
+[type="submit"],
+button {
+  padding: 1rem 2.5rem;
+  color: var(--color-darkGrey);
+  background: var(--color-lightGrey);
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: var(--font-size);
+  line-height: 1;
+  text-align: center;
+  transition: opacity 0.2s ease;
+  text-decoration: none;
+  transform: scale(1);
+  display: inline-block;
+  cursor: pointer;
+}
+
+.button.primary,
+.button.error,
+[type="submit"] {
+  color: #fff;
+  z-index: 1; /* highlight from other button's border when grouped */
+  background-color: var(--color-primary);
+}
+
+.button:hover,
+[type="button"]:hover,
+[type="reset"]:hover,
+[type="submit"]:hover,
+button:hover {
+  opacity: 0.8;
+}
+
+.button:active:not(:disabled),
+[type="button"]:active:not(:disabled),
+[type="reset"]:active:not(:disabled),
+[type="submit"]:active:not(:disabled),
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.button + .button {
+  margin-left: 1rem;
+}
+
+.button.error {
+  background-color: var(--color-error);
+}
+
+/* ==========================================================================
+   Grouped buttons
+   ========================================================================== */
+
+.grouped {
+  display: flex;
+}
+
+.grouped > *:not(:last-child) {
+  margin-right: 16px;
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.tabs {
+  display: flex;
+}
+
+.tabs a {
+  text-decoration: none;
+}
+
+.tabs > .dropdown > summary,
+.tabs > a {
+  padding: 1rem 2rem;
+  flex: 0 1 auto;
+  color: var(--color-darkGrey);
+  border-bottom: 2px solid var(--color-lightGrey);
+  text-align: center;
+}
+
+.tabs > a[aria-current="page"],
+.tabs > a.active,
+.tabs > a:hover {
+  opacity: 1;
+  border-bottom: 2px solid var(--color-darkGrey);
+}
+
+.tabs > a[aria-current="page"],
+.tabs > a.active {
+  border-color: var(--color-primary);
+}
