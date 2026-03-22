@@ -125,11 +125,6 @@
     ajv "^6.12.0"
     ajv-keywords "^3.4.1"
 
-"@download/blockies@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@download/blockies/-/blockies-1.0.3.tgz#9aea770f9de72f3f947f1b3a53ee1e92f8dc4a68"
-  integrity sha512-iGDh2M6pFuXg9kyW+U//963LKylSLFpLG5hZvUppCjhkiDwsYquQPyamxCQlLASYySS3gGKAki2eWG9qIHKCew==
-
 "@electron/asar@3.4.1", "@electron/asar@^3.3.1":
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/@electron/asar/-/asar-3.4.1.tgz#4e9196a4b54fba18c56cd8d5cac67c5bdc588065"
@@ -1509,11 +1504,6 @@
   integrity sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==
   dependencies:
     tslib "^2.4.0"
-
-"@types/blockies@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@types/blockies/-/blockies-0.0.4.tgz#66bcd0d3cc48a7e50d06a14791e6dcd699ff31c4"
-  integrity sha512-9bRU3A+RQS1kF9Ld+z1vMxQobb9rzlzUITS9Oqe8Smij8Hl1+hJP0SAsuX1EN+wBVq1730oP1cTPKSEARrLJlw==
 
 "@types/body-parser@*":
   version "1.19.5"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, onMounted, watch, nextTick } from 'vue';
-  import { createIcon } from '@download/blockies';
+  import { createIcon } from 'src/utils/blockies';
 
   const props = withDefaults(defineProps<{
     tokenId: string;
