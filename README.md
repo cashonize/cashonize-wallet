@@ -24,6 +24,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Multi-wallet support** - Create and manage multiple wallets (single-address or HD)
 - **Minimalist design** - Easy to use with a clean, simple interface
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
+- **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
 
 ### Exclusive Features
 
