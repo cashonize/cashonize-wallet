@@ -1,20 +1,42 @@
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import os from 'os';
+import fs from 'fs';
 import { fileURLToPath } from 'node:url';
-import Store from 'electron-store';
 
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
 
-const store = new Store();
+// Simple JSON config store, replaces electron-store dependency
+// Reads/writes the same config.json in userData for backwards compatibility
+const configPath = path.join(app.getPath('userData'), 'config.json');
+
+function configGet(key: string): unknown {
+  try {
+    const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    return data[key];
+  } catch {
+    return undefined;
+  }
+}
+
+function configSet(key: string, value: unknown): void {
+  let data: Record<string, unknown> = {};
+  try {
+    data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  } catch {
+    // file doesn't exist or is invalid, start fresh
+  }
+  data[key] = value;
+  fs.writeFileSync(configPath, JSON.stringify(data, null, '\t'));
+}
 
 let mainWindow: BrowserWindow | undefined;
 
 function createWindow() {
-  const windowState = store.get('windowState') as {
+  const windowState = configGet('windowState') as {
     isMaximized: boolean;
     bounds: Electron.Rectangle;
   } | undefined;
@@ -45,7 +67,7 @@ function createWindow() {
   const saveWindowState = () => {
     if (!mainWindow) return;
 
-    store.set('windowState', {
+    configSet('windowState', {
       isMaximized: mainWindow.isMaximized(),
       bounds: mainWindow.getBounds(),
     });
