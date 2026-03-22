@@ -19,7 +19,7 @@
   const inputFungibleSupply = ref("");
   const selectedUri = ref("-select-");
   const inputBcmr = ref("");
-  const validitityCheck = ref(undefined as boolean | undefined);
+  const validityCheck = ref(undefined as boolean | undefined);
   const displayPlannedTokenId = computed(() =>
     store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-8)}` : ""
   );
@@ -56,7 +56,7 @@
   }
 
   async function getOpreturnData(){
-    validitityCheck.value = undefined;
+    validityCheck.value = undefined;
     const inputField = inputBcmr.value;
     if(selectedUri.value == "-select-") return
     const validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("baf");
@@ -67,7 +67,7 @@
         icon: 'warning',
         color: "red"
       })
-      validitityCheck.value = false;
+      validityCheck.value = false;
       return
     }
     const defaultBcmrLocation = "/.well-known/bitcoin-cash-metadata-registry.json"
@@ -78,13 +78,13 @@
       const response = await cachedFetch(fetchLocation);
       const bcmrContent = await response.text();
       JSON.parse(bcmrContent)
-      validitityCheck.value = true;
+      validityCheck.value = true;
       const hashContent = sha256.hash(utf8ToBin(bcmrContent));
       const bcmrUri = selectedUri.value != "IPFS" ? inputField : "ipfs://" + inputField;
       const chunks = ["BCMR", hashContent, bcmrUri];
       return OpReturnData.fromArray(chunks);
     } catch{
-      validitityCheck.value = false;
+      validityCheck.value = false;
     }
   }
   
@@ -313,7 +313,7 @@
             <input v-model="inputBcmr" @input="getOpreturnData" placeholder="bafkreiaqpmlrtsdf5cvwgh46mpyric2r44ikqzqgtevny74qdmrjc5dkxy">
           </div><br>
           <b>{{ t('createTokens.validityCheck') }}
-            <EmojiItem v-if="validitityCheck != undefined" :emoji="validitityCheck ? '✅':'❌'" style="vertical-align: baseline;"/>
+            <EmojiItem v-if="validityCheck != undefined" :emoji="validityCheck ? '✅':'❌'" style="vertical-align: baseline;"/>
             <span v-else>...</span>
           </b>
         </details>
