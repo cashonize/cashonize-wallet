@@ -2,7 +2,7 @@
   import { ref, watch, onMounted, toRefs } from 'vue';
   import { type DappMetadata } from 'src/interfaces/interfaces';
   import { useSettingsStore } from 'src/stores/settingsStore';
-  import { useWindowSize } from '@vueuse/core'
+  import { useWindowSize } from 'src/utils/composables'
   import { useI18n } from 'vue-i18n'
   const settingsStore = useSettingsStore()
   const { width } = useWindowSize();

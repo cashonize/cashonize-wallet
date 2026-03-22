@@ -3,7 +3,7 @@
   import WC2SessionSettingsDialog from 'src/components/walletconnect/WC2SessionSettingsDialog.vue';
   import { computed, ref, toRefs } from 'vue';
   import type { SessionTypes } from '@walletconnect/types'
-  import { useWindowSize } from '@vueuse/core'
+  import { useWindowSize } from 'src/utils/composables'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useStore } from 'src/stores/store'
   import { useI18n } from 'vue-i18n'

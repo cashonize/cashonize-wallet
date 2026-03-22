@@ -6,7 +6,7 @@
   import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useI18n } from 'vue-i18n'
 
-  import { useWindowSize } from '@vueuse/core'
+  import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
   const isCapacitor = (process.env.MODE == "capacitor");

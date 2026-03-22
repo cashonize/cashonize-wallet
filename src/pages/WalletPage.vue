@@ -19,7 +19,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
-  import { useWindowSize } from '@vueuse/core'
+  import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
   import { useQuasar } from 'quasar'

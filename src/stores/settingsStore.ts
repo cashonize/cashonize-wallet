@@ -1,4 +1,4 @@
-import { useWindowSize } from "@vueuse/core";
+import { useWindowSize } from "src/utils/composables";
 import { Config } from "mainnet-js";
 import { defineStore } from "pinia"
 import { ref } from 'vue'

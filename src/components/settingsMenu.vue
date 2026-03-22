@@ -14,7 +14,7 @@
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
   const { t } = useI18n()
-  import { useWindowSize } from '@vueuse/core'
+  import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 

@@ -5,7 +5,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
   import { type HDWallet, type TestNetHDWallet, GAP_SIZE } from 'mainnet-js';
-  import { useWindowSize } from '@vueuse/core'
+  import { useWindowSize } from 'src/utils/composables'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
