@@ -96,6 +96,7 @@ Docs: https://quasar.dev/docs
 - **Boot files** (`src/boot/`): Run at app startup - `i18n.ts`, `qrCodeComponent.ts`, `deepLinking.ts` (Capacitor only)
 - **Plugins**: `Notify` for toasts, `Dialog` for confirmations and custom dialogs (configured in quasar.config.ts)
 - **MODE detection**: `process.env.MODE` is `"spa"` (browser), `"electron"` (desktop), or `"capacitor"` (mobile)
+- **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking; the runtime copies live in `src-capacitor/`
 
 ### Styling
 Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom styles in `src/css/`. Material Icons webfont is vendored in `src/css/material-icons/` (font file + `@font-face` CSS, replaces `@quasar/extras`).

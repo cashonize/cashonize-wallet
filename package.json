@@ -21,8 +21,6 @@
   "dependencies": {
     "@bitauth/libauth": "^3.1.0-next.8",
     "@bitjson/qr-code": "^1.0.2",
-    "@capacitor-community/barcode-scanner": "^4.0.1",
-    "@capacitor/core": "^8.2.0",
     "@mainnet-cash/indexeddb-storage": "^3.1.7",
     "@reown/walletkit": "^1.5.1",
     "@walletconnect/core": "^2.23.5",
@@ -38,6 +36,9 @@
   },
   "devDependencies": {
     "@bch-wc2/interfaces": "^0.0.16",
+    "@capacitor-community/barcode-scanner": "^4.0.1",
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/core": "^8.2.0",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.58.2",
     "@quasar/app-vite": "^2.5.2",
