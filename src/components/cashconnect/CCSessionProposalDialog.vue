@@ -94,7 +94,8 @@ async function fetchAndSetTokenInfo(tokenId: string) {
     console.error(errorMessage)
   }
 }
-const safeUrl = sanitizeUrl(props.session.params.proposer.metadata.url);
+const peerMetadata = props.session.params.proposer.metadata;
+const safeUrl = sanitizeUrl(peerMetadata.url);
 const allowedTokens = props.session.params.requiredNamespaces?.bch?.allowedTokens ?? [];
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
@@ -113,17 +114,17 @@ for (const tokenId of allowedTokens) {
           <div style="display: flex; align-items: center; flex-direction: row; gap: 10px; padding: 7px;">
             <!-- App Icon -->
             <div style="display: flex; align-items: center; height: 64px; width: 64px;">
-              <q-img :src="session.params.proposer.metadata.icons[0]" />
+              <q-img :src="peerMetadata.icons[0]" />
             </div>
 
             <!-- Metadata -->
             <div style="display: flex; flex-direction: column; width: 100%;">
-              <div>{{ session.params.proposer.metadata.name }}</div>
+              <div>{{ peerMetadata.name }}</div>
               <div>
-                <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ session.params.proposer.metadata.url }}</a>
+                <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ peerMetadata.url }}</a>
                 <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
               </div>
-              <div>{{ session.params.proposer.metadata.description }}</div>
+              <div>{{ peerMetadata.description }}</div>
             </div>
           </div>
 

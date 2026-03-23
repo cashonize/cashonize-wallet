@@ -108,7 +108,8 @@ async function fetchAndSetTokenInfo(tokenId: string) {
     console.error(errorMessage);
   }
 }
-const safeUrl = sanitizeUrl(props.session.peer.metadata.url);
+const peerMetadata = props.session.peer.metadata;
+const safeUrl = sanitizeUrl(peerMetadata.url);
 const allowedTokens = props.session.requiredNamespaces?.bch?.allowedTokens ?? [];
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
@@ -209,12 +210,12 @@ function satsToBCH(satoshis: bigint) {
         <!-- Origin -->
         <q-item>
           <q-item-section avatar>
-            <img :src="session.peer.metadata.icons[0] ?? ''" />
+            <img :src="peerMetadata.icons[0] ?? ''" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>{{ session.peer.metadata.name }}</q-item-label>
+            <q-item-label>{{ peerMetadata.name }}</q-item-label>
             <q-item-label>
-              <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ session.peer.metadata.url }}</a>
+              <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ peerMetadata.url }}</a>
               <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
             </q-item-label>
           </q-item-section>
