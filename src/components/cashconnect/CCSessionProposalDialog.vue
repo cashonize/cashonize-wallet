@@ -5,6 +5,7 @@ import type { BchSessionProposal } from 'cashconnect';
 
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
+import { sanitizeUrl } from 'src/utils/utils';
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
@@ -93,6 +94,7 @@ async function fetchAndSetTokenInfo(tokenId: string) {
     console.error(errorMessage)
   }
 }
+const safeUrl = sanitizeUrl(props.session.params.proposer.metadata.url);
 const allowedTokens = props.session.params.requiredNamespaces?.bch?.allowedTokens ?? [];
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
@@ -117,7 +119,10 @@ for (const tokenId of allowedTokens) {
             <!-- Metadata -->
             <div style="display: flex; flex-direction: column; width: 100%;">
               <div>{{ session.params.proposer.metadata.name }}</div>
-              <div><a :href="session.params.proposer.metadata.url" target="_blank">{{ session.params.proposer.metadata.url }}</a></div>
+              <div>
+                <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ session.params.proposer.metadata.url }}</a>
+                <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
+              </div>
               <div>{{ session.params.proposer.metadata.description }}</div>
             </div>
           </div>

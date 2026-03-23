@@ -3,6 +3,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
   import { caughtErrorToString } from 'src/utils/errorHandling';
+  import { sanitizeUrl } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
@@ -45,7 +46,10 @@
             <div class="cc-session-item-app-icon"><img :src="session.peer.metadata.icons[0] ?? ''" /></div>
             <div class="cc-session-item-details-container">
               <div>{{ session.peer.metadata.name }}</div>
-              <div><a href="session.peer.metadata.url" target="_blank">{{ session.peer.metadata.url }}</a></div>
+              <div>
+                <a v-if="sanitizeUrl(session.peer.metadata.url)" :href="sanitizeUrl(session.peer.metadata.url)" target="_blank">{{ session.peer.metadata.url }}</a>
+                <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
+              </div>
               <div>{{ session.peer.metadata.description }}</div>
             </div>
             <div class="cc-session-item-action-container">

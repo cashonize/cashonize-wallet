@@ -3,6 +3,7 @@
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit';
+  import { sanitizeUrl } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
@@ -19,6 +20,7 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
 
   const sessionProposal = sessionProposalWC.value;
   const dappMetadata = sessionProposal.params.proposer.metadata as DappMetadata;
+  const safeUrl = sanitizeUrl(dappMetadata.url);
 </script>
 
 <template>
@@ -30,7 +32,8 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
           <img :src="dappMetadata.icons?.[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
-            <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
+            <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
+            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
           </div>
         </div>
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">

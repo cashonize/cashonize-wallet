@@ -5,7 +5,7 @@
   import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { useStore } from 'src/stores/store'
-  import { convertToCurrency, parseExtendedJson } from 'src/utils/utils'
+  import { convertToCurrency, parseExtendedJson, sanitizeUrl } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type WalletKitTypes } from '@reown/walletkit';
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
@@ -25,6 +25,7 @@
     exchangeRate: number,
   }>()
   const { transactionRequestWC, exchangeRate } = toRefs(props);
+  const safeUrl = sanitizeUrl(props.dappMetadata.url);
 
   defineEmits([
     ...useDialogPluginComponent.emits
@@ -191,7 +192,8 @@
           <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
-            <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
+            <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
+            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
           </div>
         </div>
 

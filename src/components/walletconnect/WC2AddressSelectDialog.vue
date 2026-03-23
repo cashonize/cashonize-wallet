@@ -3,6 +3,7 @@
   import { useDialogPluginComponent } from 'quasar'
   import { type WalletKitTypes } from '@reown/walletkit';
   import type { DappMetadata } from "src/interfaces/interfaces"
+  import { sanitizeUrl } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
   import HdAddressSelect from 'src/components/walletconnect/hdAddressSelect.vue'
 
@@ -19,6 +20,7 @@
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
   const dappMetadata = props.sessionProposalWC.params.proposer.metadata as DappMetadata;
+  const safeUrl = sanitizeUrl(dappMetadata.url);
 
   const selectedAddresses = ref<string[]>([]);
 
@@ -40,7 +42,8 @@
           <img :src="dappMetadata.icons?.[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
-            <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
+            <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
+            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
           </div>
         </div>
 

@@ -15,6 +15,7 @@
       "needToInitializeWallet": "Necesitas inicializar una billetera primero"
     },
     "copied": "¡Copiado!",
+    "unsafeUrl": "URL oculta (protocolo no seguro)",
     "wallet": "billetera",
     "wallets": "billeteras"
   },

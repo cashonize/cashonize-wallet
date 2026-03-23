@@ -15,6 +15,7 @@
       "needToInitializeWallet": "Need to initialize a wallet first"
     },
     "copied": "Copied!",
+    "unsafeUrl": "URL hidden (unsafe protocol)",
     "wallet": "wallet",
     "wallets": "wallets"
   },

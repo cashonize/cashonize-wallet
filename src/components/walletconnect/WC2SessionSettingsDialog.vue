@@ -3,6 +3,7 @@
   import { type DappMetadata } from 'src/interfaces/interfaces';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWindowSize } from 'src/utils/composables'
+  import { sanitizeUrl } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
   const settingsStore = useSettingsStore()
   const { width } = useWindowSize();
@@ -26,6 +27,7 @@
   const autoDuration = ref(undefined as number | undefined);
   const autoTimeLeft = ref(undefined as number | undefined);
 
+  const safeUrl = sanitizeUrl(props.dappMetadata.url);
   const displaySessionId = `- ${!isMobilePhone ? t('walletConnect.sessions.session') + ' ' : ''} ${sessionId.value.slice(0, 6)}`
 
   function shortenAddress(address: string) {
@@ -100,7 +102,8 @@
             <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
             <div style="margin-left: 10px;">
               <div>{{ dappMetadata.name + displaySessionId }}</div>
-              <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
+              <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
+              <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
               <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono" :title="addr">
                 <template v-if="isMobilePhone">{{ shortenAddress(addr) }}</template>
                 <template v-else>{{ addr }}</template>

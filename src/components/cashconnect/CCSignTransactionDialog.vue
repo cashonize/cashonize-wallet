@@ -4,7 +4,7 @@ import { useDialogPluginComponent } from 'quasar'
 import type { BchSession, SignTransactionV0, SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress, type WalletTemplate } from '@bitauth/libauth';
 import { CurrencySymbols } from 'src/interfaces/interfaces';
-import { convertToCurrency } from 'src/utils/utils';
+import { convertToCurrency, sanitizeUrl } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -108,6 +108,7 @@ async function fetchAndSetTokenInfo(tokenId: string) {
     console.error(errorMessage);
   }
 }
+const safeUrl = sanitizeUrl(props.session.peer.metadata.url);
 const allowedTokens = props.session.requiredNamespaces?.bch?.allowedTokens ?? [];
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
@@ -213,7 +214,8 @@ function satsToBCH(satoshis: bigint) {
           <q-item-section>
             <q-item-label>{{ session.peer.metadata.name }}</q-item-label>
             <q-item-label>
-              <a :href="session.peer.metadata.url" target="_blank">{{ session.peer.metadata.url }}</a>
+              <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ session.peer.metadata.url }}</a>
+              <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
             </q-item-label>
           </q-item-section>
         </q-item>

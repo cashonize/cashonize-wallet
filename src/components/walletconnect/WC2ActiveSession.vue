@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import type { DappMetadata } from "src/interfaces/interfaces"
+  import { sanitizeUrl } from 'src/utils/utils'
   import WC2SessionSettingsDialog from 'src/components/walletconnect/WC2SessionSettingsDialog.vue';
   import { computed, ref, toRefs } from 'vue';
   import type { SessionTypes } from '@walletconnect/types'
@@ -23,6 +24,7 @@
   }>()
   const { activeSessions } = toRefs(props);
 
+  const safeUrl = sanitizeUrl(props.dappMetadata.url);
   const sessionSettingsWC = ref('');
 
   const displaySessionId = computed(() => {
@@ -63,7 +65,8 @@
       <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
       <div style="margin-left: 15px; width: 100%;">
         <div>{{ dappMetadata.name + displaySessionId }}</div>
-        <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
+        <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
+        <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
         <div>{{ dappMetadata.description }}</div>
         <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono" :title="addr">
           <template v-if="width < 550">{{ shortenAddress(addr) }}</template>

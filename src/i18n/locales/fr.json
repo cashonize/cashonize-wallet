@@ -15,6 +15,7 @@
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille"
     },
     "copied": "Copié !",
+    "unsafeUrl": "URL masquée (protocole non sécurisé)",
     "wallet": "portefeuille",
     "wallets": "portefeuilles"
   },

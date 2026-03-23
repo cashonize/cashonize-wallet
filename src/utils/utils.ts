@@ -21,6 +21,19 @@ export function runAsyncVoid(fn: () => Promise<void>) {
   void fn();
 }
 
+// Sanitize untrusted URLs (e.g. from dApp metadata) to prevent protocol abuse.
+// Only allows https: in production, plus http://localhost in dev.
+export function sanitizeUrl(url: string): string | undefined {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'https:') return parsed.href;
+    if (parsed.protocol === 'http:' && process.env.DEV && parsed.hostname === 'localhost') return parsed.href;
+  } catch {
+    // invalid URL
+  }
+  return undefined;
+}
+
 export function formatTime(timestamp: number): string {
   // Uses 12-hour format (2:30 PM) for US/UK locales, 24-hour (14:30) for European locales
   // Note: Electron only includes en-US locale, so this always uses 12-hour format there

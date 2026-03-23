@@ -82,9 +82,20 @@ function createWindow() {
 
   mainWindow.show();
 
-  // Open links in browser window
+  // Open links in browser window — only allow safe schemes to prevent protocol abuse
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    try {
+      const parsed = new URL(url);
+      const isHttps = parsed.protocol === 'https:';
+      const isDevLocalhost = parsed.protocol === 'http:' && process.env.DEV && parsed.hostname === 'localhost';
+      if (isHttps || isDevLocalhost) {
+        void shell.openExternal(parsed.href);
+      } else {
+        console.warn('Blocked openExternal for disallowed URL scheme:', url);
+      }
+    } catch {
+      console.warn('Blocked openExternal for invalid URL:', url);
+    }
     return { action: 'deny' };
   });
 

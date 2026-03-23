@@ -3,6 +3,7 @@
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit'
+  import { sanitizeUrl } from 'src/utils/utils'
   import { useStore } from 'src/stores/store'
   import { type WcSignMessageRequest } from '@bch-wc2/interfaces';
   import { useI18n } from 'vue-i18n'
@@ -22,6 +23,7 @@
   
   const requestParams = signMessageRequestWC.value.params.request.params as WcSignMessageRequest
   const message = requestParams.message
+  const safeUrl = sanitizeUrl(props.dappMetadata.url);
 </script>
 
 <template>
@@ -39,7 +41,8 @@
           <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
-            <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
+            <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
+            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
           </div>
         </div>
         <hr>
