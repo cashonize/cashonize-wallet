@@ -268,14 +268,25 @@
     })
     if (confirmed) {
       // TODO: see if we need 'resetWalletState' to cancel subscriptions, etc.
+
+      // mainnet-js databases: wallet keys, electrum cache, HD wallet address/UTXO cache
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
-      indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
-      // TODO: should also clear CashConnect indexedDB
       indexedDB.deleteDatabase("ElectrumNetworkProviderCache");
+      indexedDB.deleteDatabase("WalletCache");
+
+      // WalletConnect session database
+      indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
+
+      // CashConnect session databases (named "cashconnect-{publicKey}")
+      if (indexedDB.databases) {
+        const dbs = await indexedDB.databases();
+        for (const db of dbs) {
+          if (db.name?.startsWith("cashconnect-")) indexedDB.deleteDatabase(db.name);
+        }
+      }
 
       // Wipe all localStorage for privacy (includes preferences, dApp history, wallet names, etc.)
-      // Note: IndexedDB deletion above is not exhaustive yet
       localStorage.clear();
 
       // TODO: see if we can reset the state without force-reloading
