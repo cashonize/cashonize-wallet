@@ -93,7 +93,7 @@ Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect pa
 ### Quasar Framework
 Docs: https://quasar.dev/docs
 
-- **Boot files** (`src/boot/`): Run at app startup - `i18n.ts`, `qrCodeComponent.ts`, `deepLinking.ts` (Capacitor only)
+- **Boot files** (`src/boot/`): Run at app startup - `i18n.ts`, `qrCodeComponent.ts`, `deepLinking.ts` (Capacitor only), `plausible.ts` (SPA production only)
 - **Plugins**: `Notify` for toasts, `Dialog` for confirmations and custom dialogs (configured in quasar.config.ts)
 - **MODE detection**: `process.env.MODE` is `"spa"` (browser), `"electron"` (desktop), or `"capacitor"` (mobile)
 - **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking; the runtime copies live in `src-capacitor/`
