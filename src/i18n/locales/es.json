@@ -661,10 +661,7 @@
       "nonSecureContext": "No se puede acceder a la cámara en contexto no seguro",
       "unableToAccess": "No se puede acceder a la cámara",
       "constraintsMismatch": "Las restricciones no coinciden con ninguna cámara instalada. ¿Pediste la cámara frontal aunque no hay ninguna?",
-      "unknownError": "Ocurrió un error desconocido",
-      "cameraPermissionRequired": "Se requiere permiso de cámara",
-      "scanFailed": "Escaneo fallido, intenta de nuevo.",
-      "errorScanning": "Error al escanear código de barras:"
+      "unknownError": "Ocurrió un error desconocido"
     }
   },
   "relativeTime": {

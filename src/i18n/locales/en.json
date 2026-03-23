@@ -661,10 +661,7 @@
       "nonSecureContext": "Unable to acccess camera in non-secure context",
       "unableToAccess": "Unable to access camera",
       "constraintsMismatch": "Constraints don't match any installed camera. Did you ask for the front camera although there is none?",
-      "unknownError": "Unknown error occurred",
-      "cameraPermissionRequired": "Camera permission required",
-      "scanFailed": "Scan failed, try again.",
-      "errorScanning": "Error scanning barcode:"
+      "unknownError": "Unknown error occurred"
     }
   },
   "relativeTime": {

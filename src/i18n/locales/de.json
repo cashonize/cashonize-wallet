@@ -661,10 +661,7 @@
       "nonSecureContext": "Kamerazugriff in unsicherem Kontext nicht möglich",
       "unableToAccess": "Kamerazugriff nicht möglich",
       "constraintsMismatch": "Einschränkungen passen zu keiner installierten Kamera. Hast du nach der Frontkamera gefragt, obwohl keine vorhanden ist?",
-      "unknownError": "Unbekannter Fehler aufgetreten",
-      "cameraPermissionRequired": "Kameraberechtigung erforderlich",
-      "scanFailed": "Scan fehlgeschlagen, versuche es erneut.",
-      "errorScanning": "Fehler beim Scannen des Barcodes:"
+      "unknownError": "Unbekannter Fehler aufgetreten"
     }
   },
   "relativeTime": {
