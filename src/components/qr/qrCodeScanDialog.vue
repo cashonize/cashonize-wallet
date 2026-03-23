@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, onMounted, onUnmounted, ref } from 'vue';
+  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
   import QrScanner from 'qr-scanner';
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -18,19 +18,26 @@
   const filterHint = ref("");
   const showDialog = ref(true);
   const videoElement = ref<HTMLVideoElement>();
+  const videoPlaying = ref(false);
 
   let scanner: QrScanner | null = null;
+  let didDecode = false;
 
   const emit = defineEmits(['hide', 'decode']);
 
   function handleDecode(result: QrScanner.ScanResult) {
+    if (didDecode) return;
     const decoded = result.data;
     if (!props?.filter) {
+      didDecode = true;
+      scanner?.stop();
       emit('decode', decoded);
       showDialog.value = false;
     } else {
       const filterResult = props.filter(decoded);
       if (filterResult === true) {
+        didDecode = true;
+        scanner?.stop();
         emit('decode', decoded);
         showDialog.value = false;
       } else {
@@ -59,8 +66,8 @@
     }
   }
 
-  onMounted(async () => {
-    if (!videoElement.value) return;
+  async function initScanner() {
+    if (scanner || !videoElement.value) return;
 
     scanner = new QrScanner(
       videoElement.value,
@@ -94,6 +101,17 @@
     } catch (err) {
       handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
     }
+  }
+
+  // Use watch to handle cases where the video ref isn't available at onMounted
+  // (QDialog portal/transition timing can delay ref binding)
+  watch(videoElement, (el) => {
+    if (el && !scanner) void initScanner();
+  });
+
+  onMounted(async () => {
+    await nextTick();
+    void initScanner();
   });
 
   onUnmounted(() => {
@@ -102,23 +120,28 @@
   });
 
   function handleBeforeHide() {
+    scanner?.stop();
     emit('hide');
   }
 </script>
 
 <template>
-  <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @before-hide="handleBeforeHide">
+  <q-dialog v-model="showDialog" class="scanner-dialog" transition-show="fade" transition-hide="fade" @before-hide="handleBeforeHide">
     <div v-if="error" class="scanner-error-dialog text-center bg-red-1 text-red q-pa-md">
       <q-icon name="error" left/>
       {{ error }}
     </div>
-    <q-card v-else :style="isMobile ? 'width: 100%; height: 100%;' : 'width: 75%; height: 75%;'">
+    <q-card v-else class="scanner-card" :style="isMobile ? 'width: 100%; height: 100%;' : 'width: 75%; height: 75%;'">
       <video
         ref="videoElement"
         class="scanner-video"
-        poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        :class="{ 'video-ready': videoPlaying }"
+        autoplay muted playsinline
+        webkit-playsinline
+        @playing="videoPlaying = true"
+        @pause="videoPlaying = false"
       />
-      <div class="scanner-overlay">
+      <div style="display: flex; height: 100%;">
         <ScannerUI :filter-hint="filterHint" />
       </div>
     </q-card>
@@ -126,16 +149,28 @@
 </template>
 
 <style scoped>
+.scanner-card {
+  position: relative;
+  overflow: hidden;
+}
 .scanner-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Hide until camera frames arrive — prevents Android WebView play button flash */
+  opacity: 0;
 }
-.scanner-overlay {
-  position: relative;
-  display: flex;
-  height: 100%;
+.scanner-video.video-ready {
+  opacity: 1;
+}
+</style>
+
+<style>
+/* Disable backdrop blur for scanner dialog — interferes with video compositing on mobile */
+.scanner-dialog .q-dialog__backdrop {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 </style>
