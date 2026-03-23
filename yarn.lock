@@ -1204,11 +1204,6 @@
     vite "^8.0.0"
     webpack-merge "^6.0.1"
 
-"@quasar/extras@^1.17.0":
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/@quasar/extras/-/extras-1.17.0.tgz#966c0464a069d15f929d14f51b61fc8efefcf76c"
-  integrity sha512-KqAHdSJfIDauiR1nJ8rqHWT0diqD0QradZKoVIZJAilHAvgwyPIY7MbyR2z4RIMkUIMUSqBZcbshMpEw+9A30w==
-
 "@quasar/render-ssr-error@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@quasar/render-ssr-error/-/render-ssr-error-1.0.4.tgz#df684857f1e8ced235a425b9308fa953ba8b450d"
