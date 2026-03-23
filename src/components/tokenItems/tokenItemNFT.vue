@@ -7,7 +7,7 @@
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
-  import { copyToClipboard } from 'src/utils/utils';
+  import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -730,7 +730,8 @@
           </div>
           <div v-if="tokenMetaData?.uris?.web">
             {{ t('tokenItem.info.tokenWebLink') }}
-            <a :href="tokenMetaData.uris.web" target="_blank">{{ tokenMetaData.uris.web }}</a>
+            <a v-if="sanitizeUrl(tokenMetaData.uris.web)" :href="sanitizeUrl(tokenMetaData.uris.web)" target="_blank">{{ tokenMetaData.uris.web }}</a>
+            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
           </div>
           <div>
             <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">
