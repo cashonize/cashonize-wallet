@@ -17,7 +17,7 @@
   const error = ref("");
   const filterHint = ref("");
   const showDialog = ref(true);
-  const videoElement = ref<HTMLVideoElement>();
+  const videoElement = ref<HTMLVideoElement | null>(null);
   const videoPlaying = ref(false);
 
   let scanner: QrScanner | null = null;
