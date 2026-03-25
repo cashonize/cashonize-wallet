@@ -25,6 +25,7 @@
     "@plausible-analytics/tracker": "^0.4.4",
     "@reown/walletkit": "^1.5.1",
     "@walletconnect/core": "^2.23.5",
+    "buffer": "^6.0.3",
     "cashconnect": "0.0.25",
     "mainnet-js": "^3.1.7",
     "pinia": "^3.0.4",
