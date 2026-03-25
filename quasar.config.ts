@@ -72,13 +72,14 @@ export default defineConfig((ctx) => {
           filename: 'dist/stats.html',
           gzipSize: true
         }],
-        ['vite-plugin-checker', {
-          vueTsc: true,
-          eslint: {
-            lintCommand: 'eslint -c ./eslint.config.ts "./src*/**/*.{ts,js,mjs,cjs,vue}"',
-            useFlatConfig: true
-          }
-        }, { server: false }]
+        // TODO: re-enable vite-plugin-checker once it supports eslint 10
+        // ['vite-plugin-checker', {
+        //   vueTsc: true,
+        //   eslint: {
+        //     lintCommand: 'eslint -c ./eslint.config.ts "./src*/**/*.{ts,js,mjs,cjs,vue}"',
+        //     useFlatConfig: true
+        //   }
+        // }, { server: false }]
       ]
     },
 
