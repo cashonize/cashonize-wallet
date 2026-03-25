@@ -1,7 +1,6 @@
 import { boot } from 'quasar/wrappers'
 import { App, type URLOpenListenerEvent } from '@capacitor/app';
 import { Platform } from 'quasar'
-import { useStore } from 'src/stores/store'
 
 // Deep linking on mobile: handles URIs like bitcoincash:, wc:, cc:, bch-wif:
 // These arrive via two paths depending on whether the app was already running:
@@ -24,13 +23,5 @@ export default boot(( { router }) => {
       void router.push({ path: '/', query:{uri: launchUrl.url} });
     }
   });
-
-  void App.addListener('backButton', () => {
-    const store = useStore();
-    if (store.canGoBack) {
-      history.back();
-    } else {
-      void App.exitApp();
-    }
-  });
+  // Note: Android back navigation is handled natively in MainActivity.java
 })
