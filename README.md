@@ -5,7 +5,8 @@
 **Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet** <br>
 Cashonize supports CashTokens and WalletConnect which makes it an ideal wallet for using dapps on BCH. <br>
 Currently Cashonize is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an Installable web app. <br>
-Cashonize is available in English, Spanish, French, and German.
+
+Cashonize is available in English, Spanish, French, German, and Portuguese.
 
 ### The wallet for you?
 
@@ -26,7 +27,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Minimalist design** - Easy to use with a clean, simple interface
 - **Fast and lightweight** - Quick startup, fast data loading, and snappy navigation
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
-- **Localization** - Available in English, Spanish, French, and German
+- **Localization** - Available in English, Spanish, French, German, and Portuguese
 - **Sweep functionality** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
 - **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
 

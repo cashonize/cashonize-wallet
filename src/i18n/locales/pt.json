@@ -1,0 +1,892 @@
+{
+  "common": {
+    "actions": {
+      "back": "Voltar",
+      "send": "Enviar",
+      "confirm": "Confirmar",
+      "connect": "Conectar"
+    },
+    "status": {
+      "loading": "Carregando...",
+      "sending": "Enviando..."
+    },
+    "errors": {
+      "somethingWentWrong": "Algo deu errado",
+      "needToInitializeWallet": "É necessário inicializar uma carteira primeiro"
+    },
+    "copied": "Copiado!",
+    "unsafeUrl": "URL oculta (protocolo inseguro)",
+    "wallet": "carteira",
+    "wallets": "carteiras"
+  },
+  "walletUtils": {
+    "errors": {
+      "enterWalletName": "Por favor, insira um nome para a carteira",
+      "walletNameTooLong": "Nome da carteira muito longo (máximo {max} caracteres)",
+      "walletNameInvalidChars": "O nome da carteira contém caracteres inválidos",
+      "walletAlreadyExists": "A carteira \"{name}\" já existe",
+      "storageFull": "Armazenamento cheio - não foi possível salvar a carteira. Verifique as configurações de armazenamento do navegador.",
+      "failedToCreateWallet": "Falha ao criar a carteira",
+      "enterSeedPhrase": "Insira uma seed phrase para importar a carteira",
+      "fixInvalidWords": "Por favor, corrija as palavras inválidas na sua seed phrase",
+      "invalidSeedPhrase": "Seed phrase inválida"
+    }
+  },
+  "bip21": {
+    "errors": {
+      "unsupportedPaymentRequest": "Solicitação de pagamento não suportada",
+      "duplicateParameters": "Solicitação de pagamento inválida: parâmetros duplicados",
+      "invalidAmountFormat": "A solicitação de pagamento tem um formato de valor inválido"
+    }
+  },
+  "chaingraph": {
+    "errors": {
+      "requestFailed": "Requisição ao Chaingraph falhou: {status}",
+      "tokenNotFound": "Token não encontrado",
+      "authchainNotFound": "Authchain não encontrada"
+    }
+  },
+  "exchangeRate": {
+    "errors": {
+      "validationError": "Erro de validação na resposta de cotações do {provider}",
+      "currencyNotSupported": "A moeda '{symbol}' não é suportada"
+    }
+  },
+  "store": {
+    "notifications": {
+      "receivedBch": "Recebido {amount} {unit} ({fiatValue})",
+      "receivedTokens": "Recebido novo {tokenType}"
+    },
+    "errors": {
+      "cannotDeleteActiveWallet": "Não é possível excluir a carteira ativa",
+      "errorInitializingWalletConnect": "Erro ao inicializar WalletConnect",
+      "errorInitializingCashConnect": "Erro ao inicializar CashConnect",
+      "errorFetchingUtxos": "Erro ao buscar UTXOs da carteira",
+      "errorFetchingHistory": "Erro ao buscar histórico da carteira",
+      "unableToConnectElectrum": "Não foi possível conectar ao servidor Electrum '{server}'",
+      "bcmrIndexerValidationError": "Erro de validação na resposta do indexador BCMR"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Bem-vindo ao Cashonize",
+      "description": "Uma carteira Bitcoin Cash fácil de usar, focada em CashTokens e dApps BCH.",
+      "featureSendReceive": "Envie e receba BCH e CashTokens",
+      "featureWalletConnect": "Conecte-se a dApps via WalletConnect",
+      "featureOpenSource": "Código aberto e sem custódia"
+    },
+    "create": {
+      "title": "Criar nova carteira",
+      "description": "Comece com uma nova carteira em segundos",
+      "button": "Criar nova carteira",
+      "seedPhraseNote": "Uma nova seed phrase será gerada. Faça backup para proteger sua carteira.",
+      "submitButton": "Criar carteira"
+    },
+    "import": {
+      "title": "Importar carteira existente",
+      "description": "Restaurar usando sua seed phrase",
+      "button": "Importar carteira",
+      "submitButton": "Importar carteira"
+    },
+    "walletName": {
+      "label": "Nome da carteira:",
+      "placeholder": "Insira o nome da carteira"
+    },
+    "walletType": {
+      "label": "Tipo de carteira:",
+      "hd": "Carteira HD (múltiplos endereços)",
+      "single": "Endereço único",
+      "hdDescription": "Usa um novo endereço para cada transação. Maior privacidade, mas requer selecionar um endereço ao conectar a dApps.",
+      "singleDescription": "Usa um endereço fixo para todas as transações. Todos os ativos em um só lugar, porém menos privado.",
+      "singleAddressNote": "Nota: Apenas o primeiro endereço da sua seed phrase será usado. Se você usou essa seed com outras carteiras, fundos em outros endereços não aparecerão."
+    },
+    "derivationPath": {
+      "label": "Derivation path:",
+      "standard": "padrão",
+      "bitcoindotcom": "Carteira Bitcoin.com"
+    },
+    "preferences": {
+      "title": "Configure suas preferências",
+      "description": "Quase pronto! Configure suas preferências abaixo.",
+      "currency": {
+        "label": "Moeda preferida:",
+        "usd": "USD - Dólar americano (padrão)",
+        "eur": "EUR - Euro",
+        "gbp": "GBP - Libra esterlina",
+        "cad": "CAD - Dólar canadense",
+        "aud": "AUD - Dólar australiano",
+        "chf": "CHF - Franco suíço"
+      },
+      "darkMode": "Modo escuro",
+      "confirmPayments": "Confirmar pagamentos antes de enviar",
+      "confirmPaymentsHint": "Pedir confirmação após clicar em enviar (recomendado)",
+      "finishButton": "Concluir configuração"
+    }
+  },
+  "wallet": {
+    "balance": "Saldo em {currency}:",
+    "address": "Endereço {network}:",
+    "tokenAddress": "Endereço de token:",
+    "send": "Enviar {network}:",
+    "addressPlaceholder": "endereço",
+    "amountPlaceholder": "valor",
+    "max": "máx",
+    "notEnoughBch": "BCH insuficiente na carteira para enviar",
+    "confirmPayment": "Confirmar pagamento",
+    "confirmPaymentMessage": "Enviar {amount}{unit}{fiat} para",
+    "sendingTransaction": "Enviando transação...",
+    "sent": "Enviado {amount} para {address}",
+    "transactionSuccess": "Transação enviada com sucesso!",
+    "errors": {
+      "tokenPaymentRequest": "Esta é uma solicitação de pagamento de token. Use a aba Tokens para enviar tokens.",
+      "noBalance": "A carteira não possui Bitcoin Cash",
+      "noDestination": "Nenhum endereço de destino informado",
+      "noAmount": "Nenhum valor válido informado",
+      "insufficientFunds": "BCH insuficiente na carteira",
+      "invalidAddress": "Endereço BCH inválido",
+      "notCashaddress": "Não é um cashaddress na rede atual"
+    }
+  },
+  "tokens": {
+    "loading": "Carregando dados dos tokens...",
+    "count": "{count} Tokens",
+    "favoriteCount": "{count} tokens favoritos",
+    "hiddenCount": "{count} tokens ocultos",
+    "totalCount": "{count} tokens no total",
+    "noTokens": "Nenhum token na carteira",
+    "noMatch": "Nenhum token corresponde ao filtro",
+    "options": "Opções",
+    "filter": {
+      "label": "Exibir:",
+      "default": "Padrão",
+      "favoritesOnly": "Apenas favoritos",
+      "all": "Todos os tokens",
+      "hiddenOnly": "Apenas ocultos"
+    },
+    "editVisibility": "Editar visibilidade",
+    "searchPlaceholder": "Buscar tokens...",
+    "searchMatches": "{count} resultados encontrados"
+  },
+  "tokenItem": {
+    "name": "Nome:",
+    "tokenId": "TokenId:",
+    "amount": "Quantidade:",
+    "commitment": "Commitment:",
+    "empty": "vazio",
+    "seeParsedData": "Veja os dados do NFT em 'info'",
+    "loadingLoanData": "Carregando dados do empréstimo...",
+    "tokens": "tokens",
+    "actions": {
+      "send": "enviar",
+      "info": "info",
+      "swap": "swap",
+      "burnTokens": "queimar tokens",
+      "burnNft": "queimar NFT",
+      "authTransfer": "auth transfer",
+      "mintNfts": "mint NFTs",
+      "batchTransfer": "envio em lote",
+      "all": "todos",
+      "clear": "limpar",
+      "select": "selecionar",
+      "selected": "selecionados",
+      "max": "máx"
+    },
+    "visibility": {
+      "hideToken": "Ocultar token",
+      "unhideToken": "Mostrar token",
+      "favoriteToken": "Favoritar token",
+      "unfavoriteToken": "Desfavoritar token"
+    },
+    "info": {
+      "tokenDescription": "Descrição do token:",
+      "nftDescription": "Descrição do NFT:",
+      "tokenSymbol": "Símbolo do token:",
+      "numberOfDecimals": "Número de decimais:",
+      "tokenWebLink": "Link do token:",
+      "seeDetailsOnExplorer": "Ver informações completas no TokenExplorer",
+      "nftType": "Tipo de NFT:",
+      "immutable": "imutável",
+      "nftCommitment": "Commitment do NFT:",
+      "nftAttributes": "Atributos do NFT",
+      "extensionNote": "Dados do empréstimo obtidos da blockchain:",
+      "parsedFields": "Dados do NFT interpretados:",
+      "numberNfts": "Número de NFTs:"
+    },
+    "sendTokens": {
+      "title": "Enviar estes tokens para",
+      "addressPlaceholder": "endereço de token",
+      "amountPlaceholder": "valor",
+      "amountTokensPlaceholder": "quantidade de tokens",
+      "sendButton": "Enviar",
+      "sendingButton": "Enviando..."
+    },
+    "sendNft": {
+      "title": "Enviar este NFT para",
+      "sendButton": "Enviar NFT",
+      "sendingButton": "Enviando..."
+    },
+    "batchTransfer": {
+      "titleAll": "Enviar todos os {count} NFTs desta categoria para",
+      "titleSelected": "Enviar {count} NFTs selecionados para",
+      "transferButton": "Envio em lote",
+      "transferringButton": "Enviando..."
+    },
+    "burn": {
+      "description": "Queimar tokens os remove permanentemente do supply",
+      "burnButton": "queimar tokens",
+      "burningButton": "Queimando...",
+      "burnNftButton": "queimar NFT",
+      "burnMintingDescription": "Queimar este NFT para que nenhum novo NFT desta categoria possa ser mintado",
+      "burnNftDescription": "Queimar este NFT para removê-lo permanentemente da sua carteira"
+    },
+    "authTransfer": {
+      "description": "Transferir a autoridade para alterar os metadados do token",
+      "descriptionNft": "Transferir a autoridade para alterar os metadados do token para outra carteira",
+      "dedicatedWalletNote": "Você pode transferir o Auth para uma carteira dedicada ou para o {link}.",
+      "reservedSupplyNote": "O supply mantido no Auth UTXO será marcado como supply reservado, ainda não em circulação.",
+      "destinationPlaceholder": "endereço de destino",
+      "reservedSupplyPlaceholder": "supply reservado",
+      "transferButton": "Transferir Auth",
+      "transferringButton": "Transferindo Auth..."
+    },
+    "mint": {
+      "modeLabel": "Modo:",
+      "modeSingle": "Tipo único",
+      "modeCollection": "Coleção",
+      "titleSingle": "Mintar um ou mais NFTs do mesmo tipo com um commitment e capability específicos",
+      "titleCollection": "Mintar uma coleção de NFTs numerados sequencialmente",
+      "capabilityImmutable": "imutável",
+      "capabilityMutable": "mutável",
+      "capabilityMinting": "minting",
+      "numberingLabel": "Numeração:",
+      "vmNumbers": "Números VM (padrão)",
+      "hexNumbers": "Números hex",
+      "quantityPlaceholder": "quantidade",
+      "collectionSizePlaceholder": "tamanho da coleção",
+      "startingNumberPlaceholder": "número inicial",
+      "commitmentPlaceholder": "commitment (hex)",
+      "destinationPlaceholder": "Endereço de destino opcional",
+      "mintButton": "Mint NFTs",
+      "mintingButton": "Mintando..."
+    },
+    "loading": {
+      "nftMetadata": "carregando metadados do NFT...",
+      "nftMetadataShort": "carregando..."
+    },
+    "dialogs": {
+      "authWarning": {
+        "title": "Aviso de Auth",
+        "message": "Você corre o risco de enviar acidentalmente a autoridade de atualizar os metadados deste token.<br>Tem certeza que deseja enviar a transação mesmo assim?",
+        "continueButton": "Continuar"
+      },
+      "confirmTokenSend": {
+        "title": "Confirmar envio de tokens",
+        "message": "Enviar {amount} {symbol} para<br>{address}"
+      },
+      "confirmNftSend": {
+        "title": "Confirmar envio de NFT",
+        "message": "Enviar NFT {symbol} para<br>{address}"
+      },
+      "confirmNftTransfer": {
+        "title": "Confirmar transferência de NFTs",
+        "message": "Enviar {prefix}{count} NFTs {symbol} para<br>{address}"
+      },
+      "burnTokens": {
+        "title": "Queimar Tokens",
+        "message": "Você está prestes a queimar {amount} {symbol}, esta ação não pode ser desfeita.<br>Tem certeza que deseja queimar os tokens?",
+        "burnButton": "Queimar"
+      },
+      "burnNft": {
+        "title": "Queimar NFT",
+        "message": "Você está prestes a queimar {nftType}, esta ação não pode ser desfeita.<br>Tem certeza que deseja queimar o NFT?",
+        "nftTypeMinting": "um NFT de minting",
+        "nftTypeRegular": "um NFT",
+        "burnButton": "Queimar"
+      },
+      "confirmButton": "Confirmar"
+    },
+    "success": {
+      "transactionSent": "Transação enviada com sucesso!",
+      "burnSuccessful": "Queima realizada com sucesso",
+      "mintSuccessful": "Cunhagem realizada com sucesso",
+      "authTransferSuccessful": "Transferência de Auth realizada com sucesso"
+    },
+    "alerts": {
+      "sentTokens": "Enviado {amount} {symbol} para {address}",
+      "sentTokensNoSymbol": "Enviado {amount} tokens fungíveis da categoria {tokenId} para {address}",
+      "sentNft": "Enviado NFT da categoria {tokenId} para {address}",
+      "sentAllNfts": "Enviado todos os NFTs da categoria {tokenId} para {address}",
+      "sentNfts": "Enviado {count} NFTs da categoria {tokenId} para {address}",
+      "burnedTokens": "Queimado {amount} {symbol}",
+      "burnedTokensNoSymbol": "Queimado {amount} tokens da categoria {tokenId}",
+      "burnedNft": "Queimado {nftType} da categoria {tokenId}",
+      "mintedNft": "Mintado NFT imutável da categoria {tokenId} {commitmentText}",
+      "mintedNfts": "Mintado {amount} NFTs da categoria {tokenId}",
+      "transferredAuth": "Transferido o Auth do UTXO {tokenId} para {address}"
+    },
+    "errors": {
+      "needBchForFee": "É necessário BCH para cobrir a taxa da transação",
+      "noDestination": "Nenhum endereço de destino informado",
+      "noValidAmount": "Nenhum valor válido informado",
+      "insufficientBalance": "Saldo de tokens insuficiente",
+      "invalidAddress": "Endereço BCH inválido",
+      "notTokenAddress": "Não é um endereço de token (deve começar com z...)",
+      "invalidNumberFormat": "Formato de número inválido",
+      "enterValidAmount": "Insira um valor positivo válido",
+      "noDecimalsAllowed": "Este token não permite casas decimais",
+      "maxDecimalsAllowed": "Este token permite no máximo {decimals} casas decimais",
+      "differentTokenRequest": "Esta solicitação de pagamento é para um token diferente",
+      "amountMustBeInteger": "A quantidade de tokens a queimar deve ser um número inteiro válido",
+      "invalidAmountNfts": "quantidade inválida de NFTs para mintar",
+      "invalidStartingNumber": "número inicial inválido",
+      "commitmentMustBeHex": "nftCommitment '{commitment}' deve ser hexadecimal",
+      "reservedSupplyInvalid": "A quantidade de tokens para supply reservado deve ser um número inteiro válido",
+      "noNftsSelected": "Nenhum NFT selecionado",
+      "notCashaddress": "Não é um cashaddress na rede atual"
+    }
+  },
+  "dapp": {
+    "title": "Conectar a Dapp",
+    "exploreText": "Veja {link} para explorar a lista completa de Dapps BCH com WalletConnect",
+    "uriPlaceholder": "URI do WalletConnect",
+    "connectButton": "Conectar novo dApp",
+    "errors": {
+      "invalidUri": "URI de WalletConnect ou CashConnect inválida",
+      "notValidUri": "URI de WalletConnect ou CashConnect inválida"
+    }
+  },
+  "history": {
+    "loading": "Carregando histórico de transações...",
+    "noTransactions": "Nenhuma transação nesta carteira",
+    "title": "Histórico de Transações",
+    "transactionCount": "{count} Transações",
+    "options": "Opções",
+    "filter": {
+      "label": "Exibir:",
+      "all": "Todas",
+      "bchTxs": "Txs de BCH",
+      "tokenTxs": "Txs de tokens"
+    },
+    "showFiatValue": "Mostrar valor em fiat",
+    "hideBalanceColumn": "Ocultar coluna de saldo",
+    "columns": {
+      "date": "Data",
+      "amount": "Valor",
+      "balance": "Saldo",
+      "tokens": "Tokens"
+    },
+    "pending": "pendente",
+    "transactionCountPartial": "{count}+ Transações",
+    "loadingFullHistory": "Carregando histórico completo..."
+  },
+  "transactionDialog": {
+    "title": "Transação",
+    "copied": "Copiado!",
+    "unknownToken": "Token desconhecido",
+    "txIdShort": "TxId:",
+    "txIdFull": "ID da Transação:",
+    "linkToExplorer": "Link para o BlockExplorer",
+    "status": "Status:",
+    "unconfirmed": "não confirmada",
+    "confirmations": "{count} confirmações (minerada no bloco #{block})",
+    "date": "Data:",
+    "balanceChange": "Variação de saldo:",
+    "size": "Tamanho:",
+    "sizeValue": "{bytes} bytes",
+    "fee": "Taxa:",
+    "feesCollected": "Taxas coletadas:",
+    "inputs": "Entradas",
+    "outputs": "Saídas",
+    "coinbase": "coinbase"
+  },
+  "alertDialog": {
+    "transactionSent": "Transação enviada!",
+    "txId": "ID da Transação:",
+    "linkExplorer": "Link para o block explorer"
+  },
+  "backupWallet": {
+    "currentWallet": "Carteira atual:",
+    "seedPhrase": {
+      "title": "Seed phrase da carteira",
+      "showButton": "Mostrar seed phrase",
+      "hideButton": "Ocultar seed phrase",
+      "verifyButton": "Verificar seu backup",
+      "copyButton": "Copiar Seed Phrase",
+      "copyTitle": "Copiar Seed Phrase",
+      "copyMessage": "Copiar sua seed phrase para a área de transferência não é recomendado por motivos de segurança, mas é permitido por conveniência.<br>Você pode limpar a área de transferência depois copiando outra coisa.",
+      "copiedNotification": "Seed phrase copiada para a área de transferência"
+    },
+    "backupStatus": {
+      "verified": "Backup verificado",
+      "imported": "Carteira importada",
+      "importedHint": "— sem necessidade de verificação extra de backup",
+      "notBackedUp": "Backup ainda não realizado",
+      "notBackedUpHint": "— clique em \"Verificar seu backup\" para confirmar"
+    },
+    "verification": {
+      "title": "Teste de verificação de backup",
+      "subtitle": "Insira as seguintes palavras do seu backup escrito para confirmar que você o salvou corretamente.",
+      "wordLabel": "Palavra {index}",
+      "verifyButton": "Verificar",
+      "successNotification": "Backup verificado com sucesso!",
+      "failureNotification": "Algumas palavras não conferem. Por favor, verifique e tente novamente."
+    },
+    "derivationPath": {
+      "label": "Derivation path",
+      "standard": "Padrão BCH",
+      "bitcoindotcom": "legado, compatível com carteira Bitcoin.com",
+      "custom": "personalizado"
+    },
+    "persistentStorage": {
+      "granted": "Persistência de dados concedida pelo navegador",
+      "grantedHint": "— isso protege os dados da carteira contra exclusão",
+      "denied": "Dados da carteira não protegidos",
+      "deniedHint": "— solicitar persistência de dados ao navegador",
+      "checking": "Verificando...",
+      "hint": "Em casos raros, navegadores podem limpar dados do site automaticamente. Para proteger contra isso, estamos solicitando persistência de dados.",
+      "requestButton": "Solicitar persistência de dados",
+      "grantedNotification": "Armazenamento persistente concedido - os dados da sua carteira estão protegidos",
+      "deniedNotification": "Armazenamento persistente negado - em casos raros o navegador pode limpar os dados do site. Certifique-se de ter um backup da sua seed phrase",
+      "deniedNotificationBrave": "Armazenamento persistente negado - tente adicionar o Cashonize aos favoritos primeiro e solicite novamente"
+    }
+  },
+  "addWallet": {
+    "title": "Adicionar Carteira",
+    "walletName": {
+      "label": "Nome da carteira:",
+      "placeholder": "Insira o nome da carteira",
+      "emptyError": "Por favor, insira um nome para a carteira",
+      "existsError": "A carteira \"{name}\" já existe"
+    },
+    "continueButton": "Continuar",
+    "backButton": "← Voltar",
+    "creating": "Criando carteira:",
+    "importing": "Importando carteira:",
+    "createNew": {
+      "hint": "Uma nova seed phrase será gerada. Faça backup para proteger sua carteira.",
+      "button": "Criar nova carteira"
+    },
+    "importExisting": {
+      "hint": "Ou restaure uma carteira usando sua seed phrase existente.",
+      "button": "Importar carteira existente"
+    },
+    "derivationPath": {
+      "label": "Derivation path:",
+      "standard": "padrão",
+      "bitcoindotcom": "Carteira Bitcoin.com"
+    },
+    "singleAddressNote": "Nota: Apenas o primeiro endereço da sua seed phrase será usado. Se você usou essa seed com outras carteiras, fundos em outros endereços não aparecerão.",
+    "importButton": "Importar"
+  },
+  "walletsOverview": {
+    "currentWallet": "Carteira atual:",
+    "yourWallets": "Suas carteiras ({count}):",
+    "current": "(atual)",
+    "mainnetOnly": "(apenas mainnet)",
+    "chipnetOnly": "(apenas chipnet)",
+    "walletTypeLabel": "Tipo: ",
+    "walletTypeHD": "Carteira HD",
+    "walletTypeSingle": "endereço único",
+    "addNewWallet": "→ Adicionar nova carteira",
+    "walletLimitReached": "Número de carteiras limitado a {max} por enquanto",
+    "dateLabels": {
+      "imported": "importada",
+      "created": "criada",
+      "importDate": "Data de importação:",
+      "creationDate": "Data de criação:",
+      "unknown": "Desconhecida"
+    },
+    "backupLabels": {
+      "notBackedUp": "sem backup",
+      "imported": "importada",
+      "backedUp": "backup realizado"
+    },
+    "deleteWallet": {
+      "title": "Excluir Carteira",
+      "message": "Tem certeza que deseja excluir a carteira \"{name}\"?<br>Esta ação não pode ser desfeita.",
+      "cannotDeleteActive": "Não é possível excluir a carteira ativa",
+      "deleted": "Carteira \"{name}\" excluída",
+      "failed": "Falha ao excluir a carteira",
+      "buttonTitle": "Excluir carteira"
+    },
+    "switchedNetwork": "Mudou para {network} na carteira \"{name}\"",
+    "switchFailed": "Falha ao trocar de carteira: {error}"
+  },
+  "createTokens": {
+    "title": "Criar novos tokens",
+    "intro": "Você pode usar o {link} para criar tokens de forma mais fácil, ou usar o processo abaixo para controle detalhado.",
+    "cashTokensStudio": "CashTokens Studio",
+    "needBch": "É necessário BCH na carteira para criar tokens",
+    "noUtxos": "Atualmente a carteira não possui UTXOs capazes de criar tokens.",
+    "prepareUtxo": "Preparar um UTXO para criação de tokens:",
+    "preparingButton": "Preparando...",
+    "prepareButton": "Preparar UTXO",
+    "plannedTokenId": "TokenId planejado:",
+    "loading": "carregando...",
+    "selectTokenType": "Selecione o tipo de token:",
+    "selectOption": "-selecione-",
+    "fungibleTokens": "Tokens Fungíveis",
+    "mintingNFT": "NFT de Minting",
+    "fungibleDescription": "Tokens Fungíveis são usados para criar tokens intercambiáveis. O supply total de tokens fungíveis precisa ser definido na criação.",
+    "mintingDescription": "NFT de Minting é usado para criar uma coleção de NFTs. O NFT de minting tem a capacidade de mintar novos NFTs com o mesmo tokenId.",
+    "mintingNote": "Nota: para usar um NFT de Minting, ative a opção \"Habilitar mint de NFTs\" nas configurações de desenvolvedor.",
+    "supplyLabel": "Escolha o supply total de tokens fungíveis",
+    "supplyPlaceholder": "supply total",
+    "supplyNote": "nota: adicione zeros extras para o número de decimais definido nos metadados BCMR",
+    "linkMetadata": "Vincular Metadados do Token",
+    "metadataIntro": "Para adicionar metadados ao seu token, você precisa fazer upload da(s) imagem(ns) do token, criar um arquivo JSON seguindo o {link}, fazer upload dele em algum lugar e publicar o link on-chain.",
+    "bcmrStandard": "padrão BCMR",
+    "selectUploadLocation": "Selecione onde fazer upload dos metadados (IPFS recomendado):",
+    "selectPlaceholder": "- selecione -",
+    "ipfs": "IPFS",
+    "httpsWebsite": "HTTPS: site próprio",
+    "httpsGithub": "HTTPS: github gist",
+    "validityCheck": "Verificação de validade dos metadados:",
+    "metadataNote": "Nota: Metadados do token ainda podem ser adicionados/atualizados após a criação com o AuthUTXO do token. Para usar esta funcionalidade, ative \"Habilitar resolução de authchain\" nas configurações de desenvolvedor. Transfira o AuthUTXO para uma carteira dedicada logo após a criação.",
+    "creatingTokensButton": "Criando Tokens...",
+    "creatingNftButton": "Criando NFT...",
+    "createButton": "Criar",
+    "notifications": {
+      "preparingPreGenesis": "Preparando pre-genesis...",
+      "transactionSent": "Transação enviada com sucesso!",
+      "creatingTokens": "Criando tokens...",
+      "creatingMintingNft": "Criando NFT de minting...",
+      "urlPrefixError": "URLs não devem ter nenhum prefixo!",
+      "ipfsCidError": "A localização IPFS deve ser um CID v1"
+    }
+  },
+  "utxoManagement": {
+    "title": "Gerenciamento de UTXOs",
+    "stats": {
+      "totalUtxos": "Total de UTXOs",
+      "bchOnlyUtxos": "UTXOs apenas BCH",
+      "tokenUtxos": "UTXOs de tokens"
+    },
+    "consolidate": {
+      "title": "Consolidar UTXOs de BCH",
+      "description": "Combinar todos os UTXOs apenas de BCH em um único UTXO. Se um dApp pedir para \"consolidar seus fundos\" mesmo tendo saldo suficiente, significa que você tem muitos UTXOs pequenos.",
+      "consolidatingButton": "Consolidando...",
+      "consolidateButton": "Consolidar BCH",
+      "alreadyConsolidated": "Sua carteira já possui {status} UTXO apenas de BCH.",
+      "noUtxos": "nenhum",
+      "oneUtxo": "apenas 1"
+    },
+    "combined": {
+      "title": "UTXOs combinados BCH + Token",
+      "description": "Alguns dApps retornam UTXOs que combinam BCH com tokens, fazendo com que o BCH não apareça no seu saldo.",
+      "warningCount": "{count} UTXO com BCH + Tokens combinados | {count} UTXOs com BCH + Tokens combinados",
+      "warningCountSingle": "{count} UTXO com BCH + Tokens combinados",
+      "warningCountPlural": "{count} UTXOs com BCH + Tokens combinados",
+      "splittableAmount": "Você tem {bch} BCH que pode ser separado dos UTXOs de tokens.",
+      "nftNote": "Nota: Esta ferramenta só pode separar BCH de UTXOs de tokens fungíveis, não de NFTs.",
+      "viewAffected": "Ver UTXOs afetados",
+      "noIssues": "Você não possui UTXOs desse tipo",
+      "splittingButton": "Separando...",
+      "splitButton": "Separar BCH dos Tokens"
+    },
+    "tableHeaders": {
+      "number": "#",
+      "bch": "BCH",
+      "token": "Token",
+      "type": "Tipo",
+      "txId": "TxId",
+      "vout": "Vout",
+      "copy": "copiar"
+    },
+    "notifications": {
+      "consolidating": "Consolidando UTXOs de BCH...",
+      "consolidatedSuccess": "UTXOs de BCH consolidados com sucesso!",
+      "splitting": "Separando BCH dos UTXOs de tokens...",
+      "splitSuccess": "BCH separado do UTXO de token com sucesso!",
+      "somethingWentWrong": "algo deu errado"
+    }
+  },
+  "hdAddresses": {
+    "title": "Endereços da Carteira HD",
+    "receivingAddresses": "Endereços de recebimento",
+    "changeAddresses": "Endereços de troco",
+    "usedAddresses": "Usados",
+    "unusedAddresses": "Não usados",
+    "noAddresses": "Nenhum endereço escaneado ainda",
+    "hideZeroBalances": "Ocultar saldos zerados",
+    "showTokenAddresses": "Mostrar endereços no formato de token",
+    "columns": {
+      "index": "Índice",
+      "address": "Endereço",
+      "balance": "Saldo",
+      "txs": "Txs"
+    }
+  },
+  "sweepPrivateKey": {
+    "title": "Sweep de Chave Privada",
+    "description": "Fazer sweep de BCH e tokens de uma paper wallet, cashstamp ou chave privada:",
+    "placeholder": "Insira a chave privada",
+    "sweepingButton": "Fazendo sweep...",
+    "sweepButton": "Sweep",
+    "previewButton": "Visualizar",
+    "loadingButton": "Carregando...",
+    "sweepAllButton": "Sweep Tudo",
+    "emptyWallet": "Nenhum saldo encontrado nesta chave privada",
+    "preview": {
+      "bchBalance": "Saldo BCH:",
+      "tokens": "Tokens:",
+      "nfts": "NFTs:",
+      "noTokens": "Nenhum token",
+      "noFreeBchWarning": "Este endereço possui tokens mas não tem BCH disponível para pagar taxas de transação. Envie uma pequena quantia de BCH para este endereço primeiro para cobrir as taxas do sweep dos tokens."
+    },
+    "notifications": {
+      "noWifProvided": "Nenhuma chave privada fornecida para sweep",
+      "sendingTransaction": "Enviando transação...",
+      "sweepingTokens": "Fazendo sweep dos tokens...",
+      "sweepingNfts": "Fazendo sweep dos NFTs...",
+      "sweepingBch": "Fazendo sweep do BCH...",
+      "success": "Fundos importados com sucesso da chave privada"
+    },
+    "qrErrors": {
+      "notWif": "Não é um QR code com chave privada no formato WIF",
+      "notMainnetWif": "Não é um QR code com chave privada Mainnet no formato WIF",
+      "notChipnetWif": "Não é um QR code com chave privada Chipnet no formato WIF"
+    }
+  },
+  "seedPhraseInput": {
+    "label": "Seed phrase:",
+    "words12": "12 palavras",
+    "words24": "24 palavras"
+  },
+  "qrScanner": {
+    "scanQrCode": "Escanear QR Code",
+    "errors": {
+      "permissionRequired": "Permissão necessária para acessar a câmera",
+      "noCamera": "Nenhuma câmera encontrada neste dispositivo",
+      "nonSecureContext": "Não é possível acessar a câmera em contexto não seguro",
+      "unableToAccess": "Não foi possível acessar a câmera",
+      "constraintsMismatch": "As restrições não correspondem a nenhuma câmera instalada. Você solicitou a câmera frontal embora não exista uma?",
+      "unknownError": "Erro desconhecido"
+    }
+  },
+  "relativeTime": {
+    "secondsAgo": "{count} segundos atrás",
+    "minuteAgo": "{count} minuto atrás",
+    "minutesAgo": "{count} minutos atrás",
+    "hourAgo": "{count} hora atrás",
+    "hoursAgo": "{count} horas atrás",
+    "dayAgo": "{count} dia atrás",
+    "daysAgo": "{count} dias atrás",
+    "monthsAgo": "{months}m atrás",
+    "monthsDaysAgo": "{months}m, {days}d atrás"
+  },
+  "cashConnect": {
+    "sessions": {
+      "title": "Sessões CashConnect (Pré-Alfa)",
+      "noActiveSessions": "Nenhuma sessão ativa no momento."
+    },
+    "sessionProposal": {
+      "title": "Aprovar sessão?",
+      "template": "Template:",
+      "untrusted": "(Não confiável)",
+      "willSeeTokens": "Poderá ver Tokens:",
+      "willInvokeMethods": "Poderá invocar Métodos/Eventos:",
+      "approveButton": "Aprovar",
+      "rejectButton": "Rejeitar"
+    },
+    "signTransaction": {
+      "title": "Assinar Transação",
+      "balanceChange": "Variação de saldo:",
+      "transactionDetails": "Detalhes da Transação",
+      "txLabel": "Tx #{index} - {prompt}",
+      "inputs": "Entradas",
+      "outputs": "Saídas",
+      "token": "Token:",
+      "amount": "Quantidade:",
+      "commitment": "Commitment:",
+      "capability": "Capability:",
+      "approveButton": "Aprovar",
+      "rejectButton": "Rejeitar"
+    },
+    "viewTemplate": {
+      "title": "Template",
+      "closeButton": "Fechar"
+    },
+    "error": {
+      "title": "Erro",
+      "stackTrace": "Stack Trace:",
+      "okButton": "OK"
+    },
+    "notifications": {
+      "sessionApproved": "Sessão aprovada",
+      "successfullySignedTransaction": "Transação assinada com sucesso",
+      "networkMismatch": "Este Dapp requer que a carteira esteja na rede {network}. Vá para as configurações e mude a rede para usar este Dapp.",
+      "notStarted": "CashConnect não foi iniciado.",
+      "privateKeyNotFound": "Chave privada não encontrada para o endereço: {address}",
+      "failedToConvertCashAddr": "Falha ao converter CashAddr para Locking Bytecode",
+      "invalidDerivationPath": "Derivation path inválido para CashConnect: esperado pelo menos 4 componentes, obtido {length}.",
+      "failedToDeriveHdNode": "Falha ao derivar HDNode da seed",
+      "walletTypeNotSupported": "Tipo de carteira não suportado: deve ser uma Carteira de Endereço Único ou Carteira HD."
+    }
+  },
+  "walletConnect": {
+    "sessions": {
+      "title": "Sessões WalletConnect",
+      "noActiveSessions": "Nenhuma sessão ativa no momento.",
+      "session": "sessão"
+    },
+    "transactionRequest": {
+      "title": "Assinar Transação",
+      "origin": "Origem:",
+      "balanceChange": "Variação de saldo:",
+      "fullDetails": "Detalhes completos da transação",
+      "inputs": "Entradas:",
+      "outputs": "Saídas:",
+      "thisWallet": "(esta carteira)",
+      "contract": "Contrato:",
+      "function": "Função:",
+      "nft": "NFT:",
+      "token": "Token:",
+      "amount": "Quantidade:",
+      "commitment": "Commitment:",
+      "capability": "Capability:",
+      "signButton": "Assinar",
+      "cancelButton": "Cancelar",
+      "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} não presente na sua carteira. Novos metadados obtidos para pré-visualização.",
+      "unverifiedTokenNoteSingular": "Token não presente na sua carteira. Novos metadados obtidos para pré-visualização.",
+      "unverifiedTokenNotePlural": "Tokens não presentes na sua carteira. Novos metadados obtidos para pré-visualização."
+    },
+    "sessionRequest": {
+      "title": "Aprovar sessão?",
+      "approveButton": "Aprovar",
+      "switchAndApprove": "Mudar para {network} e aprovar",
+      "rejectButton": "Rejeitar"
+    },
+    "addressSelect": {
+      "title": "Selecionar endereço para conectar",
+      "hint": "Escolha qual endereço compartilhar com este dApp"
+    },
+    "sessionSettings": {
+      "title": "Gerenciar sessão",
+      "enableAutoApprovals": "Habilitar aprovações automáticas",
+      "forever": "Para sempre",
+      "for": "Por",
+      "requests": "solicitações",
+      "minutes": "minutos",
+      "left": "restantes"
+    },
+    "signMessage": {
+      "title": "Assinar Mensagem",
+      "origin": "Origem:",
+      "signer": "Assinante:",
+      "message": "Mensagem:",
+      "signButton": "Assinar",
+      "cancelButton": "Cancelar"
+    },
+    "errors": {
+      "enterUri": "Insira uma URI BCH WalletConnect",
+      "notInitialized": "WalletConnect ainda não foi inicializado. Por favor, tente novamente em instantes.",
+      "invalidUri": "URI BCH WalletConnect inválida",
+      "unsupportedBlockchain": "Tentando conectar um app de blockchain(s) não suportada(s): {chains}",
+      "failedToApproveSession": "Falha ao aprovar sessão",
+      "invalidTransactionSchema": "Erro na validação do schema da requisição de transação WalletConnect",
+      "invalidSignMessageSchema": "Erro na validação do schema da requisição de assinatura de mensagem WalletConnect",
+      "errorSendingTransaction": "Erro ao enviar transação",
+      "transactionFailedToSend": "Transação falhou ao enviar com erro: {error}",
+      "noAddressForSession": "Nenhum endereço encontrado para a sessão",
+      "addressNotInHdCache": "Endereço não encontrado no cache da carteira HD: {address}",
+      "noPrivateKeyForAddress": "Nenhuma chave privada disponível para este endereço (carteira somente leitura)",
+      "failedToCompressPublicKey": "Falha ao comprimir chave pública"
+    },
+    "notifications": {
+      "successfullySignedMessage": "Mensagem assinada com sucesso",
+      "failedToSignMessage": "Falha ao assinar mensagem",
+      "sendingTransaction": "Enviando transação...",
+      "sentTransaction": "Transação WalletConnect enviada '{userPrompt}'",
+      "signedTransaction": "Transação WalletConnect assinada '{userPrompt}'. Por favor, retorne ao dapp.",
+      "transactionSignedTitle": "Transação Assinada",
+      "transactionSent": "Transação enviada com sucesso!",
+      "transactionSigned": "Transação assinada com sucesso!",
+      "requestExpired": "Requisição expirou, retorne ao {dappName} se deseja tentar novamente"
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "version": "Versão do Cashonize: {version}",
+    "latest": "(mais recente)",
+    "latestRelease": "(versão mais recente é {version})",
+    "allSettings": "Todas as configurações",
+    "currentWallet": "Carteira atual:",
+    "menu": {
+      "backupWallet": "Backup da carteira",
+      "important": "(importante)",
+      "manageWallets": "Gerenciar carteiras",
+      "userOptions": "Opções do usuário",
+      "localization": "Localização",
+      "advancedSettings": "Configurações avançadas",
+      "developerSettings": "Configurações de desenvolvedor",
+      "hdAddresses": "Endereços HD",
+      "utxoManagement": "Gerenciamento de UTXOs",
+      "sweepPrivateKey": "Sweep de Chave Privada",
+      "tokenCreationPage": "Página de Criação de Tokens"
+    },
+    "localization": {
+      "language": "Idioma:",
+      "currency": "Moeda:",
+      "dateFormat": "Formato de data:"
+    },
+    "userOptions": {
+      "darkMode": "Modo escuro",
+      "confirmPayments": "Confirmar pagamentos antes de enviar",
+      "confirmPaymentsHint": "Pedir confirmação após clicar em enviar (recomendado)",
+      "showCauldronSwap": "Mostrar botão de Swap do Cauldron",
+      "showCauldronFTValue": "Mostrar valor em fiat para tokens fungíveis",
+      "showCauldronFTValueHint": "Exibir valor em fiat para tokens fungíveis com pelo menos 1 BCH de liquidez no Cauldron DEX",
+      "enableTokenBurn": "Habilitar queima de tokens",
+      "enableQrScan": "Habilitar leitura de QR",
+      "selectUnit": "Selecionar unidade Bitcoin Cash:",
+      "bchUnit": "BCH",
+      "satUnit": "satoshis",
+      "blockExplorer": "Block explorer:",
+      "qrAnimation": "Animação do QR code:"
+    },
+    "advanced": {
+      "electrumMainnet": "Servidor Electrum mainnet:",
+      "electrumChipnet": "Servidor Electrum chipnet:",
+      "electrumCustomPlaceholder": "ex: 127.0.0.1",
+      "electrumCustomHint": "Requer WSS na porta 50004.",
+      "electrumSelfSignedBrowser": "Usando certificados autoassinados? {link} para aceitar o certificado primeiro.",
+      "electrumSelfSignedVisit": "Acesse aqui",
+      "electrumSelfSignedApp": "Nota: certificados autoassinados não são suportados no aplicativo no momento.",
+      "ipfsGateway": "Gateway IPFS:",
+      "chaingraph": "Servidor Chaingraph:",
+      "exchangeRate": "Provedor de cotações:",
+      "exchangeRateDefault": "Padrão (bitcoin.com para USD, BitPay para o resto)",
+      "deleteAllWallets": "Remover todas as carteiras e dados do {platform}",
+      "deleteAllWalletsButton": "Excluir todas as carteiras",
+      "deleteAllWalletsTitle": "Excluir Todas as Carteiras",
+      "deleteAllWalletsConfirm": "Você está prestes a excluir todas as carteiras e dados do Cashonize deste {platform}.<br>Tem certeza que deseja excluir tudo?",
+      "deleteAllWalletsPwaWarning": "Você está prestes a excluir todas as carteiras e dados do Cashonize deste {platform}.<br>Isso também as excluirá do seu navegador!<br>Tem certeza que deseja excluir tudo?",
+      "deleteAllButton": "Excluir Tudo",
+      "pwaDeleteWarning": "Excluir todas as carteiras do 'App web instalado' também as excluirá do seu navegador!",
+      "browserDeleteWarning": "Excluir todas as carteiras do navegador também as removerá de qualquer 'App web instalado'.",
+      "clearHistoryCache": "Limpar cache do histórico da carteira",
+      "clearHistoryCacheFrom": "Limpar cache do histórico da carteira do {platform}",
+      "clearHistoryCacheButton": "Limpar cache do histórico",
+      "clearMetadataCache": "Limpar cache de metadados dos tokens",
+      "clearMetadataCacheFrom": "Limpar cache de metadados dos tokens do {platform}",
+      "clearMetadataCacheButton": "Limpar cache de tokens",
+      "custom": "Personalizado",
+      "default": "(padrão)"
+    },
+    "developer": {
+      "changeNetwork": "Mudar rede:",
+      "mainnet": "mainnet",
+      "chipnet": "chipnet",
+      "tokenCreation": "Funcionalidade de Criação de Tokens:",
+      "enableMintNfts": "Habilitar mint de NFTs",
+      "enableMintNftsHint": "Adiciona uma ação de mint aos NFTs de minting, permitindo criar mais NFTs na mesma categoria",
+      "enableAuthchains": "Habilitar resolução de authchain",
+      "enableAuthchainsHint": "Verifica se você possui o AuthHead (autoridade para atualizar metadados do token) e permite transferi-lo",
+      "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
+      "disableTokenIconsHint": "Impede o carregamento de imagens de tokens de servidores externos"
+    },
+    "downloadCashonize": "Baixar Cashonize",
+    "madeWith": "Feito com {heart} por Mathieu G."
+  }
+}
