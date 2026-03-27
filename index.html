@@ -17,13 +17,6 @@
     <link rel="manifest" href="manifest.json">
   </head>
   <body>
-    <!-- @walletconnect/utils uses Node's Buffer in P-256 JWT verification (Verify API).
-         Provide it as a global so the attestation check works in browser/Vite environments.
-         TODO: remove when fixed upstream (https://github.com/WalletConnect/walletconnect-monorepo) -->
-    <script type="module">
-      import { Buffer } from "buffer";
-      globalThis.Buffer = Buffer;
-    </script>
     <!-- quasar:entry-point -->
   </body>
 </html>
