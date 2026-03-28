@@ -206,6 +206,8 @@ export default defineConfig((ctx) => {
         // https://www.electron.build/configuration/configuration
         
         appId: 'com.cashonize.wallet',
+        // exclude node_modules from asar — all deps are UI-only, already bundled by Vite
+        files: ['**/*', '!**/node_modules/**'],
         nsis: {
           createDesktopShortcut: "always",
           differentialPackage: false
