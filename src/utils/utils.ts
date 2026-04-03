@@ -99,6 +99,11 @@ export function formatFiatAmount(amount: number, currency: keyof typeof Currency
   return amount.toLocaleString('en', { style: "currency", currency });
 }
 
+// Formats with thousands separators, trailing zeros are stripped (no need to show them in the UI).
+export function formatNumber(value: number, maxDecimals: number): string {
+  return value.toLocaleString("en-US", { maximumFractionDigits: maxDecimals });
+}
+
 export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };

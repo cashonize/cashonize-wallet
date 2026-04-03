@@ -3,8 +3,7 @@ import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
 import type { BchSession, SignTransactionV0, SignTransactionV0Params, SignTransactionV0Response } from 'cashconnect';
 import { binToHex, binToNumberUintLE, lockingBytecodeToCashAddress, type WalletTemplate } from '@bitauth/libauth';
-import { CurrencySymbols } from 'src/interfaces/interfaces';
-import { convertToCurrency, sanitizeUrl } from 'src/utils/utils';
+import { convertToCurrency, formatFiatAmount, formatNumber, sanitizeUrl } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -156,8 +155,9 @@ function pairOutputs(pairedTx: PairedTx) {
 //-----------------------------------------------------------------------------
 
 function addSignPrefixToNumber(value: number | bigint): string {
-  if (Number(value) === 0) return `${value}`;
-  return Number(value) > 0 ? `+ ${value}` : `- ${-(value)}`;
+  const formatted = Number(value).toLocaleString("en-US");
+  if (Number(value) === 0) return formatted;
+  return Number(value) > 0 ? `+ ${formatted}` : `- ${Number(-(value)).toLocaleString("en-US")}`;
 };
 
 function formatBin(bin: Uint8Array) {
@@ -226,10 +226,11 @@ function satsToBCH(satoshis: bigint) {
         <div class="cc-modal-heading" style="margin-top: 1.5rem;">{{ t('cashConnect.signTransaction.balanceChange') }}</div>
         <div v-for="(amount, category) of balanceChanges" :key="category">
           <div v-if="(category === 'sats')">
-            {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' }}
-            ({{ convertToCurrency(amount, props.exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
+            {{ (amount > 0n ? '+ ' : amount < 0n ? '- ' : '') + formatNumber(Math.abs(satsToBCH(amount)), 8) + ' BCH ' }}
+            ({{ formatFiatAmount(convertToCurrency(amount, props.exchangeRate), settingsStore.currency) }})
           </div>
           <div v-else>
+            <!-- TODO: use BCMR decimals for token amount, display token ticker -->
             <span>{{ addSignPrefixToNumber(amount) + ' ' + getTokenName(category) }}</span>
           </div>
         </div>
@@ -249,7 +250,7 @@ function satsToBCH(satoshis: bigint) {
                     <td>{{ index }}</td>
                     <td>{{ formatBin(input.response.outpointTransactionHash) }}:{{ input.response.outpointIndex }}</td>
                     <td class="satoshis">
-                      {{ satsToBCH(response?.[i]?.sourceOutputs?.[index]?.valueSatoshis as bigint) }}
+                      {{ formatNumber(satsToBCH(response?.[i]?.sourceOutputs?.[index]?.valueSatoshis as bigint), 8) }}
                     </td>
                   </tr>
                   <!-- If there is data available for this input -->
@@ -280,7 +281,7 @@ function satsToBCH(satoshis: bigint) {
                   <tr>
                     <td>{{ index }}</td>
                     <td>{{ formatLockscript(output.response.lockingBytecode) }}</td>
-                    <td class="satoshis">{{ satsToBCH(output.response.valueSatoshis) }}</td>
+                    <td class="satoshis">{{ formatNumber(satsToBCH(output.response.valueSatoshis), 8) }}</td>
                   </tr>
                   <!-- If there is a token available on this output -->
                   <tr v-if="output.response.token">
@@ -292,7 +293,8 @@ function satsToBCH(satoshis: bigint) {
                               {{ t('cashConnect.signTransaction.token') }} {{ getTokenName(binToHex(output.response.token.category)) }}
                             </td>
                             <td>
-                              {{ t('cashConnect.signTransaction.amount') }} {{ Number(output.response.token.amount) }}
+                              <!-- TODO: use BCMR decimals for token amount, display token ticker -->
+                              {{ t('cashConnect.signTransaction.amount') }} {{ Number(output.response.token.amount).toLocaleString("en-US") }}
                             </td>
                           </tr>
                           <tr v-if="output.response.token?.nft">

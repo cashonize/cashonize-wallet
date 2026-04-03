@@ -2,11 +2,11 @@
   import { toRefs, ref } from 'vue';
   import { binToHex, decodeTransactionUnsafe, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
-  import { type DappMetadata, CurrencySymbols } from "src/interfaces/interfaces"
-  import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { useStore } from 'src/stores/store'
-  import { convertToCurrency, parseExtendedJson, sanitizeUrl } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatNumber, parseExtendedJson, sanitizeUrl } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { type DappMetadata } from "src/interfaces/interfaces"
+  import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit';
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
   import TokenIcon from '../general/TokenIcon.vue';
@@ -46,7 +46,7 @@
     const numberAmount = Number(amount);
     if (Math.abs(numberAmount / (10 ** 3)) > 1000) {
       const bchAmount = numberAmount * (10 ** -8)
-      return `${bchAmount.toFixed(8)} BCH`
+      return `${formatNumber(bchAmount, 8)} BCH`
     } else {
       return `${numberAmount} sat`
     }
@@ -151,7 +151,7 @@
       return amount.toString();
     } else {
       const numAmount = Number(amount);
-      return (numAmount / (10 ** decimals)).toFixed(decimals);
+      return formatNumber(numAmount / (10 ** decimals), decimals);
     }
   };
 
@@ -202,7 +202,7 @@
         <div class="wc-modal-heading" style="margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.balanceChange') }}</div>
           <div>
             {{ bchBalanceChange > 0 ? '+ ': '- '}} {{ satoshiToBCHString(abs(bchBalanceChange)) }}
-            ({{ currencyBalanceChange + ` ${CurrencySymbols[settingsStore.currency]}`}})
+            ({{ formatFiatAmount(currencyBalanceChange, settingsStore.currency) }})
           </div>
           <!-- Net fungible token changes -->
           <div v-for="[categoryHex, amount] in Object.entries(ftNetChanges)" :key="categoryHex" class="token-change-row">
