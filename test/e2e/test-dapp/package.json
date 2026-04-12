@@ -14,5 +14,8 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.5",
     "vite": "^8.0.5"
+  },
+  "resolutions": {
+    "**/anymatch/picomatch": "2.3.2"
   }
 }
