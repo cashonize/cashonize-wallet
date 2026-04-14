@@ -60,10 +60,11 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     const masterPrivateKey = getMasterPrivateKeyForWallet(mainStore.wallet as WalletType);
     // Instantiate CashConnect.
     cashConnectWallet.value = new CashConnectWallet(
-      // The master private key.
+      // The master private key for use with CashConnect.
       masterPrivateKey,
-      // WalletConnect Project ID and Metadata.
+      // Project ID.
       walletConnectProjectId,
+      // Metadata.
       walletConnectMetadata,
       // Event Callbacks.
       {
@@ -106,7 +107,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     if(!cashConnectWallet.value) {
       throw new Error(t('cashConnect.notifications.notStarted'));
     }
-
     try {
       // Pair with the service.
       await cashConnectWallet.value.pair(wcUri);
@@ -118,7 +118,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     if(!cashConnectWallet.value) {
       return;
     }
-
     await cashConnectWallet.value.disconnectSession(topicId);
   }
   //-----------------------------------------------------------------------------
@@ -220,7 +219,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   function doesActionRequireApproval(session: BchSession, actionName: string) {
     // Get the action being executed from the session:template.
     const action = session.sessionProperties.template.actions[actionName];
-
     // Check to see if it contains any instructions that should require approval.
     // NOTE: Currently, only actions involving transactions require approval.
     //       In future once we have auditing infrastructure, wallets can define their own policies.
