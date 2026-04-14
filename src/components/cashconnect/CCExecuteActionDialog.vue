@@ -11,6 +11,8 @@ import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
 import { type BcmrTokenResponse } from 'src/utils/zodValidation';
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 // Components.
 import CCExpansionItem from './CCExpansionItem.vue';
@@ -146,7 +148,7 @@ function satsToBCH(satoshis: bigint) {
 
         <hr style="margin-top:1em; margin-bottom: 1em" />
 
-        <div class="cc-modal-heading" style="margin-top: 1rem;">Balance Change:</div>
+        <div class="cc-modal-heading" style="margin-top: 1rem;">{{ t('cashConnect.executeAction.balanceChange') }}</div>
         <div v-for="(amount, category) of props.response.balanceChanges" :key="category">
           <div v-if="(category === 'sats')">
             {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' }}
@@ -162,13 +164,13 @@ function satsToBCH(satoshis: bigint) {
         <q-expansion-item label="Advanced">
           <!-- NOTE: The "content-inset-level" property pushes these too far in, so we pad manually. -->
           <div class="q-pl-md">
-            <CCExpansionItem title="Input Parameters" caption="Parameters provided by the Dapp to execute this action">
+            <CCExpansionItem :title="t('cashConnect.executeAction.inputParameters')" :caption="t('cashConnect.executeAction.inputParametersCaption')">
               <pre class="wrapping-pre">{{ encodeExtendedJson(request.params, 2) }}</pre>
             </CCExpansionItem>
 
             <!-- NOTE: Eventually we will show Instructions/Resolutions too, but the payload for this is not yet finalized. -->
 
-            <CCExpansionItem title="Returned Data" caption="Information that will be returned to the Dapp for execution.">
+            <CCExpansionItem :title="t('cashConnect.executeAction.returnedData')" :caption="t('cashConnect.executeAction.returnedDataCaption')">
               <pre class="wrapping-pre">{{ encodeExtendedJson({ data: response.data, transactions: response.transactions }, 2) }}</pre>
             </CCExpansionItem>
           </div>
@@ -178,8 +180,8 @@ function satsToBCH(satoshis: bigint) {
 
         <!-- Approve/Reject Buttons -->
         <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" value="Approve" @click="onDialogOK" v-close-popup>
-          <input type="button" value="Reject" @click="onDialogCancel">
+          <input type="button" class="primaryButton" :value="t('cashConnect.executeAction.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" :value="t('cashConnect.executeAction.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>
     </q-card>
