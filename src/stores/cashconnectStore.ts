@@ -41,9 +41,6 @@ import { type ElectrumRawTransactionVout } from "src/interfaces/interfaces";
 import { walletConnectProjectId, walletConnectMetadata } from "./constants";
 const settingsStore = useSettingsStore()
 
-// NOTE: We use a wrapper so that we can pass in the MainnetJs Wallet as an argument.
-//       This keeps the mutable state more managable in the sense that CC cannot exist without a valid wallet.
-// Passing in a Ref so it remains reactive (like when changing wallets)
 export const useCashconnectStore = defineStore("cashconnectStore", () => {
   // Accesses the wallet reactively via cross-store ref (mainStore.wallet) inside defineStore setup,
   // which Pinia resolves lazily — so the circular import with store.ts is safe.
