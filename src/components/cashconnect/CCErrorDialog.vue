@@ -23,9 +23,10 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
         <div v-if="error.message">{{ error.message }}</div>
 
         <template v-if="error.stack">
-          <div>{{ t('cashConnect.error.stackTrace') }}</div>
-          <pre class="cc-pre">{{ error.stack }}</pre>
-          <pre v-if="error.cause" class="cc-pre">{{ error.cause }}</pre>
+          <q-expansion-item :label="t('cashConnect.error.stackTrace')" class="q-mt-md">
+            <pre class="cc-pre">{{ error.stack }}</pre>
+            <pre v-if="error.cause" class="cc-pre">{{ error.cause }}</pre>
+          </q-expansion-item>
         </template>
 
         <!-- Bottom Buttons -->
