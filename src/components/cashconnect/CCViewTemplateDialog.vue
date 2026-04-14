@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useDialogPluginComponent } from 'quasar'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 defineProps<{
   template: string
