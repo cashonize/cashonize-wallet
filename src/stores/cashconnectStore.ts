@@ -155,8 +155,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
       })
         .onOk(() => {
           resolve({
-            // TODO: May want to keep something like this.
-            //       But, might want to list instruction types instead.
+            // NOTE: This is kept for future compatibility and will indicate to Client/Dapp which prompts can be backgrounded.
             autoApprove: [],
           });
           Notify.create({
