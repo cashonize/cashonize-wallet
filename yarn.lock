@@ -114,6 +114,50 @@
   dependencies:
     tslib "^2.1.0"
 
+"@cashconnect-js/core@*":
+  version "0.0.1-0cc9a2a"
+  resolved "https://gitlab.com/api/v4/projects/75767387/packages/npm/@cashconnect-js/core/-/@cashconnect-js/core-0.0.1-0cc9a2a.tgz#eb7ed6c8ad307a5db260cd98d5e8dda7fd08e76c"
+  integrity sha1-637WyK0wel2yYM2Y1ejdp/0I52w=
+  dependencies:
+    "@bitauth/libauth" "^3.1.0-next.2"
+    "@reown/walletkit" "^1.2.10"
+    "@walletconnect/core" "^2.21.8"
+    "@walletconnect/sign-client" "^2.23.0"
+    cashc "^0.12.0"
+    cashscript "^0.12.0"
+    zod "^4.1.12"
+
+"@cashconnect-js/core@^0.0.1-0cc9a2a":
+  version "0.0.1-e9b3029"
+  resolved "https://gitlab.com/api/v4/projects/75767387/packages/npm/@cashconnect-js/core/-/@cashconnect-js/core-0.0.1-e9b3029.tgz#de8bbdc5cb5261693da71b90516742f12968ef11"
+  integrity sha1-3ou9xctSYWk9pxuQUWdC8Slo7xE=
+  dependencies:
+    "@bitauth/libauth" "^3.1.0-next.2"
+    "@reown/walletkit" "^1.2.10"
+    "@walletconnect/core" "^2.21.8"
+    "@walletconnect/sign-client" "^2.23.0"
+    cashc "^0.12.0"
+    cashscript "^0.12.0"
+    zod "^4.1.12"
+
+"@cashconnect-js/wallet@^0.0.1-0cc9a2a":
+  version "0.0.1-e9b3029"
+  resolved "https://gitlab.com/api/v4/projects/75767387/packages/npm/@cashconnect-js/wallet/-/@cashconnect-js/wallet-0.0.1-e9b3029.tgz#3c58e652704a75fc1bcf8a825da1238a16f3e8ba"
+  integrity sha1-PFjmUnBKdfwbz4qCXaEjihbz6Lo=
+  dependencies:
+    "@bitauth/libauth" "^3.1.0-next.2"
+    "@cashconnect-js/core" "*"
+    "@reown/walletkit" "^1.2.10"
+    "@walletconnect/core" "^2.21.8"
+    "@walletconnect/sign-client" "^2.23.0"
+
+"@cashscript/utils@^0.12.1":
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/@cashscript/utils/-/utils-0.12.1.tgz#a4a240b49ba2890a16f0434196d43c0d3799bea1"
+  integrity sha512-dGVbbFMUHZJFjmLkGQNrM0/hzoXlJgM8bYU1J5cX80Vo5n7dmopctmxplgXGd3u/h6hBUt3V7lTawGi8DBupJQ==
+  dependencies:
+    "@bitauth/libauth" "^3.1.0-next.8"
+
 "@develar/schema-utils@~2.6.5":
   version "2.6.5"
   resolved "https://registry.yarnpkg.com/@develar/schema-utils/-/schema-utils-2.6.5.tgz#3ece22c5838402419a6e0425f85742b961d9b6c6"
@@ -230,7 +274,7 @@
   dependencies:
     debug "^4.3.7"
 
-"@electrum-cash/network@^4.2.2":
+"@electrum-cash/network@^4.1.3", "@electrum-cash/network@^4.2.2":
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/@electrum-cash/network/-/network-4.2.2.tgz#867b849938d196e887d56cf2cbecb8a1f2c9ea71"
   integrity sha512-v2Wwt2o0VBBALPArx2dJEDvSqewKjiTW5KAd+jEXxxgdSxFygjJIrFcXryKOCv2CDbpE5+lXAogPAjx6FqW/nw==
@@ -937,6 +981,11 @@
   version "5.3.1"
   resolved "https://registry.yarnpkg.com/@monsterbitar/isomorphic-ws/-/isomorphic-ws-5.3.1.tgz#acd6be86c7568682d8146f8b5fadbec74bf8789e"
   integrity sha512-BWfWUffbg3uO4K6Cyokg9ff43lPaXAOZcCnNe1lcjCjUMDVrRAb5qEHG5qeJp3ud2SPYbORaNsls5as6SR3oig==
+
+"@mr-zwets/bchn-api-wrapper@^1.0.1":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@mr-zwets/bchn-api-wrapper/-/bchn-api-wrapper-1.0.3.tgz#3b1eb23d50d5eee430dc82c0c13ccc6b26c1e3cb"
+  integrity sha512-60BwyiEibuLQyj+QcdGp4rd4KZ4TfvWrRBnE0gbMM/EHVY6iAApCn4orU6ZAhonVvPiCYrcef+39yLag71WbhA==
 
 "@msgpack/msgpack@3.1.2":
   version "3.1.2"
@@ -2435,7 +2484,7 @@
     "@walletconnect/utils" "2.23.0"
     events "3.3.0"
 
-"@walletconnect/sign-client@2.23.9":
+"@walletconnect/sign-client@2.23.9", "@walletconnect/sign-client@^2.23.0":
   version "2.23.9"
   resolved "https://registry.yarnpkg.com/@walletconnect/sign-client/-/sign-client-2.23.9.tgz#b4902eb560771686a0528e454a17b9dbd7b7aa51"
   integrity sha512-Xj+hw4E6mGRyhCdVOT/RMgnG+up/Y3v0ho5PlkVozvXWeVSqHNh9DmjLuU97a7OACoGd/oHBF6g3NVqD7MgCMQ==
@@ -2707,6 +2756,11 @@ ansi-styles@^6.2.1:
   version "6.2.3"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-6.2.3.tgz#c044d5dcc521a076413472597a1acb1f103c4041"
   integrity sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg==
+
+antlr4@^4.13.2:
+  version "4.13.2"
+  resolved "https://registry.yarnpkg.com/antlr4/-/antlr4-4.13.2.tgz#0d084ad0e32620482a9c3a0e2470c02e72e4006d"
+  integrity sha512-QiVbZhyy4xAZ17UPEuG3YTOt8ZaoeOR1CvEAqrEsDBsOqINslaB147i9xqljZqoyf5S+EUlGStaj+t22LT9MOg==
 
 anymatch@^3.1.3:
   version "3.1.3"
@@ -3155,6 +3209,17 @@ caniuse-lite@^1.0.30001759, caniuse-lite@^1.0.30001774:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001774.tgz#0e576b6f374063abcd499d202b9ba1301be29b70"
   integrity sha512-DDdwPGz99nmIEv216hKSgLD+D4ikHQHjBC/seF98N9CPqRX4M5mSxT9eTV6oyisnJcuzxtZy4n17yKKQYmYQOA==
 
+cashc@^0.12.0:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/cashc/-/cashc-0.12.1.tgz#aa617e059389b8c13f1b67f13fcbd4c415d24685"
+  integrity sha512-Xxeq8L/VGvOB5DfZI3zPgGf4ewV9fvQYGvcEAv2oWKZAPFZ8SD9lcfEl9xTCiR8UgTEuQEf/P3ndU9B685/7BA==
+  dependencies:
+    "@bitauth/libauth" "^3.1.0-next.8"
+    "@cashscript/utils" "^0.12.1"
+    antlr4 "^4.13.2"
+    commander "^14.0.0"
+    semver "^7.7.2"
+
 cashconnect@0.0.25:
   version "0.0.25"
   resolved "https://registry.yarnpkg.com/cashconnect/-/cashconnect-0.0.25.tgz#d11a494b3415a9614c33f5893a4a97a3b94e6db1"
@@ -3165,6 +3230,18 @@ cashconnect@0.0.25:
     "@walletconnect/auth-client" "2.1.2"
     "@walletconnect/core" "^2.21.8"
     idb "^7.1.1"
+
+cashscript@^0.12.0:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/cashscript/-/cashscript-0.12.1.tgz#5bcfb8a411f9eecad14c638a9cd44eeffc868ff1"
+  integrity sha512-IGKipstPw+/N+Nr5YyZf7LH89o32cmoMZFYZsEYQdOhMJQKp/m8lxkug8bPTm3oee+zzO4vYpDCbsBCaAhuj/A==
+  dependencies:
+    "@bitauth/libauth" "^3.1.0-next.8"
+    "@cashscript/utils" "^0.12.1"
+    "@electrum-cash/network" "^4.1.3"
+    "@mr-zwets/bchn-api-wrapper" "^1.0.1"
+    pako "^2.1.0"
+    semver "^7.7.2"
 
 chai@^6.2.2:
   version "6.2.2"
@@ -3317,6 +3394,11 @@ commander@^10.0.0:
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-10.0.1.tgz#881ee46b4f77d1c1dccc5823433aa39b022cbe06"
   integrity sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==
+
+commander@^14.0.0:
+  version "14.0.3"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-14.0.3.tgz#425d79b48f9af82fcd9e4fc1ea8af6c5ec07bbc2"
+  integrity sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==
 
 commander@^2.20.0:
   version "2.20.3"
@@ -5728,6 +5810,11 @@ package-json-from-dist@^1.0.0:
   resolved "https://registry.yarnpkg.com/package-json-from-dist/-/package-json-from-dist-1.0.1.tgz#4f1471a010827a86f94cfd9b0727e36d267de505"
   integrity sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==
 
+pako@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-2.1.0.tgz#266cc37f98c7d883545d11335c00fbd4062c9a86"
+  integrity sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==
+
 param-case@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/param-case/-/param-case-3.0.4.tgz#7d17fe4aa12bde34d4a77d91acfb6219caad01c5"
@@ -6518,7 +6605,7 @@ semver@^6.2.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
-semver@^7.3.2, semver@^7.7.3, semver@^7.7.4:
+semver@^7.3.2, semver@^7.7.2, semver@^7.7.3, semver@^7.7.4:
   version "7.7.4"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.4.tgz#28464e36060e991fa7a11d0279d2d3f3b57a7e8a"
   integrity sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA==
@@ -7597,7 +7684,7 @@ zip-stream@^6.0.1:
     compress-commons "^6.0.2"
     readable-stream "^4.0.0"
 
-zod@^4.3.6:
+zod@^4.1.12, zod@^4.3.6:
   version "4.3.6"
   resolved "https://registry.yarnpkg.com/zod/-/zod-4.3.6.tgz#89c56e0aa7d2b05107d894412227087885ab112a"
   integrity sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==

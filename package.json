@@ -21,6 +21,8 @@
   "dependencies": {
     "@bitauth/libauth": "^3.1.0-next.8",
     "@bitjson/qr-code": "^1.0.2",
+    "@cashconnect-js/core": "^0.0.1-0cc9a2a",
+    "@cashconnect-js/wallet": "^0.0.1-0cc9a2a",
     "@mainnet-cash/indexeddb-storage": "^3.1.7",
     "@plausible-analytics/tracker": "^0.4.4",
     "@reown/walletkit": "^1.5.5",
