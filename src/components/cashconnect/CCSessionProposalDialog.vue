@@ -135,7 +135,7 @@ for (const tokenId of allowedTokens) {
             <!-- Template -->
             <div class="cc-modal-section">
               <div class="cc-modal-heading">{{ t('cashConnect.sessionProposal.template') }}</div>
-              <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.sessionProperties.template.name }}</a> (Untrusted)
+              <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.sessionProperties.template.name }}</a> {{ t('cashConnect.sessionProposal.untrusted') }}
             </div>
 
             <!-- Allowed Tokens -->
