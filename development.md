@@ -44,6 +44,25 @@ npx quasar build
 
 you should see a generated `dist/stats.html` file which is the output of the `rollup-plugin-visualizer`
 
+The build command accepts a `-m` flag to target different platforms:
+```bash
+npx quasar build -m electron          # desktop (Electron)
+npx quasar build -m capacitor -T android  # mobile (Capacitor Android)
+```
+
+Similarly for development:
+```bash
+npx quasar dev -m electron
+npx quasar dev -m capacitor -T android
+```
+
+### Releasing a new version
+
+The version number must be updated in three places:
+1. `package.json` (root)
+2. `src-capacitor/package.json`
+3. `src-capacitor/android/app/build.gradle` (`versionName` and `versionCode`)
+
 ### Optionally Install the Quasar CLI
 [See the Quasar CLI instructions](https://quasar.dev/start/quick-start#optional-install-the-global-cli)
 ```bash
