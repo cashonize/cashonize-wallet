@@ -114,21 +114,21 @@
   dependencies:
     tslib "^2.1.0"
 
-"@cashconnect-js/core@1.0.0-alpha.2":
-  version "1.0.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@cashconnect-js/core/-/core-1.0.0-alpha.2.tgz#34ddfd77bd027823ec65043d9c87cdb686cb31a6"
-  integrity sha512-r0p3iLPCj6a7ydkoGa6mRVIs4BzLzZ/C3dpLYqKd50c5oLJVwEgbw0XdzI9vB4otdCUEDzXGdHtJcRHSKtxTXA==
+"@cashconnect-js/core@1.0.0-alpha.3":
+  version "1.0.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@cashconnect-js/core/-/core-1.0.0-alpha.3.tgz#e84168c6b51a2915f8ea6b45d118ea1a51dc57f7"
+  integrity sha512-p4vlCtLfgZPkW56yTt2KCkkZHneDGG5HCvzKc8Tm9S/MAK4M2Ls9q9DUzCWOkQ7GIpGHKtK5skL9JCJOHMx9/Q==
   dependencies:
     "@bitauth/libauth" "^3.1.0-next.2"
     zod "^4.1.12"
 
-"@cashconnect-js/wallet@1.0.0-alpha.2":
-  version "1.0.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@cashconnect-js/wallet/-/wallet-1.0.0-alpha.2.tgz#7bd287224adbb5f5b6c01ee7278bf40ec3b755e2"
-  integrity sha512-UURFiNo8/oFjJmKe2QHotSvlqFjCT83K8xu6M/7uSzGPeT3DDN6JZBIkMJE7Km6cbZylMsK5kfAt0h6rQnxKog==
+"@cashconnect-js/wallet@1.0.0-alpha.3":
+  version "1.0.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@cashconnect-js/wallet/-/wallet-1.0.0-alpha.3.tgz#80528e0073ede300464cb45d6304a418605bfd15"
+  integrity sha512-AhYdPrepvzQ0N2JoSkm/LRW8ege25eUHiN+ofMGM2hf+yO2xYrP/uVuGVzxV7TwARRfQpS8CyO6tnFCkAjVmNg==
   dependencies:
     "@bitauth/libauth" "^3.1.0-next.2"
-    "@cashconnect-js/core" "1.0.0-alpha.2"
+    "@cashconnect-js/core" "1.0.0-alpha.3"
     "@reown/walletkit" "^1.2.10"
     "@walletconnect/core" "^2.21.8"
     "@walletconnect/sign-client" "^2.23.0"
