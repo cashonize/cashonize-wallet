@@ -6,7 +6,7 @@ import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
 import { formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode } from '@cashconnect-js/wallet';
 import { CurrencySymbols } from 'src/interfaces/interfaces';
 
-import { convertToCurrency } from 'src/utils/utils';
+import { convertToCurrency, sanitizeUrl } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -32,6 +32,8 @@ defineEmits([
 ])
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+const safeUrl = sanitizeUrl(props.session.peer.metadata.url);
 
 const title = computed(() => {
   return props.response.meta?.title || [props.request.action];
@@ -105,8 +107,9 @@ function formatSegmentCustom(segment: TemplateSegment) {
 }
 
 function addSignPrefixToNumber(value: number | bigint): string {
-  if (Number(value) === 0) return `${value}`;
-  return Number(value) > 0 ? `+ ${value}` : `- ${-(value)}`;
+  const formatted = Number(value).toLocaleString("en-US");
+  if (Number(value) === 0) return formatted;
+  return Number(value) > 0 ? `+ ${formatted}` : `- ${Number(-(value)).toLocaleString("en-US")}`;
 };
 
 function satsToBCH(satoshis: bigint) {
@@ -115,7 +118,7 @@ function satsToBCH(satoshis: bigint) {
 </script>
 
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide" transition-show="scale">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" transition-show="scale" persistent>
     <q-card>
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">
@@ -132,7 +135,8 @@ function satsToBCH(satoshis: bigint) {
           <q-item-section>
             <q-item-label>{{ session.peer.metadata.name }}</q-item-label>
             <q-item-label>
-              <a :href="session.peer.metadata.url" target="_blank">{{ session.peer.metadata.url }}</a>
+              <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ session.peer.metadata.url }}</a>
+              <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
             </q-item-label>
           </q-item-section>
         </q-item>

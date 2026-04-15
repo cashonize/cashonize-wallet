@@ -360,6 +360,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
         data,
         script: 'unlock',
       },
+      // Use 1000 sats for the change output (which is more than safe for P2PKH wallets).
       fee: 1000n,
     }
   }
