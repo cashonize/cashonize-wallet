@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { useDialogPluginComponent } from 'quasar'
-import type { CashRPCError } from 'cashconnect';
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 defineProps<{
-  error: CashRPCError
+  error: Error
 }>()
 
 defineEmits([
@@ -23,9 +22,11 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
 
         <div v-if="error.message">{{ error.message }}</div>
 
-        <template v-if="error.stackTrace">
-          <div>{{ t('cashConnect.error.stackTrace') }}</div>
-          <pre class="cc-pre">{{ error.stackTrace }}</pre>
+        <template v-if="error.stack">
+          <q-expansion-item :label="t('cashConnect.error.stackTrace')" class="q-mt-md">
+            <pre class="cc-pre">{{ error.stack }}</pre>
+            <pre v-if="error.cause" class="cc-pre">{{ error.cause }}</pre>
+          </q-expansion-item>
         </template>
 
         <!-- Bottom Buttons -->

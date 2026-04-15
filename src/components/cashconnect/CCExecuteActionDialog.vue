@@ -1,0 +1,223 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { useDialogPluginComponent } from 'quasar'
+import { type BchSession, type ExecuteActionPayload, type TemplateSegment } from '@cashconnect-js/core';
+import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
+import { formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode } from '@cashconnect-js/wallet';
+import { CurrencySymbols } from 'src/interfaces/interfaces';
+
+import { convertToCurrency, sanitizeUrl } from 'src/utils/utils';
+import { useStore } from 'src/stores/store';
+import { useSettingsStore } from 'src/stores/settingsStore';
+import { caughtErrorToString } from 'src/utils/errorHandling';
+import { type BcmrTokenResponse } from 'src/utils/zodValidation';
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+
+// Components.
+import CCExpansionItem from './CCExpansionItem.vue';
+
+const store = useStore()
+const settingsStore = useSettingsStore()
+
+const props = defineProps<{
+  session: BchSession,
+  request: ExecuteActionPayload['request']['params'],
+  response: ExecuteActionPayload['response'],
+  exchangeRate: number,
+}>()
+
+defineEmits([
+  ...useDialogPluginComponent.emits
+])
+
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+const safeUrl = sanitizeUrl(props.session.peer.metadata.url);
+
+const title = computed(() => {
+  return props.response.meta?.title || [props.request.action];
+});
+
+const description = computed(() => {
+  return props.response.meta?.description || ['No description for this action available.']
+})
+
+//-----------------------------------------------------------------------------
+// Tokens
+//-----------------------------------------------------------------------------
+
+// State to store fetched token info from BCMR.
+const tokens = ref<{ [categoryId: string]: BcmrTokenResponse }>({});
+
+function getTokenName(categoryId: string | number) {
+  // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.
+  try {
+    const tokenInfo = tokens.value[categoryId];
+
+    if(!tokenInfo) {
+      return categoryId;
+    }
+
+    return tokenInfo.name || 'Unknown Token';
+  } catch(error) {
+    const errorMessage= caughtErrorToString(error)
+    console.error(errorMessage);
+
+    return categoryId;
+  }
+}
+
+async function fetchAndSetTokenInfo(tokenId: string) {
+  try {
+    const tokenInfo = await store.fetchTokenInfo(tokenId);
+    tokens.value[tokenId] = tokenInfo;
+  } catch(error) {
+    const errorMessage = caughtErrorToString(error)
+    console.error(errorMessage);
+  }
+}
+const allowedTokens = props.session.sessionProperties.allowedTokens ?? [];
+// fire-and-forget promises
+for (const tokenId of allowedTokens) {
+  void fetchAndSetTokenInfo(tokenId);
+}
+
+//-----------------------------------------------------------------------------
+// Formatting Utils
+//-----------------------------------------------------------------------------
+
+function formatSegmentCustom(segment: TemplateSegment) {
+  // Over-ride segment types that need dynamic data.
+  if(typeof segment === 'object') {
+    switch (segment.type) {
+      // NOTE: These utilities are provided as a convenience and use hard-coded GP Oracle Data.
+      //       Ideally, in future, wallets will store Oracles directly.
+      // NOTE: We cannot have Actions provide Metadata directly yet as GP does not support an OPERATOR_SIGNATURE metadata type yet.
+      //       See: https://gitlab.com/GeneralProtocols/priceoracle/relay-server/-/issues/182#note_2691853526
+      //       The implication here would be that someone could provide metadata for an untrusted Oracle Public Key.
+      case 'priceOracle.priceValue': return formatOraclePrice(segment);
+      case 'priceOracle.numeratorUnitCode': return formatOracleNumeratorUnitCode(segment);
+      case 'priceOracle.denominatorUnitCode': return formatOracleDenominatorUnitCode(segment);
+    }
+  }
+
+  // Fallback to CashConnect default.
+  return formatSegment(segment);
+}
+
+function addSignPrefixToNumber(value: number | bigint): string {
+  const formatted = Number(value).toLocaleString("en-US");
+  if (Number(value) === 0) return formatted;
+  return Number(value) > 0 ? `+ ${formatted}` : `- ${Number(-(value)).toLocaleString("en-US")}`;
+};
+
+function satsToBCH(satoshis: bigint) {
+  return Number(satoshis) / 100_000_000;
+};
+</script>
+
+<template>
+  <q-dialog ref="dialogRef" @hide="onDialogHide" transition-show="scale" persistent>
+    <q-card>
+      <fieldset class="cc-modal-fieldset">
+        <legend class="cc-modal-fieldset-legend">
+          <span v-for="(segment, i) in title" :key="i">
+            {{ formatSegmentCustom(segment) }}
+          </span>
+        </legend>
+
+        <!-- Origin -->
+        <q-item>
+          <q-item-section avatar>
+            <q-img :src="session.peer.metadata.icons[0] ?? ''" style="max-width:64px; max-height:64px;" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ session.peer.metadata.name }}</q-item-label>
+            <q-item-label>
+              <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ session.peer.metadata.url }}</a>
+              <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
+            </q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <hr style="margin-top:1em; margin-bottom: 1em" />
+
+        <div class="wrapping-pre" style="font-size: medium;">
+          <template v-for="(segment, i) in description" :key="i">
+            <span v-if="typeof segment === 'string'">{{ segment }}</span>
+            <span v-else class="green" style="font-weight:bold">{{ formatSegmentCustom(segment) }}</span>
+          </template>
+        </div>
+
+        <hr style="margin-top:1em; margin-bottom: 1em" />
+
+        <div class="cc-modal-heading" style="margin-top: 1rem;">{{ t('cashConnect.executeAction.balanceChange') }}</div>
+        <div v-for="(amount, category) of props.response.balanceChanges" :key="category">
+          <div v-if="(category === 'sats')">
+            {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' }}
+            ({{ convertToCurrency(amount, props.exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
+          </div>
+          <div v-else>
+            <span>{{ addSignPrefixToNumber(amount) }} <span>{{ getTokenName(category) }} <q-tooltip>{{ category }}</q-tooltip></span></span>
+          </div>
+        </div>
+
+        <hr style="margin-top:1em; margin-bottom: 1em" />
+
+        <q-expansion-item label="Advanced">
+          <!-- NOTE: The "content-inset-level" property pushes these too far in, so we pad manually. -->
+          <div class="q-pl-md">
+            <CCExpansionItem :title="t('cashConnect.executeAction.inputParameters')" :caption="t('cashConnect.executeAction.inputParametersCaption')">
+              <pre class="wrapping-pre">{{ encodeExtendedJson(request.params, 2) }}</pre>
+            </CCExpansionItem>
+
+            <!-- NOTE: Eventually we will show Instructions/Resolutions too, but the payload for this is not yet finalized. -->
+
+            <CCExpansionItem :title="t('cashConnect.executeAction.returnedData')" :caption="t('cashConnect.executeAction.returnedDataCaption')">
+              <pre class="wrapping-pre">{{ encodeExtendedJson({ data: response.data, transactions: response.transactions }, 2) }}</pre>
+            </CCExpansionItem>
+          </div>
+        </q-expansion-item>
+
+        <hr style="margin-top: 1rem;"/>
+
+        <!-- Approve/Reject Buttons -->
+        <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
+          <input type="button" class="primaryButton" :value="t('cashConnect.executeAction.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" :value="t('cashConnect.executeAction.rejectButton')" @click="onDialogCancel">
+        </div>
+      </fieldset>
+    </q-card>
+  </q-dialog>
+</template>
+
+<style scoped>
+  .dialogFieldset{
+    padding: 3rem;
+    width: 500px;
+    max-width: 100%;
+    height: 220px;
+    background-color: white
+  }
+  body.dark .dialogFieldset {
+    background-color: #050a14;
+  }
+  .q-card{
+    box-shadow: none;
+    background: none;
+  }
+
+  .break-hex-string {
+    word-wrap: break-word;      /* Legacy name */
+    overflow-wrap: break-word;  /* Modern name (same property) */
+    word-break: break-all;      /* Forces breaks at any character */
+  }
+  .wrapping-pre {
+    white-space: pre-wrap;       /* CSS3 standard */
+    word-wrap: break-word !important;       /* For older browsers */
+    overflow-wrap: break-word !important;   /* Modern property */
+    word-break: break-all;
+    font-size: x-small;
+  }
+</style>

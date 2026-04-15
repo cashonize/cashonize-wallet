@@ -4,7 +4,7 @@ import { Dialog, Notify } from "quasar";
 
 // Components.
 import CCSessionProposalDialogVue from "src/components/cashconnect/CCSessionProposalDialog.vue";
-import CCSignTransactionDialogVue from "src/components/cashconnect/CCSignTransactionDialog.vue";
+import CCExecuteActionDialogVue from "src/components/cashconnect/CCExecuteActionDialog.vue";
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import MainnetJs and CashConnect
@@ -16,11 +16,13 @@ const { t } = i18n.global
 import {
   type BchSession,
   type BchSessionProposal,
-  type RpcRequestResponse,
+  type Payloads,
+  type SpendableUTXO,
   type WalletProperties,
-  type Unspent,
+} from "@cashconnect-js/core";
+import {
   CashConnectWallet,
-} from "cashconnect";
+} from "@cashconnect-js/wallet";
 
 // Import Libauth.
 import {
@@ -32,6 +34,7 @@ import {
   deriveSeedFromBip39Mnemonic,
   deriveHdPrivateNodeFromSeed,
   walletTemplateP2pkhNonHd,
+  walletTemplateToCompilerBch,
 } from "@bitauth/libauth";
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { type ElectrumRawTransactionVout } from "src/interfaces/interfaces";
@@ -42,14 +45,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   // Accesses the wallet reactively via cross-store ref (mainStore.wallet) inside defineStore setup,
   // which Pinia resolves lazily — so the circular import with store.ts is safe.
   const mainStore = useStore();
-  // Auto-approve the following RPC methods.
-  // NOTE: We hard-code these for now, but they could be customized on a per-Dapp basis in the future.
-  const autoApprovedMethods = [
-    "wc_authRequest",
-    "bch_getTokens_V0",
-    "bch_getBalance_V0",
-    "bch_getChangeLockingBytecode_V0",
-  ];
   // List of CashConnect sessions.
   // NOTE: This reactive state is synced with CashConnect via the onSessionsUpdated hook.
   const sessions = ref<Record<string, BchSession>>({});
@@ -80,16 +75,13 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
         onRPCRequest,
         onError,
       },
-      // CashRPC Callbacks.
+      // Execution Context Data.
       {
-        // Network-related callbacks.
-        network: {
-          getSourceOutput,
-        },
-        wallet: {
-          getUnspents,
-          getChangeTemplate,
-        },
+        // Blockchain.
+        getSourceOutput,
+        // Wallet.
+        getSpendableUTXOs,
+        getChangeTemplateDirective,
       }
     )
     // Start CashConnect (WC Core) service.
@@ -142,7 +134,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     //       So we use the networkPrefix property to determine which chain we are currently on.
     const currentChain = mainStore.wallet.networkPrefix;
     const targetChain =
-      sessionProposal.params.requiredNamespaces?.bch.chains?.[0]?.replace(
+      sessionProposal.params.optionalNamespaces?.bch?.chains?.[0]?.replace(
         "bch:",
         ""
       );
@@ -163,9 +155,8 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
       })
         .onOk(() => {
           resolve({
-            // NOTE: We return the methods that are auto-approved to the Dapp
-            // this way the dapp knows it doesn't have to display a user prompt for them.
-            autoApprove: autoApprovedMethods,
+            // NOTE: This is kept for future compatibility and will indicate to Client/Dapp which prompts can be backgrounded.
+            autoApprove: [],
           });
           Notify.create({
             color: "positive",
@@ -181,35 +172,37 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   }
   async function onRPCRequest(
     session: BchSession,
-    request: RpcRequestResponse["request"],
-    response: RpcRequestResponse["response"]
+    request: Payloads["request"],
+    response: Payloads["response"]
   ): Promise<void> {
-    // If this is not a request that should be auto-approved...
-    if (!autoApprovedMethods.includes(request.method)) {
-      // Handle bch_signTransaction_V0.
-      if (request.method === "bch_signTransaction_V0") {
-        const exchangeRate = await convert(1, "bch", settingsStore.currency);
-        return await new Promise<void>((resolve, reject) => {
-          Dialog.create({
-            component: CCSignTransactionDialogVue,
-            componentProps: {
-              session,
-              params: request.params,
-              response,
-              exchangeRate
-            },
-          })
-            .onOk(() => {
-              resolve();
-              Notify.create({
-                color: "positive",
-                message: t('cashConnect.notifications.successfullySignedTransaction'),
-              });
-            })
-          .onCancel(reject)
-          .onDismiss(reject);
-        });
+    if(request.method === 'executeAction') {
+      // If this is not a request that DOES NOT require approval...
+      if (!doesActionRequireApproval(session, request.params.action)) {
+        return;
       }
+      // Get the BCH exchange rate.
+      const exchangeRate = await convert(1, "bch", settingsStore.currency);
+      // Show a dialog, prompting the user for approval.
+      return await new Promise<void>((resolve, reject) => {
+        Dialog.create({
+          component: CCExecuteActionDialogVue,
+          componentProps: {
+            session,
+            request: request.params,
+            response,
+            exchangeRate
+          },
+        })
+          .onOk(() => {
+            resolve();
+            Notify.create({
+              color: "positive",
+              message: t('cashConnect.notifications.successfullySignedTransaction'),
+            });
+          })
+        .onCancel(reject)
+        .onDismiss(reject);
+      });
     }
   }
   async function onError(error: Error): Promise<void> {
@@ -222,6 +215,15 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
       }).onDismiss(resolve);
     });
   }
+  function doesActionRequireApproval(session: BchSession, actionName: string) {
+    // Get the action being executed from the session:template.
+    const action = session.sessionProperties.template.actions[actionName];
+    // Check to see if it contains any instructions that should require approval.
+    // NOTE: Currently, only actions involving transactions require approval.
+    //       In future once we have auditing infrastructure, wallets can define their own policies.
+    //       For example, if a given template is unaudited, all actions could be set to require approval.
+    return action?.instructions?.some((instruction) => instruction.type === 'transaction');
+  }
   //-----------------------------------------------------------------------------
   // Network/Wallet Hooks
   //-----------------------------------------------------------------------------
@@ -229,47 +231,40 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     outpointTransactionHash: Uint8Array,
     outpointIndex: number
   ): Promise<Output> {
-    // wait for electrum to be initialized to avoid race-conditions
-    if (document.visibilityState === 'visible') {
-      try {
-        await mainStore.wallet.provider.connect();
-      } catch (error) {
-        console.error('Failed to reconnect:', error);
-      }
-    }
+    // Ensure that we are connected to the blockchain.
+    await waitForBlockchainConnection();
+    // Get the transaction containing this outpoint.
     const transaction = await mainStore.wallet.provider.getRawTransactionObject(
       binToHex(outpointTransactionHash)
     );
+    // Get the outpoint.
     const outpoint = transaction.vout[outpointIndex] as ElectrumRawTransactionVout ;
-    let token;
-    if ('tokenData' in outpoint) {
-      token = {
-        amount: BigInt(outpoint.tokenData.amount),
-        category: hexToBin(outpoint.tokenData.category),
-        capability: outpoint.tokenData?.nft?.capability,
-        commitment: outpoint.tokenData?.nft?.commitment
-          ? hexToBin(outpoint.tokenData.nft.commitment)
-          : undefined,
-      };
-    }
-    const formatted = {
+    // Build the output, converting from Mainnet to LibAuth.
+    const output: Output = {
       valueSatoshis: BigInt(Math.round(outpoint.value * 100_000_000)),
       lockingBytecode: hexToBin(outpoint.scriptPubKey.hex),
-      token,
     };
-    // TODO: investigate this type error
-    // @ts-ignore
-    return formatted;
-  }
-  async function getUnspents(): Promise<Array<Unspent>> {
-    // wait for electrum to be initialized to avoid race-conditions
-    if (document.visibilityState === 'visible') {
-      try {
-        await mainStore.wallet.provider.connect();
-      } catch (error) {
-        console.error('Failed to reconnect:', error);
-      }
+    // If a token is available, add it to the output.
+    if ('tokenData' in outpoint) {
+      output.token = {
+        category: hexToBin(outpoint.tokenData.category),
+        amount: BigInt(outpoint.tokenData.amount),
+        ...(outpoint.tokenData.nft) ? {
+          nft: {
+            capability: outpoint.tokenData?.nft.capability || 'none',
+            commitment: hexToBin(outpoint.tokenData.nft.commitment || '')
+          }
+        } : {},
+      };
     }
+    // Return the output.
+    return output;
+  }
+  async function getSpendableUTXOs(): Promise<Array<SpendableUTXO>> {
+    // Wait for electrum to be initialized to avoid race-conditions
+    await waitForBlockchainConnection();
+    // Create our Libauth P2PKH Compiler for Locking/Unlocking the P2PKH Wallet.
+    const compilerP2PKH = walletTemplateToCompilerBch(walletTemplateP2pkhNonHd);
     // Get the UTXOs from the wallet.
     // NOTE: For Mainnet, we need to marry them up with their Private Key later using the wallet's "walletCache".
     const utxos = await mainStore.wallet.getUtxos();
@@ -294,6 +289,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
           amount: BigInt(utxo.token.amount),
           category: hexToBin(utxo.token.category),
         };
+
         if (utxo.token?.nft?.capability || utxo.token?.nft?.commitment) {
           token.nft = {
             capability: utxo.token.nft?.capability || "none",
@@ -301,15 +297,13 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
           };
         }
       }
-      // Return the LibAuth Template.
+      // Convert them into LibAuth Template format for use with the Tx Builder.
       return {
         outpointTransactionHash: hexToBin(utxo.txid),
         outpointIndex: utxo.vout,
         sequenceNumber: 0,
-        lockingBytecode: lockingBytecode.bytecode,
         unlockingBytecode: {
-          template: walletTemplateP2pkhNonHd,
-          valueSatoshis: utxo.satoshis,
+          compiler: compilerP2PKH,
           script: "unlock",
           data: {
             keys: {
@@ -318,13 +312,22 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
               },
             },
           },
-          token,
         },
-      } as Unspent;
+        sourceOutput: {
+          lockingBytecode: lockingBytecode.bytecode,
+          valueSatoshis: BigInt(utxo.satoshis),
+          ...(utxo.token && {
+            token,
+          }),
+        }
+      };
     });
     return transformed;
   }
-  function getChangeTemplate() {
+  // NOTE: This is used to:
+  //       1. Provide a sandbox for Consolidation TXs/Category Genesis TXs.
+  //       2. Generate a <payoutLockingBytecode> placeholder variable.
+  function getChangeTemplateDirective() {
     // Get the latest deposit address.
     const changeAddress = mainStore.wallet.getChangeAddress();
     // Get the Private Key for this Change Address.
@@ -335,21 +338,44 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
         t('cashConnect.notifications.privateKeyNotFound', { address: changeAddress })
       );
     }
-    // Return the Libauth Change Template.
-    return {
-      template: walletTemplateP2pkhNonHd,
-      data: {
-        keys: {
-          privateKeys: {
-            key: addressKeyPair.privateKey,
-          },
+    // Create a P2PKH Template.
+    const compiler = walletTemplateToCompilerBch(walletTemplateP2pkhNonHd);
+    // Set the data for this template.
+    const data = {
+      keys: {
+        privateKeys: {
+          key: addressKeyPair.privateKey,
         },
       },
     };
+    // Return the lock and unlock directives.
+    return {
+      lock: {
+        compiler,
+        data,
+        script: 'lock',
+      },
+      unlock: {
+        compiler,
+        data,
+        script: 'unlock',
+      },
+      // Use 1000 sats for the change output (which is more than safe for P2PKH wallets).
+      fee: 1000n,
+    }
   }
   //-----------------------------------------------------------------------------
   // Utils
   //-----------------------------------------------------------------------------
+  async function waitForBlockchainConnection() {
+    if (document.visibilityState === 'visible') {
+      try {
+        await mainStore.wallet.provider.connect();
+      } catch (error) {
+        console.error('Failed to reconnect:', error);
+      }
+    }
+  }
   function derivationPathToCashConnectPath(derivationPath: string, purpose = 5001) {
       // Replace the "purpose" in the derivation path with "5001" (CashConnect).
       const parts = derivationPath.split('/');

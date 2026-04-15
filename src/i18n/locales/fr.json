@@ -677,7 +677,7 @@
   },
   "cashConnect": {
     "sessions": {
-      "title": "Sessions CashConnect (Pre-Alpha)",
+      "title": "Sessions CashConnect (Alpha)",
       "noActiveSessions": "Aucune session active actuellement."
     },
     "sessionProposal": {
@@ -689,17 +689,12 @@
       "approveButton": "Approuver",
       "rejectButton": "Rejeter"
     },
-    "signTransaction": {
-      "title": "Signer la transaction",
-      "balanceChange": "Variation du solde :",
-      "transactionDetails": "Détails de la transaction",
-      "txLabel": "Tx #{index} - {prompt}",
-      "inputs": "Entrées",
-      "outputs": "Sorties",
-      "token": "Token :",
-      "amount": "Montant :",
-      "commitment": "Commitment :",
-      "capability": "Capability :",
+    "executeAction": {
+      "balanceChange": "Changement de solde :",
+      "inputParameters": "Paramètres d'entrée",
+      "inputParametersCaption": "Paramètres fournis par la Dapp pour exécuter cette action",
+      "returnedData": "Données retournées",
+      "returnedDataCaption": "Informations qui seront retournées à la Dapp pour l'exécution",
       "approveButton": "Approuver",
       "rejectButton": "Rejeter"
     },

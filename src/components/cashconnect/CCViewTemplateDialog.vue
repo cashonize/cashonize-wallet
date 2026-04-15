@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDialogPluginComponent } from 'quasar'
 import { useI18n } from 'vue-i18n'
+import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
 const { t } = useI18n()
 
 defineProps<{
@@ -20,7 +21,7 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">{{ t('cashConnect.viewTemplate.title') }}</legend>
 
-        <pre style="font-size: 10px;">{{ template }}</pre>
+        <pre style="font-size: 10px;">{{ encodeExtendedJson(template, 2) }}</pre>
 
         <!-- Bottom Buttons -->
         <div style="margin-top: 2rem; display: flex; gap: 1rem;" class="justify-center">
