@@ -29,23 +29,6 @@ const stringifiedUint8ArraySchema = z.string()
     return match?.groups?.hex !== undefined ? hexToBin(match.groups.hex) : val;
   });
 
-// redeemScript should be a stringified Uint8Array per the WC2-BCH spec,
-// but the FundMe.cash dapp passes the raw CashScript Script type (OpOrData[])
-// instead of converting it with scriptToBytecode() first.
-// For FundMe.cash compatibility we also allow an array of script chunks
-const redeemScriptSchema = z.union([stringifiedUint8ArraySchema, z.array(z.any())]);
-
-// The contract schema only validates the fields Cashonize uses (contractName, abiFunction.name, redeemScript/bytecode).
-// redeemScript is deprecated in CashScript v0.13, bytecode serves as a fallback for dapps using v0.13+.
-// Extra fields from the WC2-BCH spec (e.g. artifact.source, artifact.abi) are not required,
-// so dapps can trim their WalletConnect payloads for efficiency.
-const contractSchema = z.object({
-  abiFunction: z.object({ name: z.string() }),
-  redeemScript: z.optional(redeemScriptSchema),
-  bytecode: z.optional(z.string()),
-  artifact: z.object({ contractName: z.string() }),
-});
-
 const nftSchema = z.object({
   capability: z.enum(["none", "mutable", "minting"]),
   commitment: stringifiedUint8ArraySchema,
@@ -57,8 +40,34 @@ const tokenSchema = z.object({
   nft: z.optional(nftSchema),
 });
 
+// The contract schema only validates the fields Cashonize uses (contractName, abiFunction.name, redeemScript/bytecode).
+// Extra fields from the WC2-BCH spec (e.g. artifact.source, artifact.abi) are not required,
+// so dapps can trim their WalletConnect payloads for efficiency.
+//
+// redeemScript is deprecated in CashScript v0.13 — bytecode serves as a fallback for dapps using v0.13+,
+// which is a Cashonize extension to future-proof against CashScript changes (not a dapp workaround).
+// wcSigning throws at runtime if neither is present.
+// Spec: https://github.com/mainnet-pat/wc2-bch-bcr
+const strictContractSchema = z.object({
+  abiFunction: z.object({ name: z.string() }),
+  redeemScript: z.optional(stringifiedUint8ArraySchema),
+  bytecode: z.optional(z.string()),
+  artifact: z.object({ contractName: z.string() }),
+});
+
+// Loose contract schema: strict plus tolerances for known dapp deviations from the spec.
+//   - redeemScript should be a stringified Uint8Array per the spec, but the FundMe.cash dapp passes the raw
+//     CashScript Script type (OpOrData[]) instead of converting it with scriptToBytecode() first,
+//     so we also allow an array of script chunks.
+//   - abiFunction should be a single { name } object per the spec, but FundMe.cash passes the full artifact
+//     abi (AbiFunction[]) instead of just the invoked function, so we also allow an array.
+const looseContractSchema = strictContractSchema.extend({
+  abiFunction: z.union([z.object({ name: z.string() }), z.array(z.any())]),
+  redeemScript: z.optional(z.union([stringifiedUint8ArraySchema, z.array(z.any())])),
+});
+
 // WC source outputs are transmitted using libauth's stringify, since they contain UInt8Array and BigInt.
-const wcSourceOutputSchema = z.object({
+const strictWcSourceOutputSchema = z.object({
   outpointIndex: z.number(),
   outpointTransactionHash: stringifiedUint8ArraySchema,
   sequenceNumber: z.number(),
@@ -66,19 +75,28 @@ const wcSourceOutputSchema = z.object({
   unlockingBytecode: stringifiedUint8ArraySchema,
   valueSatoshis: stringifiedBigIntSchema,
   token: z.optional(tokenSchema),
-  contract: z.optional(contractSchema),
+  contract: z.optional(strictContractSchema),
+});
+
+const looseWcSourceOutputSchema = strictWcSourceOutputSchema.extend({
+  contract: z.optional(looseContractSchema),
 });
 
 const hexEncodedStringSchema = z.string().regex(/^[0-9a-fA-F]+$/, "Must be a hex-encoded string");
-// see the BCH wallet connect spec at https://github.com/mainnet-pat/wc2-bch-bcr
-export const EncodedWcTransactionObjSchema = z.object({
+
+export const StrictEncodedWcTransactionObjSchema = z.object({
   transaction: z.union([hexEncodedStringSchema, simpleTransactionCommonSchema]),
-  sourceOutputs: z.array(wcSourceOutputSchema),
+  sourceOutputs: z.array(strictWcSourceOutputSchema),
   broadcast: z.optional(z.boolean()),
   userPrompt: z.optional(z.string()),
 });
 
-export type encodedWcTransactionObj = z.infer<typeof EncodedWcTransactionObjSchema>;
+export const LooseEncodedWcTransactionObjSchema = StrictEncodedWcTransactionObjSchema.extend({
+  sourceOutputs: z.array(looseWcSourceOutputSchema),
+});
+
+// Type is inferred from the loose schema (superset of strict).
+export type encodedWcTransactionObj = z.infer<typeof LooseEncodedWcTransactionObjSchema>;
 
 // note: historically in Cashonize 'address' or 'account' was used and even required
 export const WcMessageObjSchema = z.object({

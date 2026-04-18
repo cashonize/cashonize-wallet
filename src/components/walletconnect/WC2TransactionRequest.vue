@@ -258,7 +258,11 @@
                 </tr>
                 <tr v-if="input.contract">
                   <td></td>
-                  <td style="font-weight: 600;">{{ t('walletConnect.transactionRequest.contract') }} {{input.contract.artifact.contractName}}, {{ t('walletConnect.transactionRequest.function') }} {{ input.contract.abiFunction.name }}</td>
+                  <td style="font-weight: 600;">
+                    {{ t('walletConnect.transactionRequest.contract') }} {{input.contract.artifact.contractName}}
+                    <template v-if="!Array.isArray(input.contract.abiFunction) && input.contract.abiFunction?.name">, {{ t('walletConnect.transactionRequest.function') }} {{ input.contract.abiFunction.name }}
+                    </template>
+                  </td>
                 </tr>
                 <tr v-if="input?.token">
                   <td></td>

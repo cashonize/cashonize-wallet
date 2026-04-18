@@ -77,6 +77,7 @@
   const enableMintNfts = ref(settingsStore.mintNfts);
   const enableAuthchains = ref(settingsStore.authchains);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
+  const strictWcSchema = ref(settingsStore.strictWcSchema);
 
   const utxosWithBchAndTokens = computed(() => {
     return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n);
@@ -329,6 +330,10 @@
     localStorage.setItem("disableTokenIcons", disableTokenIcons.value ? "true" : "false");
     settingsStore.disableTokenIcons = disableTokenIcons.value;
   }
+  function changeStrictWcSchema(){
+    localStorage.setItem("strictWcSchema", strictWcSchema.value ? "true" : "false");
+    settingsStore.strictWcSchema = strictWcSchema.value;
+  }
 
 </script>
 
@@ -563,6 +568,13 @@
         {{ t('settings.developer.disableTokenIcons') }} <q-toggle v-model="disableTokenIcons" @update:model-value="changeDisableTokenIcons()" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.disableTokenIconsHint') }}
+        </div>
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px">
+        {{ t('settings.developer.strictWcSchema') }} <q-toggle v-model="strictWcSchema" @update:model-value="changeStrictWcSchema()" dense />
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.developer.strictWcSchemaHint') }}
         </div>
       </div>
     </div>

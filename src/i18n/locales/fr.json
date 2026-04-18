@@ -879,7 +879,9 @@
       "enableAuthchains": "Activer la résolution d'authchain",
       "enableAuthchainsHint": "Vérifie si vous avez l'AuthHead (autorité pour mettre à jour les métadonnées du token) et permet de le transférer",
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
-      "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes"
+      "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
+      "strictWcSchema": "Validation stricte du schéma WalletConnect",
+      "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dapp pour détecter les payloads non conformes."
     },
     "downloadCashonize": "Télécharger Cashonize",
     "madeWith": "Fait avec {heart} par Mathieu G."

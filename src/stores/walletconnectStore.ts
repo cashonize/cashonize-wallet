@@ -25,7 +25,7 @@ import { createSignedWcTransaction } from "src/utils/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
-import { WcMessageObjSchema, EncodedWcTransactionObjSchema } from "src/utils/zodValidation"
+import { WcMessageObjSchema, LooseEncodedWcTransactionObjSchema, StrictEncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -426,8 +426,10 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     // payload sent by the dapp over walletconnect
     const wcSignTransactionParams = transactionRequestWC.params.request.params
     // the wcSignTransactionParams is from an untrusted source, so we validate the schema with zod
+    // Strict schema mirrors the WC2-BCH spec exactly; loose schema tolerates known dapp deviations (e.g. FundMe.cash).
+    const schema = settingsStore.strictWcSchema ? StrictEncodedWcTransactionObjSchema : LooseEncodedWcTransactionObjSchema;
     try {
-      const encodedWcTransactionObj = EncodedWcTransactionObjSchema.parse(wcSignTransactionParams);
+      const encodedWcTransactionObj = schema.parse(wcSignTransactionParams);
       // Further validation whether the
       if(typeof encodedWcTransactionObj.transaction === "string") {
         const decodedResult = decodeTransaction(hexToBin(encodedWcTransactionObj.transaction));

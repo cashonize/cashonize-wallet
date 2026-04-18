@@ -879,7 +879,9 @@
       "enableAuthchains": "Enable authchain resolution",
       "enableAuthchainsHint": "Checks if you hold the AuthHead (authority to update token metadata) and enables transferring it",
       "disableTokenIcons": "Disable token image loading",
-      "disableTokenIconsHint": "Prevents loading token images from external servers"
+      "disableTokenIconsHint": "Prevents loading token images from external servers",
+      "strictWcSchema": "Strict WalletConnect schema validation",
+      "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dapp to surface non-compliant payloads."
     },
     "downloadCashonize": "Download Cashonize",
     "madeWith": "Made with {heart} by Mathieu G."
