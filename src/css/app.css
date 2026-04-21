@@ -2,6 +2,7 @@
 @import './chota-subset.css';
 :root {
   --color-primary: #0ac18f;
+  --q-primary: #0ac18f;
 }
 
 #app {
