@@ -50,9 +50,16 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 📲 Installable Web App: Look for the **Add to Home Screen / Install** setting in your browser on [cashonize.com](cashonize.com) 
 
 ⚠️ [cashonize.com](cashonize.com) is the only correct URL for the webwallet <br>
-**Note:** webwallets are great for convenience, but downloaded applications are more secure. (Installable web apps share the same security model as webwallets)
 
-## Local development 
+## Security
+
+Cashonize is available for different platforms from the same codebase, but the platform variants have different security properties worth understanding.
+
+Webwallets are great for convenience, but downloaded applications are more secure because the code is pinned at install time rather than fetched fresh on every visit. Installable web apps share the same security model as webwallets, despite feeling like a native app.
+
+For more details see the [security considerations](./security-considerations.md).
+
+## Local Development 
 
 </> For local development check out the [developer instructions](./development.md).
 
