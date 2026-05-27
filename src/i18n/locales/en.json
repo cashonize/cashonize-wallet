@@ -866,6 +866,8 @@
       "clearMetadataCache": "Clear token-metadata cache",
       "clearMetadataCacheFrom": "Clear token-metadata cache from {platform}",
       "clearMetadataCacheButton": "Clear token cache",
+      "clearDappConnections": "Disconnect all dApps and clear their connection data (reloads the app)",
+      "clearDappConnectionsButton": "Clear connections",
       "custom": "Custom",
       "default": "(default)"
     },

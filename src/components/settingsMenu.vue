@@ -9,9 +9,13 @@
   import { Connection, type ElectrumNetworkProvider, Config } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
+  import { useWalletconnectStore } from '../stores/walletconnectStore'
+  import { useCashconnectStore } from '../stores/cashconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const walletconnectStore = useWalletconnectStore()
+  const cashconnectStore = useCashconnectStore()
   const $q = useQuasar()
   const { t } = useI18n()
   import { useWindowSize } from 'src/utils/composables'
@@ -305,6 +309,39 @@
     });
     localStorageSizeMB.value = calculateLocalStorageSizeMB();
   }
+  async function clearDappConnections(){
+    // Best-effort graceful disconnect so connected dApps are notified the session ended.
+    // Bounded by a timeout: the IndexedDB wipe below is the source of truth, so we never
+    // want an unreachable relay to block clearing a corrupted session state.
+    const gracefulDisconnect = (async () => {
+      try {
+        const wcSessions = walletconnectStore.web3wallet?.getActiveSessions() ?? {};
+        await Promise.allSettled(
+          Object.keys(wcSessions).map(topic => walletconnectStore.deleteSession(topic))
+        );
+      } catch (error) {
+        console.error("Failed to disconnect WalletConnect sessions:", error);
+      }
+      try {
+        await cashconnectStore.cashConnectWallet?.disconnectAllSessions();
+      } catch (error) {
+        console.error("Failed to disconnect CashConnect sessions:", error);
+      }
+    })();
+    const timeout = new Promise(resolve => setTimeout(resolve, 3000));
+    await Promise.race([gracefulDisconnect, timeout]);
+
+    // Wipe the dApp-connection databases. WalletKit/CashConnect keep these open, so the
+    // delete is finalized on the reload below (same pattern as confirmDeleteWallets).
+    indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
+    if (indexedDB.databases) {
+      const dbs = await indexedDB.databases();
+      for (const db of dbs) {
+        if (db.name?.startsWith("cashconnect-")) indexedDB.deleteDatabase(db.name);
+      }
+    }
+    location.reload();
+  }
 
   function changeNetwork(){
     settingsStore.hasPlayedAnimation = false;
@@ -531,6 +568,11 @@
         {{ isMobile ? t('settings.advanced.clearMetadataCache') : t('settings.advanced.clearMetadataCacheFrom', { platform: platformString }) }}
         <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
         <input @click="clearMetadataCache()" type="button" :value="t('settings.advanced.clearMetadataCacheButton')" class="button" style="display: block; color: black;">
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px">
+        {{ t('settings.advanced.clearDappConnections') }}
+        <input @click="clearDappConnections()" type="button" :value="t('settings.advanced.clearDappConnectionsButton')" class="button" style="display: block; color: black;">
       </div>
     </div>
     <div v-else-if="settingsSection == 4">

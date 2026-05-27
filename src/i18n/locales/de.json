@@ -866,6 +866,8 @@
       "clearMetadataCache": "Token-Metadaten-Cache leeren",
       "clearMetadataCacheFrom": "Token-Metadaten-Cache von {platform} leeren",
       "clearMetadataCacheButton": "Token-Cache leeren",
+      "clearDappConnections": "Alle dApps trennen und Verbindungsdaten löschen (lädt die App neu)",
+      "clearDappConnectionsButton": "Verbindungen löschen",
       "custom": "Benutzerdefiniert",
       "default": "(Standard)"
     },

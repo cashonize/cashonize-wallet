@@ -866,6 +866,8 @@
       "clearMetadataCache": "Effacer le cache des métadonnées de tokens",
       "clearMetadataCacheFrom": "Effacer le cache des métadonnées de tokens de {platform}",
       "clearMetadataCacheButton": "Effacer le cache de tokens",
+      "clearDappConnections": "Déconnecter toutes les dApps et effacer leurs données de connexion (recharge l'application)",
+      "clearDappConnectionsButton": "Effacer les connexions",
       "custom": "Personnalisé",
       "default": "(par défaut)"
     },
