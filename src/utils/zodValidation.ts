@@ -40,18 +40,13 @@ const tokenSchema = z.object({
   nft: z.optional(nftSchema),
 });
 
-// The contract schema only validates the fields Cashonize uses (contractName, abiFunction.name, redeemScript/bytecode).
+// The contract schema only validates the fields Cashonize uses (contractName, abiFunction.name, redeemScript).
 // Extra fields from the WC2-BCH spec (e.g. artifact.source, artifact.abi) are not required,
 // so dapps can trim their WalletConnect payloads for efficiency.
-//
-// redeemScript is deprecated in CashScript v0.13 — bytecode serves as a fallback for dapps using v0.13+,
-// which is a Cashonize extension to future-proof against CashScript changes (not a dapp workaround).
-// wcSigning throws at runtime if neither is present.
 // Spec: https://github.com/mainnet-pat/wc2-bch-bcr
 const strictContractSchema = z.object({
   abiFunction: z.object({ name: z.string() }),
-  redeemScript: z.optional(stringifiedUint8ArraySchema),
-  bytecode: z.optional(z.string()),
+  redeemScript: stringifiedUint8ArraySchema,
   artifact: z.object({ contractName: z.string() }),
 });
 
@@ -63,7 +58,7 @@ const strictContractSchema = z.object({
 //     abi (AbiFunction[]) instead of just the invoked function, so we also allow an array.
 const looseContractSchema = strictContractSchema.extend({
   abiFunction: z.union([z.object({ name: z.string() }), z.array(z.any())]),
-  redeemScript: z.optional(z.union([stringifiedUint8ArraySchema, z.array(z.any())])),
+  redeemScript: z.union([stringifiedUint8ArraySchema, z.array(z.any())]),
 });
 
 // WC source outputs are transmitted using libauth's stringify, since they contain UInt8Array and BigInt.
