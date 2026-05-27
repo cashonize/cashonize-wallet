@@ -224,24 +224,6 @@ export const CoinbaseRatesSchema = z.object({
 });
 
 
-/* Chaingraph response schemas */
-
-export const ChaingraphAuthHeadSchema = z.object({
-  data: z.object({
-    transaction: z.array(z.object({
-      authchains: z.array(z.object({
-        authhead: z.object({
-          hash: z.string(),
-          identity_output: z.array(z.object({
-            fungible_token_amount: z.string().nullable()
-          }))
-        })
-      }))
-    }))
-  })
-});
-
-
 /* CauldronValueLockedSchema */
 
 // Cauldron DEX valuelocked endpoint response

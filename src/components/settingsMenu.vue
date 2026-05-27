@@ -74,12 +74,10 @@
   const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);
   const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
-  const selectedChaingraph = ref(settingsStore.chaingraph);
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
-  const enableAuthchains = ref(settingsStore.authchains);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
   const strictWcSchema = ref(settingsStore.strictWcSchema);
 
@@ -209,10 +207,6 @@
     if (!trimmedGateway) return;
     settingsStore.ipfsGateway = trimmedGateway;
     localStorage.setItem("ipfsGateway", trimmedGateway);
-  }
-  function changeChaingraph(){
-    settingsStore.chaingraph = selectedChaingraph.value
-    localStorage.setItem("chaingraph", selectedChaingraph.value);
   }
   function changeExchangeRateProvider(){
     settingsStore.exchangeRateProvider = selectedExchangeRateProvider.value;
@@ -351,17 +345,6 @@
   function changeMintNfts(){
     localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
     settingsStore.mintNfts = enableMintNfts.value;
-  }
-  async function changeAuthchains(){
-    localStorage.setItem("authchains", enableAuthchains.value? "true" : "false");
-    settingsStore.authchains = enableAuthchains.value;
-    if(enableAuthchains.value) {
-      try{
-        await store.fetchAuthUtxos()
-      } catch (error) {
-        console.error("Error fetching auth UTXOs:", error)
-      }
-    }
   }
   function changeDisableTokenIcons(){
     localStorage.setItem("disableTokenIcons", disableTokenIcons.value ? "true" : "false");
@@ -540,14 +523,6 @@
         </select>
       </div>
 
-      <div style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.chaingraph') }}</label>
-        <select v-model="selectedChaingraph" @change="changeChaingraph()">
-          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
-          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
-        </select>
-      </div>
-
       <div style="margin-top:15px;">{{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}
         <div v-if="isPwaMode" style="color: red">
           {{ t('settings.advanced.pwaDeleteWarning') }}
@@ -591,13 +566,6 @@
           {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
           <div style="font-size: smaller; color: grey;">
             {{ t('settings.developer.enableMintNftsHint') }}
-          </div>
-        </div>
-
-        <div style="margin-top:15px; margin-bottom: 15px">
-          {{ t('settings.developer.enableAuthchains') }} <q-toggle v-model="enableAuthchains" @update:model-value="changeAuthchains()" dense />
-          <div style="font-size: smaller; color: grey;">
-            {{ t('settings.developer.enableAuthchainsHint') }}
           </div>
         </div>
 
