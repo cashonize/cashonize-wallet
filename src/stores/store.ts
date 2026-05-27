@@ -25,14 +25,12 @@ import {
 } from "../interfaces/interfaces"
 import {
   getBalanceFromUtxos,
-  getTokenUtxos,
   runAsyncVoid
 } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
   tokenListFromUtxos,
-  updateTokenListWithAuthUtxos,
   parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
 import { convertElectrumTokenData } from "src/utils/utils"
@@ -301,12 +299,6 @@ export const useStore = defineStore('store', () => {
       walletInitialized.value = true;
       // get plannedTokenId
       hasPreGenesis()
-      // fetchAuthUtxos start last because it is not critical
-      if(settingsStore.authchains){
-        console.time('fetch authUtxos');
-        await fetchAuthUtxos();
-        console.timeEnd('fetch authUtxos');
-      }
     } catch (error) {
       displayAndLogError(error);
     }
@@ -781,13 +773,6 @@ export const useStore = defineStore('store', () => {
     plannedTokenId.value = preGenesisUtxo?.txid ?? undefined;
   }
 
-  async function fetchAuthUtxos() {
-    if(!tokenList.value?.length || !walletUtxos.value) return
-    const tokenUtxos = getTokenUtxos(walletUtxos.value);
-    const newTokenList = await updateTokenListWithAuthUtxos(tokenList.value, settingsStore.chaingraph, tokenUtxos)
-    tokenList.value = newTokenList;
-  }
-
   function toggleFavorite(tokenId: string) {
     if(!tokenList.value) return // should never happen
     // Remove token from featuredTokens if it's already there, otherwise add it
@@ -889,7 +874,6 @@ export const useStore = defineStore('store', () => {
     fetchNftMetadata,
     parseNftCommitment,
     hasPreGenesis,
-    fetchAuthUtxos,
     fetchTokenMetadata,
     fetchCauldronPricesForTokens,
     toggleFavorite,

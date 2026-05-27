@@ -44,13 +44,11 @@ export type TokenList = (TokenDataNFT | TokenDataFT)[]
 export interface TokenDataNFT {
   category: string,
   nfts: Utxo[],
-  authUtxo?: Utxo
 }
 
 export interface TokenDataFT {
   category: string,
   amount: bigint,
-  authUtxo?: Utxo
 }
 
 export type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;

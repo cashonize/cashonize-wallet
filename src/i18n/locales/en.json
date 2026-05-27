@@ -39,13 +39,6 @@
       "invalidAmountFormat": "Payment request has invalid amount format"
     }
   },
-  "chaingraph": {
-    "errors": {
-      "requestFailed": "Chaingraph request failed: {status}",
-      "tokenNotFound": "Token not found",
-      "authchainNotFound": "Authchain not found"
-    }
-  },
   "exchangeRate": {
     "errors": {
       "validationError": "{provider} rates response validation error",
@@ -182,7 +175,6 @@
       "swap": "swap",
       "burnTokens": "burn tokens",
       "burnNft": "burn NFT",
-      "authTransfer": "auth transfer",
       "mintNfts": "mint NFTs",
       "batchTransfer": "batch transfer",
       "all": "all",
@@ -239,16 +231,6 @@
       "burnMintingDescription": "Burn this NFT so no new NFTs of this category can be minted",
       "burnNftDescription": "Burning this NFT to remove it from your wallet forever"
     },
-    "authTransfer": {
-      "description": "Transfer the authority to change the token's metadata",
-      "descriptionNft": "Transfer the authority to change the token's metadata to another wallet",
-      "dedicatedWalletNote": "You can either transfer the Auth to a dedicated wallet or to the {link}.",
-      "reservedSupplyNote": "Token supply kept at the Auth UTXO will be marked as reserved supply, not yet in circulation.",
-      "destinationPlaceholder": "destinationAddr",
-      "reservedSupplyPlaceholder": "reservedSupply",
-      "transferButton": "Transfer Auth",
-      "transferringButton": "Transferring Auth..."
-    },
     "mint": {
       "modeLabel": "Mode:",
       "modeSingle": "Single type",
@@ -274,11 +256,6 @@
       "nftMetadataShort": "loading..."
     },
     "dialogs": {
-      "authWarning": {
-        "title": "Auth Warning",
-        "message": "You risk unintentionally sending the authority to update this token's metadata elsewhere.<br>Are you sure you want to send the transaction anyways?",
-        "continueButton": "Continue"
-      },
       "confirmTokenSend": {
         "title": "Confirm Token Send",
         "message": "Send {amount} {symbol} to<br>{address}"
@@ -308,8 +285,7 @@
     "success": {
       "transactionSent": "Transaction successfully sent!",
       "burnSuccessful": "Burn successful",
-      "mintSuccessful": "Mint successful",
-      "authTransferSuccessful": "Auth transfer successful"
+      "mintSuccessful": "Mint successful"
     },
     "alerts": {
       "sentTokens": "Sent {amount} {symbol} to {address}",
@@ -321,8 +297,7 @@
       "burnedTokensNoSymbol": "Burned {amount} tokens of category {tokenId}",
       "burnedNft": "Burned {nftType} of category {tokenId}",
       "mintedNft": "Minted immutable NFT of category {tokenId} {commitmentText}",
-      "mintedNfts": "Minted {amount} NFTs of category {tokenId}",
-      "transferredAuth": "Transferred the Auth of utxo {tokenId} to {address}"
+      "mintedNfts": "Minted {amount} NFTs of category {tokenId}"
     },
     "errors": {
       "needBchForFee": "Need some BCH to cover transaction fee",
@@ -340,7 +315,6 @@
       "invalidAmountNfts": "invalid amount NFTs to mint",
       "invalidStartingNumber": "invalid starting number",
       "commitmentMustBeHex": "nftCommitment '{commitment}' must be a hexadecimal",
-      "reservedSupplyInvalid": "Amount tokens for reserved supply must be a valid integer",
       "noNftsSelected": "No NFTs selected",
       "notCashaddress": "Not a cashaddress on current network"
     }
@@ -542,7 +516,7 @@
     "httpsWebsite": "HTTPS: own website",
     "httpsGithub": "HTTPS: github gist",
     "validityCheck": "Validity check metadata:",
-    "metadataNote": "Note: Token metadata can still be added/updated after creation with the token's AuthUTXO. To use this functionality toggle \"Enable authchain resolution\" in the developer settings. Transfer the AuthUTXO to a dedicated wallet right after creation.",
+    "metadataNote": "Note: Token metadata can still be added/updated after creation with the token's AuthUTXO. Right after creation, transfer the AuthUTXO to a dedicated wallet that supports coin control (such as Electron Cash) so it isn't spent by accident.",
     "creatingTokensButton": "Creating Tokens...",
     "creatingNftButton": "Creating NFT...",
     "createButton": "Create",
@@ -849,7 +823,6 @@
       "electrumSelfSignedVisit": "Visit here",
       "electrumSelfSignedApp": "Note: self-signed certs are not currently supported in the app.",
       "ipfsGateway": "IPFS gateway:",
-      "chaingraph": "Chaingraph server:",
       "exchangeRate": "Exchange rate provider:",
       "exchangeRateDefault": "Default (bitcoin.com for USD, BitPay for rest)",
       "deleteAllWallets": "Remove all wallets and all data from {platform}",
@@ -878,8 +851,6 @@
       "tokenCreation": "Token Creation Functionality:",
       "enableMintNfts": "Enable mint NFTs",
       "enableMintNftsHint": "Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category",
-      "enableAuthchains": "Enable authchain resolution",
-      "enableAuthchainsHint": "Checks if you hold the AuthHead (authority to update token metadata) and enables transferring it",
       "disableTokenIcons": "Disable token image loading",
       "disableTokenIconsHint": "Prevents loading token images from external servers",
       "strictWcSchema": "Strict WalletConnect schema validation",

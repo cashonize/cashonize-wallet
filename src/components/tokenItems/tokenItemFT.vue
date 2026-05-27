@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, type SendRequest, convert } from "mainnet-js"
+  import { TokenSendRequest, convert } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
@@ -29,15 +29,13 @@
 
   const displaySendTokens = ref(false);
   const displayBurnFungibles = ref(false);
-  const displayAuthTransfer = ref(false);
   const displayTokenInfo = ref(false);
   const tokenSendAmount = ref("");
   const destinationAddr = ref("");
   const burnAmountFTs = ref("");
-  const reservedSupplyInput = ref("")
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   const showQrCodeDialog = ref(false);
-  const activeAction = ref<'sending' | 'burning' | 'transferAuth' | null>(null);
+  const activeAction = ref<'sending' | 'burning' | null>(null);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category];
 
@@ -188,20 +186,6 @@
       if(typeof decodedAddress == 'string') throw new Error(t('tokenItem.errors.invalidAddress'));
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw new Error(t('tokenItem.errors.notTokenAddress'));
-      if(tokenData.value?.authUtxo){
-        const authConfirmed = await new Promise<boolean>((resolve) => {
-          $q.dialog({
-            title: t('tokenItem.dialogs.authWarning.title'),
-            message: t('tokenItem.dialogs.authWarning.message'),
-            html: true,
-            cancel: { flat: true, color: 'dark' },
-            ok: { label: t('tokenItem.dialogs.authWarning.continueButton'), color: 'red', textColor: 'white' },
-            persistent: true
-          }).onOk(() => resolve(true))
-            .onCancel(() => resolve(false))
-        })
-        if (!authConfirmed) return
-      }
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -334,71 +318,6 @@
       activeAction.value = null;
     }
   }
-  async function transferAuth() {
-    if (activeAction.value) return;
-    if(!tokenData.value?.authUtxo) return;
-    if(!reservedSupplyInput?.value) throw new Error(t('tokenItem.errors.reservedSupplyInvalid'));
-    const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-    const sanitizedInput = reservedSupplyInput.value.replace(/,/g, '');
-    checkValidTokenInput(sanitizedInput, decimals)
-    const reservedSupplyNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
-    const reservedSupply = typeof reservedSupplyNumber == "number" ? BigInt(Math.round(reservedSupplyNumber)): BigInt(reservedSupplyNumber)
-    if(reservedSupply > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-    const category = tokenData.value.category;
-    activeAction.value = 'transferAuth';
-    try {
-      const authTransfer = !reservedSupply? {
-        cashaddr: destinationAddr.value,
-        value: 1000n,
-      } as SendRequest : new TokenSendRequest({
-        cashaddr: destinationAddr.value,
-        category: category,
-        amount: reservedSupply
-      });
-      const outputs = [authTransfer];
-      const changeAmount = reservedSupply? tokenData.value.amount - reservedSupply : tokenData.value.amount;
-      if(changeAmount){
-        const changeOutput = new TokenSendRequest({
-          cashaddr: store.wallet.getTokenDepositAddress(),
-          category: category,
-          amount: changeAmount
-        });
-        outputs.push(changeOutput)
-      }
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
-      const { txId } = await store.wallet.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.authTransferSuccessful')
-      })
-      displayAuthTransfer.value = false;
-      destinationAddr.value = "";
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
-    } catch (error) {
-      handleTransactionError(error);
-    } finally {
-      activeAction.value = null;
-    }
-  }
-
   function handleTransactionError(error: unknown){
     const errorMessage = caughtErrorToString(error);
     console.error(errorMessage)
@@ -468,10 +387,6 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             {{ t('tokenItem.actions.burnTokens') }}
           </span>
-          <span v-if="settingsStore.authchains && tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
-            {{ t('tokenItem.actions.authTransfer') }}
-          </span>
         </div>
         <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
@@ -529,25 +444,6 @@
             <button @click="maxTokenAmount(false)" style="color: black;">{{ t('tokenItem.actions.max') }}</button>
           </div>
           <input @click="burnFungibles()" type="button" :value="activeAction === 'burning' ? t('tokenItem.burn.burningButton') : t('tokenItem.burn.burnButton')" class="button error" style="margin-top: 10px;" :disabled="activeAction !== null">
-        </div>
-        <div v-if="displayAuthTransfer" class="tokenAction">
-          {{ t('tokenItem.authTransfer.description') }} <br>
-          <i18n-t keypath="tokenItem.authTransfer.dedicatedWalletNote" tag="span">
-            <template #link>
-              <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>
-            </template>
-          </i18n-t><br>
-          {{ t('tokenItem.authTransfer.reservedSupplyNote') }} <br>
-          <span class="grouped tokenAction">
-            <input v-model="destinationAddr" :placeholder="t('tokenItem.authTransfer.destinationPlaceholder')">
-            <span style="width: 100%; position: relative; display: flex; margin: 0">
-              <input v-model="reservedSupplyInput" :placeholder="t('tokenItem.authTransfer.reservedSupplyPlaceholder')" name="tokenAmountInput">
-              <i class="input-icon" style="width: min-content; padding-right: 15px;">
-                {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
-              </i>
-            </span>
-          </span>
-          <input @click="transferAuth()" type="button" class="primaryButton" :value="activeAction === 'transferAuth' ? t('tokenItem.authTransfer.transferringButton') : t('tokenItem.authTransfer.transferButton')" style="margin-top: 10px;" :disabled="activeAction !== null">
         </div>
       </div>
     </fieldset>

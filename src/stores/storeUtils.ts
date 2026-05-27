@@ -1,4 +1,3 @@
-import { queryAuthHeadTxid } from "src/queryChainGraph";
 import { cachedFetch } from "src/utils/cacheUtils";
 import type { Utxo } from "mainnet-js";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
@@ -160,32 +159,4 @@ export async function parseNftCommitment(
   }
 
   return parseNft(libauthOutput, parseInfo);
-}
-
-export async function updateTokenListWithAuthUtxos(
-  tokenList: TokenList, chaingraphUrl: string, tokenUtxos: Utxo[]
-) {
-  const copyTokenList = [...tokenList]
-  // get all authHeadTxIds in parallel
-  const authHeadTxIdPromises: Promise<string>[] = [];
-  for (const token of tokenList){
-    const fetchAuthHeadPromise = queryAuthHeadTxid(token.category, chaingraphUrl)
-    authHeadTxIdPromises.push(fetchAuthHeadPromise)
-  }
-  const authHeadTxIdSettled = await Promise.allSettled(authHeadTxIdPromises);
-  const authHeadTxIdResults = authHeadTxIdSettled.map(result => {
-    if (result.status === 'fulfilled') return result.value;
-    console.error("ChainGraph query failed:", result.reason);
-    return undefined;
-  });
-  // check if any tokenUtxo of category is the authUtxo for that category
-  copyTokenList.forEach((token, index) => {
-    const authHeadTxId = authHeadTxIdResults[index];
-    const filteredTokenUtxos = tokenUtxos.filter(
-      (tokenUtxo) => tokenUtxo.token?.category === token.category
-    );
-    const authUtxo = filteredTokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
-    if(authUtxo) token.authUtxo = authUtxo;
-  })
-  return copyTokenList
 }

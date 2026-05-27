@@ -13,7 +13,6 @@ const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction"
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultElectrumChipnet = "chipnet.bch.ninja"
-const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
 const defaultIpfsGateway = "https://w3s.link/ipfs/";
 
 const { width,height } = useWindowSize();
@@ -29,7 +28,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const explorerChipnet = ref(defaultExplorerChipnet);
   const electrumServerMainnet = ref(defaultElectrumMainnet);
   const electrumServerChipnet = ref(defaultElectrumChipnet);
-  const chaingraph = ref(defaultChaingraph);
   const ipfsGateway = ref(defaultIpfsGateway);
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
@@ -42,7 +40,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
   // developer settings
   const mintNfts = ref(false);
-  const authchains = ref(false);
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
   // history settings
@@ -177,9 +174,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readElectrumChipnet = localStorage.getItem("electrum-chipnet") ?? "";
   if(readElectrumChipnet) electrumServerChipnet.value = readElectrumChipnet
 
-  const readChaingraph = localStorage.getItem("chaingraph") ?? "";
-  if(readChaingraph) chaingraph.value = readChaingraph
-  
   const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
   if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
 
@@ -187,9 +181,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readExplorerChipnet = localStorage.getItem("explorerChipnet") ?? "";
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
-
-  const readAuthchains = localStorage.getItem("authchains") ?? "";
-  if(readAuthchains) authchains.value = readAuthchains == "true";
 
   const readDateFormat = localStorage.getItem("dateFormat");
   if(readDateFormat && (readDateFormat=="DD/MM/YY" || readDateFormat=="MM/DD/YY" || readDateFormat=="YY-MM-DD")) {
@@ -413,7 +404,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     explorerChipnet,
     electrumServerMainnet,
     electrumServerChipnet,
-    chaingraph,
     ipfsGateway,
     darkMode,
     showFiatValueHistory,
@@ -438,7 +428,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     setWalletType,
     clearWalletMetadata,
     mintNfts,
-    authchains,
     strictWcSchema,
     dateFormat,
     confirmBeforeSending,
