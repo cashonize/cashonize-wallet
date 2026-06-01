@@ -236,7 +236,7 @@
         }),
       ]);
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      let alertMessage = t('tokenItem.alerts.sentTokensNoSymbol', { amount: amountSentFormatted, category: displayId, address: destinationAddr.value });
+      let alertMessage = t('tokenItem.alerts.sentTokensNoSymbol', { amount: amountSentFormatted, tokenId: displayId, address: destinationAddr.value });
       if (tokenMetaData.value?.token?.symbol) {
         alertMessage = t('tokenItem.alerts.sentTokens', { amount: amountSentFormatted, symbol: tokenMetaData.value.token.symbol, address: destinationAddr.value });
       }

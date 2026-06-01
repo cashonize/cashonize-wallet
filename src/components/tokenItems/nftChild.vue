@@ -226,8 +226,11 @@
           },
         }),
       ]);
-      const displayId = `${nftInfo.category.slice(0, 20)}...${nftInfo.category.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.sentNft', { category: displayId, address: destinationAddr.value });
+      const nftName = tokenName.value;
+      let alertMessage = t('tokenItem.alerts.sentNft', { tokenId: nftInfo.category, address: destinationAddr.value });
+      if (nftName) {
+        alertMessage = t('tokenItem.alerts.sentNftNamed', { name: nftName, address: destinationAddr.value });
+      }
       $q.dialog({
         component: alertDialog,
         componentProps: {
@@ -309,9 +312,9 @@
       const { txId } = await store.wallet.tokenMint(category, arraySendrequests);
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const commitmentText = nftCommitment ? `with commitment ${nftCommitment}` : "";
-      let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, category: displayId });
+      let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
       if (mintAmount == 1) {
-        alertMessage = t('tokenItem.alerts.mintedNft', { category: displayId, commitmentText });
+        alertMessage = t('tokenItem.alerts.mintedNft', { tokenId: displayId, commitmentText });
       }
       $q.dialog({
         component: alertDialog,
@@ -380,7 +383,7 @@
         "burn", // optional OP_RETURN message
       );
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, category: displayId });
+      const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, tokenId: displayId });
       $q.dialog({
         component: alertDialog,
         componentProps: {
