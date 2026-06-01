@@ -148,7 +148,8 @@
   const formatTokenAmount = (amount: bigint, categoryHex: string): string => {
     const decimals = Number(getTokenMetadata(categoryHex)?.token?.decimals ?? 0);
     if (decimals === 0) {
-      return amount.toString();
+      // toLocaleString on the bigint keeps full precision while adding thousands separators
+      return amount.toLocaleString("en-US");
     } else {
       const numAmount = Number(amount);
       return formatNumber(numAmount / (10 ** decimals), decimals);
