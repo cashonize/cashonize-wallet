@@ -3,17 +3,16 @@ import type { ExtensionRegistry, ElectrumClient } from "./types";
 import type { IdentitySnapshot } from "../bcmr-v2.schema";
 
 // Import extension handlers
-import { fetchLoanState } from "./parityusd";
+import { fetchLoanState } from "./paryonusd";
 
-const parityusdHandlers = { fetchLoanState };
+const paryonusdHandlers = { fetchLoanState };
 
 /**
  * Registry of all available extensions
  */
 export const extensions: ExtensionRegistry = {
-  parityusd: parityusdHandlers,
-  pusd: parityusdHandlers,
-  paryonusd: parityusdHandlers,
+  paryonusd: paryonusdHandlers,
+  pusd: paryonusdHandlers,
 };
 
 /**

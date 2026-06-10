@@ -38,6 +38,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Token management** - Favorite, hide, and search tokens
 - **Cauldron price display** - View live Cauldron DEX prices for fungible tokens
 - **Parsable NFTs** - Decode NFT commitments and display their data as human-readable attributes (parsable BCMR support)
+- **ParyonUSD loan keys** - Supports the ParyonUSD loan key extension to fetch and display live loan state
 
 ## Platforms
 

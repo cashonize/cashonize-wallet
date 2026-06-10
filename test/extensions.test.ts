@@ -4,7 +4,7 @@ import { invokeExtensions } from "src/parsing/extensions/index";
 import { parseNft, type NftParseInfo } from "src/parsing/nftParsing";
 import type { Output } from "@bitauth/libauth";
 import { hexToBin, binToHex, encodeTransaction } from "@bitauth/libauth";
-import type { IdentitySnapshot, Registry } from "src/parsing/bcmr-v2.schema";
+import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema";
 import type { ElectrumClient, ElectrumUtxo } from "src/parsing/extensions/types";
 
 describe("createElectrumAdapter", () => {
@@ -118,7 +118,7 @@ describe("invokeExtensions", () => {
     const identity: IdentitySnapshot = {
       name: "Test Token",
       extensions: {
-        parityusd: {
+        paryonusd: {
           fetchLoanState: {
             lockingBytecode: "aa20",
           },
@@ -136,7 +136,7 @@ describe("invokeExtensions", () => {
       identity,
       mockClient,
       "bchtest",
-      { parityusd: false },
+      { paryonusd: false },
     );
 
     // Should not have called any electrum methods
@@ -178,7 +178,7 @@ function createIdentityWithExtension(): IdentitySnapshot {
   return {
     name: "Loan Key",
     extensions: {
-      parityusd: {
+      paryonusd: {
         fetchLoanState: {
           lockingBytecode: sidecarLockingBytecode,
         },

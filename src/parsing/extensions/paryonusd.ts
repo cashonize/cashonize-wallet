@@ -8,8 +8,17 @@ import {
 } from "@bitauth/libauth";
 import type { ElectrumClient } from "./types";
 
+// Verbose step-by-step tracing of loan-state resolution. Reads from localStorage
+// Toggle from the browser console: localStorage.debugParyonUsdExtension = "1" (and reload)
+// Genuine failures still log via console.warn/console.error regardless.
+function debugLog(...args: unknown[]) {
+  if (globalThis.localStorage?.getItem("debugParyonUsdExtension")) {
+    console.log(...args);
+  }
+}
+
 /**
- * ParityUSD extension: fetchLoanState
+ * ParyonUSD (paryonusd) extension: fetchLoanState
  *
  * This extension handles loan key NFTs that have empty commitments.
  * It fetches the actual loan UTXO data by:
@@ -25,14 +34,14 @@ export async function fetchLoanState(
   identitySnapshot: IdentitySnapshot,
   electrumClient: ElectrumClient,
   networkPrefix: string,
-): Promise<Output> {
-  console.log("[fetchLoanState] Fetching loan state");
+) {
+  debugLog("[fetchLoanState] Fetching loan state");
 
   try {
     // Only transplant for owner loan keys (minting capability).
     // Management keys (non-minting) should not be modified.
     if (utxo.token?.nft?.capability !== "minting") {
-      console.log(
+      debugLog(
         "[fetchLoanState] UTXO is not a minting NFT, skipping transplant",
       );
       return utxo;
@@ -40,7 +49,7 @@ export async function fetchLoanState(
 
     // Step 1: Get the sidecar locking bytecode from the registry
     const ext = identitySnapshot.extensions;
-    const extensionConfig = (ext?.parityusd ?? ext?.pusd ?? ext?.paryonusd) as Record<string, Record<string, string>> | undefined;
+    const extensionConfig = (ext?.paryonusd ?? ext?.pusd) as Record<string, Record<string, string>> | undefined;
     const fetchLoanStateConfig = extensionConfig?.fetchLoanState;
     const sidecarLockingBytecode = fetchLoanStateConfig?.lockingBytecode;
 
@@ -49,7 +58,7 @@ export async function fetchLoanState(
       return utxo;
     }
 
-    console.log(`[fetchLoanState] Sidecar locking bytecode: ${sidecarLockingBytecode}`);
+    debugLog(`[fetchLoanState] Sidecar locking bytecode: ${sidecarLockingBytecode}`);
 
     // Step 2: Get the token category we're looking for
     const targetCategory = utxo.token?.category;
@@ -59,7 +68,7 @@ export async function fetchLoanState(
     }
 
     const targetCategoryHex = binToHex(targetCategory);
-    console.log(`[fetchLoanState] Looking for sidecar with category: ${targetCategoryHex}`);
+    debugLog(`[fetchLoanState] Looking for sidecar with category: ${targetCategoryHex}`);
 
     // Step 3: Fetch all UTXOs for the sidecar locking bytecode
     // Convert locking bytecode to cash address for Electrum
@@ -76,10 +85,10 @@ export async function fetchLoanState(
     }
 
     const sidecarAddress = sidecarAddressResult.address;
-    console.log(`[fetchLoanState] Sidecar address: ${sidecarAddress}`);
+    debugLog(`[fetchLoanState] Sidecar address: ${sidecarAddress}`);
 
     const sidecarUtxos = await electrumClient.getUTXOs(sidecarAddress);
-    console.log(`[fetchLoanState] Found ${sidecarUtxos.length} UTXOs with sidecar locking bytecode`);
+    debugLog(`[fetchLoanState] Found ${sidecarUtxos.length} UTXOs with sidecar locking bytecode`);
 
     // Step 4: Filter for sidecar UTXO with matching token category
     const matchingSidecar = sidecarUtxos.find(
@@ -91,7 +100,7 @@ export async function fetchLoanState(
       return utxo;
     }
 
-    console.log(`[fetchLoanState] Found matching sidecar: ${matchingSidecar.tx_hash}:${matchingSidecar.tx_pos}`);
+    debugLog(`[fetchLoanState] Found matching sidecar: ${matchingSidecar.tx_hash}:${matchingSidecar.tx_pos}`);
 
     // Step 5: Fetch the full transaction containing the sidecar
     const rawTx = await electrumClient.getRawTransaction(matchingSidecar.tx_hash);
@@ -103,7 +112,7 @@ export async function fetchLoanState(
       return utxo;
     }
 
-    console.log(`[fetchLoanState] Decoded transaction with ${decodedTx.outputs.length} outputs`);
+    debugLog(`[fetchLoanState] Decoded transaction with ${decodedTx.outputs.length} outputs`);
 
     // Step 6: Find the sidecar output index and get the loan output (previous output)
     const sidecarOutputIndex = matchingSidecar.tx_pos;
@@ -121,7 +130,7 @@ export async function fetchLoanState(
       return utxo;
     }
 
-    console.log(`[fetchLoanState] Found loan output at index ${loanOutputIndex}`);
+    debugLog(`[fetchLoanState] Found loan output at index ${loanOutputIndex}`);
 
     // Step 7: Extract the loan's NFT commitment and value
     if (!loanOutput.token?.nft) {
@@ -132,7 +141,7 @@ export async function fetchLoanState(
     const loanCommitment = loanOutput.token.nft.commitment;
     const loanValueSatoshis = loanOutput.valueSatoshis;
 
-    console.log(`[fetchLoanState] Loan commitment: ${loanCommitment.length} bytes, value: ${loanValueSatoshis.toString()} sats`);
+    debugLog(`[fetchLoanState] Loan commitment: ${loanCommitment.length} bytes, value: ${loanValueSatoshis.toString()} sats`);
 
     // Step 8: Transplant the commitment and value into the loan key UTXO
     const modifiedUtxo: Output = {
@@ -147,7 +156,7 @@ export async function fetchLoanState(
       },
     };
 
-    console.log(`[fetchLoanState] Successfully transplanted commitment (${loanCommitment.length} bytes) and value (${loanValueSatoshis.toString()} sats)`);
+    debugLog(`[fetchLoanState] Successfully transplanted commitment (${loanCommitment.length} bytes) and value (${loanValueSatoshis.toString()} sats)`);
 
     return modifiedUtxo;
   } catch (error) {

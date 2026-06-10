@@ -54,9 +54,9 @@
   const parseResult = ref(undefined as ParseResult | undefined);
   const parsingNft = ref(false);
 
-  const hasParityusdExtension = computed(() => {
+  const hasParyonUsdExtension = computed(() => {
     const ext = store.bcmrRegistries?.[tokenData.value.category]?.extensions;
-    return Boolean(ext?.parityusd ?? ext?.pusd ?? ext?.paryonusd);
+    return Boolean(ext?.paryonusd ?? ext?.pusd);
   });
   const isParsable = computed(() =>
     store.bcmrRegistries?.[tokenData.value.category]?.nft_type === 'parsable'
@@ -656,7 +656,7 @@
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
             </div>
-            <div v-if="isSingleNft && parsingNft && hasParityusdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
+            <div v-if="isSingleNft && parsingNft && hasParyonUsdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
             <div v-else-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 2">
               <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
                 {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
@@ -724,7 +724,7 @@
           <div></div>
           <div v-if="tokenDescription" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenDescription }} </div>
           <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 2">
-            <div>{{ hasParityusdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
+            <div>{{ hasParyonUsdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
             <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
               {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
             </div>
