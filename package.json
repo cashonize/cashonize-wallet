@@ -11,7 +11,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "eslint -c ./eslint.config.ts \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
+    "lint": "eslint -c ./eslint.config.ts \"./src*/**/*.{ts,js,vue}\" \"./test/**/*.{ts,js,vue}\"",
     "test": "vitest",
     "dev": "quasar dev",
     "build": "quasar build",
