@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, type SendRequest, convert } from "mainnet-js"
+  import { TokenSendRequest, convert } from "mainnet-js"
   import { decodeCashAddress } from "@bitauth/libauth"
   import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
@@ -350,7 +350,7 @@
       const authTransfer = !reservedSupply? {
         cashaddr: destinationAddr.value,
         value: 1000n,
-      } as SendRequest : new TokenSendRequest({
+      } : new TokenSendRequest({
         cashaddr: destinationAddr.value,
         category: category,
         amount: reservedSupply
