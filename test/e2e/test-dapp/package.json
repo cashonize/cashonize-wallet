@@ -8,12 +8,12 @@
     "start": "vite preview"
   },
   "dependencies": {
-    "@walletconnect/sign-client": "2.23.5",
+    "@walletconnect/sign-client": "2.23.9",
     "vue": "^3.5.35"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.5",
-    "vite": "^8.0.14"
+    "@vitejs/plugin-vue": "^6.0.7",
+    "vite": "^8.0.16"
   },
   "resolutions": {
     "**/anymatch/picomatch": "2.3.2"

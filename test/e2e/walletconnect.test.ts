@@ -167,9 +167,13 @@ test.describe.serial('WalletConnect E2E', () => {
     const signDialog = walletPage.locator('.q-dialog')
     await signDialog.waitFor({ timeout: 5_000 })
 
-    // Fast-forward past the 5-minute WC request expiry on both pages
-    await walletPage.clock.fastForward('05:00')
-    await dappPage.clock.fastForward('05:00')
+    // Fast-forward past the WC request expiry on both pages.
+    // NOTE: sign-client's default session-request expiry changed from 5 to 15 minutes in
+    // sign-client@2.23.7. We intentionally do NOT override it on the dApp side, so this value
+    // tracks the real default — if the default changes again, this test fails loudly rather
+    // than masking the change behind a hidden override.
+    await walletPage.clock.fastForward('15:00')
+    await dappPage.clock.fastForward('15:00')
 
     // dApp: Should receive expiry error
     await expect(dappPage.locator('#response')).toContainText('Request expired', { timeout: 5_000 })
