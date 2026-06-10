@@ -6,7 +6,7 @@ import {
   decodeTransaction,
   lockingBytecodeToCashAddress,
 } from "@bitauth/libauth";
-import type { ElectrumClient } from "./types";
+import type { ElectrumClient, ElectrumUtxo } from "./types";
 
 // Verbose step-by-step tracing of loan-state resolution. Reads from localStorage
 // Toggle from the browser console: localStorage.debugParyonUsdExtension = "1" (and reload)
@@ -15,6 +15,30 @@ function debugLog(...args: unknown[]) {
   if (globalThis.localStorage?.getItem("debugParyonUsdExtension")) {
     console.log(...args);
   }
+}
+
+/**
+ * In-flight coalescing for the paryonusd extension's getUTXOs requests.
+ *
+ * Every loan-key NFT of a given token resolves to the same lookup address (it
+ * is derived from the registry's lockingBytecode), so when many loan-key cards
+ * render at once the extension fires the same getUTXOs request repeatedly.
+ * Sharing the in-flight promise (keyed by address) collapses those concurrent
+ * requests into a single electrum round-trip. The entry is dropped as soon as
+ * the request settles, so a later refresh re-fetches live state — this is
+ * coalescing, not caching.
+ */
+const inflightUtxoRequests = new Map<string, Promise<ElectrumUtxo[]>>();
+
+function coalescedGetUTXOs(electrumClient: ElectrumClient, address: string) {
+  const existing = inflightUtxoRequests.get(address);
+  if (existing) return existing;
+
+  const request = electrumClient
+    .getUTXOs(address)
+    .finally(() => inflightUtxoRequests.delete(address));
+  inflightUtxoRequests.set(address, request);
+  return request;
 }
 
 /**
@@ -87,7 +111,7 @@ export async function fetchLoanState(
     const sidecarAddress = sidecarAddressResult.address;
     debugLog(`[fetchLoanState] Sidecar address: ${sidecarAddress}`);
 
-    const sidecarUtxos = await electrumClient.getUTXOs(sidecarAddress);
+    const sidecarUtxos = await coalescedGetUTXOs(electrumClient, sidecarAddress);
     debugLog(`[fetchLoanState] Found ${sidecarUtxos.length} UTXOs with sidecar locking bytecode`);
 
     // Step 4: Filter for sidecar UTXO with matching token category

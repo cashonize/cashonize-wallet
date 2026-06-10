@@ -289,6 +289,28 @@ describe("fetchLoanState via invokeExtensions", () => {
     expect(result.token!.nft!.capability).toBe("minting");
   });
 
+  it("coalesces concurrent loan-key lookups into a single getUTXOs call", async () => {
+    const identity = createIdentityWithExtension();
+    const base = createMockElectrumClient();
+    // Spy on getUTXOs while keeping the real mock implementation.
+    const getUTXOs = vi.fn((address: string) => base.getUTXOs(address));
+    const client: ElectrumClient = {
+      getUTXOs,
+      getRawTransaction: (txid: string) => base.getRawTransaction(txid),
+    };
+
+    // Two loan keys of the same token resolve to the same lookup address,
+    // so concurrent invocations should share one in-flight electrum request.
+    const [result1, result2] = await Promise.all([
+      invokeExtensions(createLoanKeyUtxo(), identity, client, "bchtest"),
+      invokeExtensions(createLoanKeyUtxo(), identity, client, "bchtest"),
+    ]);
+
+    expect(getUTXOs).toHaveBeenCalledTimes(1);
+    expect(binToHex(result1.token!.nft!.commitment)).toBe(loanCommitmentHex);
+    expect(binToHex(result2.token!.nft!.commitment)).toBe(loanCommitmentHex);
+  });
+
   it("should return unmodified UTXO when no sidecar found", async () => {
     const utxo = createLoanKeyUtxo();
     const identity = createIdentityWithExtension();
