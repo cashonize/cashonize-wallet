@@ -49,8 +49,8 @@ test.describe.serial('WalletConnect E2E', () => {
     await walletPage.locator('nav img[src*="settings"]').click()
     await walletPage.getByText('Developer settings').click()
     await walletPage.locator('select').first().selectOption('chipnet')
-    // Wait for network switch to complete — nav reappears after reload
-    await walletPage.locator('nav').waitFor({ timeout: 15_000 })
+    // Wait for network switch to complete. It resets the active view back to the wallet tab.
+    await expect(walletPage.locator('nav').getByText('BchWallet')).toHaveClass(/active/, { timeout: 15_000 })
 
     // Navigate to WalletConnect tab, wait for sessions section
     await walletPage.locator('nav').getByText('WalletConnect').click()
