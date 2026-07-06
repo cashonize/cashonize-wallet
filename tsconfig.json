@@ -2,5 +2,14 @@
   "extends": "./.quasar/tsconfig.json",
   "compilerOptions": {
     "types": ["vitest/globals"]
-  }
+  },
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src-capacitor",
+    "src-cordova",
+    "src-electron",
+    "quasar.config.*.temporary.compiled*",
+    "test/e2e/test-dapp"
+  ]
 }

@@ -35,6 +35,7 @@ export default defineConfig((ctx) => {
         vueShim: true,
         extendTsConfig (tsConfig) {
           tsConfig.exclude ??= []
+          tsConfig.exclude.push('src-electron')
           tsConfig.exclude.push('test/e2e/test-dapp')
         }
       },
