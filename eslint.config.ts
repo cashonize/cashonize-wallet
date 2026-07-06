@@ -17,6 +17,7 @@ export default defineConfigWithVueTs(
      */
     ignores: [
       'src-electron', // Exclude all files in src-electron
+      'test/e2e/test-dapp', // Separate Vite app with its own tsconfig
     ],
   },
 
