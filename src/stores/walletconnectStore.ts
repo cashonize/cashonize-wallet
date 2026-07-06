@@ -13,7 +13,6 @@ import {
   encodeLockingBytecodeP2pkh,
   decodeTransaction
 } from "@bitauth/libauth"
-import { getSdkError } from '@walletconnect/utils';
 import { parseExtendedJson } from 'src/utils/utils'
 import alertDialog from 'src/components/general/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
@@ -30,6 +29,13 @@ import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 const settingsStore = useSettingsStore()
+
+// WalletConnect SDK error constants (code + message), inlined from @walletconnect/utils'
+// getSdkError so we don't depend on the whole utils package for just these two values.
+const WC_SDK_ERROR = {
+  USER_DISCONNECTED: { message: "User disconnected.", code: 6000 },
+  USER_REJECTED: { message: "User rejected.", code: 5000 },
+}
 
 export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   // Accesses the wallet reactively via cross-store ref (mainStore.wallet) inside defineStore setup,
@@ -217,7 +223,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   async function deleteSession(sessionId :string){
     await web3wallet.value?.disconnectSession({
       topic: sessionId,
-      reason: getSdkError("USER_DISCONNECTED")
+      reason: WC_SDK_ERROR.USER_DISCONNECTED
     });
     settingsStore.clearAutoApproveState(sessionId);
     activeSessions.value = web3wallet.value?.getActiveSessions();
@@ -554,7 +560,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   function rejectSession(wcSessionProposal: WalletKitTypes.SessionProposal){
     return web3wallet.value?.rejectSession({
       id: wcSessionProposal.id,
-      reason: getSdkError('USER_REJECTED'),
+      reason: WC_SDK_ERROR.USER_REJECTED,
     }).catch((error) => {
       console.error("Error rejecting session:", error);
     });
@@ -565,7 +571,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const stillPending = web3wallet.value?.getPendingSessionRequests()
       .some(r => r.id === id);
     if (!stillPending) return;
-    const response = { id, jsonrpc: '2.0', error: getSdkError('USER_REJECTED') };
+    const response = { id, jsonrpc: '2.0', error: WC_SDK_ERROR.USER_REJECTED };
     return web3wallet.value?.respondSessionRequest({ topic, response }).then(() => {
       console.log("Request rejected successfully");
     }).catch((error) => {

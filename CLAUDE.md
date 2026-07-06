@@ -8,14 +8,14 @@ Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, a
 
 ## Commands
 
-Uses yarn classic (v1).
+Uses pnpm (v11). Config (overrides, supply-chain hardening, build-script allowlist) lives in `pnpm-workspace.yaml`; version pins are in `package.json` "pnpm.overrides".
 
 ```bash
-yarn dev              # Start development server (opens browser)
-yarn build            # Production build (generates dist/stats.html bundle analysis)
-yarn lint             # ESLint check
-yarn test             # Run vitest tests
-yarn vue-tsc --noEmit # Type check (Vue projects use vue-tsc, not plain tsc)
+pnpm dev                   # Start development server (opens browser)
+pnpm build                 # Production build (generates dist/stats.html bundle analysis)
+pnpm lint                  # ESLint check
+pnpm test                  # Run vitest tests
+pnpm exec vue-tsc --noEmit # Type check (Vue projects use vue-tsc, not plain tsc)
 ```
 
 ## Architecture

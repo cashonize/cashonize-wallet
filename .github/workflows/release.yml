@@ -20,20 +20,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6  # reads pnpm version from package.json "packageManager"
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'yarn'
-
-      - name: Install Yarn (v1.22.22)
-        run: npm install -g yarn@1.22.22
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build Electron App
-        run: npx quasar build --mode electron --publish never
+        run: pnpm exec quasar build --mode electron --publish never
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6

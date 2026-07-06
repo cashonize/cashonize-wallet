@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6  # reads pnpm version from package.json "packageManager"
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'yarn'
-      - run: npm install -g yarn@1.22.22
-      - run: yarn install --frozen-lockfile
-      - run: npx quasar prepare  # generates .quasar/tsconfig.json for path aliases
-      - run: yarn lint
-      - run: yarn vue-tsc --noEmit
-      - run: yarn test
-      - run: yarn playwright install --with-deps chromium
-      - run: yarn test:e2e
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec quasar prepare  # generates .quasar/tsconfig.json for path aliases
+      - run: pnpm lint
+      - run: pnpm exec vue-tsc --noEmit
+      - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
