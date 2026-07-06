@@ -45,6 +45,7 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 - The wallet type (`WalletType`) is a union of all four classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB via `@mainnet-cash/indexeddb-storage`
+- The app overrides two mainnet-js global defaults: `Config.DefaultParentDerivationPath` (derivation path, in `walletUtils.ts`) and `DefaultProvider.servers` (electrum servers, in `store.ts`). The electrum override must be applied before any `WalletClass.named()`, since HD wallets start address discovery on the default provider during construction.
 - Docs: https://mainnet.cash/tutorial/
 
 ### Other Key Dependencies

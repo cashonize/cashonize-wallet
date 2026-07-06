@@ -12,7 +12,6 @@
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import { defineComponent, ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
-  import { DefaultProvider } from 'mainnet-js'
   import { waitForInitialized } from 'src/utils/utils'
   import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
   import { useStore } from 'src/stores/store'
@@ -34,8 +33,6 @@
   const dappUriUrlParam = ref(undefined as undefined|string);
   const bchSendRequest = ref(undefined as undefined|string);
   const wifToSweep = ref(undefined as undefined|string);
-
-  DefaultProvider.servers.chipnet = ["wss://chipnet.bch.ninja:50004"];
 
   // The currentView and its viewSpecificProps are computed based on 'store.displayView'
   // and passed to a dynamic component wrapped in KeepAlive to preserve state.

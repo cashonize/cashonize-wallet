@@ -8,6 +8,7 @@ import {
   BaseWallet,
   Config,
   Connection,
+  DefaultProvider,
   convert,
   ExchangeRate,
   type Utxo,
@@ -54,6 +55,17 @@ const settingsStore = useSettingsStore()
 Config.EnforceCashTokenReceiptAddresses = true;
 Config.UseIndexedDBCache = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
+
+// Point mainnet-js's default electrum servers at the user's selected servers.
+// Wallet construction (WalletClass.named) — and eager HD address discovery in particular — builds its
+// network provider from these defaults BEFORE the app assigns one via setWallet. Without this, mainnet-js
+// falls back to its hardcoded default server (blackie.c3-soft.com), leaking the wallet's address
+// subscriptions to a server the user never selected. Kept in sync with settings via a watch (see below).
+function setDefaultElectrumServers() {
+  DefaultProvider.servers.mainnet = [`wss://${settingsStore.electrumServerMainnet}:50004`];
+  DefaultProvider.servers.testnet = [`wss://${settingsStore.electrumServerChipnet}:50004`];
+}
+setDefaultElectrumServers();
 
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
@@ -745,6 +757,11 @@ export const useStore = defineStore('store', () => {
 
   // Refetch exchange rate when user changes currency
   watch(() => settingsStore.currency, () => void fetchExchangeRate());
+  // Keep the default-server list current after a settings change. This governs the server used when
+  // a wallet is constructed for a network not yet connected this session (mainnet-js caches a global
+  // provider per network on first construction, so an already-connected network keeps its provider
+  // until it reconnects). The active wallet's server is swapped directly by the settings handler.
+  watch([() => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet], setDefaultElectrumServers);
 
   async function fetchTokenInfo(categoryId: string) {
     const res = await cachedFetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);

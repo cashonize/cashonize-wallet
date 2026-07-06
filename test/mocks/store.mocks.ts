@@ -84,6 +84,9 @@ vi.mock('mainnet-js', () => ({
   balanceResponseFromSatoshi: vi.fn().mockReturnValue({ sat: 0, bch: 0 }),
   binToHex: vi.fn((arr: Uint8Array) => Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')),
   Connection: MockConnection,
+  DefaultProvider: {
+    servers: { mainnet: [], testnet: [], regtest: [] },
+  },
 }))
 
 // Mock IndexedDB provider
