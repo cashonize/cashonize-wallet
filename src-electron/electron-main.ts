@@ -2,9 +2,10 @@ import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { fileURLToPath } from 'node:url';
-
-const currentDir = fileURLToPath(new URL('.', import.meta.url))
+import {
+  registerQuasarRuntime,
+  resolveElectronAssetsPath,
+} from '#q-app/electron/main';
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
@@ -43,23 +44,20 @@ function createWindow() {
 
   mainWindow = new BrowserWindow({
     ...(windowState?.bounds ?? { width: 1000, height: 800 }),
-    icon: path.resolve(currentDir, 'icons/icon.png'), // tray icon
+    icon: resolveElectronAssetsPath('icons/icon.png'), // tray icon
     show: false,
     useContentSize: true,
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,
       backgroundThrottling: false, // keep Electrum WebSocket connections alive when window is minimized
-      // More info: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
-      preload: path.resolve(
-        currentDir,
-        path.join(process.env.QUASAR_ELECTRON_PRELOAD_FOLDER!, 'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION!)
-      )
+      // More info: https://quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
+      preload: path.join(import.meta.dirname, 'electron-preload.cjs')
     },
   });
 
-  if (process.env.DEV) {
-    mainWindow.loadURL(process.env.APP_URL)
+  if (import.meta.env.QUASAR_DEV) {
+    mainWindow.loadURL(import.meta.env.QUASAR_APP_URL)
   } else {
     mainWindow.loadFile('index.html')
   }
@@ -87,7 +85,7 @@ function createWindow() {
     try {
       const parsed = new URL(url);
       const isHttps = parsed.protocol === 'https:';
-      const isDevLocalhost = parsed.protocol === 'http:' && process.env.DEV && parsed.hostname === 'localhost';
+      const isDevLocalhost = parsed.protocol === 'http:' && import.meta.env.QUASAR_DEV && parsed.hostname === 'localhost';
       if (isHttps || isDevLocalhost) {
         void shell.openExternal(parsed.href);
       } else {
@@ -99,7 +97,7 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  if (process.env.DEBUGGING) {
+  if (import.meta.env.QUASAR_DEBUG) {
     // if on DEV or Production with debug enabled
     mainWindow.webContents.openDevTools();
   } else {
@@ -114,7 +112,10 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+  await registerQuasarRuntime();
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {

@@ -22,10 +22,10 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
-  const isBrowser = (process.env.MODE == "spa");
-  const isDesktop = (process.env.MODE == "electron");
-  const isCapacitor = (process.env.MODE == "capacitor");
-  const applicationVersion = process.env.version
+  const isBrowser = import.meta.env.QUASAR_SPA_MODE;
+  const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
+  const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
+  const applicationVersion = import.meta.env.version
 
   const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6>(0);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);

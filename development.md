@@ -104,4 +104,4 @@ If you already have the Cashonize dev server running (on port 9000) Playwright w
 There is a test dapp for WalletConnect E2E tests in `test/e2e/test-dapp` with its own [README](test/e2e/test-dapp/README.md). If you already have it running (on port 5188) Playwright will use that. Otherwise it will launch the dev server for that app automatically before running tests.
 
 ### Customize the configuration
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+See [The quasar.config file](https://quasar.dev/quasar-cli-vite/quasar-config-file).

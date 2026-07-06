@@ -1,4 +1,4 @@
-import { boot } from 'quasar/wrappers'
+import { defineBoot } from '#q-app'
 import { App, type URLOpenListenerEvent } from '@capacitor/app';
 import { Platform } from 'quasar'
 
@@ -6,7 +6,7 @@ import { Platform } from 'quasar'
 // These arrive via two paths depending on whether the app was already running:
 //   - "warm start": app is in background, appUrlOpen event fires
 //   - "cold start": app was not running, the launch URL is retrieved after startup
-export default boot(( { router }) => {
+export default defineBoot(( { router }) => {
   if(!Platform.is.capacitor) return
 
   // Warm start: user taps a deep link while the app is already open in the background

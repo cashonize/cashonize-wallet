@@ -12,7 +12,7 @@
   const { t } = useI18n()
 
     // Persistent storage (only relevant for browser/PWA, not Electron or Capacitor)
-  const isBrowser = process.env.MODE === 'spa'
+  const isBrowser = import.meta.env.QUASAR_SPA_MODE
   const persistentStorageSupported = typeof navigator !== 'undefined' && !!navigator.storage?.persist
   const persistentStorageStatus = ref<'unknown' | 'granted' | 'denied'>('unknown')
 

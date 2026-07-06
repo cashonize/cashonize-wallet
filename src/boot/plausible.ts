@@ -3,7 +3,7 @@
 // Only runs for the production web wallet (not Electron or Capacitor).
 import { init } from '@plausible-analytics/tracker'
 
-if (process.env.MODE === 'spa' && process.env.PROD) {
+if (import.meta.env.QUASAR_SPA_MODE && import.meta.env.QUASAR_PROD) {
   init({
     domain: 'cashonize.com',
   })

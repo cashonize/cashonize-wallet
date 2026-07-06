@@ -95,7 +95,7 @@ Docs: https://quasar.dev/docs
 
 - **Boot files** (`src/boot/`): Run at app startup - `i18n.ts`, `qrCodeComponent.ts`, `deepLinking.ts` (Capacitor only), `plausible.ts` (SPA production only)
 - **Plugins**: `Notify` for toasts, `Dialog` for confirmations and custom dialogs (configured in quasar.config.ts)
-- **MODE detection**: `process.env.MODE` is `"spa"` (browser), `"electron"` (desktop), or `"capacitor"` (mobile)
+- **Mode/env detection**: In app code, use Quasar v3 `import.meta.env.QUASAR_*` constants, e.g. `import.meta.env.QUASAR_SPA_MODE`.
 - **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking; the runtime copies live in `src-capacitor/`
 
 ### Styling

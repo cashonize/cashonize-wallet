@@ -17,7 +17,7 @@ const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
 const defaultIpfsGateway = "https://w3s.link/ipfs/";
 
 const { width,height } = useWindowSize();
-const isDesktop = (process.env.MODE == "electron");
+const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 const isMobileDevice = width.value / height.value < 1.5
 
 export const useSettingsStore = defineStore('settingsStore', () => {
