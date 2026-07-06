@@ -1,4 +1,4 @@
-import { boot } from 'quasar/wrappers';
+import { defineBoot } from '#q-app';
 import { createI18n } from 'vue-i18n';
 import { translations, defaultLocale } from 'src/i18n';
 
@@ -18,6 +18,6 @@ export const i18n = createI18n({
   messages: translations
 });
 
-export default boot(({ app }) => {
+export default defineBoot(({ app }) => {
   app.use(i18n);
 });

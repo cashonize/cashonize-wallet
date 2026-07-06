@@ -16,7 +16,9 @@ export default defineConfigWithVueTs(
      * ESLint requires "ignores" key to be the only one in this object
      */
     ignores: [
+      'src-capacitor', // Separate Capacitor project with native/generated files
       'src-electron', // Exclude all files in src-electron
+      'test/e2e/test-dapp', // Separate Vite app with its own tsconfig
     ],
   },
 

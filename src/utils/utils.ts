@@ -27,7 +27,7 @@ export function sanitizeUrl(url: string): string | undefined {
   try {
     const parsed = new URL(url);
     if (parsed.protocol === 'https:') return parsed.href;
-    if (parsed.protocol === 'http:' && process.env.DEV && parsed.hostname === 'localhost') return parsed.href;
+    if (parsed.protocol === 'http:' && import.meta.env.QUASAR_DEV && parsed.hostname === 'localhost') return parsed.href;
   } catch {
     // invalid URL
   }

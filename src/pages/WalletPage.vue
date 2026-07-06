@@ -170,8 +170,8 @@
     return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n).length > 0;
   });
   const newerReleaseAvailable = computed(() => {
-    if(!(process.env.MODE == "electron")) return false;
-    const applicationVersion = process.env.version
+    if(!import.meta.env.QUASAR_ELECTRON_MODE) return false;
+    const applicationVersion = import.meta.env.version
     return store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion
   });
   const showNotificationIcon = computed(() => {

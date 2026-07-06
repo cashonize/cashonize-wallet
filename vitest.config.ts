@@ -4,6 +4,7 @@ import path from 'path';
 export default defineConfig({
   resolve: {
     alias: {
+      '#q-app': '@quasar/app-vite',
       'src': path.resolve(__dirname, './src'),
     },
   },

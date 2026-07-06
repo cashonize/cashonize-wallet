@@ -58,7 +58,7 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
 const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
-const isDesktop = (process.env.MODE == "electron");
+const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const CAULDRON_REFETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
