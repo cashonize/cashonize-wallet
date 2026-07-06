@@ -112,8 +112,8 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(async () => {
-  await registerQuasarRuntime();
+app.whenReady().then(() => {
+  registerQuasarRuntime();
   createWindow();
 });
 
