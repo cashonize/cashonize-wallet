@@ -31,6 +31,7 @@ fund: false
 # Pin dependency versions. Must live here: pnpm v11 no longer reads the "pnpm" field from
 # package.json. Nested pins use "parent>child" selector syntax.
 overrides:
+  '@reown/walletkit>@walletconnect/pay': '-'
   '@bitauth/libauth': 3.1.0-next.8
   '@walletconnect/core': 2.23.9
   tar: 7.5.16

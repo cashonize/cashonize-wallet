@@ -81,7 +81,22 @@ export default defineConfig((ctx) => {
         }
       },
 
-      // extendViteConf (viteConf) {},
+      // @reown/walletkit hard-depends on @walletconnect/pay (~264KB gzip, ~28% of all
+      // app JS) and auto-instantiates it in every WASM-capable browser, but Cashonize
+      // never uses WalletConnect Pay. The package is removed from the install entirely
+      // via a pnpm override (see pnpm-workspace.yaml); this virtual module satisfies
+      // walletkit's import with a stub that reports Pay as unavailable — a code path
+      // walletkit handles as a normal case (it leaves `walletkit.pay` undefined).
+      extendViteConf (viteConf) {
+        viteConf.plugins ??= []
+        viteConf.plugins.push({
+          name: 'stub-walletconnect-pay',
+          resolveId: (id) => id === '@walletconnect/pay' ? '\0wc-pay-stub' : undefined,
+          load: (id) => id === '\0wc-pay-stub'
+            ? 'export class WalletConnectPay { static isAvailable () { return false } }'
+            : undefined,
+        })
+      },
       viteVuePluginOptions: {
         template: {
           compilerOptions: {
