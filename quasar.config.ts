@@ -68,6 +68,19 @@ export default defineConfig((ctx) => {
       // polyfillModulePreload: true,
       // distDir
 
+      // @quasar/app-vite v3 regression: src-capacitor/www is no longer emptied before a
+      // build (vite runs with emptyOutDir: false, and cleanArtifacts() now targets
+      // dist/capacitor instead of the www dir), so stale hashed bundles from previous
+      // builds accumulate and get packaged into the APK. Empty it ourselves.
+      async beforeBuild() {
+        if ('capacitor' in ctx.mode) {
+          const { rm, mkdir } = await import('node:fs/promises');
+          const wwwDir = ctx.appPaths.resolve.capacitor('www');
+          await rm(wwwDir, { recursive: true, force: true });
+          await mkdir(wwwDir, { recursive: true });
+        }
+      },
+
       // extendViteConf (viteConf) {},
       viteVuePluginOptions: {
         template: {
