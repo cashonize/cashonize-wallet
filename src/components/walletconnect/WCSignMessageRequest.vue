@@ -4,15 +4,14 @@
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit'
   import { sanitizeUrl } from 'src/utils/utils'
-  import { useStore } from 'src/stores/store'
   import { type WcSignMessageRequest } from '@bch-wc2/interfaces';
   import { useI18n } from 'vue-i18n'
-  const store = useStore()
   const { t } = useI18n()
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
-    signMessageRequestWC: WalletKitTypes.SessionRequest
+    signMessageRequestWC: WalletKitTypes.SessionRequest,
+    signerAddress: string,
   }>()
   const { signMessageRequestWC } = toRefs(props);
 
@@ -48,7 +47,7 @@
         <hr>
         <div style="margin: 15px 0;">
           <div>{{ t('walletConnect.signMessage.signer') }}</div>
-          {{ store.wallet.getDepositAddress() }}
+          {{ signerAddress }}
         </div>
         <div style="margin: 15px 0;">
           <div>{{ t('walletConnect.signMessage.message') }}</div>

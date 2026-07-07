@@ -322,7 +322,8 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           component: WC2SignMessageRequest,
           componentProps: {
             dappMetadata,
-            signMessageRequestWC: event
+            signMessageRequestWC: event,
+            signerAddress: getSessionAddress(topic) ?? walletAddress,
           },
         })
           // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
