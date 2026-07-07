@@ -264,7 +264,6 @@
       $q.dialog({
         title: t('settings.advanced.deleteAllWalletsTitle'),
         message: text,
-        html: true,
         cancel: { flat: true, color: 'dark' },
         ok: { label: t('settings.advanced.deleteAllButton'), color: 'red', textColor: 'white' },
         persistent: true

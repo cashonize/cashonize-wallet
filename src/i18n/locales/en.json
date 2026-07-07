@@ -276,29 +276,29 @@
     "dialogs": {
       "authWarning": {
         "title": "Auth Warning",
-        "message": "You risk unintentionally sending the authority to update this token's metadata elsewhere.<br>Are you sure you want to send the transaction anyways?",
+        "message": "You risk unintentionally sending the authority to update this token's metadata elsewhere.\nAre you sure you want to send the transaction anyways?",
         "continueButton": "Continue"
       },
       "confirmTokenSend": {
         "title": "Confirm Token Send",
-        "message": "Send {amount} {symbol} to<br>{address}"
+        "message": "Send {amount} {symbol} to\n{address}"
       },
       "confirmNftSend": {
         "title": "Confirm NFT Send",
-        "message": "Send {symbol} NFT to<br>{address}"
+        "message": "Send {symbol} NFT to\n{address}"
       },
       "confirmNftTransfer": {
         "title": "Confirm NFT Transfer",
-        "message": "Send {prefix}{count} {symbol} NFTs to<br>{address}"
+        "message": "Send {prefix}{count} {symbol} NFTs to\n{address}"
       },
       "burnTokens": {
         "title": "Burn Tokens",
-        "message": "You are about to burn {amount} {symbol}, this cannot be undone.<br>Are you sure you want to burn the tokens?",
+        "message": "You are about to burn {amount} {symbol}, this cannot be undone.\nAre you sure you want to burn the tokens?",
         "burnButton": "Burn"
       },
       "burnNft": {
         "title": "Burn NFT",
-        "message": "You are about to burn {nftType}, this cannot be undone.<br>Are you sure you want to burn the NFT?",
+        "message": "You are about to burn {nftType}, this cannot be undone.\nAre you sure you want to burn the NFT?",
         "nftTypeMinting": "a minting NFT",
         "nftTypeRegular": "an NFT",
         "burnButton": "Burn"
@@ -416,7 +416,7 @@
       "verifyButton": "Verify your backup",
       "copyButton": "Copy Seed Phrase",
       "copyTitle": "Copy Seed Phrase",
-      "copyMessage": "Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.<br>You can clear your clipboard afterwards by copying something else.",
+      "copyMessage": "Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.\nYou can clear your clipboard afterwards by copying something else.",
       "copiedNotification": "Seed phrase copied to clipboard"
     },
     "backupStatus": {
@@ -506,7 +506,7 @@
     },
     "deleteWallet": {
       "title": "Delete Wallet",
-      "message": "Are you sure you want to delete the wallet \"{name}\"?<br>This action cannot be undone.",
+      "message": "Are you sure you want to delete the wallet \"{name}\"?\nThis action cannot be undone.",
       "cannotDeleteActive": "Cannot delete the currently active wallet",
       "deleted": "Wallet \"{name}\" deleted",
       "failed": "Failed to delete wallet",
@@ -858,8 +858,8 @@
       "deleteAllWallets": "Remove all wallets and all data from {platform}",
       "deleteAllWalletsButton": "Delete all wallets",
       "deleteAllWalletsTitle": "Delete All Wallets",
-      "deleteAllWalletsConfirm": "You are about to delete all Cashonize wallets and data from this {platform}.<br>Are you sure you want to delete everything?",
-      "deleteAllWalletsPwaWarning": "You are about to delete all Cashonize wallets and data from this {platform}.<br>This will also delete them from your browser!<br>Are you sure you want to delete everything?",
+      "deleteAllWalletsConfirm": "You are about to delete all Cashonize wallets and data from this {platform}.\nAre you sure you want to delete everything?",
+      "deleteAllWalletsPwaWarning": "You are about to delete all Cashonize wallets and data from this {platform}.\nThis will also delete them from your browser!\nAre you sure you want to delete everything?",
       "deleteAllButton": "Delete All",
       "pwaDeleteWarning": "Deleting all wallets from the 'Installed web-app' will also delete them from your browser!",
       "browserDeleteWarning": "Deleting all wallets from the browser will also remove them from any 'Installed web-app'.",

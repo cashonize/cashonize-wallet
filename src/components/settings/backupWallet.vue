@@ -150,7 +150,6 @@
       $q.dialog({
         title: t('backupWallet.seedPhrase.copyTitle'),
         message: t('backupWallet.seedPhrase.copyMessage'),
-        html: true,
         cancel: { flat: true, color: 'dark' },
         ok: { label: t('backupWallet.seedPhrase.copyButton'), color: 'primary', textColor: 'white' },
         persistent: true

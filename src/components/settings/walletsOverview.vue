@@ -81,7 +81,6 @@
       $q.dialog({
         title: t('walletsOverview.deleteWallet.title'),
         message: t('walletsOverview.deleteWallet.message', { name: walletName }),
-        html: true,
         cancel: { flat: true, color: 'dark' },
         ok: { label: t('walletsOverview.deleteWallet.title'), color: 'red', textColor: 'white' },
         persistent: true

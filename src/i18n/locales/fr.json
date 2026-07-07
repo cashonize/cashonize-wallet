@@ -276,29 +276,29 @@
     "dialogs": {
       "authWarning": {
         "title": "Avertissement Auth",
-        "message": "Vous risquez d'envoyer involontairement l'autorité pour mettre à jour les métadonnées de ce token ailleurs.<br>Êtes-vous sûr de vouloir envoyer la transaction quand même ?",
+        "message": "Vous risquez d'envoyer involontairement l'autorité pour mettre à jour les métadonnées de ce token ailleurs.\nÊtes-vous sûr de vouloir envoyer la transaction quand même ?",
         "continueButton": "Continuer"
       },
       "confirmTokenSend": {
         "title": "Confirmer l'envoi de tokens",
-        "message": "Envoyer {amount} {symbol} à<br>{address}"
+        "message": "Envoyer {amount} {symbol} à\n{address}"
       },
       "confirmNftSend": {
         "title": "Confirmer l'envoi du NFT",
-        "message": "Envoyer NFT {symbol} à<br>{address}"
+        "message": "Envoyer NFT {symbol} à\n{address}"
       },
       "confirmNftTransfer": {
         "title": "Confirmer le transfert de NFT",
-        "message": "Envoyer {prefix}{count} NFTs {symbol} à<br>{address}"
+        "message": "Envoyer {prefix}{count} NFTs {symbol} à\n{address}"
       },
       "burnTokens": {
         "title": "Brûler des tokens",
-        "message": "Vous êtes sur le point de brûler {amount} {symbol}, cette action est irréversible.<br>Êtes-vous sûr de vouloir brûler les tokens ?",
+        "message": "Vous êtes sur le point de brûler {amount} {symbol}, cette action est irréversible.\nÊtes-vous sûr de vouloir brûler les tokens ?",
         "burnButton": "Brûler"
       },
       "burnNft": {
         "title": "Brûler NFT",
-        "message": "Vous êtes sur le point de brûler {nftType}, cette action est irréversible.<br>Êtes-vous sûr de vouloir brûler le NFT ?",
+        "message": "Vous êtes sur le point de brûler {nftType}, cette action est irréversible.\nÊtes-vous sûr de vouloir brûler le NFT ?",
         "nftTypeMinting": "un NFT de création",
         "nftTypeRegular": "un NFT",
         "burnButton": "Brûler"
@@ -416,7 +416,7 @@
       "verifyButton": "Vérifier votre sauvegarde",
       "copyButton": "Copier la phrase de récupération",
       "copyTitle": "Copier la phrase de récupération",
-      "copyMessage": "Copier votre phrase de récupération dans le presse-papiers n'est pas recommandé pour des raisons de sécurité, mais est autorisé par commodité.<br>Vous pouvez vider votre presse-papiers ensuite en copiant autre chose.",
+      "copyMessage": "Copier votre phrase de récupération dans le presse-papiers n'est pas recommandé pour des raisons de sécurité, mais est autorisé par commodité.\nVous pouvez vider votre presse-papiers ensuite en copiant autre chose.",
       "copiedNotification": "Phrase de récupération copiée dans le presse-papiers"
     },
     "backupStatus": {
@@ -506,7 +506,7 @@
     },
     "deleteWallet": {
       "title": "Supprimer le portefeuille",
-      "message": "Êtes-vous sûr de vouloir supprimer le portefeuille « {name} » ?<br>Cette action est irréversible.",
+      "message": "Êtes-vous sûr de vouloir supprimer le portefeuille « {name} » ?\nCette action est irréversible.",
       "cannotDeleteActive": "Impossible de supprimer le portefeuille actuellement actif",
       "deleted": "Portefeuille « {name} » supprimé",
       "failed": "Échec de la suppression du portefeuille",
@@ -858,8 +858,8 @@
       "deleteAllWallets": "Supprimer tous les portefeuilles et données de {platform}",
       "deleteAllWalletsButton": "Supprimer tous les portefeuilles",
       "deleteAllWalletsTitle": "Supprimer tous les portefeuilles",
-      "deleteAllWalletsConfirm": "Vous êtes sur le point de supprimer tous les portefeuilles et données Cashonize de ce {platform}.<br>Êtes-vous sûr de vouloir tout supprimer ?",
-      "deleteAllWalletsPwaWarning": "Vous êtes sur le point de supprimer tous les portefeuilles et données Cashonize de ce {platform}.<br>Cela les supprimera aussi de votre navigateur !<br>Êtes-vous sûr de vouloir tout supprimer ?",
+      "deleteAllWalletsConfirm": "Vous êtes sur le point de supprimer tous les portefeuilles et données Cashonize de ce {platform}.\nÊtes-vous sûr de vouloir tout supprimer ?",
+      "deleteAllWalletsPwaWarning": "Vous êtes sur le point de supprimer tous les portefeuilles et données Cashonize de ce {platform}.\nCela les supprimera aussi de votre navigateur !\nÊtes-vous sûr de vouloir tout supprimer ?",
       "deleteAllButton": "Tout supprimer",
       "pwaDeleteWarning": "Supprimer tous les portefeuilles de l'« app web installée » les supprimera aussi de votre navigateur !",
       "browserDeleteWarning": "Supprimer tous les portefeuilles du navigateur les supprimera aussi de toute « app web installée ».",

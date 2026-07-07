@@ -198,7 +198,6 @@
           $q.dialog({
             title: t('tokenItem.dialogs.confirmNftSend.title'),
             message: t('tokenItem.dialogs.confirmNftSend.message', { symbol: tokenSymbol, address: truncatedAddr }),
-            html: true,
             cancel: { flat: true, color: 'dark' },
             ok: { label: t('tokenItem.dialogs.confirmButton'), color: 'primary', textColor: 'white' },
             persistent: true
@@ -357,7 +356,6 @@
         $q.dialog({
           title: t('tokenItem.dialogs.burnNft.title'),
           message: t('tokenItem.dialogs.burnNft.message', { nftType: nftTypeString }),
-          html: true,
           cancel: { flat: true, color: 'dark' },
           ok: { label: t('tokenItem.dialogs.burnNft.burnButton'), color: 'red', textColor: 'white' },
           persistent: true

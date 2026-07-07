@@ -193,7 +193,6 @@
           $q.dialog({
             title: t('tokenItem.dialogs.authWarning.title'),
             message: t('tokenItem.dialogs.authWarning.message'),
-            html: true,
             cancel: { flat: true, color: 'dark' },
             ok: { label: t('tokenItem.dialogs.authWarning.continueButton'), color: 'red', textColor: 'white' },
             persistent: true
@@ -211,7 +210,6 @@
           $q.dialog({
             title: t('tokenItem.dialogs.confirmTokenSend.title'),
             message: t('tokenItem.dialogs.confirmTokenSend.message', { amount: amountSentFormatted, symbol: tokenSymbol, address: truncatedAddr }),
-            html: true,
             cancel: { flat: true, color: 'dark' },
             ok: { label: t('tokenItem.dialogs.confirmButton'), color: 'primary', textColor: 'white' },
             persistent: true
@@ -285,7 +283,6 @@
         $q.dialog({
           title: t('tokenItem.dialogs.burnTokens.title'),
           message: t('tokenItem.dialogs.burnTokens.message', { amount: amountBurnFormatted, symbol: tokenSymbol }),
-          html: true,
           cancel: { flat: true, color: 'dark' },
           ok: { label: t('tokenItem.dialogs.burnTokens.burnButton'), color: 'red', textColor: 'white' },
           persistent: true

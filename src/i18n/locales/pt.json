@@ -276,29 +276,29 @@
     "dialogs": {
       "authWarning": {
         "title": "Aviso de Auth",
-        "message": "Você corre o risco de enviar acidentalmente a autoridade de atualizar os metadados deste token.<br>Tem certeza que deseja enviar a transação mesmo assim?",
+        "message": "Você corre o risco de enviar acidentalmente a autoridade de atualizar os metadados deste token.\nTem certeza que deseja enviar a transação mesmo assim?",
         "continueButton": "Continuar"
       },
       "confirmTokenSend": {
         "title": "Confirmar envio de tokens",
-        "message": "Enviar {amount} {symbol} para<br>{address}"
+        "message": "Enviar {amount} {symbol} para\n{address}"
       },
       "confirmNftSend": {
         "title": "Confirmar envio de NFT",
-        "message": "Enviar NFT {symbol} para<br>{address}"
+        "message": "Enviar NFT {symbol} para\n{address}"
       },
       "confirmNftTransfer": {
         "title": "Confirmar transferência de NFTs",
-        "message": "Enviar {prefix}{count} NFTs {symbol} para<br>{address}"
+        "message": "Enviar {prefix}{count} NFTs {symbol} para\n{address}"
       },
       "burnTokens": {
         "title": "Queimar Tokens",
-        "message": "Você está prestes a queimar {amount} {symbol}, esta ação não pode ser desfeita.<br>Tem certeza que deseja queimar os tokens?",
+        "message": "Você está prestes a queimar {amount} {symbol}, esta ação não pode ser desfeita.\nTem certeza que deseja queimar os tokens?",
         "burnButton": "Queimar"
       },
       "burnNft": {
         "title": "Queimar NFT",
-        "message": "Você está prestes a queimar {nftType}, esta ação não pode ser desfeita.<br>Tem certeza que deseja queimar o NFT?",
+        "message": "Você está prestes a queimar {nftType}, esta ação não pode ser desfeita.\nTem certeza que deseja queimar o NFT?",
         "nftTypeMinting": "um NFT de minting",
         "nftTypeRegular": "um NFT",
         "burnButton": "Queimar"
@@ -416,7 +416,7 @@
       "verifyButton": "Verificar seu backup",
       "copyButton": "Copiar Seed Phrase",
       "copyTitle": "Copiar Seed Phrase",
-      "copyMessage": "Copiar sua seed phrase para a área de transferência não é recomendado por motivos de segurança, mas é permitido por conveniência.<br>Você pode limpar a área de transferência depois copiando outra coisa.",
+      "copyMessage": "Copiar sua seed phrase para a área de transferência não é recomendado por motivos de segurança, mas é permitido por conveniência.\nVocê pode limpar a área de transferência depois copiando outra coisa.",
       "copiedNotification": "Seed phrase copiada para a área de transferência"
     },
     "backupStatus": {
@@ -506,7 +506,7 @@
     },
     "deleteWallet": {
       "title": "Excluir Carteira",
-      "message": "Tem certeza que deseja excluir a carteira \"{name}\"?<br>Esta ação não pode ser desfeita.",
+      "message": "Tem certeza que deseja excluir a carteira \"{name}\"?\nEsta ação não pode ser desfeita.",
       "cannotDeleteActive": "Não é possível excluir a carteira ativa",
       "deleted": "Carteira \"{name}\" excluída",
       "failed": "Falha ao excluir a carteira",
@@ -858,8 +858,8 @@
       "deleteAllWallets": "Remover todas as carteiras e dados do {platform}",
       "deleteAllWalletsButton": "Excluir todas as carteiras",
       "deleteAllWalletsTitle": "Excluir Todas as Carteiras",
-      "deleteAllWalletsConfirm": "Você está prestes a excluir todas as carteiras e dados do Cashonize deste {platform}.<br>Tem certeza que deseja excluir tudo?",
-      "deleteAllWalletsPwaWarning": "Você está prestes a excluir todas as carteiras e dados do Cashonize deste {platform}.<br>Isso também as excluirá do seu navegador!<br>Tem certeza que deseja excluir tudo?",
+      "deleteAllWalletsConfirm": "Você está prestes a excluir todas as carteiras e dados do Cashonize deste {platform}.\nTem certeza que deseja excluir tudo?",
+      "deleteAllWalletsPwaWarning": "Você está prestes a excluir todas as carteiras e dados do Cashonize deste {platform}.\nIsso também as excluirá do seu navegador!\nTem certeza que deseja excluir tudo?",
       "deleteAllButton": "Excluir Tudo",
       "pwaDeleteWarning": "Excluir todas as carteiras do 'App web instalado' também as excluirá do seu navegador!",
       "browserDeleteWarning": "Excluir todas as carteiras do navegador também as removerá de qualquer 'App web instalado'.",

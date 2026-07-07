@@ -68,6 +68,9 @@ img {
 .icon {
   vertical-align: text-bottom;
 }
+.q-dialog__message {
+  white-space: pre-line;
+}
 .copyIcon {
   vertical-align: text-bottom;
   margin-bottom: 1px;

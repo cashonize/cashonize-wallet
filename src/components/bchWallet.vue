@@ -182,8 +182,7 @@
         const confirmed = await new Promise<boolean>((resolve) => {
           $q.dialog({
             title: t('wallet.confirmPayment'),
-            message: `${t('wallet.confirmPaymentMessage', { amount: bchSendAmount.value?.toLocaleString("en-US"), unit: displayUnitLong.value, fiat: fiatStr })}<br>${truncatedAddr}`,
-            html: true,
+            message: `${t('wallet.confirmPaymentMessage', { amount: bchSendAmount.value?.toLocaleString("en-US"), unit: displayUnitLong.value, fiat: fiatStr })}\n${truncatedAddr}`,
             cancel: { flat: true, color: 'dark' },
             ok: { label: t('common.actions.confirm'), color: 'primary', textColor: 'white' },
             persistent: true

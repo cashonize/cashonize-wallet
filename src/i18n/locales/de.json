@@ -276,29 +276,29 @@
     "dialogs": {
       "authWarning": {
         "title": "Auth-Warnung",
-        "message": "Du riskierst, die Berechtigung zur Aktualisierung der Token-Metadaten unbeabsichtigt woanders hin zu senden.<br>Bist du sicher, dass du die Transaktion trotzdem senden willst?",
+        "message": "Du riskierst, die Berechtigung zur Aktualisierung der Token-Metadaten unbeabsichtigt woanders hin zu senden.\nBist du sicher, dass du die Transaktion trotzdem senden willst?",
         "continueButton": "Fortfahren"
       },
       "confirmTokenSend": {
         "title": "Token-Sendung bestätigen",
-        "message": "Sende {amount} {symbol} an<br>{address}"
+        "message": "Sende {amount} {symbol} an\n{address}"
       },
       "confirmNftSend": {
         "title": "NFT-Sendung bestätigen",
-        "message": "Sende {symbol} NFT an<br>{address}"
+        "message": "Sende {symbol} NFT an\n{address}"
       },
       "confirmNftTransfer": {
         "title": "NFT-Übertragung bestätigen",
-        "message": "Sende {prefix}{count} {symbol} NFTs an<br>{address}"
+        "message": "Sende {prefix}{count} {symbol} NFTs an\n{address}"
       },
       "burnTokens": {
         "title": "Tokens verbrennen",
-        "message": "Du bist dabei, {amount} {symbol} zu verbrennen. Das kann nicht rückgängig gemacht werden.<br>Bist du sicher, dass du die Tokens verbrennen willst?",
+        "message": "Du bist dabei, {amount} {symbol} zu verbrennen. Das kann nicht rückgängig gemacht werden.\nBist du sicher, dass du die Tokens verbrennen willst?",
         "burnButton": "Verbrennen"
       },
       "burnNft": {
         "title": "NFT verbrennen",
-        "message": "Du bist dabei, {nftType} zu verbrennen. Das kann nicht rückgängig gemacht werden.<br>Bist du sicher, dass du den NFT verbrennen willst?",
+        "message": "Du bist dabei, {nftType} zu verbrennen. Das kann nicht rückgängig gemacht werden.\nBist du sicher, dass du den NFT verbrennen willst?",
         "nftTypeMinting": "einen minting NFT",
         "nftTypeRegular": "einen NFT",
         "burnButton": "Verbrennen"
@@ -416,7 +416,7 @@
       "verifyButton": "Backup überprüfen",
       "copyButton": "Seed Phrase kopieren",
       "copyTitle": "Seed Phrase kopieren",
-      "copyMessage": "Deine seed phrase in die Zwischenablage zu kopieren wird aus Sicherheitsgründen nicht empfohlen, ist aber der Einfachheit halber erlaubt.<br>Du kannst deine Zwischenablage danach leeren, indem du etwas anderes kopierst.",
+      "copyMessage": "Deine seed phrase in die Zwischenablage zu kopieren wird aus Sicherheitsgründen nicht empfohlen, ist aber der Einfachheit halber erlaubt.\nDu kannst deine Zwischenablage danach leeren, indem du etwas anderes kopierst.",
       "copiedNotification": "Seed phrase in die Zwischenablage kopiert"
     },
     "backupStatus": {
@@ -506,7 +506,7 @@
     },
     "deleteWallet": {
       "title": "Wallet löschen",
-      "message": "Bist du sicher, dass du das Wallet \"{name}\" löschen willst?<br>Diese Aktion kann nicht rückgängig gemacht werden.",
+      "message": "Bist du sicher, dass du das Wallet \"{name}\" löschen willst?\nDiese Aktion kann nicht rückgängig gemacht werden.",
       "cannotDeleteActive": "Das aktive Wallet kann nicht gelöscht werden",
       "deleted": "Wallet \"{name}\" gelöscht",
       "failed": "Wallet konnte nicht gelöscht werden",
@@ -858,8 +858,8 @@
       "deleteAllWallets": "Alle Wallets und Daten von {platform} entfernen",
       "deleteAllWalletsButton": "Alle Wallets löschen",
       "deleteAllWalletsTitle": "Alle Wallets löschen",
-      "deleteAllWalletsConfirm": "Du bist dabei, alle Cashonize Wallets und Daten von diesem {platform} zu löschen.<br>Bist du sicher, dass du alles löschen willst?",
-      "deleteAllWalletsPwaWarning": "Du bist dabei, alle Cashonize Wallets und Daten von diesem {platform} zu löschen.<br>Dadurch werden sie auch aus deinem Browser gelöscht!<br>Bist du sicher, dass du alles löschen willst?",
+      "deleteAllWalletsConfirm": "Du bist dabei, alle Cashonize Wallets und Daten von diesem {platform} zu löschen.\nBist du sicher, dass du alles löschen willst?",
+      "deleteAllWalletsPwaWarning": "Du bist dabei, alle Cashonize Wallets und Daten von diesem {platform} zu löschen.\nDadurch werden sie auch aus deinem Browser gelöscht!\nBist du sicher, dass du alles löschen willst?",
       "deleteAllButton": "Alles löschen",
       "pwaDeleteWarning": "Das Löschen aller Wallets aus der 'Installierten Web-App' löscht sie auch aus deinem Browser!",
       "browserDeleteWarning": "Das Löschen aller Wallets aus dem Browser entfernt sie auch aus jeder 'Installierten Web-App'.",
