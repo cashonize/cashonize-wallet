@@ -11,6 +11,18 @@ const SEED_PHRASE = process.env.E2E_SEED_PHRASE
 let walletPage: Page
 let dappPage: Page
 
+// Resolve the currently-open Quasar dialog, scoped to the newest visible one, and wait
+// until it is shown. Dialogs animate in/out with a scale transition, so a closing dialog
+// and a freshly-opened one can briefly coexist in the DOM. A bare '.q-dialog' locator
+// resolves the first match — which may be the stale, detaching dialog — so a subsequent
+// click races its removal ("element was detached from the DOM, retrying"). Scoping to
+// ':visible' + last() targets the new dialog; the caller's click auto-waits for stability.
+async function waitForDialog(page: Page, timeout = 15_000) {
+  const dialog = page.locator('.q-dialog:visible').last()
+  await dialog.waitFor({ state: 'visible', timeout })
+  return dialog
+}
+
 test.describe.serial('WalletConnect E2E', () => {
   test.beforeAll(async ({ browser }) => {
     const walletContext = await browser.newContext()
@@ -96,8 +108,7 @@ test.describe.serial('WalletConnect E2E', () => {
     await dappPage.click('#btn-sign-message')
 
     // Wallet: Wait for sign message dialog, verify content
-    const signDialog = walletPage.locator('.q-dialog')
-    await signDialog.waitFor({ timeout: 15_000 })
+    const signDialog = await waitForDialog(walletPage)
     await expect(signDialog).toContainText('Hello BCH')
 
     // Click Sign
@@ -114,8 +125,7 @@ test.describe.serial('WalletConnect E2E', () => {
     await dappPage.click('#btn-sign-message')
 
     // Wallet: Wait for dialog, click Cancel
-    const signDialog = walletPage.locator('.q-dialog')
-    await signDialog.waitFor({ timeout: 15_000 })
+    const signDialog = await waitForDialog(walletPage)
     await signDialog.getByRole('button', { name: 'Cancel' }).click()
 
     // dApp: Assert error response
@@ -126,8 +136,7 @@ test.describe.serial('WalletConnect E2E', () => {
     await dappPage.click('#btn-sign-transaction')
 
     // Wallet: Wait for transaction dialog, click Sign
-    const txDialog = walletPage.locator('.q-dialog')
-    await txDialog.waitFor({ timeout: 15_000 })
+    const txDialog = await waitForDialog(walletPage)
     await txDialog.getByRole('button', { name: 'Sign' }).click()
 
     // dApp: Assert response contains signed transaction
@@ -146,8 +155,7 @@ test.describe.serial('WalletConnect E2E', () => {
     await dappPage.click('#btn-sign-transaction')
 
     // Wallet: Wait for transaction dialog to appear
-    const txDialog = walletPage.locator('.q-dialog')
-    await txDialog.waitFor({ timeout: 15_000 })
+    const txDialog = await waitForDialog(walletPage)
 
     // dApp: Send cancel request
     await dappPage.click('#btn-cancel-pending')
@@ -163,9 +171,8 @@ test.describe.serial('WalletConnect E2E', () => {
     // dApp sends a signMessage request
     await dappPage.click('#btn-sign-message')
 
-    // Wallet: Wait for sign message dialog
-    const signDialog = walletPage.locator('.q-dialog')
-    await signDialog.waitFor({ timeout: 5_000 })
+    // Wallet: Wait for sign message dialog to appear
+    await waitForDialog(walletPage)
 
     // Fast-forward past the WC request expiry on both pages.
     // NOTE: sign-client's default session-request expiry changed from 5 to 15 minutes in
