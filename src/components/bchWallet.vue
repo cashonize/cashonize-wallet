@@ -6,6 +6,7 @@
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount, convertToCurrency } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
+  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -168,12 +169,11 @@
       if(!destinationAddr.value) throw new Error(t('wallet.errors.noDestination'))
       if(!bchSendAmount.value) throw new Error(t('wallet.errors.noAmount'))
       if(bchSendAmount.value > (maxAmountToSendInBchUnit.value ?? 0)) throw new Error(t('wallet.errors.insufficientFunds'))
-      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
-        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
-        destinationAddr.value = networkPrefix + destinationAddr.value
-      }
-      const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw new Error(t('wallet.errors.invalidAddress'))
+      const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+        invalidAddress: t('wallet.errors.invalidAddress'),
+        wrongNetwork: t('wallet.errors.notCashaddress'),
+      });
+      destinationAddr.value = address;
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {

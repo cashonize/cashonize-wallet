@@ -13,6 +13,7 @@
   import { caughtErrorToString } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
+  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   const $q = useQuasar()
@@ -179,12 +180,11 @@
     activeAction.value = 'sending';
     try{
       if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'))
-      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
-        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
-        destinationAddr.value = networkPrefix + destinationAddr.value
-      }
-      const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw new Error(t('tokenItem.errors.invalidAddress'))
+      const { address, decodedAddress } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+        invalidAddress: t('tokenItem.errors.invalidAddress'),
+        wrongNetwork: t('tokenItem.errors.notCashaddress'),
+      });
+      destinationAddr.value = address;
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw new Error(t('tokenItem.errors.notTokenAddress'));
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
@@ -261,10 +261,18 @@
     const nftInfo = nftData.value.token as TokenI;
     const category = nftInfo.category;
     const tokenAddr = store.wallet.getTokenDepositAddress();
-    const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     activeAction.value = 'minting';
     try {
+      let recipientAddr = tokenAddr;
+      if(destinationAddr.value) {
+        const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+          invalidAddress: t('tokenItem.errors.invalidAddress'),
+          wrongNetwork: t('tokenItem.errors.notCashaddress'),
+        });
+        destinationAddr.value = address;
+        recipientAddr = address;
+      }
       if(!nftInfo) return;
       if(mintQuantity.value == undefined) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
       const mintAmount = parseInt(mintQuantity.value);

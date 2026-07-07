@@ -9,6 +9,7 @@
   import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
+  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import type { ParseResult } from 'src/parsing/nftParsing'
@@ -230,12 +231,11 @@
     try{
       if(selectedNftCount.value === 0) throw new Error(t('tokenItem.errors.noNftsSelected'))
       if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'))
-      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
-        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
-        destinationAddr.value = networkPrefix + destinationAddr.value
-      }
-      const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw new Error(t('tokenItem.errors.invalidAddress'))
+      const { address, decodedAddress } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+        invalidAddress: t('tokenItem.errors.invalidAddress'),
+        wrongNetwork: t('tokenItem.errors.notCashaddress'),
+      });
+      destinationAddr.value = address;
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw new Error(t('tokenItem.errors.notTokenAddress'));
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
@@ -325,12 +325,11 @@
     activeAction.value = 'sending';
     try{
       if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'))
-      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
-        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
-        destinationAddr.value = networkPrefix + destinationAddr.value
-      }
-      const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw new Error(t('tokenItem.errors.invalidAddress'))
+      const { address, decodedAddress } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+        invalidAddress: t('tokenItem.errors.invalidAddress'),
+        wrongNetwork: t('tokenItem.errors.notCashaddress'),
+      });
+      destinationAddr.value = address;
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens) throw new Error(t('tokenItem.errors.notTokenAddress'));
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
@@ -406,10 +405,18 @@
     const category = tokenData.value.category;
     const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
     const tokenAddr = store.wallet.getTokenDepositAddress();
-    const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
 
     activeAction.value = 'minting';
     try {
+      let recipientAddr = tokenAddr;
+      if(destinationAddr.value) {
+        const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+          invalidAddress: t('tokenItem.errors.invalidAddress'),
+          wrongNetwork: t('tokenItem.errors.notCashaddress'),
+        });
+        destinationAddr.value = address;
+        recipientAddr = address;
+      }
       if(!nftInfo) return;
       if(mintQuantity.value == undefined) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
       const mintAmount = parseInt(mintQuantity.value);
@@ -556,6 +563,12 @@
     const authNft = tokenData.value.authUtxo?.token;
     activeAction.value = 'transferAuth';
     try {
+      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'));
+      const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+        invalidAddress: t('tokenItem.errors.invalidAddress'),
+        wrongNetwork: t('tokenItem.errors.notCashaddress'),
+      });
+      destinationAddr.value = address;
       const authTransfer: SendRequest = {
         cashaddr: destinationAddr.value,
         value: 1000n,

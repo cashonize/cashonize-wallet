@@ -8,6 +8,7 @@
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { copyToClipboard, formatFiatAmount, sanitizeUrl } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
+  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { caughtErrorToString } from 'src/utils/errorHandling'
@@ -180,12 +181,11 @@
       const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
       const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-      if(!destinationAddr.value.startsWith("bitcoincash:") && !destinationAddr.value.startsWith("bchtest:")){
-        const networkPrefix = store.network == 'mainnet' ? "bitcoincash:" : "bchtest:"
-        destinationAddr.value = networkPrefix + destinationAddr.value
-      }
-      const decodedAddress = decodeCashAddress(destinationAddr.value)
-      if(typeof decodedAddress == 'string') throw new Error(t('tokenItem.errors.invalidAddress'));
+      const { address, decodedAddress } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+        invalidAddress: t('tokenItem.errors.invalidAddress'),
+        wrongNetwork: t('tokenItem.errors.notCashaddress'),
+      });
+      destinationAddr.value = address;
       const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
       if(!supportsTokens ) throw new Error(t('tokenItem.errors.notTokenAddress'));
       if(tokenData.value?.authUtxo){
@@ -344,6 +344,12 @@
     const category = tokenData.value.category;
     activeAction.value = 'transferAuth';
     try {
+      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'));
+      const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
+        invalidAddress: t('tokenItem.errors.invalidAddress'),
+        wrongNetwork: t('tokenItem.errors.notCashaddress'),
+      });
+      destinationAddr.value = address;
       const authTransfer = !reservedSupply? {
         cashaddr: destinationAddr.value,
         value: 1000n,
