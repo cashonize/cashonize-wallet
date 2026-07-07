@@ -348,7 +348,9 @@ export const useStore = defineStore('store', () => {
         // Compute oldBalance including bch on token utxos
         // to match way newBalance is calculated in watchBalance
         const oldBalance = walletUtxos.value?.reduce((acc, utxo) => acc + utxo.satoshis, BigInt(0));
-        if(oldBalance && newBalance && walletInitialized.value){
+        // explicit undefined check because 0n is falsy: a truthiness check would freeze
+        // an empty wallet receiving its first funds and hide a wallet drained to zero
+        if(oldBalance !== undefined && walletInitialized.value){
           if(oldBalance < newBalance){
             const balanceDifferenceSats = newBalance - oldBalance;
             let amountInUnit = Number(balanceDifferenceSats) / 100_000_000;
