@@ -324,6 +324,35 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // Show the received-BCH toast; failures (fiat-rate fetch) must never affect wallet state
+  async function showReceivedBchNotification(balanceDifferenceSats: bigint){
+    try {
+      let amountInUnit = Number(balanceDifferenceSats) / 100_000_000;
+      let unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH';
+      let maxFractionDigits = 8;
+      if(settingsStore.bchUnit === 'sat'){
+        amountInUnit = Number(balanceDifferenceSats);
+        unitString = network.value == 'mainnet' ? 'sats' : 'tsats';
+        maxFractionDigits = 0;
+      }
+      const currencyValue = await convert(amountInUnit, settingsStore.bchUnit, settingsStore.currency);
+      const formattedAmount = amountInUnit.toLocaleString("en-US", { maximumFractionDigits: maxFractionDigits })
+      const formattedCurrencyValue = currencyValue.toLocaleString("en-US", { maximumFractionDigits: 2 });
+      const formattedFiat = formattedCurrencyValue + CurrencySymbols[settingsStore.currency]
+      Notify.create({
+        type: 'positive',
+        message: t('store.notifications.receivedBch', {
+          amount: formattedAmount,
+          unit: unitString,
+          fiatValue: formattedFiat
+        })
+      })
+    } catch (error) {
+      // skip the toast when the fiat-rate fetch fails (rate APIs unreachable)
+      console.error("Failed to show received-BCH notification:", error);
+    }
+  }
+
   async function setUpWalletSubscriptions(){
     // watchTokenTransactions fires unawaited getRawTransactionObject calls for all existing txids on setup.
     // Some resolve after walletInitialized flips true, bypassing the init guard below.
@@ -351,40 +380,26 @@ export const useStore = defineStore('store', () => {
         // explicit undefined check because 0n is falsy: a truthiness check would freeze
         // an empty wallet receiving its first funds and hide a wallet drained to zero
         if(oldBalance !== undefined && walletInitialized.value){
-          if(oldBalance < newBalance){
-            const balanceDifferenceSats = newBalance - oldBalance;
-            let amountInUnit = Number(balanceDifferenceSats) / 100_000_000;
-            let unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH';
-            let maxFractionDigits = 8;
-            if(settingsStore.bchUnit === 'sat'){
-              amountInUnit = Number(balanceDifferenceSats);
-              unitString = network.value == 'mainnet' ? 'sats' : 'tsats';
-              maxFractionDigits = 0;
-            }
-            const currencyValue = await convert(amountInUnit, settingsStore.bchUnit, settingsStore.currency);
-            const formattedAmount = amountInUnit.toLocaleString("en-US", { maximumFractionDigits: maxFractionDigits })
-            const formattedCurrencyValue = currencyValue.toLocaleString("en-US", { maximumFractionDigits: 2 });
-            const formattedFiat = formattedCurrencyValue + CurrencySymbols[settingsStore.currency]
-            Notify.create({
-              type: 'positive',
-              message: t('store.notifications.receivedBch', {
-                amount: formattedAmount,
-                unit: unitString,
-                fiatValue: formattedFiat
-              })
-            })
-          }
-          // update state (but not on the initial trigger when creating the subscription)
+          // fire-and-forget so the notification (which may fetch a fiat rate) never
+          // delays or blocks the state update below
+          if(oldBalance < newBalance) void showReceivedBchNotification(newBalance - oldBalance);
+          // update state (skipped on the initial trigger via the walletInitialized check)
           const walletAddressUtxos = await wallet.value.getUtxos();
-          const maxAmount = await wallet.value.getMaxAmountToSend({ options:{
-            utxoIds: walletAddressUtxos
-          }});
           // update balance with the amount on bch-only utxos
           const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
           balance.value = balanceSats;
           walletUtxos.value = walletAddressUtxos;
-          maxAmountToSend.value = maxAmount;
           void updateWalletHistory();
+          // getMaxAmountToSend makes electrum calls (blockheight, relayfee) which can reject;
+          // reset to undefined on failure so a stale send-limit isn't kept next to a fresh balance
+          try {
+            maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
+              utxoIds: walletAddressUtxos
+            }});
+          } catch (error) {
+            maxAmountToSend.value = undefined;
+            console.error("Failed to update maxAmountToSend:", error);
+          }
         }
       })
     );
