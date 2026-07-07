@@ -1,0 +1,8 @@
+# This file exists to force pnpm to install deps here, isolated from the root workspace.
+# Quasar installs these when building/running the electron mode.
+# https://quasar.dev/quasar-cli-vite/upgrade-guide#pnpm-related
+
+allowBuilds:
+  electron: true
+  electron-builder: true
+  esbuild: true

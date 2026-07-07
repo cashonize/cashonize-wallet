@@ -1,0 +1,57 @@
+# pnpm settings (pnpm v11). As of pnpm v10+ these live here rather than in .npmrc.
+
+# --- Supply-chain hardening (a crypto wallet: prefer over-careful) ---
+
+# NOTE: pnpm 11 applies a built-in default minimumReleaseAge quarantine (rejects very
+# freshly-published versions), which we deliberately leave in place — do NOT set
+# `minimumReleaseAge: 0`, that would disable it and ship the wallet less safe than stock.
+#
+# TODO: tighten to an explicit 7-day quarantine once the committed lockfile's versions
+# have all aged past the window:
+#     minimumReleaseAge: 10080
+# Not enabled yet: the project currently sits on same-day toolchain releases (quasar,
+# vite/rolldown, vitest, typescript-eslint, browser-data), so 7 days today would need a
+# ~52-entry minimumReleaseAgeExclude list. Plan: hold the migration until deps mature,
+# then flip it on with no exclude list. (Enforced at resolution time — keep the lockfile
+# frozen while waiting.)
+
+# Enforce the "engines" field (node / pnpm) instead of just warning.
+engineStrict: true
+
+# Prefer the committed lockfile; CI additionally passes --frozen-lockfile explicitly.
+preferFrozenLockfile: true
+
+# Disable pnpm's pre-command deps-status check. It false-positives on every command in
+# this repo: the nested src-*/test-dapp workspace isolation files make pnpm's root-level
+# structure check think deps are always stale, and it then auto-runs a failing install.
+verifyDepsBeforeRun: false
+
+fund: false
+
+# Pin dependency versions. Must live here: pnpm v11 no longer reads the "pnpm" field from
+# package.json. Nested pins use "parent>child" selector syntax.
+overrides:
+  '@bitauth/libauth': 3.1.0-next.8
+  '@walletconnect/core': 2.23.9
+  tar: 7.5.16
+  vite: 8.0.16
+  'anymatch>picomatch': 2.3.2
+  'micromatch>picomatch': 2.3.2
+  picomatch: 4.0.4
+
+# Patch a missing dependency declaration in a third-party package. @cashconnect-js/wallet
+# imports @walletconnect/utils but does not declare it, so pnpm's strict node_modules
+# can't resolve it at build time.
+packageExtensions:
+  '@cashconnect-js/wallet':
+    dependencies:
+      '@walletconnect/utils': ^2.23.9
+
+# Packages explicitly allowed to run install/build lifecycle scripts. Everything else is
+# blocked by pnpm; a future dep that adds an install script fails the install until
+# reviewed and added here.
+#   - @parcel/watcher: native file-watcher (Parcel team), dev-only, pulled via
+#     sass-embedded in Quasar's build tooling. Not shipped in the wallet bundle.
+# (src-electron has its own allowBuilds for electron's binary download.)
+allowBuilds:
+  '@parcel/watcher': true

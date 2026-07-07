@@ -21,13 +21,13 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'yarn dev',
+      command: 'pnpm dev',
       cwd: '../..',
       port: 9000,
       reuseExistingServer: true,
     },
     {
-      command: 'yarn install && yarn dev',
+      command: 'pnpm install && pnpm dev',
       cwd: './test-dapp',
       port: 5188,
       reuseExistingServer: true,

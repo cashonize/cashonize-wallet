@@ -1,0 +1,9 @@
+# This file exists to force pnpm to install deps here, isolated from the root workspace.
+# https://pnpm.io/settings
+
+# Migrated from package.json "resolutions".
+overrides:
+  'anymatch>picomatch': 2.3.2
+
+allowBuilds:
+  esbuild: true

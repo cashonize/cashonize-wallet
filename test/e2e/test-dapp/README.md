@@ -6,8 +6,8 @@ relay network, sends requests and displays responses.
 ## Usage
 
 ```bash
-yarn install
-yarn dev
+pnpm install
+pnpm dev
 ```
 
 Then open http://localhost:5188 in your browser. Port 5188 is an arbitrary choice
@@ -17,7 +17,7 @@ In CI this is launched automatically by Playwright via the `webServer` config in
 
 ## Manual testing
 
-1. Start Cashonize: `yarn dev` from project root
-2. Start this dApp: `yarn dev` from this folder
+1. Start Cashonize: `pnpm dev` from project root
+2. Start this dApp: `pnpm dev` from this folder
 3. Click Connect, copy the pairing URI into Cashonize's WalletConnect tab
 4. Use the buttons to send requests and approve/reject in Cashonize
