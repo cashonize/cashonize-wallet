@@ -69,19 +69,18 @@ export default defineConfigWithVueTs(
     },
 
     // add your custom rules here
-    // warnings currently fail CI via vite-plugin-checker overlay
     rules: {
       "@typescript-eslint/ban-ts-comment": 'off',
-      // warn about unsafe enum comparison
-      '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
-      // warn about error handling
-      '@typescript-eslint/only-throw-error': 'warn',
-      'prefer-promise-reject-errors': 'warn',
-      '@typescript-eslint/prefer-promise-reject-errors': 'warn',
-      // warn about the promise based issues
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-misused-promises': 'warn',
-      '@typescript-eslint/require-await': 'warn',
+      // unsafe enum comparison
+      '@typescript-eslint/no-unsafe-enum-comparison': 'error',
+      // error handling
+      '@typescript-eslint/only-throw-error': 'error',
+      'prefer-promise-reject-errors': 'error',
+      '@typescript-eslint/prefer-promise-reject-errors': 'error',
+      // promise based issues
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/require-await': 'error',
       '@typescript-eslint/no-unused-expressions': [
         'error',
         { allowTernary: true } // Allow function calls and other expressions in ternaries
