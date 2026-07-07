@@ -1,4 +1,4 @@
-import { hexToBin } from "@bitauth/libauth"
+import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
 import type { Utxo } from "mainnet-js"
 import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat } from "../interfaces/interfaces"
@@ -32,6 +32,17 @@ export function sanitizeUrl(url: string): string | undefined {
     // invalid URL
   }
   return undefined;
+}
+
+// Normalize user-entered seed phrases before validation/import
+export function normalizeSeedPhrase(seedPhrase: string): string {
+  return seedPhrase.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+// decodeBip39Mnemonic validates word count, wordlist membership, and checksum
+export function isValidBip39Mnemonic(seedPhrase: string): boolean {
+  const result = decodeBip39Mnemonic(normalizeSeedPhrase(seedPhrase))
+  return typeof result !== 'string'
 }
 
 export function formatTime(timestamp: number): string {

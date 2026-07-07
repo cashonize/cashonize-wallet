@@ -3,6 +3,7 @@ import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { namedWalletExistsInDb } from 'src/utils/dbUtils'
 import { isQuotaExceededError } from 'src/utils/errorHandling'
+import { isValidBip39Mnemonic, normalizeSeedPhrase } from 'src/utils/utils'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -122,17 +123,22 @@ export interface ImportWalletParams {
  */
 export async function importWallet(params: ImportWalletParams): Promise<WalletOperationResult> {
   const { seedPhrase, seedPhraseValid, derivationPath } = params;
+  const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
 
   const validationError = validateWalletName(params.name);
   if (validationError) return validationError;
   const trimmedName = params.name.trim();
 
-  if (!seedPhrase) {
+  if (!normalizedSeedPhrase) {
     return makeError(t('walletUtils.errors.enterSeedPhrase'), true);
   }
 
   if (!seedPhraseValid) {
     return makeError(t('walletUtils.errors.fixInvalidWords'), true);
+  }
+
+  if (!isValidBip39Mnemonic(normalizedSeedPhrase)) {
+    return makeError(t('walletUtils.errors.invalidSeedPhrase'), true);
   }
 
   try {
@@ -148,10 +154,10 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
 
     const fullDerivationPath = DERIVATION_PATHS[derivationPath].full;
 
-    const walletId = `seed:mainnet:${seedPhrase}:${fullDerivationPath}`;
+    const walletId = `seed:mainnet:${normalizedSeedPhrase}:${fullDerivationPath}`;
     await Wallet.replaceNamed(trimmedName, walletId);
 
-    const walletIdTestnet = `seed:testnet:${seedPhrase}:${fullDerivationPath}`;
+    const walletIdTestnet = `seed:testnet:${normalizedSeedPhrase}:${fullDerivationPath}`;
     await TestNetWallet.replaceNamed(trimmedName, walletIdTestnet);
 
     const mainnetWallet = await Wallet.named(trimmedName);
@@ -238,17 +244,22 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
  */
 export async function importHDWallet(params: ImportWalletParams): Promise<WalletOperationResult> {
   const { seedPhrase, seedPhraseValid, derivationPath } = params;
+  const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
 
   const validationError = validateWalletName(params.name);
   if (validationError) return validationError;
   const trimmedName = params.name.trim();
 
-  if (!seedPhrase) {
+  if (!normalizedSeedPhrase) {
     return makeError(t('walletUtils.errors.enterSeedPhrase'), true);
   }
 
   if (!seedPhraseValid) {
     return makeError(t('walletUtils.errors.fixInvalidWords'), true);
+  }
+
+  if (!isValidBip39Mnemonic(normalizedSeedPhrase)) {
+    return makeError(t('walletUtils.errors.invalidSeedPhrase'), true);
   }
 
   try {
@@ -263,10 +274,10 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
 
     const parentDerivationPath = DERIVATION_PATHS[derivationPath].parent;
 
-    const walletId = `hd:mainnet:${seedPhrase}:${parentDerivationPath}:0:0`;
+    const walletId = `hd:mainnet:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
     await HDWallet.replaceNamed(trimmedName, walletId);
 
-    const walletIdTestnet = `hd:testnet:${seedPhrase}:${parentDerivationPath}:0:0`;
+    const walletIdTestnet = `hd:testnet:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
     await TestNetHDWallet.replaceNamed(trimmedName, walletIdTestnet);
 
     const mainnetWallet = await HDWallet.named(trimmedName);

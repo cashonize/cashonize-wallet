@@ -247,6 +247,7 @@ describe('createNewWallet', () => {
 
 describe('importWallet', () => {
   const validSeedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+  const invalidChecksumSeedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon'
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -343,6 +344,24 @@ describe('importWallet', () => {
 
       expect(result.success).toBe(false)
       expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
+    })
+
+    it('rejects checksum-invalid BIP39 words even if UI validity is true', async () => {
+      mockNamedWalletExistsInDb.mockResolvedValue(false)
+
+      const result = await importWallet({
+        name: 'newWallet',
+        seedPhrase: invalidChecksumSeedPhrase,
+        seedPhraseValid: true,
+        derivationPath: 'standard'
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.success === false && result.message).toContain('valid seed phrase')
+      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
+      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSetBackupStatus).not.toHaveBeenCalled()
     })
   })
 
@@ -649,6 +668,7 @@ describe('createNewHDWallet', () => {
 
 describe('importHDWallet', () => {
   const validSeedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+  const invalidChecksumSeedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon'
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -709,6 +729,24 @@ describe('importHDWallet', () => {
 
       expect(result.success).toBe(false)
       expect(mockHDWalletReplaceNamed).not.toHaveBeenCalled()
+    })
+
+    it('rejects checksum-invalid BIP39 words even if UI validity is true', async () => {
+      mockNamedWalletExistsInDb.mockResolvedValue(false)
+
+      const result = await importHDWallet({
+        name: 'newWallet',
+        seedPhrase: invalidChecksumSeedPhrase,
+        seedPhraseValid: true,
+        derivationPath: 'standard'
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.success === false && result.message).toContain('valid seed phrase')
+      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
+      expect(mockHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockTestNetHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSetBackupStatus).not.toHaveBeenCalled()
     })
   })
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
   import { bip39WordListEnglish } from '@bitauth/libauth'
+  import { isValidBip39Mnemonic } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
@@ -24,11 +25,10 @@
     return seedWords.value.map(w => w.trim().toLowerCase()).filter(w => w).join(' ')
   })
 
-  // Check if all seed words are valid BIP39 words
-  const allSeedWordsValid = computed(() => {
-    const filledWords = seedWords.value.map(w => w.trim().toLowerCase()).filter(w => w)
+  const seedPhraseValid = computed(() => {
+    const filledWords = seedWords.value.map(word => word.trim().toLowerCase()).filter(word => word)
     if (filledWords.length !== seedWordCount.value) return false
-    return filledWords.every(word => bip39WordListEnglish.includes(word))
+    return isValidBip39Mnemonic(filledWords.join(' '))
   })
 
   // Emit changes to parent
@@ -36,7 +36,7 @@
     emit('update:modelValue', value)
   })
 
-  watch(allSeedWordsValid, (value) => {
+  watch(seedPhraseValid, (value) => {
     emit('update:isValid', value)
   }, { immediate: true })
 
