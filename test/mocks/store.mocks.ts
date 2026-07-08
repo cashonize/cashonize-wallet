@@ -99,11 +99,14 @@ export const mockGetAllWalletsWithNetworkInfo = vi.fn()
 export const mockDeleteWalletFromDb = vi.fn()
 
 export const mockGetWalletTypeFromDb = vi.fn().mockResolvedValue('single')
+// Wallets exist in IndexedDB by default, override per-test to exercise the missing-wallet guard
+export const mockNamedWalletExistsInDb = vi.fn().mockResolvedValue(true)
 
 vi.mock('src/utils/dbUtils', () => ({
   getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
   deleteWalletFromDb: mockDeleteWalletFromDb,
   getWalletTypeFromDb: mockGetWalletTypeFromDb,
+  namedWalletExistsInDb: mockNamedWalletExistsInDb,
 }))
 
 // Mock settingsStore

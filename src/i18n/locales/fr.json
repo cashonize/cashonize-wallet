@@ -60,6 +60,7 @@
     },
     "errors": {
       "cannotDeleteActiveWallet": "Impossible de supprimer le portefeuille actuellement actif",
+      "walletNotFoundOnNetwork": "Le portefeuille \"{name}\" n'existe pas sur {network}",
       "errorInitializingWalletConnect": "Erreur lors de l'initialisation de WalletConnect",
       "errorInitializingCashConnect": "Erreur lors de l'initialisation de CashConnect",
       "errorFetchingUtxos": "Erreur lors de la récupération des UTXOs du portefeuille",

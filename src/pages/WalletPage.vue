@@ -69,9 +69,9 @@
   // check if named wallet already exists in indexedDB
   // we use a dbUtil and avoid 'WalletClass.namedExists' which instantiates a wallet + provider
   let walletToLoad = store.activeWalletName;
-  const mainnetWalletExists = await namedWalletExistsInDb(walletToLoad, "bitcoincash");
-  const testnetWalletExists = await namedWalletExistsInDb(walletToLoad, "bchtest");
-  let walletExists = mainnetWalletExists || testnetWalletExists;
+  let walletHasMainnet = await namedWalletExistsInDb(walletToLoad, "bitcoincash");
+  let walletHasChipnet = await namedWalletExistsInDb(walletToLoad, "bchtest");
+  let walletExists = walletHasMainnet || walletHasChipnet;
 
   // If active wallet doesn't exist somehow, try to fall back to any existing wallet
   if (!walletExists) {
@@ -79,6 +79,8 @@
     const fallbackWallet = allWallets[0];
     if (fallbackWallet) {
       walletToLoad = fallbackWallet.name;
+      walletHasMainnet = fallbackWallet.hasMainnet;
+      walletHasChipnet = fallbackWallet.hasChipnet;
       walletExists = true;
       // Update stored active wallet name
       store.activeWalletName = walletToLoad;
@@ -88,9 +90,15 @@
 
   if(walletExists){
     // initialise wallet on configured network
-    const readNetwork = localStorage.getItem('network') ?? 'mainnet';
-    const walletClass = await store.getWalletClass(walletToLoad, readNetwork);
-    const initWallet = await walletClass.named(walletToLoad);
+    let readNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
+    // if the wallet only exists on the other network (legacy single-network wallet or
+    // fallback wallet), correct the configured network instead of loading a missing wallet
+    const walletExistsOnNetwork = readNetwork === 'mainnet' ? walletHasMainnet : walletHasChipnet;
+    if (!walletExistsOnNetwork) {
+      readNetwork = walletHasMainnet ? 'mainnet' : 'chipnet';
+      localStorage.setItem('network', readNetwork);
+    }
+    const initWallet = await store.loadExistingWallet(walletToLoad, readNetwork);
     store.setWallet(initWallet);
     store.changeView(1);
     // fire-and-forget promise does not wait on full wallet initialization

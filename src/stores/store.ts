@@ -44,7 +44,7 @@ import { useCashconnectStore } from "./cashconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getWalletTypeFromDb, type WalletInfo } from "src/utils/dbUtils"
+import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getWalletTypeFromDb, namedWalletExistsInDb, type WalletInfo } from "src/utils/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -514,15 +514,27 @@ export const useStore = defineStore('store', () => {
     return isHD ? TestNetHDWallet : TestNetWallet;
   }
 
-  // Switching networks resets all wallet state and reinitializes the wallet on the new network
-  async function changeNetwork(
-    newNetwork: 'mainnet' | 'chipnet',
+  // WalletClass.named() silently creates a new wallet (with a fresh random seed) when the
+  // name is not in the network's IndexedDB, so all wallet loading must go through this
+  // existence check to make sure a missing wallet is never replaced by a new random seed.
+  // Only the wallet creation flows in walletUtils.ts should use .named() directly.
+  async function loadExistingWallet(walletName: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
+    const dbName = network === 'mainnet' ? 'bitcoincash' : 'bchtest';
+    const walletExistsInDb = await namedWalletExistsInDb(walletName, dbName);
+    if (!walletExistsInDb) {
+      throw new Error(t('store.errors.walletNotFoundOnNetwork', { name: walletName, network }));
+    }
+    const walletClass = await getWalletClass(walletName, network);
+    return await walletClass.named(walletName);
+  }
+
+  // Resets all wallet state and makes the given (already loaded) wallet the active one
+  async function activateWallet(
+    newWallet: WalletType,
+    network: 'mainnet' | 'chipnet',
     awaitWalletInitialization: boolean = false
   ){
-    await resetWalletState()
-    // set new wallet
-    const walletClass = await getWalletClass(activeWalletName.value, newNetwork);
-    const newWallet = await walletClass.named(activeWalletName.value);
+    await resetWalletState();
     setWallet(newWallet);
     if (awaitWalletInitialization) {
       await initializeWallet();
@@ -530,8 +542,25 @@ export const useStore = defineStore('store', () => {
       // fire-and-forget promise does not wait on full wallet initialization
       void initializeWallet();
     }
-    localStorage.setItem('network', newNetwork);
+    localStorage.setItem('network', network);
     changeView(1);
+  }
+
+  // Switching networks resets all wallet state and reinitializes the wallet on the new network
+  async function changeNetwork(
+    newNetwork: 'mainnet' | 'chipnet',
+    awaitWalletInitialization: boolean = false
+  ){
+    // Load the wallet on the new network first: if it does not exist there,
+    // this throws and the current wallet state is left untouched
+    let newWallet: WalletType;
+    try {
+      newWallet = await loadExistingWallet(activeWalletName.value, newNetwork);
+    } catch (error) {
+      displayAndLogError(error);
+      return;
+    }
+    await activateWallet(newWallet, newNetwork, awaitWalletInitialization);
   }
 
   interface SwitchWalletResult {
@@ -543,34 +572,25 @@ export const useStore = defineStore('store', () => {
     // Get the current network from localStorage (default to mainnet)
     const currentNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
 
-    // Check if wallet exists on current network (if we have wallet info available)
+    // If the wallet doesn't exist on the current network, target a network where it does
+    // (availableWallets may be stale, loadExistingWallet below re-checks IndexedDB)
+    let targetNetwork = currentNetwork;
     const walletInfo = availableWallets.value.find(w => w.name === walletName);
     if (walletInfo) {
       const networkSelector = currentNetwork === 'mainnet' ? 'hasMainnet' : 'hasChipnet';
-      const walletExistsOnCurrentNetwork = walletInfo[networkSelector];
-
-      // If wallet doesn't exist on current network, switch to a network where it does
-      if (!walletExistsOnCurrentNetwork) {
-        const targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
-        activeWalletName.value = walletName;
-        localStorage.setItem('activeWalletName', walletName);
-        // changeNetwork will reset state and initialize the wallet
-        void changeNetwork(targetNetwork);
-        return { success: true, networkChanged: targetNetwork };
+      if (!walletInfo[networkSelector]) {
+        targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
       }
     }
 
-    // Load wallet on current network
-    const walletClass = await getWalletClass(walletName, currentNetwork);
-    const newWallet = await walletClass.named(walletName);
+    const newWallet = await loadExistingWallet(walletName, targetNetwork);
     // Only update state after successful wallet load
     activeWalletName.value = walletName;
     localStorage.setItem('activeWalletName', walletName);
-    await resetWalletState();
-    setWallet(newWallet);
-    changeView(1);
-    // fire-and-forget - don't await so UI is responsive
-    void initializeWallet();
+    await activateWallet(newWallet, targetNetwork);
+    if (targetNetwork !== currentNetwork) {
+      return { success: true, networkChanged: targetNetwork };
+    }
     return { success: true };
   }
 
@@ -929,6 +949,6 @@ export const useStore = defineStore('store', () => {
     toggleFavorite,
     toggleHidden,
     tokenIconUrl,
-    getWalletClass
+    loadExistingWallet
   }
 })

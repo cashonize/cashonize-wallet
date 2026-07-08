@@ -80,6 +80,8 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
 
     // mainnet-js defaults to m/44'/0'/0' (bitcoindotcom), override to use BCH standard
     Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
+    // .named() deliberately creates the new wallet here (non-existence checked above),
+    // elsewhere wallets should be loaded through store.loadExistingWallet
     const mainnetWallet = await Wallet.named(trimmedName);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
     await TestNetWallet.replaceNamed(trimmedName, walletId);
@@ -215,6 +217,8 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     const settingsStore = useSettingsStore();
 
     Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
+    // .named() deliberately creates the new wallet here (non-existence checked above),
+    // elsewhere wallets should be loaded through store.loadExistingWallet
     const mainnetWallet = await HDWallet.named(trimmedName);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
     await TestNetHDWallet.replaceNamed(trimmedName, walletId);

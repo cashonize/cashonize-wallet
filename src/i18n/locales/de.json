@@ -60,6 +60,7 @@
     },
     "errors": {
       "cannotDeleteActiveWallet": "Das aktive Wallet kann nicht gelöscht werden",
+      "walletNotFoundOnNetwork": "Wallet \"{name}\" existiert nicht auf {network}",
       "errorInitializingWalletConnect": "Fehler beim Initialisieren von WalletConnect",
       "errorInitializingCashConnect": "Fehler beim Initialisieren von CashConnect",
       "errorFetchingUtxos": "Fehler beim Abrufen der Wallet-UTXOs",
