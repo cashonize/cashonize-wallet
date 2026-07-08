@@ -2,9 +2,9 @@
   import { ref, computed } from 'vue';
   import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
   import { copyToClipboard } from 'src/utils/utils';
-  import alertDialog from 'src/components/general/alertDialog.vue'
   import EmojiItem from '../general/emojiItem.vue';
-    import { caughtErrorToString } from 'src/utils/errorHandling';
+  import { displayAndLogError } from 'src/utils/errorHandling';
+  import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -31,12 +31,7 @@
     try{
       store.plannedTokenId = undefined;
       const walletAddr = store.wallet.getDepositAddress();
-      $q.notify({
-        spinner: true,
-        message: t('createTokens.notifications.preparingPreGenesis'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending(t('createTokens.notifications.preparingPreGenesis'));
       const { txId } = await store.wallet.send([{ cashaddr: walletAddr, value: 10000n }]);
       $q.notify({
         type: 'positive',
@@ -49,7 +44,7 @@
       // update wallet history as fire-and-forget promise
       void store.updateWalletHistory();
     } catch(error){
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
@@ -100,12 +95,7 @@
     try{
       const totalSupply = inputFungibleSupply.value;
       const opreturnData = await getOpreturnData();
-      $q.notify({
-        spinner: true,
-        message: t('createTokens.notifications.creatingTokens'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending(t('createTokens.notifications.creatingTokens'));
       const genesisResponse = await store.wallet.tokenGenesis(
         {
           cashaddr: store.wallet.getTokenDepositAddress(),
@@ -117,28 +107,13 @@
       const tokenId = genesisResponse?.categories?.[0];
       const { txId } = genesisResponse;
       const alertMessage = `Created ${totalSupply} fungible tokens of category ${tokenId}`;
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('createTokens.notifications.transactionSent')
-      })
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
       // reset input fields
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
-      // update utxo list
-      await store.updateWalletUtxos()
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
       store.hasPreGenesis()
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
     } catch(error){
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
@@ -148,12 +123,7 @@
     activeAction.value = 'creatingMintingNFT';
     try{
       const opreturnData = await getOpreturnData();
-      $q.notify({
-        spinner: true,
-        message: t('createTokens.notifications.creatingMintingNft'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending(t('createTokens.notifications.creatingMintingNft'));
       const genesisResponse = await store.wallet.tokenGenesis(
         {
           cashaddr: store.wallet.getTokenDepositAddress(),
@@ -168,40 +138,15 @@
       const tokenId = genesisResponse?.categories?.[0];
       const { txId } = genesisResponse;
       const alertMessage = `Created minting NFT with category ${tokenId}`;
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('createTokens.notifications.transactionSent')
-      })
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
       // reset input fields
       selectedTokenType.value  = "-select-";
-      // update utxo list
-      await store.updateWalletUtxos()
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
       store.hasPreGenesis()
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
     } catch(error){
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
-  }
-
-  function handleTransactionError(error: unknown){
-    const errorMessage = caughtErrorToString(error)
-    console.error(errorMessage)
-    $q.notify({
-      message: errorMessage,
-      icon: 'warning',
-      color: "red"
-    }) 
   }
 </script>
 

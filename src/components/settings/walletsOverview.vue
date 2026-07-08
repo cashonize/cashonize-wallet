@@ -3,6 +3,7 @@
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { confirmDialog } from 'src/utils/txHelpers'
   import { useI18n } from 'vue-i18n'
 
   const MAX_WALLETS = 20
@@ -77,16 +78,12 @@
       });
       return;
     }
-    const confirmed = await new Promise<boolean>((resolve) => {
-      $q.dialog({
-        title: t('walletsOverview.deleteWallet.title'),
-        message: t('walletsOverview.deleteWallet.message', { name: walletName }),
-        cancel: { flat: true, color: 'dark' },
-        ok: { label: t('walletsOverview.deleteWallet.title'), color: 'red', textColor: 'white' },
-        persistent: true
-      }).onOk(() => resolve(true))
-        .onCancel(() => resolve(false))
-    });
+    const confirmed = await confirmDialog(
+      t('walletsOverview.deleteWallet.title'),
+      t('walletsOverview.deleteWallet.message', { name: walletName }),
+      t('walletsOverview.deleteWallet.title'),
+      'red'
+    );
     if (confirmed) {
       try {
         await store.deleteWallet(walletName);

@@ -2,7 +2,6 @@
   import { ref, computed, watch, shallowRef } from 'vue'
   import { convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
-  import alertDialog from 'src/components/general/alertDialog.vue'
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount, convertToCurrency } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
@@ -11,7 +10,8 @@
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  import { caughtErrorToString } from 'src/utils/errorHandling'
+  import { displayAndLogError } from 'src/utils/errorHandling'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   const $q = useQuasar()
@@ -179,58 +179,28 @@
       if (settingsStore.confirmBeforeSending) {
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
         const fiatStr = currencySendAmount.value ? ` (${formatFiatAmount(currencySendAmount.value, settingsStore.currency)})` : ''
-        const confirmed = await new Promise<boolean>((resolve) => {
-          $q.dialog({
-            title: t('wallet.confirmPayment'),
-            message: `${t('wallet.confirmPaymentMessage', { amount: bchSendAmount.value?.toLocaleString("en-US"), unit: displayUnitLong.value, fiat: fiatStr })}\n${truncatedAddr}`,
-            cancel: { flat: true, color: 'dark' },
-            ok: { label: t('common.actions.confirm'), color: 'primary', textColor: 'white' },
-            persistent: true
-          }).onOk(() => resolve(true))
-            .onCancel(() => resolve(false))
-        })
+        const confirmed = await confirmDialog(
+          t('wallet.confirmPayment'),
+          `${t('wallet.confirmPaymentMessage', { amount: bchSendAmount.value?.toLocaleString("en-US"), unit: displayUnitLong.value, fiat: fiatStr })}\n${truncatedAddr}`,
+          t('common.actions.confirm')
+        )
         if (!confirmed) return
       }
 
       let amountSats = BigInt(Math.round(bchSendAmount.value * 100_000_000))
       if(settingsStore.bchUnit === 'sat') amountSats = BigInt(bchSendAmount.value)
       const sendBchOutput = { cashaddr: destinationAddr.value, value:amountSats } ;
-      $q.notify({
-        spinner: true,
-        message: t('wallet.sendingTransaction'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending(t('wallet.sendingTransaction'));
       const { txId } = await store.wallet.send([ sendBchOutput ]);
       const formattedAmount = numberFormatter.format(bchSendAmount.value)
       const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address: destinationAddr.value })
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId } 
-        }
-      })
-      $q.notify({
-        type: 'positive',
-        message: t('wallet.transactionSuccess')
-      })
-      console.log(alertMessage);
       // reset fields
       bchSendAmount.value = undefined;
       currencySendAmount.value = undefined;
       destinationAddr.value = "";
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'));
     } catch(error){
-      console.log(error)
-      const errorMessage = caughtErrorToString(error);
-      $q.notify({
-        message: errorMessage,
-        icon: 'warning',
-        color: "red"
-      })
+      displayAndLogError(error)
     } finally {
       isSending.value = false;
     }

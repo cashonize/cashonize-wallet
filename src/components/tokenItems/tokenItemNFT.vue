@@ -2,22 +2,19 @@
   import { ref, onMounted, toRefs, computed, watch, nextTick } from 'vue';
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
-  import { TokenSendRequest, TokenMintRequest, type SendRequest, type TokenI } from "mainnet-js"
-  import { bigIntToVmNumber, binToHex, decodeCashAddress } from "@bitauth/libauth"
-  import alertDialog from 'src/components/general/alertDialog.vue'
+  import nftMintForm from './nftMintForm.vue'
+  import { TokenSendRequest, type SendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
-  import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
-  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import type { ParseResult } from 'src/parsing/nftParsing'
-  import { caughtErrorToString } from 'src/utils/errorHandling'
+  import { useNftCommitmentParsing } from 'src/utils/nftCommitmentParsing'
+  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
-  import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -40,34 +37,26 @@
   const displayChildNfts = ref(false);
   const loadingChildNftMetadata = ref(false);
   const destinationAddr = ref("");
-  const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
-  const mintMode = ref<"single" | "collection">("single");
-  const mintCapability = ref<"none" | "mutable" | "minting">("none");
-  const numberingUniqueNfts = ref<"vm-numbers" | "hex-numbers">("vm-numbers");
-  const mintCommitment = ref("");
-  const mintQuantity = ref(undefined as string | undefined);
-  const startingNumberNFTs = ref(undefined as string | undefined);
   const showQrCodeDialog = ref(false);
+  const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   // Local state for batch NFT selection - keyed by "txid:vout"
   const selectedNfts = ref(new Set<string>());
-  const activeAction = ref<'sending' | 'minting' | 'burning' | 'transferAuth' | null>(null);
+  const activeAction = ref<TokenActionType | null>(null);
   const imageLoadFailed = ref(false);
-  const parseResult = ref(undefined as ParseResult | undefined);
-  const parsingNft = ref(false);
-
-  const hasParyonUsdExtension = computed(() => {
-    const ext = store.bcmrRegistries?.[tokenData.value.category]?.extensions;
-    return Boolean(ext?.paryonusd ?? ext?.pusd);
-  });
-  const isParsable = computed(() =>
-    store.bcmrRegistries?.[tokenData.value.category]?.nft_type === 'parsable'
-  );
 
   let fetchedMetadataChildren = false
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category] ?? undefined;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
+  
+  // Only parse the commitment when this category holds a single NFT (child NFTs parse their own)
+  const shouldParseNftCommitment = () => isSingleNft.value;
+  // Keeps parsing state and parses the commitment on mount/when metadata becomes available.
+  const { parseResult, parsingNft, hasParyonUsdExtension } = useNftCommitmentParsing(
+    () => tokenData.value.category, () => tokenData.value.nfts?.[0], shouldParseNftCommitment
+  );
+  
   const nftMetadata = computed(() => {
     if(!isSingleNft.value) return
     const nftData = tokenData.value.nfts?.[0];
@@ -133,29 +122,8 @@
     selectedNfts.value = new Set(allKeys);
   }
 
-  onMounted(async () => {
+  onMounted(() => {
     appendBlockieIcon(tokenData.value.category, `#id${tokenData.value.category.slice(0, 10)}nft`);
-    // Parse NFT commitment if this is a parsable single NFT
-    if (isSingleNft.value && isParsable.value) {
-      const nftUtxo = tokenData.value.nfts?.[0];
-      if (nftUtxo) {
-        parsingNft.value = true;
-        parseResult.value = await store.parseNftCommitment(tokenData.value.category, nftUtxo);
-        parsingNft.value = false;
-      }
-    }
-  })
-
-  // Watch for isParsable becoming true after mount (e.g. bcmrRegistries loads async)
-  watch(isParsable, async (nowParsable) => {
-    if (nowParsable && isSingleNft.value && !parseResult.value) {
-      const nftUtxo = tokenData.value.nfts?.[0];
-      if (nftUtxo) {
-        parsingNft.value = true;
-        parseResult.value = await store.parseNftCommitment(tokenData.value.category, nftUtxo);
-        parsingNft.value = false;
-      }
-    }
   })
 
   watch(imageLoadFailed, async (failedToLoad) => {
@@ -176,68 +144,25 @@
     }
     displayChildNfts.value = !displayChildNfts.value;
   }
-  
+
+  function parseAddrParams(){
+    const parsed = parseTokenRecipientRequest(destinationAddr.value, tokenData.value.category);
+    if(!parsed) return;
+    destinationAddr.value = parsed.address;
+  }
   const qrDecode = (content: string) => {
     destinationAddr.value = content;
     parseAddrParams();
   }
+  const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true;
   
-  function parseAddrParams(){
-    if(!isBip21Uri(destinationAddr.value) || !destinationAddr.value.includes("?")) return;
-
-    // Parse BIP21 URIs with query params
-    try {
-      const parsed = parseBip21Uri(destinationAddr.value);
-
-      const validationError = getBip21ValidationError(parsed);
-      if (validationError) {
-        $q.notify({ message: validationError, icon: 'warning', color: "red" });
-        return;
-      }
-
-      // Check if c= is for a different token
-      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.category){
-        $q.notify({ message: t('tokenItem.errors.differentTokenRequest'), icon: 'warning', color: "grey-7" });
-        return;
-      }
-
-      // Set the address (without query params)
-      destinationAddr.value = parsed.address;
-    } catch {
-      // If parsing fails, leave the input as-is
-    }
-  }
-  const qrFilter = (content: string) => {
-    // Extract address from BIP21 URI if needed
-    let addressToCheck = content;
-    if(isBip21Uri(content) && content.includes("?")){
-      try {
-        const parsed = parseBip21Uri(content);
-        addressToCheck = parsed.address;
-      } catch {
-        // If parsing fails, try with original content
-      }
-    }
-    const decoded = decodeCashAddress(addressToCheck);
-    if (typeof decoded === "string" || decoded.prefix !== `${store.wallet.networkPrefix}`) {
-      return t('tokenItem.errors.notCashaddress');
-    }
-    return true;
-  }
   // NFT Group specific functionality
   async function sendBatchNfts(){
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
       if(selectedNftCount.value === 0) throw new Error(t('tokenItem.errors.noNftsSelected'))
-      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'))
-      const { address, decodedAddress } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
-        invalidAddress: t('tokenItem.errors.invalidAddress'),
-        wrongNetwork: t('tokenItem.errors.notCashaddress'),
-      });
-      destinationAddr.value = address;
-      const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
-      if(!supportsTokens ) throw new Error(t('tokenItem.errors.notTokenAddress'));
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const category = tokenData.value.category;
@@ -248,16 +173,11 @@
       if (settingsStore.confirmBeforeSending) {
         const tokenSymbol = tokenMetaData.value?.token?.symbol ?? category.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
-        const confirmed = await new Promise<boolean>((resolve) => {
-          $q.dialog({
-            title: t('tokenItem.dialogs.confirmNftTransfer.title'),
-            message: t('tokenItem.dialogs.confirmNftTransfer.message', { prefix: isAllSelected ? 'all ' : '', count: nftCount, symbol: tokenSymbol, address: truncatedAddr }),
-            cancel: { flat: true, color: 'dark' },
-            ok: { label: t('tokenItem.dialogs.confirmButton'), color: 'primary', textColor: 'white' },
-            persistent: true
-          }).onOk(() => resolve(true))
-            .onCancel(() => resolve(false))
-        })
+        const confirmed = await confirmDialog(
+          t('tokenItem.dialogs.confirmNftTransfer.title'),
+          t('tokenItem.dialogs.confirmNftTransfer.message', { prefix: isAllSelected ? 'all ' : '', count: nftCount, symbol: tokenSymbol, address: truncatedAddr }),
+          t('tokenItem.dialogs.confirmButton')
+        )
         if (!confirmed) return
       }
 
@@ -278,12 +198,7 @@
           },
         }))
       })
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending();
       const { txId } = await store.wallet.send(outputArray);
       const nftName = tokenName.value;
       let alertMessage = t('tokenItem.alerts.sentNfts', { count: nftCount, tokenId: category, address: destinationAddr.value });
@@ -294,27 +209,12 @@
       } else if (nftName) {
         alertMessage = t('tokenItem.alerts.sentNftsNamed', { count: nftCount, name: nftName, address: destinationAddr.value });
       }
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-      $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.transactionSent')
-      })
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
       destinationAddr.value = "";
       displayBatchTransfer.value = false;
       clearSelection();
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
     }catch(error){
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
@@ -324,41 +224,24 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'))
-      const { address, decodedAddress } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
-        invalidAddress: t('tokenItem.errors.invalidAddress'),
-        wrongNetwork: t('tokenItem.errors.notCashaddress'),
-      });
-      destinationAddr.value = address;
-      const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
-      if(!supportsTokens) throw new Error(t('tokenItem.errors.notTokenAddress'));
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
         const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.category.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
-        const confirmed = await new Promise<boolean>((resolve) => {
-          $q.dialog({
-            title: t('tokenItem.dialogs.confirmNftSend.title'),
-            message: t('tokenItem.dialogs.confirmNftSend.message', { symbol: tokenSymbol, address: truncatedAddr }),
-            cancel: { flat: true, color: 'dark' },
-            ok: { label: t('tokenItem.dialogs.confirmButton'), color: 'primary', textColor: 'white' },
-            persistent: true
-          }).onOk(() => resolve(true))
-            .onCancel(() => resolve(false))
-        })
+        const confirmed = await confirmDialog(
+          t('tokenItem.dialogs.confirmNftSend.title'),
+          t('tokenItem.dialogs.confirmNftSend.message', { symbol: tokenSymbol, address: truncatedAddr }),
+          t('tokenItem.dialogs.confirmButton')
+        )
         if (!confirmed) return
       }
 
       const category = tokenData.value.category;
       const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending();
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
@@ -374,123 +257,11 @@
       if (nftName) {
         alertMessage = t('tokenItem.alerts.sentNftNamed', { name: nftName, address: destinationAddr.value });
       }
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-      $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.transactionSent')
-      })
-      console.log(alertMessage)
-      console.log(`${store.explorerUrl}/${txId}`);
       destinationAddr.value = "";
       displaySendNft.value = false;
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
     }catch(error){
-      handleTransactionError(error)
-    } finally {
-      activeAction.value = null;
-    }
-  }
-  const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
-
-  async function mintNfts() {
-    if (activeAction.value) return;
-    const category = tokenData.value.category;
-    const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
-    const tokenAddr = store.wallet.getTokenDepositAddress();
-
-    activeAction.value = 'minting';
-    try {
-      let recipientAddr = tokenAddr;
-      if(destinationAddr.value) {
-        const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
-          invalidAddress: t('tokenItem.errors.invalidAddress'),
-          wrongNetwork: t('tokenItem.errors.notCashaddress'),
-        });
-        destinationAddr.value = address;
-        recipientAddr = address;
-      }
-      if(!nftInfo) return;
-      if(mintQuantity.value == undefined) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
-      const mintAmount = parseInt(mintQuantity.value);
-
-      if(mintMode.value === "collection" && startingNumberNFTs.value == undefined) {
-        throw new Error(t('tokenItem.errors.invalidStartingNumber'));
-      }
-      // single mode: validate commitment is valid hex
-      let nftCommitment = mintMode.value === "collection" ? "" : mintCommitment.value;
-      const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
-      if(!validCommitment) throw new Error(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
-
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
-      // construct array of TokenMintRequest
-      const arraySendrequests = [];
-      for (let i = 0; i < mintAmount; i++){
-        if(mintMode.value === "collection" && startingNumberNFTs.value){
-          const startingNumber = parseInt(startingNumberNFTs.value);
-          const nftNumber = startingNumber + i;
-          if(numberingUniqueNfts.value == "vm-numbers"){
-            const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
-            nftCommitment = binToHex(vmNumber)
-          } else if(numberingUniqueNfts.value == "hex-numbers"){
-            nftCommitment = nftNumber.toString(16);
-            if(nftCommitment.length % 2 != 0) nftCommitment = `0${nftCommitment}`;
-          }
-        }
-        const mintRequest = new TokenMintRequest({
-          cashaddr: recipientAddr,
-          nft: {
-            commitment: nftCommitment,
-            capability: mintCapability.value,
-          },
-          value: 1000n,
-        })
-        arraySendrequests.push(mintRequest);
-      }
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
-      const { txId } = await store.wallet.tokenMint(category, arraySendrequests);
-      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      const commitmentText = nftCommitment ? `with commitment ${nftCommitment}` : "";
-      let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
-      if (mintAmount == 1) {
-        alertMessage = t('tokenItem.alerts.mintedNft', { tokenId: displayId, commitmentText });
-      }
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.mintSuccessful')
-      })
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
-      // reset input fields
-      displayMintNfts.value = false;
-      mintCapability.value = "none";
-      mintCommitment.value = "";
-      mintQuantity.value = undefined;
-      startingNumberNFTs.value = undefined;
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
-    } catch (error) {
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
@@ -504,24 +275,15 @@
       const category = tokenData.value.category;
       const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
       const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
-      const confirmed = await new Promise<boolean>((resolve) => {
-        $q.dialog({
-          title: t('tokenItem.dialogs.burnNft.title'),
-          message: t('tokenItem.dialogs.burnNft.message', { nftType: nftTypeString }),
-          cancel: { flat: true, color: 'dark' },
-          ok: { label: t('tokenItem.dialogs.burnNft.burnButton'), color: 'red', textColor: 'white' },
-          persistent: true
-        }).onOk(() => resolve(true))
-          .onCancel(() => resolve(false))
-      })
+      const confirmed = await confirmDialog(
+        t('tokenItem.dialogs.burnNft.title'),
+        t('tokenItem.dialogs.burnNft.message', { nftType: nftTypeString }),
+        t('tokenItem.dialogs.burnNft.burnButton'),
+        'red'
+      )
       if (!confirmed) return
 
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending();
       const { txId } = await store.wallet.tokenBurn(
         {
           category: category,
@@ -534,24 +296,9 @@
       );
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, tokenId: displayId });
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.burnSuccessful')
-      })
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
     } catch (error) {
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
@@ -563,12 +310,7 @@
     const authNft = tokenData.value.authUtxo?.token;
     activeAction.value = 'transferAuth';
     try {
-      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'));
-      const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
-        invalidAddress: t('tokenItem.errors.invalidAddress'),
-        wrongNetwork: t('tokenItem.errors.notCashaddress'),
-      });
-      destinationAddr.value = address;
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       const authTransfer: SendRequest = {
         cashaddr: destinationAddr.value,
         value: 1000n,
@@ -581,48 +323,18 @@
           capability: authNft!.nft!.capability
         },
       });
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending();
       const { txId } = await store.wallet.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.authTransferSuccessful')
-      })
       displayAuthTransfer.value = false;
       destinationAddr.value = "";
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
     } catch (error) {
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
-  }
-
-  function handleTransactionError(error: unknown){
-    const errorMessage = caughtErrorToString(error)
-    console.error(errorMessage)
-    $q.notify({
-      message: errorMessage,
-      icon: 'warning',
-      color: "red"
-    }) 
   }
 </script>
 
@@ -787,41 +499,7 @@
             <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.batchTransfer.transferringButton') : t('tokenItem.batchTransfer.transferButton')" :disabled="activeAction !== null">
           </div>
         </div>
-        <div v-if="displayMintNfts" class="tokenAction">
-          <b>{{ t('tokenItem.mint.modeSingle') }}</b>: {{ t('tokenItem.mint.titleSingle') }} <br>
-          <b>{{ t('tokenItem.mint.modeCollection') }}</b>: {{ t('tokenItem.mint.titleCollection') }}
-          <div style="display: flex; gap: 10px; align-items: center; margin: 5px 0;">
-            <label>{{ t('tokenItem.mint.modeLabel') }}</label>
-            <select v-model="mintMode" style="max-width: 260px; padding: 4px 8px;">
-              <option value="single">{{ t('tokenItem.mint.modeSingle') }}</option>
-              <option value="collection">{{ t('tokenItem.mint.modeCollection') }}</option>
-            </select>
-          </div>
-
-          <div v-if="mintMode === 'collection'" style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
-            <label for="numbering" style="width: 80px;">{{ t('tokenItem.mint.numberingLabel') }}</label>
-            <select id="numbering" v-model="numberingUniqueNfts" style="max-width: 260px; padding: 4px 8px;">
-              <option value="vm-numbers">{{ t('tokenItem.mint.vmNumbers') }}</option>
-              <option value="hex-numbers">{{ t('tokenItem.mint.hexNumbers') }}</option>
-            </select>
-          </div>
-
-          <span class="grouped" style="align-items: center; margin-bottom: 5px;">
-            <input v-if="mintMode === 'single'" v-model="mintCommitment" :placeholder="t('tokenItem.mint.commitmentPlaceholder')">
-            <input v-if="mintMode === 'collection'" v-model="mintQuantity" type="number" :placeholder="t('tokenItem.mint.collectionSizePlaceholder')">
-            <input v-if="mintMode === 'collection'" v-model="startingNumberNFTs" type="number" :placeholder="t('tokenItem.mint.startingNumberPlaceholder')">
-            <select v-model="mintCapability" style="max-width: 130px;">
-              <option value="none">{{ t('tokenItem.mint.capabilityImmutable') }}</option>
-              <option value="mutable">{{ t('tokenItem.mint.capabilityMutable') }}</option>
-              <option value="minting">{{ t('tokenItem.mint.capabilityMinting') }}</option>
-            </select>
-            <input v-if="mintMode === 'single'" v-model="mintQuantity" type="number" :placeholder="t('tokenItem.mint.quantityPlaceholder')" style="max-width: 122px;">
-          </span>
-          <span class="grouped">
-            <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('tokenItem.mint.destinationPlaceholder')">
-            <input @click="mintNfts()" type="button" :value="activeAction === 'minting' ? t('tokenItem.mint.mintingButton') : t('tokenItem.mint.mintButton')" class="primaryButton" :disabled="activeAction !== null">
-          </span>
-        </div>
+        <nftMintForm v-if="displayMintNfts" :category="tokenData.category" v-model:active-action="activeAction" @minted="displayMintNfts = false"/>
         <div v-if="displayBurnNft" class="tokenAction">
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
           <span v-else>{{ t('tokenItem.burn.burnNftDescription') }}</span>
