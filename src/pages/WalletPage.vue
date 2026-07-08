@@ -144,7 +144,8 @@
   }
 
   watch(props, () => {
-    if(!walletExists) return
+    // check live wallet state, not the setup-time walletExists: a wallet may have been created via onboarding since
+    if(!store._wallet) return
     // check if session request in URL params passed through props
     if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
       dappUriUrlParam.value = props.uri
