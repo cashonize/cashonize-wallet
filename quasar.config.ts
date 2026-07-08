@@ -250,7 +250,13 @@ export default defineConfig((ctx) => {
           differentialPackage: false
         },
         linux: {
-          target: ['AppImage']
+          target: ['AppImage'],
+          desktop: {
+            // must match Electron's runtime WM_CLASS (lowercased executable name) or the app icon breaks
+            entry: {
+              StartupWMClass: 'cashonize'
+            }
+          }
         },
         // only keep the en-US locale to reduce app size
         electronLanguages: ["en-US"]
