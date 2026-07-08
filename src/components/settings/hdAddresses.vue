@@ -88,6 +88,8 @@
     void store.walletUtxos;
     const hdWallet = store.wallet;
     // wallet can briefly be non-HD mid wallet-switch
+    // KeepAlive preserves this HD-only view, so its watchEffect can rerun after setWallet()
+    // swaps in a single-address wallet but before changeView(1) navigates away.
     if (!(hdWallet instanceof HDWallet)) return;
     receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
     changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true);

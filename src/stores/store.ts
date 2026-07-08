@@ -1,8 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, reactive, computed, watch } from 'vue'
 import {
-  Wallet,
-  TestNetWallet,
   HDWallet,
   TestNetHDWallet,
   BaseWallet,
@@ -27,7 +25,9 @@ import {
 import {
   getBalanceFromUtxos,
   getTokenUtxos,
-  runAsyncVoid
+  loadWalletFromId,
+  runAsyncVoid,
+  walletTypeFromWalletId
 } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
@@ -44,7 +44,7 @@ import { useCashconnectStore } from "./cashconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getWalletTypeFromDb, namedWalletExistsInDb, type WalletInfo } from "src/utils/dbUtils"
+import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -500,32 +500,22 @@ export const useStore = defineStore('store', () => {
     isHistoryPartial.value = false;
   }
 
-  async function getWalletClass(walletName: string, network: string) {
-    // Ensure wallet type metadata exists, detect from IndexedDB if missing
-    const metadata = settingsStore.getWalletMetadata(walletName);
-    if (!metadata?.walletType) {
-      const dbName = network === 'mainnet' ? 'bitcoincash' : 'bchtest';
-      const detectedType = await getWalletTypeFromDb(walletName, dbName);
-      settingsStore.setWalletType(walletName, detectedType);
-    }
-
-    const isHD = settingsStore.getWalletType(walletName) === 'hd';
-    if (network === 'mainnet') return isHD ? HDWallet : Wallet;
-    return isHD ? TestNetHDWallet : TestNetWallet;
-  }
-
-  // WalletClass.named() silently creates a new wallet (with a fresh random seed) when the
-  // name is not in the network's IndexedDB, so all wallet loading must go through this
-  // existence check to make sure a missing wallet is never replaced by a new random seed.
-  // Only the wallet creation flows in walletUtils.ts should use .named() directly.
+  // Avoid WalletClass.named() here: it creates a fresh random wallet if the name is missing.
+  // Loading must reconstruct from the saved walletId; .named() is only for creation flows.
   async function loadExistingWallet(walletName: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
     const dbName = network === 'mainnet' ? 'bitcoincash' : 'bchtest';
-    const walletExistsInDb = await namedWalletExistsInDb(walletName, dbName);
-    if (!walletExistsInDb) {
+    const walletId = await getNamedWalletIdFromDb(walletName, dbName);
+    if (!walletId) {
       throw new Error(t('store.errors.walletNotFoundOnNetwork', { name: walletName, network }));
     }
-    const walletClass = await getWalletClass(walletName, network);
-    return await walletClass.named(walletName);
+    const metadata = settingsStore.getWalletMetadata(walletName);
+    if (!metadata?.walletType) {
+      const walletType = walletTypeFromWalletId(walletId);
+      settingsStore.setWalletType(walletName, walletType);
+    }
+    const loadedWallet = await loadWalletFromId(walletId, network);
+    loadedWallet.name = walletName;
+    return loadedWallet;
   }
 
   // Resets all wallet state and makes the given (already loaded) wallet the active one

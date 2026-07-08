@@ -55,25 +55,19 @@ export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
   }
 }
 
-/**
- * Detects wallet type from the walletId stored in IndexedDB.
- * Returns 'hd' if the walletId starts with 'hd:', 'single' otherwise.
- * This is a fallback for when localStorage metadata is missing.
- */
-export async function getWalletTypeFromDb(
+// Mirrors the IndexedDB lookup inside mainnet-js BaseWallet.named(), but stops after
+// reading the saved walletId. Calling .named() directly would create a new wallet if missing.
+export async function getNamedWalletIdFromDb(
   name: string,
   dbName: "bitcoincash" | "bchtest"
-): Promise<'single' | 'hd'> {
+): Promise<string | undefined> {
   if (!name) throw new Error("Named wallets must have a non-empty name");
 
   const db = new IndexedDBProvider(dbName);
   await db.init();
   try {
     const walletEntry = await db.getWallet(name);
-    if (!walletEntry) return 'single';
-    // walletEntry.wallet contains the walletId string (e.g., 'hd:mainnet:...' or 'seed:mainnet:...')
-    const walletId = (walletEntry as { wallet?: string }).wallet ?? '';
-    return walletId.startsWith('hd:') ? 'hd' : 'single';
+    return walletEntry?.wallet || undefined;
   } finally {
     await db.close();
   }

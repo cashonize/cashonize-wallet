@@ -35,6 +35,10 @@ export const mockWalletNamed = vi.fn()
 export const mockTestNetWalletNamed = vi.fn()
 export const mockHDWalletNamed = vi.fn()
 export const mockTestNetHDWalletNamed = vi.fn()
+export const mockWalletFromId = vi.fn().mockResolvedValue(mockMainnetWallet)
+export const mockTestNetWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
+export const mockHDWalletFromId = vi.fn().mockResolvedValue(mockMainnetWallet)
+export const mockTestNetHDWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
 
 // Mock localStorage
 export const localStorageMock = {
@@ -58,10 +62,10 @@ class MockConnection {
 }
 
 // Mock wallet classes (must be real classes so instanceof checks work)
-class MockWallet { static named = mockWalletNamed }
-class MockTestNetWallet { static named = mockTestNetWalletNamed }
-class MockHDWallet { static named = mockHDWalletNamed }
-class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed }
+class MockWallet { static named = mockWalletNamed; static fromId = mockWalletFromId }
+class MockTestNetWallet { static named = mockTestNetWalletNamed; static fromId = mockTestNetWalletFromId }
+class MockHDWallet { static named = mockHDWalletNamed; static fromId = mockHDWalletFromId }
+class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static fromId = mockTestNetHDWalletFromId }
 
 // Mock mainnet-js
 vi.mock('mainnet-js', () => ({
@@ -98,15 +102,24 @@ vi.mock('@mainnet-cash/indexeddb-storage', () => ({
 export const mockGetAllWalletsWithNetworkInfo = vi.fn()
 export const mockDeleteWalletFromDb = vi.fn()
 
-export const mockGetWalletTypeFromDb = vi.fn().mockResolvedValue('single')
 // Wallets exist in IndexedDB by default, override per-test to exercise the missing-wallet guard
 export const mockNamedWalletExistsInDb = vi.fn().mockResolvedValue(true)
+function defaultGetNamedWalletIdFromDb(
+  _name: string,
+  dbName: 'bitcoincash' | 'bchtest'
+): Promise<string | undefined> {
+  const walletId = dbName === 'bitcoincash'
+    ? 'seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0'
+    : 'seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0'
+  return Promise.resolve(walletId)
+}
+export const mockGetNamedWalletIdFromDb = vi.fn(defaultGetNamedWalletIdFromDb)
 
 vi.mock('src/utils/dbUtils', () => ({
   getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
   deleteWalletFromDb: mockDeleteWalletFromDb,
-  getWalletTypeFromDb: mockGetWalletTypeFromDb,
   namedWalletExistsInDb: mockNamedWalletExistsInDb,
+  getNamedWalletIdFromDb: mockGetNamedWalletIdFromDb,
 }))
 
 // Mock settingsStore
@@ -172,6 +185,12 @@ vi.mock('src/stores/storeUtils', () => ({
 vi.mock('src/utils/utils', () => ({
   getBalanceFromUtxos: vi.fn().mockReturnValue(0),
   getTokenUtxos: vi.fn().mockReturnValue([]),
+  walletTypeFromWalletId: vi.fn((walletId: string) => walletId.startsWith('hd:') ? 'hd' : 'single'),
+  loadWalletFromId: vi.fn((walletId: string, network: 'mainnet' | 'chipnet') => {
+    const isHD = walletId.startsWith('hd:')
+    if (network === 'mainnet') return isHD ? mockHDWalletFromId(walletId) : mockWalletFromId(walletId)
+    return isHD ? mockTestNetHDWalletFromId(walletId) : mockTestNetWalletFromId(walletId)
+  }),
   runAsyncVoid: vi.fn((fn) => fn()),
   convertElectrumTokenData: vi.fn(),
 }))

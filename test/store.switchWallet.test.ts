@@ -8,12 +8,14 @@ import { setActivePinia, createPinia } from 'pinia'
 import {
   mockWalletNamed,
   mockTestNetWalletNamed,
+  mockWalletFromId,
+  mockTestNetWalletFromId,
   mockMainnetWallet,
   mockChipnetWallet,
   localStorageMock,
   mockGetAllWalletsWithNetworkInfo,
   mockDeleteWalletFromDb,
-  mockNamedWalletExistsInDb,
+  mockGetNamedWalletIdFromDb,
 } from './mocks/store.mocks'
 
 // Import store after mocks
@@ -30,7 +32,6 @@ describe('switchWallet', () => {
   describe('wallet loading', () => {
     it('loads mainnet wallet when network is mainnet', async () => {
       localStorageMock.setItem('network', 'mainnet')
-      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
 
       const store = useStore()
       // Set initial wallet to avoid "No wallet set" error
@@ -38,40 +39,42 @@ describe('switchWallet', () => {
 
       await store.switchWallet('newWallet')
 
-      expect(mockWalletNamed).toHaveBeenCalledWith('newWallet')
+      expect(mockGetNamedWalletIdFromDb).toHaveBeenCalledWith('newWallet', 'bitcoincash')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletNamed).not.toHaveBeenCalled()
       expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
     })
 
     it('loads chipnet wallet when network is chipnet', async () => {
       localStorageMock.setItem('network', 'chipnet')
-      mockTestNetWalletNamed.mockResolvedValue(mockChipnetWallet)
 
       const store = useStore()
       store.setWallet(mockChipnetWallet as never)
 
       await store.switchWallet('newWallet')
 
-      expect(mockTestNetWalletNamed).toHaveBeenCalledWith('newWallet')
+      expect(mockGetNamedWalletIdFromDb).toHaveBeenCalledWith('newWallet', 'bchtest')
+      expect(mockTestNetWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
 
     it('defaults to mainnet when no network in localStorage', async () => {
       // No network set in localStorage
-      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
 
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
 
       await store.switchWallet('newWallet')
 
-      expect(mockWalletNamed).toHaveBeenCalledWith('newWallet')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletNamed).not.toHaveBeenCalled()
     })
   })
 
   describe('state updates', () => {
     beforeEach(() => {
       localStorageMock.setItem('network', 'mainnet')
-      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
     })
 
     it('updates activeWalletName in store', async () => {
@@ -105,7 +108,6 @@ describe('switchWallet', () => {
 
     it('sets _wallet to chipnet wallet instance', async () => {
       localStorageMock.setItem('network', 'chipnet')
-      mockTestNetWalletNamed.mockResolvedValue(mockChipnetWallet)
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
 
@@ -120,7 +122,6 @@ describe('switchWallet', () => {
   describe('network fallback for network-specific wallets', () => {
     it('switches to mainnet when wallet only exists on mainnet and current network is chipnet', async () => {
       localStorageMock.setItem('network', 'chipnet')
-      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
       const store = useStore()
       store.setWallet(mockChipnetWallet as never)
       // Set up availableWallets with a mainnet-only wallet
@@ -138,12 +139,12 @@ describe('switchWallet', () => {
       expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
       // Verify network was changed and correct wallet loader was called
       expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'mainnet')
-      expect(mockWalletNamed).toHaveBeenCalledWith('mainnetOnlyWallet')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletNamed).not.toHaveBeenCalled()
     })
 
     it('switches to chipnet when wallet only exists on chipnet and current network is mainnet', async () => {
       localStorageMock.setItem('network', 'mainnet')
-      mockTestNetWalletNamed.mockResolvedValue(mockChipnetWallet)
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
       // Set up availableWallets with a chipnet-only wallet
@@ -161,12 +162,12 @@ describe('switchWallet', () => {
       expect(mockWalletNamed).not.toHaveBeenCalled()
       // Verify network was changed and correct wallet loader was called
       expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'chipnet')
-      expect(mockTestNetWalletNamed).toHaveBeenCalledWith('chipnetOnlyWallet')
+      expect(mockTestNetWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
     })
 
     it('does not change network when wallet exists on current network', async () => {
       localStorageMock.setItem('network', 'mainnet')
-      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
       // Wallet exists on both networks
@@ -178,12 +179,12 @@ describe('switchWallet', () => {
 
       expect(result.success).toBe(true)
       expect(result.networkChanged).toBeUndefined()
-      expect(mockWalletNamed).toHaveBeenCalledWith('bothNetworks')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletNamed).not.toHaveBeenCalled()
     })
 
     it('loads wallet normally when not in availableWallets but present in IndexedDB', async () => {
       localStorageMock.setItem('network', 'mainnet')
-      mockWalletNamed.mockResolvedValue(mockMainnetWallet)
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
       store.availableWallets = [] // Empty list
@@ -192,14 +193,16 @@ describe('switchWallet', () => {
 
       expect(result.success).toBe(true)
       expect(result.networkChanged).toBeUndefined()
-      expect(mockWalletNamed).toHaveBeenCalledWith('unknownWallet')
+      expect(mockGetNamedWalletIdFromDb).toHaveBeenCalledWith('unknownWallet', 'bitcoincash')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletNamed).not.toHaveBeenCalled()
     })
   })
 
   describe('error handling', () => {
     it('throws without calling .named() when wallet does not exist in IndexedDB', async () => {
       localStorageMock.setItem('network', 'mainnet')
-      mockNamedWalletExistsInDb.mockResolvedValueOnce(false)
+      mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
 
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
@@ -213,7 +216,7 @@ describe('switchWallet', () => {
     it('does not mutate state when a stale availableWallets entry points to a missing wallet', async () => {
       localStorageMock.setItem('network', 'mainnet')
       localStorageMock.setItem.mockClear()
-      mockNamedWalletExistsInDb.mockResolvedValueOnce(false)
+      mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
 
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
@@ -233,7 +236,7 @@ describe('switchWallet', () => {
 
     it('throws when wallet loading fails', async () => {
       localStorageMock.setItem('network', 'mainnet')
-      mockWalletNamed.mockRejectedValue(new Error('Wallet not found'))
+      mockWalletFromId.mockRejectedValueOnce(new Error('Wallet not found'))
 
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
@@ -245,7 +248,7 @@ describe('switchWallet', () => {
       localStorageMock.setItem('network', 'mainnet')
       localStorageMock.setItem('activeWalletName', 'originalWallet')
       localStorageMock.setItem.mockClear()
-      mockWalletNamed.mockRejectedValue(new Error('Wallet not found'))
+      mockWalletFromId.mockRejectedValueOnce(new Error('Wallet not found'))
 
       const store = useStore()
       store.setWallet(mockMainnetWallet as never)
@@ -277,7 +280,6 @@ describe('changeNetwork', () => {
 
   it('loads the wallet on the new network when it exists there', async () => {
     localStorageMock.setItem('network', 'mainnet')
-    mockTestNetWalletNamed.mockResolvedValue(mockChipnetWallet)
 
     const store = useStore()
     store.setWallet(mockMainnetWallet as never)
@@ -285,13 +287,14 @@ describe('changeNetwork', () => {
 
     await store.changeNetwork('chipnet')
 
-    expect(mockTestNetWalletNamed).toHaveBeenCalledWith('myWallet')
+    expect(mockTestNetWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+    expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
     expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'chipnet')
   })
 
   it('does not create a new wallet when it does not exist on the target network', async () => {
     localStorageMock.setItem('network', 'mainnet')
-    mockNamedWalletExistsInDb.mockResolvedValueOnce(false)
+    mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
 
     const store = useStore()
     store.setWallet(mockMainnetWallet as never)
