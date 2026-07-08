@@ -87,6 +87,8 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     // Update store state
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
+    // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
+    await store.resetWalletState();
     store.setWallet(mainnetWallet);
 
     // Refresh available wallets list
@@ -165,6 +167,8 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     // Update store state
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
+    // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
+    await store.resetWalletState();
     store.setWallet(mainnetWallet);
 
     // Refresh available wallets list
@@ -217,6 +221,8 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
 
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
+    // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
+    await store.resetWalletState();
     store.setWallet(mainnetWallet);
 
     // Set wallet type BEFORE initializeWallet (which validates type matches)
@@ -284,6 +290,8 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
 
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
+    // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
+    await store.resetWalletState();
     store.setWallet(mainnetWallet);
 
     // Set wallet type BEFORE initializeWallet (which validates type matches)

@@ -20,6 +20,7 @@ export const mockTestNetHDWalletReplaceNamed = vi.fn()
 // Mock functions for dependencies
 export const mockNamedWalletExistsInDb = vi.fn()
 export const mockSetWallet = vi.fn()
+export const mockResetWalletState = vi.fn()
 export const mockRefreshAvailableWallets = vi.fn()
 export const mockSetWalletCreatedAt = vi.fn()
 export const mockSetBackupStatus = vi.fn()
@@ -39,6 +40,7 @@ vi.mock('src/stores/store', () => ({
   useStore: vi.fn(() => ({
     activeWalletName: '',
     setWallet: mockSetWallet,
+    resetWalletState: mockResetWalletState,
     refreshAvailableWallets: mockRefreshAvailableWallets,
     initializeWallet: vi.fn().mockResolvedValue(undefined),
   }))

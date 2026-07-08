@@ -13,6 +13,7 @@ import {
   mockTestNetHDWalletReplaceNamed,
   mockNamedWalletExistsInDb,
   mockSetWallet,
+  mockResetWalletState,
   mockRefreshAvailableWallets,
   mockSetWalletCreatedAt,
   mockSetBackupStatus,
@@ -179,6 +180,13 @@ describe('createNewWallet', () => {
       expect(mockSetWallet).toHaveBeenCalledWith(mockWallet)
     })
 
+    it('resets previous wallet state before setting the new wallet', async () => {
+      await createNewWallet('newWallet')
+
+      expect(mockResetWalletState).toHaveBeenCalled()
+      expect(mockResetWalletState.mock.invocationCallOrder[0]).toBeLessThan(mockSetWallet.mock.invocationCallOrder[0]!)
+    })
+
     it('persists active wallet name to localStorage', async () => {
       await createNewWallet('newWallet')
 
@@ -219,6 +227,7 @@ describe('createNewWallet', () => {
       expect(result.success === false && result.isUserError).toBe(false)
       // Verify no partial state mutations
       expect(mockSetWallet).not.toHaveBeenCalled()
+      expect(mockResetWalletState).not.toHaveBeenCalled()
       expect(localStorageMock.setItem).not.toHaveBeenCalled()
     })
 
@@ -454,6 +463,18 @@ describe('importWallet', () => {
       expect(mockSetWallet).toHaveBeenCalledWith(mockWallet)
     })
 
+    it('resets previous wallet state before setting the new wallet', async () => {
+      await importWallet({
+        name: 'imported',
+        seedPhrase: validSeedPhrase,
+        seedPhraseValid: true,
+        derivationPath: 'standard'
+      })
+
+      expect(mockResetWalletState).toHaveBeenCalled()
+      expect(mockResetWalletState.mock.invocationCallOrder[0]).toBeLessThan(mockSetWallet.mock.invocationCallOrder[0]!)
+    })
+
     it('persists active wallet name to localStorage', async () => {
       await importWallet({
         name: 'imported',
@@ -603,6 +624,13 @@ describe('createNewHDWallet', () => {
       await createNewHDWallet('newHDWallet')
 
       expect(mockSetWallet).toHaveBeenCalledWith(mockWallet)
+    })
+
+    it('resets previous wallet state before setting the new wallet', async () => {
+      await createNewHDWallet('newHDWallet')
+
+      expect(mockResetWalletState).toHaveBeenCalled()
+      expect(mockResetWalletState.mock.invocationCallOrder[0]).toBeLessThan(mockSetWallet.mock.invocationCallOrder[0]!)
     })
 
     it('persists active wallet name to localStorage', async () => {
@@ -851,6 +879,18 @@ describe('importHDWallet', () => {
       })
 
       expect(mockSetWallet).toHaveBeenCalledWith(mockWallet)
+    })
+
+    it('resets previous wallet state before setting the new wallet', async () => {
+      await importHDWallet({
+        name: 'imported',
+        seedPhrase: validSeedPhrase,
+        seedPhraseValid: true,
+        derivationPath: 'standard'
+      })
+
+      expect(mockResetWalletState).toHaveBeenCalled()
+      expect(mockResetWalletState.mock.invocationCallOrder[0]).toBeLessThan(mockSetWallet.mock.invocationCallOrder[0]!)
     })
 
     it('persists active wallet name to localStorage', async () => {
