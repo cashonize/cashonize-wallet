@@ -8,7 +8,7 @@ Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, a
 
 ## Commands
 
-Uses pnpm (v11). Config (overrides, supply-chain hardening, build-script allowlist) lives in `pnpm-workspace.yaml`; version pins are in `package.json` "pnpm.overrides".
+Uses pnpm (v11). Config (overrides, supply-chain hardening, build-script allowlist) lives in `pnpm-workspace.yaml`.
 
 ```bash
 pnpm dev                   # Start development server (opens browser)
@@ -108,6 +108,10 @@ Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files 
 ## Testing
 
 Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). See `development.md` for full setup details.
+
+## Dependency Pinning
+
+Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
 
 ## Code Style Preferences
 

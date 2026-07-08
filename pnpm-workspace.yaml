@@ -37,8 +37,16 @@ fund: false
 # package.json. Nested pins use "parent>child" selector syntax.
 overrides:
   '@reown/walletkit>@walletconnect/pay': '-'
+  # Security-critical deps that also appear as transitive dependencies (walletkit via
+  # @cashconnect-js/*, mainnet-js via @mainnet-cash/indexeddb-storage, libauth and
+  # @walletconnect/core via several) — overrides pin every copy in the graph, which
+  # exact versions in package.json alone can't do. Keep in sync with package.json.
   '@bitauth/libauth': 3.1.0-next.8
+  '@reown/walletkit': 1.5.6
   '@walletconnect/core': 2.23.9
+  mainnet-js: 3.1.7
+
+  # Dependabot security bumps for indirect dependencies.
   tar: 7.5.16
   vite: 8.0.16
   'anymatch>picomatch': 2.3.2
