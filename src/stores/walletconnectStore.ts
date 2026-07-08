@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { convert, NetworkType, type Wallet, type HDWallet, type TestNetHDWallet } from "mainnet-js";
+import { convert, NetworkType, HDWallet } from "mainnet-js";
+import type { WalletType } from "src/interfaces/interfaces";
 import { useStore } from "./store"
 import {
   hexToBin,
@@ -240,15 +241,16 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   function getSessionAddress(topic: string): string | undefined {
     return getSessionAddresses(topic)[0];
   }
-  // Get signing key material for the session's connected address
+  // Get signing key material for the session's connected address.
+  // Branches on the wallet object itself (not wallet-type metadata) so a
+  // desync during wallet switching can never yield mismatched key material.
   function getSessionSigningInfo(topic: string) {
-    const activeWalletName = localStorage.getItem('activeWalletName') ?? '';
-    const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
-    if (isHD) {
+    // cast undoes Pinia's ref-unwrapping of the class union; instanceof below does the real check
+    const wallet = mainStore.wallet as WalletType;
+    if (wallet instanceof HDWallet) {
       const sessionAddress = getSessionAddress(topic);
       if (!sessionAddress) throw new Error(t('walletConnect.errors.noAddressForSession'));
-      const hdWallet = mainStore.wallet as HDWallet | TestNetHDWallet;
-      const cacheEntry = hdWallet.walletCache.get(sessionAddress);
+      const cacheEntry = wallet.walletCache.get(sessionAddress);
       if (!cacheEntry) throw new Error(t('walletConnect.errors.addressNotInHdCache', { address: sessionAddress }));
       if (!cacheEntry.privateKey) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
       const pubkeyCompressed = secp256k1.compressPublicKey(cacheEntry.publicKey);
@@ -259,11 +261,11 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         publicKeyHash: cacheEntry.publicKeyHash,
       };
     }
-    const singleAddrWallet = mainStore.wallet as Wallet;
+    if (!wallet.privateKey || !wallet.publicKeyCompressed) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
     return {
-      privateKey: singleAddrWallet.privateKey,
-      pubkeyCompressed: singleAddrWallet.publicKeyCompressed!,
-      publicKeyHash: singleAddrWallet.publicKeyHash,
+      privateKey: wallet.privateKey,
+      pubkeyCompressed: wallet.publicKeyCompressed,
+      publicKeyHash: wallet.publicKeyHash,
     };
   }
   // Poll for queued cancellation requests that bypass the normal event queue
@@ -538,19 +540,8 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const message = wcSignMessageParams.message;
     const { id, topic } = signMessageRequestWC;
     // Get the address connected to this session and resolve the correct private key
-    const activeWalletName = localStorage.getItem('activeWalletName') ?? '';
-    const isHD = settingsStore.getWalletType(activeWalletName) === 'hd';
-    let signingKey: Uint8Array | undefined;
-    if (isHD) {
-      const sessionAddress = getSessionAddress(topic);
-      if (!sessionAddress) throw new Error(t('walletConnect.errors.noAddressForSession'));
-      const hdWallet = mainStore.wallet as HDWallet | TestNetHDWallet;
-      const cacheEntry = hdWallet.walletCache.get(sessionAddress);
-      if (!cacheEntry) throw new Error(t('walletConnect.errors.addressNotInHdCache', { address: sessionAddress }));
-      if (!cacheEntry.privateKey) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
-      signingKey = cacheEntry.privateKey;
-    }
-    const signedMessage = mainStore.wallet.sign(message, signingKey);
+    const { privateKey } = getSessionSigningInfo(topic);
+    const signedMessage = mainStore.wallet.sign(message, privateKey);
     const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
     await web3wallet.value?.respondSessionRequest({ topic, response });
     Notify.create({
