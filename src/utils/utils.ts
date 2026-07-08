@@ -1,7 +1,7 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import type { Utxo } from "mainnet-js"
-import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat } from "../interfaces/interfaces"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, type Utxo } from "mainnet-js"
+import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -19,6 +19,20 @@ export function copyToClipboard(copyText:string|undefined){
 
 export function runAsyncVoid(fn: () => Promise<void>) {
   void fn();
+}
+
+export function walletTypeFromWalletId(walletId: string): 'single' | 'hd' {
+  return walletId.startsWith('hd:') ? 'hd' : 'single';
+}
+
+export async function loadWalletFromId(walletId: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
+  const isHD = walletTypeFromWalletId(walletId) === 'hd';
+  if (network === 'mainnet') {
+    const wallet = isHD ? await HDWallet.fromId(walletId) : await Wallet.fromId(walletId);
+    return wallet;
+  }
+  const wallet = isHD ? await TestNetHDWallet.fromId(walletId) : await TestNetWallet.fromId(walletId);
+  return wallet;
 }
 
 // Sanitize untrusted URLs (e.g. from dApp metadata) to prevent protocol abuse.

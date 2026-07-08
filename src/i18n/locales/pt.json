@@ -60,6 +60,7 @@
     },
     "errors": {
       "cannotDeleteActiveWallet": "Não é possível excluir a carteira ativa",
+      "walletNotFoundOnNetwork": "A carteira \"{name}\" não existe em {network}",
       "errorInitializingWalletConnect": "Erro ao inicializar WalletConnect",
       "errorInitializingCashConnect": "Erro ao inicializar CashConnect",
       "errorFetchingUtxos": "Erro ao buscar UTXOs da carteira",

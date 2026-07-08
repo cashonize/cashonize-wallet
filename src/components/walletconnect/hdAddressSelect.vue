@@ -4,7 +4,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
-  import { type HDWallet, type TestNetHDWallet, GAP_SIZE } from 'mainnet-js';
+  import { HDWallet, type TestNetHDWallet, GAP_SIZE } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
 
   const store = useStore()
@@ -93,7 +93,11 @@
   watchEffect(() => {
     // Access walletUtxos to establish reactive dependency
     void store.walletUtxos;
-    const hdWallet = store.wallet as HDWallet | TestNetHDWallet;
+    const hdWallet = store.wallet;
+    // wallet can briefly be non-HD mid wallet-switch
+    // KeepAlive preserves this HD-only view, so its watchEffect can rerun after setWallet()
+    // swaps in a single-address wallet but before changeView(1) navigates away.
+    if (!(hdWallet instanceof HDWallet)) return;
     receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
     changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true);
   });
