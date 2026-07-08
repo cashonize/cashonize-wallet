@@ -101,16 +101,16 @@ export function formatTimestamp(timestamp: number | undefined, dateFormat: DateF
   return short ? dateStr : `${dateStr} ${time}`;
 }
 
-function checkValidTokenInput(numberInput: string, decimals: number){
-  // Validate the input format (no separting commas allowed here)
-  if (!/^\d*\.?\d*$/.test(numberInput)) throw new Error(t('tokenItem.errors.invalidNumberFormat'));
+function validateTokenAmountString(tokenAmount: string, decimals: number){
+  // Validate the amount format (no separating commas allowed here).
+  if (!/^\d*\.?\d*$/.test(tokenAmount)) throw new Error(t('tokenItem.errors.invalidNumberFormat'));
 
   // Validate if the input can be converted to a number
-  const number = parseFloat(numberInput);
+  const number = parseFloat(tokenAmount);
   if (isNaN(number) || number <= 0) throw new Error(t('tokenItem.errors.enterValidAmount'));
 
   // check number of decimal places
-  const decimalPart = numberInput.split('.')[1];
+  const decimalPart = tokenAmount.split('.')[1];
   const decimalPlaces = decimalPart ? decimalPart.length : 0;
   const validInput = decimalPlaces <= decimals
   if(!validInput && !decimals) throw new Error(t('tokenItem.errors.noDecimalsAllowed'));
@@ -122,7 +122,7 @@ function checkValidTokenInput(numberInput: string, decimals: number){
 // float multiplication so large amounts don't lose precision.
 export function parseTokenAmountToBigInt(input: string, decimals: number): bigint {
   const sanitizedInput = input.replace(/,/g, '');
-  checkValidTokenInput(sanitizedInput, decimals);
+  validateTokenAmountString(sanitizedInput, decimals);
   const [integerPart = '', fractionalPart = ''] = sanitizedInput.split('.');
   return BigInt(integerPart + fractionalPart.padEnd(decimals, '0'));
 }
