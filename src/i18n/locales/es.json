@@ -12,7 +12,8 @@
     },
     "errors": {
       "somethingWentWrong": "Algo salió mal",
-      "needToInitializeWallet": "Necesitas inicializar una billetera primero"
+      "needToInitializeWallet": "Necesitas inicializar una billetera primero",
+      "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dapp"
     },
     "copied": "¡Copiado!",
     "unsafeUrl": "URL oculta (protocolo no seguro)",

@@ -381,7 +381,19 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         }
         // Manually approve
         const dappMetadata = session.peer.metadata;
-        const exchangeRate = await convert(1, "bch", settingsStore.currency);
+        // Fetch the exchange rate before showing the dialog, falling back to the last known rate.
+        // Without any rate we can't display the fiat impact, so reject instead of showing the dialog.
+        let exchangeRate: number | undefined;
+        try {
+          exchangeRate = await convert(1, "bch", settingsStore.currency);
+        } catch {
+          exchangeRate = mainStore.exchangeRate;
+        }
+        if (exchangeRate === undefined) {
+          Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
+          void rejectRequest(event);
+          return;
+        }
         const handle = Dialog.create({
           component: WC2TransactionRequest,
           componentProps: {

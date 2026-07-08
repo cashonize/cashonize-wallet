@@ -12,7 +12,8 @@
     },
     "errors": {
       "somethingWentWrong": "Algo deu errado",
-      "needToInitializeWallet": "É necessário inicializar uma carteira primeiro"
+      "needToInitializeWallet": "É necessário inicializar uma carteira primeiro",
+      "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dapp"
     },
     "copied": "Copiado!",
     "unsafeUrl": "URL oculta (protocolo inseguro)",

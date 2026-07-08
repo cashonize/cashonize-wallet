@@ -12,7 +12,8 @@
     },
     "errors": {
       "somethingWentWrong": "Une erreur s'est produite",
-      "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille"
+      "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
+      "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dapp"
     },
     "copied": "Copié !",
     "unsafeUrl": "URL masquée (protocole non sécurisé)",

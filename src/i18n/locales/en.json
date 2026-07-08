@@ -12,7 +12,8 @@
     },
     "errors": {
       "somethingWentWrong": "Something went wrong",
-      "needToInitializeWallet": "Need to initialize a wallet first"
+      "needToInitializeWallet": "Need to initialize a wallet first",
+      "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dapp request"
     },
     "copied": "Copied!",
     "unsafeUrl": "URL hidden (unsafe protocol)",

@@ -12,7 +12,8 @@
     },
     "errors": {
       "somethingWentWrong": "Etwas ist schiefgelaufen",
-      "needToInitializeWallet": "Zuerst muss ein Wallet initialisiert werden"
+      "needToInitializeWallet": "Zuerst muss ein Wallet initialisiert werden",
+      "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, Dapp-Anfrage wird abgelehnt"
     },
     "copied": "Kopiert!",
     "unsafeUrl": "URL verborgen (unsicheres Protokoll)",

@@ -180,8 +180,18 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
       if (!doesActionRequireApproval(session, request.params.action)) {
         return;
       }
-      // Get the BCH exchange rate.
-      const exchangeRate = await convert(1, "bch", settingsStore.currency);
+      // Get the BCH exchange rate, falling back to the last known rate. Without any rate we
+      // can't display the fiat impact, so reject the request instead of showing the dialog.
+      let exchangeRate: number | undefined;
+      try {
+        exchangeRate = await convert(1, "bch", settingsStore.currency);
+      } catch {
+        exchangeRate = mainStore.exchangeRate;
+      }
+      if (exchangeRate === undefined) {
+        Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
+        throw new Error(t('common.errors.exchangeRateUnavailable'));
+      }
       // Show a dialog, prompting the user for approval.
       return await new Promise<void>((resolve, reject) => {
         Dialog.create({
