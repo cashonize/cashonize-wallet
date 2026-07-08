@@ -794,6 +794,7 @@
     "notifications": {
       "successfullySignedMessage": "Nachricht erfolgreich signiert",
       "failedToSignMessage": "Nachricht konnte nicht signiert werden",
+      "failedToSignTransaction": "Transaktion konnte nicht signiert werden",
       "sendingTransaction": "Transaktion wird gesendet...",
       "sentTransaction": "WalletConnect-Transaktion '{userPrompt}' gesendet",
       "signedTransaction": "WalletConnect-Transaktion '{userPrompt}' signiert. Bitte kehren Sie zur Dapp zurück.",

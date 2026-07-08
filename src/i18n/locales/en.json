@@ -794,6 +794,7 @@
     "notifications": {
       "successfullySignedMessage": "Successfully signed message",
       "failedToSignMessage": "Failed to sign message",
+      "failedToSignTransaction": "Failed to sign transaction",
       "sendingTransaction": "Sending transaction...",
       "sentTransaction": "Sent WalletConnect transaction '{userPrompt}'",
       "signedTransaction": "Signed WalletConnect transaction '{userPrompt}'. Please return to the dapp.",
