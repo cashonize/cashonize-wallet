@@ -104,17 +104,11 @@
     parseAddrParams();
   }
   const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true;
-  function validateDestination(opts?: { requireTokenSupport?: boolean }): string {
-    const address = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, opts);
-    destinationAddr.value = address;
-    return address;
-  }
-
   async function sendNft(){
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      validateDestination({ requireTokenSupport: true });
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const nftInfo = nftData.value.token as TokenI;

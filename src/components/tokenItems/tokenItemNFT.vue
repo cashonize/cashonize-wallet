@@ -155,11 +155,6 @@
     parseAddrParams();
   }
   const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true;
-  function validateDestination(opts?: { requireTokenSupport?: boolean }): string {
-    const address = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, opts);
-    destinationAddr.value = address;
-    return address;
-  }
   
   // NFT Group specific functionality
   async function sendBatchNfts(){
@@ -167,7 +162,7 @@
     activeAction.value = 'sending';
     try{
       if(selectedNftCount.value === 0) throw new Error(t('tokenItem.errors.noNftsSelected'))
-      validateDestination({ requireTokenSupport: true });
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const category = tokenData.value.category;
@@ -229,7 +224,7 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      validateDestination({ requireTokenSupport: true });
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       // confirm payment if setting is enabled
@@ -315,7 +310,7 @@
     const authNft = tokenData.value.authUtxo?.token;
     activeAction.value = 'transferAuth';
     try {
-      validateDestination();
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       const authTransfer: SendRequest = {
         cashaddr: destinationAddr.value,
         value: 1000n,

@@ -33,12 +33,6 @@
     if(!parsed) return;
     destinationAddr.value = parsed.address;
   }
-  function validateDestination(): string {
-    const address = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-    destinationAddr.value = address;
-    return address;
-  }
-
   const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
 
   async function mintNfts() {
@@ -46,7 +40,10 @@
     activeAction.value = 'minting';
     try {
       let recipientAddr = store.wallet.getTokenDepositAddress();
-      if(destinationAddr.value) recipientAddr = validateDestination();
+      if(destinationAddr.value) {
+        recipientAddr = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
+        destinationAddr.value = recipientAddr;
+      }
       if(mintQuantity.value == undefined) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
       const mintAmount = parseInt(mintQuantity.value);
 

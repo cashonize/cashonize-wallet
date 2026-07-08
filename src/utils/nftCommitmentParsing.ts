@@ -3,8 +3,10 @@ import type { Utxo } from "mainnet-js"
 import type { ParseResult } from 'src/parsing/nftParsing'
 import { useStore } from 'src/stores/store'
 
-// Parsable-NFT state: runs the BCMR parsing bytecode on the NFT commitment.
+// Vue composable for Parsable-NFT state.
+// Keeps parsing state and parses the NFT commitment on mount/when metadata becomes available.
 // isEnabled gates parsing (e.g. tokenItemNFT only parses when it holds a single NFT).
+// Callback arguments read the latest reactive values when parsing runs.
 export function useNftCommitmentParsing(getCategory: () => string, getNftUtxo: () => Utxo | undefined, isEnabled: () => boolean = () => true) {
   const store = useStore();
   const parseResult = ref(undefined as ParseResult | undefined);

@@ -108,17 +108,12 @@
     parseAddrParams();
   }
   const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true;
-  function validateDestination(opts?: { requireTokenSupport?: boolean }): string {
-    const address = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, opts);
-    destinationAddr.value = address;
-    return address;
-  }
   async function sendTokens(){
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
-      validateDestination({ requireTokenSupport: true });
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
       if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
@@ -222,7 +217,7 @@
       const reservedSupply = parseTokenAmountToBigInt(reservedSupplyInput.value, decimals);
       if(reservedSupply > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
-      validateDestination();
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       const authTransfer = !reservedSupply? {
         cashaddr: destinationAddr.value,
         value: 1000n,
