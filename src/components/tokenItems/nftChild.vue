@@ -5,10 +5,10 @@
   import { TokenSendRequest, type TokenI } from "mainnet-js"
   import { type Utxo } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
-  import type { BcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { useNftParsing, type TokenActionType } from 'src/utils/tokenComposables'
+  import { useNftCommitmentParsing } from 'src/utils/nftCommitmentParsing'
   import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
@@ -42,8 +42,10 @@
 
   const category = computed(() => nftData.value.token!.category);
 
-  const { parseResult, parsingNft, isParsable, hasParyonUsdExtension } =
-    useNftParsing(() => category.value, () => nftData.value);
+  // Keeps parsing state and parses the commitment on mount/when metadata becomes available.
+  const { parseResult, parsingNft, isParsable, hasParyonUsdExtension } = useNftCommitmentParsing(
+    () => category.value, () => nftData.value
+  );
 
   const nftMetadata = computed(() => {
     const commitment = nftData.value?.token?.nft?.commitment;

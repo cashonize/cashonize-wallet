@@ -39,6 +39,8 @@ export interface QrCodeElement extends HTMLElement {
   animateQRCode: (animationName: QRCodeAnimationName) => void;
 }
 
+export type TokenActionType = 'sending' | 'minting' | 'burning' | 'transferAuth';
+
 export type TokenList = (TokenDataNFT | TokenDataFT)[]
 
 export interface TokenDataNFT {

@@ -2,8 +2,8 @@
   import { ref } from 'vue';
   import { TokenMintRequest } from "mainnet-js"
   import { bigIntToVmNumber, binToHex } from "@bitauth/libauth"
+  import type { TokenActionType } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
-  import type { TokenActionType } from 'src/utils/tokenComposables'
   import { parseTokenRecipientRequest, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
   import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'

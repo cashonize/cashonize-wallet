@@ -5,11 +5,11 @@
   import nftMintForm from './nftMintForm.vue'
   import { TokenSendRequest, type SendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
-  import type { TokenDataNFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { useNftParsing, type TokenActionType } from 'src/utils/tokenComposables'
+  import { useNftCommitmentParsing } from 'src/utils/nftCommitmentParsing'
   import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
@@ -49,10 +49,14 @@
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category] ?? undefined;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
-
+  
   // Only parse the commitment when this category holds a single NFT (child NFTs parse their own)
-  const { parseResult, parsingNft, hasParyonUsdExtension } =
-    useNftParsing(() => tokenData.value.category, () => tokenData.value.nfts?.[0], () => isSingleNft.value);
+  const shouldParseNftCommitment = () => isSingleNft.value;
+  // Keeps parsing state and parses the commitment on mount/when metadata becomes available.
+  const { parseResult, parsingNft, hasParyonUsdExtension } = useNftCommitmentParsing(
+    () => tokenData.value.category, () => tokenData.value.nfts?.[0], shouldParseNftCommitment
+  );
+  
   const nftMetadata = computed(() => {
     if(!isSingleNft.value) return
     const nftData = tokenData.value.nfts?.[0];

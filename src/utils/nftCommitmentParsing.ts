@@ -3,11 +3,9 @@ import type { Utxo } from "mainnet-js"
 import type { ParseResult } from 'src/parsing/nftParsing'
 import { useStore } from 'src/stores/store'
 
-export type TokenActionType = 'sending' | 'minting' | 'burning' | 'transferAuth';
-
 // Parsable-NFT state: runs the BCMR parsing bytecode on the NFT commitment.
 // isEnabled gates parsing (e.g. tokenItemNFT only parses when it holds a single NFT).
-export function useNftParsing(getCategory: () => string, getNftUtxo: () => Utxo | undefined, isEnabled: () => boolean = () => true) {
+export function useNftCommitmentParsing(getCategory: () => string, getNftUtxo: () => Utxo | undefined, isEnabled: () => boolean = () => true) {
   const store = useStore();
   const parseResult = ref(undefined as ParseResult | undefined);
   const parsingNft = ref(false);

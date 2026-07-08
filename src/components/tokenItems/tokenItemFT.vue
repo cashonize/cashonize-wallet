@@ -3,11 +3,10 @@
   import { TokenSendRequest, convert } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import TokenIcon from '../general/TokenIcon.vue';
-  import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
+  import type { TokenDataFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import type { TokenActionType } from 'src/utils/tokenComposables'
   import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
