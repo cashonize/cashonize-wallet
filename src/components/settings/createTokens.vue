@@ -4,7 +4,7 @@
   import { copyToClipboard } from 'src/utils/utils';
   import EmojiItem from '../general/emojiItem.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
-  import { notifySending, showTransactionResult } from 'src/utils/txHelpers';
+  import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -110,7 +110,7 @@
       // reset input fields
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
-      await showTransactionResult(alertMessage, txId, t('createTokens.notifications.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
       store.hasPreGenesis()
     } catch(error){
       displayAndLogError(error)
@@ -140,7 +140,7 @@
       const alertMessage = `Created minting NFT with category ${tokenId}`;
       // reset input fields
       selectedTokenType.value  = "-select-";
-      await showTransactionResult(alertMessage, txId, t('createTokens.notifications.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
       store.hasPreGenesis()
     } catch(error){
       displayAndLogError(error)

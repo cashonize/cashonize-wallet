@@ -11,7 +11,7 @@
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { displayAndLogError } from 'src/utils/errorHandling'
-  import { confirmDialog, notifySending, showTransactionResult } from 'src/utils/txHelpers'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   const $q = useQuasar()
@@ -198,7 +198,7 @@
       bchSendAmount.value = undefined;
       currencySendAmount.value = undefined;
       destinationAddr.value = "";
-      await showTransactionResult(alertMessage, txId, t('wallet.transactionSuccess'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'));
     } catch(error){
       displayAndLogError(error)
     } finally {

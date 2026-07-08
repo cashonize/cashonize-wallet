@@ -9,8 +9,9 @@
   import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { useTokenAddressInput, useNftParsing, type TokenActionType } from 'src/utils/tokenComposables'
-  import { confirmDialog, notifySending, showTransactionResult } from 'src/utils/txHelpers'
+  import { useNftParsing, type TokenActionType } from 'src/utils/tokenComposables'
+  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useI18n } from 'vue-i18n'
@@ -35,6 +36,8 @@
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
   const loadingChildNftMetadata = ref(false);
+  const destinationAddr = ref("");
+  const showQrCodeDialog = ref(false);
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   // Local state for batch NFT selection - keyed by "txid:vout"
   const selectedNfts = ref(new Set<string>());
@@ -47,8 +50,6 @@
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
 
-  const { destinationAddr, showQrCodeDialog, qrDecode, parseAddrParams, qrFilter, validateDestination } =
-    useTokenAddressInput(() => tokenData.value.category);
   // Only parse the commitment when this category holds a single NFT (child NFTs parse their own)
   const { parseResult, parsingNft, hasParyonUsdExtension } =
     useNftParsing(() => tokenData.value.category, () => tokenData.value.nfts?.[0], () => isSingleNft.value);
@@ -139,6 +140,22 @@
     }
     displayChildNfts.value = !displayChildNfts.value;
   }
+
+  function parseAddrParams(){
+    const parsed = parseTokenRecipientRequest(destinationAddr.value, tokenData.value.category);
+    if(!parsed) return;
+    destinationAddr.value = parsed.address;
+  }
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+    parseAddrParams();
+  }
+  const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true;
+  function validateDestination(opts?: { requireTokenSupport?: boolean }): string {
+    const address = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, opts);
+    destinationAddr.value = address;
+    return address;
+  }
   
   // NFT Group specific functionality
   async function sendBatchNfts(){
@@ -196,7 +213,7 @@
       destinationAddr.value = "";
       displayBatchTransfer.value = false;
       clearSelection();
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
     }catch(error){
       displayAndLogError(error)
     } finally {
@@ -243,7 +260,7 @@
       }
       destinationAddr.value = "";
       displaySendNft.value = false;
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
     }catch(error){
       displayAndLogError(error)
     } finally {
@@ -280,7 +297,7 @@
       );
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, tokenId: displayId });
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
     } catch (error) {
       displayAndLogError(error)
     } finally {
@@ -313,7 +330,7 @@
       const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
       displayAuthTransfer.value = false;
       destinationAddr.value = "";
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
     } catch (error) {
       displayAndLogError(error)
     } finally {

@@ -8,8 +8,9 @@
   import type { BcmrTokenMetadata } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { useTokenAddressInput, useNftParsing, type TokenActionType } from 'src/utils/tokenComposables'
-  import { confirmDialog, notifySending, showTransactionResult } from 'src/utils/txHelpers'
+  import { useNftParsing, type TokenActionType } from 'src/utils/tokenComposables'
+  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/blockieIcon'
   import { useI18n } from 'vue-i18n'
@@ -35,12 +36,12 @@
   const displayNftInfo = ref(false);
   const displayMintNfts = ref(false);
   const displayBurnNft = ref(false);
+  const destinationAddr = ref("");
+  const showQrCodeDialog = ref(false);
   const activeAction = ref<TokenActionType | null>(null);
 
   const category = computed(() => nftData.value.token!.category);
 
-  const { destinationAddr, showQrCodeDialog, qrDecode, parseAddrParams, qrFilter, validateDestination } =
-    useTokenAddressInput(() => category.value);
   const { parseResult, parsingNft, isParsable, hasParyonUsdExtension } =
     useNftParsing(() => category.value, () => nftData.value);
 
@@ -91,6 +92,22 @@
     }
   })
 
+  function parseAddrParams(){
+    const parsed = parseTokenRecipientRequest(destinationAddr.value, category.value);
+    if(!parsed) return;
+    destinationAddr.value = parsed.address;
+  }
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+    parseAddrParams();
+  }
+  const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true;
+  function validateDestination(opts?: { requireTokenSupport?: boolean }): string {
+    const address = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, opts);
+    destinationAddr.value = address;
+    return address;
+  }
+
   async function sendNft(){
     if (activeAction.value) return;
     activeAction.value = 'sending';
@@ -129,7 +146,7 @@
       }
       destinationAddr.value = "";
       displaySendNft.value = false;
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
     }catch(error){
       displayAndLogError(error)
     } finally {
@@ -165,7 +182,7 @@
       );
       const displayId = `${category.value.slice(0, 20)}...${category.value.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, tokenId: displayId });
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
     } catch (error) {
       displayAndLogError(error)
     } finally {

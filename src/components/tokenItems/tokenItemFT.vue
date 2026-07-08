@@ -7,8 +7,9 @@
   import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { useTokenAddressInput, type TokenActionType } from 'src/utils/tokenComposables'
-  import { confirmDialog, notifySending, showTransactionResult } from 'src/utils/txHelpers'
+  import type { TokenActionType } from 'src/utils/tokenComposables'
+  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
   import { useI18n } from 'vue-i18n'
@@ -29,30 +30,14 @@
   const displayAuthTransfer = ref(false);
   const displayTokenInfo = ref(false);
   const tokenSendAmount = ref("");
+  const destinationAddr = ref("");
+  const showQrCodeDialog = ref(false);
   const burnAmountFTs = ref("");
   const reservedSupplyInput = ref("")
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   const activeAction = ref<TokenActionType | null>(null);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category];
-
-  const { destinationAddr, showQrCodeDialog, qrDecode, parseAddrParams, qrFilter, validateDestination } =
-    useTokenAddressInput(() => tokenData.value.category, (otherParams) => {
-      // Auto-fill fungible token amount if the category param (c=) matches this token
-      // Supports both ft= (spec proposal) and f= (Paytaca) as the fungible amount param - they are equivalent
-      // Amount is in base token units, so apply the decimals from token metadata
-      // e.g. ft=10000 with 2 decimals = 100 tokens displayed to user
-      const categoryParam = otherParams.c;
-      const fungibleAmountParam = otherParams.ft ?? otherParams.f;
-      if(categoryParam === tokenData.value.category && fungibleAmountParam){
-        const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-        const amountBaseUnits = parseInt(fungibleAmountParam, 10);
-        if (!isNaN(amountBaseUnits) && amountBaseUnits >= 0) {
-          const humanReadableAmount = decimals ? amountBaseUnits / (10 ** decimals) : amountBaseUnits;
-          tokenSendAmount.value = String(humanReadableAmount);
-        }
-      }
-    });
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
@@ -102,6 +87,32 @@
     const amountTokens = decimals ? Number(tokenData.value.amount) / (10 ** decimals) : tokenData.value.amount;
     const targetState = tokenSend? tokenSendAmount : burnAmountFTs;
     targetState.value = numberFormatter.format(amountTokens);
+  }
+  function parseAddrParams(){
+    const parsed = parseTokenRecipientRequest(destinationAddr.value, tokenData.value.category);
+    if(!parsed) return;
+    destinationAddr.value = parsed.address;
+
+    // Auto-fill fungible token amount from token payment requests.
+    const fungibleAmountParam = parsed.otherParams?.ft ?? parsed.otherParams?.f;
+    if(parsed.otherParams?.c === tokenData.value.category && fungibleAmountParam){
+      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+      const amountBaseUnits = parseInt(fungibleAmountParam, 10);
+      if (!isNaN(amountBaseUnits) && amountBaseUnits >= 0) {
+        const humanReadableAmount = decimals ? amountBaseUnits / (10 ** decimals) : amountBaseUnits;
+        tokenSendAmount.value = String(humanReadableAmount);
+      }
+    }
+  }
+  const qrDecode = (content: string) => {
+    destinationAddr.value = content;
+    parseAddrParams();
+  }
+  const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true;
+  function validateDestination(opts?: { requireTokenSupport?: boolean }): string {
+    const address = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, opts);
+    destinationAddr.value = address;
+    return address;
   }
   async function sendTokens(){
     if (activeAction.value) return;
@@ -153,7 +164,7 @@
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
     }catch(error){
       displayAndLogError(error)
     } finally {
@@ -195,7 +206,7 @@
       }
       burnAmountFTs.value = "";
       displayBurnFungibles.value = false;
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
     } catch (error) {
       displayAndLogError(error)
     } finally {
@@ -237,7 +248,7 @@
       const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
       displayAuthTransfer.value = false;
       destinationAddr.value = "";
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
     } catch (error) {
       displayAndLogError(error);
     } finally {

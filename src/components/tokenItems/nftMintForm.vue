@@ -3,8 +3,9 @@
   import { TokenMintRequest } from "mainnet-js"
   import { bigIntToVmNumber, binToHex } from "@bitauth/libauth"
   import { useStore } from 'src/stores/store'
-  import { useTokenAddressInput, type TokenActionType } from 'src/utils/tokenComposables'
-  import { notifySending, showTransactionResult } from 'src/utils/txHelpers'
+  import type { TokenActionType } from 'src/utils/tokenComposables'
+  import { parseTokenRecipientRequest, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
+  import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
@@ -25,8 +26,18 @@
   const mintCommitment = ref("");
   const mintQuantity = ref(undefined as string | undefined);
   const startingNumberNFTs = ref(undefined as string | undefined);
+  const destinationAddr = ref("");
 
-  const { destinationAddr, parseAddrParams, validateDestination } = useTokenAddressInput(() => props.category);
+  function parseAddrParams(){
+    const parsed = parseTokenRecipientRequest(destinationAddr.value, props.category);
+    if(!parsed) return;
+    destinationAddr.value = parsed.address;
+  }
+  function validateDestination(): string {
+    const address = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
+    destinationAddr.value = address;
+    return address;
+  }
 
   const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
 
@@ -86,7 +97,7 @@
       mintQuantity.value = undefined;
       startingNumberNFTs.value = undefined;
       emit('minted');
-      await showTransactionResult(alertMessage, txId, t('tokenItem.success.mintSuccessful'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.mintSuccessful'));
     } catch (error) {
       displayAndLogError(error)
     } finally {
