@@ -85,8 +85,8 @@ importers:
         specifier: ^1.61.1
         version: 1.61.1
       '@quasar/app-vite':
-        specifier: ^3.0.0
-        version: 3.0.0(@types/node@24.13.2)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.39(typescript@6.0.3)))(quasar@2.21.1)(sass@1.100.0)(terser@5.48.0)(typescript@6.0.3)(vue-router@4.6.4(vue@3.5.39(typescript@6.0.3)))(vue@3.5.39(typescript@6.0.3))
+        specifier: ^3.0.1
+        version: 3.0.1(@types/node@24.13.2)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.39(typescript@6.0.3)))(quasar@2.21.1)(sass@1.100.0)(terser@5.48.0)(typescript@6.0.3)(vue-router@4.6.4(vue@3.5.39(typescript@6.0.3)))(vue@3.5.39(typescript@6.0.3))
       '@types/node':
         specifier: ^24.10.0
         version: 24.13.2
@@ -505,8 +505,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@quasar/app-vite@3.0.0':
-    resolution: {integrity: sha512-jdoExSTefDxaG/FMiXjxNffiL2whmFaWyxxh9q0N2eff0Ohi9l1PK/WIWrEa+II/eJ9l6vCHzA8MkCHkiGunSg==}
+  '@quasar/app-vite@3.0.1':
+    resolution: {integrity: sha512-6lUO8ZXLdURddWjYzgJnjM10tXBj7Sj2Mr7uwD6SqebDnW4fVYLjwUs8HP9EUVhipMuDNQWMfT9oAG3Tg4Kaow==}
     engines: {node: ^30 || ^28 || ^26 || ^24 || ^22.22.0}
     hasBin: true
     peerDependencies:
@@ -3152,7 +3152,7 @@ snapshots:
     dependencies:
       playwright: 1.61.1
 
-  '@quasar/app-vite@3.0.0(@types/node@24.13.2)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.39(typescript@6.0.3)))(quasar@2.21.1)(sass@1.100.0)(terser@5.48.0)(typescript@6.0.3)(vue-router@4.6.4(vue@3.5.39(typescript@6.0.3)))(vue@3.5.39(typescript@6.0.3))':
+  '@quasar/app-vite@3.0.1(@types/node@24.13.2)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.39(typescript@6.0.3)))(quasar@2.21.1)(sass@1.100.0)(terser@5.48.0)(typescript@6.0.3)(vue-router@4.6.4(vue@3.5.39(typescript@6.0.3)))(vue@3.5.39(typescript@6.0.3))':
     dependencies:
       '@clack/prompts': 1.7.0
       '@quasar/art': 1.0.0

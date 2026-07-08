@@ -68,19 +68,6 @@ export default defineConfig((ctx) => {
       // polyfillModulePreload: true,
       // distDir
 
-      // @quasar/app-vite v3 regression: src-capacitor/www is no longer emptied before a
-      // build (vite runs with emptyOutDir: false, and cleanArtifacts() now targets
-      // dist/capacitor instead of the www dir), so stale hashed bundles from previous
-      // builds accumulate and get packaged into the APK. Empty it ourselves.
-      async beforeBuild() {
-        if ('capacitor' in ctx.mode) {
-          const { rm, mkdir } = await import('node:fs/promises');
-          const wwwDir = ctx.appPaths.resolve.capacitor('www');
-          await rm(wwwDir, { recursive: true, force: true });
-          await mkdir(wwwDir, { recursive: true });
-        }
-      },
-
       // @reown/walletkit hard-depends on @walletconnect/pay (~264KB gzip, ~28% of all
       // app JS) and auto-instantiates it in every WASM-capable browser, but Cashonize
       // never uses WalletConnect Pay. The package is removed from the install entirely

@@ -15,6 +15,11 @@
 # then flip it on with no exclude list. (Enforced at resolution time — keep the lockfile
 # frozen while waiting.)
 
+# Exempt from the release-age quarantine: needed to pick up same-day regression fixes
+# in Quasar's build tooling (e.g. v3.0.1 www-folder clean fix). Dev-only, not shipped.
+minimumReleaseAgeExclude:
+  - '@quasar/app-vite'
+
 # Enforce the "engines" field (node / pnpm) instead of just warning.
 engineStrict: true
 
