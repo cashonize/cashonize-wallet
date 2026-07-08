@@ -101,6 +101,32 @@ export function formatTimestamp(timestamp: number | undefined, dateFormat: DateF
   return short ? dateStr : `${dateStr} ${time}`;
 }
 
+function checkValidTokenInput(numberInput: string, decimals: number){
+  // Validate the input format (no separting commas allowed here)
+  if (!/^\d*\.?\d*$/.test(numberInput)) throw new Error(t('tokenItem.errors.invalidNumberFormat'));
+
+  // Validate if the input can be converted to a number
+  const number = parseFloat(numberInput);
+  if (isNaN(number) || number <= 0) throw new Error(t('tokenItem.errors.enterValidAmount'));
+
+  // check number of decimal places
+  const decimalPart = numberInput.split('.')[1];
+  const decimalPlaces = decimalPart ? decimalPart.length : 0;
+  const validInput = decimalPlaces <= decimals
+  if(!validInput && !decimals) throw new Error(t('tokenItem.errors.noDecimalsAllowed'));
+  if(!validInput) throw new Error(t('tokenItem.errors.maxDecimalsAllowed', { decimals }));
+}
+
+// Parses a user-entered token amount into base units.
+// Throws a localized error on invalid input; uses string math instead of
+// float multiplication so large amounts don't lose precision.
+export function parseTokenAmountToBigInt(input: string, decimals: number): bigint {
+  const sanitizedInput = input.replace(/,/g, '');
+  checkValidTokenInput(sanitizedInput, decimals);
+  const [integerPart = '', fractionalPart = ''] = sanitizedInput.split('.');
+  return BigInt(integerPart + fractionalPart.padEnd(decimals, '0'));
+}
+
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
   const newFiatValue =  Number(satAmount) * exchangeRate / 100_000_000
   return Number(newFiatValue.toFixed(2));

@@ -4,7 +4,6 @@
   import walletsOverview from './settings/walletsOverview.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
   import { computed, ref } from 'vue'
-  import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { Connection, type ElectrumNetworkProvider, Config } from "mainnet-js"
   import { useStore } from '../stores/store'
@@ -12,11 +11,11 @@
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
+  import { confirmDialog } from 'src/utils/txHelpers'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
   const cashconnectStore = useCashconnectStore()
-  const $q = useQuasar()
   const { t } = useI18n()
   import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
@@ -260,16 +259,12 @@
     if (isPwaMode) {
       text = t('settings.advanced.deleteAllWalletsPwaWarning', { platform: platformString });
     }
-    const confirmed = await new Promise<boolean>((resolve) => {
-      $q.dialog({
-        title: t('settings.advanced.deleteAllWalletsTitle'),
-        message: text,
-        cancel: { flat: true, color: 'dark' },
-        ok: { label: t('settings.advanced.deleteAllButton'), color: 'red', textColor: 'white' },
-        persistent: true
-      }).onOk(() => resolve(true))
-        .onCancel(() => resolve(false))
-    })
+    const confirmed = await confirmDialog(
+      t('settings.advanced.deleteAllWalletsTitle'),
+      text,
+      t('settings.advanced.deleteAllButton'),
+      'red'
+    )
     if (confirmed) {
       // TODO: see if we need 'resetWalletState' to cancel subscriptions, etc.
 

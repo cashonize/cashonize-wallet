@@ -1,21 +1,17 @@
 <script setup lang="ts">
   import { ref, toRefs, computed, watch } from 'vue';
   import { TokenSendRequest, convert } from "mainnet-js"
-  import { decodeCashAddress } from "@bitauth/libauth"
-  import alertDialog from 'src/components/general/alertDialog.vue'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, BcmrTokenMetadata } from "src/interfaces/interfaces"
-  import { copyToClipboard, formatFiatAmount, sanitizeUrl } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
-  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
+  import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { caughtErrorToString } from 'src/utils/errorHandling'
+  import { useTokenAddressInput, type TokenActionType } from 'src/utils/tokenComposables'
+  import { confirmDialog, notifySending, showTransactionResult } from 'src/utils/txHelpers'
+  import { displayAndLogError } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
-  import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -33,14 +29,30 @@
   const displayAuthTransfer = ref(false);
   const displayTokenInfo = ref(false);
   const tokenSendAmount = ref("");
-  const destinationAddr = ref("");
   const burnAmountFTs = ref("");
   const reservedSupplyInput = ref("")
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
-  const showQrCodeDialog = ref(false);
-  const activeAction = ref<'sending' | 'burning' | 'transferAuth' | null>(null);
+  const activeAction = ref<TokenActionType | null>(null);
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category];
+
+  const { destinationAddr, showQrCodeDialog, qrDecode, parseAddrParams, qrFilter, validateDestination } =
+    useTokenAddressInput(() => tokenData.value.category, (otherParams) => {
+      // Auto-fill fungible token amount if the category param (c=) matches this token
+      // Supports both ft= (spec proposal) and f= (Paytaca) as the fungible amount param - they are equivalent
+      // Amount is in base token units, so apply the decimals from token metadata
+      // e.g. ft=10000 with 2 decimals = 100 tokens displayed to user
+      const categoryParam = otherParams.c;
+      const fungibleAmountParam = otherParams.ft ?? otherParams.f;
+      if(categoryParam === tokenData.value.category && fungibleAmountParam){
+        const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+        const amountBaseUnits = parseInt(fungibleAmountParam, 10);
+        if (!isNaN(amountBaseUnits) && amountBaseUnits >= 0) {
+          const humanReadableAmount = decimals ? amountBaseUnits / (10 ** decimals) : amountBaseUnits;
+          tokenSendAmount.value = String(humanReadableAmount);
+        }
+      }
+    });
 
   const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
@@ -77,82 +89,6 @@
     { immediate: true }
   );
 
-  function checkValidTokenInput(numberInput: string, decimals: number){
-    // Validate the input format (no separting commas allowed here)
-    if (!/^\d*\.?\d*$/.test(numberInput)) throw new Error(t('tokenItem.errors.invalidNumberFormat'));
-
-    // Validate if the input can be converted to a number
-    const number = parseFloat(numberInput);
-    if (isNaN(number) || number <= 0) throw new Error(t('tokenItem.errors.enterValidAmount'));
-
-    // check number of decimal places
-    const decimalPart = numberInput.split('.')[1];
-    const decimalPlaces = decimalPart ? decimalPart.length : 0;
-    const validInput = decimalPlaces <= decimals
-    if(!validInput && !decimals) throw new Error(t('tokenItem.errors.noDecimalsAllowed'));
-    if(!validInput) throw new Error(t('tokenItem.errors.maxDecimalsAllowed', { decimals }));
-  }
-  const qrDecode = (content: string) => {
-    destinationAddr.value = content;
-    parseAddrParams();
-  }
-  
-  function parseAddrParams(){
-    if(!isBip21Uri(destinationAddr.value) || !destinationAddr.value.includes("?")) return;
-
-    // Parse BIP21 URIs with query params
-    try {
-      const parsed = parseBip21Uri(destinationAddr.value);
-
-      const validationError = getBip21ValidationError(parsed);
-      if (validationError) {
-        $q.notify({ message: validationError, icon: 'warning', color: "red" });
-        return;
-      }
-
-      // Check if c= is for a different token
-      if(parsed.otherParams?.c && parsed.otherParams.c !== tokenData.value.category){
-        $q.notify({ message: t('tokenItem.errors.differentTokenRequest'), icon: 'warning', color: "grey-7" });
-        return;
-      }
-
-      // Set the address (without query params)
-      destinationAddr.value = parsed.address;
-
-      // Auto-fill fungible token amount if c= matches this token
-      // Supports both ft= (spec proposal) and f= (Paytaca) - they are equivalent
-      // Amount is in base token units, so apply the decimals from token metadata
-      // e.g. ft=10000 with 2 decimals = 100 tokens displayed to user
-      const ftParam = parsed.otherParams?.ft ?? parsed.otherParams?.f;
-      if(parsed.otherParams?.c === tokenData.value.category && ftParam){
-        const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-        const ftBaseUnits = parseInt(ftParam, 10);
-        if (!isNaN(ftBaseUnits) && ftBaseUnits >= 0) {
-          const humanReadable = decimals ? ftBaseUnits / (10 ** decimals) : ftBaseUnits;
-          tokenSendAmount.value = String(humanReadable);
-        }
-      }
-    } catch {
-      // If parsing fails, leave the input as-is
-    }
-  }
-  const qrFilter = (content: string) => {
-    // Extract address from BIP21 URI if needed
-    let addressToCheck = content;
-    if(isBip21Uri(content) && content.includes("?")){
-      try {
-        const parsed = parseBip21Uri(content);
-        addressToCheck = parsed.address;
-      } catch {
-        // If parsing fails, try with original content
-      }
-    }
-    const decoded = decodeCashAddress(addressToCheck);
-    if (typeof decoded === "string" || decoded.prefix !== `${store.wallet.networkPrefix}`) {
-      return t('tokenItem.errors.notCashaddress');
-    }
-    return true;
-  }
   // Fungible token specific functionality
   function toAmountDecimals(amount:bigint){
     let tokenAmountDecimals: bigint|number = amount;
@@ -172,33 +108,19 @@
     activeAction.value = 'sending';
     try{
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
-      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'));
+      validateDestination({ requireTokenSupport: true });
       if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
-      const sanitizedInput = tokenSendAmount.value.replace(/,/g, '');
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      checkValidTokenInput(sanitizedInput, decimals)
-      const amountTokensNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
-      const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
+      const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
       const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-      const { address, decodedAddress } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
-        invalidAddress: t('tokenItem.errors.invalidAddress'),
-        wrongNetwork: t('tokenItem.errors.notCashaddress'),
-      });
-      destinationAddr.value = address;
-      const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');
-      if(!supportsTokens ) throw new Error(t('tokenItem.errors.notTokenAddress'));
       if(tokenData.value?.authUtxo){
-        const authConfirmed = await new Promise<boolean>((resolve) => {
-          $q.dialog({
-            title: t('tokenItem.dialogs.authWarning.title'),
-            message: t('tokenItem.dialogs.authWarning.message'),
-            cancel: { flat: true, color: 'dark' },
-            ok: { label: t('tokenItem.dialogs.authWarning.continueButton'), color: 'red', textColor: 'white' },
-            persistent: true
-          }).onOk(() => resolve(true))
-            .onCancel(() => resolve(false))
-        })
+        const authConfirmed = await confirmDialog(
+          t('tokenItem.dialogs.authWarning.title'),
+          t('tokenItem.dialogs.authWarning.message'),
+          t('tokenItem.dialogs.authWarning.continueButton'),
+          'red'
+        )
         if (!authConfirmed) return
       }
 
@@ -206,26 +128,16 @@
       if (settingsStore.confirmBeforeSending) {
         const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.category.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
-        const confirmed = await new Promise<boolean>((resolve) => {
-          $q.dialog({
-            title: t('tokenItem.dialogs.confirmTokenSend.title'),
-            message: t('tokenItem.dialogs.confirmTokenSend.message', { amount: amountSentFormatted, symbol: tokenSymbol, address: truncatedAddr }),
-            cancel: { flat: true, color: 'dark' },
-            ok: { label: t('tokenItem.dialogs.confirmButton'), color: 'primary', textColor: 'white' },
-            persistent: true
-          }).onOk(() => resolve(true))
-            .onCancel(() => resolve(false))
-        })
+        const confirmed = await confirmDialog(
+          t('tokenItem.dialogs.confirmTokenSend.title'),
+          t('tokenItem.dialogs.confirmTokenSend.message', { amount: amountSentFormatted, symbol: tokenSymbol, address: truncatedAddr }),
+          t('tokenItem.dialogs.confirmButton')
+        )
         if (!confirmed) return
       }
 
       const category = tokenData.value.category;
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending();
       const { txId } = await store.wallet.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
@@ -238,27 +150,12 @@
       if (tokenMetaData.value?.token?.symbol) {
         alertMessage = t('tokenItem.alerts.sentTokens', { amount: amountSentFormatted, symbol: tokenMetaData.value.token.symbol, address: destinationAddr.value });
       }
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.transactionSent')
-      })
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
+      await showTransactionResult(alertMessage, txId, t('tokenItem.success.transactionSent'));
     }catch(error){
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
@@ -269,34 +166,22 @@
     try {
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
       if(!burnAmountFTs?.value) throw new Error(t('tokenItem.errors.amountMustBeInteger'));
-      const sanitizedInput = burnAmountFTs.value.replace(/,/g, '');
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      checkValidTokenInput(sanitizedInput, decimals)
-      const amountTokensNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
-      const amountTokensInt = typeof amountTokensNumber == "number" ? BigInt(Math.round(amountTokensNumber)): BigInt(amountTokensNumber)
+      const amountTokensInt = parseTokenAmountToBigInt(burnAmountFTs.value, decimals);
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
 
       const amountBurnFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const tokenSymbol = tokenMetaData.value?.token?.symbol ?? t('tokenItem.tokens')
-      const confirmed = await new Promise<boolean>((resolve) => {
-        $q.dialog({
-          title: t('tokenItem.dialogs.burnTokens.title'),
-          message: t('tokenItem.dialogs.burnTokens.message', { amount: amountBurnFormatted, symbol: tokenSymbol }),
-          cancel: { flat: true, color: 'dark' },
-          ok: { label: t('tokenItem.dialogs.burnTokens.burnButton'), color: 'red', textColor: 'white' },
-          persistent: true
-        }).onOk(() => resolve(true))
-          .onCancel(() => resolve(false))
-      })
+      const confirmed = await confirmDialog(
+        t('tokenItem.dialogs.burnTokens.title'),
+        t('tokenItem.dialogs.burnTokens.message', { amount: amountBurnFormatted, symbol: tokenSymbol }),
+        t('tokenItem.dialogs.burnTokens.burnButton'),
+        'red'
+      )
       if (!confirmed) return
 
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending();
       const { txId } = await store.wallet.tokenBurn({
           category: category,
           amount: amountTokensInt,
@@ -304,29 +189,15 @@
         "burn", // optional OP_RETURN message
       );
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      const amountBurntFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
-      let alertMessage = t('tokenItem.alerts.burnedTokensNoSymbol', { amount: amountBurntFormatted, category: displayId });
+      let alertMessage = t('tokenItem.alerts.burnedTokensNoSymbol', { amount: amountBurnFormatted, category: displayId });
       if (tokenMetaData.value?.token?.symbol) {
-        alertMessage = t('tokenItem.alerts.burnedTokens', { amount: amountBurntFormatted, symbol: tokenMetaData.value.token.symbol });
+        alertMessage = t('tokenItem.alerts.burnedTokens', { amount: amountBurnFormatted, symbol: tokenMetaData.value.token.symbol });
       }
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.burnSuccessful')
-      })
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
       burnAmountFTs.value = "";
       displayBurnFungibles.value = false;
-      // update utxo list
-      await store.updateWalletUtxos();
+      await showTransactionResult(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
     } catch (error) {
-      handleTransactionError(error)
+      displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
@@ -334,22 +205,14 @@
   async function transferAuth() {
     if (activeAction.value) return;
     if(!tokenData.value?.authUtxo) return;
-    if(!reservedSupplyInput?.value) throw new Error(t('tokenItem.errors.reservedSupplyInvalid'));
-    const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-    const sanitizedInput = reservedSupplyInput.value.replace(/,/g, '');
-    checkValidTokenInput(sanitizedInput, decimals)
-    const reservedSupplyNumber = decimals ? +sanitizedInput * (10 ** decimals) : sanitizedInput;
-    const reservedSupply = typeof reservedSupplyNumber == "number" ? BigInt(Math.round(reservedSupplyNumber)): BigInt(reservedSupplyNumber)
-    if(reservedSupply > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-    const category = tokenData.value.category;
     activeAction.value = 'transferAuth';
     try {
-      if(!destinationAddr.value) throw new Error(t('tokenItem.errors.noDestination'));
-      const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
-        invalidAddress: t('tokenItem.errors.invalidAddress'),
-        wrongNetwork: t('tokenItem.errors.notCashaddress'),
-      });
-      destinationAddr.value = address;
+      if(!reservedSupplyInput?.value) throw new Error(t('tokenItem.errors.reservedSupplyInvalid'));
+      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+      const reservedSupply = parseTokenAmountToBigInt(reservedSupplyInput.value, decimals);
+      if(reservedSupply > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
+      const category = tokenData.value.category;
+      validateDestination();
       const authTransfer = !reservedSupply? {
         cashaddr: destinationAddr.value,
         value: 1000n,
@@ -368,48 +231,18 @@
         });
         outputs.push(changeOutput)
       }
-      $q.notify({
-        spinner: true,
-        message: t('common.status.sending'),
-        color: 'grey-5',
-        timeout: 1000
-      })
+      notifySending();
       const { txId } = await store.wallet.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
-      $q.dialog({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: { message: alertMessage, txid: txId }
-        }
-      })
-       $q.notify({
-        type: 'positive',
-        message: t('tokenItem.success.authTransferSuccessful')
-      })
       displayAuthTransfer.value = false;
       destinationAddr.value = "";
-      console.log(alertMessage);
-      console.log(`${store.explorerUrl}/${txId}`);
-      // update utxo list
-      await store.updateWalletUtxos();
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
+      await showTransactionResult(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
     } catch (error) {
-      handleTransactionError(error);
+      displayAndLogError(error);
     } finally {
       activeAction.value = null;
     }
-  }
-
-  function handleTransactionError(error: unknown){
-    const errorMessage = caughtErrorToString(error);
-    console.error(errorMessage)
-    $q.notify({
-      message: errorMessage,
-      icon: 'warning',
-      color: "red"
-    }) 
   }
 </script>
 

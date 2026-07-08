@@ -4,6 +4,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils'
+  import { confirmDialog } from 'src/utils/txHelpers'
   import { DERIVATION_PATHS } from 'src/utils/walletUtils'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
@@ -146,16 +147,11 @@
   }
 
   async function copySeedphrase() {
-    const confirmed = await new Promise<boolean>((resolve) => {
-      $q.dialog({
-        title: t('backupWallet.seedPhrase.copyTitle'),
-        message: t('backupWallet.seedPhrase.copyMessage'),
-        cancel: { flat: true, color: 'dark' },
-        ok: { label: t('backupWallet.seedPhrase.copyButton'), color: 'primary', textColor: 'white' },
-        persistent: true
-      }).onOk(() => resolve(true))
-        .onCancel(() => resolve(false))
-    })
+    const confirmed = await confirmDialog(
+      t('backupWallet.seedPhrase.copyTitle'),
+      t('backupWallet.seedPhrase.copyMessage'),
+      t('backupWallet.seedPhrase.copyButton')
+    )
     if (!confirmed) return
     void navigator.clipboard.writeText(store.wallet.mnemonic);
     $q.notify({
