@@ -484,12 +484,13 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const schema = settingsStore.strictWcSchema ? StrictEncodedWcTransactionObjSchema : LooseEncodedWcTransactionObjSchema;
     try {
       const encodedWcTransactionObj = schema.parse(wcSignTransactionParams);
-      // Further validation whether the
+      // Further validation that a hex-form transaction decodes to a structurally valid transaction
       if(typeof encodedWcTransactionObj.transaction === "string") {
         const decodedResult = decodeTransaction(hexToBin(encodedWcTransactionObj.transaction));
         if(typeof decodedResult == "string") throw new Error("Invalid transaction hex string in encodedWcTransactionObj: " + decodedResult);
       }
-      // TODO: do we also want to encode the decoded TransactionBCH as a way of validation?
+      // TODO: consider local VM evaluation (libauth vm.verify with the sourceOutputs) of the fully
+      // signed transaction in signTransactionWC as a final check before returning it to the dapp.
     } catch (error) {
       const userFacingError = t('walletConnect.errors.invalidTransactionSchema')
       displayAndLogError(userFacingError);
