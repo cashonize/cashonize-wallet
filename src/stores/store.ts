@@ -612,13 +612,9 @@ export const useStore = defineStore('store', () => {
         if(!sessions) return
 
         for (const session of Object.values(sessions)) {
-          await walletconnectStore.web3wallet?.disconnectSession({
-            topic: session.topic,
-            reason: {
-              code: 5000,
-              message: "User rejected",
-            },
-          });
+          // deleteSession instead of raw disconnectSession so a single zombie session
+          // can't throw and abort disconnecting the remaining sessions
+          await walletconnectStore.deleteSession(session.topic);
         }
       });
     } catch (error) {

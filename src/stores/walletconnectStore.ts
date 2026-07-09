@@ -86,13 +86,13 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const core = new Core({
       projectId: walletConnectProjectId
     });
-    const newweb3wallet = await WalletKit.init({
+    const walletKit = await WalletKit.init({
       // @ts-ignore: it complains about not having a 'relayUrl' property but it is not needed
       core,
       metadata: walletConnectMetadata
     })
-    // web3wallet listeners expect synchronous callbacks, this means the promise is fire-and-forget
-    newweb3wallet.on('session_proposal', (sessionProposal) => {
+    // walletKit listeners expect synchronous callbacks, this means the promise is fire-and-forget
+    walletKit.on('session_proposal', (sessionProposal) => {
       console.debug("Session proposal received:", sessionProposal);
       try {
         wcSessionProposal(sessionProposal);
@@ -100,13 +100,13 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         console.error("Error when processing walletConnect session_proposal event:", error);
       }
     });
-    newweb3wallet.on('session_request', (event) => {
+    walletKit.on('session_request', (event) => {
       console.debug("Session request received:", event);
       const sessionAddresses = getSessionAddresses(event.topic);
       const walletAddress = sessionAddresses[0] ?? mainStore.wallet.getDepositAddress();
       wcRequest(event, walletAddress, sessionAddresses).catch(console.error);
     });
-    newweb3wallet.on('session_request_expire', (event) => {
+    walletKit.on('session_request_expire', (event) => {
       console.debug("Session request expired:", event);
       if (pendingDialog?.id === event.id) {
         const { dappName } = pendingDialog;
@@ -117,16 +117,28 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         });
       }
     });
-    newweb3wallet.on('session_delete', ({ topic }) => {
+    walletKit.on('session_delete', ({ topic }) => {
       try {
         console.debug("Session deleted by dapp:", topic);
         settingsStore.clearAutoApproveState(topic);
-        activeSessions.value = newweb3wallet.getActiveSessions();
+        activeSessions.value = walletKit.getActiveSessions();
       } catch (error) {
         console.error("Error when processing walletConnect session_delete event:", error);
       }
     });
-    web3wallet.value = newweb3wallet
+    // WalletKit doesn't forward the sign-client's 'session_expire' event, so without this
+    // listener a session hitting its expiry while the app is open lingers in the UI as an
+    // undeletable zombie session
+    walletKit.engine.signClient.events.on('session_expire', ({ topic }) => {
+      try {
+        console.debug("Session expired:", topic);
+        settingsStore.clearAutoApproveState(topic);
+        activeSessions.value = walletKit.getActiveSessions();
+      } catch (error) {
+        console.error("Error when processing walletConnect session_expire event:", error);
+      }
+    });
+    web3wallet.value = walletKit
     activeSessions.value = web3wallet.value.getActiveSessions();
     // Set our state variable so we don't initialize it again when switching networks.
     isInitialized.value = true;
@@ -222,10 +234,31 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     }
   }
   async function deleteSession(sessionId :string){
-    await web3wallet.value?.disconnectSession({
-      topic: sessionId,
-      reason: WC_SDK_ERROR.USER_DISCONNECTED
-    });
+    try {
+      // Bounded by a timeout: disconnectSession can stall indefinitely on a stale relay
+      // connection, which would leave the session undeletable in the UI
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("WalletConnect disconnectSession timed out")), 5000)
+      );
+      await Promise.race([
+        web3wallet.value?.disconnectSession({
+          topic: sessionId,
+          reason: WC_SDK_ERROR.USER_DISCONNECTED
+        }),
+        timeout
+      ]);
+    } catch (error) {
+      // Sessions deleted inside walletkit (e.g. expired) make disconnectSession throw
+      // 'Record was recently deleted' — always continue with the local cleanup
+      console.error("Failed to gracefully disconnect WalletConnect session:", error);
+      // If the session record survived the failed disconnect, delete it directly from
+      // the sign-client store so it can't linger as an undeletable zombie session
+      if (web3wallet.value?.getActiveSessions()[sessionId]) {
+        await web3wallet.value.engine.signClient.session
+          .delete(sessionId, WC_SDK_ERROR.USER_DISCONNECTED)
+          .catch(console.error);
+      }
+    }
     settingsStore.clearAutoApproveState(sessionId);
     activeSessions.value = web3wallet.value?.getActiveSessions();
   }
