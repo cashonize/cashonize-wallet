@@ -3,16 +3,6 @@ import { hexToBin } from "@bitauth/libauth";
 
 /* WcMessageObjSchema */
 
-// TODO: could try to make this more strict
-// need to consider if there is a easy way to fully validate against the libauth TransactionBCH type
-// also the deeply nested UInt8Array and BigInts are stringified so not the original types yet
-const simpleTransactionCommonSchema = z.object({
-  inputs: z.array(z.any()),
-  locktime: z.number(),
-  outputs: z.array(z.any()),
-  version: z.number(),
-});
-
 // Stringified BigInt: "<bigint: 123n>"
 const stringifiedBigIntSchema = z.string()
   .regex(/^<bigint: \d+n>$/, "Must be a stringified BigInt")
@@ -29,6 +19,14 @@ const stringifiedUint8ArraySchema = z.string()
     return match?.groups?.hex !== undefined ? hexToBin(match.groups.hex) : val;
   });
 
+// 32-byte variant, used for transaction hashes and token categories
+const stringifiedUint8Array32Schema = stringifiedUint8ArraySchema.refine(
+  (val) => val instanceof Uint8Array && val.length === 32,
+  "Must be a stringified 32-byte Uint8Array",
+);
+
+const nonNegativeIntSchema = z.number().int().nonnegative();
+
 const nftSchema = z.object({
   capability: z.enum(["none", "mutable", "minting"]),
   commitment: stringifiedUint8ArraySchema,
@@ -36,8 +34,32 @@ const nftSchema = z.object({
 
 const tokenSchema = z.object({
   amount: stringifiedBigIntSchema,
-  category: stringifiedUint8ArraySchema,
+  category: stringifiedUint8Array32Schema,
   nft: z.optional(nftSchema),
+});
+
+// The object form of the transaction mirrors libauth's Transaction type (Input/Output),
+// transmitted with libauth's stringify so Uint8Array and BigInt fields arrive in stringified form.
+// The full shape is validated because this object is what the user approves in the transaction
+// dialog and what libauth encodes and signs — it must be well-formed before either happens.
+const wcTransactionInputSchema = z.object({
+  outpointIndex: nonNegativeIntSchema,
+  outpointTransactionHash: stringifiedUint8Array32Schema,
+  sequenceNumber: nonNegativeIntSchema,
+  unlockingBytecode: stringifiedUint8ArraySchema,
+});
+
+const wcTransactionOutputSchema = z.object({
+  lockingBytecode: stringifiedUint8ArraySchema,
+  token: z.optional(tokenSchema),
+  valueSatoshis: stringifiedBigIntSchema,
+});
+
+const wcTransactionSchema = z.object({
+  inputs: z.array(wcTransactionInputSchema).min(1),
+  locktime: nonNegativeIntSchema,
+  outputs: z.array(wcTransactionOutputSchema).min(1),
+  version: nonNegativeIntSchema,
 });
 
 // The contract schema only validates the fields Cashonize uses (contractName, abiFunction.name, redeemScript).
@@ -64,7 +86,7 @@ const looseContractSchema = strictContractSchema.extend({
 // WC source outputs are transmitted using libauth's stringify, since they contain UInt8Array and BigInt.
 const strictWcSourceOutputSchema = z.object({
   outpointIndex: z.number(),
-  outpointTransactionHash: stringifiedUint8ArraySchema,
+  outpointTransactionHash: stringifiedUint8Array32Schema,
   sequenceNumber: z.number(),
   lockingBytecode: stringifiedUint8ArraySchema,
   unlockingBytecode: stringifiedUint8ArraySchema,
@@ -80,7 +102,7 @@ const looseWcSourceOutputSchema = strictWcSourceOutputSchema.extend({
 const hexEncodedStringSchema = z.string().regex(/^[0-9a-fA-F]+$/, "Must be a hex-encoded string");
 
 export const StrictEncodedWcTransactionObjSchema = z.object({
-  transaction: z.union([hexEncodedStringSchema, simpleTransactionCommonSchema]),
+  transaction: z.union([hexEncodedStringSchema, wcTransactionSchema]),
   sourceOutputs: z.array(strictWcSourceOutputSchema),
   broadcast: z.optional(z.boolean()),
   userPrompt: z.optional(z.string()),
