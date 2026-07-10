@@ -3,11 +3,10 @@
   import { binToHex, decodeTransactionUnsafe, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
-  import { convertToCurrency, formatFiatAmount, formatNumber, parseExtendedJson, sanitizeUrl } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatNumber, sanitizeUrl } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
-  import { type WalletKitTypes } from '@reown/walletkit';
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
@@ -19,21 +18,22 @@
   // Same approach as CCSignTransactionDialog.vue
   const unverifiedTokenMetadata = ref<Record<string, BcmrTokenResponse>>({});
 
+  // This dialog is shared by the WalletConnect and WizardConnect stores, which validate
+  // the untrusted request params and pass the parsed transaction request object.
   const props = defineProps<{
     dappMetadata: DappMetadata,
-    transactionRequestWC: WalletKitTypes.SessionRequest,
+    transactionRequest: WcSignTransactionRequest,
     exchangeRate: number,
   }>()
-  const { transactionRequestWC, exchangeRate } = toRefs(props);
+  const { exchangeRate } = toRefs(props);
   const safeUrl = sanitizeUrl(props.dappMetadata.url);
 
   defineEmits([
     ...useDialogPluginComponent.emits
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
-  
-  // parse params from transactionRequestWC as extended JSON to handle stringified/encoded Uint8Array and BigInt
-  const requestParams = parseExtendedJson(JSON.stringify(transactionRequestWC.value.params.request.params)) as WcSignTransactionRequest;
+
+  const requestParams = props.transactionRequest;
   const { transaction:wcTransactionItem, sourceOutputs } = requestParams;
 
   // We can use decodeTransactionUnsafe because we already perform validation in isValidSignTransactionRequest
@@ -190,11 +190,12 @@
 
         <div style="font-size: large; margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.origin') }}</div>
         <div style="display: flex;">
-          <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
+          <img v-if="dappMetadata.icons[0]" :src="dappMetadata.icons[0]" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
             <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
-            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
+            <!-- WizardConnect sessions carry no dapp url, so only warn when a url is present but unsafe -->
+            <span v-else-if="dappMetadata.url" style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
           </div>
         </div>
 

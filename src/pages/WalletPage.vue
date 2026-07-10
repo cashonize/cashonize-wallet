@@ -109,12 +109,12 @@
   // If no wallet exists, displayView stays undefined and onboarding is shown
   
   // check if session request in URL params passed through props
-  if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
+  if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:') || props?.uri?.toLowerCase().startsWith('wiz:')){
     if(walletExists){
       dappUriUrlParam.value = props.uri
-      // Promise will wait for state indicating whether WC and CC are initialized
-      const { isWcAndCcInitialized } = storeToRefs(store);
-      await waitForInitialized(isWcAndCcInitialized); 
+      // Promise will wait for state indicating whether the dapp connection stores are initialized
+      const { isDappConnectionsInitialized } = storeToRefs(store);
+      await waitForInitialized(isDappConnectionsInitialized);
       store.changeView(4);
     } else {
       $q.notify({
@@ -155,7 +155,7 @@
     // check live wallet state, not the setup-time walletExists: a wallet may have been created via onboarding since
     if(!store._wallet) return
     // check if session request in URL params passed through props
-    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
+    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:') || props?.uri?.toLowerCase().startsWith('wiz:')){
       dappUriUrlParam.value = props.uri
       store.changeView(4);
     }

@@ -63,6 +63,7 @@
       "walletNotFoundOnNetwork": "Wallet \"{name}\" existiert nicht auf {network}",
       "errorInitializingWalletConnect": "Fehler beim Initialisieren von WalletConnect",
       "errorInitializingCashConnect": "Fehler beim Initialisieren von CashConnect",
+      "errorInitializingWizardConnect": "Fehler beim Initialisieren von WizardConnect",
       "errorFetchingUtxos": "Fehler beim Abrufen der Wallet-UTXOs",
       "errorFetchingHistory": "Fehler beim Abrufen der Wallet-Historie",
       "unableToConnectElectrum": "Verbindung zum Electrum-Server '{server}' nicht möglich",
@@ -356,8 +357,8 @@
     "uriPlaceholder": "Wallet Connect URI",
     "connectButton": "Neue dApp verbinden",
     "errors": {
-      "invalidUri": "Ungültige WalletConnect- oder CashConnect-URI",
-      "notValidUri": "Keine gültige WalletConnect- oder CashConnect-URI"
+      "invalidUri": "Ungültige WalletConnect-, CashConnect- oder WizardConnect-URI",
+      "notValidUri": "Keine gültige WalletConnect-, CashConnect- oder WizardConnect-URI"
     }
   },
   "history": {
@@ -804,6 +805,34 @@
       "transactionSent": "Transaktion erfolgreich gesendet!",
       "transactionSigned": "Transaktion erfolgreich signiert!",
       "requestExpired": "Anfrage abgelaufen, bitte kehren Sie zu {dappName} zurück, um es erneut zu versuchen"
+    }
+  },
+  "wizardConnect": {
+    "sessions": {
+      "title": "WizardConnect-Sitzungen",
+      "noActiveSessions": "Derzeit keine aktiven Sitzungen.",
+      "connecting": "Verbinden...",
+      "statusConnected": "Verbunden",
+      "statusReconnecting": "Wiederverbinden...",
+      "statusDisconnected": "Getrennt"
+    },
+    "errors": {
+      "hdWalletRequired": "WizardConnect erfordert ein HD-Wallet",
+      "notInitialized": "WizardConnect noch nicht initialisiert. Bitte versuche es gleich erneut.",
+      "invalidUri": "Keine gültige WizardConnect-URI",
+      "invalidTransactionSchema": "Fehler bei der Schema-Validierung der WizardConnect-Transaktionsanfrage",
+      "failedToSignTransaction": "Transaktion konnte nicht signiert werden",
+      "errorSendingTransaction": "Fehler beim Senden der Transaktion"
+    },
+    "notifications": {
+      "sendingTransaction": "Transaktion wird gesendet...",
+      "sentTransaction": "WizardConnect-Transaktion für {dappName} gesendet",
+      "signedTransaction": "WizardConnect-Transaktion für {dappName} signiert. Bitte kehren Sie zur Dapp zurück.",
+      "transactionSignedTitle": "Transaktion signiert",
+      "transactionSent": "Transaktion erfolgreich gesendet!",
+      "transactionSigned": "Transaktion erfolgreich signiert!",
+      "requestCancelled": "Signieranfrage wurde von {dappName} abgebrochen",
+      "dappDisconnected": "WizardConnect-Sitzung wurde von {dappName} getrennt"
     }
   },
   "settings": {

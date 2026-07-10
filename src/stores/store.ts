@@ -41,6 +41,7 @@ import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
+import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
@@ -99,6 +100,7 @@ export const useStore = defineStore('store', () => {
   let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
   const isWcInitialized = ref(false as boolean)
   const isCcInitialized = ref(false as boolean)
+  const isWizInitialized = ref(false as boolean)
   const walletInitialized = ref(false as boolean)
   const latestGithubRelease = ref(undefined as undefined | string);
 
@@ -113,7 +115,7 @@ export const useStore = defineStore('store', () => {
     return _wallet.value
   })
 
-  const isWcAndCcInitialized =  computed(() => isWcInitialized.value && isCcInitialized.value)
+  const isDappConnectionsInitialized = computed(() => isWcInitialized.value && isCcInitialized.value && isWizInitialized.value)
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
   // Filtered token list based on display filter setting
@@ -265,9 +267,11 @@ export const useStore = defineStore('store', () => {
           console.error("Electrum connect error:", error)
         });
       })();
-      console.time('initialize walletconnect and cashconnect');
+      console.time('initialize dapp connection stores');
+      // WizardConnect initialization is synchronous (key derivation only, connections are fire-and-forget)
+      initializeWizardConnect();
       await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
-      console.timeEnd('initialize walletconnect and cashconnect');
+      console.timeEnd('initialize dapp connection stores');
       // wait until the electrumConnectionPromise is resolved
       await electrumConnectionPromise;
       if (initialization !== currentInitialization) return;
@@ -474,11 +478,12 @@ export const useStore = defineStore('store', () => {
     walletInitialized.value = false;
 
     if (resetDappConnections) {
-      // Reset WC/CC initialized flags so re-initialization runs after reset
+      // Reset WC/CC/Wiz initialized flags so re-initialization runs after reset
       isWcInitialized.value = false;
       isCcInitialized.value = false;
+      isWizInitialized.value = false;
 
-      // Await WC/CC cleanup so stop() finishes before start() can be called again
+      // Await WC/CC/Wiz cleanup so stop() finishes before start() can be called again
       const cleanupPromises = networkChangeCallbacks.map(callback => callback().catch(() => {}));
       await Promise.all(cleanupPromises);
       // Clear the networkChangeCallbacks before initialising newWallet
@@ -657,6 +662,29 @@ export const useStore = defineStore('store', () => {
       console.error("Error initializing CashConnect:", error);
       Notify.create({
         message: t('store.errors.errorInitializingCashConnect'),
+        icon: 'warning',
+        color: "red"
+      });
+    }
+  }
+
+  function initializeWizardConnect() {
+    try {
+      const wizardconnectStore = useWizardconnectStore();
+
+      // Start the wizardconnect service (no-op for single-address wallets).
+      wizardconnectStore.start();
+      isWizInitialized.value = true;
+
+      // Setup network change callback to disconnect all sessions.
+      networkChangeCallbacks.push(() => {
+        wizardconnectStore.stop();
+        return Promise.resolve();
+      });
+    } catch (error) {
+      console.error("Error initializing WizardConnect:", error);
+      Notify.create({
+        message: t('store.errors.errorInitializingWizardConnect'),
         icon: 'warning',
         color: "red"
       });
@@ -906,7 +934,7 @@ export const useStore = defineStore('store', () => {
     walletHistory,
     isHistoryPartial,
     plannedTokenId,
-    isWcAndCcInitialized,
+    isDappConnectionsInitialized,
     latestGithubRelease,
     network,
     explorerUrl,

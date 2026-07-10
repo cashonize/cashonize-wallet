@@ -1,0 +1,43 @@
+diff --git a/dist/wallet-connection-manager.js b/dist/wallet-connection-manager.js
+index 65729ae935beef17654516ca81113c94cf6d0a69..e26e8334f6fb20f8e992168fc3eb3d9b5fe51e26 100644
+--- a/dist/wallet-connection-manager.js
++++ b/dist/wallet-connection-manager.js
+@@ -113,21 +113,31 @@ export class WalletConnectionManager extends EventEmitter {
+         const conn = this.connections.get(connectionId);
+         if (!conn)
+             return;
++        // Cleanup must wait for the courtesy disconnect message to be relayed:
++        // running it synchronously tears down the relay connection while the
++        // message is still in flight, so the dapp never learns of the disconnect.
++        const clean = () => {
++            for (const seq of conn.signSequences) {
++                this.activeSignSequences.delete(seq);
++            }
++            clearInterval(conn.notificationProcessor ?? undefined);
++            conn.cleanup();
++            this.connections.delete(connectionId);
++            this.emit("connectionsChanged");
++        };
+         if (sendMessage && conn.client) {
+             const disconnectMsg = {
+                 action: RelayMsgAction.Disconnect,
+                 reason: DisconnectReason.UserDisconnect,
+                 time: Math.floor(Date.now() / 1000),
+             };
+-            conn.client.relay(disconnectMsg).catch(() => { });
++            conn.client.relay(disconnectMsg)
++                .then(() => { clean(); })
++                .catch(() => { clean(); });
+         }
+-        for (const seq of conn.signSequences) {
+-            this.activeSignSequences.delete(seq);
++        else {
++            clean();
+         }
+-        clearInterval(conn.notificationProcessor ?? undefined);
+-        conn.cleanup();
+-        this.connections.delete(connectionId);
+-        this.emit("connectionsChanged");
+     }
+     /**
+      * Get all connection states (for UI/Redux).

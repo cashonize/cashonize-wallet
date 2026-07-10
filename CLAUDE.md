@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, and CashConnect. Built with Quasar Framework and TypeScript. Uses Vue 3 Composition API (`<script setup>`) and Pinia for state management. Targets multiple platforms: web (SPA), desktop (Electron), and mobile (Capacitor).
+Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, CashConnect and WizardConnect. Built with Quasar Framework and TypeScript. Uses Vue 3 Composition API (`<script setup>`) and Pinia for state management. Targets multiple platforms: web (SPA), desktop (Electron), and mobile (Capacitor).
 
 ## Commands
 
@@ -56,6 +56,7 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 - **@electrum-cash/network**: Electrum client used under mainnet-js (https://gitlab.com/electrum-cash/network)
 - **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages). Uses BCH-specific payloads per the WC2-BCH spec: https://github.com/mainnet-pat/wc2-bch-bcr
 - **@cashconnect-js/core** & **@cashconnect-js/wallet**: CashConnect protocol for BCH-native dApp connections. Docs: https://cashconnect.developers.cash/ — Repo: https://gitlab.com/cashconnect-js/cashconnect-js
+- **@wizardconnect/core** & **@wizardconnect/wallet**: WizardConnect protocol for BCH HD-wallet dApp connections over Nostr relays (`wiz:` URIs). The wallet shares chain-level xpubs (receive/change/defi) so dapps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). Nostr transport is fully encapsulated in @wizardconnect/core — no separate nostr deps. HD wallets only; single-address wallets get a clear error on pairing. Repo: https://gitlab.com/riftenlabs/lib/wizardconnect
 
 ### Electrum Connections
 mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
@@ -83,8 +84,9 @@ src/components/
 ├── bchWallet.vue, myTokens.vue, connectDapp.vue, settingsMenu.vue  # Main tab views
 ├── walletOnboarding.vue                                             # Initial setup
 ├── settings/          # Components accessed from settings menu
-├── walletconnect/     # WC2 session and dialog components
+├── walletconnect/     # WC2 session and dialog components (WC2TransactionRequest is shared with wizardconnect)
 ├── cashconnect/       # CC session and dialog components
+├── wizardconnect/     # WizardConnect session components (sign dialogs are opened from wizardconnectStore)
 ├── history/           # Transaction history components
 ├── tokenItems/        # Token display components (FT, NFT)
 ├── qr/                # QR scanning components
@@ -114,7 +116,7 @@ Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). See `devel
 
 ## Dependency Pinning
 
-Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
+Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together. `@wizardconnect/wallet` additionally carries a pnpm patch (`patches/`) fixing a disconnect race — re-check whether it's still needed on upgrades.
 
 ## Code Style Preferences
 

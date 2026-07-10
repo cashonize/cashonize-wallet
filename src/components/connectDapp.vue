@@ -6,12 +6,14 @@
   import { useStore } from 'src/stores/store'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
+  import { useWizardconnectStore } from 'src/stores/wizardconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   // Components.
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
   import CCSessions from 'src/components/cashconnect/CCSessions.vue'
+  import WizSessions from 'src/components/wizardconnect/WizSessions.vue'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { caughtErrorToString } from 'src/utils/errorHandling';
 
@@ -23,6 +25,7 @@
   const walletconnectStore = useWalletconnectStore()
   const web3wallet = walletconnectStore.web3wallet
   const cashconnectStore = useCashconnectStore();
+  const wizardconnectStore = useWizardconnectStore();
 
   // Props.
   const props = defineProps<{
@@ -32,6 +35,7 @@
   // Component references.
   const walletconnectRef = ref<InstanceType<typeof WCSessions> | null>(null);
   const cashconnectRef = ref<InstanceType<typeof CCSessions> | null>(null);
+  const wizardconnectRef = ref<InstanceType<typeof WizSessions> | null>(null);
 
   // State.
   const dappUriInput = ref("");
@@ -53,9 +57,18 @@
       }
     }
     if(props.dappUriUrlParam?.startsWith('cc:')){
-      const { isWcAndCcInitialized } = storeToRefs(store);
-      await waitForInitialized(isWcAndCcInitialized);
+      const { isDappConnectionsInitialized } = storeToRefs(store);
+      await waitForInitialized(isDappConnectionsInitialized);
       await cashconnectStore?.pair(props.dappUriUrlParam);
+    }
+    if(props.dappUriUrlParam?.toLowerCase().startsWith('wiz:')){
+      const { isDappConnectionsInitialized } = storeToRefs(store);
+      await waitForInitialized(isDappConnectionsInitialized);
+      try {
+        wizardconnectStore.pair(props.dappUriUrlParam);
+      } catch (error) {
+        console.error("Error pairing WizardConnect URI:", error);
+      }
     }
   }
   // Check for dappUriUrlParam on component mount and watch for changes.
@@ -67,9 +80,9 @@
   // Methods.
   async function connectDappUriInput(dappUri: string) {
     try {
-      // Promise will wait for state indicating whether WC and CC are initialized
-      const { isWcAndCcInitialized } = storeToRefs(store);
-      await waitForInitialized(isWcAndCcInitialized);
+      // Promise will wait for state indicating whether the dapp connection stores are initialized
+      const { isDappConnectionsInitialized } = storeToRefs(store);
+      await waitForInitialized(isDappConnectionsInitialized);
 
       // If the URI begins with "wc:" (walletconnect)...
       if(dappUri.startsWith('wc:')) {
@@ -81,7 +94,14 @@
         await cashconnectRef.value?.connectDappUriInput(dappUri);
       }
 
-      // Otherwise, if it does not match CC or WC, throw an error.
+      // Otherwise, if the URI begins with "wiz:" (wizardconnect)...
+      // The case-insensitive check is deliberate: WizardConnect QR codes use an
+      // uppercased alphanumeric-mode form (WIZ://...)
+      else if (dappUri.toLowerCase().startsWith('wiz:')) {
+        wizardconnectRef.value?.connectDappUriInput(dappUri);
+      }
+
+      // Otherwise, if it does not match CC, WC or WIZ, throw an error.
       else {
         throw new Error(t('dapp.errors.invalidUri'));
       }
@@ -105,8 +125,11 @@
   const qrFilter = (content: string) => {
     const matchWalletConnect = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
     const matchCashConnect = String(content).match(/^cc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
+    // WizardConnect QR codes use an uppercased, percent-escaped alphanumeric-mode form
+    // (WIZ://%3FP%3D...), so only the scheme is matched here; the full URI is validated on pairing
+    const matchWizardConnect = String(content).match(/^wiz:\/\//i);
 
-    if (!matchWalletConnect && !matchCashConnect) {
+    if (!matchWalletConnect && !matchCashConnect && !matchWizardConnect) {
       return t('dapp.errors.notValidUri');
     }
     return true;
@@ -136,6 +159,7 @@
 
     <WCSessions ref="walletconnectRef"/>
     <CCSessions ref="cashconnectRef" />
+    <WizSessions ref="wizardconnectRef" />
 
     <div v-if="showQrCodeDialog">
       <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>

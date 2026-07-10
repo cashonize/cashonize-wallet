@@ -148,7 +148,16 @@ vi.mock('src/stores/walletconnectStore', () => ({
 // Mock cashconnectStore
 vi.mock('src/stores/cashconnectStore', () => ({
   useCashconnectStore: vi.fn(() => ({
-    initCashconnect: vi.fn().mockResolvedValue(undefined),
+    start: vi.fn().mockResolvedValue(undefined),
+    stop: vi.fn().mockResolvedValue(undefined),
+  })),
+}))
+
+// Mock wizardconnectStore
+vi.mock('src/stores/wizardconnectStore', () => ({
+  useWizardconnectStore: vi.fn(() => ({
+    start: vi.fn().mockResolvedValue(undefined),
+    stop: vi.fn().mockResolvedValue(undefined),
   })),
 }))
 

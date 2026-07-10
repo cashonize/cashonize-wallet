@@ -30,6 +30,7 @@
                 <data android:scheme="bch-wif" />
                 <data android:scheme="wc" />
                 <data android:scheme="cc" />
+                <data android:scheme="wiz" />
             </intent-filter>
 
         </activity>

@@ -63,6 +63,7 @@
       "walletNotFoundOnNetwork": "Wallet \"{name}\" does not exist on {network}",
       "errorInitializingWalletConnect": "Error initializing WalletConnect",
       "errorInitializingCashConnect": "Error initializing CashConnect",
+      "errorInitializingWizardConnect": "Error initializing WizardConnect",
       "errorFetchingUtxos": "Error in fetching wallet UTXOs",
       "errorFetchingHistory": "Error in fetching wallet history",
       "unableToConnectElectrum": "Unable to connect to Electrum server '{server}'",
@@ -356,8 +357,8 @@
     "uriPlaceholder": "Wallet Connect URI",
     "connectButton": "Connect New dApp",
     "errors": {
-      "invalidUri": "Invalid WalletConnect or CashConnect URI",
-      "notValidUri": "Not a valid WalletConnect or CashConnect URI"
+      "invalidUri": "Invalid WalletConnect, CashConnect or WizardConnect URI",
+      "notValidUri": "Not a valid WalletConnect, CashConnect or WizardConnect URI"
     }
   },
   "history": {
@@ -804,6 +805,34 @@
       "transactionSent": "Transaction successfully sent!",
       "transactionSigned": "Transaction successfully signed!",
       "requestExpired": "Request expired, please return to {dappName} if you would like to retry"
+    }
+  },
+  "wizardConnect": {
+    "sessions": {
+      "title": "WizardConnect Sessions",
+      "noActiveSessions": "No sessions currently active.",
+      "connecting": "Connecting...",
+      "statusConnected": "Connected",
+      "statusReconnecting": "Reconnecting...",
+      "statusDisconnected": "Disconnected"
+    },
+    "errors": {
+      "hdWalletRequired": "WizardConnect requires an HD wallet",
+      "notInitialized": "WizardConnect not initialized yet. Please try again in a moment.",
+      "invalidUri": "Not a valid WizardConnect URI",
+      "invalidTransactionSchema": "Error in validating schema of WizardConnect transaction request",
+      "failedToSignTransaction": "Failed to sign transaction",
+      "errorSendingTransaction": "Error in sending transaction"
+    },
+    "notifications": {
+      "sendingTransaction": "Sending transaction...",
+      "sentTransaction": "Sent WizardConnect transaction for {dappName}",
+      "signedTransaction": "Signed WizardConnect transaction for {dappName}. Please return to the dapp.",
+      "transactionSignedTitle": "Transaction Signed",
+      "transactionSent": "Transaction successfully sent!",
+      "transactionSigned": "Transaction successfully signed!",
+      "requestCancelled": "Signing request was cancelled by {dappName}",
+      "dappDisconnected": "WizardConnect session was disconnected by {dappName}"
     }
   },
   "settings": {

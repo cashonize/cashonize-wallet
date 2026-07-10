@@ -427,11 +427,13 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           void rejectRequest(event);
           return;
         }
+        // parse params as extended JSON to handle stringified/encoded Uint8Array and BigInt
+        const wcTransactionObj = parseExtendedJson(JSON.stringify(request.params)) as WcSignTransactionRequest;
         const handle = Dialog.create({
           component: WC2TransactionRequest,
           componentProps: {
             dappMetadata,
-            transactionRequestWC: event,
+            transactionRequest: wcTransactionObj,
             exchangeRate
           },
         })
