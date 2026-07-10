@@ -45,38 +45,54 @@
     step.value = 2;
   }
 
+  // Defensive: block concurrent create/import (double-click, key auto-repeat) — a second
+  // concurrent call could race the async existence check and generate a second seed
+  const isCreating = ref(false);
+
   async function createNewWallet() {
-    const createFn = walletType.value === 'hd' ? createNewHDWallet : createWallet;
-    const result = await createFn(walletName.value);
-    if (result.success) {
-      store.changeView(1);
-    } else {
-      $q.notify({
-        message: result.message,
-        icon: 'warning',
-        color: result.isUserError ? "grey-7" : "red"
-      });
+    if (isCreating.value) return;
+    isCreating.value = true;
+    try {
+      const createFn = walletType.value === 'hd' ? createNewHDWallet : createWallet;
+      const result = await createFn(walletName.value);
+      if (result.success) {
+        store.changeView(1);
+      } else {
+        $q.notify({
+          message: result.message,
+          icon: 'warning',
+          color: result.isUserError ? "grey-7" : "red"
+        });
+      }
+    } finally {
+      isCreating.value = false;
     }
   }
 
   async function importWallet() {
-    const importFn = walletType.value === 'hd' ? importHDWallet : importWalletUtil;
-    const result = await importFn({
-      name: walletName.value,
-      seedPhrase: seedPhrase.value,
-      seedPhraseValid: seedPhraseValid.value,
-      derivationPath: selectedDerivationPath.value
-    });
-    if (result.success) {
-      // Clear seed phrase from memory (defense in depth)
-      seedPhrase.value = '';
-      store.changeView(1);
-    } else {
-      $q.notify({
-        message: result.message,
-        icon: 'warning',
-        color: result.isUserError ? "grey-7" : "red"
+    if (isCreating.value) return;
+    isCreating.value = true;
+    try {
+      const importFn = walletType.value === 'hd' ? importHDWallet : importWalletUtil;
+      const result = await importFn({
+        name: walletName.value,
+        seedPhrase: seedPhrase.value,
+        seedPhraseValid: seedPhraseValid.value,
+        derivationPath: selectedDerivationPath.value
       });
+      if (result.success) {
+        // Clear seed phrase from memory (defense in depth)
+        seedPhrase.value = '';
+        store.changeView(1);
+      } else {
+        $q.notify({
+          message: result.message,
+          icon: 'warning',
+          color: result.isUserError ? "grey-7" : "red"
+        });
+      }
+    } finally {
+      isCreating.value = false;
     }
   }
 </script>
@@ -133,6 +149,7 @@
           class="button primary"
           type="button"
           :value="t('addWallet.createNew.button')"
+          :disabled="isCreating"
           style="margin-bottom: 15px;"
         >
         <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
@@ -174,6 +191,7 @@
           type="button"
           style="margin-top: 15px; margin-bottom: 15px;"
           :value="t('addWallet.importButton')"
+          :disabled="isCreating"
         >
       </div>
     </div>
