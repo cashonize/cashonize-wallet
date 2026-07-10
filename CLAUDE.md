@@ -34,6 +34,9 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - `dbUtils.ts`: Direct IndexedDB operations for checking wallet existence, listing wallets, deletion
 - Wallets are stored in both IndexedDB databases by default (mainnet and chipnet)
 
+### Platform Concurrency
+Only the web (SPA) target can run multiple live app instances at once: several browser tabs (or a PWA window plus a tab) share the same localStorage and IndexedDB, but each has its own in-memory Pinia state, electrum connections, and WalletKit instance. There is no cross-tab sync (no `storage` listener or `BroadcastChannel`), so code that persists mutable state must assume another tab can read or write the same keys concurrently and that in-memory state may be stale relative to storage. Electron is single-window by construction (one `createWindow`, all `window.open` denied in `electron-main.ts`) and the Android activity is `launchMode="singleTask"`, so desktop and mobile always have exactly one live instance.
+
 ### mainnet-js (Core Wallet Library)
 
 The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers.
