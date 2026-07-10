@@ -370,10 +370,13 @@
       "label": "Exibir:",
       "all": "Todas",
       "bchTxs": "Txs de BCH",
-      "tokenTxs": "Txs de tokens"
+      "tokenTxs": "Txs de tokens",
+      "dateRange": "Intervalo de datas:"
     },
     "showFiatValue": "Mostrar valor em fiat",
-    "hideBalanceColumn": "Ocultar coluna de saldo",
+    "hideBalanceColumn": "Ocultar saldo",
+    "exportCsv": "Exportar CSV",
+    "exportFailed": "Falha ao exportar CSV",
     "columns": {
       "date": "Data",
       "amount": "Valor",

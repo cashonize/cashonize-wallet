@@ -7,12 +7,16 @@
   import TransactionDialog from './transactionDialog.vue';
   import EmojiItem from '../general/emojiItem.vue';
   import { formatTimestamp, formatTime, formatFiatAmount } from 'src/utils/utils';
+  import { historyToCsv } from 'src/utils/csvUtils';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
+  import { exportFile, useQuasar } from 'quasar'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
+  const $q = useQuasar()
+  const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
   const itemsPerPage = 100
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value <= 600)
@@ -23,6 +27,8 @@
   const showFiatValue = ref(settingsStore.showFiatValueHistory)
   const hideBalance = ref(settingsStore.hideBalanceColumn)
   const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");
+  const dateFrom = ref("");
+  const dateTo = ref("");
 
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
@@ -36,11 +42,31 @@
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
 
+  // Date inputs hold local calendar dates (YYYY-MM-DD); compare in local time to match the displayed dates
+  function localDayStart(isoDate: string, dayOffset = 0): number {
+    const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
+    return new Date(year, month - 1, day + dayOffset).getTime() / 1000;
+  }
+
   const selectedHistory = computed(() => {
-    if (selectedFilter.value === "bchTransactions") return store.walletHistory?.filter(tx => !tx.tokenAmountChanges.length);
-    if (selectedFilter.value === "tokenTransactions") return store.walletHistory?.filter(tx => tx.tokenAmountChanges.length);
-    return store.walletHistory;
+    let history = store.walletHistory;
+    if (selectedFilter.value === "bchTransactions") history = history?.filter(tx => !tx.tokenAmountChanges.length);
+    if (selectedFilter.value === "tokenTransactions") history = history?.filter(tx => tx.tokenAmountChanges.length);
+    const fromTimestamp = dateFrom.value ? localDayStart(dateFrom.value) : undefined;
+    const untilTimestamp = dateTo.value ? localDayStart(dateTo.value, 1) : undefined;
+    if (fromTimestamp !== undefined || untilTimestamp !== undefined) {
+      // Pending transactions have no timestamp yet, treat them as happening now
+      history = history?.filter(tx => {
+        const txTimestamp = tx.timestamp ?? Date.now() / 1000;
+        if (fromTimestamp !== undefined && txTimestamp < fromTimestamp) return false;
+        if (untilTimestamp !== undefined && txTimestamp >= untilTimestamp) return false;
+        return true;
+      });
+    }
+    return history;
   });
+
+  watch([selectedFilter, dateFrom, dateTo], () => { currentPage.value = 1 });
 
   const transactionCount = computed(() => selectedHistory.value?.length);
 
@@ -62,6 +88,12 @@
   function toggleHideBalance() {
     localStorage.setItem("hideBalanceColumn", hideBalance.value ? "true" : "false");
     settingsStore.hideBalanceColumn = hideBalance.value;
+  }
+
+  function exportCsv() {
+    const csvContent = historyToCsv(selectedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value);
+    const status = exportFile("cashonize-tx-history.csv", csvContent, { mimeType: "text/csv" });
+    if (status !== true) $q.notify({ message: t('history.exportFailed'), icon: 'warning', color: "red" });
   }
 </script>
 
@@ -96,10 +128,19 @@
           </select>
         </div>
         <div class="option-item">
+          <label for="dateFrom">{{ t('history.filter.dateRange') }}</label>
+          <input type="date" id="dateFrom" v-model="dateFrom" :max="dateTo || undefined">
+          <span>–</span>
+          <input type="date" id="dateTo" v-model="dateTo" :min="dateFrom || undefined">
+        </div>
+        <div class="option-item">
           {{ t('history.showFiatValue') }} <q-toggle v-model="showFiatValue" @update:model-value="toggleShowFiatValue" dense />
         </div>
         <div class="option-item">
           {{ t('history.hideBalanceColumn') }} <q-toggle v-model="hideBalance" @update:model-value="toggleHideBalance" dense />
+        </div>
+        <div class="option-item" v-if="!isCapacitor">
+          <button @click="exportCsv">{{ t('history.exportCsv') }}</button>
         </div>
       </div>
 
@@ -252,6 +293,18 @@
 .option-item select {
   width: 100px;
   padding: 2px 8px;
+}
+
+.option-item input[type="date"] {
+  width: auto;
+  padding: 2px 8px;
+  font-size: 0.9em;
+  font-family: inherit;
+}
+
+.option-item button {
+  padding: 6px 14px;
+  font-size: 0.9em;
 }
 
 .tx-table {

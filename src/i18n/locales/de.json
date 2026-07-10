@@ -370,10 +370,13 @@
       "label": "Anzeigen:",
       "all": "Alle",
       "bchTxs": "BCH-Txs",
-      "tokenTxs": "Token-Txs"
+      "tokenTxs": "Token-Txs",
+      "dateRange": "Zeitraum:"
     },
     "showFiatValue": "Fiat-Wert anzeigen",
-    "hideBalanceColumn": "Guthaben-Spalte ausblenden",
+    "hideBalanceColumn": "Guthaben ausblenden",
+    "exportCsv": "CSV exportieren",
+    "exportFailed": "CSV-Export fehlgeschlagen",
     "columns": {
       "date": "Datum",
       "amount": "Betrag",
