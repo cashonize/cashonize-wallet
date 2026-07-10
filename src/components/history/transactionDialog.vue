@@ -53,7 +53,17 @@
     return value.toLocaleString("en-US", { maximumFractionDigits: decimals });
   }
 
-  const feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.00";
+  // The fiat fee is cosmetic here (unlike the dapp signing dialogs), so a failed rate
+  // fetch falls back to the last known rate and never blocks opening the dialog
+  // The '|| "< 0.005"' handles a zero result: both paths round to 2 decimals, so 0 means the real value is below 0.005
+  let feeIncurrency: string | number | undefined;
+  try {
+    feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.005";
+  } catch {
+    if (store.exchangeRate !== undefined) {
+      feeIncurrency = Number((satsToBch(props.historyItem.fee) * store.exchangeRate).toFixed(2)) || "< 0.005";
+    }
+  }
   const currencySymbol = CurrencySymbols[settingsStore.currency];
 
   const loadTokenMetadata = async (category: string, commitment: string | undefined) => {
@@ -135,11 +145,11 @@
           </div>
           <div v-if="!isCoinbase">
             {{ t('transactionDialog.fee') }}
-              <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee.toLocaleString("en-US") }} sat ({{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte)</span>
+              <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat ({{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte)</span>
           </div>
           <div v-else>
             {{ t('transactionDialog.feesCollected') }}
-              <span>{{ feeIncurrency }}{{ currencySymbol }} or {{ historyItem.fee.toLocaleString("en-US") }} sat</span>
+              <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat</span>
           </div>
         </div>
 
