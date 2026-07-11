@@ -816,6 +816,12 @@
       "statusReconnecting": "Reconectando...",
       "statusDisconnected": "Desconectado"
     },
+    "pairing": {
+      "title": "Compartilhar os endereços da carteira com esta dApp?",
+      "message": "Ao conectar, a lista completa de endereços atuais e futuros da sua carteira (a xpub) é compartilhada com a dApp. A dApp poderá ver todo o seu saldo e histórico de transações — mesmo após desconectar — e você perde a privacidade de usar novos endereços HD. A dApp não pode gastar seus fundos.",
+      "connectButton": "Conectar",
+      "cancelButton": "Cancelar"
+    },
     "errors": {
       "hdWalletRequired": "WizardConnect requer uma carteira HD",
       "notInitialized": "WizardConnect ainda não foi inicializado. Por favor, tente novamente em instantes.",

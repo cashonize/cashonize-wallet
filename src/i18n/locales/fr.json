@@ -816,6 +816,12 @@
       "statusReconnecting": "Reconnexion...",
       "statusDisconnected": "Déconnecté"
     },
+    "pairing": {
+      "title": "Partager les adresses du portefeuille avec cette dApp ?",
+      "message": "La connexion partage avec la dApp la liste complète des adresses actuelles et futures de votre portefeuille (la xpub). La dApp pourra alors voir l'intégralité de votre solde et de votre historique de transactions — même après déconnexion — et vous perdez donc la confidentialité offerte par les nouvelles adresses HD. La dApp ne peut pas dépenser vos fonds.",
+      "connectButton": "Connecter",
+      "cancelButton": "Annuler"
+    },
     "errors": {
       "hdWalletRequired": "WizardConnect nécessite un portefeuille HD",
       "notInitialized": "WizardConnect pas encore initialisé. Veuillez réessayer dans un moment.",

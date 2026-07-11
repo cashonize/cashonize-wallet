@@ -17,9 +17,9 @@
   const wizardconnectStore = useWizardconnectStore();
 
   // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
-  function connectDappUriInput(url: string){
+  async function connectDappUriInput(url: string){
     try {
-      wizardconnectStore.pair(url);
+      await wizardconnectStore.pair(url);
     } catch(error) {
       const errorMessage = caughtErrorToString(error)
       console.error(errorMessage)

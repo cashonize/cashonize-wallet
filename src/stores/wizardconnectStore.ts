@@ -140,7 +140,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     connections.value = {};
   }
 
-  function pair(wizUri: string) {
+  async function pair(wizUri: string) {
     if (!manager) {
       const wallet = mainStore.wallet as WalletType;
       if (!(wallet instanceof HDWallet)) throw new Error(t('wizardConnect.errors.hdWalletRequired'));
@@ -153,6 +153,23 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     } catch (error) {
       throw new Error(t('wizardConnect.errors.invalidUri'), { cause: error });
     }
+    // Explicit consent before connecting: connect() shares the wallet's chain-level xpubs
+    // with the dapp right after key exchange, which reveals all current and future wallet
+    // addresses (watch-only, irrevocable). The pairing URI carries no dapp metadata — it
+    // only arrives after the xpubs are shared — so this dialog is necessarily generic.
+    // Restored sessions (start()) reconnect without re-prompting, like WC/CC sessions.
+    const approved = await new Promise<boolean>((resolve) => {
+      Dialog.create({
+        title: t('wizardConnect.pairing.title'),
+        message: t('wizardConnect.pairing.message'),
+        persistent: true,
+        ok: { label: t('wizardConnect.pairing.connectButton'), color: 'primary', unelevated: true },
+        cancel: { label: t('wizardConnect.pairing.cancelButton'), flat: true },
+      })
+        .onOk(() => resolve(true))
+        .onDismiss(() => resolve(false));
+    });
+    if (!approved) return;
     manager.connect(trimmedUri);
     addSavedUri(trimmedUri);
     refreshConnections();

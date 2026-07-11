@@ -816,6 +816,12 @@
       "statusReconnecting": "Reconnecting...",
       "statusDisconnected": "Disconnected"
     },
+    "pairing": {
+      "title": "Share wallet addresses with this dApp?",
+      "message": "Connecting shares your wallet's full current and future address list (the xpub) with the dApp. The dApp can then see your entire balance and transaction history — even after disconnecting — so you lose the privacy of using fresh HD wallet addresses. The dApp cannot spend your funds.",
+      "connectButton": "Connect",
+      "cancelButton": "Cancel"
+    },
     "errors": {
       "hdWalletRequired": "WizardConnect requires an HD wallet",
       "notInitialized": "WizardConnect not initialized yet. Please try again in a moment.",

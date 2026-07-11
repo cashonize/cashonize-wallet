@@ -816,6 +816,12 @@
       "statusReconnecting": "Wiederverbinden...",
       "statusDisconnected": "Getrennt"
     },
+    "pairing": {
+      "title": "Wallet-Adressen mit dieser Dapp teilen?",
+      "message": "Beim Verbinden wird die vollständige Liste aller aktuellen und zukünftigen Adressen deines Wallets (die xpub) mit der Dapp geteilt. Die Dapp kann dann dein gesamtes Guthaben und deine Transaktionshistorie einsehen — auch nach dem Trennen — und du verlierst die Privatsphäre frischer HD-Adressen. Die Dapp kann deine Gelder nicht ausgeben.",
+      "connectButton": "Verbinden",
+      "cancelButton": "Abbrechen"
+    },
     "errors": {
       "hdWalletRequired": "WizardConnect erfordert ein HD-Wallet",
       "notInitialized": "WizardConnect noch nicht initialisiert. Bitte versuche es gleich erneut.",

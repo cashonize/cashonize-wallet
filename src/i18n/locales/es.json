@@ -816,6 +816,12 @@
       "statusReconnecting": "Reconectando...",
       "statusDisconnected": "Desconectado"
     },
+    "pairing": {
+      "title": "¿Compartir las direcciones de la billetera con esta dApp?",
+      "message": "Al conectar se comparte con la dApp la lista completa de direcciones actuales y futuras de tu billetera (la xpub). La dApp podrá ver todo tu saldo y tu historial de transacciones — incluso después de desconectar — por lo que pierdes la privacidad de usar direcciones HD nuevas. La dApp no puede gastar tus fondos.",
+      "connectButton": "Conectar",
+      "cancelButton": "Cancelar"
+    },
     "errors": {
       "hdWalletRequired": "WizardConnect requiere una billetera HD",
       "notInitialized": "WizardConnect aún no inicializado. Por favor intenta de nuevo en un momento.",

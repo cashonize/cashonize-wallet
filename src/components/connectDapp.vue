@@ -65,7 +65,7 @@
       const { isDappConnectionsInitialized } = storeToRefs(store);
       await waitForInitialized(isDappConnectionsInitialized);
       try {
-        wizardconnectStore.pair(props.dappUriUrlParam);
+        await wizardconnectStore.pair(props.dappUriUrlParam);
       } catch (error) {
         console.error("Error pairing WizardConnect URI:", error);
       }
@@ -98,7 +98,7 @@
       // The case-insensitive check is deliberate: WizardConnect QR codes use an
       // uppercased alphanumeric-mode form (WIZ://...)
       else if (dappUri.toLowerCase().startsWith('wiz:')) {
-        wizardconnectRef.value?.connectDappUriInput(dappUri);
+        await wizardconnectRef.value?.connectDappUriInput(dappUri);
       }
 
       // Otherwise, if it does not match CC, WC or WIZ, throw an error.
