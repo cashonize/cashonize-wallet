@@ -100,7 +100,7 @@
       "hd": "HD Wallet (mehrere Adressen)",
       "single": "Einzelne Adresse",
       "hdDescription": "Verwendet für jede Transaktion eine neue Adresse. Bessere Privatsphäre, aber erfordert die Auswahl einer Adresse beim Verbinden mit dApps.",
-      "singleDescription": "Verwendet eine feste Adresse für alle Transaktionen. Alle Vermögenswerte an einem Ort, aber weniger privat.",
+      "singleDescription": "Verwendet eine feste Adresse für alle Transaktionen. Alle Vermögenswerte an einem Ort, aber weniger privat. Die WizardConnect-Verbindungsmethode wird nicht unterstützt.",
       "singleAddressNote": "Hinweis: Nur die erste Adresse deiner seed phrase wird verwendet. Wenn du diese seed phrase bereits mit anderen Wallets verwendet hast, werden Guthaben auf anderen Adressen nicht angezeigt."
     },
     "derivationPath": {
@@ -811,6 +811,7 @@
     "sessions": {
       "title": "WizardConnect-Sitzungen",
       "noActiveSessions": "Derzeit keine aktiven Sitzungen.",
+      "notAvailableForWalletType": "WizardConnect ist für diesen Wallet-Typ nicht verfügbar. Es erfordert ein HD-Wallet, da Dapps die Adressliste des Wallets (xpub) erhalten, um neue Adressen abzuleiten, die ein Einzeladressen-Wallet nicht überwachen kann.",
       "connecting": "Verbinden...",
       "statusConnected": "Verbunden",
       "statusReconnecting": "Wiederverbinden...",

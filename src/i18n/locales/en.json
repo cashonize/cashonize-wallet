@@ -100,7 +100,7 @@
       "hd": "HD Wallet (multiple addresses)",
       "single": "Single address",
       "hdDescription": "Uses a new address for each transaction. Better privacy, but requires selecting an address when connecting to dApps.",
-      "singleDescription": "Uses one fixed address for all transactions. All assets in one place, but less private.",
+      "singleDescription": "Uses one fixed address for all transactions. All assets in one place, but less private. The WizardConnect connection method is not supported.",
       "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear."
     },
     "derivationPath": {
@@ -811,6 +811,7 @@
     "sessions": {
       "title": "WizardConnect Sessions",
       "noActiveSessions": "No sessions currently active.",
+      "notAvailableForWalletType": "WizardConnect is not available for this wallet type. It requires an HD wallet, because dApps receive the wallet's address list (xpub) to derive new addresses, which a single-address wallet cannot watch.",
       "connecting": "Connecting...",
       "statusConnected": "Connected",
       "statusReconnecting": "Reconnecting...",

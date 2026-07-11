@@ -100,7 +100,7 @@
       "hd": "Portefeuille HD (adresses multiples)",
       "single": "Adresse unique",
       "hdDescription": "Utilise une nouvelle adresse pour chaque transaction. Meilleure confidentialité, mais nécessite de sélectionner une adresse lors de la connexion aux dApps.",
-      "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé.",
+      "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé. La méthode de connexion WizardConnect n'est pas prise en charge.",
       "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
     },
     "derivationPath": {
@@ -811,6 +811,7 @@
     "sessions": {
       "title": "Sessions WizardConnect",
       "noActiveSessions": "Aucune session active actuellement.",
+      "notAvailableForWalletType": "WizardConnect n'est pas disponible pour ce type de portefeuille. Il nécessite un portefeuille HD, car les dApps reçoivent la liste des adresses du portefeuille (xpub) pour dériver de nouvelles adresses, qu'un portefeuille à adresse unique ne peut pas surveiller.",
       "connecting": "Connexion...",
       "statusConnected": "Connecté",
       "statusReconnecting": "Reconnexion...",

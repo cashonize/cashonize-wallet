@@ -1,5 +1,7 @@
 <script setup lang="ts">
+  import { computed } from 'vue';
   import { useQuasar } from 'quasar';
+  import { useStore } from 'src/stores/store';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore'
   import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -12,9 +14,13 @@
   });
 
   const $q = useQuasar();
+  const store = useStore();
   const settingsStore = useSettingsStore();
 
   const wizardconnectStore = useWizardconnectStore();
+
+  // WizardConnect requires an HD wallet (see wizardconnectStore.pair)
+  const isHdWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd');
 
   // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
   async function connectDappUriInput(url: string){
@@ -65,7 +71,8 @@
         </template>
         <!-- Show Empty Message if no Sessions are active -->
         <template v-if="!Object.keys(wizardconnectStore.connections).length">
-          <div class="q-pa-md">{{ t('wizardConnect.sessions.noActiveSessions') }}</div>
+          <div v-if="isHdWallet" class="q-pa-md">{{ t('wizardConnect.sessions.noActiveSessions') }}</div>
+          <div v-else class="q-pa-md">{{ t('wizardConnect.sessions.notAvailableForWalletType') }}</div>
         </template>
       </div>
     </fieldset>

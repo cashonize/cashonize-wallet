@@ -100,7 +100,7 @@
       "hd": "Billetera HD (múltiples direcciones)",
       "single": "Dirección única",
       "hdDescription": "Usa una nueva dirección para cada transacción. Mayor privacidad, pero requiere seleccionar una dirección al conectarse a dApps.",
-      "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado.",
+      "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado. El método de conexión WizardConnect no es compatible.",
       "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
     },
     "derivationPath": {
@@ -811,6 +811,7 @@
     "sessions": {
       "title": "Sesiones WizardConnect",
       "noActiveSessions": "No hay sesiones activas actualmente.",
+      "notAvailableForWalletType": "WizardConnect no está disponible para este tipo de billetera. Requiere una billetera HD, porque las dApps reciben la lista de direcciones de la billetera (xpub) para derivar nuevas direcciones, que una billetera de dirección única no puede observar.",
       "connecting": "Conectando...",
       "statusConnected": "Conectado",
       "statusReconnecting": "Reconectando...",
