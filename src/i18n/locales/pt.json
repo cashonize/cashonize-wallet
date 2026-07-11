@@ -818,7 +818,7 @@
     },
     "pairing": {
       "title": "Compartilhar os endereços da carteira com esta dApp?",
-      "message": "Ao conectar, a lista completa de endereços atuais e futuros da sua carteira (a xpub) é compartilhada com a dApp. A dApp poderá ver todo o seu saldo e histórico de transações — mesmo após desconectar — e você perde a privacidade de usar novos endereços HD. A dApp não pode gastar seus fundos.",
+      "message": "Ao conectar, a lista completa de endereços atuais e futuros da sua carteira (a xpub) é compartilhada com a dApp. A dApp poderá ver todo o seu saldo e histórico de transações — mesmo após desconectar — e você perde a privacidade de usar novos endereços HD. Gastar seus fundos continuará exigindo sua aprovação para cada transação.",
       "connectButton": "Conectar",
       "cancelButton": "Cancelar"
     },
