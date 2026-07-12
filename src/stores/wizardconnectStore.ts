@@ -427,6 +427,10 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       getPublicKey: (path: DerivationPath, index: bigint) => {
         const chain = nodes.privateChains.get(path);
         if (!chain) throw new Error(`Unsupported derivation path: ${path}`);
+        // Only the BIP32 non-hardened range is valid here: dapps derive addresses from the
+        // shared xpubs, which cannot do hardened derivation. This also keeps the bigint to
+        // Number conversion exact (mirrors the inputPaths cap in WizSignTransactionRequestSchema).
+        if (index < 0n || index >= 0x80000000n) throw new Error(`Unsupported address index: ${index.toString()}`);
         const childNode = deriveHdPrivateNodeChild(chain, Number(index));
         const pubkeyCompressed = secp256k1.derivePublicKeyCompressed(childNode.privateKey);
         if (typeof pubkeyCompressed === "string") throw new Error("Failed to derive public key: " + pubkeyCompressed);

@@ -48,8 +48,8 @@ export function createSignedWcTransaction(
 
       // replace pubkey and sig placeholders
       let unlockingBytecodeHex = binToHex(correspondingSourceOutput.unlockingBytecode);
-      const sigPlaceholder = "41" + binToHex(Uint8Array.from(Array(65)));
-      const pubkeyPlaceholder = "21" + binToHex(Uint8Array.from(Array(33)));
+      const sigPlaceholder = "41" + binToHex(new Uint8Array(65));
+      const pubkeyPlaceholder = "21" + binToHex(new Uint8Array(33));
       if (unlockingBytecodeHex.indexOf(sigPlaceholder) !== -1) {
         // compute the signature argument
         const hashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
