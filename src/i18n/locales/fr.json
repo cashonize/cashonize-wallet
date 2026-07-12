@@ -812,8 +812,9 @@
       "title": "Sessions WizardConnect",
       "noActiveSessions": "Aucune session active actuellement.",
       "notAvailableForWalletType": "WizardConnect n'est pas disponible pour ce type de portefeuille. Il nécessite un portefeuille HD, car les dApps reçoivent la liste des adresses du portefeuille (xpub) pour dériver de nouvelles adresses, qu'un portefeuille à adresse unique ne peut pas surveiller.",
-      "connecting": "Connexion...",
+      "unknownDapp": "dApp inconnue",
       "statusConnected": "Connecté",
+      "statusWaitingForDapp": "En attente de la dApp...",
       "statusReconnecting": "Reconnexion...",
       "statusDisconnected": "Déconnecté"
     },

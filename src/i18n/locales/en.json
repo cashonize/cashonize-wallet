@@ -812,8 +812,9 @@
       "title": "WizardConnect Sessions",
       "noActiveSessions": "No sessions currently active.",
       "notAvailableForWalletType": "WizardConnect is not available for this wallet type. It requires an HD wallet, because dApps receive the wallet's address list (xpub) to derive new addresses, which a single-address wallet cannot watch.",
-      "connecting": "Connecting...",
+      "unknownDapp": "Unknown dApp",
       "statusConnected": "Connected",
+      "statusWaitingForDapp": "Waiting for dApp...",
       "statusReconnecting": "Reconnecting...",
       "statusDisconnected": "Disconnected"
     },

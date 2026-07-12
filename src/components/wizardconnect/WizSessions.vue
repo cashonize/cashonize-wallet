@@ -38,10 +38,20 @@
     }
   }
 
-  function statusLabel(status: { status: string }): string {
-    if (status.status === 'connected') return t('wizardConnect.sessions.statusConnected');
-    if (status.status === 'reconnecting') return t('wizardConnect.sessions.statusReconnecting');
-    return t('wizardConnect.sessions.statusDisconnected');
+  // A connection's status reflects the Nostr relay, not the dapp: the relay can be
+  // connected while the dapp has not (yet) announced itself with dapp_ready. Only show
+  // "Connected" once the dapp is actually there (it sent its name); a relay-only
+  // connection shows "Waiting for dApp..." instead.
+  function isDappConnected(connection: { status: { status: string }, dappName: string | null }): boolean {
+    return connection.status.status === 'connected' && connection.dappName !== null;
+  }
+
+  function statusLabel(connection: { status: { status: string }, dappName: string | null }): string {
+    if (connection.status.status === 'reconnecting') return t('wizardConnect.sessions.statusReconnecting');
+    if (connection.status.status !== 'connected') return t('wizardConnect.sessions.statusDisconnected');
+    return isDappConnected(connection)
+      ? t('wizardConnect.sessions.statusConnected')
+      : t('wizardConnect.sessions.statusWaitingForDapp');
   }
 </script>
 
@@ -57,9 +67,9 @@
               <img v-if="connection.dappIcon" :src="connection.dappIcon" />
             </div>
             <div class="wiz-session-item-details-container">
-              <div>{{ connection.dappName ?? t('wizardConnect.sessions.connecting') }}</div>
-              <div :class="'wiz-session-status ' + (connection.status.status === 'connected' ? 'wiz-session-status-connected' : '')">
-                {{ statusLabel(connection.status) }}
+              <div>{{ connection.dappName ?? t('wizardConnect.sessions.unknownDapp') }}</div>
+              <div :class="'wiz-session-status ' + (isDappConnected(connection) ? 'wiz-session-status-connected' : '')">
+                {{ statusLabel(connection) }}
               </div>
             </div>
             <div class="wiz-session-item-action-container">

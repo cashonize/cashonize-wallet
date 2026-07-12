@@ -812,8 +812,9 @@
       "title": "Sesiones WizardConnect",
       "noActiveSessions": "No hay sesiones activas actualmente.",
       "notAvailableForWalletType": "WizardConnect no está disponible para este tipo de billetera. Requiere una billetera HD, porque las dApps reciben la lista de direcciones de la billetera (xpub) para derivar nuevas direcciones, que una billetera de dirección única no puede observar.",
-      "connecting": "Conectando...",
+      "unknownDapp": "dApp desconocida",
       "statusConnected": "Conectado",
+      "statusWaitingForDapp": "Esperando a la dApp...",
       "statusReconnecting": "Reconectando...",
       "statusDisconnected": "Desconectado"
     },
