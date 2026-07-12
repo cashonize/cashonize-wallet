@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, watch } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { useQuasar } from 'quasar';
   import { storeToRefs } from 'pinia';
   import { useI18n } from 'vue-i18n'
@@ -40,6 +40,17 @@
   // State.
   const dappUriInput = ref("");
   const showQrCodeDialog = ref(false);
+
+  // Single shared empty state for the unified sessions box (the per-method
+  // sections in the child components hide themselves when empty)
+  const hasNoSessions = computed(() =>
+    !Object.keys(walletconnectStore.activeSessions ?? {}).length &&
+    !Object.keys(cashconnectStore.sessions).length &&
+    !Object.keys(wizardconnectStore.connections).length
+  );
+
+  // WizardConnect requires an HD wallet (see wizardconnectStore.pair)
+  const isHdWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd');
 
   // Handle Props.
   function isSessionRequest(uri: string): boolean {
@@ -140,9 +151,10 @@
     <fieldset class="item">
       <legend>{{ t('dapp.title') }}</legend>
       <div style="margin-bottom: 10px;">
-        <i18n-t keypath="dapp.exploreText" tag="span">
+        <!-- WizardConnect requires an HD wallet, so the listed connection methods depend on the wallet type -->
+        <i18n-t :keypath="isHdWallet ? 'dapp.exploreText' : 'dapp.exploreTextSingleAddress'" tag="span">
           <template #link>
-            <a href="https://tokenaut.cash/dapps?filter=walletconnect" target="_blank">Tokenaut.cash</a>
+            <a href="https://tokenaut.cash/dapps" target="_blank">Tokenaut.cash</a>
           </template>
         </i18n-t>
       </div>
@@ -157,11 +169,31 @@
       </div>
     </fieldset>
 
-    <WCSessions ref="walletconnectRef"/>
-    <CCSessions ref="cashconnectRef" />
-    <WizSessions ref="wizardconnectRef" />
+    <fieldset class="item">
+      <legend>{{ t('dapp.sessionsTitle') }}</legend>
+      <WCSessions ref="walletconnectRef"/>
+      <CCSessions ref="cashconnectRef" />
+      <WizSessions ref="wizardconnectRef" />
+      <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
+      <div v-if="!isHdWallet" class="q-pa-md wiz-unavailable-note">{{ t('wizardConnect.sessions.notAvailableForWalletType') }}</div>
+    </fieldset>
 
     <div v-if="showQrCodeDialog">
       <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
     </div>
 </template>
+
+<style>
+  /* Shared heading style for the per-method sections rendered by the child components */
+  .sessions-section-heading {
+    font-weight: 600;
+    margin: 8px 0 2px;
+  }
+</style>
+
+<style scoped>
+  .wiz-unavailable-note {
+    font-size: smaller;
+    color: var(--color-grey);
+  }
+</style>

@@ -197,9 +197,9 @@ test.describe.serial('WalletConnect E2E', () => {
     // dApp: Assert disconnected
     await expect(dappPage.locator('#session-status')).toHaveText('disconnected', { timeout: 15_000 })
 
-    // Wallet: Assert no active sessions
+    // Wallet: Assert no active sessions (shared empty state of the unified sessions box)
     await expect(walletPage
-      .locator('fieldset:has(legend:text("WalletConnect Sessions"))').getByText('No sessions currently active.'))
+      .locator('fieldset:has(legend:text("dApp Sessions"))').getByText('No sessions currently active.'))
       .toBeVisible({ timeout: 15_000 })
   })
 })

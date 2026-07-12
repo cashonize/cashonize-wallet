@@ -353,9 +353,12 @@
   },
   "dapp": {
     "title": "Conectar a dApp",
-    "exploreText": "Visita {link} para explorar la lista completa de dApps de BCH con WalletConnect",
+    "exploreText": "Conéctate a dApps mediante los métodos de conexión WalletConnect, CashConnect o WizardConnect. Visita {link} para explorar la lista completa de dApps de BCH.",
+    "exploreTextSingleAddress": "Conéctate a dApps mediante los métodos de conexión WalletConnect o CashConnect. Visita {link} para explorar la lista completa de dApps de BCH.",
     "uriPlaceholder": "URI de conexión",
     "connectButton": "Conectar nueva dApp",
+    "sessionsTitle": "Sesiones de dApps",
+    "noActiveSessions": "No hay sesiones activas actualmente.",
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect o WizardConnect inválida",
       "notValidUri": "No es una URI válida de WalletConnect, CashConnect o WizardConnect"
@@ -683,8 +686,7 @@
   },
   "cashConnect": {
     "sessions": {
-      "title": "Sesiones de CashConnect (Alpha)",
-      "noActiveSessions": "No hay sesiones activas actualmente."
+      "title": "CashConnect (Alpha)"
     },
     "sessionProposal": {
       "title": "¿Aprobar sesión?",
@@ -727,8 +729,7 @@
   },
   "walletConnect": {
     "sessions": {
-      "title": "Sesiones de WalletConnect",
-      "noActiveSessions": "No hay sesiones activas actualmente.",
+      "title": "WalletConnect",
       "session": "sesión"
     },
     "transactionRequest": {
@@ -809,8 +810,7 @@
   },
   "wizardConnect": {
     "sessions": {
-      "title": "Sesiones WizardConnect",
-      "noActiveSessions": "No hay sesiones activas actualmente.",
+      "title": "WizardConnect",
       "notAvailableForWalletType": "WizardConnect no está disponible para este tipo de billetera. Requiere una billetera HD, porque las dApps reciben la lista de direcciones de la billetera (xpub) para derivar nuevas direcciones, que una billetera de dirección única no puede observar.",
       "unknownDapp": "dApp desconocida",
       "session": "sesión",

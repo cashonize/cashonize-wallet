@@ -23,9 +23,10 @@ async function waitForDialog(page: Page, timeout = 15_000) {
   return dialog
 }
 
-// The WizardConnect sessions section on the wallet's connect view
+// The unified dApp sessions box on the wallet's connect view (all three
+// connection methods render their sessions as sections inside it)
 function wizSection(page: Page) {
-  return page.locator('fieldset:has(legend:text("WizardConnect Sessions"))')
+  return page.locator('fieldset:has(legend:text("dApp Sessions"))')
 }
 
 // Track the previous pairing URI so a re-pair never reads the stale one off the page

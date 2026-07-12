@@ -353,9 +353,12 @@
   },
   "dapp": {
     "title": "Conectar a Dapp",
-    "exploreText": "Veja {link} para explorar a lista completa de Dapps BCH com WalletConnect",
+    "exploreText": "Conecte-se a dApps com os métodos de conexão WalletConnect, CashConnect ou WizardConnect. Veja {link} para explorar a lista completa de dApps BCH.",
+    "exploreTextSingleAddress": "Conecte-se a dApps com os métodos de conexão WalletConnect ou CashConnect. Veja {link} para explorar a lista completa de dApps BCH.",
     "uriPlaceholder": "URI de conexão",
     "connectButton": "Conectar novo dApp",
+    "sessionsTitle": "Sessões de dApps",
+    "noActiveSessions": "Nenhuma sessão ativa no momento.",
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida",
       "notValidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida"
@@ -683,8 +686,7 @@
   },
   "cashConnect": {
     "sessions": {
-      "title": "Sessões CashConnect (Alfa)",
-      "noActiveSessions": "Nenhuma sessão ativa no momento."
+      "title": "CashConnect (Alfa)"
     },
     "sessionProposal": {
       "title": "Aprovar sessão?",
@@ -727,8 +729,7 @@
   },
   "walletConnect": {
     "sessions": {
-      "title": "Sessões WalletConnect",
-      "noActiveSessions": "Nenhuma sessão ativa no momento.",
+      "title": "WalletConnect",
       "session": "sessão"
     },
     "transactionRequest": {
@@ -809,8 +810,7 @@
   },
   "wizardConnect": {
     "sessions": {
-      "title": "Sessões WizardConnect",
-      "noActiveSessions": "Nenhuma sessão ativa no momento.",
+      "title": "WizardConnect",
       "notAvailableForWalletType": "WizardConnect não está disponível para este tipo de carteira. Requer uma carteira HD, porque as dApps recebem a lista de endereços da carteira (xpub) para derivar novos endereços, que uma carteira de endereço único não pode observar.",
       "unknownDapp": "dApp desconhecida",
       "session": "sessão",

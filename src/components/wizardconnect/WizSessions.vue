@@ -2,7 +2,6 @@
   import { computed } from 'vue';
   import { useQuasar } from 'quasar';
   import { decodeKeyExchangeURI } from '@wizardconnect/core';
-  import { useStore } from 'src/stores/store';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore'
   import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -16,13 +15,9 @@
   });
 
   const $q = useQuasar();
-  const store = useStore();
   const settingsStore = useSettingsStore();
 
   const wizardconnectStore = useWizardconnectStore();
-
-  // WizardConnect requires an HD wallet (see wizardconnectStore.pair)
-  const isHdWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd');
 
   const { width } = useWindowSize();
   const isMobilePhone = computed(() => width.value < 480);
@@ -81,9 +76,9 @@
 </script>
 
 <template>
-    <!-- Sessions -->
-    <fieldset class="item">
-      <legend>{{ t('wizardConnect.sessions.title') }}</legend>
+    <!-- Section inside the shared 'dApp Sessions' fieldset (connectDapp.vue); hidden when empty -->
+    <div v-if="Object.keys(wizardconnectStore.connections).length">
+      <div class="sessions-section-heading">{{ t('wizardConnect.sessions.title') }}</div>
       <div class="wiz-session-items-container">
         <!-- Iterate over active connections -->
         <template v-for="(connection, connectionId) of wizardconnectStore.connections" :key="connectionId">
@@ -104,13 +99,8 @@
             </div>
           </div>
         </template>
-        <!-- Show Empty Message if no Sessions are active -->
-        <template v-if="!Object.keys(wizardconnectStore.connections).length">
-          <div v-if="isHdWallet" class="q-pa-md">{{ t('wizardConnect.sessions.noActiveSessions') }}</div>
-          <div v-else class="q-pa-md">{{ t('wizardConnect.sessions.notAvailableForWalletType') }}</div>
-        </template>
       </div>
-    </fieldset>
+    </div>
 </template>
 
 <style>

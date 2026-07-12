@@ -353,9 +353,12 @@
   },
   "dapp": {
     "title": "Connecter à une dApp",
-    "exploreText": "Visitez {link} pour explorer la liste complète des dApps BCH avec WalletConnect",
+    "exploreText": "Connectez-vous aux dApps avec les méthodes de connexion WalletConnect, CashConnect ou WizardConnect. Visitez {link} pour explorer la liste complète des dApps BCH.",
+    "exploreTextSingleAddress": "Connectez-vous aux dApps avec les méthodes de connexion WalletConnect ou CashConnect. Visitez {link} pour explorer la liste complète des dApps BCH.",
     "uriPlaceholder": "URI de connexion",
     "connectButton": "Connecter nouvelle dApp",
+    "sessionsTitle": "Sessions dApp",
+    "noActiveSessions": "Aucune session active actuellement.",
     "errors": {
       "invalidUri": "URI WalletConnect, CashConnect ou WizardConnect invalide",
       "notValidUri": "Ce n'est pas une URI WalletConnect, CashConnect ou WizardConnect valide"
@@ -683,8 +686,7 @@
   },
   "cashConnect": {
     "sessions": {
-      "title": "Sessions CashConnect (Alpha)",
-      "noActiveSessions": "Aucune session active actuellement."
+      "title": "CashConnect (Alpha)"
     },
     "sessionProposal": {
       "title": "Approuver la session ?",
@@ -727,8 +729,7 @@
   },
   "walletConnect": {
     "sessions": {
-      "title": "Sessions WalletConnect",
-      "noActiveSessions": "Aucune session active actuellement.",
+      "title": "WalletConnect",
       "session": "session"
     },
     "transactionRequest": {
@@ -809,8 +810,7 @@
   },
   "wizardConnect": {
     "sessions": {
-      "title": "Sessions WizardConnect",
-      "noActiveSessions": "Aucune session active actuellement.",
+      "title": "WizardConnect",
       "notAvailableForWalletType": "WizardConnect n'est pas disponible pour ce type de portefeuille. Il nécessite un portefeuille HD, car les dApps reçoivent la liste des adresses du portefeuille (xpub) pour dériver de nouvelles adresses, qu'un portefeuille à adresse unique ne peut pas surveiller.",
       "unknownDapp": "dApp inconnue",
       "session": "session",

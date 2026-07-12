@@ -353,9 +353,12 @@
   },
   "dapp": {
     "title": "Connect to Dapp",
-    "exploreText": "See {link} to explore the full list of BCH Dapps with WalletConnect",
+    "exploreText": "Connect to dApps with the WalletConnect, CashConnect or WizardConnect connection methods. See {link} to explore the full list of BCH dApps.",
+    "exploreTextSingleAddress": "Connect to dApps with the WalletConnect or CashConnect connection methods. See {link} to explore the full list of BCH dApps.",
     "uriPlaceholder": "Connection URI",
     "connectButton": "Connect New dApp",
+    "sessionsTitle": "dApp Sessions",
+    "noActiveSessions": "No sessions currently active.",
     "errors": {
       "invalidUri": "Invalid WalletConnect, CashConnect or WizardConnect URI",
       "notValidUri": "Not a valid WalletConnect, CashConnect or WizardConnect URI"
@@ -683,8 +686,7 @@
   },
   "cashConnect": {
     "sessions": {
-      "title": "CashConnect (Alpha) Sessions",
-      "noActiveSessions": "No sessions currently active."
+      "title": "CashConnect (Alpha)"
     },
     "sessionProposal": {
       "title": "Approve Session?",
@@ -727,8 +729,7 @@
   },
   "walletConnect": {
     "sessions": {
-      "title": "WalletConnect Sessions",
-      "noActiveSessions": "No sessions currently active.",
+      "title": "WalletConnect",
       "session": "session"
     },
     "transactionRequest": {
@@ -809,8 +810,7 @@
   },
   "wizardConnect": {
     "sessions": {
-      "title": "WizardConnect Sessions",
-      "noActiveSessions": "No sessions currently active.",
+      "title": "WizardConnect",
       "notAvailableForWalletType": "WizardConnect is not available for this wallet type. It requires an HD wallet, because dApps receive the wallet's address list (xpub) to derive new addresses, which a single-address wallet cannot watch.",
       "unknownDapp": "Unknown dApp",
       "session": "session",

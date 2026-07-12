@@ -35,10 +35,9 @@
 </script>
 
 <template>
-    <!-- Sessions -->
-    <fieldset class="item">
-      <legend>{{ t('cashConnect.sessions.title') }}</legend>
-      <!-- Sessions -->
+    <!-- Section inside the shared 'dApp Sessions' fieldset (connectDapp.vue); hidden when empty -->
+    <div v-if="Object.keys(cashconnectStore.sessions).length">
+      <div class="sessions-section-heading">{{ t('cashConnect.sessions.title') }}</div>
       <div class="cc-session-items-container">
         <!-- Iterate over active sessions -->
         <template v-for="(session, topic) of cashconnectStore.sessions" :key="topic">
@@ -59,12 +58,8 @@
             </div>
           </div>
         </template>
-        <!-- Show Empty Message if no Sessions are active -->
-        <template v-if="!Object.keys(cashconnectStore.sessions).length">
-          <div class="q-pa-md">{{ t('cashConnect.sessions.noActiveSessions') }}</div>
-        </template>
       </div>
-    </fieldset>
+    </div>
 </template>
 
 <style>

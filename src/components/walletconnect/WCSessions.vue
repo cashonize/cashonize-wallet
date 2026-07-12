@@ -45,18 +45,14 @@
 </script>
 
 <template>
-  <fieldset class="item">
-    <legend>{{ t('walletConnect.sessions.title') }}</legend>
+  <!-- Section inside the shared 'dApp Sessions' fieldset (connectDapp.vue); hidden when empty -->
+  <div v-if="Object.keys(activeSessions || {}).length">
+    <div class="sessions-section-heading">{{ t('walletConnect.sessions.title') }}</div>
 
     <div v-for="sessionInfo in Object.values(activeSessions || {}).reverse()" :key="sessionInfo.topic" class="wc2sessions" >
       <WC2ActiveSession :dappMetadata="sessionInfo.peer.metadata" :sessionId="sessionInfo.topic" :activeSessions="activeSessions" @delete-session="(arg) => walletconnectStore.deleteSession(arg)"/>
     </div>
-    <!-- Show Empty Message if no Sessions are active -->
-    <template v-if="!Object.keys(activeSessions || {}).length">
-      <div class="q-pa-md">{{ t('walletConnect.sessions.noActiveSessions') }}</div>
-    </template>
-
-  </fieldset>
+  </div>
 </template>
 
 <style>
