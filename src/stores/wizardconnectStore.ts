@@ -35,6 +35,7 @@ import { createSignedWizTransaction, type WizInputSigningKey } from "src/utils/w
 import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
 import { displayAndLogError } from "src/utils/errorHandling";
 import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRequest.vue";
+import WizPairingDialog from "src/components/wizardconnect/WizPairingDialog.vue";
 import alertDialog from "src/components/general/alertDialog.vue";
 import { i18n } from "src/boot/i18n";
 const { t } = i18n.global;
@@ -159,13 +160,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     // only arrives after the xpubs are shared — so this dialog is necessarily generic.
     // Restored sessions (start()) reconnect without re-prompting, like WC/CC sessions.
     const approved = await new Promise<boolean>((resolve) => {
-      Dialog.create({
-        title: t('wizardConnect.pairing.title'),
-        message: t('wizardConnect.pairing.message'),
-        persistent: true,
-        ok: { label: t('wizardConnect.pairing.connectButton'), color: 'primary', unelevated: true },
-        cancel: { label: t('wizardConnect.pairing.cancelButton'), flat: true },
-      })
+      Dialog.create({ component: WizPairingDialog })
         .onOk(() => resolve(true))
         .onDismiss(() => resolve(false));
     });

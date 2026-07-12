@@ -813,6 +813,7 @@
       "noActiveSessions": "Derzeit keine aktiven Sitzungen.",
       "notAvailableForWalletType": "WizardConnect ist für diesen Wallet-Typ nicht verfügbar. Es erfordert ein HD-Wallet, da Dapps die Adressliste des Wallets (xpub) erhalten, um neue Adressen abzuleiten, die ein Einzeladressen-Wallet nicht überwachen kann.",
       "unknownDapp": "Unbekannte Dapp",
+      "session": "Sitzung",
       "statusConnected": "Verbunden",
       "statusWaitingForDapp": "Warten auf die Dapp...",
       "statusReconnecting": "Wiederverbinden...",
@@ -820,7 +821,11 @@
     },
     "pairing": {
       "title": "Wallet-Adressen mit dieser Dapp teilen?",
-      "message": "Beim Verbinden wird die vollständige Liste aller aktuellen und zukünftigen Adressen deines Wallets (die xpub) mit der Dapp geteilt. Die Dapp kann dann dein gesamtes Guthaben und deine Transaktionshistorie einsehen, auch nach dem Trennen, und du verlierst die Privatsphäre frischer HD-Adressen. Zum Ausgeben deiner Gelder ist weiterhin für jede Transaktion deine Zustimmung erforderlich.",
+      "intro": "Beim Verbinden wird die vollständige Liste aller aktuellen und zukünftigen Adressen deines Wallets (die xpub) mit der Dapp geteilt.",
+      "bulletHistory": "Die Dapp kann dein gesamtes Guthaben und deine Transaktionshistorie einsehen, auch nach dem Trennen.",
+      "bulletPrivacy": "Du verlierst die Privatsphäre frischer HD-Adressen.",
+      "bulletSpending": "Zum Ausgeben deiner Gelder ist weiterhin für jede Transaktion deine Zustimmung erforderlich.",
+      "dappInfoNote": "Hinweis: Name und Symbol der Dapp werden erst nach dem Verbinden empfangen.",
       "connectButton": "Verbinden",
       "cancelButton": "Abbrechen"
     },

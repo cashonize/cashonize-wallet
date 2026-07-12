@@ -813,6 +813,7 @@
       "noActiveSessions": "Nenhuma sessão ativa no momento.",
       "notAvailableForWalletType": "WizardConnect não está disponível para este tipo de carteira. Requer uma carteira HD, porque as dApps recebem a lista de endereços da carteira (xpub) para derivar novos endereços, que uma carteira de endereço único não pode observar.",
       "unknownDapp": "dApp desconhecida",
+      "session": "sessão",
       "statusConnected": "Conectado",
       "statusWaitingForDapp": "Aguardando a dApp...",
       "statusReconnecting": "Reconectando...",
@@ -820,7 +821,11 @@
     },
     "pairing": {
       "title": "Compartilhar os endereços da carteira com esta dApp?",
-      "message": "Ao conectar, a lista completa de endereços atuais e futuros da sua carteira (a xpub) é compartilhada com a dApp. A dApp poderá ver todo o seu saldo e histórico de transações, mesmo após desconectar, e você perde a privacidade de usar novos endereços HD. Gastar seus fundos continuará exigindo sua aprovação para cada transação.",
+      "intro": "Ao conectar, a lista completa de endereços atuais e futuros da sua carteira (a xpub) é compartilhada com a dApp.",
+      "bulletHistory": "A dApp pode ver todo o seu saldo e histórico de transações, mesmo após desconectar.",
+      "bulletPrivacy": "Você perde a privacidade de usar novos endereços HD.",
+      "bulletSpending": "Gastar seus fundos continua exigindo sua aprovação para cada transação.",
+      "dappInfoNote": "Nota: o nome e o ícone da dApp só são recebidos após a conexão.",
       "connectButton": "Conectar",
       "cancelButton": "Cancelar"
     },

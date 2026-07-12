@@ -1,10 +1,12 @@
 <script setup lang="ts">
   import { computed } from 'vue';
   import { useQuasar } from 'quasar';
+  import { decodeKeyExchangeURI } from '@wizardconnect/core';
   import { useStore } from 'src/stores/store';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore'
   import { caughtErrorToString } from 'src/utils/errorHandling';
+  import { useWindowSize } from 'src/utils/composables'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
@@ -21,6 +23,29 @@
 
   // WizardConnect requires an HD wallet (see wizardconnectStore.pair)
   const isHdWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd');
+
+  const { width } = useWindowSize();
+  const isMobilePhone = computed(() => width.value < 480);
+
+  // When multiple sessions share the same dapp name, append a short session identifier
+  // (mirrors WC2ActiveSession). The manager's internal connection id is regenerated on
+  // every reconnect, so the stable identifier is the dapp's pubkey from the pairing URI.
+  function sessionIdTag(connectionId: string): string {
+    const connections = wizardconnectStore.connections;
+    const connection = connections[connectionId];
+    if (!connection) return '';
+    const hasDuplicateName = Object.entries(connections).some(([otherId, otherConnection]) =>
+      otherConnection.dappName === connection.dappName && otherId !== connectionId
+    );
+    if (!hasDuplicateName) return '';
+    try {
+      const dappPubkey = decodeKeyExchangeURI(connection.uri).publicKey;
+      const sessionPrefix = !isMobilePhone.value ? t('wizardConnect.sessions.session') + ' ' : '';
+      return ` - ${sessionPrefix}${dappPubkey.slice(0, 6)}`;
+    } catch {
+      return '';
+    }
+  }
 
   // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
   async function connectDappUriInput(url: string){
@@ -67,7 +92,7 @@
               <img v-if="connection.dappIcon" :src="connection.dappIcon" />
             </div>
             <div class="wiz-session-item-details-container">
-              <div>{{ connection.dappName ?? t('wizardConnect.sessions.unknownDapp') }}</div>
+              <div>{{ (connection.dappName ?? t('wizardConnect.sessions.unknownDapp')) + sessionIdTag(String(connectionId)) }}</div>
               <div :class="'wiz-session-status ' + (isDappConnected(connection) ? 'wiz-session-status-connected' : '')">
                 {{ statusLabel(connection) }}
               </div>

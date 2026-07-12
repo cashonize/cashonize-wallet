@@ -813,6 +813,7 @@
       "noActiveSessions": "Aucune session active actuellement.",
       "notAvailableForWalletType": "WizardConnect n'est pas disponible pour ce type de portefeuille. Il nécessite un portefeuille HD, car les dApps reçoivent la liste des adresses du portefeuille (xpub) pour dériver de nouvelles adresses, qu'un portefeuille à adresse unique ne peut pas surveiller.",
       "unknownDapp": "dApp inconnue",
+      "session": "session",
       "statusConnected": "Connecté",
       "statusWaitingForDapp": "En attente de la dApp...",
       "statusReconnecting": "Reconnexion...",
@@ -820,7 +821,11 @@
     },
     "pairing": {
       "title": "Partager les adresses du portefeuille avec cette dApp ?",
-      "message": "La connexion partage avec la dApp la liste complète des adresses actuelles et futures de votre portefeuille (la xpub). La dApp pourra alors voir l'intégralité de votre solde et de votre historique de transactions, même après déconnexion, et vous perdez donc la confidentialité offerte par les nouvelles adresses HD. Dépenser vos fonds nécessitera toujours votre approbation pour chaque transaction.",
+      "intro": "La connexion partage avec la dApp la liste complète des adresses actuelles et futures de votre portefeuille (la xpub).",
+      "bulletHistory": "La dApp peut voir l'intégralité de votre solde et de votre historique de transactions, même après déconnexion.",
+      "bulletPrivacy": "Vous perdez la confidentialité offerte par les nouvelles adresses HD.",
+      "bulletSpending": "Dépenser vos fonds nécessite toujours votre approbation pour chaque transaction.",
+      "dappInfoNote": "Remarque : le nom et l'icône de la dApp ne sont reçus qu'après la connexion.",
       "connectButton": "Connecter",
       "cancelButton": "Annuler"
     },

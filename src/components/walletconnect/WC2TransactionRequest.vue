@@ -189,7 +189,8 @@
         </div>
 
         <div style="font-size: large; margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.origin') }}</div>
-        <div style="display: flex;">
+        <!-- align-items center so a name-only WizardConnect origin (no url) centers against the icon -->
+        <div style="display: flex; align-items: center;">
           <img v-if="dappMetadata.icons[0]" :src="dappMetadata.icons[0]" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
             <div>{{ dappMetadata.name }}</div>
