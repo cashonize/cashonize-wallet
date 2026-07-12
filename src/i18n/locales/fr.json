@@ -75,7 +75,7 @@
       "title": "Bienvenue sur Cashonize",
       "description": "Un portefeuille Bitcoin Cash facile à utiliser, axé sur les CashTokens et les dApps BCH.",
       "featureSendReceive": "Envoyez et recevez des BCH et CashTokens",
-      "featureWalletConnect": "Connectez-vous aux dApps via WalletConnect",
+      "featureWalletConnect": "Connectez-vous aux dApps via WalletConnect, CashConnect ou WizardConnect",
       "featureOpenSource": "Open source et non-custodial"
     },
     "create": {
@@ -99,7 +99,7 @@
       "label": "Type de portefeuille :",
       "hd": "Portefeuille HD (adresses multiples)",
       "single": "Adresse unique",
-      "hdDescription": "Utilise une nouvelle adresse pour chaque transaction. Meilleure confidentialité, mais nécessite de sélectionner une adresse lors de la connexion aux dApps.",
+      "hdDescription": "Utilise une nouvelle adresse pour chaque transaction pour une meilleure confidentialité. Lors d'une connexion avec WalletConnect, vous choisissez quelle adresse partager.",
       "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé. La méthode de connexion WizardConnect n'est pas prise en charge.",
       "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
     },
@@ -354,7 +354,7 @@
   "dapp": {
     "title": "Connecter à une dApp",
     "exploreText": "Visitez {link} pour explorer la liste complète des dApps BCH avec WalletConnect",
-    "uriPlaceholder": "URI WalletConnect",
+    "uriPlaceholder": "URI de connexion",
     "connectButton": "Connecter nouvelle dApp",
     "errors": {
       "invalidUri": "URI WalletConnect, CashConnect ou WizardConnect invalide",
@@ -819,7 +819,7 @@
     },
     "pairing": {
       "title": "Partager les adresses du portefeuille avec cette dApp ?",
-      "message": "La connexion partage avec la dApp la liste complète des adresses actuelles et futures de votre portefeuille (la xpub). La dApp pourra alors voir l'intégralité de votre solde et de votre historique de transactions — même après déconnexion — et vous perdez donc la confidentialité offerte par les nouvelles adresses HD. Dépenser vos fonds nécessitera toujours votre approbation pour chaque transaction.",
+      "message": "La connexion partage avec la dApp la liste complète des adresses actuelles et futures de votre portefeuille (la xpub). La dApp pourra alors voir l'intégralité de votre solde et de votre historique de transactions, même après déconnexion, et vous perdez donc la confidentialité offerte par les nouvelles adresses HD. Dépenser vos fonds nécessitera toujours votre approbation pour chaque transaction.",
       "connectButton": "Connecter",
       "cancelButton": "Annuler"
     },

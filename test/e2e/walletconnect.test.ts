@@ -84,8 +84,8 @@ test.describe.serial('WalletConnect E2E', () => {
     await expect(dappPage.locator('#pairing-uri')).toContainText('wc:', { timeout: 15_000 })
     const uri = await dappPage.textContent('#pairing-uri')
 
-    // Wallet: Paste URI into WalletConnect input and click Connect
-    await walletPage.getByPlaceholder('Wallet Connect URI').fill(uri!)
+    // Wallet: Paste URI into the connection URI input and click Connect
+    await walletPage.getByPlaceholder('Connection URI').fill(uri!)
     await walletPage.locator('input.primaryButton[value*="Connect"]').click()
 
     // Wallet: Approve session proposal

@@ -75,7 +75,7 @@
       "title": "Willkommen bei Cashonize",
       "description": "Ein benutzerfreundliches Bitcoin Cash Wallet mit Fokus auf CashTokens und BCH dApps.",
       "featureSendReceive": "BCH und CashTokens senden & empfangen",
-      "featureWalletConnect": "Mit dApps über WalletConnect verbinden",
+      "featureWalletConnect": "Mit dApps über WalletConnect, CashConnect oder WizardConnect verbinden",
       "featureOpenSource": "Open-Source und selbstverwaltet"
     },
     "create": {
@@ -99,7 +99,7 @@
       "label": "Wallet-Typ:",
       "hd": "HD Wallet (mehrere Adressen)",
       "single": "Einzelne Adresse",
-      "hdDescription": "Verwendet für jede Transaktion eine neue Adresse. Bessere Privatsphäre, aber erfordert die Auswahl einer Adresse beim Verbinden mit dApps.",
+      "hdDescription": "Verwendet für jede Transaktion eine neue Adresse für bessere Privatsphäre. Beim Verbinden mit WalletConnect wählst du, welche Adresse geteilt wird.",
       "singleDescription": "Verwendet eine feste Adresse für alle Transaktionen. Alle Vermögenswerte an einem Ort, aber weniger privat. Die WizardConnect-Verbindungsmethode wird nicht unterstützt.",
       "singleAddressNote": "Hinweis: Nur die erste Adresse deiner seed phrase wird verwendet. Wenn du diese seed phrase bereits mit anderen Wallets verwendet hast, werden Guthaben auf anderen Adressen nicht angezeigt."
     },
@@ -354,7 +354,7 @@
   "dapp": {
     "title": "Mit Dapp verbinden",
     "exploreText": "Besuche {link}, um die vollständige Liste der BCH-Dapps mit WalletConnect zu erkunden",
-    "uriPlaceholder": "Wallet Connect URI",
+    "uriPlaceholder": "Verbindungs-URI",
     "connectButton": "Neue dApp verbinden",
     "errors": {
       "invalidUri": "Ungültige WalletConnect-, CashConnect- oder WizardConnect-URI",
@@ -819,7 +819,7 @@
     },
     "pairing": {
       "title": "Wallet-Adressen mit dieser Dapp teilen?",
-      "message": "Beim Verbinden wird die vollständige Liste aller aktuellen und zukünftigen Adressen deines Wallets (die xpub) mit der Dapp geteilt. Die Dapp kann dann dein gesamtes Guthaben und deine Transaktionshistorie einsehen — auch nach dem Trennen — und du verlierst die Privatsphäre frischer HD-Adressen. Zum Ausgeben deiner Gelder ist weiterhin für jede Transaktion deine Zustimmung erforderlich.",
+      "message": "Beim Verbinden wird die vollständige Liste aller aktuellen und zukünftigen Adressen deines Wallets (die xpub) mit der Dapp geteilt. Die Dapp kann dann dein gesamtes Guthaben und deine Transaktionshistorie einsehen, auch nach dem Trennen, und du verlierst die Privatsphäre frischer HD-Adressen. Zum Ausgeben deiner Gelder ist weiterhin für jede Transaktion deine Zustimmung erforderlich.",
       "connectButton": "Verbinden",
       "cancelButton": "Abbrechen"
     },

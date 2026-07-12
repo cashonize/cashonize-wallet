@@ -43,7 +43,7 @@ async function startPairing() {
   // Wait for any previous pairing flow to release the URI input: connectDappUriInput clears
   // it only after its (consent-dialog-gated) promise resolves, so filling too early races
   // that late clear and the Connect click would submit an empty input.
-  const uriInput = walletPage.getByPlaceholder('Wallet Connect URI')
+  const uriInput = walletPage.getByPlaceholder('Connection URI')
   await expect(uriInput).toHaveValue('')
   await uriInput.fill(uri)
   await walletPage.locator('input.primaryButton[value*="Connect"]').click()

@@ -75,7 +75,7 @@
       "title": "Bienvenido a Cashonize",
       "description": "Una billetera de Bitcoin Cash fácil de usar, con enfoque en CashTokens y dApps de BCH.",
       "featureSendReceive": "Envía y recibe BCH y CashTokens",
-      "featureWalletConnect": "Conéctate a dApps mediante WalletConnect",
+      "featureWalletConnect": "Conéctate a dApps mediante WalletConnect, CashConnect o WizardConnect",
       "featureOpenSource": "Código abierto y sin custodia"
     },
     "create": {
@@ -99,7 +99,7 @@
       "label": "Tipo de billetera:",
       "hd": "Billetera HD (múltiples direcciones)",
       "single": "Dirección única",
-      "hdDescription": "Usa una nueva dirección para cada transacción. Mayor privacidad, pero requiere seleccionar una dirección al conectarse a dApps.",
+      "hdDescription": "Usa una dirección nueva para cada transacción para mayor privacidad. Al conectar con WalletConnect, eliges qué dirección compartir.",
       "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado. El método de conexión WizardConnect no es compatible.",
       "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
     },
@@ -354,7 +354,7 @@
   "dapp": {
     "title": "Conectar a dApp",
     "exploreText": "Visita {link} para explorar la lista completa de dApps de BCH con WalletConnect",
-    "uriPlaceholder": "URI de WalletConnect",
+    "uriPlaceholder": "URI de conexión",
     "connectButton": "Conectar nueva dApp",
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect o WizardConnect inválida",
@@ -819,7 +819,7 @@
     },
     "pairing": {
       "title": "¿Compartir las direcciones de la billetera con esta dApp?",
-      "message": "Al conectar se comparte con la dApp la lista completa de direcciones actuales y futuras de tu billetera (la xpub). La dApp podrá ver todo tu saldo y tu historial de transacciones — incluso después de desconectar — por lo que pierdes la privacidad de usar direcciones HD nuevas. Gastar tus fondos seguirá requiriendo tu aprobación para cada transacción.",
+      "message": "Al conectar se comparte con la dApp la lista completa de direcciones actuales y futuras de tu billetera (la xpub). La dApp podrá ver todo tu saldo y tu historial de transacciones, incluso después de desconectar, por lo que pierdes la privacidad de usar direcciones HD nuevas. Gastar tus fondos seguirá requiriendo tu aprobación para cada transacción.",
       "connectButton": "Conectar",
       "cancelButton": "Cancelar"
     },

@@ -75,7 +75,7 @@
       "title": "Bem-vindo ao Cashonize",
       "description": "Uma carteira Bitcoin Cash fácil de usar, focada em CashTokens e dApps BCH.",
       "featureSendReceive": "Envie e receba BCH e CashTokens",
-      "featureWalletConnect": "Conecte-se a dApps via WalletConnect",
+      "featureWalletConnect": "Conecte-se a dApps via WalletConnect, CashConnect ou WizardConnect",
       "featureOpenSource": "Código aberto e sem custódia"
     },
     "create": {
@@ -99,7 +99,7 @@
       "label": "Tipo de carteira:",
       "hd": "Carteira HD (múltiplos endereços)",
       "single": "Endereço único",
-      "hdDescription": "Usa um novo endereço para cada transação. Maior privacidade, mas requer selecionar um endereço ao conectar a dApps.",
+      "hdDescription": "Usa um novo endereço para cada transação para maior privacidade. Ao conectar com WalletConnect, você escolhe qual endereço compartilhar.",
       "singleDescription": "Usa um endereço fixo para todas as transações. Todos os ativos em um só lugar, porém menos privado. O método de conexão WizardConnect não é suportado.",
       "singleAddressNote": "Nota: Apenas o primeiro endereço da sua seed phrase será usado. Se você usou essa seed com outras carteiras, fundos em outros endereços não aparecerão."
     },
@@ -354,7 +354,7 @@
   "dapp": {
     "title": "Conectar a Dapp",
     "exploreText": "Veja {link} para explorar a lista completa de Dapps BCH com WalletConnect",
-    "uriPlaceholder": "URI do WalletConnect",
+    "uriPlaceholder": "URI de conexão",
     "connectButton": "Conectar novo dApp",
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida",
@@ -819,7 +819,7 @@
     },
     "pairing": {
       "title": "Compartilhar os endereços da carteira com esta dApp?",
-      "message": "Ao conectar, a lista completa de endereços atuais e futuros da sua carteira (a xpub) é compartilhada com a dApp. A dApp poderá ver todo o seu saldo e histórico de transações — mesmo após desconectar — e você perde a privacidade de usar novos endereços HD. Gastar seus fundos continuará exigindo sua aprovação para cada transação.",
+      "message": "Ao conectar, a lista completa de endereços atuais e futuros da sua carteira (a xpub) é compartilhada com a dApp. A dApp poderá ver todo o seu saldo e histórico de transações, mesmo após desconectar, e você perde a privacidade de usar novos endereços HD. Gastar seus fundos continuará exigindo sua aprovação para cada transação.",
       "connectButton": "Conectar",
       "cancelButton": "Cancelar"
     },

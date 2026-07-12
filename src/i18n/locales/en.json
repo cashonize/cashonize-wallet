@@ -75,7 +75,7 @@
       "title": "Welcome to Cashonize",
       "description": "An easy-to-use Bitcoin Cash wallet with a focus on CashTokens and BCH dApps.",
       "featureSendReceive": "Send & receive BCH and CashTokens",
-      "featureWalletConnect": "Connect to dApps via WalletConnect",
+      "featureWalletConnect": "Connect to dApps via WalletConnect, CashConnect or WizardConnect",
       "featureOpenSource": "Open-source and non-custodial"
     },
     "create": {
@@ -99,7 +99,7 @@
       "label": "Wallet type:",
       "hd": "HD Wallet (multiple addresses)",
       "single": "Single address",
-      "hdDescription": "Uses a new address for each transaction. Better privacy, but requires selecting an address when connecting to dApps.",
+      "hdDescription": "Uses a new address for each transaction for better privacy. When connecting with WalletConnect, you select which address to share.",
       "singleDescription": "Uses one fixed address for all transactions. All assets in one place, but less private. The WizardConnect connection method is not supported.",
       "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear."
     },
@@ -354,7 +354,7 @@
   "dapp": {
     "title": "Connect to Dapp",
     "exploreText": "See {link} to explore the full list of BCH Dapps with WalletConnect",
-    "uriPlaceholder": "Wallet Connect URI",
+    "uriPlaceholder": "Connection URI",
     "connectButton": "Connect New dApp",
     "errors": {
       "invalidUri": "Invalid WalletConnect, CashConnect or WizardConnect URI",
@@ -819,7 +819,7 @@
     },
     "pairing": {
       "title": "Share wallet addresses with this dApp?",
-      "message": "Connecting shares your wallet's full current and future address list (the xpub) with the dApp. The dApp can then see your entire balance and transaction history — even after disconnecting — so you lose the privacy of using fresh HD wallet addresses. Spending your funds will still require your approval for each transaction.",
+      "message": "Connecting shares your wallet's full current and future address list (the xpub) with the dApp. The dApp can then see your entire balance and transaction history, even after disconnecting, so you lose the privacy of using fresh HD wallet addresses. Spending your funds will still require your approval for each transaction.",
       "connectButton": "Connect",
       "cancelButton": "Cancel"
     },
