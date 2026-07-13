@@ -20,6 +20,13 @@
     "wallet": "carteira",
     "wallets": "carteiras"
   },
+  "nav": {
+    "wallet": "Carteira",
+    "addresses": "Endereços",
+    "tokens": "Tokens",
+    "history": "Histórico",
+    "connect": "Conectar"
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Por favor, insira um nome para a carteira",

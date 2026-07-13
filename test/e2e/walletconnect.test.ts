@@ -62,10 +62,10 @@ test.describe.serial('WalletConnect E2E', () => {
     await walletPage.getByText('Developer settings').click()
     await walletPage.locator('select').first().selectOption('chipnet')
     // Wait for network switch to complete. It resets the active view back to the wallet tab.
-    await expect(walletPage.locator('nav').getByText('BchWallet')).toHaveClass(/active/, { timeout: 15_000 })
+    await expect(walletPage.locator('nav').getByText('Wallet', { exact: true })).toHaveClass(/active/, { timeout: 15_000 })
 
-    // Navigate to WalletConnect tab, wait for sessions section
-    await walletPage.locator('nav').getByText('WalletConnect').click()
+    // Navigate to the Connect tab, wait for sessions section
+    await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
     // exact: the intro text ("Connect to dApps with the...") is a case-insensitive substring match otherwise
     await walletPage.getByText('Connect to Dapp', { exact: true }).waitFor({ timeout: 15_000 })
 

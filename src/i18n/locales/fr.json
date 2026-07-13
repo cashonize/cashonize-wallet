@@ -20,6 +20,13 @@
     "wallet": "portefeuille",
     "wallets": "portefeuilles"
   },
+  "nav": {
+    "wallet": "Portefeuille",
+    "addresses": "Adresses",
+    "tokens": "Tokens",
+    "history": "Historique",
+    "connect": "Connecter"
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Veuillez entrer un nom de portefeuille",

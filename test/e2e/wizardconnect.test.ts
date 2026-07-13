@@ -83,7 +83,7 @@ test.describe.serial('WizardConnect E2E', () => {
     await walletPage.locator('nav').waitFor({ timeout: 15_000 })
 
     // Navigate to the connect view, wait for sessions section
-    await walletPage.locator('nav').getByText('WalletConnect').click()
+    await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
     // exact: the intro text ("Connect to dApps with the...") is a case-insensitive substring match otherwise
     await walletPage.getByText('Connect to Dapp', { exact: true }).waitFor({ timeout: 15_000 })
 
@@ -174,7 +174,7 @@ test.describe.serial('WizardConnect E2E', () => {
   test('session restore — wallet reload reconnects without re-prompting consent', async () => {
     await walletPage.reload()
     await walletPage.locator('nav').waitFor({ timeout: 30_000 })
-    await walletPage.locator('nav').getByText('WalletConnect').click()
+    await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
 
     // The persisted session reconnects with the same relay identity; the dapp
     // re-announces itself (dapp_ready) so the session card regains its name.

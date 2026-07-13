@@ -20,6 +20,13 @@
     "wallet": "billetera",
     "wallets": "billeteras"
   },
+  "nav": {
+    "wallet": "Billetera",
+    "addresses": "Direcciones",
+    "tokens": "Tokens",
+    "history": "Historial",
+    "connect": "Conectar"
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Por favor ingresa un nombre de billetera",

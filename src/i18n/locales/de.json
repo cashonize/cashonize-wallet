@@ -20,6 +20,13 @@
     "wallet": "Wallet",
     "wallets": "Wallets"
   },
+  "nav": {
+    "wallet": "Wallet",
+    "addresses": "Adressen",
+    "tokens": "Tokens",
+    "history": "Historie",
+    "connect": "Verbinden"
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Bitte gib einen Wallet-Namen ein",
