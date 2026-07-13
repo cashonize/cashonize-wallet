@@ -811,7 +811,7 @@
       "signedTransaction": "Transação WalletConnect assinada '{userPrompt}'. Por favor, retorne ao dapp.",
       "transactionSignedTitle": "Transação Assinada",
       "transactionSent": "Transação enviada com sucesso!",
-      "transactionSigned": "Transação assinada com sucesso!",
+      "transactionSigned": "Transação assinada e devolvida à dApp",
       "requestExpired": "Requisição expirou, retorne ao {dappName} se deseja tentar novamente"
     }
   },
@@ -850,7 +850,7 @@
       "signedTransaction": "Transação WizardConnect para {dappName} assinada. Por favor, retorne ao dapp.",
       "transactionSignedTitle": "Transação Assinada",
       "transactionSent": "Transação enviada com sucesso!",
-      "transactionSigned": "Transação assinada com sucesso!",
+      "transactionSigned": "Transação assinada e devolvida à dApp",
       "requestCancelled": "A solicitação de assinatura foi cancelada por {dappName}",
       "dappDisconnected": "A sessão WizardConnect foi desconectada por {dappName}"
     }
