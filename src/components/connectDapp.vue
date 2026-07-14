@@ -68,13 +68,13 @@
       }
     }
     if(props.dappUriUrlParam?.startsWith('cc:')){
-      const { isDappConnectionsInitialized } = storeToRefs(store);
-      await waitForInitialized(isDappConnectionsInitialized);
+      const { dappConnectionStoresInitialized } = storeToRefs(store);
+      await waitForInitialized(dappConnectionStoresInitialized);
       await cashconnectStore?.pair(props.dappUriUrlParam);
     }
     if(props.dappUriUrlParam?.toLowerCase().startsWith('wiz:')){
-      const { isDappConnectionsInitialized } = storeToRefs(store);
-      await waitForInitialized(isDappConnectionsInitialized);
+      const { dappConnectionStoresInitialized } = storeToRefs(store);
+      await waitForInitialized(dappConnectionStoresInitialized);
       try {
         await wizardconnectStore.pair(props.dappUriUrlParam);
       } catch (error) {
@@ -92,8 +92,8 @@
   async function connectDappUriInput(dappUri: string) {
     try {
       // Promise will wait for state indicating whether the dapp connection stores are initialized
-      const { isDappConnectionsInitialized } = storeToRefs(store);
-      await waitForInitialized(isDappConnectionsInitialized);
+      const { dappConnectionStoresInitialized } = storeToRefs(store);
+      await waitForInitialized(dappConnectionStoresInitialized);
 
       // If the URI begins with "wc:" (walletconnect)...
       if(dappUri.startsWith('wc:')) {

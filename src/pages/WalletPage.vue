@@ -112,8 +112,8 @@
     if(walletExists){
       dappUriUrlParam.value = props.uri
       // Promise will wait for state indicating whether the dapp connection stores are initialized
-      const { isDappConnectionsInitialized } = storeToRefs(store);
-      await waitForInitialized(isDappConnectionsInitialized);
+      const { dappConnectionStoresInitialized } = storeToRefs(store);
+      await waitForInitialized(dappConnectionStoresInitialized);
       store.changeView(4);
     } else {
       $q.notify({

@@ -115,7 +115,7 @@ export const useStore = defineStore('store', () => {
     return _wallet.value
   })
 
-  const isDappConnectionsInitialized = computed(() => isWcInitialized.value && isCcInitialized.value && isWizInitialized.value)
+  const dappConnectionStoresInitialized = computed(() => isWcInitialized.value && isCcInitialized.value && isWizInitialized.value)
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
   // Filtered token list based on display filter setting
@@ -934,7 +934,7 @@ export const useStore = defineStore('store', () => {
     walletHistory,
     isHistoryPartial,
     plannedTokenId,
-    isDappConnectionsInitialized,
+    dappConnectionStoresInitialized,
     latestGithubRelease,
     network,
     explorerUrl,
