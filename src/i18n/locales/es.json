@@ -818,7 +818,6 @@
   "wizardConnect": {
     "sessions": {
       "title": "WizardConnect",
-      "notAvailableForWalletType": "WizardConnect no está disponible para este tipo de billetera. Requiere una billetera HD, porque las dApps reciben la lista de direcciones de la billetera (xpub) para derivar nuevas direcciones, que una billetera de dirección única no puede observar.",
       "unknownDapp": "dApp desconocida",
       "session": "sesión",
       "statusConnected": "Conectado",

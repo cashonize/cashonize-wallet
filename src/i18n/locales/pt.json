@@ -818,7 +818,6 @@
   "wizardConnect": {
     "sessions": {
       "title": "WizardConnect",
-      "notAvailableForWalletType": "WizardConnect não está disponível para este tipo de carteira. Requer uma carteira HD, porque as dApps recebem a lista de endereços da carteira (xpub) para derivar novos endereços, que uma carteira de endereço único não pode observar.",
       "unknownDapp": "dApp desconhecida",
       "session": "sessão",
       "statusConnected": "Conectado",

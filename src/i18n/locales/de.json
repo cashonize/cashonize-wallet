@@ -818,7 +818,6 @@
   "wizardConnect": {
     "sessions": {
       "title": "WizardConnect",
-      "notAvailableForWalletType": "WizardConnect ist für diesen Wallet-Typ nicht verfügbar. Es erfordert ein HD-Wallet, da Dapps die Adressliste des Wallets (xpub) erhalten, um neue Adressen abzuleiten, die ein Einzeladressen-Wallet nicht überwachen kann.",
       "unknownDapp": "Unbekannte Dapp",
       "session": "Sitzung",
       "statusConnected": "Verbunden",

@@ -175,7 +175,6 @@
       <CCSessions ref="cashconnectRef" />
       <WizSessions ref="wizardconnectRef" />
       <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
-      <div v-if="!isHdWallet" class="q-pa-md wiz-unavailable-note">{{ t('wizardConnect.sessions.notAvailableForWalletType') }}</div>
     </fieldset>
 
     <div v-if="showQrCodeDialog">
@@ -188,12 +187,5 @@
   .sessions-section-heading {
     font-weight: 600;
     margin: 8px 0 2px;
-  }
-</style>
-
-<style scoped>
-  .wiz-unavailable-note {
-    font-size: smaller;
-    color: var(--color-grey);
   }
 </style>
