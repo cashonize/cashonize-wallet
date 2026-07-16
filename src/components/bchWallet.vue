@@ -27,7 +27,7 @@
 
 
   // reactive state
-  const displayBchQr = ref(true);
+  const displayBchQr = ref(!settingsStore.tokenAddressQrDefault);
   const bchSendAmount = ref(undefined as (number | undefined));
   const currencySendAmount = ref(undefined as (number | undefined));
   const destinationAddr = ref("");
@@ -232,6 +232,13 @@
   // @codeRendered does not trigger on 'qrAnimation' so we use a watcher for it
   watch(() => settingsStore.qrAnimation, () => {
     if(!settingsStore.hasPlayedAnimation) animateQrCode()
+  })
+
+  // the component is kept alive across view switches, so changing the default-QR setting
+  // in the settings menu should also update the currently displayed QR code
+  watch(() => settingsStore.tokenAddressQrDefault, (newValue) => {
+    displayBchQr.value = !newValue;
+    settingsStore.hasPlayedAnimation = false;
   })
 </script>
 

@@ -37,6 +37,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const showCauldronFTValue = ref(true);
   const qrScan = ref(true);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
+  const tokenAddressQrDefault = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false); // consider changing default to true
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
@@ -124,6 +125,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readQrAnimation = localStorage.getItem("qrAnimation");
   if(readQrAnimation) qrAnimation.value = readQrAnimation as QRCodeAnimationName | 'None';
+
+  const readTokenAddressQrDefault = localStorage.getItem("tokenAddressQrDefault");
+  if(readTokenAddressQrDefault) tokenAddressQrDefault.value = readTokenAddressQrDefault == "true";
 
   const readDarkMode = localStorage.getItem("darkMode");
   if(readDarkMode == "true"){
@@ -423,6 +427,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     showCauldronFTValue,
     qrScan,
     qrAnimation,
+    tokenAddressQrDefault,
     hasPlayedAnimation,
     featuredTokens,
     hiddenTokens,

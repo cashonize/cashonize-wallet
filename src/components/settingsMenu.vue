@@ -43,6 +43,7 @@
   const selectedShowCauldronFTValue = ref(settingsStore.showCauldronFTValue);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
+  const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
   // advanced settings
   const predefinedElectrumServersMainnet = [
     "electrum.imaginary.cash",
@@ -254,6 +255,10 @@
     localStorage.setItem("qrScan", enableQrScan.value? "true" : "false");
     settingsStore.qrScan = enableQrScan.value;
   }
+  function toggleTokenAddressQrDefault(){
+    localStorage.setItem("tokenAddressQrDefault", tokenAddressQrDefault.value? "true" : "false");
+    settingsStore.tokenAddressQrDefault = tokenAddressQrDefault.value;
+  }
   async function confirmDeleteWallets(){
     let text = t('settings.advanced.deleteAllWalletsConfirm', { platform: platformString });
     if (isPwaMode) {
@@ -460,6 +465,10 @@
           <option value="RadialRippleIn">RadialRippleIn</option>
           <option value="None">None</option>
         </select>
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        {{ t('settings.userOptions.tokenAddressQrDefault') }} <q-toggle v-model="tokenAddressQrDefault" @update:model-value="toggleTokenAddressQrDefault" dense />
       </div>
 
     </div>

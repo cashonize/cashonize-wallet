@@ -844,7 +844,8 @@
       "bchUnit": "BCH",
       "satUnit": "Satoshis",
       "blockExplorer": "Block-Explorer:",
-      "qrAnimation": "QR-Code Animation:"
+      "qrAnimation": "QR-Code Animation:",
+      "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen"
     },
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",

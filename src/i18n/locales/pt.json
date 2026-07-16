@@ -844,7 +844,8 @@
       "bchUnit": "BCH",
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
-      "qrAnimation": "Animação do QR code:"
+      "qrAnimation": "Animação do QR code:",
+      "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão"
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
