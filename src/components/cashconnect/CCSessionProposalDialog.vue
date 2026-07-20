@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar, useDialogPluginComponent } from 'quasar'
-import type { BchSessionProposal } from '@cashconnect-js/core';
+import type { SessionProposalResponse } from '@cashconnect-js/nostr';
 
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
@@ -18,7 +18,7 @@ const store = useStore();
 const settingsStore = useSettingsStore();
 
 const props = defineProps<{
-  session: BchSessionProposal<true>
+  session: SessionProposalResponse
 }>()
 
 defineEmits([
@@ -31,7 +31,7 @@ function viewTemplate() {
   $q.dialog({
     component: CCViewTemplateDialog,
     componentProps: {
-      template: props.session.params.sessionProperties.template,
+      template: props.session.template,
     },
   });
 }
@@ -95,9 +95,8 @@ async function fetchAndSetTokenInfo(tokenId: string) {
   }
 }
 
-const peerMetadata = props.session.params.proposer.metadata;
-const safeUrl = sanitizeUrl(peerMetadata.url);
-const allowedTokens = props.session.params.sessionProperties.allowedTokens ?? [];
+const safeUrl = sanitizeUrl(props.session.dapp.url);
+const allowedTokens = props.session.allowedTokens ?? [];
 
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
@@ -116,17 +115,17 @@ for (const tokenId of allowedTokens) {
           <div style="display: flex; align-items: center; flex-direction: row; gap: 10px; padding: 7px;">
             <!-- App Icon -->
             <div style="display: flex; align-items: center; height: 64px; width: 64px;">
-              <q-img :src="peerMetadata.icons[0]" />
+              <q-img :src="props.session.dapp.icon" />
             </div>
 
             <!-- Metadata -->
             <div style="display: flex; flex-direction: column; width: 100%;">
-              <div>{{ peerMetadata.name }}</div>
+              <div>{{ props.session.dapp.name }}</div>
               <div>
-                <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ peerMetadata.url }}</a>
+                <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ props.session.dapp.url }}</a>
                 <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
               </div>
-              <div>{{ peerMetadata.description }}</div>
+              <div>{{ props.session.dapp.description }}</div>
             </div>
           </div>
 
@@ -135,14 +134,14 @@ for (const tokenId of allowedTokens) {
             <!-- Template -->
             <div class="cc-modal-section">
               <div class="cc-modal-heading">{{ t('cashConnect.sessionProposal.template') }}</div>
-              <a @click="viewTemplate()" class="cursor-pointer">{{ session.params.sessionProperties.template.name }}</a> {{ t('cashConnect.sessionProposal.untrusted') }}
+              <a @click="viewTemplate()" class="cursor-pointer">{{ session.template.name }}</a> {{ t('cashConnect.sessionProposal.untrusted') }}
             </div>
 
             <!-- Allowed Tokens -->
             <div class="cc-modal-section">
               <div class="cc-modal-heading">{{ t('cashConnect.sessionProposal.willSeeTokens') }}</div>
               <ul>
-                <li v-for="(allowedToken, i) of session.params.sessionProperties.allowedTokens" :key="i" class="q-mb-xs">
+                <li v-for="(allowedToken, i) of session.allowedTokens" :key="i" class="q-mb-xs">
                   <q-avatar size="18px" class="q-mr-xs">
                     <q-img :src="getTokenIcon(allowedToken)" />
                   </q-avatar>
@@ -158,8 +157,8 @@ for (const tokenId of allowedTokens) {
             <div class="cc-modal-section">
               <div class="cc-modal-heading">{{ t('cashConnect.sessionProposal.willInvokeMethods') }}</div>
               <ul>
-                <li v-for="(method, i) of session.params.optionalNamespaces?.bch?.methods" :key="i">{{ method }}</li>
-                <li v-for="(event, i) of session.params.optionalNamespaces?.bch?.events" :key="i">{{ event }}</li>
+                <li v-for="(method, i) of session.methods" :key="i">{{ method }}</li>
+                <li v-for="(event, i) of session.events" :key="i">{{ event }}</li>
               </ul>
             </div>
           </div>

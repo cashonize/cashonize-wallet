@@ -76,8 +76,8 @@
         await walletconnectRef.value?.connectDappUriInput(dappUri);
       }
 
-      // Otherwise, if the URI begins with "cc:" (cashconnect)...
-      else if (dappUri.startsWith('cc:')) {
+      // Otherwise, if the URI begins with "bch-cc-v1:" (cashconnect v1)...
+      else if (dappUri.startsWith('bch-cc-v1:')) {
         await cashconnectRef.value?.connectDappUriInput(dappUri);
       }
 

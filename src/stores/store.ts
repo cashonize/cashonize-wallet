@@ -645,12 +645,12 @@ export const useStore = defineStore('store', () => {
       // Monitor the wallet for balance changes and notify CashConnect to refresh wallet state.
       cancelWatchBchBalanceCashConnect = await wallet.value.watchBalance(() => {
         // Convert the network into WC format,
-        const chainIdFormatted = wallet.value.network === NetworkType.Mainnet ? 'bch:bitcoincash' : 'bch:bchtest';
+        // const chainIdFormatted = wallet.value.network === NetworkType.Mainnet ? 'bch:bitcoincash' : 'bch:bchtest';
 
         // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
         // fire-and-forget promise
         if(cashconnectWallet.cashConnectWallet) {
-          void cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
+          void cashconnectWallet.cashConnectWallet.notifyBalancesChanged();
         }
       });
     } catch (error) {
