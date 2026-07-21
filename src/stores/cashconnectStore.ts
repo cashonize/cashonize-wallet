@@ -24,6 +24,8 @@ import {
 import {
   type WalletSession,
   Wallet,
+  derivationPathToCashConnectPath,
+  doesActionRequireApproval,
 } from "@cashconnect-js/nostr/wallet";
 
 // Import Libauth.
@@ -61,7 +63,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     // Instantiate CashConnect.
     cashConnectWallet.value = new Wallet({
       cashConnectPrivateKey: cashConnectPrivateKey,
-      relayUrl: 'wss://nos.lol',
       eventCallbacks: {
         onSessionsUpdated,
         onSessionProposal,
@@ -162,7 +163,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     response: ExecuteActionResponse,
     cancelled: AbortSignal
   ): Promise<void> {
-    // If this is not a request that DOES NOT require approval...
+    // If this is a request that DOES NOT require approval...
     if (!doesActionRequireApproval(session, request.action)) {
       return;
     }
@@ -207,15 +208,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
         },
       }).onDismiss(resolve);
     });
-  }
-  function doesActionRequireApproval(session: WalletSession, actionName: string) {
-    // Get the action being executed from the session:template.
-    const action = session.template.actions[actionName];
-    // Check to see if it contains any instructions that should require approval.
-    // NOTE: Currently, only actions involving transactions require approval.
-    //       In future once we have auditing infrastructure, wallets can define their own policies.
-    //       For example, if a given template is unaudited, all actions could be set to require approval.
-    return action?.instructions?.some((instruction) => instruction.type === 'transaction');
   }
   //-----------------------------------------------------------------------------
   // Network/Wallet Hooks
@@ -368,17 +360,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
         console.error('Failed to reconnect:', error);
       }
     }
-  }
-  function derivationPathToCashConnectPath(derivationPath: string, purpose = 5001) {
-      // Replace the "purpose" in the derivation path with "5001" (CashConnect).
-      const parts = derivationPath.split('/');
-      if (parts.length < 4) {
-          throw new Error(
-            t('cashConnect.notifications.invalidDerivationPath', { length: parts.length })
-          )
-      }
-      parts[1] = `${purpose}'`;
-      return parts.join('/');
   }
   function getCashConnectPrivateKeyForWallet(wallet: WalletType) {
     // If this is a single address (WIF) wallet, we just use the WIF's Private Key.
