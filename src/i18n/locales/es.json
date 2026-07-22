@@ -383,6 +383,13 @@
       "balance": "Saldo",
       "tokens": "Tokens"
     },
+    "csv": {
+      "date": "Fecha (UTC)",
+      "transactionId": "ID de transacción",
+      "amount": "Cantidad ({unit})",
+      "balance": "Saldo ({unit})",
+      "tokenChanges": "Cambios de tokens"
+    },
     "pending": "pendiente",
     "transactionCountPartial": "{count}+ Transacciones",
     "loadingFullHistory": "Cargando historial completo..."

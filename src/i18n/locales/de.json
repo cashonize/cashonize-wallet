@@ -383,6 +383,13 @@
       "balance": "Guthaben",
       "tokens": "Tokens"
     },
+    "csv": {
+      "date": "Datum (UTC)",
+      "transactionId": "Transaktions-ID",
+      "amount": "Betrag ({unit})",
+      "balance": "Guthaben ({unit})",
+      "tokenChanges": "Token-Änderungen"
+    },
     "pending": "ausstehend",
     "transactionCountPartial": "{count}+ Transaktionen",
     "loadingFullHistory": "Lade vollständige Historie..."
