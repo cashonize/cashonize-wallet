@@ -421,6 +421,16 @@
       "copyMessage": "Copier votre phrase de récupération dans le presse-papiers n'est pas recommandé pour des raisons de sécurité, mais est autorisé par commodité.\nVous pouvez vider votre presse-papiers ensuite en copiant autre chose.",
       "copiedNotification": "Phrase de récupération copiée dans le presse-papiers"
     },
+    "privateKey": {
+      "title": "Clé privée WIF",
+      "showButton": "Afficher la WIF",
+      "hideButton": "Masquer la WIF",
+      "copyButton": "Copier la WIF",
+      "copyTitle": "Copier la WIF",
+      "copyMessage": "Copier votre WIF dans le presse-papiers n'est pas recommandé pour des raisons de sécurité, mais autorisé par commodité.\nVous pouvez ensuite vider le presse-papiers en copiant autre chose.",
+      "copiedNotification": "WIF copiée dans le presse-papiers",
+      "hdNotSupported": "Les portefeuilles HD utilisent une WIF distincte pour chaque adresse ; l'export de WIF par adresse n'est pas encore pris en charge."
+    },
     "backupStatus": {
       "verified": "Sauvegarde vérifiée",
       "imported": "Portefeuille importé",
@@ -890,7 +900,9 @@
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
       "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
       "strictWcSchema": "Validation stricte du schéma WalletConnect",
-      "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dapp pour détecter les payloads non conformes."
+      "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dapp pour détecter les payloads non conformes.",
+      "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
+      "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique."
     },
     "downloadCashonize": "Télécharger Cashonize",
     "madeWith": "Fait avec {heart} par Mathieu G."

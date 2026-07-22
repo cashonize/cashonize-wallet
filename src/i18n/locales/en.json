@@ -421,6 +421,16 @@
       "copyMessage": "Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.\nYou can clear your clipboard afterwards by copying something else.",
       "copiedNotification": "Seed phrase copied to clipboard"
     },
+    "privateKey": {
+      "title": "WIF private key",
+      "showButton": "Show WIF",
+      "hideButton": "Hide WIF",
+      "copyButton": "Copy WIF",
+      "copyTitle": "Copy WIF",
+      "copyMessage": "Copying your WIF to the clipboard is not recommended for security reasons, but allowed for convenience.\nYou can clear your clipboard afterwards by copying something else.",
+      "copiedNotification": "WIF copied to clipboard",
+      "hdNotSupported": "HD wallets use a separate WIF for each address; per-address WIF export isn't supported yet."
+    },
     "backupStatus": {
       "verified": "Backup verified",
       "imported": "Imported wallet",
@@ -890,7 +900,9 @@
       "disableTokenIcons": "Disable token image loading",
       "disableTokenIconsHint": "Prevents loading token images from external servers",
       "strictWcSchema": "Strict WalletConnect schema validation",
-      "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dapp to surface non-compliant payloads."
+      "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dapp to surface non-compliant payloads.",
+      "showPrivateKeyWif": "Show WIF private key on backup page",
+      "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets."
     },
     "downloadCashonize": "Download Cashonize",
     "madeWith": "Made with {heart} by Mathieu G."

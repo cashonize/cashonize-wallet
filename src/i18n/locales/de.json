@@ -421,6 +421,16 @@
       "copyMessage": "Deine seed phrase in die Zwischenablage zu kopieren wird aus Sicherheitsgründen nicht empfohlen, ist aber der Einfachheit halber erlaubt.\nDu kannst deine Zwischenablage danach leeren, indem du etwas anderes kopierst.",
       "copiedNotification": "Seed phrase in die Zwischenablage kopiert"
     },
+    "privateKey": {
+      "title": "WIF-Schlüssel",
+      "showButton": "WIF anzeigen",
+      "hideButton": "WIF verbergen",
+      "copyButton": "WIF kopieren",
+      "copyTitle": "WIF kopieren",
+      "copyMessage": "Das Kopieren deiner WIF in die Zwischenablage wird aus Sicherheitsgründen nicht empfohlen, ist aber der Bequemlichkeit halber erlaubt.\nDu kannst die Zwischenablage anschließend leeren, indem du etwas anderes kopierst.",
+      "copiedNotification": "WIF in die Zwischenablage kopiert",
+      "hdNotSupported": "HD-Wallets verwenden für jede Adresse eine eigene WIF; der WIF-Export pro Adresse wird noch nicht unterstützt."
+    },
     "backupStatus": {
       "verified": "Backup verifiziert",
       "imported": "Importiertes Wallet",
@@ -890,7 +900,9 @@
       "disableTokenIcons": "Token-Bilder deaktivieren",
       "disableTokenIconsHint": "Verhindert das Laden von Token-Bildern von externen Servern",
       "strictWcSchema": "Strikte WalletConnect-Schema-Validierung",
-      "strictWcSchemaHint": "Erzwingt die WC2-BCH-Spezifikation exakt. Aktiviere diese Option bei der Dapp-Entwicklung, um nicht konforme Payloads sichtbar zu machen."
+      "strictWcSchemaHint": "Erzwingt die WC2-BCH-Spezifikation exakt. Aktiviere diese Option bei der Dapp-Entwicklung, um nicht konforme Payloads sichtbar zu machen.",
+      "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
+      "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu."
     },
     "downloadCashonize": "Cashonize herunterladen",
     "madeWith": "Erstellt mit {heart} von Mathieu G."

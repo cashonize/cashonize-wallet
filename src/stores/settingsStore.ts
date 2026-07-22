@@ -46,6 +46,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const authchains = ref(false);
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
+  const showPrivateKeyWif = ref(false);
   // history settings
   const showFiatValueHistory = ref(true);
   const hideBalanceColumn = ref(false);
@@ -208,6 +209,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readStrictWcSchema = localStorage.getItem("strictWcSchema");
   if(readStrictWcSchema) strictWcSchema.value = readStrictWcSchema === "true";
+
+  const readShowPrivateKeyWif = localStorage.getItem("showPrivateKeyWif");
+  if(readShowPrivateKeyWif) showPrivateKeyWif.value = readShowPrivateKeyWif === "true";
 
   // --- Exchange rate provider configuration ---
 
@@ -445,6 +449,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     mintNfts,
     authchains,
     strictWcSchema,
+    showPrivateKeyWif,
     dateFormat,
     confirmBeforeSending,
     disableTokenIcons,

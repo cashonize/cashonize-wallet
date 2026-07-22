@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { computed, ref, onMounted } from 'vue'
+  import { Wallet } from 'mainnet-js'
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -69,6 +70,35 @@
   // Computed property to check if current wallet's seed has been backed up
   const backupStatus = computed(() => settingsStore.getBackupStatus(store.activeWalletName));
   const hasSeedBackedUp = computed(() => backupStatus.value === 'verified' || backupStatus.value === 'imported');
+
+  // Private key (WIF) export — developer option, single-address wallets only.
+  // Gate on the actual wallet class (not the localStorage metadata)
+  const singleAddressWallet = computed(() => {
+    const activeWallet = store.wallet;
+    return activeWallet instanceof Wallet ? activeWallet : undefined;
+  });
+  const privateKeyWif = computed(() => singleAddressWallet.value?.privateKeyWif ?? '');
+  const displayWif = ref(false);
+
+  function toggleShowWif() {
+    displayWif.value = !displayWif.value;
+  }
+
+  async function copyWif() {
+    const confirmed = await confirmDialog(
+      t('backupWallet.privateKey.copyTitle'),
+      t('backupWallet.privateKey.copyMessage'),
+      t('backupWallet.privateKey.copyButton')
+    )
+    if (!confirmed) return
+    void navigator.clipboard.writeText(privateKeyWif.value);
+    $q.notify({
+      message: t('backupWallet.privateKey.copiedNotification'),
+      icon: 'info',
+      timeout: 2000,
+      color: "grey-6"
+    })
+  }
 
   // Seedphrase display state
   const displaySeedphrase = ref(false);
@@ -187,6 +217,26 @@
     <button v-if="displaySeedphrase" @click="copySeedphrase" class="seedphrase-copy-btn">
       {{ t('backupWallet.seedPhrase.copyButton') }}
     </button>
+
+    <!-- Private key (WIF) — developer option -->
+    <div v-if="settingsStore.showPrivateKeyWif" class="wif-section">
+      <div style="margin-bottom: 8px;">{{ t('backupWallet.privateKey.title') }}</div>
+      <template v-if="singleAddressWallet">
+        <input @click="toggleShowWif()" class="button primary" type="button"
+          :value="displayWif ? t('backupWallet.privateKey.hideButton') : t('backupWallet.privateKey.showButton')"
+        >
+        <div v-if="displayWif" class="wif-container" @click="copyWif">
+          <span class="wif-value">{{ privateKeyWif }}</span>
+          <img class="copyIcon" src="images/copyGrey.svg">
+        </div>
+        <button v-if="displayWif" @click="copyWif" class="seedphrase-copy-btn">
+          {{ t('backupWallet.privateKey.copyButton') }}
+        </button>
+      </template>
+      <div v-else class="wif-hd-note">
+        {{ t('backupWallet.privateKey.hdNotSupported') }}
+      </div>
+    </div>
 
     <!-- Backup Status -->
     <div v-if="!showBackupVerification" class="backup-status-section">
@@ -347,6 +397,32 @@ body.dark .seedphrase-word {
 body.dark .seedphrase-copy-btn {
   background-color: #2a2a3e;
   color: #f5f5f5;
+}
+.wif-section {
+  margin-top: 24px;
+}
+.wif-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  word-break: break-all;
+}
+body.dark .wif-container {
+  background-color: #1a1a2e;
+}
+.wif-value {
+  font-family: monospace;
+  font-size: 14px;
+}
+.wif-hd-note {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #888;
 }
 .derivation-section {
   margin-top: 24px;

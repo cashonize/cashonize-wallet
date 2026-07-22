@@ -421,6 +421,16 @@
       "copyMessage": "Copiar sua seed phrase para a área de transferência não é recomendado por motivos de segurança, mas é permitido por conveniência.\nVocê pode limpar a área de transferência depois copiando outra coisa.",
       "copiedNotification": "Seed phrase copiada para a área de transferência"
     },
+    "privateKey": {
+      "title": "Chave privada WIF",
+      "showButton": "Mostrar WIF",
+      "hideButton": "Ocultar WIF",
+      "copyButton": "Copiar WIF",
+      "copyTitle": "Copiar WIF",
+      "copyMessage": "Copiar a sua WIF para a área de transferência não é recomendado por motivos de segurança, mas é permitido por conveniência.\nPode limpar a área de transferência depois copiando outra coisa.",
+      "copiedNotification": "WIF copiada para a área de transferência",
+      "hdNotSupported": "As carteiras HD usam uma WIF separada para cada endereço; a exportação de WIF por endereço ainda não é suportada."
+    },
     "backupStatus": {
       "verified": "Backup verificado",
       "imported": "Carteira importada",
@@ -890,7 +900,9 @@
       "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
       "disableTokenIconsHint": "Impede o carregamento de imagens de tokens de servidores externos",
       "strictWcSchema": "Validação estrita do schema WalletConnect",
-      "strictWcSchemaHint": "Aplica a especificação WC2-BCH exatamente. Ative ao desenvolver um dapp para detectar payloads não conformes."
+      "strictWcSchemaHint": "Aplica a especificação WC2-BCH exatamente. Ative ao desenvolver um dapp para detectar payloads não conformes.",
+      "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
+      "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único."
     },
     "downloadCashonize": "Baixar Cashonize",
     "madeWith": "Feito com {heart} por Mathieu G."

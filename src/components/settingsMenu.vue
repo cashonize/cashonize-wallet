@@ -82,6 +82,7 @@
   const enableAuthchains = ref(settingsStore.authchains);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
   const strictWcSchema = ref(settingsStore.strictWcSchema);
+  const showPrivateKeyWif = ref(settingsStore.showPrivateKeyWif);
 
   const utxosWithBchAndTokens = computed(() => {
     return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n);
@@ -370,6 +371,10 @@
     localStorage.setItem("strictWcSchema", strictWcSchema.value ? "true" : "false");
     settingsStore.strictWcSchema = strictWcSchema.value;
   }
+  function changeShowPrivateKeyWif(){
+    localStorage.setItem("showPrivateKeyWif", showPrivateKeyWif.value ? "true" : "false");
+    settingsStore.showPrivateKeyWif = showPrivateKeyWif.value;
+  }
 
 </script>
 
@@ -620,6 +625,13 @@
         {{ t('settings.developer.strictWcSchema') }} <q-toggle v-model="strictWcSchema" @update:model-value="changeStrictWcSchema()" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.strictWcSchemaHint') }}
+        </div>
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px">
+        {{ t('settings.developer.showPrivateKeyWif') }} <q-toggle v-model="showPrivateKeyWif" @update:model-value="changeShowPrivateKeyWif()" dense />
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.developer.showPrivateKeyWifHint') }}
         </div>
       </div>
     </div>
