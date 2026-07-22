@@ -75,7 +75,9 @@
       "description": "Un portefeuille Bitcoin Cash facile à utiliser, axé sur les CashTokens et les dApps BCH.",
       "featureSendReceive": "Envoyez et recevez des BCH et CashTokens",
       "featureWalletConnect": "Connectez-vous aux dApps via WalletConnect",
-      "featureOpenSource": "Open source et non-custodial"
+      "featureOpenSource": "Open source et non-custodial",
+      "aboutPrompt": "Nouveau sur Cashonize ? {link}",
+      "aboutLinkText": "En savoir plus sur le portefeuille →"
     },
     "create": {
       "title": "Créer un nouveau portefeuille",

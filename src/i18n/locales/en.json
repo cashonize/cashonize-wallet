@@ -75,7 +75,9 @@
       "description": "An easy-to-use Bitcoin Cash wallet with a focus on CashTokens and BCH dApps.",
       "featureSendReceive": "Send & receive BCH and CashTokens",
       "featureWalletConnect": "Connect to dApps via WalletConnect",
-      "featureOpenSource": "Open-source and non-custodial"
+      "featureOpenSource": "Open-source and non-custodial",
+      "aboutPrompt": "New to Cashonize? {link}",
+      "aboutLinkText": "Learn more about the wallet →"
     },
     "create": {
       "title": "Create new wallet",

@@ -75,7 +75,9 @@
       "description": "Uma carteira Bitcoin Cash fácil de usar, focada em CashTokens e dApps BCH.",
       "featureSendReceive": "Envie e receba BCH e CashTokens",
       "featureWalletConnect": "Conecte-se a dApps via WalletConnect",
-      "featureOpenSource": "Código aberto e sem custódia"
+      "featureOpenSource": "Código aberto e sem custódia",
+      "aboutPrompt": "Novo no Cashonize? {link}",
+      "aboutLinkText": "Saiba mais sobre a carteira →"
     },
     "create": {
       "title": "Criar nova carteira",

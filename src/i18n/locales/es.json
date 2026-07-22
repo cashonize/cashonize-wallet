@@ -75,7 +75,9 @@
       "description": "Una billetera de Bitcoin Cash fácil de usar, con enfoque en CashTokens y dApps de BCH.",
       "featureSendReceive": "Envía y recibe BCH y CashTokens",
       "featureWalletConnect": "Conéctate a dApps mediante WalletConnect",
-      "featureOpenSource": "Código abierto y sin custodia"
+      "featureOpenSource": "Código abierto y sin custodia",
+      "aboutPrompt": "¿Nuevo en Cashonize? {link}",
+      "aboutLinkText": "Conoce más sobre la billetera →"
     },
     "create": {
       "title": "Crear nueva billetera",

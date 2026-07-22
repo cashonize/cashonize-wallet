@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref } from "vue"
+  import { ref, computed } from "vue"
   import { Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
@@ -15,6 +15,10 @@
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
   const { t } = useI18n()
+
+  // Web-only: in the downloaded desktop/Android apps users already know the wallet,
+  // so the "learn more" link to the about site is only shown on the web version.
+  const isWebPlatform = computed(() => !$q.platform.is.electron && !$q.platform.is.capacitor);
 
   // Step: 1 = choose create/import, 2 = enter details & create, 3 = preferences
   const step = ref(1);
@@ -159,6 +163,15 @@
         <h4><img class="icon importIcon" :src="settingsStore.darkMode ? 'images/import-lightGrey.svg' : 'images/import.svg'"> {{ t('onboarding.import.title') }}</h4>
         <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">{{ t('onboarding.import.description') }}</p>
         <input @click="selectImport()" class="button primary" type="button" :value="t('onboarding.import.button')">
+      </div>
+
+      <!-- Web-only: link to the about page for people who landed straight in onboarding -->
+      <div v-if="isWebPlatform" class="about-link-wrap">
+        <i18n-t keypath="onboarding.welcome.aboutPrompt" tag="span" class="about-prompt">
+          <template #link>
+            <a href="https://about.cashonize.com" target="_blank" rel="noopener" class="about-link">{{ t('onboarding.welcome.aboutLinkText') }}</a>
+          </template>
+        </i18n-t>
       </div>
     </div>
 
@@ -306,5 +319,20 @@
 .feature-icon {
   color: var(--color-primary);
   font-weight: bold;
+}
+.about-link-wrap {
+  text-align: center;
+  margin-top: 30px;
+}
+.about-prompt {
+  color: grey;
+  font-size: 14px;
+}
+.about-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.about-link:hover {
+  text-decoration: underline;
 }
 </style>
