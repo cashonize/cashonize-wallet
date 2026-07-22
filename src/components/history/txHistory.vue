@@ -127,11 +127,13 @@
             <option value="tokenTransactions">{{ t('history.filter.tokenTxs') }}</option>
           </select>
         </div>
-        <div class="option-item">
+        <div class="option-item date-range">
           <label for="dateFrom">{{ t('history.filter.dateRange') }}</label>
-          <input type="date" id="dateFrom" v-model="dateFrom" :max="dateTo || undefined">
-          <span>–</span>
-          <input type="date" id="dateTo" v-model="dateTo" :min="dateFrom || undefined">
+          <div class="date-inputs">
+            <input type="date" id="dateFrom" v-model="dateFrom" :max="dateTo || undefined">
+            <span>–</span>
+            <input type="date" id="dateTo" v-model="dateTo" :min="dateFrom || undefined">
+          </div>
         </div>
         <div class="option-item">
           {{ t('history.showFiatValue') }} <q-toggle v-model="showFiatValue" @update:model-value="toggleShowFiatValue" dense />
@@ -300,6 +302,26 @@
   padding: 2px 8px;
   font-size: 0.9em;
   font-family: inherit;
+}
+
+/* let the label wrap to its own line, and the two date inputs shrink to share the
+   remaining width, so the row never overflows on narrow screens (date inputs have an
+   intrinsic min-width that ignores flex-shrink unless min-width is explicitly zeroed) */
+.option-item.date-range {
+  flex-wrap: wrap;
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.date-inputs input[type="date"] {
+  flex: 1 1 90px;
+  min-width: 0;
 }
 
 .option-item button {
