@@ -370,15 +370,25 @@
       "label": "Anzeigen:",
       "all": "Alle",
       "bchTxs": "BCH-Txs",
-      "tokenTxs": "Token-Txs"
+      "tokenTxs": "Token-Txs",
+      "dateRange": "Zeitraum:"
     },
     "showFiatValue": "Fiat-Wert anzeigen",
-    "hideBalanceColumn": "Guthaben-Spalte ausblenden",
+    "hideBalanceColumn": "Guthaben ausblenden",
+    "exportCsv": "CSV exportieren",
+    "exportFailed": "CSV-Export fehlgeschlagen",
     "columns": {
       "date": "Datum",
       "amount": "Betrag",
       "balance": "Guthaben",
       "tokens": "Tokens"
+    },
+    "csv": {
+      "date": "Datum (UTC)",
+      "transactionId": "Transaktions-ID",
+      "amount": "Betrag ({unit})",
+      "balance": "Guthaben ({unit})",
+      "tokenChanges": "Token-Änderungen"
     },
     "pending": "ausstehend",
     "transactionCountPartial": "{count}+ Transaktionen",

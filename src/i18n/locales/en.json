@@ -370,15 +370,25 @@
       "label": "Show:",
       "all": "All",
       "bchTxs": "BCH txs",
-      "tokenTxs": "Token txs"
+      "tokenTxs": "Token txs",
+      "dateRange": "Filter range:"
     },
     "showFiatValue": "Show fiat value",
-    "hideBalanceColumn": "Hide balance column",
+    "hideBalanceColumn": "Hide balance",
+    "exportCsv": "Export CSV",
+    "exportFailed": "CSV export failed",
     "columns": {
       "date": "Date",
       "amount": "Amount",
       "balance": "Balance",
       "tokens": "Tokens"
+    },
+    "csv": {
+      "date": "Date (UTC)",
+      "transactionId": "Transaction Id",
+      "amount": "Amount ({unit})",
+      "balance": "Balance ({unit})",
+      "tokenChanges": "Token Changes"
     },
     "pending": "pending",
     "transactionCountPartial": "{count}+ Transactions",

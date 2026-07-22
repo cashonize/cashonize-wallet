@@ -370,15 +370,25 @@
       "label": "Afficher :",
       "all": "Toutes",
       "bchTxs": "Txs BCH",
-      "tokenTxs": "Txs tokens"
+      "tokenTxs": "Txs tokens",
+      "dateRange": "Plage de dates :"
     },
     "showFiatValue": "Afficher la valeur en devise",
-    "hideBalanceColumn": "Masquer la colonne solde",
+    "hideBalanceColumn": "Masquer le solde",
+    "exportCsv": "Exporter en CSV",
+    "exportFailed": "Échec de l'export CSV",
     "columns": {
       "date": "Date",
       "amount": "Montant",
       "balance": "Solde",
       "tokens": "Tokens"
+    },
+    "csv": {
+      "date": "Date (UTC)",
+      "transactionId": "ID de transaction",
+      "amount": "Montant ({unit})",
+      "balance": "Solde ({unit})",
+      "tokenChanges": "Variations de tokens"
     },
     "pending": "en attente",
     "transactionCountPartial": "{count}+ Transactions",
