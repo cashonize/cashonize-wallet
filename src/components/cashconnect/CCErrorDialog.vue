@@ -2,6 +2,7 @@
 import { useDialogPluginComponent } from 'quasar'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
+import { getRootCause } from '@cashconnect-js/core/templates';
 
 defineProps<{
   error: Error
@@ -12,6 +13,8 @@ defineEmits([
 ])
 
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
+
+
 </script>
 
 <template>
@@ -20,7 +23,7 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
       <fieldset class="cc-modal-fieldset" style="width:1024px">
         <legend class="cc-modal-fieldset-legend">{{ t('cashConnect.error.title') }}</legend>
 
-        <div v-if="error.message">{{ error.message }}</div>
+        <div v-if="error.message">{{ getRootCause(error) }}</div>
 
         <template v-if="error.stack">
           <q-expansion-item :label="t('cashConnect.error.stackTrace')" class="q-mt-md">
