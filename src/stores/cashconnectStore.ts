@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, shallowRef } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
 
@@ -14,7 +14,7 @@ import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 import {
   type SpendableUTXO,
-} from "@cashconnect-js/core";
+} from "@cashconnect-js/core/templates";
 import {
   type ExecuteActionRequest,
   type ExecuteActionResponse,
@@ -51,7 +51,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   // NOTE: This reactive state is synced with CashConnect via the onSessionsUpdated hook.
   const sessions = ref<Record<string, WalletSession>>({});
   // The CashConnect Wallet instance.
-  const cashConnectWallet = ref<Wallet | undefined>();
+  const cashConnectWallet = shallowRef<Wallet | undefined>();
   async function start() {
     // Make sure we don't start CC more than once.
     // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
@@ -98,12 +98,8 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     if(!cashConnectWallet.value) {
       throw new Error(t('cashConnect.notifications.notStarted'));
     }
-    try {
-      // Pair with the service.
-      await cashConnectWallet.value.pair(wcUri);
-    } catch (error) {
-      console.error(error);
-    }
+    // Pair with the service.
+    await cashConnectWallet.value.pair(wcUri);
   }
   async function disconnectSession(topicId: string) {
     if(!cashConnectWallet.value) {
@@ -125,12 +121,13 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     //       So we use the networkPrefix property to determine which chain we are currently on.
     const currentChain = mainStore.wallet.networkPrefix;
     const targetChain = proposal.chain;
-    // Cashonize expects network to be either mainnet or chipnet.
+    // Cashonize uses an LibAuth's CashAddressNetworkPrefix enum, so we have to cast the value (strings/enums cannot be compared directly).
     const targetChainCashonizeFormat: CashAddressNetworkPrefix = targetChain === "bitcoincash" ? CashAddressNetworkPrefix.mainnet : CashAddressNetworkPrefix.testnet;
     // Check if the current chain is the target chain.
     if (currentChain !== targetChainCashonizeFormat) {
+      // Cashonize UI uses "Mainnet" and "Chipnet" to identify networks.
       throw new Error(
-        t('cashConnect.notifications.networkMismatch', { network: targetChainCashonizeFormat })
+        t('cashConnect.notifications.networkMismatch', { network: (targetChain === 'bitcoincash') ? 'Mainnet' : 'Chipnet' })
       );
     }
     return await new Promise<SessionCreateRequest>((resolve, reject) => {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
-import { type TemplateSegment } from '@cashconnect-js/core';
 import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
+import { type TemplateSegment } from '@cashconnect-js/core/templates';
 import { type ExecuteActionRequest, type ExecuteActionResponse } from '@cashconnect-js/nostr';
 import { type WalletSession, formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode } from '@cashconnect-js/nostr/wallet';
 import { CurrencySymbols } from 'src/interfaces/interfaces';
