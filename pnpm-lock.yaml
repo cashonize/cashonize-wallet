@@ -29,11 +29,11 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2
       '@cashconnect-js/core':
-        specifier: 1.0.0-alpha.4
-        version: 1.0.0-alpha.4(typescript@6.0.3)
-      '@cashconnect-js/wallet':
-        specifier: 1.0.0-alpha.4
-        version: 1.0.0-alpha.4(typescript@6.0.3)(zod@4.4.3)
+        specifier: 1.0.0-alpha.29
+        version: 1.0.0-alpha.29(typescript@6.0.3)
+      '@cashconnect-js/nostr':
+        specifier: 1.0.0-alpha.29
+        version: 1.0.0-alpha.29(typescript@6.0.3)
       '@mainnet-cash/indexeddb-storage':
         specifier: 3.1.7
         version: 3.1.7
@@ -178,11 +178,11 @@ packages:
   '@capacitor/core@8.4.1':
     resolution: {integrity: sha512-xqhOGLbTAYeOWK+IDUNSjQJAPapQjRHrIcgk9PYp52or9zFTaaMko31uNi16N6W+CRJ8VrRram6fOYILkBG2Hg==}
 
-  '@cashconnect-js/core@1.0.0-alpha.4':
-    resolution: {integrity: sha512-zFvxlvIJYtthSB5PD84huyyEhC6TgvB7VGkgKJccqNmWYPD5Zkk3aw+qStrPAQ30SS5IIQb9h/fOPSfOui5XEg==}
+  '@cashconnect-js/core@1.0.0-alpha.29':
+    resolution: {integrity: sha512-qdR07iaQnLOEvtdVGXFdoE7yNl508cKQFfKDzIXh+Ru87UxyuGl6YnsgtQ/1YWeGhuoJhqc54oSGoOQ9SYgMsQ==}
 
-  '@cashconnect-js/wallet@1.0.0-alpha.4':
-    resolution: {integrity: sha512-txn5XS8IqmPV2AnyzcgSsl7EBoNOXyvdue1qvwCMc0hlFakzo1LA2JZYBtXZ87DQHkC66LPsNzPxHvqklsLVnA==}
+  '@cashconnect-js/nostr@1.0.0-alpha.29':
+    resolution: {integrity: sha512-b1x73kqFnx9ilrUmEq504gFDdvRbyt0HrbrCuyVabnqIH1GTsAiK5tH7a+WEQf5W/Iaj1SmfEpfeTYmf43MxFQ==}
 
   '@clack/core@1.4.3':
     resolution: {integrity: sha512-/kr3UWNtdJfxZtPgDqUOmG2pvwlmcLGheex5yiZKdwbzZJxhV+HMNR9QNmyY5cGwTNV6LrR7Jtp+KjhUAP1qBQ==}
@@ -2703,7 +2703,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@cashconnect-js/core@1.0.0-alpha.4(typescript@6.0.3)':
+  '@cashconnect-js/core@1.0.0-alpha.29(typescript@6.0.3)':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
       '@reown/walletkit': 1.5.6(typescript@6.0.3)(zod@4.4.3)
@@ -2732,14 +2732,11 @@ snapshots:
       - uploadthing
       - utf-8-validate
 
-  '@cashconnect-js/wallet@1.0.0-alpha.4(typescript@6.0.3)(zod@4.4.3)':
+  '@cashconnect-js/nostr@1.0.0-alpha.29(typescript@6.0.3)':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
-      '@cashconnect-js/core': 1.0.0-alpha.4(typescript@6.0.3)
-      '@reown/walletkit': 1.5.6(typescript@6.0.3)(zod@4.4.3)
-      '@walletconnect/core': 2.23.9(typescript@6.0.3)(zod@4.4.3)
-      '@walletconnect/sign-client': 2.23.10(typescript@6.0.3)(zod@4.4.3)
-      '@walletconnect/utils': 2.23.10(typescript@6.0.3)(zod@4.4.3)
+      '@cashconnect-js/core': 1.0.0-alpha.29(typescript@6.0.3)
+      zod: 4.4.3
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -2763,7 +2760,6 @@ snapshots:
       - typescript
       - uploadthing
       - utf-8-validate
-      - zod
 
   '@clack/core@1.4.3':
     dependencies:
