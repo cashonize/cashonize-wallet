@@ -52,7 +52,7 @@
         console.error("Error pairing URI:", error);
       }
     }
-    if(props.dappUriUrlParam?.startsWith('cc:')){
+    if(props.dappUriUrlParam?.startsWith('bch-cc-v1:')){
       const { isWcAndCcInitialized } = storeToRefs(store);
       await waitForInitialized(isWcAndCcInitialized);
       await cashconnectStore?.pair(props.dappUriUrlParam);
@@ -104,7 +104,7 @@
   }
   const qrFilter = (content: string) => {
     const matchWalletConnect = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
-    const matchCashConnect = String(content).match(/^cc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
+    const matchCashConnect = String(content).match(/^bch-cc-v1:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
 
     if (!matchWalletConnect && !matchCashConnect) {
       return t('dapp.errors.notValidUri');
