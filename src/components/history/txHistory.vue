@@ -334,9 +334,13 @@
   overflow-x: auto;
 }
 
+/* each row is its own grid, so column tracks must be content-independent (px or fr)
+   to stay aligned across rows: date and tokens get fixed widths sized to their content,
+   the flexible space goes to the amount and balance columns */
 .tx-row {
   display: grid;
-  grid-template-columns: 45px 1fr 1fr 1fr minmax(120px, 220px);
+  grid-template-columns: 45px 130px 1fr 1fr 200px;
+  column-gap: 8px;
   min-width: 550px;
   align-items: center;
   cursor: pointer;
@@ -384,7 +388,7 @@
 }
 
 .tx-cell.status-cell {
-  padding-left: 6px;
+  padding-left: 10px;
 }
 
 .value {
@@ -429,11 +433,12 @@ body.dark .negative {
     align-items: center;
   }
   .tx-row {
-    grid-template-columns: 30px 66px 1fr 1fr minmax(110px, 160px);
+    grid-template-columns: 34px 66px 1fr 1fr 132px;
+    column-gap: 4px;
     min-width: 330px;
   }
   .hide-balance .tx-row {
-    grid-template-columns: 30px 66px 1fr 1fr;
+    grid-template-columns: 34px 66px 1fr 1fr;
     min-width: 260px;
   }
   .tx-body {
@@ -451,10 +456,10 @@ body.dark .negative {
     padding: .5rem .5rem;
   }
   .tx-row {
-    grid-template-columns: 28px 62px minmax(70px, 1fr) minmax(70px, 1fr) minmax(100px, 120px);
+    grid-template-columns: 31px 62px minmax(70px, 1fr) minmax(70px, 1fr) 110px;
   }
   .hide-balance .tx-row {
-    grid-template-columns: 28px 62px 1fr 1fr;
+    grid-template-columns: 31px 62px 1fr 1fr;
   }
   .filter-row {
     margin-left: 0.5rem;
@@ -466,10 +471,10 @@ body.dark .negative {
 
 @media only screen and (max-width: 400px) {
   .tx-row {
-    grid-template-columns: 24px 62px minmax(70px, 1fr) minmax(70px, 1fr) minmax(100px, 120px);
+    grid-template-columns: 27px 62px minmax(70px, 1fr) minmax(70px, 1fr) 110px;
   }
   .hide-balance .tx-row {
-    grid-template-columns: 24px 62px 1fr 1fr;
+    grid-template-columns: 27px 62px 1fr 1fr;
   }
 }
 </style>
