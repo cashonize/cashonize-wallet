@@ -19,7 +19,7 @@ export async function waitForDialog(page: Page, timeout = 15_000) {
 }
 
 // Run the wallet onboarding (importing E2E_SEED_PHRASE when set, creating a fresh wallet
-// otherwise) and switch the wallet to chipnet. Leaves the wallet on the BchWallet tab.
+// otherwise) and switch the wallet to chipnet. Leaves the wallet on the Wallet tab.
 export async function setupWalletOnChipnet(walletPage: Page) {
   await walletPage.goto(CASHONIZE_URL)
 
@@ -48,5 +48,5 @@ export async function setupWalletOnChipnet(walletPage: Page) {
   await walletPage.getByText('Developer settings').click()
   await walletPage.locator('select').first().selectOption('chipnet')
   // Wait for network switch to complete. It resets the active view back to the wallet tab.
-  await expect(walletPage.locator('nav').getByText('BchWallet')).toHaveClass(/active/, { timeout: 15_000 })
+  await expect(walletPage.locator('nav').getByText('Wallet', { exact: true })).toHaveClass(/active/, { timeout: 15_000 })
 }

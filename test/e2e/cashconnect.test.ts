@@ -21,7 +21,7 @@ async function pairFromDapp() {
   await expect(dappPage.locator('#cc-pairing-uri')).toContainText('bch-cc-v1:', { timeout: 15_000 })
   const uri = await dappPage.textContent('#cc-pairing-uri')
 
-  await walletPage.getByPlaceholder('Wallet Connect URI').fill(uri!)
+  await walletPage.getByPlaceholder('Connection URI').fill(uri!)
   await walletPage.locator('input.primaryButton[value*="Connect"]').click()
 }
 
@@ -39,9 +39,10 @@ test.describe.serial('CashConnect E2E', () => {
     walletAddress = (await walletPage.locator('.depositAddr').first().textContent() ?? '').trim()
     expect(walletAddress).toContain('bchtest:')
 
-    // Navigate to WalletConnect tab (hosts the shared URI input and the CashConnect sessions list)
-    await walletPage.locator('nav').getByText('WalletConnect').click()
-    await walletPage.getByText('Connect to Dapp').waitFor({ timeout: 15_000 })
+    // Navigate to the Connect tab (hosts the shared URI input and the CashConnect sessions list)
+    await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
+    // exact: the intro text ("Connect to dApps with the...") is a case-insensitive substring match otherwise
+    await walletPage.getByText('Connect to Dapp', { exact: true }).waitFor({ timeout: 15_000 })
 
     // Open test dApp
     await dappPage.goto(DAPP_URL)
@@ -86,9 +87,9 @@ test.describe.serial('CashConnect E2E', () => {
     // dApp: Assert connected
     await expect(dappPage.locator('#cc-session-status')).toHaveText('connected', { timeout: 20_000 })
 
-    // Wallet: Session appears in the CashConnect sessions list
+    // Wallet: Session appears in the shared dApp Sessions list
     await expect(walletPage
-      .locator('fieldset:has(legend:has-text("CashConnect"))').getByText('BCH CC Test dApp'))
+      .locator('fieldset:has(legend:text("dApp Sessions"))').getByText('BCH CC Test dApp'))
       .toBeVisible({ timeout: 15_000 })
   })
 
@@ -173,9 +174,9 @@ test.describe.serial('CashConnect E2E', () => {
     // dApp: Assert disconnected
     await expect(dappPage.locator('#cc-session-status')).toHaveText('disconnected', { timeout: 15_000 })
 
-    // Wallet: Assert no active CashConnect sessions
+    // Wallet: Assert no active sessions remain in the shared dApp Sessions list
     await expect(walletPage
-      .locator('fieldset:has(legend:has-text("CashConnect"))').getByText('No sessions currently active.'))
+      .locator('fieldset:has(legend:text("dApp Sessions"))').getByText('No sessions currently active.'))
       .toBeVisible({ timeout: 15_000 })
   })
 })
