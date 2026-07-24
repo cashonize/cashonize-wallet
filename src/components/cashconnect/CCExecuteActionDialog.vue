@@ -175,7 +175,7 @@ function addSignPrefixToNumber(value: number | bigint): string {
               <pre class="wrapping-pre">{{ encodeExtendedJson(request.params, 2) }}</pre>
             </CCExpansionItem>
 
-            <!-- NOTE: Eventually we will show Instructions/Resolutions too, but the payload for this is not yet finalized. -->
+            <!-- NOTE: Eventually we will show Instructions/Resolutions too, but the payload for this is still WIP. -->
 
             <CCExpansionItem :title="t('cashConnect.executeAction.returnedData')" :caption="t('cashConnect.executeAction.returnedDataCaption')">
               <pre class="wrapping-pre">{{ encodeExtendedJson({ data: response.data, transactions: response.transactions }, 2) }}</pre>
