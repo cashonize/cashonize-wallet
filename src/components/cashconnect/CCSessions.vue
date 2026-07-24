@@ -1,37 +1,13 @@
 <script setup lang="ts">
-  import { useQuasar } from 'quasar';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
-  import { caughtErrorToString } from 'src/utils/errorHandling';
   import { sanitizeUrl } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
-  // Expose to 'connectDapp' parent component.
-  defineExpose({
-    connectDappUriInput
-  });
-
-  const $q = useQuasar();
   const settingsStore = useSettingsStore();
 
   const cashconnectStore = useCashconnectStore();
-
-  // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
-  async function connectDappUriInput(url: string){
-    try {
-      await cashconnectStore.pair(url);
-    } catch(error) {
-      const errorMessage = caughtErrorToString(error)
-      console.error(errorMessage)
-
-      $q.notify({
-        message: errorMessage,
-        icon: 'warning',
-        color: 'negative'
-      })
-    }
-  }
 </script>
 
 <template>

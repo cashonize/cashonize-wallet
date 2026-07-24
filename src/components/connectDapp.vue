@@ -8,8 +8,8 @@
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
+  import { isWalletConnectUri, isCashConnectUri, isWizardConnectUri } from 'src/utils/dappUri';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
-  import { PROTOCOL_HANDLER as CASHCONNECT_PROTOCOL_HANDLER } from '@cashconnect-js/nostr';
 
   // Components.
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
@@ -24,7 +24,8 @@
   const { t } = useI18n()
 
   const walletconnectStore = useWalletconnectStore()
-  const web3wallet = walletconnectStore.web3wallet
+  // Note: web3wallet starts off undefined, so we want the reactive reference.
+  const { web3wallet } = storeToRefs(walletconnectStore)
   const cashconnectStore = useCashconnectStore();
   const wizardconnectStore = useWizardconnectStore();
 
@@ -32,11 +33,6 @@
   const props = defineProps<{
     dappUriUrlParam: string | undefined
   }>()
-
-  // Component references.
-  const walletconnectRef = ref<InstanceType<typeof WCSessions> | null>(null);
-  const cashconnectRef = ref<InstanceType<typeof CCSessions> | null>(null);
-  const wizardconnectRef = ref<InstanceType<typeof WizSessions> | null>(null);
 
   // State.
   const dappUriInput = ref("");
@@ -53,74 +49,28 @@
   // WizardConnect requires an HD wallet (see wizardconnectStore.pair)
   const isHdWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd');
 
-  // Handle Props.
-  function isSessionRequest(uri: string): boolean {
-    // Check if the URI contains the `?requestId=` parameter, which indicates a signing request
-    const isSigningRequest = uri.includes("?requestId=");
-    return !isSigningRequest;
-  }
-
-  async function checkDappUriUrlParam(){
-    if(props.dappUriUrlParam?.startsWith('wc:') && isSessionRequest(props.dappUriUrlParam)){
-      try {
-        await web3wallet?.core.pairing.pair({ uri: props.dappUriUrlParam });
-      } catch (error) {
-        console.error("Error pairing URI:", error);
-      }
-    }
-    if(props.dappUriUrlParam?.startsWith(CASHCONNECT_PROTOCOL_HANDLER)){
-      try {
-        const { dappConnectionStoresInitialized } = storeToRefs(store);
-        await waitForInitialized(dappConnectionStoresInitialized);
-        await cashconnectStore?.pair(props.dappUriUrlParam);
-      } catch(error) {
-        const errorMessage = caughtErrorToString(error);
-        console.error(errorMessage);
-        $q.notify({
-          message: errorMessage,
-          icon: 'warning',
-          color: 'negative'
-        });
-      }
-    }
-    if(props.dappUriUrlParam?.toLowerCase().startsWith('wiz:')){
-      const { dappConnectionStoresInitialized } = storeToRefs(store);
-      await waitForInitialized(dappConnectionStoresInitialized);
-      try {
-        await wizardconnectStore.pair(props.dappUriUrlParam);
-      } catch (error) {
-        console.error("Error pairing WizardConnect URI:", error);
-      }
-    }
-  }
-  // Check for dappUriUrlParam on component mount and watch for changes.
-  await checkDappUriUrlParam()
-  watch(props, async() => {
-    await checkDappUriUrlParam()
-  })
-
-  // Methods.
-  async function connectDappUriInput(dappUri: string) {
+  // Shared connect path for all entry points (URL param / deep link, URI input, QR scan).
+  // Returns whether pairing succeeded; errors are surfaced as error notifications.
+  async function pairDapp(dappUri: string): Promise<boolean> {
     try {
       // Promise will wait for state indicating whether the dapp connection stores are initialized
       const { dappConnectionStoresInitialized } = storeToRefs(store);
       await waitForInitialized(dappConnectionStoresInitialized);
 
       // If the URI begins with "wc:" (walletconnect)...
-      if(dappUri.startsWith('wc:')) {
-        await walletconnectRef.value?.connectDappUriInput(dappUri);
+      if(isWalletConnectUri(dappUri)) {
+        if(!web3wallet.value) throw new Error(t('walletConnect.errors.notInitialized'));
+        await web3wallet.value.core.pairing.pair({ uri: dappUri });
       }
 
       // Otherwise, if the URI begins with "bch-cc-v1:" (cashconnect v1)...
-      else if (dappUri.startsWith(CASHCONNECT_PROTOCOL_HANDLER)) {
-        await cashconnectRef.value?.connectDappUriInput(dappUri);
+      else if (isCashConnectUri(dappUri)) {
+        await cashconnectStore.pair(dappUri);
       }
 
       // Otherwise, if the URI begins with "wiz:" (wizardconnect)...
-      // The case-insensitive check is deliberate: WizardConnect QR codes use an
-      // uppercased alphanumeric-mode form (WIZ://...)
-      else if (dappUri.toLowerCase().startsWith('wiz:')) {
-        await wizardconnectRef.value?.connectDappUriInput(dappUri);
+      else if (isWizardConnectUri(dappUri)) {
+        await wizardconnectStore.pair(dappUri);
       }
 
       // Otherwise, if it does not match CC, WC or WIZ, throw an error.
@@ -128,8 +78,7 @@
         throw new Error(t('dapp.errors.invalidUri'));
       }
 
-      // Clear the input.
-      dappUriInput.value = '';
+      return true;
     } catch(error) {
       const errorMessage = caughtErrorToString(error)
       console.error(errorMessage)
@@ -138,7 +87,36 @@
         icon: 'warning',
         color: 'negative'
       })
+      return false;
     }
+  }
+
+  // Handle Props.
+  function isSessionRequest(uri: string): boolean {
+    // Check if the URI contains the `?requestId=` parameter, which indicates a signing request
+    const isSigningRequest = uri.includes("?requestId=");
+    return !isSigningRequest;
+  }
+
+  async function checkDappUriUrlParam(){
+    const dappUriUrlParam = props.dappUriUrlParam;
+    if(!dappUriUrlParam) return;
+    // A WalletConnect URI with ?requestId= is a signing request for an existing session
+    // (delivered over the relay) — pairing again with the already-used URI would throw
+    if(isWalletConnectUri(dappUriUrlParam) && !isSessionRequest(dappUriUrlParam)) return;
+    await pairDapp(dappUriUrlParam);
+  }
+  // Check for dappUriUrlParam on component mount and watch for changes.
+  await checkDappUriUrlParam()
+  watch(props, async() => {
+    await checkDappUriUrlParam()
+  })
+
+  // Handle URI input field & QR scans.
+  async function connectDappUriInput(dappUri: string) {
+    const paired = await pairDapp(dappUri);
+    // Keep the input on failure so the URI can be inspected or corrected
+    if(paired) dappUriInput.value = '';
   }
 
   const qrDecode = async (content: string) => {
@@ -146,7 +124,7 @@
   }
   const qrFilter = (content: string) => {
     const matchWalletConnect = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
-    const matchCashConnect = content.startsWith(CASHCONNECT_PROTOCOL_HANDLER);
+    const matchCashConnect = isCashConnectUri(content);
     // WizardConnect QR codes use an uppercased, percent-escaped alphanumeric-mode form
     // (WIZ://%3FP%3D...), so only the scheme is matched here; the full URI is validated on pairing
     const matchWizardConnect = String(content).match(/^wiz:\/\//i);
@@ -182,9 +160,9 @@
 
     <fieldset class="item">
       <legend>{{ t('dapp.sessionsTitle') }}</legend>
-      <WCSessions ref="walletconnectRef"/>
-      <CCSessions ref="cashconnectRef" />
-      <WizSessions ref="wizardconnectRef" />
+      <WCSessions />
+      <CCSessions />
+      <WizSessions />
       <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
     </fieldset>
 

@@ -809,9 +809,7 @@
       "cancelButton": "Cancelar"
     },
     "errors": {
-      "enterUri": "Insira uma URI BCH WalletConnect",
       "notInitialized": "WalletConnect ainda não foi inicializado. Por favor, tente novamente em instantes.",
-      "invalidUri": "URI BCH WalletConnect inválida",
       "unsupportedBlockchain": "Tentando conectar um app de blockchain(s) não suportada(s): {chains}",
       "failedToApproveSession": "Falha ao aprovar sessão",
       "invalidTransactionSchema": "Erro na validação do schema da requisição de transação WalletConnect",

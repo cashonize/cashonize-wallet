@@ -2,46 +2,14 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import WC2ActiveSession from 'src/components/walletconnect/WC2ActiveSession.vue'
-  import { storeToRefs } from 'pinia';
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
-  import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
 
-  // Expose to 'connectDapp' parent component.
-  defineExpose({
-    connectDappUriInput
-  });
-
-  const $q = useQuasar()
   const { t } = useI18n()
 
   const walletconnectStore = useWalletconnectStore()
-  // Note: web3wallet starts off undefined, so we want the reactive reference.
-  const { web3wallet } = storeToRefs(walletconnectStore)
 
   const activeSessions = computed(() => walletconnectStore.activeSessions ?? {})
-
-  async function connectDappUriInput(url: string){
-    if(!url){
-      $q.notify({ message: t('walletConnect.errors.enterUri'), icon: 'warning', color: "grey-7" });
-      return;
-    }
-    // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
-    if(!web3wallet.value){
-      $q.notify({ message: t('walletConnect.errors.notInitialized'), icon: 'warning', color: "grey-7" });
-      return;
-    }
-    try {
-      await web3wallet.value.core.pairing.pair({ uri: url });
-    } catch(error) {
-      const errorMessage = error instanceof Error ? error.message : t('walletConnect.errors.invalidUri')
-      $q.notify({
-        message: errorMessage,
-        icon: 'warning',
-        color: "red"
-      })
-    }
-  }
 </script>
 
 <template>

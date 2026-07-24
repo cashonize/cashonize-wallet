@@ -1,20 +1,12 @@
 <script setup lang="ts">
   import { computed } from 'vue';
-  import { useQuasar } from 'quasar';
   import { decodeKeyExchangeURI } from '@wizardconnect/core';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore'
-  import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useWindowSize } from 'src/utils/composables'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
-  // Expose to 'connectDapp' parent component.
-  defineExpose({
-    connectDappUriInput
-  });
-
-  const $q = useQuasar();
   const settingsStore = useSettingsStore();
 
   const wizardconnectStore = useWizardconnectStore();
@@ -39,22 +31,6 @@
       return ` - ${sessionPrefix}${dappPubkey.slice(0, 6)}`;
     } catch {
       return '';
-    }
-  }
-
-  // Note: the initialization is awaited when the function is used in the 'connectDapp' component.
-  async function connectDappUriInput(url: string){
-    try {
-      await wizardconnectStore.pair(url);
-    } catch(error) {
-      const errorMessage = caughtErrorToString(error)
-      console.error(errorMessage)
-
-      $q.notify({
-        message: errorMessage,
-        icon: 'warning',
-        color: 'negative'
-      })
     }
   }
 
