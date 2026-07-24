@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, shallowRef } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
 
@@ -8,25 +8,30 @@ import CCExecuteActionDialogVue from "src/components/cashconnect/CCExecuteAction
 import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import MainnetJs and CashConnect
-import { convert } from "mainnet-js";
 import type { WalletType } from "src/interfaces/interfaces"
 import { useStore } from "./store"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 import {
-  type BchSession,
-  type BchSessionProposal,
-  type Payloads,
   type SpendableUTXO,
-  type WalletProperties,
-} from "@cashconnect-js/core";
+} from "@cashconnect-js/core/templates";
 import {
-  CashConnectWallet,
-} from "@cashconnect-js/wallet";
+  type ExecuteActionRequest,
+  type ExecuteActionResponse,
+  type SessionProposalResponse,
+  type SessionCreateRequest,
+} from '@cashconnect-js/nostr';
+import {
+  type WalletSession,
+  Wallet,
+  derivationPathToCashConnectPath,
+  doesActionRequireApproval,
+} from "@cashconnect-js/nostr/wallet";
 
 // Import Libauth.
 import {
   type Output,
+  CashAddressNetworkPrefix,
   binToHex,
   hexToBin,
   cashAddressToLockingBytecode,
@@ -36,10 +41,7 @@ import {
   walletTemplateP2pkhNonHd,
   walletTemplateToCompilerBch,
 } from "@bitauth/libauth";
-import { useSettingsStore } from 'src/stores/settingsStore';
 import { type ElectrumRawTransactionVout } from "src/interfaces/interfaces";
-import { walletConnectProjectId, walletConnectMetadata } from "./constants";
-const settingsStore = useSettingsStore()
 
 export const useCashconnectStore = defineStore("cashconnectStore", () => {
   // Accesses the wallet reactively via cross-store ref (mainStore.wallet) inside defineStore setup,
@@ -47,44 +49,35 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   const mainStore = useStore();
   // List of CashConnect sessions.
   // NOTE: This reactive state is synced with CashConnect via the onSessionsUpdated hook.
-  const sessions = ref<Record<string, BchSession>>({});
+  const sessions = ref<Record<string, WalletSession>>({});
   // The CashConnect Wallet instance.
-  const cashConnectWallet = ref<CashConnectWallet | undefined>();
+  const cashConnectWallet = shallowRef<Wallet | undefined>();
   async function start() {
     // Make sure we don't start CC more than once.
     // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
     if (cashConnectWallet.value) {
       return;
     }
-    // Get the Master Private Key to use for CashConnect.
-    const masterPrivateKey = getMasterPrivateKeyForWallet(mainStore.wallet as WalletType);
+    // Get the Private Key to use for CashConnect.
+    const cashConnectPrivateKey = getCashConnectPrivateKeyForWallet(mainStore.wallet as WalletType);
     // Instantiate CashConnect.
-    cashConnectWallet.value = new CashConnectWallet(
-      // The master private key for use with CashConnect.
-      masterPrivateKey,
-      // Project ID.
-      walletConnectProjectId,
-      // Metadata.
-      walletConnectMetadata,
-      // Event Callbacks.
-      {
-        // Session State Callbacks.
+    cashConnectWallet.value = new Wallet({
+      cashConnectPrivateKey: cashConnectPrivateKey,
+      eventCallbacks: {
         onSessionsUpdated,
         onSessionProposal,
         onSessionDelete,
-        onRPCRequest,
+        onExecuteAction,
         onError,
       },
-      // Execution Context Data.
-      {
-        // Blockchain.
+      contextCallbacks: {
         getSourceOutput,
-        // Wallet.
         getSpendableUTXOs,
         getChangeTemplateDirective,
-      }
-    )
-    // Start CashConnect (WC Core) service.
+      },
+    });
+
+    // Start CashConnect service.
     await cashConnectWallet.value.start();
   }
   async function stop() {
@@ -98,21 +91,15 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     //       And the `start()` call thinks that the existing instance still exists.
     const cashConnectPrevInstance = cashConnectWallet.value;
     cashConnectWallet.value = undefined;
-    // Stop the previous instance.
+    // Stop the CashConnect Wallet service.
     await cashConnectPrevInstance.stop();
-    // Disconnect all sessions and stop the previous instance.
-    await cashConnectPrevInstance.disconnectAllSessions();
   }
   async function pair(wcUri: string) {
     if(!cashConnectWallet.value) {
       throw new Error(t('cashConnect.notifications.notStarted'));
     }
-    try {
-      // Pair with the service.
-      await cashConnectWallet.value.pair(wcUri);
-    } catch (error) {
-      console.error(error);
-    }
+    // Pair with the service.
+    await cashConnectWallet.value.pair(wcUri);
   }
   async function disconnectSession(topicId: string) {
     if(!cashConnectWallet.value) {
@@ -124,39 +111,36 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   // Session Hooks
   //-----------------------------------------------------------------------------
   function onSessionsUpdated(
-    updatedSessions: Record<string, BchSession>
+    updatedSessions: Record<string, WalletSession>
   ) {
     sessions.value = updatedSessions;
   }
-  async function onSessionProposal(sessionProposal: BchSessionProposal) {
+  async function onSessionProposal(proposal: SessionProposalResponse): Promise<SessionCreateRequest> {
     // Check the network and prompt user to switch if incorrect.
     // NOTE: The walletClass.network property appears to return quirky values (e.g. undefined).
     //       So we use the networkPrefix property to determine which chain we are currently on.
     const currentChain = mainStore.wallet.networkPrefix;
-    const targetChain =
-      sessionProposal.params.optionalNamespaces?.bch?.chains?.[0]?.replace(
-        "bch:",
-        ""
-      );
-    // Cashonize expects network to be either mainnet or chipnet.
-    const targetChainCashonizeFormat = targetChain === "bitcoincash" ? "mainnet" : "chipnet";
+    const targetChain = proposal.chain;
+    // Cashonize uses an LibAuth's CashAddressNetworkPrefix enum, so we have to cast the value (strings/enums cannot be compared directly).
+    const targetChainCashonizeFormat: CashAddressNetworkPrefix = targetChain === "bitcoincash" ? CashAddressNetworkPrefix.mainnet : CashAddressNetworkPrefix.testnet;
     // Check if the current chain is the target chain.
-    if (currentChain !== targetChain) {
+    if (currentChain !== targetChainCashonizeFormat) {
+      // Cashonize UI uses "Mainnet" and "Chipnet" to identify networks.
       throw new Error(
-        t('cashConnect.notifications.networkMismatch', { network: targetChainCashonizeFormat })
+        t('cashConnect.notifications.networkMismatch', { network: (targetChain === 'bitcoincash') ? 'Mainnet' : 'Chipnet' })
       );
     }
-    return await new Promise<WalletProperties>((resolve, reject) => {
+    return await new Promise<SessionCreateRequest>((resolve, reject) => {
       Dialog.create({
         component: CCSessionProposalDialogVue,
         componentProps: {
-          session: sessionProposal,
+          session: proposal,
         },
       })
         .onOk(() => {
           resolve({
-            // NOTE: This is kept for future compatibility and will indicate to Client/Dapp which prompts can be backgrounded.
-            autoApprove: [],
+            // NOTE: Not currently used.
+            allowedTokens: proposal.allowedTokens,
           });
           Notify.create({
             color: "positive",
@@ -167,53 +151,50 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
         .onDismiss(reject);
     });
   }
-  function onSessionDelete() {
-    console.log("Session deleted");
+  function onSessionDelete(dappPubkey: string) {
+    console.log("Session deleted", dappPubkey);
   }
-  async function onRPCRequest(
-    session: BchSession,
-    request: Payloads["request"],
-    response: Payloads["response"]
+  async function onExecuteAction(
+    session: WalletSession,
+    request: ExecuteActionRequest,
+    response: ExecuteActionResponse,
+    cancelled: AbortSignal
   ): Promise<void> {
-    if(request.method === 'executeAction') {
-      // If this is not a request that DOES NOT require approval...
-      if (!doesActionRequireApproval(session, request.params.action)) {
-        return;
-      }
-      // Get the BCH exchange rate, falling back to the last known rate. Without any rate we
-      // can't display the fiat impact, so reject the request instead of showing the dialog.
-      let exchangeRate: number | undefined;
-      try {
-        exchangeRate = await convert(1, "bch", settingsStore.currency);
-      } catch {
-        exchangeRate = mainStore.exchangeRate;
-      }
-      if (exchangeRate === undefined) {
-        Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
-        throw new Error(t('common.errors.exchangeRateUnavailable'));
-      }
-      // Show a dialog, prompting the user for approval.
-      return await new Promise<void>((resolve, reject) => {
-        Dialog.create({
-          component: CCExecuteActionDialogVue,
-          componentProps: {
-            session,
-            request: request.params,
-            response,
-            exchangeRate
-          },
-        })
-          .onOk(() => {
-            resolve();
-            Notify.create({
-              color: "positive",
-              message: t('cashConnect.notifications.successfullySignedTransaction'),
-            });
-          })
-        .onCancel(reject)
-        .onDismiss(reject);
-      });
+    // If this is a request that DOES NOT require approval...
+    if (!doesActionRequireApproval(session, request.action)) {
+      return;
     }
+
+    // Show a dialog, prompting the user for approval.
+    return await new Promise<void>((resolve, reject) => {
+      const dialog = Dialog.create({
+        component: CCExecuteActionDialogVue,
+        componentProps: {
+          session,
+          request,
+          response,
+        },
+      })
+        .onOk(() => {
+          resolve();
+          Notify.create({
+            color: "positive",
+            message: t('cashConnect.notifications.successfullySignedTransaction'),
+          });
+        })
+        .onCancel(() => {
+          reject(new Error('User cancelled'));
+        })
+        .onDismiss(() => {
+          reject(new Error('User dismissed'));
+        });
+
+      // If request is cancelled on the Dapp, hide the dialog.
+      cancelled.addEventListener('abort', () => {
+        dialog.hide();
+        reject(new Error(typeof cancelled.reason === 'string' ? cancelled.reason : 'Dapp cancelled the request'));
+      });
+    });
   }
   async function onError(error: Error): Promise<void> {
     return await new Promise<void>((resolve) => {
@@ -224,15 +205,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
         },
       }).onDismiss(resolve);
     });
-  }
-  function doesActionRequireApproval(session: BchSession, actionName: string) {
-    // Get the action being executed from the session:template.
-    const action = session.sessionProperties.template.actions[actionName];
-    // Check to see if it contains any instructions that should require approval.
-    // NOTE: Currently, only actions involving transactions require approval.
-    //       In future once we have auditing infrastructure, wallets can define their own policies.
-    //       For example, if a given template is unaudited, all actions could be set to require approval.
-    return action?.instructions?.some((instruction) => instruction.type === 'transaction');
   }
   //-----------------------------------------------------------------------------
   // Network/Wallet Hooks
@@ -386,18 +358,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
       }
     }
   }
-  function derivationPathToCashConnectPath(derivationPath: string, purpose = 5001) {
-      // Replace the "purpose" in the derivation path with "5001" (CashConnect).
-      const parts = derivationPath.split('/');
-      if (parts.length < 4) {
-          throw new Error(
-            t('cashConnect.notifications.invalidDerivationPath', { length: parts.length })
-          )
-      }
-      parts[1] = `${purpose}'`;
-      return parts.join('/');
-  }
-  function getMasterPrivateKeyForWallet(wallet: WalletType) {
+  function getCashConnectPrivateKeyForWallet(wallet: WalletType) {
     // If this is a single address (WIF) wallet, we just use the WIF's Private Key.
     if('privateKey' in wallet) {
       return wallet.privateKey;

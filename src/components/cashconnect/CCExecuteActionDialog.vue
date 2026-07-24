@@ -1,30 +1,27 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
-import { type BchSession, type ExecuteActionPayload, type TemplateSegment } from '@cashconnect-js/core';
 import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
-import { formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode } from '@cashconnect-js/wallet';
+import { type TemplateSegment } from '@cashconnect-js/core/templates';
+import { type ExecuteActionRequest, type ExecuteActionResponse } from '@cashconnect-js/nostr';
+import { type WalletSession, formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode } from '@cashconnect-js/nostr/wallet';
 import { CurrencySymbols } from 'src/interfaces/interfaces';
-
-import { convertToCurrency, sanitizeUrl } from 'src/utils/utils';
+import { convertToCurrency, sanitizeUrl, satsToBch } from 'src/utils/utils';
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
 import { type BcmrTokenResponse } from 'src/utils/zodValidation';
-import { useI18n } from 'vue-i18n'
+import { useI18n } from 'vue-i18n';
 const { t } = useI18n()
-
-// Components.
 import CCExpansionItem from './CCExpansionItem.vue';
 
 const store = useStore()
 const settingsStore = useSettingsStore()
 
 const props = defineProps<{
-  session: BchSession,
-  request: ExecuteActionPayload['request']['params'],
-  response: ExecuteActionPayload['response'],
-  exchangeRate: number,
+  session: WalletSession,
+  request: ExecuteActionRequest,
+  response: ExecuteActionResponse,
 }>()
 
 defineEmits([
@@ -33,15 +30,8 @@ defineEmits([
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-const safeUrl = sanitizeUrl(props.session.peer.metadata.url);
-
-const title = computed(() => {
-  return props.response.meta?.title || [props.request.action];
-});
-
-const description = computed(() => {
-  return props.response.meta?.description || ['No description for this action available.']
-})
+const safeUrl = sanitizeUrl(props.session.dapp.url);
+const exchangeRate = computed(() => store.exchangeRate);
 
 //-----------------------------------------------------------------------------
 // Tokens
@@ -77,7 +67,7 @@ async function fetchAndSetTokenInfo(tokenId: string) {
     console.error(errorMessage);
   }
 }
-const allowedTokens = props.session.sessionProperties.allowedTokens ?? [];
+const allowedTokens = props.session.allowedTokens ?? [];
 // fire-and-forget promises
 for (const tokenId of allowedTokens) {
   void fetchAndSetTokenInfo(tokenId);
@@ -111,10 +101,6 @@ function addSignPrefixToNumber(value: number | bigint): string {
   if (Number(value) === 0) return formatted;
   return Number(value) > 0 ? `+ ${formatted}` : `- ${Number(-(value)).toLocaleString("en-US")}`;
 };
-
-function satsToBCH(satoshis: bigint) {
-  return Number(satoshis) / 100_000_000;
-};
 </script>
 
 <template>
@@ -122,20 +108,27 @@ function satsToBCH(satoshis: bigint) {
     <q-card>
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">
-          <span v-for="(segment, i) in title" :key="i">
-            {{ formatSegmentCustom(segment) }}
-          </span>
+          <!-- Render title if available -->
+          <template v-if="response.meta?.title">
+            <span v-for="(segment, i) in response.meta?.title" :key="i">
+              {{ formatSegmentCustom(segment) }}
+            </span>
+          </template>
+          <!-- Otherwise show "Untitled Action" -->
+          <template v-else>
+            Untitled Action
+          </template>
         </legend>
 
         <!-- Origin -->
         <q-item>
           <q-item-section avatar>
-            <q-img :src="session.peer.metadata.icons[0] ?? ''" style="max-width:64px; max-height:64px;" />
+            <q-img :src="session.dapp.icon ?? ''" style="max-width:64px; max-height:64px;" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>{{ session.peer.metadata.name }}</q-item-label>
+            <q-item-label>{{ session.dapp.name }}</q-item-label>
             <q-item-label>
-              <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ session.peer.metadata.url }}</a>
+              <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ session.dapp.url }}</a>
               <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
             </q-item-label>
           </q-item-section>
@@ -144,9 +137,16 @@ function satsToBCH(satoshis: bigint) {
         <hr style="margin-top:1em; margin-bottom: 1em" />
 
         <div class="wrapping-pre" style="font-size: medium;">
-          <template v-for="(segment, i) in description" :key="i">
-            <span v-if="typeof segment === 'string'">{{ segment }}</span>
-            <span v-else class="green" style="font-weight:bold">{{ formatSegmentCustom(segment) }}</span>
+          <!-- Render Description if available -->
+          <template v-if="response.meta?.description">
+            <template v-for="(segment, i) in response.meta?.description" :key="i">
+              <span v-if="typeof segment === 'string'">{{ segment }}</span>
+              <span v-else class="green" style="font-weight:bold">{{ formatSegmentCustom(segment) }}</span>
+            </template>
+          </template>
+          <!-- Otherwise show "No description available" -->
+          <template v-else>
+            No description available.
           </template>
         </div>
 
@@ -155,8 +155,11 @@ function satsToBCH(satoshis: bigint) {
         <div class="cc-modal-heading" style="margin-top: 1rem;">{{ t('cashConnect.executeAction.balanceChange') }}</div>
         <div v-for="(amount, category) of props.response.balanceChanges" :key="category">
           <div v-if="(category === 'sats')">
-            {{ addSignPrefixToNumber(satsToBCH(amount)) + ' BCH ' }}
-            ({{ convertToCurrency(amount, props.exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
+            {{ addSignPrefixToNumber(satsToBch(amount)) + ' BCH ' }}
+            <!-- Only show fiat equivalent if an exchange rate is available. -->
+            <template v-if="exchangeRate">
+              ({{ convertToCurrency(amount, exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
+            </template>
           </div>
           <div v-else>
             <span>{{ addSignPrefixToNumber(amount) }} <span>{{ getTokenName(category) }} <q-tooltip>{{ category }}</q-tooltip></span></span>
@@ -172,7 +175,7 @@ function satsToBCH(satoshis: bigint) {
               <pre class="wrapping-pre">{{ encodeExtendedJson(request.params, 2) }}</pre>
             </CCExpansionItem>
 
-            <!-- NOTE: Eventually we will show Instructions/Resolutions too, but the payload for this is not yet finalized. -->
+            <!-- NOTE: Eventually we will show Instructions/Resolutions too, but the payload for this is still WIP. -->
 
             <CCExpansionItem :title="t('cashConnect.executeAction.returnedData')" :caption="t('cashConnect.executeAction.returnedDataCaption')">
               <pre class="wrapping-pre">{{ encodeExtendedJson({ data: response.data, transactions: response.transactions }, 2) }}</pre>

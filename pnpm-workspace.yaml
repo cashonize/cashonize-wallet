@@ -19,6 +19,8 @@
 # in Quasar's build tooling (e.g. v3.0.1 www-folder clean fix). Dev-only, not shipped.
 minimumReleaseAgeExclude:
   - '@quasar/app-vite'
+  - '@cashconnect-js/core@1.0.0-alpha.31'
+  - '@cashconnect-js/nostr@1.0.0-alpha.31'
 
 # Enforce the "engines" field (node / pnpm) instead of just warning.
 engineStrict: true

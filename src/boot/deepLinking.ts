@@ -2,7 +2,7 @@ import { defineBoot } from '#q-app'
 import { App, type URLOpenListenerEvent } from '@capacitor/app';
 import { Platform } from 'quasar'
 
-// Deep linking on mobile: handles URIs like bitcoincash:, wc:, cc:, bch-wif:
+// Deep linking on mobile: handles URIs like bitcoincash:, wc:, bch-cc-v1:, bch-wif:
 // These arrive via two paths depending on whether the app was already running:
 //   - "warm start": app is in background, appUrlOpen event fires
 //   - "cold start": app was not running, the launch URL is retrieved after startup
