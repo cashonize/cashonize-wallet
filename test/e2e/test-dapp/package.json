@@ -8,6 +8,8 @@
     "start": "vite preview"
   },
   "dependencies": {
+    "@cashconnect-js/core": "1.0.0-alpha.31",
+    "@cashconnect-js/nostr": "1.0.0-alpha.31",
     "@walletconnect/sign-client": "2.23.9",
     "vue": "^3.5.35"
   },
