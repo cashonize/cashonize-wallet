@@ -8,6 +8,7 @@
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import { PROTOCOL_HANDLER as CASHCONNECT_PROTOCOL_HANDLER } from '@cashconnect-js/nostr';
 
   // Components.
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
@@ -52,10 +53,21 @@
         console.error("Error pairing URI:", error);
       }
     }
-    if(props.dappUriUrlParam?.startsWith('bch-cc-v1:')){
-      const { isWcAndCcInitialized } = storeToRefs(store);
-      await waitForInitialized(isWcAndCcInitialized);
-      await cashconnectStore?.pair(props.dappUriUrlParam);
+    if(props.dappUriUrlParam?.startsWith(CASHCONNECT_PROTOCOL_HANDLER)){
+      // NOTE: This
+      try {
+        const { isWcAndCcInitialized } = storeToRefs(store);
+        await waitForInitialized(isWcAndCcInitialized);
+        await cashconnectStore?.pair(props.dappUriUrlParam);
+      } catch(error) {
+        const errorMessage = caughtErrorToString(error);
+        console.error(errorMessage);
+        $q.notify({
+          message: errorMessage,
+          icon: 'warning',
+          color: 'negative'
+        });
+      }
     }
   }
   // Check for dappUriUrlParam on component mount and watch for changes.
@@ -77,7 +89,7 @@
       }
 
       // Otherwise, if the URI begins with "bch-cc-v1:" (cashconnect v1)...
-      else if (dappUri.startsWith('bch-cc-v1:')) {
+      else if (dappUri.startsWith(CASHCONNECT_PROTOCOL_HANDLER)) {
         await cashconnectRef.value?.connectDappUriInput(dappUri);
       }
 
@@ -104,7 +116,7 @@
   }
   const qrFilter = (content: string) => {
     const matchWalletConnect = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
-    const matchCashConnect = String(content).match(/^bch-cc-v1:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
+    const matchCashConnect = content.startsWith(CASHCONNECT_PROTOCOL_HANDLER);
 
     if (!matchWalletConnect && !matchCashConnect) {
       return t('dapp.errors.notValidUri');

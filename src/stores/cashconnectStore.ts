@@ -91,8 +91,8 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     //       And the `start()` call thinks that the existing instance still exists.
     const cashConnectPrevInstance = cashConnectWallet.value;
     cashConnectWallet.value = undefined;
-    // Disconnect all sessions and stop the previous instance.
-    await cashConnectPrevInstance.disconnectAllSessions();
+    // Stop the CashConnect Wallet service.
+    await cashConnectPrevInstance.stop();
   }
   async function pair(wcUri: string) {
     if(!cashConnectWallet.value) {

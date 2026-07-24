@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
 import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
 import { type TemplateSegment } from '@cashconnect-js/core/templates';
@@ -31,7 +31,7 @@ defineEmits([
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
 const safeUrl = sanitizeUrl(props.session.dapp.url);
-const exchangeRate = store.exchangeRate;
+const exchangeRate = computed(() => store.exchangeRate);
 
 //-----------------------------------------------------------------------------
 // Tokens
@@ -108,9 +108,16 @@ function addSignPrefixToNumber(value: number | bigint): string {
     <q-card>
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">
-          <span v-for="(segment, i) in response.meta?.title" :key="i">
-            {{ formatSegmentCustom(segment) }}
-          </span>
+          <!-- Render title if available -->
+          <template v-if="response.meta?.title">
+            <span v-for="(segment, i) in response.meta?.title" :key="i">
+              {{ formatSegmentCustom(segment) }}
+            </span>
+          </template>
+          <!-- Otherwise show "Untitled Action" -->
+          <template v-else>
+            Untitled Action
+          </template>
         </legend>
 
         <!-- Origin -->
@@ -130,9 +137,16 @@ function addSignPrefixToNumber(value: number | bigint): string {
         <hr style="margin-top:1em; margin-bottom: 1em" />
 
         <div class="wrapping-pre" style="font-size: medium;">
-          <template v-for="(segment, i) in response.meta?.description" :key="i">
-            <span v-if="typeof segment === 'string'">{{ segment }}</span>
-            <span v-else class="green" style="font-weight:bold">{{ formatSegmentCustom(segment) }}</span>
+          <!-- Render Description if available -->
+          <template v-if="response.meta?.description">
+            <template v-for="(segment, i) in response.meta?.description" :key="i">
+              <span v-if="typeof segment === 'string'">{{ segment }}</span>
+              <span v-else class="green" style="font-weight:bold">{{ formatSegmentCustom(segment) }}</span>
+            </template>
+          </template>
+          <!-- Otherwise show "No description available" -->
+          <template v-else>
+            No description available.
           </template>
         </div>
 
