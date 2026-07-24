@@ -20,6 +20,13 @@
     "wallet": "portefeuille",
     "wallets": "portefeuilles"
   },
+  "nav": {
+    "wallet": "Portefeuille",
+    "addresses": "Adresses",
+    "tokens": "Tokens",
+    "history": "Historique",
+    "connect": "Connecter"
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Veuillez entrer un nom de portefeuille",
@@ -63,6 +70,7 @@
       "walletNotFoundOnNetwork": "Le portefeuille \"{name}\" n'existe pas sur {network}",
       "errorInitializingWalletConnect": "Erreur lors de l'initialisation de WalletConnect",
       "errorInitializingCashConnect": "Erreur lors de l'initialisation de CashConnect",
+      "errorInitializingWizardConnect": "Erreur lors de l'initialisation de WizardConnect",
       "errorFetchingUtxos": "Erreur lors de la récupération des UTXOs du portefeuille",
       "errorFetchingHistory": "Erreur lors de la récupération de l'historique du portefeuille",
       "unableToConnectElectrum": "Impossible de se connecter au serveur Electrum '{server}'",
@@ -74,7 +82,7 @@
       "title": "Bienvenue sur Cashonize",
       "description": "Un portefeuille Bitcoin Cash facile à utiliser, axé sur les CashTokens et les dApps BCH.",
       "featureSendReceive": "Envoyez et recevez des BCH et CashTokens",
-      "featureWalletConnect": "Connectez-vous aux dApps via WalletConnect",
+      "featureWalletConnect": "Connectez-vous aux dApps via WalletConnect, CashConnect ou WizardConnect",
       "featureOpenSource": "Open source et non-custodial",
       "aboutPrompt": "Nouveau sur Cashonize ? {link}",
       "aboutLinkText": "En savoir plus sur le portefeuille →"
@@ -100,8 +108,8 @@
       "label": "Type de portefeuille :",
       "hd": "Portefeuille HD (adresses multiples)",
       "single": "Adresse unique",
-      "hdDescription": "Utilise une nouvelle adresse pour chaque transaction. Meilleure confidentialité, mais nécessite de sélectionner une adresse lors de la connexion aux dApps.",
-      "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé.",
+      "hdDescription": "Utilise une nouvelle adresse pour chaque transaction pour une meilleure confidentialité. Lors d'une connexion avec WalletConnect, vous choisissez quelle adresse partager.",
+      "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé. La méthode de connexion WizardConnect n'est pas prise en charge.",
       "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
     },
     "derivationPath": {
@@ -354,12 +362,15 @@
   },
   "dapp": {
     "title": "Connecter à une dApp",
-    "exploreText": "Visitez {link} pour explorer la liste complète des dApps BCH avec WalletConnect",
-    "uriPlaceholder": "URI WalletConnect",
+    "exploreText": "Connectez-vous aux dApps avec les méthodes de connexion WalletConnect, CashConnect ou WizardConnect. Visitez {link} pour explorer la liste complète des dApps BCH.",
+    "exploreTextSingleAddress": "Connectez-vous aux dApps avec les méthodes de connexion WalletConnect ou CashConnect. Visitez {link} pour explorer la liste complète des dApps BCH.",
+    "uriPlaceholder": "URI de connexion",
     "connectButton": "Connecter nouvelle dApp",
+    "sessionsTitle": "Sessions dApp",
+    "noActiveSessions": "Aucune session active actuellement.",
     "errors": {
-      "invalidUri": "URI WalletConnect ou CashConnect invalide",
-      "notValidUri": "Ce n'est pas une URI WalletConnect ou CashConnect valide"
+      "invalidUri": "URI WalletConnect, CashConnect ou WizardConnect invalide",
+      "notValidUri": "Ce n'est pas une URI WalletConnect, CashConnect ou WizardConnect valide"
     }
   },
   "history": {
@@ -704,8 +715,7 @@
   },
   "cashConnect": {
     "sessions": {
-      "title": "Sessions CashConnect (Alpha)",
-      "noActiveSessions": "Aucune session active actuellement."
+      "title": "CashConnect (Alpha)"
     },
     "sessionProposal": {
       "title": "Approuver la session ?",
@@ -747,8 +757,7 @@
   },
   "walletConnect": {
     "sessions": {
-      "title": "Sessions WalletConnect",
-      "noActiveSessions": "Aucune session active actuellement.",
+      "title": "WalletConnect",
       "session": "session"
     },
     "transactionRequest": {
@@ -823,8 +832,47 @@
       "signedTransaction": "Transaction WalletConnect '{userPrompt}' signée. Veuillez retourner à la dapp.",
       "transactionSignedTitle": "Transaction signée",
       "transactionSent": "Transaction envoyée avec succès !",
-      "transactionSigned": "Transaction signée avec succès !",
+      "transactionSigned": "Transaction signée et renvoyée à la dApp",
       "requestExpired": "Requête expirée, veuillez retourner à {dappName} pour réessayer"
+    }
+  },
+  "wizardConnect": {
+    "sessions": {
+      "title": "WizardConnect",
+      "unknownDapp": "dApp inconnue",
+      "session": "session",
+      "statusConnected": "Connecté",
+      "statusWaitingForDapp": "En attente de la dApp...",
+      "statusReconnecting": "Reconnexion...",
+      "statusDisconnected": "Déconnecté"
+    },
+    "pairing": {
+      "title": "Partager les adresses du portefeuille avec cette dApp ?",
+      "intro": "La connexion partage avec la dApp la liste complète des adresses actuelles et futures de votre portefeuille (la xpub).",
+      "bulletHistory": "La dApp peut voir l'intégralité de votre solde et de votre historique de transactions, même après déconnexion.",
+      "bulletPrivacy": "Vous perdez la confidentialité offerte par les nouvelles adresses HD.",
+      "bulletSpending": "Dépenser vos fonds nécessite toujours votre approbation pour chaque transaction.",
+      "dappInfoNote": "Remarque : le nom et l'icône de la dApp ne sont reçus qu'après la connexion.",
+      "connectButton": "Connecter",
+      "cancelButton": "Annuler"
+    },
+    "errors": {
+      "hdWalletRequired": "WizardConnect nécessite un portefeuille HD",
+      "notInitialized": "WizardConnect pas encore initialisé. Veuillez réessayer dans un moment.",
+      "invalidUri": "Ce n'est pas une URI WizardConnect valide",
+      "invalidTransactionSchema": "Erreur lors de la validation du schéma de la demande de transaction WizardConnect",
+      "failedToSignTransaction": "Échec de la signature de la transaction",
+      "errorSendingTransaction": "Erreur lors de l'envoi de la transaction"
+    },
+    "notifications": {
+      "sendingTransaction": "Envoi de la transaction...",
+      "sentTransaction": "Transaction WizardConnect envoyée pour {dappName}",
+      "signedTransaction": "Transaction WizardConnect pour {dappName} signée. Veuillez retourner à la dapp.",
+      "transactionSignedTitle": "Transaction signée",
+      "transactionSent": "Transaction envoyée avec succès !",
+      "transactionSigned": "Transaction signée et renvoyée à la dApp",
+      "requestCancelled": "La demande de signature a été annulée par {dappName}",
+      "dappDisconnected": "La session WizardConnect a été déconnectée par {dappName}"
     }
   },
   "settings": {

@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, shallowRef } from 'vue'
 import SignClient from '@walletconnect/sign-client'
 import type { SessionTypes } from '@walletconnect/types'
 import CashConnect from './CashConnect.vue'
+import WizardConnect from './WizardConnect.vue'
 
 const client = shallowRef<InstanceType<typeof SignClient> | null>(null)
 const session = shallowRef<SessionTypes.Struct | null>(null)
@@ -267,5 +268,6 @@ async function disconnect() {
     </div>
 
     <CashConnect />
+    <WizardConnect />
   </div>
 </template>

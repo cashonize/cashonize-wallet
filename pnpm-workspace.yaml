@@ -46,6 +46,7 @@ overrides:
   '@bitauth/libauth': 3.1.0-next.8
   '@reown/walletkit': 1.5.6
   '@walletconnect/core': 2.23.9
+  '@wizardconnect/core': 0.2.4
   mainnet-js: 3.1.7
 
   # Dependabot security bumps for indirect dependencies.
@@ -63,3 +64,10 @@ overrides:
 # (src-electron has its own allowBuilds for electron's binary download.)
 allowBuilds:
   '@parcel/watcher': true
+
+# Fix a disconnect race in @wizardconnect/wallet: doDisconnect tore down the relay
+# connection synchronously while the courtesy disconnect message was still in flight,
+# so the dapp never learned of the disconnect. The patch defers cleanup until the
+# relay promise settles. Remove once fixed upstream.
+patchedDependencies:
+  '@wizardconnect/wallet@0.2.2': patches/@wizardconnect__wallet@0.2.2.patch

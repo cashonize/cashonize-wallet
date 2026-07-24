@@ -22,9 +22,10 @@ test.describe.serial('WalletConnect E2E', () => {
     // Set up wallet via onboarding and switch to chipnet
     await setupWalletOnChipnet(walletPage)
 
-    // Navigate to WalletConnect tab, wait for sessions section
-    await walletPage.locator('nav').getByText('WalletConnect').click()
-    await walletPage.getByText('Connect to Dapp').waitFor({ timeout: 15_000 })
+    // Navigate to the Connect tab, wait for sessions section
+    await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
+    // exact: the intro text ("Connect to dApps with the...") is a case-insensitive substring match otherwise
+    await walletPage.getByText('Connect to Dapp', { exact: true }).waitFor({ timeout: 15_000 })
 
     // Open test dApp, wait for SignClient to initialize (Connect button enabled)
     await dappPage.goto(DAPP_URL)
@@ -42,8 +43,8 @@ test.describe.serial('WalletConnect E2E', () => {
     await expect(dappPage.locator('#pairing-uri')).toContainText('wc:', { timeout: 15_000 })
     const uri = await dappPage.textContent('#pairing-uri')
 
-    // Wallet: Paste URI into WalletConnect input and click Connect
-    await walletPage.getByPlaceholder('Wallet Connect URI').fill(uri!)
+    // Wallet: Paste URI into the connection URI input and click Connect
+    await walletPage.getByPlaceholder('Connection URI').fill(uri!)
     await walletPage.locator('input.primaryButton[value*="Connect"]').click()
 
     // Wallet: Approve session proposal
@@ -155,9 +156,9 @@ test.describe.serial('WalletConnect E2E', () => {
     // dApp: Assert disconnected
     await expect(dappPage.locator('#session-status')).toHaveText('disconnected', { timeout: 15_000 })
 
-    // Wallet: Assert no active sessions
+    // Wallet: Assert no active sessions (shared empty state of the unified sessions box)
     await expect(walletPage
-      .locator('fieldset:has(legend:text("WalletConnect Sessions"))').getByText('No sessions currently active.'))
+      .locator('fieldset:has(legend:text("dApp Sessions"))').getByText('No sessions currently active.'))
       .toBeVisible({ timeout: 15_000 })
   })
 })

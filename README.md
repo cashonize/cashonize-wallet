@@ -3,7 +3,7 @@
 ## Cashonize: a Bitcoin Cash Wallet
 
 **Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet** <br>
-Cashonize supports CashTokens and WalletConnect which makes it an ideal wallet for using dapps on BCH. <br>
+Cashonize supports CashTokens and the WalletConnect, CashConnect and WizardConnect connection methods, which makes it an ideal wallet for using dapps on BCH. <br>
 Currently Cashonize is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an Installable web app. <br>
 
 Cashonize is available in English, Spanish, French, German, and Portuguese.
@@ -11,10 +11,10 @@ Cashonize is available in English, Spanish, French, German, and Portuguese.
 ### The wallet for you?
 
 Because of its minimalist design, Cashonize is a user-friendly wallet, even for inexperienced users.
-Cashonize has an easy-to-understand transaction preview screen for WalletConnect and CashConnect, empowering users before signing DeFi transactions.
+Cashonize has an easy-to-understand transaction preview screen for WalletConnect, CashConnect and WizardConnect, empowering users before signing DeFi transactions.
 Further, Cashonize nicely groups and displays your NFTs, making it ideal for NFT collectors.
 
-Cashonize has multi-wallet support with both single-address and HD wallet options. HD wallets use a new address for each transaction, providing basic privacy for everyday payments.
+Cashonize lets you create and switch between multiple wallets. There are two wallet types supported: single-address wallet and HD wallet. HD wallets use a new address for each transaction, providing basic privacy for everyday payments.
 
 Cashonize does not currently support password or pin locked wallets and encrypted seed phrases.
 
@@ -22,6 +22,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 
 - **Send & receive BCH and CashTokens** - Full support for fungible tokens and NFTs
 - **Connect to dApps via WalletConnect** - Easy-to-understand transaction preview screen
+- **WizardConnect support** - Connect HD wallets to dApps through the Nostr-based WizardConnect protocol
 - **Open-source and non-custodial** - You control your keys
 - **Multi-wallet support** - Create and manage multiple wallets (single-address or HD)
 - **Minimalist design** - Easy to use with a clean, simple interface
@@ -34,7 +35,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 ### Exclusive Features
 
 - **CashConnect support** - Connect to BCH-native dApps through the CashConnect protocol
-- **Detailed WC/CC transaction preview** - Shows your balance changes for BCH and tokens before signing
+- **Detailed dApp transaction preview** - Shows your balance changes for BCH and tokens before signing
 - **Token management** - Favorite, hide, and search tokens
 - **Cauldron price display** - View live Cauldron DEX prices for fungible tokens
 - **Parsable NFTs** - Decode NFT commitments and display their data as human-readable attributes (parsable BCMR support)

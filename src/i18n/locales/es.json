@@ -20,6 +20,13 @@
     "wallet": "billetera",
     "wallets": "billeteras"
   },
+  "nav": {
+    "wallet": "Billetera",
+    "addresses": "Direcciones",
+    "tokens": "Tokens",
+    "history": "Historial",
+    "connect": "Conectar"
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Por favor ingresa un nombre de billetera",
@@ -63,6 +70,7 @@
       "walletNotFoundOnNetwork": "La billetera \"{name}\" no existe en {network}",
       "errorInitializingWalletConnect": "Error al inicializar WalletConnect",
       "errorInitializingCashConnect": "Error al inicializar CashConnect",
+      "errorInitializingWizardConnect": "Error al inicializar WizardConnect",
       "errorFetchingUtxos": "Error al obtener los UTXOs de la billetera",
       "errorFetchingHistory": "Error al obtener el historial de la billetera",
       "unableToConnectElectrum": "No se puede conectar al servidor Electrum '{server}'",
@@ -74,7 +82,7 @@
       "title": "Bienvenido a Cashonize",
       "description": "Una billetera de Bitcoin Cash fácil de usar, con enfoque en CashTokens y dApps de BCH.",
       "featureSendReceive": "Envía y recibe BCH y CashTokens",
-      "featureWalletConnect": "Conéctate a dApps mediante WalletConnect",
+      "featureWalletConnect": "Conéctate a dApps mediante WalletConnect, CashConnect o WizardConnect",
       "featureOpenSource": "Código abierto y sin custodia",
       "aboutPrompt": "¿Nuevo en Cashonize? {link}",
       "aboutLinkText": "Conoce más sobre la billetera →"
@@ -100,8 +108,8 @@
       "label": "Tipo de billetera:",
       "hd": "Billetera HD (múltiples direcciones)",
       "single": "Dirección única",
-      "hdDescription": "Usa una nueva dirección para cada transacción. Mayor privacidad, pero requiere seleccionar una dirección al conectarse a dApps.",
-      "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado.",
+      "hdDescription": "Usa una dirección nueva para cada transacción para mayor privacidad. Al conectar con WalletConnect, eliges qué dirección compartir.",
+      "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado. El método de conexión WizardConnect no es compatible.",
       "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
     },
     "derivationPath": {
@@ -354,12 +362,15 @@
   },
   "dapp": {
     "title": "Conectar a dApp",
-    "exploreText": "Visita {link} para explorar la lista completa de dApps de BCH con WalletConnect",
-    "uriPlaceholder": "URI de WalletConnect",
+    "exploreText": "Conéctate a dApps mediante los métodos de conexión WalletConnect, CashConnect o WizardConnect. Visita {link} para explorar la lista completa de dApps de BCH.",
+    "exploreTextSingleAddress": "Conéctate a dApps mediante los métodos de conexión WalletConnect o CashConnect. Visita {link} para explorar la lista completa de dApps de BCH.",
+    "uriPlaceholder": "URI de conexión",
     "connectButton": "Conectar nueva dApp",
+    "sessionsTitle": "Sesiones de dApps",
+    "noActiveSessions": "No hay sesiones activas actualmente.",
     "errors": {
-      "invalidUri": "URI de WalletConnect o CashConnect inválida",
-      "notValidUri": "No es una URI válida de WalletConnect o CashConnect"
+      "invalidUri": "URI de WalletConnect, CashConnect o WizardConnect inválida",
+      "notValidUri": "No es una URI válida de WalletConnect, CashConnect o WizardConnect"
     }
   },
   "history": {
@@ -704,8 +715,7 @@
   },
   "cashConnect": {
     "sessions": {
-      "title": "Sesiones de CashConnect (Alpha)",
-      "noActiveSessions": "No hay sesiones activas actualmente."
+      "title": "CashConnect (Alpha)"
     },
     "sessionProposal": {
       "title": "¿Aprobar sesión?",
@@ -747,8 +757,7 @@
   },
   "walletConnect": {
     "sessions": {
-      "title": "Sesiones de WalletConnect",
-      "noActiveSessions": "No hay sesiones activas actualmente.",
+      "title": "WalletConnect",
       "session": "sesión"
     },
     "transactionRequest": {
@@ -823,8 +832,47 @@
       "signedTransaction": "Transacción WalletConnect '{userPrompt}' firmada. Por favor, regresa a la dapp.",
       "transactionSignedTitle": "Transacción firmada",
       "transactionSent": "¡Transacción enviada exitosamente!",
-      "transactionSigned": "¡Transacción firmada exitosamente!",
+      "transactionSigned": "Transacción firmada y devuelta a la dApp",
       "requestExpired": "Solicitud expirada, por favor regrese a {dappName} para reintentar"
+    }
+  },
+  "wizardConnect": {
+    "sessions": {
+      "title": "WizardConnect",
+      "unknownDapp": "dApp desconocida",
+      "session": "sesión",
+      "statusConnected": "Conectado",
+      "statusWaitingForDapp": "Esperando a la dApp...",
+      "statusReconnecting": "Reconectando...",
+      "statusDisconnected": "Desconectado"
+    },
+    "pairing": {
+      "title": "¿Compartir las direcciones de la billetera con esta dApp?",
+      "intro": "Al conectar se comparte con la dApp la lista completa de direcciones actuales y futuras de tu billetera (la xpub).",
+      "bulletHistory": "La dApp puede ver todo tu saldo y tu historial de transacciones, incluso después de desconectar.",
+      "bulletPrivacy": "Pierdes la privacidad de usar direcciones HD nuevas.",
+      "bulletSpending": "Gastar tus fondos sigue requiriendo tu aprobación para cada transacción.",
+      "dappInfoNote": "Nota: el nombre y el icono de la dApp solo se reciben después de conectar.",
+      "connectButton": "Conectar",
+      "cancelButton": "Cancelar"
+    },
+    "errors": {
+      "hdWalletRequired": "WizardConnect requiere una billetera HD",
+      "notInitialized": "WizardConnect aún no inicializado. Por favor intenta de nuevo en un momento.",
+      "invalidUri": "No es una URI válida de WizardConnect",
+      "invalidTransactionSchema": "Error al validar el esquema de la solicitud de transacción de WizardConnect",
+      "failedToSignTransaction": "Error al firmar la transacción",
+      "errorSendingTransaction": "Error al enviar la transacción"
+    },
+    "notifications": {
+      "sendingTransaction": "Enviando transacción...",
+      "sentTransaction": "Enviada transacción WizardConnect para {dappName}",
+      "signedTransaction": "Transacción WizardConnect para {dappName} firmada. Por favor, regresa a la dapp.",
+      "transactionSignedTitle": "Transacción firmada",
+      "transactionSent": "¡Transacción enviada exitosamente!",
+      "transactionSigned": "Transacción firmada y devuelta a la dApp",
+      "requestCancelled": "La solicitud de firma fue cancelada por {dappName}",
+      "dappDisconnected": "La sesión WizardConnect fue desconectada por {dappName}"
     }
   },
   "settings": {

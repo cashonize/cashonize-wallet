@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, and CashConnect. Built with Quasar Framework and TypeScript. Uses Vue 3 Composition API (`<script setup>`) and Pinia for state management. Targets multiple platforms: web (SPA), desktop (Electron), and mobile (Capacitor).
+Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, CashConnect and WizardConnect. Built with Quasar Framework and TypeScript. Uses Vue 3 Composition API (`<script setup>`) and Pinia for state management. Targets multiple platforms: web (SPA), desktop (Electron), and mobile (Capacitor).
 
 ## Commands
 
@@ -37,6 +37,9 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 ### Platform Concurrency
 Only the web (SPA) target can run multiple live app instances at once: several browser tabs (or a PWA window plus a tab) share the same localStorage and IndexedDB, but each has its own in-memory Pinia state, electrum connections, WalletKit instance, and CashConnect Nostr relay connection (tabs restore the same persisted CashConnect sessions, so a dApp request can trigger approval dialogs in every open tab). There is no cross-tab sync (no `storage` listener or `BroadcastChannel`), so code that persists mutable state must assume another tab can read or write the same keys concurrently and that in-memory state may be stale relative to storage. Electron is single-window by construction (one `createWindow`, all `window.open` denied in `electron-main.ts`) and the Android activity is `launchMode="singleTask"`, so desktop and mobile always have exactly one live instance.
 
+### Wallet Concurrency
+Regardless of app instances, the same wallet can be live elsewhere: the user may run Cashonize on several devices at once, or share the seed with other wallet software. On-chain wallet state can therefore change at any moment from outside the running app: in-memory UTXOs, balance and history are a cache kept fresh by electrum subscriptions, not a source of truth, and flows that hold UTXO state across user interaction (coin selection, sign dialogs) must tolerate it going stale.
+
 ### mainnet-js (Core Wallet Library)
 
 The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers.
@@ -56,6 +59,7 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 - **@electrum-cash/network**: Electrum client used under mainnet-js (https://gitlab.com/electrum-cash/network)
 - **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages). Uses BCH-specific payloads per the WC2-BCH spec: https://github.com/mainnet-pat/wc2-bch-bcr
 - **@cashconnect-js/core** & **@cashconnect-js/nostr**: CashConnect protocol for BCH-native dApp connections. Docs: https://cashconnect.developers.cash/ — Repo: https://gitlab.com/cashconnect-js/cashconnect-js
+- **@wizardconnect/core** & **@wizardconnect/wallet**: WizardConnect protocol for BCH HD-wallet dApp connections. Repo: https://gitlab.com/riftenlabs/lib/wizardconnect
 
 ### Electrum Connections
 mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
@@ -64,6 +68,9 @@ mainnet-js configures `@electrum-cash/web-socket` to keep connections alive acro
 
 ### CashConnect Transport
 CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). The relay is store-and-forward with per-message TTLs, so dApp and wallet don't need to be online at the same time — a session survives either side going offline (short-lived messages like balance pushes simply expire rather than being replayed). Sessions persist in localStorage, namespaced per wallet identity key, and are restored by the library's `start()`; the app's `cashconnectStore.stop()` stops the service without un-pairing.
+
+### WizardConnect
+WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the transport is fully encapsulated in @wizardconnect/core, so no separate nostr dependencies are needed. The wallet shares chain-level xpubs (receive/change/defi) so dapps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). HD wallets only; single-address wallets get a clear error on pairing.
 
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for CashTokens on BCH. Spec: https://github.com/bitjson/chip-bcmr
@@ -86,8 +93,9 @@ src/components/
 ├── bchWallet.vue, myTokens.vue, connectDapp.vue, settingsMenu.vue  # Main tab views
 ├── walletOnboarding.vue                                             # Initial setup
 ├── settings/          # Components accessed from settings menu
-├── walletconnect/     # WC2 session and dialog components
+├── walletconnect/     # WC2 session and dialog components (WC2TransactionRequest is shared with wizardconnect)
 ├── cashconnect/       # CC session and dialog components
+├── wizardconnect/     # WizardConnect session components (sign dialogs are opened from wizardconnectStore)
 ├── history/           # Transaction history components
 ├── tokenItems/        # Token display components (FT, NFT)
 ├── qr/                # QR scanning components
@@ -117,7 +125,7 @@ Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). See `devel
 
 ## Dependency Pinning
 
-Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
+Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together. `@wizardconnect/wallet` additionally carries a pnpm patch (`patches/`) fixing a disconnect race — re-check whether it's still needed on upgrades.
 
 ## Code Style Preferences
 

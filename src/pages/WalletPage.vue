@@ -21,7 +21,6 @@
   const settingsStore = useSettingsStore()
   import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
-  const isMobile = computed(() => width.value < 480)
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   import { useI18n } from 'vue-i18n'
@@ -110,12 +109,12 @@
   // If no wallet exists, displayView stays undefined and onboarding is shown
   
   // check if session request in URL params passed through props
-  if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith(CASHCONNECT_PROTOCOL_HANDLER)){
+  if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith(CASHCONNECT_PROTOCOL_HANDLER) || props?.uri?.toLowerCase().startsWith('wiz:')){
     if(walletExists){
       dappUriUrlParam.value = props.uri
-      // Promise will wait for state indicating whether WC and CC are initialized
-      const { isWcAndCcInitialized } = storeToRefs(store);
-      await waitForInitialized(isWcAndCcInitialized); 
+      // Promise will wait for state indicating whether the dapp connection stores are initialized
+      const { dappConnectionStoresInitialized } = storeToRefs(store);
+      await waitForInitialized(dappConnectionStoresInitialized);
       store.changeView(4);
     } else {
       $q.notify({
@@ -156,7 +155,7 @@
     // check live wallet state, not the setup-time walletExists: a wallet may have been created via onboarding since
     if(!store._wallet) return
     // check if session request in URL params passed through props
-    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith(CASHCONNECT_PROTOCOL_HANDLER)){
+    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith(CASHCONNECT_PROTOCOL_HANDLER) || props?.uri?.toLowerCase().startsWith('wiz:')){
       dappUriUrlParam.value = props.uri
       store.changeView(4);
     }
@@ -192,11 +191,11 @@
   <header>
     <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
     <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs">
-      <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ isMobile ? "Wallet" : "BchWallet" }} </div>
-      <div v-if="width > 570 && store.wallet.walletType === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> Addresses </div>
-      <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ isMobile ? "Tokens" : "MyTokens" }} </div>
-      <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ isMobile ? "History" : "TxHistory" }} </div>
-      <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ isMobile ? "Connect" : "WalletConnect" }} </div>
+      <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ t('nav.wallet') }} </div>
+      <div v-if="width > 450 && store.wallet.walletType === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
+      <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>
+      <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ t('nav.history') }} </div>
+      <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ t('nav.connect') }} </div>
       <div @click="store.changeView(5)" style="width: max-content; position: relative;">
         <img style="vertical-align: text-bottom;" :src="store.displayView == 5 ? 'images/settingsGreen.svg' : (
           settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg')">

@@ -126,6 +126,110 @@ export const WcMessageObjSchema = z.object({
 export type WcMessageObj = z.infer<typeof WcMessageObjSchema>;
 
 
+/* WizSignTransactionRequestSchema */
+
+// WizardConnect's reference serializer transmits Uint8Array fields as plain hex strings,
+// but the extended stringified form is also legal on the wire, so both are accepted.
+const wizUint8ArraySchema = z.union([
+  z.string()
+    .regex(/^(?:[0-9a-fA-F]{2})*$/, "Must be a hex string")
+    .transform((val) => hexToBin(val)),
+  stringifiedUint8ArraySchema,
+]);
+
+const wizUint8Array32Schema = wizUint8ArraySchema.refine(
+  (val) => val instanceof Uint8Array && val.length === 32,
+  "Must be a 32-byte Uint8Array",
+);
+
+// bigint fields arrive as "<bigint: Xn>" from the reference serializer; plain numeric strings
+// and safe integers are also accepted for robustness across dapp implementations
+const wizBigIntSchema = z.union([
+  stringifiedBigIntSchema,
+  z.string().regex(/^\d+$/, "Must be a numeric string").transform(BigInt),
+  z.number().int().nonnegative().transform(BigInt),
+]);
+
+// The reference serializer omits nft capability/commitment when undefined,
+// so both are defaulted to match libauth's required token nft shape
+const wizNftSchema = z.object({
+  capability: z.optional(z.enum(["none", "mutable", "minting"])),
+  commitment: z.optional(wizUint8ArraySchema),
+}).transform((nft) => ({
+  capability: nft.capability ?? "none" as const,
+  commitment: nft.commitment ?? new Uint8Array(),
+}));
+
+const wizTokenSchema = z.object({
+  amount: z.optional(wizBigIntSchema).transform((amount) => amount ?? 0n),
+  category: wizUint8Array32Schema,
+  nft: z.optional(wizNftSchema),
+});
+
+// Same fields as the WC2-BCH contract schema (contractName, abiFunction.name, redeemScript),
+// with the WizardConnect byte encoding for redeemScript
+const wizContractSchema = z.object({
+  abiFunction: z.object({ name: z.string() }),
+  redeemScript: wizUint8ArraySchema,
+  artifact: z.object({ contractName: z.string() }),
+});
+
+const wizSourceOutputSchema = z.object({
+  outpointIndex: nonNegativeIntSchema,
+  outpointTransactionHash: wizUint8Array32Schema,
+  sequenceNumber: nonNegativeIntSchema,
+  lockingBytecode: wizUint8ArraySchema,
+  unlockingBytecode: wizUint8ArraySchema,
+  valueSatoshis: wizBigIntSchema,
+  token: z.optional(wizTokenSchema),
+  contract: z.optional(wizContractSchema),
+});
+
+const wizTransactionInputSchema = z.object({
+  outpointIndex: nonNegativeIntSchema,
+  outpointTransactionHash: wizUint8Array32Schema,
+  sequenceNumber: nonNegativeIntSchema,
+  unlockingBytecode: wizUint8ArraySchema,
+});
+
+const wizTransactionOutputSchema = z.object({
+  lockingBytecode: wizUint8ArraySchema,
+  token: z.optional(wizTokenSchema),
+  valueSatoshis: wizBigIntSchema,
+});
+
+const wizTransactionSchema = z.object({
+  inputs: z.array(wizTransactionInputSchema).min(1),
+  locktime: nonNegativeIntSchema,
+  outputs: z.array(wizTransactionOutputSchema).min(1),
+  version: nonNegativeIntSchema,
+});
+
+// A sign_transaction_request message arriving over the WizardConnect relay. The transport
+// (NIP-17 gift wrap) authenticates the sender, but the payload shape is fully untrusted.
+export const WizSignTransactionRequestSchema = z.object({
+  sequence: nonNegativeIntSchema,
+  // [inputIndex, pathName, addressIndex] tuples: which HD key signs each input.
+  // addressIndex is capped to the BIP32 non-hardened range.
+  inputPaths: z.array(z.tuple([
+    nonNegativeIntSchema,
+    z.enum(["receive", "change", "defi"]),
+    z.number().int().nonnegative().max(2 ** 31 - 1),
+  ])).refine(
+    (paths) => new Set(paths.map((path) => path[0])).size === paths.length,
+    "Duplicate input index in inputPaths",
+  ),
+  transaction: z.object({
+    transaction: z.union([hexEncodedStringSchema, wizTransactionSchema]),
+    sourceOutputs: z.array(wizSourceOutputSchema).min(1),
+    broadcast: z.optional(z.boolean()),
+    userPrompt: z.optional(z.string()),
+  }),
+});
+
+export type WizSignTransactionRequest = z.infer<typeof WizSignTransactionRequestSchema>;
+
+
 /* BcmrIndexerResponseSchema */
 
 const Hex64Schema = z.string().regex(/^[0-9a-f]{64}$/i);
