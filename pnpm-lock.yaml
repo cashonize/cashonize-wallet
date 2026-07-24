@@ -16,8 +16,6 @@ overrides:
   micromatch>picomatch: 2.3.2
   picomatch: 4.0.4
 
-packageExtensionsChecksum: sha256-oM9k2Xy6771yG3++ENfeHlUom6t6HU6jhzCLVMzv5Sc=
-
 importers:
 
   .:

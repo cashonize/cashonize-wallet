@@ -54,7 +54,6 @@
       }
     }
     if(props.dappUriUrlParam?.startsWith(CASHCONNECT_PROTOCOL_HANDLER)){
-      // NOTE: This
       try {
         const { isWcAndCcInitialized } = storeToRefs(store);
         await waitForInitialized(isWcAndCcInitialized);

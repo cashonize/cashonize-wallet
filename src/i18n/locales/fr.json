@@ -741,7 +741,6 @@
       "notStarted": "CashConnect n'est pas démarré.",
       "privateKeyNotFound": "La clé privée est introuvable pour l'adresse : {address}",
       "failedToConvertCashAddr": "Échec de la conversion de CashAddr en Locking Bytecode",
-      "invalidDerivationPath": "Chemin de dérivation invalide pour CashConnect : au moins 4 composants attendus, {length} reçu(s).",
       "failedToDeriveHdNode": "Échec de la dérivation du HDNode à partir de la seed",
       "walletTypeNotSupported": "Type de portefeuille non pris en charge : doit être un portefeuille à adresse unique ou un HDWallet."
     }

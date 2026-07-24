@@ -35,7 +35,7 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - Wallets are stored in both IndexedDB databases by default (mainnet and chipnet)
 
 ### Platform Concurrency
-Only the web (SPA) target can run multiple live app instances at once: several browser tabs (or a PWA window plus a tab) share the same localStorage and IndexedDB, but each has its own in-memory Pinia state, electrum connections, and WalletKit instance. There is no cross-tab sync (no `storage` listener or `BroadcastChannel`), so code that persists mutable state must assume another tab can read or write the same keys concurrently and that in-memory state may be stale relative to storage. Electron is single-window by construction (one `createWindow`, all `window.open` denied in `electron-main.ts`) and the Android activity is `launchMode="singleTask"`, so desktop and mobile always have exactly one live instance.
+Only the web (SPA) target can run multiple live app instances at once: several browser tabs (or a PWA window plus a tab) share the same localStorage and IndexedDB, but each has its own in-memory Pinia state, electrum connections, WalletKit instance, and CashConnect Nostr relay connection (tabs restore the same persisted CashConnect sessions, so a dApp request can trigger approval dialogs in every open tab). There is no cross-tab sync (no `storage` listener or `BroadcastChannel`), so code that persists mutable state must assume another tab can read or write the same keys concurrently and that in-memory state may be stale relative to storage. Electron is single-window by construction (one `createWindow`, all `window.open` denied in `electron-main.ts`) and the Android activity is `launchMode="singleTask"`, so desktop and mobile always have exactly one live instance.
 
 ### mainnet-js (Core Wallet Library)
 
@@ -55,12 +55,15 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 - **@bitauth/libauth**: Cryptographic primitives, transaction encoding (https://libauth.org/)
 - **@electrum-cash/network**: Electrum client used under mainnet-js (https://gitlab.com/electrum-cash/network)
 - **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages). Uses BCH-specific payloads per the WC2-BCH spec: https://github.com/mainnet-pat/wc2-bch-bcr
-- **@cashconnect-js/core** & **@cashconnect-js/wallet**: CashConnect protocol for BCH-native dApp connections. Docs: https://cashconnect.developers.cash/ — Repo: https://gitlab.com/cashconnect-js/cashconnect-js
+- **@cashconnect-js/core** & **@cashconnect-js/nostr**: CashConnect protocol for BCH-native dApp connections. Docs: https://cashconnect.developers.cash/ — Repo: https://gitlab.com/cashconnect-js/cashconnect-js
 
 ### Electrum Connections
 mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
 
 ***Note:*** some environments (e.g. Safari, iOS) aggressively kill idle WebSocket connections in backgrounded tabs, which may cause stale connections when returning — mainnet-js handles reconnection on actual connection failures separately.
+
+### CashConnect Transport
+CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). The relay is store-and-forward with per-message TTLs, so dApp and wallet don't need to be online at the same time — a session survives either side going offline (short-lived messages like balance pushes simply expire rather than being replayed). Sessions persist in localStorage, namespaced per wallet identity key, and are restored by the library's `start()`; the app's `cashconnectStore.stop()` stops the service without un-pairing.
 
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for CashTokens on BCH. Spec: https://github.com/bitjson/chip-bcmr

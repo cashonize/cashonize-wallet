@@ -55,14 +55,6 @@ overrides:
   'micromatch>picomatch': 2.3.2
   picomatch: 4.0.4
 
-# Patch a missing dependency declaration in a third-party package. @cashconnect-js/wallet
-# imports @walletconnect/utils but does not declare it, so pnpm's strict node_modules
-# can't resolve it at build time.
-packageExtensions:
-  '@cashconnect-js/wallet':
-    dependencies:
-      '@walletconnect/utils': ^2.23.9
-
 # Packages explicitly allowed to run install/build lifecycle scripts. Everything else is
 # blocked by pnpm; a future dep that adds an install script fails the install until
 # reviewed and added here.

@@ -4,8 +4,8 @@
 
 export const defaultWalletName = 'mywallet';
 
-// WalletConnect/CashConnect configuration used by both walletconnectStore.ts and cashconnectStore.ts.
-// Centralized here to avoid duplication and ensure consistency.
+// WalletConnect configuration used by walletconnectStore.ts.
+// (CashConnect no longer uses WalletConnect since its move to the Nostr transport.)
 export const walletConnectProjectId = '3fd234b8e2cd0e1da4bc08a0011bbf64';
 
 export const walletConnectMetadata = {

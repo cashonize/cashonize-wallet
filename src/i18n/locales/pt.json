@@ -741,7 +741,6 @@
       "notStarted": "CashConnect não foi iniciado.",
       "privateKeyNotFound": "Chave privada não encontrada para o endereço: {address}",
       "failedToConvertCashAddr": "Falha ao converter CashAddr para Locking Bytecode",
-      "invalidDerivationPath": "Derivation path inválido para CashConnect: esperado pelo menos 4 componentes, obtido {length}.",
       "failedToDeriveHdNode": "Falha ao derivar HDNode da seed",
       "walletTypeNotSupported": "Tipo de carteira não suportado: deve ser uma Carteira de Endereço Único ou Carteira HD."
     }
