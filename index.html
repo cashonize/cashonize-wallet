@@ -15,6 +15,43 @@
     <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
     <link rel="icon" type="image/ico" href="favicon.ico">
     <link rel="manifest" href="manifest.json">
+
+    <script>
+      // Preload the header logo and landing-view icons to improve initial page load.
+      // Block statement to keep the consts out of the global scope
+      {
+        // Mirrors the dark-mode startup logic in settingsStore.ts
+        const storedDarkMode = localStorage.getItem('darkMode');
+        const darkMode = storedDarkMode === 'true' ||
+          (storedDarkMode === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        // These public/ assets are referenced from Vue templates, so the browser
+        // can't discover them until the app renders, which is gated on wallet
+        // initialization (Suspense around WalletPage).
+        const images = [darkMode ? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'];
+        // activeWalletName is set on wallet create/import:
+        // present means the wallet view, absent means onboarding
+        if (localStorage.getItem('activeWalletName')) {
+          images.push(
+            darkMode ? 'images/settingsLightGrey.svg' : 'images/settings.svg',
+            'images/copyGrey.svg',
+            'images/bch-icon.png',
+            'images/qrscan.svg'
+          );
+        } else {
+          images.push(
+            darkMode ? 'images/plus-square-lightGrey.svg' : 'images/plus-square.svg',
+            darkMode ? 'images/import-lightGrey.svg' : 'images/import.svg'
+          );
+        }
+        for (const href of images) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = href;
+          document.head.appendChild(link);
+        }
+      }
+    </script>
   </head>
   <body>
     <!-- quasar:entry-point -->

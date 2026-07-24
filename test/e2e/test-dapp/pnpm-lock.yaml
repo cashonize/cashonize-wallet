@@ -14,9 +14,15 @@ importers:
       '@bitauth/libauth':
         specifier: 3.1.0-next.8
         version: 3.1.0-next.8
+      '@cashconnect-js/core':
+        specifier: 1.0.0-alpha.31
+        version: 1.0.0-alpha.31
+      '@cashconnect-js/nostr':
+        specifier: 1.0.0-alpha.31
+        version: 1.0.0-alpha.31
       '@walletconnect/sign-client':
         specifier: 2.23.9
-        version: 2.23.9
+        version: 2.23.9(zod@4.4.3)
       '@wizardconnect/dapp':
         specifier: 0.2.2
         version: 0.2.2
@@ -61,6 +67,12 @@ packages:
   '@bitauth/libauth@3.1.0-next.8':
     resolution: {integrity: sha512-Pm+Ju+YP3JeBLLTiVrBnia2wwE4G17r4XqpvPRMcklElJTe8J6x3JgKRg1by0Xm3ZY6UFxACkEAoSA+x419/zA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  '@cashconnect-js/core@1.0.0-alpha.31':
+    resolution: {integrity: sha512-pD0txUK0CAlec4K6KrT/YGgF+k6nEla3fFgWK/DD515yofIqZ0MD2OcSjhKLplCyXyxJ/cp61pVGHUz29f7Ggg==}
+
+  '@cashconnect-js/nostr@1.0.0-alpha.31':
+    resolution: {integrity: sha512-/BebQtgfXrWQyhVPF3gvCYq1SCTeKQABEMbvzKeSi0pVdPYvchMjaOCAM2B0vRlnDHMbmXoc5z47GBXHvPO22g==}
 
   '@emnapi/core@1.11.1':
     resolution: {integrity: sha512-RSvbQmHzdKzNsLYa/wHrbc3KN4sYLKAdPZxqiM2HATqv/SBk2/ENSHpvXGaLOMcsAyz0poEGqkmmKYG3OWiJEQ==}
@@ -795,6 +807,9 @@ packages:
       utf-8-validate:
         optional: true
 
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+
 snapshots:
 
   '@adraffy/ens-normalize@1.11.1': {}
@@ -817,6 +832,17 @@ snapshots:
       '@bitauth/libauth': 3.1.0-next.8
 
   '@bitauth/libauth@3.1.0-next.8': {}
+
+  '@cashconnect-js/core@1.0.0-alpha.31':
+    dependencies:
+      '@bitauth/libauth': 3.1.0-next.8
+      zod: 4.4.3
+
+  '@cashconnect-js/nostr@1.0.0-alpha.31':
+    dependencies:
+      '@bitauth/libauth': 3.1.0-next.8
+      '@cashconnect-js/core': 1.0.0-alpha.31
+      zod: 4.4.3
 
   '@emnapi/core@1.11.1':
     dependencies:
@@ -1015,7 +1041,7 @@ snapshots:
 
   '@vue/shared@3.5.39': {}
 
-  '@walletconnect/core@2.23.9':
+  '@walletconnect/core@2.23.9(zod@4.4.3)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -1029,7 +1055,7 @@ snapshots:
       '@walletconnect/safe-json': 1.0.2
       '@walletconnect/time': 1.0.2
       '@walletconnect/types': 2.23.9
-      '@walletconnect/utils': 2.23.9
+      '@walletconnect/utils': 2.23.9(zod@4.4.3)
       '@walletconnect/window-getters': 1.0.1
       es-toolkit: 1.44.0
       events: 3.3.0
@@ -1147,16 +1173,16 @@ snapshots:
     dependencies:
       tslib: 1.14.1
 
-  '@walletconnect/sign-client@2.23.9':
+  '@walletconnect/sign-client@2.23.9(zod@4.4.3)':
     dependencies:
-      '@walletconnect/core': 2.23.9
+      '@walletconnect/core': 2.23.9(zod@4.4.3)
       '@walletconnect/events': 1.0.1
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-utils': 1.0.8
       '@walletconnect/logger': 3.0.2
       '@walletconnect/time': 1.0.2
       '@walletconnect/types': 2.23.9
-      '@walletconnect/utils': 2.23.9
+      '@walletconnect/utils': 2.23.9(zod@4.4.3)
       events: 3.3.0
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -1216,7 +1242,7 @@ snapshots:
       - ioredis
       - uploadthing
 
-  '@walletconnect/utils@2.23.9':
+  '@walletconnect/utils@2.23.9(zod@4.4.3)':
     dependencies:
       '@msgpack/msgpack': 3.1.3
       '@noble/ciphers': 1.3.0
@@ -1235,7 +1261,7 @@ snapshots:
       '@walletconnect/window-metadata': 1.0.1
       blakejs: 1.2.1
       detect-browser: 5.3.0
-      ox: 0.9.3
+      ox: 0.9.3(zod@4.4.3)
       uint8arrays: 3.1.1
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -1292,7 +1318,9 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  abitype@1.2.4: {}
+  abitype@1.2.4(zod@4.4.3):
+    optionalDependencies:
+      zod: 4.4.3
 
   anymatch@3.1.3:
     dependencies:
@@ -1449,7 +1477,7 @@ snapshots:
 
   on-exit-leak-free@2.1.2: {}
 
-  ox@0.9.3:
+  ox@0.9.3(zod@4.4.3):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -1457,7 +1485,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.2.4
+      abitype: 1.2.4(zod@4.4.3)
       eventemitter3: 5.0.1
     transitivePeerDependencies:
       - zod
@@ -1593,3 +1621,5 @@ snapshots:
   ws@7.5.11: {}
 
   ws@8.21.0: {}
+
+  zod@4.4.3: {}

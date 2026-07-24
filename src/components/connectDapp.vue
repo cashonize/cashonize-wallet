@@ -9,6 +9,7 @@
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import { PROTOCOL_HANDLER as CASHCONNECT_PROTOCOL_HANDLER } from '@cashconnect-js/nostr';
 
   // Components.
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
@@ -67,10 +68,20 @@
         console.error("Error pairing URI:", error);
       }
     }
-    if(props.dappUriUrlParam?.startsWith('cc:')){
-      const { dappConnectionStoresInitialized } = storeToRefs(store);
-      await waitForInitialized(dappConnectionStoresInitialized);
-      await cashconnectStore?.pair(props.dappUriUrlParam);
+    if(props.dappUriUrlParam?.startsWith(CASHCONNECT_PROTOCOL_HANDLER)){
+      try {
+        const { dappConnectionStoresInitialized } = storeToRefs(store);
+        await waitForInitialized(dappConnectionStoresInitialized);
+        await cashconnectStore?.pair(props.dappUriUrlParam);
+      } catch(error) {
+        const errorMessage = caughtErrorToString(error);
+        console.error(errorMessage);
+        $q.notify({
+          message: errorMessage,
+          icon: 'warning',
+          color: 'negative'
+        });
+      }
     }
     if(props.dappUriUrlParam?.toLowerCase().startsWith('wiz:')){
       const { dappConnectionStoresInitialized } = storeToRefs(store);
@@ -100,8 +111,8 @@
         await walletconnectRef.value?.connectDappUriInput(dappUri);
       }
 
-      // Otherwise, if the URI begins with "cc:" (cashconnect)...
-      else if (dappUri.startsWith('cc:')) {
+      // Otherwise, if the URI begins with "bch-cc-v1:" (cashconnect v1)...
+      else if (dappUri.startsWith(CASHCONNECT_PROTOCOL_HANDLER)) {
         await cashconnectRef.value?.connectDappUriInput(dappUri);
       }
 
@@ -135,7 +146,7 @@
   }
   const qrFilter = (content: string) => {
     const matchWalletConnect = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
-    const matchCashConnect = String(content).match(/^cc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
+    const matchCashConnect = content.startsWith(CASHCONNECT_PROTOCOL_HANDLER);
     // WizardConnect QR codes use an uppercased, percent-escaped alphanumeric-mode form
     // (WIZ://%3FP%3D...), so only the scheme is matched here; the full URI is validated on pairing
     const matchWizardConnect = String(content).match(/^wiz:\/\//i);

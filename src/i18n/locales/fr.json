@@ -83,7 +83,9 @@
       "description": "Un portefeuille Bitcoin Cash facile à utiliser, axé sur les CashTokens et les dApps BCH.",
       "featureSendReceive": "Envoyez et recevez des BCH et CashTokens",
       "featureWalletConnect": "Connectez-vous aux dApps via WalletConnect, CashConnect ou WizardConnect",
-      "featureOpenSource": "Open source et non-custodial"
+      "featureOpenSource": "Open source et non-custodial",
+      "aboutPrompt": "Nouveau sur Cashonize ? {link}",
+      "aboutLinkText": "En savoir plus sur le portefeuille →"
     },
     "create": {
       "title": "Créer un nouveau portefeuille",
@@ -381,15 +383,25 @@
       "label": "Afficher :",
       "all": "Toutes",
       "bchTxs": "Txs BCH",
-      "tokenTxs": "Txs tokens"
+      "tokenTxs": "Txs tokens",
+      "dateRange": "Plage de dates :"
     },
     "showFiatValue": "Afficher la valeur en devise",
-    "hideBalanceColumn": "Masquer la colonne solde",
+    "hideBalanceColumn": "Masquer le solde",
+    "exportCsv": "Exporter en CSV",
+    "exportFailed": "Échec de l'export CSV",
     "columns": {
       "date": "Date",
       "amount": "Montant",
       "balance": "Solde",
       "tokens": "Tokens"
+    },
+    "csv": {
+      "date": "Date (UTC)",
+      "transactionId": "ID de transaction",
+      "amount": "Montant ({unit})",
+      "balance": "Solde ({unit})",
+      "tokenChanges": "Variations de tokens"
     },
     "pending": "en attente",
     "transactionCountPartial": "{count}+ Transactions",
@@ -431,6 +443,16 @@
       "copyTitle": "Copier la phrase de récupération",
       "copyMessage": "Copier votre phrase de récupération dans le presse-papiers n'est pas recommandé pour des raisons de sécurité, mais est autorisé par commodité.\nVous pouvez vider votre presse-papiers ensuite en copiant autre chose.",
       "copiedNotification": "Phrase de récupération copiée dans le presse-papiers"
+    },
+    "privateKey": {
+      "title": "Clé privée WIF",
+      "showButton": "Afficher la WIF",
+      "hideButton": "Masquer la WIF",
+      "copyButton": "Copier la WIF",
+      "copyTitle": "Copier la WIF",
+      "copyMessage": "Copier votre WIF dans le presse-papiers n'est pas recommandé pour des raisons de sécurité, mais autorisé par commodité.\nVous pouvez ensuite vider le presse-papiers en copiant autre chose.",
+      "copiedNotification": "WIF copiée dans le presse-papiers",
+      "hdNotSupported": "Les portefeuilles HD utilisent une WIF distincte pour chaque adresse ; l'export de WIF par adresse n'est pas encore pris en charge."
     },
     "backupStatus": {
       "verified": "Sauvegarde vérifiée",
@@ -729,7 +751,6 @@
       "notStarted": "CashConnect n'est pas démarré.",
       "privateKeyNotFound": "La clé privée est introuvable pour l'adresse : {address}",
       "failedToConvertCashAddr": "Échec de la conversion de CashAddr en Locking Bytecode",
-      "invalidDerivationPath": "Chemin de dérivation invalide pour CashConnect : au moins 4 composants attendus, {length} reçu(s).",
       "failedToDeriveHdNode": "Échec de la dérivation du HDNode à partir de la seed",
       "walletTypeNotSupported": "Type de portefeuille non pris en charge : doit être un portefeuille à adresse unique ou un HDWallet."
     }
@@ -892,7 +913,8 @@
       "bchUnit": "BCH",
       "satUnit": "satoshis",
       "blockExplorer": "Explorateur de blocs :",
-      "qrAnimation": "Animation du code QR :"
+      "qrAnimation": "Animation du code QR :",
+      "tokenAddressQrDefault": "Afficher le code QR de l'adresse de token par défaut"
     },
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",
@@ -937,7 +959,9 @@
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
       "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
       "strictWcSchema": "Validation stricte du schéma WalletConnect",
-      "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dapp pour détecter les payloads non conformes."
+      "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dapp pour détecter les payloads non conformes.",
+      "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
+      "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique."
     },
     "downloadCashonize": "Télécharger Cashonize",
     "madeWith": "Fait avec {heart} par Mathieu G."

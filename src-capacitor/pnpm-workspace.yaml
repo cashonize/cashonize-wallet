@@ -4,6 +4,6 @@
 
 # Migrated from package.json "resolutions".
 overrides:
-  tar: 7.5.16
+  tar: 7.5.21
 
 allowBuilds:

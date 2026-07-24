@@ -83,7 +83,9 @@
       "description": "Ein benutzerfreundliches Bitcoin Cash Wallet mit Fokus auf CashTokens und BCH dApps.",
       "featureSendReceive": "BCH und CashTokens senden & empfangen",
       "featureWalletConnect": "Mit dApps über WalletConnect, CashConnect oder WizardConnect verbinden",
-      "featureOpenSource": "Open-Source und selbstverwaltet"
+      "featureOpenSource": "Open-Source und selbstverwaltet",
+      "aboutPrompt": "Neu bei Cashonize? {link}",
+      "aboutLinkText": "Mehr über die Wallet erfahren →"
     },
     "create": {
       "title": "Neues Wallet erstellen",
@@ -381,15 +383,25 @@
       "label": "Anzeigen:",
       "all": "Alle",
       "bchTxs": "BCH-Txs",
-      "tokenTxs": "Token-Txs"
+      "tokenTxs": "Token-Txs",
+      "dateRange": "Zeitraum:"
     },
     "showFiatValue": "Fiat-Wert anzeigen",
-    "hideBalanceColumn": "Guthaben-Spalte ausblenden",
+    "hideBalanceColumn": "Guthaben ausblenden",
+    "exportCsv": "CSV exportieren",
+    "exportFailed": "CSV-Export fehlgeschlagen",
     "columns": {
       "date": "Datum",
       "amount": "Betrag",
       "balance": "Guthaben",
       "tokens": "Tokens"
+    },
+    "csv": {
+      "date": "Datum (UTC)",
+      "transactionId": "Transaktions-ID",
+      "amount": "Betrag ({unit})",
+      "balance": "Guthaben ({unit})",
+      "tokenChanges": "Token-Änderungen"
     },
     "pending": "ausstehend",
     "transactionCountPartial": "{count}+ Transaktionen",
@@ -431,6 +443,16 @@
       "copyTitle": "Seed Phrase kopieren",
       "copyMessage": "Deine seed phrase in die Zwischenablage zu kopieren wird aus Sicherheitsgründen nicht empfohlen, ist aber der Einfachheit halber erlaubt.\nDu kannst deine Zwischenablage danach leeren, indem du etwas anderes kopierst.",
       "copiedNotification": "Seed phrase in die Zwischenablage kopiert"
+    },
+    "privateKey": {
+      "title": "WIF-Schlüssel",
+      "showButton": "WIF anzeigen",
+      "hideButton": "WIF verbergen",
+      "copyButton": "WIF kopieren",
+      "copyTitle": "WIF kopieren",
+      "copyMessage": "Das Kopieren deiner WIF in die Zwischenablage wird aus Sicherheitsgründen nicht empfohlen, ist aber der Bequemlichkeit halber erlaubt.\nDu kannst die Zwischenablage anschließend leeren, indem du etwas anderes kopierst.",
+      "copiedNotification": "WIF in die Zwischenablage kopiert",
+      "hdNotSupported": "HD-Wallets verwenden für jede Adresse eine eigene WIF; der WIF-Export pro Adresse wird noch nicht unterstützt."
     },
     "backupStatus": {
       "verified": "Backup verifiziert",
@@ -729,7 +751,6 @@
       "notStarted": "CashConnect ist nicht gestartet.",
       "privateKeyNotFound": "Privater Schlüssel konnte für Adresse nicht gefunden werden: {address}",
       "failedToConvertCashAddr": "CashAddr konnte nicht in Locking Bytecode umgewandelt werden",
-      "invalidDerivationPath": "Ungültiger Ableitungspfad für CashConnect: mindestens 4 Komponenten erwartet, {length} erhalten.",
       "failedToDeriveHdNode": "HDNode konnte nicht von seed abgeleitet werden",
       "walletTypeNotSupported": "WalletType nicht unterstützt: Muss ein Single Address Wallet oder HDWallet sein."
     }
@@ -892,7 +913,8 @@
       "bchUnit": "BCH",
       "satUnit": "Satoshis",
       "blockExplorer": "Block-Explorer:",
-      "qrAnimation": "QR-Code Animation:"
+      "qrAnimation": "QR-Code Animation:",
+      "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen"
     },
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",
@@ -937,7 +959,9 @@
       "disableTokenIcons": "Token-Bilder deaktivieren",
       "disableTokenIconsHint": "Verhindert das Laden von Token-Bildern von externen Servern",
       "strictWcSchema": "Strikte WalletConnect-Schema-Validierung",
-      "strictWcSchemaHint": "Erzwingt die WC2-BCH-Spezifikation exakt. Aktiviere diese Option bei der Dapp-Entwicklung, um nicht konforme Payloads sichtbar zu machen."
+      "strictWcSchemaHint": "Erzwingt die WC2-BCH-Spezifikation exakt. Aktiviere diese Option bei der Dapp-Entwicklung, um nicht konforme Payloads sichtbar zu machen.",
+      "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
+      "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu."
     },
     "downloadCashonize": "Cashonize herunterladen",
     "madeWith": "Erstellt mit {heart} von Mathieu G."

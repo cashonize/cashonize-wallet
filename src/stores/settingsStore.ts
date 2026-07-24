@@ -37,6 +37,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const showCauldronFTValue = ref(true);
   const qrScan = ref(true);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
+  const tokenAddressQrDefault = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false); // consider changing default to true
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
@@ -45,6 +46,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const authchains = ref(false);
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
+  const showPrivateKeyWif = ref(false);
   // history settings
   const showFiatValueHistory = ref(true);
   const hideBalanceColumn = ref(false);
@@ -125,6 +127,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readQrAnimation = localStorage.getItem("qrAnimation");
   if(readQrAnimation) qrAnimation.value = readQrAnimation as QRCodeAnimationName | 'None';
 
+  const readTokenAddressQrDefault = localStorage.getItem("tokenAddressQrDefault");
+  if(readTokenAddressQrDefault) tokenAddressQrDefault.value = readTokenAddressQrDefault == "true";
+
   const readDarkMode = localStorage.getItem("darkMode");
   if(readDarkMode == "true"){
     document.body.classList.add("dark");
@@ -204,6 +209,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readStrictWcSchema = localStorage.getItem("strictWcSchema");
   if(readStrictWcSchema) strictWcSchema.value = readStrictWcSchema === "true";
+
+  const readShowPrivateKeyWif = localStorage.getItem("showPrivateKeyWif");
+  if(readShowPrivateKeyWif) showPrivateKeyWif.value = readShowPrivateKeyWif === "true";
 
   // --- Exchange rate provider configuration ---
 
@@ -423,6 +431,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     showCauldronFTValue,
     qrScan,
     qrAnimation,
+    tokenAddressQrDefault,
     hasPlayedAnimation,
     featuredTokens,
     hiddenTokens,
@@ -440,6 +449,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     mintNfts,
     authchains,
     strictWcSchema,
+    showPrivateKeyWif,
     dateFormat,
     confirmBeforeSending,
     disableTokenIcons,

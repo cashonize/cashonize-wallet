@@ -29,7 +29,7 @@
                 <data android:scheme="bitcoincash" />
                 <data android:scheme="bch-wif" />
                 <data android:scheme="wc" />
-                <data android:scheme="cc" />
+                <data android:scheme="bch-cc-v1" />
                 <data android:scheme="wiz" />
             </intent-filter>
 

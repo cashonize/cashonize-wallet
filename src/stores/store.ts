@@ -641,7 +641,9 @@ export const useStore = defineStore('store', () => {
       await cashconnectWallet.start();
       isCcInitialized.value = true;
 
-      // Setup network change callback to disconnect all sessions.
+      // Setup network change callback to stop the CashConnect service.
+      // Sessions are not un-paired: they persist in localStorage (namespaced per wallet
+      // identity key) and are restored by the next start() for the same wallet.
       // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
       networkChangeCallbacks.push(async () => {
         await cashconnectWallet.stop();
@@ -649,13 +651,10 @@ export const useStore = defineStore('store', () => {
 
       // Monitor the wallet for balance changes and notify CashConnect to refresh wallet state.
       cancelWatchBchBalanceCashConnect = await wallet.value.watchBalance(() => {
-        // Convert the network into WC format,
-        const chainIdFormatted = wallet.value.network === NetworkType.Mainnet ? 'bch:bitcoincash' : 'bch:bchtest';
-
         // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
         // fire-and-forget promise
         if(cashconnectWallet.cashConnectWallet) {
-          void cashconnectWallet.cashConnectWallet.walletStateHasChanged(chainIdFormatted);
+          void cashconnectWallet.cashConnectWallet.notifyBalancesChanged();
         }
       });
     } catch (error) {

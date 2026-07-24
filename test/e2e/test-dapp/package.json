@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@bitauth/libauth": "3.1.0-next.8",
+    "@cashconnect-js/core": "1.0.0-alpha.31",
+    "@cashconnect-js/nostr": "1.0.0-alpha.31",
     "@walletconnect/sign-client": "2.23.9",
     "@wizardconnect/dapp": "0.2.2",
     "vue": "^3.5.35"

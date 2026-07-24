@@ -83,7 +83,9 @@
       "description": "An easy-to-use Bitcoin Cash wallet with a focus on CashTokens and BCH dApps.",
       "featureSendReceive": "Send & receive BCH and CashTokens",
       "featureWalletConnect": "Connect to dApps via WalletConnect, CashConnect or WizardConnect",
-      "featureOpenSource": "Open-source and non-custodial"
+      "featureOpenSource": "Open-source and non-custodial",
+      "aboutPrompt": "New to Cashonize? {link}",
+      "aboutLinkText": "Learn more about the wallet →"
     },
     "create": {
       "title": "Create new wallet",
@@ -381,15 +383,25 @@
       "label": "Show:",
       "all": "All",
       "bchTxs": "BCH txs",
-      "tokenTxs": "Token txs"
+      "tokenTxs": "Token txs",
+      "dateRange": "Filter range:"
     },
     "showFiatValue": "Show fiat value",
-    "hideBalanceColumn": "Hide balance column",
+    "hideBalanceColumn": "Hide balance",
+    "exportCsv": "Export CSV",
+    "exportFailed": "CSV export failed",
     "columns": {
       "date": "Date",
       "amount": "Amount",
       "balance": "Balance",
       "tokens": "Tokens"
+    },
+    "csv": {
+      "date": "Date (UTC)",
+      "transactionId": "Transaction Id",
+      "amount": "Amount ({unit})",
+      "balance": "Balance ({unit})",
+      "tokenChanges": "Token Changes"
     },
     "pending": "pending",
     "transactionCountPartial": "{count}+ Transactions",
@@ -431,6 +443,16 @@
       "copyTitle": "Copy Seed Phrase",
       "copyMessage": "Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.\nYou can clear your clipboard afterwards by copying something else.",
       "copiedNotification": "Seed phrase copied to clipboard"
+    },
+    "privateKey": {
+      "title": "WIF private key",
+      "showButton": "Show WIF",
+      "hideButton": "Hide WIF",
+      "copyButton": "Copy WIF",
+      "copyTitle": "Copy WIF",
+      "copyMessage": "Copying your WIF to the clipboard is not recommended for security reasons, but allowed for convenience.\nYou can clear your clipboard afterwards by copying something else.",
+      "copiedNotification": "WIF copied to clipboard",
+      "hdNotSupported": "HD wallets use a separate WIF for each address; per-address WIF export isn't supported yet."
     },
     "backupStatus": {
       "verified": "Backup verified",
@@ -729,7 +751,6 @@
       "notStarted": "CashConnect is not started.",
       "privateKeyNotFound": "Private key could not be found for address: {address}",
       "failedToConvertCashAddr": "Failed to convert CashAddr to Locking Bytecode",
-      "invalidDerivationPath": "Invalid derivation path for CashConnect: expected at least 4 components, got {length}.",
       "failedToDeriveHdNode": "Failed to derive HDNode from seed",
       "walletTypeNotSupported": "WalletType not supported: Must be a Single Address Wallet or HDWallet."
     }
@@ -892,7 +913,8 @@
       "bchUnit": "BCH",
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
-      "qrAnimation": "QR code animation:"
+      "qrAnimation": "QR code animation:",
+      "tokenAddressQrDefault": "Show token address QR code by default"
     },
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",
@@ -937,7 +959,9 @@
       "disableTokenIcons": "Disable token image loading",
       "disableTokenIconsHint": "Prevents loading token images from external servers",
       "strictWcSchema": "Strict WalletConnect schema validation",
-      "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dapp to surface non-compliant payloads."
+      "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dapp to surface non-compliant payloads.",
+      "showPrivateKeyWif": "Show WIF private key on backup page",
+      "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets."
     },
     "downloadCashonize": "Download Cashonize",
     "madeWith": "Made with {heart} by Mathieu G."

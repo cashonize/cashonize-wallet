@@ -83,7 +83,9 @@
       "description": "Uma carteira Bitcoin Cash fácil de usar, focada em CashTokens e dApps BCH.",
       "featureSendReceive": "Envie e receba BCH e CashTokens",
       "featureWalletConnect": "Conecte-se a dApps via WalletConnect, CashConnect ou WizardConnect",
-      "featureOpenSource": "Código aberto e sem custódia"
+      "featureOpenSource": "Código aberto e sem custódia",
+      "aboutPrompt": "Novo no Cashonize? {link}",
+      "aboutLinkText": "Saiba mais sobre a carteira →"
     },
     "create": {
       "title": "Criar nova carteira",
@@ -381,15 +383,25 @@
       "label": "Exibir:",
       "all": "Todas",
       "bchTxs": "Txs de BCH",
-      "tokenTxs": "Txs de tokens"
+      "tokenTxs": "Txs de tokens",
+      "dateRange": "Intervalo de datas:"
     },
     "showFiatValue": "Mostrar valor em fiat",
-    "hideBalanceColumn": "Ocultar coluna de saldo",
+    "hideBalanceColumn": "Ocultar saldo",
+    "exportCsv": "Exportar CSV",
+    "exportFailed": "Falha ao exportar CSV",
     "columns": {
       "date": "Data",
       "amount": "Valor",
       "balance": "Saldo",
       "tokens": "Tokens"
+    },
+    "csv": {
+      "date": "Data (UTC)",
+      "transactionId": "ID da transação",
+      "amount": "Valor ({unit})",
+      "balance": "Saldo ({unit})",
+      "tokenChanges": "Alterações de tokens"
     },
     "pending": "pendente",
     "transactionCountPartial": "{count}+ Transações",
@@ -431,6 +443,16 @@
       "copyTitle": "Copiar Seed Phrase",
       "copyMessage": "Copiar sua seed phrase para a área de transferência não é recomendado por motivos de segurança, mas é permitido por conveniência.\nVocê pode limpar a área de transferência depois copiando outra coisa.",
       "copiedNotification": "Seed phrase copiada para a área de transferência"
+    },
+    "privateKey": {
+      "title": "Chave privada WIF",
+      "showButton": "Mostrar WIF",
+      "hideButton": "Ocultar WIF",
+      "copyButton": "Copiar WIF",
+      "copyTitle": "Copiar WIF",
+      "copyMessage": "Copiar a sua WIF para a área de transferência não é recomendado por motivos de segurança, mas é permitido por conveniência.\nPode limpar a área de transferência depois copiando outra coisa.",
+      "copiedNotification": "WIF copiada para a área de transferência",
+      "hdNotSupported": "As carteiras HD usam uma WIF separada para cada endereço; a exportação de WIF por endereço ainda não é suportada."
     },
     "backupStatus": {
       "verified": "Backup verificado",
@@ -729,7 +751,6 @@
       "notStarted": "CashConnect não foi iniciado.",
       "privateKeyNotFound": "Chave privada não encontrada para o endereço: {address}",
       "failedToConvertCashAddr": "Falha ao converter CashAddr para Locking Bytecode",
-      "invalidDerivationPath": "Derivation path inválido para CashConnect: esperado pelo menos 4 componentes, obtido {length}.",
       "failedToDeriveHdNode": "Falha ao derivar HDNode da seed",
       "walletTypeNotSupported": "Tipo de carteira não suportado: deve ser uma Carteira de Endereço Único ou Carteira HD."
     }
@@ -892,7 +913,8 @@
       "bchUnit": "BCH",
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
-      "qrAnimation": "Animação do QR code:"
+      "qrAnimation": "Animação do QR code:",
+      "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão"
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
@@ -937,7 +959,9 @@
       "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
       "disableTokenIconsHint": "Impede o carregamento de imagens de tokens de servidores externos",
       "strictWcSchema": "Validação estrita do schema WalletConnect",
-      "strictWcSchemaHint": "Aplica a especificação WC2-BCH exatamente. Ative ao desenvolver um dapp para detectar payloads não conformes."
+      "strictWcSchemaHint": "Aplica a especificação WC2-BCH exatamente. Ative ao desenvolver um dapp para detectar payloads não conformes.",
+      "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
+      "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único."
     },
     "downloadCashonize": "Baixar Cashonize",
     "madeWith": "Feito com {heart} por Mathieu G."

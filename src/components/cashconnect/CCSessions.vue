@@ -42,14 +42,14 @@
         <!-- Iterate over active sessions -->
         <template v-for="(session, topic) of cashconnectStore.sessions" :key="topic">
           <div class="cc-session-item">
-            <div class="cc-session-item-app-icon"><img :src="session.peer.metadata.icons[0] ?? ''" /></div>
+            <div class="cc-session-item-app-icon"><img :src="session.dapp.icon ?? ''" /></div>
             <div class="cc-session-item-details-container">
-              <div>{{ session.peer.metadata.name }}</div>
+              <div>{{ session.dapp.name }}</div>
               <div>
-                <a v-if="sanitizeUrl(session.peer.metadata.url)" :href="sanitizeUrl(session.peer.metadata.url)" target="_blank">{{ session.peer.metadata.url }}</a>
+                <a v-if="sanitizeUrl(session.dapp.url)" :href="sanitizeUrl(session.dapp.url)" target="_blank">{{ session.dapp.url }}</a>
                 <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
               </div>
-              <div>{{ session.peer.metadata.description }}</div>
+              <div>{{ session.dapp.description }}</div>
             </div>
             <div class="cc-session-item-action-container">
               <div class="cc-session-item-action-icon" @click="cashconnectStore.disconnectSession(topic)">

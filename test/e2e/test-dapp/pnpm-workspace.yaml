@@ -7,3 +7,7 @@ overrides:
 
 allowBuilds:
   esbuild: true
+
+minimumReleaseAgeExclude:
+  - '@cashconnect-js/core@1.0.0-alpha.31'
+  - '@cashconnect-js/nostr@1.0.0-alpha.31'
