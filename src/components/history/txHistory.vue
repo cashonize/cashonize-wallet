@@ -304,9 +304,8 @@
   font-family: inherit;
 }
 
-/* let the label wrap to its own line, and the two date inputs shrink to share the
-   remaining width, so the row never overflows on narrow screens (date inputs have an
-   intrinsic min-width that ignores flex-shrink unless min-width is explicitly zeroed) */
+/* let the label and the date inputs wrap onto new lines on narrow screens; the inputs
+   must never shrink below a full date's width or Chrome clips the value and placeholder */
 .option-item.date-range {
   flex-wrap: wrap;
 }
@@ -314,14 +313,15 @@
 .date-inputs {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   flex: 1 1 auto;
   min-width: 0;
 }
 
 .date-inputs input[type="date"] {
-  flex: 1 1 90px;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 125px;
 }
 
 .option-item button {
