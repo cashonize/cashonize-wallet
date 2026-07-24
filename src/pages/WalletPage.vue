@@ -14,6 +14,7 @@
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
   import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
+  import { PROTOCOL_HANDLER as CASHCONNECT_PROTOCOL_HANDLER } from '@cashconnect-js/nostr'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
@@ -109,7 +110,7 @@
   // If no wallet exists, displayView stays undefined and onboarding is shown
   
   // check if session request in URL params passed through props
-  if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
+  if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith(CASHCONNECT_PROTOCOL_HANDLER)){
     if(walletExists){
       dappUriUrlParam.value = props.uri
       // Promise will wait for state indicating whether WC and CC are initialized
@@ -155,7 +156,7 @@
     // check live wallet state, not the setup-time walletExists: a wallet may have been created via onboarding since
     if(!store._wallet) return
     // check if session request in URL params passed through props
-    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith('cc:')){
+    if(props?.uri?.startsWith('wc:') || props?.uri?.startsWith(CASHCONNECT_PROTOCOL_HANDLER)){
       dappUriUrlParam.value = props.uri
       store.changeView(4);
     }
