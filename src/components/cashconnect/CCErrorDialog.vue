@@ -13,8 +13,6 @@ defineEmits([
 ])
 
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
-
-
 </script>
 
 <template>

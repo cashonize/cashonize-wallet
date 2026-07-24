@@ -77,7 +77,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
       },
     });
 
-    // Start CashConnect (WC Core) service.
+    // Start CashConnect service.
     await cashConnectWallet.value.start();
   }
   async function stop() {

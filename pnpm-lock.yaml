@@ -29,11 +29,11 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2
       '@cashconnect-js/core':
-        specifier: 1.0.0-alpha.29
-        version: 1.0.0-alpha.29(typescript@6.0.3)
+        specifier: 1.0.0-alpha.31
+        version: 1.0.0-alpha.31
       '@cashconnect-js/nostr':
-        specifier: 1.0.0-alpha.29
-        version: 1.0.0-alpha.29(typescript@6.0.3)
+        specifier: 1.0.0-alpha.31
+        version: 1.0.0-alpha.31
       '@mainnet-cash/indexeddb-storage':
         specifier: 3.1.7
         version: 3.1.7
@@ -178,11 +178,11 @@ packages:
   '@capacitor/core@8.4.1':
     resolution: {integrity: sha512-xqhOGLbTAYeOWK+IDUNSjQJAPapQjRHrIcgk9PYp52or9zFTaaMko31uNi16N6W+CRJ8VrRram6fOYILkBG2Hg==}
 
-  '@cashconnect-js/core@1.0.0-alpha.29':
-    resolution: {integrity: sha512-qdR07iaQnLOEvtdVGXFdoE7yNl508cKQFfKDzIXh+Ru87UxyuGl6YnsgtQ/1YWeGhuoJhqc54oSGoOQ9SYgMsQ==}
+  '@cashconnect-js/core@1.0.0-alpha.31':
+    resolution: {integrity: sha512-pD0txUK0CAlec4K6KrT/YGgF+k6nEla3fFgWK/DD515yofIqZ0MD2OcSjhKLplCyXyxJ/cp61pVGHUz29f7Ggg==}
 
-  '@cashconnect-js/nostr@1.0.0-alpha.29':
-    resolution: {integrity: sha512-b1x73kqFnx9ilrUmEq504gFDdvRbyt0HrbrCuyVabnqIH1GTsAiK5tH7a+WEQf5W/Iaj1SmfEpfeTYmf43MxFQ==}
+  '@cashconnect-js/nostr@1.0.0-alpha.31':
+    resolution: {integrity: sha512-/BebQtgfXrWQyhVPF3gvCYq1SCTeKQABEMbvzKeSi0pVdPYvchMjaOCAM2B0vRlnDHMbmXoc5z47GBXHvPO22g==}
 
   '@clack/core@1.4.3':
     resolution: {integrity: sha512-/kr3UWNtdJfxZtPgDqUOmG2pvwlmcLGheex5yiZKdwbzZJxhV+HMNR9QNmyY5cGwTNV6LrR7Jtp+KjhUAP1qBQ==}
@@ -2703,63 +2703,16 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@cashconnect-js/core@1.0.0-alpha.29(typescript@6.0.3)':
+  '@cashconnect-js/core@1.0.0-alpha.31':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
-      '@reown/walletkit': 1.5.6(typescript@6.0.3)(zod@4.4.3)
       zod: 4.4.3
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@react-native-async-storage/async-storage'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - bufferutil
-      - db0
-      - ioredis
-      - typescript
-      - uploadthing
-      - utf-8-validate
 
-  '@cashconnect-js/nostr@1.0.0-alpha.29(typescript@6.0.3)':
+  '@cashconnect-js/nostr@1.0.0-alpha.31':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
-      '@cashconnect-js/core': 1.0.0-alpha.29(typescript@6.0.3)
+      '@cashconnect-js/core': 1.0.0-alpha.31
       zod: 4.4.3
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@react-native-async-storage/async-storage'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - bufferutil
-      - db0
-      - ioredis
-      - typescript
-      - uploadthing
-      - utf-8-validate
 
   '@clack/core@1.4.3':
     dependencies:
