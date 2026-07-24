@@ -1,6 +1,6 @@
 {
   "name": "cashonize-wallet",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "Cashonize is a Bitcoin Cash (BCH) Wallet which supports CashTokens, WalletConnect, CashConnect and WizardConnect.",
   "productName": "Cashonize",
   "author": "Mathieu Geukens",
