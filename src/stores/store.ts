@@ -8,7 +8,6 @@ import {
   Connection,
   DefaultProvider,
   convert,
-  ExchangeRate,
   type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
@@ -769,7 +768,7 @@ export const useStore = defineStore('store', () => {
   // mainnet-js has its own ~4 min TTL cache but we store the rate centrally for reactive access
   async function fetchExchangeRate() {
     try {
-      exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
+      exchangeRate.value = await convert(1, 'bch', settingsStore.currency);
     } catch (error) {
       console.error("Failed to fetch exchange rate:", error);
     }

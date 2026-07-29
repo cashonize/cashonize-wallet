@@ -4,8 +4,11 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
-  import { HDWallet, type TestNetHDWallet, GAP_SIZE } from 'mainnet-js';
+  import { HDWallet, type TestNetHDWallet } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
+
+  // address gap limit used by mainnet-js HD address discovery (not exported by the library)
+  const GAP_SIZE = 20;
 
   const store = useStore()
   const settingsStore = useSettingsStore()

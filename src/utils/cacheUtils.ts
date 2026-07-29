@@ -1,4 +1,4 @@
-import { binToHex, sha256, utf8ToBin } from 'mainnet-js';
+import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth';
 
 const CACHE_TTL_DAYS = 7;
 const CACHE_TTL_MS = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
