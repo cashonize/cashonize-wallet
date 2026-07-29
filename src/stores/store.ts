@@ -5,12 +5,14 @@ import {
   TestNetHDWallet,
   BaseWallet,
   Config,
-  Connection,
   DefaultProvider,
   disconnectProviders,
   convert,
+  createProvider,
+  getGlobalProvider,
+  removeGlobalProvider,
+  setGlobalProvider,
   type Utxo,
-  type ElectrumNetworkProvider,
   type CancelFn,
   type SendRequestOptionsI,
   type SendRequestType,
@@ -110,9 +112,11 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 // network provider from these defaults BEFORE the app assigns one via setWallet. Without this, mainnet-js
 // falls back to its hardcoded default server (blackie.c3-soft.com), leaking the wallet's address
 // subscriptions to a server the user never selected. Kept in sync with settings via a watch (see below).
+// Each network entry is a single URL string in rpckit parse notation (a plain URL here;
+// fallback(url1,url2) notation would enable multi-server failover).
 function setDefaultElectrumServers() {
-  DefaultProvider.servers.mainnet = [electrumWssUrl(settingsStore.electrumServerMainnet)];
-  DefaultProvider.servers.testnet = [electrumWssUrl(settingsStore.electrumServerChipnet)];
+  DefaultProvider.servers.mainnet = electrumWssUrl(settingsStore.electrumServerMainnet);
+  DefaultProvider.servers.testnet = electrumWssUrl(settingsStore.electrumServerChipnet);
 }
 setDefaultElectrumServers();
 
@@ -353,19 +357,11 @@ export const useStore = defineStore('store', () => {
   const canGoBack = computed(() => viewStack.length > 1);
 
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
-  // It adds the configured electrum network provider on the wallet depending on the network.
+  // The wallet already carries the right network provider: construction takes the per-network
+  // global provider, which is built from the user-selected servers (see setDefaultElectrumServers)
+  // and replaced on server change (see changeElectrumServer).
   // Call initializeWallet() afterwards to actually connect to the electrum client and to fetch initial data.
   function setWallet(newWallet: WalletType){
-    if(newWallet.network == NetworkType.Mainnet){
-      const connectionMainnet = new Connection("mainnet", electrumWssUrl(settingsStore.electrumServerMainnet))
-      // @ts-ignore currently no other way to set a specific provider
-      newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider
-    }
-    if(newWallet.network == NetworkType.Testnet){
-      const connectionChipnet = new Connection("testnet", electrumWssUrl(settingsStore.electrumServerChipnet))
-      // @ts-ignore currently no other way to set a specific provider
-      newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider
-    }
     _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
     const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
@@ -756,6 +752,37 @@ export const useStore = defineStore('store', () => {
 
     // cancel active listeners
     await cancelWalletSubscriptions();
+  }
+
+  // Changing electrum servers resets wallet state and triggers a full wallet reinitialization.
+  // Replaces the cached per-network global provider (used for future wallet constructions) and
+  // swaps the new provider onto the active wallet. The settings UI only offers the selector for
+  // the active network, so targetNetwork always matches the active wallet's network.
+  async function changeElectrumServer(targetNetwork: 'mainnet' | 'chipnet', server: string){
+    if(!_wallet.value) throw new Error('No wallet set in global store');
+    changeView(1);
+    // Only reset electrum state, keep WC/CC sessions alive
+    await resetWalletState({ resetDappConnections: false });
+    if(targetNetwork == 'mainnet'){
+      settingsStore.electrumServerMainnet = server;
+      localStorage.setItem("electrum-mainnet", server);
+    } else {
+      settingsStore.electrumServerChipnet = server;
+      localStorage.setItem("electrum-chipnet", server);
+    }
+    const providerNetwork = targetNetwork == 'mainnet' ? 'mainnet' : 'testnet';
+    // Disconnect the replaced provider (after the reset above cancelled its subscriptions)
+    // so the old socket doesn't leak
+    const replacedProvider = getGlobalProvider(providerNetwork);
+    removeGlobalProvider(providerNetwork);
+    if(replacedProvider) await replacedProvider.disconnect().catch(() => {});
+    const newProvider = await createProvider(providerNetwork, electrumWssUrl(server));
+    setGlobalProvider(providerNetwork, newProvider);
+    // @ts-expect-error provider is a readonly property; mainnet-js has no api to swap the
+    // provider on an existing wallet, so assign it directly
+    _wallet.value.provider = newProvider;
+    // fire-and-forget promise does not wait on full wallet initialization
+    void initializeWallet();
   }
 
   // Avoid WalletClass.named() here: it creates a fresh random wallet if the name is missing.
@@ -1481,6 +1508,7 @@ export const useStore = defineStore('store', () => {
     setWallet,
     initializeWallet,
     resetWalletState,
+    changeElectrumServer,
     updateWalletUtxos,
     updateWalletHistory,
     changeNetwork,
