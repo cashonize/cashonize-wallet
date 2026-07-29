@@ -38,7 +38,7 @@ overrides:
   '@reown/walletkit': 1.5.6
   '@walletconnect/core': 2.23.10
   '@wizardconnect/core': 0.2.4
-  mainnet-js: 3.1.7
+  mainnet-js: 4.0.0-next.13
 
   # Dependabot security bumps for indirect dependencies.
   postcss: 8.5.25

@@ -10,7 +10,7 @@ overrides:
   '@reown/walletkit': 1.5.6
   '@walletconnect/core': 2.23.10
   '@wizardconnect/core': 0.2.4
-  mainnet-js: 3.1.7
+  mainnet-js: 4.0.0-next.13
   postcss: 8.5.25
   tar: 7.5.21
   anymatch>picomatch: 2.3.2
@@ -37,8 +37,8 @@ importers:
         specifier: 1.0.0-alpha.31
         version: 1.0.0-alpha.31
       '@mainnet-cash/indexeddb-storage':
-        specifier: 3.1.7
-        version: 3.1.7
+        specifier: 4.0.0-next.13
+        version: 4.0.0-next.13(ws@8.21.0)
       '@noble/ciphers':
         specifier: 2.3.0
         version: 2.3.0
@@ -64,8 +64,8 @@ importers:
         specifier: 0.2.2
         version: 0.2.2(patch_hash=dbd94ee240729f29e1e5ed7279ece1d070c96710019a92ef3431aca531dba895)(typescript@6.0.3)
       mainnet-js:
-        specifier: 3.1.7
-        version: 3.1.7
+        specifier: 4.0.0-next.13
+        version: 4.0.0-next.13(ws@8.21.0)
       pinia:
         specifier: ^4.0.2
         version: 4.0.2(@vue/devtools-api@7.7.10)(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3))
@@ -226,15 +226,6 @@ packages:
     resolution: {integrity: sha512-y7/yvZ2TPAnR9+jnc00klvNNLkJiXFFrQA/hlLCcxA9a2A4zQIOimyFQ9XfwYKiGD1fb5GY8vbKIIgO8d5Tb2A==}
     engines: {node: '>= 20.12.0'}
 
-  '@electrum-cash/debug-logs@1.0.0':
-    resolution: {integrity: sha512-GU/CvRR9lZ0d8gy9CXGW7f//OHCIydBavv9q+JcxjGj8Xr7HwlGqHx+Wzhx9y3YmJrXfExpgClcd++gTjdEmzA==}
-
-  '@electrum-cash/network@4.2.2':
-    resolution: {integrity: sha512-v2Wwt2o0VBBALPArx2dJEDvSqewKjiTW5KAd+jEXxxgdSxFygjJIrFcXryKOCv2CDbpE5+lXAogPAjx6FqW/nw==}
-
-  '@electrum-cash/web-socket@1.2.3':
-    resolution: {integrity: sha512-sFWujTt98mvsMvE6gWjG44evkF3PcZhG1JffkkEUAVan+c9X51wkiWr3hkjPeIW0WfNpMTrFkvpGqVYmRj1RCA==}
-
   '@eslint-community/eslint-utils@4.10.1':
     resolution: {integrity: sha512-cuadcxVFE8sDK6iWJbs8Sn0av2Nrh2QSGQhVlBW9AaAHqHwjWsZHT8LJ4hFGPh7ASBV2deFdM7H/DPjulmh8rg==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -332,13 +323,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@mainnet-cash/indexeddb-storage@3.1.7':
-    resolution: {integrity: sha512-VUKtH9N1uUndNJOT+vA86K9B4j5OFvqv82s36lZSLHP2UpGh+sAAbQYw7YHiFNDuWb4arJAzX9N1sCZwOySQ2w==}
-
-  '@monsterbitar/isomorphic-ws@5.3.1':
-    resolution: {integrity: sha512-BWfWUffbg3uO4K6Cyokg9ff43lPaXAOZcCnNe1lcjCjUMDVrRAb5qEHG5qeJp3ud2SPYbORaNsls5as6SR3oig==}
-    peerDependencies:
-      ws: '*'
+  '@mainnet-cash/indexeddb-storage@4.0.0-next.13':
+    resolution: {integrity: sha512-u/OYGz+m11UW9I97Z/OYOb6TSM4x/RdqCTuY9OsL4mNbJSwrVXYjwkr3yb8E2ojG2EfpNbbxToqQBsOu+n/lAA==}
 
   '@msgpack/msgpack@3.1.3':
     resolution: {integrity: sha512-47XIizs9XZXvuJgoaJUIE2lFoID8ugvc0jzSHP+Ptfk8nTbnR8g788wv48N03Kx0UkAv559HWRQ3yzOgzlRNUA==}
@@ -693,6 +679,15 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
+  '@rpckit/core@2.2.0':
+    resolution: {integrity: sha512-CvPzjH0dG26zIldubGv9omRaibf9qLNadDRcxQthLlhUmTgKmI5eyKrGou52RN1/tBKCd4Ybwz2l5U5WQwb4aA==}
+
+  '@rpckit/fallback@2.2.0':
+    resolution: {integrity: sha512-X878VeShennvdtk8fGbPM0GTyrpDlKJx7YxjmMLz0ZhKXxFbz+hgGEqg3csvUDJOOPSvkZas+H4mJiIvpXYNOQ==}
+
+  '@rpckit/websocket@2.2.0':
+    resolution: {integrity: sha512-Ha+rXyX2NMalmDs3jVaP+5M0rzTGKl4EStDxB7RuxdATRiQwQDmFofbkKwTzYQU/DuiGrvTYMu8VyivwHoAYbQ==}
+
   '@scure/base@1.2.6':
     resolution: {integrity: sha512-g/nm5FgUa//MCj1gV09zTJTaM6KBAHqLN907YVQqf7zC49+DcO4B1so4ZX07Ef10Twr6nuqYEH9GEggFXA4Fmg==}
 
@@ -749,9 +744,6 @@ packages:
 
   '@types/offscreencanvas@2019.7.3':
     resolution: {integrity: sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==}
-
-  '@types/ws@8.18.1':
-    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@typescript-eslint/eslint-plugin@8.62.1':
     resolution: {integrity: sha512-4EQM77WgVNxj7OkL/5b/D/xZsw00G577+UriYTC7JF5opcF3T2AuoeY7ueLaZgSVjSgCS6yOAJB5bRGLPSJUzA==}
@@ -1036,9 +1028,6 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
-  async-mutex@0.5.0:
-    resolution: {integrity: sha512-1A94B18jkJ3DYq284ohPxoXbfTA5HsQ7/Mf4DEhcyLx3Bz27Rh59iScbB6EPiP+B+joue6YCxcMXSbFC1tZKwA==}
-
   atomic-sleep@1.0.0:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
@@ -1214,10 +1203,6 @@ packages:
   dotenv-expand@13.0.0:
     resolution: {integrity: sha512-aBfBS8eYIeXmpHI9ThIlA7/WLq+SLt18iXUZhb52rW89QLKQFoIpPG1bPeewoPZsTyjSSO3T7234FBVUM1V2rA==}
     engines: {node: '>=12'}
-
-  dotenv@10.0.0:
-    resolution: {integrity: sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==}
-    engines: {node: '>=10'}
 
   dotenv@17.4.2:
     resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
@@ -1546,6 +1531,11 @@ packages:
     peerDependencies:
       ws: '*'
 
+  isows@1.0.7:
+    resolution: {integrity: sha512-I1fSfDCZL5P0v33sVqeTDSpcstAg/N+wF5HS033mogOVIp4B+oHC7oOCsA3axAbBSGTJ8QubbNmnIRN/h8U7hg==}
+    peerDependencies:
+      ws: '*'
+
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
@@ -1673,8 +1663,8 @@ packages:
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
-  mainnet-js@3.1.7:
-    resolution: {integrity: sha512-rOBN+qVON7Lhh2jrMwIA26xv23dAFULMR+DT+g9al9GnmNSdsUL2RuN50eWwkUxE2T4YFdTWT30FUKZczl8hRw==}
+  mainnet-js@4.0.0-next.13:
+    resolution: {integrity: sha512-mn5CSau3sSRqCYSr26/xKQO1+dkPWEyr7DXdICu6UDnRbZkHzhzPH0J1tt6nuxd21pNKFEZEOtsi/SpkuxxUKQ==}
 
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
@@ -2710,39 +2700,6 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@electrum-cash/debug-logs@1.0.0':
-    dependencies:
-      debug: 4.4.3
-    transitivePeerDependencies:
-      - supports-color
-
-  '@electrum-cash/network@4.2.2':
-    dependencies:
-      '@electrum-cash/debug-logs': 1.0.0
-      '@electrum-cash/web-socket': 1.2.3
-      async-mutex: 0.5.0
-      debug: 4.4.3
-      eventemitter3: 5.0.4
-      lossless-json: 4.3.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  '@electrum-cash/web-socket@1.2.3':
-    dependencies:
-      '@electrum-cash/debug-logs': 1.0.0
-      '@monsterbitar/isomorphic-ws': 5.3.1(ws@8.21.0)
-      '@types/ws': 8.18.1
-      async-mutex: 0.5.0
-      eventemitter3: 5.0.4
-      lossless-json: 4.3.0
-      ws: 8.21.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
   '@eslint-community/eslint-utils@4.10.1(eslint@10.8.0(jiti@2.7.0))':
     dependencies:
       eslint: 10.8.0(jiti@2.7.0)
@@ -2835,17 +2792,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@mainnet-cash/indexeddb-storage@3.1.7':
+  '@mainnet-cash/indexeddb-storage@4.0.0-next.13(ws@8.21.0)':
     dependencies:
-      mainnet-js: 3.1.7
+      mainnet-js: 4.0.0-next.13(ws@8.21.0)
     transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  '@monsterbitar/isomorphic-ws@5.3.1(ws@8.21.0)':
-    dependencies:
-      ws: 8.21.0
+      - ws
 
   '@msgpack/msgpack@3.1.3': {}
 
@@ -3207,6 +3158,19 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
+  '@rpckit/core@2.2.0': {}
+
+  '@rpckit/fallback@2.2.0':
+    dependencies:
+      '@rpckit/core': 2.2.0
+
+  '@rpckit/websocket@2.2.0(ws@8.21.0)':
+    dependencies:
+      '@rpckit/core': 2.2.0
+      isows: 1.0.7(ws@8.21.0)
+    transitivePeerDependencies:
+      - ws
+
   '@scure/base@1.2.6': {}
 
   '@scure/base@2.0.0': {}
@@ -3268,10 +3232,6 @@ snapshots:
       undici-types: 7.18.2
 
   '@types/offscreencanvas@2019.7.3': {}
-
-  '@types/ws@8.18.1':
-    dependencies:
-      '@types/node': 24.13.3
 
   '@typescript-eslint/eslint-plugin@8.62.1(@typescript-eslint/parser@8.62.1(eslint@10.8.0(jiti@2.7.0))(typescript@6.0.3))(eslint@10.8.0(jiti@2.7.0))(typescript@6.0.3)':
     dependencies:
@@ -3848,10 +3808,6 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
-  async-mutex@0.5.0:
-    dependencies:
-      tslib: 2.8.1
-
   atomic-sleep@1.0.0: {}
 
   autoprefixer@10.5.4(postcss@8.5.25):
@@ -3997,9 +3953,6 @@ snapshots:
   dotenv-expand@13.0.0:
     dependencies:
       dotenv: 17.4.2
-
-  dotenv@10.0.0:
-    optional: true
 
   dotenv@17.4.2: {}
 
@@ -4296,6 +4249,10 @@ snapshots:
     dependencies:
       ws: 8.21.0
 
+  isows@1.0.7(ws@8.21.0):
+    dependencies:
+      ws: 8.21.0
+
   jiti@2.7.0: {}
 
   js-tokens@4.0.0: {}
@@ -4392,16 +4349,14 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  mainnet-js@3.1.7:
+  mainnet-js@4.0.0-next.13(ws@8.21.0):
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
-      '@electrum-cash/network': 4.2.2
-    optionalDependencies:
-      dotenv: 10.0.0
+      '@rpckit/core': 2.2.0
+      '@rpckit/fallback': 2.2.0
+      '@rpckit/websocket': 2.2.0(ws@8.21.0)
     transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
+      - ws
 
   merge2@1.4.1: {}
 
