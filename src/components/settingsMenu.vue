@@ -5,7 +5,7 @@
   import LanguageSelector from './general/LanguageSelector.vue'
   import { computed, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { Connection, type ElectrumNetworkProvider, Config } from "mainnet-js"
+  import { Config } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useWalletconnectStore } from '../stores/walletconnectStore'
@@ -163,42 +163,14 @@
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
   async function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
     if (targetNetwork === "mainnet" && selectedElectrumServer.value === "custom") return;
-    if(!store._wallet) throw new Error('No wallet set in global store');
-    store.changeView(1)
-    // Only reset electrum state, keep WC/CC sessions alive
-    await store.resetWalletState({ resetDappConnections: false })
-    if(targetNetwork == "mainnet"){
-      const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004`)
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-      settingsStore.electrumServerMainnet = selectedElectrumServer.value
-      localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
-    }
-    if(targetNetwork == "chipnet"){
-      const newConnection = new Connection("testnet",`wss://${selectedElectrumServerChipnet.value}:50004`)
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-      settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
-      localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
-    }
-    // fire-and-forget promise does not wait on full wallet initialization
-    void store.initializeWallet();
+    const newServer = targetNetwork === "mainnet" ? selectedElectrumServer.value : selectedElectrumServerChipnet.value;
+    await store.changeElectrumServer(targetNetwork, newServer);
   }
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
   async function saveCustomElectrumServer(){
     const trimmedServer = customElectrumServer.value.trim();
     if (!trimmedServer) return;
-    if(!store._wallet) throw new Error('No wallet set in global store');
-    store.changeView(1)
-    // Only reset electrum state, keep WC/CC sessions alive
-    await store.resetWalletState({ resetDappConnections: false })
-    const newConnection = new Connection("mainnet",`wss://${trimmedServer}:50004`)
-    // @ts-ignore currently no other way to set a specific provider
-    store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-    settingsStore.electrumServerMainnet = trimmedServer;
-    localStorage.setItem("electrum-mainnet", trimmedServer);
-    // fire-and-forget promise does not wait on full wallet initialization
-    void store.initializeWallet();
+    await store.changeElectrumServer("mainnet", trimmedServer);
   }
   function changeIpfsGateway(){
     if (selectedIpfsGateway.value === "custom") return;
