@@ -13,10 +13,10 @@
     "@cashconnect-js/nostr": "1.0.0-alpha.31",
     "@walletconnect/sign-client": "2.23.9",
     "@wizardconnect/dapp": "0.2.2",
-    "vue": "^3.5.35"
+    "vue": "^3.5.40"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "vite": "^8.0.16"
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vite": "^8.1.5"
   }
 }
