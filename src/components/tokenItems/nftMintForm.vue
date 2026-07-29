@@ -114,11 +114,12 @@
         ({ txId } = await store.spend.spendAuthUtxo(props.identityUtxo, outputs, [], mintOptions));
       } else {
         const mintRequests = mints.map(mint => new TokenMintRequest({
+          category: props.category,
           cashaddr: mint.cashaddr,
           nft: { commitment: mint.commitment, capability: mint.capability as NFTCapability },
           value: mint.value,
         }));
-        ({ txId } = await store.spend.tokenMint(props.category, mintRequests));
+        ({ txId } = await store.spend.tokenMint(mintRequests));
       }
       let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
       if (mintAmount == 1) {
