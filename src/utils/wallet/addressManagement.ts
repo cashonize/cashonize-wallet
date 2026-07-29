@@ -4,6 +4,9 @@
 
 export const maxAddressLabelLength = 100;
 
+// address gap limit used by mainnet-js HD address discovery (not exported by the library)
+export const GAP_SIZE = 20;
+
 type Network = 'mainnet' | 'chipnet';
 
 function addressMarksKey(network: Network, walletName: string): string {
