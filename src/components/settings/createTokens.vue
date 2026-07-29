@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue';
-  import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
+  import { OpReturnData } from "mainnet-js"
+  import { sha256, utf8ToBin } from "@bitauth/libauth"
   import { copyToClipboard } from 'src/utils/utils';
   import EmojiItem from '../general/emojiItem.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';

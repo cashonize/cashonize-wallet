@@ -4,13 +4,11 @@ import {
   HDWallet,
   TestNetHDWallet,
   BaseWallet,
-  GAP_SIZE,
   Config,
   Connection,
   DefaultProvider,
   disconnectProviders,
   convert,
-  ExchangeRate,
   type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
@@ -70,7 +68,8 @@ import {
   loadAddressLabels,
   saveAddressLabel,
   removeAddressManagementData,
-  deriveFreshAddressIndex
+  deriveFreshAddressIndex,
+  GAP_SIZE
 } from "src/utils/wallet/addressManagement"
 import {
   loadReservedUtxos,
@@ -1073,7 +1072,7 @@ export const useStore = defineStore('store', () => {
     try {
       const initialization = currentInitialization;
       const currency = settingsStore.currency;
-      const rate = await ExchangeRate.get(currency, true);
+      const rate = await convert(1, 'bch', currency);
       // discard a rate that no longer belongs: the state may have been reset, or the user may
       // have switched currency, which starts a second fetch that can resolve before this one
       if (initialization !== currentInitialization || currency !== settingsStore.currency) return;
@@ -1396,14 +1395,13 @@ export const useStore = defineStore('store', () => {
     // tokenMint and tokenBurn discard an ensureUtxos passed here, using their own to locate the
     // token input; utxoIds still applies to everything else they select
     async tokenMint(
-      category: string,
       mintRequests: TokenMintRequest | TokenMintRequest[],
       deductTokenAmount?: boolean,
       options?: SpendOptions
     ) {
       checkNoReservedUtxos(options);
       const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
-      return wallet.value.tokenMint(category, mintRequests, deductTokenAmount, spendConfig);
+      return wallet.value.tokenMint(mintRequests, deductTokenAmount, spendConfig);
     },
     async tokenBurn(burnRequest: TokenBurnRequest, message?: string, options?: SpendOptions) {
       checkNoReservedUtxos(options);
