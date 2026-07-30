@@ -15,6 +15,7 @@
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
   import CCSessions from 'src/components/cashconnect/CCSessions.vue'
   import WizSessions from 'src/components/wizardconnect/WizSessions.vue'
+  import InfoPopup from 'src/components/general/InfoPopup.vue'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { caughtErrorToString } from 'src/utils/errorHandling';
 
@@ -140,12 +141,12 @@
     <fieldset class="item">
       <legend>{{ t('dapp.title') }}</legend>
       <div style="margin-bottom: 10px;">
+        {{ t('dapp.connectText') }}
         <!-- WizardConnect requires an HD wallet, so the listed connection methods depend on the wallet type -->
-        <i18n-t :keypath="isHdWallet ? 'dapp.exploreText' : 'dapp.exploreTextSingleAddress'" tag="span">
-          <template #link>
-            <a href="https://tokenaut.cash/dapps" target="_blank">Tokenaut.cash</a>
-          </template>
-        </i18n-t>
+        <InfoPopup>
+          <div>{{ t(isHdWallet ? 'dapp.supportedMethods' : 'dapp.supportedMethodsSingleAddress') }}</div>
+          <div v-if="!isHdWallet" class="info-popup-note">{{ t('dapp.supportedMethodsNote') }}</div>
+        </InfoPopup>
       </div>
       <div style="display: flex; gap: 0.5rem; ">
         <input @keyup.enter="() => connectDappUriInput(dappUriInput)" v-model="dappUriInput" :placeholder="t('dapp.uriPlaceholder')" style="margin-bottom: 10px;">
@@ -166,6 +167,12 @@
       <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
     </fieldset>
 
+    <i18n-t keypath="dapp.exploreDapps" tag="div" class="explore-dapps-note">
+      <template #link>
+        <a href="https://tokenaut.cash/dapps" target="_blank" rel="noopener" class="explore-dapps-link">Tokenaut.cash</a>
+      </template>
+    </i18n-t>
+
     <div v-if="showQrCodeDialog">
       <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
     </div>
@@ -176,5 +183,19 @@
   .sessions-section-heading {
     font-weight: 600;
     margin: 8px 0 2px;
+  }
+  /* Styled like the about-page note on the onboarding page */
+  .explore-dapps-note {
+    text-align: center;
+    color: grey;
+    font-size: 14px;
+    margin-top: 15px;
+  }
+  .explore-dapps-link {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+  .explore-dapps-link:hover {
+    text-decoration: underline;
   }
 </style>

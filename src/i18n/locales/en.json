@@ -362,8 +362,11 @@
   },
   "dapp": {
     "title": "Connect to Dapp",
-    "exploreText": "Connect to dApps with the WalletConnect, CashConnect or WizardConnect connection methods. See {link} to explore the full list of BCH dApps.",
-    "exploreTextSingleAddress": "Connect to dApps with the WalletConnect or CashConnect connection methods. See {link} to explore the full list of BCH dApps.",
+    "connectText": "Connect to BCH dApps with supported connection methods.",
+    "supportedMethods": "WalletConnect, CashConnect and WizardConnect",
+    "supportedMethodsSingleAddress": "WalletConnect and CashConnect",
+    "supportedMethodsNote": "WizardConnect requires an HD wallet",
+    "exploreDapps": "Explore the list of BCH dApps on {link}.",
     "uriPlaceholder": "Connection URI",
     "connectButton": "Connect New dApp",
     "sessionsTitle": "dApp Sessions",
