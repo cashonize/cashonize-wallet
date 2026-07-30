@@ -2,11 +2,12 @@
 
 ## Cashonize: a Bitcoin Cash Wallet
 
-**Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet** <br>
-Cashonize supports CashTokens and the WalletConnect, CashConnect and WizardConnect connection methods, which makes it an ideal wallet for using dapps on BCH. <br>
-Currently Cashonize is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an Installable web app. <br>
+**Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet.**
 
-Cashonize is available in English, Spanish, French, German, and Portuguese.
+Cashonize supports CashTokens and the WalletConnect, CashConnect and WizardConnect connection methods, which makes it an ideal wallet for using dapps on BCH.
+It is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an installable web app, and comes in English, Spanish, French, German, and Portuguese.
+
+Learn more about the wallet on the [Cashonize about page](https://about.cashonize.com).
 
 ### The wallet for you?
 
@@ -64,6 +65,13 @@ For more details see the [security considerations](./security-considerations.md)
 ## Local Development 
 
 </> For local development check out the [developer instructions](./development.md).
+
+## For dApp Developers
+
+Cashonize supports three connection methods for dapps: [WalletConnect](https://github.com/mainnet-pat/wc2-bch-bcr) (following the WC2-BCH spec), [CashConnect](https://cashconnect.developers.cash/) and [WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect).
+
+- The [example WalletConnect dApp](./test/e2e/test-dapp) is a minimal reference for connecting to Cashonize, sending requests and handling responses.
+- The [`docs`](./docs) folder contains protocol documentation, such as the [`bch_cancelPendingRequests`](./docs/walletconnect-cancellation.md) WalletConnect method for dismissing stale signing dialogs.
 
 ## Special Thanks to
 
