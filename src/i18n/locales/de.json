@@ -642,6 +642,16 @@
       "somethingWentWrong": "Etwas ist schiefgelaufen"
     }
   },
+  "aboutCashonize": {
+    "title": "Über Cashonize",
+    "backToSettings": "Zurück zu den Einstellungen",
+    "description": "Cashonize ist eine benutzerfreundliche, plattformübergreifende Bitcoin Cash Wallet.",
+    "tagline": "Open-Source · Selbstverwaltet · Seit 2023",
+    "learnMore": "Besuche die Cashonize-Website",
+    "downloadPage": "Besuche die Cashonize-Downloadseite",
+    "viewSource": "Quellcode ansehen",
+    "followOnX": "Folge Neuigkeiten auf X"
+  },
   "hdAddresses": {
     "title": "HD Wallet Adressen",
     "receivingAddresses": "Empfangsadressen",
@@ -894,7 +904,8 @@
       "hdAddresses": "HD Adressen",
       "utxoManagement": "UTXO-Verwaltung",
       "sweepPrivateKey": "Privaten Schlüssel sweepen",
-      "tokenCreationPage": "Token-Erstellungsseite"
+      "tokenCreationPage": "Token-Erstellungsseite",
+      "aboutCashonize": "Über Cashonize"
     },
     "localization": {
       "language": "Sprache:",
@@ -964,7 +975,6 @@
       "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu."
     },
-    "downloadCashonize": "Cashonize herunterladen",
     "madeWith": "Erstellt mit {heart} von Mathieu G."
   }
 }

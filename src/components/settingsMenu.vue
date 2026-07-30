@@ -710,11 +710,8 @@
         → {{ t('settings.menu.sweepPrivateKey') }}
       </div>
 
-      <div v-if="isBrowser" style="margin-bottom:15px;">
-        <a style="color: var(--font-color); cursor: pointer;" href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">
-          {{ t('settings.downloadCashonize') }}
-          <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
-        </a>
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(11)">
+        → {{ t('settings.menu.aboutCashonize') }}
       </div>
 
       <div style="margin-bottom:15px;">

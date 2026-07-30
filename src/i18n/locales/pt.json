@@ -642,6 +642,16 @@
       "somethingWentWrong": "algo deu errado"
     }
   },
+  "aboutCashonize": {
+    "title": "Sobre o Cashonize",
+    "backToSettings": "Voltar às configurações",
+    "description": "Cashonize é uma carteira de Bitcoin Cash fácil de usar e multiplataforma.",
+    "tagline": "Código aberto · Sem custódia · Desde 2023",
+    "learnMore": "Visite o site do Cashonize",
+    "downloadPage": "Visite a página de downloads do Cashonize",
+    "viewSource": "Ver o código-fonte",
+    "followOnX": "Acompanhe as novidades no X"
+  },
   "hdAddresses": {
     "title": "Endereços da Carteira HD",
     "receivingAddresses": "Endereços de recebimento",
@@ -894,7 +904,8 @@
       "hdAddresses": "Endereços HD",
       "utxoManagement": "Gerenciamento de UTXOs",
       "sweepPrivateKey": "Sweep de Chave Privada",
-      "tokenCreationPage": "Página de Criação de Tokens"
+      "tokenCreationPage": "Página de Criação de Tokens",
+      "aboutCashonize": "Sobre o Cashonize"
     },
     "localization": {
       "language": "Idioma:",
@@ -964,7 +975,6 @@
       "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único."
     },
-    "downloadCashonize": "Baixar Cashonize",
     "madeWith": "Feito com {heart} por Mathieu G."
   }
 }

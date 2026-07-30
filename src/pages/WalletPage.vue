@@ -10,6 +10,7 @@
   import utxoManagement from 'src/components/settings/utxoManagement.vue'
   import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
+  import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
   import { defineComponent, ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
@@ -51,6 +52,7 @@
       case 8: return sweepPrivateKey;
       case 9: return addWalletView;
       case 10: return hdAddressesView;
+      case 11: return aboutCashonizeView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });

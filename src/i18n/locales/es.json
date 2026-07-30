@@ -642,6 +642,16 @@
       "somethingWentWrong": "algo salió mal"
     }
   },
+  "aboutCashonize": {
+    "title": "Acerca de Cashonize",
+    "backToSettings": "Volver a las configuraciones",
+    "description": "Cashonize es una billetera de Bitcoin Cash fácil de usar y multiplataforma.",
+    "tagline": "Código abierto · Sin custodia · Desde 2023",
+    "learnMore": "Visita el sitio web de Cashonize",
+    "downloadPage": "Visita la página de descargas de Cashonize",
+    "viewSource": "Ver el código fuente",
+    "followOnX": "Sigue las novedades en X"
+  },
   "hdAddresses": {
     "title": "Direcciones de billetera HD",
     "receivingAddresses": "Direcciones de recepción",
@@ -894,7 +904,8 @@
       "hdAddresses": "Direcciones HD",
       "utxoManagement": "Gestión de UTXO",
       "sweepPrivateKey": "Barrer clave privada",
-      "tokenCreationPage": "Página de creación de tokens"
+      "tokenCreationPage": "Página de creación de tokens",
+      "aboutCashonize": "Acerca de Cashonize"
     },
     "localization": {
       "language": "Idioma:",
@@ -964,7 +975,6 @@
       "showPrivateKeyWif": "Mostrar la clave privada WIF en la página de respaldo",
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única."
     },
-    "downloadCashonize": "Descargar Cashonize",
     "madeWith": "Hecho con {heart} por Mathieu G."
   }
 }
