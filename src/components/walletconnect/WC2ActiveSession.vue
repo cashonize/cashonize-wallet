@@ -60,29 +60,27 @@
 </script>
 
 <template>
-  <div style="padding: 7px;" class="dialogFieldset">
-    <div style="display: flex; align-items: center;">
-      <img :src="dappMetadata.icons[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
-      <div style="margin-left: 15px; width: 100%;">
-        <div>{{ dappMetadata.name + displaySessionId }}</div>
-        <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
-        <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
-        <div>{{ dappMetadata.description }}</div>
-        <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono" :title="addr">
-          <template v-if="width < 550">{{ shortenAddress(addr) }}</template>
-          <template v-else>{{ addr }}</template>
-        </div>
+  <div class="wc-session-card">
+    <img class="wc-session-icon" :src="dappMetadata.icons[0] ?? ''">
+    <div class="wc-session-details">
+      <div>{{ dappMetadata.name + displaySessionId }}</div>
+      <a v-if="safeUrl" :href="safeUrl" target="_blank" class="wc-session-url">{{ dappMetadata.url }}</a>
+      <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
+      <div class="wc-session-description">{{ dappMetadata.description }}</div>
+      <div v-for="addr in connectedAddresses" :key="addr" class="connected-address mono" :title="addr">
+        <template v-if="width < 550">{{ shortenAddress(addr) }}</template>
+        <template v-else>{{ addr }}</template>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 18px;">
-        <img style="cursor: pointer; max-width: none;"
-          @click="() => sessionSettingsWC = sessionId" 
-          :src="settingsStore.darkMode? 'images/settingsLightGrey.svg': 'images/settings.svg'"
-        />
-        <img style="cursor: pointer; max-width: none;"
-          @click="emit('deleteSession', sessionId)"
-          :src="settingsStore.darkMode? 'images/trashLightGrey.svg': 'images/trash.svg'"
-        />
-      </div>
+    </div>
+    <div class="wc-session-actions">
+      <img style="cursor: pointer; max-width: none;"
+        @click="() => sessionSettingsWC = sessionId"
+        :src="settingsStore.darkMode? 'images/settingsLightGrey.svg': 'images/settings.svg'"
+      />
+      <img style="cursor: pointer; max-width: none;"
+        @click="emit('deleteSession', sessionId)"
+        :src="settingsStore.darkMode? 'images/trashLightGrey.svg': 'images/trash.svg'"
+      />
     </div>
   </div>
 
@@ -92,8 +90,38 @@
 </template>
 
 <style scoped>
-  body.dark .dialogFieldset {
-    background-color: #050a14;
+  .wc-session-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px;
+  }
+  .wc-session-icon {
+    height: 54px;
+    width: 54px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  /* min-width lets the url ellipsis work inside the flex row */
+  .wc-session-details {
+    flex: 1;
+    min-width: 0;
+  }
+  .wc-session-url {
+    display: block;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .wc-session-description {
+    font-size: 13px;
+  }
+  .wc-session-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex-shrink: 0;
   }
   .connected-address {
     color: #888;
@@ -102,5 +130,10 @@
   }
   .mono {
     font-family: monospace;
+  }
+  @media only screen and (max-width: 480px) {
+    .wc-session-card {
+      gap: 10px;
+    }
   }
 </style>

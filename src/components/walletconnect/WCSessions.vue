@@ -24,7 +24,7 @@
 </template>
 
 <style>
-  .wc2sessions:nth-child(odd) {
-    background-color: azure;
+  .wc2sessions {
+    margin-top: 8px;
   }
 </style>

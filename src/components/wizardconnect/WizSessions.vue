@@ -102,17 +102,39 @@
 .wiz-session-item-app-icon {
   display: flex;
   align-items: center;
-  height: 64px;
-  width: 64px;
+  height: 54px;
+  width: 54px;
+  flex-shrink: 0;
+}
+.wiz-session-item-app-icon img {
+  border-radius: 8px;
 }
 
 .wiz-session-status {
-  font-size: smaller;
-  color: var(--color-grey);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  font-size: 12px;
+  padding: 2px 9px;
+  margin-top: 3px;
+  border-radius: 999px;
+  color: grey;
+  background: rgba(128, 128, 128, 0.14);
+}
+
+/* Status dot, colored along with the label text */
+.wiz-session-status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .wiz-session-status-connected {
   color: hsla(160, 100%, 37%, 1);
+  background: hsla(160, 100%, 37%, 0.12);
 }
 
 .wiz-session-item-action-container {

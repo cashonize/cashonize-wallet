@@ -21,11 +21,11 @@
             <div class="cc-session-item-app-icon"><img :src="session.dapp.icon ?? ''" /></div>
             <div class="cc-session-item-details-container">
               <div>{{ session.dapp.name }}</div>
-              <div>
+              <div class="cc-session-url">
                 <a v-if="sanitizeUrl(session.dapp.url)" :href="sanitizeUrl(session.dapp.url)" target="_blank">{{ session.dapp.url }}</a>
                 <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
               </div>
-              <div>{{ session.dapp.description }}</div>
+              <div class="cc-session-description">{{ session.dapp.description }}</div>
             </div>
             <div class="cc-session-item-action-container">
               <div class="cc-session-item-action-icon" @click="cashconnectStore.disconnectSession(topic)">
@@ -52,17 +52,34 @@
   padding: 7px;
 }
 
+/* min-width lets the url ellipsis work inside the flex row */
 .cc-session-item-details-container {
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
+}
+
+.cc-session-url {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-session-description {
+  font-size: 13px;
 }
 
 .cc-session-item-app-icon {
   display: flex;
   align-items: center;
-  height: 64px;
-  width: 64px;
+  height: 54px;
+  width: 54px;
+  flex-shrink: 0;
+}
+.cc-session-item-app-icon img {
+  border-radius: 8px;
 }
 
 .cc-session-item-action-container {
