@@ -73,6 +73,14 @@ Cashonize supports three connection methods for dapps: [WalletConnect](https://g
 - The [example WalletConnect dApp](./test/e2e/test-dapp) is a minimal reference for connecting to Cashonize, sending requests and handling responses.
 - The [`docs`](./docs) folder contains protocol documentation, such as the [`bch_cancelPendingRequests`](./docs/walletconnect-cancellation.md) WalletConnect method for dismissing stale signing dialogs.
 
+## License & Disclaimer
+
+The Cashonize source code is released under the [MIT license](./LICENSE), a permissive open-source license.
+
+The Cashonize name and logo are not covered by the MIT license: they remain the intellectual property of the Cashonize project and may not be used to brand forks or derived products without permission.
+
+Cashonize is non-custodial software provided "as is", without warranty of any kind. You are solely responsible for safeguarding your seed phrases and funds; the authors and contributors cannot recover lost wallets and accept no liability for any loss of funds arising from the use of this software.
+
 ## Special Thanks to
 
 🙏 Special thanks to mainnet-pat, jimtendo and rnbrady for their major contributions to the project!
