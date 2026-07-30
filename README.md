@@ -85,7 +85,12 @@ In special: molecular, Mike Komaransky, 'BCH Conference', toorik and majamalu.
 Further thanks to bitcoincashautist, Joemar, Romit and Kallisti for being very helpful responding to questions. <br>
 Also a thank you to users reporting bugs: samrock5000, Stockleezy and Steve Thurmond.
 
-## Historic version
+## History
 
-🪦 Before Cashonize became a Vue-Typescript application built with Quasar, it was a vanilla JS project. <br>
-You can find the legacy codebase [here](https://github.com/cashonize/wallet).
+Cashonize started in 2023, when CashTokens was only live on chipnet. It pioneered CashTokens and BCMR token metadata support before the upgrade activated on mainnet, making it the first wallet where users could hold and send CashTokens with rich token info.
+
+Cashonize has kept pioneering since: it was the first wallet to support CashConnect and the first to display parsable NFTs.
+
+An important milestone at the start of 2026 was the addition of multi-wallet support and HD wallets for improved transaction privacy.
+
+🪦 Cashonize started out as a web-only wallet written in vanilla JavaScript, before becoming the Vue-Typescript application built with Quasar it is today. You can find the archived [legacy codebase](https://github.com/cashonize/legacy-wallet) on GitHub.
