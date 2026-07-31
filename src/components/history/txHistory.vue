@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
-  import { computed, ref, watch, onActivated, onDeactivated } from 'vue';
+  import { computed, ref, watch, nextTick, onActivated, onDeactivated } from 'vue';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import { formatTime, formatFiatAmount } from 'src/utils/utils';
@@ -26,6 +26,19 @@
   const dateTo = ref("");
   const searchQuery = ref("");
   const searchInputRef = ref<HTMLInputElement | null>(null);
+  // The search input hides behind a search icon until toggled open
+  const showSearch = ref(false);
+
+  async function toggleSearch() {
+    if (showSearch.value) {
+      showSearch.value = false;
+      searchQuery.value = "";
+      return;
+    }
+    showSearch.value = true;
+    await nextTick();
+    searchInputRef.value?.focus();
+  }
 
   const filterOptions = [
     { value: "allTransactions", label: "history.filter.all" },
@@ -40,7 +53,8 @@
   function handleCtrlF(event: KeyboardEvent) {
     if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
       event.preventDefault();
-      searchInputRef.value?.focus();
+      showSearch.value = true;
+      void nextTick().then(() => searchInputRef.value?.focus());
     }
   }
 
@@ -212,27 +226,22 @@
     <fieldset class="item" v-if="store.walletHistory?.length">
       <legend>{{ t('history.title') }}</legend>
 
-      <div class="filter-row">
-        <div v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: transactionCount?.toLocaleString("en-US") }) }}</div>
-        <div v-else>{{ t('history.transactionCount', { count: transactionCount?.toLocaleString("en-US") }) }}</div>
-        <span class="options-toggle" @click="toggleOptions">
-          {{ t('history.options') }}
-          <img
-            class="icon"
-            :class="{ 'expanded': showOptions }"
-            :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
-          >
+      <div class="control-row">
+        <div class="type-filter">
+          <button
+            v-for="option in filterOptions"
+            :key="option.value"
+            :class="{ active: selectedFilter === option.value }"
+            @click="selectedFilter = option.value"
+          >{{ t(option.label) }}</button>
+        </div>
+        <input v-if="showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input">
+        <span class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
+          <q-icon name="search" size="22px" />
         </span>
-        <input ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input">
-      </div>
-
-      <div class="type-filter">
-        <button
-          v-for="option in filterOptions"
-          :key="option.value"
-          :class="{ active: selectedFilter === option.value }"
-          @click="selectedFilter = option.value"
-        >{{ t(option.label) }}</button>
+        <span class="options-toggle" :class="{ active: showOptions }" :title="t('history.options')" @click="toggleOptions">
+          <q-icon name="tune" size="22px" />
+        </span>
       </div>
 
       <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
@@ -266,25 +275,12 @@
             :key="transaction.hash"
             @click="() => selectedTransaction = transaction"
           >
-            <div class="tx-main">
-              <div class="tx-direction" :class="[isIncoming(transaction) ? 'received' : 'sent', { pending: !transaction.timestamp }]">
-                <q-icon :name="isIncoming(transaction) ? 'arrow_downward' : 'arrow_upward'" size="20px" />
-              </div>
-              <div class="tx-info">
-                <div class="tx-type">{{ isIncoming(transaction) ? t('history.received') : t('history.sent') }}</div>
-                <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
-              </div>
-              <div class="tx-amounts">
-                <div class="tx-bch" :class="transaction.valueChange < 0 ? 'negative' : 'positive'">
-                  {{ formatBchAmount(transaction.valueChange, true) }} {{ bchDisplayUnit }}
-                </div>
-                <div class="tx-fiat" v-if="settingsStore.showFiatValueHistory && store.exchangeRate !== undefined">
-                  {{ `${transaction.valueChange > 0 ? '+' : ''}` + formatFiatAmount(store.exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency) }}
-                </div>
-                <div class="tx-balance" v-if="!hideBalance">
-                  {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
-                </div>
-              </div>
+            <div class="tx-direction" :class="[isIncoming(transaction) ? 'received' : 'sent', { pending: !transaction.timestamp }]">
+              <q-icon :name="isIncoming(transaction) ? 'arrow_downward' : 'arrow_upward'" size="20px" />
+            </div>
+            <div class="tx-info">
+              <div class="tx-type">{{ isIncoming(transaction) ? t('history.received') : t('history.sent') }}</div>
+              <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
             </div>
             <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
               <div class="token-chip" v-for="chip in tokenChangeChips(transaction)" :key="chip.key">
@@ -297,8 +293,26 @@
                 <span class="chip-symbol">{{ chip.symbol }}</span>
               </div>
             </div>
+            <div class="tx-amounts">
+              <div class="tx-amount-line">
+                <div class="tx-bch" :class="transaction.valueChange < 0 ? 'negative' : 'positive'">
+                  {{ formatBchAmount(transaction.valueChange, true) }} {{ bchDisplayUnit }}
+                </div>
+                <div class="tx-fiat" v-if="settingsStore.showFiatValueHistory && store.exchangeRate !== undefined">
+                  ({{ `${transaction.valueChange > 0 ? '+' : ''}` + formatFiatAmount(store.exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency) }})
+                </div>
+              </div>
+              <div class="tx-balance" v-if="!hideBalance">
+                {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
+              </div>
+            </div>
           </div>
         </template>
+      </div>
+
+      <div class="tx-count">
+        <span v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: transactionCount?.toLocaleString("en-US") }) }}</span>
+        <span v-else>{{ t('history.transactionCount', { count: transactionCount?.toLocaleString("en-US") }) }}</span>
       </div>
 
       <q-pagination
@@ -327,26 +341,31 @@
   padding: 15px 0;
 }
 
-.filter-row {
+.control-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 10px 20px;
+  gap: 10px 12px;
   margin: 10px 0;
 }
 
-.options-toggle {
+.options-toggle,
+.search-toggle {
   cursor: pointer;
   user-select: none;
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.8;
 }
 
-.expanded {
-  transform: rotate(180deg);
+.options-toggle.active,
+.search-toggle.active {
+  color: var(--color-primary);
+  opacity: 1;
 }
 
 .search-input {
-  width: 180px;
+  width: 220px;
   padding: 4px 10px;
   margin-left: auto;
 }
@@ -440,6 +459,10 @@
 
 /* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
 .tx-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   border: 1px solid rgba(128, 128, 128, 0.2);
   background-color: rgba(128, 128, 128, 0.06);
   border-radius: 12px;
@@ -451,12 +474,6 @@
 
 .tx-item:hover {
   background-color: rgba(128, 128, 128, 0.14);
-}
-
-.tx-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .tx-direction {
@@ -502,6 +519,13 @@
   text-align: right;
 }
 
+.tx-amount-line {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 6px;
+}
+
 .tx-bch {
   font-family: monospace;
   white-space: nowrap;
@@ -510,6 +534,7 @@
 .tx-fiat {
   font-size: 0.85em;
   opacity: 0.75;
+  white-space: nowrap;
 }
 
 .tx-balance {
@@ -534,13 +559,17 @@ body.dark .negative {
   color: #ef9a9a;
 }
 
-/* token changes render as wrapping chips so any number of tokens per transaction lays out cleanly */
+/* token changes render as wrapping chips on their own line below the main row, so any
+   number of tokens per transaction lays out cleanly; order moves them after the amounts,
+   which sit in the main row despite coming later in the DOM */
 .tx-tokens {
+  order: 5;
+  flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 6px;
-  margin-top: 8px;
-  margin-left: 48px;
+  margin-right: 2px;
 }
 
 .token-chip {
@@ -558,24 +587,44 @@ body.dark .negative {
   word-break: break-word;
 }
 
+.tx-count {
+  text-align: center;
+  font-size: 0.85em;
+  opacity: 0.6;
+  margin: 10px 0 4px;
+}
+
+@media only screen and (max-width: 600px) {
+  /* search moves to its own full-width line, the options toggle stays beside the pills */
+  .search-input {
+    order: 5;
+    flex-basis: 100%;
+    width: 100%;
+    margin-left: 0;
+  }
+  .search-toggle {
+    margin-left: auto;
+  }
+  .type-filter button {
+    padding: 4px 12px;
+    font-size: 0.85em;
+  }
+  .tx-amount-line {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+  }
+  .tx-item {
+    padding: 8px 10px;
+  }
+}
+
 @media only screen and (max-width: 500px) {
   fieldset {
     padding: .5rem .5rem;
   }
-  .filter-row {
-    margin-left: 0.5rem;
-  }
   legend {
     margin-left: 0.5rem;
-  }
-  .search-input {
-    width: 140px;
-  }
-  .tx-tokens {
-    margin-left: 0;
-  }
-  .tx-item {
-    padding: 8px 10px;
   }
 }
 </style>
