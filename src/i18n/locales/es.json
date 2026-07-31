@@ -383,7 +383,6 @@
     "transactionCount": "{count} Transacciones",
     "options": "Opciones",
     "filter": {
-      "label": "Mostrar:",
       "all": "Todas",
       "bchTxs": "Txs de BCH",
       "tokenTxs": "Txs de tokens",
@@ -393,12 +392,13 @@
     "hideBalanceColumn": "Ocultar saldo",
     "exportCsv": "Exportar CSV",
     "exportFailed": "Error al exportar CSV",
-    "columns": {
-      "date": "Fecha",
-      "amount": "Cantidad",
-      "balance": "Saldo",
-      "tokens": "Tokens"
-    },
+    "searchPlaceholder": "Buscar token o id de tx...",
+    "noMatch": "Ninguna transacción coincide con el filtro",
+    "sent": "Enviado",
+    "received": "Recibido",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "balanceLabel": "Saldo:",
     "csv": {
       "date": "Fecha (UTC)",
       "transactionId": "ID de transacción",
