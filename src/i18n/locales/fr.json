@@ -175,9 +175,13 @@
       "all": "Tous les tokens",
       "hiddenOnly": "Masqués uniquement"
     },
+    "typeFilter": {
+      "all": "Tous",
+      "fungibles": "Fongibles",
+      "nfts": "NFTs"
+    },
     "editVisibility": "Modifier la visibilité",
-    "searchPlaceholder": "Rechercher...",
-    "searchMatches": "{count} résultats"
+    "searchPlaceholder": "Rechercher..."
   },
   "tokenItem": {
     "name": "Nom :",

@@ -1,11 +1,12 @@
 
 <script setup lang="ts">
-  import { ref, computed, onActivated, onDeactivated } from 'vue'
+  import { ref, computed, nextTick, onActivated, onDeactivated } from 'vue'
   import { useI18n } from 'vue-i18n'
   import tokenItemNFT from './tokenItems/tokenItemNFT.vue'
   import tokenItemFT from './tokenItems/tokenItemFT.vue'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useWindowSize } from 'src/utils/composables'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -14,12 +15,28 @@
   const showOptions = ref(false)
   const searchQuery = ref('')
   const searchInputRef = ref<HTMLInputElement | null>(null)
+  const { width } = useWindowSize()
+  const isMobile = computed(() => width.value <= 600)
+  // On mobile the search input hides behind a search icon until toggled open
+  const showSearch = ref(false)
+
+  async function toggleSearch() {
+    if (showSearch.value) {
+      showSearch.value = false;
+      searchQuery.value = "";
+      return;
+    }
+    showSearch.value = true;
+    await nextTick();
+    searchInputRef.value?.focus();
+  }
 
   // Override Ctrl+F to focus the search input.
   function handleCtrlF(event: KeyboardEvent) {
     if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
       event.preventDefault();
-      searchInputRef.value?.focus();
+      showSearch.value = true;
+      void nextTick().then(() => searchInputRef.value?.focus());
     }
   }
 
@@ -27,10 +44,26 @@
   onActivated(() => document.addEventListener('keydown', handleCtrlF));
   onDeactivated(() => document.removeEventListener('keydown', handleCtrlF));
 
-  const isSearchActive = computed(() => searchQuery.value.trim().length > 0);
+  const selectedTypeFilter = ref("all" as "all" | "fungibles" | "nfts");
+
+  const typeFilterOptions = [
+    { value: "all", label: "tokens.typeFilter.all" },
+    { value: "fungibles", label: "tokens.typeFilter.fungibles" },
+    { value: "nfts", label: "tokens.typeFilter.nfts" },
+  ] as const;
+
+  // Categories holding both fungibles and NFTs have a separate list entry for each,
+  // so filtering on the entry kind cleanly splits them across the two views
+  const typeFilteredTokenList = computed(() => {
+    const tokens = store.filteredTokenList;
+    if (!tokens) return null;
+    if (selectedTypeFilter.value === "fungibles") return tokens.filter(tokenData => 'amount' in tokenData);
+    if (selectedTypeFilter.value === "nfts") return tokens.filter(tokenData => 'nfts' in tokenData);
+    return tokens;
+  });
 
   const searchFilteredTokenList = computed(() => {
-    const tokens = store.filteredTokenList;
+    const tokens = typeFilteredTokenList.value;
     if (!tokens) return null;
     const query = searchQuery.value.toLowerCase().trim();
     if (!query) return tokens;
@@ -55,24 +88,22 @@
 
   <div v-else>
     <!-- Options toggle row -->
-    <div v-if="store.tokenList?.length" class="filter-row">
-      <span :class="{ 'hide-mobile': isSearchActive }">
-        <span v-if="settingsStore.tokenDisplayFilter === 'favoritesOnly'">{{ t('tokens.favoriteCount', { count: store.filteredTokenList?.length ?? 0 }) }}</span>
-        <span v-else-if="settingsStore.tokenDisplayFilter === 'hiddenOnly'">{{ t('tokens.hiddenCount', { count: store.filteredTokenList?.length ?? 0 }) }}</span>
-        <span v-else-if="settingsStore.tokenDisplayFilter === 'all'">{{ t('tokens.totalCount', { count: store.filteredTokenList?.length ?? 0 }) }}</span>
-        <span v-else>{{ t('tokens.count', { count: store.filteredTokenList?.length ?? 0 }) }}</span>
-        <span v-if="isSearchActive" class="search-match-suffix"> ({{ t('tokens.searchMatches', { count: searchFilteredTokenList?.length ?? 0 }) }})</span>
+    <div v-if="store.tokenList?.length" class="control-row">
+      <div class="type-filter">
+        <button
+          v-for="option in typeFilterOptions"
+          :key="option.value"
+          :class="{ active: selectedTypeFilter === option.value }"
+          @click="selectedTypeFilter = option.value"
+        >{{ t(option.label) }}</button>
+      </div>
+      <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('tokens.searchPlaceholder')" class="search-input">
+      <span v-if="isMobile" class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
+        <q-icon name="search" size="22px" />
       </span>
-      <span v-if="isSearchActive" class="search-match-mobile">{{ t('tokens.searchMatches', { count: searchFilteredTokenList?.length ?? 0 }) }}</span>
-      <span class="options-toggle" @click="showOptions = !showOptions">
-        {{ t('tokens.options') }}
-        <img
-          class="icon"
-          :class="{ 'expanded': showOptions }"
-          :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
-        >
+      <span class="options-toggle" :class="{ active: showOptions }" :title="t('tokens.options')" @click="showOptions = !showOptions">
+        <q-icon name="tune" size="22px" />
       </span>
-      <input ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('tokens.searchPlaceholder')" class="search-input">
     </div>
 
     <!-- Options panel (collapsed by default) -->
@@ -102,25 +133,45 @@
       <tokenItemFT v-if="'amount' in tokenData" :tokenData="tokenData"/>
       <tokenItemNFT v-else :tokenData="tokenData"/>
     </div>
+
+    <div v-if="searchFilteredTokenList?.length" class="token-count">
+      <!-- the curation labels only apply to the unnarrowed list, show a plain count when searching or type-filtering -->
+      <span v-if="searchQuery.trim() || selectedTypeFilter !== 'all'">{{ t('tokens.count', { count: searchFilteredTokenList.length }) }}</span>
+      <span v-else-if="settingsStore.tokenDisplayFilter === 'favoritesOnly'">{{ t('tokens.favoriteCount', { count: searchFilteredTokenList.length }) }}</span>
+      <span v-else-if="settingsStore.tokenDisplayFilter === 'hiddenOnly'">{{ t('tokens.hiddenCount', { count: searchFilteredTokenList.length }) }}</span>
+      <span v-else-if="settingsStore.tokenDisplayFilter === 'all'">{{ t('tokens.totalCount', { count: searchFilteredTokenList.length }) }}</span>
+      <span v-else>{{ t('tokens.count', { count: searchFilteredTokenList.length }) }}</span>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.filter-row {
+.control-row {
   display: flex;
   align-items: baseline;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 10px 12px;
   margin: 10px;
 }
 
-.options-toggle {
+.options-toggle,
+.search-toggle {
   cursor: pointer;
   user-select: none;
-  white-space: nowrap;
+  opacity: 0.8;
 }
 
-.expanded {
-  transform: rotate(180deg);
+/* icons are taller than the lowercase text, drop them slightly below the
+   baseline so they read as vertically centered next to it */
+.options-toggle .q-icon,
+.search-toggle .q-icon {
+  vertical-align: -0.2em;
+}
+
+.options-toggle.active,
+.search-toggle.active {
+  color: var(--color-primary);
+  opacity: 1;
 }
 
 .options-panel {
@@ -149,28 +200,57 @@
   padding: 2px 8px;
 }
 
-.search-match-mobile {
-  display: none;
+/* segmented pill bar for the token type filter */
+.type-filter {
+  display: inline-flex;
+  background-color: rgba(128, 128, 128, 0.12);
+  border-radius: 20px;
+  padding: 3px;
+}
+
+.type-filter button {
+  border: none;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 17px;
+  padding: 4px 16px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.type-filter button.active {
+  background-color: var(--color-primary);
+  color: white;
 }
 
 .search-input {
-  width: 160px;
+  width: 180px;
   padding: 4px 10px;
   margin-left: auto;
 }
 
-@media (max-width: 450px) {
-  .hide-mobile {
-    display: none;
-  }
+.token-count {
+  text-align: center;
+  font-size: 0.85em;
+  opacity: 0.6;
+  margin: 10px 0 4px;
+}
 
-  .search-match-mobile {
-    display: inline;
-  }
-
+@media (max-width: 600px) {
+  /* search moves to its own full-width line, the icons stay beside the pills */
   .search-input {
-    width: 140px;
-    padding: 2px 10px;
+    order: 5;
+    flex-basis: 100%;
+    width: 100%;
+    margin-left: 0;
+  }
+  .search-toggle {
+    margin-left: auto;
+  }
+  .type-filter button {
+    padding: 4px 12px;
+    font-size: 0.85em;
   }
 }
 </style>

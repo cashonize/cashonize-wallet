@@ -2,6 +2,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
   import { computed, ref, watch, nextTick, onActivated, onDeactivated } from 'vue';
+  import { useWindowSize } from 'src/utils/composables';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import { formatTime, formatFiatAmount } from 'src/utils/utils';
@@ -26,7 +27,9 @@
   const dateTo = ref("");
   const searchQuery = ref("");
   const searchInputRef = ref<HTMLInputElement | null>(null);
-  // The search input hides behind a search icon until toggled open
+  const { width } = useWindowSize();
+  const isMobile = computed(() => width.value <= 600);
+  // On mobile the search input hides behind a search icon until toggled open
   const showSearch = ref(false);
 
   async function toggleSearch() {
@@ -235,8 +238,8 @@
             @click="selectedFilter = option.value"
           >{{ t(option.label) }}</button>
         </div>
-        <input v-if="showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input">
-        <span class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
+        <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input">
+        <span v-if="isMobile" class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
           <q-icon name="search" size="22px" />
         </span>
         <span class="options-toggle" :class="{ active: showOptions }" :title="t('history.options')" @click="toggleOptions">
@@ -343,7 +346,7 @@
 
 .control-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
   gap: 10px 12px;
   margin: 10px 0;
@@ -353,9 +356,14 @@
 .search-toggle {
   cursor: pointer;
   user-select: none;
-  display: inline-flex;
-  align-items: center;
   opacity: 0.8;
+}
+
+/* icons are taller than the lowercase text, drop them slightly below the
+   baseline so they read as vertically centered next to it */
+.options-toggle .q-icon,
+.search-toggle .q-icon {
+  vertical-align: -0.2em;
 }
 
 .options-toggle.active,
@@ -365,7 +373,7 @@
 }
 
 .search-input {
-  width: 220px;
+  width: 180px;
   padding: 4px 10px;
   margin-left: auto;
 }
