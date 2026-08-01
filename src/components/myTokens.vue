@@ -129,7 +129,10 @@
     <div v-else-if="searchFilteredTokenList?.length == 0" style="text-align: center;">
       {{ t('tokens.noMatch') }}
     </div>
-    <div v-for="tokenData in searchFilteredTokenList" :key="tokenData.category">
+    <!-- categories holding both fungibles and NFTs have two list entries, so the
+      category alone is not a unique key: duplicate keys break the keyed list diff
+      and leave stale items behind when filtering -->
+    <div v-for="tokenData in searchFilteredTokenList" :key="tokenData.category + ('amount' in tokenData ? '-ft' : '-nft')">
       <tokenItemFT v-if="'amount' in tokenData" :tokenData="tokenData"/>
       <tokenItemNFT v-else :tokenData="tokenData"/>
     </div>
