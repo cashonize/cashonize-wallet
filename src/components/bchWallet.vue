@@ -273,7 +273,7 @@
       <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
     </qr-code>
     <div style="text-align: center;">
-      <div class="switchAddressButton icon" @click="switchAddressTypeQr()">⇄
+      <div class="switchAddressButton icon" :class="{ flipped: !displayBchQr }" @click="switchAddressTypeQr()">⇄
       </div>
     </div>
     <div>
@@ -325,5 +325,10 @@
   padding: 5px;
   cursor: pointer;
   user-select: none;
+  transition: transform 0.3s;
+}
+/* the glyph is symmetric so it lands looking identical, the half turn conveys the swap */
+.switchAddressButton.flipped {
+  transform: rotate(180deg);
 }
 </style>

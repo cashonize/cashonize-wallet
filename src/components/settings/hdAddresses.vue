@@ -333,6 +333,11 @@
   background-color: rgba(128, 128, 128, 0.14);
 }
 
+/* the whole card is the copy target, so pressing it anywhere plays the copy effect */
+.address-item:active .copyIcon {
+  transform: scale(1.2);
+}
+
 .address-item.current {
   border-color: rgba(10, 193, 143, 0.5);
 }
