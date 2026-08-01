@@ -3,15 +3,12 @@ import { cachedFetch } from "src/utils/cacheUtils";
 import type { Utxo } from "mainnet-js";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
-import { displayAndLogError } from "src/utils/errorHandling";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 import { parseNft, type NftParseInfo, type ParseResult } from "src/parsing/nftParsing"
 import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
 import { invokeExtensions } from "src/parsing/extensions/index"
 import { createElectrumAdapter } from "src/parsing/electrumAdapter"
 import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
-import { i18n } from 'src/boot/i18n'
-const { t } = i18n.global
 
 export function tokenListFromUtxos(walletUtxos: Utxo[]) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
@@ -61,10 +58,12 @@ export async function fetchTokenMetadata(
     if(response?.status == 200) {
       const jsonResponse = await response.json();
       // validate the response to match expected schema
+      // Invalid metadata is skipped without a user-facing toast: metadata is cosmetic
+      // enrichment fetched in the background, and the token displays with the
+      // category-hex fallback either way
       const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
       if (!parseResult.success) {
         console.error(`BCMR indexer response validation error for URL ${response.url}: ${parseResult.error.message}`);
-        displayAndLogError(t('store.errors.bcmrIndexerValidationError'));
         continue;
       }
       const tokenInfoResult = parseResult.data;
@@ -101,7 +100,6 @@ export async function fetchNftMetadata(
   const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
   if (!parseResult.success) {
     console.error(`BCMR indexer response validation error for URL ${res.url}: ${parseResult.error.message}`);
-    displayAndLogError(t('store.errors.bcmrIndexerValidationError'));
     return bcmrRegistries ?? {};
   }
   const tokenInfoResult = parseResult.data;
