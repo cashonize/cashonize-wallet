@@ -43,6 +43,12 @@
   const selectedNfts = ref(new Set<string>());
   const activeAction = ref<TokenActionType | null>(null);
   const imageLoadFailed = ref(false);
+  const starAnimating = ref(false);
+
+  function toggleFavorite() {
+    store.toggleFavorite(tokenData.value.category);
+    starAnimating.value = true;
+  }
 
   let fetchedMetadataChildren = false
 
@@ -408,8 +414,8 @@
             ? (settingsStore.darkMode ? 'images/eye-off-outline-lightGrey.svg' : 'images/eye-off-outline.svg')
             : (settingsStore.darkMode ? 'images/eye-outline-lightGrey.svg' : 'images/eye-outline.svg')">
         </span>
-        <span @click="store.toggleFavorite(tokenData.category)" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.category) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
-          <img :src="settingsStore.featuredTokens.includes(tokenData.category) ? 'images/star-full.svg' :
+        <span @click="toggleFavorite" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.category) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
+          <img :class="{ 'star-pop': starAnimating }" @animationend="starAnimating = false" :src="settingsStore.featuredTokens.includes(tokenData.category) ? 'images/star-full.svg' :
             settingsStore.darkMode? 'images/star-empty-grey.svg' : 'images/star-empty.svg'">
         </span>
       </div>
