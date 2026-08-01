@@ -175,9 +175,13 @@
       "all": "Alle Tokens",
       "hiddenOnly": "Nur versteckte"
     },
+    "typeFilter": {
+      "all": "Alle",
+      "fungibles": "Fungible",
+      "nfts": "NFTs"
+    },
     "editVisibility": "Sichtbarkeit bearbeiten",
-    "searchPlaceholder": "Tokens suchen...",
-    "searchMatches": "{count} Suchergebnisse"
+    "searchPlaceholder": "Tokens suchen..."
   },
   "tokenItem": {
     "name": "Name:",
@@ -389,16 +393,22 @@
       "tokenTxs": "Token-Txs",
       "dateRange": "Zeitraum:"
     },
+    "directionFilter": {
+      "all": "Alle",
+      "incoming": "Eingehend",
+      "outgoing": "Ausgehend"
+    },
     "showFiatValue": "Fiat-Wert anzeigen",
     "hideBalanceColumn": "Guthaben ausblenden",
     "exportCsv": "CSV exportieren",
     "exportFailed": "CSV-Export fehlgeschlagen",
-    "columns": {
-      "date": "Datum",
-      "amount": "Betrag",
-      "balance": "Guthaben",
-      "tokens": "Tokens"
-    },
+    "searchPlaceholder": "Token oder Tx-ID suchen...",
+    "noMatch": "Keine Transaktionen passen zum Filter",
+    "sent": "Gesendet",
+    "received": "Empfangen",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "balanceLabel": "Guthaben:",
     "csv": {
       "date": "Datum (UTC)",
       "transactionId": "Transaktions-ID",
@@ -654,19 +664,19 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Adressen",
-    "receivingAddresses": "Empfangsadressen",
-    "changeAddresses": "Wechseladressen",
+    "intro": "Eine Übersicht aller Adressen des Wallets, gruppiert nach verwendet und unbenutzt.",
+    "infoReceivingChange": "Empfangsadressen werden geteilt, um Zahlungen zu empfangen. Wechseladressen werden intern verwendet: Beim Senden einer Transaktion schickt das Wallet das restliche Wechselgeld an eine neue eigene Wechseladresse zurück.",
+    "infoPrivacyNote": "Eine neue Adresse für jede Zahlung hilft, die Privatsphäre zu schützen.",
+    "currentTag": "aktuell",
+    "receiving": "Empfang",
+    "change": "Wechselgeld",
     "usedAddresses": "Verwendet",
     "unusedAddresses": "Unbenutzt",
     "noAddresses": "Noch keine Adressen gescannt",
+    "options": "Optionen",
     "hideZeroBalances": "Null-Guthaben ausblenden",
     "showTokenAddresses": "Adressen im Token-Format anzeigen",
-    "columns": {
-      "index": "Index",
-      "address": "Adresse",
-      "balance": "Guthaben",
-      "txs": "Txs"
-    }
+    "txCount": "{count} Txs"
   },
   "sweepPrivateKey": {
     "title": "Privaten Schlüssel sweepen",

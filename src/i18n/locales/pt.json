@@ -175,9 +175,13 @@
       "all": "Todos os tokens",
       "hiddenOnly": "Apenas ocultos"
     },
+    "typeFilter": {
+      "all": "Todos",
+      "fungibles": "Fungíveis",
+      "nfts": "NFTs"
+    },
     "editVisibility": "Editar visibilidade",
-    "searchPlaceholder": "Buscar tokens...",
-    "searchMatches": "{count} resultados encontrados"
+    "searchPlaceholder": "Buscar tokens..."
   },
   "tokenItem": {
     "name": "Nome:",
@@ -389,16 +393,22 @@
       "tokenTxs": "Txs de tokens",
       "dateRange": "Intervalo de datas:"
     },
+    "directionFilter": {
+      "all": "Todas",
+      "incoming": "Recebidas",
+      "outgoing": "Enviadas"
+    },
     "showFiatValue": "Mostrar valor em fiat",
     "hideBalanceColumn": "Ocultar saldo",
     "exportCsv": "Exportar CSV",
     "exportFailed": "Falha ao exportar CSV",
-    "columns": {
-      "date": "Data",
-      "amount": "Valor",
-      "balance": "Saldo",
-      "tokens": "Tokens"
-    },
+    "searchPlaceholder": "Buscar token ou id de tx...",
+    "noMatch": "Nenhuma transação corresponde ao filtro",
+    "sent": "Enviado",
+    "received": "Recebido",
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "balanceLabel": "Saldo:",
     "csv": {
       "date": "Data (UTC)",
       "transactionId": "ID da transação",
@@ -654,19 +664,19 @@
   },
   "hdAddresses": {
     "title": "Endereços da Carteira HD",
-    "receivingAddresses": "Endereços de recebimento",
-    "changeAddresses": "Endereços de troco",
+    "intro": "Um resumo de todos os endereços da carteira, agrupados por usados e não usados.",
+    "infoReceivingChange": "Os endereços de recebimento são compartilhados para receber pagamentos. Os endereços de troco são usados internamente: ao enviar uma transação, a carteira devolve o troco restante para um novo endereço de troco próprio.",
+    "infoPrivacyNote": "Usar um novo endereço para cada pagamento ajuda a proteger a privacidade.",
+    "currentTag": "atual",
+    "receiving": "Recebimento",
+    "change": "Troco",
     "usedAddresses": "Usados",
     "unusedAddresses": "Não usados",
     "noAddresses": "Nenhum endereço escaneado ainda",
+    "options": "Opções",
     "hideZeroBalances": "Ocultar saldos zerados",
     "showTokenAddresses": "Mostrar endereços no formato de token",
-    "columns": {
-      "index": "Índice",
-      "address": "Endereço",
-      "balance": "Saldo",
-      "txs": "Txs"
-    }
+    "txCount": "{count} txs"
   },
   "sweepPrivateKey": {
     "title": "Sweep de Chave Privada",

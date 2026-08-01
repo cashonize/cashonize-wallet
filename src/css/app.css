@@ -60,6 +60,26 @@ img {
   background-color: var(--color-primary);
   border-radius: 50%;
 }
+/* two gentle pulse rings when the dot appears, then rest */
+.notification-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  opacity: 0;
+  animation: notification-pulse 1.6s ease-out 2;
+}
+@keyframes notification-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
 
 .primaryButton {
   background-color: var(--color-primary);
@@ -75,9 +95,16 @@ img {
   vertical-align: text-bottom;
   margin-bottom: 1px;
   margin-left: 5px;
+  transition: transform 0.15s;
 }
 .copyIcon:hover {
   cursor: pointer;
+}
+/* single pop on click: grows while pressed, settles on release; the parent rule
+   also plays the effect when the copy target is the text next to the icon */
+.copyIcon:active,
+:active > .copyIcon {
+  transform: scale(1.2);
 }
 .depositAddr,
 .category {
@@ -144,6 +171,31 @@ input[type='number'] {
   display: inline-flex;
   justify-content: center;
   align-items: center;
+}
+.boxStarIcon img {
+  transition: transform 0.15s;
+}
+@media (hover: hover) {
+  .boxStarIcon:hover img {
+    transform: scale(1.15);
+  }
+}
+.star-pop {
+  animation: star-pop 0.35s ease;
+}
+@keyframes star-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.4) rotate(-12deg);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 .tokenBaseInfo1 {
   width: 370px;

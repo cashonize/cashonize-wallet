@@ -175,9 +175,13 @@
       "all": "Tous les tokens",
       "hiddenOnly": "Masqués uniquement"
     },
+    "typeFilter": {
+      "all": "Tous",
+      "fungibles": "Fongibles",
+      "nfts": "NFTs"
+    },
     "editVisibility": "Modifier la visibilité",
-    "searchPlaceholder": "Rechercher...",
-    "searchMatches": "{count} résultats"
+    "searchPlaceholder": "Rechercher..."
   },
   "tokenItem": {
     "name": "Nom :",
@@ -389,16 +393,22 @@
       "tokenTxs": "Txs tokens",
       "dateRange": "Plage de dates :"
     },
+    "directionFilter": {
+      "all": "Toutes",
+      "incoming": "Entrantes",
+      "outgoing": "Sortantes"
+    },
     "showFiatValue": "Afficher la valeur en devise",
     "hideBalanceColumn": "Masquer le solde",
     "exportCsv": "Exporter en CSV",
     "exportFailed": "Échec de l'export CSV",
-    "columns": {
-      "date": "Date",
-      "amount": "Montant",
-      "balance": "Solde",
-      "tokens": "Tokens"
-    },
+    "searchPlaceholder": "Rechercher token ou id de tx...",
+    "noMatch": "Aucune transaction ne correspond au filtre",
+    "sent": "Envoyé",
+    "received": "Reçu",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "balanceLabel": "Solde :",
     "csv": {
       "date": "Date (UTC)",
       "transactionId": "ID de transaction",
@@ -654,19 +664,19 @@
   },
   "hdAddresses": {
     "title": "Adresses du portefeuille HD",
-    "receivingAddresses": "Adresses de réception",
-    "changeAddresses": "Adresses de monnaie",
+    "intro": "Un aperçu de toutes les adresses du portefeuille, regroupées par utilisées et non utilisées.",
+    "infoReceivingChange": "Les adresses de réception sont celles que vous partagez pour recevoir des paiements. Les adresses de monnaie sont utilisées en interne : lors d'un envoi, le portefeuille renvoie la monnaie restante vers une nouvelle adresse de monnaie qui lui appartient.",
+    "infoPrivacyNote": "Utiliser une nouvelle adresse pour chaque paiement aide à protéger la vie privée.",
+    "currentTag": "actuelle",
+    "receiving": "Réception",
+    "change": "Monnaie",
     "usedAddresses": "Utilisées",
     "unusedAddresses": "Non utilisées",
     "noAddresses": "Aucune adresse analysée pour le moment",
+    "options": "Options",
     "hideZeroBalances": "Masquer les soldes nuls",
     "showTokenAddresses": "Afficher les adresses au format token",
-    "columns": {
-      "index": "Index",
-      "address": "Adresse",
-      "balance": "Solde",
-      "txs": "Txs"
-    }
+    "txCount": "{count} txs"
   },
   "sweepPrivateKey": {
     "title": "Balayer une clé privée",

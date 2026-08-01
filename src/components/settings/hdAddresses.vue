@@ -1,11 +1,12 @@
 <script setup lang="ts">
-  import { ref, computed, watch, watchEffect } from 'vue';
-  import { copyToClipboard, satsToBch } from 'src/utils/utils';
+  import { ref, computed, watchEffect } from 'vue';
+  import { copyToClipboard, satsToBch, formatFiatAmount } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
   import { HDWallet, type TestNetHDWallet, GAP_SIZE } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
+  import InfoPopup from 'src/components/general/InfoPopup.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -24,18 +25,26 @@
 
   const receivingAddresses = ref<AddressRow[]>([]);
   const changeAddresses = ref<AddressRow[]>([]);
-  const showUsedReceiving = ref(false);
-  const showUsedChange = ref(false);
+  const currentDepositIndex = ref(0);
+  const selectedChain = ref("receiving" as "receiving" | "change");
+  const showOptions = ref(false);
   const hideZeroBalances = ref(false);
   const showTokenAddresses = ref(false);
-  const changeDetailsOpen = ref(false);
+  const collapsedGroups = ref({ unused: false, used: false });
+  const showQrDialog = ref(false);
+  const qrDialogAddress = ref("");
 
-  watch(hideZeroBalances, (newVal) => {
-    if (newVal) {
-      showUsedReceiving.value = true;
-      showUsedChange.value = true;
-      changeDetailsOpen.value = true;
-    }
+  function toggleGroup(key: "unused" | "used") {
+    collapsedGroups.value[key] = !collapsedGroups.value[key];
+  }
+
+  function openQrDialog(row: AddressRow) {
+    qrDialogAddress.value = displayAddress(row);
+    showQrDialog.value = true;
+  }
+
+  const bchDisplayUnit = computed(() => {
+    return store.network === "mainnet" ? "BCH" : "tBCH";
   });
 
   function applyBalanceFilter(rows: AddressRow[]) {
@@ -51,14 +60,32 @@
   const filteredReceivingCount = computed(() => usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length);
   const filteredChangeCount = computed(() => usedChangeAddresses.value.length + unusedChangeAddresses.value.length);
 
+  // Fresh addresses first: handing out an unused address is the main use of this page
+  const addressGroups = computed(() => {
+    const isReceiving = selectedChain.value === "receiving";
+    const unused = isReceiving ? unusedReceivingAddresses.value : unusedChangeAddresses.value;
+    const used = isReceiving ? usedReceivingAddresses.value : usedChangeAddresses.value;
+    const groups: { key: "unused" | "used"; label: string; rows: AddressRow[] }[] = [];
+    if (unused.length) groups.push({ key: "unused", label: t('hdAddresses.unusedAddresses'), rows: unused });
+    if (used.length) groups.push({ key: "used", label: t('hdAddresses.usedAddresses'), rows: used });
+    return groups;
+  });
+
   function displayAddress(row: AddressRow) {
     return showTokenAddresses.value ? row.tokenAddress : row.address;
   }
 
+  // The address the wallet page QR currently hands out
+  function isCurrentAddress(row: AddressRow): boolean {
+    return selectedChain.value === "receiving" && row.index === currentDepositIndex.value;
+  }
+
+  // On desktop show the address prefix (bitcoincash: / bchtest:), it makes the
+  // format explicit and recognizable; mobile only has room for the truncated body
   function truncateAddress(address: string) {
-    const body = address.split(':')[1] ?? "";
-    const chars = isMobile.value ? 5 : 8;
-    return body.slice(0, chars) + '...' + body.slice(-chars);
+    const [prefix, body = ""] = address.split(':');
+    if (isMobile.value) return body.slice(0, 5) + '...' + body.slice(-5);
+    return prefix + ':' + body.slice(0, 8) + '...' + body.slice(-8);
   }
 
   function getAddressBalance(utxos: { satoshis: bigint }[]): bigint {
@@ -93,241 +120,310 @@
     if (!(hdWallet instanceof HDWallet)) return;
     receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
     changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true);
+    currentDepositIndex.value = hdWallet.depositIndex;
   });
 </script>
 
 <template>
-  <fieldset class="item" :class="{ dark: settingsStore.darkMode }">
+  <fieldset class="item">
     <legend>{{ t('hdAddresses.title') }}</legend>
 
-    <div class="filter-toggles">
-      <div class="filter-toggle">
+    <div class="control-row">
+      <div class="type-filter">
+        <button :class="{ active: selectedChain === 'receiving' }" @click="selectedChain = 'receiving'">
+          {{ t('hdAddresses.receiving') }} ({{ filteredReceivingCount }})
+        </button>
+        <button :class="{ active: selectedChain === 'change' }" @click="selectedChain = 'change'">
+          {{ t('hdAddresses.change') }} ({{ filteredChangeCount }})
+        </button>
+      </div>
+      <span class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
+        <q-icon name="tune" size="22px" />
+      </span>
+    </div>
+
+    <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
+      <div class="option-item">
         {{ t('hdAddresses.hideZeroBalances') }} <q-toggle v-model="hideZeroBalances" dense />
       </div>
-      <div class="filter-toggle">
+      <div class="option-item">
         {{ t('hdAddresses.showTokenAddresses') }} <q-toggle v-model="showTokenAddresses" dense />
       </div>
     </div>
 
-    <!-- Receiving Addresses -->
-    <details class="collapsible-section" open>
-      <summary>
-        <strong>{{ t('hdAddresses.receivingAddresses') }}</strong> ({{ filteredReceivingCount }})
-        <img class="icon" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
-      </summary>
-      <table v-if="filteredReceivingCount" class="address-table">
-        <thead>
-          <tr>
-            <th>{{ t('hdAddresses.columns.index') }}</th>
-            <th>{{ t('hdAddresses.columns.address') }}</th>
-            <th>{{ t('hdAddresses.columns.balance') }}</th>
-            <th>{{ t('hdAddresses.columns.txs') }}</th>
-          </tr>
-        </thead>
-        <!-- Used receiving addresses (collapsible) -->
-        <tbody v-if="usedReceivingAddresses.length">
-          <tr class="section-toggle" @click="showUsedReceiving = !showUsedReceiving">
-            <td colspan="4">
-              {{ t('hdAddresses.usedAddresses') }} ({{ usedReceivingAddresses.length }})
-              <img class="icon" :class="{ open: showUsedReceiving }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
-            </td>
-          </tr>
-        </tbody>
-        <tbody v-if="showUsedReceiving" class="used-addresses">
-          <tr v-for="row in usedReceivingAddresses" :key="row.index">
-            <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(displayAddress(row))" class="address-cell" :title="displayAddress(row)">
-              <span class="mono">{{ truncateAddress(displayAddress(row)) }}</span>
-              <img class="copyIcon" src="images/copyGrey.svg">
-            </td>
-            <td class="mono">{{ satsToBch(row.balance) }}</td>
-            <td>{{ row.txCount }}</td>
-          </tr>
-        </tbody>
-        <!-- Unused receiving addresses -->
-        <tbody>
-          <tr v-for="row in unusedReceivingAddresses" :key="row.index">
-            <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(displayAddress(row))" class="address-cell" :title="displayAddress(row)">
-              <span class="mono">{{ truncateAddress(displayAddress(row)) }}</span>
-              <img class="copyIcon" src="images/copyGrey.svg">
-            </td>
-            <td class="mono">{{ satsToBch(row.balance) }}</td>
-            <td>{{ row.txCount }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-else class="description">{{ t('hdAddresses.noAddresses') }}</div>
-    </details>
+    <div class="intro">
+      {{ t('hdAddresses.intro') }}
+      <InfoPopup>
+        <div style="max-width: 320px;">
+          <div>{{ t('hdAddresses.infoReceivingChange') }}</div>
+          <div class="info-popup-note">{{ t('hdAddresses.infoPrivacyNote') }}</div>
+        </div>
+      </InfoPopup>
+    </div>
 
-    <!-- Change Addresses -->
-    <details class="collapsible-section" :open="changeDetailsOpen || undefined">
-      <summary>
-        <strong>{{ t('hdAddresses.changeAddresses') }}</strong> ({{ filteredChangeCount }})
-        <img class="icon" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
-      </summary>
-      <table v-if="filteredChangeCount" class="address-table">
-        <thead>
-          <tr>
-            <th>{{ t('hdAddresses.columns.index') }}</th>
-            <th>{{ t('hdAddresses.columns.address') }}</th>
-            <th>{{ t('hdAddresses.columns.balance') }}</th>
-            <th>{{ t('hdAddresses.columns.txs') }}</th>
-          </tr>
-        </thead>
-        <!-- Used change addresses (collapsible) -->
-        <tbody v-if="usedChangeAddresses.length">
-          <tr class="section-toggle" @click="showUsedChange = !showUsedChange">
-            <td colspan="4">
-              {{ t('hdAddresses.usedAddresses') }} ({{ usedChangeAddresses.length }})
-              <img class="icon" :class="{ open: showUsedChange }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
-            </td>
-          </tr>
-        </tbody>
-        <tbody v-if="showUsedChange" class="used-addresses">
-          <tr v-for="row in usedChangeAddresses" :key="row.index">
-            <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(displayAddress(row))" class="address-cell" :title="displayAddress(row)">
-              <span class="mono">{{ truncateAddress(displayAddress(row)) }}</span>
+    <div v-if="!addressGroups.length" class="description">{{ t('hdAddresses.noAddresses') }}</div>
+
+    <template v-for="group in addressGroups" :key="group.key">
+      <div class="group-header" @click="toggleGroup(group.key)">
+        {{ group.label }} ({{ group.rows.length }})
+        <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedGroups[group.key] }" />
+      </div>
+      <template v-if="!collapsedGroups[group.key]">
+        <div
+          class="address-item"
+          :class="{ current: isCurrentAddress(row) }"
+          v-for="row in group.rows"
+          :key="row.index"
+          :title="displayAddress(row)"
+          @click="copyToClipboard(displayAddress(row))"
+        >
+          <div class="index-badge mono">{{ row.index }}</div>
+          <div class="address-info">
+            <div class="address-text mono">
+              {{ truncateAddress(displayAddress(row)) }}
               <img class="copyIcon" src="images/copyGrey.svg">
-            </td>
-            <td class="mono">{{ satsToBch(row.balance) }}</td>
-            <td>{{ row.txCount }}</td>
-          </tr>
-        </tbody>
-        <!-- Unused change addresses -->
-        <tbody>
-          <tr v-for="row in unusedChangeAddresses" :key="row.index">
-            <td class="mono">{{ row.index }}</td>
-            <td @click="copyToClipboard(displayAddress(row))" class="address-cell" :title="displayAddress(row)">
-              <span class="mono">{{ truncateAddress(displayAddress(row)) }}</span>
-              <img class="copyIcon" src="images/copyGrey.svg">
-            </td>
-            <td class="mono">{{ satsToBch(row.balance) }}</td>
-            <td>{{ row.txCount }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-else class="description">{{ t('hdAddresses.noAddresses') }}</div>
-    </details>
+              <span v-if="isCurrentAddress(row)" class="current-tag">{{ t('hdAddresses.currentTag') }}</span>
+            </div>
+            <div class="address-sub">
+              {{ t('hdAddresses.txCount', { count: row.txCount }) }} ·
+              <span class="mono">{{ satsToBch(row.balance) }} {{ bchDisplayUnit }}</span>
+              <span v-if="row.balance && store.exchangeRate !== undefined">
+                ({{ formatFiatAmount(satsToBch(row.balance) * store.exchangeRate, settingsStore.currency) }})
+              </span>
+            </div>
+          </div>
+          <span class="qr-button" @click.stop="openQrDialog(row)">
+            <q-icon name="qr_code_2" size="22px" />
+          </span>
+        </div>
+      </template>
+    </template>
   </fieldset>
+
+  <q-dialog v-model="showQrDialog" transition-show="scale" transition-hide="scale">
+    <q-card class="qr-card">
+      <qr-code :contents="qrDialogAddress" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
+        <img :src="showTokenAddresses ? 'images/tokenicon.png' : 'images/bch-icon.png'" slot="icon" /> <!-- eslint-disable-line -->
+      </qr-code>
+      <div class="full-address mono" @click="copyToClipboard(qrDialogAddress)">
+        {{ qrDialogAddress }}
+        <img class="copyIcon" src="images/copyGrey.svg">
+      </div>
+    </q-card>
+  </q-dialog>
 </template>
 
 <style scoped>
-.filter-toggles {
+.intro {
+  margin: 10px 0;
+}
+
+.control-row {
   display: flex;
+  align-items: baseline;
   flex-wrap: wrap;
-  gap: 10px 20px;
-  margin-bottom: 10px;
+  gap: 10px 12px;
+  margin: 10px 0;
 }
 
-.filter-toggle {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.collapsible-section {
-  margin-bottom: 15px;
-}
-
-.collapsible-section summary {
+.options-toggle {
   cursor: pointer;
   user-select: none;
+  opacity: 0.8;
+  margin-left: auto;
+}
+
+/* icons are taller than the lowercase text, drop them slightly below the
+   baseline so they read as vertically centered next to it */
+.options-toggle .q-icon {
+  vertical-align: -0.2em;
+}
+
+.options-toggle.active {
+  color: var(--color-primary);
+  opacity: 1;
+}
+
+/* segmented pill bar for the receiving/change chain filter */
+.type-filter {
+  display: inline-flex;
+  background-color: rgba(128, 128, 128, 0.12);
+  border-radius: 20px;
+  padding: 3px;
+}
+
+.type-filter button {
+  border: none;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 17px;
+  padding: 4px 16px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.type-filter button.active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.options-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px 25px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background-color: var(--color-background-soft);
+  border-radius: 6px;
+}
+
+.options-panel.dark {
+  background-color: #232326;
+}
+
+.option-item {
+  margin-top: -5px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin-bottom: 5px;
-}
-
-.collapsible-section summary::-webkit-details-marker {
-  display: none;
-}
-
-.collapsible-section summary::marker {
-  display: none;
-  content: '';
-}
-
-.collapsible-section[open] > summary .icon {
-  transform: rotate(180deg);
+  gap: 8px;
 }
 
 .description {
-  color: #888;
+  opacity: 0.6;
   margin: 5px 0 10px 0;
 }
 
-.address-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  font-size: 13px;
+.group-header {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin: 14px 2px 6px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.address-table th,
-.address-table td {
-  padding: 3px 6px;
-  text-align: left;
-  border-bottom: 1px solid var(--color-border, #ddd);
+.group-header .chevron {
+  vertical-align: -0.2em;
+  transition: transform 0.2s;
 }
 
-.address-table th {
-  color: #888;
+.group-header .chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+/* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
+.address-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  background-color: rgba(128, 128, 128, 0.06);
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin-bottom: 6px;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.address-item:hover {
+  background-color: rgba(128, 128, 128, 0.14);
+}
+
+/* the whole card is the copy target, so pressing it anywhere plays the copy effect */
+.address-item:active .copyIcon {
+  transform: scale(1.2);
+}
+
+.address-item.current {
+  border-color: rgba(10, 193, 143, 0.5);
+}
+
+.current-tag {
+  background-color: rgba(10, 193, 143, 0.15);
+  color: var(--color-primary);
+  border-radius: 10px;
+  padding: 0 8px;
+  margin-left: 2px;
+}
+
+.index-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(128, 128, 128, 0.15);
+}
+
+.qr-button {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.6;
+}
+
+.qr-button:hover {
+  opacity: 1;
+}
+
+.address-info {
+  min-width: 0;
+}
+
+.address-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.address-sub {
+  font-size: 0.85em;
+  opacity: 0.65;
 }
 
 .mono {
   font-family: monospace;
 }
 
-.address-cell {
+.qr-card {
+  padding: 1.5rem;
+  background-color: #fff;
+}
+body.dark .qr-card {
+  background-color: #050a14;
+}
+
+/* the qr-code needs a white background to stay scannable in dark mode */
+.qr-code {
+  display: block;
+  width: 230px;
+  height: 225px;
+  margin: 0 auto;
+  background-color: #fff;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
-.section-toggle {
+.full-address {
+  max-width: 260px;
+  margin-top: 1rem;
+  text-align: center;
+  word-break: break-all;
   cursor: pointer;
-  user-select: none;
 }
 
-.section-toggle td {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #888;
-}
-
-.section-toggle .icon.open {
-  transform: rotate(180deg);
-}
-
-.icon {
-  width: 16px;
-  height: 16px;
-}
-
-.used-addresses tr {
-  border-left: 3px solid #888;
-}
-
-.used-addresses tr td:first-child {
-  padding-left: 2rem;
-}
-
-.dark .used-addresses tr {
-  border-left-color: #555;
-}
-
-/* Dark mode */
-.dark .description,
-.dark .address-table th {
-  color: #aaa;
-}
-
-.dark .address-table th,
-.dark .address-table td {
-  border-bottom-color: #444;
+@media only screen and (max-width: 600px) {
+  .type-filter button {
+    padding: 4px 12px;
+    font-size: 0.85em;
+  }
+  .address-item {
+    padding: 8px 10px;
+  }
 }
 </style>

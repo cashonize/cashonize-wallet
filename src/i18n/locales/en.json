@@ -175,9 +175,13 @@
       "all": "All tokens",
       "hiddenOnly": "Hidden only"
     },
+    "typeFilter": {
+      "all": "All",
+      "fungibles": "Fungible",
+      "nfts": "NFTs"
+    },
     "editVisibility": "Edit visibility",
-    "searchPlaceholder": "Search tokens...",
-    "searchMatches": "{count} search matches"
+    "searchPlaceholder": "Search tokens..."
   },
   "tokenItem": {
     "name": "Name:",
@@ -389,16 +393,22 @@
       "tokenTxs": "Token txs",
       "dateRange": "Filter range:"
     },
+    "directionFilter": {
+      "all": "All",
+      "incoming": "Incoming",
+      "outgoing": "Outgoing"
+    },
     "showFiatValue": "Show fiat value",
     "hideBalanceColumn": "Hide balance",
     "exportCsv": "Export CSV",
     "exportFailed": "CSV export failed",
-    "columns": {
-      "date": "Date",
-      "amount": "Amount",
-      "balance": "Balance",
-      "tokens": "Tokens"
-    },
+    "searchPlaceholder": "Search token or tx id...",
+    "noMatch": "No transactions match filter",
+    "sent": "Sent",
+    "received": "Received",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "balanceLabel": "Balance:",
     "csv": {
       "date": "Date (UTC)",
       "transactionId": "Transaction Id",
@@ -654,19 +664,19 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Addresses",
-    "receivingAddresses": "Receiving Addresses",
-    "changeAddresses": "Change Addresses",
+    "intro": "An overview of all the wallet's addresses, grouped by used and unused.",
+    "infoReceivingChange": "Receiving addresses are the addresses you share to get paid. Change addresses are used internally: when sending a transaction, the wallet returns the leftover change to a fresh change address of its own.",
+    "infoPrivacyNote": "Using a new address for each payment helps protect your privacy.",
+    "currentTag": "current",
+    "receiving": "Receiving",
+    "change": "Change",
     "usedAddresses": "Used",
     "unusedAddresses": "Unused",
     "noAddresses": "No addresses scanned yet",
+    "options": "Options",
     "hideZeroBalances": "Hide zero balances",
     "showTokenAddresses": "Show addresses in token format",
-    "columns": {
-      "index": "Index",
-      "address": "Address",
-      "balance": "Balance",
-      "txs": "Txs"
-    }
+    "txCount": "{count} txs"
   },
   "sweepPrivateKey": {
     "title": "Sweep Private Key",

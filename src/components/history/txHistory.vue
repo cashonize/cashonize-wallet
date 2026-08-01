@@ -1,12 +1,11 @@
 <script setup lang="ts">
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
-  import { computed, ref, watch } from 'vue';
+  import { computed, ref, watch, nextTick, onActivated, onDeactivated } from 'vue';
   import { useWindowSize } from 'src/utils/composables';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
-  import EmojiItem from '../general/emojiItem.vue';
-  import { formatTimestamp, formatTime, formatFiatAmount } from 'src/utils/utils';
+  import { formatTime, formatFiatAmount } from 'src/utils/utils';
   import { historyToCsv } from 'src/utils/csvUtils';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
@@ -18,25 +17,56 @@
   const $q = useQuasar()
   const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
   const itemsPerPage = 100
-  const { width } = useWindowSize();
-  const isMobile = computed(() => width.value <= 600)
-  const hideUnit = computed(() => width.value <= 500)
 
   // state options menu
   const showOptions = ref(false)
   const showFiatValue = ref(settingsStore.showFiatValueHistory)
   const hideBalance = ref(settingsStore.hideBalanceColumn)
   const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");
+  const directionFilter = ref("all" as "all" | "incoming" | "outgoing");
   const dateFrom = ref("");
   const dateTo = ref("");
+  const searchQuery = ref("");
+  const searchInputRef = ref<HTMLInputElement | null>(null);
+  const { width } = useWindowSize();
+  const isMobile = computed(() => width.value <= 600);
+  // On mobile the search input hides behind a search icon until toggled open
+  const showSearch = ref(false);
+
+  async function toggleSearch() {
+    if (showSearch.value) {
+      showSearch.value = false;
+      searchQuery.value = "";
+      return;
+    }
+    showSearch.value = true;
+    // the input is behind a v-if, wait for the DOM update before focusing it
+    await nextTick();
+    searchInputRef.value?.focus();
+  }
+
+  const directionOptions = [
+    { value: "all", label: "history.directionFilter.all" },
+    { value: "incoming", label: "history.directionFilter.incoming" },
+    { value: "outgoing", label: "history.directionFilter.outgoing" },
+  ] as const;
 
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
 
-  // Auto-hide balance column on small screens
-  watch(() => width.value <= 450, (isSmallScreen) => {
-    if (isSmallScreen) hideBalance.value = true
-  }, { immediate: true })
+  // Override Ctrl+F to focus the search input.
+  function handleCtrlF(event: KeyboardEvent) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+      event.preventDefault();
+      showSearch.value = true;
+      // the input is behind a v-if, wait for the DOM update before focusing it
+      void nextTick().then(() => searchInputRef.value?.focus());
+    }
+  }
+
+  // Listener added/removed on KeepAlive activate/deactivate so it only applies while this view is active.
+  onActivated(() => document.addEventListener('keydown', handleCtrlF));
+  onDeactivated(() => document.removeEventListener('keydown', handleCtrlF));
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
@@ -52,6 +82,8 @@
     let history = store.walletHistory;
     if (selectedFilter.value === "bchTransactions") history = history?.filter(tx => !tx.tokenAmountChanges.length);
     if (selectedFilter.value === "tokenTransactions") history = history?.filter(tx => tx.tokenAmountChanges.length);
+    if (directionFilter.value === "incoming") history = history?.filter(tx => isIncoming(tx));
+    if (directionFilter.value === "outgoing") history = history?.filter(tx => !isIncoming(tx));
     const fromTimestamp = dateFrom.value ? localDayStart(dateFrom.value) : undefined;
     const untilTimestamp = dateTo.value ? localDayStart(dateTo.value, 1) : undefined;
     if (fromTimestamp !== undefined || untilTimestamp !== undefined) {
@@ -66,15 +98,112 @@
     return history;
   });
 
-  watch([selectedFilter, dateFrom, dateTo], () => { currentPage.value = 1 });
+  function txMatchesSearch(tx: TransactionHistoryItem, query: string): boolean {
+    if (tx.hash.toLowerCase().includes(query)) return true;
+    return tx.tokenAmountChanges.some(tokenChange => {
+      if (tokenChange.category.toLowerCase().includes(query)) return true;
+      const metadata = store.bcmrRegistries?.[tokenChange.category];
+      if (!metadata) return false;
+      if (metadata.name.toLowerCase().includes(query)) return true;
+      if (metadata.token.symbol.toLowerCase().includes(query)) return true;
+      return false;
+    });
+  }
 
-  const transactionCount = computed(() => selectedHistory.value?.length);
+  const searchedHistory = computed(() => {
+    const query = searchQuery.value.toLowerCase().trim();
+    if (!query) return selectedHistory.value;
+    return selectedHistory.value?.filter(tx => txMatchesSearch(tx, query));
+  });
+
+  watch([selectedFilter, directionFilter, dateFrom, dateTo, searchQuery], () => { currentPage.value = 1 });
+
+  const transactionCount = computed(() => searchedHistory.value?.length);
 
   const paginatedHistory = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage
-    return selectedHistory.value?.slice(start, start + itemsPerPage)
+    return searchedHistory.value?.slice(start, start + itemsPerPage)
   })
-  const totalPages = computed(() => Math.ceil((selectedHistory.value?.length ?? 0) / itemsPerPage))
+  const totalPages = computed(() => Math.ceil((searchedHistory.value?.length ?? 0) / itemsPerPage))
+
+  // Group consecutive transactions by calendar day (history is sorted newest first).
+  // Pending transactions have no timestamp and group under their own header.
+  function dayLabel(timestamp: number | undefined): string {
+    if (!timestamp) return t('history.pending');
+    const date = new Date(timestamp * 1000);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return t('history.today');
+    if (date.toDateString() === yesterday.toDateString()) return t('history.yesterday');
+    return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  const groupedHistory = computed(() => {
+    const groups: { label: string; transactions: TransactionHistoryItem[] }[] = [];
+    for (const transaction of paginatedHistory.value ?? []) {
+      const label = dayLabel(transaction.timestamp);
+      let lastGroup = groups[groups.length - 1];
+      if (lastGroup?.label !== label) {
+        lastGroup = { label, transactions: [] };
+        groups.push(lastGroup);
+      }
+      lastGroup.transactions.push(transaction);
+    }
+    return groups;
+  });
+
+  // Direction is derived from the net BCH change: receiving (BCH or tokens) always adds
+  // value, while a wallet-authored transaction always pays the fee so its net is negative
+  function isIncoming(transaction: TransactionHistoryItem): boolean {
+    return transaction.valueChange >= 0;
+  }
+
+  interface TokenChangeChip {
+    key: string;
+    category: string;
+    amountText: string;
+    symbol: string;
+    negative: boolean;
+  }
+
+  // Tokens like BADGER have both fungibles and NFTs with the same category in user wallets,
+  // so one token change can yield both a fungible chip and an NFT chip
+  function tokenChangeChips(transaction: TransactionHistoryItem): TokenChangeChip[] {
+    const chips: TokenChangeChip[] = [];
+    for (const tokenChange of transaction.tokenAmountChanges) {
+      const tokenMetadata = store.bcmrRegistries?.[tokenChange.category]?.token;
+      const symbol = tokenMetadata?.symbol ?? tokenChange.category.slice(0, 8);
+      const decimals = tokenMetadata?.decimals ?? 0;
+      // Show the fungible change for any nonzero amount. When there is no NFT change either,
+      // still show it (as "0") so a token change never renders without a chip.
+      if (tokenChange.amount !== 0n || tokenChange.nftAmount === 0n) {
+        const amount = Number(tokenChange.amount) / 10 ** decimals;
+        chips.push({
+          key: tokenChange.category + "-ft",
+          category: tokenChange.category,
+          amountText: `${amount > 0 ? '+' : ''}${amount.toLocaleString("en-US", { maximumFractionDigits: decimals })}`,
+          symbol,
+          negative: amount < 0,
+        });
+      }
+      if (tokenChange.nftAmount !== 0n) {
+        chips.push({
+          key: tokenChange.category + "-nft",
+          category: tokenChange.category,
+          amountText: `${tokenChange.nftAmount > 0n ? '+' : ''}${tokenChange.nftAmount}`,
+          symbol: `${symbol} NFT`,
+          negative: tokenChange.nftAmount < 0n,
+        });
+      }
+    }
+    return chips;
+  }
+
+  function formatBchAmount(satoshis: number, signed = false): string {
+    const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: 5 });
+    return signed && satoshis > 0 ? `+${amount}` : amount;
+  }
 
   function toggleOptions() {
     showOptions.value = !showOptions.value
@@ -91,7 +220,7 @@
   }
 
   function exportCsv() {
-    const csvContent = historyToCsv(selectedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value);
+    const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value);
     const status = exportFile("cashonize-tx-history.csv", csvContent, { mimeType: "text/csv" });
     if (status !== true) $q.notify({ message: t('history.exportFailed'), icon: 'warning', color: "red" });
   }
@@ -105,16 +234,21 @@
     <fieldset class="item" v-if="store.walletHistory?.length">
       <legend>{{ t('history.title') }}</legend>
 
-      <div class="filter-row">
-        <div v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: transactionCount?.toLocaleString("en-US") }) }}</div>
-        <div v-else>{{ t('history.transactionCount', { count: transactionCount?.toLocaleString("en-US") }) }}</div>
-        <span class="options-toggle" @click="toggleOptions">
-          {{ t('history.options') }}
-          <img
-            class="icon"
-            :class="{ 'expanded': showOptions }"
-            :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
-          >
+      <div class="control-row">
+        <div class="type-filter">
+          <button
+            v-for="option in directionOptions"
+            :key="option.value"
+            :class="{ active: directionFilter === option.value }"
+            @click="directionFilter = option.value"
+          >{{ t(option.label) }}</button>
+        </div>
+        <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input">
+        <span v-if="isMobile" class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
+          <q-icon name="search" size="22px" />
+        </span>
+        <span class="options-toggle" :class="{ active: showOptions }" :title="t('history.options')" @click="toggleOptions">
+          <q-icon name="tune" size="22px" />
         </span>
       </div>
 
@@ -146,89 +280,57 @@
         </div>
       </div>
 
-      <!-- CSS Grid table: provides fixed column widths unaffected by content like images -->
-      <div class="tx-table" :class="{ 'hide-balance': hideBalance }">
-        <div class="tx-header tx-row">
-          <div class="tx-cell"></div>
-          <div class="tx-cell">{{ t('history.columns.date') }}</div>
-          <div class="tx-cell">{{ t('history.columns.amount') }}</div>
-          <div class="tx-cell balance-header" v-if="!hideBalance">{{ t('history.columns.balance') }}</div>
-          <div class="tx-cell tokens-header">{{ t('history.columns.tokens') }}</div>
-        </div>
-        <div class="tx-body">
+      <div v-if="searchedHistory?.length === 0" style="text-align: center; padding: 20px 0;">{{ t('history.noMatch') }}</div>
+
+      <div class="tx-list">
+        <template v-for="group in groupedHistory" :key="group.transactions[0]?.hash">
+          <div class="date-header">{{ group.label }}</div>
           <div
-            class="tx-row"
-            v-for="(transaction, index) in paginatedHistory"
+            class="tx-item"
+            v-for="transaction in group.transactions"
             :key="transaction.hash"
             @click="() => selectedTransaction = transaction"
-            :class="[settingsStore.darkMode ? 'dark' : '', index % 2 === 1 ? 'even' : '']"
           >
-
-            <div class="tx-cell status-cell"><EmojiItem :emoji="transaction.timestamp ? '✅' : '⏳'" :size-px="isMobile ? 14 : 16" style="vertical-align: sub;"/> </div>
-
-            <div class="tx-cell" v-if="isMobile">
-              <div v-if="transaction.timestamp" style="line-height: 1.3">
-                <div>{{ formatTimestamp(transaction.timestamp, settingsStore.dateFormat, true) }}</div>
-                <div>{{ formatTime(transaction.timestamp) }}</div>
-              </div>
-              <div v-else>{{ t('history.pending') }}</div>
+            <div class="tx-direction" :class="[isIncoming(transaction) ? 'received' : 'sent', { pending: !transaction.timestamp }]">
+              <q-icon :name="isIncoming(transaction) ? 'arrow_downward' : 'arrow_upward'" size="20px" />
             </div>
-            <div class="tx-cell" v-else>{{ formatTimestamp(transaction.timestamp, settingsStore.dateFormat) }}</div>
-
-            <div class="tx-cell value" :class="{ 'negative': transaction.valueChange < 0 }">
-              {{ `${transaction.valueChange > 0 ? '+' : '' }${(transaction.valueChange / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5})}`}}
-              {{ hideUnit ? "" : bchDisplayUnit }}
-              <div v-if="settingsStore.showFiatValueHistory && store.exchangeRate !== undefined">
-                ({{`${transaction.valueChange > 0 ? '+' : '' }` + formatFiatAmount(store.exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency)}})
-              </div>
+            <div class="tx-info">
+              <div class="tx-type">{{ isIncoming(transaction) ? t('history.received') : t('history.sent') }}</div>
+              <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
             </div>
-
-            <div class="tx-cell value" v-if="!hideBalance">
-              {{ (transaction.balance / 100_000_000).toLocaleString("en-US", {minimumFractionDigits: 5, maximumFractionDigits: 5}) }}
-              {{ hideUnit ? "" : bchDisplayUnit }}
-              <div v-if="settingsStore.showFiatValueHistory && store.exchangeRate !== undefined">
-                ~{{formatFiatAmount(store.exchangeRate * transaction.balance / 100_000_000, settingsStore.currency) }}
+            <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
+              <div class="token-chip" v-for="chip in tokenChangeChips(transaction)" :key="chip.key">
+                <TokenIcon
+                  :token-id="chip.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
+                  :size="22"
+                />
+                <span class="value" :class="{ negative: chip.negative, positive: !chip.negative }">{{ chip.amountText }}</span>
+                <span class="chip-symbol">{{ chip.symbol }}</span>
               </div>
             </div>
-
-            <div class="tx-cell tokenChange">
-               <!-- Tokens like BADGER have both fungibles and NFTs with the same category in user wallets -->
-              <div class="tokenChangeItem" v-for="tokenChange in transaction.tokenAmountChanges" :key="tokenChange.category">
-                <span v-if="tokenChange.amount !== 0n || tokenChange.nftAmount == 0n">
-                  <span v-if="tokenChange.amount > 0n" class="value">+{{
-                    (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.category]?.token.decimals ?? 0)).toLocaleString("en-US") }}
-                  </span>
-                  <span v-else class="value negative">
-                    {{ (Number(tokenChange.amount) / 10**(store.bcmrRegistries?.[tokenChange.category]?.token.decimals ?? 0)).toLocaleString("en-US") }}
-                  </span>
-                  <span> {{ " " + (store.bcmrRegistries?.[tokenChange.category]?.token?.symbol ?? tokenChange.category.slice(0, 8)) }}</span>
-                  <TokenIcon
-                    v-if="tokenChange.amount"
-                    class="historyTokenIcon"
-                    :token-id="tokenChange.category"
-                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenChange.category) : undefined"
-                    :size="28"
-                  />
-                </span>
-                <span v-if="tokenChange.nftAmount" class="nftChange">
-                  <span v-if="tokenChange.nftAmount > 0n" class="value">+{{ tokenChange.nftAmount }}</span>
-                  <span v-else class="value negative">{{ tokenChange.nftAmount }}</span>
-                  <span>
-                    {{ " " + (store.bcmrRegistries?.[tokenChange.category]?.token?.symbol ?? tokenChange.category.slice(0, 8)) }} NFT
-                  </span>
-                  <TokenIcon
-                    v-if="tokenChange.nftAmount"
-                    class="historyTokenIcon"
-                    :token-id="tokenChange.category"
-                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenChange.category) : undefined"
-                    :size="28"
-                  />
-                </span>
+            <div class="tx-amounts">
+              <div class="tx-amount-line">
+                <div class="tx-bch" :class="transaction.valueChange < 0 ? 'negative' : 'positive'">
+                  {{ formatBchAmount(transaction.valueChange, true) }} {{ bchDisplayUnit }}
+                </div>
+                <div class="tx-fiat" v-if="settingsStore.showFiatValueHistory && store.exchangeRate !== undefined">
+                  ({{ `${transaction.valueChange > 0 ? '+' : ''}` + formatFiatAmount(store.exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency) }})
+                </div>
+              </div>
+              <div class="tx-balance" v-if="!hideBalance">
+                {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
               </div>
             </div>
           </div>
-        </div>
+        </template>
       </div>
+
+      <div class="tx-count">
+        <span v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: transactionCount?.toLocaleString("en-US") }) }}</span>
+        <span v-else>{{ t('history.transactionCount', { count: transactionCount?.toLocaleString("en-US") }) }}</span>
+      </div>
+
       <q-pagination
         v-if="totalPages > 1"
         v-model="currentPage"
@@ -255,20 +357,63 @@
   padding: 15px 0;
 }
 
-.filter-row {
+.control-row {
   display: flex;
   align-items: baseline;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 10px 12px;
   margin: 10px 0;
 }
 
-.options-toggle {
+.options-toggle,
+.search-toggle {
   cursor: pointer;
   user-select: none;
+  opacity: 0.8;
 }
 
-.expanded {
-  transform: rotate(180deg);
+/* icons are taller than the lowercase text, drop them slightly below the
+   baseline so they read as vertically centered next to it */
+.options-toggle .q-icon,
+.search-toggle .q-icon {
+  vertical-align: -0.2em;
+}
+
+.options-toggle.active,
+.search-toggle.active {
+  color: var(--color-primary);
+  opacity: 1;
+}
+
+.search-input {
+  width: 180px;
+  padding: 4px 10px;
+  margin-left: auto;
+}
+
+/* segmented pill bar for the transaction direction filter */
+.type-filter {
+  display: inline-flex;
+  background-color: rgba(128, 128, 128, 0.12);
+  border-radius: 20px;
+  padding: 3px;
+  margin-bottom: 10px;
+}
+
+.type-filter button {
+  border: none;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 17px;
+  padding: 4px 16px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.type-filter button.active {
+  background-color: var(--color-primary);
+  color: white;
 }
 
 .options-panel {
@@ -329,72 +474,110 @@
   font-size: 0.9em;
 }
 
-.tx-table {
-  width: 100%;
-  overflow-x: auto;
+.date-header {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin: 14px 2px 6px;
 }
 
-/* each row is its own grid, so column tracks must be content-independent (px or fr)
-   to stay aligned across rows: date and tokens get fixed widths sized to their content,
-   the flexible space goes to the amount and balance columns */
-.tx-row {
-  display: grid;
-  grid-template-columns: 45px 130px 1fr 1fr 200px;
-  column-gap: 8px;
-  min-width: 550px;
+/* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
+.tx-item {
+  display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  background-color: rgba(128, 128, 128, 0.06);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.hide-balance .tx-row {
-  grid-template-columns: 45px 1fr minmax(100px, 150px) minmax(150px, 1fr);
-  min-width: 400px;
+.tx-item:hover {
+  background-color: rgba(128, 128, 128, 0.14);
 }
 
-.hide-balance .tx-cell.value,
-.hide-balance .tx-header .tx-cell:nth-child(3) {
-  text-align: center;
+.tx-direction {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.tx-header {
-  font-weight: bold;
-  cursor: default;
-  border-bottom: 1px solid var(--color-border);
+.tx-direction.received {
+  background-color: rgba(10, 193, 143, 0.15);
+  color: var(--color-primary);
 }
 
-.tx-cell.tokens-header {
-  text-align: right;
-  padding-right: 40px;
+.tx-direction.sent {
+  background-color: rgba(128, 128, 128, 0.15);
+  color: var(--color-grey);
 }
 
-.tx-body .tx-row.even {
-  background-color: var(--color-background-soft);
-}
-.tx-body .tx-row.dark.even {
-  background-color: #232326;
+.tx-direction.pending {
+  background-color: rgba(230, 162, 60, 0.18);
+  color: #e6a23c;
 }
 
-.tx-body {
-  font-size: smaller;
-}
-
-.tx-body .tx-row {
-  min-height: 67px;
-}
-
-.tx-cell {
-  padding: 12px 2px;
+.tx-info {
   min-width: 0;
 }
 
-.tx-cell.status-cell {
-  padding-left: 10px;
+.tx-type {
+  font-weight: 600;
+}
+
+.tx-time {
+  font-size: 0.85em;
+  opacity: 0.65;
+}
+
+.tx-amounts {
+  margin-left: auto;
+  text-align: right;
+}
+
+.tx-amount-line {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.tx-bch {
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.tx-fiat {
+  font-size: 0.85em;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.tx-balance {
+  font-size: 0.8em;
+  opacity: 0.6;
+  white-space: nowrap;
 }
 
 .value {
   font-family: monospace;
   white-space: nowrap;
 }
+
+.positive {
+  color: var(--color-primary);
+}
+
 .negative {
   color: rgb(188, 30, 30);
 }
@@ -402,52 +585,63 @@ body.dark .negative {
   color: #ef9a9a;
 }
 
-.tokenChange {
+/* token changes render as wrapping chips on their own line below the main row, so any
+   number of tokens per transaction lays out cleanly; order moves them after the amounts,
+   which sit in the main row despite coming later in the DOM */
+.tx-tokens {
+  order: 5;
+  flex-basis: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  text-align: end;
-  gap: 4px;
-  padding-right: 6px;
-}
-.tokenChangeItem {
-  text-align: center;
-  word-break: break-word;
-}
-.nftChange {
-  display: block;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-right: 2px;
 }
 
-.historyTokenIcon {
-  margin-left: 5px;
-  vertical-align: middle;
+.token-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  background-color: rgba(128, 128, 128, 0.08);
+  border-radius: 14px;
+  padding: 2px 10px 2px 4px;
+  font-size: 0.85em;
+}
+
+.chip-symbol {
+  word-break: break-word;
+}
+
+.tx-count {
+  text-align: center;
+  font-size: 0.85em;
+  opacity: 0.6;
+  margin: 10px 0 4px;
 }
 
 @media only screen and (max-width: 600px) {
-  .tokens-header {
-    text-align: center;
-    padding-right: 0;
+  /* search moves to its own full-width line, the options toggle stays beside the pills */
+  .search-input {
+    order: 5;
+    flex-basis: 100%;
+    width: 100%;
+    margin-left: 0;
   }
-  .tokenChange {
-    align-items: center;
+  .search-toggle {
+    margin-left: auto;
   }
-  .tx-row {
-    grid-template-columns: 34px 66px 1fr 1fr 132px;
-    column-gap: 4px;
-    min-width: 330px;
+  .type-filter button {
+    padding: 4px 12px;
+    font-size: 0.85em;
   }
-  .hide-balance .tx-row {
-    grid-template-columns: 34px 66px 1fr 1fr;
-    min-width: 260px;
+  .tx-amount-line {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
   }
-  .tx-body {
-    font-size: small;
-  }
-  .historyTokenIcon {
-    display: block;
-    width: fit-content;
-    margin: 4px auto 0;
+  .tx-item {
+    padding: 8px 10px;
   }
 }
 
@@ -455,26 +649,8 @@ body.dark .negative {
   fieldset {
     padding: .5rem .5rem;
   }
-  .tx-row {
-    grid-template-columns: 31px 62px minmax(70px, 1fr) minmax(70px, 1fr) 110px;
-  }
-  .hide-balance .tx-row {
-    grid-template-columns: 31px 62px 1fr 1fr;
-  }
-  .filter-row {
-    margin-left: 0.5rem;
-  }
   legend {
     margin-left: 0.5rem;
-  }
-}
-
-@media only screen and (max-width: 400px) {
-  .tx-row {
-    grid-template-columns: 27px 62px minmax(70px, 1fr) minmax(70px, 1fr) 110px;
-  }
-  .hide-balance .tx-row {
-    grid-template-columns: 27px 62px 1fr 1fr;
   }
 }
 </style>
