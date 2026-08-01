@@ -387,10 +387,16 @@
     "transactionCount": "{count} Transacciones",
     "options": "Opciones",
     "filter": {
+      "label": "Mostrar:",
       "all": "Todas",
       "bchTxs": "Txs de BCH",
       "tokenTxs": "Txs de tokens",
       "dateRange": "Rango de fechas:"
+    },
+    "directionFilter": {
+      "all": "Todas",
+      "incoming": "Entrantes",
+      "outgoing": "Salientes"
     },
     "showFiatValue": "Mostrar valor en fiat",
     "hideBalanceColumn": "Ocultar saldo",

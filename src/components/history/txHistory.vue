@@ -23,6 +23,7 @@
   const showFiatValue = ref(settingsStore.showFiatValueHistory)
   const hideBalance = ref(settingsStore.hideBalanceColumn)
   const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");
+  const directionFilter = ref("all" as "all" | "incoming" | "outgoing");
   const dateFrom = ref("");
   const dateTo = ref("");
   const searchQuery = ref("");
@@ -43,10 +44,10 @@
     searchInputRef.value?.focus();
   }
 
-  const filterOptions = [
-    { value: "allTransactions", label: "history.filter.all" },
-    { value: "bchTransactions", label: "history.filter.bchTxs" },
-    { value: "tokenTransactions", label: "history.filter.tokenTxs" },
+  const directionOptions = [
+    { value: "all", label: "history.directionFilter.all" },
+    { value: "incoming", label: "history.directionFilter.incoming" },
+    { value: "outgoing", label: "history.directionFilter.outgoing" },
   ] as const;
 
   const currentPage = ref(1)
@@ -79,6 +80,8 @@
     let history = store.walletHistory;
     if (selectedFilter.value === "bchTransactions") history = history?.filter(tx => !tx.tokenAmountChanges.length);
     if (selectedFilter.value === "tokenTransactions") history = history?.filter(tx => tx.tokenAmountChanges.length);
+    if (directionFilter.value === "incoming") history = history?.filter(tx => isIncoming(tx));
+    if (directionFilter.value === "outgoing") history = history?.filter(tx => !isIncoming(tx));
     const fromTimestamp = dateFrom.value ? localDayStart(dateFrom.value) : undefined;
     const untilTimestamp = dateTo.value ? localDayStart(dateTo.value, 1) : undefined;
     if (fromTimestamp !== undefined || untilTimestamp !== undefined) {
@@ -111,7 +114,7 @@
     return selectedHistory.value?.filter(tx => txMatchesSearch(tx, query));
   });
 
-  watch([selectedFilter, dateFrom, dateTo, searchQuery], () => { currentPage.value = 1 });
+  watch([selectedFilter, directionFilter, dateFrom, dateTo, searchQuery], () => { currentPage.value = 1 });
 
   const transactionCount = computed(() => searchedHistory.value?.length);
 
@@ -232,10 +235,10 @@
       <div class="control-row">
         <div class="type-filter">
           <button
-            v-for="option in filterOptions"
+            v-for="option in directionOptions"
             :key="option.value"
-            :class="{ active: selectedFilter === option.value }"
-            @click="selectedFilter = option.value"
+            :class="{ active: directionFilter === option.value }"
+            @click="directionFilter = option.value"
           >{{ t(option.label) }}</button>
         </div>
         <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input">
@@ -248,6 +251,14 @@
       </div>
 
       <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
+        <div class="option-item">
+          <label for="filterTransactions">{{ t('history.filter.label') }}</label>
+          <select v-model="selectedFilter" name="filterTransactions">
+            <option value="allTransactions">{{ t('history.filter.all') }}</option>
+            <option value="bchTransactions">{{ t('history.filter.bchTxs') }}</option>
+            <option value="tokenTransactions">{{ t('history.filter.tokenTxs') }}</option>
+          </select>
+        </div>
         <div class="option-item date-range">
           <label for="dateFrom">{{ t('history.filter.dateRange') }}</label>
           <div class="date-inputs">
@@ -378,7 +389,7 @@
   margin-left: auto;
 }
 
-/* segmented pill bar for the transaction type filter */
+/* segmented pill bar for the transaction direction filter */
 .type-filter {
   display: inline-flex;
   background-color: rgba(128, 128, 128, 0.12);
@@ -422,6 +433,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.option-item select {
+  width: 100px;
+  padding: 2px 8px;
 }
 
 .option-item input[type="date"] {

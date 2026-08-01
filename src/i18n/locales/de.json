@@ -387,10 +387,16 @@
     "transactionCount": "{count} Transaktionen",
     "options": "Optionen",
     "filter": {
+      "label": "Anzeigen:",
       "all": "Alle",
       "bchTxs": "BCH-Txs",
       "tokenTxs": "Token-Txs",
       "dateRange": "Zeitraum:"
+    },
+    "directionFilter": {
+      "all": "Alle",
+      "incoming": "Eingehend",
+      "outgoing": "Ausgehend"
     },
     "showFiatValue": "Fiat-Wert anzeigen",
     "hideBalanceColumn": "Guthaben ausblenden",
