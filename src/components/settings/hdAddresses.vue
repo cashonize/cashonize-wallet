@@ -6,6 +6,7 @@
   import { useI18n } from 'vue-i18n'
   import { HDWallet, type TestNetHDWallet, GAP_SIZE } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
+  import InfoPopup from 'src/components/general/InfoPopup.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -24,6 +25,7 @@
 
   const receivingAddresses = ref<AddressRow[]>([]);
   const changeAddresses = ref<AddressRow[]>([]);
+  const currentDepositIndex = ref(0);
   const selectedChain = ref("receiving" as "receiving" | "change");
   const showOptions = ref(false);
   const hideZeroBalances = ref(false);
@@ -73,6 +75,11 @@
     return showTokenAddresses.value ? row.tokenAddress : row.address;
   }
 
+  // The address the wallet page QR currently hands out
+  function isCurrentAddress(row: AddressRow): boolean {
+    return selectedChain.value === "receiving" && row.index === currentDepositIndex.value;
+  }
+
   // On desktop show the address prefix (bitcoincash: / bchtest:), it makes the
   // format explicit and recognizable; mobile only has room for the truncated body
   function truncateAddress(address: string) {
@@ -113,6 +120,7 @@
     if (!(hdWallet instanceof HDWallet)) return;
     receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
     changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true);
+    currentDepositIndex.value = hdWallet.depositIndex;
   });
 </script>
 
@@ -143,6 +151,16 @@
       </div>
     </div>
 
+    <div class="intro">
+      {{ t('hdAddresses.intro') }}
+      <InfoPopup>
+        <div style="max-width: 320px;">
+          <div>{{ t('hdAddresses.infoReceivingChange') }}</div>
+          <div class="info-popup-note">{{ t('hdAddresses.infoPrivacyNote') }}</div>
+        </div>
+      </InfoPopup>
+    </div>
+
     <div v-if="!addressGroups.length" class="description">{{ t('hdAddresses.noAddresses') }}</div>
 
     <template v-for="group in addressGroups" :key="group.key">
@@ -153,6 +171,7 @@
       <template v-if="!collapsedGroups[group.key]">
         <div
           class="address-item"
+          :class="{ current: isCurrentAddress(row) }"
           v-for="row in group.rows"
           :key="row.index"
           :title="displayAddress(row)"
@@ -163,6 +182,7 @@
             <div class="address-text mono">
               {{ truncateAddress(displayAddress(row)) }}
               <img class="copyIcon" src="images/copyGrey.svg">
+              <span v-if="isCurrentAddress(row)" class="current-tag">{{ t('hdAddresses.currentTag') }}</span>
             </div>
             <div class="address-sub">
               {{ t('hdAddresses.txCount', { count: row.txCount }) }} ·
@@ -194,6 +214,10 @@
 </template>
 
 <style scoped>
+.intro {
+  margin: 10px 0;
+}
+
 .control-row {
   display: flex;
   align-items: baseline;
@@ -307,6 +331,18 @@
 
 .address-item:hover {
   background-color: rgba(128, 128, 128, 0.14);
+}
+
+.address-item.current {
+  border-color: rgba(10, 193, 143, 0.5);
+}
+
+.current-tag {
+  background-color: rgba(10, 193, 143, 0.15);
+  color: var(--color-primary);
+  border-radius: 10px;
+  padding: 0 8px;
+  margin-left: 2px;
 }
 
 .index-badge {

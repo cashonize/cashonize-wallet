@@ -664,6 +664,10 @@
   },
   "hdAddresses": {
     "title": "Direcciones de billetera HD",
+    "intro": "Un resumen de todas las direcciones de la billetera, agrupadas por usadas y sin usar.",
+    "infoReceivingChange": "Las direcciones de recepción se comparten para recibir pagos. Las direcciones de cambio se usan internamente: al enviar una transacción, la billetera devuelve el cambio restante a una nueva dirección de cambio propia.",
+    "infoPrivacyNote": "Usar una nueva dirección para cada pago ayuda a proteger la privacidad.",
+    "currentTag": "actual",
     "receiving": "Recepción",
     "change": "Cambio",
     "usedAddresses": "Usadas",

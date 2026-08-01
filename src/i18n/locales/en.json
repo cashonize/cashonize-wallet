@@ -664,6 +664,10 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Addresses",
+    "intro": "An overview of all the wallet's addresses, grouped by used and unused.",
+    "infoReceivingChange": "Receiving addresses are the addresses you share to get paid. Change addresses are used internally: when sending a transaction, the wallet returns the leftover change to a fresh change address of its own.",
+    "infoPrivacyNote": "Using a new address for each payment helps protect your privacy.",
+    "currentTag": "current",
     "receiving": "Receiving",
     "change": "Change",
     "usedAddresses": "Used",

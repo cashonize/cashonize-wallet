@@ -664,6 +664,10 @@
   },
   "hdAddresses": {
     "title": "Adresses du portefeuille HD",
+    "intro": "Un aperçu de toutes les adresses du portefeuille, regroupées par utilisées et non utilisées.",
+    "infoReceivingChange": "Les adresses de réception sont celles que vous partagez pour recevoir des paiements. Les adresses de monnaie sont utilisées en interne : lors d'un envoi, le portefeuille renvoie la monnaie restante vers une nouvelle adresse de monnaie qui lui appartient.",
+    "infoPrivacyNote": "Utiliser une nouvelle adresse pour chaque paiement aide à protéger la vie privée.",
+    "currentTag": "actuelle",
     "receiving": "Réception",
     "change": "Monnaie",
     "usedAddresses": "Utilisées",

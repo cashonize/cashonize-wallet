@@ -664,6 +664,10 @@
   },
   "hdAddresses": {
     "title": "Endereços da Carteira HD",
+    "intro": "Um resumo de todos os endereços da carteira, agrupados por usados e não usados.",
+    "infoReceivingChange": "Os endereços de recebimento são compartilhados para receber pagamentos. Os endereços de troco são usados internamente: ao enviar uma transação, a carteira devolve o troco restante para um novo endereço de troco próprio.",
+    "infoPrivacyNote": "Usar um novo endereço para cada pagamento ajuda a proteger a privacidade.",
+    "currentTag": "atual",
     "receiving": "Recebimento",
     "change": "Troco",
     "usedAddresses": "Usados",
