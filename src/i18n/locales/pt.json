@@ -664,19 +664,15 @@
   },
   "hdAddresses": {
     "title": "Endereços da Carteira HD",
-    "receivingAddresses": "Endereços de recebimento",
-    "changeAddresses": "Endereços de troco",
+    "receiving": "Recebimento",
+    "change": "Troco",
     "usedAddresses": "Usados",
     "unusedAddresses": "Não usados",
     "noAddresses": "Nenhum endereço escaneado ainda",
+    "options": "Opções",
     "hideZeroBalances": "Ocultar saldos zerados",
     "showTokenAddresses": "Mostrar endereços no formato de token",
-    "columns": {
-      "index": "Índice",
-      "address": "Endereço",
-      "balance": "Saldo",
-      "txs": "Txs"
-    }
+    "txCount": "{count} txs"
   },
   "sweepPrivateKey": {
     "title": "Sweep de Chave Privada",

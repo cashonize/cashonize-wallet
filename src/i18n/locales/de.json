@@ -664,19 +664,15 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Adressen",
-    "receivingAddresses": "Empfangsadressen",
-    "changeAddresses": "Wechseladressen",
+    "receiving": "Empfang",
+    "change": "Wechselgeld",
     "usedAddresses": "Verwendet",
     "unusedAddresses": "Unbenutzt",
     "noAddresses": "Noch keine Adressen gescannt",
+    "options": "Optionen",
     "hideZeroBalances": "Null-Guthaben ausblenden",
     "showTokenAddresses": "Adressen im Token-Format anzeigen",
-    "columns": {
-      "index": "Index",
-      "address": "Adresse",
-      "balance": "Guthaben",
-      "txs": "Txs"
-    }
+    "txCount": "{count} Txs"
   },
   "sweepPrivateKey": {
     "title": "Privaten Schlüssel sweepen",
