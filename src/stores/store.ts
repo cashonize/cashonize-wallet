@@ -499,7 +499,7 @@ export const useStore = defineStore('store', () => {
     plannedTokenId.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = undefined;
-    queriedHistoryCategories.clear();
+    queriedHistoryCategories = [];
     cauldronPrices.value = null;
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
@@ -711,7 +711,7 @@ export const useStore = defineStore('store', () => {
   let historyRequestId = 0;
   // Categories already queried for history metadata this session, so categories without
   // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
-  const queriedHistoryCategories = new Set<string>();
+  let queriedHistoryCategories: string[] = [];
   async function updateWalletHistory({ count = -1 }: { count?: number } = {}) {
     const requestId = ++historyRequestId;
     try {
@@ -731,12 +731,16 @@ export const useStore = defineStore('store', () => {
       // Fetch metadata for history tokens no longer in the wallet, so their names, icons
       // and decimals still display. Fire-and-forget: history renders right away and the
       // metadata fills in reactively.
-      const historyCategories = new Set(history.flatMap(tx => tx.tokenAmountChanges.map(change => change.category)));
-      const missingCategories = [...historyCategories].filter(
-        category => !bcmrRegistries.value?.[category] && !queriedHistoryCategories.has(category)
-      );
+      const missingCategories: string[] = [];
+      for (const tx of history) {
+        for (const tokenChange of tx.tokenAmountChanges) {
+          const category = tokenChange.category;
+          if (bcmrRegistries.value?.[category] || queriedHistoryCategories.includes(category)) continue;
+          queriedHistoryCategories.push(category);
+          missingCategories.push(category);
+        }
+      }
       if (missingCategories.length) {
-        missingCategories.forEach(category => queriedHistoryCategories.add(category));
         void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false);
       }
     } catch(error){
