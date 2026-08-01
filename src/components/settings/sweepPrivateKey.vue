@@ -153,15 +153,9 @@
       const allUtxosAreDustTokens = utxos.every(utxo => utxo.token !== undefined && utxo.satoshis <= 1000n);
       insufficientFeeBch.value = hasTokens && allUtxosAreDustTokens;
 
-      // Fetch BCMR metadata for tokens the user doesn't currently own (or that are missing
-      // from the store's registries). Gate on ownership, not registry presence: the global
-      // registries also hold metadata for past-held history tokens, which should still
-      // display as unverified here
+      // Fetch BCMR metadata for tokens not already in the store's registries
       const categories = new Set(previewTokenList.value.map(token => token.category));
-      const categoriesToFetch = [...categories].filter(category => {
-        const userOwnsToken = store.tokenList?.some(token => token.category === category);
-        return !userOwnsToken || !store.bcmrRegistries?.[category];
-      });
+      const categoriesToFetch = [...categories].filter(category => !store.bcmrRegistries?.[category]);
       const fetchPromises = categoriesToFetch.map(category => fetchUnverifiedTokenInfo(category));
       await Promise.all(fetchPromises);
 
