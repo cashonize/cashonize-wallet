@@ -115,7 +115,10 @@
   const ftCategories = Object.keys(ftNetChanges);
   const tokenCategories = new Set([...nftCategories, ...ftCategories]);
   for (const categoryHex of tokenCategories) {
-    if (!store.bcmrRegistries?.[categoryHex]) {
+    // Gate on current ownership, not registry presence: the global registries also hold
+    // metadata for past-held history tokens, which should still display as unverified here
+    const userOwnsToken = store.tokenList?.some(t => t.category === categoryHex);
+    if (!userOwnsToken || !store.bcmrRegistries?.[categoryHex]) {
       void fetchUnverifiedTokenInfo(categoryHex);
     }
   }

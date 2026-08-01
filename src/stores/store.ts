@@ -499,6 +499,7 @@ export const useStore = defineStore('store', () => {
     plannedTokenId.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = undefined;
+    queriedHistoryCategories.clear();
     cauldronPrices.value = null;
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
@@ -708,6 +709,9 @@ export const useStore = defineStore('store', () => {
   // Fetches wallet history via mainnet-js getHistory().
   // When called with a capped count, auto-schedules a full background refresh via requestIdleCallback.
   let historyRequestId = 0;
+  // Categories already queried for history metadata this session, so categories without
+  // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
+  const queriedHistoryCategories = new Set<string>();
   async function updateWalletHistory({ count = -1 }: { count?: number } = {}) {
     const requestId = ++historyRequestId;
     try {
@@ -723,6 +727,17 @@ export const useStore = defineStore('store', () => {
         // Schedule full history load when idle, fall back to setTimeout for unsupported environments
         const loadFullHistoryCallback = () => void updateWalletHistory();
         'requestIdleCallback' in globalThis ? requestIdleCallback(loadFullHistoryCallback) : setTimeout(loadFullHistoryCallback, 1000);
+      }
+      // Fetch metadata for history tokens no longer in the wallet, so their names, icons
+      // and decimals still display. Fire-and-forget: history renders right away and the
+      // metadata fills in reactively.
+      const historyCategories = new Set(history.flatMap(tx => tx.tokenAmountChanges.map(change => change.category)));
+      const missingCategories = [...historyCategories].filter(
+        category => !bcmrRegistries.value?.[category] && !queriedHistoryCategories.has(category)
+      );
+      if (missingCategories.length) {
+        missingCategories.forEach(category => queriedHistoryCategories.add(category));
+        void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false);
       }
     } catch(error){
       console.error(error)
