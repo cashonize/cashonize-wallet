@@ -27,6 +27,7 @@
       return;
     }
     showSearch.value = true;
+    // the input is behind a v-if, wait for the DOM update before focusing it
     await nextTick();
     searchInputRef.value?.focus();
   }
@@ -36,6 +37,7 @@
     if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
       event.preventDefault();
       showSearch.value = true;
+      // the input is behind a v-if, wait for the DOM update before focusing it
       void nextTick().then(() => searchInputRef.value?.focus());
     }
   }
