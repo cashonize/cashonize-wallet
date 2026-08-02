@@ -23,6 +23,53 @@ export const DERIVATION_PATHS = {
   },
 } as const;
 
+export type DerivationPathDetectionResult = DerivationPathType | "both" | "none";
+
+export interface DerivationPathScanResult {
+  path: DerivationPathDetectionResult;
+  multipleAddressesUsed: boolean;
+}
+
+/**
+ * Scans which supported derivation path a seed phrase has on-chain activity on,
+ * by checking the transaction history of the first address of each path.
+ * BIP44 wallets fill addresses starting at index 0, so a used wallet is expected
+ * to have history on its first address. For paths with activity, the next two
+ * receive addresses are also checked: activity there means the seed phrase was
+ * used as an HD wallet, so a single address import would miss funds.
+ */
+export async function scanDerivationPaths(seedPhrase: string): Promise<DerivationPathScanResult> {
+  const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
+
+  async function addressHasActivity(fullDerivationPath: string): Promise<boolean> {
+    const addressWallet = await Wallet.fromSeed(normalizedSeedPhrase, fullDerivationPath);
+    const history = await addressWallet.getRawHistory();
+    return history.length > 0;
+  }
+
+  const [standardUsed, bitcoindotcomUsed] = await Promise.all([
+    addressHasActivity(DERIVATION_PATHS.standard.full),
+    addressHasActivity(DERIVATION_PATHS.bitcoindotcom.full),
+  ]);
+
+  const usedPaths: DerivationPathType[] = [];
+  if (standardUsed) usedPaths.push("standard");
+  if (bitcoindotcomUsed) usedPaths.push("bitcoindotcom");
+
+  const laterAddressPaths = usedPaths.flatMap((path) =>
+    [1, 2].map((addressIndex) => `${DERIVATION_PATHS[path].parent}/0/${addressIndex}`)
+  );
+  const laterAddressResults = await Promise.all(laterAddressPaths.map(addressHasActivity));
+  const multipleAddressesUsed = laterAddressResults.includes(true);
+
+  let path: DerivationPathDetectionResult = "none";
+  if (standardUsed && bitcoindotcomUsed) path = "both";
+  else if (standardUsed) path = "standard";
+  else if (bitcoindotcomUsed) path = "bitcoindotcom";
+
+  return { path, multipleAddressesUsed };
+}
+
 export interface CreateWalletResult {
   success: true;
   walletName: string;

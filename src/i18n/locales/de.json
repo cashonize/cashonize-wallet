@@ -112,11 +112,6 @@
       "singleDescription": "Verwendet eine feste Adresse für alle Transaktionen. Alle Vermögenswerte an einem Ort, aber weniger privat. Die WizardConnect-Verbindungsmethode wird nicht unterstützt.",
       "singleAddressNote": "Hinweis: Nur die erste Adresse deiner seed phrase wird verwendet. Wenn du diese seed phrase bereits mit anderen Wallets verwendet hast, werden Guthaben auf anderen Adressen nicht angezeigt."
     },
-    "derivationPath": {
-      "label": "Derivation Path:",
-      "standard": "Standard",
-      "bitcoindotcom": "Bitcoin.com Wallet"
-    },
     "preferences": {
       "title": "Einstellungen festlegen",
       "description": "Fast fertig! Konfiguriere deine Einstellungen unten.",
@@ -521,11 +516,6 @@
       "hint": "Oder stelle ein Wallet mit deiner bestehenden seed phrase wieder her.",
       "button": "Bestehendes Wallet importieren"
     },
-    "derivationPath": {
-      "label": "Ableitungspfad:",
-      "standard": "Standard",
-      "bitcoindotcom": "Bitcoin.com Wallet"
-    },
     "singleAddressNote": "Hinweis: Nur die erste Adresse deiner seed phrase wird verwendet. Wenn du diese seed phrase bereits mit anderen Wallets verwendet hast, werden Guthaben auf anderen Adressen nicht angezeigt.",
     "importButton": "Importieren"
   },
@@ -708,6 +698,18 @@
       "notMainnetWif": "Kein QR-Code, der einen Mainnet-Privatschlüssel im WIF-Format enthält",
       "notChipnetWif": "Kein QR-Code, der einen Chipnet-Privatschlüssel im WIF-Format enthält"
     }
+  },
+  "derivationPathSelect": {
+    "label": "Ableitungspfad:",
+    "standard": "Standard",
+    "bitcoindotcom": "Bitcoin.com Wallet",
+    "scanPrompt": "Unsicher? {link}",
+    "scanLinkText": "Beide Pfade prüfen",
+    "scanning": "Suche nach Wallet-Aktivität...",
+    "detected": "Wallet-Aktivität gefunden, {path} ausgewählt",
+    "detectedBoth": "Wallet-Aktivität auf beiden Ableitungspfaden gefunden",
+    "noneFound": "Keine Wallet-Aktivität auf einem der beiden Ableitungspfade gefunden",
+    "multiAddressWarning": "Diese seed phrase wurde mit mehreren Adressen verwendet. Ein Wallet mit einzelner Adresse zeigt diese Guthaben nicht an. Ein HD Wallet wird empfohlen."
   },
   "seedPhraseInput": {
     "label": "Seed phrase:",

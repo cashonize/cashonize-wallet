@@ -3,9 +3,10 @@
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { namedWalletExistsInDb } from 'src/utils/dbUtils'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, DERIVATION_PATHS } from 'src/utils/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import seedPhraseInput from '../general/seedPhraseInput.vue'
+  import derivationPathSelect from '../general/derivationPathSelect.vue'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const $q = useQuasar()
@@ -179,11 +180,7 @@
       <div style="margin-bottom: 15px;">
         <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
         <div style="margin-top: 15px;">
-          <label>{{ t('addWallet.derivationPath.label') }} </label>
-          <select v-model="selectedDerivationPath">
-            <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('addWallet.derivationPath.standard') }})</option>
-            <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('addWallet.derivationPath.bitcoindotcom') }})</option>
-          </select>
+          <derivationPathSelect v-model="selectedDerivationPath" :seed-phrase="seedPhrase" :seed-phrase-valid="seedPhraseValid" :wallet-type="walletType" />
         </div>
         <input
           @click="importWallet()"
