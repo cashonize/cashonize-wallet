@@ -160,7 +160,8 @@
     }
   },
   "tokens": {
-    "loading": "Lade Token-Daten...",
+    "loading": "Lade Token-Daten",
+    "loadingFailed": "Token-Daten konnten nicht geladen werden",
     "count": "{count} Tokens",
     "favoriteCount": "{count} Favoriten-Tokens",
     "hiddenCount": "{count} versteckte Tokens",
@@ -381,7 +382,8 @@
     }
   },
   "history": {
-    "loading": "Lade Transaktionshistorie...",
+    "loading": "Lade Transaktionshistorie",
+    "loadingFailed": "Transaktionshistorie konnte nicht geladen werden",
     "noTransactions": "Keine Transaktionen in diesem Wallet",
     "title": "Transaktionshistorie",
     "transactionCount": "{count} Transaktionen",
@@ -418,7 +420,7 @@
     },
     "pending": "ausstehend",
     "transactionCountPartial": "{count}+ Transaktionen",
-    "loadingFullHistory": "Lade vollständige Historie..."
+    "loadingFullHistory": "Lade vollständige Historie"
   },
   "transactionDialog": {
     "title": "Transaktion",

@@ -228,7 +228,10 @@
 
 <template>
   <div>
-    <div v-if="store.walletHistory == undefined" style="text-align: center;">{{ t('history.loading') }}</div>
+    <div v-if="store.walletHistory == undefined" style="text-align: center;">
+      <template v-if="store.walletInitFailed">{{ t('history.loadingFailed') }}</template>
+      <template v-else>{{ t('history.loading') }} <q-spinner-dots size="1.2em" /></template>
+    </div>
     <div v-if="store.walletHistory?.length == 0" style="text-align: center;">{{ t('history.noTransactions') }}</div>
 
     <fieldset class="item" v-if="store.walletHistory?.length">
@@ -340,7 +343,7 @@
         boundary-numbers
         color="primary"
       />
-      <div v-if="store.isHistoryPartial" class="loading-full-history">{{ t('history.loadingFullHistory') }}</div>
+      <div v-if="store.isHistoryPartial" class="loading-full-history">{{ t('history.loadingFullHistory') }} <q-spinner-dots size="1.2em" /></div>
     </fieldset>
   </div>
 

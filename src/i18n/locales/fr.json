@@ -160,7 +160,8 @@
     }
   },
   "tokens": {
-    "loading": "Chargement des données des tokens...",
+    "loading": "Chargement des données des tokens",
+    "loadingFailed": "Échec du chargement des données des tokens",
     "count": "{count} Tokens",
     "favoriteCount": "{count} tokens favoris",
     "hiddenCount": "{count} tokens masqués",
@@ -381,7 +382,8 @@
     }
   },
   "history": {
-    "loading": "Chargement de l'historique des transactions...",
+    "loading": "Chargement de l'historique des transactions",
+    "loadingFailed": "Échec du chargement de l'historique des transactions",
     "noTransactions": "Aucune transaction dans ce portefeuille",
     "title": "Historique des transactions",
     "transactionCount": "{count} Transactions",
@@ -418,7 +420,7 @@
     },
     "pending": "en attente",
     "transactionCountPartial": "{count}+ Transactions",
-    "loadingFullHistory": "Chargement de l'historique complet..."
+    "loadingFullHistory": "Chargement de l'historique complet"
   },
   "transactionDialog": {
     "title": "Transaction",

@@ -104,6 +104,9 @@ export const useStore = defineStore('store', () => {
   const isCcInitDone = ref(false as boolean)
   const isWizInitDone = ref(false as boolean)
   const walletInitialized = ref(false as boolean)
+  // Set when wallet initialization aborts (electrum connection failure or a thrown error),
+  // so views can show an error state instead of a loading state that never resolves
+  const walletInitFailed = ref(false as boolean)
   const latestGithubRelease = ref(undefined as undefined | string);
 
   // Computed properties
@@ -231,6 +234,7 @@ export const useStore = defineStore('store', () => {
     const initialization = currentInitialization;
 
     walletInitialized.value = false;
+    walletInitFailed.value = false;
     await cancelWalletSubscriptions();
 
     // Verify wallet type metadata matches the actual wallet class
@@ -278,7 +282,10 @@ export const useStore = defineStore('store', () => {
       await electrumConnectionPromise;
       if (initialization !== currentInitialization) return;
       // if electrum connection failed, cancel the rest of initialization
-      if(failedToConnectElectrum) return
+      if(failedToConnectElectrum) {
+        walletInitFailed.value = true;
+        return
+      }
       // Fetch wallet utxos first, this result will be used in consecutive calls to avoid duplicate getUtxos() calls.
       // For HD wallets this also awaits address discovery (watchPromise), which primes per-address utxos and history.
       console.time('fetch wallet utxos');
@@ -326,6 +333,8 @@ export const useStore = defineStore('store', () => {
         console.timeEnd('fetch authUtxos');
       }
     } catch (error) {
+      // A stale initialization must not flag the newer one as failed
+      if (initialization === currentInitialization) walletInitFailed.value = true;
       displayAndLogError(error);
     }
   }
@@ -478,6 +487,7 @@ export const useStore = defineStore('store', () => {
   async function resetWalletState({ resetDappConnections = true } = {}){
     viewStack.length = 0;
     walletInitialized.value = false;
+    walletInitFailed.value = false;
 
     if (resetDappConnections) {
       // Reset WC/CC/Wiz init-done flags so re-initialization runs after reset
@@ -959,6 +969,7 @@ export const useStore = defineStore('store', () => {
     filteredTokenList,
     walletHistory,
     isHistoryPartial,
+    walletInitFailed,
     plannedTokenId,
     dappConnectionStoresInitDone,
     latestGithubRelease,

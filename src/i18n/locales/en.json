@@ -160,7 +160,8 @@
     }
   },
   "tokens": {
-    "loading": "Loading tokendata ...",
+    "loading": "Loading token data",
+    "loadingFailed": "Failed to load token data",
     "count": "{count} Tokens",
     "favoriteCount": "{count} favorite tokens",
     "hiddenCount": "{count} hidden tokens",
@@ -381,7 +382,8 @@
     }
   },
   "history": {
-    "loading": "Loading transaction history ...",
+    "loading": "Loading transaction history",
+    "loadingFailed": "Failed to load transaction history",
     "noTransactions": "No transactions in this wallet",
     "title": "Transaction History",
     "transactionCount": "{count} Transactions",
@@ -418,7 +420,7 @@
     },
     "pending": "pending",
     "transactionCountPartial": "{count}+ Transactions",
-    "loadingFullHistory": "Loading full history..."
+    "loadingFullHistory": "Loading full history"
   },
   "transactionDialog": {
     "title": "Transaction",

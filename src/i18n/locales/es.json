@@ -160,7 +160,8 @@
     }
   },
   "tokens": {
-    "loading": "Cargando datos de tokens...",
+    "loading": "Cargando datos de tokens",
+    "loadingFailed": "Error al cargar los datos de tokens",
     "count": "{count} Tokens",
     "favoriteCount": "{count} tokens favoritos",
     "hiddenCount": "{count} tokens ocultos",
@@ -381,7 +382,8 @@
     }
   },
   "history": {
-    "loading": "Cargando historial de transacciones...",
+    "loading": "Cargando historial de transacciones",
+    "loadingFailed": "Error al cargar el historial de transacciones",
     "noTransactions": "No hay transacciones en esta billetera",
     "title": "Historial de transacciones",
     "transactionCount": "{count} Transacciones",
@@ -418,7 +420,7 @@
     },
     "pending": "pendiente",
     "transactionCountPartial": "{count}+ Transacciones",
-    "loadingFullHistory": "Cargando historial completo..."
+    "loadingFullHistory": "Cargando historial completo"
   },
   "transactionDialog": {
     "title": "Transacción",
