@@ -182,6 +182,8 @@
       "nfts": "NFTs"
     },
     "editVisibility": "Modifier la visibilité",
+    "valueFilterLabel": "Afficher uniquement les tokens de plus de",
+    "hiddenByValueFilter": "{count} tokens masqués par le filtre de valeur",
     "searchPlaceholder": "Rechercher..."
   },
   "tokenItem": {

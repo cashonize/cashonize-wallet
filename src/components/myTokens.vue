@@ -1,12 +1,14 @@
 
 <script setup lang="ts">
-  import { ref, computed, nextTick, onActivated, onDeactivated } from 'vue'
+  import { ref, computed, watch, nextTick, onActivated, onDeactivated } from 'vue'
   import { useI18n } from 'vue-i18n'
   import tokenItemNFT from './tokenItems/tokenItemNFT.vue'
   import tokenItemFT from './tokenItems/tokenItemFT.vue'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useWindowSize } from 'src/utils/composables'
+  import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
+  import { CurrencySymbols } from 'src/interfaces/interfaces'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -64,8 +66,50 @@
     return tokens;
   });
 
-  const searchFilteredTokenList = computed(() => {
+  // The value filter needs Cauldron price data, which only exists on mainnet with the fiat value setting on
+  const valueFilterAvailable = computed(() => store.network === 'mainnet' && settingsStore.showCauldronFTValue);
+
+  const valueFilterInput = ref(localStorage.getItem("tokenValueFilter") ?? '');
+  // The active threshold, derived from the input field (null = filter off)
+  const tokenValueFilter = computed(() => {
+    const parsedValueFilter = Number(valueFilterInput.value);
+    if (Number.isFinite(parsedValueFilter) && parsedValueFilter > 0) return parsedValueFilter;
+    return null;
+  });
+  watch(valueFilterInput, () => {
+    if (tokenValueFilter.value) localStorage.setItem("tokenValueFilter", tokenValueFilter.value.toString());
+    else localStorage.removeItem("tokenValueFilter");
+  });
+
+  // Strict value filter: only keeps tokens with a known fiat value of at least the threshold,
+  // so NFTs and tokens without a sufficiently liquid Cauldron pool are hidden while active.
+  // Skip filtering until price data has loaded, so the list doesn't vanish during initialization.
+  const valueFilteredTokenList = computed(() => {
     const tokens = typeFilteredTokenList.value;
+    if (!tokens) return null;
+    const threshold = tokenValueFilter.value;
+    if (!threshold || !valueFilterAvailable.value) return tokens;
+    const cauldronPrices = store.cauldronPrices;
+    const exchangeRate = store.exchangeRate;
+    if (!cauldronPrices || exchangeRate === undefined) return tokens;
+    return tokens.filter(tokenData => {
+      if (!('amount' in tokenData)) return false;
+      const poolPriceData = cauldronPrices[tokenData.category];
+      if (!poolPriceData) return false;
+      const fiatValue = calculateTokenFiatValue(tokenData.amount, poolPriceData, exchangeRate);
+      return fiatValue !== null && fiatValue >= threshold;
+    });
+  });
+
+  const valueFilterHiddenCount = computed(() => {
+    const beforeValueFilter = typeFilteredTokenList.value;
+    const afterValueFilter = valueFilteredTokenList.value;
+    if (!beforeValueFilter || !afterValueFilter) return 0;
+    return beforeValueFilter.length - afterValueFilter.length;
+  });
+
+  const searchFilteredTokenList = computed(() => {
+    const tokens = valueFilteredTokenList.value;
     if (!tokens) return null;
     const query = searchQuery.value.toLowerCase().trim();
     if (!query) return tokens;
@@ -125,6 +169,11 @@
       <div class="option-item">
         {{ t('tokens.editVisibility') }} <q-toggle v-model="settingsStore.showTokenVisibilityToggle" dense />
       </div>
+      <div class="option-item" v-if="valueFilterAvailable">
+        <label for="valueFilter">{{ t('tokens.valueFilterLabel') }}</label>
+        <input id="valueFilter" type="number" min="0" step="any" class="value-filter-input" v-model="valueFilterInput">
+        <span>{{ CurrencySymbols[settingsStore.currency] }}</span>
+      </div>
     </div>
 
     <!-- Token list -->
@@ -149,6 +198,12 @@
       <span v-else-if="settingsStore.tokenDisplayFilter === 'hiddenOnly'">{{ t('tokens.hiddenCount', { count: searchFilteredTokenList.length }) }}</span>
       <span v-else-if="settingsStore.tokenDisplayFilter === 'all'">{{ t('tokens.totalCount', { count: searchFilteredTokenList.length }) }}</span>
       <span v-else>{{ t('tokens.count', { count: searchFilteredTokenList.length }) }}</span>
+    </div>
+
+    <!-- Shown independently of the count line, so hidden tokens are still accounted for
+      when the value filter hides the whole list -->
+    <div v-if="valueFilterHiddenCount > 0" class="token-count">
+      {{ t('tokens.hiddenByValueFilter', { count: valueFilterHiddenCount }) }}
     </div>
   </div>
 </template>
@@ -205,6 +260,11 @@
 
 .option-item select {
   width: 130px;
+  padding: 2px 8px;
+}
+
+.value-filter-input {
+  width: 60px;
   padding: 2px 8px;
 }
 
