@@ -109,11 +109,14 @@
     }
   }
 
-  // Fetch metadata for tokens not in wallet (stored locally, not in global store)
-  // Use Set to deduplicate tokens appearing in both inputs and outputs
-  const nftCategories = [...nftsSpent, ...nftsReceived].map(t => binToHex(t.category));
-  const ftCategories = Object.keys(ftNetChanges);
-  const tokenCategories = new Set([...nftCategories, ...ftCategories]);
+  // Fetch metadata for all tokens in the transaction (stored locally, not in global store),
+  // including tokens on third-party inputs/outputs which only show in the full transaction details
+  const tokenCategories: string[] = [];
+  for (const inputOrOutput of [...sourceOutputs, ...txDetails.outputs]) {
+    if (!inputOrOutput.token) continue;
+    const categoryHex = binToHex(inputOrOutput.token.category);
+    if (!tokenCategories.includes(categoryHex)) tokenCategories.push(categoryHex);
+  }
   for (const categoryHex of tokenCategories) {
     if (!store.bcmrRegistries?.[categoryHex]) {
       void fetchUnverifiedTokenInfo(categoryHex);
