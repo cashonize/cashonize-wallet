@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, watch } from 'vue'
+  import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { DERIVATION_PATHS, scanDerivationPaths } from 'src/utils/walletUtils'
   import type { DerivationPathType, DerivationPathDetectionResult } from 'src/utils/walletUtils'
@@ -16,36 +16,40 @@
     walletType: 'single' | 'hd'
   }>()
 
-  const selectedPath = computed({
-    get: () => props.modelValue,
-    set: (value: DerivationPathType) => emit('update:modelValue', value)
+  const selectedPath = ref<DerivationPathType>(props.modelValue)
+
+  // Emit changes to parent
+  watch(selectedPath, (value) => {
+    emit('update:modelValue', value)
   })
+
+  const SCAN_TIMEOUT_MS = 15_000
 
   const detectionStatus = ref<'idle' | 'scanning' | DerivationPathDetectionResult>('idle')
   const multipleAddressesUsed = ref(false)
 
-  const SCAN_TIMEOUT_MS = 15_000
-
-  // Incremented on every seed phrase change so a scan can tell its result is outdated
-  let scanId = 0
+  // Bumped on every seed phrase change so an in-flight scan can tell its result is
+  // for an outdated seed phrase. Deliberately a counter instead of comparing against
+  // the scanned seed phrase, to avoid keeping a copy of the seed in memory.
+  let scanGeneration = 0
 
   // A scan result no longer applies once the seed phrase changes
-  watch(() => [props.seedPhrase, props.seedPhraseValid], () => {
-    scanId++
+  watch(() => props.seedPhrase, () => {
+    scanGeneration++
     detectionStatus.value = 'idle'
     multipleAddressesUsed.value = false
   })
 
   async function scanForWalletActivity() {
     if (!props.seedPhraseValid || detectionStatus.value === 'scanning') return
-    const currentScanId = ++scanId
+    const startedForGeneration = scanGeneration
     detectionStatus.value = 'scanning'
     try {
       const timeout = new Promise<never>((_resolve, reject) =>
         setTimeout(() => reject(new Error('derivation path scan timed out')), SCAN_TIMEOUT_MS)
       )
       const result = await Promise.race([scanDerivationPaths(props.seedPhrase), timeout])
-      if (currentScanId !== scanId) return
+      if (scanGeneration !== startedForGeneration) return
       detectionStatus.value = result.path
       multipleAddressesUsed.value = result.multipleAddressesUsed
       if (result.path === 'standard' || result.path === 'bitcoindotcom') {
@@ -53,7 +57,7 @@
       }
     } catch {
       // Scanning is best-effort: on electrum errors fall back to manual selection
-      if (currentScanId !== scanId) return
+      if (scanGeneration !== startedForGeneration) return
       detectionStatus.value = 'idle'
     }
   }
