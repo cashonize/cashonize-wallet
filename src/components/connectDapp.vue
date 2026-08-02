@@ -54,9 +54,10 @@
   // Returns whether pairing succeeded; errors are surfaced as error notifications.
   async function pairDapp(dappUri: string): Promise<boolean> {
     try {
-      // Promise will wait for state indicating whether the dapp connection stores are initialized
-      const { dappConnectionStoresInitialized } = storeToRefs(store);
-      await waitForInitialized(dappConnectionStoresInitialized);
+      // Wait for the dapp connection stores to finish their init attempt (success or failure);
+      // pairing a protocol whose init failed will error below and surface a notification
+      const { dappConnectionStoresInitDone } = storeToRefs(store);
+      await waitForInitialized(dappConnectionStoresInitDone);
 
       // If the URI begins with "wc:" (walletconnect)...
       if(isWalletConnectUri(dappUri)) {

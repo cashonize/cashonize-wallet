@@ -98,9 +98,11 @@ export const useStore = defineStore('store', () => {
   const exchangeRate = ref<number | undefined>(undefined);
   let exchangeRateInterval: ReturnType<typeof setInterval> | undefined;
   let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
-  const isWcInitialized = ref(false as boolean)
-  const isCcInitialized = ref(false as boolean)
-  const isWizInitialized = ref(false as boolean)
+  // "InitDone" means the init attempt finished (success or failure), not that it succeeded.
+  // Callers gating on these should proceed either way; pairing a failed protocol errors naturally.
+  const isWcInitDone = ref(false as boolean)
+  const isCcInitDone = ref(false as boolean)
+  const isWizInitDone = ref(false as boolean)
   const walletInitialized = ref(false as boolean)
   const latestGithubRelease = ref(undefined as undefined | string);
 
@@ -115,7 +117,7 @@ export const useStore = defineStore('store', () => {
     return _wallet.value
   })
 
-  const dappConnectionStoresInitialized = computed(() => isWcInitialized.value && isCcInitialized.value && isWizInitialized.value)
+  const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
   // Filtered token list based on display filter setting
@@ -478,10 +480,10 @@ export const useStore = defineStore('store', () => {
     walletInitialized.value = false;
 
     if (resetDappConnections) {
-      // Reset WC/CC/Wiz initialized flags so re-initialization runs after reset
-      isWcInitialized.value = false;
-      isCcInitialized.value = false;
-      isWizInitialized.value = false;
+      // Reset WC/CC/Wiz init-done flags so re-initialization runs after reset
+      isWcInitDone.value = false;
+      isCcInitDone.value = false;
+      isWizInitDone.value = false;
 
       // Await WC/CC/Wiz cleanup so stop() finishes before start() can be called again
       const cleanupPromises = networkChangeCallbacks.map(callback => callback().catch(() => {}));
@@ -610,7 +612,6 @@ export const useStore = defineStore('store', () => {
     try {
       const walletconnectStore = useWalletconnectStore()
       await walletconnectStore.initweb3wallet();
-      isWcInitialized.value = true;
 
       // Setup network change callback to disconnect all sessions.
       networkChangeCallbacks.push(async () => {
@@ -630,6 +631,9 @@ export const useStore = defineStore('store', () => {
         icon: 'warning',
         color: "red"
       });
+    } finally {
+      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever
+      isWcInitDone.value = true;
     }
   }
 
@@ -640,7 +644,6 @@ export const useStore = defineStore('store', () => {
 
       // Start the wallet service.
       await cashconnectWallet.start();
-      isCcInitialized.value = true;
 
       // Setup network change callback to stop the CashConnect service.
       // Sessions are not un-paired: they persist in localStorage (namespaced per wallet
@@ -665,6 +668,9 @@ export const useStore = defineStore('store', () => {
         icon: 'warning',
         color: "red"
       });
+    } finally {
+      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever
+      isCcInitDone.value = true;
     }
   }
 
@@ -674,7 +680,6 @@ export const useStore = defineStore('store', () => {
 
       // Start the wizardconnect service (no-op for single-address wallets).
       wizardconnectStore.start();
-      isWizInitialized.value = true;
 
       // Setup network change callback to disconnect all sessions.
       networkChangeCallbacks.push(() => {
@@ -688,6 +693,9 @@ export const useStore = defineStore('store', () => {
         icon: 'warning',
         color: "red"
       });
+    } finally {
+      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever
+      isWizInitDone.value = true;
     }
   }
 
@@ -952,7 +960,7 @@ export const useStore = defineStore('store', () => {
     walletHistory,
     isHistoryPartial,
     plannedTokenId,
-    dappConnectionStoresInitialized,
+    dappConnectionStoresInitDone,
     latestGithubRelease,
     network,
     explorerUrl,
