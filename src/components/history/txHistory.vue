@@ -246,7 +246,7 @@
             @click="directionFilter = option.value"
           >{{ t(option.label) }}</button>
         </div>
-        <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input">
+        <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input" autocomplete="off" autocapitalize="none" spellcheck="false">
         <span v-if="isMobile" class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
           <q-icon name="search" size="22px" />
         </span>
