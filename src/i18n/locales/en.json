@@ -112,11 +112,6 @@
       "singleDescription": "Uses one fixed address for all transactions. All assets in one place, but less private. The WizardConnect connection method is not supported.",
       "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear."
     },
-    "derivationPath": {
-      "label": "Derivation path:",
-      "standard": "standard",
-      "bitcoindotcom": "Bitcoin.com wallet"
-    },
     "preferences": {
       "title": "Set up your preferences",
       "description": "Almost done! Configure your preferences below.",
@@ -525,11 +520,6 @@
       "hint": "Or restore a wallet using your existing seed phrase.",
       "button": "Import existing wallet"
     },
-    "derivationPath": {
-      "label": "Derivation path:",
-      "standard": "standard",
-      "bitcoindotcom": "Bitcoin.com wallet"
-    },
     "singleAddressNote": "Note: Only the first address from your seed phrase will be used. If you've used this seed with other wallets, funds on other addresses won't appear.",
     "importButton": "Import"
   },
@@ -712,6 +702,18 @@
       "notMainnetWif": "Not a QR code encoding a Mainnet Private Key in WIF format",
       "notChipnetWif": "Not a QR code encoding a Chipnet Private Key in WIF format"
     }
+  },
+  "derivationPathSelect": {
+    "label": "Derivation path:",
+    "standard": "standard",
+    "bitcoindotcom": "Bitcoin.com wallet",
+    "scanPrompt": "Unsure? {link}",
+    "scanLinkText": "Scan both for wallet activity",
+    "scanning": "Checking for wallet activity...",
+    "detected": "Wallet activity found, selected {path}",
+    "detectedBoth": "Wallet activity found on both derivation paths",
+    "noneFound": "No wallet activity found on either derivation path",
+    "multiAddressWarning": "This seed phrase was used with multiple addresses. A single address wallet will not show those funds. An HD wallet is recommended."
   },
   "seedPhraseInput": {
     "label": "Seed phrase:",

@@ -112,11 +112,6 @@
       "singleDescription": "Utilise une seule adresse fixe pour toutes les transactions. Tous les actifs au même endroit, mais moins privé. La méthode de connexion WizardConnect n'est pas prise en charge.",
       "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas."
     },
-    "derivationPath": {
-      "label": "Chemin de dérivation :",
-      "standard": "standard",
-      "bitcoindotcom": "Portefeuille Bitcoin.com"
-    },
     "preferences": {
       "title": "Configurez vos préférences",
       "description": "Presque terminé ! Configurez vos préférences ci-dessous.",
@@ -525,11 +520,6 @@
       "hint": "Ou restaurez un portefeuille avec votre phrase de récupération existante.",
       "button": "Importer un portefeuille existant"
     },
-    "derivationPath": {
-      "label": "Chemin de dérivation :",
-      "standard": "standard",
-      "bitcoindotcom": "Portefeuille Bitcoin.com"
-    },
     "singleAddressNote": "Remarque : Seule la première adresse de votre phrase de récupération sera utilisée. Si vous avez utilisé cette phrase avec d'autres portefeuilles, les fonds sur d'autres adresses n'apparaîtront pas.",
     "importButton": "Importer"
   },
@@ -712,6 +702,18 @@
       "notMainnetWif": "Ce n'est pas un code QR encodant une clé privée Mainnet au format WIF",
       "notChipnetWif": "Ce n'est pas un code QR encodant une clé privée Chipnet au format WIF"
     }
+  },
+  "derivationPathSelect": {
+    "label": "Chemin de dérivation :",
+    "standard": "standard",
+    "bitcoindotcom": "Portefeuille Bitcoin.com",
+    "scanPrompt": "Pas sûr ? {link}",
+    "scanLinkText": "Analyser les deux chemins",
+    "scanning": "Recherche d'activité du portefeuille...",
+    "detected": "Activité trouvée, {path} sélectionné",
+    "detectedBoth": "Activité trouvée sur les deux chemins de dérivation",
+    "noneFound": "Aucune activité de portefeuille trouvée sur les deux chemins de dérivation",
+    "multiAddressWarning": "Cette phrase de récupération a été utilisée avec plusieurs adresses. Un portefeuille à adresse unique n'affichera pas ces fonds. Un portefeuille HD est recommandé."
   },
   "seedPhraseInput": {
     "label": "Phrase de récupération :",

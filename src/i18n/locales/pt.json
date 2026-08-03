@@ -112,11 +112,6 @@
       "singleDescription": "Usa um endereço fixo para todas as transações. Todos os ativos em um só lugar, porém menos privado. O método de conexão WizardConnect não é suportado.",
       "singleAddressNote": "Nota: Apenas o primeiro endereço da sua seed phrase será usado. Se você usou essa seed com outras carteiras, fundos em outros endereços não aparecerão."
     },
-    "derivationPath": {
-      "label": "Derivation path:",
-      "standard": "padrão",
-      "bitcoindotcom": "Carteira Bitcoin.com"
-    },
     "preferences": {
       "title": "Configure suas preferências",
       "description": "Quase pronto! Configure suas preferências abaixo.",
@@ -525,11 +520,6 @@
       "hint": "Ou restaure uma carteira usando sua seed phrase existente.",
       "button": "Importar carteira existente"
     },
-    "derivationPath": {
-      "label": "Derivation path:",
-      "standard": "padrão",
-      "bitcoindotcom": "Carteira Bitcoin.com"
-    },
     "singleAddressNote": "Nota: Apenas o primeiro endereço da sua seed phrase será usado. Se você usou essa seed com outras carteiras, fundos em outros endereços não aparecerão.",
     "importButton": "Importar"
   },
@@ -712,6 +702,18 @@
       "notMainnetWif": "Não é um QR code com chave privada Mainnet no formato WIF",
       "notChipnetWif": "Não é um QR code com chave privada Chipnet no formato WIF"
     }
+  },
+  "derivationPathSelect": {
+    "label": "Derivation path:",
+    "standard": "padrão",
+    "bitcoindotcom": "Carteira Bitcoin.com",
+    "scanPrompt": "Não tem certeza? {link}",
+    "scanLinkText": "Verificar ambos os caminhos",
+    "scanning": "Verificando atividade da carteira...",
+    "detected": "Atividade encontrada, {path} selecionado",
+    "detectedBoth": "Atividade encontrada em ambos os caminhos de derivação",
+    "noneFound": "Nenhuma atividade encontrada em nenhum dos caminhos de derivação",
+    "multiAddressWarning": "Esta seed phrase foi usada com vários endereços. Uma carteira de endereço único não mostrará esses fundos. Uma carteira HD é recomendada."
   },
   "seedPhraseInput": {
     "label": "Seed phrase:",

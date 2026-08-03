@@ -23,6 +23,78 @@ export const DERIVATION_PATHS = {
   },
 } as const;
 
+export type DerivationPathDetectionResult = DerivationPathType | "both" | "none";
+
+export interface DerivationPathScanResult {
+  path: DerivationPathDetectionResult;
+  multipleAddressesUsed: boolean;
+}
+
+// BIP44 address discovery stops after this many consecutive unused addresses
+const GAP_LIMIT = 20;
+// Address history queries are pipelined over the same electrum connection in batches
+const SCAN_BATCH_SIZE = 10;
+
+/**
+ * Scans which supported derivation path a seed phrase has on-chain activity on,
+ * by checking the transaction history of the first address of each path.
+ * BIP44 wallets fill addresses starting at index 0, so a used wallet is expected
+ * to have history on its first address. Paths with activity are then scanned up
+ * to the standard gap limit on both the receive and change chains: activity
+ * beyond the first receive address means the seed phrase was used as an HD
+ * wallet, so a single address import would miss funds.
+ */
+export async function scanDerivationPaths(seedPhrase: string): Promise<DerivationPathScanResult> {
+  const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
+
+  async function addressHasActivity(fullDerivationPath: string): Promise<boolean> {
+    const addressWallet = await Wallet.fromSeed(normalizedSeedPhrase, fullDerivationPath);
+    const history = await addressWallet.getRawHistory();
+    return history.length > 0;
+  }
+
+  // Receive and change chains are interleaved by index so the addresses most
+  // likely to be used are checked first, letting the scan end early on the
+  // first batch with activity
+  async function laterAddressesHaveActivity(parentDerivationPath: string): Promise<boolean> {
+    const addressPaths: string[] = [];
+    for (let addressIndex = 0; addressIndex < GAP_LIMIT; addressIndex++) {
+      addressPaths.push(`${parentDerivationPath}/0/${addressIndex + 1}`);
+      addressPaths.push(`${parentDerivationPath}/1/${addressIndex}`);
+    }
+    for (let i = 0; i < addressPaths.length; i += SCAN_BATCH_SIZE) {
+      const batch = addressPaths.slice(i, i + SCAN_BATCH_SIZE);
+      const batchResults = await Promise.all(batch.map(addressHasActivity));
+      if (batchResults.includes(true)) return true;
+    }
+    return false;
+  }
+
+  const [standardUsed, bitcoindotcomUsed] = await Promise.all([
+    addressHasActivity(DERIVATION_PATHS.standard.full),
+    addressHasActivity(DERIVATION_PATHS.bitcoindotcom.full),
+  ]);
+
+  const usedPaths: DerivationPathType[] = [];
+  if (standardUsed) usedPaths.push("standard");
+  if (bitcoindotcomUsed) usedPaths.push("bitcoindotcom");
+
+  let multipleAddressesUsed = false;
+  for (const usedPath of usedPaths) {
+    if (await laterAddressesHaveActivity(DERIVATION_PATHS[usedPath].parent)) {
+      multipleAddressesUsed = true;
+      break;
+    }
+  }
+
+  let path: DerivationPathDetectionResult = "none";
+  if (standardUsed && bitcoindotcomUsed) path = "both";
+  else if (standardUsed) path = "standard";
+  else if (bitcoindotcomUsed) path = "bitcoindotcom";
+
+  return { path, multipleAddressesUsed };
+}
+
 export interface CreateWalletResult {
   success: true;
   walletName: string;

@@ -112,11 +112,6 @@
       "singleDescription": "Usa una dirección fija para todas las transacciones. Todos los activos en un solo lugar, pero menos privado. El método de conexión WizardConnect no es compatible.",
       "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán."
     },
-    "derivationPath": {
-      "label": "Ruta de derivación:",
-      "standard": "estándar",
-      "bitcoindotcom": "Billetera Bitcoin.com"
-    },
     "preferences": {
       "title": "Configura tus preferencias",
       "description": "¡Casi listo! Configura tus preferencias a continuación.",
@@ -525,11 +520,6 @@
       "hint": "O restaura una billetera usando tu frase semilla existente.",
       "button": "Importar billetera existente"
     },
-    "derivationPath": {
-      "label": "Ruta de derivación:",
-      "standard": "estándar",
-      "bitcoindotcom": "Billetera Bitcoin.com"
-    },
     "singleAddressNote": "Nota: Solo se usará la primera dirección de tu frase semilla. Si has usado esta semilla con otras billeteras, los fondos en otras direcciones no aparecerán.",
     "importButton": "Importar"
   },
@@ -712,6 +702,18 @@
       "notMainnetWif": "No es un código QR que codifica una clave privada de Mainnet en formato WIF",
       "notChipnetWif": "No es un código QR que codifica una clave privada de Chipnet en formato WIF"
     }
+  },
+  "derivationPathSelect": {
+    "label": "Ruta de derivación:",
+    "standard": "estándar",
+    "bitcoindotcom": "Billetera Bitcoin.com",
+    "scanPrompt": "¿No estás seguro? {link}",
+    "scanLinkText": "Escanear ambas rutas",
+    "scanning": "Buscando actividad de la billetera...",
+    "detected": "Actividad encontrada, se seleccionó {path}",
+    "detectedBoth": "Actividad encontrada en ambas rutas de derivación",
+    "noneFound": "No se encontró actividad en ninguna de las rutas de derivación",
+    "multiAddressWarning": "Esta frase semilla se usó con varias direcciones. Una billetera de dirección única no mostrará esos fondos. Se recomienda una billetera HD."
   },
   "seedPhraseInput": {
     "label": "Frase semilla:",

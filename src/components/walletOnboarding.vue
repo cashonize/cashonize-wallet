@@ -7,8 +7,9 @@
   import { defaultWalletName } from 'src/stores/constants'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import seedPhraseInput from './general/seedPhraseInput.vue'
+  import derivationPathSelect from './general/derivationPathSelect.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, DERIVATION_PATHS } from 'src/utils/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import type { Currency } from 'src/interfaces/interfaces'
   const store = useStore()
@@ -240,11 +241,7 @@
           </div>
         </div>
         <div style="margin-bottom: 20px;">
-          <span>{{ t('onboarding.derivationPath.label') }} </span>
-          <select v-model="selectedDerivationPath">
-            <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('onboarding.derivationPath.standard') }})</option>
-            <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('onboarding.derivationPath.bitcoindotcom') }})</option>
-          </select>
+          <derivationPathSelect v-model="selectedDerivationPath" :seed-phrase="seedPhrase" :seed-phrase-valid="seedPhraseValid" :wallet-type="walletType" />
         </div>
         <input @click="importWallet()" class="button primary" type="button" :value="t('onboarding.import.submitButton')" :disabled="isCreating" style="margin-bottom: 15px;">
       </div>
