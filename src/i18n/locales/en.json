@@ -413,7 +413,8 @@
       "transactionId": "Transaction Id",
       "amount": "Amount ({unit})",
       "balance": "Balance ({unit})",
-      "tokenChanges": "Token Changes"
+      "tokenChanges": "Token Changes",
+      "note": "Note"
     },
     "pending": "pending",
     "transactionCountPartial": "{count}+ Transactions",
@@ -437,7 +438,11 @@
     "feesCollected": "Fees collected:",
     "inputs": "Inputs",
     "outputs": "Outputs",
-    "coinbase": "coinbase"
+    "coinbase": "coinbase",
+    "note": "Note:",
+    "addNote": "add note",
+    "editNote": "edit",
+    "saveNote": "save"
   },
   "alertDialog": {
     "transactionSent": "Transaction Sent!",

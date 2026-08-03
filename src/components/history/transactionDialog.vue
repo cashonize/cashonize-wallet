@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { computed, ref, nextTick } from 'vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -9,6 +9,7 @@
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import { formatTimestamp, formatRelativeTime, satsToBch } from 'src/utils/utils';
+  import { maxTxNoteLength } from 'src/utils/txNotes';
   import { useI18n } from 'vue-i18n'
 
   const store = useStore()
@@ -37,6 +38,24 @@
       timeout : 1000,
       color: "grey-6"
     })
+  }
+
+  const txNote = computed(() => store.txNotes[props.historyItem.hash]);
+  const isEditingNote = ref(false);
+  const noteDraft = ref("");
+  const noteInputRef = ref<HTMLInputElement | null>(null);
+
+  async function startNoteEdit() {
+    noteDraft.value = txNote.value ?? "";
+    isEditingNote.value = true;
+    // the input is behind a v-if, wait for the DOM update before focusing it
+    await nextTick();
+    noteInputRef.value?.focus();
+  }
+
+  function saveNote() {
+    store.setTxNote(props.historyItem.hash, noteDraft.value);
+    isEditingNote.value = false;
   }
 
   const tokenMetadata = ref(undefined as undefined | BcmrTokenMetadata | BcmrNftMetadata);
@@ -151,6 +170,29 @@
             {{ t('transactionDialog.feesCollected') }}
               <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat</span>
           </div>
+          <div>
+            {{ t('transactionDialog.note') }}
+            <template v-if="!isEditingNote">
+              <span v-if="txNote" class="noteText">{{ txNote }}</span>
+              <span class="noteAction" @click="startNoteEdit">
+                {{ txNote ? t('transactionDialog.editNote') : t('transactionDialog.addNote') }}
+              </span>
+            </template>
+            <template v-else>
+              <input
+                ref="noteInputRef"
+                v-model="noteDraft"
+                class="noteInput"
+                type="text"
+                :maxlength="maxTxNoteLength"
+                autocomplete="off"
+                spellcheck="false"
+                @keyup.enter="saveNote"
+                @keyup.esc="isEditingNote = false"
+              >
+              <span class="noteAction" @click="saveNote">{{ t('transactionDialog.saveNote') }}</span>
+            </template>
+          </div>
         </div>
 
         <fieldset style="max-height: 200px; overflow: scroll; margin-top: 1rem;">
@@ -231,6 +273,19 @@
   }
   .break {
     word-break: break-all;
+  }
+  .noteText {
+    word-break: break-word;
+  }
+  .noteAction {
+    cursor: pointer;
+    color: var(--color-primary);
+    white-space: nowrap;
+  }
+  .noteInput {
+    width: 100%;
+    margin-top: 4px;
+    padding: 4px 10px;
   }
   .thisWalletTag{
     color: hsla(160, 100%, 37%, 1)

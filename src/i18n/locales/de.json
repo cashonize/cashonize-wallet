@@ -413,7 +413,8 @@
       "transactionId": "Transaktions-ID",
       "amount": "Betrag ({unit})",
       "balance": "Guthaben ({unit})",
-      "tokenChanges": "Token-Änderungen"
+      "tokenChanges": "Token-Änderungen",
+      "note": "Notiz"
     },
     "pending": "ausstehend",
     "transactionCountPartial": "{count}+ Transaktionen",
@@ -437,7 +438,11 @@
     "feesCollected": "Eingesammelte Gebühren:",
     "inputs": "Inputs",
     "outputs": "Outputs",
-    "coinbase": "Coinbase"
+    "coinbase": "Coinbase",
+    "note": "Notiz:",
+    "addNote": "Notiz hinzufügen",
+    "editNote": "bearbeiten",
+    "saveNote": "speichern"
   },
   "alertDialog": {
     "transactionSent": "Transaktion gesendet!",

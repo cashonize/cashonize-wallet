@@ -100,6 +100,7 @@
 
   function txMatchesSearch(tx: TransactionHistoryItem, query: string): boolean {
     if (tx.hash.toLowerCase().includes(query)) return true;
+    if (store.txNotes[tx.hash]?.toLowerCase().includes(query)) return true;
     return tx.tokenAmountChanges.some(tokenChange => {
       if (tokenChange.category.toLowerCase().includes(query)) return true;
       const metadata = store.bcmrRegistries?.[tokenChange.category];
@@ -220,7 +221,7 @@
   }
 
   function exportCsv() {
-    const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value);
+    const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value, store.txNotes);
     const status = exportFile("cashonize-tx-history.csv", csvContent, { mimeType: "text/csv" });
     if (status !== true) $q.notify({ message: t('history.exportFailed'), icon: 'warning', color: "red" });
   }
@@ -312,6 +313,7 @@
                 <span class="chip-symbol">{{ chip.symbol }}</span>
               </div>
             </div>
+            <div class="tx-note" v-if="store.txNotes[transaction.hash]">{{ store.txNotes[transaction.hash] }}</div>
             <div class="tx-amounts">
               <div class="tx-amount-line">
                 <div class="tx-bch" :class="transaction.valueChange < 0 ? 'negative' : 'positive'">
@@ -586,6 +588,18 @@
 }
 body.dark .negative {
   color: #ef9a9a;
+}
+
+/* the note renders as a single truncated line below the main row, like the token chips */
+.tx-note {
+  order: 6;
+  flex-basis: 100%;
+  font-size: 0.85em;
+  font-style: italic;
+  opacity: 0.65;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* token changes render as wrapping chips on their own line below the main row, so any

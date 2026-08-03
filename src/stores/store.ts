@@ -47,6 +47,7 @@ import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
 import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
+import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/txNotes"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -90,6 +91,8 @@ export const useStore = defineStore('store', () => {
   const walletUtxos = ref(undefined as (Utxo[] | undefined));
   const walletHistory = ref(undefined as (WalletHistoryReturnType | undefined));
   const isHistoryPartial = ref(false);
+  // Private notes on the active wallet's transactions, keyed by txid (see utils/txNotes.ts)
+  const txNotes = ref({} as Record<string, string>);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   const currentBlockHeight = ref(undefined as (number | undefined));
@@ -223,6 +226,12 @@ export const useStore = defineStore('store', () => {
     }
     _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
+    const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
+    txNotes.value = loadTxNotes(newNetwork, newWallet.name);
+  }
+
+  function setTxNote(txid: string, note: string) {
+    txNotes.value = saveTxNote(network.value, wallet.value.name, txid, note);
   }
 
   async function initializeWallet() {
@@ -614,6 +623,7 @@ export const useStore = defineStore('store', () => {
     // Delete from both mainnet and testnet databases
     await deleteWalletFromDb(walletName, 'bitcoincash');
     await deleteWalletFromDb(walletName, 'bchtest');
+    removeTxNotes(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
   }
@@ -969,6 +979,8 @@ export const useStore = defineStore('store', () => {
     filteredTokenList,
     walletHistory,
     isHistoryPartial,
+    txNotes,
+    setTxNote,
     walletInitFailed,
     plannedTokenId,
     dappConnectionStoresInitDone,

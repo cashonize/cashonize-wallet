@@ -51,7 +51,8 @@ function formatTokenChange(
 export function historyToCsv(
   history: TransactionHistoryItem[],
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined,
-  bchUnit: string
+  bchUnit: string,
+  txNotes: Record<string, string>
 ): string {
   const header = [
     t("history.csv.date"),
@@ -59,6 +60,7 @@ export function historyToCsv(
     t("history.csv.amount", { unit: bchUnit }),
     t("history.csv.balance", { unit: bchUnit }),
     t("history.csv.tokenChanges"),
+    t("history.csv.note"),
   ];
   const rows = history.map(tx => [
     tx.timestamp ? new Date(tx.timestamp * 1000).toISOString() : t("history.pending"),
@@ -66,6 +68,7 @@ export function historyToCsv(
     (tx.valueChange / SATS_PER_BCH).toFixed(8),
     (tx.balance / SATS_PER_BCH).toFixed(8),
     tx.tokenAmountChanges.map(change => formatTokenChange(change, bcmrRegistries)).join("; "),
+    txNotes[tx.hash] ?? "",
   ]);
   return [header, ...rows]
     .map(row => row.map(csvEscape).join(","))
