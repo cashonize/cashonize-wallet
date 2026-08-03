@@ -74,6 +74,7 @@
       "errorFetchingUtxos": "Error al obtener los UTXOs de la billetera",
       "errorFetchingHistory": "Error al obtener el historial de la billetera",
       "unableToConnectElectrum": "No se puede conectar al servidor Electrum '{server}'",
+      "deviceOffline": "Tu dispositivo parece estar sin conexión, comprueba tu conexión a internet",
       "bcmrIndexerValidationError": "Error de validación de respuesta del indexador BCMR"
     }
   },

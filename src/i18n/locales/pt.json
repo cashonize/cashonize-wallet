@@ -74,6 +74,7 @@
       "errorFetchingUtxos": "Erro ao buscar UTXOs da carteira",
       "errorFetchingHistory": "Erro ao buscar histórico da carteira",
       "unableToConnectElectrum": "Não foi possível conectar ao servidor Electrum '{server}'",
+      "deviceOffline": "Seu dispositivo parece estar offline, verifique sua conexão com a internet",
       "bcmrIndexerValidationError": "Erro de validação na resposta do indexador BCMR"
     }
   },

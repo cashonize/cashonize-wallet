@@ -74,6 +74,7 @@
       "errorFetchingUtxos": "Error in fetching wallet UTXOs",
       "errorFetchingHistory": "Error in fetching wallet history",
       "unableToConnectElectrum": "Unable to connect to Electrum server '{server}'",
+      "deviceOffline": "Your device appears to be offline, please check your internet connection",
       "bcmrIndexerValidationError": "BCMR indexer response validation error"
     }
   },
