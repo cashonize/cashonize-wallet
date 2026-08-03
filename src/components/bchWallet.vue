@@ -327,8 +327,10 @@
   user-select: none;
   transition: transform 0.3s;
 }
-/* the glyph is symmetric so it lands looking identical, the half turn conveys the swap */
+/* flip around the vertical axis: the glyph's ink is horizontally centered in its box
+   but sits below the vertical center (text baseline), so an in-plane rotate(180deg)
+   would visibly displace it */
 .switchAddressButton.flipped {
-  transform: rotate(180deg);
+  transform: rotateY(180deg);
 }
 </style>
