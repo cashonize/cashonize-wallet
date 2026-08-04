@@ -47,9 +47,7 @@
           </div>
         </div>
 
-        <div style="margin-top: 1rem; color: #888;">{{ t('walletConnect.addressSelect.hint') }}</div>
-
-        <div style="margin-top: 0.5rem; max-height: 350px; overflow-y: auto; overflow-x: hidden;">
+        <div style="margin-top: 1rem; max-height: 350px; overflow-y: auto; overflow-x: hidden;">
           <HdAddressSelect @selection-changed="onSelectionChanged" />
         </div>
 

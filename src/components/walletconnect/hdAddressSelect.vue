@@ -29,15 +29,20 @@
   const changeAddresses = ref<AddressRow[]>([]);
   const showUsedReceiving = ref(true);
   const showUsedChange = ref(true);
+  const showOptions = ref(false);
   const hideZeroBalances = ref(true);
-  const changeDetailsOpen = ref(true);
+  const collapsedSections = ref({ receiving: false, change: false });
   const selectedAddresses = ref(new Set<string>());
+
+  function toggleSection(key: "receiving" | "change") {
+    collapsedSections.value[key] = !collapsedSections.value[key];
+  }
 
   watch(hideZeroBalances, (newVal) => {
     if (newVal) {
       showUsedReceiving.value = true;
       showUsedChange.value = true;
-      changeDetailsOpen.value = true;
+      collapsedSections.value = { receiving: false, change: false };
     }
   });
 
@@ -105,16 +110,25 @@
 
 <template>
   <div>
-    <div class="balance-filter">
-      {{ t('hdAddresses.hideZeroBalances') }} <q-toggle v-model="hideZeroBalances" dense />
+    <div class="control-row">
+      <span>{{ t('walletConnect.addressSelect.hint') }}</span>
+      <span class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
+        <q-icon name="tune" size="22px" />
+      </span>
+    </div>
+
+    <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
+      <div class="option-item">
+        {{ t('hdAddresses.hideZeroBalances') }} <q-toggle v-model="hideZeroBalances" dense />
+      </div>
     </div>
 
     <!-- Receiving Addresses -->
-    <details class="collapsible-section" open>
-      <summary>
-        <strong>{{ t('hdAddresses.receivingAddresses') }}</strong> ({{ filteredReceivingCount }})
-        <img class="icon" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
-      </summary>
+    <div class="group-header" @click="toggleSection('receiving')">
+      {{ t('hdAddresses.receivingAddresses') }} ({{ filteredReceivingCount }})
+      <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedSections.receiving }" />
+    </div>
+    <template v-if="!collapsedSections.receiving">
       <table v-if="filteredReceivingCount" class="address-table">
         <thead>
           <tr>
@@ -130,7 +144,7 @@
           <tr class="section-toggle" @click="showUsedReceiving = !showUsedReceiving">
             <td colspan="5">
               {{ t('hdAddresses.usedAddresses') }} ({{ usedReceivingAddresses.length }})
-              <img class="icon" :class="{ open: showUsedReceiving }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
+              <q-icon name="expand_more" class="chevron" :class="{ collapsed: !showUsedReceiving }" />
             </td>
           </tr>
         </tbody>
@@ -155,14 +169,14 @@
         </tbody>
       </table>
       <div v-else class="description">{{ t('hdAddresses.noAddresses') }}</div>
-    </details>
+    </template>
 
     <!-- Change Addresses -->
-    <details class="collapsible-section" :open="changeDetailsOpen || undefined">
-      <summary>
-        <strong>{{ t('hdAddresses.changeAddresses') }}</strong> ({{ filteredChangeCount }})
-        <img class="icon" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
-      </summary>
+    <div class="group-header" @click="toggleSection('change')">
+      {{ t('hdAddresses.changeAddresses') }} ({{ filteredChangeCount }})
+      <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedSections.change }" />
+    </div>
+    <template v-if="!collapsedSections.change">
       <table v-if="filteredChangeCount" class="address-table">
         <thead>
           <tr>
@@ -178,7 +192,7 @@
           <tr class="section-toggle" @click="showUsedChange = !showUsedChange">
             <td colspan="5">
               {{ t('hdAddresses.usedAddresses') }} ({{ usedChangeAddresses.length }})
-              <img class="icon" :class="{ open: showUsedChange }" :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'">
+              <q-icon name="expand_more" class="chevron" :class="{ collapsed: !showUsedChange }" />
             </td>
           </tr>
         </tbody>
@@ -203,42 +217,69 @@
         </tbody>
       </table>
       <div v-else class="description">{{ t('hdAddresses.noAddresses') }}</div>
-    </details>
+    </template>
   </div>
 </template>
 
 <style scoped>
-.balance-filter {
+.control-row {
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-
-.collapsible-section {
-  margin-bottom: 15px;
-}
-
-.collapsible-section summary {
-  cursor: pointer;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  gap: 10px;
   margin-bottom: 5px;
 }
 
-.collapsible-section summary::-webkit-details-marker {
-  display: none;
+.options-toggle {
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.8;
+  margin-left: auto;
 }
 
-.collapsible-section summary::marker {
-  display: none;
-  content: '';
+.options-toggle.active {
+  color: var(--color-primary);
+  opacity: 1;
 }
 
-.collapsible-section[open] > summary .icon {
-  transform: rotate(180deg);
+.options-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px 25px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background-color: var(--color-background-soft);
+  border-radius: 6px;
+}
+
+.options-panel.dark {
+  background-color: #232326;
+}
+
+.option-item {
+  margin-top: -5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.group-header {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin: 14px 2px 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.chevron {
+  vertical-align: -0.2em;
+  transition: transform 0.2s;
+}
+
+.chevron.collapsed {
+  transform: rotate(-90deg);
 }
 
 .description {
@@ -286,15 +327,6 @@
   align-items: center;
   gap: 5px;
   color: #888;
-}
-
-.section-toggle .icon.open {
-  transform: rotate(180deg);
-}
-
-.icon {
-  width: 16px;
-  height: 16px;
 }
 
 .used-addresses tr {
