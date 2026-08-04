@@ -664,13 +664,21 @@
     "currentTag": "current",
     "receiving": "Receiving",
     "change": "Change",
+    "receivingAddresses": "Receiving Addresses",
+    "changeAddresses": "Change Addresses",
     "usedAddresses": "Used",
     "unusedAddresses": "Unused",
     "noAddresses": "No addresses scanned yet",
     "options": "Options",
     "hideZeroBalances": "Hide zero balances",
     "showTokenAddresses": "Show addresses in token format",
-    "txCount": "{count} txs"
+    "txCount": "{count} txs",
+    "columns": {
+      "index": "Index",
+      "address": "Address",
+      "balance": "Balance",
+      "txs": "Txs"
+    }
   },
   "sweepPrivateKey": {
     "title": "Sweep Private Key",

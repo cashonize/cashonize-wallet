@@ -664,13 +664,21 @@
     "currentTag": "actuelle",
     "receiving": "Réception",
     "change": "Monnaie",
+    "receivingAddresses": "Adresses de réception",
+    "changeAddresses": "Adresses de monnaie",
     "usedAddresses": "Utilisées",
     "unusedAddresses": "Non utilisées",
     "noAddresses": "Aucune adresse analysée pour le moment",
     "options": "Options",
     "hideZeroBalances": "Masquer les soldes nuls",
     "showTokenAddresses": "Afficher les adresses au format token",
-    "txCount": "{count} txs"
+    "txCount": "{count} txs",
+    "columns": {
+      "index": "Index",
+      "address": "Adresse",
+      "balance": "Solde",
+      "txs": "Txs"
+    }
   },
   "sweepPrivateKey": {
     "title": "Balayer une clé privée",
