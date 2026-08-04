@@ -114,12 +114,17 @@
     // reset so selecting the same file again re-triggers the change event
     input.value = '';
     if (!file) return;
+    let result: QrScanner.ScanResult;
     try {
-      const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
-      handleDecode(result);
-    } catch {
-      filterHint.value = t('qrScanner.noQrCodeInImage');
+      result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
+    } catch (err) {
+      // the library rejects with "No QR code found" when the image has no readable QR;
+      // anything else (worker load failure, unreadable file) should surface as-is
+      const message = caughtErrorToString(err);
+      filterHint.value = message.includes('No QR code found') ? t('qrScanner.noQrCodeInImage') : message;
+      return;
     }
+    handleDecode(result);
   }
 
   // Use watch to handle cases where the video ref isn't available at onMounted
