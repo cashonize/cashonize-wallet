@@ -74,6 +74,7 @@
       "errorFetchingUtxos": "Erreur lors de la récupération des UTXOs du portefeuille",
       "errorFetchingHistory": "Erreur lors de la récupération de l'historique du portefeuille",
       "unableToConnectElectrum": "Impossible de se connecter au serveur Electrum '{server}'",
+      "deviceOffline": "Votre appareil semble être hors ligne, veuillez vérifier votre connexion internet",
       "bcmrIndexerValidationError": "Erreur de validation de la réponse de l'indexeur BCMR"
     }
   },

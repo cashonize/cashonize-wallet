@@ -74,6 +74,7 @@
       "errorFetchingUtxos": "Fehler beim Abrufen der Wallet-UTXOs",
       "errorFetchingHistory": "Fehler beim Abrufen der Wallet-Historie",
       "unableToConnectElectrum": "Verbindung zum Electrum-Server '{server}' nicht möglich",
+      "deviceOffline": "Dein Gerät scheint offline zu sein, bitte überprüfe deine Internetverbindung",
       "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort"
     }
   },

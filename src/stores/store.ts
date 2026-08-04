@@ -7,6 +7,7 @@ import {
   Config,
   Connection,
   DefaultProvider,
+  disconnectProviders,
   convert,
   ExchangeRate,
   type Utxo,
@@ -153,6 +154,9 @@ export const useStore = defineStore('store', () => {
   // Bumped at the start of initializeWallet(); checked after long awaits.
   let currentInitialization = 0;
 
+  // Lets the 'online' event listener retry an initialization aborted while offline
+  let abortedInitOffline = false;
+
   async function cancelWalletSubscriptions() {
     const cancelSubscriptionCallbacks = [
       cancelWatchBchtxs,
@@ -235,6 +239,7 @@ export const useStore = defineStore('store', () => {
 
     walletInitialized.value = false;
     walletInitFailed.value = false;
+    abortedInitOffline = false;
     await cancelWalletSubscriptions();
 
     // Verify wallet type metadata matches the actual wallet class
@@ -245,6 +250,19 @@ export const useStore = defineStore('store', () => {
     }
     if (metadataType === 'single' && isActuallyHD) {
       throw new Error(`Wallet type mismatch: metadata says 'single' but wallet is HD. This may indicate corrupted settings.`);
+    }
+
+    // navigator.onLine is only trustworthy when false: abort early when certainly offline,
+    // so the user gets one clear error instead of separate errors per connection attempt
+    if (navigator.onLine === false) {
+      // Mark the skipped dapp inits as done so code waiting on dappConnectionStoresInitDone doesn't hang
+      isWcInitDone.value = true;
+      isCcInitDone.value = true;
+      isWizInitDone.value = true;
+      walletInitFailed.value = true;
+      abortedInitOffline = true;
+      displayAndLogError(new Error(t('store.errors.deviceOffline')));
+      return;
     }
 
     try {
@@ -338,6 +356,27 @@ export const useStore = defineStore('store', () => {
       displayAndLogError(error);
     }
   }
+
+  // A wallet constructed while offline cannot be reused: its HD address discovery never
+  // settles (getUtxos would hang forever), so reset the stuck providers and rebuild it
+  async function retryInitializationAfterOffline() {
+    try {
+      await disconnectProviders();
+      const reloadedWallet = await loadExistingWallet(activeWalletName.value, network.value);
+      setWallet(reloadedWallet);
+      await initializeWallet();
+    } catch (error) {
+      displayAndLogError(error);
+    }
+  }
+
+  // Only offline-aborted inits are retried: other init failures already ran their
+  // dapp inits, so retrying would register duplicate callbacks
+  addEventListener('online', () => {
+    if (!abortedInitOffline) return;
+    abortedInitOffline = false;
+    void retryInitializationAfterOffline();
+  });
 
   // Show the received-BCH toast; failures (fiat-rate fetch) must never affect wallet state
   async function showReceivedBchNotification(balanceDifferenceSats: bigint){
