@@ -154,8 +154,7 @@ export const useStore = defineStore('store', () => {
   // Bumped at the start of initializeWallet(); checked after long awaits.
   let currentInitialization = 0;
 
-  // Set when initialization aborted because the device was offline,
-  // so the 'online' event can retry the aborted initialization
+  // Lets the 'online' event listener retry an initialization aborted while offline
   let abortedInitOffline = false;
 
   async function cancelWalletSubscriptions() {
@@ -253,12 +252,11 @@ export const useStore = defineStore('store', () => {
       throw new Error(`Wallet type mismatch: metadata says 'single' but wallet is HD. This may indicate corrupted settings.`);
     }
 
-    // Abort initialization early when the device is certainly offline, so the user gets
-    // one clear error message instead of separate errors from each connection attempt
-    // (navigator.onLine is only reliable when explicitly false; environments without the
-    // property should not be treated as offline)
+    // Abort early when the device is certainly offline, so the user gets one clear error
+    // instead of separate errors from each connection attempt
+    // (only an explicit navigator.onLine === false is trustworthy)
     if (navigator.onLine === false) {
-      // Mark the skipped dapp connection inits as done so callers waiting on dappConnectionStoresInitDone don't hang forever
+      // Mark the skipped dapp inits as done so awaiters of dappConnectionStoresInitDone don't hang
       isWcInitDone.value = true;
       isCcInitDone.value = true;
       isWizInitDone.value = true;
