@@ -256,7 +256,7 @@ export const useStore = defineStore('store', () => {
     // instead of separate errors from each connection attempt
     // (only an explicit navigator.onLine === false is trustworthy)
     if (navigator.onLine === false) {
-      // Mark the skipped dapp inits as done so awaiters of dappConnectionStoresInitDone don't hang
+      // Mark the skipped dapp inits as done so code waiting on dappConnectionStoresInitDone doesn't hang
       isWcInitDone.value = true;
       isCcInitDone.value = true;
       isWizInitDone.value = true;
