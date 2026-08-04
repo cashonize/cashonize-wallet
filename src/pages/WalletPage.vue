@@ -25,7 +25,10 @@
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   import { useI18n } from 'vue-i18n'
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+
+  // French and Portuguese tab labels are long enough to overflow small phone screens
+  const compactNavTabs = computed(() => ['fr', 'pt'].includes(locale.value))
 
   const props = defineProps<{
     uri: string | undefined
@@ -193,7 +196,7 @@
 <template>
   <header>
     <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
-    <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs">
+    <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
       <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ t('nav.wallet') }} </div>
       <div v-if="width > 450 && store.wallet.walletType === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>

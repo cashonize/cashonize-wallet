@@ -300,6 +300,7 @@
       <div v-if="(maxAmountToSendInBchUnit ?? 0) < (bchSendAmount ?? 0)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
 
     </div>
+    <button @click="useMaxBchAmount()" class="fillInMaxBchSmallScreen">{{ t('wallet.max') }}</button>
     <input @click="sendBch()" type="button" class="primaryButton" :value="isSending ? t('common.status.sending') : t('common.actions.send')" :disabled="isSending" style="margin-top: 8px;">
   </fieldset>
   <div v-if="showQrCodeDialog">

@@ -123,6 +123,9 @@ img {
 .fillInMaxBch {
   margin-left: 5px;
 }
+.fillInMaxBchSmallScreen {
+  display: none;
+}
 .input-icon {
   position: absolute;
   display: block;
@@ -377,11 +380,17 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
     padding: 1rem;
   }
 }
+@media only screen and (max-width: 500px) {
+  .tabs.compact div {
+    padding: 1rem 0.5rem;
+  }
+}
 @media only screen and (max-width: 570px) {
+  /* scale the usd input into the leftover row space,
+     but never below its previous fixed 140px width */
   .sendCurrencyInput {
-    position: relative;
-    width: 140px;
-    margin-left: 5px;
+    flex: 1;
+    min-width: 140px;
   }
   .fillInMaxBch {
     padding: 1rem 1.5rem;
@@ -403,6 +412,19 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
     margin-top: 4px;
     width: 100%;
     gap: 0.5rem;
+  }
+}
+@media only screen and (max-width: 420px) {
+  /* the max button no longer fits next to the amount inputs, hide it and
+     show the max button next to the send button instead */
+  .fillInMaxBch {
+    display: none;
+  }
+  .fillInMaxBchSmallScreen {
+    display: inline-block;
+    margin-top: 8px;
+    margin-right: 8px;
+    padding: 1rem 1.5rem;
   }
 }
 /* Quasar dialog styling */

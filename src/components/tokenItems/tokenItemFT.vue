@@ -17,12 +17,19 @@
   const { t } = useI18n()
   import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
-  const isMobile = computed(() => width.value < 480)
 
   const props = defineProps<{
     tokenData: TokenDataFT,
   }>()
   const { tokenData } = toRefs(props);
+
+  // truncate the tokenId display to keep it on a single line for the screen width
+  const tokenIdDisplay = computed(() => {
+    const category = tokenData.value.category;
+    if (width.value < 390) return `${category.slice(0, 8)}...${category.slice(-4)}`;
+    if (width.value < 480) return `${category.slice(0, 10)}...${category.slice(-8)}`;
+    return `${category.slice(0, 20)}...${category.slice(-8)}`;
+  });
 
   const displaySendTokens = ref(false);
   const displayBurnFungibles = ref(false);
@@ -274,7 +281,7 @@
               {{ t('tokenItem.tokenId') }}
               <span @click="copyToClipboard(tokenData.category)">
                 <span class="category" style="cursor: pointer;">
-                  {{ !isMobile ? `${tokenData.category.slice(0, 20)}...${tokenData.category.slice(-8)}` :  `${tokenData.category.slice(0, 10)}...${tokenData.category.slice(-8)}`}}
+                  {{ tokenIdDisplay }}
                 </span>
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
