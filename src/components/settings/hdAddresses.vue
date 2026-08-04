@@ -4,9 +4,10 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
-  import { HDWallet, type TestNetHDWallet, GAP_SIZE } from 'mainnet-js';
+  import { HDWallet, type TestNetHDWallet, GAP_SIZE, type Utxo } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
+  import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -21,6 +22,7 @@
     tokenAddress: string;
     balance: bigint;
     txCount: number;
+    utxos: Utxo[];
   }
 
   const receivingAddresses = ref<AddressRow[]>([]);
@@ -33,9 +35,23 @@
   const collapsedGroups = ref({ unused: false, used: false });
   const showQrDialog = ref(false);
   const qrDialogAddress = ref("");
+  const expandedTokensKey = ref<string | null>(null);
 
   function toggleGroup(key: "unused" | "used") {
     collapsedGroups.value[key] = !collapsedGroups.value[key];
+  }
+
+  function hasTokens(row: AddressRow): boolean {
+    return row.utxos.some(utxo => utxo.token);
+  }
+
+  function isTokensExpanded(row: AddressRow): boolean {
+    return expandedTokensKey.value === selectedChain.value + row.index;
+  }
+
+  function toggleTokens(row: AddressRow) {
+    const key = selectedChain.value + row.index;
+    expandedTokensKey.value = expandedTokensKey.value === key ? null : key;
   }
 
   function openQrDialog(row: AddressRow) {
@@ -88,7 +104,7 @@
     return prefix + ':' + body.slice(0, 8) + '...' + body.slice(-8);
   }
 
-  function getAddressBalance(utxos: { satoshis: bigint }[]): bigint {
+  function getAddressBalance(utxos: Utxo[]): bigint {
     return utxos.reduce((sum, u) => sum + u.satoshis, 0n);
   }
 
@@ -104,6 +120,7 @@
         tokenAddress: entry.tokenAddress,
         balance: getAddressBalance(entry.utxos),
         txCount: rawHistory[i]?.length ?? 0,
+        utxos: entry.utxos,
       });
     }
     return rows;
@@ -169,33 +186,39 @@
         <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedGroups[group.key] }" />
       </div>
       <template v-if="!collapsedGroups[group.key]">
-        <div
-          class="address-item"
-          :class="{ current: isCurrentAddress(row) }"
-          v-for="row in group.rows"
-          :key="row.index"
-          :title="displayAddress(row)"
-          @click="copyToClipboard(displayAddress(row))"
-        >
-          <div class="index-badge mono">{{ row.index }}</div>
-          <div class="address-info">
-            <div class="address-text mono">
-              {{ truncateAddress(displayAddress(row)) }}
-              <img class="copyIcon" src="images/copyGrey.svg">
-              <span v-if="isCurrentAddress(row)" class="current-tag">{{ t('hdAddresses.currentTag') }}</span>
+        <template v-for="row in group.rows" :key="row.index">
+          <div
+            class="address-item"
+            :class="{ current: isCurrentAddress(row), expanded: isTokensExpanded(row) }"
+            :title="displayAddress(row)"
+            @click="copyToClipboard(displayAddress(row))"
+          >
+            <div class="index-badge mono">{{ row.index }}</div>
+            <div class="address-info">
+              <div class="address-text mono">
+                {{ truncateAddress(displayAddress(row)) }}
+                <img class="copyIcon" src="images/copyGrey.svg">
+                <span v-if="isCurrentAddress(row)" class="current-tag">{{ t('hdAddresses.currentTag') }}</span>
+              </div>
+              <div class="address-sub">
+                {{ t('hdAddresses.txCount', { count: row.txCount }) }} ·
+                <span class="mono">{{ satsToBch(row.balance) }} {{ bchDisplayUnit }}</span>
+                <span v-if="row.balance && store.exchangeRate !== undefined">
+                  ({{ formatFiatAmount(satsToBch(row.balance) * store.exchangeRate, settingsStore.currency) }})
+                </span>
+              </div>
             </div>
-            <div class="address-sub">
-              {{ t('hdAddresses.txCount', { count: row.txCount }) }} ·
-              <span class="mono">{{ satsToBch(row.balance) }} {{ bchDisplayUnit }}</span>
-              <span v-if="row.balance && store.exchangeRate !== undefined">
-                ({{ formatFiatAmount(satsToBch(row.balance) * store.exchangeRate, settingsStore.currency) }})
+            <div class="card-buttons">
+              <span v-if="hasTokens(row)" class="tokens-button" @click.stop="toggleTokens(row)">
+                <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
+              </span>
+              <span class="qr-button" @click.stop="openQrDialog(row)">
+                <q-icon name="qr_code_2" size="22px" />
               </span>
             </div>
           </div>
-          <span class="qr-button" @click.stop="openQrDialog(row)">
-            <q-icon name="qr_code_2" size="22px" />
-          </span>
-        </div>
+          <AddressTokenChips v-if="isTokensExpanded(row)" :utxos="row.utxos" />
+        </template>
       </template>
     </template>
   </fieldset>
@@ -361,15 +384,37 @@
   background-color: rgba(128, 128, 128, 0.15);
 }
 
-.qr-button {
+.card-buttons {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qr-button,
+.tokens-button {
   display: inline-flex;
   align-items: center;
   opacity: 0.6;
 }
 
-.qr-button:hover {
+.qr-button:hover,
+.tokens-button:hover {
   opacity: 1;
+}
+
+.tokens-button .chevron {
+  transition: transform 0.2s;
+}
+
+.tokens-button .chevron.open {
+  transform: rotate(180deg);
+}
+
+/* the expanded card connects to its token panel below */
+.address-item.expanded {
+  border-radius: 12px 12px 0 0;
+  margin-bottom: 0;
 }
 
 .address-info {
