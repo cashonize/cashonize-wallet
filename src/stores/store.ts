@@ -255,8 +255,9 @@ export const useStore = defineStore('store', () => {
 
     // Abort initialization early when the device is certainly offline, so the user gets
     // one clear error message instead of separate errors from each connection attempt
-    // (navigator.onLine is only reliable when false)
-    if (!navigator.onLine) {
+    // (navigator.onLine is only reliable when explicitly false; environments without the
+    // property should not be treated as offline)
+    if (navigator.onLine === false) {
       // Mark the skipped dapp connection inits as done so callers waiting on dappConnectionStoresInitDone don't hang forever
       isWcInitDone.value = true;
       isCcInitDone.value = true;
