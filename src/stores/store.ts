@@ -252,9 +252,8 @@ export const useStore = defineStore('store', () => {
       throw new Error(`Wallet type mismatch: metadata says 'single' but wallet is HD. This may indicate corrupted settings.`);
     }
 
-    // Abort early when the device is certainly offline, so the user gets one clear error
-    // instead of separate errors from each connection attempt
-    // (only an explicit navigator.onLine === false is trustworthy)
+    // navigator.onLine is only trustworthy when false: abort early when certainly offline,
+    // so the user gets one clear error instead of separate errors per connection attempt
     if (navigator.onLine === false) {
       // Mark the skipped dapp inits as done so code waiting on dappConnectionStoresInitDone doesn't hang
       isWcInitDone.value = true;
@@ -371,8 +370,8 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Retry an aborted-offline initialization once connectivity returns. Other init failures
-  // are not retried: their dapp inits already ran and would register duplicate callbacks
+  // Only offline-aborted inits are retried: other init failures already ran their
+  // dapp inits, so retrying would register duplicate callbacks
   addEventListener('online', () => {
     if (!abortedInitOffline) return;
     abortedInitOffline = false;
