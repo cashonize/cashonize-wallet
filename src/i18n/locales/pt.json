@@ -664,21 +664,13 @@
     "currentTag": "atual",
     "receiving": "Recebimento",
     "change": "Troco",
-    "receivingAddresses": "Endereços de recebimento",
-    "changeAddresses": "Endereços de troco",
     "usedAddresses": "Usados",
     "unusedAddresses": "Não usados",
     "noAddresses": "Nenhum endereço escaneado ainda",
     "options": "Opções",
     "hideZeroBalances": "Ocultar saldos zerados",
     "showTokenAddresses": "Mostrar endereços no formato de token",
-    "txCount": "{count} txs",
-    "columns": {
-      "index": "Índice",
-      "address": "Endereço",
-      "balance": "Saldo",
-      "txs": "Txs"
-    }
+    "txCount": "{count} txs"
   },
   "sweepPrivateKey": {
     "title": "Sweep de Chave Privada",
@@ -826,7 +818,8 @@
     },
     "addressSelect": {
       "title": "Selecionar endereço para conectar",
-      "hint": "Escolha qual endereço compartilhar com este dApp"
+      "hint": "Escolha qual endereço compartilhar com este dApp",
+      "selectedTag": "selecionado"
     },
     "sessionSettings": {
       "title": "Gerenciar sessão",

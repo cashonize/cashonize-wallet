@@ -664,21 +664,13 @@
     "currentTag": "actuelle",
     "receiving": "Réception",
     "change": "Monnaie",
-    "receivingAddresses": "Adresses de réception",
-    "changeAddresses": "Adresses de monnaie",
     "usedAddresses": "Utilisées",
     "unusedAddresses": "Non utilisées",
     "noAddresses": "Aucune adresse analysée pour le moment",
     "options": "Options",
     "hideZeroBalances": "Masquer les soldes nuls",
     "showTokenAddresses": "Afficher les adresses au format token",
-    "txCount": "{count} txs",
-    "columns": {
-      "index": "Index",
-      "address": "Adresse",
-      "balance": "Solde",
-      "txs": "Txs"
-    }
+    "txCount": "{count} txs"
   },
   "sweepPrivateKey": {
     "title": "Balayer une clé privée",
@@ -826,7 +818,8 @@
     },
     "addressSelect": {
       "title": "Sélectionner l'adresse à connecter",
-      "hint": "Choisissez quelle adresse partager avec cette dApp"
+      "hint": "Choisissez quelle adresse partager avec cette dApp",
+      "selectedTag": "sélectionnée"
     },
     "sessionSettings": {
       "title": "Gérer la session",

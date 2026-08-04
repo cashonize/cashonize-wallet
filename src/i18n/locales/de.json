@@ -664,21 +664,13 @@
     "currentTag": "aktuell",
     "receiving": "Empfang",
     "change": "Wechselgeld",
-    "receivingAddresses": "Empfangsadressen",
-    "changeAddresses": "Wechseladressen",
     "usedAddresses": "Verwendet",
     "unusedAddresses": "Unbenutzt",
     "noAddresses": "Noch keine Adressen gescannt",
     "options": "Optionen",
     "hideZeroBalances": "Null-Guthaben ausblenden",
     "showTokenAddresses": "Adressen im Token-Format anzeigen",
-    "txCount": "{count} Txs",
-    "columns": {
-      "index": "Index",
-      "address": "Adresse",
-      "balance": "Guthaben",
-      "txs": "Txs"
-    }
+    "txCount": "{count} Txs"
   },
   "sweepPrivateKey": {
     "title": "Privaten Schlüssel sweepen",
@@ -826,7 +818,8 @@
     },
     "addressSelect": {
       "title": "Adresse zum Verbinden auswählen",
-      "hint": "Wähle, welche Adresse du mit dieser dApp teilen möchtest"
+      "hint": "Wähle, welche Adresse du mit dieser dApp teilen möchtest",
+      "selectedTag": "ausgewählt"
     },
     "sessionSettings": {
       "title": "Sitzung verwalten",
