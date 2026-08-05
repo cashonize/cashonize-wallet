@@ -209,8 +209,12 @@
 .scanner-upload-btn {
   position: absolute;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  /* centered with auto margins instead of translateX, because the global
+     button:active scale transform would replace a transform while pressed */
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
   z-index: 2001;
   font-size: 13px;
   padding: 4px 14px;
