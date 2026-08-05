@@ -92,9 +92,10 @@
     if (!editingContainer || !editingContainer.contains(event.target as Node)) saveNoteEdit();
   }
 
-  watch(editingNoteTx, (editing) => {
-    if (editing !== null) document.addEventListener('mousedown', handleGlobalMousedown, true);
-    else document.removeEventListener('mousedown', handleGlobalMousedown, true);
+  watch(editingNoteTx, (editing, _prev, onCleanup) => {
+    if (editing === null) return;
+    document.addEventListener('mousedown', handleGlobalMousedown, true);
+    onCleanup(() => document.removeEventListener('mousedown', handleGlobalMousedown, true));
   });
 
   // Override Ctrl+F to focus the search input.
