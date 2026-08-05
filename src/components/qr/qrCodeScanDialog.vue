@@ -221,8 +221,9 @@
 </style>
 
 <style>
-/* Disable backdrop blur for scanner dialog — interferes with video compositing on mobile */
-.scanner-dialog .q-dialog__backdrop {
+/* Backdrop blur interferes with the camera video compositing on mobile, so disable
+   it there; desktop keeps the blurred backdrop like other dialogs */
+body.mobile .scanner-dialog .q-dialog__backdrop {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
