@@ -723,6 +723,8 @@
   },
   "qrScanner": {
     "scanQrCode": "Escanear QR Code",
+    "chooseImage": "Escolher imagem",
+    "noQrCodeInImage": "Nenhum QR Code encontrado na imagem",
     "errors": {
       "permissionRequired": "Permissão necessária para acessar a câmera",
       "noCamera": "Nenhuma câmera encontrada neste dispositivo",

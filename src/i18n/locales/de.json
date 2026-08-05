@@ -723,6 +723,8 @@
   },
   "qrScanner": {
     "scanQrCode": "QR-Code scannen",
+    "chooseImage": "Bild auswählen",
+    "noQrCodeInImage": "Kein QR-Code im Bild gefunden",
     "errors": {
       "permissionRequired": "Berechtigung für den Kamerazugriff erforderlich",
       "noCamera": "Keine Kamera auf diesem Gerät gefunden",
