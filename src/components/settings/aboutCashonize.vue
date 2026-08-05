@@ -24,28 +24,28 @@
     <div style="margin-bottom: 15px;">
       <a style="color: var(--font-color); cursor: pointer;" href="https://about.cashonize.com" target="_blank">
         {{ t('aboutCashonize.learnMore') }}
-        <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
+        <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
       </a>
     </div>
 
     <div v-if="isBrowser" style="margin-bottom: 15px;">
       <a style="color: var(--font-color); cursor: pointer;" href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">
         {{ t('aboutCashonize.downloadPage') }}
-        <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
+        <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
       </a>
     </div>
 
     <div style="margin-bottom: 15px;">
       <a style="color: var(--font-color); cursor: pointer;" href="https://github.com/cashonize/cashonize-wallet" target="_blank">
         {{ t('aboutCashonize.viewSource') }}
-        <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
+        <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
       </a>
     </div>
 
     <div style="margin-bottom: 15px;">
       <a style="color: var(--font-color); cursor: pointer;" href="https://x.com/cashonize" target="_blank">
         {{ t('aboutCashonize.followOnX') }}
-        <img :src="settingsStore.darkMode? '/images/external-link-grey.svg' : '/images/external-link.svg'" style="vertical-align: sub;"/>
+        <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
       </a>
     </div>
 
