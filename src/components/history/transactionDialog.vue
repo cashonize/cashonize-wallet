@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref, nextTick } from 'vue';
+  import { computed, ref, watch, onUnmounted } from 'vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -8,7 +8,7 @@
   import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
-  import { formatTimestamp, formatRelativeTime, satsToBch } from 'src/utils/utils';
+  import { formatTime, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, tokenChangeChips } from 'src/utils/utils';
   import { maxTxNoteLength } from 'src/utils/txNotes';
   import { useI18n } from 'vue-i18n'
 
@@ -40,23 +40,20 @@
     })
   }
 
-  const txNote = computed(() => store.txNotes[props.historyItem.hash]);
-  const isEditingNote = ref(false);
-  const noteDraft = ref("");
-  const noteInputRef = ref<HTMLInputElement | null>(null);
-
-  async function startNoteEdit() {
-    noteDraft.value = txNote.value ?? "";
-    isEditingNote.value = true;
-    // the input is behind a v-if, wait for the DOM update before focusing it
-    await nextTick();
-    noteInputRef.value?.focus();
-  }
+  // The note field autosaves: debounced while typing, immediately on blur and on dialog close
+  const noteDraft = ref(store.txNotes[props.historyItem.hash] ?? "");
+  let noteSaveTimeout: ReturnType<typeof setTimeout> | undefined;
 
   function saveNote() {
+    clearTimeout(noteSaveTimeout);
     store.setTxNote(props.historyItem.hash, noteDraft.value);
-    isEditingNote.value = false;
   }
+
+  watch(noteDraft, () => {
+    clearTimeout(noteSaveTimeout);
+    noteSaveTimeout = setTimeout(saveNote, 500);
+  });
+  onUnmounted(saveNote);
 
   const tokenMetadata = ref(undefined as undefined | BcmrTokenMetadata | BcmrNftMetadata);
   const selectedTokenId = ref("");
@@ -65,6 +62,12 @@
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
+
+  // Easily readable date like "1 Aug 2026, 23:48"
+  function formatReadableDate(timestamp: number): string {
+    const day = new Date(timestamp * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+    return `${day}, ${formatTime(timestamp)}`;
+  }
 
   function formatTokenAmount(amount: bigint, category: string) {
     const decimals = store.bcmrRegistries?.[category]?.token.decimals ?? 0;
@@ -152,48 +155,60 @@
           </div>
           <div v-if="historyItem.timestamp">
             {{ t('transactionDialog.date') }}
-              <span>{{ formatTimestamp(historyItem.timestamp, settingsStore.dateFormat) }} ({{ formatRelativeTime(historyItem.timestamp) }})</span>
+              <span>{{ formatReadableDate(historyItem.timestamp) }} ({{ formatRelativeTime(historyItem.timestamp) }})</span>
           </div>
           <div>
             {{ t('transactionDialog.balanceChange') }}
-              <span>{{ satsToBch(historyItem.valueChange) }} {{ bchDisplayUnit }}</span>
-          </div>
-          <div>
-            {{ t('transactionDialog.size') }}
-              <span>{{ t('transactionDialog.sizeValue', { bytes: historyItem.size.toLocaleString("en-US") }) }}</span>
-          </div>
-          <div v-if="!isCoinbase">
-            {{ t('transactionDialog.fee') }}
-              <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat ({{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte)</span>
-          </div>
-          <div v-else>
-            {{ t('transactionDialog.feesCollected') }}
-              <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat</span>
-          </div>
-          <div>
-            {{ t('transactionDialog.note') }}
-            <template v-if="!isEditingNote">
-              <span v-if="txNote" class="noteText">{{ txNote }}</span>
-              <span class="noteAction" @click="startNoteEdit">
-                {{ txNote ? t('transactionDialog.editNote') : t('transactionDialog.addNote') }}
+              <span class="balanceChange" :class="historyItem.valueChange < 0 ? 'negative' : 'positive'">
+                {{ formatBchAmount(historyItem.valueChange, true, 8) }} {{ bchDisplayUnit }}
               </span>
-            </template>
-            <template v-else>
-              <input
-                ref="noteInputRef"
-                v-model="noteDraft"
-                class="noteInput"
-                type="text"
-                :maxlength="maxTxNoteLength"
-                autocomplete="off"
-                spellcheck="false"
-                @keyup.enter="saveNote"
-                @keyup.esc="isEditingNote = false"
-              >
-              <span class="noteAction" @click="saveNote">{{ t('transactionDialog.saveNote') }}</span>
-            </template>
+              <span class="balanceChangeFiat" v-if="store.exchangeRate !== undefined">
+                ({{ `${historyItem.valueChange > 0 ? '+' : ''}` + formatFiatAmount(store.exchangeRate * historyItem.valueChange / 100_000_000, settingsStore.currency) }})
+              </span>
+            <div class="tokenChanges" v-if="historyItem.tokenAmountChanges.length">
+              <div class="token-chip" v-for="chip in tokenChangeChips(historyItem, store.bcmrRegistries)" :key="chip.key">
+                <TokenIcon
+                  :token-id="chip.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
+                  :size="20"
+                />
+                <span class="chip-value" :class="chip.negative ? 'negative' : 'positive'">{{ chip.amountText }}</span>
+                <span class="chip-symbol">{{ chip.symbol }}</span>
+              </div>
+            </div>
           </div>
+          <label class="noteField">
+            <input
+              v-model="noteDraft"
+              type="text"
+              :placeholder="t('transactionDialog.notePlaceholder')"
+              :maxlength="maxTxNoteLength"
+              autocomplete="off"
+              spellcheck="false"
+              @blur="saveNote"
+              @keyup.enter="saveNote"
+            >
+            <q-icon name="edit" size="16px" class="noteIcon" />
+          </label>
         </div>
+
+        <details class="txDetailsCollapse">
+          <summary>{{ t('transactionDialog.fullDetails') }}</summary>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+            <div>
+              {{ t('transactionDialog.size') }}
+                <span>{{ t('transactionDialog.sizeValue', { bytes: historyItem.size.toLocaleString("en-US") }) }}</span>
+            </div>
+            <div v-if="!isCoinbase">
+              {{ t('transactionDialog.fee') }}
+                <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat ({{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte)</span>
+            </div>
+            <div v-else>
+              {{ t('transactionDialog.feesCollected') }}
+                <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat</span>
+            </div>
+          </div>
 
         <fieldset style="max-height: 200px; overflow: scroll; margin-top: 1rem;">
           <legend style="font-size: medium;">{{ t('transactionDialog.inputs') }}</legend>
@@ -239,6 +254,8 @@
           </div>
         </fieldset>
 
+        </details>
+
       </fieldset>
     </q-card>
   </q-dialog>
@@ -274,18 +291,82 @@
   .break {
     word-break: break-all;
   }
-  .noteText {
-    word-break: break-word;
+  /* the balance change amount uses the same colors and token chips as the history list rows */
+  .balanceChange {
+    font-family: monospace;
   }
-  .noteAction {
-    cursor: pointer;
-    color: var(--color-primary);
+  .balanceChangeFiat {
+    opacity: 0.75;
+  }
+  .tokenChanges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .token-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(128, 128, 128, 0.25);
+    background-color: rgba(128, 128, 128, 0.08);
+    border-radius: 14px;
+    padding: 2px 10px 2px 4px;
+    font-size: 0.85em;
+  }
+  .chip-value {
+    font-family: monospace;
     white-space: nowrap;
   }
-  .noteInput {
-    width: 100%;
-    margin-top: 4px;
-    padding: 4px 10px;
+  .chip-symbol {
+    word-break: break-word;
+  }
+  .positive {
+    color: var(--color-primary);
+  }
+  .negative {
+    color: rgb(188, 30, 30);
+  }
+  body.dark .negative {
+    color: #ef9a9a;
+  }
+  .txDetailsCollapse {
+    margin-top: 1rem;
+  }
+  .txDetailsCollapse summary {
+    display: list-item;
+    cursor: pointer;
+  }
+  .noteField {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid rgba(128, 128, 128, 0.25);
+    border-radius: 8px;
+    background-color: rgba(128, 128, 128, 0.06);
+    transition: border-color 0.2s;
+    cursor: text;
+  }
+  .noteField:focus-within {
+    border-color: var(--color-primary);
+  }
+  .noteIcon {
+    flex: none;
+    opacity: 0.55;
+  }
+  .noteField input {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: inherit;
+    color: inherit;
   }
   .thisWalletTag{
     color: hsla(160, 100%, 37%, 1)

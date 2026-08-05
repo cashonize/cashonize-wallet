@@ -5,8 +5,9 @@
   import { useWindowSize } from 'src/utils/composables';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
-  import { formatTime, formatFiatAmount } from 'src/utils/utils';
+  import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips } from 'src/utils/utils';
   import { historyToCsv } from 'src/utils/csvUtils';
+  import { maxTxNoteLength } from 'src/utils/txNotes';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
   import { exportFile, useQuasar } from 'quasar'
@@ -54,6 +55,42 @@
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
 
+  // Inline note editing in the transaction rows; only one row edits at a time
+  const editingNoteTx = ref(null as string | null);
+  const noteDraft = ref("");
+  const noteInputRef = ref<HTMLInputElement | null>(null);
+
+  async function startNoteEdit(txHash: string) {
+    editingNoteTx.value = txHash;
+    noteDraft.value = store.txNotes[txHash] ?? "";
+    // the input is behind a v-if, wait for the DOM update before focusing it
+    await nextTick();
+    noteInputRef.value?.focus();
+  }
+
+  function saveNoteEdit() {
+    if (editingNoteTx.value === null) return;
+    store.setTxNote(editingNoteTx.value, noteDraft.value);
+    editingNoteTx.value = null;
+  }
+
+  function cancelNoteEdit() {
+    editingNoteTx.value = null;
+  }
+
+  // Blur alone can't close the editor: pressing Quasar controls (pagination, toggles)
+  // prevents default on mousedown, so the input never blurs. Watch presses at the
+  // document level while editing and close on any press outside the edit field.
+  function handleGlobalMousedown(event: MouseEvent) {
+    const editingContainer = noteInputRef.value?.parentElement;
+    if (!editingContainer || !editingContainer.contains(event.target as Node)) saveNoteEdit();
+  }
+
+  watch(editingNoteTx, (editing) => {
+    if (editing !== null) document.addEventListener('mousedown', handleGlobalMousedown, true);
+    else document.removeEventListener('mousedown', handleGlobalMousedown, true);
+  });
+
   // Override Ctrl+F to focus the search input.
   function handleCtrlF(event: KeyboardEvent) {
     if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
@@ -66,7 +103,11 @@
 
   // Listener added/removed on KeepAlive activate/deactivate so it only applies while this view is active.
   onActivated(() => document.addEventListener('keydown', handleCtrlF));
-  onDeactivated(() => document.removeEventListener('keydown', handleCtrlF));
+  onDeactivated(() => {
+    document.removeEventListener('keydown', handleCtrlF);
+    // close an open note editor when navigating away from the history view
+    saveNoteEdit();
+  });
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
@@ -158,52 +199,6 @@
   // value, while a wallet-authored transaction always pays the fee so its net is negative
   function isIncoming(transaction: TransactionHistoryItem): boolean {
     return transaction.valueChange >= 0;
-  }
-
-  interface TokenChangeChip {
-    key: string;
-    category: string;
-    amountText: string;
-    symbol: string;
-    negative: boolean;
-  }
-
-  // Tokens like BADGER have both fungibles and NFTs with the same category in user wallets,
-  // so one token change can yield both a fungible chip and an NFT chip
-  function tokenChangeChips(transaction: TransactionHistoryItem): TokenChangeChip[] {
-    const chips: TokenChangeChip[] = [];
-    for (const tokenChange of transaction.tokenAmountChanges) {
-      const tokenMetadata = store.bcmrRegistries?.[tokenChange.category]?.token;
-      const symbol = tokenMetadata?.symbol ?? tokenChange.category.slice(0, 8);
-      const decimals = tokenMetadata?.decimals ?? 0;
-      // Show the fungible change for any nonzero amount. When there is no NFT change either,
-      // still show it (as "0") so a token change never renders without a chip.
-      if (tokenChange.amount !== 0n || tokenChange.nftAmount === 0n) {
-        const amount = Number(tokenChange.amount) / 10 ** decimals;
-        chips.push({
-          key: tokenChange.category + "-ft",
-          category: tokenChange.category,
-          amountText: `${amount > 0 ? '+' : ''}${amount.toLocaleString("en-US", { maximumFractionDigits: decimals })}`,
-          symbol,
-          negative: amount < 0,
-        });
-      }
-      if (tokenChange.nftAmount !== 0n) {
-        chips.push({
-          key: tokenChange.category + "-nft",
-          category: tokenChange.category,
-          amountText: `${tokenChange.nftAmount > 0n ? '+' : ''}${tokenChange.nftAmount}`,
-          symbol: `${symbol} NFT`,
-          negative: tokenChange.nftAmount < 0n,
-        });
-      }
-    }
-    return chips;
-  }
-
-  function formatBchAmount(satoshis: number, signed = false): string {
-    const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: 5 });
-    return signed && satoshis > 0 ? `+${amount}` : amount;
   }
 
   function toggleOptions() {
@@ -303,7 +298,7 @@
               <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
             </div>
             <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
-              <div class="token-chip" v-for="chip in tokenChangeChips(transaction)" :key="chip.key">
+              <div class="token-chip" v-for="chip in tokenChangeChips(transaction, store.bcmrRegistries)" :key="chip.key">
                 <TokenIcon
                   :token-id="chip.category"
                   :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
@@ -313,7 +308,29 @@
                 <span class="chip-symbol">{{ chip.symbol }}</span>
               </div>
             </div>
-            <div class="tx-note" v-if="store.txNotes[transaction.hash]">{{ store.txNotes[transaction.hash] }}</div>
+            <div class="tx-note" v-if="editingNoteTx === transaction.hash" @click.stop>
+              <input
+                ref="noteInputRef"
+                v-model="noteDraft"
+                class="note-input"
+                type="text"
+                :maxlength="maxTxNoteLength"
+                autocomplete="off"
+                spellcheck="false"
+                @blur="saveNoteEdit"
+                @keyup.enter="saveNoteEdit"
+                @keyup.esc="cancelNoteEdit"
+              >
+            </div>
+            <div
+              class="tx-note"
+              v-else-if="store.txNotes[transaction.hash]"
+              :title="store.txNotes[transaction.hash]"
+              @click.stop="startNoteEdit(transaction.hash)"
+            >{{ store.txNotes[transaction.hash] }}</div>
+            <div class="tx-note tx-note-add" v-else @click.stop="startNoteEdit(transaction.hash)">
+              <span class="add-note-hint">{{ t('history.addNote') }} <q-icon name="edit" size="14px" /></span>
+            </div>
             <div class="tx-amounts">
               <div class="tx-amount-line">
                 <div class="tx-bch" :class="transaction.valueChange < 0 ? 'negative' : 'positive'">
@@ -590,16 +607,51 @@ body.dark .negative {
   color: #ef9a9a;
 }
 
-/* the note renders as a single truncated line below the main row, like the token chips */
+/* the note sits front and center between the direction info and the amounts,
+   filling the free space and truncating with an ellipsis when it runs out;
+   clicking it edits the note inline instead of opening the transaction dialog */
 .tx-note {
-  order: 6;
-  flex-basis: 100%;
-  font-size: 0.85em;
-  font-style: italic;
-  opacity: 0.65;
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  opacity: 0.8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: text;
+  /* enlarge the click target without growing the row; the horizontal padding
+     keeps the note and its edit input clear of the neighboring text */
+  padding: 10px 12px;
+  margin: -10px 0;
+}
+
+/* rows without a note reveal the hint on hover */
+.add-note-hint {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tx-item:hover .add-note-hint {
+  opacity: 0.55;
+}
+
+.add-note-hint .q-icon {
+  vertical-align: -0.15em;
+}
+
+.note-input {
+  width: 100%;
+  text-align: center;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  border-bottom: 1px solid var(--color-primary);
+  border-radius: 0;
+  padding: 0 4px 1px;
+  margin: 0;
 }
 
 /* token changes render as wrapping chips on their own line below the main row, so any
@@ -659,6 +711,18 @@ body.dark .negative {
   }
   .tx-item {
     padding: 8px 10px;
+  }
+  /* not enough room in the main row on mobile, the note gets its own
+     full-width line below it (before the token chips at order 5) */
+  .tx-note {
+    flex: none;
+    order: 4;
+    flex-basis: 100%;
+    font-size: 0.9em;
+  }
+  /* no hover on touch screens, adding notes happens in the transaction dialog */
+  .tx-note-add {
+    display: none;
   }
 }
 

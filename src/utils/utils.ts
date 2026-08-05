@@ -1,7 +1,7 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, type Utxo } from "mainnet-js"
-import type { ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, type Utxo, type TransactionHistoryItem } from "mainnet-js"
+import type { BcmrTokenMetadata, ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -158,6 +158,55 @@ export function formatNumber(value: number, maxDecimals: number): string {
 export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };
+
+export function formatBchAmount(satoshis: number, signed = false, maxDecimals = 5): string {
+  const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: maxDecimals });
+  return signed && satoshis > 0 ? `+${amount}` : amount;
+}
+
+export interface TokenChangeChip {
+  key: string;
+  category: string;
+  amountText: string;
+  symbol: string;
+  negative: boolean;
+}
+
+// Tokens like BADGER have both fungibles and NFTs with the same category in user wallets,
+// so one token change can yield both a fungible chip and an NFT chip
+export function tokenChangeChips(
+  transaction: TransactionHistoryItem,
+  bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
+): TokenChangeChip[] {
+  const chips: TokenChangeChip[] = [];
+  for (const tokenChange of transaction.tokenAmountChanges) {
+    const tokenMetadata = bcmrRegistries?.[tokenChange.category]?.token;
+    const symbol = tokenMetadata?.symbol ?? tokenChange.category.slice(0, 8);
+    const decimals = tokenMetadata?.decimals ?? 0;
+    // Show the fungible change for any nonzero amount. When there is no NFT change either,
+    // still show it (as "0") so a token change never renders without a chip.
+    if (tokenChange.amount !== 0n || tokenChange.nftAmount === 0n) {
+      const amount = Number(tokenChange.amount) / 10 ** decimals;
+      chips.push({
+        key: tokenChange.category + "-ft",
+        category: tokenChange.category,
+        amountText: `${amount > 0 ? '+' : ''}${amount.toLocaleString("en-US", { maximumFractionDigits: decimals })}`,
+        symbol,
+        negative: amount < 0,
+      });
+    }
+    if (tokenChange.nftAmount !== 0n) {
+      chips.push({
+        key: tokenChange.category + "-nft",
+        category: tokenChange.category,
+        amountText: `${tokenChange.nftAmount > 0n ? '+' : ''}${tokenChange.nftAmount}`,
+        symbol: `${symbol} NFT`,
+        negative: tokenChange.nftAmount < 0n,
+      });
+    }
+  }
+  return chips;
+}
 
 export function getTokenUtxos(utxos:  Utxo[]){
   return utxos.filter((val) =>val.token);

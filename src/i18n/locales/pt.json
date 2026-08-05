@@ -408,6 +408,7 @@
     "today": "Hoje",
     "yesterday": "Ontem",
     "balanceLabel": "Saldo:",
+    "addNote": "adicionar nota",
     "csv": {
       "date": "Data (UTC)",
       "transactionId": "ID da transação",
@@ -439,10 +440,8 @@
     "inputs": "Entradas",
     "outputs": "Saídas",
     "coinbase": "coinbase",
-    "note": "Nota:",
-    "addNote": "adicionar nota",
-    "editNote": "editar",
-    "saveNote": "salvar"
+    "notePlaceholder": "Adicionar uma nota pessoal",
+    "fullDetails": "Detalhes completos da transação"
   },
   "alertDialog": {
     "transactionSent": "Transação enviada!",
