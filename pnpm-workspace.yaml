@@ -21,6 +21,8 @@ minimumReleaseAgeExclude:
   - '@quasar/app-vite'
   - '@cashconnect-js/core@1.0.0-alpha.31'
   - '@cashconnect-js/nostr@1.0.0-alpha.31'
+  - 'quasar@2.24.0'
+  - '@quasar/vite-plugin@2.0.0'
 
 # Enforce the "engines" field (node / pnpm) instead of just warning.
 engineStrict: true
