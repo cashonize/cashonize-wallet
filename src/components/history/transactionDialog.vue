@@ -8,7 +8,7 @@
   import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
-  import { formatTime, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, tokenChangeChips } from 'src/utils/utils';
+  import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, tokenChangeChips } from 'src/utils/utils';
   import { maxTxNoteLength } from 'src/utils/txNotes';
   import { useI18n } from 'vue-i18n'
 
@@ -62,12 +62,6 @@
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
-
-  // Easily readable date like "1 Aug 2026, 23:48"
-  function formatReadableDate(timestamp: number): string {
-    const day = new Date(timestamp * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-    return `${day}, ${formatTime(timestamp)}`;
-  }
 
   function formatTokenAmount(amount: bigint, category: string) {
     const decimals = store.bcmrRegistries?.[category]?.token.decimals ?? 0;

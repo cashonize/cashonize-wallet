@@ -65,6 +65,31 @@ export function formatTime(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
+// Easily readable date like "1 Aug 2026, 23:48"
+export function formatReadableDate(timestamp: number): string {
+  const day = new Date(timestamp * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return `${day}, ${formatTime(timestamp)}`;
+}
+
+// Calendar-day label for grouping history rows: Today, Yesterday, or "1 Aug 2026".
+// Pending transactions have no timestamp and group under their own header
+export function dayLabel(timestamp: number | undefined): string {
+  if (!timestamp) return t('history.pending');
+  const date = new Date(timestamp * 1000);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (date.toDateString() === today.toDateString()) return t('history.today');
+  if (date.toDateString() === yesterday.toDateString()) return t('history.yesterday');
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// Date inputs hold local calendar dates (YYYY-MM-DD); compare in local time to match the displayed dates
+export function localDayStart(isoDate: string, dayOffset = 0): number {
+  const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
+  return new Date(year, month - 1, day + dayOffset).getTime() / 1000;
+}
+
 export function formatRelativeTime(timestamp: number): string {
   const now = Math.floor(Date.now() / 1000);
   const diff = now - timestamp;

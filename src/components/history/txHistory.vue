@@ -5,9 +5,10 @@
   import { useWindowSize } from 'src/utils/composables';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
-  import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips } from 'src/utils/utils';
+  import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips, dayLabel, localDayStart } from 'src/utils/utils';
   import { historyToCsv } from 'src/utils/csvUtils';
   import { maxTxNoteLength } from 'src/utils/txNotes';
+  import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/txDirection';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
   import { exportFile, useQuasar } from 'quasar'
@@ -63,8 +64,8 @@
 
   // Template refs inside v-for are collected into arrays, so a function ref is
   // needed to capture the single active edit input as a plain element
-  function setNoteInputRef(el: unknown) {
-    noteInputRef.value = el as HTMLInputElement | null;
+  function setNoteInputRef(element: unknown) {
+    noteInputRef.value = element as HTMLInputElement | null;
   }
 
   async function startNoteEdit(txHash: string) {
@@ -121,17 +122,14 @@
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
 
-  // Date inputs hold local calendar dates (YYYY-MM-DD); compare in local time to match the displayed dates
-  function localDayStart(isoDate: string, dayOffset = 0): number {
-    const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
-    return new Date(year, month - 1, day + dayOffset).getTime() / 1000;
-  }
+  // Predicate for isDappInteraction, which is store-agnostic by design
+  const walletHasAddress = (address: string) => store.wallet.hasAddress(address);
 
   const selectedHistory = computed(() => {
     let history = store.walletHistory;
     if (selectedFilter.value === "bchTransactions") history = history?.filter(tx => !tx.tokenAmountChanges.length);
     if (selectedFilter.value === "tokenTransactions") history = history?.filter(tx => tx.tokenAmountChanges.length);
-    if (selectedFilter.value === "dappTransactions") history = history?.filter(tx => isDappInteraction(tx));
+    if (selectedFilter.value === "dappTransactions") history = history?.filter(tx => isDappInteraction(tx, walletHasAddress));
     // The direction pills partition the history: each one shows exactly the rows
     // carrying that label, so combined transactions only appear under Combined
     if (directionFilter.value === "incoming") history = history?.filter(tx => txDirection(tx) === 'received');
@@ -180,19 +178,7 @@
   })
   const totalPages = computed(() => Math.ceil((searchedHistory.value?.length ?? 0) / itemsPerPage))
 
-  // Group consecutive transactions by calendar day (history is sorted newest first).
-  // Pending transactions have no timestamp and group under their own header.
-  function dayLabel(timestamp: number | undefined): string {
-    if (!timestamp) return t('history.pending');
-    const date = new Date(timestamp * 1000);
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    if (date.toDateString() === today.toDateString()) return t('history.today');
-    if (date.toDateString() === yesterday.toDateString()) return t('history.yesterday');
-    return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-  }
-
+  // Group consecutive transactions by calendar day (history is sorted newest first)
   const groupedHistory = computed(() => {
     const groups: { label: string; transactions: TransactionHistoryItem[] }[] = [];
     for (const transaction of paginatedHistory.value ?? []) {
@@ -206,46 +192,6 @@
     }
     return groups;
   });
-
-  // Direction is judged per asset flow: the BCH change and every token change count
-  // separately. A transaction with flows both ways (a swap, loan or mint) is combined
-  function txHasIncoming(transaction: TransactionHistoryItem): boolean {
-    if (transaction.valueChange > 0) return true;
-    return transaction.tokenAmountChanges.some(change => change.amount > 0n || change.nftAmount > 0n);
-  }
-
-  function txHasOutgoing(transaction: TransactionHistoryItem): boolean {
-    if (transaction.valueChange < 0) return true;
-    return transaction.tokenAmountChanges.some(change => change.amount < 0n || change.nftAmount < 0n);
-  }
-
-  // A transaction the wallet coauthored that also spends a contract (P2SH) input is
-  // a dapp interaction. Requiring one of the wallet's own inputs filters out third
-  // parties that merely pay us from a P2SH wallet, like exchange withdrawals
-  function isDappInteraction(transaction: TransactionHistoryItem): boolean {
-    const hasP2shInput = transaction.inputs.some(input => {
-      // P2SH cashaddr payloads start with p, or r for the token-aware variant
-      const payload = input.address.split(":")[1] ?? "";
-      return payload.startsWith("p") || payload.startsWith("r");
-    });
-    if (!hasP2shInput) return false;
-    return transaction.inputs.some(input => store.wallet.hasAddress(input.address));
-  }
-
-  function isCombined(transaction: TransactionHistoryItem): boolean {
-    return txHasIncoming(transaction) && txHasOutgoing(transaction);
-  }
-
-  function txDirection(transaction: TransactionHistoryItem): 'received' | 'sent' | 'combined' {
-    if (isCombined(transaction)) return 'combined';
-    return txHasOutgoing(transaction) ? 'sent' : 'received';
-  }
-
-  function directionIcon(transaction: TransactionHistoryItem): string {
-    const direction = txDirection(transaction);
-    if (direction === 'combined') return 'swap_vert';
-    return direction === 'received' ? 'arrow_downward' : 'arrow_upward';
-  }
 
   function toggleOptions() {
     showOptions.value = !showOptions.value
@@ -264,7 +210,7 @@
   function exportCsv() {
     const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value, store.txNotes, tx => ({
       direction: t('history.' + txDirection(tx)),
-      dapp: isDappInteraction(tx),
+      dapp: isDappInteraction(tx, walletHasAddress),
     }));
     const status = exportFile("cashonize-tx-history.csv", csvContent, { mimeType: "text/csv" });
     if (status !== true) $q.notify({ message: t('history.exportFailed'), icon: 'warning', color: "red" });
@@ -346,7 +292,7 @@
             <div class="tx-info">
               <div class="tx-type">
                 {{ t('history.' + txDirection(transaction)) }}
-                <span v-if="isDappInteraction(transaction)" class="dapp-badge">{{ t('history.dapp') }}</span>
+                <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
               </div>
               <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
             </div>
