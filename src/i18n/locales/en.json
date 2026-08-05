@@ -390,12 +390,14 @@
       "all": "All",
       "bchTxs": "BCH txs",
       "tokenTxs": "Token txs",
+      "dappTxs": "Dapp txs",
       "dateRange": "Filter range:"
     },
     "directionFilter": {
       "all": "All",
       "incoming": "Incoming",
-      "outgoing": "Outgoing"
+      "outgoing": "Outgoing",
+      "combined": "Combined"
     },
     "showFiatValue": "Show fiat value",
     "hideBalanceColumn": "Hide balance",
@@ -405,6 +407,8 @@
     "noMatch": "No transactions match filter",
     "sent": "Sent",
     "received": "Received",
+    "combined": "Combined",
+    "dapp": "dapp",
     "today": "Today",
     "yesterday": "Yesterday",
     "balanceLabel": "Balance:",
@@ -415,6 +419,8 @@
       "amount": "Amount ({unit})",
       "balance": "Balance ({unit})",
       "tokenChanges": "Token Changes",
+      "direction": "Direction",
+      "dapp": "Dapp",
       "note": "Note"
     },
     "pending": "pending",

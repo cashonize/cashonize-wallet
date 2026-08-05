@@ -23,8 +23,8 @@
   const showOptions = ref(false)
   const showFiatValue = ref(settingsStore.showFiatValueHistory)
   const hideBalance = ref(settingsStore.hideBalanceColumn)
-  const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");
-  const directionFilter = ref("all" as "all" | "incoming" | "outgoing");
+  const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions" | "dappTransactions");
+  const directionFilter = ref("all" as "all" | "incoming" | "outgoing" | "combined");
   const dateFrom = ref("");
   const dateTo = ref("");
   const searchQuery = ref("");
@@ -50,6 +50,7 @@
     { value: "all", label: "history.directionFilter.all" },
     { value: "incoming", label: "history.directionFilter.incoming" },
     { value: "outgoing", label: "history.directionFilter.outgoing" },
+    { value: "combined", label: "history.directionFilter.combined" },
   ] as const;
 
   const currentPage = ref(1)
@@ -130,8 +131,12 @@
     let history = store.walletHistory;
     if (selectedFilter.value === "bchTransactions") history = history?.filter(tx => !tx.tokenAmountChanges.length);
     if (selectedFilter.value === "tokenTransactions") history = history?.filter(tx => tx.tokenAmountChanges.length);
-    if (directionFilter.value === "incoming") history = history?.filter(tx => isIncoming(tx));
-    if (directionFilter.value === "outgoing") history = history?.filter(tx => !isIncoming(tx));
+    if (selectedFilter.value === "dappTransactions") history = history?.filter(tx => isDappInteraction(tx));
+    // The direction pills partition the history: each one shows exactly the rows
+    // carrying that label, so combined transactions only appear under Combined
+    if (directionFilter.value === "incoming") history = history?.filter(tx => txDirection(tx) === 'received');
+    if (directionFilter.value === "outgoing") history = history?.filter(tx => txDirection(tx) === 'sent');
+    if (directionFilter.value === "combined") history = history?.filter(tx => isCombined(tx));
     const fromTimestamp = dateFrom.value ? localDayStart(dateFrom.value) : undefined;
     const untilTimestamp = dateTo.value ? localDayStart(dateTo.value, 1) : undefined;
     if (fromTimestamp !== undefined || untilTimestamp !== undefined) {
@@ -202,10 +207,44 @@
     return groups;
   });
 
-  // Direction is derived from the net BCH change: receiving (BCH or tokens) always adds
-  // value, while a wallet-authored transaction always pays the fee so its net is negative
-  function isIncoming(transaction: TransactionHistoryItem): boolean {
-    return transaction.valueChange >= 0;
+  // Direction is judged per asset flow: the BCH change and every token change count
+  // separately. A transaction with flows both ways (a swap, loan or mint) is combined
+  function txHasIncoming(transaction: TransactionHistoryItem): boolean {
+    if (transaction.valueChange > 0) return true;
+    return transaction.tokenAmountChanges.some(change => change.amount > 0n || change.nftAmount > 0n);
+  }
+
+  function txHasOutgoing(transaction: TransactionHistoryItem): boolean {
+    if (transaction.valueChange < 0) return true;
+    return transaction.tokenAmountChanges.some(change => change.amount < 0n || change.nftAmount < 0n);
+  }
+
+  // A transaction the wallet coauthored that also spends a contract (P2SH) input is
+  // a dapp interaction. Requiring one of the wallet's own inputs filters out third
+  // parties that merely pay us from a P2SH wallet, like exchange withdrawals
+  function isDappInteraction(transaction: TransactionHistoryItem): boolean {
+    const hasP2shInput = transaction.inputs.some(input => {
+      // P2SH cashaddr payloads start with p, or r for the token-aware variant
+      const payload = input.address.split(":")[1] ?? "";
+      return payload.startsWith("p") || payload.startsWith("r");
+    });
+    if (!hasP2shInput) return false;
+    return transaction.inputs.some(input => store.wallet.hasAddress(input.address));
+  }
+
+  function isCombined(transaction: TransactionHistoryItem): boolean {
+    return txHasIncoming(transaction) && txHasOutgoing(transaction);
+  }
+
+  function txDirection(transaction: TransactionHistoryItem): 'received' | 'sent' | 'combined' {
+    if (isCombined(transaction)) return 'combined';
+    return txHasOutgoing(transaction) ? 'sent' : 'received';
+  }
+
+  function directionIcon(transaction: TransactionHistoryItem): string {
+    const direction = txDirection(transaction);
+    if (direction === 'combined') return 'swap_vert';
+    return direction === 'received' ? 'arrow_downward' : 'arrow_upward';
   }
 
   function toggleOptions() {
@@ -223,7 +262,10 @@
   }
 
   function exportCsv() {
-    const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value, store.txNotes);
+    const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value, store.txNotes, tx => ({
+      direction: t('history.' + txDirection(tx)),
+      dapp: isDappInteraction(tx),
+    }));
     const status = exportFile("cashonize-tx-history.csv", csvContent, { mimeType: "text/csv" });
     if (status !== true) $q.notify({ message: t('history.exportFailed'), icon: 'warning', color: "red" });
   }
@@ -265,6 +307,7 @@
             <option value="allTransactions">{{ t('history.filter.all') }}</option>
             <option value="bchTransactions">{{ t('history.filter.bchTxs') }}</option>
             <option value="tokenTransactions">{{ t('history.filter.tokenTxs') }}</option>
+            <option value="dappTransactions">{{ t('history.filter.dappTxs') }}</option>
           </select>
         </div>
         <div class="option-item date-range">
@@ -297,11 +340,14 @@
             :key="transaction.hash"
             @click="() => selectedTransaction = transaction"
           >
-            <div class="tx-direction" :class="[isIncoming(transaction) ? 'received' : 'sent', { pending: !transaction.timestamp }]">
-              <q-icon :name="isIncoming(transaction) ? 'arrow_downward' : 'arrow_upward'" size="20px" />
+            <div class="tx-direction" :class="[txDirection(transaction), { pending: !transaction.timestamp }]">
+              <q-icon :name="directionIcon(transaction)" size="20px" />
             </div>
             <div class="tx-info">
-              <div class="tx-type">{{ isIncoming(transaction) ? t('history.received') : t('history.sent') }}</div>
+              <div class="tx-type">
+                {{ t('history.' + txDirection(transaction)) }}
+                <span v-if="isDappInteraction(transaction)" class="dapp-badge">{{ t('history.dapp') }}</span>
+              </div>
               <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
             </div>
             <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
@@ -551,6 +597,11 @@
   color: var(--color-grey);
 }
 
+.tx-direction.combined {
+  background-color: rgba(74, 144, 217, 0.15);
+  color: #4a90d9;
+}
+
 .tx-direction.pending {
   background-color: rgba(230, 162, 60, 0.18);
   color: #e6a23c;
@@ -562,6 +613,19 @@
 
 .tx-type {
   font-weight: 600;
+}
+
+/* transactions spending from a contract carry a small dapp tag next to the type */
+.dapp-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 0.7em;
+  font-weight: 600;
+  vertical-align: middle;
+  background-color: rgba(142, 111, 216, 0.18);
+  color: #8e6fd8;
 }
 
 .tx-time {

@@ -390,12 +390,14 @@
       "all": "Alle",
       "bchTxs": "BCH-Txs",
       "tokenTxs": "Token-Txs",
+      "dappTxs": "Dapp-Txs",
       "dateRange": "Zeitraum:"
     },
     "directionFilter": {
       "all": "Alle",
       "incoming": "Eingehend",
-      "outgoing": "Ausgehend"
+      "outgoing": "Ausgehend",
+      "combined": "Kombiniert"
     },
     "showFiatValue": "Fiat-Wert anzeigen",
     "hideBalanceColumn": "Guthaben ausblenden",
@@ -405,6 +407,8 @@
     "noMatch": "Keine Transaktionen passen zum Filter",
     "sent": "Gesendet",
     "received": "Empfangen",
+    "combined": "Kombiniert",
+    "dapp": "Dapp",
     "today": "Heute",
     "yesterday": "Gestern",
     "balanceLabel": "Guthaben:",
@@ -415,6 +419,8 @@
       "amount": "Betrag ({unit})",
       "balance": "Guthaben ({unit})",
       "tokenChanges": "Token-Änderungen",
+      "direction": "Richtung",
+      "dapp": "Dapp",
       "note": "Notiz"
     },
     "pending": "ausstehend",

@@ -390,12 +390,14 @@
       "all": "Toutes",
       "bchTxs": "Txs BCH",
       "tokenTxs": "Txs tokens",
+      "dappTxs": "Txs dapps",
       "dateRange": "Plage de dates :"
     },
     "directionFilter": {
       "all": "Toutes",
       "incoming": "Entrantes",
-      "outgoing": "Sortantes"
+      "outgoing": "Sortantes",
+      "combined": "Combinées"
     },
     "showFiatValue": "Afficher la valeur en devise",
     "hideBalanceColumn": "Masquer le solde",
@@ -405,6 +407,8 @@
     "noMatch": "Aucune transaction ne correspond au filtre",
     "sent": "Envoyé",
     "received": "Reçu",
+    "combined": "Combiné",
+    "dapp": "dapp",
     "today": "Aujourd'hui",
     "yesterday": "Hier",
     "balanceLabel": "Solde :",
@@ -415,6 +419,8 @@
       "amount": "Montant ({unit})",
       "balance": "Solde ({unit})",
       "tokenChanges": "Variations de tokens",
+      "direction": "Direction",
+      "dapp": "Dapp",
       "note": "Note"
     },
     "pending": "en attente",
