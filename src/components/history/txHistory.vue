@@ -60,6 +60,12 @@
   const noteDraft = ref("");
   const noteInputRef = ref<HTMLInputElement | null>(null);
 
+  // Template refs inside v-for are collected into arrays, so a function ref is
+  // needed to capture the single active edit input as a plain element
+  function setNoteInputRef(el: unknown) {
+    noteInputRef.value = el as HTMLInputElement | null;
+  }
+
   async function startNoteEdit(txHash: string) {
     editingNoteTx.value = txHash;
     noteDraft.value = store.txNotes[txHash] ?? "";
@@ -310,7 +316,7 @@
             </div>
             <div class="tx-note" v-if="editingNoteTx === transaction.hash" @click.stop>
               <input
-                ref="noteInputRef"
+                :ref="setNoteInputRef"
                 v-model="noteDraft"
                 class="note-input"
                 type="text"
@@ -639,7 +645,10 @@ body.dark .negative {
   vertical-align: -0.15em;
 }
 
-.note-input {
+/* the focused state needs the same overrides: the global chota input rules
+   outweigh a single class and would bring back the border and focus ring */
+.tx-note .note-input,
+.tx-note .note-input:focus {
   width: 100%;
   text-align: center;
   font-size: inherit;
