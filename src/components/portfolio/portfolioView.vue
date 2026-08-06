@@ -12,6 +12,7 @@
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
   import loanKeyItem from './loanKeyItem.vue'
+  import stakingReceiptItem from './stakingReceiptItem.vue'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -36,6 +37,10 @@
 
   // shared color for all ParyonUSD loan segments, loans don't get individual colors
   const LOAN_COLOR = '#a231c1'
+
+  // ParyonUSD staking receipt category and shared segment color
+  const PARYON_STAKING_CATEGORY = '7708645a7f30e97003573d9322202960a560a87527bef3666a30044a0dfdfa81'
+  const STAKING_COLOR = '#378df5'
 
   const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
   const bchValueFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 5 })
@@ -121,7 +126,13 @@
     if (!assets.value) return undefined
     const pricedTotal = assets.value.priced.reduce((sum, asset) => sum + asset.bchValue, 0)
     const loansTotal = chartedLoans.value.reduce((sum, loan) => sum + loan.netBch, 0)
-    return pricedTotal + loansTotal
+    let stakingTotal = 0
+    if (includeStaking.value) {
+      stakingTotal = stakingReceiptNfts.value.reduce(
+        (sum, receipt) => sum + Math.max(stakingState(receipt.utxo)?.stakeBch ?? 0, 0), 0
+      )
+    }
+    return pricedTotal + loansTotal + stakingTotal
   })
 
   // split the priced list for display while keeping the original index, since
@@ -132,10 +143,11 @@
   })
   interface AssetRow { kind: 'asset', asset: PricedAsset, index: number, value: number }
   interface LoanRow { kind: 'loan', loan: { category: string, utxo: Utxo, name: string }, value: number }
-  type DisplayRow = AssetRow | LoanRow
+  interface StakingRow { kind: 'staking', receipt: { category: string, utxo: Utxo, name: string }, value: number }
+  type DisplayRow = AssetRow | LoanRow | StakingRow
 
-  // priced assets and loans merged and sorted big to small for display;
-  // an underwater loan sorts with value 0 but stays visible in the main list
+  // priced assets, loans and staking receipts merged and sorted big to small for
+  // display; an underwater loan sorts with value 0 but stays visible in the main list
   const displayRows = computed<DisplayRow[]>(() => {
     const assetRows: DisplayRow[] = pricedWithIndex.value.map(({ asset, index }) => (
       { kind: 'asset', asset, index, value: asset.bchValue }
@@ -143,13 +155,16 @@
     const loanRows: DisplayRow[] = loanKeyNfts.value.map(loan => (
       { kind: 'loan', loan, value: Math.max(loanState(loan.utxo)?.netBch ?? 0, 0) }
     ))
-    return [...assetRows, ...loanRows].sort((a, b) => b.value - a.value)
+    const stakingRows: DisplayRow[] = stakingReceiptNfts.value.map(receipt => (
+      { kind: 'staking', receipt, value: stakingState(receipt.utxo)?.stakeBch ?? 0 }
+    ))
+    return [...assetRows, ...loanRows, ...stakingRows].sort((a, b) => b.value - a.value)
   })
 
-  // BCH and loans always show in the main list, small token holdings collapse
+  // BCH, loans and staking receipts always show in the main list, small token holdings collapse
   const mainRows = computed(() => {
     return displayRows.value.filter(row =>
-      row.kind === 'loan' || row.index === 0 || assetShare(row.value) >= SMALL_SHARE_THRESHOLD
+      row.kind !== 'asset' || row.index === 0 || assetShare(row.value) >= SMALL_SHARE_THRESHOLD
     )
   })
   const smallAssetRows = computed(() => {
@@ -159,7 +174,8 @@
   })
 
   function rowKey(row: DisplayRow) {
-    return row.kind === 'asset' ? (row.asset.category ?? 'bch') : loanUtxoId(row.loan.utxo)
+    if (row.kind === 'asset') return row.asset.category ?? 'bch'
+    return nftUtxoId(row.kind === 'loan' ? row.loan.utxo : row.receipt.utxo)
   }
 
   // ParyonUSD loan key NFTs are listed with the priced assets, showing both
@@ -187,11 +203,11 @@
   }
   const loanStates = ref<Record<string, LoanState>>({})
 
-  function loanUtxoId(utxo: Utxo) {
+  function nftUtxoId(utxo: Utxo) {
     return `${utxo.txid}:${utxo.vout}`
   }
   function loanState(utxo: Utxo) {
-    return loanStates.value[loanUtxoId(utxo)]
+    return loanStates.value[nftUtxoId(utxo)]
   }
   function loanNetDisplay(utxo: Utxo) {
     const netBch = loanState(utxo)?.netBch
@@ -208,7 +224,7 @@
   // Parsed as soon as the loan keys are known since the net values feed the chart
   watch(loanKeyNfts, (loans) => {
     for (const loan of loans) {
-      const utxoId = loanUtxoId(loan.utxo)
+      const utxoId = nftUtxoId(loan.utxo)
       if (loanStates.value[utxoId]) continue
       void store.parseNftCommitment(loan.category, loan.utxo).then(async result => {
         const namedFields = (result?.success ? result.namedFields : undefined) ?? []
@@ -237,6 +253,72 @@
     }
   }, { immediate: true })
 
+  // ParyonUSD staking receipts. The commitment records the amount staked at an
+  // epoch, but the live stake can have been reduced since, so their value is an
+  // estimate, excluded from the chart and total unless the user opts in
+  const includeStaking = ref(false)
+
+  const stakingReceiptNfts = computed(() => {
+    const receipts: { category: string, utxo: Utxo, name: string }[] = []
+    for (const token of store.tokenList ?? []) {
+      if (!('nfts' in token) || token.category !== PARYON_STAKING_CATEGORY) continue
+      const metadata = store.bcmrRegistries?.[token.category]
+      for (const utxo of token.nfts) {
+        receipts.push({ category: token.category, utxo, name: metadata?.name ?? 'ParyonUSD Staking Receipt' })
+      }
+    }
+    return receipts
+  })
+
+  interface StakingState {
+    stakedDisplay: string | undefined
+    epochDisplay: string | undefined
+    stakeBch: number | undefined  // estimated, used for sorting and the value column
+  }
+  const stakingStates = ref<Record<string, StakingState>>({})
+
+  function stakingState(utxo: Utxo) {
+    return stakingStates.value[nftUtxoId(utxo)]
+  }
+  function stakingValueDisplay(utxo: Utxo) {
+    const stakeBch = stakingState(utxo)?.stakeBch
+    if (stakeBch === undefined) return undefined
+    return formatBchValue(stakeBch)
+  }
+  function stakingShareDisplay(utxo: Utxo) {
+    const stakeBch = stakingState(utxo)?.stakeBch
+    if (!includeStaking.value || stakeBch === undefined || stakeBch <= 0) return undefined
+    return formatShare(assetShare(stakeBch))
+  }
+
+  // receipt commitments parse locally (no extension), so this is cheap
+  watch(stakingReceiptNfts, (receipts) => {
+    for (const receipt of receipts) {
+      const utxoId = nftUtxoId(receipt.utxo)
+      if (stakingStates.value[utxoId]) continue
+      void store.parseNftCommitment(receipt.category, receipt.utxo).then(async result => {
+        const namedFields = (result?.success ? result.namedFields : undefined) ?? []
+        const stakedParsed = namedFields.find(field => field.fieldId === 'amountStakedReceipt')?.parsedValue
+        const epochParsed = namedFields.find(field => field.fieldId === 'epochReceipt')?.parsedValue
+
+        // estimated value: the staked PUSD amount, treated as USD
+        let stakeBch: number | undefined
+        if (stakedParsed?.type === 'number') {
+          try {
+            const stakedUsd = Number(stakedParsed.value) / (10 ** (stakedParsed.decimals ?? 0))
+            stakeBch = Number(await convert(stakedUsd, 'usd', 'bch'))
+          } catch {
+            // exchange rate unavailable, leave the estimated value out
+          }
+        }
+        stakingStates.value = {
+          ...stakingStates.value,
+          [utxoId]: { stakedDisplay: stakedParsed?.formatted, epochDisplay: epochParsed?.formatted, stakeBch }
+        }
+      })
+    }
+  }, { immediate: true })
+
   const hasFungibleTokens = computed(() => (store.tokenList ?? []).some(token => 'amount' in token))
 
   // True once metadata, prices and the icon colors for the colored segments have all
@@ -255,6 +337,7 @@
     }
     // loan net values feed the chart and total, so wait for their on-chain state too
     if (loanKeyNfts.value.some(loan => !loanState(loan.utxo))) return false
+    if (stakingReceiptNfts.value.some(receipt => !stakingState(receipt.utxo))) return false
     return true
   })
 
@@ -343,8 +426,10 @@
         } else {
           otherValue += row.asset.bchValue
         }
-      } else if (row.value > 0) {
+      } else if (row.kind === 'loan' && row.value > 0) {
         segments.push({ label: row.loan.name, bchValue: row.value, color: LOAN_COLOR })
+      } else if (row.kind === 'staking' && includeStaking.value && row.value > 0) {
+        segments.push({ label: row.receipt.name, bchValue: row.value, color: STAKING_COLOR })
       }
     }
     if (otherValue > 0) segments.push({ label: t('portfolio.other'), bchValue: otherValue, color: otherColor.value })
@@ -428,6 +513,10 @@
         </div>
       </div>
 
+      <div v-if="stakingReceiptNfts.length" class="include-staking">
+        {{ t('portfolio.includeStaked') }} <q-toggle v-model="includeStaking" dense />
+      </div>
+
       <div class="asset-list">
         <template v-for="row in mainRows" :key="rowKey(row)">
           <div v-if="row.kind === 'asset'" class="asset-row">
@@ -449,13 +538,22 @@
             </div>
           </div>
           <loanKeyItem
-            v-else
+            v-else-if="row.kind === 'loan'"
             :category="row.loan.category"
             :name="row.loan.name"
             :dot-color="LOAN_COLOR"
             :state="loanState(row.loan.utxo)"
             :net-value-display="loanNetDisplay(row.loan.utxo)"
             :share-display="loanShareDisplay(row.loan.utxo)"
+          />
+          <stakingReceiptItem
+            v-else
+            :category="row.receipt.category"
+            :name="row.receipt.name"
+            :charted="includeStaking"
+            :state="stakingState(row.receipt.utxo)"
+            :estimated-value-display="stakingValueDisplay(row.receipt.utxo)"
+            :share-display="stakingShareDisplay(row.receipt.utxo)"
           />
         </template>
       </div>
@@ -577,6 +675,11 @@
 .donut-center-amount {
   font-size: 1.25em;
   font-weight: 600;
+}
+
+.include-staking {
+  text-align: center;
+  margin-bottom: 15px;
 }
 
 .asset-list {
