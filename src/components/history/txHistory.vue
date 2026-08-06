@@ -2,7 +2,6 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
   import { computed, ref, watch, nextTick, onActivated, onDeactivated } from 'vue';
-  import { useWindowSize } from 'src/utils/composables';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips, dayLabel, localDayStart } from 'src/utils/utils';
@@ -31,11 +30,6 @@
   const dateTo = ref("");
   const searchQuery = ref("");
   const searchInputRef = ref<HTMLInputElement | null>(null);
-  const { width } = useWindowSize();
-  // The compact layout starts generously wide so notes get a full line of their own
-  const isMobile = computed(() => width.value <= 750);
-  // On small mobiles the badges move out of the label line to the bottom of the card
-  const isSmallMobile = computed(() => width.value <= 400);
   // On mobile the search input hides behind a search icon until toggled open
   const showSearch = ref(false);
 
@@ -250,8 +244,8 @@
             @click="directionFilter = option.value"
           >{{ t(option.label) }}</button>
         </div>
-        <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input" autocomplete="off" autocapitalize="none" spellcheck="false">
-        <span v-if="isMobile" class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
+        <input ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input" :class="{ open: showSearch }" autocomplete="off" autocapitalize="none" spellcheck="false">
+        <span class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
           <q-icon name="search" size="22px" />
         </span>
         <span class="options-toggle" :class="{ active: showOptions }" :title="t('history.options')" @click="toggleOptions">
@@ -307,9 +301,9 @@
               <div class="tx-info">
                 <div class="tx-type">
                   {{ t('history.' + txDirection(transaction)) }}
-                  <span v-if="!isSmallMobile && isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+                  <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
                   <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
-                  <InfoPopup v-if="!isSmallMobile && transaction.blockHeight < 0" @click.stop>
+                  <InfoPopup v-if="transaction.blockHeight < 0" class="chain-popup" @click.stop>
                     <template #trigger>
                       <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
                     </template>
@@ -377,7 +371,7 @@
                 {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
               </div>
             </div>
-            <div class="tx-badges-line" v-if="isSmallMobile && (isDappInteraction(transaction, walletHasAddress) || transaction.blockHeight < 0)">
+            <div class="tx-badges-line" v-if="isDappInteraction(transaction, walletHasAddress) || transaction.blockHeight < 0">
               <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
               <InfoPopup v-if="transaction.blockHeight < 0" @click.stop>
                 <template #trigger>
@@ -459,6 +453,11 @@ fieldset.item {
   width: 180px;
   padding: 4px 10px;
   margin-left: auto;
+}
+
+/* the search icon only exists in the compact layout */
+.search-toggle {
+  display: none;
 }
 
 /* segmented pill bar for the transaction direction filter */
@@ -649,9 +648,9 @@ fieldset.item {
 
 /* on small mobiles the badges move out of the label line to their own bottom line */
 .tx-badges-line {
+  display: none;
   order: 6;
   flex-basis: 100%;
-  display: flex;
   gap: 4px;
 }
 
@@ -828,14 +827,19 @@ body.dark .negative {
 
 /* the compact layout starts generously wide so notes get a full line of their own */
 @media only screen and (max-width: 750px) {
-  /* the opened search moves to its own full-width line, the icons stay beside the pills */
+  /* the search hides behind its icon; opened, it moves to its own full-width line */
   .search-input {
+    display: none;
+  }
+  .search-input.open {
+    display: block;
     order: 5;
     flex-basis: 100%;
     width: 100%;
     margin-left: 0;
   }
   .search-toggle {
+    display: inline;
     margin-left: auto;
   }
   .type-filter button {
@@ -891,6 +895,17 @@ body.dark .negative {
      pill on small screens keeps the bar next to the icons */
   .type-filter button.combined-pill {
     display: none;
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  /* the badges leave the crowded label line for their own line at the card bottom */
+  .tx-type .dapp-badge,
+  .tx-type .chain-popup {
+    display: none;
+  }
+  .tx-badges-line {
+    display: flex;
   }
 }
 </style>
