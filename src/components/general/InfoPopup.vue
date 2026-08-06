@@ -16,13 +16,17 @@
 </script>
 
 <template>
-  <q-icon name="info_outline" class="info-popup-icon" @pointerenter="showPopup" @pointerleave="hidePopup">
+  <!-- The trigger slot lets any element act as the popup target, the info icon is the default -->
+  <span @pointerenter="showPopup" @pointerleave="hidePopup">
+    <slot name="trigger">
+      <q-icon name="info_outline" class="info-popup-icon" />
+    </slot>
     <!-- QMenu instead of QTooltip so opening works by click/tap on all platforms
       (hover-only tooltips are awkward on touch devices) -->
     <q-menu ref="menu" no-focus anchor="bottom middle" self="top middle" :offset="[0, 6]" class="info-popup">
       <slot />
     </q-menu>
-  </q-icon>
+  </span>
 </template>
 
 <style>

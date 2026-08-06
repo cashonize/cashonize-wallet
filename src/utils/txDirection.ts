@@ -24,6 +24,8 @@ export function txDirection(transaction: TransactionHistoryItem): TxDirection {
 }
 
 export function directionIcon(transaction: TransactionHistoryItem): string {
+  // pending transactions show a waiting icon, the label next to it carries the direction
+  if (!transaction.timestamp) return 'hourglass_empty';
   const direction = txDirection(transaction);
   if (direction === 'combined') return 'swap_vert';
   return direction === 'received' ? 'arrow_downward' : 'arrow_upward';

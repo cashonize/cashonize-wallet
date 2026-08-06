@@ -10,6 +10,7 @@
   import { maxTxNoteLength } from 'src/utils/txNotes';
   import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/txDirection';
   import TokenIcon from '../general/TokenIcon.vue';
+  import InfoPopup from '../general/InfoPopup.vue';
   import { useI18n } from 'vue-i18n'
   import { exportFile, useQuasar } from 'quasar'
 
@@ -124,6 +125,15 @@
 
   // Predicate for isDappInteraction, which is store-agnostic by design
   const walletHasAddress = (address: string) => store.wallet.hasAddress(address);
+
+  // Show confirmation progress toward the customary 6, after that a transaction
+  // is considered final and the count is no longer interesting
+  function confirmationsProgress(transaction: TransactionHistoryItem): number | undefined {
+    if (!transaction.timestamp || transaction.blockHeight <= 0) return undefined;
+    if (store.currentBlockHeight === undefined) return undefined;
+    const confirmations = Math.max(1, store.currentBlockHeight - transaction.blockHeight + 1);
+    return confirmations < 6 ? confirmations : undefined;
+  }
 
   const selectedHistory = computed(() => {
     let history = store.walletHistory;
@@ -293,6 +303,16 @@
               <div class="tx-type">
                 {{ t('history.' + txDirection(transaction)) }}
                 <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+                <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
+                <InfoPopup v-if="transaction.blockHeight < 0" @click.stop>
+                  <template #trigger>
+                    <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                  </template>
+                  {{ t('history.unconfirmedChainTooltip') }}
+                </InfoPopup>
+                <span v-if="confirmationsProgress(transaction) !== undefined" class="tx-confirmations">
+                  {{ t('history.confirmationsProgress', { count: confirmationsProgress(transaction) }) }}
+                </span>
               </div>
               <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
             </div>
@@ -577,6 +597,29 @@
 .tx-time {
   font-size: 0.85em;
   opacity: 0.65;
+}
+
+/* confirmation progress reads as secondary info next to the bold type label */
+.tx-confirmations {
+  margin-left: 4px;
+  font-size: 0.8em;
+  font-weight: 400;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+/* a transaction depending on unconfirmed inputs has a higher risk of not
+   confirming; the info popup next to the badge carries the explanation */
+.chain-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 0.7em;
+  font-weight: 600;
+  vertical-align: middle;
+  background-color: rgba(230, 162, 60, 0.18);
+  color: #e6a23c;
 }
 
 .tx-amounts {

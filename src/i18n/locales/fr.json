@@ -424,6 +424,9 @@
       "note": "Note"
     },
     "pending": "en attente",
+    "confirmationsProgress": "{count}/6 confirmations",
+    "unconfirmedChain": "chaîne non confirmée",
+    "unconfirmedChainTooltip": "Cette transaction dépend d'une autre transaction non confirmée, ce qui augmente le risque qu'elle ne soit pas confirmée.",
     "transactionCountPartial": "{count}+ Transactions",
     "loadingFullHistory": "Chargement de l'historique complet"
   },
@@ -437,6 +440,7 @@
     "status": "Statut :",
     "unconfirmed": "non confirmée",
     "confirmations": "{count} confirmations (miné au bloc #{block})",
+    "confirmationsProgress": "{count}/6 confirmations (miné au bloc #{block})",
     "date": "Date :",
     "balanceChange": "Variation du solde :",
     "size": "Taille :",

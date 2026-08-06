@@ -8,6 +8,7 @@
   import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
+  import InfoPopup from '../general/InfoPopup.vue';
   import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, tokenChangeChips } from 'src/utils/utils';
   import { maxTxNoteLength } from 'src/utils/txNotes';
   import { useI18n } from 'vue-i18n'
@@ -62,6 +63,9 @@
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
+
+  // A transaction in the current tip block has 1 confirmation
+  const confirmations = computed(() => (store.currentBlockHeight as number) - props.historyItem.blockHeight + 1);
 
   function formatTokenAmount(amount: bigint, category: string) {
     const decimals = store.bcmrRegistries?.[category]?.token.decimals ?? 0;
@@ -143,8 +147,20 @@
           </div>
           <div>
             {{ t('transactionDialog.status') }}
-              <span v-if="historyItem.timestamp === undefined">{{ t('transactionDialog.unconfirmed') }}</span>
-              <span v-else>{{ t('transactionDialog.confirmations', { count: store.currentBlockHeight as number - historyItem.blockHeight, block: historyItem.blockHeight.toLocaleString("en-US") }) }}
+              <span v-if="historyItem.timestamp === undefined">
+                {{ t('transactionDialog.unconfirmed') }}
+                <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
+                <InfoPopup v-if="historyItem.blockHeight < 0">
+                  <template #trigger>
+                    <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                  </template>
+                  {{ t('history.unconfirmedChainTooltip') }}
+                </InfoPopup>
+              </span>
+              <!-- under the customary 6 confirmations, show progress toward finality -->
+              <span v-else-if="confirmations < 6">{{ t('transactionDialog.confirmationsProgress', { count: confirmations, block: historyItem.blockHeight.toLocaleString("en-US") }) }}
+              </span>
+              <span v-else>{{ t('transactionDialog.confirmations', { count: confirmations, block: historyItem.blockHeight.toLocaleString("en-US") }) }}
               </span>
           </div>
           <div v-if="historyItem.timestamp">
@@ -364,6 +380,18 @@
   }
   .thisWalletTag{
     color: hsla(160, 100%, 37%, 1)
+  }
+  /* same amber pill as the history rows, the info popup carries the explanation */
+  .chain-badge {
+    display: inline-block;
+    margin-left: 2px;
+    padding: 0 7px;
+    border-radius: 9px;
+    font-size: 0.8em;
+    font-weight: 600;
+    vertical-align: middle;
+    background-color: rgba(230, 162, 60, 0.18);
+    color: #e6a23c;
   }
 
   @media only screen and (max-width: 450px) {

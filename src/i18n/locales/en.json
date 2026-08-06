@@ -424,6 +424,9 @@
       "note": "Note"
     },
     "pending": "pending",
+    "confirmationsProgress": "{count}/6 confirmations",
+    "unconfirmedChain": "unconfirmed chain",
+    "unconfirmedChainTooltip": "This transaction depends on another unconfirmed transaction, which increases the risk that it does not confirm.",
     "transactionCountPartial": "{count}+ Transactions",
     "loadingFullHistory": "Loading full history"
   },
@@ -437,6 +440,7 @@
     "status": "Status:",
     "unconfirmed": "unconfirmed",
     "confirmations": "{count} confirmations (mined in block #{block})",
+    "confirmationsProgress": "{count}/6 confirmations (mined in block #{block})",
     "date": "Date:",
     "balanceChange": "Balance change:",
     "size": "Size:",
