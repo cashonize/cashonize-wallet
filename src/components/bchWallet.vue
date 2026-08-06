@@ -13,6 +13,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import portfolioIcon from './portfolio/portfolioIcon.vue';
 
   const $q = useQuasar()
   const store = useStore()
@@ -244,7 +245,11 @@
 
 
 <template>
-  <fieldset style="margin-top: 20px; padding-top: 2rem; padding-bottom: 1rem; max-width: 75rem; margin: auto 10px;">
+  <fieldset style="position: relative; margin-top: 20px; padding-top: 2rem; padding-bottom: 1rem; max-width: 75rem; margin: auto 10px;">
+    <div class="portfolioLink" @click="store.changeView(12)">
+      <portfolioIcon :sizePx="20" />
+      <span>{{ t('portfolio.title') }}</span>
+    </div>
     <div style="font-size: 1.2em">
       {{ t('wallet.balance', { currency: currencyDisplayShortName }) }}
       <span style="color: hsla(160, 100%, 37%, 1);">{{ displayCurrencyBalance }}</span>
@@ -309,6 +314,34 @@
 </template>
 
 <style scoped>
+.portfolioLink {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: border-color 0.2s;
+}
+.portfolioLink:hover {
+  border-color: var(--color-primary);
+}
+/* icon-only pill on small screens, the "Portfolio" label takes too much width */
+@media (max-width: 450px) {
+  .portfolioLink span {
+    display: none;
+  }
+  .portfolioLink {
+    padding: 5px 9px;
+  }
+}
 .qr-code {
   display: block;
   cursor: pointer;

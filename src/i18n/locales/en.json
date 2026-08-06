@@ -155,6 +155,21 @@
       "notCashaddress": "Not a cashaddress on current network"
     }
   },
+  "portfolio": {
+    "title": "Portfolio",
+    "backToWallet": "Back to wallet",
+    "description": "Your total wallet value across BCH and fungible tokens",
+    "pricesInfo": "Token values are based on Cauldron DEX prices",
+    "nftsExcluded": "NFTs are not included in the total",
+    "totalValue": "Total value",
+    "other": "Other",
+    "noPriceData": "No price data ({count})",
+    "smallBalances": "Small balances ({count})",
+    "mainnetOnly": "The portfolio view is only available on mainnet",
+    "noAssets": "No BCH or tokens in this wallet yet",
+    "loading": "Loading wallet data",
+    "loadingFailed": "Failed to load wallet data"
+  },
   "tokens": {
     "loading": "Loading token data",
     "loadingFailed": "Failed to load token data",

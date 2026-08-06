@@ -155,6 +155,21 @@
       "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel"
     }
   },
+  "portfolio": {
+    "title": "Portfolio",
+    "backToWallet": "Retour au portefeuille",
+    "description": "La valeur totale de votre portefeuille en BCH et tokens fongibles",
+    "pricesInfo": "Les valeurs des tokens sont basées sur les prix du DEX Cauldron",
+    "nftsExcluded": "Les NFTs ne sont pas inclus dans le total",
+    "totalValue": "Valeur totale",
+    "other": "Autres",
+    "noPriceData": "Pas de données de prix ({count})",
+    "smallBalances": "Petits soldes ({count})",
+    "mainnetOnly": "La vue portfolio est uniquement disponible sur le mainnet",
+    "noAssets": "Pas encore de BCH ni de tokens dans ce portefeuille",
+    "loading": "Chargement des données du portefeuille",
+    "loadingFailed": "Échec du chargement des données du portefeuille"
+  },
   "tokens": {
     "loading": "Chargement des données des tokens",
     "loadingFailed": "Échec du chargement des données des tokens",

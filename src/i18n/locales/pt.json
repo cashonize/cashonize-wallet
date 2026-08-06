@@ -155,6 +155,21 @@
       "notCashaddress": "Não é um cashaddress na rede atual"
     }
   },
+  "portfolio": {
+    "title": "Portfólio",
+    "backToWallet": "Voltar à carteira",
+    "description": "O valor total da sua carteira entre BCH e tokens fungíveis",
+    "pricesInfo": "Os valores dos tokens são baseados nos preços do DEX Cauldron",
+    "nftsExcluded": "NFTs não são incluídos no total",
+    "totalValue": "Valor total",
+    "other": "Outros",
+    "noPriceData": "Sem dados de preço ({count})",
+    "smallBalances": "Saldos pequenos ({count})",
+    "mainnetOnly": "A visão de portfólio só está disponível na mainnet",
+    "noAssets": "Ainda não há BCH nem tokens nesta carteira",
+    "loading": "Carregando dados da carteira",
+    "loadingFailed": "Falha ao carregar os dados da carteira"
+  },
   "tokens": {
     "loading": "Carregando dados dos tokens",
     "loadingFailed": "Falha ao carregar os dados dos tokens",
