@@ -400,7 +400,7 @@
       "combined": "Combinées"
     },
     "showFiatValue": "Afficher la valeur en devise",
-    "hideBalanceColumn": "Masquer le solde",
+    "showBalance": "Afficher le solde après la transaction",
     "exportCsv": "Exporter en CSV",
     "exportFailed": "Échec de l'export CSV",
     "searchPlaceholder": "Rechercher token ou id de tx...",

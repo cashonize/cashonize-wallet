@@ -24,7 +24,7 @@
   // state options menu
   const showOptions = ref(false)
   const showFiatValue = ref(settingsStore.showFiatValueHistory)
-  const hideBalance = ref(settingsStore.hideBalanceColumn)
+  const showBalance = ref(settingsStore.showBalanceInHistory)
   const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions" | "dappTransactions");
   const directionFilter = ref("all" as "all" | "incoming" | "outgoing" | "combined");
   const dateFrom = ref("");
@@ -212,9 +212,9 @@
     settingsStore.showFiatValueHistory = showFiatValue.value;
   }
 
-  function toggleHideBalance() {
-    localStorage.setItem("hideBalanceColumn", hideBalance.value ? "true" : "false");
-    settingsStore.hideBalanceColumn = hideBalance.value;
+  function toggleShowBalance() {
+    localStorage.setItem("showBalanceInHistory", showBalance.value ? "true" : "false");
+    settingsStore.showBalanceInHistory = showBalance.value;
   }
 
   function exportCsv() {
@@ -278,7 +278,7 @@
           {{ t('history.showFiatValue') }} <q-toggle v-model="showFiatValue" @update:model-value="toggleShowFiatValue" dense />
         </div>
         <div class="option-item">
-          {{ t('history.hideBalanceColumn') }} <q-toggle v-model="hideBalance" @update:model-value="toggleHideBalance" dense />
+          {{ t('history.showBalance') }} <q-toggle v-model="showBalance" @update:model-value="toggleShowBalance" dense />
         </div>
         <div class="option-item" v-if="!isCapacitor">
           <button @click="exportCsv">{{ t('history.exportCsv') }}</button>
@@ -359,7 +359,7 @@
                   ({{ `${transaction.valueChange > 0 ? '+' : ''}` + formatFiatAmount(store.exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency) }})
                 </div>
               </div>
-              <div class="tx-balance" v-if="!hideBalance">
+              <div class="tx-balance" v-if="showBalance">
                 {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
               </div>
             </div>

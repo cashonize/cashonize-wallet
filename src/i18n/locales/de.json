@@ -400,7 +400,7 @@
       "combined": "Kombiniert"
     },
     "showFiatValue": "Fiat-Wert anzeigen",
-    "hideBalanceColumn": "Guthaben ausblenden",
+    "showBalance": "Guthaben nach der Transaktion anzeigen",
     "exportCsv": "CSV exportieren",
     "exportFailed": "CSV-Export fehlgeschlagen",
     "searchPlaceholder": "Token oder Tx-ID suchen...",

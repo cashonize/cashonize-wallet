@@ -400,7 +400,7 @@
       "combined": "Combined"
     },
     "showFiatValue": "Show fiat value",
-    "hideBalanceColumn": "Hide balance",
+    "showBalance": "Show balance after transaction",
     "exportCsv": "Export CSV",
     "exportFailed": "CSV export failed",
     "searchPlaceholder": "Search token or tx id...",
