@@ -21,11 +21,12 @@
   // Chart colors: BCH always keeps the brand green; token segments prefer their
   // icon's dominant color and fall back to the fixed palette when the icon has no
   // dominant hue or it sits too close to an already-assigned color. The fixed
-  // palette and the lightness bands are validated for contrast and colorblind
-  // separation on both the light and dark surface.
+  // palettes are validated for contrast and colorblind separation on their surface.
+  // Icon colors are only clamped away from the surface lightness (not too light on
+  // the light surface, not too dark on the dark one) so they keep resembling the icon.
   const CHART_COLORS = {
-    light: { bch: '#0ac18f', fallbacks: ['#2563eb', '#f59e0b', '#8b5cf6'], other: '#747681', minL: 0.45, maxL: 0.75 },
-    dark: { bch: '#0a9e75', fallbacks: ['#2563eb', '#c17d08', '#8b5cf6'], other: '#8a8d96', minL: 0.5, maxL: 0.67 }
+    light: { bch: '#0ac18f', fallbacks: ['#2563eb', '#f59e0b', '#8b5cf6'], other: '#747681', minL: 0.3, maxL: 0.8 },
+    dark: { bch: '#0a9e75', fallbacks: ['#2563eb', '#c17d08', '#8b5cf6'], other: '#8a8d96', minL: 0.55, maxL: 0.95 }
   }
   // minimum perceptual distance between chart colors (OKLab distance x100)
   const MIN_COLOR_DISTANCE = 15
@@ -411,7 +412,6 @@
 
 .page-description {
   text-align: center;
-  color: grey;
   margin-bottom: 15px;
 }
 .page-note {
