@@ -30,6 +30,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Fast and lightweight** - Quick startup, fast data loading, and snappy navigation
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
 - **Localization** - Available in English, Spanish, French, German, and Portuguese
+- **Transaction history** - Filterable, searchable history with private transaction notes
 - **Sweep functionality** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
 - **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
 
@@ -37,6 +38,8 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 
 - **CashConnect support** - Connect to BCH-native dApps through the CashConnect protocol
 - **Detailed dApp transaction preview** - Shows your balance changes for BCH and tokens before signing
+- **Dapp-aware history** - Labels dapp transactions and classifies swaps as combined, both filterable
+- **Token pills in history** - Token changes shown as pills with icon and amount in the history
 - **Token management** - Favorite, hide, and search tokens
 - **Cauldron price display** - View live Cauldron DEX prices for fungible tokens
 - **Parsable NFTs** - Decode NFT commitments and display their data as human-readable attributes (parsable BCMR support)
