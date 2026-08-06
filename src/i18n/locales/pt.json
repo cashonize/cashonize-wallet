@@ -165,7 +165,6 @@
     "other": "Outros",
     "noPriceData": "Sem dados de preço ({count})",
     "smallBalances": "Saldos pequenos ({count})",
-    "paryonLoans": "Empréstimos ParyonUSD ({count})",
     "collateral": "Colateral",
     "debt": "Dívida",
     "netValue": "Valor líquido",

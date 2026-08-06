@@ -11,6 +11,7 @@
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
+  import loanKeyItem from './loanKeyItem.vue'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -129,21 +130,40 @@
   const pricedWithIndex = computed(() => {
     return (assets.value?.priced ?? []).map((asset, index) => ({ asset, index }))
   })
-  const mainPricedAssets = computed(() => {
-    return pricedWithIndex.value.filter(({ asset, index }) =>
-      index === 0 || assetShare(asset.bchValue) >= SMALL_SHARE_THRESHOLD
+  interface AssetRow { kind: 'asset', asset: PricedAsset, index: number, value: number }
+  interface LoanRow { kind: 'loan', loan: { category: string, utxo: Utxo, name: string }, value: number }
+  type DisplayRow = AssetRow | LoanRow
+
+  // priced assets and loans merged and sorted big to small for display;
+  // an underwater loan sorts with value 0 but stays visible in the main list
+  const displayRows = computed<DisplayRow[]>(() => {
+    const assetRows: DisplayRow[] = pricedWithIndex.value.map(({ asset, index }) => (
+      { kind: 'asset', asset, index, value: asset.bchValue }
+    ))
+    const loanRows: DisplayRow[] = loanKeyNfts.value.map(loan => (
+      { kind: 'loan', loan, value: Math.max(loanState(loan.utxo)?.netBch ?? 0, 0) }
+    ))
+    return [...assetRows, ...loanRows].sort((a, b) => b.value - a.value)
+  })
+
+  // BCH and loans always show in the main list, small token holdings collapse
+  const mainRows = computed(() => {
+    return displayRows.value.filter(row =>
+      row.kind === 'loan' || row.index === 0 || assetShare(row.value) >= SMALL_SHARE_THRESHOLD
     )
   })
-  const smallPricedAssets = computed(() => {
-    return pricedWithIndex.value.filter(({ asset, index }) =>
-      index !== 0 && assetShare(asset.bchValue) < SMALL_SHARE_THRESHOLD
+  const smallAssetRows = computed(() => {
+    return displayRows.value.filter((row): row is AssetRow =>
+      row.kind === 'asset' && row.index !== 0 && assetShare(row.value) < SMALL_SHARE_THRESHOLD
     )
   })
 
-  // ParyonUSD loan key NFTs get their own section: a loan carries both collateral
-  // and debt, so it doesn't fit the chart as a single positive value
-  const showLoans = ref(false)
+  function rowKey(row: DisplayRow) {
+    return row.kind === 'asset' ? (row.asset.category ?? 'bch') : loanUtxoId(row.loan.utxo)
+  }
 
+  // ParyonUSD loan key NFTs are listed with the priced assets, showing both
+  // collateral and debt, and are charted by their net value
   const loanKeyNfts = computed(() => {
     const loans: { category: string, utxo: Utxo, name: string }[] = []
     for (const token of store.tokenList ?? []) {
@@ -177,6 +197,11 @@
     const netBch = loanState(utxo)?.netBch
     if (netBch === undefined) return undefined
     return formatBchValue(netBch)
+  }
+  function loanShareDisplay(utxo: Utxo) {
+    const netBch = loanState(utxo)?.netBch
+    if (netBch === undefined || netBch <= 0) return undefined
+    return formatShare(assetShare(netBch))
   }
 
   // Loan state lives on-chain and is fetched through the paryonusd BCMR extension.
@@ -302,22 +327,29 @@
     return bchValueFormatter.format(bchValue) + ' BCH'
   }
 
-  // chart segments as stroke-dasharray fractions of a circle with circumference 100
+  // Chart segments as stroke-dasharray fractions of a circle with circumference 100.
+  // Drawn in display-list order so the slices visually map to the rows, with the
+  // 'Other' bucket (tokens beyond the individually colored ones) at the end
   const chartSegments = computed(() => {
-    const priced = assets.value?.priced
     const total = totalBchValue.value
-    if (!priced || !total) return []
+    if (!assets.value || !total) return []
 
-    const top = priced.slice(0, MAX_SEGMENTS).map((asset, index) => (
-      { label: asset.name, bchValue: asset.bchValue, color: segmentColorAt(index) }
-    ))
-    const restValue = priced.slice(MAX_SEGMENTS).reduce((sum, asset) => sum + asset.bchValue, 0)
-    if (restValue > 0) top.push({ label: t('portfolio.other'), bchValue: restValue, color: otherColor.value })
-    for (const loan of chartedLoans.value) {
-      top.push({ label: loan.name, bchValue: loan.netBch, color: LOAN_COLOR })
+    const segments: { label: string, bchValue: number, color: string }[] = []
+    let otherValue = 0
+    for (const row of displayRows.value) {
+      if (row.kind === 'asset') {
+        if (row.index < MAX_SEGMENTS) {
+          segments.push({ label: row.asset.name, bchValue: row.asset.bchValue, color: segmentColorAt(row.index) })
+        } else {
+          otherValue += row.asset.bchValue
+        }
+      } else if (row.value > 0) {
+        segments.push({ label: row.loan.name, bchValue: row.value, color: LOAN_COLOR })
+      }
     }
+    if (otherValue > 0) segments.push({ label: t('portfolio.other'), bchValue: otherValue, color: otherColor.value })
 
-    const shown = top.filter(segment => segment.bchValue > 0)
+    const shown = segments.filter(segment => segment.bchValue > 0)
     const gap = shown.length > 1 ? SEGMENT_GAP : 0
     let cumulative = 0
     return shown.map(segment => {
@@ -397,68 +429,44 @@
       </div>
 
       <div class="asset-list">
-        <div v-for="{ asset, index } in mainPricedAssets" :key="asset.category ?? 'bch'" class="asset-row">
-          <span class="dot" :style="{ color: segmentColorAt(index) }"></span>
-          <img v-if="!asset.category" src="images/bch-icon.png" class="bch-icon">
-          <TokenIcon
-            v-else
-            :token-id="asset.category"
-            :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(asset.category) : undefined"
-            :size="32"
-          />
-          <div class="asset-name">
-            <div>{{ asset.name }}</div>
-            <div class="sub">{{ asset.amountDisplay }} {{ asset.symbol }}</div>
-          </div>
-          <div class="asset-value">
-            <div>{{ formatBchValue(asset.bchValue) }}</div>
-            <div class="sub">{{ formatShare(assetShare(asset.bchValue)) }}</div>
-          </div>
-        </div>
-      </div>
-
-      <template v-if="loanKeyNfts.length">
-        <div class="section-label collapsible" @click="showLoans = !showLoans">
-          <q-icon name="expand_more" class="chevron" :class="{ open: showLoans }" />
-          {{ t('portfolio.paryonLoans', { count: loanKeyNfts.length }) }}
-        </div>
-        <div v-if="showLoans" class="asset-list">
-          <div v-for="loan in loanKeyNfts" :key="loanUtxoId(loan.utxo)" class="asset-row">
-            <span class="dot" :style="{ color: LOAN_COLOR }"></span>
+        <template v-for="row in mainRows" :key="rowKey(row)">
+          <div v-if="row.kind === 'asset'" class="asset-row">
+            <span class="dot" :style="{ color: segmentColorAt(row.index) }"></span>
+            <img v-if="!row.asset.category" src="images/bch-icon.png" class="bch-icon">
             <TokenIcon
-              :token-id="loan.category"
-              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(loan.category) : undefined"
+              v-else
+              :token-id="row.asset.category"
+              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(row.asset.category) : undefined"
               :size="32"
             />
             <div class="asset-name">
-              <div>{{ loan.name }}</div>
-              <div v-if="loanState(loan.utxo)?.collateralDisplay" class="sub">
-                {{ t('portfolio.collateral') }}: {{ loanState(loan.utxo)?.collateralDisplay }}
-              </div>
-              <div v-if="loanState(loan.utxo)?.debtDisplay" class="sub">
-                {{ t('portfolio.debt') }}: {{ loanState(loan.utxo)?.debtDisplay }}
-              </div>
+              <div>{{ row.asset.name }}</div>
+              <div class="sub">{{ row.asset.amountDisplay }} {{ row.asset.symbol }}</div>
             </div>
             <div class="asset-value">
-              <template v-if="!loanState(loan.utxo)">
-                <q-spinner-dots size="1.2em" />
-              </template>
-              <template v-else-if="loanNetDisplay(loan.utxo)">
-                <div>{{ loanNetDisplay(loan.utxo) }}</div>
-                <div class="sub">{{ t('portfolio.netValue') }}</div>
-              </template>
+              <div>{{ formatBchValue(row.asset.bchValue) }}</div>
+              <div class="sub">{{ formatShare(assetShare(row.asset.bchValue)) }}</div>
             </div>
           </div>
-        </div>
-      </template>
+          <loanKeyItem
+            v-else
+            :category="row.loan.category"
+            :name="row.loan.name"
+            :dot-color="LOAN_COLOR"
+            :state="loanState(row.loan.utxo)"
+            :net-value-display="loanNetDisplay(row.loan.utxo)"
+            :share-display="loanShareDisplay(row.loan.utxo)"
+          />
+        </template>
+      </div>
 
-      <template v-if="smallPricedAssets.length">
+      <template v-if="smallAssetRows.length">
         <div class="section-label collapsible" @click="showSmallBalances = !showSmallBalances">
           <q-icon name="expand_more" class="chevron" :class="{ open: showSmallBalances }" />
-          {{ t('portfolio.smallBalances', { count: smallPricedAssets.length }) }}
+          {{ t('portfolio.smallBalances', { count: smallAssetRows.length }) }}
         </div>
         <div v-if="showSmallBalances" class="asset-list">
-          <div v-for="{ asset, index } in smallPricedAssets" :key="asset.category ?? 'bch'" class="asset-row">
+          <div v-for="{ asset, index } in smallAssetRows" :key="asset.category ?? 'bch'" class="asset-row">
             <span class="dot" :style="{ color: segmentColorAt(index) }"></span>
             <TokenIcon
               v-if="asset.category"
@@ -575,7 +583,8 @@
   max-width: 40rem;
   margin: 0 auto;
 }
-.asset-row {
+/* :deep() so the shared row styling also reaches rows rendered by loanKeyItem */
+.asset-list :deep(.asset-row) {
   display: grid;
   grid-template-columns: 12px 32px 1fr auto;
   gap: 12px;
@@ -583,10 +592,10 @@
   padding: 8px 0;
   border-bottom: 1px solid rgba(128, 128, 128, 0.15);
 }
-.asset-row:last-child {
+.asset-list :deep(.asset-row:last-child) {
   border-bottom: none;
 }
-.dot {
+.asset-list :deep(.dot) {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -597,15 +606,15 @@
   width: 32px;
   height: 32px;
 }
-.asset-name {
+.asset-list :deep(.asset-name) {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.asset-value {
+.asset-list :deep(.asset-value) {
   text-align: right;
   white-space: nowrap;
 }
-.sub {
+.asset-list :deep(.sub) {
   font-size: 0.85em;
   color: grey;
 }
