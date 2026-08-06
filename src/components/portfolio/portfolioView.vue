@@ -1,8 +1,10 @@
 <script setup lang="ts">
   import { ref, computed, watch, onActivated } from 'vue'
+  import type { Utxo } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
+  import { convert } from 'mainnet-js'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
   import { formatFiatAmount } from 'src/utils/utils'
@@ -30,6 +32,9 @@
   }
   // minimum perceptual distance between chart colors (OKLab distance x100)
   const MIN_COLOR_DISTANCE = 15
+
+  // shared color for all ParyonUSD loan segments, loans don't get individual colors
+  const LOAN_COLOR = '#a231c1'
 
   const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
   const bchValueFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 5 })
@@ -103,9 +108,19 @@
     return { priced: [bchEntry, ...pricedTokens], unpriced }
   })
 
+  // loans with a positive net value (collateral minus debt) count towards the
+  // total and the chart; an underwater loan only shows in the loans section
+  const chartedLoans = computed(() => {
+    return loanKeyNfts.value
+      .map(loan => ({ ...loan, netBch: loanState(loan.utxo)?.netBch ?? 0 }))
+      .filter(loan => loan.netBch > 0)
+  })
+
   const totalBchValue = computed(() => {
     if (!assets.value) return undefined
-    return assets.value.priced.reduce((sum, asset) => sum + asset.bchValue, 0)
+    const pricedTotal = assets.value.priced.reduce((sum, asset) => sum + asset.bchValue, 0)
+    const loansTotal = chartedLoans.value.reduce((sum, loan) => sum + loan.netBch, 0)
+    return pricedTotal + loansTotal
   })
 
   // split the priced list for display while keeping the original index, since
@@ -125,6 +140,78 @@
     )
   })
 
+  // ParyonUSD loan key NFTs get their own section: a loan carries both collateral
+  // and debt, so it doesn't fit the chart as a single positive value
+  const showLoans = ref(false)
+
+  const loanKeyNfts = computed(() => {
+    const loans: { category: string, utxo: Utxo, name: string }[] = []
+    for (const token of store.tokenList ?? []) {
+      if (!('nfts' in token)) continue
+      const metadata = store.bcmrRegistries?.[token.category]
+      const extensions = metadata?.extensions
+      if (!(extensions?.paryonusd ?? extensions?.pusd)) continue
+      // only owner loan keys (minting capability) control a loan, management keys don't
+      for (const utxo of token.nfts) {
+        if (utxo.token?.nft?.capability !== 'minting') continue
+        loans.push({ category: token.category, utxo, name: metadata?.name ?? token.category.slice(0, 8) + '...' })
+      }
+    }
+    return loans
+  })
+
+  interface LoanState {
+    collateralDisplay: string | undefined  // always in BCH, as formatted by the NFT parser
+    debtDisplay: string | undefined
+    netBch: number | undefined             // collateral minus debt, for the value column
+  }
+  const loanStates = ref<Record<string, LoanState>>({})
+
+  function loanUtxoId(utxo: Utxo) {
+    return `${utxo.txid}:${utxo.vout}`
+  }
+  function loanState(utxo: Utxo) {
+    return loanStates.value[loanUtxoId(utxo)]
+  }
+  function loanNetDisplay(utxo: Utxo) {
+    const netBch = loanState(utxo)?.netBch
+    if (netBch === undefined) return undefined
+    return formatBchValue(netBch)
+  }
+
+  // Loan state lives on-chain and is fetched through the paryonusd BCMR extension.
+  // Parsed as soon as the loan keys are known since the net values feed the chart
+  watch(loanKeyNfts, (loans) => {
+    for (const loan of loans) {
+      const utxoId = loanUtxoId(loan.utxo)
+      if (loanStates.value[utxoId]) continue
+      void store.parseNftCommitment(loan.category, loan.utxo).then(async result => {
+        const namedFields = (result?.success ? result.namedFields : undefined) ?? []
+        const findField = (word: string) =>
+          namedFields.find(field => field.name?.toLowerCase().includes(word))
+        const collateralParsed = findField('collateral')?.parsedValue
+        const debtParsed = findField('debt')?.parsedValue
+
+        // net position value: collateral (BCH) minus debt (PUSD, treated as USD)
+        let netBch: number | undefined
+        if (collateralParsed?.type === 'number' && debtParsed?.type === 'number') {
+          try {
+            const collateralBch = Number(collateralParsed.value) / (10 ** (collateralParsed.decimals ?? 0))
+            const debtUsd = Number(debtParsed.value) / (10 ** (debtParsed.decimals ?? 0))
+            const debtBch = await convert(debtUsd, 'usd', 'bch')
+            netBch = collateralBch - Number(debtBch)
+          } catch {
+            // exchange rate unavailable, leave the net value out
+          }
+        }
+        loanStates.value = {
+          ...loanStates.value,
+          [utxoId]: { collateralDisplay: collateralParsed?.formatted, debtDisplay: debtParsed?.formatted, netBch }
+        }
+      })
+    }
+  }, { immediate: true })
+
   const hasFungibleTokens = computed(() => (store.tokenList ?? []).some(token => 'amount' in token))
 
   // True once metadata, prices and the icon colors for the colored segments have all
@@ -141,6 +228,8 @@
         if (url && !(asset.category in iconColors.value)) return false
       }
     }
+    // loan net values feed the chart and total, so wait for their on-chain state too
+    if (loanKeyNfts.value.some(loan => !loanState(loan.utxo))) return false
     return true
   })
 
@@ -224,6 +313,9 @@
     ))
     const restValue = priced.slice(MAX_SEGMENTS).reduce((sum, asset) => sum + asset.bchValue, 0)
     if (restValue > 0) top.push({ label: t('portfolio.other'), bchValue: restValue, color: otherColor.value })
+    for (const loan of chartedLoans.value) {
+      top.push({ label: loan.name, bchValue: loan.netBch, color: LOAN_COLOR })
+    }
 
     const shown = top.filter(segment => segment.bchValue > 0)
     const gap = shown.length > 1 ? SEGMENT_GAP : 0
@@ -325,6 +417,41 @@
         </div>
       </div>
 
+      <template v-if="loanKeyNfts.length">
+        <div class="section-label collapsible" @click="showLoans = !showLoans">
+          <q-icon name="expand_more" class="chevron" :class="{ open: showLoans }" />
+          {{ t('portfolio.paryonLoans', { count: loanKeyNfts.length }) }}
+        </div>
+        <div v-if="showLoans" class="asset-list">
+          <div v-for="loan in loanKeyNfts" :key="loanUtxoId(loan.utxo)" class="asset-row">
+            <span class="dot" :style="{ color: LOAN_COLOR }"></span>
+            <TokenIcon
+              :token-id="loan.category"
+              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(loan.category) : undefined"
+              :size="32"
+            />
+            <div class="asset-name">
+              <div>{{ loan.name }}</div>
+              <div v-if="loanState(loan.utxo)?.collateralDisplay" class="sub">
+                {{ t('portfolio.collateral') }}: {{ loanState(loan.utxo)?.collateralDisplay }}
+              </div>
+              <div v-if="loanState(loan.utxo)?.debtDisplay" class="sub">
+                {{ t('portfolio.debt') }}: {{ loanState(loan.utxo)?.debtDisplay }}
+              </div>
+            </div>
+            <div class="asset-value">
+              <template v-if="!loanState(loan.utxo)">
+                <q-spinner-dots size="1.2em" />
+              </template>
+              <template v-else-if="loanNetDisplay(loan.utxo)">
+                <div>{{ loanNetDisplay(loan.utxo) }}</div>
+                <div class="sub">{{ t('portfolio.netValue') }}</div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <template v-if="smallPricedAssets.length">
         <div class="section-label collapsible" @click="showSmallBalances = !showSmallBalances">
           <q-icon name="expand_more" class="chevron" :class="{ open: showSmallBalances }" />
@@ -372,6 +499,7 @@
           </div>
         </div>
       </template>
+
     </template>
   </fieldset>
 </template>
