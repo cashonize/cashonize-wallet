@@ -32,7 +32,10 @@
   const searchQuery = ref("");
   const searchInputRef = ref<HTMLInputElement | null>(null);
   const { width } = useWindowSize();
-  const isMobile = computed(() => width.value <= 600);
+  // The compact layout starts generously wide so notes get a full line of their own
+  const isMobile = computed(() => width.value <= 750);
+  // On small mobiles the badges move out of the label line to the bottom of the card
+  const isSmallMobile = computed(() => width.value <= 400);
   // On mobile the search input hides behind a search icon until toggled open
   const showSearch = ref(false);
 
@@ -243,7 +246,7 @@
           <button
             v-for="option in directionOptions"
             :key="option.value"
-            :class="{ active: directionFilter === option.value }"
+            :class="{ active: directionFilter === option.value, 'combined-pill': option.value === 'combined' }"
             @click="directionFilter = option.value"
           >{{ t(option.label) }}</button>
         </div>
@@ -296,38 +299,43 @@
             :key="transaction.hash"
             @click="() => selectedTransaction = transaction"
           >
-            <div class="tx-direction" :class="[txDirection(transaction), { pending: !transaction.timestamp }]">
-              <q-icon :name="directionIcon(transaction)" size="20px" />
-            </div>
-            <div class="tx-info">
-              <div class="tx-type">
-                {{ t('history.' + txDirection(transaction)) }}
-                <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
-                <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
-                <InfoPopup v-if="transaction.blockHeight < 0" @click.stop>
-                  <template #trigger>
-                    <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
-                  </template>
-                  {{ t('history.unconfirmedChainTooltip') }}
-                </InfoPopup>
-                <span v-if="confirmationsProgress(transaction) !== undefined" class="tx-confirmations">
-                  {{ t('history.confirmationsProgress', { count: confirmationsProgress(transaction) }) }}
-                </span>
+            <!-- the left section and the amounts section flex equally, keeping the note centered on the card -->
+            <div class="tx-left">
+              <div class="tx-direction" :class="[txDirection(transaction), { pending: !transaction.timestamp }]">
+                <q-icon :name="directionIcon(transaction)" size="20px" />
               </div>
-              <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
-            </div>
-            <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
-              <div class="token-chip" v-for="chip in tokenChangeChips(transaction, store.bcmrRegistries)" :key="chip.key">
-                <TokenIcon
-                  :token-id="chip.category"
-                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
-                  :size="22"
-                />
-                <span class="value" :class="{ negative: chip.negative, positive: !chip.negative }">{{ chip.amountText }}</span>
-                <span class="chip-symbol">{{ chip.symbol }}</span>
+              <div class="tx-info">
+                <div class="tx-type">
+                  {{ t('history.' + txDirection(transaction)) }}
+                  <span v-if="!isSmallMobile && isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+                  <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
+                  <InfoPopup v-if="!isSmallMobile && transaction.blockHeight < 0" @click.stop>
+                    <template #trigger>
+                      <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                    </template>
+                    {{ t('history.unconfirmedChainTooltip') }}
+                  </InfoPopup>
+                </div>
+                <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
               </div>
             </div>
-            <div class="tx-note" v-if="editingNoteTx === transaction.hash" @click.stop>
+            <div class="tx-bottom-row" v-if="confirmationsProgress(transaction) !== undefined || transaction.tokenAmountChanges.length">
+              <div class="tx-confirmations-line" v-if="confirmationsProgress(transaction) !== undefined">
+                {{ t('history.confirmationsProgress', { count: confirmationsProgress(transaction) }) }}
+              </div>
+              <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
+                <div class="token-chip" v-for="chip in tokenChangeChips(transaction, store.bcmrRegistries)" :key="chip.key">
+                  <TokenIcon
+                    :token-id="chip.category"
+                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
+                    :size="22"
+                  />
+                  <span class="value" :class="{ negative: chip.negative, positive: !chip.negative }">{{ chip.amountText }}</span>
+                  <span class="chip-symbol">{{ chip.symbol }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="tx-note tx-note-editing" v-if="editingNoteTx === transaction.hash" @click.stop>
               <input
                 :ref="setNoteInputRef"
                 v-model="noteDraft"
@@ -340,6 +348,12 @@
                 @keyup.enter="saveNoteEdit"
                 @keyup.esc="cancelNoteEdit"
               >
+              <!-- silent maxlength truncation is confusing, show the limit when writing gets close -->
+              <span
+                v-if="noteDraft.length >= maxTxNoteLength - 20"
+                class="note-counter"
+                :class="{ 'at-limit': noteDraft.length >= maxTxNoteLength }"
+              >{{ noteDraft.length }}/{{ maxTxNoteLength }}</span>
             </div>
             <div
               class="tx-note"
@@ -362,6 +376,15 @@
               <div class="tx-balance" v-if="showBalance">
                 {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
               </div>
+            </div>
+            <div class="tx-badges-line" v-if="isSmallMobile && (isDappInteraction(transaction, walletHasAddress) || transaction.blockHeight < 0)">
+              <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+              <InfoPopup v-if="transaction.blockHeight < 0" @click.stop>
+                <template #trigger>
+                  <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                </template>
+                {{ t('history.unconfirmedChainTooltip') }}
+              </InfoPopup>
             </div>
           </div>
         </template>
@@ -396,6 +419,12 @@
 .loading-full-history {
   text-align: center;
   padding: 15px 0;
+}
+
+/* fieldsets default to min-inline-size: min-content, so a long nowrap note
+   would stretch the whole section (and page) beyond the viewport width */
+fieldset.item {
+  min-inline-size: 0;
 }
 
 .control-row {
@@ -573,12 +602,22 @@
   color: #e6a23c;
 }
 
+/* equal flexible side sections keep the note centered on the card */
+.tx-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 0;
+}
+
 .tx-info {
   min-width: 0;
 }
 
 .tx-type {
   font-weight: 600;
+  /* keep the label and its badges on one line, the note shrinks instead */
+  white-space: nowrap;
 }
 
 /* transactions spending from a contract carry a small dapp tag next to the type */
@@ -599,17 +638,35 @@
   opacity: 0.65;
 }
 
-/* confirmation progress reads as secondary info next to the bold type label */
-.tx-confirmations {
-  margin-left: 4px;
-  font-size: 0.8em;
-  font-weight: 400;
+/* shared bottom row: the confirmation progress sits left, the token chips right */
+.tx-bottom-row {
+  order: 5;
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* on small mobiles the badges move out of the label line to their own bottom line */
+.tx-badges-line {
+  order: 6;
+  flex-basis: 100%;
+  display: flex;
+  gap: 4px;
+}
+
+.tx-badges-line .dapp-badge {
+  margin-left: 0;
+}
+
+.tx-confirmations-line {
+  font-size: 0.85em;
   opacity: 0.65;
   white-space: nowrap;
 }
 
 /* a transaction depending on unconfirmed inputs has a higher risk of not
-   confirming; the info popup next to the badge carries the explanation */
+   confirming; the badge opens an info popup with the explanation */
 .chain-badge {
   display: inline-block;
   margin-left: 4px;
@@ -623,7 +680,9 @@
 }
 
 .tx-amounts {
-  margin-left: auto;
+  flex: 1 1 0;
+  /* fixed minimum so varying amount widths don't shift the note center per row */
+  min-width: 200px;
   text-align: right;
 }
 
@@ -667,22 +726,38 @@ body.dark .negative {
   color: #ef9a9a;
 }
 
-/* the note sits front and center between the direction info and the amounts,
-   filling the free space and truncating with an ellipsis when it runs out;
-   clicking it edits the note inline instead of opening the transaction dialog */
+/* the note lives between the direction info and the amounts, truncating with an
+   ellipsis; clicking it edits the note inline instead of opening the dialog */
 .tx-note {
-  flex: 1 1 0;
+  flex: 1.8 1 0;
   min-width: 0;
+  max-width: 360px;
   text-align: center;
   opacity: 0.8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: text;
-  /* enlarge the click target without growing the row; the horizontal padding
-     keeps the note and its edit input clear of the neighboring text */
+  /* enlarge the click target without growing the row */
   padding: 10px 12px;
   margin: -10px 0;
+}
+
+/* while editing, the slot holds the input plus the limit counter side by side */
+.tx-note-editing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-counter {
+  font-size: 0.75em;
+  opacity: 0.6;
+}
+
+.note-counter.at-limit {
+  color: #e6a23c;
+  opacity: 1;
 }
 
 /* rows without a note reveal the hint on hover */
@@ -699,11 +774,12 @@ body.dark .negative {
   vertical-align: -0.15em;
 }
 
-/* the focused state needs the same overrides: the global chota input rules
-   outweigh a single class and would bring back the border and focus ring */
-.tx-note .note-input,
-.tx-note .note-input:focus {
-  width: 100%;
+/* plain underlined input; the focused state needs the same overrides or the
+   global chota input rules bring back the border and focus ring */
+.tx-note-editing .note-input,
+.tx-note-editing .note-input:focus {
+  flex: 1 1 0;
+  min-width: 0;
   text-align: center;
   font-size: inherit;
   color: inherit;
@@ -717,12 +793,10 @@ body.dark .negative {
   margin: 0;
 }
 
-/* token changes render as wrapping chips on their own line below the main row, so any
-   number of tokens per transaction lays out cleanly; order moves them after the amounts,
-   which sit in the main row despite coming later in the DOM */
+/* token changes render as wrapping chips filling the rest of the bottom row,
+   so any number of tokens per transaction lays out cleanly */
 .tx-tokens {
-  order: 5;
-  flex-basis: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -752,8 +826,9 @@ body.dark .negative {
   margin: 10px 0 4px;
 }
 
-@media only screen and (max-width: 600px) {
-  /* search moves to its own full-width line, the options toggle stays beside the pills */
+/* the compact layout starts generously wide so notes get a full line of their own */
+@media only screen and (max-width: 750px) {
+  /* the opened search moves to its own full-width line, the icons stay beside the pills */
   .search-input {
     order: 5;
     flex-basis: 100%;
@@ -772,20 +847,33 @@ body.dark .negative {
     align-items: flex-end;
     gap: 0;
   }
+  /* dissolve the centering wrapper, the compact layout keeps the amounts in the main row */
+  .tx-left {
+    display: contents;
+  }
+  .tx-amounts {
+    flex: 0 1 auto;
+    margin-left: auto;
+    min-width: 0;
+  }
   .tx-item {
     padding: 8px 10px;
   }
-  /* not enough room in the main row on mobile, the note gets its own
-     full-width line below it (before the token chips at order 5) */
+  /* the note gets its own full-width line; it must stay shrinkable or its
+     min-content width would stretch the fieldset past the viewport */
   .tx-note {
-    flex: none;
+    flex: 0 1 100%;
     order: 4;
-    flex-basis: 100%;
+    max-width: none;
     font-size: 0.9em;
   }
   /* no hover on touch screens, adding notes happens in the transaction dialog */
   .tx-note-add {
     display: none;
+  }
+  /* narrow screens need the label line to wrap rather than overflow the card */
+  .tx-type {
+    white-space: normal;
   }
 }
 
@@ -795,6 +883,14 @@ body.dark .negative {
   }
   legend {
     margin-left: 0.5rem;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  /* combined transactions are rare and still listed under All, dropping the
+     pill on small screens keeps the bar next to the icons */
+  .type-filter button.combined-pill {
+    display: none;
   }
 }
 </style>

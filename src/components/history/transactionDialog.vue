@@ -198,6 +198,12 @@
               @blur="saveNote"
               @keyup.enter="saveNote"
             >
+            <!-- silent maxlength truncation is confusing, show the limit when writing gets close -->
+            <span
+              v-if="noteDraft.length >= maxTxNoteLength - 20"
+              class="noteCounter"
+              :class="{ atLimit: noteDraft.length >= maxTxNoteLength }"
+            >{{ noteDraft.length }}/{{ maxTxNoteLength }}</span>
             <q-icon name="edit" size="16px" class="noteIcon" />
           </label>
         </div>
@@ -364,6 +370,14 @@
   .noteIcon {
     flex: none;
     opacity: 0.55;
+  }
+  .noteCounter {
+    font-size: 0.75em;
+    opacity: 0.6;
+  }
+  .noteCounter.atLimit {
+    color: #e6a23c;
+    opacity: 1;
   }
   .noteField input {
     flex: 1;
