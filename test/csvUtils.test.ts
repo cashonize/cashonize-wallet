@@ -34,36 +34,47 @@ describe('csvEscape', () => {
   })
 })
 
+// Direction info is precomputed by the history view in the real app
+const sentTx = () => ({ direction: "Sent", dapp: false });
+
 describe('historyToCsv', () => {
   it('should write the header with the given BCH unit', () => {
-    expect(historyToCsv([], undefined, "tBCH"))
-      .toBe("Date (UTC),Transaction Id,Amount (tBCH),Balance (tBCH),Token Changes");
+    expect(historyToCsv([], undefined, "tBCH", {}, sentTx))
+      .toBe("Date (UTC),Transaction Id,Amount (tBCH),Balance (tBCH),Token Changes,Direction,Dapp,Note");
   })
   it('should format the date as ISO UTC and amounts with 8 decimals', () => {
-    const csv = historyToCsv([makeTx({})], undefined, "BCH");
-    expect(csv.split("\r\n")[1]).toBe("2023-11-14T22:13:20.000Z,txhash123,-0.50000000,1.50000000,");
+    const csv = historyToCsv([makeTx({})], undefined, "BCH", {}, sentTx);
+    expect(csv.split("\r\n")[1]).toBe("2023-11-14T22:13:20.000Z,txhash123,-0.50000000,1.50000000,,Sent,,");
   })
   it('should mark unconfirmed transactions as pending', () => {
     const pendingTx = makeTx({});
     delete pendingTx.timestamp;
-    const csv = historyToCsv([pendingTx], undefined, "BCH");
+    const csv = historyToCsv([pendingTx], undefined, "BCH", {}, sentTx);
     expect(csv).toContain("pending,txhash123");
   })
   it('should apply token symbol and decimals from the registry', () => {
     const tx = makeTx({ tokenAmountChanges: [{ category: categoryA, amount: 12345n, nftAmount: -1n }] });
-    const csv = historyToCsv([tx], registries, "BCH");
+    const csv = historyToCsv([tx], registries, "BCH", {}, sentTx);
     expect(csv).toContain("+123.45 FURU; -1 FURU NFT");
   })
   it('should fall back to the category prefix for unknown tokens', () => {
     const tx = makeTx({ tokenAmountChanges: [{ category: categoryA, amount: -5n, nftAmount: 0n }] });
-    const csv = historyToCsv([tx], undefined, "BCH");
+    const csv = historyToCsv([tx], undefined, "BCH", {}, sentTx);
     expect(csv).toContain("-5 aabbccdd");
   })
   it('should strip formula-injection characters from token symbols', () => {
     const tx = makeTx({ tokenAmountChanges: [{ category: categoryB, amount: 1n, nftAmount: 0n }] });
-    const csv = historyToCsv([tx], registries, "BCH");
+    const csv = historyToCsv([tx], registries, "BCH", {}, sentTx);
     expect(csv).not.toContain("=cmd");
     expect(csv).not.toContain("|");
     expect(csv).toContain("+1 cmdCcalcA0");
+  })
+  it('should write the direction label and dapp marker columns', () => {
+    const csv = historyToCsv([makeTx({})], undefined, "BCH", {}, () => ({ direction: "Combined", dapp: true }));
+    expect(csv.split("\r\n")[1]).toBe("2023-11-14T22:13:20.000Z,txhash123,-0.50000000,1.50000000,,Combined,dapp,");
+  })
+  it('should include the note for a transaction and escape it', () => {
+    const csv = historyToCsv([makeTx({})], undefined, "BCH", { txhash123: 'rent, "march"' }, sentTx);
+    expect(csv.split("\r\n")[1]).toBe('2023-11-14T22:13:20.000Z,txhash123,-0.50000000,1.50000000,,Sent,,"rent, ""march"""');
   })
 })

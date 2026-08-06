@@ -49,7 +49,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const showPrivateKeyWif = ref(false);
   // history settings
   const showFiatValueHistory = ref(true);
-  const hideBalanceColumn = ref(false);
+  // Balance after each transaction in the history, hidden by default like in payment apps
+  const showBalanceInHistory = ref(false);
   // token list settings
   type TokenDisplayFilter = 'all' | 'default' | 'favoritesOnly' | 'hiddenOnly';
   const tokenDisplayFilter = ref<TokenDisplayFilter>('default');
@@ -114,8 +115,17 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readFiatValueHistory = localStorage.getItem("fiatValueHistory");
   if(readFiatValueHistory) showFiatValueHistory.value = readFiatValueHistory == "true";
 
-  const readHideBalanceColumn = localStorage.getItem("hideBalanceColumn");
-  if(readHideBalanceColumn) hideBalanceColumn.value = readHideBalanceColumn == "true";
+  const readShowBalanceInHistory = localStorage.getItem("showBalanceInHistory");
+  if(readShowBalanceInHistory) showBalanceInHistory.value = readShowBalanceInHistory == "true";
+  // Migration: the setting was previously stored inverted as 'hideBalanceColumn'
+  const oldHideBalanceColumn = localStorage.getItem("hideBalanceColumn");
+  if (oldHideBalanceColumn !== null) {
+    if (readShowBalanceInHistory === null) {
+      showBalanceInHistory.value = oldHideBalanceColumn !== "true";
+      localStorage.setItem("showBalanceInHistory", showBalanceInHistory.value ? "true" : "false");
+    }
+    localStorage.removeItem("hideBalanceColumn");
+  }
 
   const readQrScan = localStorage.getItem("qrScan");
   if(!readQrScan && (isDesktop || !isMobileDevice)) qrScan.value = false;
@@ -425,7 +435,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     ipfsGateway,
     darkMode,
     showFiatValueHistory,
-    hideBalanceColumn,
+    showBalanceInHistory,
     tokenBurn,
     showCauldronSwap,
     showCauldronFTValue,

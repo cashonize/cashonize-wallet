@@ -2,12 +2,14 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
   import { computed, ref, watch, nextTick, onActivated, onDeactivated } from 'vue';
-  import { useWindowSize } from 'src/utils/composables';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
-  import { formatTime, formatFiatAmount } from 'src/utils/utils';
+  import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips, dayLabel, localDayStart } from 'src/utils/utils';
   import { historyToCsv } from 'src/utils/csvUtils';
+  import { maxTxNoteLength } from 'src/utils/txNotes';
+  import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/txDirection';
   import TokenIcon from '../general/TokenIcon.vue';
+  import InfoPopup from '../general/InfoPopup.vue';
   import { useI18n } from 'vue-i18n'
   import { exportFile, useQuasar } from 'quasar'
 
@@ -21,15 +23,13 @@
   // state options menu
   const showOptions = ref(false)
   const showFiatValue = ref(settingsStore.showFiatValueHistory)
-  const hideBalance = ref(settingsStore.hideBalanceColumn)
-  const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions");
-  const directionFilter = ref("all" as "all" | "incoming" | "outgoing");
+  const showBalance = ref(settingsStore.showBalanceInHistory)
+  const selectedFilter = ref("allTransactions" as "allTransactions" | "bchTransactions" | "tokenTransactions" | "dappTransactions");
+  const directionFilter = ref("all" as "all" | "incoming" | "outgoing" | "combined");
   const dateFrom = ref("");
   const dateTo = ref("");
   const searchQuery = ref("");
   const searchInputRef = ref<HTMLInputElement | null>(null);
-  const { width } = useWindowSize();
-  const isMobile = computed(() => width.value <= 600);
   // On mobile the search input hides behind a search icon until toggled open
   const showSearch = ref(false);
 
@@ -49,10 +49,54 @@
     { value: "all", label: "history.directionFilter.all" },
     { value: "incoming", label: "history.directionFilter.incoming" },
     { value: "outgoing", label: "history.directionFilter.outgoing" },
+    { value: "combined", label: "history.directionFilter.combined" },
   ] as const;
 
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
+
+  // Inline note editing in the transaction rows; only one row edits at a time
+  const editingNoteTx = ref(null as string | null);
+  const noteDraft = ref("");
+  const noteInputRef = ref<HTMLInputElement | null>(null);
+
+  // Template refs inside v-for are collected into arrays, so a function ref is
+  // needed to capture the single active edit input as a plain element
+  function setNoteInputRef(element: unknown) {
+    noteInputRef.value = element as HTMLInputElement | null;
+  }
+
+  async function startNoteEdit(txHash: string) {
+    editingNoteTx.value = txHash;
+    noteDraft.value = store.txNotes[txHash] ?? "";
+    // the input is behind a v-if, wait for the DOM update before focusing it
+    await nextTick();
+    noteInputRef.value?.focus();
+  }
+
+  function saveNoteEdit() {
+    if (editingNoteTx.value === null) return;
+    store.setTxNote(editingNoteTx.value, noteDraft.value);
+    editingNoteTx.value = null;
+  }
+
+  function cancelNoteEdit() {
+    editingNoteTx.value = null;
+  }
+
+  // Blur alone can't close the editor: pressing Quasar controls (pagination, toggles)
+  // prevents default on mousedown, so the input never blurs. Watch presses at the
+  // document level while editing and close on any press outside the edit field.
+  function handleGlobalMousedown(event: MouseEvent) {
+    const editingContainer = noteInputRef.value?.parentElement;
+    if (!editingContainer || !editingContainer.contains(event.target as Node)) saveNoteEdit();
+  }
+
+  watch(editingNoteTx, (editing, _prev, onCleanup) => {
+    if (editing === null) return;
+    document.addEventListener('mousedown', handleGlobalMousedown, true);
+    onCleanup(() => document.removeEventListener('mousedown', handleGlobalMousedown, true));
+  });
 
   // Override Ctrl+F to focus the search input.
   function handleCtrlF(event: KeyboardEvent) {
@@ -66,24 +110,38 @@
 
   // Listener added/removed on KeepAlive activate/deactivate so it only applies while this view is active.
   onActivated(() => document.addEventListener('keydown', handleCtrlF));
-  onDeactivated(() => document.removeEventListener('keydown', handleCtrlF));
+  onDeactivated(() => {
+    document.removeEventListener('keydown', handleCtrlF);
+    // close an open note editor when navigating away from the history view
+    saveNoteEdit();
+  });
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
 
-  // Date inputs hold local calendar dates (YYYY-MM-DD); compare in local time to match the displayed dates
-  function localDayStart(isoDate: string, dayOffset = 0): number {
-    const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
-    return new Date(year, month - 1, day + dayOffset).getTime() / 1000;
+  // Predicate for isDappInteraction, which is store-agnostic by design
+  const walletHasAddress = (address: string) => store.wallet.hasAddress(address);
+
+  // Show confirmation progress toward the customary 6, after that a transaction
+  // is considered final and the count is no longer interesting
+  function confirmationsProgress(transaction: TransactionHistoryItem): number | undefined {
+    if (!transaction.timestamp || transaction.blockHeight <= 0) return undefined;
+    if (store.currentBlockHeight === undefined) return undefined;
+    const confirmations = Math.max(1, store.currentBlockHeight - transaction.blockHeight + 1);
+    return confirmations < 6 ? confirmations : undefined;
   }
 
   const selectedHistory = computed(() => {
     let history = store.walletHistory;
     if (selectedFilter.value === "bchTransactions") history = history?.filter(tx => !tx.tokenAmountChanges.length);
     if (selectedFilter.value === "tokenTransactions") history = history?.filter(tx => tx.tokenAmountChanges.length);
-    if (directionFilter.value === "incoming") history = history?.filter(tx => isIncoming(tx));
-    if (directionFilter.value === "outgoing") history = history?.filter(tx => !isIncoming(tx));
+    if (selectedFilter.value === "dappTransactions") history = history?.filter(tx => isDappInteraction(tx, walletHasAddress));
+    // The direction pills partition the history: each one shows exactly the rows
+    // carrying that label, so combined transactions only appear under Combined
+    if (directionFilter.value === "incoming") history = history?.filter(tx => txDirection(tx) === 'received');
+    if (directionFilter.value === "outgoing") history = history?.filter(tx => txDirection(tx) === 'sent');
+    if (directionFilter.value === "combined") history = history?.filter(tx => isCombined(tx));
     const fromTimestamp = dateFrom.value ? localDayStart(dateFrom.value) : undefined;
     const untilTimestamp = dateTo.value ? localDayStart(dateTo.value, 1) : undefined;
     if (fromTimestamp !== undefined || untilTimestamp !== undefined) {
@@ -100,6 +158,7 @@
 
   function txMatchesSearch(tx: TransactionHistoryItem, query: string): boolean {
     if (tx.hash.toLowerCase().includes(query)) return true;
+    if (store.txNotes[tx.hash]?.toLowerCase().includes(query)) return true;
     return tx.tokenAmountChanges.some(tokenChange => {
       if (tokenChange.category.toLowerCase().includes(query)) return true;
       const metadata = store.bcmrRegistries?.[tokenChange.category];
@@ -126,19 +185,7 @@
   })
   const totalPages = computed(() => Math.ceil((searchedHistory.value?.length ?? 0) / itemsPerPage))
 
-  // Group consecutive transactions by calendar day (history is sorted newest first).
-  // Pending transactions have no timestamp and group under their own header.
-  function dayLabel(timestamp: number | undefined): string {
-    if (!timestamp) return t('history.pending');
-    const date = new Date(timestamp * 1000);
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    if (date.toDateString() === today.toDateString()) return t('history.today');
-    if (date.toDateString() === yesterday.toDateString()) return t('history.yesterday');
-    return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-  }
-
+  // Group consecutive transactions by calendar day (history is sorted newest first)
   const groupedHistory = computed(() => {
     const groups: { label: string; transactions: TransactionHistoryItem[] }[] = [];
     for (const transaction of paginatedHistory.value ?? []) {
@@ -153,58 +200,6 @@
     return groups;
   });
 
-  // Direction is derived from the net BCH change: receiving (BCH or tokens) always adds
-  // value, while a wallet-authored transaction always pays the fee so its net is negative
-  function isIncoming(transaction: TransactionHistoryItem): boolean {
-    return transaction.valueChange >= 0;
-  }
-
-  interface TokenChangeChip {
-    key: string;
-    category: string;
-    amountText: string;
-    symbol: string;
-    negative: boolean;
-  }
-
-  // Tokens like BADGER have both fungibles and NFTs with the same category in user wallets,
-  // so one token change can yield both a fungible chip and an NFT chip
-  function tokenChangeChips(transaction: TransactionHistoryItem): TokenChangeChip[] {
-    const chips: TokenChangeChip[] = [];
-    for (const tokenChange of transaction.tokenAmountChanges) {
-      const tokenMetadata = store.bcmrRegistries?.[tokenChange.category]?.token;
-      const symbol = tokenMetadata?.symbol ?? tokenChange.category.slice(0, 8);
-      const decimals = tokenMetadata?.decimals ?? 0;
-      // Show the fungible change for any nonzero amount. When there is no NFT change either,
-      // still show it (as "0") so a token change never renders without a chip.
-      if (tokenChange.amount !== 0n || tokenChange.nftAmount === 0n) {
-        const amount = Number(tokenChange.amount) / 10 ** decimals;
-        chips.push({
-          key: tokenChange.category + "-ft",
-          category: tokenChange.category,
-          amountText: `${amount > 0 ? '+' : ''}${amount.toLocaleString("en-US", { maximumFractionDigits: decimals })}`,
-          symbol,
-          negative: amount < 0,
-        });
-      }
-      if (tokenChange.nftAmount !== 0n) {
-        chips.push({
-          key: tokenChange.category + "-nft",
-          category: tokenChange.category,
-          amountText: `${tokenChange.nftAmount > 0n ? '+' : ''}${tokenChange.nftAmount}`,
-          symbol: `${symbol} NFT`,
-          negative: tokenChange.nftAmount < 0n,
-        });
-      }
-    }
-    return chips;
-  }
-
-  function formatBchAmount(satoshis: number, signed = false): string {
-    const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: 5 });
-    return signed && satoshis > 0 ? `+${amount}` : amount;
-  }
-
   function toggleOptions() {
     showOptions.value = !showOptions.value
   }
@@ -214,13 +209,16 @@
     settingsStore.showFiatValueHistory = showFiatValue.value;
   }
 
-  function toggleHideBalance() {
-    localStorage.setItem("hideBalanceColumn", hideBalance.value ? "true" : "false");
-    settingsStore.hideBalanceColumn = hideBalance.value;
+  function toggleShowBalance() {
+    localStorage.setItem("showBalanceInHistory", showBalance.value ? "true" : "false");
+    settingsStore.showBalanceInHistory = showBalance.value;
   }
 
   function exportCsv() {
-    const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value);
+    const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value, store.txNotes, tx => ({
+      direction: t('history.' + txDirection(tx)),
+      dapp: isDappInteraction(tx, walletHasAddress),
+    }));
     const status = exportFile("cashonize-tx-history.csv", csvContent, { mimeType: "text/csv" });
     if (status !== true) $q.notify({ message: t('history.exportFailed'), icon: 'warning', color: "red" });
   }
@@ -242,12 +240,12 @@
           <button
             v-for="option in directionOptions"
             :key="option.value"
-            :class="{ active: directionFilter === option.value }"
+            :class="{ active: directionFilter === option.value, 'combined-pill': option.value === 'combined' }"
             @click="directionFilter = option.value"
           >{{ t(option.label) }}</button>
         </div>
-        <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input" autocomplete="off" autocapitalize="none" spellcheck="false">
-        <span v-if="isMobile" class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
+        <input ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input" :class="{ open: showSearch }" autocomplete="off" autocapitalize="none" spellcheck="false">
+        <span class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
           <q-icon name="search" size="22px" />
         </span>
         <span class="options-toggle" :class="{ active: showOptions }" :title="t('history.options')" @click="toggleOptions">
@@ -262,6 +260,7 @@
             <option value="allTransactions">{{ t('history.filter.all') }}</option>
             <option value="bchTransactions">{{ t('history.filter.bchTxs') }}</option>
             <option value="tokenTransactions">{{ t('history.filter.tokenTxs') }}</option>
+            <option value="dappTransactions">{{ t('history.filter.dappTxs') }}</option>
           </select>
         </div>
         <div class="option-item date-range">
@@ -276,7 +275,7 @@
           {{ t('history.showFiatValue') }} <q-toggle v-model="showFiatValue" @update:model-value="toggleShowFiatValue" dense />
         </div>
         <div class="option-item">
-          {{ t('history.hideBalanceColumn') }} <q-toggle v-model="hideBalance" @update:model-value="toggleHideBalance" dense />
+          {{ t('history.showBalance') }} <q-toggle v-model="showBalance" @update:model-value="toggleShowBalance" dense />
         </div>
         <div class="option-item" v-if="!isCapacitor">
           <button @click="exportCsv">{{ t('history.exportCsv') }}</button>
@@ -294,23 +293,70 @@
             :key="transaction.hash"
             @click="() => selectedTransaction = transaction"
           >
-            <div class="tx-direction" :class="[isIncoming(transaction) ? 'received' : 'sent', { pending: !transaction.timestamp }]">
-              <q-icon :name="isIncoming(transaction) ? 'arrow_downward' : 'arrow_upward'" size="20px" />
-            </div>
-            <div class="tx-info">
-              <div class="tx-type">{{ isIncoming(transaction) ? t('history.received') : t('history.sent') }}</div>
-              <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
-            </div>
-            <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
-              <div class="token-chip" v-for="chip in tokenChangeChips(transaction)" :key="chip.key">
-                <TokenIcon
-                  :token-id="chip.category"
-                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
-                  :size="22"
-                />
-                <span class="value" :class="{ negative: chip.negative, positive: !chip.negative }">{{ chip.amountText }}</span>
-                <span class="chip-symbol">{{ chip.symbol }}</span>
+            <!-- the left section and the amounts section flex equally, keeping the note centered on the card -->
+            <div class="tx-left">
+              <div class="tx-direction" :class="[txDirection(transaction), { pending: !transaction.timestamp }]">
+                <q-icon :name="directionIcon(transaction)" size="20px" />
               </div>
+              <div class="tx-info">
+                <div class="tx-type">
+                  {{ t('history.' + txDirection(transaction)) }}
+                  <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+                  <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
+                  <InfoPopup v-if="transaction.blockHeight < 0" class="chain-popup" @click.stop>
+                    <template #trigger>
+                      <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                    </template>
+                    {{ t('history.unconfirmedChainTooltip') }}
+                  </InfoPopup>
+                </div>
+                <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
+              </div>
+            </div>
+            <div class="tx-bottom-row" v-if="confirmationsProgress(transaction) !== undefined || transaction.tokenAmountChanges.length">
+              <div class="tx-confirmations-line" v-if="confirmationsProgress(transaction) !== undefined">
+                {{ t('history.confirmationsProgress', { count: confirmationsProgress(transaction) }) }}
+              </div>
+              <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
+                <div class="token-chip" v-for="chip in tokenChangeChips(transaction, store.bcmrRegistries)" :key="chip.key">
+                  <TokenIcon
+                    :token-id="chip.category"
+                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
+                    :size="22"
+                  />
+                  <span class="value" :class="{ negative: chip.negative, positive: !chip.negative }">{{ chip.amountText }}</span>
+                  <span class="chip-symbol">{{ chip.symbol }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="tx-note tx-note-editing" v-if="editingNoteTx === transaction.hash" @click.stop>
+              <input
+                :ref="setNoteInputRef"
+                v-model="noteDraft"
+                class="note-input"
+                type="text"
+                :maxlength="maxTxNoteLength"
+                autocomplete="off"
+                spellcheck="false"
+                @blur="saveNoteEdit"
+                @keyup.enter="saveNoteEdit"
+                @keyup.esc="cancelNoteEdit"
+              >
+              <!-- silent maxlength truncation is confusing, show the limit when writing gets close -->
+              <span
+                v-if="noteDraft.length >= maxTxNoteLength - 20"
+                class="note-counter"
+                :class="{ 'at-limit': noteDraft.length >= maxTxNoteLength }"
+              >{{ noteDraft.length }}/{{ maxTxNoteLength }}</span>
+            </div>
+            <div
+              class="tx-note"
+              v-else-if="store.txNotes[transaction.hash]"
+              :title="store.txNotes[transaction.hash]"
+              @click.stop="startNoteEdit(transaction.hash)"
+            >{{ store.txNotes[transaction.hash] }}</div>
+            <div class="tx-note tx-note-add" v-else @click.stop="startNoteEdit(transaction.hash)">
+              <span class="add-note-hint">{{ t('history.addNote') }} <q-icon name="edit" size="14px" /></span>
             </div>
             <div class="tx-amounts">
               <div class="tx-amount-line">
@@ -321,9 +367,18 @@
                   ({{ `${transaction.valueChange > 0 ? '+' : ''}` + formatFiatAmount(store.exchangeRate * transaction.valueChange / 100_000_000, settingsStore.currency) }})
                 </div>
               </div>
-              <div class="tx-balance" v-if="!hideBalance">
+              <div class="tx-balance" v-if="showBalance">
                 {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
               </div>
+            </div>
+            <div class="tx-badges-line" v-if="isDappInteraction(transaction, walletHasAddress) || transaction.blockHeight < 0">
+              <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+              <InfoPopup v-if="transaction.blockHeight < 0" @click.stop>
+                <template #trigger>
+                  <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                </template>
+                {{ t('history.unconfirmedChainTooltip') }}
+              </InfoPopup>
             </div>
           </div>
         </template>
@@ -360,6 +415,12 @@
   padding: 15px 0;
 }
 
+/* fieldsets default to min-inline-size: min-content, so a long nowrap note
+   would stretch the whole section (and page) beyond the viewport width */
+fieldset.item {
+  min-inline-size: 0;
+}
+
 .control-row {
   display: flex;
   align-items: baseline;
@@ -392,6 +453,11 @@
   width: 180px;
   padding: 4px 10px;
   margin-left: auto;
+}
+
+/* the search icon only exists in the compact layout */
+.search-toggle {
+  display: none;
 }
 
 /* segmented pill bar for the transaction direction filter */
@@ -525,9 +591,22 @@
   color: var(--color-grey);
 }
 
+.tx-direction.combined {
+  background-color: rgba(74, 144, 217, 0.15);
+  color: #4a90d9;
+}
+
 .tx-direction.pending {
   background-color: rgba(230, 162, 60, 0.18);
   color: #e6a23c;
+}
+
+/* equal flexible side sections keep the note centered on the card */
+.tx-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 0;
 }
 
 .tx-info {
@@ -536,6 +615,21 @@
 
 .tx-type {
   font-weight: 600;
+  /* keep the label and its badges on one line, the note shrinks instead */
+  white-space: nowrap;
+}
+
+/* transactions spending from a contract carry a small dapp tag next to the type */
+.dapp-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 0.7em;
+  font-weight: 600;
+  vertical-align: middle;
+  background-color: rgba(142, 111, 216, 0.18);
+  color: #8e6fd8;
 }
 
 .tx-time {
@@ -543,8 +637,51 @@
   opacity: 0.65;
 }
 
+/* shared bottom row: the confirmation progress sits left, the token chips right */
+.tx-bottom-row {
+  order: 5;
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* on small mobiles the badges move out of the label line to their own bottom line */
+.tx-badges-line {
+  display: none;
+  order: 6;
+  flex-basis: 100%;
+  gap: 4px;
+}
+
+.tx-badges-line .dapp-badge {
+  margin-left: 0;
+}
+
+.tx-confirmations-line {
+  font-size: 0.85em;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+/* a transaction depending on unconfirmed inputs has a higher risk of not
+   confirming; the badge opens an info popup with the explanation */
+.chain-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 0.7em;
+  font-weight: 600;
+  vertical-align: middle;
+  background-color: rgba(230, 162, 60, 0.18);
+  color: #e6a23c;
+}
+
 .tx-amounts {
-  margin-left: auto;
+  flex: 1 1 0;
+  /* fixed minimum so varying amount widths don't shift the note center per row */
+  min-width: 200px;
   text-align: right;
 }
 
@@ -588,12 +725,77 @@ body.dark .negative {
   color: #ef9a9a;
 }
 
-/* token changes render as wrapping chips on their own line below the main row, so any
-   number of tokens per transaction lays out cleanly; order moves them after the amounts,
-   which sit in the main row despite coming later in the DOM */
+/* the note lives between the direction info and the amounts, truncating with an
+   ellipsis; clicking it edits the note inline instead of opening the dialog */
+.tx-note {
+  flex: 1.8 1 0;
+  min-width: 0;
+  max-width: 360px;
+  text-align: center;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: text;
+  /* enlarge the click target without growing the row */
+  padding: 10px 12px;
+  margin: -10px 0;
+}
+
+/* while editing, the slot holds the input plus the limit counter side by side */
+.tx-note-editing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-counter {
+  font-size: 0.75em;
+  opacity: 0.6;
+}
+
+.note-counter.at-limit {
+  color: #e6a23c;
+  opacity: 1;
+}
+
+/* rows without a note reveal the hint on hover */
+.add-note-hint {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tx-item:hover .add-note-hint {
+  opacity: 0.55;
+}
+
+.add-note-hint .q-icon {
+  vertical-align: -0.15em;
+}
+
+/* plain underlined input; the focused state needs the same overrides or the
+   global chota input rules bring back the border and focus ring */
+.tx-note-editing .note-input,
+.tx-note-editing .note-input:focus {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  border-bottom: 1px solid var(--color-primary);
+  border-radius: 0;
+  padding: 0 4px 1px;
+  margin: 0;
+}
+
+/* token changes render as wrapping chips filling the rest of the bottom row,
+   so any number of tokens per transaction lays out cleanly */
 .tx-tokens {
-  order: 5;
-  flex-basis: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -623,15 +825,21 @@ body.dark .negative {
   margin: 10px 0 4px;
 }
 
-@media only screen and (max-width: 600px) {
-  /* search moves to its own full-width line, the options toggle stays beside the pills */
+/* the compact layout starts generously wide so notes get a full line of their own */
+@media only screen and (max-width: 750px) {
+  /* the search hides behind its icon; opened, it moves to its own full-width line */
   .search-input {
+    display: none;
+  }
+  .search-input.open {
+    display: block;
     order: 5;
     flex-basis: 100%;
     width: 100%;
     margin-left: 0;
   }
   .search-toggle {
+    display: inline;
     margin-left: auto;
   }
   .type-filter button {
@@ -643,8 +851,33 @@ body.dark .negative {
     align-items: flex-end;
     gap: 0;
   }
+  /* dissolve the centering wrapper, the compact layout keeps the amounts in the main row */
+  .tx-left {
+    display: contents;
+  }
+  .tx-amounts {
+    flex: 0 1 auto;
+    margin-left: auto;
+    min-width: 0;
+  }
   .tx-item {
     padding: 8px 10px;
+  }
+  /* the note gets its own full-width line; it must stay shrinkable or its
+     min-content width would stretch the fieldset past the viewport */
+  .tx-note {
+    flex: 0 1 100%;
+    order: 4;
+    max-width: none;
+    font-size: 0.9em;
+  }
+  /* no hover on touch screens, adding notes happens in the transaction dialog */
+  .tx-note-add {
+    display: none;
+  }
+  /* narrow screens need the label line to wrap rather than overflow the card */
+  .tx-type {
+    white-space: normal;
   }
 }
 
@@ -654,6 +887,25 @@ body.dark .negative {
   }
   legend {
     margin-left: 0.5rem;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  /* combined transactions are rare and still listed under All, dropping the
+     pill on small screens keeps the bar next to the icons */
+  .type-filter button.combined-pill {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  /* the badges leave the crowded label line for their own line at the card bottom */
+  .tx-type .dapp-badge,
+  .tx-type .chain-popup {
+    display: none;
+  }
+  .tx-badges-line {
+    display: flex;
   }
 }
 </style>

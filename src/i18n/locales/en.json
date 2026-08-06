@@ -391,32 +391,43 @@
       "all": "All",
       "bchTxs": "BCH txs",
       "tokenTxs": "Token txs",
+      "dappTxs": "Dapp txs",
       "dateRange": "Filter range:"
     },
     "directionFilter": {
       "all": "All",
       "incoming": "Incoming",
-      "outgoing": "Outgoing"
+      "outgoing": "Outgoing",
+      "combined": "Combined"
     },
     "showFiatValue": "Show fiat value",
-    "hideBalanceColumn": "Hide balance",
+    "showBalance": "Show balance after transaction",
     "exportCsv": "Export CSV",
     "exportFailed": "CSV export failed",
     "searchPlaceholder": "Search token or tx id...",
     "noMatch": "No transactions match filter",
     "sent": "Sent",
     "received": "Received",
+    "combined": "Combined",
+    "dapp": "dapp",
     "today": "Today",
     "yesterday": "Yesterday",
     "balanceLabel": "Balance:",
+    "addNote": "add note",
     "csv": {
       "date": "Date (UTC)",
       "transactionId": "Transaction Id",
       "amount": "Amount ({unit})",
       "balance": "Balance ({unit})",
-      "tokenChanges": "Token Changes"
+      "tokenChanges": "Token Changes",
+      "direction": "Direction",
+      "dapp": "Dapp",
+      "note": "Note"
     },
     "pending": "pending",
+    "confirmationsProgress": "{count}/6 confirmations",
+    "unconfirmedChain": "unconfirmed chain",
+    "unconfirmedChainTooltip": "This transaction depends on another unconfirmed transaction, which increases the risk that it does not confirm.",
     "transactionCountPartial": "{count}+ Transactions",
     "loadingFullHistory": "Loading full history"
   },
@@ -430,6 +441,7 @@
     "status": "Status:",
     "unconfirmed": "unconfirmed",
     "confirmations": "{count} confirmations (mined in block #{block})",
+    "confirmationsProgress": "{count}/6 confirmations (mined in block #{block})",
     "date": "Date:",
     "balanceChange": "Balance change:",
     "size": "Size:",
@@ -438,7 +450,9 @@
     "feesCollected": "Fees collected:",
     "inputs": "Inputs",
     "outputs": "Outputs",
-    "coinbase": "coinbase"
+    "coinbase": "coinbase",
+    "notePlaceholder": "Add a personal note",
+    "fullDetails": "Full Transaction Details"
   },
   "alertDialog": {
     "transactionSent": "Transaction Sent!",

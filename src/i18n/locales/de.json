@@ -391,32 +391,43 @@
       "all": "Alle",
       "bchTxs": "BCH-Txs",
       "tokenTxs": "Token-Txs",
+      "dappTxs": "Dapp-Txs",
       "dateRange": "Zeitraum:"
     },
     "directionFilter": {
       "all": "Alle",
       "incoming": "Eingehend",
-      "outgoing": "Ausgehend"
+      "outgoing": "Ausgehend",
+      "combined": "Kombiniert"
     },
     "showFiatValue": "Fiat-Wert anzeigen",
-    "hideBalanceColumn": "Guthaben ausblenden",
+    "showBalance": "Guthaben nach der Transaktion anzeigen",
     "exportCsv": "CSV exportieren",
     "exportFailed": "CSV-Export fehlgeschlagen",
     "searchPlaceholder": "Token oder Tx-ID suchen...",
     "noMatch": "Keine Transaktionen passen zum Filter",
     "sent": "Gesendet",
     "received": "Empfangen",
+    "combined": "Kombiniert",
+    "dapp": "Dapp",
     "today": "Heute",
     "yesterday": "Gestern",
     "balanceLabel": "Guthaben:",
+    "addNote": "Notiz hinzufügen",
     "csv": {
       "date": "Datum (UTC)",
       "transactionId": "Transaktions-ID",
       "amount": "Betrag ({unit})",
       "balance": "Guthaben ({unit})",
-      "tokenChanges": "Token-Änderungen"
+      "tokenChanges": "Token-Änderungen",
+      "direction": "Richtung",
+      "dapp": "Dapp",
+      "note": "Notiz"
     },
     "pending": "ausstehend",
+    "confirmationsProgress": "{count}/6 Bestätigungen",
+    "unconfirmedChain": "unbestätigte Kette",
+    "unconfirmedChainTooltip": "Diese Transaktion hängt von einer anderen unbestätigten Transaktion ab, was das Risiko erhöht, dass sie nicht bestätigt wird.",
     "transactionCountPartial": "{count}+ Transaktionen",
     "loadingFullHistory": "Lade vollständige Historie"
   },
@@ -430,6 +441,7 @@
     "status": "Status:",
     "unconfirmed": "unbestätigt",
     "confirmations": "{count} Bestätigungen (gemindet in Block #{block})",
+    "confirmationsProgress": "{count}/6 Bestätigungen (gemindet in Block #{block})",
     "date": "Datum:",
     "balanceChange": "Guthabenänderung:",
     "size": "Größe:",
@@ -438,7 +450,9 @@
     "feesCollected": "Eingesammelte Gebühren:",
     "inputs": "Inputs",
     "outputs": "Outputs",
-    "coinbase": "Coinbase"
+    "coinbase": "Coinbase",
+    "notePlaceholder": "Persönliche Notiz hinzufügen",
+    "fullDetails": "Vollständige Transaktionsdetails"
   },
   "alertDialog": {
     "transactionSent": "Transaktion gesendet!",

@@ -391,32 +391,43 @@
       "all": "Todas",
       "bchTxs": "Txs de BCH",
       "tokenTxs": "Txs de tokens",
+      "dappTxs": "Txs de dapps",
       "dateRange": "Rango de fechas:"
     },
     "directionFilter": {
       "all": "Todas",
       "incoming": "Entrantes",
-      "outgoing": "Salientes"
+      "outgoing": "Salientes",
+      "combined": "Combinadas"
     },
     "showFiatValue": "Mostrar valor en fiat",
-    "hideBalanceColumn": "Ocultar saldo",
+    "showBalance": "Mostrar saldo después de la transacción",
     "exportCsv": "Exportar CSV",
     "exportFailed": "Error al exportar CSV",
     "searchPlaceholder": "Buscar token o id de tx...",
     "noMatch": "Ninguna transacción coincide con el filtro",
     "sent": "Enviado",
     "received": "Recibido",
+    "combined": "Combinado",
+    "dapp": "dapp",
     "today": "Hoy",
     "yesterday": "Ayer",
     "balanceLabel": "Saldo:",
+    "addNote": "añadir nota",
     "csv": {
       "date": "Fecha (UTC)",
       "transactionId": "ID de transacción",
       "amount": "Cantidad ({unit})",
       "balance": "Saldo ({unit})",
-      "tokenChanges": "Cambios de tokens"
+      "tokenChanges": "Cambios de tokens",
+      "direction": "Dirección",
+      "dapp": "Dapp",
+      "note": "Nota"
     },
     "pending": "pendiente",
+    "confirmationsProgress": "{count}/6 confirmaciones",
+    "unconfirmedChain": "cadena sin confirmar",
+    "unconfirmedChainTooltip": "Esta transacción depende de otra transacción sin confirmar, lo que aumenta el riesgo de que no se confirme.",
     "transactionCountPartial": "{count}+ Transacciones",
     "loadingFullHistory": "Cargando historial completo"
   },
@@ -430,6 +441,7 @@
     "status": "Estado:",
     "unconfirmed": "sin confirmar",
     "confirmations": "{count} confirmaciones (minado en bloque #{block})",
+    "confirmationsProgress": "{count}/6 confirmaciones (minado en bloque #{block})",
     "date": "Fecha:",
     "balanceChange": "Cambio de saldo:",
     "size": "Tamaño:",
@@ -438,7 +450,9 @@
     "feesCollected": "Comisiones recolectadas:",
     "inputs": "Entradas",
     "outputs": "Salidas",
-    "coinbase": "coinbase"
+    "coinbase": "coinbase",
+    "notePlaceholder": "Añadir una nota personal",
+    "fullDetails": "Detalles completos de la transacción"
   },
   "alertDialog": {
     "transactionSent": "¡Transacción enviada!",

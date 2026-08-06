@@ -48,10 +48,19 @@ function formatTokenChange(
   return parts.join("; ");
 }
 
+// Direction and dapp classification are computed by the caller: they need the
+// wallet's own addresses and translated labels, which don't belong in this utility
+export interface TxDirectionInfo {
+  direction: string;
+  dapp: boolean;
+}
+
 export function historyToCsv(
   history: TransactionHistoryItem[],
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined,
-  bchUnit: string
+  bchUnit: string,
+  txNotes: Record<string, string>,
+  getDirectionInfo: (tx: TransactionHistoryItem) => TxDirectionInfo
 ): string {
   const header = [
     t("history.csv.date"),
@@ -59,14 +68,23 @@ export function historyToCsv(
     t("history.csv.amount", { unit: bchUnit }),
     t("history.csv.balance", { unit: bchUnit }),
     t("history.csv.tokenChanges"),
+    t("history.csv.direction"),
+    t("history.csv.dapp"),
+    t("history.csv.note"),
   ];
-  const rows = history.map(tx => [
-    tx.timestamp ? new Date(tx.timestamp * 1000).toISOString() : t("history.pending"),
-    tx.hash,
-    (tx.valueChange / SATS_PER_BCH).toFixed(8),
-    (tx.balance / SATS_PER_BCH).toFixed(8),
-    tx.tokenAmountChanges.map(change => formatTokenChange(change, bcmrRegistries)).join("; "),
-  ]);
+  const rows = history.map(tx => {
+    const directionInfo = getDirectionInfo(tx);
+    return [
+      tx.timestamp ? new Date(tx.timestamp * 1000).toISOString() : t("history.pending"),
+      tx.hash,
+      (tx.valueChange / SATS_PER_BCH).toFixed(8),
+      (tx.balance / SATS_PER_BCH).toFixed(8),
+      tx.tokenAmountChanges.map(change => formatTokenChange(change, bcmrRegistries)).join("; "),
+      directionInfo.direction,
+      directionInfo.dapp ? t("history.dapp") : "",
+      txNotes[tx.hash] ?? "",
+    ];
+  });
   return [header, ...rows]
     .map(row => row.map(csvEscape).join(","))
     .join("\r\n");

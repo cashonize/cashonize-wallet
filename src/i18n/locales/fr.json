@@ -391,32 +391,43 @@
       "all": "Toutes",
       "bchTxs": "Txs BCH",
       "tokenTxs": "Txs tokens",
+      "dappTxs": "Txs dapps",
       "dateRange": "Plage de dates :"
     },
     "directionFilter": {
       "all": "Toutes",
       "incoming": "Entrantes",
-      "outgoing": "Sortantes"
+      "outgoing": "Sortantes",
+      "combined": "Combinées"
     },
     "showFiatValue": "Afficher la valeur en devise",
-    "hideBalanceColumn": "Masquer le solde",
+    "showBalance": "Afficher le solde après la transaction",
     "exportCsv": "Exporter en CSV",
     "exportFailed": "Échec de l'export CSV",
     "searchPlaceholder": "Rechercher token ou id de tx...",
     "noMatch": "Aucune transaction ne correspond au filtre",
     "sent": "Envoyé",
     "received": "Reçu",
+    "combined": "Combiné",
+    "dapp": "dapp",
     "today": "Aujourd'hui",
     "yesterday": "Hier",
     "balanceLabel": "Solde :",
+    "addNote": "ajouter une note",
     "csv": {
       "date": "Date (UTC)",
       "transactionId": "ID de transaction",
       "amount": "Montant ({unit})",
       "balance": "Solde ({unit})",
-      "tokenChanges": "Variations de tokens"
+      "tokenChanges": "Variations de tokens",
+      "direction": "Direction",
+      "dapp": "Dapp",
+      "note": "Note"
     },
     "pending": "en attente",
+    "confirmationsProgress": "{count}/6 confirmations",
+    "unconfirmedChain": "chaîne non confirmée",
+    "unconfirmedChainTooltip": "Cette transaction dépend d'une autre transaction non confirmée, ce qui augmente le risque qu'elle ne soit pas confirmée.",
     "transactionCountPartial": "{count}+ Transactions",
     "loadingFullHistory": "Chargement de l'historique complet"
   },
@@ -430,6 +441,7 @@
     "status": "Statut :",
     "unconfirmed": "non confirmée",
     "confirmations": "{count} confirmations (miné au bloc #{block})",
+    "confirmationsProgress": "{count}/6 confirmations (miné au bloc #{block})",
     "date": "Date :",
     "balanceChange": "Variation du solde :",
     "size": "Taille :",
@@ -438,7 +450,9 @@
     "feesCollected": "Frais collectés :",
     "inputs": "Entrées",
     "outputs": "Sorties",
-    "coinbase": "coinbase"
+    "coinbase": "coinbase",
+    "notePlaceholder": "Ajouter une note personnelle",
+    "fullDetails": "Détails complets de la transaction"
   },
   "alertDialog": {
     "transactionSent": "Transaction envoyée !",
