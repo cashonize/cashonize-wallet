@@ -17,11 +17,45 @@ body {
   padding-left: calc(100vw - 100%);
 }
 body.dark {
-  --bg-color: #050a14;
-  --bg-secondary-color: #131316;
+  --bg-color: #000;
+  --bg-secondary-color: #16181c;
   --font-color: #f5f5f5;
   --color-grey: #ccc;
-  --color-darkGrey: #777;
+  /* darkGrey is the button text color, lightGrey the button/border color:
+     both flip roles on the dark surface */
+  --color-darkGrey: #e7e9ea;
+  --color-lightGrey: #2f3336;
+  /* light outline that carries the page structure (fieldsets, nav, nav pills),
+     deliberately stronger than the subtle lightGrey control outlines */
+  --color-strongOutline: #d2d6dd;
+}
+/* Dark form controls: chota sets no input background (browser default white),
+   give them proper dark surfaces instead */
+body.dark input:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"]),
+body.dark textarea {
+  background-color: var(--bg-secondary-color);
+  color: #fff;
+}
+body.dark select {
+  background-color: var(--bg-secondary-color);
+  color: #fff;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23a8b2c3'><polygon points='0,0 60,0 30,40'/></svg>");
+}
+body.dark ::placeholder {
+  color: #e7e9ea;
+}
+/* structural outlines stay light in dark mode, they carry the page layout */
+body.dark fieldset,
+body.dark nav div {
+  border-color: var(--color-strongOutline);
+}
+/* segmented pill bars (.type-filter in several views) and the address list's
+   index circles: the translucent grey surfaces vanish on the black background,
+   give them the subtle input-style outline */
+body.dark .type-filter,
+body.dark .index-badge {
+  background-color: var(--bg-secondary-color);
+  border: 1px solid var(--color-lightGrey);
 }
 .transition-enabled {
   transition:
@@ -342,7 +376,7 @@ body.dark .wallet-name-styled {
   background: #fff;
 }
 body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-toggle__track {
-  background: #555;
+  background: #5c6166;
 }
 
 .q-pagination {
@@ -451,7 +485,7 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
   width: auto;
 }
 body.dark .q-dialog-plugin {
-  background-color: #050a14;
+  background-color: var(--bg-color);
   color: #f5f5f5;
 }
 body.dark .q-dialog-plugin .q-card__section {

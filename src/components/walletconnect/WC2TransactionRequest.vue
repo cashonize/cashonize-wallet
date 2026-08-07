@@ -351,7 +351,7 @@
     overflow: auto;
   }
   body.dark .dialogFieldsetTxRequest {
-    background-color: #050a14;
+    background-color: var(--bg-color);
   }
   .q-card{
     box-shadow: none;

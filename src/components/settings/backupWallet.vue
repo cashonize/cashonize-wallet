@@ -206,7 +206,7 @@
         <input @click="toggleShowSeedphrase()" class="button primary" type="button"
           :value="displaySeedphrase ? t('backupWallet.seedPhrase.hideButton') : t('backupWallet.seedPhrase.showButton')"
         >
-        <input v-if="!hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" :value="t('backupWallet.seedPhrase.verifyButton')" style="color: black;">
+        <input v-if="!hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" :value="t('backupWallet.seedPhrase.verifyButton')">
       </div>
     </div>
     <div v-if="displaySeedphrase" class="seedphrase-container">
@@ -313,7 +313,7 @@
         class="button"
         type="button"
         :value="t('backupWallet.persistentStorage.requestButton')"
-        style="margin-top: 10px; margin-bottom: 15px; color: black;"
+        style="margin-top: 10px; margin-bottom: 15px;"
       >
     </div>
   </div>

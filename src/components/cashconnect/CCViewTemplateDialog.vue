@@ -41,7 +41,7 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
     background-color: white;
   }
   body.dark .dialogFieldsetSignMessage {
-    background-color: #050a14;
+    background-color: var(--bg-color);
   }
   .q-card{
     box-shadow: none;

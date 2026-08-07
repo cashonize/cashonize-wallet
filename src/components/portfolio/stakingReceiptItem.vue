@@ -11,8 +11,8 @@
   defineProps<{
     category: string
     name: string
-    // whether the receipt is included in the chart and total
-    charted: boolean
+    // set when the receipt is included in the chart and total, undefined keeps a blank dot
+    dotColor: string | undefined
     // undefined while the receipt commitment is still being parsed
     state: { stakedDisplay: string | undefined, epochDisplay: string | undefined } | undefined
     estimatedValueDisplay: string | undefined
@@ -26,7 +26,7 @@
   Row styling comes from portfolioView's asset-list :deep() rules. -->
 <template>
   <div class="asset-row">
-    <span class="dot" :class="{ charted }"></span>
+    <span class="dot" :style="{ color: dotColor }"></span>
     <TokenIcon
       :token-id="category"
       :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(category) : undefined"
@@ -63,9 +63,5 @@
 .estimate {
   font-style: italic;
   opacity: 0.75;
-}
-/* matches the chart's staking segment color when included in the chart */
-.asset-row .dot.charted {
-  color: #378df5;
 }
 </style>

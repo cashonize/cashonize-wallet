@@ -555,7 +555,7 @@
             v-else
             :category="row.receipt.category"
             :name="row.receipt.name"
-            :charted="includeStaking"
+            :dot-color="includeStaking ? STAKING_COLOR : undefined"
             :state="stakingState(row.receipt.utxo)"
             :estimated-value-display="stakingValueDisplay(row.receipt.utxo)"
             :share-display="stakingShareDisplay(row.receipt.utxo)"
@@ -626,9 +626,13 @@
 
 .unit-toggle {
   display: flex;
-  border: 1px solid rgba(128, 128, 128, 0.3);
+  border: 1px solid var(--color-lightGrey);
   border-radius: 999px;
   overflow: hidden;
+}
+/* unselected segments need a raised surface on the black background */
+body.dark .unit-toggle button:not(.active) {
+  background-color: var(--bg-secondary-color);
 }
 .unit-toggle button {
   margin: 0;

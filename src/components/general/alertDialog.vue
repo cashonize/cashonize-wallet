@@ -53,6 +53,6 @@
 
 <style scoped>
   body.dark .alertDialog {
-    background-color: #050a14;
+    background-color: var(--bg-color);
   }
 </style>

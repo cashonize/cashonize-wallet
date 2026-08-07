@@ -54,7 +54,7 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
     background-color: white
   }
   body.dark .dialogFieldset {
-    background-color: #050a14;
+    background-color: var(--bg-color);
   }
   .q-card{
     box-shadow: none;

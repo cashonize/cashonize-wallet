@@ -441,7 +441,7 @@
   background-color: #fff;
 }
 body.dark .qr-card {
-  background-color: #050a14;
+  background-color: var(--bg-color);
 }
 
 /* the qr-code needs a white background to stay scannable in dark mode */
