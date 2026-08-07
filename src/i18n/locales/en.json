@@ -712,6 +712,18 @@
     "changeToRegularAddress": "Change to regular address",
     "txCount": "{count} txs"
   },
+  "addressManagement": {
+    "markAddressUsed": "Mark address as used",
+    "unmarkAddressUsed": "Unmark as used",
+    "markedTag": "marked used",
+    "markAddressUsedInfo": "Marks your current receive address as used so the wallet shows a fresh one. Use this when you shared the address but no payment has arrived yet.",
+    "markAddressUsedNote": "Previous addresses keep working. You can unmark addresses on the HD Addresses page in settings.",
+    "markedUsedNotify": "Address marked as used",
+    "markLimitNotify": "Too many unused addresses skipped, receive a payment on a fresh address first",
+    "markedInfo": "Addresses you marked as used are grouped under used addresses and can be unmarked there.",
+    "editLabel": "Edit address label",
+    "labelPlaceholder": "Add a private label"
+  },
   "sweepPrivateKey": {
     "title": "Sweep Private Key",
     "description": "Sweep BCH and tokens from a paper wallet, cashstamp, or private key:",
@@ -986,7 +998,9 @@
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
       "qrAnimation": "QR code animation:",
-      "tokenAddressQrDefault": "Show token address QR code by default"
+      "tokenAddressQrDefault": "Show token address QR code by default",
+      "showMarkAddressUsed": "Show 'mark address as used' on the wallet page",
+      "showMarkAddressUsedHint": "Lets you hand out a fresh receive address to each payer, applies to HD wallets"
     },
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",

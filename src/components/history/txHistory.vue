@@ -10,6 +10,7 @@
   import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/txDirection';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
+  import InlineTextEdit from '../general/InlineTextEdit.vue';
   import { useI18n } from 'vue-i18n'
   import { exportFile, useQuasar } from 'quasar'
 
@@ -55,49 +56,6 @@
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
 
-  // Inline note editing in the transaction rows; only one row edits at a time
-  const editingNoteTx = ref(null as string | null);
-  const noteDraft = ref("");
-  const noteInputRef = ref<HTMLInputElement | null>(null);
-
-  // Template refs inside v-for are collected into arrays, so a function ref is
-  // needed to capture the single active edit input as a plain element
-  function setNoteInputRef(element: unknown) {
-    noteInputRef.value = element as HTMLInputElement | null;
-  }
-
-  async function startNoteEdit(txHash: string) {
-    editingNoteTx.value = txHash;
-    noteDraft.value = store.txNotes[txHash] ?? "";
-    // the input is behind a v-if, wait for the DOM update before focusing it
-    await nextTick();
-    noteInputRef.value?.focus();
-  }
-
-  function saveNoteEdit() {
-    if (editingNoteTx.value === null) return;
-    store.setTxNote(editingNoteTx.value, noteDraft.value);
-    editingNoteTx.value = null;
-  }
-
-  function cancelNoteEdit() {
-    editingNoteTx.value = null;
-  }
-
-  // Blur alone can't close the editor: pressing Quasar controls (pagination, toggles)
-  // prevents default on mousedown, so the input never blurs. Watch presses at the
-  // document level while editing and close on any press outside the edit field.
-  function handleGlobalMousedown(event: MouseEvent) {
-    const editingContainer = noteInputRef.value?.parentElement;
-    if (!editingContainer || !editingContainer.contains(event.target as Node)) saveNoteEdit();
-  }
-
-  watch(editingNoteTx, (editing, _prev, onCleanup) => {
-    if (editing === null) return;
-    document.addEventListener('mousedown', handleGlobalMousedown, true);
-    onCleanup(() => document.removeEventListener('mousedown', handleGlobalMousedown, true));
-  });
-
   // Override Ctrl+F to focus the search input.
   function handleCtrlF(event: KeyboardEvent) {
     if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
@@ -110,11 +68,7 @@
 
   // Listener added/removed on KeepAlive activate/deactivate so it only applies while this view is active.
   onActivated(() => document.addEventListener('keydown', handleCtrlF));
-  onDeactivated(() => {
-    document.removeEventListener('keydown', handleCtrlF);
-    // close an open note editor when navigating away from the history view
-    saveNoteEdit();
-  });
+  onDeactivated(() => document.removeEventListener('keydown', handleCtrlF));
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
@@ -329,35 +283,13 @@
                 </div>
               </div>
             </div>
-            <div class="tx-note tx-note-editing" v-if="editingNoteTx === transaction.hash" @click.stop>
-              <input
-                :ref="setNoteInputRef"
-                v-model="noteDraft"
-                class="note-input"
-                type="text"
-                :maxlength="maxTxNoteLength"
-                autocomplete="off"
-                spellcheck="false"
-                @blur="saveNoteEdit"
-                @keyup.enter="saveNoteEdit"
-                @keyup.esc="cancelNoteEdit"
-              >
-              <!-- silent maxlength truncation is confusing, show the limit when writing gets close -->
-              <span
-                v-if="noteDraft.length >= maxTxNoteLength - 20"
-                class="note-counter"
-                :class="{ 'at-limit': noteDraft.length >= maxTxNoteLength }"
-              >{{ noteDraft.length }}/{{ maxTxNoteLength }}</span>
-            </div>
-            <div
+            <InlineTextEdit
               class="tx-note"
-              v-else-if="store.txNotes[transaction.hash]"
-              :title="store.txNotes[transaction.hash]"
-              @click.stop="startNoteEdit(transaction.hash)"
-            >{{ store.txNotes[transaction.hash] }}</div>
-            <div class="tx-note tx-note-add" v-else @click.stop="startNoteEdit(transaction.hash)">
-              <span class="add-note-hint">{{ t('history.addNote') }} <q-icon name="edit" size="14px" /></span>
-            </div>
+              :value="store.txNotes[transaction.hash]"
+              :hint="t('history.addNote')"
+              :max-length="maxTxNoteLength"
+              @save="(note) => store.setTxNote(transaction.hash, note)"
+            />
             <div class="tx-amounts">
               <div class="tx-amount-line">
                 <div class="tx-bch" :class="transaction.valueChange < 0 ? 'negative' : 'positive'">
@@ -709,67 +641,15 @@ body.dark .negative {
    ellipsis; clicking it edits the note inline instead of opening the dialog */
 .tx-note {
   flex: 1.8 1 0;
-  min-width: 0;
   max-width: 360px;
-  text-align: center;
-  opacity: 0.8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: text;
   /* enlarge the click target without growing the row */
   padding: 10px 12px;
   margin: -10px 0;
 }
 
-/* while editing, the slot holds the input plus the limit counter side by side */
-.tx-note-editing {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.note-counter {
-  font-size: 0.75em;
-  opacity: 0.6;
-}
-
-.note-counter.at-limit {
-  color: #e6a23c;
-  opacity: 1;
-}
-
 /* rows without a note reveal the hint on hover */
-.add-note-hint {
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.tx-item:hover .add-note-hint {
+.tx-item:hover :deep(.inline-edit-hint) {
   opacity: 0.55;
-}
-
-.add-note-hint .q-icon {
-  vertical-align: -0.15em;
-}
-
-/* plain underlined input; the focused state needs the same overrides or the
-   global chota input rules bring back the border and focus ring */
-.tx-note-editing .note-input,
-.tx-note-editing .note-input:focus {
-  flex: 1 1 0;
-  min-width: 0;
-  text-align: center;
-  font-size: inherit;
-  color: inherit;
-  background: transparent;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  border-bottom: 1px solid var(--color-primary);
-  border-radius: 0;
-  padding: 0 4px 1px;
-  margin: 0;
 }
 
 /* token changes render as wrapping chips filling the rest of the bottom row,
@@ -852,7 +732,7 @@ body.dark .negative {
     font-size: 0.9em;
   }
   /* no hover on touch screens, adding notes happens in the transaction dialog */
-  .tx-note-add {
+  .tx-note.inline-edit-add {
     display: none;
   }
   /* narrow screens need the label line to wrap rather than overflow the card */

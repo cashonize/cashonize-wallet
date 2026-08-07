@@ -45,6 +45,7 @@
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
+  const showMarkAddressUsed = ref(settingsStore.showMarkAddressUsed);
   // advanced settings
   const predefinedElectrumServersMainnet = [
     "electrum.imaginary.cash",
@@ -268,6 +269,10 @@
     localStorage.setItem("tokenAddressQrDefault", tokenAddressQrDefault.value? "true" : "false");
     settingsStore.tokenAddressQrDefault = tokenAddressQrDefault.value;
   }
+  function toggleShowMarkAddressUsed(){
+    localStorage.setItem("showMarkAddressUsed", showMarkAddressUsed.value? "true" : "false");
+    settingsStore.showMarkAddressUsed = showMarkAddressUsed.value;
+  }
   async function confirmDeleteWallets(){
     let text = t('settings.advanced.deleteAllWalletsConfirm', { platform: platformString });
     if (isPwaMode) {
@@ -484,6 +489,13 @@
 
       <div style="margin-top:15px; margin-bottom: 15px;">
         {{ t('settings.userOptions.tokenAddressQrDefault') }} <q-toggle v-model="tokenAddressQrDefault" @update:model-value="toggleTokenAddressQrDefault" dense />
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        {{ t('settings.userOptions.showMarkAddressUsed') }} <q-toggle v-model="showMarkAddressUsed" @update:model-value="toggleShowMarkAddressUsed" dense />
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.userOptions.showMarkAddressUsedHint') }}
+        </div>
       </div>
 
     </div>

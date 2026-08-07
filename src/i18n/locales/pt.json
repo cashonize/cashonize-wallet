@@ -712,6 +712,18 @@
     "changeToRegularAddress": "Mudar para endereço normal",
     "txCount": "{count} txs"
   },
+  "addressManagement": {
+    "markAddressUsed": "Marcar endereço como usado",
+    "unmarkAddressUsed": "Desmarcar como usado",
+    "markedTag": "marcado como usado",
+    "markAddressUsedInfo": "Marca seu endereço de recebimento atual como usado para que a carteira mostre um novo. Use quando você compartilhou o endereço mas nenhum pagamento chegou ainda.",
+    "markAddressUsedNote": "Os endereços anteriores continuam funcionando. Você pode desmarcar endereços na página Endereços HD nas configurações.",
+    "markedUsedNotify": "Endereço marcado como usado",
+    "markLimitNotify": "Muitos endereços não usados foram pulados, receba primeiro um pagamento em um endereço novo",
+    "markedInfo": "Os endereços marcados como usados são agrupados com os endereços usados e podem ser desmarcados lá.",
+    "editLabel": "Editar etiqueta do endereço",
+    "labelPlaceholder": "Adicionar uma etiqueta privada"
+  },
   "sweepPrivateKey": {
     "title": "Sweep de Chave Privada",
     "description": "Fazer sweep de BCH e tokens de uma paper wallet, cashstamp ou chave privada:",
@@ -986,7 +998,9 @@
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
       "qrAnimation": "Animação do QR code:",
-      "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão"
+      "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão",
+      "showMarkAddressUsed": "Mostrar 'marcar endereço como usado' na página da carteira",
+      "showMarkAddressUsedHint": "Permite dar um novo endereço de recebimento a cada pagador, aplica-se a carteiras HD"
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",

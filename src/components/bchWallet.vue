@@ -14,6 +14,7 @@
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   import portfolioIcon from './portfolio/portfolioIcon.vue';
+  import InfoPopup from './general/InfoPopup.vue';
 
   const $q = useQuasar()
   const store = useStore()
@@ -41,7 +42,11 @@
   // This speeds up the rendering of the component
   const qrCodeRef = shallowRef<QrCodeElement | null>(null);
 
-  const addressQrcode = computed(() => displayBchQr.value ? store.wallet.getDepositAddress() : store.wallet.getTokenDepositAddress())
+  const addressQrcode = computed(() => displayBchQr.value ? store.currentDepositAddress : store.currentTokenDepositAddress)
+
+  const showMarkAddressUsed = computed(() =>
+    settingsStore.showMarkAddressUsed && settingsStore.getWalletType(store.activeWalletName) === 'hd'
+  )
 
   const bchDisplayNetwork = computed(() => {
     return (store.network == "mainnet") ? 'BCH' : 'tBCH'
@@ -262,15 +267,15 @@
     </span>
     <div style="word-break: break-all;">
       {{ t('wallet.address', { network: bchDisplayNetwork }) }}
-      <span @click="() => copyToClipboard(store.wallet.getDepositAddress())" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet.getDepositAddress() }} </span>
+      <span @click="() => copyToClipboard(store.currentDepositAddress)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.currentDepositAddress }} </span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
     <div style="word-break: break-all;">
       {{ t('wallet.tokenAddress') }}
-      <span @click="() => copyToClipboard(store.wallet.getTokenDepositAddress())" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet.getTokenDepositAddress() }}</span>
+      <span @click="() => copyToClipboard(store.currentTokenDepositAddress)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.currentTokenDepositAddress }}</span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
@@ -282,6 +287,17 @@
     <div style="text-align: center;">
       <div class="switchAddressButton icon" :class="{ flipped: !displayBchQr }" @click="switchAddressTypeQr()">⇄
       </div>
+    </div>
+    <div v-if="showMarkAddressUsed" class="markUsedRow">
+      <span class="markUsedAction" @click="store.markAddressUsed(store.currentDepositAddress)">
+        {{ t('addressManagement.markAddressUsed') }}
+      </span>
+      <InfoPopup>
+        <div style="max-width: 320px;">
+          <div>{{ t('addressManagement.markAddressUsedInfo') }}</div>
+          <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
+        </div>
+      </InfoPopup>
     </div>
     <div>
       {{ t('wallet.send', { network: bchDisplayNetwork }) }}
@@ -400,5 +416,22 @@ body.dark .qr-code {
    would visibly displace it */
 .switchAddressButton.flipped {
   transform: rotateY(180deg);
+}
+.markUsedRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: -4px;
+  margin-bottom: 6px;
+  font-size: 0.8em;
+}
+.markUsedAction {
+  opacity: 0.75;
+  cursor: pointer;
+  user-select: none;
+}
+.markUsedAction:hover {
+  opacity: 1;
 }
 </style>

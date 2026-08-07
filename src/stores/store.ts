@@ -4,6 +4,7 @@ import {
   HDWallet,
   TestNetHDWallet,
   BaseWallet,
+  GAP_SIZE,
   Config,
   Connection,
   DefaultProvider,
@@ -49,6 +50,15 @@ import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
 import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/txNotes"
+import {
+  loadAddressMarks,
+  saveAddressMark,
+  deleteAddressMark,
+  loadAddressLabels,
+  saveAddressLabel,
+  removeAddressManagementData,
+  deriveFreshAddressIndex
+} from "src/utils/addressManagement"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -94,6 +104,10 @@ export const useStore = defineStore('store', () => {
   const isHistoryPartial = ref(false);
   // Private notes on the active wallet's transactions, keyed by txid (see utils/txNotes.ts)
   const txNotes = ref({} as Record<string, string>);
+  // Receive addresses the user marked as used and private address labels, keyed by cashaddr
+  // (see utils/addressManagement.ts)
+  const addressMarks = ref([] as string[]);
+  const addressLabels = ref({} as Record<string, string>);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   const currentBlockHeight = ref(undefined as (number | undefined));
@@ -126,6 +140,40 @@ export const useStore = defineStore('store', () => {
 
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
+
+  // Index of the receive address shown on the wallet page. For HD wallets this skips addresses
+  // the user marked as used; undefined for single-address wallets and in the rare case that
+  // every fresh address in the discovery window is marked (see deriveFreshAddressIndex)
+  const currentAddressIndex = computed(() => {
+    // walletUtxos updates when transactions arrive, re-deriving the index on address usage changes
+    void walletUtxos.value;
+    const activeWallet = _wallet.value;
+    if (!(activeWallet instanceof HDWallet)) return undefined;
+    return deriveFreshAddressIndex(
+      (index) => (activeWallet.depositRawHistory[index]?.length ?? 0) > 0,
+      (index) => activeWallet.walletCache.getByIndex(index, false).address,
+      addressMarks.value,
+      GAP_SIZE,
+    );
+  })
+
+  const currentDepositAddress = computed(() => {
+    const activeWallet = _wallet.value;
+    if (!activeWallet) return "";
+    if (activeWallet instanceof HDWallet && currentAddressIndex.value !== undefined) {
+      return activeWallet.getDepositAddress(currentAddressIndex.value);
+    }
+    return activeWallet.getDepositAddress();
+  })
+
+  const currentTokenDepositAddress = computed(() => {
+    const activeWallet = _wallet.value;
+    if (!activeWallet) return "";
+    if (activeWallet instanceof HDWallet && currentAddressIndex.value !== undefined) {
+      return activeWallet.getTokenDepositAddress(currentAddressIndex.value);
+    }
+    return activeWallet.getTokenDepositAddress();
+  })
 
   // Filtered token list based on display filter setting
   const filteredTokenList = computed(() => {
@@ -232,10 +280,50 @@ export const useStore = defineStore('store', () => {
     _wallet.value = newWallet;
     const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
     txNotes.value = loadTxNotes(newNetwork, newWallet.name);
+    addressMarks.value = loadAddressMarks(newNetwork, newWallet.name);
+    addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
   }
 
   function setTxNote(txid: string, note: string) {
     txNotes.value = saveTxNote(network.value, wallet.value.name, txid, note);
+  }
+
+  // Mark a receive address as used so a fresh address is handed out, for when the user shared
+  // an address but no payment has arrived yet. Refused when marking would leave no fresh
+  // address inside the seed-restore discovery window; a payment has to arrive first.
+  function markAddressUsed(address: string) {
+    const activeWallet = wallet.value;
+    if (!(activeWallet instanceof HDWallet)) return;
+    const simulatedMarks = [...addressMarks.value, address];
+    const freshIndexAfterMark = deriveFreshAddressIndex(
+      (index) => (activeWallet.depositRawHistory[index]?.length ?? 0) > 0,
+      (index) => activeWallet.walletCache.getByIndex(index, false).address,
+      simulatedMarks,
+      GAP_SIZE,
+    );
+    if (freshIndexAfterMark === undefined) {
+      Notify.create({
+        message: t('addressManagement.markLimitNotify'),
+        icon: 'warning',
+        color: "grey-7"
+      })
+      return;
+    }
+    addressMarks.value = saveAddressMark(network.value, activeWallet.name, address);
+    Notify.create({
+      message: t('addressManagement.markedUsedNotify'),
+      icon: 'info',
+      timeout: 1000,
+      color: "grey-6"
+    })
+  }
+
+  function unmarkAddressUsed(address: string) {
+    addressMarks.value = deleteAddressMark(network.value, wallet.value.name, address);
+  }
+
+  function setAddressLabel(address: string, label: string) {
+    addressLabels.value = saveAddressLabel(network.value, wallet.value.name, address, label);
   }
 
   async function initializeWallet() {
@@ -663,6 +751,7 @@ export const useStore = defineStore('store', () => {
     await deleteWalletFromDb(walletName, 'bitcoincash');
     await deleteWalletFromDb(walletName, 'bchtest');
     removeTxNotes(walletName);
+    removeAddressManagementData(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
   }
@@ -1022,6 +1111,14 @@ export const useStore = defineStore('store', () => {
     isHistoryPartial,
     txNotes,
     setTxNote,
+    addressMarks,
+    addressLabels,
+    currentAddressIndex,
+    currentDepositAddress,
+    currentTokenDepositAddress,
+    markAddressUsed,
+    unmarkAddressUsed,
+    setAddressLabel,
     walletInitFailed,
     plannedTokenId,
     dappConnectionStoresInitDone,

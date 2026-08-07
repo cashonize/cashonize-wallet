@@ -712,6 +712,18 @@
     "changeToRegularAddress": "Zur normalen Adresse wechseln",
     "txCount": "{count} Txs"
   },
+  "addressManagement": {
+    "markAddressUsed": "Adresse als verwendet markieren",
+    "unmarkAddressUsed": "Markierung aufheben",
+    "markedTag": "als verwendet markiert",
+    "markAddressUsedInfo": "Markiert die aktuelle Empfangsadresse als verwendet, sodass das Wallet eine neue anzeigt. Nützlich, wenn die Adresse geteilt wurde, aber noch keine Zahlung eingegangen ist.",
+    "markAddressUsedNote": "Frühere Adressen funktionieren weiterhin. Markierungen können auf der Seite HD-Adressen in den Einstellungen aufgehoben werden.",
+    "markedUsedNotify": "Adresse als verwendet markiert",
+    "markLimitNotify": "Zu viele unbenutzte Adressen übersprungen, zuerst muss eine Zahlung auf einer neuen Adresse eingehen",
+    "markedInfo": "Als verwendet markierte Adressen werden bei den verwendeten Adressen gruppiert und können dort wieder freigegeben werden.",
+    "editLabel": "Adressbeschriftung bearbeiten",
+    "labelPlaceholder": "Private Beschriftung hinzufügen"
+  },
   "sweepPrivateKey": {
     "title": "Privaten Schlüssel sweepen",
     "description": "BCH und Tokens von einem Paper Wallet, Cashstamp oder privatem Schlüssel sweepen:",
@@ -986,7 +998,9 @@
       "satUnit": "Satoshis",
       "blockExplorer": "Block-Explorer:",
       "qrAnimation": "QR-Code Animation:",
-      "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen"
+      "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen",
+      "showMarkAddressUsed": "'Adresse als verwendet markieren' auf der Wallet-Seite anzeigen",
+      "showMarkAddressUsedHint": "Ermöglicht es, jedem Zahler eine neue Empfangsadresse zu geben, gilt für HD-Wallets"
     },
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",

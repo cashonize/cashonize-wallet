@@ -712,6 +712,18 @@
     "changeToRegularAddress": "Cambiar a dirección normal",
     "txCount": "{count} txs"
   },
+  "addressManagement": {
+    "markAddressUsed": "Marcar dirección como usada",
+    "unmarkAddressUsed": "Desmarcar como usada",
+    "markedTag": "marcada como usada",
+    "markAddressUsedInfo": "Marca tu dirección de recepción actual como usada para que la billetera muestre una nueva. Úsalo cuando hayas compartido la dirección pero aún no haya llegado ningún pago.",
+    "markAddressUsedNote": "Las direcciones anteriores siguen funcionando. Puedes desmarcar direcciones en la página de Direcciones HD en la configuración.",
+    "markedUsedNotify": "Dirección marcada como usada",
+    "markLimitNotify": "Se omitieron demasiadas direcciones sin usar, recibe primero un pago en una dirección nueva",
+    "markedInfo": "Las direcciones que marcaste como usadas se agrupan con las direcciones usadas y se pueden desmarcar allí.",
+    "editLabel": "Editar etiqueta de dirección",
+    "labelPlaceholder": "Añadir una etiqueta privada"
+  },
   "sweepPrivateKey": {
     "title": "Barrer clave privada",
     "description": "Barrer BCH y tokens de una billetera de papel, cashstamp o clave privada:",
@@ -986,7 +998,9 @@
       "satUnit": "satoshis",
       "blockExplorer": "Explorador de bloques:",
       "qrAnimation": "Animación de código QR:",
-      "tokenAddressQrDefault": "Mostrar el código QR de la dirección de token por defecto"
+      "tokenAddressQrDefault": "Mostrar el código QR de la dirección de token por defecto",
+      "showMarkAddressUsed": "Mostrar 'marcar dirección como usada' en la página de la billetera",
+      "showMarkAddressUsedHint": "Te permite dar una dirección de recepción nueva a cada pagador, aplica a billeteras HD"
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",

@@ -40,6 +40,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const qrScan = ref(true);
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const tokenAddressQrDefault = ref(false);
+  const showMarkAddressUsed = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false); // consider changing default to true
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
@@ -141,6 +142,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readTokenAddressQrDefault = localStorage.getItem("tokenAddressQrDefault");
   if(readTokenAddressQrDefault) tokenAddressQrDefault.value = readTokenAddressQrDefault == "true";
+
+  const readShowMarkAddressUsed = localStorage.getItem("showMarkAddressUsed");
+  if(readShowMarkAddressUsed) showMarkAddressUsed.value = readShowMarkAddressUsed == "true";
 
   const readDarkMode = localStorage.getItem("darkMode");
   if(readDarkMode == "true"){
@@ -448,6 +452,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     qrScan,
     qrAnimation,
     tokenAddressQrDefault,
+    showMarkAddressUsed,
     hasPlayedAnimation,
     featuredTokens,
     hiddenTokens,
