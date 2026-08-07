@@ -75,6 +75,7 @@
   const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
   const selectedChaingraph = ref(settingsStore.chaingraph);
+  const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
@@ -214,6 +215,12 @@
   function changeChaingraph(){
     settingsStore.chaingraph = selectedChaingraph.value
     localStorage.setItem("chaingraph", selectedChaingraph.value);
+  }
+  function changeCauldronIndexer(){
+    settingsStore.cauldronIndexer = selectedCauldronIndexer.value;
+    localStorage.setItem("cauldronIndexer", selectedCauldronIndexer.value);
+    // refetch token prices from the newly selected indexer
+    void store.fetchCauldronPricesForTokens();
   }
   function changeExchangeRateProvider(){
     settingsStore.exchangeRateProvider = selectedExchangeRateProvider.value;
@@ -553,6 +560,14 @@
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
+        </select>
+      </div>
+
+      <div style="margin-top:15px">
+        <label for="selectNetwork">{{ t('settings.advanced.cauldronIndexer') }}</label>
+        <select v-model="selectedCauldronIndexer" @change="changeCauldronIndexer()">
+          <option value="https://indexer.riften.net">indexer.riften.net {{ t('settings.advanced.default') }}</option>
+          <option value="https://indexer.cauldron.quest">indexer.cauldron.quest</option>
         </select>
       </div>
 

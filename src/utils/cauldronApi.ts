@@ -1,7 +1,7 @@
 import { CauldronValueLockedSchema } from "./zodValidation";
 import { cachedFetch } from "./cacheUtils";
+import { useSettingsStore } from "src/stores/settingsStore";
 
-const CAULDRON_INDEXER_URL = "https://indexer.cauldron.quest";
 const MIN_LIQUIDITY_SATS = 100_000_000; // 1 BCH minimum
 const CAULDRON_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -16,11 +16,12 @@ export async function fetchCauldronPrices(
   tokenIds: string[]
 ): Promise<Record<string, CauldronPriceData>> {
   const results: Record<string, CauldronPriceData> = {};
+  const indexerUrl = useSettingsStore().cauldronIndexer;
 
   const fetchPromises = tokenIds.map(async (tokenId) => {
     try {
       const response = await cachedFetch(
-        `${CAULDRON_INDEXER_URL}/cauldron/valuelocked/${tokenId}`,
+        `${indexerUrl}/cauldron/valuelocked/${tokenId}`,
         CAULDRON_CACHE_TTL_MS
       );
       const json = await response.json();

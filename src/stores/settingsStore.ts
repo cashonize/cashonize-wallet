@@ -14,6 +14,7 @@ const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultElectrumChipnet = "chipnet.bch.ninja"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
+const defaultCauldronIndexer = "https://indexer.riften.net";
 const defaultIpfsGateway = "https://w3s.link/ipfs/";
 
 const { width,height } = useWindowSize();
@@ -30,6 +31,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const electrumServerMainnet = ref(defaultElectrumMainnet);
   const electrumServerChipnet = ref(defaultElectrumChipnet);
   const chaingraph = ref(defaultChaingraph);
+  const cauldronIndexer = ref(defaultCauldronIndexer);
   const ipfsGateway = ref(defaultIpfsGateway);
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
@@ -194,6 +196,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readChaingraph = localStorage.getItem("chaingraph") ?? "";
   if(readChaingraph) chaingraph.value = readChaingraph
+
+  const readCauldronIndexer = localStorage.getItem("cauldronIndexer") ?? "";
+  if(readCauldronIndexer) cauldronIndexer.value = readCauldronIndexer
   
   const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
   if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
@@ -432,6 +437,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     electrumServerMainnet,
     electrumServerChipnet,
     chaingraph,
+    cauldronIndexer,
     ipfsGateway,
     darkMode,
     showFiatValueHistory,

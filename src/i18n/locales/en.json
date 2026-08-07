@@ -995,6 +995,7 @@
       "electrumSelfSignedApp": "Note: self-signed certs are not currently supported in the app.",
       "ipfsGateway": "IPFS gateway:",
       "chaingraph": "Chaingraph server:",
+      "cauldronIndexer": "Cauldron indexer:",
       "exchangeRate": "Exchange rate provider:",
       "exchangeRateDefault": "Default (bitcoin.com for USD, BitPay for rest)",
       "deleteAllWallets": "Remove all wallets and all data from {platform}",
