@@ -410,6 +410,23 @@
     return bchValueFormatter.format(bchValue) + ' BCH'
   }
 
+  // Custom hover tooltip for the chart, positioned relative to the donut wrapper
+  const donutWrapRef = ref<HTMLElement | null>(null)
+  const hoveredSegmentIndex = ref<number | null>(null)
+  const tooltipPosition = ref({ x: 0, y: 0 })
+
+  const hoveredSegment = computed(() => {
+    if (hoveredSegmentIndex.value === null) return undefined
+    return chartSegments.value[hoveredSegmentIndex.value]
+  })
+
+  function moveSegmentTooltip(event: MouseEvent, index: number) {
+    hoveredSegmentIndex.value = index
+    const wrapRect = donutWrapRef.value?.getBoundingClientRect()
+    if (!wrapRect) return
+    tooltipPosition.value = { x: event.clientX - wrapRect.left, y: event.clientY - wrapRect.top }
+  }
+
   // Chart segments as stroke-dasharray fractions of a circle with circumference 100.
   // Drawn in display-list order so the slices visually map to the rows, with the
   // 'Other' bucket (tokens beyond the individually colored ones) at the end
@@ -496,7 +513,7 @@
     </div>
 
     <template v-else>
-      <div class="donut-wrap">
+      <div class="donut-wrap" ref="donutWrapRef">
         <svg viewBox="0 0 42 42" aria-hidden="true">
           <g transform="rotate(-90 21 21)" fill="none" stroke-width="4.5">
             <circle
@@ -504,14 +521,26 @@
               :key="index"
               cx="21" cy="21" r="15.9155"
               stroke="currentColor"
+              :class="{ hovered: hoveredSegmentIndex === index }"
               :style="{ color: segment.color }"
               :stroke-dasharray="`${segment.dashLength} ${100 - segment.dashLength}`"
               :stroke-dashoffset="segment.dashOffset"
-            >
-              <title>{{ segment.label }}: {{ formatBchValue(segment.bchValue) }} ({{ formatShare(segment.share) }})</title>
-            </circle>
+              @mousemove="moveSegmentTooltip($event, index)"
+              @mouseleave="hoveredSegmentIndex = null"
+            />
           </g>
         </svg>
+        <div
+          v-if="hoveredSegment"
+          class="chart-tooltip"
+          :style="{ left: `${tooltipPosition.x}px`, top: `${tooltipPosition.y}px` }"
+        >
+          <div class="chart-tooltip-title">
+            <span class="chart-tooltip-dot" :style="{ backgroundColor: hoveredSegment.color }"></span>
+            {{ hoveredSegment.label }}
+          </div>
+          <div>{{ formatBchValue(hoveredSegment.bchValue) }} ({{ formatShare(hoveredSegment.share) }})</div>
+        </div>
         <div class="donut-center">
           <div class="donut-center-label">{{ t('portfolio.totalValue') }}</div>
           <div class="donut-center-amount">{{ formatBchValue(totalBchValue ?? 0) }}</div>
@@ -684,6 +713,38 @@ body.dark .unit-toggle button:not(.active) {
 .donut-center-amount {
   font-size: 1.25em;
   font-weight: 600;
+}
+
+/* hovered slice thickens slightly as feedback */
+.donut-wrap svg circle {
+  transition: stroke-width 0.15s;
+}
+.donut-wrap svg circle.hovered {
+  stroke-width: 5.2;
+}
+
+/* cursor-following tooltip, styled like the app's info popups */
+.chart-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 12px));
+  background: #2d2d33;
+  color: #f5f5f5;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+.chart-tooltip-title {
+  font-weight: 600;
+}
+.chart-tooltip-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
 }
 
 .include-staking {
