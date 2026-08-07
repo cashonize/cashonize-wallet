@@ -21,6 +21,9 @@
   const MAX_SEGMENTS = 4
   // gap between chart segments, in percent of the circle
   const SEGMENT_GAP = 0.4
+  // smallest arc a segment is drawn at, in percent of the circle, so that tiny
+  // holdings stay visible; capped to the segment's own share when that is smaller
+  const MIN_SEGMENT_LENGTH = 0.4
 
   // Chart colors: BCH always keeps the brand green; token segments prefer their
   // icon's dominant color and fall back to the fixed palette when the icon has no
@@ -480,7 +483,9 @@
       const result = {
         ...segment,
         share: segment.bchValue / total,
-        dashLength: Math.max(length - gap, 0.4),
+        // never draw an arc longer than the share it owns, a sliver smaller than the
+        // minimum would otherwise run past its slice and paint over the next segment
+        dashLength: Math.min(Math.max(length - gap, MIN_SEGMENT_LENGTH), length),
         dashOffset: -cumulative
       }
       cumulative += length
@@ -536,6 +541,7 @@
               v-for="(segment, index) in chartSegments"
               :key="index"
               cx="21" cy="21" r="15.9155"
+              pathLength="100"
               stroke="currentColor"
               :class="{ hovered: hoveredSegmentIndex === index }"
               :style="{ color: segment.color }"
