@@ -12,9 +12,10 @@
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
-  import { defineComponent, ref, computed, watch } from 'vue'
+  import { defineComponent, ref, computed, watch, onMounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
+  import { preloadIcons } from 'src/utils/preloadIcons'
   import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
   import { isDappConnectionUri } from 'src/utils/dappUri'
   import { useStore } from 'src/stores/store'
@@ -34,6 +35,12 @@
   const props = defineProps<{
     uri: string | undefined
   }>()
+
+  // deliberately also runs during onboarding: creating a wallet switches to the wallet
+  // view in the same session, so the preloaded icons are needed moments later
+  onMounted(() => preloadIcons(settingsStore.darkMode));
+  // fetch the other icon variants when the user changes the dark mode setting
+  watch(() => settingsStore.darkMode, (darkMode) => preloadIcons(darkMode));
 
   const dappUriUrlParam = ref(undefined as undefined|string);
   const bchSendRequest = ref(undefined as undefined|string);
