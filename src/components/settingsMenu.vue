@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import EmojiItem from './general/emojiItem.vue'
+  import InfoPopup from './general/InfoPopup.vue'
   import backupWallet from './settings/backupWallet.vue'
   import walletsOverview from './settings/walletsOverview.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
@@ -424,10 +425,12 @@
       </div>
 
       <div style="margin-top:15px">
-        {{ t('settings.userOptions.showCauldronFTValue') }} <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.userOptions.showCauldronFTValueHint') }}
-        </div>
+        {{ t('settings.userOptions.showCauldronFTValue') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.showCauldronFTValueHint') }}</div>
+          <div class="info-popup-note">{{ t('settings.userOptions.showCauldronFTValuePortfolioNote') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">
