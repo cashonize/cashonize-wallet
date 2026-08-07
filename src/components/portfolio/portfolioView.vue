@@ -421,7 +421,12 @@
     let otherValue = 0
     for (const row of displayRows.value) {
       if (row.kind === 'asset') {
-        if (row.index < MAX_SEGMENTS) {
+        // an asset gets its own slice only when it shows in the main list (BCH
+        // always, tokens above the small-balance threshold) and is within the
+        // color budget; everything else folds into 'Other' with the small balances
+        const hasOwnSegment = row.index < MAX_SEGMENTS
+          && (row.index === 0 || assetShare(row.value) >= SMALL_SHARE_THRESHOLD)
+        if (hasOwnSegment) {
           segments.push({ label: row.asset.name, bchValue: row.asset.bchValue, color: segmentColorAt(row.index) })
         } else {
           otherValue += row.asset.bchValue
@@ -564,8 +569,8 @@
           {{ t('portfolio.smallBalances', { count: smallAssetRows.length }) }}
         </div>
         <div v-if="showSmallBalances" class="asset-list">
-          <div v-for="{ asset, index } in smallAssetRows" :key="asset.category ?? 'bch'" class="asset-row">
-            <span class="dot" :style="{ color: segmentColorAt(index) }"></span>
+          <div v-for="{ asset } in smallAssetRows" :key="asset.category ?? 'bch'" class="asset-row">
+            <span class="dot" :style="{ color: otherColor }"></span>
             <TokenIcon
               v-if="asset.category"
               :token-id="asset.category"
