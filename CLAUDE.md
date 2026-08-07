@@ -61,6 +61,10 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 - **@cashconnect-js/core** & **@cashconnect-js/nostr**: CashConnect protocol for BCH-native dApp connections. Docs: https://cashconnect.developers.cash/ — Repo: https://gitlab.com/cashconnect-js/cashconnect-js
 - **@wizardconnect/core** & **@wizardconnect/wallet**: WizardConnect protocol for BCH HD-wallet dApp connections. Repo: https://gitlab.com/riftenlabs/lib/wizardconnect
 
+### Persistent Storage
+- **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (via `@mainnet-cash/indexeddb-storage`, see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there. The app itself only touches these databases through `dbUtils.ts` and the cache-size/clear and delete flows in the settings menu.
+- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
+
 ### Electrum Connections
 mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
 
