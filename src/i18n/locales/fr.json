@@ -708,6 +708,8 @@
     "options": "Options",
     "hideZeroBalances": "Masquer les soldes nuls",
     "showTokenAddresses": "Afficher les adresses au format token",
+    "changeToTokenAddress": "Passer à l'adresse de token",
+    "changeToRegularAddress": "Passer à l'adresse normale",
     "txCount": "{count} txs"
   },
   "sweepPrivateKey": {

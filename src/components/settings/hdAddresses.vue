@@ -34,7 +34,8 @@
   const showTokenAddresses = ref(false);
   const collapsedGroups = ref({ unused: false, used: false });
   const showQrDialog = ref(false);
-  const qrDialogAddress = ref("");
+  const qrDialogRow = ref<AddressRow | null>(null);
+  const qrDialogTokenAddress = ref(false);
   const expandedTokensKey = ref<string | null>(null);
 
   function toggleGroup(key: "unused" | "used") {
@@ -55,9 +56,16 @@
   }
 
   function openQrDialog(row: AddressRow) {
-    qrDialogAddress.value = displayAddress(row);
+    qrDialogRow.value = row;
+    qrDialogTokenAddress.value = showTokenAddresses.value;
     showQrDialog.value = true;
   }
+
+  const qrDialogAddress = computed(() => {
+    const row = qrDialogRow.value;
+    if (!row) return "";
+    return qrDialogTokenAddress.value ? row.tokenAddress : row.address;
+  });
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
@@ -226,11 +234,15 @@
   <q-dialog v-model="showQrDialog" transition-show="scale" transition-hide="scale">
     <q-card class="qr-card">
       <qr-code :contents="qrDialogAddress" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
-        <img :src="showTokenAddresses ? 'images/tokenicon.png' : 'images/bch-icon.png'" slot="icon" /> <!-- eslint-disable-line -->
+        <img :src="qrDialogTokenAddress ? 'images/tokenicon.png' : 'images/bch-icon.png'" slot="icon" /> <!-- eslint-disable-line -->
       </qr-code>
       <div class="full-address mono" @click="copyToClipboard(qrDialogAddress)">
         {{ qrDialogAddress }}
         <img class="copyIcon" src="images/copyGrey.svg">
+      </div>
+      <div class="switch-address" @click="qrDialogTokenAddress = !qrDialogTokenAddress">
+        <span class="switchAddressButton" :class="{ flipped: qrDialogTokenAddress }">⇄</span>
+        {{ qrDialogTokenAddress ? t('hdAddresses.changeToRegularAddress') : t('hdAddresses.changeToTokenAddress') }}
       </div>
     </q-card>
   </q-dialog>
@@ -429,6 +441,31 @@ body.dark .qr-card {
   margin: 0 auto;
   background-color: #fff;
   cursor: pointer;
+}
+
+.switch-address {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.8em;
+  opacity: 0.75;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switchAddressButton {
+  font-size: 20px;
+  font-weight: 700;
+  transition: transform 0.3s;
+}
+
+/* flip around the vertical axis: the glyph's ink is horizontally centered in its box
+   but sits below the vertical center (text baseline), so an in-plane rotate(180deg)
+   would visibly displace it */
+.switchAddressButton.flipped {
+  transform: rotateY(180deg);
 }
 
 .full-address {
