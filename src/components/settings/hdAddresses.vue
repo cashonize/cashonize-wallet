@@ -4,9 +4,10 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
-  import { HDWallet, type TestNetHDWallet, GAP_SIZE, type Utxo } from 'mainnet-js';
+  import { HDWallet } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
   import { maxAddressLabelLength } from 'src/utils/addressManagement'
+  import { buildAddressRows, type AddressRow } from 'src/utils/addressRows'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
@@ -17,15 +18,6 @@
 
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480);
-
-  interface AddressRow {
-    index: number;
-    address: string;
-    tokenAddress: string;
-    balance: bigint;
-    txCount: number;
-    utxos: Utxo[];
-  }
 
   const receivingAddresses = ref<AddressRow[]>([]);
   const changeAddresses = ref<AddressRow[]>([]);
@@ -99,14 +91,14 @@
 
   function applyBalanceFilter(rows: AddressRow[]) {
     if (!hideZeroBalances.value) return rows;
-    return rows.filter(r => r.balance > 0n);
+    return rows.filter(row => row.balance > 0n);
   }
 
   // Addresses the user marked as used are grouped under used: they are no longer handed out
-  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(r => r.txCount > 0 || isMarked(r))));
-  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(r => r.txCount === 0 && !isMarked(r))));
-  const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(r => r.txCount > 0)));
-  const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(r => r.txCount === 0)));
+  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0 || isMarked(row))));
+  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0 && !isMarked(row))));
+  const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
+  const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
 
   const filteredReceivingCount = computed(() => usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length);
   const filteredChangeCount = computed(() => usedChangeAddresses.value.length + unusedChangeAddresses.value.length);
@@ -137,28 +129,6 @@
     const [prefix, body = ""] = address.split(':');
     if (isMobile.value) return body.slice(0, 5) + '...' + body.slice(-5);
     return prefix + ':' + body.slice(0, 8) + '...' + body.slice(-8);
-  }
-
-  function getAddressBalance(utxos: Utxo[]): bigint {
-    return utxos.reduce((sum, u) => sum + u.satoshis, 0n);
-  }
-
-  function buildAddressRows(hdWallet: HDWallet | TestNetHDWallet, index: number, change: boolean): AddressRow[] {
-    const cache = hdWallet.walletCache;
-    const rawHistory = change ? hdWallet.changeRawHistory : hdWallet.depositRawHistory;
-    const rows: AddressRow[] = [];
-    for (let i = 0; i < index + GAP_SIZE; i++) {
-      const entry = cache.getByIndex(i, change);
-      rows.push({
-        index: i,
-        address: entry.address,
-        tokenAddress: entry.tokenAddress,
-        balance: getAddressBalance(entry.utxos),
-        txCount: rawHistory[i]?.length ?? 0,
-        utxos: entry.utxos,
-      });
-    }
-    return rows;
   }
 
   // Rebuild when walletUtxos changes (triggers on balance/address updates)
