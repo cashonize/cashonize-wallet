@@ -79,9 +79,9 @@
     return amountFormatter.format(Number(amount) / (10 ** decimals))
   }
 
-  // undefined while the wallet balance has not loaded yet
+  // undefined while the wallet balance or the token list has not loaded yet
   const assets = computed(() => {
-    if (store.balance === undefined) return undefined
+    if (store.balance === undefined || store.tokenList === null) return undefined
 
     const bchBalance = Number(store.balance) / 100_000_000
     const bchEntry: PricedAsset = {
@@ -296,6 +296,10 @@
     for (const receipt of receipts) {
       const utxoId = nftUtxoId(receipt.utxo)
       if (stakingStates.value[utxoId]) continue
+      // receipts are detected by category before the BCMR metadata has loaded;
+      // parsing needs the metadata's parse info, so skip without recording a
+      // result and let a later pass retry once the registries are in
+      if (!store.bcmrRegistries?.[receipt.category]) continue
       void store.parseNftCommitment(receipt.category, receipt.utxo).then(async result => {
         const namedFields = (result?.success ? result.namedFields : undefined) ?? []
         const stakedParsed = namedFields.find(field => field.fieldId === 'amountStakedReceipt')?.parsedValue
@@ -321,14 +325,26 @@
 
   const hasFungibleTokens = computed(() => (store.tokenList ?? []).some(token => 'amount' in token))
 
+  // Safety valve for the loading gate: a hanging icon fetch or a wedged electrum
+  // request would otherwise keep the view loading forever, so after a generous
+  // timeout the page renders with whatever has settled (missing icon colors fall
+  // back to the palette, unresolved loan and staking rows keep their spinners)
+  const READY_TIMEOUT_MS = 10_000
+  const readyTimeoutElapsed = ref(false)
+  setTimeout(() => { readyTimeoutElapsed.value = true }, READY_TIMEOUT_MS)
+
   // True once metadata, prices and the icon colors for the colored segments have all
   // settled. The chart is held in a loading state until then, so it appears in its
   // final form instead of visibly repainting as async data arrives.
   const portfolioReady = computed(() => {
     if (!assets.value) return false
-    if (!hasFungibleTokens.value) return true
-    if (!store.bcmrRegistries || store.cauldronPrices === null) return false
+    if (readyTimeoutElapsed.value) return true
+    // any token needs the BCMR registries: fungible display data and the
+    // loan/staking detection both come from the metadata
+    if ((store.tokenList?.length ?? 0) > 0 && !store.bcmrRegistries) return false
+    if (hasFungibleTokens.value && store.cauldronPrices === null) return false
     if (!settingsStore.disableTokenIcons) {
+      // without fungible tokens this loop only sees the BCH entry and no-ops
       for (const { asset } of pricedWithIndex.value.slice(0, MAX_SEGMENTS)) {
         if (!asset.category) continue
         const url = store.tokenIconUrl(asset.category)
