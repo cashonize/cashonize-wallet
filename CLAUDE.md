@@ -85,7 +85,10 @@ Key files:
 - `src/parsing/bcmr-v2.schema.ts`: TypeScript types for the BCMR v2 spec
 
 ### BCMR Extensions
-BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method.
+BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method. The main extension is ParyonUSD (`paryonusd.ts`), which fetches the live on-chain loan state for loan-key NFTs.
+
+### Token Prices (Cauldron DEX)
+Cauldron is the main AMM DEX in the CashTokens ecosystem; fungible token values come from its indexer (`utils/cauldronApi.ts`). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
 
 ### Component Organization
 ```
@@ -97,6 +100,7 @@ src/components/
 ├── cashconnect/       # CC session and dialog components
 ├── wizardconnect/     # WizardConnect session components (sign dialogs are opened from wizardconnectStore)
 ├── history/           # Transaction history components
+├── portfolio/         # Portfolio view (chart of total wallet value)
 ├── tokenItems/        # Token display components (FT, NFT)
 ├── qr/                # QR scanning components
 └── general/           # Reusable components (alertDialog, seedPhraseInput, TokenIcon, ...)
