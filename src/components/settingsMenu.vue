@@ -492,10 +492,12 @@
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px;">
-        {{ t('settings.userOptions.showMarkAddressUsed') }} <q-toggle v-model="showMarkAddressUsed" @update:model-value="toggleShowMarkAddressUsed" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.userOptions.showMarkAddressUsedHint') }}
-        </div>
+        {{ t('settings.userOptions.showMarkAddressUsed') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.showMarkAddressUsedHint') }}</div>
+          <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="showMarkAddressUsed" @update:model-value="toggleShowMarkAddressUsed" dense />
       </div>
 
     </div>

@@ -714,10 +714,10 @@
   },
   "addressManagement": {
     "markAddressUsed": "Marquer l'adresse comme utilisée",
+    "markAddressUsedAction": "Marquer l'adresse comme utilisée et en afficher une nouvelle",
     "unmarkAddressUsed": "Ne plus marquer comme utilisée",
     "markedTag": "marquée utilisée",
-    "markAddressUsedInfo": "Marque votre adresse de réception actuelle comme utilisée afin que le portefeuille en affiche une nouvelle. Utile lorsque vous avez partagé l'adresse mais qu'aucun paiement n'est encore arrivé.",
-    "markAddressUsedNote": "Les adresses précédentes restent valables. Vous pouvez retirer le marquage sur la page Adresses HD dans les paramètres.",
+    "markAddressUsedNote": "Les adresses précédentes restent valables. Vous pouvez retirer le marquage sur la page Adresses HD.",
     "markedUsedNotify": "Adresse marquée comme utilisée",
     "markLimitNotify": "Trop d'adresses non utilisées ignorées, recevez d'abord un paiement sur une nouvelle adresse",
     "markedInfo": "Les adresses marquées comme utilisées sont regroupées avec les adresses utilisées et peuvent y être démarquées.",

@@ -714,10 +714,10 @@
   },
   "addressManagement": {
     "markAddressUsed": "Adresse als verwendet markieren",
+    "markAddressUsedAction": "Adresse als verwendet markieren und neue anzeigen",
     "unmarkAddressUsed": "Markierung aufheben",
     "markedTag": "als verwendet markiert",
-    "markAddressUsedInfo": "Markiert die aktuelle Empfangsadresse als verwendet, sodass das Wallet eine neue anzeigt. Nützlich, wenn die Adresse geteilt wurde, aber noch keine Zahlung eingegangen ist.",
-    "markAddressUsedNote": "Frühere Adressen funktionieren weiterhin. Markierungen können auf der Seite HD-Adressen in den Einstellungen aufgehoben werden.",
+    "markAddressUsedNote": "Frühere Adressen funktionieren weiterhin. Markierungen können auf der Seite HD-Adressen aufgehoben werden.",
     "markedUsedNotify": "Adresse als verwendet markiert",
     "markLimitNotify": "Zu viele unbenutzte Adressen übersprungen, zuerst muss eine Zahlung auf einer neuen Adresse eingehen",
     "markedInfo": "Als verwendet markierte Adressen werden bei den verwendeten Adressen gruppiert und können dort wieder freigegeben werden.",

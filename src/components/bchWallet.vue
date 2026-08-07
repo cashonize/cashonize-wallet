@@ -14,7 +14,6 @@
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   import portfolioIcon from './portfolio/portfolioIcon.vue';
-  import InfoPopup from './general/InfoPopup.vue';
 
   const $q = useQuasar()
   const store = useStore()
@@ -279,6 +278,11 @@
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
+    <div v-if="showMarkAddressUsed" class="markUsedRow">
+      <span class="markUsedAction" @click="store.markAddressUsed(store.currentDepositAddress)">
+        <q-icon name="archive" size="18px" class="markUsedIcon" /> {{ t('addressManagement.markAddressUsedAction') }}
+      </span>
+    </div>
     <div class="qr-frame">
       <qr-code ref="qrCodeRef" :contents="addressQrcode" @click="copyToClipboard(addressQrcode)" class="qr-code" @codeRendered="animateQrCode">
         <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
@@ -287,17 +291,6 @@
     <div style="text-align: center;">
       <div class="switchAddressButton icon" :class="{ flipped: !displayBchQr }" @click="switchAddressTypeQr()">⇄
       </div>
-    </div>
-    <div v-if="showMarkAddressUsed" class="markUsedRow">
-      <span class="markUsedAction" @click="store.markAddressUsed(store.currentDepositAddress)">
-        {{ t('addressManagement.markAddressUsed') }}
-      </span>
-      <InfoPopup>
-        <div style="max-width: 320px;">
-          <div>{{ t('addressManagement.markAddressUsedInfo') }}</div>
-          <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
-        </div>
-      </InfoPopup>
     </div>
     <div>
       {{ t('wallet.send', { network: bchDisplayNetwork }) }}
@@ -418,20 +411,17 @@ body.dark .qr-code {
   transform: rotateY(180deg);
 }
 .markUsedRow {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin-top: -4px;
-  margin-bottom: 6px;
-  font-size: 0.8em;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 .markUsedAction {
-  opacity: 0.75;
   cursor: pointer;
   user-select: none;
 }
-.markUsedAction:hover {
-  opacity: 1;
+/* icons are taller than the lowercase text, drop the icon slightly below the
+   baseline so it reads as vertically centered next to the label */
+.markUsedIcon {
+  vertical-align: -0.2em;
+  opacity: 0.8;
 }
 </style>

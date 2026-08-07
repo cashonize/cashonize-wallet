@@ -714,10 +714,10 @@
   },
   "addressManagement": {
     "markAddressUsed": "Marcar dirección como usada",
+    "markAddressUsedAction": "Marcar dirección como usada y mostrar una nueva",
     "unmarkAddressUsed": "Desmarcar como usada",
     "markedTag": "marcada como usada",
-    "markAddressUsedInfo": "Marca tu dirección de recepción actual como usada para que la billetera muestre una nueva. Úsalo cuando hayas compartido la dirección pero aún no haya llegado ningún pago.",
-    "markAddressUsedNote": "Las direcciones anteriores siguen funcionando. Puedes desmarcar direcciones en la página de Direcciones HD en la configuración.",
+    "markAddressUsedNote": "Las direcciones anteriores siguen funcionando. Puedes desmarcar direcciones en la página de Direcciones HD.",
     "markedUsedNotify": "Dirección marcada como usada",
     "markLimitNotify": "Se omitieron demasiadas direcciones sin usar, recibe primero un pago en una dirección nueva",
     "markedInfo": "Las direcciones que marcaste como usadas se agrupan con las direcciones usadas y se pueden desmarcar allí.",

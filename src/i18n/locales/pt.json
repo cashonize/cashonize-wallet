@@ -714,10 +714,10 @@
   },
   "addressManagement": {
     "markAddressUsed": "Marcar endereço como usado",
+    "markAddressUsedAction": "Marcar endereço como usado e mostrar um novo",
     "unmarkAddressUsed": "Desmarcar como usado",
     "markedTag": "marcado como usado",
-    "markAddressUsedInfo": "Marca seu endereço de recebimento atual como usado para que a carteira mostre um novo. Use quando você compartilhou o endereço mas nenhum pagamento chegou ainda.",
-    "markAddressUsedNote": "Os endereços anteriores continuam funcionando. Você pode desmarcar endereços na página Endereços HD nas configurações.",
+    "markAddressUsedNote": "Os endereços anteriores continuam funcionando. Você pode desmarcar endereços na página Endereços HD.",
     "markedUsedNotify": "Endereço marcado como usado",
     "markLimitNotify": "Muitos endereços não usados foram pulados, receba primeiro um pagamento em um endereço novo",
     "markedInfo": "Os endereços marcados como usados são agrupados com os endereços usados e podem ser desmarcados lá.",
