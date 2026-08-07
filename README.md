@@ -38,6 +38,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 
 - **CashConnect support** - Connect to BCH-native dApps through the CashConnect protocol
 - **Detailed dApp transaction preview** - Shows your balance changes for BCH and tokens before signing
+- **Portfolio view** - Chart of your total wallet value across BCH and fungible tokens
 - **Dapp-aware history** - Labels dapp transactions and classifies swaps as combined, both filterable
 - **Token pills in history** - Token changes shown as pills with icon and amount in the history
 - **Token management** - Favorite, hide, and search tokens

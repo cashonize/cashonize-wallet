@@ -184,6 +184,8 @@
 .scanner-card {
   position: relative;
   overflow: hidden;
+  /* black viewfinder while the camera starts up */
+  background-color: #000;
 }
 .scanner-video {
   position: absolute;

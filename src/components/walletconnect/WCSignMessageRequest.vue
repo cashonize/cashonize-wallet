@@ -27,8 +27,8 @@
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
-    <q-card>
-      <fieldset class="dialogFieldsetSignMessage">
+    <q-card class="dialogCard">
+      <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ t('walletConnect.signMessage.title') }}</legend>
 
         <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
@@ -65,20 +65,12 @@
 </template>
 
 <style scoped>
-  .dialogFieldsetSignMessage{
+  .dialogFieldset{
     padding: .5rem 2rem;
     max-height: 90vh;
     width: 500px;
     max-width: 100%;
-    background-color: white;
     overflow-wrap: anywhere;
-  }
-  body.dark .dialogFieldsetSignMessage {
-    background-color: #050a14;
-  }
-  .q-card{
-    box-shadow: none;
-    background: none;
   }
   .wc-modal-bottom-buttons {
     display: flex;

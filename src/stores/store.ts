@@ -862,8 +862,10 @@ export const useStore = defineStore('store', () => {
   }
 
   // Fetch Cauldron prices for fungible tokens
-  async function fetchCauldronPricesForTokens() {
-    if (!settingsStore.showCauldronFTValue) return;
+  // 'force' bypasses the fiat-value display setting for flows that always need
+  // prices, like the portfolio view the user explicitly opened
+  async function fetchCauldronPricesForTokens(force = false) {
+    if (!force && !settingsStore.showCauldronFTValue) return;
     if (network.value !== 'mainnet') return;
 
     const fungibleTokens = tokenList.value?.filter(token => 'amount' in token)

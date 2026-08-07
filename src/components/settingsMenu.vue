@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import EmojiItem from './general/emojiItem.vue'
+  import InfoPopup from './general/InfoPopup.vue'
   import backupWallet from './settings/backupWallet.vue'
   import walletsOverview from './settings/walletsOverview.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
@@ -75,6 +76,7 @@
   const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
   const selectedChaingraph = ref(settingsStore.chaingraph);
+  const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
@@ -214,6 +216,12 @@
   function changeChaingraph(){
     settingsStore.chaingraph = selectedChaingraph.value
     localStorage.setItem("chaingraph", selectedChaingraph.value);
+  }
+  function changeCauldronIndexer(){
+    settingsStore.cauldronIndexer = selectedCauldronIndexer.value;
+    localStorage.setItem("cauldronIndexer", selectedCauldronIndexer.value);
+    // refetch token prices from the newly selected indexer
+    void store.fetchCauldronPricesForTokens();
   }
   function changeExchangeRateProvider(){
     settingsStore.exchangeRateProvider = selectedExchangeRateProvider.value;
@@ -417,10 +425,12 @@
       </div>
 
       <div style="margin-top:15px">
-        {{ t('settings.userOptions.showCauldronFTValue') }} <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.userOptions.showCauldronFTValueHint') }}
-        </div>
+        {{ t('settings.userOptions.showCauldronFTValue') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.showCauldronFTValueHint') }}</div>
+          <div class="info-popup-note">{{ t('settings.userOptions.showCauldronFTValuePortfolioNote') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">
@@ -556,6 +566,14 @@
         </select>
       </div>
 
+      <div style="margin-top:15px">
+        <label for="selectNetwork">{{ t('settings.advanced.cauldronIndexer') }}</label>
+        <select v-model="selectedCauldronIndexer" @change="changeCauldronIndexer()">
+          <option value="https://indexer.riften.net">indexer.riften.net {{ t('settings.advanced.default') }}</option>
+          <option value="https://indexer.cauldron.quest">indexer.cauldron.quest</option>
+        </select>
+      </div>
+
       <div style="margin-top:15px;">{{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}
         <div v-if="isPwaMode" style="color: red">
           {{ t('settings.advanced.pwaDeleteWarning') }}
@@ -569,18 +587,18 @@
       <div style="margin-top:15px; margin-bottom: 15px">
         {{ isMobile ? t('settings.advanced.clearHistoryCache') : t('settings.advanced.clearHistoryCacheFrom', { platform: platformString }) }}
         <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
-        <input @click="clearHistoryCache()" type="button" :value="t('settings.advanced.clearHistoryCacheButton')" class="button" style="display: block; color: black;">
+        <input @click="clearHistoryCache()" type="button" :value="t('settings.advanced.clearHistoryCacheButton')" class="button" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
         {{ isMobile ? t('settings.advanced.clearMetadataCache') : t('settings.advanced.clearMetadataCacheFrom', { platform: platformString }) }}
         <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
-        <input @click="clearMetadataCache()" type="button" :value="t('settings.advanced.clearMetadataCacheButton')" class="button" style="display: block; color: black;">
+        <input @click="clearMetadataCache()" type="button" :value="t('settings.advanced.clearMetadataCacheButton')" class="button" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
         {{ t('settings.advanced.clearDappConnections') }}
-        <input @click="clearDappConnections()" type="button" :value="t('settings.advanced.clearDappConnectionsButton')" class="button" style="display: block; color: black;">
+        <input @click="clearDappConnections()" type="button" :value="t('settings.advanced.clearDappConnectionsButton')" class="button" style="display: block;">
       </div>
     </div>
     <div v-else-if="settingsSection == 4">

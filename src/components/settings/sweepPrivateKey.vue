@@ -303,7 +303,7 @@
         @click="() => showQrCodeDialog = true"
         style="padding: 12px"
       >
-        <img src="images/qrscan.svg" />
+        <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
       </button>
     </div>
     <div class="sweep-input-row" style="margin-top: 8px;">
@@ -311,7 +311,6 @@
         @click="preview()"
         type="button"
         class="button"
-        style="color: black;"
         :value="isLoading ? t('sweepPrivateKey.loadingButton') : t('sweepPrivateKey.previewButton')"
         :disabled="isLoading || isSweeping || !privateKeyToSweep"
       >

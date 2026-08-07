@@ -93,7 +93,7 @@
 
 <template>
   <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @hide="emit('hide')">
-    <q-card>
+    <q-card class="dialogCard">
       <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ t('walletConnect.sessionSettings.title') }}</legend>
 
@@ -147,14 +147,6 @@
     padding: 2rem 3rem 3rem 3rem;
     width: 500px;
     max-width: 100%;
-    background-color: white
-  }
-  body.dark .dialogFieldset {
-    background-color: #050a14;
-  }
-  .q-card{
-    box-shadow: none;
-    background: none;
   }
   .radio-option {
     display: flex;

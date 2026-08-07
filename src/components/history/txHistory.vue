@@ -460,29 +460,9 @@ fieldset.item {
   display: none;
 }
 
-/* segmented pill bar for the transaction direction filter */
+/* base .type-filter pill bar styling is shared in app.css */
 .type-filter {
-  display: inline-flex;
-  background-color: rgba(128, 128, 128, 0.12);
-  border-radius: 20px;
-  padding: 3px;
   margin-bottom: 10px;
-}
-
-.type-filter button {
-  border: none;
-  margin: 0;
-  background: transparent;
-  color: inherit;
-  border-radius: 17px;
-  padding: 4px 16px;
-  font-size: 0.9em;
-  cursor: pointer;
-}
-
-.type-filter button.active {
-  background-color: var(--color-primary);
-  color: white;
 }
 
 .options-panel {

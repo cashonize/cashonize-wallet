@@ -268,30 +268,6 @@
   padding: 2px 8px;
 }
 
-/* segmented pill bar for the token type filter */
-.type-filter {
-  display: inline-flex;
-  background-color: rgba(128, 128, 128, 0.12);
-  border-radius: 20px;
-  padding: 3px;
-}
-
-.type-filter button {
-  border: none;
-  margin: 0;
-  background: transparent;
-  color: inherit;
-  border-radius: 17px;
-  padding: 4px 16px;
-  font-size: 0.9em;
-  cursor: pointer;
-}
-
-.type-filter button.active {
-  background-color: var(--color-primary);
-  color: white;
-}
-
 .search-input {
   width: 180px;
   padding: 4px 10px;

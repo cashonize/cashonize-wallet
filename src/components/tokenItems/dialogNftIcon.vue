@@ -23,7 +23,7 @@
 
 <template>
   <q-dialog v-model="showIcon" style="background-color: rgba(0, 0, 0, 0.9)">
-      <q-card>
+      <q-card class="dialogCard">
         <q-card-section class="row items-center q-pb-none text-white">
           <q-space />
           <q-btn icon="close" color="white" flat round dense v-close-popup/>
@@ -41,10 +41,6 @@
 </template>
 
 <style scoped>
-.q-card{
-  box-shadow: none;
-  background: none;
-}
 .row {
   margin-right: 0px;
 }

@@ -356,17 +356,17 @@
                 <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               </span>
               <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
-                <img src="images/qrscan.svg" />
+                <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
               </button>
             </div>
             <div class="sendTokenAmount">
               <span style="width: 100%; position: relative;">
                 <input v-model="tokenSendAmount" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput">
-                <i class="input-icon" style="width: min-content; padding-right: 15px; color: black;">
+                <i class="input-icon" style="width: min-content; padding-right: 15px;">
                   {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
                 </i>
               </span>
-              <button @click="maxTokenAmount(true)" style="color: black;">{{ t('tokenItem.actions.max') }}</button>
+              <button @click="maxTokenAmount(true)">{{ t('tokenItem.actions.max') }}</button>
             </div>
           </div>
           <input @click="sendTokens()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendTokens.sendingButton') : t('tokenItem.sendTokens.sendButton')" :disabled="activeAction !== null">
@@ -380,7 +380,7 @@
                 {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
               </i>
             </span>
-            <button @click="maxTokenAmount(false)" style="color: black;">{{ t('tokenItem.actions.max') }}</button>
+            <button @click="maxTokenAmount(false)">{{ t('tokenItem.actions.max') }}</button>
           </div>
           <input @click="burnFungibles()" type="button" :value="activeAction === 'burning' ? t('tokenItem.burn.burningButton') : t('tokenItem.burn.burnButton')" class="button error" style="margin-top: 10px;" :disabled="activeAction !== null">
         </div>

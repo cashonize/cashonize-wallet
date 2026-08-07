@@ -13,6 +13,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import portfolioIcon from './portfolio/portfolioIcon.vue';
 
   const $q = useQuasar()
   const store = useStore()
@@ -244,7 +245,11 @@
 
 
 <template>
-  <fieldset style="margin-top: 20px; padding-top: 2rem; padding-bottom: 1rem; max-width: 75rem; margin: auto 10px;">
+  <fieldset class="wallet-fieldset">
+    <div class="portfolioLink" @click="store.changeView(12)">
+      <portfolioIcon :sizePx="20" />
+      <span>{{ t('portfolio.title') }}</span>
+    </div>
     <div style="font-size: 1.2em">
       {{ t('wallet.balance', { currency: currencyDisplayShortName }) }}
       <span style="color: hsla(160, 100%, 37%, 1);">{{ displayCurrencyBalance }}</span>
@@ -269,9 +274,11 @@
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
-    <qr-code ref="qrCodeRef" :contents="addressQrcode" @click="copyToClipboard(addressQrcode)" class="qr-code" @codeRendered="animateQrCode">
-      <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
-    </qr-code>
+    <div class="qr-frame">
+      <qr-code ref="qrCodeRef" :contents="addressQrcode" @click="copyToClipboard(addressQrcode)" class="qr-code" @codeRendered="animateQrCode">
+        <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
+      </qr-code>
+    </div>
     <div style="text-align: center;">
       <div class="switchAddressButton icon" :class="{ flipped: !displayBchQr }" @click="switchAddressTypeQr()">⇄
       </div>
@@ -281,17 +288,17 @@
       <div style="display: flex; gap: 0.5rem;">
         <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('wallet.addressPlaceholder')" name="addressInput">
         <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
-            <img src="images/qrscan.svg" />
+            <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
         </button>
       </div>
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
           <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="number" :placeholder="t('wallet.amountPlaceholder')" name="currencyInput">
-          <i class="input-icon" style="color: black;">{{ bchDisplayUnit }}</i>
+          <i class="input-icon">{{ bchDisplayUnit }}</i>
         </span>
         <span class="sendCurrencyInput">
           <input v-model="currencySendAmount" @input="setBchAmount()" type="number" :placeholder="t('wallet.amountPlaceholder')" name="bchAmountInput">
-          <i class="input-icon" style="color: black;">
+          <i class="input-icon">
             {{`${currencyDisplayShortName} ${CurrencySymbols[settingsStore.currency]}`}}
           </i>
         </span>
@@ -309,13 +316,73 @@
 </template>
 
 <style scoped>
-.qr-code {
-  display: block;
+/* the view's frame, also the positioning context for the absolute portfolioLink */
+.wallet-fieldset {
+  position: relative;
+  margin: 0 10px;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  max-width: 75rem;
+}
+.portfolioLink {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-lightGrey);
+  font-weight: 500;
   cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: border-color 0.2s;
+}
+body.dark .portfolioLink {
+  border-color: var(--color-strongOutline);
+}
+.portfolioLink:hover {
+  border-color: var(--color-primary);
+}
+/* icon-only pill on small screens, the "Portfolio" label takes too much width */
+@media (max-width: 450px) {
+  .portfolioLink span {
+    display: none;
+  }
+  .portfolioLink {
+    padding: 5px 9px;
+  }
+}
+.qr-frame {
   width: 230px;
   height: 225px;
   margin: 5px auto 0 auto;
   background-color: #fff;
+  overflow: hidden;
+}
+.qr-code {
+  display: block;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+/* Crop the QR's baked-in 4-module quiet zone: scale the code up inside the
+   frame (shrunk by the same factor, so the modules keep their exact size).
+   About 2 modules of white padding remain, still scannable. */
+body.dark .qr-frame {
+  --qr-crop: 1.06;
+  border-radius: 12px;
+  width: calc(230px / var(--qr-crop));
+  height: calc(225px / var(--qr-crop));
+  /* return the cropped-off height as margin, split evenly, so the QR stays
+     vertically centered in the space it occupied before */
+  margin-top: calc(5px + (225px - 225px / var(--qr-crop)) / 2);
+  margin-bottom: calc((225px - 225px / var(--qr-crop)) / 2);
+}
+body.dark .qr-code {
+  transform: scale(var(--qr-crop));
 }
 .switchAddressButton {
   font-size: 20px;
