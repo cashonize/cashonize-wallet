@@ -12,15 +12,14 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://quasar.dev/quasar-cli-vite/boot-files
-    boot: ('capacitor' in ctx.mode ? ['i18n', 'deepLinking', 'qrCodeComponent'] : ['i18n', 'qrCodeComponent', 'plausible']),
+    boot: ('capacitor' in ctx.mode ? ['icons', 'i18n', 'deepLinking', 'qrCodeComponent'] : ['icons', 'i18n', 'qrCodeComponent', 'plausible']),
 
     // https://quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: [
-      'app.css',
-      'material-icons/material-icons.css'
+      'app.css'
     ],
 
-    // @quasar/extras was removed — Material Icons webfont is vendored in src/css/material-icons/
+    // no webfonts from @quasar/extras; application icons are mapped to SVG constants in src/boot/icons.ts
     extras: [],
 
     // Full list of options: https://quasar.dev/quasar-cli-vite/quasar-config-file#build
@@ -117,7 +116,7 @@ export default defineConfig((ctx) => {
     framework: {
       config: {},
 
-      // iconSet: 'material-icons', // Quasar icon set
+      iconSet: 'svg-material-icons', // SVG icons used by Quasar components internally
       // lang: 'en-US', // Quasar language pack
 
       // For special cases outside of where the auto-import strategy can have an impact
