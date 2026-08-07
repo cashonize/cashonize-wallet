@@ -722,7 +722,7 @@
     "markLimitNotify": "Se omitieron demasiadas direcciones sin usar, recibe primero un pago en una dirección nueva",
     "markedInfo": "Las direcciones que marcaste como usadas se agrupan con las direcciones usadas y se pueden desmarcar allí.",
     "editLabel": "Editar etiqueta de dirección",
-    "labelPlaceholder": "Añadir una etiqueta privada"
+    "labelPlaceholder": "Añadir etiqueta de dirección"
   },
   "sweepPrivateKey": {
     "title": "Barrer clave privada",

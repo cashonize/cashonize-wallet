@@ -104,7 +104,7 @@ export const useStore = defineStore('store', () => {
   const isHistoryPartial = ref(false);
   // Private notes on the active wallet's transactions, keyed by txid (see utils/txNotes.ts)
   const txNotes = ref({} as Record<string, string>);
-  // Receive addresses the user marked as used and private address labels, keyed by cashaddr
+  // Receive addresses the user marked as used and address labels, keyed by cashaddr
   // (see utils/addressManagement.ts)
   const addressMarks = ref([] as string[]);
   const addressLabels = ref({} as Record<string, string>);

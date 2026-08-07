@@ -722,7 +722,7 @@
     "markLimitNotify": "Too many unused addresses skipped, receive a payment on a fresh address first",
     "markedInfo": "Addresses you marked as used are grouped under used addresses and can be unmarked there.",
     "editLabel": "Edit address label",
-    "labelPlaceholder": "Add a private label"
+    "labelPlaceholder": "Add address label"
   },
   "sweepPrivateKey": {
     "title": "Sweep Private Key",

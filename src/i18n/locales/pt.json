@@ -722,7 +722,7 @@
     "markLimitNotify": "Muitos endereços não usados foram pulados, receba primeiro um pagamento em um endereço novo",
     "markedInfo": "Os endereços marcados como usados são agrupados com os endereços usados e podem ser desmarcados lá.",
     "editLabel": "Editar etiqueta do endereço",
-    "labelPlaceholder": "Adicionar uma etiqueta privada"
+    "labelPlaceholder": "Adicionar etiqueta de endereço"
   },
   "sweepPrivateKey": {
     "title": "Sweep de Chave Privada",

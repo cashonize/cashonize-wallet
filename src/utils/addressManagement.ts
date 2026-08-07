@@ -1,5 +1,5 @@
 // Address management for HD wallets: addresses the user marked as used (so the wallet hands
-// out a fresh receive address) and private address labels. Both are stored in localStorage
+// out a fresh receive address) and address labels. Both are stored in localStorage
 // per wallet per network as cashaddr-keyed data; they never leave the device.
 
 export const maxAddressLabelLength = 100;
