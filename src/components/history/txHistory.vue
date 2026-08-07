@@ -863,7 +863,7 @@ body.dark .negative {
 
 @media only screen and (max-width: 500px) {
   fieldset {
-    padding: .5rem .5rem;
+    padding: .5rem 1rem;
   }
   legend {
     margin-left: 0.5rem;
