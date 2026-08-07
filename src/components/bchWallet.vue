@@ -245,7 +245,7 @@
 
 
 <template>
-  <fieldset style="position: relative; margin-top: 20px; padding-top: 2rem; padding-bottom: 1rem; max-width: 75rem; margin: auto 10px;">
+  <fieldset class="wallet-fieldset">
     <div class="portfolioLink" @click="store.changeView(12)">
       <portfolioIcon :sizePx="20" />
       <span>{{ t('portfolio.title') }}</span>
@@ -316,6 +316,14 @@
 </template>
 
 <style scoped>
+/* the view's frame, also the positioning context for the absolute portfolioLink */
+.wallet-fieldset {
+  position: relative;
+  margin: 0 10px;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  max-width: 75rem;
+}
 .portfolioLink {
   position: absolute;
   top: 12px;
@@ -360,18 +368,16 @@ body.dark .portfolioLink {
   width: 100%;
   height: 100%;
 }
-/* The QR component bakes a generous 4-module quiet zone into its SVG. In dark
-   mode, scale the code up inside the clipped frame and shrink the frame by the
-   same crop factor: the QR modules keep their exact size while roughly half of
-   the white padding is cut away (about 2 modules remain, still scannable). The
-   rounded frame reads as an intentional card on the dark page. */
+/* Crop the QR's baked-in 4-module quiet zone: scale the code up inside the
+   frame (shrunk by the same factor, so the modules keep their exact size).
+   About 2 modules of white padding remain, still scannable. */
 body.dark .qr-frame {
   --qr-crop: 1.06;
   border-radius: 12px;
   width: calc(230px / var(--qr-crop));
   height: calc(225px / var(--qr-crop));
-  /* give back the height lost by the smaller frame, split evenly so the
-     QR stays vertically centered in the space it occupied before */
+  /* return the cropped-off height as margin, split evenly, so the QR stays
+     vertically centered in the space it occupied before */
   margin-top: calc(5px + (225px - 225px / var(--qr-crop)) / 2);
   margin-bottom: calc((225px - 225px / var(--qr-crop)) / 2);
 }

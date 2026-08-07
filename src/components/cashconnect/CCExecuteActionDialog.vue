@@ -105,7 +105,7 @@ function addSignPrefixToNumber(value: number | bigint): string {
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" transition-show="scale" persistent>
-    <q-card>
+    <q-card class="dialogCard">
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">
           <!-- Render title if available -->
@@ -196,21 +196,6 @@ function addSignPrefixToNumber(value: number | bigint): string {
 </template>
 
 <style scoped>
-  .dialogFieldset{
-    padding: 3rem;
-    width: 500px;
-    max-width: 100%;
-    height: 220px;
-    background-color: white
-  }
-  body.dark .dialogFieldset {
-    background-color: var(--bg-color);
-  }
-  .q-card{
-    box-shadow: none;
-    background: none;
-  }
-
   .break-hex-string {
     word-wrap: break-word;      /* Legacy name */
     overflow-wrap: break-word;  /* Modern name (same property) */

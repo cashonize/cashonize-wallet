@@ -107,7 +107,7 @@ for (const tokenId of allowedTokens) {
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale">
-    <q-card>
+    <q-card class="dialogCard">
       <fieldset class="cc-modal-fieldset">
         <legend style="font-size: larger;">{{ t('cashConnect.sessionProposal.title') }}</legend>
         <div  style="display: flex; flex-direction: column; gap: 1rem;">
@@ -172,20 +172,3 @@ for (const tokenId of allowedTokens) {
     </q-card>
   </q-dialog>
 </template>
-
-<style scoped>
-  .dialogFieldset{
-    padding: 3rem;
-    width: 500px;
-    max-width: 100%;
-    height: 220px;
-    background-color: white
-  }
-  body.dark .dialogFieldset {
-    background-color: var(--bg-color);
-  }
-  .q-card{
-    box-shadow: none;
-    background: none;
-  }
-</style>

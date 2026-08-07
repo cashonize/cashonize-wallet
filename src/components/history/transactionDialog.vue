@@ -113,7 +113,7 @@
 
 <template>
   <q-dialog v-model="showDialog" transition-show="scale" transition-hide="scale" @hide="emit('hide')">
-    <q-card>
+    <q-card class="dialogCard">
       <div v-if="tokenMetadata && (tokenMetadata.uris?.image || tokenMetadata.uris?.icon)">
         <DialogNftIcon
           :srcNftImage="tokenMetadata.uris?.image ? tokenMetadata.uris.image : (tokenMetadata.uris.icon as string)"
@@ -282,15 +282,6 @@
     padding: 3rem;
     width: 500px;
     max-width: 100%;
-    /* height: 220px; */
-    background-color: white
-  }
-  body.dark .dialogFieldset {
-    background-color: var(--bg-color);
-  }
-  .q-card{
-    box-shadow: none;
-    background: none;
   }
   .input:nth-child(odd) {
     background-color: var(--color-background-soft);

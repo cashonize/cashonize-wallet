@@ -12,7 +12,7 @@
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
-    <q-card>
+    <q-card class="dialogCard">
       <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ t('wizardConnect.pairing.title') }}</legend>
         <div>{{ t('wizardConnect.pairing.intro') }}</div>
@@ -38,14 +38,6 @@
     padding: 2rem 3rem;
     width: 500px;
     max-width: 100%;
-    background-color: white;
-  }
-  body.dark .dialogFieldset {
-    background-color: var(--bg-color);
-  }
-  .q-card{
-    box-shadow: none;
-    background: none;
   }
   .pairing-bullets {
     margin: 1rem 0;

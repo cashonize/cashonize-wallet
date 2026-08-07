@@ -183,8 +183,8 @@
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
-    <q-card>
-      <fieldset class="dialogFieldsetTxRequest">
+    <q-card class="dialogCard">
+      <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ t('walletConnect.transactionRequest.title') }}</legend>
 
         <div style="display: flex; justify-content: center; font-size: large;  margin-top: 1rem;">
@@ -343,19 +343,11 @@
 </template>
 
 <style scoped>
-  .dialogFieldsetTxRequest{
+  .dialogFieldset{
     padding: .5rem 2rem;
     width: 500px;
     max-height: 90vh;
-    background-color: white;
     overflow: auto;
-  }
-  body.dark .dialogFieldsetTxRequest {
-    background-color: var(--bg-color);
-  }
-  .q-card{
-    box-shadow: none;
-    background: none;
   }
   .wc-modal-details {
     font-size: smaller;
@@ -405,7 +397,7 @@
   }
 
   @media only screen and (max-width: 570px) {
-    .dialogFieldsetTxRequest{
+    .dialogFieldset{
       width: 100%;
     }
     .thisWalletTag{

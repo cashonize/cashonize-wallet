@@ -184,6 +184,27 @@ input[type='number'] {
 .item {
   margin: 10px;
 }
+/* segmented pill bar used as a type filter in several views */
+.type-filter {
+  display: inline-flex;
+  background-color: rgba(128, 128, 128, 0.12);
+  border-radius: 20px;
+  padding: 3px;
+}
+.type-filter button {
+  border: none;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 17px;
+  padding: 4px 16px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.type-filter button.active {
+  background-color: var(--color-primary);
+  color: white;
+}
 .tokenInfo {
   display: flex;
   align-items: center;
@@ -521,6 +542,19 @@ body.dark .q-dialog-plugin .q-card__section {
   background-color: rgba(155, 155, 155, 0.5);
   border-radius: 20px;
   border: transparent;
+}
+
+/* Shared frame for the dApp and history dialogs: the dialogFieldset is the
+   visible surface, the dialogCard is an invisible q-card shell around it */
+.dialogFieldset {
+  background-color: white;
+}
+body.dark .dialogFieldset {
+  background-color: var(--bg-color);
+}
+.dialogCard {
+  box-shadow: none;
+  background: none;
 }
 
 /*

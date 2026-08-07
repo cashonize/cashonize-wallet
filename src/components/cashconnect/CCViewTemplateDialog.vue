@@ -17,7 +17,7 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
-    <q-card>
+    <q-card class="dialogCard">
       <fieldset class="cc-modal-fieldset">
         <legend class="cc-modal-fieldset-legend">{{ t('cashConnect.viewTemplate.title') }}</legend>
 
@@ -33,21 +33,6 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
 </template>
 
 <style scoped>
-  .dialogFieldsetSignMessage{
-    padding: 3rem;
-    max-height: 90vh;
-    width: 500px;
-    max-width: 100%;
-    background-color: white;
-  }
-  body.dark .dialogFieldsetSignMessage {
-    background-color: var(--bg-color);
-  }
-  .q-card{
-    box-shadow: none;
-    background: none;
-  }
-
   pre {
     width: 450px;
     max-width: 100%;
