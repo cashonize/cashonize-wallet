@@ -45,6 +45,7 @@
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
+  const enableAddressMarking = ref(settingsStore.enableAddressMarking);
   // advanced settings
   const predefinedElectrumServersMainnet = [
     "electrum.imaginary.cash",
@@ -269,6 +270,10 @@
     localStorage.setItem("tokenAddressQrDefault", tokenAddressQrDefault.value? "true" : "false");
     settingsStore.tokenAddressQrDefault = tokenAddressQrDefault.value;
   }
+  function toggleEnableAddressMarking(){
+    localStorage.setItem("enableAddressMarking", enableAddressMarking.value? "true" : "false");
+    settingsStore.enableAddressMarking = enableAddressMarking.value;
+  }
   async function confirmDeleteWallets(){
     let text = t('settings.advanced.deleteAllWalletsConfirm', { platform: platformString });
     if (isPwaMode) {
@@ -485,6 +490,15 @@
 
       <div style="margin-top:15px; margin-bottom: 15px;">
         {{ t('settings.userOptions.tokenAddressQrDefault') }} <q-toggle v-model="tokenAddressQrDefault" @update:model-value="toggleTokenAddressQrDefault" dense />
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        {{ t('settings.userOptions.enableAddressMarking') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.enableAddressMarkingHint') }}</div>
+          <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="enableAddressMarking" @update:model-value="toggleEnableAddressMarking" dense />
       </div>
 
     </div>

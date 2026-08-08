@@ -696,7 +696,7 @@
   },
   "hdAddresses": {
     "title": "Direcciones de billetera HD",
-    "intro": "Un resumen de todas las direcciones de la billetera, agrupadas por usadas y sin usar.",
+    "intro": "Un resumen de todas las direcciones de la billetera, agrupadas por sin usar y usadas.",
     "infoReceivingChange": "Las direcciones de recepción se comparten para recibir pagos. Las direcciones de cambio se usan internamente: al enviar una transacción, la billetera devuelve el cambio restante a una nueva dirección de cambio propia.",
     "infoPrivacyNote": "Usar una nueva dirección para cada pago ayuda a proteger la privacidad.",
     "currentTag": "actual",
@@ -711,6 +711,20 @@
     "changeToTokenAddress": "Cambiar a dirección de token",
     "changeToRegularAddress": "Cambiar a dirección normal",
     "txCount": "{count} txs"
+  },
+  "addressManagement": {
+    "markAddressUsed": "Marcar dirección como usada",
+    "markAddressUsedAction": "Marcar dirección como usada y mostrar una nueva",
+    "unmarkAddressUsed": "Desmarcar como usada",
+    "markedTag": "marcada como usada",
+    "markAddressUsedNote": "Las direcciones anteriores siguen funcionando. Puedes desmarcar direcciones en la página de Direcciones HD.",
+    "markedUsedNotify": "Dirección marcada como usada",
+    "markLimitNotify": "No se puede marcar esta dirección, una dirección nueva debe seguir disponible. Recibe un pago para liberar más.",
+    "markingIntro": "Las direcciones de recepción se pueden marcar como usadas después de compartirlas.",
+    "markedInfo": "Una dirección que compartiste sigue sin usar hasta que llega un pago, así que la billetera sigue entregando la misma. Marcarla como usada pasa a la siguiente dirección, para que cada pagador reciba una distinta.",
+    "unmarkInfo": "Las direcciones marcadas se agrupan con las direcciones usadas, donde puedes desmarcarlas.",
+    "editLabel": "Editar etiqueta de dirección",
+    "labelPlaceholder": "Añadir etiqueta de dirección"
   },
   "sweepPrivateKey": {
     "title": "Barrer clave privada",
@@ -986,7 +1000,9 @@
       "satUnit": "satoshis",
       "blockExplorer": "Explorador de bloques:",
       "qrAnimation": "Animación de código QR:",
-      "tokenAddressQrDefault": "Mostrar el código QR de la dirección de token por defecto"
+      "tokenAddressQrDefault": "Mostrar el código QR de la dirección de token por defecto",
+      "enableAddressMarking": "Habilitar gestión avanzada de direcciones: marcar direcciones como usadas",
+      "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD."
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",

@@ -696,7 +696,7 @@
   },
   "hdAddresses": {
     "title": "Adresses du portefeuille HD",
-    "intro": "Un aperçu de toutes les adresses du portefeuille, regroupées par utilisées et non utilisées.",
+    "intro": "Un aperçu de toutes les adresses du portefeuille, regroupées par non utilisées et utilisées.",
     "infoReceivingChange": "Les adresses de réception sont celles que vous partagez pour recevoir des paiements. Les adresses de monnaie sont utilisées en interne : lors d'un envoi, le portefeuille renvoie la monnaie restante vers une nouvelle adresse de monnaie qui lui appartient.",
     "infoPrivacyNote": "Utiliser une nouvelle adresse pour chaque paiement aide à protéger la vie privée.",
     "currentTag": "actuelle",
@@ -711,6 +711,20 @@
     "changeToTokenAddress": "Passer à l'adresse de token",
     "changeToRegularAddress": "Passer à l'adresse normale",
     "txCount": "{count} txs"
+  },
+  "addressManagement": {
+    "markAddressUsed": "Marquer l'adresse comme utilisée",
+    "markAddressUsedAction": "Marquer l'adresse comme utilisée et en afficher une nouvelle",
+    "unmarkAddressUsed": "Ne plus marquer comme utilisée",
+    "markedTag": "marquée utilisée",
+    "markAddressUsedNote": "Les adresses précédentes restent valables. Vous pouvez retirer le marquage sur la page Adresses HD.",
+    "markedUsedNotify": "Adresse marquée comme utilisée",
+    "markLimitNotify": "Impossible de marquer cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
+    "markingIntro": "Les adresses de réception peuvent être marquées comme utilisées après les avoir partagées.",
+    "markedInfo": "Une adresse que vous avez partagée reste inutilisée jusqu'à l'arrivée d'un paiement, le portefeuille propose donc toujours la même. La marquer comme utilisée passe à l'adresse suivante, pour que chaque payeur en reçoive une différente.",
+    "unmarkInfo": "Les adresses marquées sont regroupées avec les adresses utilisées, où vous pouvez les démarquer.",
+    "editLabel": "Modifier l'étiquette de l'adresse",
+    "labelPlaceholder": "Ajouter une étiquette d'adresse"
   },
   "sweepPrivateKey": {
     "title": "Balayer une clé privée",
@@ -986,7 +1000,9 @@
       "satUnit": "satoshis",
       "blockExplorer": "Explorateur de blocs :",
       "qrAnimation": "Animation du code QR :",
-      "tokenAddressQrDefault": "Afficher le code QR de l'adresse de token par défaut"
+      "tokenAddressQrDefault": "Afficher le code QR de l'adresse de token par défaut",
+      "enableAddressMarking": "Activer la gestion avancée des adresses : marquer les adresses comme utilisées",
+      "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD."
     },
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",

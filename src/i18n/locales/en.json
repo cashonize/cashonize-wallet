@@ -696,7 +696,7 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Addresses",
-    "intro": "An overview of all the wallet's addresses, grouped by used and unused.",
+    "intro": "An overview of all the wallet's addresses, grouped by unused and used.",
     "infoReceivingChange": "Receiving addresses are the addresses you share to get paid. Change addresses are used internally: when sending a transaction, the wallet returns the leftover change to a fresh change address of its own.",
     "infoPrivacyNote": "Using a new address for each payment helps protect your privacy.",
     "currentTag": "current",
@@ -711,6 +711,20 @@
     "changeToTokenAddress": "Change to token address",
     "changeToRegularAddress": "Change to regular address",
     "txCount": "{count} txs"
+  },
+  "addressManagement": {
+    "markAddressUsed": "Mark address as used",
+    "markAddressUsedAction": "Mark address as used and show fresh one",
+    "unmarkAddressUsed": "Unmark as used",
+    "markedTag": "marked used",
+    "markAddressUsedNote": "Previous addresses keep working. You can unmark addresses on the HD Addresses page.",
+    "markedUsedNotify": "Address marked as used",
+    "markLimitNotify": "Cannot mark this address, one fresh address has to stay available. Receive a payment to free up more.",
+    "markingIntro": "Receiving addresses can be marked as used after sharing them.",
+    "markedInfo": "An address you shared stays unused until a payment arrives, so the wallet keeps handing out the same one. Marking it as used moves on to the next address, so every payer gets a different one.",
+    "unmarkInfo": "Marked addresses are grouped under used addresses, where you can unmark them.",
+    "editLabel": "Edit address label",
+    "labelPlaceholder": "Add address label"
   },
   "sweepPrivateKey": {
     "title": "Sweep Private Key",
@@ -986,7 +1000,9 @@
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
       "qrAnimation": "QR code animation:",
-      "tokenAddressQrDefault": "Show token address QR code by default"
+      "tokenAddressQrDefault": "Show token address QR code by default",
+      "enableAddressMarking": "Enable advanced address management: mark addresses as used",
+      "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets."
     },
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",

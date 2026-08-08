@@ -696,7 +696,7 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Adressen",
-    "intro": "Eine Übersicht aller Adressen des Wallets, gruppiert nach verwendet und unbenutzt.",
+    "intro": "Eine Übersicht aller Adressen des Wallets, gruppiert nach unbenutzt und verwendet.",
     "infoReceivingChange": "Empfangsadressen werden geteilt, um Zahlungen zu empfangen. Wechseladressen werden intern verwendet: Beim Senden einer Transaktion schickt das Wallet das restliche Wechselgeld an eine neue eigene Wechseladresse zurück.",
     "infoPrivacyNote": "Eine neue Adresse für jede Zahlung hilft, die Privatsphäre zu schützen.",
     "currentTag": "aktuell",
@@ -711,6 +711,20 @@
     "changeToTokenAddress": "Zur Token-Adresse wechseln",
     "changeToRegularAddress": "Zur normalen Adresse wechseln",
     "txCount": "{count} Txs"
+  },
+  "addressManagement": {
+    "markAddressUsed": "Adresse als verwendet markieren",
+    "markAddressUsedAction": "Adresse als verwendet markieren und neue anzeigen",
+    "unmarkAddressUsed": "Markierung aufheben",
+    "markedTag": "als verwendet markiert",
+    "markAddressUsedNote": "Frühere Adressen funktionieren weiterhin. Markierungen können auf der Seite HD-Adressen aufgehoben werden.",
+    "markedUsedNotify": "Adresse als verwendet markiert",
+    "markLimitNotify": "Diese Adresse kann nicht markiert werden, eine neue Adresse muss verfügbar bleiben. Empfange eine Zahlung, um weitere freizugeben.",
+    "markingIntro": "Empfangsadressen können nach dem Teilen als verwendet markiert werden.",
+    "markedInfo": "Eine geteilte Adresse bleibt unbenutzt, bis eine Zahlung eingeht, also gibt die Wallet weiterhin dieselbe aus. Sie als verwendet zu markieren geht zur nächsten Adresse weiter, damit jeder Zahler eine andere bekommt.",
+    "unmarkInfo": "Markierte Adressen werden bei den verwendeten Adressen gruppiert, wo du die Markierung aufheben kannst.",
+    "editLabel": "Adressbeschriftung bearbeiten",
+    "labelPlaceholder": "Adressbeschriftung hinzufügen"
   },
   "sweepPrivateKey": {
     "title": "Privaten Schlüssel sweepen",
@@ -986,7 +1000,9 @@
       "satUnit": "Satoshis",
       "blockExplorer": "Block-Explorer:",
       "qrAnimation": "QR-Code Animation:",
-      "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen"
+      "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen",
+      "enableAddressMarking": "Erweiterte Adressverwaltung aktivieren: Adressen als verwendet markieren",
+      "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets."
     },
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",

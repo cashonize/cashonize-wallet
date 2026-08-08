@@ -696,7 +696,7 @@
   },
   "hdAddresses": {
     "title": "Endereços da Carteira HD",
-    "intro": "Um resumo de todos os endereços da carteira, agrupados por usados e não usados.",
+    "intro": "Um resumo de todos os endereços da carteira, agrupados por não usados e usados.",
     "infoReceivingChange": "Os endereços de recebimento são compartilhados para receber pagamentos. Os endereços de troco são usados internamente: ao enviar uma transação, a carteira devolve o troco restante para um novo endereço de troco próprio.",
     "infoPrivacyNote": "Usar um novo endereço para cada pagamento ajuda a proteger a privacidade.",
     "currentTag": "atual",
@@ -711,6 +711,20 @@
     "changeToTokenAddress": "Mudar para endereço de token",
     "changeToRegularAddress": "Mudar para endereço normal",
     "txCount": "{count} txs"
+  },
+  "addressManagement": {
+    "markAddressUsed": "Marcar endereço como usado",
+    "markAddressUsedAction": "Marcar endereço como usado e mostrar um novo",
+    "unmarkAddressUsed": "Desmarcar como usado",
+    "markedTag": "marcado como usado",
+    "markAddressUsedNote": "Os endereços anteriores continuam funcionando. Você pode desmarcar endereços na página Endereços HD.",
+    "markedUsedNotify": "Endereço marcado como usado",
+    "markLimitNotify": "Não é possível marcar este endereço, um endereço novo precisa continuar disponível. Receba um pagamento para liberar mais.",
+    "markingIntro": "Os endereços de recebimento podem ser marcados como usados depois de compartilhá-los.",
+    "markedInfo": "Um endereço que você compartilhou continua não usado até chegar um pagamento, então a carteira continua mostrando o mesmo. Marcá-lo como usado passa para o próximo endereço, para que cada pagador receba um diferente.",
+    "unmarkInfo": "Os endereços marcados são agrupados com os endereços usados, onde você pode desmarcá-los.",
+    "editLabel": "Editar etiqueta do endereço",
+    "labelPlaceholder": "Adicionar etiqueta de endereço"
   },
   "sweepPrivateKey": {
     "title": "Sweep de Chave Privada",
@@ -986,7 +1000,9 @@
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
       "qrAnimation": "Animação do QR code:",
-      "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão"
+      "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão",
+      "enableAddressMarking": "Ativar gestão avançada de endereços: marcar endereços como usados",
+      "enableAddressMarkingHint": "Marcar um endereço como usado faz a carteira mostrar o próximo, assim você pode dar um endereço novo a cada pagador. Aplica-se a carteiras HD."
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",

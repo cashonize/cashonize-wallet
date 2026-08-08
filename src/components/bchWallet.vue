@@ -41,7 +41,11 @@
   // This speeds up the rendering of the component
   const qrCodeRef = shallowRef<QrCodeElement | null>(null);
 
-  const addressQrcode = computed(() => displayBchQr.value ? store.wallet.getDepositAddress() : store.wallet.getTokenDepositAddress())
+  const addressQrcode = computed(() => displayBchQr.value ? store.currentDepositAddress : store.currentTokenDepositAddress)
+
+  const showMarkUsedAction = computed(() =>
+    settingsStore.enableAddressMarking && settingsStore.getWalletType(store.activeWalletName) === 'hd'
+  )
 
   const bchDisplayNetwork = computed(() => {
     return (store.network == "mainnet") ? 'BCH' : 'tBCH'
@@ -262,16 +266,21 @@
     </span>
     <div style="word-break: break-all;">
       {{ t('wallet.address', { network: bchDisplayNetwork }) }}
-      <span @click="() => copyToClipboard(store.wallet.getDepositAddress())" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet.getDepositAddress() }} </span>
+      <span @click="() => copyToClipboard(store.currentDepositAddress)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.currentDepositAddress }} </span>
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
     <div style="word-break: break-all;">
       {{ t('wallet.tokenAddress') }}
-      <span @click="() => copyToClipboard(store.wallet.getTokenDepositAddress())" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.wallet.getTokenDepositAddress() }}</span>
+      <span @click="() => copyToClipboard(store.currentTokenDepositAddress)" style="cursor:pointer;">
+        <span class="depositAddr">{{ store.currentTokenDepositAddress }}</span>
         <img class="copyIcon" src="images/copyGrey.svg">
+      </span>
+    </div>
+    <div v-if="showMarkUsedAction" class="markUsedRow">
+      <span class="markUsedAction" @click="store.markAddressUsed(store.currentDepositAddress)">
+        <q-icon name="archive" size="18px" class="markUsedIcon" /> {{ t('addressManagement.markAddressUsedAction') }}
       </span>
     </div>
     <div class="qr-frame">
@@ -400,5 +409,19 @@ body.dark .qr-code {
    would visibly displace it */
 .switchAddressButton.flipped {
   transform: rotateY(180deg);
+}
+.markUsedRow {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.markUsedAction {
+  cursor: pointer;
+  user-select: none;
+}
+/* icons are taller than the lowercase text, drop the icon slightly below the
+   baseline so it reads as vertically centered next to the label */
+.markUsedIcon {
+  vertical-align: -0.2em;
+  opacity: 0.8;
 }
 </style>

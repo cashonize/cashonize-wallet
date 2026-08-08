@@ -4,8 +4,9 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
-  import { HDWallet, type TestNetHDWallet, GAP_SIZE, type Utxo } from 'mainnet-js';
+  import { HDWallet } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
+  import { buildAddressRows, type AddressRow } from 'src/utils/addressRows'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
 
   const store = useStore()
@@ -18,14 +19,6 @@
 
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480);
-
-  interface AddressRow {
-    index: number;
-    address: string;
-    balance: bigint;
-    txCount: number;
-    utxos: Utxo[];
-  }
 
   const receivingAddresses = ref<AddressRow[]>([]);
   const changeAddresses = ref<AddressRow[]>([]);
@@ -42,6 +35,11 @@
 
   function hasTokens(row: AddressRow): boolean {
     return row.utxos.some(utxo => utxo.token);
+  }
+
+  // Labels are set on the HD addresses page, here they only help recognize an address
+  function labelFor(row: AddressRow): string | undefined {
+    return store.addressLabels[row.address];
   }
 
   function isTokensExpanded(row: AddressRow): boolean {
@@ -63,13 +61,13 @@
 
   function applyBalanceFilter(rows: AddressRow[]) {
     if (!hideZeroBalances.value) return rows;
-    return rows.filter(r => r.balance > 0n);
+    return rows.filter(row => row.balance > 0n);
   }
 
-  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(r => r.txCount > 0)));
-  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(r => r.txCount === 0)));
-  const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(r => r.txCount > 0)));
-  const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(r => r.txCount === 0)));
+  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0)));
+  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0)));
+  const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
+  const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
 
   const filteredReceivingCount = computed(() => usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length);
   const filteredChangeCount = computed(() => usedChangeAddresses.value.length + unusedChangeAddresses.value.length);
@@ -91,27 +89,6 @@
     const [prefix, body = ""] = address.split(':');
     if (isMobile.value) return body.slice(0, 5) + '...' + body.slice(-5);
     return prefix + ':' + body.slice(0, 8) + '...' + body.slice(-8);
-  }
-
-  function getAddressBalance(utxos: { satoshis: bigint }[]): bigint {
-    return utxos.reduce((sum, u) => sum + u.satoshis, 0n);
-  }
-
-  function buildAddressRows(hdWallet: HDWallet | TestNetHDWallet, index: number, change: boolean): AddressRow[] {
-    const cache = hdWallet.walletCache;
-    const rawHistory = change ? hdWallet.changeRawHistory : hdWallet.depositRawHistory;
-    const rows: AddressRow[] = [];
-    for (let i = 0; i < index + GAP_SIZE; i++) {
-      const entry = cache.getByIndex(i, change);
-      rows.push({
-        index: i,
-        address: entry.address,
-        balance: getAddressBalance(entry.utxos),
-        txCount: rawHistory[i]?.length ?? 0,
-        utxos: entry.utxos,
-      });
-    }
-    return rows;
   }
 
   function toggleAddress(address: string) {
@@ -191,6 +168,7 @@
             <span v-if="hasTokens(row)" class="tokens-button" @click.stop="toggleTokens(row)">
               <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
             </span>
+            <div v-if="labelFor(row)" class="address-label" :title="labelFor(row)">{{ labelFor(row) }}</div>
           </div>
           <AddressTokenChips v-if="isTokensExpanded(row)" :utxos="row.utxos" />
         </template>
@@ -272,8 +250,10 @@
 /* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
 .address-item {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  /* the row gap only applies to the label line, which sits closer than the column spacing */
+  gap: 6px 12px;
   border: 1px solid rgba(128, 128, 128, 0.2);
   background-color: rgba(128, 128, 128, 0.06);
   border-radius: 12px;
@@ -350,6 +330,18 @@
 .address-sub {
   font-size: 0.85em;
   opacity: 0.65;
+}
+
+/* the dialog is too narrow to fit the label next to the address, so it gets
+   its own centered line under it */
+.address-label {
+  flex: 0 1 100%;
+  min-width: 0;
+  text-align: center;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mono {

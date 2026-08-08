@@ -4,10 +4,14 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
-  import { HDWallet, type TestNetHDWallet, GAP_SIZE, type Utxo } from 'mainnet-js';
+  import { HDWallet } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
+  import { maxAddressLabelLength } from 'src/utils/addressManagement'
+  import { buildAddressRows, type AddressRow } from 'src/utils/addressRows'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
+  import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
+  import CharCounter from 'src/components/general/CharCounter.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -16,18 +20,8 @@
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480);
 
-  interface AddressRow {
-    index: number;
-    address: string;
-    tokenAddress: string;
-    balance: bigint;
-    txCount: number;
-    utxos: Utxo[];
-  }
-
   const receivingAddresses = ref<AddressRow[]>([]);
   const changeAddresses = ref<AddressRow[]>([]);
-  const currentDepositIndex = ref(0);
   const selectedChain = ref("receiving" as "receiving" | "change");
   const showOptions = ref(false);
   const hideZeroBalances = ref(false);
@@ -37,6 +31,32 @@
   const qrDialogRow = ref<AddressRow | null>(null);
   const qrDialogTokenAddress = ref(false);
   const expandedTokensKey = ref<string | null>(null);
+  const showLabelDialog = ref(false);
+  const labelDialogRow = ref<AddressRow | null>(null);
+  const labelDraft = ref("");
+
+  // Marks are kept but ignored while the setting is off, which also drops the tag,
+  // the unmark button and the grouping of marked addresses under used
+  function isMarked(row: AddressRow): boolean {
+    return settingsStore.enableAddressMarking && store.addressMarks.includes(row.address);
+  }
+
+  function labelFor(row: AddressRow): string | undefined {
+    return store.addressLabels[row.address];
+  }
+
+  function openLabelDialog(row: AddressRow) {
+    labelDialogRow.value = row;
+    labelDraft.value = labelFor(row) ?? "";
+    showLabelDialog.value = true;
+  }
+
+  // The label autosaves on dialog close (enter, escape or backdrop click)
+  function saveLabel() {
+    const row = labelDialogRow.value;
+    if (!row) return;
+    store.setAddressLabel(row.address, labelDraft.value);
+  }
 
   function toggleGroup(key: "unused" | "used") {
     collapsedGroups.value[key] = !collapsedGroups.value[key];
@@ -73,13 +93,14 @@
 
   function applyBalanceFilter(rows: AddressRow[]) {
     if (!hideZeroBalances.value) return rows;
-    return rows.filter(r => r.balance > 0n);
+    return rows.filter(row => row.balance > 0n);
   }
 
-  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(r => r.txCount > 0)));
-  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(r => r.txCount === 0)));
-  const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(r => r.txCount > 0)));
-  const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(r => r.txCount === 0)));
+  // Addresses the user marked as used are grouped under used: they are no longer handed out
+  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0 || isMarked(row))));
+  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0 && !isMarked(row))));
+  const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
+  const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
 
   const filteredReceivingCount = computed(() => usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length);
   const filteredChangeCount = computed(() => usedChangeAddresses.value.length + unusedChangeAddresses.value.length);
@@ -99,39 +120,19 @@
     return showTokenAddresses.value ? row.tokenAddress : row.address;
   }
 
-  // The address the wallet page QR currently hands out
+  // The address the wallet page QR currently hands out. Compared by address rather than
+  // index so the tag follows the wallet page even when it falls back to the wallet's own
+  // deposit address, which is not always the address at hdWallet.depositIndex.
   function isCurrentAddress(row: AddressRow): boolean {
-    return selectedChain.value === "receiving" && row.index === currentDepositIndex.value;
+    return selectedChain.value === "receiving" && row.address === store.currentDepositAddress;
   }
 
   // On desktop show the address prefix (bitcoincash: / bchtest:), it makes the
   // format explicit and recognizable; mobile only has room for the truncated body
   function truncateAddress(address: string) {
     const [prefix, body = ""] = address.split(':');
-    if (isMobile.value) return body.slice(0, 5) + '...' + body.slice(-5);
+    if (isMobile.value) return body.slice(0, 8) + '...' + body.slice(-6);
     return prefix + ':' + body.slice(0, 8) + '...' + body.slice(-8);
-  }
-
-  function getAddressBalance(utxos: Utxo[]): bigint {
-    return utxos.reduce((sum, u) => sum + u.satoshis, 0n);
-  }
-
-  function buildAddressRows(hdWallet: HDWallet | TestNetHDWallet, index: number, change: boolean): AddressRow[] {
-    const cache = hdWallet.walletCache;
-    const rawHistory = change ? hdWallet.changeRawHistory : hdWallet.depositRawHistory;
-    const rows: AddressRow[] = [];
-    for (let i = 0; i < index + GAP_SIZE; i++) {
-      const entry = cache.getByIndex(i, change);
-      rows.push({
-        index: i,
-        address: entry.address,
-        tokenAddress: entry.tokenAddress,
-        balance: getAddressBalance(entry.utxos),
-        txCount: rawHistory[i]?.length ?? 0,
-        utxos: entry.utxos,
-      });
-    }
-    return rows;
   }
 
   // Rebuild when walletUtxos changes (triggers on balance/address updates)
@@ -145,7 +146,6 @@
     if (!(hdWallet instanceof HDWallet)) return;
     receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
     changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true);
-    currentDepositIndex.value = hdWallet.depositIndex;
   });
 </script>
 
@@ -177,13 +177,25 @@
     </div>
 
     <div class="intro">
-      {{ t('hdAddresses.intro') }}
-      <InfoPopup>
-        <div style="max-width: 320px;">
-          <div>{{ t('hdAddresses.infoReceivingChange') }}</div>
-          <div class="info-popup-note">{{ t('hdAddresses.infoPrivacyNote') }}</div>
-        </div>
-      </InfoPopup>
+      <div>
+        {{ t('hdAddresses.intro') }}
+        <InfoPopup>
+          <div style="max-width: 320px;">
+            <div>{{ t('hdAddresses.infoReceivingChange') }}</div>
+            <div class="info-popup-note">{{ t('hdAddresses.infoPrivacyNote') }}</div>
+          </div>
+        </InfoPopup>
+      </div>
+      <!-- marking only applies to receiving addresses, so it is only explained there -->
+      <div v-if="settingsStore.enableAddressMarking && selectedChain === 'receiving'">
+        {{ t('addressManagement.markingIntro') }}
+        <InfoPopup>
+          <div style="max-width: 320px;">
+            <div>{{ t('addressManagement.markedInfo') }}</div>
+            <div class="info-popup-note">{{ t('addressManagement.unmarkInfo') }}</div>
+          </div>
+        </InfoPopup>
+      </div>
     </div>
 
     <div v-if="!addressGroups.length" class="description">{{ t('hdAddresses.noAddresses') }}</div>
@@ -207,6 +219,9 @@
                 {{ truncateAddress(displayAddress(row)) }}
                 <img class="copyIcon" src="images/copyGrey.svg">
                 <span v-if="isCurrentAddress(row)" class="current-tag">{{ t('hdAddresses.currentTag') }}</span>
+                <!-- both tags can show at once: with no fresh address left the wallet falls
+                     back to handing out an address that was already marked as used -->
+                <span v-if="isMarked(row)" class="marked-tag">{{ t('addressManagement.markedTag') }}</span>
               </div>
               <div class="address-sub">
                 {{ t('hdAddresses.txCount', { count: row.txCount }) }} ·
@@ -216,7 +231,35 @@
                 </span>
               </div>
             </div>
+            <!-- labels edit inline in the empty middle of the row, the hint appears on hover;
+                 on narrow screens the label drops to its own line under the address -->
+            <InlineTextEdit
+              class="label-inline"
+              :value="labelFor(row)"
+              :hint="t('addressManagement.labelPlaceholder')"
+              :max-length="maxAddressLabelLength"
+              @save="(label) => store.setAddressLabel(row.address, label)"
+            />
             <div class="card-buttons">
+              <span class="label-button" :title="t('addressManagement.editLabel')" @click.stop="openLabelDialog(row)">
+                <q-icon name="edit" size="20px" />
+              </span>
+              <span
+                v-if="settingsStore.enableAddressMarking && selectedChain === 'receiving' && row.txCount === 0 && !isMarked(row)"
+                class="mark-button"
+                :title="t('addressManagement.markAddressUsed')"
+                @click.stop="store.markAddressUsed(row.address)"
+              >
+                <q-icon name="archive" size="22px" />
+              </span>
+              <span
+                v-if="isMarked(row)"
+                class="mark-button"
+                :title="t('addressManagement.unmarkAddressUsed')"
+                @click.stop="store.unmarkAddressUsed(row.address)"
+              >
+                <q-icon name="unarchive" size="22px" />
+              </span>
               <span v-if="hasTokens(row)" class="tokens-button" @click.stop="toggleTokens(row)">
                 <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
               </span>
@@ -236,6 +279,7 @@
       <qr-code :contents="qrDialogAddress" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
         <img :src="qrDialogTokenAddress ? 'images/tokenicon.png' : 'images/bch-icon.png'" slot="icon" /> <!-- eslint-disable-line -->
       </qr-code>
+      <div v-if="qrDialogRow && labelFor(qrDialogRow)" class="qr-address-label">{{ labelFor(qrDialogRow) }}</div>
       <div class="full-address mono" @click="copyToClipboard(qrDialogAddress)">
         {{ qrDialogAddress }}
         <img class="copyIcon" src="images/copyGrey.svg">
@@ -246,11 +290,36 @@
       </div>
     </q-card>
   </q-dialog>
+
+  <q-dialog v-model="showLabelDialog" @hide="saveLabel" transition-show="scale" transition-hide="scale">
+    <q-card class="label-card">
+      <div class="label-title">{{ t('addressManagement.editLabel') }}</div>
+      <div v-if="labelDialogRow" class="label-address mono">{{ truncateAddress(labelDialogRow.address) }}</div>
+      <label class="labelField">
+        <input
+          v-model="labelDraft"
+          type="text"
+          :placeholder="t('addressManagement.labelPlaceholder')"
+          :maxlength="maxAddressLabelLength"
+          autocomplete="off"
+          spellcheck="false"
+          @keyup.enter="showLabelDialog = false"
+        >
+        <CharCounter :length="labelDraft.length" :max-length="maxAddressLabelLength" />
+        <q-icon name="edit" size="16px" class="labelIcon" />
+      </label>
+    </q-card>
+  </q-dialog>
 </template>
 
 <style scoped>
 .intro {
   margin: 10px 0;
+}
+
+/* the marking line reads as its own statement, not a continuation of the overview */
+.intro > div + div {
+  margin-top: 6px;
 }
 
 .control-row {
@@ -362,6 +431,26 @@
   margin-left: 2px;
 }
 
+.marked-tag {
+  background-color: rgba(128, 128, 128, 0.15);
+  opacity: 0.8;
+  border-radius: 10px;
+  padding: 0 8px;
+  margin-left: 2px;
+}
+
+.label-inline {
+  flex: 1;
+  /* enlarge the click target without growing the row */
+  padding: 10px 8px;
+  margin: -10px 0;
+}
+
+/* rows without a label reveal the hint on hover */
+.address-item:hover :deep(.inline-edit-hint) {
+  opacity: 0.55;
+}
+
 .index-badge {
   width: 32px;
   height: 32px;
@@ -381,14 +470,23 @@
 }
 
 .qr-button,
-.tokens-button {
+.tokens-button,
+.label-button,
+.mark-button {
   display: inline-flex;
   align-items: center;
   opacity: 0.6;
 }
 
+/* wide enough for the inline label, so the dialog button is only for narrow screens */
+.label-button {
+  display: none;
+}
+
 .qr-button:hover,
-.tokens-button:hover {
+.tokens-button:hover,
+.label-button:hover,
+.mark-button:hover {
   opacity: 1;
 }
 
@@ -476,6 +574,85 @@ body.dark .qr-card {
   cursor: pointer;
 }
 
+.qr-address-label {
+  max-width: 260px;
+  margin-top: 1rem;
+  text-align: center;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.label-card {
+  padding: 1.5rem;
+  width: 320px;
+  max-width: 90vw;
+  background-color: #fff;
+}
+body.dark .label-card {
+  background-color: var(--bg-color);
+}
+
+.label-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.label-address {
+  font-size: 0.85em;
+  opacity: 0.65;
+  margin-bottom: 12px;
+}
+
+.labelField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: 8px;
+  background-color: rgba(128, 128, 128, 0.06);
+  transition: border-color 0.2s;
+  cursor: text;
+}
+
+.labelField:focus-within {
+  border-color: var(--color-primary);
+}
+
+.labelField input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  border: none;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+.labelIcon {
+  flex: none;
+  opacity: 0.55;
+}
+
+@media only screen and (max-width: 750px) {
+  /* the label gets its own full-width line under the address; it must stay shrinkable
+     or its min-content width would stretch the fieldset past the viewport */
+  .address-item {
+    flex-wrap: wrap;
+  }
+  .label-inline {
+    flex: 0 1 100%;
+    order: 4;
+  }
+  /* no hover on touch screens, adding labels happens in the label dialog */
+  .label-inline.inline-edit-add {
+    display: none;
+  }
+  .label-button {
+    display: inline-flex;
+  }
+}
+
 @media only screen and (max-width: 600px) {
   .type-filter button {
     padding: 4px 12px;
@@ -483,6 +660,17 @@ body.dark .qr-card {
   }
   .address-item {
     padding: 8px 10px;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  /* too narrow to keep the actions next to the address, they get a centered
+     line of their own between the address and its label */
+  .card-buttons {
+    flex: 0 1 100%;
+    order: 3;
+    margin-left: 0;
+    justify-content: center;
   }
 }
 </style>
