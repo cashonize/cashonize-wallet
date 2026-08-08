@@ -37,6 +37,11 @@
     return row.utxos.some(utxo => utxo.token);
   }
 
+  // Labels are set on the HD addresses page, here they only help recognize an address
+  function labelFor(row: AddressRow): string | undefined {
+    return store.addressLabels[row.address];
+  }
+
   function isTokensExpanded(row: AddressRow): boolean {
     return expandedTokensKey.value === selectedChain.value + row.index;
   }
@@ -163,6 +168,7 @@
             <span v-if="hasTokens(row)" class="tokens-button" @click.stop="toggleTokens(row)">
               <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
             </span>
+            <div v-if="labelFor(row)" class="address-label" :title="labelFor(row)">{{ labelFor(row) }}</div>
           </div>
           <AddressTokenChips v-if="isTokensExpanded(row)" :utxos="row.utxos" />
         </template>
@@ -244,8 +250,10 @@
 /* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
 .address-item {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  /* the row gap only applies to the label line, which sits closer than the column spacing */
+  gap: 6px 12px;
   border: 1px solid rgba(128, 128, 128, 0.2);
   background-color: rgba(128, 128, 128, 0.06);
   border-radius: 12px;
@@ -322,6 +330,18 @@
 .address-sub {
   font-size: 0.85em;
   opacity: 0.65;
+}
+
+/* the dialog is too narrow to fit the label next to the address, so it gets
+   its own centered line under it */
+.address-label {
+  flex: 0 1 100%;
+  min-width: 0;
+  text-align: center;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mono {
