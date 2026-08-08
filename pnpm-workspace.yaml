@@ -2,20 +2,14 @@
 
 # --- Supply-chain hardening (a crypto wallet: prefer over-careful) ---
 
-# NOTE: pnpm 11 applies a built-in default minimumReleaseAge quarantine (rejects very
-# freshly-published versions), which we deliberately leave in place — do NOT set
-# `minimumReleaseAge: 0`, that would disable it and ship the wallet less safe than stock.
-#
-# TODO: tighten to an explicit 7-day quarantine once the committed lockfile's versions
-# have all aged past the window:
-#     minimumReleaseAge: 10080
-# Not enabled yet: the project currently sits on same-day toolchain releases (quasar,
-# vite/rolldown, vitest, typescript-eslint, browser-data), so 7 days today would need a
-# ~52-entry minimumReleaseAgeExclude list. Plan: hold the migration until deps mature,
-# then flip it on with no exclude list. (Enforced at resolution time — keep the lockfile
-# frozen while waiting.)
+# Reject freshly-published versions: 2880 minutes is 2 days, up from pnpm 11's built-in
+# default of 1440 (1 day). Never set this to 0, that disables the quarantine entirely and
+# ships the wallet less safe than stock. Only enforced when a version is resolved, so it
+# does not re-check what is already in the committed lockfile.
+minimumReleaseAge: 2880
 
-# Exempt from the release-age quarantine
+# Exempt from the release-age quarantine. Only needed for versions still inside the
+# window at the moment they are resolved; drop entries once they have aged past it.
 minimumReleaseAgeExclude:
   - '@quasar/app-vite@3.5.0'
 
