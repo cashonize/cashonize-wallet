@@ -696,7 +696,7 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Addresses",
-    "intro": "An overview of all the wallet's addresses, grouped by used and unused.",
+    "intro": "An overview of all the wallet's addresses, grouped by unused and used.",
     "infoReceivingChange": "Receiving addresses are the addresses you share to get paid. Change addresses are used internally: when sending a transaction, the wallet returns the leftover change to a fresh change address of its own.",
     "infoPrivacyNote": "Using a new address for each payment helps protect your privacy.",
     "currentTag": "current",
@@ -720,7 +720,8 @@
     "markAddressUsedNote": "Previous addresses keep working. You can unmark addresses on the HD Addresses page.",
     "markedUsedNotify": "Address marked as used",
     "markLimitNotify": "Cannot mark this address, one fresh address has to stay available. Receive a payment to free up more.",
-    "markedInfo": "Addresses you marked as used are grouped under used addresses and can be unmarked there.",
+    "markingIntro": "Receiving addresses can be marked as used, so the wallet hands out the next one.",
+    "markedInfo": "Marked addresses move to the used group, where you can unmark them to hand them out again.",
     "markLimitInfo": "One fresh address always stays unmarked, because a wallet restored from your seed phrase only scans a limited number of unused addresses ahead. Receiving a payment frees up more.",
     "editLabel": "Edit address label",
     "labelPlaceholder": "Add address label"

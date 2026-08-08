@@ -696,7 +696,7 @@
   },
   "hdAddresses": {
     "title": "HD Wallet Adressen",
-    "intro": "Eine Übersicht aller Adressen des Wallets, gruppiert nach verwendet und unbenutzt.",
+    "intro": "Eine Übersicht aller Adressen des Wallets, gruppiert nach unbenutzt und verwendet.",
     "infoReceivingChange": "Empfangsadressen werden geteilt, um Zahlungen zu empfangen. Wechseladressen werden intern verwendet: Beim Senden einer Transaktion schickt das Wallet das restliche Wechselgeld an eine neue eigene Wechseladresse zurück.",
     "infoPrivacyNote": "Eine neue Adresse für jede Zahlung hilft, die Privatsphäre zu schützen.",
     "currentTag": "aktuell",
@@ -720,7 +720,8 @@
     "markAddressUsedNote": "Frühere Adressen funktionieren weiterhin. Markierungen können auf der Seite HD-Adressen aufgehoben werden.",
     "markedUsedNotify": "Adresse als verwendet markiert",
     "markLimitNotify": "Diese Adresse kann nicht markiert werden, eine neue Adresse muss verfügbar bleiben. Empfange eine Zahlung, um weitere freizugeben.",
-    "markedInfo": "Als verwendet markierte Adressen werden bei den verwendeten Adressen gruppiert und können dort wieder freigegeben werden.",
+    "markingIntro": "Empfangsadressen können als verwendet markiert werden, damit die Wallet die nächste ausgibt.",
+    "markedInfo": "Markierte Adressen wandern zu den verwendeten Adressen, wo du die Markierung aufheben kannst, um sie wieder auszugeben.",
     "markLimitInfo": "Eine neue Adresse bleibt immer unmarkiert, denn eine aus deiner Seed-Phrase wiederhergestellte Wallet durchsucht nur eine begrenzte Anzahl unbenutzter Adressen im Voraus. Eine eingehende Zahlung gibt weitere frei.",
     "editLabel": "Adressbeschriftung bearbeiten",
     "labelPlaceholder": "Adressbeschriftung hinzufügen"

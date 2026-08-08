@@ -174,15 +174,24 @@
     </div>
 
     <div class="intro">
-      {{ t('hdAddresses.intro') }}
-      <InfoPopup>
-        <div style="max-width: 320px;">
-          <div>{{ t('hdAddresses.infoReceivingChange') }}</div>
-          <div class="info-popup-note">{{ t('hdAddresses.infoPrivacyNote') }}</div>
-          <div class="info-popup-note">{{ t('addressManagement.markedInfo') }}</div>
-          <div class="info-popup-note">{{ t('addressManagement.markLimitInfo') }}</div>
-        </div>
-      </InfoPopup>
+      <div>
+        {{ t('hdAddresses.intro') }}
+        <InfoPopup>
+          <div style="max-width: 320px;">
+            <div>{{ t('hdAddresses.infoReceivingChange') }}</div>
+            <div class="info-popup-note">{{ t('hdAddresses.infoPrivacyNote') }}</div>
+          </div>
+        </InfoPopup>
+      </div>
+      <div>
+        {{ t('addressManagement.markingIntro') }}
+        <InfoPopup>
+          <div style="max-width: 320px;">
+            <div>{{ t('addressManagement.markedInfo') }}</div>
+            <div class="info-popup-note">{{ t('addressManagement.markLimitInfo') }}</div>
+          </div>
+        </InfoPopup>
+      </div>
     </div>
 
     <div v-if="!addressGroups.length" class="description">{{ t('hdAddresses.noAddresses') }}</div>
@@ -307,6 +316,11 @@
 <style scoped>
 .intro {
   margin: 10px 0;
+}
+
+/* the marking line reads as its own statement, not a continuation of the overview */
+.intro > div + div {
+  margin-top: 6px;
 }
 
 .control-row {

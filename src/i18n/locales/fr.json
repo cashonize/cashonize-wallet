@@ -696,7 +696,7 @@
   },
   "hdAddresses": {
     "title": "Adresses du portefeuille HD",
-    "intro": "Un aperçu de toutes les adresses du portefeuille, regroupées par utilisées et non utilisées.",
+    "intro": "Un aperçu de toutes les adresses du portefeuille, regroupées par non utilisées et utilisées.",
     "infoReceivingChange": "Les adresses de réception sont celles que vous partagez pour recevoir des paiements. Les adresses de monnaie sont utilisées en interne : lors d'un envoi, le portefeuille renvoie la monnaie restante vers une nouvelle adresse de monnaie qui lui appartient.",
     "infoPrivacyNote": "Utiliser une nouvelle adresse pour chaque paiement aide à protéger la vie privée.",
     "currentTag": "actuelle",
@@ -720,7 +720,8 @@
     "markAddressUsedNote": "Les adresses précédentes restent valables. Vous pouvez retirer le marquage sur la page Adresses HD.",
     "markedUsedNotify": "Adresse marquée comme utilisée",
     "markLimitNotify": "Impossible de marquer cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
-    "markedInfo": "Les adresses marquées comme utilisées sont regroupées avec les adresses utilisées et peuvent y être démarquées.",
+    "markingIntro": "Les adresses de réception peuvent être marquées comme utilisées, pour que le portefeuille propose la suivante.",
+    "markedInfo": "Les adresses marquées passent dans le groupe des adresses utilisées, où vous pouvez les démarquer pour les proposer à nouveau.",
     "markLimitInfo": "Une nouvelle adresse reste toujours non marquée, car un portefeuille restauré depuis votre phrase de récupération n'analyse qu'un nombre limité d'adresses inutilisées à l'avance. Recevoir un paiement en libère d'autres.",
     "editLabel": "Modifier l'étiquette de l'adresse",
     "labelPlaceholder": "Ajouter une étiquette d'adresse"
