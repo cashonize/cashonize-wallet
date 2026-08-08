@@ -128,7 +128,7 @@
   // format explicit and recognizable; mobile only has room for the truncated body
   function truncateAddress(address: string) {
     const [prefix, body = ""] = address.split(':');
-    if (isMobile.value) return body.slice(0, 5) + '...' + body.slice(-5);
+    if (isMobile.value) return body.slice(0, 8) + '...' + body.slice(-6);
     return prefix + ':' + body.slice(0, 8) + '...' + body.slice(-8);
   }
 
@@ -183,12 +183,13 @@
           </div>
         </InfoPopup>
       </div>
-      <div>
+      <!-- marking only applies to receiving addresses, so it is only explained there -->
+      <div v-if="selectedChain === 'receiving'">
         {{ t('addressManagement.markingIntro') }}
         <InfoPopup>
           <div style="max-width: 320px;">
             <div>{{ t('addressManagement.markedInfo') }}</div>
-            <div class="info-popup-note">{{ t('addressManagement.markLimitInfo') }}</div>
+            <div class="info-popup-note">{{ t('addressManagement.unmarkInfo') }}</div>
           </div>
         </InfoPopup>
       </div>
@@ -220,16 +221,16 @@
                 <span v-if="isMarked(row)" class="marked-tag">{{ t('addressManagement.markedTag') }}</span>
               </div>
               <div class="address-sub">
-                <span v-if="isMobile && labelFor(row)" class="address-label">{{ labelFor(row) }} · </span>{{ t('hdAddresses.txCount', { count: row.txCount }) }} ·
+                {{ t('hdAddresses.txCount', { count: row.txCount }) }} ·
                 <span class="mono">{{ satsToBch(row.balance) }} {{ bchDisplayUnit }}</span>
                 <span v-if="row.balance && store.exchangeRate !== undefined">
                   ({{ formatFiatAmount(satsToBch(row.balance) * store.exchangeRate, settingsStore.currency) }})
                 </span>
               </div>
             </div>
-            <!-- labels edit inline in the empty middle of the row, the hint appears on hover -->
+            <!-- labels edit inline in the empty middle of the row, the hint appears on hover;
+                 on narrow screens the label drops to its own line under the address -->
             <InlineTextEdit
-              v-if="!isMobile"
               class="label-inline"
               :value="labelFor(row)"
               :hint="t('addressManagement.labelPlaceholder')"
@@ -237,7 +238,7 @@
               @save="(label) => store.setAddressLabel(row.address, label)"
             />
             <div class="card-buttons">
-              <span v-if="isMobile" class="label-button" :title="t('addressManagement.editLabel')" @click.stop="openLabelDialog(row)">
+              <span class="label-button" :title="t('addressManagement.editLabel')" @click.stop="openLabelDialog(row)">
                 <q-icon name="edit" size="20px" />
               </span>
               <span
@@ -440,10 +441,6 @@
   margin-left: 2px;
 }
 
-.address-label {
-  font-weight: 500;
-}
-
 .label-inline {
   flex: 1;
   /* enlarge the click target without growing the row */
@@ -481,6 +478,11 @@
   display: inline-flex;
   align-items: center;
   opacity: 0.6;
+}
+
+/* wide enough for the inline label, so the dialog button is only for narrow screens */
+.label-button {
+  display: none;
 }
 
 .qr-button:hover,
@@ -644,6 +646,25 @@ body.dark .label-card {
   opacity: 1;
 }
 
+@media only screen and (max-width: 750px) {
+  /* the label gets its own full-width line under the address; it must stay shrinkable
+     or its min-content width would stretch the fieldset past the viewport */
+  .address-item {
+    flex-wrap: wrap;
+  }
+  .label-inline {
+    flex: 0 1 100%;
+    order: 4;
+  }
+  /* no hover on touch screens, adding labels happens in the label dialog */
+  .label-inline.inline-edit-add {
+    display: none;
+  }
+  .label-button {
+    display: inline-flex;
+  }
+}
+
 @media only screen and (max-width: 600px) {
   .type-filter button {
     padding: 4px 12px;
@@ -651,6 +672,17 @@ body.dark .label-card {
   }
   .address-item {
     padding: 8px 10px;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  /* too narrow to keep the actions next to the address, they get a centered
+     line of their own between the address and its label */
+  .card-buttons {
+    flex: 0 1 100%;
+    order: 3;
+    margin-left: 0;
+    justify-content: center;
   }
 }
 </style>

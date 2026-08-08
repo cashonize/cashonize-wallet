@@ -720,9 +720,9 @@
     "markAddressUsedNote": "Las direcciones anteriores siguen funcionando. Puedes desmarcar direcciones en la página de Direcciones HD.",
     "markedUsedNotify": "Dirección marcada como usada",
     "markLimitNotify": "No se puede marcar esta dirección, una dirección nueva debe seguir disponible. Recibe un pago para liberar más.",
-    "markingIntro": "Las direcciones de recepción se pueden marcar como usadas, para que la billetera entregue la siguiente.",
-    "markedInfo": "Las direcciones marcadas pasan al grupo de usadas, donde puedes desmarcarlas para volver a entregarlas.",
-    "markLimitInfo": "Siempre queda una dirección nueva sin marcar, porque una billetera restaurada desde tu frase semilla solo escanea un número limitado de direcciones sin usar por delante. Recibir un pago libera más.",
+    "markingIntro": "Las direcciones de recepción se pueden marcar como usadas después de compartirlas.",
+    "markedInfo": "Una dirección que compartiste sigue sin usar hasta que llega un pago, así que la billetera sigue entregando la misma. Marcarla como usada pasa a la siguiente dirección, para que cada pagador reciba una distinta.",
+    "unmarkInfo": "Las direcciones marcadas se agrupan con las direcciones usadas, donde puedes desmarcarlas.",
     "editLabel": "Editar etiqueta de dirección",
     "labelPlaceholder": "Añadir etiqueta de dirección"
   },

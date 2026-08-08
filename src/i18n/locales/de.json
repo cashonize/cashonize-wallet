@@ -720,9 +720,9 @@
     "markAddressUsedNote": "Frühere Adressen funktionieren weiterhin. Markierungen können auf der Seite HD-Adressen aufgehoben werden.",
     "markedUsedNotify": "Adresse als verwendet markiert",
     "markLimitNotify": "Diese Adresse kann nicht markiert werden, eine neue Adresse muss verfügbar bleiben. Empfange eine Zahlung, um weitere freizugeben.",
-    "markingIntro": "Empfangsadressen können als verwendet markiert werden, damit die Wallet die nächste ausgibt.",
-    "markedInfo": "Markierte Adressen wandern zu den verwendeten Adressen, wo du die Markierung aufheben kannst, um sie wieder auszugeben.",
-    "markLimitInfo": "Eine neue Adresse bleibt immer unmarkiert, denn eine aus deiner Seed-Phrase wiederhergestellte Wallet durchsucht nur eine begrenzte Anzahl unbenutzter Adressen im Voraus. Eine eingehende Zahlung gibt weitere frei.",
+    "markingIntro": "Empfangsadressen können nach dem Teilen als verwendet markiert werden.",
+    "markedInfo": "Eine geteilte Adresse bleibt unbenutzt, bis eine Zahlung eingeht, also gibt die Wallet weiterhin dieselbe aus. Sie als verwendet zu markieren geht zur nächsten Adresse weiter, damit jeder Zahler eine andere bekommt.",
+    "unmarkInfo": "Markierte Adressen werden bei den verwendeten Adressen gruppiert, wo du die Markierung aufheben kannst.",
     "editLabel": "Adressbeschriftung bearbeiten",
     "labelPlaceholder": "Adressbeschriftung hinzufügen"
   },

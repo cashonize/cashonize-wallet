@@ -720,9 +720,9 @@
     "markAddressUsedNote": "Previous addresses keep working. You can unmark addresses on the HD Addresses page.",
     "markedUsedNotify": "Address marked as used",
     "markLimitNotify": "Cannot mark this address, one fresh address has to stay available. Receive a payment to free up more.",
-    "markingIntro": "Receiving addresses can be marked as used, so the wallet hands out the next one.",
-    "markedInfo": "Marked addresses move to the used group, where you can unmark them to hand them out again.",
-    "markLimitInfo": "One fresh address always stays unmarked, because a wallet restored from your seed phrase only scans a limited number of unused addresses ahead. Receiving a payment frees up more.",
+    "markingIntro": "Receiving addresses can be marked as used after sharing them.",
+    "markedInfo": "An address you shared stays unused until a payment arrives, so the wallet keeps handing out the same one. Marking it as used moves on to the next address, so every payer gets a different one.",
+    "unmarkInfo": "Marked addresses are grouped under used addresses, where you can unmark them.",
     "editLabel": "Edit address label",
     "labelPlaceholder": "Add address label"
   },

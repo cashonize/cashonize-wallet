@@ -720,9 +720,9 @@
     "markAddressUsedNote": "Les adresses précédentes restent valables. Vous pouvez retirer le marquage sur la page Adresses HD.",
     "markedUsedNotify": "Adresse marquée comme utilisée",
     "markLimitNotify": "Impossible de marquer cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
-    "markingIntro": "Les adresses de réception peuvent être marquées comme utilisées, pour que le portefeuille propose la suivante.",
-    "markedInfo": "Les adresses marquées passent dans le groupe des adresses utilisées, où vous pouvez les démarquer pour les proposer à nouveau.",
-    "markLimitInfo": "Une nouvelle adresse reste toujours non marquée, car un portefeuille restauré depuis votre phrase de récupération n'analyse qu'un nombre limité d'adresses inutilisées à l'avance. Recevoir un paiement en libère d'autres.",
+    "markingIntro": "Les adresses de réception peuvent être marquées comme utilisées après les avoir partagées.",
+    "markedInfo": "Une adresse que vous avez partagée reste inutilisée jusqu'à l'arrivée d'un paiement, le portefeuille propose donc toujours la même. La marquer comme utilisée passe à l'adresse suivante, pour que chaque payeur en reçoive une différente.",
+    "unmarkInfo": "Les adresses marquées sont regroupées avec les adresses utilisées, où vous pouvez les démarquer.",
     "editLabel": "Modifier l'étiquette de l'adresse",
     "labelPlaceholder": "Ajouter une étiquette d'adresse"
   },

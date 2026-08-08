@@ -720,9 +720,9 @@
     "markAddressUsedNote": "Os endereços anteriores continuam funcionando. Você pode desmarcar endereços na página Endereços HD.",
     "markedUsedNotify": "Endereço marcado como usado",
     "markLimitNotify": "Não é possível marcar este endereço, um endereço novo precisa continuar disponível. Receba um pagamento para liberar mais.",
-    "markingIntro": "Os endereços de recebimento podem ser marcados como usados, para que a carteira mostre o próximo.",
-    "markedInfo": "Os endereços marcados vão para o grupo de usados, onde você pode desmarcá-los para mostrá-los novamente.",
-    "markLimitInfo": "Um endereço novo sempre permanece sem marcação, porque uma carteira restaurada a partir da sua frase semente só verifica um número limitado de endereços não usados à frente. Receber um pagamento libera mais.",
+    "markingIntro": "Os endereços de recebimento podem ser marcados como usados depois de compartilhá-los.",
+    "markedInfo": "Um endereço que você compartilhou continua não usado até chegar um pagamento, então a carteira continua mostrando o mesmo. Marcá-lo como usado passa para o próximo endereço, para que cada pagador receba um diferente.",
+    "unmarkInfo": "Os endereços marcados são agrupados com os endereços usados, onde você pode desmarcá-los.",
     "editLabel": "Editar etiqueta do endereço",
     "labelPlaceholder": "Adicionar etiqueta de endereço"
   },
