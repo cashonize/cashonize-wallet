@@ -42,6 +42,9 @@ importers:
       '@plausible-analytics/tracker':
         specifier: ^0.4.4
         version: 0.4.5
+      '@quasar/extras':
+        specifier: ^2.0.2
+        version: 2.0.2
       '@reown/walletkit':
         specifier: 1.5.6
         version: 1.5.6(typescript@6.0.3)(zod@4.4.3)
@@ -556,6 +559,9 @@ packages:
 
   '@quasar/art@1.0.0':
     resolution: {integrity: sha512-IAV8Qg2QM3U2alywUcCELyOlHCUNbJYmiVDRTLgcgmyBlQwo3Wk33eHAyT9cpnV5CqlmuYXe6UZt0Ybi1m0lMA==}
+
+  '@quasar/extras@2.0.2':
+    resolution: {integrity: sha512-BkH/iBISDbLNl5qAdsVNpa/0hxHbd1VwfML4dRwTUb8oGeLqlr00yjYM648KGYB1C8plwhU7LyGziE1JpSa6ZA==}
 
   '@quasar/render-ssr-error@2.2.4':
     resolution: {integrity: sha512-AZfVdTmkTuT9v4gOpHQcKnIFGiPoao2ck0IBQgW3+baTAM2J7ACe22Shr4wZ4FIUykNR6bSakTbwG8FJ1U9OHA==}
@@ -3079,6 +3085,8 @@ snapshots:
       - yaml
 
   '@quasar/art@1.0.0': {}
+
+  '@quasar/extras@2.0.2': {}
 
   '@quasar/render-ssr-error@2.2.4':
     dependencies:
