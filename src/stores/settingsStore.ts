@@ -15,7 +15,10 @@ const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultElectrumChipnet = "chipnet.bch.ninja"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
 const defaultCauldronIndexer = "https://indexer.riften.net";
-const defaultIpfsGateway = "https://w3s.link/ipfs/";
+// ipfs.io serves the content directly, other gateways redirect to a subdomain gateway.
+// A redirect hop without CORS headers breaks reads that need them, like the canvas
+// pixel read behind the portfolio chart's icon colors.
+const defaultIpfsGateway = "https://ipfs.io/ipfs/";
 
 const { width,height } = useWindowSize();
 const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;

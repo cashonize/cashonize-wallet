@@ -65,11 +65,12 @@
     return server === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(server);
   });
   const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
+  // the first entry is labeled as the default, keep it in sync with settingsStore
   const predefinedIpfsGateways = [
-    "https://w3s.link/ipfs/",
     "https://ipfs.io/ipfs/",
     "https://dweb.link/ipfs/",
-    "https://nftstorage.link/ipfs/"
+    "https://ipfs.filebase.io/ipfs/",
+    "https://ipfs.pat.mn/ipfs/"
   ];
   const storedIpfsGateway = settingsStore.ipfsGateway;
   const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);
