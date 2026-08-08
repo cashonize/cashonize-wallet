@@ -1001,8 +1001,8 @@
       "blockExplorer": "Explorateur de blocs :",
       "qrAnimation": "Animation du code QR :",
       "tokenAddressQrDefault": "Afficher le code QR de l'adresse de token par défaut",
-      "showMarkAddressUsed": "Afficher 'marquer l'adresse comme utilisée' sur la page du portefeuille",
-      "showMarkAddressUsedHint": "Permet de donner une nouvelle adresse de réception à chaque payeur, s'applique aux portefeuilles HD"
+      "enableAddressMarking": "Activer la gestion avancée des adresses : marquer les adresses comme utilisées",
+      "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD."
     },
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",

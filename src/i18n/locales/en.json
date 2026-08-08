@@ -1001,8 +1001,8 @@
       "blockExplorer": "Block explorer:",
       "qrAnimation": "QR code animation:",
       "tokenAddressQrDefault": "Show token address QR code by default",
-      "showMarkAddressUsed": "Show 'mark address as used' on the wallet page",
-      "showMarkAddressUsedHint": "Lets you hand out a fresh receive address to each payer, applies to HD wallets"
+      "enableAddressMarking": "Enable advanced address management: mark addresses as used",
+      "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets."
     },
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",

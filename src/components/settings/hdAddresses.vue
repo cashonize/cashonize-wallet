@@ -34,8 +34,10 @@
   const labelDialogRow = ref<AddressRow | null>(null);
   const labelDraft = ref("");
 
+  // Marks are kept but ignored while the setting is off, which also drops the tag,
+  // the unmark button and the grouping of marked addresses under used
   function isMarked(row: AddressRow): boolean {
-    return store.addressMarks.includes(row.address);
+    return settingsStore.enableAddressMarking && store.addressMarks.includes(row.address);
   }
 
   function labelFor(row: AddressRow): string | undefined {
@@ -184,7 +186,7 @@
         </InfoPopup>
       </div>
       <!-- marking only applies to receiving addresses, so it is only explained there -->
-      <div v-if="selectedChain === 'receiving'">
+      <div v-if="settingsStore.enableAddressMarking && selectedChain === 'receiving'">
         {{ t('addressManagement.markingIntro') }}
         <InfoPopup>
           <div style="max-width: 320px;">
@@ -242,7 +244,7 @@
                 <q-icon name="edit" size="20px" />
               </span>
               <span
-                v-if="selectedChain === 'receiving' && row.txCount === 0 && !isMarked(row)"
+                v-if="settingsStore.enableAddressMarking && selectedChain === 'receiving' && row.txCount === 0 && !isMarked(row)"
                 class="mark-button"
                 :title="t('addressManagement.markAddressUsed')"
                 @click.stop="store.markAddressUsed(row.address)"

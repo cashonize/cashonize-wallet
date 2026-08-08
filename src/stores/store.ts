@@ -148,6 +148,9 @@ export const useStore = defineStore('store', () => {
   const currentAddressIndex = computed(() => {
     // walletUtxos updates when transactions arrive, re-deriving the index on address usage changes
     void walletUtxos.value;
+    // marks are kept but ignored while the setting is off, so the wallet hands out the same
+    // address it would have without the feature
+    if (!settingsStore.enableAddressMarking) return undefined;
     const activeWallet = _wallet.value;
     if (!(activeWallet instanceof HDWallet)) return undefined;
     return deriveFreshAddressIndex(

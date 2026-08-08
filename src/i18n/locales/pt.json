@@ -1001,8 +1001,8 @@
       "blockExplorer": "Block explorer:",
       "qrAnimation": "Animação do QR code:",
       "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão",
-      "showMarkAddressUsed": "Mostrar 'marcar endereço como usado' na página da carteira",
-      "showMarkAddressUsedHint": "Permite dar um novo endereço de recebimento a cada pagador, aplica-se a carteiras HD"
+      "enableAddressMarking": "Ativar gestão avançada de endereços: marcar endereços como usados",
+      "enableAddressMarkingHint": "Marcar um endereço como usado faz a carteira mostrar o próximo, assim você pode dar um endereço novo a cada pagador. Aplica-se a carteiras HD."
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",

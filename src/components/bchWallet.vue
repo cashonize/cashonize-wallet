@@ -43,8 +43,8 @@
 
   const addressQrcode = computed(() => displayBchQr.value ? store.currentDepositAddress : store.currentTokenDepositAddress)
 
-  const showMarkAddressUsed = computed(() =>
-    settingsStore.showMarkAddressUsed && settingsStore.getWalletType(store.activeWalletName) === 'hd'
+  const showMarkUsedAction = computed(() =>
+    settingsStore.enableAddressMarking && settingsStore.getWalletType(store.activeWalletName) === 'hd'
   )
 
   const bchDisplayNetwork = computed(() => {
@@ -278,7 +278,7 @@
         <img class="copyIcon" src="images/copyGrey.svg">
       </span>
     </div>
-    <div v-if="showMarkAddressUsed" class="markUsedRow">
+    <div v-if="showMarkUsedAction" class="markUsedRow">
       <span class="markUsedAction" @click="store.markAddressUsed(store.currentDepositAddress)">
         <q-icon name="archive" size="18px" class="markUsedIcon" /> {{ t('addressManagement.markAddressUsedAction') }}
       </span>

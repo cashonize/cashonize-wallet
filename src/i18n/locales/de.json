@@ -1001,8 +1001,8 @@
       "blockExplorer": "Block-Explorer:",
       "qrAnimation": "QR-Code Animation:",
       "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen",
-      "showMarkAddressUsed": "'Adresse als verwendet markieren' auf der Wallet-Seite anzeigen",
-      "showMarkAddressUsedHint": "Ermöglicht es, jedem Zahler eine neue Empfangsadresse zu geben, gilt für HD-Wallets"
+      "enableAddressMarking": "Erweiterte Adressverwaltung aktivieren: Adressen als verwendet markieren",
+      "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets."
     },
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",
