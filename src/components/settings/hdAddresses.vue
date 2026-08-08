@@ -276,9 +276,11 @@
 
   <q-dialog v-model="showQrDialog" transition-show="scale" transition-hide="scale">
     <q-card class="qr-card">
-      <qr-code :contents="qrDialogAddress" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
-        <img :src="qrDialogTokenAddress ? 'images/tokenicon.png' : 'images/bch-icon.png'" slot="icon" /> <!-- eslint-disable-line -->
-      </qr-code>
+      <div class="qr-frame">
+        <qr-code :contents="qrDialogAddress" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
+          <img :src="qrDialogTokenAddress ? 'images/tokenicon.png' : 'images/bch-icon.png'" slot="icon" /> <!-- eslint-disable-line -->
+        </qr-code>
+      </div>
       <div v-if="qrDialogRow && labelFor(qrDialogRow)" class="qr-address-label">{{ labelFor(qrDialogRow) }}</div>
       <div class="full-address mono" @click="copyToClipboard(qrDialogAddress)">
         {{ qrDialogAddress }}
@@ -531,14 +533,9 @@ body.dark .qr-card {
   background-color: var(--bg-color);
 }
 
-/* the qr-code needs a white background to stay scannable in dark mode */
-.qr-code {
-  display: block;
-  width: 230px;
-  height: 225px;
+/* size, background and dark mode crop are shared with the wallet page, see app.css */
+.qr-frame {
   margin: 0 auto;
-  background-color: #fff;
-  cursor: pointer;
 }
 
 .switch-address {

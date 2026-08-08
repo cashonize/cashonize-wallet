@@ -364,34 +364,9 @@ body.dark .portfolioLink {
     padding: 5px 9px;
   }
 }
+/* size, background and dark mode crop are shared with the address dialog, see app.css */
 .qr-frame {
-  width: 230px;
-  height: 225px;
   margin: 5px auto 0 auto;
-  background-color: #fff;
-  overflow: hidden;
-}
-.qr-code {
-  display: block;
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
-}
-/* Crop the QR's baked-in 4-module quiet zone: scale the code up inside the
-   frame (shrunk by the same factor, so the modules keep their exact size).
-   About 2 modules of white padding remain, still scannable. */
-body.dark .qr-frame {
-  --qr-crop: 1.06;
-  border-radius: 12px;
-  width: calc(230px / var(--qr-crop));
-  height: calc(225px / var(--qr-crop));
-  /* return the cropped-off height as margin, split evenly, so the QR stays
-     vertically centered in the space it occupied before */
-  margin-top: calc(5px + (225px - 225px / var(--qr-crop)) / 2);
-  margin-bottom: calc((225px - 225px / var(--qr-crop)) / 2);
-}
-body.dark .qr-code {
-  transform: scale(var(--qr-crop));
 }
 .switchAddressButton {
   font-size: 20px;
