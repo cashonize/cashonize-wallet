@@ -9,6 +9,7 @@
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
+  import CharCounter from '../general/CharCounter.vue';
   import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, tokenChangeChips } from 'src/utils/utils';
   import { maxTxNoteLength } from 'src/utils/txNotes';
   import { useI18n } from 'vue-i18n'
@@ -198,12 +199,7 @@
               @blur="saveNote"
               @keyup.enter="saveNote"
             >
-            <!-- silent maxlength truncation is confusing, show the limit when writing gets close -->
-            <span
-              v-if="noteDraft.length >= maxTxNoteLength - 20"
-              class="noteCounter"
-              :class="{ atLimit: noteDraft.length >= maxTxNoteLength }"
-            >{{ noteDraft.length }}/{{ maxTxNoteLength }}</span>
+            <CharCounter :length="noteDraft.length" :max-length="maxTxNoteLength" />
             <q-icon name="edit" size="16px" class="noteIcon" />
           </label>
         </div>
@@ -361,14 +357,6 @@
   .noteIcon {
     flex: none;
     opacity: 0.55;
-  }
-  .noteCounter {
-    font-size: 0.75em;
-    opacity: 0.6;
-  }
-  .noteCounter.atLimit {
-    color: #e6a23c;
-    opacity: 1;
   }
   .noteField input {
     flex: 1;

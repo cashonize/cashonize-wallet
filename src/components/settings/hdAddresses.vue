@@ -11,6 +11,7 @@
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
+  import CharCounter from 'src/components/general/CharCounter.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -304,12 +305,7 @@
           spellcheck="false"
           @keyup.enter="showLabelDialog = false"
         >
-        <!-- silent maxlength truncation is confusing, show the limit when writing gets close -->
-        <span
-          v-if="labelDraft.length >= maxAddressLabelLength - 20"
-          class="labelCounter"
-          :class="{ atLimit: labelDraft.length >= maxAddressLabelLength }"
-        >{{ labelDraft.length }}/{{ maxAddressLabelLength }}</span>
+        <CharCounter :length="labelDraft.length" :max-length="maxAddressLabelLength" />
         <q-icon name="edit" size="16px" class="labelIcon" />
       </label>
     </q-card>
@@ -636,16 +632,6 @@ body.dark .label-card {
 .labelIcon {
   flex: none;
   opacity: 0.55;
-}
-
-.labelCounter {
-  font-size: 0.75em;
-  opacity: 0.6;
-}
-
-.labelCounter.atLimit {
-  color: #e6a23c;
-  opacity: 1;
 }
 
 @media only screen and (max-width: 750px) {

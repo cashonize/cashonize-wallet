@@ -6,6 +6,7 @@
   // :deep(.inline-edit-hint). Sizing (flex, max-width, click target) is left to the
   // parent through classes on the component root.
   import { ref, nextTick, watch, onDeactivated } from 'vue';
+  import CharCounter from './CharCounter.vue';
 
   const props = defineProps<{
     value: string | undefined;
@@ -69,12 +70,7 @@
       @keyup.enter="saveEdit"
       @keyup.esc="cancelEdit"
     >
-    <!-- silent maxlength truncation is confusing, show the limit when writing gets close -->
-    <span
-      v-if="draft.length >= maxLength - 20"
-      class="inline-edit-counter"
-      :class="{ 'at-limit': draft.length >= maxLength }"
-    >{{ draft.length }}/{{ maxLength }}</span>
+    <CharCounter :length="draft.length" :max-length="maxLength" />
   </div>
   <div v-else-if="value" class="inline-edit" :title="value" @click.stop="startEdit()">{{ value }}</div>
   <div v-else class="inline-edit inline-edit-add" @click.stop="startEdit()">
@@ -97,16 +93,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.inline-edit-counter {
-  font-size: 0.75em;
-  opacity: 0.6;
-}
-
-.inline-edit-counter.at-limit {
-  color: #e6a23c;
-  opacity: 1;
 }
 
 /* invisible by default, the parent reveals it on row hover */
