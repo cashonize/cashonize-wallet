@@ -566,8 +566,10 @@ body.dark .qr-card {
   transform: rotateY(180deg);
 }
 
+/* wide enough that the last line of the address still has room for the copy icon,
+   which otherwise drops onto a line of its own */
 .full-address {
-  max-width: 260px;
+  max-width: 280px;
   margin-top: 1rem;
   text-align: center;
   word-break: break-all;
