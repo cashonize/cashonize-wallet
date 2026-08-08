@@ -4,6 +4,7 @@
 import { Dialog, Notify } from "quasar";
 import alertDialog from 'src/components/general/alertDialog.vue'
 import { useStore } from 'src/stores/store'
+import { useSettingsStore } from 'src/stores/settingsStore'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -11,11 +12,13 @@ const { t } = i18n.global
 export function confirmDialog(
   title: string, message: string, okLabel: string, okColor: 'primary' | 'red' = 'primary'
 ): Promise<boolean> {
+  const settingsStore = useSettingsStore()
+  const cancelColor = settingsStore.darkMode ? 'white' : 'dark'
   return new Promise((resolve) => {
     Dialog.create({
       title,
       message,
-      cancel: { flat: true, color: 'dark' },
+      cancel: { flat: true, color: cancelColor },
       ok: { label: okLabel, color: okColor, textColor: 'white' },
       persistent: true
     }).onOk(() => resolve(true))
