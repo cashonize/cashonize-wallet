@@ -1,6 +1,6 @@
 {
   "name": "cashonize-electron",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Cashonize Electron mode package",
   "private": true,
   "type": "module",
