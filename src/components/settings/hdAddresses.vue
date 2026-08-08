@@ -281,7 +281,8 @@
           <img :src="qrDialogTokenAddress ? 'images/tokenicon.png' : 'images/bch-icon.png'" slot="icon" /> <!-- eslint-disable-line -->
         </qr-code>
       </div>
-      <div v-if="qrDialogRow && labelFor(qrDialogRow)" class="qr-address-label">{{ labelFor(qrDialogRow) }}</div>
+      <!-- no address label here: this dialog is held out to whoever scans the code,
+           and labels are written for yourself, not for the payer to read -->
       <div class="full-address mono" @click="copyToClipboard(qrDialogAddress)">
         {{ qrDialogAddress }}
         <img class="copyIcon" src="images/copyGrey.svg">
@@ -571,14 +572,6 @@ body.dark .qr-card {
   text-align: center;
   word-break: break-all;
   cursor: pointer;
-}
-
-.qr-address-label {
-  max-width: 260px;
-  margin-top: 1rem;
-  text-align: center;
-  font-weight: 500;
-  overflow-wrap: anywhere;
 }
 
 .label-card {
