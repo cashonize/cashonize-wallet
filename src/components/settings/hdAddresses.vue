@@ -21,7 +21,6 @@
 
   const receivingAddresses = ref<AddressRow[]>([]);
   const changeAddresses = ref<AddressRow[]>([]);
-  const currentDepositIndex = ref(0);
   const selectedChain = ref("receiving" as "receiving" | "change");
   const showOptions = ref(false);
   const hideZeroBalances = ref(false);
@@ -118,9 +117,11 @@
     return showTokenAddresses.value ? row.tokenAddress : row.address;
   }
 
-  // The address the wallet page QR currently hands out
+  // The address the wallet page QR currently hands out. Compared by address rather than
+  // index so the tag follows the wallet page even when it falls back to the wallet's own
+  // deposit address, which is not always the address at hdWallet.depositIndex.
   function isCurrentAddress(row: AddressRow): boolean {
-    return selectedChain.value === "receiving" && row.index === currentDepositIndex.value;
+    return selectedChain.value === "receiving" && row.address === store.currentDepositAddress;
   }
 
   // On desktop show the address prefix (bitcoincash: / bchtest:), it makes the
@@ -142,8 +143,6 @@
     if (!(hdWallet instanceof HDWallet)) return;
     receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
     changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true);
-    // same derived index as the wallet page QR, so the current tag never disagrees with it
-    currentDepositIndex.value = store.currentAddressIndex ?? hdWallet.depositIndex;
   });
 </script>
 
