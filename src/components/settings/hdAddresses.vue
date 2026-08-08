@@ -181,6 +181,7 @@
           <div>{{ t('hdAddresses.infoReceivingChange') }}</div>
           <div class="info-popup-note">{{ t('hdAddresses.infoPrivacyNote') }}</div>
           <div class="info-popup-note">{{ t('addressManagement.markedInfo') }}</div>
+          <div class="info-popup-note">{{ t('addressManagement.markLimitInfo') }}</div>
         </div>
       </InfoPopup>
     </div>
@@ -206,7 +207,9 @@
                 {{ truncateAddress(displayAddress(row)) }}
                 <img class="copyIcon" src="images/copyGrey.svg">
                 <span v-if="isCurrentAddress(row)" class="current-tag">{{ t('hdAddresses.currentTag') }}</span>
-                <span v-else-if="isMarked(row)" class="marked-tag">{{ t('addressManagement.markedTag') }}</span>
+                <!-- both tags can show at once: with no fresh address left the wallet falls
+                     back to handing out an address that was already marked as used -->
+                <span v-if="isMarked(row)" class="marked-tag">{{ t('addressManagement.markedTag') }}</span>
               </div>
               <div class="address-sub">
                 <span v-if="isMobile && labelFor(row)" class="address-label">{{ labelFor(row) }} · </span>{{ t('hdAddresses.txCount', { count: row.txCount }) }} ·

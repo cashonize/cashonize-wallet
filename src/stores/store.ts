@@ -142,8 +142,9 @@ export const useStore = defineStore('store', () => {
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
   // Index of the receive address shown on the wallet page. For HD wallets this skips addresses
-  // the user marked as used; undefined for single-address wallets and in the rare case that
-  // every fresh address in the discovery window is marked (see deriveFreshAddressIndex)
+  // the user marked as used; undefined for single-address wallets and when every address in the
+  // discovery window is marked, which markAddressUsed refuses to bring about but another open
+  // tab marking at the same time still can (see deriveFreshAddressIndex)
   const currentAddressIndex = computed(() => {
     // walletUtxos updates when transactions arrive, re-deriving the index on address usage changes
     void walletUtxos.value;
@@ -289,8 +290,8 @@ export const useStore = defineStore('store', () => {
   }
 
   // Mark a receive address as used so a fresh address is handed out, for when the user shared
-  // an address but no payment has arrived yet. Refused when marking would leave no fresh
-  // address inside the seed-restore discovery window; a payment has to arrive first.
+  // an address but no payment has arrived yet. Refused when marking would leave no fresh address
+  // inside the seed-restore discovery window; receiving a payment extends the window again.
   function markAddressUsed(address: string) {
     const activeWallet = wallet.value;
     if (!(activeWallet instanceof HDWallet)) return;
@@ -305,7 +306,7 @@ export const useStore = defineStore('store', () => {
       Notify.create({
         message: t('addressManagement.markLimitNotify'),
         icon: 'warning',
-        color: "grey-7"
+        color: "red"
       })
       return;
     }

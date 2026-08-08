@@ -719,8 +719,9 @@
     "markedTag": "marked used",
     "markAddressUsedNote": "Previous addresses keep working. You can unmark addresses on the HD Addresses page.",
     "markedUsedNotify": "Address marked as used",
-    "markLimitNotify": "Too many unused addresses skipped, receive a payment on a fresh address first",
+    "markLimitNotify": "Cannot mark this address, one fresh address has to stay available. Receive a payment to free up more.",
     "markedInfo": "Addresses you marked as used are grouped under used addresses and can be unmarked there.",
+    "markLimitInfo": "One fresh address always stays unmarked, because a wallet restored from your seed phrase only scans a limited number of unused addresses ahead. Receiving a payment frees up more.",
     "editLabel": "Edit address label",
     "labelPlaceholder": "Add address label"
   },

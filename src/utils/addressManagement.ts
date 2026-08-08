@@ -78,21 +78,21 @@ export function removeAddressManagementData(walletName: string) {
 }
 
 // The receive address to hand out: the first address that is neither used on-chain nor marked
-// as used. Restoring the wallet from seed scans a fixed gap of unused addresses before giving
-// up, so the result is clamped to within gapSize of the first on-chain-unused address; an
-// address beyond that could receive a payment the restored wallet would never discover.
-// Returns undefined when every address in that window is marked, callers should then fall
-// back to the wallet's own default address.
+// as used, staying within gapSize of the last used address. A seed restore stops scanning
+// there, so a payment beyond it would never be found. Returns undefined when every address in
+// that window is marked, callers should then fall back to the wallet's own default address.
 export function deriveFreshAddressIndex(
   isAddressUsed: (index: number) => boolean,
   addressAtIndex: (index: number) => string,
   markedAddresses: string[],
   gapSize: number,
 ): number | undefined {
-  let firstUnusedIndex: number | undefined;
-  for (let index = 0; firstUnusedIndex === undefined || index < firstUnusedIndex + gapSize; index++) {
-    if (isAddressUsed(index)) continue;
-    if (firstUnusedIndex === undefined) firstUnusedIndex = index;
+  let lastUsedIndex = -1;
+  for (let index = 0; index <= lastUsedIndex + gapSize; index++) {
+    if (isAddressUsed(index)) {
+      lastUsedIndex = index;
+      continue;
+    }
     if (!markedAddresses.includes(addressAtIndex(index))) return index;
   }
   return undefined;

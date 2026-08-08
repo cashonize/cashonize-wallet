@@ -719,8 +719,9 @@
     "markedTag": "als verwendet markiert",
     "markAddressUsedNote": "Frühere Adressen funktionieren weiterhin. Markierungen können auf der Seite HD-Adressen aufgehoben werden.",
     "markedUsedNotify": "Adresse als verwendet markiert",
-    "markLimitNotify": "Zu viele unbenutzte Adressen übersprungen, zuerst muss eine Zahlung auf einer neuen Adresse eingehen",
+    "markLimitNotify": "Diese Adresse kann nicht markiert werden, eine neue Adresse muss verfügbar bleiben. Empfange eine Zahlung, um weitere freizugeben.",
     "markedInfo": "Als verwendet markierte Adressen werden bei den verwendeten Adressen gruppiert und können dort wieder freigegeben werden.",
+    "markLimitInfo": "Eine neue Adresse bleibt immer unmarkiert, denn eine aus deiner Seed-Phrase wiederhergestellte Wallet durchsucht nur eine begrenzte Anzahl unbenutzter Adressen im Voraus. Eine eingehende Zahlung gibt weitere frei.",
     "editLabel": "Adressbeschriftung bearbeiten",
     "labelPlaceholder": "Adressbeschriftung hinzufügen"
   },
