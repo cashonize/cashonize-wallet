@@ -1019,21 +1019,28 @@ export const useStore = defineStore('store', () => {
   async function fetchWalletCauldronPools() {
     // the portfolio view can ask before the wallet is set, the retry comes with the token list
     if (!_wallet.value) return;
-    const initialization = currentInitialization;
-    const pools = await fetchCauldronPools(
-      wallet.value.provider, walletPublicKeyHashes(), wallet.value.networkPrefix
-    );
-    if (initialization !== currentInitialization) return;
-    cauldronPools.value = pools;
+    try {
+      const initialization = currentInitialization;
+      const pools = await fetchCauldronPools(
+        wallet.value.provider, walletPublicKeyHashes(), wallet.value.networkPrefix
+      );
+      if (initialization !== currentInitialization) return;
+      cauldronPools.value = pools;
 
-    // the token in a pool does not have to be held by the wallet, so its metadata can be missing
-    const poolTokens: TokenList = [];
-    for (const pool of pools) {
-      const metadataAlreadyFetched = bcmrRegistries.value?.[pool.tokenId] !== undefined
-        || poolTokens.some(poolToken => poolToken.category === pool.tokenId);
-      if (!metadataAlreadyFetched) poolTokens.push({ category: pool.tokenId, amount: pool.tokenAmount });
+      // the token in a pool does not have to be held by the wallet, so its metadata can be missing
+      const poolTokens: TokenList = [];
+      for (const pool of pools) {
+        const metadataAlreadyFetched = bcmrRegistries.value?.[pool.tokenId] !== undefined
+          || poolTokens.some(poolToken => poolToken.category === pool.tokenId);
+        if (!metadataAlreadyFetched) poolTokens.push({ category: pool.tokenId, amount: pool.tokenAmount });
+      }
+      if (poolTokens.length) await fetchTokenMetadata(poolTokens, false);
+    } catch (error) {
+      // swallowed so the portfolio still gets to fetch its prices, without which every token
+      // would show up as unpriced; the empty list also lets the view render instead of waiting
+      console.error("Failed to look up Cauldron pools:", error);
+      cauldronPools.value ??= [];
     }
-    if (poolTokens.length) await fetchTokenMetadata(poolTokens, false);
   }
 
   // Periodically refetch exchange rate and Cauldron prices on separate intervals

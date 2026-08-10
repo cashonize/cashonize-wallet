@@ -28,6 +28,9 @@ interface ElectrumProvider {
   getUtxos(cashaddr: string): Promise<Utxo[]>;
 }
 
+// Pool lookups are pipelined over the same electrum connection in batches
+const LOOKUP_BATCH_SIZE = 10;
+
 // OP_DEPTH OP_IF OP_DUP OP_HASH160 OP_PUSHBYTES_20
 const CAULDRON_SCRIPT_PREFIX = "746376a914";
 // OP_EQUALVERIFY OP_CHECKSIG OP_ELSE <the constant-product swap conditions> OP_ENDIF
@@ -94,7 +97,7 @@ export async function fetchCauldronPools(
   ownerPkhs: string[],
   networkPrefix: string
 ): Promise<CauldronPool[]> {
-  const poolsPerOwner = await Promise.all(ownerPkhs.map(async (ownerPkh) => {
+  async function lookupPools(ownerPkh: string) {
     try {
       const utxos = await provider.getUtxos(cauldronPoolAddress(ownerPkh, networkPrefix));
       // a pool always holds a fungible token amount, anything else at the address is not one
@@ -112,7 +115,13 @@ export async function fetchCauldronPools(
       console.error(`Failed to fetch Cauldron pools for ${ownerPkh}:`, error);
       return [];
     }
-  }));
+  }
 
-  return poolsPerOwner.flat();
+  const pools: CauldronPool[] = [];
+  for (let i = 0; i < ownerPkhs.length; i += LOOKUP_BATCH_SIZE) {
+    const batch = ownerPkhs.slice(i, i + LOOKUP_BATCH_SIZE);
+    const batchPools = await Promise.all(batch.map(lookupPools));
+    pools.push(...batchPools.flat());
+  }
+  return pools;
 }

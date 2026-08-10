@@ -68,14 +68,15 @@
   const effectiveUnit = computed(() => store.exchangeRate === undefined ? 'bch' : displayUnit.value)
 
   // Look up the wallet's Cauldron pools and fetch prices whenever the token list is (re)loaded
-  // and on re-entering the view; 'force' bypasses the fiat-value display setting since the user
+  // and on entering the view; 'force' bypasses the fiat-value display setting since the user
   // explicitly opened the portfolio (the underlying price fetches are cached for 5 minutes).
   // Prices are fetched after the pools so the pools' tokens are priced along with the held ones.
   async function loadPoolsAndPrices() {
     await store.fetchWalletCauldronPools()
     await store.fetchCauldronPricesForTokens(true)
   }
-  watch(() => store.tokenList, () => void loadPoolsAndPrices(), { immediate: true })
+  // the view is kept alive, so onActivated covers the first visit as well as later ones
+  watch(() => store.tokenList, () => void loadPoolsAndPrices())
   onActivated(() => void loadPoolsAndPrices())
 
   interface PricedAsset {
@@ -158,7 +159,8 @@
       const priceInfo = store.cauldronPrices?.[pool.tokenId]
       const tokenBchValue = priceInfo ? calculateTokenFiatValue(pool.tokenAmount, priceInfo, 1) : null
       // a pool holds the same value on both sides at its own price, so where the Cauldron price
-      // is missing the BCH side is the closest estimate of what the tokens in it are worth
+      // is missing the BCH side is the closest estimate of what the tokens in it are worth. The
+      // liquidity minimum that leaves a held token unpriced therefore does not apply to pools.
       return {
         id: `${pool.txid}:${pool.vout}`,
         category: pool.tokenId,
