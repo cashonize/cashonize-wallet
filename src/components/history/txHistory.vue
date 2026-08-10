@@ -75,7 +75,7 @@
   });
 
   // Predicate for isDappInteraction, which is store-agnostic by design
-  const walletHasAddress = (address: string) => store.wallet.hasAddress(address);
+  const walletHasAddress = (address: string) => store.walletHasAddress(address);
 
   // Show confirmation progress toward the customary 6, after that a transaction
   // is considered final and the count is no longer interesting

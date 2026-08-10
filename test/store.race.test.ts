@@ -76,6 +76,32 @@ describe('network switch race conditions', () => {
     expect(store.walletUtxos).toEqual(freshUtxos)
   })
 
+  it('ignores stale getUtxos result after resetWalletState', async () => {
+    const staleUtxosDeferred = createDeferred<unknown[]>()
+    const wallet = createMockWallet()
+    wallet.getUtxos.mockImplementation(() => staleUtxosDeferred.promise)
+
+    const store = useStore()
+    store.setWallet(wallet as never)
+
+    // First init blocks at getUtxos
+    const oldInit = store.initializeWallet()
+    await flushAsyncWork()
+
+    // Resetting bumps the epoch as well, so the init still in flight is stale from here on.
+    // Without that bump the late result below lands after the reset cleared the state.
+    await store.resetWalletState({ resetDappConnections: false })
+
+    expect(store.walletUtxos).toBeUndefined()
+
+    // Old deferred resolves late — should be ignored
+    staleUtxosDeferred.resolve([{ satoshis: 1111n }])
+    await oldInit
+    await flushAsyncWork()
+
+    expect(store.walletUtxos).toBeUndefined()
+  })
+
   it('ignores stale getHistory result after re-initialization', async () => {
     const staleHistoryDeferred = createDeferred<unknown[]>()
     const wallet = createMockWallet()

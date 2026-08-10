@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, shallowRef, reactive, computed, watch } from 'vue'
 import {
   HDWallet,
   TestNetHDWallet,
@@ -100,9 +100,12 @@ export const useStore = defineStore('store', () => {
   const activeWalletName = ref(localStorage.getItem('activeWalletName') ?? defaultWalletName);
   const availableWallets = ref([] as WalletInfo[]);
   // Wallet State
-  // _wallet is the actual reactive wallet object and is null until the wallet is set
-  // so _wallet is used for mutating properties of the wallet, like changing the provider
-  const _wallet = ref(null as (WalletType | null));
+  // _wallet holds the wallet object and is null until one is set.
+  // The wallet's internals belong to mainnet-js: the library owns the key cache and the address
+  // histories and mutates them behind its own references, including from callbacks holding the
+  // wallet from before it reached this store. Vue cannot track that, so only swapping in
+  // another wallet is reactive, nothing inside it is.
+  const _wallet = shallowRef(null as (WalletType | null));
   const balance = ref(undefined as (bigint | undefined));
   const maxAmountToSend = ref(undefined as (bigint | undefined));
   const walletUtxos = ref(undefined as (Utxo[] | undefined));
@@ -139,12 +142,22 @@ export const useStore = defineStore('store', () => {
   const network = computed(() => wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet")
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
-  // The wallet computed property, throws if it were to be accessed when _wallet is null
-  // The computed property should not be mutated, use _wallet instead
+  // Access to the wallet without a null check at every call site: throws rather than hand out
+  // null. Read-only, so replacing the wallet goes through _wallet.
   const wallet = computed(() => {
     if (!_wallet.value) throw new Error('No wallet set in global store');
     return _wallet.value
   })
+
+  // Preferred over wallet.hasAddress in computed properties and templates: hasAddress reads the
+  // HD address cache, which mainnet-js owns and Vue therefore does not track. Unlike a direct
+  // call, this one is tracked, so callers re-run when the cache advances.
+  function walletHasAddress(address: string) {
+    // The read is the subscription, without it reactive callers never re-run. walletUtxos stands
+    // in for the cache because the store assigns it right after the getUtxos() calls that grow it.
+    void walletUtxos.value;
+    return wallet.value.hasAddress(address);
+  }
 
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
@@ -154,7 +167,8 @@ export const useStore = defineStore('store', () => {
   // discovery window is marked, which markAddressUsed refuses to bring about but another open
   // tab marking at the same time still can (see deriveFreshAddressIndex)
   const currentAddressIndex = computed(() => {
-    // walletUtxos updates when transactions arrive, re-deriving the index on address usage changes
+    // depositRawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
+    // signal that they advanced (see walletHasAddress)
     void walletUtxos.value;
     // marks are kept but ignored while the setting is off, so the wallet hands out the same
     // address it would have without the feature
@@ -214,7 +228,8 @@ export const useStore = defineStore('store', () => {
   let cancelWatchBchBalanceCashConnect: undefined | CancelFn;
 
   // Counter to detect stale async operations after network/wallet switches.
-  // Bumped at the start of initializeWallet(); checked after long awaits.
+  // Bumped whenever the state those operations write into is discarded, so at the start of
+  // initializeWallet() and in resetWalletState(); checked after long awaits.
   let currentInitialization = 0;
 
   // Lets the 'online' event listener retry an initialization aborted while offline
@@ -633,9 +648,29 @@ export const useStore = defineStore('store', () => {
   }
 
   async function resetWalletState({ resetDappConnections = true } = {}){
+    // Bump the initialization counter before anything else, so the fetches already in flight
+    // become no-ops. Without it, a reply arriving late from the old wallet or server would
+    // repopulate the state cleared below.
+    currentInitialization++;
     viewStack.length = 0;
     walletInitialized.value = false;
     walletInitFailed.value = false;
+
+    // Stop the intervals and clear the state before the awaits below, so the views do not go on
+    // showing the old wallet's balance and history for as long as cancelling takes.
+    stopRefetchIntervals();
+    balance.value = undefined;
+    maxAmountToSend.value = undefined;
+    walletUtxos.value = undefined;
+    plannedTokenId.value = undefined;
+    tokenList.value = null;
+    bcmrRegistries.value = undefined;
+    queriedHistoryCategories = [];
+    cauldronPrices.value = null;
+    cauldronPools.value = null;
+    exchangeRate.value = undefined;
+    walletHistory.value = undefined;
+    isHistoryPartial.value = false;
 
     if (resetDappConnections) {
       // Reset WC/CC/Wiz init-done flags so re-initialization runs after reset
@@ -650,21 +685,8 @@ export const useStore = defineStore('store', () => {
       networkChangeCallbacks = [];
     }
 
-    // cancel active listeners and intervals
-    stopRefetchIntervals();
+    // cancel active listeners
     await cancelWalletSubscriptions();
-    // reset wallet to default state
-    balance.value = undefined;
-    maxAmountToSend.value = undefined;
-    plannedTokenId.value = undefined;
-    tokenList.value = null;
-    bcmrRegistries.value = undefined;
-    queriedHistoryCategories = [];
-    cauldronPrices.value = null;
-    cauldronPools.value = null;
-    exchangeRate.value = undefined;
-    walletHistory.value = undefined;
-    isHistoryPartial.value = false;
   }
 
   // Avoid WalletClass.named() here: it creates a fresh random wallet if the name is missing.
@@ -957,7 +979,13 @@ export const useStore = defineStore('store', () => {
   // mainnet-js has its own ~4 min TTL cache but we store the rate centrally for reactive access
   async function fetchExchangeRate() {
     try {
-      exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
+      const initialization = currentInitialization;
+      const currency = settingsStore.currency;
+      const rate = await ExchangeRate.get(currency, true);
+      // discard a rate that no longer belongs: the state may have been reset, or the user may
+      // have switched currency, which starts a second fetch that can resolve before this one
+      if (initialization !== currentInitialization || currency !== settingsStore.currency) return;
+      exchangeRate.value = rate;
     } catch (error) {
       console.error("Failed to fetch exchange rate:", error);
     }
@@ -1179,8 +1207,9 @@ export const useStore = defineStore('store', () => {
     activeWalletName,
     availableWallets,
     displayView,
-    _wallet, // the _wallet is the actual reactive wallet object but this can be null
+    _wallet, // the _wallet is the actual wallet object but this can be null
     wallet, // computed property to access the wallet, always non-null
+    walletHasAddress,
     balance,
     maxAmountToSend,
     walletUtxos,

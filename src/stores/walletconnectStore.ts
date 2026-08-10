@@ -4,7 +4,6 @@ import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
 import { convert, NetworkType, HDWallet } from "mainnet-js";
-import type { WalletType } from "src/interfaces/interfaces";
 import { useStore } from "./store"
 import {
   hexToBin,
@@ -278,8 +277,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   // Branches on the wallet object itself (not wallet-type metadata) so a
   // desync during wallet switching can never yield mismatched key material.
   function getSessionSigningInfo(topic: string) {
-    // cast undoes Pinia's ref-unwrapping of the class union; instanceof below does the real check
-    const wallet = mainStore.wallet as WalletType;
+    const wallet = mainStore.wallet;
     if (wallet instanceof HDWallet) {
       const sessionAddress = getSessionAddress(topic);
       if (!sessionAddress) throw new Error(t('walletConnect.errors.noAddressForSession'));

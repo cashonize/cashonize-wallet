@@ -20,13 +20,7 @@ import {
   deriveHdPublicNode,
   deriveHdPublicNodeChild,
 } from "@bitauth/libauth";
-import type { Utxo } from "mainnet-js";
-
-// The wallet's provider reaches this through a reactive store ref, which strips the private
-// members off the ElectrumNetworkProvider class type, so it is matched structurally instead
-interface ElectrumProvider {
-  getUtxos(cashaddr: string): Promise<Utxo[]>;
-}
+import type { ElectrumNetworkProvider } from "mainnet-js";
 
 // Pool lookups are pipelined over the same electrum connection in batches
 const LOOKUP_BATCH_SIZE = 10;
@@ -93,7 +87,7 @@ export function publicKeyHashFromAddress(address: string): string | undefined {
 // Cauldron indexer answers the same question from an owner public key hash, but that would hand
 // the wallet's list of addresses to a third party.
 export async function fetchCauldronPools(
-  provider: ElectrumProvider,
+  provider: ElectrumNetworkProvider,
   ownerPkhs: string[],
   networkPrefix: string
 ): Promise<CauldronPool[]> {
