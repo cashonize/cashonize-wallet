@@ -27,6 +27,7 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - **store.ts**: Main wallet state - `_wallet` (mutable ref), `wallet` (computed, throws if null), balance, UTXOs, token list, BCMR registries. Handles wallet initialization, network switching, transaction watching.
 - **settingsStore.ts**: User preferences persisted to localStorage - currency, dark mode, electrum servers, per-wallet backup status, auto-approve settings for WalletConnect.
 - **walletconnectStore.ts** / **cashconnectStore.ts**: dApp connection protocol handlers. Access the wallet via Pinia cross-store ref (`useStore()` inside `defineStore` setup).
+- `_wallet` is a `shallowRef`, so only swapping wallets is reactive, not changes inside the wallet object. Reactive code reading wallet internals depends on `walletUtxos` instead, which is why `store.walletHasAddress()` exists next to `store.wallet.hasAddress()`.
 
 ### Multi-Wallet Support
 - Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet)

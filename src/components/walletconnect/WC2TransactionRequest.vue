@@ -62,10 +62,10 @@
   }
 
   const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput) =>
-    store.wallet.hasAddress(toCashaddr(sourceOutput.lockingBytecode)) ? total + sourceOutput.valueSatoshis : total, 0n
+    store.walletHasAddress(toCashaddr(sourceOutput.lockingBytecode)) ? total + sourceOutput.valueSatoshis : total, 0n
   );
   const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs) =>
-    store.wallet.hasAddress(toCashaddr(outputs.lockingBytecode)) ? total + outputs.valueSatoshis : total, 0n
+    store.walletHasAddress(toCashaddr(outputs.lockingBytecode)) ? total + outputs.valueSatoshis : total, 0n
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
   const currencyBalanceChange = convertToCurrency(bchBalanceChange, exchangeRate.value);
@@ -76,7 +76,7 @@
   const nftsReceived: NonNullable<Output['token']>[] = [];
 
   for (const input of sourceOutputs) {
-    const walletOrigin = store.wallet.hasAddress(toCashaddr(input.lockingBytecode));
+    const walletOrigin = store.walletHasAddress(toCashaddr(input.lockingBytecode));
     if(input.token && walletOrigin){
       const tokenCategory = binToHex(input.token.category);
       if(input.token.nft){
@@ -88,7 +88,7 @@
     }
   }
   for (const output of txDetails.outputs) {
-    const walletDestination = store.wallet.hasAddress(toCashaddr(output.lockingBytecode));
+    const walletDestination = store.walletHasAddress(toCashaddr(output.lockingBytecode));
     if(output.token && walletDestination) {
       const tokenCategory = binToHex(output.token.category);
       if(output.token.nft) {
@@ -256,7 +256,7 @@
                   <td>{{ inputIndex }}</td>
                   <td>
                     {{ toCashaddr(input.lockingBytecode).slice(0,25)  + '...' }}
-                    <span v-if="store.wallet.hasAddress(toCashaddr(input.lockingBytecode))" class="thisWalletTag">
+                    <span v-if="store.walletHasAddress(toCashaddr(input.lockingBytecode))" class="thisWalletTag">
                       {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
@@ -302,7 +302,7 @@
                   <td>{{ outputIndex }}</td>
                   <td>
                     {{ toCashaddr(output.lockingBytecode).slice(0,25)  + '...' }}
-                    <span v-if="store.wallet.hasAddress(toCashaddr(output.lockingBytecode))" class="thisWalletTag">
+                    <span v-if="store.walletHasAddress(toCashaddr(output.lockingBytecode))" class="thisWalletTag">
                       {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>

@@ -150,6 +150,16 @@ export const useStore = defineStore('store', () => {
     return _wallet.value
   })
 
+  // Whether an address belongs to the wallet, for use in computed properties and templates.
+  // hasAddress reads the HD address cache, which sits outside Vue reactivity because _wallet is
+  // a shallowRef, so reading it alone would subscribe to nothing. walletUtxos is assigned right
+  // after every getUtxos() call, which is what advances that cache, so depending on it here
+  // re-runs callers once address discovery has moved on.
+  function walletHasAddress(address: string) {
+    void walletUtxos.value;
+    return wallet.value.hasAddress(address);
+  }
+
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
 
@@ -158,7 +168,8 @@ export const useStore = defineStore('store', () => {
   // discovery window is marked, which markAddressUsed refuses to bring about but another open
   // tab marking at the same time still can (see deriveFreshAddressIndex)
   const currentAddressIndex = computed(() => {
-    // walletUtxos updates when transactions arrive, re-deriving the index on address usage changes
+    // depositRawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
+    // signal that they advanced (see walletHasAddress)
     void walletUtxos.value;
     // marks are kept but ignored while the setting is off, so the wallet hands out the same
     // address it would have without the feature
@@ -1183,8 +1194,9 @@ export const useStore = defineStore('store', () => {
     activeWalletName,
     availableWallets,
     displayView,
-    _wallet, // the _wallet is the actual reactive wallet object but this can be null
+    _wallet, // the _wallet is the actual wallet object but this can be null
     wallet, // computed property to access the wallet, always non-null
+    walletHasAddress,
     balance,
     maxAmountToSend,
     walletUtxos,
