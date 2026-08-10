@@ -100,13 +100,11 @@ export const useStore = defineStore('store', () => {
   const activeWalletName = ref(localStorage.getItem('activeWalletName') ?? defaultWalletName);
   const availableWallets = ref([] as WalletInfo[]);
   // Wallet State
-  // _wallet holds the wallet object and is null until one is set, so it is the ref to write
-  // through, both to swap in another wallet and to change a property like the provider.
+  // _wallet holds the wallet object and is null until one is set.
   // The wallet's internals belong to mainnet-js: the library owns the key cache and the address
   // histories and mutates them behind its own references, including from callbacks holding the
-  // wallet from before it reached this store. Vue cannot track state it does not own, so a deep
-  // ref would only appear to work; a shallowRef states what is true, that swapping in another
-  // wallet is the reactive event and nothing inside it is.
+  // wallet from before it reached this store. Vue cannot track that, so only swapping in
+  // another wallet is reactive, nothing inside it is.
   const _wallet = shallowRef(null as (WalletType | null));
   const balance = ref(undefined as (bigint | undefined));
   const maxAmountToSend = ref(undefined as (bigint | undefined));
@@ -145,18 +143,18 @@ export const useStore = defineStore('store', () => {
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
   // Access to the wallet without a null check at every call site: throws rather than hand out
-  // null. Read-only, and it hands out the same object _wallet holds, so writes go through
-  // _wallet whether they replace the wallet or set a property on it.
+  // null. Read-only, so replacing the wallet goes through _wallet.
   const wallet = computed(() => {
     if (!_wallet.value) throw new Error('No wallet set in global store');
     return _wallet.value
   })
 
   // Preferred over wallet.hasAddress in computed properties and templates: hasAddress reads the
-  // HD address cache, which mainnet-js owns and Vue therefore does not track. walletUtxos is
-  // the store's own signal that the cache advanced, since it is assigned right after every
-  // getUtxos() call, which is what grows it.
+  // HD address cache, which mainnet-js owns and Vue therefore does not track. Unlike a direct
+  // call, this one is tracked, so callers re-run when the cache advances.
   function walletHasAddress(address: string) {
+    // The read is the subscription, without it reactive callers never re-run. walletUtxos stands
+    // in for the cache because the store assigns it right after the getUtxos() calls that grow it.
     void walletUtxos.value;
     return wallet.value.hasAddress(address);
   }
