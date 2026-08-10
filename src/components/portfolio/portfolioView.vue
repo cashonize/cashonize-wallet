@@ -7,7 +7,7 @@
   import { convert } from 'mainnet-js'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
-  import { formatFiatAmount } from 'src/utils/utils'
+  import { formatFiatAmount, satsToBch } from 'src/utils/utils'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
@@ -71,12 +71,12 @@
   // and on re-entering the view; 'force' bypasses the fiat-value display setting since the user
   // explicitly opened the portfolio (the underlying price fetches are cached for 5 minutes).
   // Prices are fetched after the pools so the pools' tokens are priced along with the held ones.
-  async function loadPricedData() {
+  async function loadPoolsAndPrices() {
     await store.fetchWalletCauldronPools()
     await store.fetchCauldronPricesForTokens(true)
   }
-  watch(() => store.tokenList, () => void loadPricedData(), { immediate: true })
-  onActivated(() => void loadPricedData())
+  watch(() => store.tokenList, () => void loadPoolsAndPrices(), { immediate: true })
+  onActivated(() => void loadPoolsAndPrices())
 
   interface PricedAsset {
     category?: string  // undefined for the BCH entry
@@ -154,7 +154,7 @@
     return (store.cauldronPools ?? []).map(pool => {
       const metadata = store.bcmrRegistries?.[pool.tokenId]
       const symbol = metadata?.token?.symbol
-      const poolBch = Number(pool.satoshis) / 100_000_000
+      const poolBch = satsToBch(pool.satoshis)
       const priceInfo = store.cauldronPrices?.[pool.tokenId]
       const tokenBchValue = priceInfo ? calculateTokenFiatValue(pool.tokenAmount, priceInfo, 1) : null
       // a pool holds the same value on both sides at its own price, so where the Cauldron price
