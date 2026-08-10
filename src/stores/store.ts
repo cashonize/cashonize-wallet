@@ -49,6 +49,12 @@ import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
 import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
+import {
+  fetchCauldronPools,
+  cauldronChainPublicKeyHashes,
+  publicKeyHashFromAddress,
+  type CauldronPool
+} from "src/utils/cauldronPools"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/txNotes"
 import {
   loadAddressMarks,
@@ -113,6 +119,8 @@ export const useStore = defineStore('store', () => {
   const currentBlockHeight = ref(undefined as (number | undefined));
   const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
   const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
+  // Cauldron liquidity pools owned by the wallet, null until the portfolio view looks them up
+  const cauldronPools = ref<CauldronPool[] | null>(null);
   const exchangeRate = ref<number | undefined>(undefined);
   let exchangeRateInterval: ReturnType<typeof setInterval> | undefined;
   let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
@@ -653,6 +661,7 @@ export const useStore = defineStore('store', () => {
     bcmrRegistries.value = undefined;
     queriedHistoryCategories = [];
     cauldronPrices.value = null;
+    cauldronPools.value = null;
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
@@ -963,15 +972,68 @@ export const useStore = defineStore('store', () => {
     // there is nothing to fetch chipnet prices for
     if (!force && network.value !== 'mainnet') return;
 
-    const fungibleTokens = tokenList.value?.filter(token => 'amount' in token)
-    if (fungibleTokens?.length === 0) return;
+    const fungibleTokens = tokenList.value?.filter(token => 'amount' in token) ?? [];
+    const ftTokenIds = fungibleTokens.map(token => token.category);
+    // a pool holds a token the wallet does not have to hold itself, so it needs a price too
+    for (const pool of cauldronPools.value ?? []) {
+      if (!ftTokenIds.includes(pool.tokenId)) ftTokenIds.push(pool.tokenId);
+    }
+    if (ftTokenIds.length === 0) return;
 
     const initialization = currentInitialization;
-    const ftTokenIds = fungibleTokens?.map(token => token.category) ?? [];
     const prices = await fetchCauldronPrices(ftTokenIds, network.value);
     // prices are network specific, discard them when the wallet or network changed meanwhile
     if (initialization !== currentInitialization) return;
     cauldronPrices.value = prices;
+  }
+
+  // The public key hashes that could own a Cauldron pool. On the wallet's own receive and change
+  // chains an address that owns a pool signed the transaction creating it, so it has history and
+  // addresses without history can be skipped. The dapp chain has no such history to go by: the
+  // wallet never spends from it itself, so a fixed window of its addresses is checked.
+  function walletPublicKeyHashes() {
+    const activeWallet = wallet.value;
+    if (!(activeWallet instanceof HDWallet)) {
+      const publicKeyHash = publicKeyHashFromAddress(activeWallet.getDepositAddress());
+      return publicKeyHash ? [publicKeyHash] : [];
+    }
+    const publicKeyHashes: string[] = [];
+    for (const change of [false, true]) {
+      const rawHistory = change ? activeWallet.changeRawHistory : activeWallet.depositRawHistory;
+      const lastIndex = (change ? activeWallet.changeIndex : activeWallet.depositIndex) + GAP_SIZE;
+      for (let i = 0; i <= lastIndex; i++) {
+        if (!rawHistory[i]?.length) continue;
+        const publicKeyHash = publicKeyHashFromAddress(activeWallet.walletCache.getByIndex(i, change).address);
+        if (publicKeyHash) publicKeyHashes.push(publicKeyHash);
+      }
+    }
+    publicKeyHashes.push(
+      ...cauldronChainPublicKeyHashes(activeWallet.mnemonic, activeWallet.derivation, GAP_SIZE)
+    );
+    return publicKeyHashes;
+  }
+
+  // Find the Cauldron liquidity pools the wallet owns. Pools are not held as a token or an NFT,
+  // they live at the pool contract address derived from the owner's public key hash, so this is
+  // a UTXO lookup per wallet address. Only the portfolio view shows them, so it drives the fetch.
+  async function fetchWalletCauldronPools() {
+    // the portfolio view can ask before the wallet is set, the retry comes with the token list
+    if (!_wallet.value) return;
+    const initialization = currentInitialization;
+    const pools = await fetchCauldronPools(
+      wallet.value.provider, walletPublicKeyHashes(), wallet.value.networkPrefix
+    );
+    if (initialization !== currentInitialization) return;
+    cauldronPools.value = pools;
+
+    // the token in a pool does not have to be held by the wallet, so its metadata can be missing
+    const poolTokens: TokenList = [];
+    for (const pool of pools) {
+      const metadataAlreadyFetched = bcmrRegistries.value?.[pool.tokenId] !== undefined
+        || poolTokens.some(poolToken => poolToken.category === pool.tokenId);
+      if (!metadataAlreadyFetched) poolTokens.push({ category: pool.tokenId, amount: pool.tokenAmount });
+    }
+    if (poolTokens.length) await fetchTokenMetadata(poolTokens, false);
   }
 
   // Periodically refetch exchange rate and Cauldron prices on separate intervals
@@ -1137,6 +1199,7 @@ export const useStore = defineStore('store', () => {
     explorerUrl,
     bcmrRegistries,
     cauldronPrices,
+    cauldronPools,
     exchangeRate,
     currentBlockHeight,
     canGoBack,
@@ -1157,6 +1220,7 @@ export const useStore = defineStore('store', () => {
     fetchAuthUtxos,
     fetchTokenMetadata,
     fetchCauldronPricesForTokens,
+    fetchWalletCauldronPools,
     toggleFavorite,
     toggleHidden,
     tokenIconUrl,
