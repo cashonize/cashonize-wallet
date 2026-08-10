@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, watch, onActivated } from 'vue'
+  import { ref, computed, watch, onActivated, onDeactivated } from 'vue'
   import type { Utxo } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -7,12 +7,13 @@
   import { convert } from 'mainnet-js'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
-  import { formatFiatAmount } from 'src/utils/utils'
+  import { formatFiatAmount, satsToBch } from 'src/utils/utils'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
   import loanKeyItem from './loanKeyItem.vue'
   import stakingReceiptItem from './stakingReceiptItem.vue'
+  import cauldronPoolItem from './cauldronPoolItem.vue'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -45,6 +46,9 @@
   const PARYON_STAKING_CATEGORY = '7708645a7f30e97003573d9322202960a560a87527bef3666a30044a0dfdfa81'
   const STAKING_COLOR = '#378df5'
 
+  // shared color for all Cauldron liquidity pool segments
+  const POOL_COLOR = '#d6336c'
+
   const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
   const bchValueFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 5 })
 
@@ -63,11 +67,26 @@
   // fall back to BCH display while no exchange rate is available
   const effectiveUnit = computed(() => store.exchangeRate === undefined ? 'bch' : displayUnit.value)
 
-  // fetch Cauldron prices whenever the token list is (re)loaded and on re-entering the
-  // view; 'force' bypasses the fiat-value display setting since the user explicitly
-  // opened the portfolio (the underlying fetches are cached for 5 minutes)
-  watch(() => store.tokenList, () => void store.fetchCauldronPricesForTokens(true), { immediate: true })
-  onActivated(() => void store.fetchCauldronPricesForTokens(true))
+  // Look up the wallet's Cauldron pools and fetch prices whenever the token list is (re)loaded
+  // and on entering the view; 'force' bypasses the fiat-value display setting since the user
+  // explicitly opened the portfolio (the underlying price fetches are cached for 5 minutes).
+  // Prices are fetched after the pools so the pools' tokens are priced along with the held ones.
+  async function loadPoolsAndPrices() {
+    await store.fetchWalletCauldronPools()
+    await store.fetchCauldronPricesForTokens(true)
+  }
+  // The view is kept alive: onActivated covers entering it, so watching the token list while
+  // another view is shown only scans for pools nobody looks at, which re-entry redoes anyway.
+  // Pool contents change without the token list moving, so the watch never kept those fresh.
+  const isActive = ref(false)
+  onActivated(() => {
+    isActive.value = true
+    void loadPoolsAndPrices()
+  })
+  onDeactivated(() => { isActive.value = false })
+  watch(() => store.tokenList, () => {
+    if (isActive.value) void loadPoolsAndPrices()
+  })
 
   interface PricedAsset {
     category?: string  // undefined for the BCH entry
@@ -131,9 +150,41 @@
       .filter(loan => loan.netBch > 0)
   })
 
+  // Cauldron liquidity pools the wallet owns. Both sides of a pool are still the user's funds,
+  // the tokens in it are valued like held tokens are
+  interface PoolAsset {
+    id: string
+    category: string
+    name: string
+    bchDisplay: string
+    tokenDisplay: string
+    bchValue: number
+  }
+  const poolAssets = computed<PoolAsset[]>(() => {
+    return (store.cauldronPools ?? []).map(pool => {
+      const metadata = store.bcmrRegistries?.[pool.tokenId]
+      const symbol = metadata?.token?.symbol
+      const poolBch = satsToBch(pool.satoshis)
+      const priceInfo = store.cauldronPrices?.[pool.tokenId]
+      const tokenBchValue = priceInfo ? calculateTokenFiatValue(pool.tokenAmount, priceInfo, 1) : null
+      // a pool holds the same value on both sides at its own price, so where the Cauldron price
+      // is missing the BCH side is the closest estimate of what the tokens in it are worth. The
+      // liquidity minimum that leaves a held token unpriced therefore does not apply to pools.
+      return {
+        id: `${pool.txid}:${pool.vout}`,
+        category: pool.tokenId,
+        name: metadata?.name ?? pool.tokenId.slice(0, 8) + '...',
+        bchDisplay: bchValueFormatter.format(poolBch) + ' ' + bchUnitName.value,
+        tokenDisplay: formatTokenAmount(pool.tokenAmount, metadata?.token?.decimals) + (symbol ? ' ' + symbol : ''),
+        bchValue: poolBch + (tokenBchValue ?? poolBch)
+      }
+    })
+  })
+
   const totalBchValue = computed(() => {
     if (!assets.value) return undefined
     const pricedTotal = assets.value.priced.reduce((sum, asset) => sum + asset.bchValue, 0)
+    const poolsTotal = poolAssets.value.reduce((sum, pool) => sum + pool.bchValue, 0)
     const loansTotal = chartedLoans.value.reduce((sum, loan) => sum + loan.netBch, 0)
     let stakingTotal = 0
     if (includeStaking.value) {
@@ -141,7 +192,7 @@
         (sum, receipt) => sum + Math.max(stakingState(receipt.utxo)?.stakeBch ?? 0, 0), 0
       )
     }
-    return pricedTotal + loansTotal + stakingTotal
+    return pricedTotal + poolsTotal + loansTotal + stakingTotal
   })
 
   // split the priced list for display while keeping the original index, since
@@ -151,15 +202,19 @@
     return (assets.value?.priced ?? []).map((asset, index) => ({ asset, index }))
   })
   interface AssetRow { kind: 'asset', asset: PricedAsset, index: number, value: number }
+  interface PoolRow { kind: 'pool', pool: PoolAsset, value: number }
   interface LoanRow { kind: 'loan', loan: { category: string, utxo: Utxo, name: string }, value: number }
   interface StakingRow { kind: 'staking', receipt: { category: string, utxo: Utxo, name: string }, value: number }
-  type DisplayRow = AssetRow | LoanRow | StakingRow
+  type DisplayRow = AssetRow | PoolRow | LoanRow | StakingRow
 
-  // priced assets, loans and staking receipts merged and sorted big to small for
+  // priced assets, pools, loans and staking receipts merged and sorted big to small for
   // display; an underwater loan sorts with value 0 but stays visible in the main list
   const displayRows = computed<DisplayRow[]>(() => {
     const assetRows: DisplayRow[] = pricedWithIndex.value.map(({ asset, index }) => (
       { kind: 'asset', asset, index, value: asset.bchValue }
+    ))
+    const poolRows: DisplayRow[] = poolAssets.value.map(pool => (
+      { kind: 'pool', pool, value: pool.bchValue }
     ))
     const loanRows: DisplayRow[] = loanKeyNfts.value.map(loan => (
       { kind: 'loan', loan, value: Math.max(loanState(loan.utxo)?.netBch ?? 0, 0) }
@@ -167,10 +222,10 @@
     const stakingRows: DisplayRow[] = stakingReceiptNfts.value.map(receipt => (
       { kind: 'staking', receipt, value: stakingState(receipt.utxo)?.stakeBch ?? 0 }
     ))
-    return [...assetRows, ...loanRows, ...stakingRows].sort((a, b) => b.value - a.value)
+    return [...assetRows, ...poolRows, ...loanRows, ...stakingRows].sort((a, b) => b.value - a.value)
   })
 
-  // BCH, loans and staking receipts always show in the main list, small token holdings collapse
+  // BCH, pools, loans and staking receipts always show in the main list, small token holdings collapse
   const mainRows = computed(() => {
     return displayRows.value.filter(row =>
       row.kind !== 'asset' || row.index === 0 || assetShare(row.value) >= SMALL_SHARE_THRESHOLD
@@ -184,6 +239,7 @@
 
   function rowKey(row: DisplayRow) {
     if (row.kind === 'asset') return row.asset.category ?? 'bch'
+    if (row.kind === 'pool') return row.pool.id
     return nftUtxoId(row.kind === 'loan' ? row.loan.utxo : row.receipt.utxo)
   }
 
@@ -352,6 +408,8 @@
     // loan/staking detection both come from the metadata
     if ((store.tokenList?.length ?? 0) > 0 && !store.bcmrRegistries) return false
     if (hasFungibleTokens.value && store.cauldronPrices === null) return false
+    // pools are looked up on entering the view and add to the total and the chart
+    if (store.cauldronPools === null) return false
     if (!settingsStore.disableTokenIcons) {
       // without fungible tokens this loop only sees the BCH entry and no-ops
       for (const { asset } of pricedWithIndex.value.slice(0, MAX_SEGMENTS)) {
@@ -473,6 +531,8 @@
         } else {
           otherValue += row.asset.bchValue
         }
+      } else if (row.kind === 'pool' && row.value > 0) {
+        segments.push({ label: row.pool.name, bchValue: row.value, color: POOL_COLOR })
       } else if (row.kind === 'loan' && row.value > 0) {
         segments.push({ label: row.loan.name, bchValue: row.value, color: LOAN_COLOR })
       } else if (row.kind === 'staking' && includeStaking.value && row.value > 0) {
@@ -595,6 +655,16 @@
               <div class="sub">{{ formatShare(assetShare(row.asset.bchValue)) }}</div>
             </div>
           </div>
+          <cauldronPoolItem
+            v-else-if="row.kind === 'pool'"
+            :category="row.pool.category"
+            :name="row.pool.name"
+            :dot-color="POOL_COLOR"
+            :bch-display="row.pool.bchDisplay"
+            :token-display="row.pool.tokenDisplay"
+            :value-display="formatBchValue(row.pool.bchValue)"
+            :share-display="row.pool.bchValue > 0 ? formatShare(assetShare(row.pool.bchValue)) : undefined"
+          />
           <loanKeyItem
             v-else-if="row.kind === 'loan'"
             :category="row.loan.category"

@@ -91,8 +91,8 @@ Key files:
 ### BCMR Extensions
 BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method. The main extension is ParyonUSD (`paryonusd.ts`), which fetches the live on-chain loan state for loan-key NFTs.
 
-### Token Prices (Cauldron DEX)
-Cauldron is the main AMM DEX in the CashTokens ecosystem; fungible token values come from its indexer (`utils/cauldronApi.ts`). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
+### Cauldron DEX
+Cauldron is the main AMM DEX in the CashTokens ecosystem; fungible token values come from its indexer (`utils/cauldronApi.ts`, one per network). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting). Pools the wallet owns are found over electrum instead (`utils/cauldronPools.ts`), by deriving the pool contract address from the wallet's public key hashes, including the `defi` chain shared over WizardConnect.
 
 ### Component Organization
 ```
