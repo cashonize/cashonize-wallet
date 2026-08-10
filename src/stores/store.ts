@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, shallowRef, reactive, computed, watch } from 'vue'
 import {
   HDWallet,
   TestNetHDWallet,
@@ -100,9 +100,13 @@ export const useStore = defineStore('store', () => {
   const activeWalletName = ref(localStorage.getItem('activeWalletName') ?? defaultWalletName);
   const availableWallets = ref([] as WalletInfo[]);
   // Wallet State
-  // _wallet is the actual reactive wallet object and is null until the wallet is set
-  // so _wallet is used for mutating properties of the wallet, like changing the provider
-  const _wallet = ref(null as (WalletType | null));
+  // _wallet is the actual wallet object and is null until the wallet is set
+  // so _wallet is used for mutating properties of the wallet, like changing the provider.
+  // A shallowRef because only swapping in another wallet drives the UI. Deep reactivity would
+  // proxy the key cache and the address histories, yet mainnet-js mutates those from callbacks
+  // holding the unproxied wallet, so it would fire only part of the time. Code that reacts to
+  // wallet-internal changes depends on walletUtxos instead.
+  const _wallet = shallowRef(null as (WalletType | null));
   const balance = ref(undefined as (bigint | undefined));
   const maxAmountToSend = ref(undefined as (bigint | undefined));
   const walletUtxos = ref(undefined as (Utxo[] | undefined));

@@ -27,7 +27,7 @@ import {
   type HdPrivateNodeValid,
 } from "@bitauth/libauth";
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
-import type { WalletType, DappMetadata } from "src/interfaces/interfaces";
+import type { DappMetadata } from "src/interfaces/interfaces";
 import { useStore } from "./store";
 import { useSettingsStore } from "./settingsStore";
 import { walletConnectMetadata } from "./constants";
@@ -85,8 +85,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     // Make sure we don't start more than once, otherwise we'd register multiple
     // handlers and end up with multiple dialogs.
     if (manager) return;
-    // cast undoes Pinia's ref-unwrapping of the class union; instanceof below does the real check
-    const wallet = mainStore.wallet as WalletType;
+    const wallet = mainStore.wallet;
     // WizardConnect shares chain-level xpubs so dapps can derive addresses, which requires
     // an HD wallet. For single-address wallets the manager stays undefined and pairing
     // attempts get a clear error in pair().
@@ -143,8 +142,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
 
   async function pair(wizUri: string) {
     if (!manager) {
-      const wallet = mainStore.wallet as WalletType;
-      if (!(wallet instanceof HDWallet)) throw new Error(t('wizardConnect.errors.hdWalletRequired'));
+      if (!(mainStore.wallet instanceof HDWallet)) throw new Error(t('wizardConnect.errors.hdWalletRequired'));
       throw new Error(t('wizardConnect.errors.notInitialized'));
     }
     const trimmedUri = wizUri.trim();

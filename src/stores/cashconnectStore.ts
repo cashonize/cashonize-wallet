@@ -59,7 +59,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
       return;
     }
     // Get the Private Key to use for CashConnect.
-    const cashConnectPrivateKey = getCashConnectPrivateKeyForWallet(mainStore.wallet as WalletType);
+    const cashConnectPrivateKey = getCashConnectPrivateKeyForWallet(mainStore.wallet);
     // Instantiate CashConnect.
     cashConnectWallet.value = new Wallet({
       cashConnectPrivateKey: cashConnectPrivateKey,
