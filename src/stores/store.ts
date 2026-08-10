@@ -661,6 +661,7 @@ export const useStore = defineStore('store', () => {
     stopRefetchIntervals();
     balance.value = undefined;
     maxAmountToSend.value = undefined;
+    walletUtxos.value = undefined;
     plannedTokenId.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = undefined;
@@ -979,9 +980,11 @@ export const useStore = defineStore('store', () => {
   async function fetchExchangeRate() {
     try {
       const initialization = currentInitialization;
-      const rate = await ExchangeRate.get(settingsStore.currency, true);
-      // a rate arriving after a wallet or network switch belongs to the state that was reset
-      if (initialization !== currentInitialization) return;
+      const currency = settingsStore.currency;
+      const rate = await ExchangeRate.get(currency, true);
+      // discard a rate that no longer belongs: the state may have been reset, or the user may
+      // have switched currency, which starts a second fetch that can resolve before this one
+      if (initialization !== currentInitialization || currency !== settingsStore.currency) return;
       exchangeRate.value = rate;
     } catch (error) {
       console.error("Failed to fetch exchange rate:", error);
