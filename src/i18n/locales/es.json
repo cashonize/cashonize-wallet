@@ -173,7 +173,6 @@
     "stakedValue": "Valor en staking",
     "includeStaked": "Incluir los stakes de ParyonUSD en el total",
     "stakingInfo": "Un recibo de staking registra la cantidad depositada en una época específica. La cantidad actual puede ser menor al momento de retirarla, por lo que este valor es una estimación.",
-    "mainnetOnly": "La vista de portafolio solo está disponible en mainnet",
     "noAssets": "Aún no hay BCH ni tokens en esta billetera",
     "loading": "Cargando datos de la billetera",
     "loadingFailed": "Error al cargar los datos de la billetera"
