@@ -173,7 +173,6 @@
     "stakedValue": "Staked value",
     "includeStaked": "Include ParyonUSD stakes in total",
     "stakingInfo": "A staking receipt records the amount staked at a specific epoch. The current stake can be lower by the time it is withdrawn, so this value is an estimate.",
-    "mainnetOnly": "The portfolio view is only available on mainnet",
     "noAssets": "No BCH or tokens in this wallet yet",
     "loading": "Loading wallet data",
     "loadingFailed": "Failed to load wallet data"

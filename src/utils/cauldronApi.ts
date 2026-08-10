@@ -2,7 +2,12 @@ import { CauldronValueLockedSchema } from "./zodValidation";
 import { cachedFetch } from "./cacheUtils";
 import { useSettingsStore } from "src/stores/settingsStore";
 
-const MIN_LIQUIDITY_SATS = 100_000_000; // 1 BCH minimum
+// The chipnet indexer is not user-configurable, it is the only one serving chipnet
+const CAULDRON_INDEXER_CHIPNET = "https://indexer-chipnet.riften.net";
+// Minimum pool liquidity for a price to be used. Chipnet pools are orders of
+// magnitude smaller than mainnet ones, so mainnet's 1 BCH would reject them all
+const MIN_LIQUIDITY_SATS_MAINNET = 100_000_000; // 1 BCH
+const MIN_LIQUIDITY_SATS_CHIPNET = 1_000_000; // 0.01 tBCH
 const CAULDRON_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export interface CauldronPriceData {
@@ -13,10 +18,13 @@ export interface CauldronPriceData {
 
 // Fetch prices for multiple tokens
 export async function fetchCauldronPrices(
-  tokenIds: string[]
+  tokenIds: string[],
+  network: 'mainnet' | 'chipnet'
 ): Promise<Record<string, CauldronPriceData>> {
   const results: Record<string, CauldronPriceData> = {};
-  const indexerUrl = useSettingsStore().cauldronIndexer;
+  const isMainnet = network === 'mainnet';
+  const indexerUrl = isMainnet ? useSettingsStore().cauldronIndexer : CAULDRON_INDEXER_CHIPNET;
+  const minLiquiditySats = isMainnet ? MIN_LIQUIDITY_SATS_MAINNET : MIN_LIQUIDITY_SATS_CHIPNET;
 
   const fetchPromises = tokenIds.map(async (tokenId) => {
     try {
@@ -47,7 +55,7 @@ export async function fetchCauldronPrices(
       results[tokenId] = {
         satoshis: data.satoshis,
         tokenAmount: data.token_amount,
-        hasSufficientLiquidity: data.satoshis >= MIN_LIQUIDITY_SATS
+        hasSufficientLiquidity: data.satoshis >= minLiquiditySats
       };
     }
   }

@@ -959,13 +959,19 @@ export const useStore = defineStore('store', () => {
   // prices, like the portfolio view the user explicitly opened
   async function fetchCauldronPricesForTokens(force = false) {
     if (!force && !settingsStore.showCauldronFTValue) return;
-    if (network.value !== 'mainnet') return;
+    // the token list only shows token values on mainnet, so outside the portfolio
+    // there is nothing to fetch chipnet prices for
+    if (!force && network.value !== 'mainnet') return;
 
     const fungibleTokens = tokenList.value?.filter(token => 'amount' in token)
     if (fungibleTokens?.length === 0) return;
 
+    const initialization = currentInitialization;
     const ftTokenIds = fungibleTokens?.map(token => token.category) ?? [];
-    cauldronPrices.value = await fetchCauldronPrices(ftTokenIds);
+    const prices = await fetchCauldronPrices(ftTokenIds, network.value);
+    // prices are network specific, discard them when the wallet or network changed meanwhile
+    if (initialization !== currentInitialization) return;
+    cauldronPrices.value = prices;
   }
 
   // Periodically refetch exchange rate and Cauldron prices on separate intervals

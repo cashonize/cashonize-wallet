@@ -54,6 +54,12 @@
   const displayUnit = ref<'currency' | 'bch'>('currency')
   const showSmallBalances = ref(false)
   const showUnpriced = ref(false)
+  // chipnet balances are shown in the mainnet BCH price here just like on the wallet
+  // page, marked with the same 't' prefix on the unit and currency names
+  const bchUnitName = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH')
+  const currencyName = computed(() => {
+    return (store.network === 'mainnet' ? '' : 't') + CurrencyShortNames[settingsStore.currency]
+  })
   // fall back to BCH display while no exchange rate is available
   const effectiveUnit = computed(() => store.exchangeRate === undefined ? 'bch' : displayUnit.value)
 
@@ -89,7 +95,7 @@
     const bchBalance = Number(store.balance) / 100_000_000
     const bchEntry: PricedAsset = {
       name: 'Bitcoin Cash',
-      symbol: 'BCH',
+      symbol: bchUnitName.value,
       amountDisplay: amountFormatter.format(bchBalance),
       bchValue: bchBalance
     }
@@ -426,7 +432,7 @@
     if (effectiveUnit.value === 'currency' && store.exchangeRate !== undefined) {
       return formatFiatAmount(bchValue * store.exchangeRate, settingsStore.currency)
     }
-    return bchValueFormatter.format(bchValue) + ' BCH'
+    return bchValueFormatter.format(bchValue) + ' ' + bchUnitName.value
   }
 
   // Custom hover tooltip for the chart, positioned relative to the donut wrapper
@@ -502,13 +508,13 @@
       <div style="cursor: pointer;" @click="() => store.changeView(1)">
         ← {{ t('portfolio.backToWallet') }}
       </div>
-      <div v-if="store.network === 'mainnet'" class="unit-toggle">
+      <div class="unit-toggle">
         <button
           :class="{ active: effectiveUnit === 'currency' }"
           :disabled="store.exchangeRate === undefined"
           @click="displayUnit = 'currency'"
-        >{{ CurrencyShortNames[settingsStore.currency] }}</button>
-        <button :class="{ active: effectiveUnit === 'bch' }" @click="displayUnit = 'bch'">BCH</button>
+        >{{ currencyName }}</button>
+        <button :class="{ active: effectiveUnit === 'bch' }" @click="displayUnit = 'bch'">{{ bchUnitName }}</button>
       </div>
     </div>
 
@@ -520,11 +526,7 @@
       </InfoPopup>
     </div>
 
-    <div v-if="store.network !== 'mainnet'" class="page-note">
-      {{ t('portfolio.mainnetOnly') }}
-    </div>
-
-    <div v-else-if="!assets || !portfolioReady" style="text-align: center;">
+    <div v-if="!assets || !portfolioReady" style="text-align: center;">
       <template v-if="store.walletInitFailed">{{ t('portfolio.loadingFailed') }}</template>
       <template v-else>{{ t('portfolio.loading') }} <q-spinner-dots size="1.2em" /></template>
     </div>
