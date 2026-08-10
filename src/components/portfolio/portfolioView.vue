@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, watch, onActivated } from 'vue'
+  import { ref, computed, watch, onActivated, onDeactivated } from 'vue'
   import type { Utxo } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -75,9 +75,18 @@
     await store.fetchWalletCauldronPools()
     await store.fetchCauldronPricesForTokens(true)
   }
-  // the view is kept alive, so onActivated covers the first visit as well as later ones
-  watch(() => store.tokenList, () => void loadPoolsAndPrices())
-  onActivated(() => void loadPoolsAndPrices())
+  // The view is kept alive: onActivated covers entering it, so watching the token list while
+  // another view is shown only scans for pools nobody looks at, which re-entry redoes anyway.
+  // Pool contents change without the token list moving, so the watch never kept those fresh.
+  const isActive = ref(false)
+  onActivated(() => {
+    isActive.value = true
+    void loadPoolsAndPrices()
+  })
+  onDeactivated(() => { isActive.value = false })
+  watch(() => store.tokenList, () => {
+    if (isActive.value) void loadPoolsAndPrices()
+  })
 
   interface PricedAsset {
     category?: string  // undefined for the BCH entry
