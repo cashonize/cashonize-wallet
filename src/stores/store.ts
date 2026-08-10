@@ -100,12 +100,13 @@ export const useStore = defineStore('store', () => {
   const activeWalletName = ref(localStorage.getItem('activeWalletName') ?? defaultWalletName);
   const availableWallets = ref([] as WalletInfo[]);
   // Wallet State
-  // _wallet is the actual wallet object and is null until the wallet is set
-  // so _wallet is used for mutating properties of the wallet, like changing the provider.
-  // A shallowRef because only swapping in another wallet drives the UI. Deep reactivity would
-  // proxy the key cache and the address histories, yet mainnet-js mutates those from callbacks
-  // holding the unproxied wallet, so it would fire only part of the time. Code that reacts to
-  // wallet-internal changes depends on walletUtxos instead.
+  // _wallet holds the wallet object and is null until one is set, so it is the ref to write
+  // through, both to swap in another wallet and to change a property like the provider.
+  // The wallet's internals belong to mainnet-js: the library owns the key cache and the address
+  // histories and mutates them behind its own references, including from callbacks holding the
+  // wallet from before it reached this store. Vue cannot track state it does not own, so a deep
+  // ref would only appear to work; a shallowRef states what is true, that swapping in another
+  // wallet is the reactive event and nothing inside it is.
   const _wallet = shallowRef(null as (WalletType | null));
   const balance = ref(undefined as (bigint | undefined));
   const maxAmountToSend = ref(undefined as (bigint | undefined));
@@ -143,18 +144,18 @@ export const useStore = defineStore('store', () => {
   const network = computed(() => wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet")
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
-  // The wallet computed property, throws if it were to be accessed when _wallet is null
-  // The computed property should not be mutated, use _wallet instead
+  // Access to the wallet without a null check at every call site: throws rather than hand out
+  // null. Read-only, and it hands out the same object _wallet holds, so writes go through
+  // _wallet whether they replace the wallet or set a property on it.
   const wallet = computed(() => {
     if (!_wallet.value) throw new Error('No wallet set in global store');
     return _wallet.value
   })
 
-  // Whether an address belongs to the wallet, for use in computed properties and templates.
-  // hasAddress reads the HD address cache, which sits outside Vue reactivity because _wallet is
-  // a shallowRef, so reading it alone would subscribe to nothing. walletUtxos is assigned right
-  // after every getUtxos() call, which is what advances that cache, so depending on it here
-  // re-runs callers once address discovery has moved on.
+  // Preferred over wallet.hasAddress in computed properties and templates: hasAddress reads the
+  // HD address cache, which mainnet-js owns and Vue therefore does not track. walletUtxos is
+  // the store's own signal that the cache advanced, since it is assigned right after every
+  // getUtxos() call, which is what grows it.
   function walletHasAddress(address: string) {
     void walletUtxos.value;
     return wallet.value.hasAddress(address);
