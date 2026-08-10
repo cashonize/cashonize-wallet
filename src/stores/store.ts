@@ -230,7 +230,8 @@ export const useStore = defineStore('store', () => {
   let cancelWatchBchBalanceCashConnect: undefined | CancelFn;
 
   // Counter to detect stale async operations after network/wallet switches.
-  // Bumped at the start of initializeWallet(); checked after long awaits.
+  // Bumped whenever the state those operations write into is discarded, so at the start of
+  // initializeWallet() and in resetWalletState(); checked after long awaits.
   let currentInitialization = 0;
 
   // Lets the 'online' event listener retry an initialization aborted while offline
@@ -649,9 +650,28 @@ export const useStore = defineStore('store', () => {
   }
 
   async function resetWalletState({ resetDappConnections = true } = {}){
+    // Bump the initialization counter before anything else, so the fetches already in flight
+    // become no-ops. Without it, a reply arriving late from the old wallet or server would
+    // repopulate the state cleared below.
+    currentInitialization++;
     viewStack.length = 0;
     walletInitialized.value = false;
     walletInitFailed.value = false;
+
+    // Stop the intervals and clear the state before the awaits below, so the views do not go on
+    // showing the old wallet's balance and history for as long as cancelling takes.
+    stopRefetchIntervals();
+    balance.value = undefined;
+    maxAmountToSend.value = undefined;
+    plannedTokenId.value = undefined;
+    tokenList.value = null;
+    bcmrRegistries.value = undefined;
+    queriedHistoryCategories = [];
+    cauldronPrices.value = null;
+    cauldronPools.value = null;
+    exchangeRate.value = undefined;
+    walletHistory.value = undefined;
+    isHistoryPartial.value = false;
 
     if (resetDappConnections) {
       // Reset WC/CC/Wiz init-done flags so re-initialization runs after reset
@@ -666,21 +686,8 @@ export const useStore = defineStore('store', () => {
       networkChangeCallbacks = [];
     }
 
-    // cancel active listeners and intervals
-    stopRefetchIntervals();
+    // cancel active listeners
     await cancelWalletSubscriptions();
-    // reset wallet to default state
-    balance.value = undefined;
-    maxAmountToSend.value = undefined;
-    plannedTokenId.value = undefined;
-    tokenList.value = null;
-    bcmrRegistries.value = undefined;
-    queriedHistoryCategories = [];
-    cauldronPrices.value = null;
-    cauldronPools.value = null;
-    exchangeRate.value = undefined;
-    walletHistory.value = undefined;
-    isHistoryPartial.value = false;
   }
 
   // Avoid WalletClass.named() here: it creates a fresh random wallet if the name is missing.
@@ -973,7 +980,11 @@ export const useStore = defineStore('store', () => {
   // mainnet-js has its own ~4 min TTL cache but we store the rate centrally for reactive access
   async function fetchExchangeRate() {
     try {
-      exchangeRate.value = await ExchangeRate.get(settingsStore.currency, true);
+      const initialization = currentInitialization;
+      const rate = await ExchangeRate.get(settingsStore.currency, true);
+      // a rate arriving after a wallet or network switch belongs to the state that was reset
+      if (initialization !== currentInitialization) return;
+      exchangeRate.value = rate;
     } catch (error) {
       console.error("Failed to fetch exchange rate:", error);
     }
