@@ -837,13 +837,19 @@ export const useStore = defineStore('store', () => {
       });
 
       // Monitor the wallet for balance changes and notify CashConnect to refresh wallet state.
-      cancelWatchBchBalanceCashConnect = await wallet.value.watchBalance(() => {
-        // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
-        // fire-and-forget promise
-        if(cashconnectWallet.cashConnectWallet) {
-          void cashconnectWallet.cashConnectWallet.notifyBalancesChanged();
-        }
-      });
+      // Caught separately without a toast: watchBalance only fails when the electrum
+      // connection is down, which already shows its own error toast.
+      try {
+        cancelWatchBchBalanceCashConnect = await wallet.value.watchBalance(() => {
+          // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
+          // fire-and-forget promise
+          if(cashconnectWallet.cashConnectWallet) {
+            void cashconnectWallet.cashConnectWallet.notifyBalancesChanged();
+          }
+        });
+      } catch (error) {
+        console.error("Error setting up CashConnect balance watching:", error);
+      }
     } catch (error) {
       console.error("Error initializing CashConnect:", error);
       Notify.create({
