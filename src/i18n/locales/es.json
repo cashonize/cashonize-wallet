@@ -103,7 +103,8 @@
     },
     "walletName": {
       "label": "Nombre de billetera:",
-      "placeholder": "Ingresa el nombre de la billetera"
+      "placeholder": "Ingresa el nombre de la billetera",
+      "tip": "Consejo: nombra la billetera según el uso que le darás, como \"ahorros\" o \"trading\""
     },
     "walletType": {
       "label": "Tipo de billetera:",

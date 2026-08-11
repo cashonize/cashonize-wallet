@@ -103,7 +103,8 @@
     },
     "walletName": {
       "label": "Nom du portefeuille :",
-      "placeholder": "Entrez le nom du portefeuille"
+      "placeholder": "Entrez le nom du portefeuille",
+      "tip": "Astuce : nommez le portefeuille selon l'usage prévu, comme « épargne » ou « trading »"
     },
     "walletType": {
       "label": "Type de portefeuille :",

@@ -103,7 +103,8 @@
     },
     "walletName": {
       "label": "Wallet name:",
-      "placeholder": "Enter wallet name"
+      "placeholder": "Enter wallet name",
+      "tip": "Tip: name the wallet after what you'll use it for, like \"savings\" or \"trading\""
     },
     "walletType": {
       "label": "Wallet type:",

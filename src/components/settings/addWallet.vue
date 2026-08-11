@@ -1,9 +1,9 @@
 <script setup lang="ts">
-  import { ref, computed } from "vue"
+  import { ref, computed, onMounted } from "vue"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { namedWalletExistsInDb } from 'src/utils/dbUtils'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet } from 'src/utils/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, suggestNextWalletName } from 'src/utils/walletUtils'
   import type { DerivationPathType } from 'src/utils/walletUtils'
   import seedPhraseInput from '../general/seedPhraseInput.vue'
   import derivationPathSelect from '../general/derivationPathSelect.vue'
@@ -21,6 +21,17 @@
   const walletType = ref<'single' | 'hd'>('single');
 
   const effectiveWalletName = computed(() => walletName.value.trim());
+
+  // Prefill a suggested name like "wallet 2" so users don't have to invent one
+  onMounted(async () => {
+    const suggestedName = await suggestNextWalletName();
+    if (!walletName.value) walletName.value = suggestedName;
+  });
+
+  // Let users replace the prefilled name by just starting to type
+  function selectNameOnFocus(event: Event) {
+    (event.target as HTMLInputElement).select();
+  }
 
   async function proceedToStep2() {
     const name = walletName.value.trim();
@@ -112,7 +123,11 @@
           id="walletName"
           :placeholder="t('addWallet.walletName.placeholder')"
           style="width: 100%; max-width: 300px; padding: 8px;"
+          @focus="selectNameOnFocus"
         >
+        <div style="font-size: smaller; color: grey; margin-top: 5px;">
+          {{ t('onboarding.walletName.tip') }}
+        </div>
       </div>
       <input
         @click="proceedToStep2()"
