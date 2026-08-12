@@ -1056,8 +1056,8 @@
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",
       "electrumChipnet": "Serveur Electrum chipnet :",
-      "electrumCustomPlaceholder": "ex. 127.0.0.1",
-      "electrumCustomHint": "Nécessite WSS sur le port 50004.",
+      "electrumCustomPlaceholder": "ex. 127.0.0.1 ou fulcrum.example.com:443",
+      "electrumCustomHint": "Nécessite WSS, le port 50004 est utilisé sauf si un autre est indiqué.",
       "electrumSelfSignedBrowser": "Vous utilisez des certificats auto-signés ? {link} pour accepter le certificat d'abord.",
       "electrumSelfSignedVisit": "Visitez ici",
       "electrumSelfSignedApp": "Remarque : les certificats auto-signés ne sont pas actuellement supportés dans l'app.",
