@@ -760,6 +760,26 @@
       "notChipnetWif": "Not a QR code encoding a Chipnet Private Key in WIF format"
     }
   },
+  "signVerifyMessage": {
+    "title": "Sign / Verify Message",
+    "description": "Sign a message with an address of your wallet to prove you control it, or verify that a message was signed by a specific address.",
+    "messageLabel": "Message:",
+    "addressLabel": "Address:",
+    "signatureLabel": "Signature:",
+    "messagePlaceholder": "Message to sign or verify",
+    "addressPlaceholder": "Address the message is signed with",
+    "signaturePlaceholder": "Created by signing, or paste a signature to verify",
+    "signButton": "Sign Message",
+    "verifyButton": "Verify",
+    "copyButton": "Copy Signature",
+    "validSignature": "Valid signature for this address",
+    "invalidSignature": "Invalid signature for this address",
+    "errors": {
+      "invalidAddress": "Invalid BCH address",
+      "wrongNetworkAddress": "Address does not match the current network",
+      "addressNotInWallet": "Signing requires an address of the active wallet"
+    }
+  },
   "derivationPathSelect": {
     "label": "Derivation path:",
     "standard": "standard",
@@ -977,10 +997,11 @@
       "localization": "Localization",
       "advancedSettings": "Advanced settings",
       "developerSettings": "Developer settings",
-      "tools": "Tools",
+      "tools": "Wallet tools",
       "hdAddresses": "HD Addresses",
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
+      "signVerifyMessage": "Sign / Verify Message",
       "tokenCreationPage": "Token Creation Page",
       "aboutCashonize": "About Cashonize"
     },

@@ -760,6 +760,26 @@
       "notChipnetWif": "Não é um QR code com chave privada Chipnet no formato WIF"
     }
   },
+  "signVerifyMessage": {
+    "title": "Assinar / Verificar mensagem",
+    "description": "Assine uma mensagem com um endereço da sua carteira para provar que você o controla, ou verifique se uma mensagem foi assinada por um endereço específico.",
+    "messageLabel": "Mensagem:",
+    "addressLabel": "Endereço:",
+    "signatureLabel": "Assinatura:",
+    "messagePlaceholder": "Mensagem para assinar ou verificar",
+    "addressPlaceholder": "Endereço com o qual a mensagem é assinada",
+    "signaturePlaceholder": "Criada ao assinar, ou cole uma assinatura para verificar",
+    "signButton": "Assinar mensagem",
+    "verifyButton": "Verificar",
+    "copyButton": "Copiar assinatura",
+    "validSignature": "Assinatura válida para este endereço",
+    "invalidSignature": "Assinatura inválida para este endereço",
+    "errors": {
+      "invalidAddress": "Endereço BCH inválido",
+      "wrongNetworkAddress": "O endereço não corresponde à rede atual",
+      "addressNotInWallet": "Assinar requer um endereço da carteira ativa"
+    }
+  },
   "derivationPathSelect": {
     "label": "Derivation path:",
     "standard": "padrão",
@@ -977,10 +997,11 @@
       "localization": "Localização",
       "advancedSettings": "Configurações avançadas",
       "developerSettings": "Configurações de desenvolvedor",
-      "tools": "Ferramentas",
+      "tools": "Ferramentas da carteira",
       "hdAddresses": "Endereços HD",
       "utxoManagement": "Gerenciamento de UTXOs",
       "sweepPrivateKey": "Sweep de Chave Privada",
+      "signVerifyMessage": "Assinar / Verificar mensagem",
       "tokenCreationPage": "Página de Criação de Tokens",
       "aboutCashonize": "Sobre o Cashonize"
     },

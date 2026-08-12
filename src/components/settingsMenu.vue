@@ -679,6 +679,10 @@
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(8)">
         → {{ t('settings.menu.sweepPrivateKey') }}
       </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">
+        → {{ t('settings.menu.signVerifyMessage') }}
+      </div>
     </div>
     <div v-else-if="settingsSection == 6">
       <div style="margin-bottom:15px;">

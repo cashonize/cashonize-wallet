@@ -760,6 +760,26 @@
       "notChipnetWif": "No es un código QR que codifica una clave privada de Chipnet en formato WIF"
     }
   },
+  "signVerifyMessage": {
+    "title": "Firmar / Verificar mensaje",
+    "description": "Firma un mensaje con una dirección de tu billetera para demostrar que la controlas, o verifica que un mensaje fue firmado por una dirección específica.",
+    "messageLabel": "Mensaje:",
+    "addressLabel": "Dirección:",
+    "signatureLabel": "Firma:",
+    "messagePlaceholder": "Mensaje a firmar o verificar",
+    "addressPlaceholder": "Dirección con la que se firma el mensaje",
+    "signaturePlaceholder": "Se crea al firmar, o pega una firma para verificar",
+    "signButton": "Firmar mensaje",
+    "verifyButton": "Verificar",
+    "copyButton": "Copiar firma",
+    "validSignature": "Firma válida para esta dirección",
+    "invalidSignature": "Firma inválida para esta dirección",
+    "errors": {
+      "invalidAddress": "Dirección BCH inválida",
+      "wrongNetworkAddress": "La dirección no corresponde a la red actual",
+      "addressNotInWallet": "Firmar requiere una dirección de la billetera activa"
+    }
+  },
   "derivationPathSelect": {
     "label": "Ruta de derivación:",
     "standard": "estándar",
@@ -977,10 +997,11 @@
       "localization": "Localización",
       "advancedSettings": "Configuración avanzada",
       "developerSettings": "Configuración de desarrollador",
-      "tools": "Herramientas",
+      "tools": "Herramientas de billetera",
       "hdAddresses": "Direcciones HD",
       "utxoManagement": "Gestión de UTXO",
       "sweepPrivateKey": "Barrer clave privada",
+      "signVerifyMessage": "Firmar / Verificar mensaje",
       "tokenCreationPage": "Página de creación de tokens",
       "aboutCashonize": "Acerca de Cashonize"
     },

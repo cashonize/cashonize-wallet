@@ -9,6 +9,7 @@
   import createTokensView from 'src/components/settings/createTokens.vue'
   import utxoManagement from 'src/components/settings/utxoManagement.vue'
   import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
+  import signVerifyMessageView from 'src/components/settings/signVerifyMessage.vue'
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
@@ -65,6 +66,7 @@
       case 10: return hdAddressesView;
       case 11: return aboutCashonizeView;
       case 12: return portfolioView;
+      case 13: return signVerifyMessageView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });
