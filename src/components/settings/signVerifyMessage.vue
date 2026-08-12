@@ -2,30 +2,37 @@
   import { ref, computed, watch } from 'vue'
   import { HDWallet, SignedMessage } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
+  import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { copyToClipboard } from 'src/utils/utils'
   import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation'
   import { resolvePrivateKeyForAddress, verifyMessage } from 'src/utils/messageSigning'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
-  import HdAddressSelect from 'src/components/walletconnect/hdAddressSelect.vue'
+  import HdAddressSelectDialog from 'src/components/general/hdAddressSelectDialog.vue'
 
   const store = useStore()
+  const $q = useQuasar()
   const { t } = useI18n()
-
-  const messageInput = ref("");
-  const addressInput = ref(store.wallet.getDepositAddress());
-  const signatureInput = ref("");
-  const verifyResult = ref(undefined as undefined | boolean);
-  const showAddressSelect = ref(false);
 
   const isHdWallet = computed(() => store._wallet instanceof HDWallet);
 
-  function onAddressSelected(addresses: string[]) {
-    const selectedAddress = addresses[0];
-    if (!selectedAddress) return;
-    addressInput.value = selectedAddress;
-    showAddressSelect.value = false;
+  // HD wallets pick their signing address from the address select dialog instead of a prefill
+  const messageInput = ref("");
+  const addressInput = ref(isHdWallet.value ? "" : store.wallet.getDepositAddress());
+  const signatureInput = ref("");
+  const verifyResult = ref(undefined as undefined | boolean);
+
+  function openAddressSelectDialog() {
+    $q.dialog({
+      component: HdAddressSelectDialog,
+      componentProps: {
+        title: t('signVerifyMessage.selectAddress'),
+        hint: t('signVerifyMessage.selectAddressHint'),
+      },
+    }).onOk((address: string) => {
+      addressInput.value = address;
+    });
   }
 
   // A verify result no longer matches the inputs once any of them change
@@ -36,7 +43,7 @@
   // The view is kept alive across navigation, so refresh the prefilled address
   // when the user switches wallets or networks
   watch(() => store._wallet, () => {
-    if (store._wallet) addressInput.value = store._wallet.getDepositAddress();
+    if (store._wallet) addressInput.value = isHdWallet.value ? "" : store._wallet.getDepositAddress();
   });
 
   function normalizeAddressInput() {
@@ -90,21 +97,20 @@
 
     <div style="margin-top: 8px;">
       <label>{{ t('signVerifyMessage.addressLabel') }}</label>
-      <input
-        v-model="addressInput"
-        type="text"
-        :placeholder="t('signVerifyMessage.addressPlaceholder')"
-        style="width: 100%;"
-      >
-      <div
-        v-if="isHdWallet"
-        style="margin-top: 4px; cursor: pointer; color: var(--color-primary);"
-        @click="showAddressSelect = !showAddressSelect"
-      >
-        {{ showAddressSelect ? '↲' : '→' }} {{ t('signVerifyMessage.selectAddress') }}
-      </div>
-      <div v-if="showAddressSelect" style="margin-top: 8px; max-height: 350px; overflow-y: auto; overflow-x: hidden;">
-        <HdAddressSelect :hint="t('signVerifyMessage.selectAddressHint')" @selection-changed="onAddressSelected" />
+      <div class="address-input-row">
+        <input
+          v-model="addressInput"
+          type="text"
+          :placeholder="t('signVerifyMessage.addressPlaceholder')"
+        >
+        <button
+          v-if="isHdWallet"
+          @click="openAddressSelectDialog()"
+          style="padding: 12px"
+          :title="t('signVerifyMessage.selectAddress')"
+        >
+          <q-icon name="list" size="24px" />
+        </button>
       </div>
     </div>
 
@@ -152,6 +158,14 @@
 </template>
 
 <style scoped>
+.address-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+.address-input-row input {
+  flex: 1;
+  min-width: 0;
+}
 .sign-button-row {
   display: flex;
   gap: 0.5rem;
