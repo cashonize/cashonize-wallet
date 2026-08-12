@@ -1,7 +1,7 @@
 import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "mainnet-js"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
-import { namedWalletExistsInDb } from 'src/utils/dbUtils'
+import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
 import { isQuotaExceededError } from 'src/utils/errorHandling'
 import { isValidBip39Mnemonic, normalizeSeedPhrase } from 'src/utils/utils'
 import { i18n } from 'src/boot/i18n'
@@ -128,6 +128,22 @@ export function validateWalletName(name: string): WalletError | null {
     return makeError(t('walletUtils.errors.walletNameInvalidChars'), true);
   }
   return null;
+}
+
+// Suggest a name for the user's next wallet, continuing the "wallet <number>" convention.
+// Counts past the highest number in use instead of filling gaps, so a deleted wallet's
+// name (and any leftover localStorage data keyed on it) is never reused.
+export async function suggestNextWalletName(): Promise<string> {
+  const existingWallets = await getAllWalletsWithNetworkInfo();
+  let highestNumber = 0;
+  for (const walletInfo of existingWallets) {
+    const match = walletInfo.name.match(/^wallet (\d+)$/);
+    if (match) highestNumber = Math.max(highestNumber, Number(match[1]));
+  }
+  // No numbered names yet (e.g. only "mywallet"): number by wallet count, so the
+  // second wallet is suggested as "wallet 2"
+  const nextNumber = highestNumber ? highestNumber + 1 : existingWallets.length + 1;
+  return `wallet ${nextNumber}`;
 }
 
 /**

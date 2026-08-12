@@ -103,7 +103,8 @@
     },
     "walletName": {
       "label": "Wallet-Name:",
-      "placeholder": "Wallet-Name eingeben"
+      "placeholder": "Wallet-Name eingeben",
+      "tip": "Tipp: Benenne die Wallet nach ihrem Verwendungszweck, z. B. \"Ersparnisse\" oder \"Trading\""
     },
     "walletType": {
       "label": "Wallet-Typ:",

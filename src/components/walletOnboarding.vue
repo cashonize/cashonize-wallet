@@ -51,6 +51,11 @@
     step.value = 1;
   }
 
+  // Let users replace the prefilled name by just starting to type
+  function selectNameOnFocus(event: Event) {
+    (event.target as HTMLInputElement).select();
+  }
+
   // Defensive: block concurrent create/import (double-click, key auto-repeat) — a second
   // concurrent call could race the async existence check and generate a second seed
   const isCreating = ref(false);
@@ -193,7 +198,11 @@
             type="text"
             :placeholder="t('onboarding.walletName.placeholder')"
             style="padding: 8px; min-width: 200px;"
+            @focus="selectNameOnFocus"
           >
+          <div style="font-size: smaller; color: grey; margin-top: 5px;">
+            {{ t('onboarding.walletName.tip') }}
+          </div>
         </div>
         <div style="margin: 15px 0;">
           <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
@@ -222,7 +231,11 @@
             type="text"
             :placeholder="t('onboarding.walletName.placeholder')"
             style="padding: 8px; min-width: 200px;"
+            @focus="selectNameOnFocus"
           >
+          <div style="font-size: smaller; color: grey; margin-top: 5px;">
+            {{ t('onboarding.walletName.tip') }}
+          </div>
         </div>
         <div style="margin: 20px 0;">
           <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />

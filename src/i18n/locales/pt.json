@@ -103,7 +103,8 @@
     },
     "walletName": {
       "label": "Nome da carteira:",
-      "placeholder": "Insira o nome da carteira"
+      "placeholder": "Insira o nome da carteira",
+      "tip": "Dica: nomeie a carteira de acordo com o uso pretendido, como \"poupança\" ou \"trading\""
     },
     "walletType": {
       "label": "Tipo de carteira:",
