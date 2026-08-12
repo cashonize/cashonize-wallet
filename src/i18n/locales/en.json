@@ -760,6 +760,37 @@
       "notChipnetWif": "Not a QR code encoding a Chipnet Private Key in WIF format"
     }
   },
+  "signVerifyMessage": {
+    "title": "Sign / Verify Message",
+    "descriptionSign": "Sign a message with an address of your wallet to prove you control it.",
+    "descriptionVerify": "Check that a message was signed by a specific address.",
+    "usageHint": "Some services ask you to sign a message to prove an address is yours, for example an exchange linking a withdrawal address to your account. A signed message also lets you prove you control the funds on an address without moving them.",
+    "safetyHint": "Signing a message does not give access to your funds: the wallet only signs specially prefixed text, which is never valid as a transaction.",
+    "usageHintNote": "Only sign messages you understand, a signed message can be shown to others as proof.",
+    "selectAddress": "Select from wallet addresses",
+    "selectAddressHint": "Choose which address to sign with",
+    "messageLabel": "Message:",
+    "addressLabel": "Address:",
+    "signatureLabel": "Signature:",
+    "signMode": "Sign",
+    "verifyMode": "Verify",
+    "messagePlaceholder": "Message to sign or verify",
+    "noAddressSelected": "No address selected",
+    "addressPlaceholderVerify": "Address the message was signed with",
+    "signaturePlaceholderVerify": "Paste the signature to verify",
+    "signButton": "Sign Message",
+    "verifyButton": "Verify",
+    "copyButton": "Copy Signature",
+    "copyAllButton": "Copy All",
+    "shareHint": "To let others verify the signature, share the message, address and signature together, unless they already know the message and address.",
+    "validSignature": "Valid signature for this address",
+    "invalidSignature": "Invalid signature for this address",
+    "errors": {
+      "invalidAddress": "Invalid BCH address",
+      "wrongNetworkAddress": "Address does not match the current network",
+      "addressNotInWallet": "Signing requires an address of the active wallet"
+    }
+  },
   "derivationPathSelect": {
     "label": "Derivation path:",
     "standard": "standard",
@@ -977,9 +1008,11 @@
       "localization": "Localization",
       "advancedSettings": "Advanced settings",
       "developerSettings": "Developer settings",
+      "tools": "Wallet tools",
       "hdAddresses": "HD Addresses",
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
+      "signVerifyMessage": "Sign / Verify Message",
       "tokenCreationPage": "Token Creation Page",
       "aboutCashonize": "About Cashonize"
     },

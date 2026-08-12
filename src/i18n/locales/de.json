@@ -760,6 +760,37 @@
       "notChipnetWif": "Kein QR-Code, der einen Chipnet-Privatschlüssel im WIF-Format enthält"
     }
   },
+  "signVerifyMessage": {
+    "title": "Nachricht signieren / verifizieren",
+    "descriptionSign": "Signiere eine Nachricht mit einer Adresse deines Wallets, um zu beweisen, dass du sie kontrollierst.",
+    "descriptionVerify": "Prüfe, ob eine Nachricht von einer bestimmten Adresse signiert wurde.",
+    "usageHint": "Manche Dienste verlangen eine signierte Nachricht als Nachweis, dass eine Adresse dir gehört, zum Beispiel eine Börse, die eine Auszahlungsadresse mit deinem Konto verknüpft. Eine signierte Nachricht kann auch belegen, dass du das Guthaben einer Adresse kontrollierst, ohne es zu bewegen.",
+    "safetyHint": "Das Signieren einer Nachricht gibt keinen Zugriff auf dein Guthaben: das Wallet signiert nur Text mit einem speziellen Präfix, der nie als Transaktion gültig ist.",
+    "usageHintNote": "Signiere nur Nachrichten, die du verstehst, eine signierte Nachricht kann anderen als Nachweis gezeigt werden.",
+    "selectAddress": "Aus den Wallet-Adressen auswählen",
+    "selectAddressHint": "Wähle die Adresse zum Signieren",
+    "messageLabel": "Nachricht:",
+    "addressLabel": "Adresse:",
+    "signatureLabel": "Signatur:",
+    "signMode": "Signieren",
+    "verifyMode": "Verifizieren",
+    "messagePlaceholder": "Nachricht zum Signieren oder Verifizieren",
+    "noAddressSelected": "Keine Adresse ausgewählt",
+    "addressPlaceholderVerify": "Adresse, mit der die Nachricht signiert wurde",
+    "signaturePlaceholderVerify": "Füge die zu verifizierende Signatur ein",
+    "signButton": "Nachricht signieren",
+    "verifyButton": "Verifizieren",
+    "copyButton": "Signatur kopieren",
+    "copyAllButton": "Alles kopieren",
+    "shareHint": "Damit andere die Signatur verifizieren können, teile Nachricht, Adresse und Signatur zusammen, außer sie kennen Nachricht und Adresse bereits.",
+    "validSignature": "Gültige Signatur für diese Adresse",
+    "invalidSignature": "Ungültige Signatur für diese Adresse",
+    "errors": {
+      "invalidAddress": "Ungültige BCH-Adresse",
+      "wrongNetworkAddress": "Die Adresse passt nicht zum aktuellen Netzwerk",
+      "addressNotInWallet": "Zum Signieren wird eine Adresse des aktiven Wallets benötigt"
+    }
+  },
   "derivationPathSelect": {
     "label": "Ableitungspfad:",
     "standard": "Standard",
@@ -977,9 +1008,11 @@
       "localization": "Lokalisierung",
       "advancedSettings": "Erweiterte Einstellungen",
       "developerSettings": "Entwicklereinstellungen",
+      "tools": "Wallet-Werkzeuge",
       "hdAddresses": "HD Adressen",
       "utxoManagement": "UTXO-Verwaltung",
       "sweepPrivateKey": "Privaten Schlüssel sweepen",
+      "signVerifyMessage": "Nachricht signieren / verifizieren",
       "tokenCreationPage": "Token-Erstellungsseite",
       "aboutCashonize": "Über Cashonize"
     },

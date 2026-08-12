@@ -760,6 +760,37 @@
       "notChipnetWif": "No es un código QR que codifica una clave privada de Chipnet en formato WIF"
     }
   },
+  "signVerifyMessage": {
+    "title": "Firmar / Verificar mensaje",
+    "descriptionSign": "Firma un mensaje con una dirección de tu billetera para demostrar que la controlas.",
+    "descriptionVerify": "Comprueba que un mensaje fue firmado por una dirección específica.",
+    "usageHint": "Algunos servicios piden firmar un mensaje para demostrar que una dirección es tuya, por ejemplo un exchange que vincula una dirección de retiro a tu cuenta. Un mensaje firmado también permite demostrar que controlas los fondos de una dirección sin moverlos.",
+    "safetyHint": "Firmar un mensaje no da acceso a tus fondos: la billetera solo firma texto con un prefijo especial, que nunca es válido como transacción.",
+    "usageHintNote": "Firma solo mensajes que entiendas, un mensaje firmado puede mostrarse a otros como prueba.",
+    "selectAddress": "Seleccionar de las direcciones de la billetera",
+    "selectAddressHint": "Elige con qué dirección firmar",
+    "messageLabel": "Mensaje:",
+    "addressLabel": "Dirección:",
+    "signatureLabel": "Firma:",
+    "signMode": "Firmar",
+    "verifyMode": "Verificar",
+    "messagePlaceholder": "Mensaje a firmar o verificar",
+    "noAddressSelected": "Ninguna dirección seleccionada",
+    "addressPlaceholderVerify": "Dirección con la que se firmó el mensaje",
+    "signaturePlaceholderVerify": "Pega la firma a verificar",
+    "signButton": "Firmar mensaje",
+    "verifyButton": "Verificar",
+    "copyButton": "Copiar firma",
+    "copyAllButton": "Copiar todo",
+    "shareHint": "Para que otros puedan verificar la firma, comparte el mensaje, la dirección y la firma juntos, a menos que ya conozcan el mensaje y la dirección.",
+    "validSignature": "Firma válida para esta dirección",
+    "invalidSignature": "Firma inválida para esta dirección",
+    "errors": {
+      "invalidAddress": "Dirección BCH inválida",
+      "wrongNetworkAddress": "La dirección no corresponde a la red actual",
+      "addressNotInWallet": "Firmar requiere una dirección de la billetera activa"
+    }
+  },
   "derivationPathSelect": {
     "label": "Ruta de derivación:",
     "standard": "estándar",
@@ -977,9 +1008,11 @@
       "localization": "Localización",
       "advancedSettings": "Configuración avanzada",
       "developerSettings": "Configuración de desarrollador",
+      "tools": "Herramientas de billetera",
       "hdAddresses": "Direcciones HD",
       "utxoManagement": "Gestión de UTXO",
       "sweepPrivateKey": "Barrer clave privada",
+      "signVerifyMessage": "Firmar / Verificar mensaje",
       "tokenCreationPage": "Página de creación de tokens",
       "aboutCashonize": "Acerca de Cashonize"
     },
