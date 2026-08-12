@@ -32,6 +32,10 @@ describe('verifyMessage', () => {
     expect(verifyMessage(testMessage, walletAddress, signature)).toBe(true);
     expect(verifyMessage(testMessage, walletTokenAddress, signature)).toBe(true);
   })
+  it('should accept an uppercase cashaddr, the form QR codes typically encode', () => {
+    const signature = SignedMessage.sign(testMessage, throwAwayWallet.privateKey).signature;
+    expect(verifyMessage(testMessage, walletAddress.toUpperCase(), signature)).toBe(true);
+  })
   it('should reject a tampered message and a different address', () => {
     const signature = SignedMessage.sign(testMessage, throwAwayWallet.privateKey).signature;
     expect(verifyMessage(testMessage + "!", walletAddress, signature)).toBe(false);

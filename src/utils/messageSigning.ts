@@ -24,7 +24,9 @@ export function resolvePrivateKeyForAddress(wallet: WalletType, address: string)
 // Never throws: a malformed signature or address simply fails verification.
 export function verifyMessage(message: string, address: string, signature: string): boolean {
   try {
-    return SignedMessage.verify(message, signature, address).valid;
+    // Uppercase cashaddrs (as QR codes typically encode) are valid, but SignedMessage.verify
+    // compares the re-encoded lowercase address to the input with strict equality
+    return SignedMessage.verify(message, signature, address.toLowerCase()).valid;
   } catch {
     return false;
   }
