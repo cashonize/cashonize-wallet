@@ -13,8 +13,13 @@
     "errors": {
       "somethingWentWrong": "Une erreur s'est produite",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
-      "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dapp"
+      "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dapp",
+      "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer"
     },
+    "attention": "Attention :",
+    "backToSettings": "Retour aux paramètres",
+    "nftCount": "{count} NFT | {count} NFTs",
+    "hdPrivacyWarning": "Cela combine des entrées de toutes vos adresses, les liant publiquement comme un seul portefeuille, ce qui sacrifie les avantages de confidentialité d'un portefeuille HD.",
     "copied": "Copié !",
     "unsafeUrl": "URL masquée (protocole non sécurisé)",
     "wallet": "portefeuille",
@@ -690,7 +695,6 @@
   },
   "aboutCashonize": {
     "title": "À propos de Cashonize",
-    "backToSettings": "Retour aux paramètres",
     "description": "Cashonize est un portefeuille Bitcoin Cash facile à utiliser et multiplateforme.",
     "tagline": "Open source · Non-custodial · Depuis 2023",
     "learnMore": "Visitez le site web de Cashonize",
@@ -759,6 +763,44 @@
       "notWif": "Ce n'est pas un code QR encodant une clé privée au format WIF",
       "notMainnetWif": "Ce n'est pas un code QR encodant une clé privée Mainnet au format WIF",
       "notChipnetWif": "Ce n'est pas un code QR encodant une clé privée Chipnet au format WIF"
+    }
+  },
+  "transferAllAssets": {
+    "title": "Transférer tous les actifs",
+    "description": "Déplacez tous les BCH et tokens de ce portefeuille vers une autre adresse.",
+    "usageHint": "Utile pour tout déplacer vers une nouvelle configuration de sécurité, comme un portefeuille avec de nouvelles sauvegardes ou un coffre multisig, ou pour regrouper les fonds et tokens de plusieurs portefeuilles en un seul.",
+    "usageHintNote": "Si vous quittez un appareil auquel vous ne faites plus confiance, créez le nouveau portefeuille sur un autre appareil.",
+    "emptyWallet": "Ce portefeuille ne contient aucun BCH ni token à transférer",
+    "toTransfer": "À transférer :",
+    "bchBalance": "BCH",
+    "transactionCount": "Transactions nécessaires : {count}.",
+    "transactionCountNote": "Elles sont envoyées une par une et prennent quelques secondes chacune, gardez donc Cashonize ouvert jusqu'à la fin.",
+    "destinationLabel": "Adresse de destination :",
+    "destinationTokenLabel": "Adresse de token de destination :",
+    "destinationPlaceholder": "Adresse vers laquelle tout transférer",
+    "destinationTokenPlaceholder": "Adresse de token vers laquelle tout transférer",
+    "transferButton": "Transférer tous les actifs",
+    "transferringButton": "Transfert en cours...",
+    "partialTransfer": "Le transfert s'est arrêté avant la fin, ce qui n'a pas été transféré est toujours dans ce portefeuille. Relancez le transfert pour déplacer le reste.",
+    "phases": {
+      "fungibleTokens": "Tokens fongibles",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "en attente",
+      "none": "aucun"
+    },
+    "confirm": {
+      "title": "Transférer tous les actifs ?",
+      "message": "Tous les BCH et tokens de ce portefeuille seront transférés vers l'adresse ci-dessous. Cette action est irréversible.",
+      "button": "Transférer"
+    },
+    "notifications": {
+      "success": "Tous les actifs ont été transférés avec succès"
+    },
+    "errors": {
+      "ownAddress": "La destination est une adresse de ce même portefeuille"
     }
   },
   "exportXpub": {
@@ -1025,6 +1067,7 @@
       "hdAddresses": "Adresses HD",
       "utxoManagement": "Gestion des UTXO",
       "sweepPrivateKey": "Balayer une clé privée",
+      "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
       "tokenCreationPage": "Page de création de tokens",

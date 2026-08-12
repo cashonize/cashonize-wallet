@@ -13,8 +13,13 @@
     "errors": {
       "somethingWentWrong": "Algo salió mal",
       "needToInitializeWallet": "Necesitas inicializar una billetera primero",
-      "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dapp"
+      "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dapp",
+      "nothingToTransfer": "No queda BCH ni tokens para transferir"
     },
+    "attention": "Atención:",
+    "backToSettings": "Volver a las configuraciones",
+    "nftCount": "{count} NFT | {count} NFTs",
+    "hdPrivacyWarning": "Esto combina entradas de todas tus direcciones, vinculándolas públicamente como una sola billetera, lo que sacrifica los beneficios de privacidad de usar una billetera HD.",
     "copied": "¡Copiado!",
     "unsafeUrl": "URL oculta (protocolo no seguro)",
     "wallet": "billetera",
@@ -690,7 +695,6 @@
   },
   "aboutCashonize": {
     "title": "Acerca de Cashonize",
-    "backToSettings": "Volver a las configuraciones",
     "description": "Cashonize es una billetera de Bitcoin Cash fácil de usar y multiplataforma.",
     "tagline": "Código abierto · Sin custodia · Desde 2023",
     "learnMore": "Visita el sitio web de Cashonize",
@@ -759,6 +763,44 @@
       "notWif": "No es un código QR que codifica una clave privada en formato WIF",
       "notMainnetWif": "No es un código QR que codifica una clave privada de Mainnet en formato WIF",
       "notChipnetWif": "No es un código QR que codifica una clave privada de Chipnet en formato WIF"
+    }
+  },
+  "transferAllAssets": {
+    "title": "Transferir todos los activos",
+    "description": "Mueve todo el BCH y los tokens de esta billetera a otra dirección.",
+    "usageHint": "Útil para mover todo a una nueva configuración de seguridad, como una billetera con respaldos nuevos o una bóveda multisig, o para consolidar fondos y tokens de varias billeteras en una sola.",
+    "usageHintNote": "Al alejarte de un dispositivo en el que ya no confías, crea la nueva billetera en otro dispositivo.",
+    "emptyWallet": "Esta billetera no tiene BCH ni tokens para transferir",
+    "toTransfer": "A transferir:",
+    "bchBalance": "BCH",
+    "transactionCount": "Transacciones necesarias: {count}.",
+    "transactionCountNote": "Se envían una por una y tardan unos segundos cada una, así que mantén Cashonize abierto hasta que termine.",
+    "destinationLabel": "Dirección de destino:",
+    "destinationTokenLabel": "Dirección de token de destino:",
+    "destinationPlaceholder": "Dirección a la que transferir todo",
+    "destinationTokenPlaceholder": "Dirección de token a la que transferir todo",
+    "transferButton": "Transferir todos los activos",
+    "transferringButton": "Transfiriendo...",
+    "partialTransfer": "La transferencia se detuvo antes de terminar, lo que no se transfirió sigue en esta billetera. Ejecuta la transferencia de nuevo para mover el resto.",
+    "phases": {
+      "fungibleTokens": "Tokens fungibles",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "pendiente",
+      "none": "ninguno"
+    },
+    "confirm": {
+      "title": "¿Transferir todos los activos?",
+      "message": "Todo el BCH y los tokens de esta billetera se transferirán a la dirección de abajo. Esto no se puede deshacer.",
+      "button": "Transferir"
+    },
+    "notifications": {
+      "success": "Todos los activos se transfirieron con éxito"
+    },
+    "errors": {
+      "ownAddress": "El destino es una dirección de esta misma billetera"
     }
   },
   "exportXpub": {
@@ -1025,6 +1067,7 @@
       "hdAddresses": "Direcciones HD",
       "utxoManagement": "Gestión de UTXO",
       "sweepPrivateKey": "Barrer clave privada",
+      "transferAllAssets": "Transferir todos los activos",
       "signVerifyMessage": "Firmar / Verificar mensaje",
       "exportXpub": "Exportar Xpub",
       "tokenCreationPage": "Página de creación de tokens",

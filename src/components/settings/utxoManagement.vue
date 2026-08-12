@@ -2,7 +2,7 @@
   import { computed, ref } from 'vue';
   import { copyToClipboard, formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
-  import { TokenSendRequest } from 'mainnet-js';
+  import { HDWallet, TokenSendRequest } from 'mainnet-js';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -15,6 +15,8 @@
   const activeAction = ref<'consolidating' | 'splitting' | null>(null);
 
   const bchOnlyUtxos = computed(() => store.walletUtxos?.filter(utxo => !utxo.token)?.length);
+  // Consolidating spends utxos from every address at once, which only links addresses on HD wallets
+  const isHdWallet = computed(() => store._wallet instanceof HDWallet);
   // TODO: consider lowering this to 1000 satoshis in the future
   // note: the bliss airdrop tool uses 2000 sats so from that point, many users would have combined UTXOs
   const utxosWithBchAndTokens = computed(() => {
@@ -142,6 +144,10 @@
       <div><strong>{{ t('utxoManagement.consolidate.title') }}</strong></div>
       <div class="description">
         {{ t('utxoManagement.consolidate.description') }}
+      </div>
+      <div v-if="isHdWallet && bchOnlyUtxos !== undefined && bchOnlyUtxos > 1" class="warning-box" style="margin-bottom: 10px;">
+        <q-icon name="warning" size="20px" class="warning-box-icon" />
+        <div><b>{{ t('common.attention') }}</b> {{ t('common.hdPrivacyWarning') }}</div>
       </div>
       <input
         @click="consolidateBchUtxos()"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { TestNetWallet, Wallet, TokenSendRequest, convert } from 'mainnet-js';
+  import { TestNetWallet, Wallet, convert } from 'mainnet-js';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
@@ -10,6 +10,7 @@
   import { useI18n } from 'vue-i18n'
   import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
+  import { transferAllAssets, type TransferProgress } from 'src/utils/transferAssets'
   import type { TokenList } from 'src/interfaces/interfaces'
   import type { BcmrTokenResponse } from 'src/utils/zodValidation'
 
@@ -167,6 +168,22 @@
     }
   }
 
+  // One notification per phase, shown when a phase with something to move starts
+  function notifySweepPhase(progress: TransferProgress) {
+    if (progress.completed !== 0 || progress.total === 0) return;
+    const phaseMessages = {
+      fungibleTokens: t('sweepPrivateKey.notifications.sweepingTokens'),
+      nfts: t('sweepPrivateKey.notifications.sweepingNfts'),
+      bch: t('sweepPrivateKey.notifications.sweepingBch'),
+    };
+    $q.notify({
+      spinner: true,
+      message: phaseMessages[progress.phase],
+      color: 'grey-5',
+      timeout: 1000
+    });
+  }
+
   async function sweep() {
     if (isSweeping.value) return;
     isSweeping.value = true;
@@ -175,70 +192,7 @@
       const tempWallet = await createTempWallet(wif);
       const tokenAwareAddress = store.wallet.getTokenDepositAddress();
 
-      // If no preview was done, fetch UTXOs to check for tokens
-      let tokensToSweep = previewTokenList.value;
-      if (!previewReady.value) {
-        const utxos = await tempWallet.getUtxos();
-        tokensToSweep = tokenListFromUtxos(utxos);
-      }
-
-      // Sweep fungible tokens first (one tx per category)
-      const ftsToSweep = tokensToSweep.filter(item => 'amount' in item);
-      if (ftsToSweep.length > 0) {
-        $q.notify({
-          spinner: true,
-          message: t('sweepPrivateKey.notifications.sweepingTokens'),
-          color: 'grey-5',
-          timeout: 1000
-        });
-        for (const token of ftsToSweep) {
-          if (!('amount' in token)) continue;
-          await tempWallet.send([
-            new TokenSendRequest({
-              cashaddr: tokenAwareAddress,
-              amount: token.amount,
-              category: token.category,
-            }),
-          ]);
-        }
-      }
-
-      // Sweep NFTs (one tx per category, all NFTs of that category together)
-      const nftsToSweep = tokensToSweep.filter(item => 'nfts' in item);
-      if (nftsToSweep.length > 0) {
-        $q.notify({
-          spinner: true,
-          message: t('sweepPrivateKey.notifications.sweepingNfts'),
-          color: 'grey-5',
-          timeout: 1000
-        });
-        for (const token of nftsToSweep) {
-          if (!('nfts' in token)) continue;
-          const nftUtxos = token.nfts.filter(utxo => utxo.token?.nft);
-          if (nftUtxos.length === 0) continue;
-          const nftOutputs = nftUtxos.map(nftUtxo => {
-            const nftInfo = nftUtxo.token!.nft!;
-            return new TokenSendRequest({
-              cashaddr: tokenAwareAddress,
-              category: token.category,
-              nft: {
-                commitment: nftInfo.commitment,
-                capability: nftInfo.capability,
-              },
-            });
-          });
-          await tempWallet.send(nftOutputs);
-        }
-      }
-
-      // Sweep remaining BCH
-      $q.notify({
-        spinner: true,
-        message: t('sweepPrivateKey.notifications.sweepingBch'),
-        color: 'grey-5',
-        timeout: 1000
-      });
-      await tempWallet.sendMax(tokenAwareAddress);
+      await transferAllAssets(tempWallet, tokenAwareAddress, notifySweepPhase);
 
       $q.notify({
         type: 'positive',
@@ -254,14 +208,13 @@
       unverifiedTokenMetadata.value = {};
       bchBalanceSats.value = 0n;
       fiatBalance.value = undefined;
-
-      // Update main wallet
-      await store.updateWalletUtxos();
-      void store.updateWalletHistory();
     } catch (error) {
       displayAndLogError(error);
     } finally {
       isSweeping.value = false;
+      // Also runs after a failed sweep, which may have moved part of the assets already
+      await store.updateWalletUtxos();
+      void store.updateWalletHistory();
     }
   }
 
@@ -385,7 +338,7 @@
             <span v-if="isUnverifiedToken(token.category)">*</span>
           </span>
           <span v-if="'nfts' in token" class="sweep-token-amount">
-            {{ token.nfts.length }} NFT{{ token.nfts.length > 1 ? 's' : '' }}
+            {{ t('common.nftCount', token.nfts.length) }}
           </span>
         </div>
       </div>

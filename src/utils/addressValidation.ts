@@ -1,6 +1,19 @@
-import { decodeCashAddress } from "@bitauth/libauth";
+import { assertSuccess, decodeCashAddress, encodeCashAddress } from "@bitauth/libauth";
 
 const CASH_ADDRESS_PREFIXES = ["bitcoincash:", "bchtest:"];
+
+// Wallets match their own addresses by the plain p2pkh form: the HD wallet cache is keyed
+// that way and single-address wallets compare against their deposit and change address,
+// so a token-aware address has to be converted before it can be matched.
+// Expects a valid cashaddr, it throws on anything else.
+export function toPlainAddress(address: string): string {
+  const decodedAddress = assertSuccess(decodeCashAddress(address));
+  return encodeCashAddress({
+    prefix: decodedAddress.prefix,
+    type: "p2pkh",
+    payload: decodedAddress.payload,
+  }).address;
+}
 
 export function normalizeCashAddressForNetwork(
   input: string,

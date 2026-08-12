@@ -13,8 +13,13 @@
     "errors": {
       "somethingWentWrong": "Algo deu errado",
       "needToInitializeWallet": "É necessário inicializar uma carteira primeiro",
-      "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dapp"
+      "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dapp",
+      "nothingToTransfer": "Não resta BCH nem tokens para transferir"
     },
+    "attention": "Atenção:",
+    "backToSettings": "Voltar às configurações",
+    "nftCount": "{count} NFT | {count} NFTs",
+    "hdPrivacyWarning": "Isso combina entradas de todos os seus endereços, vinculando-os publicamente como uma única carteira, o que sacrifica os benefícios de privacidade de usar uma carteira HD.",
     "copied": "Copiado!",
     "unsafeUrl": "URL oculta (protocolo inseguro)",
     "wallet": "carteira",
@@ -690,7 +695,6 @@
   },
   "aboutCashonize": {
     "title": "Sobre o Cashonize",
-    "backToSettings": "Voltar às configurações",
     "description": "Cashonize é uma carteira de Bitcoin Cash fácil de usar e multiplataforma.",
     "tagline": "Código aberto · Sem custódia · Desde 2023",
     "learnMore": "Visite o site do Cashonize",
@@ -759,6 +763,44 @@
       "notWif": "Não é um QR code com chave privada no formato WIF",
       "notMainnetWif": "Não é um QR code com chave privada Mainnet no formato WIF",
       "notChipnetWif": "Não é um QR code com chave privada Chipnet no formato WIF"
+    }
+  },
+  "transferAllAssets": {
+    "title": "Transferir todos os ativos",
+    "description": "Mova todo o BCH e tokens desta carteira para outro endereço.",
+    "usageHint": "Útil para mover tudo para uma nova configuração de segurança, como uma carteira com backups novos ou um cofre multisig, ou para consolidar fundos e tokens de várias carteiras em uma só.",
+    "usageHintNote": "Ao sair de um dispositivo em que você não confia mais, crie a nova carteira em outro dispositivo.",
+    "emptyWallet": "Esta carteira não tem BCH nem tokens para transferir",
+    "toTransfer": "A transferir:",
+    "bchBalance": "BCH",
+    "transactionCount": "Transações necessárias: {count}.",
+    "transactionCountNote": "Elas são enviadas uma por uma e levam alguns segundos cada, então mantenha o Cashonize aberto até terminar.",
+    "destinationLabel": "Endereço de destino:",
+    "destinationTokenLabel": "Endereço de token de destino:",
+    "destinationPlaceholder": "Endereço para onde transferir tudo",
+    "destinationTokenPlaceholder": "Endereço de token para onde transferir tudo",
+    "transferButton": "Transferir todos os ativos",
+    "transferringButton": "Transferindo...",
+    "partialTransfer": "A transferência parou antes do fim, o que não foi transferido continua nesta carteira. Execute a transferência novamente para mover o restante.",
+    "phases": {
+      "fungibleTokens": "Tokens fungíveis",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "pendente",
+      "none": "nenhum"
+    },
+    "confirm": {
+      "title": "Transferir todos os ativos?",
+      "message": "Todo o BCH e tokens desta carteira serão transferidos para o endereço abaixo. Isso não pode ser desfeito.",
+      "button": "Transferir"
+    },
+    "notifications": {
+      "success": "Todos os ativos foram transferidos com sucesso"
+    },
+    "errors": {
+      "ownAddress": "O destino é um endereço desta mesma carteira"
     }
   },
   "exportXpub": {
@@ -1025,6 +1067,7 @@
       "hdAddresses": "Endereços HD",
       "utxoManagement": "Gerenciamento de UTXOs",
       "sweepPrivateKey": "Sweep de Chave Privada",
+      "transferAllAssets": "Transferir todos os ativos",
       "signVerifyMessage": "Assinar / Verificar mensagem",
       "exportXpub": "Exportar Xpub",
       "tokenCreationPage": "Página de Criação de Tokens",

@@ -17,12 +17,20 @@
   <fieldset class="item">
     <legend>{{ t('settings.menu.tools') }}</legend>
 
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(5)">
+      ← {{ t('common.backToSettings') }}
+    </div>
+
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">
       → {{ t('settings.menu.utxoManagement') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(8)">
       → {{ t('settings.menu.sweepPrivateKey') }}
+    </div>
+
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(16)">
+      → {{ t('settings.menu.transferAllAssets') }}
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">

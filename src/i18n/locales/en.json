@@ -13,8 +13,13 @@
     "errors": {
       "somethingWentWrong": "Something went wrong",
       "needToInitializeWallet": "Need to initialize a wallet first",
-      "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dapp request"
+      "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dapp request",
+      "nothingToTransfer": "No BCH or tokens left to transfer"
     },
+    "attention": "Attention:",
+    "backToSettings": "Back to settings",
+    "nftCount": "{count} NFT | {count} NFTs",
+    "hdPrivacyWarning": "This combines inputs from all your addresses, publicly linking them as one wallet, which sacrifices the privacy benefits of using an HD wallet.",
     "copied": "Copied!",
     "unsafeUrl": "URL hidden (unsafe protocol)",
     "wallet": "wallet",
@@ -690,7 +695,6 @@
   },
   "aboutCashonize": {
     "title": "About Cashonize",
-    "backToSettings": "Back to settings",
     "description": "Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet.",
     "tagline": "Open-source · Non-custodial · Since 2023",
     "learnMore": "Visit the Cashonize website",
@@ -759,6 +763,44 @@
       "notWif": "Not a QR code encoding a Private Key in WIF format",
       "notMainnetWif": "Not a QR code encoding a Mainnet Private Key in WIF format",
       "notChipnetWif": "Not a QR code encoding a Chipnet Private Key in WIF format"
+    }
+  },
+  "transferAllAssets": {
+    "title": "Transfer All Assets",
+    "description": "Move all BCH and tokens from this wallet to another address.",
+    "usageHint": "Useful to move everything to a new security setup, such as a wallet with fresh backups or a multisig vault, or to consolidate funds and tokens from several wallets into one.",
+    "usageHintNote": "When moving away from a device you no longer trust, create the new wallet on a different device.",
+    "emptyWallet": "This wallet holds no BCH or tokens to transfer",
+    "toTransfer": "To transfer:",
+    "bchBalance": "BCH",
+    "transactionCount": "Transactions needed: {count}.",
+    "transactionCountNote": "They are sent one at a time and take a few seconds each, so keep Cashonize open until it finishes.",
+    "destinationLabel": "Destination address:",
+    "destinationTokenLabel": "Destination token address:",
+    "destinationPlaceholder": "Address to transfer everything to",
+    "destinationTokenPlaceholder": "Token address to transfer everything to",
+    "transferButton": "Transfer All Assets",
+    "transferringButton": "Transferring...",
+    "partialTransfer": "The transfer stopped early, whatever was not transferred is still in this wallet. Run the transfer again to move the rest.",
+    "phases": {
+      "fungibleTokens": "Fungible tokens",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "pending",
+      "none": "none"
+    },
+    "confirm": {
+      "title": "Transfer all assets?",
+      "message": "All BCH and tokens in this wallet will be transferred to the address below. This cannot be undone.",
+      "button": "Transfer"
+    },
+    "notifications": {
+      "success": "Successfully transferred all assets"
+    },
+    "errors": {
+      "ownAddress": "The destination is an address of this same wallet"
     }
   },
   "exportXpub": {
@@ -1025,6 +1067,7 @@
       "hdAddresses": "HD Addresses",
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
+      "transferAllAssets": "Transfer All Assets",
       "signVerifyMessage": "Sign / Verify Message",
       "exportXpub": "Export Xpub",
       "tokenCreationPage": "Token Creation Page",
