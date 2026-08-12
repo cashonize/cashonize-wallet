@@ -532,6 +532,7 @@
       "label": "Derivation path",
       "standard": "Padrão BCH",
       "bitcoindotcom": "legado, compatível com carteira Bitcoin.com",
+      "slp": "legado, compatível com carteira SLP",
       "custom": "personalizado"
     },
     "persistentStorage": {
@@ -850,13 +851,15 @@
     "label": "Derivation path:",
     "standard": "padrão",
     "bitcoindotcom": "Carteira Bitcoin.com",
+    "slp": "SLP",
     "scanPrompt": "Não tem certeza? {link}",
-    "scanLinkText": "Verificar ambos os caminhos",
+    "scanLinkText": "Verificar atividade da carteira",
     "scanning": "Verificando atividade da carteira...",
     "detected": "Atividade encontrada, {path} selecionado",
-    "detectedBoth": "Atividade encontrada em ambos os caminhos de derivação",
-    "noneFound": "Nenhuma atividade encontrada em nenhum dos caminhos de derivação",
-    "multiAddressWarning": "Esta seed phrase foi usada com vários endereços. Uma carteira de endereço único não mostrará esses fundos. Uma carteira HD é recomendada."
+    "detectedMultiple": "Atividade encontrada em vários caminhos de derivação: {paths}",
+    "noneFound": "Nenhuma atividade encontrada em nenhum caminho de derivação",
+    "multiAddressWarning": "Esta seed phrase foi usada com vários endereços. Uma carteira de endereço único não mostrará esses fundos. Uma carteira HD é recomendada.",
+    "slpWarning": "Este caminho era usado por carteiras SLP. A Cashonize não reconhece tokens SLP, então gastar a partir desta carteira destruirá os que ela tiver. A maioria dos tokens SLP não tem mais valor nem infraestrutura."
   },
   "seedPhraseInput": {
     "label": "Seed phrase:",

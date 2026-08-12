@@ -10,6 +10,7 @@ import { vi } from 'vitest'
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
 export const mockWalletReplaceNamed = vi.fn()
+export const mockWalletFromSeed = vi.fn()
 export const mockTestNetWalletReplaceNamed = vi.fn()
 
 // Mock functions for HD wallet classes
@@ -62,6 +63,7 @@ vi.mock('mainnet-js', () => ({
   Wallet: {
     named: mockWalletNamed,
     replaceNamed: mockWalletReplaceNamed,
+    fromSeed: mockWalletFromSeed,
   },
   TestNetWallet: {
     replaceNamed: mockTestNetWalletReplaceNamed,

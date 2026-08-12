@@ -532,6 +532,7 @@
       "label": "Ruta de derivación",
       "standard": "Estándar BCH",
       "bitcoindotcom": "legado, compatible con billetera Bitcoin.com",
+      "slp": "legado, compatible con billetera SLP",
       "custom": "personalizada"
     },
     "persistentStorage": {
@@ -850,13 +851,15 @@
     "label": "Ruta de derivación:",
     "standard": "estándar",
     "bitcoindotcom": "Billetera Bitcoin.com",
+    "slp": "SLP",
     "scanPrompt": "¿No estás seguro? {link}",
-    "scanLinkText": "Escanear ambas rutas",
+    "scanLinkText": "Escanear actividad de la billetera",
     "scanning": "Buscando actividad de la billetera...",
     "detected": "Actividad encontrada, se seleccionó {path}",
-    "detectedBoth": "Actividad encontrada en ambas rutas de derivación",
-    "noneFound": "No se encontró actividad en ninguna de las rutas de derivación",
-    "multiAddressWarning": "Esta frase semilla se usó con varias direcciones. Una billetera de dirección única no mostrará esos fondos. Se recomienda una billetera HD."
+    "detectedMultiple": "Actividad encontrada en varias rutas de derivación: {paths}",
+    "noneFound": "No se encontró actividad en ninguna ruta de derivación",
+    "multiAddressWarning": "Esta frase semilla se usó con varias direcciones. Una billetera de dirección única no mostrará esos fondos. Se recomienda una billetera HD.",
+    "slpWarning": "Esta ruta fue usada por billeteras SLP. Cashonize no reconoce los tokens SLP, por lo que gastar desde esta billetera destruirá los que tenga. La mayoría de los tokens SLP ya no tienen valor ni infraestructura."
   },
   "seedPhraseInput": {
     "label": "Frase semilla:",

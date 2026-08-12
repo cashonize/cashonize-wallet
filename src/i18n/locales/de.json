@@ -532,6 +532,7 @@
       "label": "Derivation Path",
       "standard": "BCH-Standard",
       "bitcoindotcom": "Legacy, Bitcoin.com Wallet kompatibel",
+      "slp": "Legacy, SLP Wallet kompatibel",
       "custom": "Benutzerdefiniert"
     },
     "persistentStorage": {
@@ -850,13 +851,15 @@
     "label": "Ableitungspfad:",
     "standard": "Standard",
     "bitcoindotcom": "Bitcoin.com Wallet",
+    "slp": "SLP",
     "scanPrompt": "Unsicher? {link}",
-    "scanLinkText": "Beide Pfade prüfen",
+    "scanLinkText": "Nach Wallet-Aktivität suchen",
     "scanning": "Suche nach Wallet-Aktivität...",
     "detected": "Wallet-Aktivität gefunden, {path} ausgewählt",
-    "detectedBoth": "Wallet-Aktivität auf beiden Ableitungspfaden gefunden",
-    "noneFound": "Keine Wallet-Aktivität auf einem der beiden Ableitungspfade gefunden",
-    "multiAddressWarning": "Diese seed phrase wurde mit mehreren Adressen verwendet. Ein Wallet mit einzelner Adresse zeigt diese Guthaben nicht an. Ein HD Wallet wird empfohlen."
+    "detectedMultiple": "Wallet-Aktivität auf mehreren Ableitungspfaden gefunden: {paths}",
+    "noneFound": "Keine Wallet-Aktivität auf einem der Ableitungspfade gefunden",
+    "multiAddressWarning": "Diese seed phrase wurde mit mehreren Adressen verwendet. Ein Wallet mit einzelner Adresse zeigt diese Guthaben nicht an. Ein HD Wallet wird empfohlen.",
+    "slpWarning": "Dieser Pfad wurde von SLP Wallets verwendet. Cashonize erkennt keine SLP-Token, daher werden beim Ausgeben aus diesem Wallet alle darin enthaltenen SLP-Token zerstört. Die meisten SLP-Token haben keinen Wert und keine Infrastruktur mehr."
   },
   "seedPhraseInput": {
     "label": "Seed phrase:",
