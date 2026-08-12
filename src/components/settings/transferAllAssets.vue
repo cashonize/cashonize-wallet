@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { HDWallet } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -93,6 +93,15 @@
     return amount;
   }
 
+  // The view is kept alive across navigation, so without this a finished transfer keeps
+  // showing its result after switching to another wallet, which holds different assets
+  watch(() => store._wallet, () => {
+    phaseProgress.value = undefined;
+    activePhase.value = undefined;
+    transferFailed.value = false;
+    groupCollapseOverride.value = {};
+  });
+
   function phaseStatus(phase: TransferPhase) {
     const phaseState = phaseProgress.value?.[phase];
     if (!phaseState) return 'pending';
@@ -136,8 +145,7 @@
     const confirmed = await confirmDialog(
       t('transferAllAssets.confirm.title'),
       `${t('transferAllAssets.confirm.message')}\n${destination}`,
-      t('transferAllAssets.confirm.button'),
-      'red'
+      t('transferAllAssets.confirm.button')
     );
     if (!confirmed) return;
 
