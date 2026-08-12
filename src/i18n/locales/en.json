@@ -773,7 +773,6 @@
     "transactionCount": "Transactions needed: {count}",
     "destinationLabel": "Destination address:",
     "destinationPlaceholder": "Address to transfer everything to",
-    "irreversibleWarning": "Check the destination address carefully, a transfer cannot be undone.",
     "transferButton": "Transfer All Assets",
     "transferringButton": "Transferring...",
     "partialTransfer": "The transfer stopped early, whatever was not transferred is still in this wallet. Run the transfer again to move the rest.",
@@ -788,7 +787,7 @@
     },
     "confirm": {
       "title": "Transfer all assets?",
-      "message": "All BCH and tokens in this wallet will be transferred to {address}. This cannot be undone.",
+      "message": "All BCH and tokens in this wallet will be transferred to the address below. This cannot be undone.",
       "button": "Transfer"
     },
     "notifications": {

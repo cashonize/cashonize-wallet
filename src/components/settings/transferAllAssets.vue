@@ -29,6 +29,10 @@
 
   const numberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 });
   const transferPhases: TransferPhase[] = ["fungibleTokens", "nfts", "bch"];
+  // Wallets can hold hundreds of categories, past this many the group starts out collapsed
+  const groupCollapseThreshold = 5;
+  type AssetGroup = "fungibleTokens" | "nfts";
+  const groupCollapseOverride = ref({} as Partial<Record<AssetGroup, boolean>>);
 
   const isHdWallet = computed(() => store._wallet instanceof HDWallet);
   const networkPrefix = computed(() => store.network === 'mainnet' ? 'bitcoincash' : 'bchtest');
@@ -53,6 +57,29 @@
     if (!store.balance || store.exchangeRate === undefined) return undefined;
     return formatFiatAmount(satsToBch(store.balance) * store.exchangeRate, settingsStore.currency);
   });
+
+  const assetGroups = computed(() => {
+    const groups = [];
+    if (fungibleTokens.value.length) {
+      groups.push({ key: "fungibleTokens" as const, label: t('transferAllAssets.phases.fungibleTokens'), tokens: fungibleTokens.value });
+    }
+    if (nftTokens.value.length) {
+      groups.push({ key: "nfts" as const, label: t('transferAllAssets.phases.nfts'), tokens: nftTokens.value });
+    }
+    return groups;
+  });
+
+  // The token list loads asynchronously, so the collapse default is read from the current
+  // count each time and only replaced once the user has expanded or collapsed the group
+  function isGroupCollapsed(group: AssetGroup) {
+    const override = groupCollapseOverride.value[group];
+    if (override !== undefined) return override;
+    const tokenCount = group === "fungibleTokens" ? fungibleTokens.value.length : nftTokens.value.length;
+    return tokenCount >= groupCollapseThreshold;
+  }
+  function toggleGroup(group: AssetGroup) {
+    groupCollapseOverride.value[group] = !isGroupCollapsed(group);
+  }
 
   function tokenName(categoryHex: string): string {
     const truncatedId = `${categoryHex.slice(0, 8)}...${categoryHex.slice(-4)}`;
@@ -101,9 +128,11 @@
       return;
     }
 
+    // Always confirmed, whatever the confirmBeforeSending setting says: this empties the wallet
+    // and the dialog is where the destination address gets its last look
     const confirmed = await confirmDialog(
       t('transferAllAssets.confirm.title'),
-      t('transferAllAssets.confirm.message', { address: destination }),
+      `${t('transferAllAssets.confirm.message')}\n${destination}`,
       t('transferAllAssets.confirm.button'),
       'red'
     );
@@ -178,30 +207,31 @@
           </span>
         </div>
 
-        <div v-for="token in fungibleTokens" :key="token.category" class="transfer-asset-row">
-          <TokenIcon
-            :token-id="token.category"
-            :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(token.category) : undefined"
-            :size="28"
-          />
-          <span>{{ tokenName(token.category) }}</span>
-          <span class="transfer-asset-amount">
-            {{ 'amount' in token ? numberFormatter.format(toAmountDecimals(token.amount, token.category)) : '' }}
-            {{ store.bcmrRegistries?.[token.category]?.token?.symbol ?? '' }}
-          </span>
-        </div>
-
-        <div v-for="token in nftTokens" :key="token.category" class="transfer-asset-row">
-          <TokenIcon
-            :token-id="token.category"
-            :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(token.category) : undefined"
-            :size="28"
-          />
-          <span>{{ tokenName(token.category) }}</span>
-          <span v-if="'nfts' in token" class="transfer-asset-amount">
-            {{ token.nfts.length }} NFT{{ token.nfts.length > 1 ? 's' : '' }}
-          </span>
-        </div>
+        <template v-for="group in assetGroups" :key="group.key">
+          <div class="asset-group-header" @click="toggleGroup(group.key)">
+            {{ group.label }} ({{ group.tokens.length }})
+            <q-icon name="expand_more" class="chevron" :class="{ collapsed: isGroupCollapsed(group.key) }" size="20px" />
+          </div>
+          <template v-if="!isGroupCollapsed(group.key)">
+            <div v-for="token in group.tokens" :key="token.category" class="transfer-asset-row">
+              <TokenIcon
+                :token-id="token.category"
+                :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(token.category) : undefined"
+                :size="28"
+              />
+              <span>{{ tokenName(token.category) }}</span>
+              <span class="transfer-asset-amount">
+                <template v-if="'amount' in token">
+                  {{ numberFormatter.format(toAmountDecimals(token.amount, token.category)) }}
+                  {{ store.bcmrRegistries?.[token.category]?.token?.symbol ?? '' }}
+                </template>
+                <template v-else-if="'nfts' in token">
+                  {{ token.nfts.length }} NFT{{ token.nfts.length > 1 ? 's' : '' }}
+                </template>
+              </span>
+            </div>
+          </template>
+        </template>
 
         <div style="font-size: smaller; color: grey; margin-top: 8px;">
           {{ t('transferAllAssets.transactionCount', { count: transactionCount }) }}
@@ -225,10 +255,6 @@
             <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
           </button>
         </div>
-      </div>
-
-      <div style="margin-top: 12px; color: orange;">
-        {{ t('transferAllAssets.irreversibleWarning') }}
       </div>
 
       <input
@@ -271,6 +297,21 @@
   gap: 8px;
   margin: 6px 0;
   padding: 4px 0;
+}
+.asset-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 4px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+}
+.chevron {
+  transition: transform 0.2s;
+}
+.chevron.collapsed {
+  transform: rotate(-90deg);
 }
 .transfer-asset-amount {
   margin-left: auto;

@@ -773,7 +773,6 @@
     "transactionCount": "Transactions nécessaires : {count}",
     "destinationLabel": "Adresse de destination :",
     "destinationPlaceholder": "Adresse vers laquelle tout transférer",
-    "irreversibleWarning": "Vérifiez soigneusement l'adresse de destination, un transfert ne peut pas être annulé.",
     "transferButton": "Transférer tous les actifs",
     "transferringButton": "Transfert en cours...",
     "partialTransfer": "Le transfert s'est arrêté avant la fin, ce qui n'a pas été transféré est toujours dans ce portefeuille. Relancez le transfert pour déplacer le reste.",
@@ -788,7 +787,7 @@
     },
     "confirm": {
       "title": "Transférer tous les actifs ?",
-      "message": "Tous les BCH et tokens de ce portefeuille seront transférés vers {address}. Cette action est irréversible.",
+      "message": "Tous les BCH et tokens de ce portefeuille seront transférés vers l'adresse ci-dessous. Cette action est irréversible.",
       "button": "Transférer"
     },
     "notifications": {

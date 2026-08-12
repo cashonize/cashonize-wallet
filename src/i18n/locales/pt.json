@@ -773,7 +773,6 @@
     "transactionCount": "Transações necessárias: {count}",
     "destinationLabel": "Endereço de destino:",
     "destinationPlaceholder": "Endereço para onde transferir tudo",
-    "irreversibleWarning": "Confira o endereço de destino com atenção, uma transferência não pode ser desfeita.",
     "transferButton": "Transferir todos os ativos",
     "transferringButton": "Transferindo...",
     "partialTransfer": "A transferência parou antes do fim, o que não foi transferido continua nesta carteira. Execute a transferência novamente para mover o restante.",
@@ -788,7 +787,7 @@
     },
     "confirm": {
       "title": "Transferir todos os ativos?",
-      "message": "Todo o BCH e tokens desta carteira serão transferidos para {address}. Isso não pode ser desfeito.",
+      "message": "Todo o BCH e tokens desta carteira serão transferidos para o endereço abaixo. Isso não pode ser desfeito.",
       "button": "Transferir"
     },
     "notifications": {

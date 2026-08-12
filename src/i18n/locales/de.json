@@ -773,7 +773,6 @@
     "transactionCount": "Benötigte Transaktionen: {count}",
     "destinationLabel": "Zieladresse:",
     "destinationPlaceholder": "Adresse, an die alles übertragen wird",
-    "irreversibleWarning": "Prüfe die Zieladresse sorgfältig, eine Übertragung lässt sich nicht rückgängig machen.",
     "transferButton": "Alle Werte übertragen",
     "transferringButton": "Übertragung läuft...",
     "partialTransfer": "Die Übertragung wurde vorzeitig abgebrochen, was nicht übertragen wurde ist noch in diesem Wallet. Starte die Übertragung erneut, um den Rest zu verschieben.",
@@ -788,7 +787,7 @@
     },
     "confirm": {
       "title": "Alle Werte übertragen?",
-      "message": "Alle BCH und Tokens in diesem Wallet werden an {address} übertragen. Das lässt sich nicht rückgängig machen.",
+      "message": "Alle BCH und Tokens in diesem Wallet werden an die Adresse unten übertragen. Das lässt sich nicht rückgängig machen.",
       "button": "Übertragen"
     },
     "notifications": {

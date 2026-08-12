@@ -773,7 +773,6 @@
     "transactionCount": "Transacciones necesarias: {count}",
     "destinationLabel": "Dirección de destino:",
     "destinationPlaceholder": "Dirección a la que transferir todo",
-    "irreversibleWarning": "Revisa con cuidado la dirección de destino, una transferencia no se puede deshacer.",
     "transferButton": "Transferir todos los activos",
     "transferringButton": "Transfiriendo...",
     "partialTransfer": "La transferencia se detuvo antes de terminar, lo que no se transfirió sigue en esta billetera. Ejecuta la transferencia de nuevo para mover el resto.",
@@ -788,7 +787,7 @@
     },
     "confirm": {
       "title": "¿Transferir todos los activos?",
-      "message": "Todo el BCH y los tokens de esta billetera se transferirán a {address}. Esto no se puede deshacer.",
+      "message": "Todo el BCH y los tokens de esta billetera se transferirán a la dirección de abajo. Esto no se puede deshacer.",
       "button": "Transferir"
     },
     "notifications": {
