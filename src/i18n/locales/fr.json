@@ -781,6 +781,8 @@
     "signButton": "Signer le message",
     "verifyButton": "Vérifier",
     "copyButton": "Copier la signature",
+    "copyAllButton": "Tout copier",
+    "shareHint": "Pour que d'autres puissent vérifier la signature, partagez le message, l'adresse et la signature ensemble, sauf s'ils connaissent déjà le message et l'adresse.",
     "validSignature": "Signature valide pour cette adresse",
     "invalidSignature": "Signature invalide pour cette adresse",
     "errors": {

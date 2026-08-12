@@ -64,6 +64,15 @@
     }
   }
 
+  // Verifying needs the message, address and signature, so offer them as one copyable block
+  function copyAll() {
+    copyToClipboard(
+      `${t('signVerifyMessage.messageLabel')} ${messageInput.value}\n` +
+      `${t('signVerifyMessage.addressLabel')} ${signAddress.value}\n` +
+      `${t('signVerifyMessage.signatureLabel')} ${signatureResult.value}`
+    );
+  }
+
   function verifySignature() {
     try {
       const expectedPrefix = store.network === 'mainnet' ? 'bitcoincash' : 'bchtest';
@@ -155,13 +164,6 @@
           :value="t('signVerifyMessage.signButton')"
           :disabled="!messageInput || !signAddress"
         >
-        <input
-          v-if="signatureResult"
-          @click="copyToClipboard(signatureResult)"
-          type="button"
-          class="button"
-          :value="t('signVerifyMessage.copyButton')"
-        >
       </div>
       <div style="font-size: smaller; color: grey; margin-top: 8px;">
         {{ t('signVerifyMessage.safetyHint') }}
@@ -169,6 +171,23 @@
       <div v-if="signatureResult" style="margin-top: 12px;">
         <label>{{ t('signVerifyMessage.signatureLabel') }}</label>
         <div class="signature-result">{{ signatureResult }}</div>
+        <div class="sign-button-row">
+          <input
+            @click="copyToClipboard(signatureResult)"
+            type="button"
+            class="button"
+            :value="t('signVerifyMessage.copyButton')"
+          >
+          <input
+            @click="copyAll()"
+            type="button"
+            class="button"
+            :value="t('signVerifyMessage.copyAllButton')"
+          >
+        </div>
+        <div style="font-size: smaller; color: grey; margin-top: 8px;">
+          {{ t('signVerifyMessage.shareHint') }}
+        </div>
       </div>
     </div>
     <div v-else>

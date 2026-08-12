@@ -781,6 +781,8 @@
     "signButton": "Firmar mensaje",
     "verifyButton": "Verificar",
     "copyButton": "Copiar firma",
+    "copyAllButton": "Copiar todo",
+    "shareHint": "Para que otros puedan verificar la firma, comparte el mensaje, la dirección y la firma juntos, a menos que ya conozcan el mensaje y la dirección.",
     "validSignature": "Firma válida para esta dirección",
     "invalidSignature": "Firma inválida para esta dirección",
     "errors": {
