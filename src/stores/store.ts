@@ -87,9 +87,6 @@ function setDefaultElectrumServers() {
 }
 setDefaultElectrumServers();
 
-const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
-const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
-
 const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const CAULDRON_REFETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
@@ -161,7 +158,7 @@ export const useStore = defineStore('store', () => {
   }
 
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
-  const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
+  const bcmrIndexer = computed(() => network.value == 'mainnet' ? settingsStore.bcmrIndexerMainnet : settingsStore.bcmrIndexerChipnet)
 
   // Index of the receive address shown on the wallet page. For HD wallets this skips addresses
   // the user marked as used; undefined for single-address wallets and when every address in the

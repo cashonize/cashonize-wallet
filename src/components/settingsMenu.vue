@@ -90,6 +90,16 @@
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
   const selectedChaingraph = ref(settingsStore.chaingraph);
   const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
+  const predefinedBcmrIndexersMainnet = ["https://bcmr.paytaca.com/api"];
+  const predefinedBcmrIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
+  const storedBcmrIndexer = settingsStore.bcmrIndexerMainnet;
+  const isCustomBcmrIndexer = !predefinedBcmrIndexersMainnet.includes(storedBcmrIndexer);
+  const selectedBcmrIndexer = ref(isCustomBcmrIndexer ? "custom" : storedBcmrIndexer);
+  const customBcmrIndexer = ref(isCustomBcmrIndexer ? storedBcmrIndexer : "");
+  const storedBcmrIndexerChipnet = settingsStore.bcmrIndexerChipnet;
+  const isCustomBcmrIndexerChipnet = !predefinedBcmrIndexersChipnet.includes(storedBcmrIndexerChipnet);
+  const selectedBcmrIndexerChipnet = ref(isCustomBcmrIndexerChipnet ? "custom" : storedBcmrIndexerChipnet);
+  const customBcmrIndexerChipnet = ref(isCustomBcmrIndexerChipnet ? storedBcmrIndexerChipnet : "");
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
@@ -246,6 +256,31 @@
     localStorage.setItem("cauldronIndexer", selectedCauldronIndexer.value);
     // refetch token prices from the newly selected indexer
     void store.fetchCauldronPricesForTokens();
+  }
+  function changeBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
+    const selected = targetNetwork == "mainnet" ? selectedBcmrIndexer.value : selectedBcmrIndexerChipnet.value;
+    if (selected === "custom") return;
+    applyBcmrIndexer(targetNetwork, selected);
+  }
+  function saveCustomBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
+    const customIndexer = targetNetwork == "mainnet" ? customBcmrIndexer.value : customBcmrIndexerChipnet.value;
+    // the store appends /tokens/... paths, so strip any trailing slash
+    const trimmedIndexer = customIndexer.trim().replace(/\/+$/, "");
+    if (!trimmedIndexer) return;
+    applyBcmrIndexer(targetNetwork, trimmedIndexer);
+  }
+  function applyBcmrIndexer(targetNetwork: "mainnet" | "chipnet", indexerUrl: string){
+    if(targetNetwork == "mainnet"){
+      settingsStore.bcmrIndexerMainnet = indexerUrl;
+      localStorage.setItem("bcmrIndexerMainnet", indexerUrl);
+    }
+    if(targetNetwork == "chipnet"){
+      settingsStore.bcmrIndexerChipnet = indexerUrl;
+      localStorage.setItem("bcmrIndexerChipnet", indexerUrl);
+    }
+    // refetch token metadata from the newly selected indexer
+    store.bcmrRegistries = undefined;
+    if (store.tokenList) void store.fetchTokenMetadata(store.tokenList, false);
   }
   function changeExchangeRateProvider(){
     settingsStore.exchangeRateProvider = selectedExchangeRateProvider.value;
@@ -634,6 +669,46 @@
           <option value="https://indexer.riften.net">indexer.riften.net {{ t('settings.advanced.default') }}</option>
           <option value="https://indexer.cauldron.quest">indexer.cauldron.quest</option>
         </select>
+      </div>
+
+      <div v-if="store.network == 'mainnet'" style="margin-top:15px">
+        <label for="selectNetwork">{{ t('settings.advanced.bcmrIndexer') }}</label>
+        <select v-model="selectedBcmrIndexer" @change="changeBcmrIndexer('mainnet')">
+          <option v-for="(indexer, index) in predefinedBcmrIndexersMainnet" :key="indexer" :value="indexer">
+            {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
+        </select>
+        <div v-if="selectedBcmrIndexer === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customBcmrIndexer"
+            @blur="saveCustomBcmrIndexer('mainnet')"
+            @keyup.enter="saveCustomBcmrIndexer('mainnet')"
+            type="text"
+            :placeholder="t('settings.advanced.bcmrIndexerCustomPlaceholder')"
+            style="width: 100%;"
+          >
+        </div>
+      </div>
+
+      <div v-if="store.network == 'chipnet'" style="margin-top:15px">
+        <label for="selectNetwork">{{ t('settings.advanced.bcmrIndexer') }}</label>
+        <select v-model="selectedBcmrIndexerChipnet" @change="changeBcmrIndexer('chipnet')">
+          <option v-for="(indexer, index) in predefinedBcmrIndexersChipnet" :key="indexer" :value="indexer">
+            {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
+        </select>
+        <div v-if="selectedBcmrIndexerChipnet === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customBcmrIndexerChipnet"
+            @blur="saveCustomBcmrIndexer('chipnet')"
+            @keyup.enter="saveCustomBcmrIndexer('chipnet')"
+            type="text"
+            :placeholder="t('settings.advanced.bcmrIndexerCustomPlaceholder')"
+            style="width: 100%;"
+          >
+        </div>
       </div>
 
       <div style="margin-top:15px;">{{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}

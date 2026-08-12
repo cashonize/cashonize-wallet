@@ -1056,6 +1056,8 @@
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",
       "electrumChipnet": "Electrum-Server chipnet:",
+      "bcmrIndexer": "BCMR-Indexer:",
+      "bcmrIndexerCustomPlaceholder": "z.B. https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "z.B. 127.0.0.1 oder fulcrum.example.com:443",
       "electrumCustomHint": "Erfordert WSS, Port 50004 wird angenommen, falls kein anderer angegeben ist.",
       "electrumSelfSignedBrowser": "Selbstsignierte Zertifikate? {link}, um das Zertifikat zuerst zu akzeptieren.",
