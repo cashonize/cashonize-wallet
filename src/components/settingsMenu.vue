@@ -27,7 +27,7 @@
   const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
   const applicationVersion = import.meta.env.version
 
-  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(0);
+  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6>(0);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -671,19 +671,6 @@
     <div v-else-if="settingsSection == 5">
       <walletsOverview />
     </div>
-    <div v-else-if="settingsSection == 7">
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">
-        → {{ t('settings.menu.utxoManagement') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(8)">
-        → {{ t('settings.menu.sweepPrivateKey') }}
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">
-        → {{ t('settings.menu.signVerifyMessage') }}
-      </div>
-    </div>
     <div v-else-if="settingsSection == 6">
       <div style="margin-bottom:15px;">
         <label>{{ t('settings.localization.language') }}</label>
@@ -744,12 +731,12 @@
         ↳ {{ t('settings.menu.developerSettings') }}
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 7">
-        ↳ {{ t('settings.menu.tools') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
-      </div>
-
       <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd'" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(10)">
         → {{ t('settings.menu.hdAddresses') }}
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(14)">
+        → {{ t('settings.menu.tools') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(11)">
