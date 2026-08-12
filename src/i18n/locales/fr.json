@@ -760,6 +760,16 @@
       "notChipnetWif": "Ce n'est pas un code QR encodant une clé privée Chipnet au format WIF"
     }
   },
+  "exportXpub": {
+    "title": "Exporter la xpub",
+    "description": "Une xpub permet à une autre application d'observer ce portefeuille : voir son solde et tout son historique et générer de nouvelles adresses de réception, sans pouvoir dépenser. Utile pour un suivi de portefeuille ou une copie en lecture seule sur un autre appareil.",
+    "privacyWarning": "Quiconque possède votre xpub peut voir toutes les adresses et transactions de ce portefeuille, passées et futures. Le partage ne peut pas être annulé. Ne la partagez qu'avec des services à qui vous confiez tout votre historique financier.",
+    "revealButton": "Révéler la xpub",
+    "hideButton": "Masquer",
+    "derivationPath": "Chemin de dérivation :",
+    "copyButton": "Copier la xpub",
+    "safetyHint": "Un portefeuille en lecture seule créé à partir de cette xpub ne peut pas dépenser vos fonds."
+  },
   "signVerifyMessage": {
     "title": "Signer / Vérifier un message",
     "descriptionSign": "Signez un message avec une adresse de votre portefeuille pour prouver que vous la contrôlez.",
@@ -1013,6 +1023,7 @@
       "utxoManagement": "Gestion des UTXO",
       "sweepPrivateKey": "Balayer une clé privée",
       "signVerifyMessage": "Signer / Vérifier un message",
+      "exportXpub": "Exporter la xpub",
       "tokenCreationPage": "Page de création de tokens",
       "aboutCashonize": "À propos de Cashonize"
     },

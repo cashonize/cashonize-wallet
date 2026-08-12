@@ -760,6 +760,16 @@
       "notChipnetWif": "Not a QR code encoding a Chipnet Private Key in WIF format"
     }
   },
+  "exportXpub": {
+    "title": "Export Xpub",
+    "description": "An xpub lets another app watch this wallet: see its balance and full history and generate new receive addresses, without being able to spend. Useful for a portfolio tracker or a watch-only copy on another device.",
+    "privacyWarning": "Whoever has your xpub can see all of this wallet's addresses and transactions, past and future. Sharing it cannot be undone. Only share it with services you trust with your full financial history.",
+    "revealButton": "Reveal Xpub",
+    "hideButton": "Hide",
+    "derivationPath": "Derivation path:",
+    "copyButton": "Copy Xpub",
+    "safetyHint": "A watch-only wallet made from this xpub cannot spend your funds."
+  },
   "signVerifyMessage": {
     "title": "Sign / Verify Message",
     "descriptionSign": "Sign a message with an address of your wallet to prove you control it.",
@@ -1013,6 +1023,7 @@
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
       "signVerifyMessage": "Sign / Verify Message",
+      "exportXpub": "Export Xpub",
       "tokenCreationPage": "Token Creation Page",
       "aboutCashonize": "About Cashonize"
     },
