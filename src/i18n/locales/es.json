@@ -762,7 +762,9 @@
   },
   "exportXpub": {
     "title": "Exportar Xpub",
-    "description": "Un xpub permite que otra aplicación observe esta billetera: ver su saldo y todo su historial y generar nuevas direcciones de recepción, sin poder gastar. Útil para un rastreador de portafolio o una copia de solo lectura en otro dispositivo.",
+    "description": "Un xpub permite que otra aplicación observe esta billetera, sin poder gastar.",
+    "usageHint": "Una aplicación observadora puede ver el saldo y todo el historial de la billetera y generar nuevas direcciones de recepción. Útil para un rastreador de portafolio o una copia de solo lectura en otro dispositivo.",
+    "usageHintNote": "Conectar una aplicación por WizardConnect ya comparte xpubs con ella en segundo plano.",
     "privacyWarning": "Quien tenga tu xpub puede ver todas las direcciones y transacciones de esta billetera, pasadas y futuras. Compartirlo no se puede deshacer. Compártelo solo con servicios a los que confíes todo tu historial financiero.",
     "revealButton": "Revelar Xpub",
     "hideButton": "Ocultar",

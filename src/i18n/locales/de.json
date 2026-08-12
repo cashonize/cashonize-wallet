@@ -762,7 +762,9 @@
   },
   "exportXpub": {
     "title": "Xpub exportieren",
-    "description": "Ein Xpub erlaubt einer anderen App, dieses Wallet zu beobachten: Guthaben und gesamten Verlauf sehen und neue Empfangsadressen erzeugen, ohne ausgeben zu können. Nützlich für einen Portfolio-Tracker oder eine Watch-Only-Kopie auf einem anderen Gerät.",
+    "description": "Ein Xpub erlaubt einer anderen App, dieses Wallet zu beobachten, ohne ausgeben zu können.",
+    "usageHint": "Eine beobachtende App kann Guthaben und gesamten Verlauf des Wallets sehen und neue Empfangsadressen erzeugen. Nützlich für einen Portfolio-Tracker oder eine Watch-Only-Kopie auf einem anderen Gerät.",
+    "usageHintNote": "Das Verbinden einer App über WizardConnect teilt bereits Xpubs mit ihr im Hintergrund.",
     "privacyWarning": "Wer dein Xpub hat, kann alle Adressen und Transaktionen dieses Wallets sehen, vergangene und zukünftige. Das Teilen lässt sich nicht rückgängig machen. Teile es nur mit Diensten, denen du deinen gesamten Finanzverlauf anvertraust.",
     "revealButton": "Xpub anzeigen",
     "hideButton": "Verbergen",

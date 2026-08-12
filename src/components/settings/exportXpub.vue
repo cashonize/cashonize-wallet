@@ -4,6 +4,7 @@
   import { useStore } from 'src/stores/store'
   import { useI18n } from 'vue-i18n'
   import { copyToClipboard } from 'src/utils/utils'
+  import InfoPopup from 'src/components/general/InfoPopup.vue'
 
   const store = useStore()
   const { t } = useI18n()
@@ -25,7 +26,13 @@
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('exportXpub.title') }}</legend>
 
-    <div>{{ t('exportXpub.description') }}</div>
+    <div>
+      {{ t('exportXpub.description') }}
+      <InfoPopup>
+        <div style="max-width: 300px;">{{ t('exportXpub.usageHint') }}</div>
+        <div class="info-popup-note" style="max-width: 300px;">{{ t('exportXpub.usageHintNote') }}</div>
+      </InfoPopup>
+    </div>
 
     <div style="margin-top: 15px; color: orange;">
       {{ t('exportXpub.privacyWarning') }}
@@ -38,7 +45,7 @@
       <div style="margin-bottom: 15px;">
         {{ t('exportXpub.derivationPath') }} <span style="font-family: monospace;">{{ derivationPath }}</span>
       </div>
-      <div class="qr-frame" style="margin-bottom: 15px;">
+      <div class="qr-frame" style="margin: 0 auto 15px;">
         <qr-code :contents="xpub" class="qr-code" @click="copyToClipboard(xpub)"></qr-code>
       </div>
       <div class="xpub-result" @click="copyToClipboard(xpub)">{{ xpub }}</div>

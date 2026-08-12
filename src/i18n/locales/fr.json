@@ -762,7 +762,9 @@
   },
   "exportXpub": {
     "title": "Exporter la xpub",
-    "description": "Une xpub permet à une autre application d'observer ce portefeuille : voir son solde et tout son historique et générer de nouvelles adresses de réception, sans pouvoir dépenser. Utile pour un suivi de portefeuille ou une copie en lecture seule sur un autre appareil.",
+    "description": "Une xpub permet à une autre application d'observer ce portefeuille, sans pouvoir dépenser.",
+    "usageHint": "Une application observatrice peut voir le solde et tout l'historique du portefeuille et générer de nouvelles adresses de réception. Utile pour un suivi de portefeuille ou une copie en lecture seule sur un autre appareil.",
+    "usageHintNote": "Connecter une application via WizardConnect partage déjà des xpubs avec elle en arrière-plan.",
     "privacyWarning": "Quiconque possède votre xpub peut voir toutes les adresses et transactions de ce portefeuille, passées et futures. Le partage ne peut pas être annulé. Ne la partagez qu'avec des services à qui vous confiez tout votre historique financier.",
     "revealButton": "Révéler la xpub",
     "hideButton": "Masquer",
