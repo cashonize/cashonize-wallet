@@ -773,7 +773,7 @@
     "toTransfer": "To transfer:",
     "bchBalance": "BCH",
     "transactionCount": "Transactions needed: {count}.",
-    "transactionCountNote": "They are sent one at a time, so this can take a minute or more. Keep Cashonize open until it finishes.",
+    "transactionCountNote": "They are sent one at a time and take a few seconds each, so keep Cashonize open until it finishes.",
     "destinationLabel": "Destination address:",
     "destinationTokenLabel": "Destination token address:",
     "destinationPlaceholder": "Address to transfer everything to",
