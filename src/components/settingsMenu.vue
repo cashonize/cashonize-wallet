@@ -213,7 +213,9 @@
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
   async function saveCustomElectrumServer(targetNetwork: "mainnet" | "chipnet"){
     const customServer = targetNetwork == "mainnet" ? customElectrumServer.value : customElectrumServerChipnet.value;
-    const trimmedServer = customServer.trim();
+    // server operators publish full urls like wss://fulcrum.pat.mn:443, strip a pasted scheme
+    // and trailing slash so the stored value is always host or host:port
+    const trimmedServer = customServer.trim().replace(/^(wss?|https?):\/\//i, "").replace(/\/+$/, "");
     if (!trimmedServer) return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
@@ -225,6 +227,7 @@
       store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerMainnet = trimmedServer;
       localStorage.setItem("electrum-mainnet", trimmedServer);
+      customElectrumServer.value = trimmedServer;
     }
     if(targetNetwork == "chipnet"){
       const newConnection = new Connection("testnet", electrumWssUrl(trimmedServer))
@@ -232,6 +235,7 @@
       store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerChipnet = trimmedServer;
       localStorage.setItem("electrum-chipnet", trimmedServer);
+      customElectrumServerChipnet.value = trimmedServer;
     }
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
@@ -265,8 +269,12 @@
   function saveCustomBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
     const customIndexer = targetNetwork == "mainnet" ? customBcmrIndexer.value : customBcmrIndexerChipnet.value;
     // the store appends /tokens/... paths, so strip any trailing slash
-    const trimmedIndexer = customIndexer.trim().replace(/\/+$/, "");
+    let trimmedIndexer = customIndexer.trim().replace(/\/+$/, "");
     if (!trimmedIndexer) return;
+    // without a scheme the value would be used as a path on the app's own origin
+    if (!/^https?:\/\//i.test(trimmedIndexer)) trimmedIndexer = `https://${trimmedIndexer}`;
+    if (targetNetwork == "mainnet") customBcmrIndexer.value = trimmedIndexer;
+    if (targetNetwork == "chipnet") customBcmrIndexerChipnet.value = trimmedIndexer;
     applyBcmrIndexer(targetNetwork, trimmedIndexer);
   }
   function applyBcmrIndexer(targetNetwork: "mainnet" | "chipnet", indexerUrl: string){
