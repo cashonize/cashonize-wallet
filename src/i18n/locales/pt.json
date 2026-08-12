@@ -763,6 +763,10 @@
   "signVerifyMessage": {
     "title": "Assinar / Verificar mensagem",
     "description": "Assine uma mensagem com um endereço da sua carteira para provar que você o controla, ou verifique se uma mensagem foi assinada por um endereço específico.",
+    "usageHint": "Alguns serviços pedem para assinar uma mensagem para provar que um endereço é seu, por exemplo uma exchange vinculando um endereço de saque à sua conta. Uma mensagem assinada também permite provar que você controla os fundos de um endereço sem movê-los.",
+    "usageHintNote": "Qualquer pessoa pode conferir essa prova com a função de verificação.",
+    "selectAddress": "Selecionar dos endereços da carteira",
+    "selectAddressHint": "Escolha o endereço para assinar",
     "messageLabel": "Mensagem:",
     "addressLabel": "Endereço:",
     "signatureLabel": "Assinatura:",

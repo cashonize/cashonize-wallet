@@ -13,6 +13,11 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
+  // The sign/verify message tool reuses this selector with its own hint text
+  const props = defineProps<{
+    hint?: string,
+  }>();
+
   const emit = defineEmits<{
     selectionChanged: [addresses: string[]];
   }>();
@@ -113,7 +118,7 @@
 <template>
   <div>
     <div class="control-row">
-      <span>{{ t('walletConnect.addressSelect.hint') }}</span>
+      <span>{{ props.hint ?? t('walletConnect.addressSelect.hint') }}</span>
       <span class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
         <q-icon name="tune" size="22px" />
       </span>

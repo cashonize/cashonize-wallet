@@ -763,6 +763,10 @@
   "signVerifyMessage": {
     "title": "Nachricht signieren / verifizieren",
     "description": "Signiere eine Nachricht mit einer Adresse deines Wallets, um zu beweisen, dass du sie kontrollierst, oder verifiziere, dass eine Nachricht von einer bestimmten Adresse signiert wurde.",
+    "usageHint": "Manche Dienste verlangen eine signierte Nachricht als Nachweis, dass eine Adresse dir gehört, zum Beispiel eine Börse, die eine Auszahlungsadresse mit deinem Konto verknüpft. Eine signierte Nachricht kann auch belegen, dass du das Guthaben einer Adresse kontrollierst, ohne es zu bewegen.",
+    "usageHintNote": "Jeder kann einen solchen Nachweis mit der Verifizieren-Funktion prüfen.",
+    "selectAddress": "Aus den Wallet-Adressen auswählen",
+    "selectAddressHint": "Wähle die Adresse zum Signieren",
     "messageLabel": "Nachricht:",
     "addressLabel": "Adresse:",
     "signatureLabel": "Signatur:",

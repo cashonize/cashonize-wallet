@@ -763,6 +763,10 @@
   "signVerifyMessage": {
     "title": "Signer / Vérifier un message",
     "description": "Signez un message avec une adresse de votre portefeuille pour prouver que vous la contrôlez, ou vérifiez qu'un message a été signé par une adresse spécifique.",
+    "usageHint": "Certains services demandent de signer un message pour prouver qu'une adresse vous appartient, par exemple un exchange qui lie une adresse de retrait à votre compte. Un message signé permet aussi de prouver que vous contrôlez les fonds d'une adresse sans les déplacer.",
+    "usageHintNote": "N'importe qui peut vérifier une telle preuve avec la fonction de vérification.",
+    "selectAddress": "Sélectionner parmi les adresses du portefeuille",
+    "selectAddressHint": "Choisissez l'adresse avec laquelle signer",
     "messageLabel": "Message :",
     "addressLabel": "Adresse :",
     "signatureLabel": "Signature :",

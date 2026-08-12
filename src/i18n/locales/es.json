@@ -763,6 +763,10 @@
   "signVerifyMessage": {
     "title": "Firmar / Verificar mensaje",
     "description": "Firma un mensaje con una dirección de tu billetera para demostrar que la controlas, o verifica que un mensaje fue firmado por una dirección específica.",
+    "usageHint": "Algunos servicios piden firmar un mensaje para demostrar que una dirección es tuya, por ejemplo un exchange que vincula una dirección de retiro a tu cuenta. Un mensaje firmado también permite demostrar que controlas los fondos de una dirección sin moverlos.",
+    "usageHintNote": "Cualquiera puede comprobar esa prueba con la función de verificación.",
+    "selectAddress": "Seleccionar de las direcciones de la billetera",
+    "selectAddressHint": "Elige con qué dirección firmar",
     "messageLabel": "Mensaje:",
     "addressLabel": "Dirección:",
     "signatureLabel": "Firma:",
