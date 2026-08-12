@@ -11,6 +11,7 @@
   import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
   import signVerifyMessageView from 'src/components/settings/signVerifyMessage.vue'
   import walletToolsView from 'src/components/settings/walletTools.vue'
+  import exportXpubView from 'src/components/settings/exportXpub.vue'
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
@@ -69,6 +70,7 @@
       case 12: return portfolioView;
       case 13: return signVerifyMessageView;
       case 14: return walletToolsView;
+      case 15: return exportXpubView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });

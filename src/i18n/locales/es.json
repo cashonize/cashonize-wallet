@@ -760,6 +760,18 @@
       "notChipnetWif": "No es un código QR que codifica una clave privada de Chipnet en formato WIF"
     }
   },
+  "exportXpub": {
+    "title": "Exportar Xpub",
+    "description": "Un xpub permite que otra aplicación observe esta billetera, sin poder gastar.",
+    "usageHint": "Una aplicación observadora puede ver el saldo y todo el historial de la billetera y generar nuevas direcciones de recepción. Útil para un rastreador de portafolio o una copia de solo lectura en otro dispositivo.",
+    "usageHintNote": "Conectar una aplicación por WizardConnect ya comparte xpubs con ella en segundo plano.",
+    "privacyWarning": "Quien tenga tu xpub puede ver todas las direcciones y transacciones de esta billetera, pasadas y futuras. Compartirlo no se puede deshacer. Compártelo solo con servicios a los que confíes todo tu historial financiero.",
+    "revealButton": "Revelar Xpub",
+    "hideButton": "Ocultar",
+    "derivationPath": "Ruta de derivación:",
+    "copyButton": "Copiar Xpub",
+    "safetyHint": "Una billetera de solo lectura creada con este xpub no puede gastar tus fondos."
+  },
   "signVerifyMessage": {
     "title": "Firmar / Verificar mensaje",
     "descriptionSign": "Firma un mensaje con una dirección de tu billetera para demostrar que la controlas.",
@@ -1013,6 +1025,7 @@
       "utxoManagement": "Gestión de UTXO",
       "sweepPrivateKey": "Barrer clave privada",
       "signVerifyMessage": "Firmar / Verificar mensaje",
+      "exportXpub": "Exportar Xpub",
       "tokenCreationPage": "Página de creación de tokens",
       "aboutCashonize": "Acerca de Cashonize"
     },

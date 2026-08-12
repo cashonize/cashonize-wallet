@@ -1,8 +1,10 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
+  const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
   // Highlights token utxos holding significant bch, same check as the settings menu entry
@@ -25,6 +27,10 @@
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">
       → {{ t('settings.menu.signVerifyMessage') }}
+    </div>
+
+    <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd'" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(15)">
+      → {{ t('settings.menu.exportXpub') }}
     </div>
   </fieldset>
 </template>
