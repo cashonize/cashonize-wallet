@@ -17,6 +17,8 @@
 
   const isHdWallet = computed(() => store._wallet instanceof HDWallet);
 
+  const mode = ref<'sign' | 'verify'>('sign');
+
   // HD wallets pick their signing address from the address select dialog instead of a prefill
   const messageInput = ref("");
   const addressInput = ref(isHdWallet.value ? "" : store.wallet.getDepositAddress());
@@ -36,7 +38,7 @@
   }
 
   // A verify result no longer matches the inputs once any of them change
-  watch([messageInput, addressInput, signatureInput], () => {
+  watch([messageInput, addressInput, signatureInput, mode], () => {
     verifyResult.value = undefined;
   });
 
@@ -85,6 +87,15 @@
       <div class="info-popup-note">{{ t('signVerifyMessage.usageHintNote') }}</div>
     </InfoPopup>
 
+    <div class="type-filter" style="margin-top: 15px;">
+      <button :class="{ active: mode === 'sign' }" @click="mode = 'sign'">
+        {{ t('signVerifyMessage.signMode') }}
+      </button>
+      <button :class="{ active: mode === 'verify' }" @click="mode = 'verify'">
+        {{ t('signVerifyMessage.verifyMode') }}
+      </button>
+    </div>
+
     <div style="margin-top: 15px;">
       <label>{{ t('signVerifyMessage.messageLabel') }}</label>
       <textarea
@@ -101,10 +112,10 @@
         <input
           v-model="addressInput"
           type="text"
-          :placeholder="t('signVerifyMessage.addressPlaceholder')"
+          :placeholder="mode === 'sign' ? t('signVerifyMessage.addressPlaceholderSign') : t('signVerifyMessage.addressPlaceholderVerify')"
         >
         <button
-          v-if="isHdWallet"
+          v-if="isHdWallet && mode === 'sign'"
           @click="openAddressSelectDialog()"
           style="padding: 12px"
           :title="t('signVerifyMessage.selectAddress')"
@@ -119,12 +130,13 @@
       <textarea
         v-model="signatureInput"
         rows="2"
-        :placeholder="t('signVerifyMessage.signaturePlaceholder')"
+        :readonly="mode === 'sign'"
+        :placeholder="mode === 'sign' ? t('signVerifyMessage.signaturePlaceholderSign') : t('signVerifyMessage.signaturePlaceholderVerify')"
         style="width: 100%;"
       ></textarea>
     </div>
 
-    <div class="sign-button-row">
+    <div v-if="mode === 'sign'" class="sign-button-row">
       <input
         @click="signMessage()"
         type="button"
@@ -133,18 +145,20 @@
         :disabled="!messageInput || !addressInput"
       >
       <input
-        @click="verifySignature()"
-        type="button"
-        class="button"
-        :value="t('signVerifyMessage.verifyButton')"
-        :disabled="!messageInput || !addressInput || !signatureInput"
-      >
-      <input
         v-if="signatureInput"
         @click="copyToClipboard(signatureInput)"
         type="button"
         class="button"
         :value="t('signVerifyMessage.copyButton')"
+      >
+    </div>
+    <div v-else class="sign-button-row">
+      <input
+        @click="verifySignature()"
+        type="button"
+        class="primaryButton"
+        :value="t('signVerifyMessage.verifyButton')"
+        :disabled="!messageInput || !addressInput || !signatureInput"
       >
     </div>
 
