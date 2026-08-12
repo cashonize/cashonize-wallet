@@ -31,9 +31,11 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
 - **Localization** - Available in English, Spanish, French, German, and Portuguese
 - **Transaction history** - Filterable, searchable history with private transaction notes
-- **Sweep functionality** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
 - **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
 - **HD address management** - Address overview with balances, labels and marking addresses as used
+- **Wallet tools** - Sign and verify messages with your addresses, and transfer all your BCH and tokens to another wallet
+- **Sweep functionality** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
+
 
 ### Exclusive Features
 
