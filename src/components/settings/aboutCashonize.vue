@@ -15,7 +15,7 @@
     <legend>{{ t('aboutCashonize.title') }}</legend>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(5)">
-      ← {{ t('aboutCashonize.backToSettings') }}
+      ← {{ t('common.backToSettings') }}
     </div>
 
     <p style="margin-bottom: 8px;">{{ t('aboutCashonize.description') }}</p>

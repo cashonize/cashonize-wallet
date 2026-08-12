@@ -17,6 +17,7 @@
       "nothingToTransfer": "Não resta BCH nem tokens para transferir"
     },
     "attention": "Atenção:",
+    "backToSettings": "Voltar às configurações",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Isso combina entradas de todos os seus endereços, vinculando-os publicamente como uma única carteira, o que sacrifica os benefícios de privacidade de usar uma carteira HD.",
     "copied": "Copiado!",
@@ -693,7 +694,6 @@
   },
   "aboutCashonize": {
     "title": "Sobre o Cashonize",
-    "backToSettings": "Voltar às configurações",
     "description": "Cashonize é uma carteira de Bitcoin Cash fácil de usar e multiplataforma.",
     "tagline": "Código aberto · Sem custódia · Desde 2023",
     "learnMore": "Visite o site do Cashonize",

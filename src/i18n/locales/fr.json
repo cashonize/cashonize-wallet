@@ -17,6 +17,7 @@
       "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer"
     },
     "attention": "Attention :",
+    "backToSettings": "Retour aux paramètres",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Cela combine des entrées de toutes vos adresses, les liant publiquement comme un seul portefeuille, ce qui sacrifie les avantages de confidentialité d'un portefeuille HD.",
     "copied": "Copié !",
@@ -693,7 +694,6 @@
   },
   "aboutCashonize": {
     "title": "À propos de Cashonize",
-    "backToSettings": "Retour aux paramètres",
     "description": "Cashonize est un portefeuille Bitcoin Cash facile à utiliser et multiplateforme.",
     "tagline": "Open source · Non-custodial · Depuis 2023",
     "learnMore": "Visitez le site web de Cashonize",

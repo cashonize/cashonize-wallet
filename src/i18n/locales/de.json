@@ -17,6 +17,7 @@
       "nothingToTransfer": "Keine BCH oder Tokens mehr zum Übertragen"
     },
     "attention": "Achtung:",
+    "backToSettings": "Zurück zu den Einstellungen",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Das führt Eingaben aller deiner Adressen zusammen und verknüpft sie öffentlich als ein Wallet, was die Privatsphäre-Vorteile eines HD-Wallets aufgibt.",
     "copied": "Kopiert!",
@@ -693,7 +694,6 @@
   },
   "aboutCashonize": {
     "title": "Über Cashonize",
-    "backToSettings": "Zurück zu den Einstellungen",
     "description": "Cashonize ist eine benutzerfreundliche, plattformübergreifende Bitcoin Cash Wallet.",
     "tagline": "Open-Source · Selbstverwaltet · Seit 2023",
     "learnMore": "Besuche die Cashonize-Website",
