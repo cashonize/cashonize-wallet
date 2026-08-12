@@ -816,6 +816,7 @@
           <option value="cad">CAD</option>
           <option value="aud">AUD</option>
           <option value="chf">CHF</option>
+          <option value="brl">BRL</option>
         </select>
       </div>
 

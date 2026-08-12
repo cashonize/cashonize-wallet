@@ -10,7 +10,8 @@ export const CurrencySymbols = {
   gbp: "£",
   cad: "C$",
   aud: "A$",
-  chf: "Fr."
+  chf: "Fr.",
+  brl: "R$"
 } as const
 
 // Must be valid Intl API currency codes (used by formatFiatAmount).
@@ -20,7 +21,8 @@ export const CurrencyShortNames = {
   gbp: "GBP",
   cad: "CAD",
   aud: "AUD",
-  chf: "CHF"
+  chf: "CHF",
+  brl: "BRL"
 } as const
 
 export type Currency = keyof typeof CurrencySymbols;

@@ -124,7 +124,8 @@
         "gbp": "GBP - Libra esterlina",
         "cad": "CAD - Dólar canadiense",
         "aud": "AUD - Dólar australiano",
-        "chf": "CHF - Franco suizo"
+        "chf": "CHF - Franco suizo",
+        "brl": "BRL - Real brasileño"
       },
       "darkMode": "Modo oscuro",
       "confirmPayments": "Confirmar pagos antes de enviar",

@@ -274,6 +274,7 @@
           <option value="cad">{{ t('onboarding.preferences.currency.cad') }}</option>
           <option value="aud">{{ t('onboarding.preferences.currency.aud') }}</option>
           <option value="chf">{{ t('onboarding.preferences.currency.chf') }}</option>
+          <option value="brl">{{ t('onboarding.preferences.currency.brl') }}</option>
         </select>
       </div>
 
