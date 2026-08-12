@@ -199,6 +199,7 @@
       <div style="margin-top: 15px;">
         <b>{{ t('transferAllAssets.toTransfer') }}</b>
         <div class="transfer-asset-row">
+          <img src="images/bch-icon.png" class="bch-icon">
           <span>{{ t('transferAllAssets.bchBalance') }}</span>
           <span class="transfer-asset-amount">
             {{ balanceInBchUnit.toLocaleString('en-US', { maximumFractionDigits: settingsStore.bchUnit === 'sat' ? 0 : 8 }) }}
@@ -233,18 +234,15 @@
           </template>
         </template>
 
-        <div style="font-size: smaller; color: grey; margin-top: 8px;">
-          {{ t('transferAllAssets.transactionCount', { count: transactionCount }) }}
-        </div>
       </div>
 
       <div style="margin-top: 15px;">
-        <label>{{ t('transferAllAssets.destinationLabel') }}</label>
+        <label>{{ hasTokens ? t('transferAllAssets.destinationTokenLabel') : t('transferAllAssets.destinationLabel') }}</label>
         <div class="destination-input-row">
           <input
             v-model="destinationInput"
             type="text"
-            :placeholder="t('transferAllAssets.destinationPlaceholder')"
+            :placeholder="hasTokens ? t('transferAllAssets.destinationTokenPlaceholder') : t('transferAllAssets.destinationPlaceholder')"
             :disabled="isTransferring"
           >
           <button
@@ -255,6 +253,11 @@
             <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
           </button>
         </div>
+      </div>
+
+      <div class="transfer-transaction-count">
+        {{ t('transferAllAssets.transactionCount', { count: transactionCount }) }}
+        <span v-if="transactionCount > 1">{{ t('transferAllAssets.transactionCountNote') }}</span>
       </div>
 
       <input
@@ -298,16 +301,24 @@
   margin: 6px 0;
   padding: 4px 0;
 }
+.transfer-transaction-count {
+  margin-top: 15px;
+}
+.bch-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
 .asset-group-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   margin: 10px 0 4px;
   cursor: pointer;
   user-select: none;
   font-weight: 600;
 }
 .chevron {
+  vertical-align: -0.25em;
+  margin-left: 4px;
   transition: transform 0.2s;
 }
 .chevron.collapsed {
