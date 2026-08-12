@@ -96,7 +96,7 @@
         {{ t('signVerifyMessage.descriptionSign') }}
         <InfoPopup>
           <div style="max-width: 300px;">{{ t('signVerifyMessage.usageHint') }}</div>
-          <div class="info-popup-note">{{ t('signVerifyMessage.usageHintNote') }}</div>
+          <div class="info-popup-note" style="max-width: 300px;">{{ t('signVerifyMessage.usageHintNote') }}</div>
         </InfoPopup>
       </template>
       <template v-else>
