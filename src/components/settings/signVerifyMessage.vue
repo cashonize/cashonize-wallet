@@ -163,6 +163,9 @@
           :value="t('signVerifyMessage.copyButton')"
         >
       </div>
+      <div style="font-size: smaller; color: grey; margin-top: 8px;">
+        {{ t('signVerifyMessage.safetyHint') }}
+      </div>
       <div v-if="signatureResult" style="margin-top: 12px;">
         <label>{{ t('signVerifyMessage.signatureLabel') }}</label>
         <div class="signature-result">{{ signatureResult }}</div>
