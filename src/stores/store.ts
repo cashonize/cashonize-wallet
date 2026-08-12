@@ -25,6 +25,7 @@ import {
   type WalletType
 } from "../interfaces/interfaces"
 import {
+  electrumWssUrl,
   getBalanceFromUtxos,
   getTokenUtxos,
   loadWalletFromId,
@@ -81,13 +82,10 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 // falls back to its hardcoded default server (blackie.c3-soft.com), leaking the wallet's address
 // subscriptions to a server the user never selected. Kept in sync with settings via a watch (see below).
 function setDefaultElectrumServers() {
-  DefaultProvider.servers.mainnet = [`wss://${settingsStore.electrumServerMainnet}:50004`];
-  DefaultProvider.servers.testnet = [`wss://${settingsStore.electrumServerChipnet}:50004`];
+  DefaultProvider.servers.mainnet = [electrumWssUrl(settingsStore.electrumServerMainnet)];
+  DefaultProvider.servers.testnet = [electrumWssUrl(settingsStore.electrumServerChipnet)];
 }
 setDefaultElectrumServers();
-
-const defaultBcmrIndexer = 'https://bcmr.paytaca.com/api';
-const defaultBcmrIndexerChipnet = 'https://bcmr-chipnet.paytaca.com/api';
 
 const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
@@ -160,7 +158,7 @@ export const useStore = defineStore('store', () => {
   }
 
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
-  const bcmrIndexer = computed(() => network.value == 'mainnet' ? defaultBcmrIndexer : defaultBcmrIndexerChipnet)
+  const bcmrIndexer = computed(() => network.value == 'mainnet' ? settingsStore.bcmrIndexerMainnet : settingsStore.bcmrIndexerChipnet)
 
   // Index of the receive address shown on the wallet page. For HD wallets this skips addresses
   // the user marked as used; undefined for single-address wallets and when every address in the
@@ -294,12 +292,12 @@ export const useStore = defineStore('store', () => {
   // Call initializeWallet() afterwards to actually connect to the electrum client and to fetch initial data.
   function setWallet(newWallet: WalletType){
     if(newWallet.network == NetworkType.Mainnet){
-      const connectionMainnet = new Connection("mainnet", `wss://${settingsStore.electrumServerMainnet}:50004`)
+      const connectionMainnet = new Connection("mainnet", electrumWssUrl(settingsStore.electrumServerMainnet))
       // @ts-ignore currently no other way to set a specific provider
       newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider
     }
     if(newWallet.network == NetworkType.Testnet){
-      const connectionChipnet = new Connection("testnet", `wss://${settingsStore.electrumServerChipnet}:50004`)
+      const connectionChipnet = new Connection("testnet", electrumWssUrl(settingsStore.electrumServerChipnet))
       // @ts-ignore currently no other way to set a specific provider
       newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider
     }

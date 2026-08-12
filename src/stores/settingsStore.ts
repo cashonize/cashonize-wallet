@@ -15,6 +15,8 @@ const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultElectrumChipnet = "chipnet.bch.ninja"
 const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
 const defaultCauldronIndexer = "https://indexer.riften.net";
+const defaultBcmrIndexerMainnet = "https://bcmr.paytaca.com/api";
+const defaultBcmrIndexerChipnet = "https://bcmr-chipnet.paytaca.com/api";
 // ipfs.io serves the content directly, other gateways redirect to a subdomain gateway.
 // A redirect hop without CORS headers breaks reads that need them, like the canvas
 // pixel read behind the portfolio chart's icon colors.
@@ -35,6 +37,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const electrumServerChipnet = ref(defaultElectrumChipnet);
   const chaingraph = ref(defaultChaingraph);
   const cauldronIndexer = ref(defaultCauldronIndexer);
+  const bcmrIndexerMainnet = ref(defaultBcmrIndexerMainnet);
+  const bcmrIndexerChipnet = ref(defaultBcmrIndexerChipnet);
   const ipfsGateway = ref(defaultIpfsGateway);
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
@@ -206,6 +210,12 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readCauldronIndexer = localStorage.getItem("cauldronIndexer") ?? "";
   if(readCauldronIndexer) cauldronIndexer.value = readCauldronIndexer
+
+  const readBcmrIndexerMainnet = localStorage.getItem("bcmrIndexerMainnet") ?? "";
+  if(readBcmrIndexerMainnet) bcmrIndexerMainnet.value = readBcmrIndexerMainnet
+
+  const readBcmrIndexerChipnet = localStorage.getItem("bcmrIndexerChipnet") ?? "";
+  if(readBcmrIndexerChipnet) bcmrIndexerChipnet.value = readBcmrIndexerChipnet
   
   const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
   if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
@@ -445,6 +455,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     electrumServerChipnet,
     chaingraph,
     cauldronIndexer,
+    bcmrIndexerMainnet,
+    bcmrIndexerChipnet,
     ipfsGateway,
     darkMode,
     showFiatValueHistory,

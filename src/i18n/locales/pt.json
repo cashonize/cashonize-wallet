@@ -1056,8 +1056,10 @@
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
       "electrumChipnet": "Servidor Electrum chipnet:",
-      "electrumCustomPlaceholder": "ex: 127.0.0.1",
-      "electrumCustomHint": "Requer WSS na porta 50004.",
+      "bcmrIndexer": "Indexador BCMR:",
+      "bcmrIndexerCustomPlaceholder": "ex: https://bcmr.example.com/api",
+      "electrumCustomPlaceholder": "ex: 127.0.0.1 ou fulcrum.example.com:443",
+      "electrumCustomHint": "Requer WSS, a porta 50004 é assumida se nenhuma outra for especificada.",
       "electrumSelfSignedBrowser": "Usando certificados autoassinados? {link} para aceitar o certificado primeiro.",
       "electrumSelfSignedVisit": "Acesse aqui",
       "electrumSelfSignedApp": "Nota: certificados autoassinados não são suportados no aplicativo no momento.",

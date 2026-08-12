@@ -21,6 +21,11 @@ export function runAsyncVoid(fn: () => Promise<void>) {
   void fn();
 }
 
+// Electrum servers are stored as "host" or "host:port", the conventional wss port 50004 applies when none is given
+export function electrumWssUrl(server: string): string {
+  return server.includes(":") ? `wss://${server}` : `wss://${server}:50004`;
+}
+
 export function walletTypeFromWalletId(walletId: string): 'single' | 'hd' {
   return walletId.startsWith('hd:') ? 'hd' : 'single';
 }

@@ -1,5 +1,15 @@
-import { parseExtendedJson } from "../src/utils/utils";
+import { electrumWssUrl, parseExtendedJson } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
+
+describe('test electrumWssUrl', () => {
+  it('should assume the conventional wss port for a bare hostname', () => {
+    expect(electrumWssUrl("electrum.imaginary.cash")).toBe("wss://electrum.imaginary.cash:50004");
+  })
+  it('should keep a specified port', () => {
+    expect(electrumWssUrl("fulcrum.pat.mn:443")).toBe("wss://fulcrum.pat.mn:443");
+    expect(electrumWssUrl("127.0.0.1:50004")).toBe("wss://127.0.0.1:50004");
+  })
+})
 
 describe('test parseExtendedJson', () => {
   it('should parse jsonString correctly - cashNinjaJsonString0', () => {

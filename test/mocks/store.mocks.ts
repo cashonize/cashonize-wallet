@@ -129,6 +129,10 @@ vi.mock('src/stores/settingsStore', () => ({
     bchUnit: 'bch',
     explorerMainnet: 'https://blockchair.com',
     explorerChipnet: 'https://chipnet.chaingraph.cash',
+    electrumServerMainnet: 'electrum.imaginary.cash',
+    electrumServerChipnet: 'chipnet.bch.ninja',
+    bcmrIndexerMainnet: 'https://bcmr.paytaca.com/api',
+    bcmrIndexerChipnet: 'https://bcmr-chipnet.paytaca.com/api',
     ipfsGateway: 'https://ipfs.io/ipfs/',
     featuredTokens: [],
     getWalletType: vi.fn().mockReturnValue('single'),
@@ -202,4 +206,5 @@ vi.mock('src/utils/utils', () => ({
   }),
   runAsyncVoid: vi.fn((fn) => fn()),
   convertElectrumTokenData: vi.fn(),
+  electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
 }))

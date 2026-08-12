@@ -12,6 +12,7 @@
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
+  import { electrumWssUrl } from 'src/utils/utils'
   import { confirmDialog } from 'src/utils/txHelpers'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -61,11 +62,21 @@
   const isCustomElectrumServer = !predefinedElectrumServersMainnet.includes(storedElectrumServer);
   const selectedElectrumServer = ref(isCustomElectrumServer ? "custom" : storedElectrumServer);
   const customElectrumServer = ref(isCustomElectrumServer ? storedElectrumServer : "127.0.0.1");
-  const isLocalElectrumServer = computed(() => {
-    const server = customElectrumServer.value.trim();
-    return server === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(server);
-  });
-  const selectedElectrumServerChipnet = ref(settingsStore.electrumServerChipnet);
+  const predefinedElectrumServersChipnet = [
+    "chipnet.bch.ninja",
+    "chipnet.imaginary.cash"
+  ];
+  const storedElectrumServerChipnet = settingsStore.electrumServerChipnet;
+  const isCustomElectrumServerChipnet = !predefinedElectrumServersChipnet.includes(storedElectrumServerChipnet);
+  const selectedElectrumServerChipnet = ref(isCustomElectrumServerChipnet ? "custom" : storedElectrumServerChipnet);
+  const customElectrumServerChipnet = ref(isCustomElectrumServerChipnet ? storedElectrumServerChipnet : "127.0.0.1");
+  function isLocalServer(serverInput: string) {
+    // The custom server may carry a ":port" suffix, the check is about the host
+    const host = serverInput.trim().split(":")[0] ?? "";
+    return host === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(host);
+  }
+  const isLocalElectrumServer = computed(() => isLocalServer(customElectrumServer.value));
+  const isLocalElectrumServerChipnet = computed(() => isLocalServer(customElectrumServerChipnet.value));
   // the first entry is labeled as the default, keep it in sync with settingsStore
   const predefinedIpfsGateways = [
     "https://ipfs.io/ipfs/",
@@ -79,6 +90,16 @@
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
   const selectedChaingraph = ref(settingsStore.chaingraph);
   const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
+  const predefinedBcmrIndexersMainnet = ["https://bcmr.paytaca.com/api"];
+  const predefinedBcmrIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
+  const storedBcmrIndexer = settingsStore.bcmrIndexerMainnet;
+  const isCustomBcmrIndexer = !predefinedBcmrIndexersMainnet.includes(storedBcmrIndexer);
+  const selectedBcmrIndexer = ref(isCustomBcmrIndexer ? "custom" : storedBcmrIndexer);
+  const customBcmrIndexer = ref(isCustomBcmrIndexer ? storedBcmrIndexer : "");
+  const storedBcmrIndexerChipnet = settingsStore.bcmrIndexerChipnet;
+  const isCustomBcmrIndexerChipnet = !predefinedBcmrIndexersChipnet.includes(storedBcmrIndexerChipnet);
+  const selectedBcmrIndexerChipnet = ref(isCustomBcmrIndexerChipnet ? "custom" : storedBcmrIndexerChipnet);
+  const customBcmrIndexerChipnet = ref(isCustomBcmrIndexerChipnet ? storedBcmrIndexerChipnet : "");
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
@@ -167,19 +188,20 @@
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
   async function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
     if (targetNetwork === "mainnet" && selectedElectrumServer.value === "custom") return;
+    if (targetNetwork === "chipnet" && selectedElectrumServerChipnet.value === "custom") return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
     if(targetNetwork == "mainnet"){
-      const newConnection = new Connection("mainnet",`wss://${selectedElectrumServer.value}:50004`)
+      const newConnection = new Connection("mainnet", electrumWssUrl(selectedElectrumServer.value))
       // @ts-ignore currently no other way to set a specific provider
       store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerMainnet = selectedElectrumServer.value
       localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
     }
     if(targetNetwork == "chipnet"){
-      const newConnection = new Connection("testnet",`wss://${selectedElectrumServerChipnet.value}:50004`)
+      const newConnection = new Connection("testnet", electrumWssUrl(selectedElectrumServerChipnet.value))
       // @ts-ignore currently no other way to set a specific provider
       store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
@@ -189,18 +211,32 @@
     void store.initializeWallet();
   }
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
-  async function saveCustomElectrumServer(){
-    const trimmedServer = customElectrumServer.value.trim();
+  async function saveCustomElectrumServer(targetNetwork: "mainnet" | "chipnet"){
+    const customServer = targetNetwork == "mainnet" ? customElectrumServer.value : customElectrumServerChipnet.value;
+    // server operators publish full urls like wss://fulcrum.pat.mn:443, strip a pasted scheme
+    // and trailing slash so the stored value is always host or host:port
+    const trimmedServer = customServer.trim().replace(/^(wss?|https?):\/\//i, "").replace(/\/+$/, "");
     if (!trimmedServer) return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
-    const newConnection = new Connection("mainnet",`wss://${trimmedServer}:50004`)
-    // @ts-ignore currently no other way to set a specific provider
-    store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-    settingsStore.electrumServerMainnet = trimmedServer;
-    localStorage.setItem("electrum-mainnet", trimmedServer);
+    if(targetNetwork == "mainnet"){
+      const newConnection = new Connection("mainnet", electrumWssUrl(trimmedServer))
+      // @ts-ignore currently no other way to set a specific provider
+      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+      settingsStore.electrumServerMainnet = trimmedServer;
+      localStorage.setItem("electrum-mainnet", trimmedServer);
+      customElectrumServer.value = trimmedServer;
+    }
+    if(targetNetwork == "chipnet"){
+      const newConnection = new Connection("testnet", electrumWssUrl(trimmedServer))
+      // @ts-ignore currently no other way to set a specific provider
+      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
+      settingsStore.electrumServerChipnet = trimmedServer;
+      localStorage.setItem("electrum-chipnet", trimmedServer);
+      customElectrumServerChipnet.value = trimmedServer;
+    }
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }
@@ -224,6 +260,35 @@
     localStorage.setItem("cauldronIndexer", selectedCauldronIndexer.value);
     // refetch token prices from the newly selected indexer
     void store.fetchCauldronPricesForTokens();
+  }
+  function changeBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
+    const selected = targetNetwork == "mainnet" ? selectedBcmrIndexer.value : selectedBcmrIndexerChipnet.value;
+    if (selected === "custom") return;
+    applyBcmrIndexer(targetNetwork, selected);
+  }
+  function saveCustomBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
+    const customIndexer = targetNetwork == "mainnet" ? customBcmrIndexer.value : customBcmrIndexerChipnet.value;
+    // the store appends /tokens/... paths, so strip any trailing slash
+    let trimmedIndexer = customIndexer.trim().replace(/\/+$/, "");
+    if (!trimmedIndexer) return;
+    // without a scheme the value would be used as a path on the app's own origin
+    if (!/^https?:\/\//i.test(trimmedIndexer)) trimmedIndexer = `https://${trimmedIndexer}`;
+    if (targetNetwork == "mainnet") customBcmrIndexer.value = trimmedIndexer;
+    if (targetNetwork == "chipnet") customBcmrIndexerChipnet.value = trimmedIndexer;
+    applyBcmrIndexer(targetNetwork, trimmedIndexer);
+  }
+  function applyBcmrIndexer(targetNetwork: "mainnet" | "chipnet", indexerUrl: string){
+    if(targetNetwork == "mainnet"){
+      settingsStore.bcmrIndexerMainnet = indexerUrl;
+      localStorage.setItem("bcmrIndexerMainnet", indexerUrl);
+    }
+    if(targetNetwork == "chipnet"){
+      settingsStore.bcmrIndexerChipnet = indexerUrl;
+      localStorage.setItem("bcmrIndexerChipnet", indexerUrl);
+    }
+    // refetch token metadata from the newly selected indexer
+    store.bcmrRegistries = undefined;
+    if (store.tokenList) void store.fetchTokenMetadata(store.tokenList, false);
   }
   function changeExchangeRateProvider(){
     settingsStore.exchangeRateProvider = selectedExchangeRateProvider.value;
@@ -514,8 +579,8 @@
         <div v-if="selectedElectrumServer === 'custom'" style="margin-top: 8px;">
           <input
             v-model="customElectrumServer"
-            @blur="saveCustomElectrumServer()"
-            @keyup.enter="saveCustomElectrumServer()"
+            @blur="saveCustomElectrumServer('mainnet')"
+            @keyup.enter="saveCustomElectrumServer('mainnet')"
             type="text"
             :placeholder="t('settings.advanced.electrumCustomPlaceholder')"
             style="width: 100%;"
@@ -525,7 +590,7 @@
             <span v-if="isLocalElectrumServer && isBrowser">
               <i18n-t keypath="settings.advanced.electrumSelfSignedBrowser" tag="span">
                 <template #link>
-                  <a :href="`https://${customElectrumServer.trim()}:50004`" target="_blank">{{ t('settings.advanced.electrumSelfSignedVisit') }}</a>
+                  <a :href="electrumWssUrl(customElectrumServer.trim()).replace('wss://', 'https://')" target="_blank">{{ t('settings.advanced.electrumSelfSignedVisit') }}</a>
                 </template>
               </i18n-t>
             </span>
@@ -539,9 +604,34 @@
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
         <label for="selectNetwork">{{ t('settings.advanced.electrumChipnet') }}</label>
         <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
-          <option value="chipnet.bch.ninja">chipnet.bch.ninja {{ t('settings.advanced.default') }}</option>
-          <option value="chipnet.imaginary.cash">chipnet.imaginary.cash</option>
+          <option v-for="(server, index) in predefinedElectrumServersChipnet" :key="server" :value="server">
+            {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
+        <div v-if="selectedElectrumServerChipnet === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customElectrumServerChipnet"
+            @blur="saveCustomElectrumServer('chipnet')"
+            @keyup.enter="saveCustomElectrumServer('chipnet')"
+            type="text"
+            :placeholder="t('settings.advanced.electrumCustomPlaceholder')"
+            style="width: 100%;"
+          >
+          <div style="font-size: smaller; color: grey;">
+            {{ t('settings.advanced.electrumCustomHint') }}
+            <span v-if="isLocalElectrumServerChipnet && isBrowser">
+              <i18n-t keypath="settings.advanced.electrumSelfSignedBrowser" tag="span">
+                <template #link>
+                  <a :href="electrumWssUrl(customElectrumServerChipnet.trim()).replace('wss://', 'https://')" target="_blank">{{ t('settings.advanced.electrumSelfSignedVisit') }}</a>
+                </template>
+              </i18n-t>
+            </span>
+            <span v-if="isLocalElectrumServerChipnet && !isBrowser">
+              {{ t('settings.advanced.electrumSelfSignedApp') }}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div style="margin-top:15px">
@@ -587,6 +677,46 @@
           <option value="https://indexer.riften.net">indexer.riften.net {{ t('settings.advanced.default') }}</option>
           <option value="https://indexer.cauldron.quest">indexer.cauldron.quest</option>
         </select>
+      </div>
+
+      <div v-if="store.network == 'mainnet'" style="margin-top:15px">
+        <label for="selectNetwork">{{ t('settings.advanced.bcmrIndexer') }}</label>
+        <select v-model="selectedBcmrIndexer" @change="changeBcmrIndexer('mainnet')">
+          <option v-for="(indexer, index) in predefinedBcmrIndexersMainnet" :key="indexer" :value="indexer">
+            {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
+        </select>
+        <div v-if="selectedBcmrIndexer === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customBcmrIndexer"
+            @blur="saveCustomBcmrIndexer('mainnet')"
+            @keyup.enter="saveCustomBcmrIndexer('mainnet')"
+            type="text"
+            :placeholder="t('settings.advanced.bcmrIndexerCustomPlaceholder')"
+            style="width: 100%;"
+          >
+        </div>
+      </div>
+
+      <div v-if="store.network == 'chipnet'" style="margin-top:15px">
+        <label for="selectNetwork">{{ t('settings.advanced.bcmrIndexer') }}</label>
+        <select v-model="selectedBcmrIndexerChipnet" @change="changeBcmrIndexer('chipnet')">
+          <option v-for="(indexer, index) in predefinedBcmrIndexersChipnet" :key="indexer" :value="indexer">
+            {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
+        </select>
+        <div v-if="selectedBcmrIndexerChipnet === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customBcmrIndexerChipnet"
+            @blur="saveCustomBcmrIndexer('chipnet')"
+            @keyup.enter="saveCustomBcmrIndexer('chipnet')"
+            type="text"
+            :placeholder="t('settings.advanced.bcmrIndexerCustomPlaceholder')"
+            style="width: 100%;"
+          >
+        </div>
       </div>
 
       <div style="margin-top:15px;">{{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}
