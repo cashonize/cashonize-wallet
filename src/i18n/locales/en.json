@@ -17,6 +17,7 @@
       "nothingToTransfer": "No BCH or tokens left to transfer"
     },
     "attention": "Attention:",
+    "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "This combines inputs from all your addresses, publicly linking them as one wallet, which sacrifices the privacy benefits of using an HD wallet.",
     "copied": "Copied!",
     "unsafeUrl": "URL hidden (unsafe protocol)",
@@ -766,8 +767,8 @@
   "transferAllAssets": {
     "title": "Transfer All Assets",
     "description": "Move all BCH and tokens from this wallet to another address.",
-    "usageHint": "Useful to move everything to a new wallet when you suspect your seed phrase is no longer private, or to consolidate your funds and tokens into a single wallet.",
-    "usageHintNote": "If your seed phrase leaked, transfer as soon as you can, whoever has it can spend from this wallet too.",
+    "usageHint": "Useful to move everything to a new security setup, such as a wallet with fresh backups or a multisig vault, or to consolidate funds and tokens from several wallets into one.",
+    "usageHintNote": "When moving away from a device you no longer trust, create the new wallet on a different device.",
     "emptyWallet": "This wallet holds no BCH or tokens to transfer",
     "toTransfer": "To transfer:",
     "bchBalance": "BCH",

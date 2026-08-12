@@ -17,6 +17,7 @@
       "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer"
     },
     "attention": "Attention :",
+    "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Cela combine des entrées de toutes vos adresses, les liant publiquement comme un seul portefeuille, ce qui sacrifie les avantages de confidentialité d'un portefeuille HD.",
     "copied": "Copié !",
     "unsafeUrl": "URL masquée (protocole non sécurisé)",
@@ -766,8 +767,8 @@
   "transferAllAssets": {
     "title": "Transférer tous les actifs",
     "description": "Déplacez tous les BCH et tokens de ce portefeuille vers une autre adresse.",
-    "usageHint": "Utile pour tout déplacer vers un nouveau portefeuille si vous pensez que votre phrase de récupération n'est plus privée, ou pour regrouper vos fonds et tokens dans un seul portefeuille.",
-    "usageHintNote": "Si votre phrase de récupération a fuité, transférez dès que possible, celui qui la détient peut aussi dépenser depuis ce portefeuille.",
+    "usageHint": "Utile pour tout déplacer vers une nouvelle configuration de sécurité, comme un portefeuille avec de nouvelles sauvegardes ou un coffre multisig, ou pour regrouper les fonds et tokens de plusieurs portefeuilles en un seul.",
+    "usageHintNote": "Si vous quittez un appareil auquel vous ne faites plus confiance, créez le nouveau portefeuille sur un autre appareil.",
     "emptyWallet": "Ce portefeuille ne contient aucun BCH ni token à transférer",
     "toTransfer": "À transférer :",
     "bchBalance": "BCH",

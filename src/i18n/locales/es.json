@@ -17,6 +17,7 @@
       "nothingToTransfer": "No queda BCH ni tokens para transferir"
     },
     "attention": "Atención:",
+    "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Esto combina entradas de todas tus direcciones, vinculándolas públicamente como una sola billetera, lo que sacrifica los beneficios de privacidad de usar una billetera HD.",
     "copied": "¡Copiado!",
     "unsafeUrl": "URL oculta (protocolo no seguro)",
@@ -766,8 +767,8 @@
   "transferAllAssets": {
     "title": "Transferir todos los activos",
     "description": "Mueve todo el BCH y los tokens de esta billetera a otra dirección.",
-    "usageHint": "Útil para mover todo a una billetera nueva cuando sospechas que tu frase semilla ya no es privada, o para consolidar tus fondos y tokens en una sola billetera.",
-    "usageHintNote": "Si tu frase semilla se filtró, transfiere lo antes posible, quien la tenga también puede gastar desde esta billetera.",
+    "usageHint": "Útil para mover todo a una nueva configuración de seguridad, como una billetera con respaldos nuevos o una bóveda multisig, o para consolidar fondos y tokens de varias billeteras en una sola.",
+    "usageHintNote": "Al alejarte de un dispositivo en el que ya no confías, crea la nueva billetera en otro dispositivo.",
     "emptyWallet": "Esta billetera no tiene BCH ni tokens para transferir",
     "toTransfer": "A transferir:",
     "bchBalance": "BCH",

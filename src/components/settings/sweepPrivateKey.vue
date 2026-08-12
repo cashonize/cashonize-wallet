@@ -338,7 +338,7 @@
             <span v-if="isUnverifiedToken(token.category)">*</span>
           </span>
           <span v-if="'nfts' in token" class="sweep-token-amount">
-            {{ token.nfts.length }} NFT{{ token.nfts.length > 1 ? 's' : '' }}
+            {{ t('common.nftCount', token.nfts.length) }}
           </span>
         </div>
       </div>

@@ -230,7 +230,7 @@
                   {{ store.bcmrRegistries?.[token.category]?.token?.symbol ?? '' }}
                 </template>
                 <template v-else-if="'nfts' in token">
-                  {{ token.nfts.length }} NFT{{ token.nfts.length > 1 ? 's' : '' }}
+                  {{ t('common.nftCount', token.nfts.length) }}
                 </template>
               </span>
             </div>
