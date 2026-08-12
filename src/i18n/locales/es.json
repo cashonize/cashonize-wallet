@@ -766,7 +766,7 @@
     "description": "Mueve todo el BCH y los tokens de esta billetera a otra dirección.",
     "usageHint": "Útil para mover todo a una billetera nueva cuando sospechas que tu frase semilla ya no es privada, o para consolidar tus fondos y tokens en una sola billetera.",
     "usageHintNote": "Si tu frase semilla se filtró, transfiere lo antes posible, quien la tenga también puede gastar desde esta billetera.",
-    "hdWalletUnsupported": "Esta herramienta por ahora solo admite billeteras de dirección única. En una billetera HD los activos están repartidos en muchas direcciones, y moverlos juntos vincularía esas direcciones públicamente.",
+    "hdPrivacyWarning": "Esta billetera usa varias direcciones. Transferir todo las combina en las mismas transacciones, lo que las vincula públicamente como una sola billetera.",
     "emptyWallet": "Esta billetera no tiene BCH ni tokens para transferir",
     "toTransfer": "A transferir:",
     "bchBalance": "BCH",

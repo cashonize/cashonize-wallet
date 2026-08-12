@@ -766,7 +766,7 @@
     "description": "Mova todo o BCH e tokens desta carteira para outro endereço.",
     "usageHint": "Útil para mover tudo para uma carteira nova quando você suspeita que sua frase semente não é mais privada, ou para consolidar seus fundos e tokens em uma única carteira.",
     "usageHintNote": "Se sua frase semente vazou, transfira o quanto antes, quem a tiver também pode gastar desta carteira.",
-    "hdWalletUnsupported": "Esta ferramenta atualmente suporta apenas carteiras de endereço único. Em uma carteira HD os ativos ficam espalhados por muitos endereços, e movê-los juntos vincularia esses endereços publicamente.",
+    "hdPrivacyWarning": "Esta carteira usa vários endereços. Transferir tudo os combina nas mesmas transações, o que os vincula publicamente como uma única carteira.",
     "emptyWallet": "Esta carteira não tem BCH nem tokens para transferir",
     "toTransfer": "A transferir:",
     "bchBalance": "BCH",

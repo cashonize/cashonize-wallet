@@ -766,7 +766,7 @@
     "description": "Verschiebe alle BCH und Tokens dieses Wallets an eine andere Adresse.",
     "usageHint": "Nützlich, um alles in ein neues Wallet zu verschieben, wenn du vermutest, dass deine Seed Phrase nicht mehr privat ist, oder um deine Guthaben und Tokens in einem Wallet zusammenzuführen.",
     "usageHintNote": "Wenn deine Seed Phrase abgeflossen ist, übertrage so schnell wie möglich, wer sie hat kann ebenfalls aus diesem Wallet ausgeben.",
-    "hdWalletUnsupported": "Dieses Werkzeug unterstützt derzeit nur Wallets mit einer einzelnen Adresse. In einem HD Wallet liegen die Werte auf vielen Adressen, und sie gemeinsam zu verschieben würde diese Adressen öffentlich verknüpfen.",
+    "hdPrivacyWarning": "Dieses Wallet nutzt mehrere Adressen. Alles zu übertragen führt sie in denselben Transaktionen zusammen, was sie öffentlich als ein Wallet verknüpft.",
     "emptyWallet": "Dieses Wallet hat keine BCH oder Tokens zum Übertragen",
     "toTransfer": "Zu übertragen:",
     "bchBalance": "BCH",

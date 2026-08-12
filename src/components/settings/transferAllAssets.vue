@@ -10,6 +10,7 @@
   import { satsToBch, formatFiatAmount } from 'src/utils/utils'
   import { isBip21Uri, parseBip21Uri } from 'src/utils/bip21'
   import { validateTokenRecipientAddress, getCashAddressScanError } from 'src/utils/tokenRecipientUtils'
+  import { toPlainAddress } from 'src/utils/addressValidation'
   import { transferAllAssets, type TransferPhase, type TransferProgress } from 'src/utils/transferAssets'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue'
   import TokenIcon from '../general/TokenIcon.vue'
@@ -112,9 +113,10 @@
     const destination = validateTokenRecipientAddress(destinationInput.value, networkPrefix.value, {
       requireTokenSupport: hasTokens.value
     });
-    // This tool is single-address only, so the wallet's own two address forms are the full set
-    const ownAddresses = [store.wallet.getDepositAddress(), store.wallet.getTokenDepositAddress()];
-    if (ownAddresses.includes(destination)) throw new Error(t('transferAllAssets.errors.ownAddress'));
+    // Covers every address of an HD wallet, not just the one currently handed out
+    if (store.walletHasAddress(toPlainAddress(destination))) {
+      throw new Error(t('transferAllAssets.errors.ownAddress'));
+    }
     return destination;
   }
 
@@ -187,11 +189,11 @@
       <div class="info-popup-note" style="max-width: 300px;">{{ t('transferAllAssets.usageHintNote') }}</div>
     </InfoPopup>
 
-    <div v-if="isHdWallet" style="margin-top: 15px; color: grey;">
-      {{ t('transferAllAssets.hdWalletUnsupported') }}
+    <div v-if="isHdWallet" style="margin-top: 15px; color: orange;">
+      {{ t('transferAllAssets.hdPrivacyWarning') }}
     </div>
 
-    <div v-else-if="isEmpty" style="margin-top: 15px; color: grey;">
+    <div v-if="isEmpty" style="margin-top: 15px; color: grey;">
       {{ t('transferAllAssets.emptyWallet') }}
     </div>
 

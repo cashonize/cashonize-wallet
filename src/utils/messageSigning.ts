@@ -1,13 +1,6 @@
 import { HDWallet, SignedMessage } from "mainnet-js";
-import { assertSuccess, decodeCashAddress, encodeCashAddress } from "@bitauth/libauth";
+import { toPlainAddress } from "src/utils/addressValidation";
 import type { WalletType } from "src/interfaces/interfaces";
-
-// Wallet addresses are matched by their plain p2pkh form: the HD wallet cache and
-// single-address wallets are keyed that way, so token-aware input still resolves.
-function toPlainAddress(address: string): string {
-  const decoded = assertSuccess(decodeCashAddress(address));
-  return encodeCashAddress({ prefix: decoded.prefix, type: "p2pkh", payload: decoded.payload }).address;
-}
 
 // Resolve the private key controlling one of the wallet's own addresses.
 // Expects a valid cashaddr; returns undefined when the address is not part of the wallet.

@@ -766,7 +766,7 @@
     "description": "Move all BCH and tokens from this wallet to another address.",
     "usageHint": "Useful to move everything to a new wallet when you suspect your seed phrase is no longer private, or to consolidate your funds and tokens into a single wallet.",
     "usageHintNote": "If your seed phrase leaked, transfer as soon as you can, whoever has it can spend from this wallet too.",
-    "hdWalletUnsupported": "This tool currently supports single-address wallets only. On an HD wallet the assets are spread over many addresses, and moving them together would publicly link those addresses.",
+    "hdPrivacyWarning": "This wallet uses multiple addresses. Transferring everything combines them in the same transactions, which publicly links them as one wallet.",
     "emptyWallet": "This wallet holds no BCH or tokens to transfer",
     "toTransfer": "To transfer:",
     "bchBalance": "BCH",

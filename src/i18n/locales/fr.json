@@ -766,7 +766,7 @@
     "description": "Déplacez tous les BCH et tokens de ce portefeuille vers une autre adresse.",
     "usageHint": "Utile pour tout déplacer vers un nouveau portefeuille si vous pensez que votre phrase de récupération n'est plus privée, ou pour regrouper vos fonds et tokens dans un seul portefeuille.",
     "usageHintNote": "Si votre phrase de récupération a fuité, transférez dès que possible, celui qui la détient peut aussi dépenser depuis ce portefeuille.",
-    "hdWalletUnsupported": "Cet outil ne prend pour l'instant en charge que les portefeuilles à adresse unique. Dans un portefeuille HD, les actifs sont répartis sur de nombreuses adresses, et les déplacer ensemble lierait publiquement ces adresses.",
+    "hdPrivacyWarning": "Ce portefeuille utilise plusieurs adresses. Tout transférer les combine dans les mêmes transactions, ce qui les lie publiquement comme un seul portefeuille.",
     "emptyWallet": "Ce portefeuille ne contient aucun BCH ni token à transférer",
     "toTransfer": "À transférer :",
     "bchBalance": "BCH",
