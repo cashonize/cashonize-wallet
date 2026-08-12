@@ -13,7 +13,8 @@
     "errors": {
       "somethingWentWrong": "Algo salió mal",
       "needToInitializeWallet": "Necesitas inicializar una billetera primero",
-      "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dapp"
+      "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dapp",
+      "nothingToTransfer": "No queda BCH ni tokens para transferir"
     },
     "copied": "¡Copiado!",
     "unsafeUrl": "URL oculta (protocolo no seguro)",
@@ -760,6 +761,43 @@
       "notChipnetWif": "No es un código QR que codifica una clave privada de Chipnet en formato WIF"
     }
   },
+  "transferAllAssets": {
+    "title": "Transferir todos los activos",
+    "description": "Mueve todo el BCH y los tokens de esta billetera a otra dirección.",
+    "usageHint": "Útil para mover todo a una billetera nueva cuando sospechas que tu frase semilla ya no es privada, o para consolidar tus fondos y tokens en una sola billetera.",
+    "usageHintNote": "Si tu frase semilla se filtró, transfiere lo antes posible, quien la tenga también puede gastar desde esta billetera.",
+    "hdWalletUnsupported": "Esta herramienta por ahora solo admite billeteras de dirección única. En una billetera HD los activos están repartidos en muchas direcciones, y moverlos juntos vincularía esas direcciones públicamente.",
+    "emptyWallet": "Esta billetera no tiene BCH ni tokens para transferir",
+    "toTransfer": "A transferir:",
+    "bchBalance": "BCH",
+    "transactionCount": "Transacciones necesarias: {count}",
+    "destinationLabel": "Dirección de destino:",
+    "destinationPlaceholder": "Dirección a la que transferir todo",
+    "irreversibleWarning": "Revisa con cuidado la dirección de destino, una transferencia no se puede deshacer.",
+    "transferButton": "Transferir todos los activos",
+    "transferringButton": "Transfiriendo...",
+    "partialTransfer": "La transferencia se detuvo antes de terminar, lo que no se transfirió sigue en esta billetera. Ejecuta la transferencia de nuevo para mover el resto.",
+    "phases": {
+      "fungibleTokens": "Tokens fungibles",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "pendiente",
+      "none": "ninguno"
+    },
+    "confirm": {
+      "title": "¿Transferir todos los activos?",
+      "message": "Todo el BCH y los tokens de esta billetera se transferirán a {address}. Esto no se puede deshacer.",
+      "button": "Transferir"
+    },
+    "notifications": {
+      "success": "Todos los activos se transfirieron con éxito"
+    },
+    "errors": {
+      "ownAddress": "El destino es una dirección de esta misma billetera"
+    }
+  },
   "exportXpub": {
     "title": "Exportar Xpub",
     "description": "Un xpub permite que otra aplicación observe esta billetera, sin poder gastar.",
@@ -1024,6 +1062,7 @@
       "hdAddresses": "Direcciones HD",
       "utxoManagement": "Gestión de UTXO",
       "sweepPrivateKey": "Barrer clave privada",
+      "transferAllAssets": "Transferir todos los activos",
       "signVerifyMessage": "Firmar / Verificar mensaje",
       "exportXpub": "Exportar Xpub",
       "tokenCreationPage": "Página de creación de tokens",

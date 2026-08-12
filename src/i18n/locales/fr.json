@@ -13,7 +13,8 @@
     "errors": {
       "somethingWentWrong": "Une erreur s'est produite",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
-      "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dapp"
+      "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dapp",
+      "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer"
     },
     "copied": "Copié !",
     "unsafeUrl": "URL masquée (protocole non sécurisé)",
@@ -760,6 +761,43 @@
       "notChipnetWif": "Ce n'est pas un code QR encodant une clé privée Chipnet au format WIF"
     }
   },
+  "transferAllAssets": {
+    "title": "Transférer tous les actifs",
+    "description": "Déplacez tous les BCH et tokens de ce portefeuille vers une autre adresse.",
+    "usageHint": "Utile pour tout déplacer vers un nouveau portefeuille si vous pensez que votre phrase de récupération n'est plus privée, ou pour regrouper vos fonds et tokens dans un seul portefeuille.",
+    "usageHintNote": "Si votre phrase de récupération a fuité, transférez dès que possible, celui qui la détient peut aussi dépenser depuis ce portefeuille.",
+    "hdWalletUnsupported": "Cet outil ne prend pour l'instant en charge que les portefeuilles à adresse unique. Dans un portefeuille HD, les actifs sont répartis sur de nombreuses adresses, et les déplacer ensemble lierait publiquement ces adresses.",
+    "emptyWallet": "Ce portefeuille ne contient aucun BCH ni token à transférer",
+    "toTransfer": "À transférer :",
+    "bchBalance": "BCH",
+    "transactionCount": "Transactions nécessaires : {count}",
+    "destinationLabel": "Adresse de destination :",
+    "destinationPlaceholder": "Adresse vers laquelle tout transférer",
+    "irreversibleWarning": "Vérifiez soigneusement l'adresse de destination, un transfert ne peut pas être annulé.",
+    "transferButton": "Transférer tous les actifs",
+    "transferringButton": "Transfert en cours...",
+    "partialTransfer": "Le transfert s'est arrêté avant la fin, ce qui n'a pas été transféré est toujours dans ce portefeuille. Relancez le transfert pour déplacer le reste.",
+    "phases": {
+      "fungibleTokens": "Tokens fongibles",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "en attente",
+      "none": "aucun"
+    },
+    "confirm": {
+      "title": "Transférer tous les actifs ?",
+      "message": "Tous les BCH et tokens de ce portefeuille seront transférés vers {address}. Cette action est irréversible.",
+      "button": "Transférer"
+    },
+    "notifications": {
+      "success": "Tous les actifs ont été transférés avec succès"
+    },
+    "errors": {
+      "ownAddress": "La destination est une adresse de ce même portefeuille"
+    }
+  },
   "exportXpub": {
     "title": "Exporter la xpub",
     "description": "Une xpub permet à une autre application d'observer ce portefeuille, sans pouvoir dépenser.",
@@ -1024,6 +1062,7 @@
       "hdAddresses": "Adresses HD",
       "utxoManagement": "Gestion des UTXO",
       "sweepPrivateKey": "Balayer une clé privée",
+      "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
       "tokenCreationPage": "Page de création de tokens",

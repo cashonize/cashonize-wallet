@@ -25,6 +25,10 @@
       → {{ t('settings.menu.sweepPrivateKey') }}
     </div>
 
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(16)">
+      → {{ t('settings.menu.transferAllAssets') }}
+    </div>
+
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">
       → {{ t('settings.menu.signVerifyMessage') }}
     </div>

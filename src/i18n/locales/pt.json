@@ -13,7 +13,8 @@
     "errors": {
       "somethingWentWrong": "Algo deu errado",
       "needToInitializeWallet": "É necessário inicializar uma carteira primeiro",
-      "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dapp"
+      "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dapp",
+      "nothingToTransfer": "Não resta BCH nem tokens para transferir"
     },
     "copied": "Copiado!",
     "unsafeUrl": "URL oculta (protocolo inseguro)",
@@ -760,6 +761,43 @@
       "notChipnetWif": "Não é um QR code com chave privada Chipnet no formato WIF"
     }
   },
+  "transferAllAssets": {
+    "title": "Transferir todos os ativos",
+    "description": "Mova todo o BCH e tokens desta carteira para outro endereço.",
+    "usageHint": "Útil para mover tudo para uma carteira nova quando você suspeita que sua frase semente não é mais privada, ou para consolidar seus fundos e tokens em uma única carteira.",
+    "usageHintNote": "Se sua frase semente vazou, transfira o quanto antes, quem a tiver também pode gastar desta carteira.",
+    "hdWalletUnsupported": "Esta ferramenta atualmente suporta apenas carteiras de endereço único. Em uma carteira HD os ativos ficam espalhados por muitos endereços, e movê-los juntos vincularia esses endereços publicamente.",
+    "emptyWallet": "Esta carteira não tem BCH nem tokens para transferir",
+    "toTransfer": "A transferir:",
+    "bchBalance": "BCH",
+    "transactionCount": "Transações necessárias: {count}",
+    "destinationLabel": "Endereço de destino:",
+    "destinationPlaceholder": "Endereço para onde transferir tudo",
+    "irreversibleWarning": "Confira o endereço de destino com atenção, uma transferência não pode ser desfeita.",
+    "transferButton": "Transferir todos os ativos",
+    "transferringButton": "Transferindo...",
+    "partialTransfer": "A transferência parou antes do fim, o que não foi transferido continua nesta carteira. Execute a transferência novamente para mover o restante.",
+    "phases": {
+      "fungibleTokens": "Tokens fungíveis",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "pendente",
+      "none": "nenhum"
+    },
+    "confirm": {
+      "title": "Transferir todos os ativos?",
+      "message": "Todo o BCH e tokens desta carteira serão transferidos para {address}. Isso não pode ser desfeito.",
+      "button": "Transferir"
+    },
+    "notifications": {
+      "success": "Todos os ativos foram transferidos com sucesso"
+    },
+    "errors": {
+      "ownAddress": "O destino é um endereço desta mesma carteira"
+    }
+  },
   "exportXpub": {
     "title": "Exportar Xpub",
     "description": "Um xpub permite que outro aplicativo observe esta carteira, sem poder gastar.",
@@ -1024,6 +1062,7 @@
       "hdAddresses": "Endereços HD",
       "utxoManagement": "Gerenciamento de UTXOs",
       "sweepPrivateKey": "Sweep de Chave Privada",
+      "transferAllAssets": "Transferir todos os ativos",
       "signVerifyMessage": "Assinar / Verificar mensagem",
       "exportXpub": "Exportar Xpub",
       "tokenCreationPage": "Página de Criação de Tokens",

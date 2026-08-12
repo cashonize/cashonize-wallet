@@ -13,7 +13,8 @@
     "errors": {
       "somethingWentWrong": "Something went wrong",
       "needToInitializeWallet": "Need to initialize a wallet first",
-      "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dapp request"
+      "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dapp request",
+      "nothingToTransfer": "No BCH or tokens left to transfer"
     },
     "copied": "Copied!",
     "unsafeUrl": "URL hidden (unsafe protocol)",
@@ -760,6 +761,43 @@
       "notChipnetWif": "Not a QR code encoding a Chipnet Private Key in WIF format"
     }
   },
+  "transferAllAssets": {
+    "title": "Transfer All Assets",
+    "description": "Move all BCH and tokens from this wallet to another address.",
+    "usageHint": "Useful to move everything to a new wallet when you suspect your seed phrase is no longer private, or to consolidate your funds and tokens into a single wallet.",
+    "usageHintNote": "If your seed phrase leaked, transfer as soon as you can, whoever has it can spend from this wallet too.",
+    "hdWalletUnsupported": "This tool currently supports single-address wallets only. On an HD wallet the assets are spread over many addresses, and moving them together would publicly link those addresses.",
+    "emptyWallet": "This wallet holds no BCH or tokens to transfer",
+    "toTransfer": "To transfer:",
+    "bchBalance": "BCH",
+    "transactionCount": "Transactions needed: {count}",
+    "destinationLabel": "Destination address:",
+    "destinationPlaceholder": "Address to transfer everything to",
+    "irreversibleWarning": "Check the destination address carefully, a transfer cannot be undone.",
+    "transferButton": "Transfer All Assets",
+    "transferringButton": "Transferring...",
+    "partialTransfer": "The transfer stopped early, whatever was not transferred is still in this wallet. Run the transfer again to move the rest.",
+    "phases": {
+      "fungibleTokens": "Fungible tokens",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "pending",
+      "none": "none"
+    },
+    "confirm": {
+      "title": "Transfer all assets?",
+      "message": "All BCH and tokens in this wallet will be transferred to {address}. This cannot be undone.",
+      "button": "Transfer"
+    },
+    "notifications": {
+      "success": "Successfully transferred all assets"
+    },
+    "errors": {
+      "ownAddress": "The destination is an address of this same wallet"
+    }
+  },
   "exportXpub": {
     "title": "Export Xpub",
     "description": "An xpub lets another app watch this wallet, without being able to spend.",
@@ -1024,6 +1062,7 @@
       "hdAddresses": "HD Addresses",
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
+      "transferAllAssets": "Transfer All Assets",
       "signVerifyMessage": "Sign / Verify Message",
       "exportXpub": "Export Xpub",
       "tokenCreationPage": "Token Creation Page",

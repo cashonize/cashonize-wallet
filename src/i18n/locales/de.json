@@ -13,7 +13,8 @@
     "errors": {
       "somethingWentWrong": "Etwas ist schiefgelaufen",
       "needToInitializeWallet": "Zuerst muss ein Wallet initialisiert werden",
-      "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, Dapp-Anfrage wird abgelehnt"
+      "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, Dapp-Anfrage wird abgelehnt",
+      "nothingToTransfer": "Keine BCH oder Tokens mehr zum Übertragen"
     },
     "copied": "Kopiert!",
     "unsafeUrl": "URL verborgen (unsicheres Protokoll)",
@@ -760,6 +761,43 @@
       "notChipnetWif": "Kein QR-Code, der einen Chipnet-Privatschlüssel im WIF-Format enthält"
     }
   },
+  "transferAllAssets": {
+    "title": "Alle Werte übertragen",
+    "description": "Verschiebe alle BCH und Tokens dieses Wallets an eine andere Adresse.",
+    "usageHint": "Nützlich, um alles in ein neues Wallet zu verschieben, wenn du vermutest, dass deine Seed Phrase nicht mehr privat ist, oder um deine Guthaben und Tokens in einem Wallet zusammenzuführen.",
+    "usageHintNote": "Wenn deine Seed Phrase abgeflossen ist, übertrage so schnell wie möglich, wer sie hat kann ebenfalls aus diesem Wallet ausgeben.",
+    "hdWalletUnsupported": "Dieses Werkzeug unterstützt derzeit nur Wallets mit einer einzelnen Adresse. In einem HD Wallet liegen die Werte auf vielen Adressen, und sie gemeinsam zu verschieben würde diese Adressen öffentlich verknüpfen.",
+    "emptyWallet": "Dieses Wallet hat keine BCH oder Tokens zum Übertragen",
+    "toTransfer": "Zu übertragen:",
+    "bchBalance": "BCH",
+    "transactionCount": "Benötigte Transaktionen: {count}",
+    "destinationLabel": "Zieladresse:",
+    "destinationPlaceholder": "Adresse, an die alles übertragen wird",
+    "irreversibleWarning": "Prüfe die Zieladresse sorgfältig, eine Übertragung lässt sich nicht rückgängig machen.",
+    "transferButton": "Alle Werte übertragen",
+    "transferringButton": "Übertragung läuft...",
+    "partialTransfer": "Die Übertragung wurde vorzeitig abgebrochen, was nicht übertragen wurde ist noch in diesem Wallet. Starte die Übertragung erneut, um den Rest zu verschieben.",
+    "phases": {
+      "fungibleTokens": "Fungible Tokens",
+      "nfts": "NFTs",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "ausstehend",
+      "none": "keine"
+    },
+    "confirm": {
+      "title": "Alle Werte übertragen?",
+      "message": "Alle BCH und Tokens in diesem Wallet werden an {address} übertragen. Das lässt sich nicht rückgängig machen.",
+      "button": "Übertragen"
+    },
+    "notifications": {
+      "success": "Alle Werte erfolgreich übertragen"
+    },
+    "errors": {
+      "ownAddress": "Das Ziel ist eine Adresse dieses selben Wallets"
+    }
+  },
   "exportXpub": {
     "title": "Xpub exportieren",
     "description": "Ein Xpub erlaubt einer anderen App, dieses Wallet zu beobachten, ohne ausgeben zu können.",
@@ -1024,6 +1062,7 @@
       "hdAddresses": "HD Adressen",
       "utxoManagement": "UTXO-Verwaltung",
       "sweepPrivateKey": "Privaten Schlüssel sweepen",
+      "transferAllAssets": "Alle Werte übertragen",
       "signVerifyMessage": "Nachricht signieren / verifizieren",
       "exportXpub": "Xpub exportieren",
       "tokenCreationPage": "Token-Erstellungsseite",
