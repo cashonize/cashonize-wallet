@@ -7,26 +7,34 @@ import { isValidBip39Mnemonic, normalizeSeedPhrase } from 'src/utils/utils'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
-export type DerivationPathType = "standard" | "bitcoindotcom";
+export type DerivationPathType = "standard" | "bitcoindotcom" | "slp";
 
 // BIP44 derivation paths for BCH wallets
 // - parent: used by mainnet-js Config when generating new wallets via Wallet.named()
 // - full: used in explicit walletId strings for Wallet.replaceNamed() imports
 export const DERIVATION_PATHS = {
+  // BCH coin type, used by the large majority of BCH wallets
   standard: {
     parent: "m/44'/145'/0'",
     full: "m/44'/145'/0'/0/0",
   },
+  // BTC coin type, used by the Bitcoin.com wallet and read.cash
   bitcoindotcom: {
     parent: "m/44'/0'/0'",
     full: "m/44'/0'/0'/0/0",
   },
+  // SLP coin type, used by Zapit and older SLP wallets
+  slp: {
+    parent: "m/44'/245'/0'",
+    full: "m/44'/245'/0'/0/0",
+  },
 } as const;
 
-export type DerivationPathDetectionResult = DerivationPathType | "both" | "none";
+// Order determines the order paths are reported in after a scan
+const SCANNED_PATH_TYPES: DerivationPathType[] = ["standard", "bitcoindotcom", "slp"];
 
 export interface DerivationPathScanResult {
-  path: DerivationPathDetectionResult;
+  usedPaths: DerivationPathType[];
   multipleAddressesUsed: boolean;
 }
 
@@ -70,14 +78,10 @@ export async function scanDerivationPaths(seedPhrase: string): Promise<Derivatio
     return false;
   }
 
-  const [standardUsed, bitcoindotcomUsed] = await Promise.all([
-    addressHasActivity(DERIVATION_PATHS.standard.full),
-    addressHasActivity(DERIVATION_PATHS.bitcoindotcom.full),
-  ]);
-
-  const usedPaths: DerivationPathType[] = [];
-  if (standardUsed) usedPaths.push("standard");
-  if (bitcoindotcomUsed) usedPaths.push("bitcoindotcom");
+  const pathHasActivity = await Promise.all(
+    SCANNED_PATH_TYPES.map((pathType) => addressHasActivity(DERIVATION_PATHS[pathType].full))
+  );
+  const usedPaths = SCANNED_PATH_TYPES.filter((_pathType, index) => pathHasActivity[index]);
 
   let multipleAddressesUsed = false;
   for (const usedPath of usedPaths) {
@@ -87,12 +91,7 @@ export async function scanDerivationPaths(seedPhrase: string): Promise<Derivatio
     }
   }
 
-  let path: DerivationPathDetectionResult = "none";
-  if (standardUsed && bitcoindotcomUsed) path = "both";
-  else if (standardUsed) path = "standard";
-  else if (bitcoindotcomUsed) path = "bitcoindotcom";
-
-  return { path, multipleAddressesUsed };
+  return { usedPaths, multipleAddressesUsed };
 }
 
 export interface CreateWalletResult {

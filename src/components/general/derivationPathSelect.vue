@@ -1,8 +1,8 @@
 <script setup lang="ts">
-  import { ref, watch } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { DERIVATION_PATHS, scanDerivationPaths } from 'src/utils/walletUtils'
-  import type { DerivationPathType, DerivationPathDetectionResult } from 'src/utils/walletUtils'
+  import type { DerivationPathType } from 'src/utils/walletUtils'
   const { t } = useI18n()
 
   const emit = defineEmits<{
@@ -25,8 +25,12 @@
 
   const SCAN_TIMEOUT_MS = 15_000
 
-  const detectionStatus = ref<'idle' | 'scanning' | DerivationPathDetectionResult>('idle')
+  const detectionStatus = ref<'idle' | 'scanning' | 'done'>('idle')
+  const foundPaths = ref<DerivationPathType[]>([])
   const multipleAddressesUsed = ref(false)
+
+  const singleFoundPath = computed(() => foundPaths.value.length === 1 ? foundPaths.value[0] : undefined)
+  const foundPathsList = computed(() => foundPaths.value.map(pathType => DERIVATION_PATHS[pathType].parent).join(', '))
 
   // Bumped on every seed phrase change so an in-flight scan can tell its result is
   // for an outdated seed phrase. Deliberately a counter instead of comparing against
@@ -37,6 +41,7 @@
   watch(() => props.seedPhrase, () => {
     scanGeneration++
     detectionStatus.value = 'idle'
+    foundPaths.value = []
     multipleAddressesUsed.value = false
   })
 
@@ -50,10 +55,12 @@
       )
       const result = await Promise.race([scanDerivationPaths(props.seedPhrase), timeout])
       if (scanGeneration !== startedForGeneration) return
-      detectionStatus.value = result.path
+      detectionStatus.value = 'done'
+      foundPaths.value = result.usedPaths
       multipleAddressesUsed.value = result.multipleAddressesUsed
-      if (result.path === 'standard' || result.path === 'bitcoindotcom') {
-        selectedPath.value = result.path
+      // Only select automatically when the scan found exactly one path, otherwise the user picks
+      if (singleFoundPath.value) {
+        selectedPath.value = singleFoundPath.value
       }
     } catch {
       // Scanning is best-effort: on electrum errors fall back to manual selection
@@ -69,6 +76,7 @@
     <select v-model="selectedPath">
       <option value="standard">{{ DERIVATION_PATHS.standard.parent }} ({{ t('derivationPathSelect.standard') }})</option>
       <option value="bitcoindotcom">{{ DERIVATION_PATHS.bitcoindotcom.parent }} ({{ t('derivationPathSelect.bitcoindotcom') }})</option>
+      <option value="slp">{{ DERIVATION_PATHS.slp.parent }} ({{ t('derivationPathSelect.slp') }})</option>
     </select>
     <div v-if="seedPhraseValid && detectionStatus === 'idle'" style="margin-top: 5px; font-size: smaller; color: grey;">
       <i18n-t keypath="derivationPathSelect.scanPrompt" tag="span">
@@ -79,14 +87,18 @@
     </div>
     <div v-else-if="detectionStatus !== 'idle'" style="margin-top: 5px; font-size: smaller; color: grey;">
       <span v-if="detectionStatus === 'scanning'">{{ t('derivationPathSelect.scanning') }}</span>
-      <span v-else-if="detectionStatus === 'standard' || detectionStatus === 'bitcoindotcom'">
-        {{ t('derivationPathSelect.detected', { path: DERIVATION_PATHS[detectionStatus].parent }) }}
+      <span v-else-if="singleFoundPath">
+        {{ t('derivationPathSelect.detected', { path: DERIVATION_PATHS[singleFoundPath].parent }) }}
       </span>
-      <span v-else-if="detectionStatus === 'both'">{{ t('derivationPathSelect.detectedBoth') }}</span>
+      <span v-else-if="foundPaths.length > 1">{{ t('derivationPathSelect.detectedMultiple', { paths: foundPathsList }) }}</span>
       <span v-else>{{ t('derivationPathSelect.noneFound') }}</span>
     </div>
     <div v-if="multipleAddressesUsed && walletType === 'single'" style="margin-top: 5px; font-size: smaller; color: orange;">
       {{ t('derivationPathSelect.multiAddressWarning') }}
+    </div>
+    <div v-if="selectedPath === 'slp'" class="warning-box" style="margin-top: 10px; font-size: smaller;">
+      <q-icon name="warning" size="20px" class="warning-box-icon" />
+      <div><b>{{ t('common.attention') }}</b> {{ t('derivationPathSelect.slpWarning') }}</div>
     </div>
   </div>
 </template>

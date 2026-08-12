@@ -64,6 +64,7 @@
     const path = walletDerivationPath.value;
     if (path === DERIVATION_PATHS.standard.full || path === DERIVATION_PATHS.standard.parent) return t('backupWallet.derivationPath.standard');
     if (path === DERIVATION_PATHS.bitcoindotcom.full || path === DERIVATION_PATHS.bitcoindotcom.parent) return t('backupWallet.derivationPath.bitcoindotcom');
+    if (path === DERIVATION_PATHS.slp.full || path === DERIVATION_PATHS.slp.parent) return t('backupWallet.derivationPath.slp');
     return t('backupWallet.derivationPath.custom');
   })
 

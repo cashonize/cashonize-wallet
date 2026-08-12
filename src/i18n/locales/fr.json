@@ -532,6 +532,7 @@
       "label": "Chemin de dérivation",
       "standard": "Standard BCH",
       "bitcoindotcom": "ancien, compatible avec le portefeuille Bitcoin.com",
+      "slp": "ancien, compatible avec les portefeuilles SLP",
       "custom": "personnalisé"
     },
     "persistentStorage": {
@@ -850,13 +851,15 @@
     "label": "Chemin de dérivation :",
     "standard": "standard",
     "bitcoindotcom": "Portefeuille Bitcoin.com",
+    "slp": "SLP",
     "scanPrompt": "Pas sûr ? {link}",
-    "scanLinkText": "Analyser les deux chemins",
+    "scanLinkText": "Rechercher l'activité du portefeuille",
     "scanning": "Recherche d'activité du portefeuille...",
     "detected": "Activité trouvée, {path} sélectionné",
-    "detectedBoth": "Activité trouvée sur les deux chemins de dérivation",
-    "noneFound": "Aucune activité de portefeuille trouvée sur les deux chemins de dérivation",
-    "multiAddressWarning": "Cette phrase de récupération a été utilisée avec plusieurs adresses. Un portefeuille à adresse unique n'affichera pas ces fonds. Un portefeuille HD est recommandé."
+    "detectedMultiple": "Activité trouvée sur plusieurs chemins de dérivation : {paths}",
+    "noneFound": "Aucune activité de portefeuille trouvée sur aucun chemin de dérivation",
+    "multiAddressWarning": "Cette phrase de récupération a été utilisée avec plusieurs adresses. Un portefeuille à adresse unique n'affichera pas ces fonds. Un portefeuille HD est recommandé.",
+    "slpWarning": "Ce chemin était utilisé par les portefeuilles SLP. Cashonize ne reconnaît pas les jetons SLP, donc dépenser depuis ce portefeuille détruira ceux qu'il contient. La plupart des jetons SLP n'ont plus de valeur ni d'infrastructure."
   },
   "seedPhraseInput": {
     "label": "Phrase de récupération :",

@@ -18,11 +18,12 @@ import {
   mockSetWalletCreatedAt,
   mockSetBackupStatus,
   mockSetWalletType,
+  mockWalletFromSeed,
   localStorageMock,
 } from './mocks/walletUtils.mocks'
 
 // Import module under test after mocks
-import { createNewWallet, importWallet, createNewHDWallet, importHDWallet, validateWalletName } from '../src/utils/walletUtils'
+import { createNewWallet, importWallet, createNewHDWallet, importHDWallet, validateWalletName, scanDerivationPaths } from '../src/utils/walletUtils'
 
 describe('validateWalletName', () => {
   it('returns null for valid names', () => {
@@ -986,5 +987,64 @@ describe('importHDWallet', () => {
       expect(result.success).toBe(false)
       expect(result.success === false && result.isUserError).toBe(false)
     })
+  })
+})
+
+describe('scanDerivationPaths', () => {
+  const seedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+
+  // Every address of the seed phrase is derived through Wallet.fromSeed, only the
+  // listed derivation paths report an on-chain transaction history
+  function givenHistoryOnPaths(pathsWithHistory: string[]) {
+    mockWalletFromSeed.mockImplementation((_seedPhrase: string, derivationPath: string) => Promise.resolve({
+      getRawHistory: () => Promise.resolve(pathsWithHistory.includes(derivationPath) ? [{ tx_hash: 'abc' }] : [])
+    }))
+  }
+
+  function scannedPaths() {
+    return mockWalletFromSeed.mock.calls.map(call => call[1] as string)
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('scans all three supported derivation paths', async () => {
+    givenHistoryOnPaths([])
+
+    const result = await scanDerivationPaths(seedPhrase)
+
+    expect(result.usedPaths).toEqual([])
+    expect(scannedPaths()).toEqual([
+      "m/44'/145'/0'/0/0",
+      "m/44'/0'/0'/0/0",
+      "m/44'/245'/0'/0/0",
+    ])
+  })
+
+  it('detects a wallet on the SLP path', async () => {
+    givenHistoryOnPaths(["m/44'/245'/0'/0/0"])
+
+    const result = await scanDerivationPaths(seedPhrase)
+
+    expect(result.usedPaths).toEqual(['slp'])
+    expect(result.multipleAddressesUsed).toBe(false)
+  })
+
+  it('reports every path with activity', async () => {
+    givenHistoryOnPaths(["m/44'/145'/0'/0/0", "m/44'/245'/0'/0/0"])
+
+    const result = await scanDerivationPaths(seedPhrase)
+
+    expect(result.usedPaths).toEqual(['standard', 'slp'])
+  })
+
+  it('flags activity beyond the first receive address of a used path', async () => {
+    givenHistoryOnPaths(["m/44'/245'/0'/0/0", "m/44'/245'/0'/1/0"])
+
+    const result = await scanDerivationPaths(seedPhrase)
+
+    expect(result.usedPaths).toEqual(['slp'])
+    expect(result.multipleAddressesUsed).toBe(true)
   })
 })
