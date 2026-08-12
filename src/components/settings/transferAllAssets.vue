@@ -26,7 +26,8 @@
   const isTransferring = ref(false);
   const transferFailed = ref(false);
   const activePhase = ref(undefined as undefined | TransferPhase);
-  const phaseProgress = ref(undefined as undefined | Record<TransferPhase, { completed: number, total: number }>);
+  // A phase gets its entry when it first reports, so the ones ahead of it read as pending
+  const phaseProgress = ref(undefined as undefined | Partial<Record<TransferPhase, { completed: number, total: number }>>);
 
   const numberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 });
   const transferPhases: TransferPhase[] = ["fungibleTokens", "nfts", "bch"];
@@ -143,11 +144,7 @@
     isTransferring.value = true;
     transferFailed.value = false;
     activePhase.value = undefined;
-    phaseProgress.value = {
-      fungibleTokens: { completed: 0, total: 0 },
-      nfts: { completed: 0, total: 0 },
-      bch: { completed: 0, total: 0 },
-    };
+    phaseProgress.value = {};
     try {
       await transferAllAssets(store.wallet, destination, onTransferProgress);
       destinationInput.value = "";
@@ -282,7 +279,7 @@
           <span class="transfer-phase-status">
             <template v-if="phaseStatus(phase) === 'skipped'">{{ t('transferAllAssets.phaseStatus.none') }}</template>
             <template v-else-if="phaseStatus(phase) === 'pending'">{{ t('transferAllAssets.phaseStatus.pending') }}</template>
-            <template v-else>{{ phaseProgress[phase].completed }} / {{ phaseProgress[phase].total }}</template>
+            <template v-else>{{ phaseProgress[phase]?.completed }} / {{ phaseProgress[phase]?.total }}</template>
           </span>
         </div>
         <div v-if="transferFailed" style="margin-top: 8px; color: orange;">
