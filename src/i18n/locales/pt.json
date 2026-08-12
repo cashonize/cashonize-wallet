@@ -16,6 +16,8 @@
       "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dapp",
       "nothingToTransfer": "Não resta BCH nem tokens para transferir"
     },
+    "attention": "Atenção:",
+    "hdPrivacyWarning": "Isso combina entradas de todos os seus endereços, vinculando-os publicamente como uma única carteira, o que sacrifica os benefícios de privacidade de usar uma carteira HD.",
     "copied": "Copiado!",
     "unsafeUrl": "URL oculta (protocolo inseguro)",
     "wallet": "carteira",
@@ -766,7 +768,6 @@
     "description": "Mova todo o BCH e tokens desta carteira para outro endereço.",
     "usageHint": "Útil para mover tudo para uma carteira nova quando você suspeita que sua frase semente não é mais privada, ou para consolidar seus fundos e tokens em uma única carteira.",
     "usageHintNote": "Se sua frase semente vazou, transfira o quanto antes, quem a tiver também pode gastar desta carteira.",
-    "hdPrivacyWarning": "Esta carteira usa vários endereços. Transferir tudo os combina nas mesmas transações, o que os vincula publicamente como uma única carteira.",
     "emptyWallet": "Esta carteira não tem BCH nem tokens para transferir",
     "toTransfer": "A transferir:",
     "bchBalance": "BCH",

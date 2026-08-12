@@ -189,8 +189,9 @@
       <div class="info-popup-note" style="max-width: 300px;">{{ t('transferAllAssets.usageHintNote') }}</div>
     </InfoPopup>
 
-    <div v-if="isHdWallet" style="margin-top: 15px; color: orange;">
-      {{ t('transferAllAssets.hdPrivacyWarning') }}
+    <div v-if="isHdWallet" class="warning-box" style="margin-top: 15px;">
+      <q-icon name="warning" size="20px" class="warning-box-icon" />
+      <div><b>{{ t('common.attention') }}</b> {{ t('common.hdPrivacyWarning') }}</div>
     </div>
 
     <div v-if="isEmpty" style="margin-top: 15px; color: grey;">

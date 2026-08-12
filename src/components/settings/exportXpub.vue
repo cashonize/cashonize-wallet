@@ -34,8 +34,9 @@
       </InfoPopup>
     </div>
 
-    <div style="margin-top: 15px; color: orange;">
-      {{ t('exportXpub.privacyWarning') }}
+    <div class="warning-box" style="margin-top: 15px;">
+      <q-icon name="warning" size="20px" class="warning-box-icon" />
+      <div><b>{{ t('common.attention') }}</b> {{ t('exportXpub.privacyWarning') }}</div>
     </div>
 
     <div v-if="!revealed" style="margin-top: 15px;">

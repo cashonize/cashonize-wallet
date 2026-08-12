@@ -247,6 +247,21 @@ input[type='number'] {
   background-color: var(--color-primary);
   color: white;
 }
+/* callout for a consequence to read before acting, like the privacy warnings in wallet tools.
+   translucent orange keeps the box readable in both light and dark mode */
+.warning-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 165, 0, 0.4);
+  background-color: rgba(255, 165, 0, 0.1);
+  border-radius: 8px;
+  color: orange;
+}
+.warning-box-icon {
+  flex: none;
+}
 .tokenInfo {
   display: flex;
   align-items: center;

@@ -16,6 +16,8 @@
       "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dapp",
       "nothingToTransfer": "No queda BCH ni tokens para transferir"
     },
+    "attention": "Atención:",
+    "hdPrivacyWarning": "Esto combina entradas de todas tus direcciones, vinculándolas públicamente como una sola billetera, lo que sacrifica los beneficios de privacidad de usar una billetera HD.",
     "copied": "¡Copiado!",
     "unsafeUrl": "URL oculta (protocolo no seguro)",
     "wallet": "billetera",
@@ -766,7 +768,6 @@
     "description": "Mueve todo el BCH y los tokens de esta billetera a otra dirección.",
     "usageHint": "Útil para mover todo a una billetera nueva cuando sospechas que tu frase semilla ya no es privada, o para consolidar tus fondos y tokens en una sola billetera.",
     "usageHintNote": "Si tu frase semilla se filtró, transfiere lo antes posible, quien la tenga también puede gastar desde esta billetera.",
-    "hdPrivacyWarning": "Esta billetera usa varias direcciones. Transferir todo las combina en las mismas transacciones, lo que las vincula públicamente como una sola billetera.",
     "emptyWallet": "Esta billetera no tiene BCH ni tokens para transferir",
     "toTransfer": "A transferir:",
     "bchBalance": "BCH",
