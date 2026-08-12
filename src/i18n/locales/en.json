@@ -977,6 +977,7 @@
       "localization": "Localization",
       "advancedSettings": "Advanced settings",
       "developerSettings": "Developer settings",
+      "tools": "Tools",
       "hdAddresses": "HD Addresses",
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
