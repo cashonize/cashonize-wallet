@@ -747,7 +747,7 @@
     "showPassphrase": "Mostrar",
     "hidePassphrase": "Ocultar",
     "unlockButton": "Desbloquear",
-    "unlockingButton": "Desbloqueando {progress}%",
+    "unlockingButton": "Descifrando...",
     "unlockedKey": "Desbloqueada",
     "sweepingButton": "Barriendo...",
     "sweepButton": "Barrer",

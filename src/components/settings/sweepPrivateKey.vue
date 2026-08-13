@@ -33,7 +33,6 @@
   const isSweeping = ref(false);
   const isLoading = ref(false);
   const isUnlocking = ref(false);
-  const unlockProgress = ref(0);
   // Unlocking is deliberately slow, so it happens once and preview and sweep use the result
   const unlockedKey = ref<{ encryptedKey: string, wif: string, address: string } | undefined>(undefined);
   const previewReady = ref(false);
@@ -80,7 +79,7 @@
   });
 
   const unlockButtonLabel = computed(() => {
-    if (isUnlocking.value) return t('sweepPrivateKey.unlockingButton', { progress: unlockProgress.value });
+    if (isUnlocking.value) return t('sweepPrivateKey.unlockingButton');
     return t('sweepPrivateKey.unlockButton');
   });
 
@@ -128,11 +127,12 @@
       return displayAndLogError(new Error(t('sweepPrivateKey.errors.noPassphraseProvided')));
     }
     isUnlocking.value = true;
-    unlockProgress.value = 0;
     try {
       const encryptedKey = keyToSweep.value;
-      const onProgress = (progress: number) => { unlockProgress.value = Math.round(progress * 100) };
-      const { privateKey, compressed } = await decryptBip38Key(encryptedKey, bip38Passphrase.value, onProgress);
+      // Decrypting holds the main thread from here until it is done, so wait for the paint that
+      // shows the button busy: after this the screen is frozen and no later change would show
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+      const { privateKey, compressed } = await decryptBip38Key(encryptedKey, bip38Passphrase.value);
       // A typed in uncompressed WIF is refused by mainnet-js, but this one would not be: the
       // re-encoding below always writes the compressed form, so mainnet-js would accept the key
       // and then watch and sign for an address that this key does not control

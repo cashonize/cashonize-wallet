@@ -747,7 +747,7 @@
     "showPassphrase": "Show",
     "hidePassphrase": "Hide",
     "unlockButton": "Unlock",
-    "unlockingButton": "Unlocking {progress}%",
+    "unlockingButton": "Decrypting...",
     "unlockedKey": "Unlocked",
     "sweepingButton": "Sweeping...",
     "sweepButton": "Sweep",

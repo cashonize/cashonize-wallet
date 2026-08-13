@@ -53,11 +53,14 @@ const xor = (input: Uint8Array, key: Uint8Array) => input.map((byte, index) => b
 const decryptAesBlock = (key: Uint8Array, block: Uint8Array) =>
   ecb(key, { disablePadding: true }).decrypt(block);
 
+function derivePublicKey(privateKey: Uint8Array, compressed: boolean) {
+  if (compressed) return secp256k1.derivePublicKeyCompressed(privateKey);
+  return secp256k1.derivePublicKeyUncompressed(privateKey);
+}
+
 // The 4-byte salt is taken over the legacy address as a base58 *string*, not over its bytes
 function legacyAddressHash(privateKey: Uint8Array, compressed: boolean) {
-  const publicKey = compressed
-    ? secp256k1.derivePublicKeyCompressed(privateKey)
-    : secp256k1.derivePublicKeyUncompressed(privateKey);
+  const publicKey = derivePublicKey(privateKey, compressed);
   if (typeof publicKey === "string") throw new Error(publicKey);
   const versionedHash = Uint8Array.from([0x00, ...hash160(publicKey)]);
   const address = binToBase58(Uint8Array.from([...versionedHash, ...doubleSha256(versionedHash).slice(0, 4)]));
@@ -102,9 +105,8 @@ async function decryptNonEcMultiplied(
   payload: Uint8Array,
   addressHash: Uint8Array,
   passphrase: Uint8Array,
-  onProgress: (progress: number) => void,
 ) {
-  const derived = await scryptAsync(passphrase, addressHash, { ...passphraseScryptParams, dkLen: 64, onProgress });
+  const derived = await scryptAsync(passphrase, addressHash, { ...passphraseScryptParams, dkLen: 64 });
   const derivedHalf1 = derived.slice(0, 32);
   const derivedHalf2 = derived.slice(32);
   const firstHalf = xor(decryptAesBlock(derivedHalf2, payload.slice(7, 23)), derivedHalf1.slice(0, 16));
@@ -119,15 +121,14 @@ async function decryptEcMultiplied(
   addressHash: Uint8Array,
   hasLotSequence: boolean,
   passphrase: Uint8Array,
-  onProgress: (progress: number) => void,
 ) {
   const ownerEntropy = payload.slice(7, 15);
   // With a lot/sequence number only half of the owner entropy is salt, the rest identifies the lot
   const ownerSalt = hasLotSequence ? ownerEntropy.slice(0, 4) : ownerEntropy;
-  const preFactor = await scryptAsync(passphrase, ownerSalt, { ...passphraseScryptParams, dkLen: 32, onProgress });
-  const passFactor = hasLotSequence
-    ? doubleSha256(Uint8Array.from([...preFactor, ...ownerEntropy]))
-    : preFactor;
+  const preFactor = await scryptAsync(passphrase, ownerSalt, { ...passphraseScryptParams, dkLen: 32 });
+  // With a lot/sequence number the factor is hashed together with the entropy naming that lot
+  let passFactor: Uint8Array = preFactor;
+  if (hasLotSequence) passFactor = doubleSha256(Uint8Array.from([...preFactor, ...ownerEntropy]));
   const passPoint = secp256k1.derivePublicKeyCompressed(passFactor);
   if (typeof passPoint === "string") throw new Error(passPoint);
 
@@ -148,23 +149,26 @@ async function decryptEcMultiplied(
 }
 
 /**
- * Decrypt a BIP38 encrypted private key. Deliberately slow: the spec's scrypt parameters take
- * roughly a second on desktop and several on mobile, so onProgress (0 to 1) is worth surfacing.
- * Throws a translated error when the key is malformed or the passphrase is wrong.
+ * Decrypt a BIP38 encrypted private key. Deliberately slow by design: the spec's scrypt
+ * parameters take roughly a second on desktop and several on mobile, and hold on to the thread
+ * they run on throughout. Throws a translated error when the key is malformed or the passphrase
+ * is wrong.
  */
 export async function decryptBip38Key(
   encryptedKey: string,
   passphrase: string,
-  onProgress: (progress: number) => void = () => undefined,
 ): Promise<DecryptedBip38Key> {
   const { ecMultiplied, compressed, hasLotSequence, addressHash, payload } = decodeEncryptedKey(encryptedKey);
   // Passphrases are compared as NFC, so that the same characters typed on a different keyboard
   // or platform still produce the same key
   const normalizedPassphrase = utf8ToBin(passphrase.normalize("NFC"));
 
-  const privateKey = ecMultiplied
-    ? await decryptEcMultiplied(payload, addressHash, hasLotSequence, normalizedPassphrase, onProgress)
-    : await decryptNonEcMultiplied(payload, addressHash, normalizedPassphrase, onProgress);
+  let privateKey: Uint8Array;
+  if (ecMultiplied) {
+    privateKey = await decryptEcMultiplied(payload, addressHash, hasLotSequence, normalizedPassphrase);
+  } else {
+    privateKey = await decryptNonEcMultiplied(payload, addressHash, normalizedPassphrase);
+  }
 
   // A wrong passphrase decrypts to a random key rather than failing, so the key is only correct
   // if it unlocks the address the encrypted key was made for

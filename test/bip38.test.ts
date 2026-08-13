@@ -116,15 +116,6 @@ describe("decryptBip38Key", () => {
     expect(encodePrivateKeyWif(privateKey, "mainnet")).toBe(accentedPassphraseVector.wif);
   });
 
-  it("reports progress while deriving", async () => {
-    const reported: number[] = [];
-    await decryptBip38Key(specVectors[2]!.encryptedKey, specVectors[2]!.passphrase, (progress) => {
-      reported.push(progress);
-    });
-    expect(reported.length).toBeGreaterThan(0);
-    expect(Math.max(...reported)).toBeLessThanOrEqual(1);
-  });
-
   it("rejects keys that are not BIP38 at all", async () => {
     await expect(decryptBip38Key("not a key", "passphrase")).rejects.toThrow();
     // A valid base58check string that is not a BIP38 key (a plain WIF)
