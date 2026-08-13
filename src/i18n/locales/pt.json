@@ -809,6 +809,10 @@
   "requestPayment": {
     "title": "Criar solicitação de pagamento",
     "description": "Crie uma solicitação de pagamento para compartilhar com quem vai te pagar.",
+    "descriptionToken": "Crie uma solicitação de um token fungível para compartilhar com quem vai te pagar.",
+    "bip21Hint": "As solicitações de pagamento em BCH usam BIP21, um padrão de URI de longa data amplamente suportado pelas carteiras de BCH.",
+    "tokenStandardHint": "As solicitações de token adicionam a categoria do token e a quantia ao endereço, como descreve o padrão mais recente PayPro para CashTokens.",
+    "tokenStandardHintNote": "NFTs não podem ser solicitados desta forma.",
     "amountLabel": "Quantia:",
     "amountPlaceholder": "Quantia a solicitar",
     "amountNote": "As solicitações de pagamento fixam a quantia em {network}. O valor em {currency} ainda pode mudar antes de a solicitação ser paga.",

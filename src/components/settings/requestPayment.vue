@@ -10,6 +10,7 @@
   import { buildBip21Uri } from 'src/utils/bip21'
   import { toTokenAddress } from 'src/utils/addressValidation'
   import CharCounter from 'src/components/general/CharCounter.vue'
+  import InfoPopup from 'src/components/general/InfoPopup.vue'
   import HdAddressSelectDialog from 'src/components/general/hdAddressSelectDialog.vue'
   import TokenSelectDialog from 'src/components/general/tokenSelectDialog.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
@@ -204,7 +205,21 @@
       </button>
     </div>
 
-    <div style="margin-top: 15px;">{{ t('requestPayment.description') }}</div>
+    <div style="margin-top: 15px;">
+      <template v-if="mode === 'bch'">
+        {{ t('requestPayment.description') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('requestPayment.bip21Hint') }}</div>
+        </InfoPopup>
+      </template>
+      <template v-else>
+        {{ t('requestPayment.descriptionToken') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('requestPayment.tokenStandardHint') }}</div>
+          <div class="info-popup-note" style="max-width: 300px;">{{ t('requestPayment.tokenStandardHintNote') }}</div>
+        </InfoPopup>
+      </template>
+    </div>
 
     <div v-if="mode === 'token'" style="margin-top: 15px;">
       <label>{{ t('requestPayment.tokenLabel') }}</label>

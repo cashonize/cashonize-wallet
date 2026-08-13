@@ -809,6 +809,10 @@
   "requestPayment": {
     "title": "Créer une demande de paiement",
     "description": "Créez une demande de paiement à partager avec la personne qui vous paie.",
+    "descriptionToken": "Créez une demande de token fongible à partager avec la personne qui vous paie.",
+    "bip21Hint": "Les demandes de paiement en BCH utilisent BIP21, un standard d'URI de longue date largement pris en charge par les portefeuilles BCH.",
+    "tokenStandardHint": "Les demandes de tokens ajoutent la catégorie du token et le montant à l'adresse, comme le décrit le standard plus récent PayPro pour les CashTokens.",
+    "tokenStandardHintNote": "Les NFT ne peuvent pas être demandés de cette façon.",
     "amountLabel": "Montant :",
     "amountPlaceholder": "Montant à demander",
     "amountNote": "Les demandes de paiement fixent le montant en {network}. La valeur en {currency} peut encore changer avant que la demande ne soit payée.",

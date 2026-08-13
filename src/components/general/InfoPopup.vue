@@ -30,10 +30,12 @@
 </template>
 
 <style>
+  /* the icon is taller than the lowercase text next to it, drop it slightly below the
+     baseline so it reads as vertically centered rather than floating above the line */
   .info-popup-icon {
     font-size: 1.1em;
     color: grey;
-    vertical-align: -0.15em;
+    vertical-align: -0.2em;
     cursor: pointer;
   }
   /* Global (unscoped) on purpose: the popup is teleported outside this component */

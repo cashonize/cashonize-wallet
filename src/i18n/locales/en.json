@@ -809,6 +809,10 @@
   "requestPayment": {
     "title": "Create Payment Request",
     "description": "Create a payment request to share with whoever is paying you.",
+    "descriptionToken": "Create a request for a fungible token to share with whoever is paying you.",
+    "bip21Hint": "BCH payment requests use BIP21, a long standing URI standard that BCH wallets widely support.",
+    "tokenStandardHint": "Token requests add the token category and the amount to the address, the way the newer PayPro standard for CashTokens describes.",
+    "tokenStandardHintNote": "NFTs cannot be requested this way.",
     "amountLabel": "Amount:",
     "amountPlaceholder": "Amount to request",
     "amountNote": "Payment requests fix the {network} amount. The {currency} value can still change before the request is paid.",

@@ -93,6 +93,10 @@
       lookingUpTokenId.value = true;
       try {
         await store.fetchTokenMetadata([{ category, amount: 0n }], false);
+      } catch (error) {
+        // a failed lookup reads the same to the user as one that found nothing,
+        // the message below covers both
+        console.error(`Failed to fetch metadata for token id ${category}:`, error);
       } finally {
         lookingUpTokenId.value = false;
       }

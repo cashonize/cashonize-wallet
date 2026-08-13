@@ -809,6 +809,10 @@
   "requestPayment": {
     "title": "Zahlungsanforderung erstellen",
     "description": "Erstelle eine Zahlungsanforderung, die du mit dem Zahlenden teilst.",
+    "descriptionToken": "Erstelle eine Anforderung für ein fungibles Token, die du mit dem Zahlenden teilst.",
+    "bip21Hint": "BCH-Zahlungsanforderungen nutzen BIP21, einen langjährigen URI-Standard, den BCH-Wallets breit unterstützen.",
+    "tokenStandardHint": "Token-Anforderungen hängen die Token-Kategorie und den Betrag an die Adresse an, so wie es der neuere PayPro-Standard für CashTokens beschreibt.",
+    "tokenStandardHintNote": "NFTs lassen sich auf diesem Weg nicht anfordern.",
     "amountLabel": "Betrag:",
     "amountPlaceholder": "Anzufordernder Betrag",
     "amountNote": "Zahlungsanforderungen legen den Betrag in {network} fest. Der Wert in {currency} kann sich bis zur Bezahlung noch ändern.",
