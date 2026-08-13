@@ -11,6 +11,7 @@
  * BCH-specific extensions (c, ft, nft for CashTokens, op_return) also land in otherParams.
  */
 
+import { formatTokenAmountFromBigInt } from 'src/utils/utils'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -120,6 +121,10 @@ export interface Bip21RequestParams {
   satoshis?: bigint | undefined;
   /** Note for the payer, shown by wallets that display it */
   message?: string | undefined;
+  /** Token category to request, only valid on a token-aware address */
+  category?: string | undefined;
+  /** Fungible token amount in base units, only emitted together with a category */
+  fungibleAmount?: bigint | undefined;
 }
 
 /**
@@ -128,9 +133,13 @@ export interface Bip21RequestParams {
  * Only emits the parameters Cashonize itself understands when paying, so a request
  * generated here can always be paid back by another Cashonize wallet.
  */
-export function buildBip21Uri({ address, satoshis, message }: Bip21RequestParams): string {
+export function buildBip21Uri({ address, satoshis, message, category, fungibleAmount }: Bip21RequestParams): string {
   const params: string[] = [];
   if (satoshis !== undefined && satoshis > 0n) params.push(`amount=${formatSatoshisAsBch(satoshis)}`);
+  if (category) {
+    params.push(`c=${category}`);
+    if (fungibleAmount !== undefined && fungibleAmount > 0n) params.push(`ft=${fungibleAmount}`);
+  }
   if (message) params.push(`message=${encodeURIComponent(message)}`);
   if (!params.length) return address;
   return `${address}?${params.join('&')}`;
@@ -141,9 +150,7 @@ export function buildBip21Uri({ address, satoshis, message }: Bip21RequestParams
  * Uses integer math so amounts never pick up floating point artifacts.
  */
 export function formatSatoshisAsBch(satoshis: bigint): string {
-  const wholeBch = satoshis / 100_000_000n;
-  const fractionalSats = (satoshis % 100_000_000n).toString().padStart(8, '0').replace(/0+$/, '');
-  return fractionalSats ? `${wholeBch}.${fractionalSats}` : `${wholeBch}`;
+  return formatTokenAmountFromBigInt(satoshis, 8);
 }
 
 /**

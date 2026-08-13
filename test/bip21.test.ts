@@ -286,6 +286,52 @@ describe("buildBip21Uri", () => {
   });
 });
 
+describe("buildBip21Uri for token requests", () => {
+  const tokenAddress = "bitcoincash:zr7fzmep8g7h7ymfxy74lgc0v950j3r295z4y4gq0v";
+  const category = "3a29bd2fe2ca319181035844dcff236c518bae26f417911043dc653b1a9dedc7";
+
+  it("should add the category", () => {
+    expect(buildBip21Uri({ address: tokenAddress, category }))
+      .toBe(`${tokenAddress}?c=${category}`);
+  });
+
+  it("should add the fungible amount in base units", () => {
+    expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 10_000_000n }))
+      .toBe(`${tokenAddress}?c=${category}&ft=10000000`);
+  });
+
+  it("should keep base unit amounts too large for a number exact", () => {
+    const hugeAmount = 9_007_199_254_740_993n;
+    expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: hugeAmount }))
+      .toBe(`${tokenAddress}?c=${category}&ft=9007199254740993`);
+  });
+
+  it("should leave out a zero token amount", () => {
+    expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 0n }))
+      .toBe(`${tokenAddress}?c=${category}`);
+  });
+
+  it("should not emit a token amount without a category", () => {
+    expect(buildBip21Uri({ address: tokenAddress, fungibleAmount: 100n })).toBe(tokenAddress);
+  });
+
+  it("should combine the token request with a message", () => {
+    expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 100n, message: "Invoice 1041" }))
+      .toBe(`${tokenAddress}?c=${category}&ft=100&message=Invoice%201041`);
+  });
+
+  it("should parse back into the params the token send form reads", () => {
+    const uri = buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 250n, message: "Order #7" });
+    const parsed = parseBip21Uri(uri);
+    expect(parsed.address).toBe(tokenAddress);
+    expect(parsed.otherParams?.c).toBe(category);
+    expect(parsed.otherParams?.ft).toBe("250");
+    expect(parsed.message).toBe("Order #7");
+    expect(parsed.hasUnknownRequired).toBe(false);
+    expect(parsed.hasDuplicateKeys).toBeUndefined();
+  });
+});
+
 // Every request we generate must be payable by our own send flow
 describe("generated requests round-trip through the parser", () => {
   it("should parse back the amount and message unchanged", () => {

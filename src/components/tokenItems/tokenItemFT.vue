@@ -4,7 +4,7 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
@@ -105,14 +105,13 @@
     if(!parsed) return;
     destinationAddr.value = parsed.address;
 
-    // Auto-fill fungible token amount from token payment requests.
+    // Auto-fill fungible token amount from token payment requests. The amount arrives in base
+    // units and is read as a bigint, token supplies go well past what a number holds exactly.
     const fungibleAmountParam = parsed.otherParams?.ft ?? parsed.otherParams?.f;
     if(parsed.otherParams?.c === tokenData.value.category && fungibleAmountParam){
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      const amountBaseUnits = parseInt(fungibleAmountParam, 10);
-      if (!isNaN(amountBaseUnits) && amountBaseUnits >= 0) {
-        const humanReadableAmount = decimals ? amountBaseUnits / (10 ** decimals) : amountBaseUnits;
-        tokenSendAmount.value = String(humanReadableAmount);
+      if (/^\d+$/.test(fungibleAmountParam)) {
+        tokenSendAmount.value = formatTokenAmountFromBigInt(BigInt(fungibleAmountParam), decimals);
       }
     }
   }

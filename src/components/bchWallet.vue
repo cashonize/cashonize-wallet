@@ -114,9 +114,9 @@
         return;
       }
 
-      // Warn if this is a CashToken payment request (has c= param)
+      // Token payment requests (c= param) are paid from the token's own send form
       if(parsed.otherParams?.c){
-        $q.notify({ message: t('wallet.errors.tokenPaymentRequest'), icon: 'warning', color: "grey-7" });
+        notifyTokenPaymentRequest(parsed.otherParams.c);
         return;
       }
 
@@ -134,6 +134,35 @@
       // If parsing fails, leave the input as-is for manual handling
     }
   }
+  // A token payment request cannot be paid from the bch send form, so point at the token it
+  // asks for. The wallet only knows a name for tokens it holds or has held.
+  function notifyTokenPaymentRequest(category: string){
+    const tokenName = store.bcmrRegistries?.[category]?.name;
+    const displayName = tokenName ?? `${category.slice(0, 10)}...${category.slice(-8)}`;
+    const holdsToken = store.tokenList?.some(tokenData => tokenData.category === category);
+    if(!holdsToken){
+      $q.notify({
+        message: t('wallet.errors.tokenPaymentRequestNotHeld', { token: displayName }),
+        icon: 'warning',
+        color: "grey-7"
+      });
+      return;
+    }
+    $q.notify({
+      message: t('wallet.errors.tokenPaymentRequest', { token: displayName }),
+      icon: 'info',
+      color: "grey-7",
+      actions: [{
+        label: t('wallet.openInTokens'),
+        color: 'white',
+        handler: () => {
+          store.pendingTokenSearch = category;
+          store.changeView(2);
+        }
+      }]
+    });
+  }
+
   async function setCurrencyAmount() {
     if(typeof bchSendAmount.value != 'number'){
       currencySendAmount.value = undefined

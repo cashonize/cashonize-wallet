@@ -48,6 +48,15 @@
   onActivated(() => document.addEventListener('keydown', handleCtrlF));
   onDeactivated(() => document.removeEventListener('keydown', handleCtrlF));
 
+  // Opening a token payment request from the wallet page lands here, narrow the list to the
+  // token it asks for. Immediate, because the store value is already set on the first visit.
+  watch(() => store.pendingTokenSearch, (category) => {
+    if (!category) return;
+    searchQuery.value = category;
+    showSearch.value = true;
+    store.pendingTokenSearch = undefined;
+  }, { immediate: true });
+
   const selectedTypeFilter = ref("all" as "all" | "fungibles" | "nfts");
 
   const typeFilterOptions = [

@@ -6,10 +6,13 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  import { copyToClipboard, formatNumber } from 'src/utils/utils'
+  import { copyToClipboard, formatNumber, parseTokenAmountToBigInt } from 'src/utils/utils'
   import { buildBip21Uri } from 'src/utils/bip21'
+  import { toTokenAddress } from 'src/utils/addressValidation'
   import CharCounter from 'src/components/general/CharCounter.vue'
   import HdAddressSelectDialog from 'src/components/general/hdAddressSelectDialog.vue'
+  import TokenSelectDialog from 'src/components/general/tokenSelectDialog.vue'
+  import TokenIcon from 'src/components/general/TokenIcon.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -21,9 +24,14 @@
 
   const isHdWallet = computed(() => store._wallet instanceof HDWallet);
 
-  // The amount is held in the user's display unit, like the send form on the wallet page
+  const mode = ref<'bch' | 'token'>('bch');
+
+  // The bch amount is held in the user's display unit, like the send form on the wallet page.
+  // The token amount stays a string, so its decimals are parsed with string math.
   const requestAmount = ref(undefined as number | undefined);
   const currencyAmount = ref(undefined as number | undefined);
+  const tokenAmountInput = ref("");
+  const selectedCategory = ref("");
   const requestMessage = ref("");
   // Empty means "follow the wallet's own receive address", so marking an address used or
   // receiving a payment moves the request along to the next one. Set when the user picks
@@ -31,6 +39,12 @@
   const pinnedAddress = ref("");
 
   const requestAddress = computed(() => pinnedAddress.value || store.currentDepositAddress);
+
+  // Token requests have to name a token-aware address
+  const effectiveAddress = computed(() => {
+    if (mode.value === 'bch' || !requestAddress.value) return requestAddress.value;
+    return toTokenAddress(requestAddress.value);
+  });
 
   const showMarkUsedAction = computed(() => settingsStore.enableAddressMarking && isHdWallet.value);
 
@@ -47,6 +61,14 @@
     return (store.network == "mainnet" ? "" : "t") + CurrencyShortNames[settingsStore.currency];
   });
 
+  const tokenMetadata = computed(() => store.bcmrRegistries?.[selectedCategory.value]);
+  const tokenDecimals = computed(() => tokenMetadata.value?.token?.decimals ?? 0);
+  const tokenSymbol = computed(() => tokenMetadata.value?.token?.symbol ?? "");
+  const tokenName = computed(() => {
+    if (!selectedCategory.value) return undefined;
+    return tokenMetadata.value?.name ?? `${selectedCategory.value.slice(0, 10)}...${selectedCategory.value.slice(-8)}`;
+  });
+
   const requestSatoshis = computed(() => {
     const amount = requestAmount.value;
     if(typeof amount != 'number' || !(amount > 0)) return undefined;
@@ -54,16 +76,47 @@
     return BigInt(Math.round(satoshis));
   });
 
-  const requestUri = computed(() => buildBip21Uri({
-    address: requestAddress.value,
-    satoshis: requestSatoshis.value,
-    message: requestMessage.value.trim(),
-  }));
+  // Amounts are requested in whole tokens and travel in base units, an amount with more
+  // decimals than the token has is rejected rather than silently left out of the request
+  const parsedTokenAmount = computed<{ baseUnits?: bigint, error?: string }>(() => {
+    const input = tokenAmountInput.value.trim();
+    if (!input) return {};
+    try {
+      return { baseUnits: parseTokenAmountToBigInt(input, tokenDecimals.value) };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) };
+    }
+  });
+
+  const requestUri = computed(() => {
+    const message = requestMessage.value.trim();
+    if (mode.value === 'token') {
+      return buildBip21Uri({
+        address: effectiveAddress.value,
+        category: selectedCategory.value,
+        fungibleAmount: parsedTokenAmount.value.baseUnits,
+        message,
+      });
+    }
+    return buildBip21Uri({ address: effectiveAddress.value, satoshis: requestSatoshis.value, message });
+  });
 
   // What the request actually asks for, restated at the moment the code is handed over
   const requestedAmountDisplay = computed(() => {
+    if (mode.value === 'token') {
+      const baseUnits = parsedTokenAmount.value.baseUnits;
+      if (baseUnits === undefined) return undefined;
+      const amountInTokens = tokenDecimals.value ? Number(baseUnits) / (10 ** tokenDecimals.value) : Number(baseUnits);
+      return `${formatNumber(amountInTokens, tokenDecimals.value)} ${tokenSymbol.value || tokenName.value}`;
+    }
     if(requestSatoshis.value === undefined || requestAmount.value === undefined) return undefined;
     return formatNumber(requestAmount.value, 8) + displayUnitLong.value;
+  });
+
+  // Nothing to request yet, the qr code is still the plain receive address
+  const emptyRequestHint = computed(() => {
+    if (mode.value === 'token' && !selectedCategory.value) return t('requestPayment.selectTokenPrompt');
+    return t('requestPayment.enterAmountHint');
   });
 
   async function setCurrencyAmount() {
@@ -99,19 +152,32 @@
     });
   }
 
+  function openTokenSelectDialog() {
+    $q.dialog({
+      component: TokenSelectDialog,
+      componentProps: {
+        title: t('requestPayment.selectToken'),
+        hint: t('requestPayment.selectTokenHint'),
+      },
+    }).onOk((category: string) => {
+      selectedCategory.value = category;
+    });
+  }
+
   function markAddressUsed() {
     store.markAddressUsed(requestAddress.value);
     // handing an address out is what a request is for, so the next one starts fresh
     pinnedAddress.value = "";
   }
 
-  // The view is kept alive across navigation, a pinned address belongs to the wallet
-  // and network it was picked on
+  // The view is kept alive across navigation, a pinned address and a selected token belong
+  // to the wallet and network they were picked on
   watch(() => store._wallet, () => {
     pinnedAddress.value = "";
+    selectedCategory.value = "";
   });
 
-  // Both amounts are entered by hand, so they need a nudge when the units they are
+  // Both bch amounts are entered by hand, so they need a nudge when the units they are
   // expressed in change while the view sits in the background
   watch(() => settingsStore.currency, () => void setCurrencyAmount());
   watch(() => settingsStore.bchUnit, async (newUnit, previousUnit) => {
@@ -124,38 +190,77 @@
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('requestPayment.title') }}</legend>
 
-    <div>{{ t('requestPayment.description') }}</div>
+    <div class="type-filter">
+      <button :class="{ active: mode === 'bch' }" @click="mode = 'bch'">
+        {{ bchDisplayNetwork }}
+      </button>
+      <button :class="{ active: mode === 'token' }" @click="mode = 'token'">
+        {{ t('requestPayment.tokensMode') }}
+      </button>
+    </div>
+
+    <div style="margin-top: 15px;">{{ t('requestPayment.description') }}</div>
+
+    <div v-if="mode === 'token'" style="margin-top: 15px;">
+      <label>{{ t('requestPayment.tokenLabel') }}</label>
+      <div class="selected-item selectable" :title="t('requestPayment.selectToken')" @click="openTokenSelectDialog()">
+        <TokenIcon
+          v-if="selectedCategory"
+          :token-id="selectedCategory"
+          :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(selectedCategory) : undefined"
+          :size="24"
+        />
+        <span :class="{ 'no-selection': !selectedCategory }">{{ tokenName ?? t('requestPayment.noTokenSelected') }}</span>
+        <q-icon name="expand_more" class="select-chevron" size="20px" />
+      </div>
+    </div>
 
     <div style="margin-top: 15px;">
       <label>{{ t('requestPayment.amountLabel') }}</label>
-      <div class="amountRow">
-        <span class="amountField">
-          <input
-            v-model="requestAmount"
-            @input="setCurrencyAmount()"
-            type="number"
-            :placeholder="t('requestPayment.amountPlaceholder')"
-            name="bchAmountInput"
-          >
-          <i class="input-icon">{{ bchDisplayUnit }}</i>
-        </span>
-        <span class="approxSign">≈</span>
-        <span class="amountField">
-          <input
-            v-model="currencyAmount"
-            @input="setBchAmount()"
-            type="number"
-            :placeholder="t('requestPayment.amountPlaceholder')"
-            name="currencyInput"
-          >
-          <i class="input-icon">
-            {{ `${currencyDisplayShortName} ${CurrencySymbols[settingsStore.currency]}` }}
-          </i>
-        </span>
-      </div>
-      <div class="amountNote">
-        {{ t('requestPayment.amountNote', { network: bchDisplayNetwork, currency: currencyDisplayShortName }) }}
-      </div>
+      <template v-if="mode === 'bch'">
+        <div class="amountRow">
+          <span class="amountField">
+            <input
+              v-model="requestAmount"
+              @input="setCurrencyAmount()"
+              type="number"
+              :placeholder="t('requestPayment.amountPlaceholder')"
+              name="bchAmountInput"
+            >
+            <i class="input-icon">{{ bchDisplayUnit }}</i>
+          </span>
+          <span class="approxSign">≈</span>
+          <span class="amountField">
+            <input
+              v-model="currencyAmount"
+              @input="setBchAmount()"
+              type="number"
+              :placeholder="t('requestPayment.amountPlaceholder')"
+              name="currencyInput"
+            >
+            <i class="input-icon">
+              {{ `${currencyDisplayShortName} ${CurrencySymbols[settingsStore.currency]}` }}
+            </i>
+          </span>
+        </div>
+        <div class="amountNote">
+          {{ t('requestPayment.amountNote', { network: bchDisplayNetwork, currency: currencyDisplayShortName }) }}
+        </div>
+      </template>
+      <template v-else>
+        <div class="amountRow">
+          <span class="amountField">
+            <input
+              v-model="tokenAmountInput"
+              :disabled="!selectedCategory"
+              :placeholder="t('requestPayment.amountPlaceholder')"
+              name="tokenAmountInput"
+            >
+            <i v-if="tokenSymbol" class="input-icon">{{ tokenSymbol }}</i>
+          </span>
+        </div>
+        <div v-if="parsedTokenAmount.error" style="color: red; margin-top: 6px;">{{ parsedTokenAmount.error }}</div>
+      </template>
     </div>
 
     <div style="margin-top: 15px;">
@@ -174,26 +279,26 @@
     <div style="margin-top: 15px;">
       <label>{{ t('requestPayment.payToLabel') }}</label>
       <div
-        class="selected-address"
+        class="selected-item mono"
         :class="{ selectable: isHdWallet }"
         :title="isHdWallet ? t('requestPayment.selectAddress') : undefined"
         @click="isHdWallet && openAddressSelectDialog()"
       >
-        <span>{{ requestAddress }}</span>
+        <span>{{ effectiveAddress }}</span>
         <q-icon v-if="isHdWallet" name="expand_more" class="select-chevron" size="20px" />
       </div>
     </div>
 
     <div class="qr-frame">
       <qr-code :contents="requestUri" @click="copyToClipboard(requestUri)" class="qr-code">
-        <img src="images/bch-icon.png" slot="icon" /> <!-- eslint-disable-line -->
+        <img :src="mode === 'bch' ? 'images/bch-icon.png' : 'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
       </qr-code>
     </div>
 
     <div v-if="requestedAmountDisplay" class="requestSummary">
       {{ t('requestPayment.requesting', { amount: requestedAmountDisplay }) }}
     </div>
-    <div v-else class="requestHint">{{ t('requestPayment.enterAmountHint') }}</div>
+    <div v-else class="requestHint">{{ emptyRequestHint }}</div>
 
     <div class="requestUri" @click="copyToClipboard(requestUri)">{{ requestUri }}</div>
 
@@ -239,7 +344,7 @@
   margin-top: 6px;
 }
 /* same treatment as the address row in the sign / verify message tool */
-.selected-address {
+.selected-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -247,14 +352,19 @@
   background-color: rgba(128, 128, 128, 0.06);
   border-radius: 6px;
   padding: 8px 10px;
-  font-family: monospace;
   word-break: break-all;
 }
-.selected-address.selectable {
+.selected-item.mono {
+  font-family: monospace;
+}
+.selected-item .no-selection {
+  color: grey;
+}
+.selected-item.selectable {
   cursor: pointer;
   transition: background-color 0.2s;
 }
-.selected-address.selectable:hover {
+.selected-item.selectable:hover {
   background-color: rgba(128, 128, 128, 0.14);
 }
 .select-chevron {

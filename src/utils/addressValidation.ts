@@ -15,6 +15,17 @@ export function toPlainAddress(address: string): string {
   }).address;
 }
 
+// Token payment requests have to name a token-aware address, while the addresses the wallet
+// hands around are the plain p2pkh form. Expects a valid cashaddr, it throws on anything else.
+export function toTokenAddress(address: string): string {
+  const decodedAddress = assertSuccess(decodeCashAddress(address));
+  return encodeCashAddress({
+    prefix: decodedAddress.prefix,
+    type: "p2pkhWithTokens",
+    payload: decodedAddress.payload,
+  }).address;
+}
+
 export function normalizeCashAddressForNetwork(
   input: string,
   expectedPrefix: string,
