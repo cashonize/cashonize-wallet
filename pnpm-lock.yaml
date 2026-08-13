@@ -39,6 +39,12 @@ importers:
       '@mainnet-cash/indexeddb-storage':
         specifier: 3.1.7
         version: 3.1.7
+      '@noble/ciphers':
+        specifier: 2.1.1
+        version: 2.1.1
+      '@noble/hashes':
+        specifier: 2.0.1
+        version: 2.0.1
       '@plausible-analytics/tracker':
         specifier: ^0.4.4
         version: 0.4.5
