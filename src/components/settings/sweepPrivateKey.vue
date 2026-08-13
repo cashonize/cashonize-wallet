@@ -296,18 +296,8 @@
         message: t('sweepPrivateKey.notifications.success')
       });
 
-      // Reset state
+      // Clearing the swept key resets the preview and the unlock along with it, through the watcher
       privateKeyToSweep.value = "";
-      bip38Passphrase.value = "";
-      showPassphrase.value = false;
-      unlockedKey.value = undefined;
-      previewReady.value = false;
-      isEmpty.value = false;
-      insufficientFeeBch.value = false;
-      previewTokenList.value = [];
-      unverifiedTokenMetadata.value = {};
-      bchBalanceSats.value = 0n;
-      fiatBalance.value = undefined;
     } catch (error) {
       displayAndLogError(error);
     } finally {
