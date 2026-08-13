@@ -804,6 +804,21 @@
       "ownAddress": "La destination est une adresse de ce même portefeuille"
     }
   },
+  "requestPayment": {
+    "title": "Créer une demande de paiement",
+    "description": "Créez une demande de paiement à partager avec la personne qui vous paie.",
+    "amountLabel": "Montant :",
+    "amountPlaceholder": "Montant à demander",
+    "amountNote": "Les demandes de paiement fixent le montant en {network}. La valeur en {currency} peut encore changer avant que la demande ne soit payée.",
+    "messageLabel": "Message (facultatif) :",
+    "messagePlaceholder": "Note pour le payeur, comme un numéro de facture",
+    "payToLabel": "Payer à :",
+    "selectAddress": "Sélectionner parmi les adresses du portefeuille",
+    "selectAddressHint": "Choisissez l'adresse sur laquelle demander le paiement",
+    "requesting": "Demande de {amount}",
+    "enterAmountHint": "Saisissez un montant pour en faire une demande de paiement",
+    "copyButton": "Copier la demande"
+  },
   "exportXpub": {
     "title": "Exporter la xpub",
     "description": "Une xpub permet à une autre application d'observer ce portefeuille, sans pouvoir dépenser.",
@@ -1068,6 +1083,7 @@
       "developerSettings": "Paramètres développeur",
       "tools": "Outils du portefeuille",
       "hdAddresses": "Adresses HD",
+      "requestPayment": "Créer une demande de paiement",
       "utxoManagement": "Gestion des UTXO",
       "sweepPrivateKey": "Balayer une clé privée",
       "transferAllAssets": "Transférer tous les actifs",

@@ -804,6 +804,21 @@
       "ownAddress": "O destino é um endereço desta mesma carteira"
     }
   },
+  "requestPayment": {
+    "title": "Criar solicitação de pagamento",
+    "description": "Crie uma solicitação de pagamento para compartilhar com quem vai te pagar.",
+    "amountLabel": "Quantia:",
+    "amountPlaceholder": "Quantia a solicitar",
+    "amountNote": "As solicitações de pagamento fixam a quantia em {network}. O valor em {currency} ainda pode mudar antes de a solicitação ser paga.",
+    "messageLabel": "Mensagem (opcional):",
+    "messagePlaceholder": "Nota para quem paga, como um número de fatura",
+    "payToLabel": "Pagar para:",
+    "selectAddress": "Selecionar entre os endereços da carteira",
+    "selectAddressHint": "Escolha para qual endereço solicitar o pagamento",
+    "requesting": "Solicitando {amount}",
+    "enterAmountHint": "Digite uma quantia para transformar isto em uma solicitação de pagamento",
+    "copyButton": "Copiar solicitação"
+  },
   "exportXpub": {
     "title": "Exportar Xpub",
     "description": "Um xpub permite que outro aplicativo observe esta carteira, sem poder gastar.",
@@ -1068,6 +1083,7 @@
       "developerSettings": "Configurações de desenvolvedor",
       "tools": "Ferramentas da carteira",
       "hdAddresses": "Endereços HD",
+      "requestPayment": "Criar solicitação de pagamento",
       "utxoManagement": "Gerenciamento de UTXOs",
       "sweepPrivateKey": "Sweep de Chave Privada",
       "transferAllAssets": "Transferir todos os ativos",

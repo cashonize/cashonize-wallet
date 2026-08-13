@@ -21,6 +21,10 @@
       ← {{ t('common.backToSettings') }}
     </div>
 
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(17)">
+      → {{ t('settings.menu.requestPayment') }}
+    </div>
+
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(7)">
       → {{ t('settings.menu.utxoManagement') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
     </div>

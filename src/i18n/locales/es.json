@@ -804,6 +804,21 @@
       "ownAddress": "El destino es una dirección de esta misma billetera"
     }
   },
+  "requestPayment": {
+    "title": "Crear solicitud de pago",
+    "description": "Crea una solicitud de pago para compartir con quien te va a pagar.",
+    "amountLabel": "Cantidad:",
+    "amountPlaceholder": "Cantidad a solicitar",
+    "amountNote": "Las solicitudes de pago fijan la cantidad en {network}. El valor en {currency} todavía puede cambiar antes de que se pague la solicitud.",
+    "messageLabel": "Mensaje (opcional):",
+    "messagePlaceholder": "Nota para quien paga, como un número de factura",
+    "payToLabel": "Pagar a:",
+    "selectAddress": "Seleccionar entre las direcciones de la billetera",
+    "selectAddressHint": "Elige a qué dirección solicitar el pago",
+    "requesting": "Solicitando {amount}",
+    "enterAmountHint": "Introduce una cantidad para convertir esto en una solicitud de pago",
+    "copyButton": "Copiar solicitud"
+  },
   "exportXpub": {
     "title": "Exportar Xpub",
     "description": "Un xpub permite que otra aplicación observe esta billetera, sin poder gastar.",
@@ -1068,6 +1083,7 @@
       "developerSettings": "Configuración de desarrollador",
       "tools": "Herramientas de billetera",
       "hdAddresses": "Direcciones HD",
+      "requestPayment": "Crear solicitud de pago",
       "utxoManagement": "Gestión de UTXO",
       "sweepPrivateKey": "Barrer clave privada",
       "transferAllAssets": "Transferir todos los activos",

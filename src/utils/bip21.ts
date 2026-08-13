@@ -1,5 +1,5 @@
 /**
- * BIP21 URI parsing utilities
+ * BIP21 URI parsing and building utilities
  * Spec: https://en.bitcoin.it/wiki/BIP_0021
  *
  * Supports both Bitcoin Cash (bitcoincash:, bchtest:) URI schemes
@@ -110,6 +110,40 @@ export function parseBip21Uri(uri: string): Bip21ParseResult {
   }
 
   return result;
+}
+
+/** The parameters Cashonize puts in a payment request it generates */
+export interface Bip21RequestParams {
+  /** Full cashaddress including the scheme prefix, as the wallet hands it out */
+  address: string;
+  /** Requested amount in satoshis, left out of the URI when zero or undefined */
+  satoshis?: bigint | undefined;
+  /** Note for the payer, shown by wallets that display it */
+  message?: string | undefined;
+}
+
+/**
+ * Build a BIP21 payment request URI.
+ *
+ * Only emits the parameters Cashonize itself understands when paying, so a request
+ * generated here can always be paid back by another Cashonize wallet.
+ */
+export function buildBip21Uri({ address, satoshis, message }: Bip21RequestParams): string {
+  const params: string[] = [];
+  if (satoshis !== undefined && satoshis > 0n) params.push(`amount=${formatSatoshisAsBch(satoshis)}`);
+  if (message) params.push(`message=${encodeURIComponent(message)}`);
+  if (!params.length) return address;
+  return `${address}?${params.join('&')}`;
+}
+
+/**
+ * Format satoshis as the whole-BCH decimal string BIP21 asks for, without trailing zeros.
+ * Uses integer math so amounts never pick up floating point artifacts.
+ */
+export function formatSatoshisAsBch(satoshis: bigint): string {
+  const wholeBch = satoshis / 100_000_000n;
+  const fractionalSats = (satoshis % 100_000_000n).toString().padStart(8, '0').replace(/0+$/, '');
+  return fractionalSats ? `${wholeBch}.${fractionalSats}` : `${wholeBch}`;
 }
 
 /**

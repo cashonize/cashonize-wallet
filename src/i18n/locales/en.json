@@ -804,6 +804,21 @@
       "ownAddress": "The destination is an address of this same wallet"
     }
   },
+  "requestPayment": {
+    "title": "Create Payment Request",
+    "description": "Create a payment request to share with whoever is paying you.",
+    "amountLabel": "Amount:",
+    "amountPlaceholder": "Amount to request",
+    "amountNote": "Payment requests fix the {network} amount. The {currency} value can still change before the request is paid.",
+    "messageLabel": "Message (optional):",
+    "messagePlaceholder": "Note for the payer, like an invoice number",
+    "payToLabel": "Pay to:",
+    "selectAddress": "Select from wallet addresses",
+    "selectAddressHint": "Choose which address to request to",
+    "requesting": "Requesting {amount}",
+    "enterAmountHint": "Enter an amount to turn this into a payment request",
+    "copyButton": "Copy Request"
+  },
   "exportXpub": {
     "title": "Export Xpub",
     "description": "An xpub lets another app watch this wallet, without being able to spend.",
@@ -1068,6 +1083,7 @@
       "developerSettings": "Developer settings",
       "tools": "Wallet tools",
       "hdAddresses": "HD Addresses",
+      "requestPayment": "Create Payment Request",
       "utxoManagement": "UTXO Management",
       "sweepPrivateKey": "Sweep Private Key",
       "transferAllAssets": "Transfer All Assets",

@@ -804,6 +804,21 @@
       "ownAddress": "Das Ziel ist eine Adresse dieses selben Wallets"
     }
   },
+  "requestPayment": {
+    "title": "Zahlungsanforderung erstellen",
+    "description": "Erstelle eine Zahlungsanforderung, die du mit dem Zahlenden teilst.",
+    "amountLabel": "Betrag:",
+    "amountPlaceholder": "Anzufordernder Betrag",
+    "amountNote": "Zahlungsanforderungen legen den Betrag in {network} fest. Der Wert in {currency} kann sich bis zur Bezahlung noch ändern.",
+    "messageLabel": "Nachricht (optional):",
+    "messagePlaceholder": "Notiz für den Zahlenden, etwa eine Rechnungsnummer",
+    "payToLabel": "Zahlen an:",
+    "selectAddress": "Aus den Wallet-Adressen auswählen",
+    "selectAddressHint": "Wähle, an welche Adresse die Zahlung gehen soll",
+    "requesting": "Angefordert: {amount}",
+    "enterAmountHint": "Gib einen Betrag ein, um daraus eine Zahlungsanforderung zu machen",
+    "copyButton": "Anforderung kopieren"
+  },
   "exportXpub": {
     "title": "Xpub exportieren",
     "description": "Ein Xpub erlaubt einer anderen App, dieses Wallet zu beobachten, ohne ausgeben zu können.",
@@ -1068,6 +1083,7 @@
       "developerSettings": "Entwicklereinstellungen",
       "tools": "Wallet-Werkzeuge",
       "hdAddresses": "HD Adressen",
+      "requestPayment": "Zahlungsanforderung erstellen",
       "utxoManagement": "UTXO-Verwaltung",
       "sweepPrivateKey": "Privaten Schlüssel sweepen",
       "transferAllAssets": "Alle Werte übertragen",

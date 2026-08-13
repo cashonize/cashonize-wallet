@@ -13,10 +13,17 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
-  // The sign/verify message tool reuses this selector with its own hint text
-  const props = defineProps<{
+  // The wallet tools reuse this selector with their own hint text and, when the picked
+  // address is one to hand out, without the change chain and without hiding the
+  // unused addresses that a payment request wants in the first place
+  const props = withDefaults(defineProps<{
     hint?: string,
-  }>();
+    allowChangeAddresses?: boolean,
+    hideZeroBalancesDefault?: boolean,
+  }>(), {
+    allowChangeAddresses: true,
+    hideZeroBalancesDefault: true,
+  });
 
   const emit = defineEmits<{
     selectionChanged: [addresses: string[]];
@@ -29,7 +36,7 @@
   const changeAddresses = ref<AddressRow[]>([]);
   const selectedChain = ref("receiving" as "receiving" | "change");
   const showOptions = ref(false);
-  const hideZeroBalances = ref(true);
+  const hideZeroBalances = ref(props.hideZeroBalancesDefault);
   const collapsedGroups = ref({ unused: false, used: false });
   const selectedAddress = ref<string | null>(null);
   const expandedTokensKey = ref<string | null>(null);
@@ -130,7 +137,7 @@
       </div>
     </div>
 
-    <div class="filter-row">
+    <div v-if="props.allowChangeAddresses" class="filter-row">
       <div class="type-filter">
         <button :class="{ active: selectedChain === 'receiving' }" @click="selectedChain = 'receiving'">
           {{ t('hdAddresses.receiving') }} ({{ filteredReceivingCount }})
