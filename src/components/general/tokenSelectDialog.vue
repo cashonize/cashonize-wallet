@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+  import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -25,6 +25,8 @@
 
   const searchQuery = ref("");
   const searchInputRef = ref<HTMLInputElement | null>(null);
+  const lookingUpTokenId = ref(false);
+  const lookupFailed = ref(false);
 
   interface TokenOption {
     category: string;
@@ -73,6 +75,35 @@
     });
   });
 
+  // A category the wallet never touched can still be requested, by pasting its id into the
+  // same search field. Recognized on the query alone, the lookup itself waits for a click.
+  const pastedTokenId = computed(() => {
+    const query = searchQuery.value.trim().toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(query)) return undefined;
+    if (searchedTokens.value.length) return undefined;
+    return query;
+  });
+
+  async function selectPastedTokenId(category: string) {
+    if (lookingUpTokenId.value) return;
+    lookupFailed.value = false;
+    // metadata carries the decimals the requested amount is expressed in, so a token
+    // without it cannot be requested by amount at all
+    if (!metadataFor(category)) {
+      lookingUpTokenId.value = true;
+      try {
+        await store.fetchTokenMetadata([{ category, amount: 0n }], false);
+      } finally {
+        lookingUpTokenId.value = false;
+      }
+      if (!metadataFor(category)) {
+        lookupFailed.value = true;
+        return;
+      }
+    }
+    onDialogOK(category);
+  }
+
   // Token names are claims, not identities: anyone can register metadata under a name that
   // is already taken. Names shared by more than one of the listed tokens are marked, so the
   // token id below the name is what the choice comes down to. Computed over every option
@@ -117,6 +148,11 @@
     return `${formatNumber(amountInTokens, decimals)} ${symbol}`.trim();
   }
 
+  // A failed lookup belongs to the id that was tried, not to the next one
+  watch(searchQuery, () => {
+    lookupFailed.value = false;
+  });
+
   // Override Ctrl+F to focus the search input, as the token list and history pages do
   function handleCtrlF(event: KeyboardEvent) {
     if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
@@ -141,13 +177,26 @@
           ref="searchInputRef"
           v-model="searchQuery"
           type="text"
-          :placeholder="t('tokens.searchPlaceholder')"
+          :placeholder="t('requestPayment.searchOrPasteId')"
           class="search-input"
           autocomplete="off"
           autocapitalize="none"
           spellcheck="false"
         >
-        <div v-if="!tokenOptions.length" class="no-tokens">{{ t('requestPayment.noFungibleTokens') }}</div>
+        <div v-if="pastedTokenId" class="token-list">
+          <div class="token-item" :title="pastedTokenId" @click="selectPastedTokenId(pastedTokenId)">
+            <q-icon name="search" size="28px" class="lookup-icon" />
+            <div class="token-info">
+              <div class="token-name">
+                {{ t('requestPayment.lookupTokenId') }}
+                <q-spinner-dots v-if="lookingUpTokenId" size="1.2em" />
+              </div>
+              <div class="token-sub mono">{{ shortCategory(pastedTokenId) }}</div>
+            </div>
+          </div>
+          <div v-if="lookupFailed" class="lookup-failed">{{ t('requestPayment.lookupFailed') }}</div>
+        </div>
+        <div v-else-if="!tokenOptions.length" class="no-tokens">{{ t('requestPayment.noFungibleTokens') }}</div>
         <div v-else-if="!searchedTokens.length" class="no-tokens">{{ t('tokens.noMatch') }}</div>
         <div v-else class="token-list">
           <div
@@ -197,6 +246,13 @@
 .no-tokens {
   opacity: 0.6;
   margin-top: 10px;
+}
+.lookup-icon {
+  opacity: 0.5;
+}
+.lookup-failed {
+  color: red;
+  margin-top: 6px;
 }
 .token-list {
   max-height: 350px;
