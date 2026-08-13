@@ -5,6 +5,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
   import { formatNumber } from 'src/utils/utils'
+  import type { TokenDataFT } from 'src/interfaces/interfaces'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
 
   const store = useStore()
@@ -25,24 +26,96 @@
   const searchQuery = ref("");
   const searchInputRef = ref<HTMLInputElement | null>(null);
 
+  interface TokenOption {
+    category: string;
+    /** Balance in base units, zero for a token only seen in the history */
+    amount: bigint;
+  }
+
   // The full token list rather than the filtered one: hiding a token from the overview
   // is about the overview, it should not keep the user from requesting that token
   const fungibleTokens = computed(() =>
-    store.tokenList?.filter(tokenData => 'amount' in tokenData) ?? []
+    store.tokenList?.filter((tokenData): tokenData is TokenDataFT => 'amount' in tokenData) ?? []
   );
+
+  // Fungible categories the wallet moved before but no longer holds. Having spent a token
+  // down to zero is no reason to stop being able to ask for more of it.
+  const historyCategories = computed(() => {
+    const categories: string[] = [];
+    const heldCategories = fungibleTokens.value.map(tokenData => tokenData.category);
+    for (const transaction of store.walletHistory ?? []) {
+      for (const tokenChange of transaction.tokenAmountChanges) {
+        // a category that only ever moved as an NFT is not requestable as a fungible
+        if (tokenChange.amount === 0n) continue;
+        if (heldCategories.includes(tokenChange.category)) continue;
+        if (categories.includes(tokenChange.category)) continue;
+        categories.push(tokenChange.category);
+      }
+    }
+    return categories;
+  });
+
+  const tokenOptions = computed<TokenOption[]>(() => [
+    ...fungibleTokens.value.map(tokenData => ({ category: tokenData.category, amount: tokenData.amount })),
+    ...historyCategories.value.map(category => ({ category, amount: 0n })),
+  ]);
 
   // Searches the same fields as the token list page: category, name and symbol
   const searchedTokens = computed(() => {
     const query = searchQuery.value.toLowerCase().trim();
-    if (!query) return fungibleTokens.value;
-    return fungibleTokens.value.filter(tokenData => {
-      if (tokenData.category.toLowerCase().includes(query)) return true;
-      const metadata = metadataFor(tokenData.category);
+    if (!query) return tokenOptions.value;
+    return tokenOptions.value.filter(option => {
+      if (option.category.toLowerCase().includes(query)) return true;
+      const metadata = metadataFor(option.category);
       if (!metadata) return false;
       if (metadata.name.toLowerCase().includes(query)) return true;
       return metadata.token.symbol.toLowerCase().includes(query);
     });
   });
+
+  // Token names are claims, not identities: anyone can register metadata under a name that
+  // is already taken. Names shared by more than one of the listed tokens are marked, so the
+  // token id below the name is what the choice comes down to. Computed over every option
+  // rather than the search results, a filtered out impersonator is still an impersonator.
+  const collidingNames = computed(() => {
+    const seenNames: string[] = [];
+    const duplicateNames: string[] = [];
+    for (const option of tokenOptions.value) {
+      const name = normalizedName(option.category);
+      if (!name) continue;
+      if (seenNames.includes(name) && !duplicateNames.includes(name)) duplicateNames.push(name);
+      seenNames.push(name);
+    }
+    return duplicateNames;
+  });
+
+  function metadataFor(category: string) {
+    return store.bcmrRegistries?.[category];
+  }
+
+  function normalizedName(category: string) {
+    return metadataFor(category)?.name?.trim().toLowerCase();
+  }
+
+  function hasNameCollision(category: string) {
+    const name = normalizedName(category);
+    return name !== undefined && collidingNames.value.includes(name);
+  }
+
+  function shortCategory(category: string) {
+    return `${category.slice(0, 8)}...${category.slice(-8)}`;
+  }
+
+  function tokenName(category: string) {
+    return metadataFor(category)?.name ?? shortCategory(category);
+  }
+
+  function heldAmount(option: TokenOption) {
+    const decimals = metadataFor(option.category)?.token?.decimals ?? 0;
+    const amountInTokens = decimals ? Number(option.amount) / (10 ** decimals) : Number(option.amount);
+    const symbol = metadataFor(option.category)?.token?.symbol ?? "";
+    return `${formatNumber(amountInTokens, decimals)} ${symbol}`.trim();
+  }
 
   // Override Ctrl+F to focus the search input, as the token list and history pages do
   function handleCtrlF(event: KeyboardEvent) {
@@ -55,21 +128,6 @@
   // The dialog is mounted for as long as it is open, so the listener follows its lifetime
   onMounted(() => document.addEventListener('keydown', handleCtrlF));
   onBeforeUnmount(() => document.removeEventListener('keydown', handleCtrlF));
-
-  function metadataFor(category: string) {
-    return store.bcmrRegistries?.[category];
-  }
-
-  function tokenName(category: string) {
-    return metadataFor(category)?.name ?? `${category.slice(0, 10)}...${category.slice(-8)}`;
-  }
-
-  function heldAmount(category: string, amount: bigint) {
-    const decimals = metadataFor(category)?.token?.decimals ?? 0;
-    const amountInTokens = decimals ? Number(amount) / (10 ** decimals) : Number(amount);
-    const symbol = metadataFor(category)?.token?.symbol ?? "";
-    return `${formatNumber(amountInTokens, decimals)} ${symbol}`.trim();
-  }
 </script>
 
 <template>
@@ -79,7 +137,7 @@
         <legend style="font-size: large;">{{ title }}</legend>
         <div>{{ hint }}</div>
         <input
-          v-if="fungibleTokens.length"
+          v-if="tokenOptions.length"
           ref="searchInputRef"
           v-model="searchQuery"
           type="text"
@@ -89,24 +147,33 @@
           autocapitalize="none"
           spellcheck="false"
         >
-        <div v-if="!fungibleTokens.length" class="no-tokens">{{ t('requestPayment.noFungibleTokens') }}</div>
+        <div v-if="!tokenOptions.length" class="no-tokens">{{ t('requestPayment.noFungibleTokens') }}</div>
         <div v-else-if="!searchedTokens.length" class="no-tokens">{{ t('tokens.noMatch') }}</div>
         <div v-else class="token-list">
           <div
-            v-for="tokenData in searchedTokens"
-            :key="tokenData.category"
+            v-for="option in searchedTokens"
+            :key="option.category"
             class="token-item"
-            :title="tokenData.category"
-            @click="onDialogOK(tokenData.category)"
+            :title="option.category"
+            @click="onDialogOK(option.category)"
           >
             <TokenIcon
-              :token-id="tokenData.category"
-              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(tokenData.category) : undefined"
+              :token-id="option.category"
+              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(option.category) : undefined"
             />
             <div class="token-info">
-              <div class="token-name">{{ tokenName(tokenData.category) }}</div>
-              <div class="token-amount">
-                {{ 'amount' in tokenData ? heldAmount(tokenData.category, tokenData.amount) : '' }}
+              <div class="token-name">
+                {{ tokenName(option.category) }}
+                <q-icon
+                  v-if="hasNameCollision(option.category)"
+                  name="warning"
+                  size="16px"
+                  class="collision-icon"
+                  :title="t('requestPayment.nameCollision')"
+                />
+              </div>
+              <div class="token-sub">
+                <span class="mono">{{ shortCategory(option.category) }}</span> · {{ heldAmount(option) }}
               </div>
             </div>
           </div>
@@ -161,8 +228,15 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.token-amount {
+.collision-icon {
+  color: #e6a23c;
+  vertical-align: -0.2em;
+}
+.token-sub {
   font-size: 0.85em;
   opacity: 0.65;
+}
+.mono {
+  font-family: monospace;
 }
 </style>

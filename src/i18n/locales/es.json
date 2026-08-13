@@ -818,6 +818,7 @@
     "selectTokenHint": "Elige qué token solicitar",
     "noTokenSelected": "Ningún token seleccionado",
     "noFungibleTokens": "Esta billetera no tiene tokens fungibles",
+    "nameCollision": "Más de un token de esta lista usa este nombre, comprueba el id del token",
     "selectTokenPrompt": "Selecciona un token para solicitar",
     "messageLabel": "Mensaje (opcional):",
     "messagePlaceholder": "Nota para quien paga, como un número de factura",

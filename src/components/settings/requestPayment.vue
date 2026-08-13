@@ -64,9 +64,14 @@
   const tokenMetadata = computed(() => store.bcmrRegistries?.[selectedCategory.value]);
   const tokenDecimals = computed(() => tokenMetadata.value?.token?.decimals ?? 0);
   const tokenSymbol = computed(() => tokenMetadata.value?.token?.symbol ?? "");
+  const shortCategory = computed(() =>
+    `${selectedCategory.value.slice(0, 8)}...${selectedCategory.value.slice(-8)}`
+  );
+  // Token names are not unique, so the id is shown next to the name of the picked token.
+  // Without metadata the id is all there is to show.
   const tokenName = computed(() => {
     if (!selectedCategory.value) return undefined;
-    return tokenMetadata.value?.name ?? `${selectedCategory.value.slice(0, 10)}...${selectedCategory.value.slice(-8)}`;
+    return tokenMetadata.value?.name ?? shortCategory.value;
   });
 
   const requestSatoshis = computed(() => {
@@ -211,6 +216,7 @@
           :size="24"
         />
         <span :class="{ 'no-selection': !selectedCategory }">{{ tokenName ?? t('requestPayment.noTokenSelected') }}</span>
+        <span v-if="tokenMetadata?.name" class="token-id">{{ shortCategory }}</span>
         <q-icon name="expand_more" class="select-chevron" size="20px" />
       </div>
     </div>
@@ -359,6 +365,12 @@
 }
 .selected-item .no-selection {
   color: grey;
+}
+/* the name is a claim, the id is the token, so it travels along with the name */
+.token-id {
+  font-family: monospace;
+  font-size: 0.85em;
+  opacity: 0.65;
 }
 .selected-item.selectable {
   cursor: pointer;

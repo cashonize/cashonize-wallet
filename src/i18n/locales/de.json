@@ -818,6 +818,7 @@
     "selectTokenHint": "Wähle, welches Token angefordert wird",
     "noTokenSelected": "Kein Token ausgewählt",
     "noFungibleTokens": "Dieses Wallet hält keine fungiblen Tokens",
+    "nameCollision": "Mehr als ein Token in dieser Liste nutzt diesen Namen, prüfe die Token-Id",
     "selectTokenPrompt": "Wähle ein Token zum Anfordern",
     "messageLabel": "Nachricht (optional):",
     "messagePlaceholder": "Notiz für den Zahlenden, etwa eine Rechnungsnummer",

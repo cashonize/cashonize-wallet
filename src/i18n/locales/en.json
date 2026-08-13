@@ -818,6 +818,7 @@
     "selectTokenHint": "Choose which token to request",
     "noTokenSelected": "No token selected",
     "noFungibleTokens": "This wallet holds no fungible tokens",
+    "nameCollision": "More than one token in this list uses this name, check the token id",
     "selectTokenPrompt": "Select a token to request",
     "messageLabel": "Message (optional):",
     "messagePlaceholder": "Note for the payer, like an invoice number",
