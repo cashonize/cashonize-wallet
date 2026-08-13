@@ -741,6 +741,14 @@
     "title": "Barrer clave privada",
     "description": "Barrer BCH y tokens de una billetera de papel, cashstamp o clave privada:",
     "placeholder": "Ingresa la clave privada",
+    "encryptedKeySupported": "Se admiten billeteras de papel protegidas con contraseña (BIP38). Ingresa o escanea la clave cifrada y Cashonize pedirá su contraseña.",
+    "encryptedKey": "Esta clave privada está cifrada (BIP38). Ingresa la contraseña con la que fue protegida:",
+    "passphrasePlaceholder": "Ingresa la contraseña",
+    "showPassphrase": "Mostrar",
+    "hidePassphrase": "Ocultar",
+    "unlockButton": "Desbloquear",
+    "unlockingButton": "Descifrando...",
+    "unlockedKey": "Desbloqueada",
     "sweepingButton": "Barriendo...",
     "sweepButton": "Barrer",
     "previewButton": "Vista previa",
@@ -761,6 +769,13 @@
       "sweepingNfts": "Barriendo NFTs...",
       "sweepingBch": "Barriendo BCH...",
       "success": "Fondos barridos exitosamente de la clave privada"
+    },
+    "errors": {
+      "invalidEncryptedKey": "Esta no es una clave privada cifrada válida",
+      "incorrectPassphrase": "Contraseña incorrecta, esta no es la contraseña con la que se protegió esta clave",
+      "noPassphraseProvided": "No se proporcionó una contraseña para desbloquear la clave privada",
+      "keyLocked": "Primero desbloquea esta clave privada cifrada con su contraseña",
+      "uncompressedKey": "Esta clave privada usa una dirección sin comprimir, que Cashonize aún no puede barrer"
     },
     "qrErrors": {
       "notWif": "No es un código QR que codifica una clave privada en formato WIF",

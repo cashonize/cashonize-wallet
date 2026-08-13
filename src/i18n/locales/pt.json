@@ -741,6 +741,14 @@
     "title": "Sweep de Chave Privada",
     "description": "Fazer sweep de BCH e tokens de uma paper wallet, cashstamp ou chave privada:",
     "placeholder": "Insira a chave privada",
+    "encryptedKeySupported": "Paper wallets protegidas por senha (BIP38) são suportadas. Insira ou escaneie a chave criptografada e o Cashonize pedirá sua senha.",
+    "encryptedKey": "Esta chave privada está criptografada (BIP38). Insira a senha com a qual foi protegida:",
+    "passphrasePlaceholder": "Insira a senha",
+    "showPassphrase": "Mostrar",
+    "hidePassphrase": "Ocultar",
+    "unlockButton": "Desbloquear",
+    "unlockingButton": "Descriptografando...",
+    "unlockedKey": "Desbloqueada",
     "sweepingButton": "Fazendo sweep...",
     "sweepButton": "Sweep",
     "previewButton": "Visualizar",
@@ -761,6 +769,13 @@
       "sweepingNfts": "Fazendo sweep dos NFTs...",
       "sweepingBch": "Fazendo sweep do BCH...",
       "success": "Fundos importados com sucesso da chave privada"
+    },
+    "errors": {
+      "invalidEncryptedKey": "Esta não é uma chave privada criptografada válida",
+      "incorrectPassphrase": "Senha incorreta, não é a senha com a qual esta chave foi protegida",
+      "noPassphraseProvided": "Nenhuma senha fornecida para desbloquear a chave privada",
+      "keyLocked": "Primeiro desbloqueie esta chave privada criptografada com sua senha",
+      "uncompressedKey": "Esta chave privada usa um endereço não comprimido, do qual o Cashonize ainda não consegue fazer sweep"
     },
     "qrErrors": {
       "notWif": "Não é um QR code com chave privada no formato WIF",

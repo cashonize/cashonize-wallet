@@ -741,6 +741,14 @@
     "title": "Sweep Private Key",
     "description": "Sweep BCH and tokens from a paper wallet, cashstamp, or private key:",
     "placeholder": "Enter private key",
+    "encryptedKeySupported": "Passphrase protected paper wallets (BIP38) are supported. Enter or scan the encrypted key and Cashonize asks for its passphrase.",
+    "encryptedKey": "This private key is encrypted (BIP38). Enter the passphrase it was protected with:",
+    "passphrasePlaceholder": "Enter passphrase",
+    "showPassphrase": "Show",
+    "hidePassphrase": "Hide",
+    "unlockButton": "Unlock",
+    "unlockingButton": "Decrypting...",
+    "unlockedKey": "Unlocked",
     "sweepingButton": "Sweeping...",
     "sweepButton": "Sweep",
     "previewButton": "Preview",
@@ -761,6 +769,13 @@
       "sweepingNfts": "Sweeping NFTs...",
       "sweepingBch": "Sweeping BCH...",
       "success": "Successfully swept funds from private key"
+    },
+    "errors": {
+      "invalidEncryptedKey": "This is not a valid encrypted private key",
+      "incorrectPassphrase": "Incorrect passphrase, this is not the passphrase this key was protected with",
+      "noPassphraseProvided": "No passphrase provided to unlock the private key",
+      "keyLocked": "Unlock this encrypted private key with its passphrase first",
+      "uncompressedKey": "This private key uses an uncompressed address, which Cashonize cannot sweep yet"
     },
     "qrErrors": {
       "notWif": "Not a QR code encoding a Private Key in WIF format",

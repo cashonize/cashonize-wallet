@@ -741,6 +741,14 @@
     "title": "Balayer une clé privée",
     "description": "Balayer les BCH et tokens d'un portefeuille papier, cashstamp ou clé privée :",
     "placeholder": "Entrez la clé privée",
+    "encryptedKeySupported": "Les portefeuilles papier protégés par une phrase secrète (BIP38) sont pris en charge. Saisissez ou scannez la clé chiffrée et Cashonize demandera sa phrase secrète.",
+    "encryptedKey": "Cette clé privée est chiffrée (BIP38). Entrez la phrase secrète qui la protège :",
+    "passphrasePlaceholder": "Entrez la phrase secrète",
+    "showPassphrase": "Afficher",
+    "hidePassphrase": "Masquer",
+    "unlockButton": "Déverrouiller",
+    "unlockingButton": "Déchiffrement...",
+    "unlockedKey": "Déverrouillée",
     "sweepingButton": "Balayage...",
     "sweepButton": "Balayer",
     "previewButton": "Aperçu",
@@ -761,6 +769,13 @@
       "sweepingNfts": "Balayage des NFTs...",
       "sweepingBch": "Balayage des BCH...",
       "success": "Fonds balayés avec succès depuis la clé privée"
+    },
+    "errors": {
+      "invalidEncryptedKey": "Ceci n'est pas une clé privée chiffrée valide",
+      "incorrectPassphrase": "Phrase secrète incorrecte, ce n'est pas celle qui protège cette clé",
+      "noPassphraseProvided": "Aucune phrase secrète fournie pour déverrouiller la clé privée",
+      "keyLocked": "Déverrouillez d'abord cette clé privée chiffrée avec sa phrase secrète",
+      "uncompressedKey": "Cette clé privée utilise une adresse non compressée, que Cashonize ne peut pas encore balayer"
     },
     "qrErrors": {
       "notWif": "Ce n'est pas un code QR encodant une clé privée au format WIF",
