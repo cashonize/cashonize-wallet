@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed } from 'vue'
+  import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -22,11 +22,39 @@
 
   const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
 
+  const searchQuery = ref("");
+  const searchInputRef = ref<HTMLInputElement | null>(null);
+
   // The full token list rather than the filtered one: hiding a token from the overview
   // is about the overview, it should not keep the user from requesting that token
   const fungibleTokens = computed(() =>
     store.tokenList?.filter(tokenData => 'amount' in tokenData) ?? []
   );
+
+  // Searches the same fields as the token list page: category, name and symbol
+  const searchedTokens = computed(() => {
+    const query = searchQuery.value.toLowerCase().trim();
+    if (!query) return fungibleTokens.value;
+    return fungibleTokens.value.filter(tokenData => {
+      if (tokenData.category.toLowerCase().includes(query)) return true;
+      const metadata = metadataFor(tokenData.category);
+      if (!metadata) return false;
+      if (metadata.name.toLowerCase().includes(query)) return true;
+      return metadata.token.symbol.toLowerCase().includes(query);
+    });
+  });
+
+  // Override Ctrl+F to focus the search input, as the token list and history pages do
+  function handleCtrlF(event: KeyboardEvent) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+      event.preventDefault();
+      searchInputRef.value?.focus();
+    }
+  }
+
+  // The dialog is mounted for as long as it is open, so the listener follows its lifetime
+  onMounted(() => document.addEventListener('keydown', handleCtrlF));
+  onBeforeUnmount(() => document.removeEventListener('keydown', handleCtrlF));
 
   function metadataFor(category: string) {
     return store.bcmrRegistries?.[category];
@@ -50,10 +78,22 @@
       <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ title }}</legend>
         <div>{{ hint }}</div>
+        <input
+          v-if="fungibleTokens.length"
+          ref="searchInputRef"
+          v-model="searchQuery"
+          type="text"
+          :placeholder="t('tokens.searchPlaceholder')"
+          class="search-input"
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+        >
         <div v-if="!fungibleTokens.length" class="no-tokens">{{ t('requestPayment.noFungibleTokens') }}</div>
+        <div v-else-if="!searchedTokens.length" class="no-tokens">{{ t('tokens.noMatch') }}</div>
         <div v-else class="token-list">
           <div
-            v-for="tokenData in fungibleTokens"
+            v-for="tokenData in searchedTokens"
             :key="tokenData.category"
             class="token-item"
             :title="tokenData.category"
@@ -81,6 +121,11 @@
   padding: 2rem;
   width: 550px;
   max-width: 100%;
+}
+.search-input {
+  width: 100%;
+  padding: 4px 10px;
+  margin-top: 10px;
 }
 .no-tokens {
   opacity: 0.6;
