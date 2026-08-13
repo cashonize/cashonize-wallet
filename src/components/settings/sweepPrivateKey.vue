@@ -13,7 +13,7 @@
   import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import { transferAllAssets, type TransferProgress } from 'src/utils/transferAssets'
-  import { decryptBip38Key, isBip38Key } from 'src/utils/bip38'
+  import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/bip38'
   import type { TokenList } from 'src/interfaces/interfaces'
   import type { BcmrTokenResponse } from 'src/utils/zodValidation'
 
@@ -68,6 +68,9 @@
     return input.startsWith('bch-wif:') ? input.slice(8) : input;
   });
   const isEncryptedKey = computed(() => isBip38Key(keyToSweep.value));
+  // Readable from the encrypted key itself, so there is no reason to let a passphrase be typed
+  // and derived first only to turn the key away afterwards
+  const isUncompressedKey = computed(() => isUncompressedBip38Key(keyToSweep.value));
   // An unlock only counts for the key it was made for, so editing the input locks it again
   const isUnlocked = computed(() => unlockedKey.value?.encryptedKey === keyToSweep.value);
   const readyToSweep = computed(() => {
@@ -81,8 +84,7 @@
     return t('sweepPrivateKey.unlockButton');
   });
 
-  // Reset the preview when the key input changes
-  watch(privateKeyToSweep, () => {
+  function resetSweepState() {
     previewReady.value = false;
     isEmpty.value = false;
     insufficientFeeBch.value = false;
@@ -93,15 +95,23 @@
     unlockedKey.value = undefined;
     bip38Passphrase.value = "";
     showPassphrase.value = false;
-  });
+  }
+
+  // Reset when the key input changes
+  watch(privateKeyToSweep, resetSweepState);
+
+  // Reset on a network switch too: the previewed balance came from the other network, and an
+  // unlocked key was encoded for it, which the wallet of the network switched to rejects
+  watch(() => store.network, resetSweepState);
 
   function createTempWallet(wif: string) {
     const walletClass = (store.network == 'mainnet') ? Wallet : TestNetWallet;
     return walletClass.fromWIF(wif);
   }
 
-  // mainnet-js derives every address from the compressed public key, so a key belonging to an
-  // uncompressed address would silently look at, and sign for, the wrong address
+  // mainnet-js turns these away itself, but only with a message about WIFs having to start with
+  // L or K, so catch them here to say what is actually wrong. Sweeping them is not a matter of
+  // getting past the check: mainnet-js derives every address from the compressed public key.
   function throwOnUncompressedKey(wif: string) {
     const decoded = decodePrivateKeyWif(wif);
     if (typeof decoded === 'string') return; // leave malformed keys to mainnet-js to report
@@ -123,6 +133,9 @@
       const encryptedKey = keyToSweep.value;
       const onProgress = (progress: number) => { unlockProgress.value = Math.round(progress * 100) };
       const { privateKey, compressed } = await decryptBip38Key(encryptedKey, bip38Passphrase.value, onProgress);
+      // A typed in uncompressed WIF is refused by mainnet-js, but this one would not be: the
+      // re-encoding below always writes the compressed form, so mainnet-js would accept the key
+      // and then watch and sign for an address that this key does not control
       if (!compressed) throw new Error(t('sweepPrivateKey.errors.uncompressedKey'));
       // An encrypted key holds no network of its own, it unlocks the same key on either
       const wif = encodePrivateKeyWif(privateKey, store.network == 'mainnet' ? 'mainnet' : 'testnet');
@@ -352,8 +365,13 @@
         <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
       </button>
     </div>
+    <!-- Nothing can be swept from an uncompressed key, so say so before a passphrase is asked for -->
+    <div v-if="isUncompressedKey" style="margin-top: 12px; color: orange;">
+      {{ t('sweepPrivateKey.errors.uncompressedKey') }}
+    </div>
+
     <!-- Passphrase of an encrypted (BIP38) key, until it is unlocked -->
-    <div v-if="isEncryptedKey && !isUnlocked" style="margin-top: 12px;">
+    <div v-if="isEncryptedKey && !isUnlocked && !isUncompressedKey" style="margin-top: 12px;">
       <div style="color: grey;">
         <q-icon name="lock" size="1.1em" style="margin-right: 4px; vertical-align: text-bottom;"/>
         {{ t('sweepPrivateKey.encryptedKey') }}

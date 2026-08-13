@@ -35,6 +35,17 @@ export function isBip38Key(input: string): boolean {
   return input.startsWith("6P");
 }
 
+// Whether the key belongs to an uncompressed address, which the flag byte states outright, so it
+// can be known before paying for the decryption. False for input that does not decode at all,
+// decryptBip38Key reports what is wrong with those.
+export function isUncompressedBip38Key(encryptedKey: string): boolean {
+  try {
+    return !decodeEncryptedKey(encryptedKey).compressed;
+  } catch {
+    return false;
+  }
+}
+
 const doubleSha256 = (input: Uint8Array) => sha256.hash(sha256.hash(input));
 
 const xor = (input: Uint8Array, key: Uint8Array) => input.map((byte, index) => byte ^ key[index]!);
