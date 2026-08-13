@@ -819,6 +819,7 @@
     "noTokenSelected": "Aucun token sélectionné",
     "noFungibleTokens": "Ce portefeuille ne détient aucun token fongible",
     "nameCollision": "Plusieurs tokens de cette liste portent ce nom, vérifiez l'id du token",
+    "tokenSupportWarning": "Tous les portefeuilles ne savent pas lire les demandes de paiement en tokens. Cashonize et Selene le savent, les autres ne verront que l'adresse.",
     "selectTokenPrompt": "Sélectionnez un token à demander",
     "messageLabel": "Message (facultatif) :",
     "messagePlaceholder": "Note pour le payeur, comme un numéro de facture",

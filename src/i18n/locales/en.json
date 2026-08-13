@@ -819,6 +819,7 @@
     "noTokenSelected": "No token selected",
     "noFungibleTokens": "This wallet holds no fungible tokens",
     "nameCollision": "More than one token in this list uses this name, check the token id",
+    "tokenSupportWarning": "Not every wallet can read token payment requests. Cashonize and Selene can, other wallets will only see the address.",
     "selectTokenPrompt": "Select a token to request",
     "messageLabel": "Message (optional):",
     "messagePlaceholder": "Note for the payer, like an invoice number",

@@ -266,6 +266,10 @@
           </span>
         </div>
         <div v-if="parsedTokenAmount.error" style="color: red; margin-top: 6px;">{{ parsedTokenAmount.error }}</div>
+        <div class="warning-box" style="margin-top: 12px;">
+          <q-icon name="warning" size="20px" class="warning-box-icon" />
+          <div><b>{{ t('common.attention') }}</b> {{ t('requestPayment.tokenSupportWarning') }}</div>
+        </div>
       </template>
     </div>
 

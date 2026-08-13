@@ -819,6 +819,7 @@
     "noTokenSelected": "Nenhum token selecionado",
     "noFungibleTokens": "Esta carteira não possui tokens fungíveis",
     "nameCollision": "Mais de um token desta lista usa este nome, confira o id do token",
+    "tokenSupportWarning": "Nem toda carteira consegue ler solicitações de pagamento de tokens. Cashonize e Selene conseguem, outras carteiras verão apenas o endereço.",
     "selectTokenPrompt": "Selecione um token para solicitar",
     "messageLabel": "Mensagem (opcional):",
     "messagePlaceholder": "Nota para quem paga, como um número de fatura",
