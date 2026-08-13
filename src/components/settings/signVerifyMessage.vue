@@ -91,7 +91,7 @@
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('signVerifyMessage.title') }}</legend>
 
-    <div class="type-filter">
+    <div class="type-filter" style="margin-top: 10px;">
       <button :class="{ active: mode === 'sign' }" @click="mode = 'sign'">
         {{ t('signVerifyMessage.signMode') }}
       </button>

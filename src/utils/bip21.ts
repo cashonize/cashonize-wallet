@@ -1,5 +1,5 @@
 /**
- * BIP21 URI parsing utilities
+ * BIP21 URI parsing and building utilities
  * Spec: https://en.bitcoin.it/wiki/BIP_0021
  *
  * Supports both Bitcoin Cash (bitcoincash:, bchtest:) URI schemes
@@ -11,6 +11,7 @@
  * BCH-specific extensions (c, ft, nft for CashTokens, op_return) also land in otherParams.
  */
 
+import { formatTokenAmountFromBigInt } from 'src/utils/utils'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -110,6 +111,50 @@ export function parseBip21Uri(uri: string): Bip21ParseResult {
   }
 
   return result;
+}
+
+/** The parameters Cashonize puts in a payment request it generates */
+export interface Bip21RequestParams {
+  /** Full cashaddress including the scheme prefix, as the wallet hands it out */
+  address: string;
+  /** Requested amount in satoshis, left out of the URI when zero or undefined */
+  satoshis?: bigint | undefined;
+  /** Note for the payer, shown by wallets that display it */
+  message?: string | undefined;
+  /** Token category to request, only valid on a token-aware address */
+  category?: string | undefined;
+  /**
+   * Fungible token amount in base units, only emitted together with a category.
+   * Emitted as f=, the name chip-paypro gives it. ft= is the alias both our own send
+   * form and other wallets also accept.
+   */
+  fungibleAmount?: bigint | undefined;
+}
+
+/**
+ * Build a BIP21 payment request URI.
+ *
+ * Only emits the parameters Cashonize itself understands when paying, so a request
+ * generated here can always be paid back by another Cashonize wallet.
+ */
+export function buildBip21Uri({ address, satoshis, message, category, fungibleAmount }: Bip21RequestParams): string {
+  const params: string[] = [];
+  if (satoshis !== undefined && satoshis > 0n) params.push(`amount=${formatSatoshisAsBch(satoshis)}`);
+  if (category) {
+    params.push(`c=${category}`);
+    if (fungibleAmount !== undefined && fungibleAmount > 0n) params.push(`f=${fungibleAmount}`);
+  }
+  if (message) params.push(`message=${encodeURIComponent(message)}`);
+  if (!params.length) return address;
+  return `${address}?${params.join('&')}`;
+}
+
+/**
+ * Format satoshis as the whole-BCH decimal string BIP21 asks for, without trailing zeros.
+ * Uses integer math so amounts never pick up floating point artifacts.
+ */
+export function formatSatoshisAsBch(satoshis: bigint): string {
+  return formatTokenAmountFromBigInt(satoshis, 8);
 }
 
 /**

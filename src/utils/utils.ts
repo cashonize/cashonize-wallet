@@ -171,6 +171,17 @@ export function parseTokenAmountToBigInt(input: string, decimals: number): bigin
   return BigInt(integerPart + fractionalPart.padEnd(decimals, '0'));
 }
 
+// Inverse of parseTokenAmountToBigInt: turns base units back into a whole-token amount
+// string, again with string math so large amounts keep every digit. Trailing zeros are
+// stripped, there is no need to show them.
+export function formatTokenAmountFromBigInt(baseUnits: bigint, decimals: number): string {
+  if (!decimals) return baseUnits.toString();
+  const divisor = 10n ** BigInt(decimals);
+  const wholePart = baseUnits / divisor;
+  const fractionalPart = (baseUnits % divisor).toString().padStart(decimals, '0').replace(/0+$/, '');
+  return fractionalPart ? `${wholePart}.${fractionalPart}` : `${wholePart}`;
+}
+
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
   const newFiatValue =  Number(satAmount) * exchangeRate / 100_000_000
   return Number(newFiatValue.toFixed(2));
