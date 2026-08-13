@@ -68,7 +68,7 @@ Cashonize is available for different platforms from the same codebase, but the p
 
 Webwallets are great for convenience, but downloaded applications are more secure because the code is pinned at install time rather than fetched fresh on every visit. Installable web apps share the same security model as webwallets, despite feeling like a native app.
 
-For more details see the [security considerations](./security-considerations.md).
+For more details see the [security considerations](./security-considerations.md), and the [security policy](./SECURITY.md) for responsible disclosure.
 
 ## Local Development 
 
