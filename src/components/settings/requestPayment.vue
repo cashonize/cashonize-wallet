@@ -190,7 +190,7 @@
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('requestPayment.title') }}</legend>
 
-    <div class="type-filter">
+    <div class="type-filter" style="margin-top: 10px;">
       <button :class="{ active: mode === 'bch' }" @click="mode = 'bch'">
         {{ bchDisplayNetwork }}
       </button>
