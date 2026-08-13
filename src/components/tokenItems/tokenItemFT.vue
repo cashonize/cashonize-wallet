@@ -107,7 +107,8 @@
 
     // Auto-fill fungible token amount from token payment requests. The amount arrives in base
     // units and is read as a bigint, token supplies go well past what a number holds exactly.
-    const fungibleAmountParam = parsed.otherParams?.ft ?? parsed.otherParams?.f;
+    // f is the spec name for the amount, ft the alias other wallets and older requests use
+    const fungibleAmountParam = parsed.otherParams?.f ?? parsed.otherParams?.ft;
     if(parsed.otherParams?.c === tokenData.value.category && fungibleAmountParam){
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       if (/^\d+$/.test(fungibleAmountParam)) {

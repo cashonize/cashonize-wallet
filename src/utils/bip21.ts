@@ -123,7 +123,11 @@ export interface Bip21RequestParams {
   message?: string | undefined;
   /** Token category to request, only valid on a token-aware address */
   category?: string | undefined;
-  /** Fungible token amount in base units, only emitted together with a category */
+  /**
+   * Fungible token amount in base units, only emitted together with a category.
+   * Emitted as f=, the name chip-paypro gives it. ft= is the alias both our own send
+   * form and other wallets also accept.
+   */
   fungibleAmount?: bigint | undefined;
 }
 
@@ -138,7 +142,7 @@ export function buildBip21Uri({ address, satoshis, message, category, fungibleAm
   if (satoshis !== undefined && satoshis > 0n) params.push(`amount=${formatSatoshisAsBch(satoshis)}`);
   if (category) {
     params.push(`c=${category}`);
-    if (fungibleAmount !== undefined && fungibleAmount > 0n) params.push(`ft=${fungibleAmount}`);
+    if (fungibleAmount !== undefined && fungibleAmount > 0n) params.push(`f=${fungibleAmount}`);
   }
   if (message) params.push(`message=${encodeURIComponent(message)}`);
   if (!params.length) return address;

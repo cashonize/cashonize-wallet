@@ -295,15 +295,15 @@ describe("buildBip21Uri for token requests", () => {
       .toBe(`${tokenAddress}?c=${category}`);
   });
 
-  it("should add the fungible amount in base units", () => {
+  it("should add the fungible amount in base units as the spec named f", () => {
     expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 10_000_000n }))
-      .toBe(`${tokenAddress}?c=${category}&ft=10000000`);
+      .toBe(`${tokenAddress}?c=${category}&f=10000000`);
   });
 
   it("should keep base unit amounts too large for a number exact", () => {
     const hugeAmount = 9_007_199_254_740_993n;
     expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: hugeAmount }))
-      .toBe(`${tokenAddress}?c=${category}&ft=9007199254740993`);
+      .toBe(`${tokenAddress}?c=${category}&f=9007199254740993`);
   });
 
   it("should leave out a zero token amount", () => {
@@ -317,7 +317,7 @@ describe("buildBip21Uri for token requests", () => {
 
   it("should combine the token request with a message", () => {
     expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 100n, message: "Invoice 1041" }))
-      .toBe(`${tokenAddress}?c=${category}&ft=100&message=Invoice%201041`);
+      .toBe(`${tokenAddress}?c=${category}&f=100&message=Invoice%201041`);
   });
 
   it("should parse back into the params the token send form reads", () => {
@@ -325,7 +325,7 @@ describe("buildBip21Uri for token requests", () => {
     const parsed = parseBip21Uri(uri);
     expect(parsed.address).toBe(tokenAddress);
     expect(parsed.otherParams?.c).toBe(category);
-    expect(parsed.otherParams?.ft).toBe("250");
+    expect(parsed.otherParams?.f).toBe("250");
     expect(parsed.message).toBe("Order #7");
     expect(parsed.hasUnknownRequired).toBe(false);
     expect(parsed.hasDuplicateKeys).toBeUndefined();
