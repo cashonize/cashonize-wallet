@@ -817,7 +817,7 @@
     "selectToken": "Token auswählen",
     "selectTokenHint": "Wähle, welches Token angefordert wird",
     "noTokenSelected": "Kein Token ausgewählt",
-    "noFungibleTokens": "Dieses Wallet hält keine fungiblen Tokens",
+    "noFungibleTokens": "Dieses Wallet hält keine fungiblen Tokens, füge eine Token-Id ein, um eines anzufordern",
     "searchOrPasteId": "Tokens durchsuchen oder Token-Id einfügen",
     "lookupTokenId": "Diese Token-Id nachschlagen",
     "lookupFailed": "Keine Metadaten für diese Token-Id gefunden",

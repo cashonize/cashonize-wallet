@@ -817,7 +817,7 @@
     "selectToken": "Selecionar um token",
     "selectTokenHint": "Escolha qual token solicitar",
     "noTokenSelected": "Nenhum token selecionado",
-    "noFungibleTokens": "Esta carteira não possui tokens fungíveis",
+    "noFungibleTokens": "Esta carteira não possui tokens fungíveis, cole um id de token para solicitar um",
     "searchOrPasteId": "Busque tokens ou cole um id de token",
     "lookupTokenId": "Buscar este id de token",
     "lookupFailed": "Nenhum metadado encontrado para este id de token",

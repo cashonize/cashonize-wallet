@@ -172,8 +172,9 @@
       <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ title }}</legend>
         <div>{{ hint }}</div>
+        <!-- always available: a wallet holding no fungible tokens is exactly the one that
+             needs to paste a token id -->
         <input
-          v-if="tokenOptions.length"
           ref="searchInputRef"
           v-model="searchQuery"
           type="text"

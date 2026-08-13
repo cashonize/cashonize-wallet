@@ -817,7 +817,7 @@
     "selectToken": "Select a token",
     "selectTokenHint": "Choose which token to request",
     "noTokenSelected": "No token selected",
-    "noFungibleTokens": "This wallet holds no fungible tokens",
+    "noFungibleTokens": "This wallet holds no fungible tokens, paste a token id to request one",
     "searchOrPasteId": "Search tokens or paste a token id",
     "lookupTokenId": "Look up this token id",
     "lookupFailed": "No metadata found for this token id",

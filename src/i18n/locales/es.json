@@ -817,7 +817,7 @@
     "selectToken": "Seleccionar un token",
     "selectTokenHint": "Elige qué token solicitar",
     "noTokenSelected": "Ningún token seleccionado",
-    "noFungibleTokens": "Esta billetera no tiene tokens fungibles",
+    "noFungibleTokens": "Esta billetera no tiene tokens fungibles, pega un id de token para solicitar uno",
     "searchOrPasteId": "Busca tokens o pega un id de token",
     "lookupTokenId": "Buscar este id de token",
     "lookupFailed": "No se encontraron metadatos para este id de token",
