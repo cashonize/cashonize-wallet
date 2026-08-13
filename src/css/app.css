@@ -15,6 +15,11 @@
 /* prevent scoll bar from causing jumps */
 body {
   padding-left: calc(100vw - 100%);
+  /* Native builds draw the page edge to edge, under the system bars
+     (viewport-fit=cover in index.html), so the page has to keep its own content
+     clear of them. Capacitor injects the inset values on mobile, on the other
+     platforms they are absent and the page is not drawn edge to edge. */
+  padding-bottom: var(--safe-area-inset-bottom, 0px);
 }
 body.dark {
   --bg-color: #000;
@@ -63,7 +68,8 @@ body.dark .index-badge {
     background-color 0.5s;
 }
 header {
-  padding-top: 15px;
+  /* the inset keeps the logo clear of the status bar on native builds */
+  padding-top: calc(15px + var(--safe-area-inset-top, 0px));
   display: flex;
   align-items: center;
   flex-direction: column;
