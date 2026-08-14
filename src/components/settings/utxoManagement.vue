@@ -823,22 +823,48 @@
   transform: rotate(180deg);
 }
 
+/* Everything a row is built from is in em, so the widths below and the widths a list stacks
+   at stay in step with each other whatever font size the grid is given */
+$gap: 0.7em;
+$row-padding-x: 0.45em;
+
+/* Wide enough to fit their value whole, so it is never cut a second time by an ellipsis */
+$col-number: 1.9em;
+$col-vout: 3em;
+$col-capability: 5em;
+$col-type: 5em;
+$col-count: 5.5em;
+/* token utxos hold dust, the BCH-only list sizes its own column wider */
+$col-bch: 6em;
+$col-txid: 12em;
+$col-address: 9.5em;
+/* the BCH-only list holds real balances rather than dust, so its amounts run longer */
+$col-bch-amount: 8.5em;
+/* these three shorten in css instead, so they only need to stay readable */
+$col-name: 7em;
+$col-amount: 5em;
+$col-commitment: 8em;
+
 /* Aligned columns like a table on wide screens, one stacked card per utxo when they no longer
    fit. Grid rather than a real table because a table can only overflow where a grid can re-lay
    its columns. Every row of a list shares its column template, so the columns line up.
-   The font size is fixed here because the column widths below are in em: a row that sized its
-   own text differently would compute different columns and break the alignment. */
+   The font size is fixed here because the column widths are in em: a row that sized its own
+   text differently would compute different columns and break the alignment. */
 .utxo-grid {
   margin-top: 10px;
   font-size: 14px;
   container-type: inline-size;
+  /* a webview too old for container queries never stacks, so it would overflow the page
+     with the columns at their narrowest instead. There it scrolls the list rather than
+     the page, everywhere else the list has stacked long before it can overflow */
+  overflow-x: auto;
 }
 
 .utxo-row {
   display: grid;
   align-items: center;
-  column-gap: 10px;
-  padding: 7px 6px;
+  column-gap: $gap;
+  padding: 7px $row-padding-x;
   border-bottom: 1px solid rgba(128, 128, 128, 0.2);
 }
 
@@ -854,27 +880,12 @@
   color: #aaa;
 }
 
-/* Wide enough to fit their value whole, so it is never cut a second time by an ellipsis */
-$col-number: 26px;
-$col-vout: 3em;
-$col-capability: 5em;
-$col-type: 5em;
-$col-count: 5.5em;
-/* token utxos hold dust, the BCH-only list sizes its own column wider */
-$col-bch: 6em;
-$col-txid: 12em;
-$col-address: 9.5em;
-/* these three shorten in css instead, so they only need to stay readable */
-$col-name: 7em;
-$col-amount: 5em;
-$col-commitment: 8em;
-
 /* The slack all goes to the token name and amount, the only two columns that vary in length */
 .grid-bch .utxo-row {
-  grid-template-columns: $col-number minmax(8.5em, 1fr) minmax($col-txid, 1fr) $col-vout;
+  grid-template-columns: $col-number minmax($col-bch-amount, 1fr) minmax($col-txid, 1fr) $col-vout;
 }
 .grid-bch-hd .utxo-row {
-  grid-template-columns: $col-number minmax(8.5em, 1fr) minmax($col-address, 1fr) minmax($col-txid, 1fr) $col-vout;
+  grid-template-columns: $col-number minmax($col-bch-amount, 1fr) minmax($col-address, 1fr) minmax($col-txid, 1fr) $col-vout;
 }
 .grid-categories .utxo-row {
   grid-template-columns: minmax($col-name, 1fr) $col-count $col-bch;
@@ -960,6 +971,10 @@ $col-commitment: 8em;
 /* the column headings carry the meaning on a wide screen, each cell repeats its own on a narrow one */
 .cell-label {
   display: none;
+  color: #888;
+}
+.dark .cell-label {
+  color: #aaa;
 }
 
 .pager {
@@ -994,7 +1009,6 @@ $col-commitment: 8em;
   }
   .utxo-grid .cell-label {
     display: inline;
-    color: #888;
     min-width: 90px;
   }
 }
@@ -1007,33 +1021,29 @@ $col-commitment: 8em;
 .grid-nft { container-name: nft-grid; }
 .grid-ftnft { container-name: ftnft-grid; }
 
-/* Each width is that list's columns added up, so a list keeps its columns for as long as they
-   genuinely fit and gives them up the moment they do not. Raising one of these does not gain
-   room, it only takes the columns away earlier. */
-@container categories-grid (max-width: 295px) {
+/* Each width is that list's own columns added up, so a list gives up its columns the moment
+   they stop fitting. Raising one does not gain room, it only takes the columns away earlier.
+   In em rather than the px the breakpoints elsewhere in the app use: those describe a device,
+   these describe a sum of em column widths, and in px would drift from it. */
+@container categories-grid (max-width: 20.8em) {
   @include stacked-card;
 }
-@container bch-grid (max-width: 400px) {
+@container bch-grid (max-width: 28.4em) {
   @include stacked-card;
 }
-@container bch-hd-grid (max-width: 545px) {
+@container bch-hd-grid (max-width: 38.6em) {
   @include stacked-card;
 }
-@container affected-grid (max-width: 555px) {
+@container affected-grid (max-width: 39.3em) {
   @include stacked-card;
 }
-@container fungible-grid (max-width: 555px) {
+@container fungible-grid (max-width: 39.3em) {
   @include stacked-card;
 }
-@container nft-grid (max-width: 675px) {
+@container nft-grid (max-width: 48em) {
   @include stacked-card;
 }
-@container ftnft-grid (max-width: 755px) {
+@container ftnft-grid (max-width: 53.7em) {
   @include stacked-card;
-}
-
-/* after the stacking rules, which set the light mode label colour at the same specificity */
-.dark .utxo-grid .cell-label {
-  color: #aaa;
 }
 </style>
