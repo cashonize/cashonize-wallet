@@ -85,6 +85,17 @@
     return store.walletUtxos.filter(utxo => utxo.token?.category && utxo.satoshis > significantBchOnTokenUtxo);
   });
 
+  // The wallet tools menu marks this page when token utxos hold BCH, and that is all the mark
+  // ever means, so arriving on it opens the half it points at. The utxos load after the page
+  // does, hence the watch, and it runs only for the first set: after that the shown half is
+  // the user's to pick and nothing switches under them.
+  let openedOnAlert = false;
+  watch(utxosWithBchAndTokens, (affectedUtxos) => {
+    if (openedOnAlert || affectedUtxos === undefined) return;
+    openedOnAlert = true;
+    if (affectedUtxos.length) activeFilter.value = 'tokens';
+  }, { immediate: true });
+
   // hasNftUtxos and satsToSplit are only used in template when utxosWithBchAndTokens is defined
   const hasNftUtxos = computed(() => {
     if(!utxosWithBchAndTokens.value) return undefined;
@@ -424,6 +435,7 @@
                     :size="24"
                   />
                   <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                  <EmojiItem v-if="utxo.satoshis > 100_000n" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.largeBch')"/>
                 </div>
                 <div class="cell">
                   <span class="cell-label">{{ t('utxoManagement.tableHeaders.type') }}</span>
@@ -432,7 +444,6 @@
                 <div class="cell">
                   <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
                   <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
-                  <EmojiItem v-if="utxo.satoshis > 100_000n" emoji="⚠️" :sizePx="16"/>
                 </div>
                 <div class="cell">
                   <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
@@ -494,6 +505,7 @@
                   :size="24"
                 />
                 <span class="token-name">{{ tokenName(group.category) }}</span>
+                <EmojiItem v-if="group.holdsSignificantBch" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.utxoCount') }}</span>
@@ -502,7 +514,6 @@
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bchHeld') }}</span>
                 <span class="mono bch-value">{{ formatBchAmount(Number(group.satoshis), false, 8) }}</span>
-                <EmojiItem v-if="group.holdsSignificantBch" emoji="⚠️" :sizePx="16"/>
               </div>
             </div>
           </div>
@@ -536,6 +547,7 @@
                   :size="24"
                 />
                 <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.amount') }}</span>
@@ -544,7 +556,6 @@
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
                 <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
-                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" emoji="⚠️" :sizePx="16"/>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
@@ -599,6 +610,7 @@
                   :size="24"
                 />
                 <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.capability') }}</span>
@@ -611,7 +623,6 @@
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
                 <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
-                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" emoji="⚠️" :sizePx="16"/>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
@@ -667,6 +678,7 @@
                   :size="24"
                 />
                 <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.amount') }}</span>
@@ -683,7 +695,6 @@
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
                 <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
-                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" emoji="⚠️" :sizePx="16"/>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
@@ -946,6 +957,11 @@ $col-commitment: 8em;
 
 /* the icon is the token's identity, it gives up no width to the name beside it */
 .token-cell > :first-child {
+  flex: none;
+}
+
+/* the marker sits in the token column because that one is flexible, so the name shortens for it */
+.warn-marker {
   flex: none;
 }
 

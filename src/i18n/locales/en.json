@@ -665,6 +665,10 @@
     "usageHint": "Every payment spends whole UTXOs and returns the change as a new one, so their number and sizes shift with each transaction. Other wallets call them coins, and call choosing between them coin control.",
     "loading": "Loading UTXO data",
     "loadingFailed": "Failed to load UTXO data",
+    "markers": {
+      "bchOnToken": "Holds more BCH than a token UTXO needs",
+      "largeBch": "Holds a large amount of BCH"
+    },
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"

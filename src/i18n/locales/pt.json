@@ -665,6 +665,10 @@
     "usageHint": "Cada pagamento gasta UTXOs inteiros e devolve o troco como um novo, então a quantidade e os tamanhos mudam a cada transação. Outras carteiras os chamam de moedas, e chamam a escolha entre eles de controle de moedas.",
     "loading": "Carregando dados dos UTXOs",
     "loadingFailed": "Falha ao carregar os dados dos UTXOs",
+    "markers": {
+      "bchOnToken": "Contém mais BCH do que um UTXO de token precisa",
+      "largeBch": "Contém uma grande quantidade de BCH"
+    },
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"

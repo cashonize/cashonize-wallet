@@ -665,6 +665,10 @@
     "usageHint": "Cada pago gasta UTXOs enteros y devuelve el cambio como uno nuevo, así que su número y sus tamaños cambian con cada transacción. Otras billeteras los llaman monedas, y llaman control de monedas a elegir entre ellos.",
     "loading": "Cargando datos de UTXOs",
     "loadingFailed": "Error al cargar los datos de UTXOs",
+    "markers": {
+      "bchOnToken": "Contiene más BCH del que necesita un UTXO de token",
+      "largeBch": "Contiene una gran cantidad de BCH"
+    },
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"
