@@ -8,12 +8,14 @@
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
   import { formatFiatAmount, satsToBch } from 'src/utils/utils'
+  import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/emeraldDao'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
   import loanKeyItem from './loanKeyItem.vue'
   import stakingReceiptItem from './stakingReceiptItem.vue'
   import cauldronPoolItem from './cauldronPoolItem.vue'
+  import emeraldKeycardItem from './emeraldKeycardItem.vue'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -48,6 +50,13 @@
 
   // shared color for all Cauldron liquidity pool segments
   const POOL_COLOR = '#d6336c'
+
+  // Shared color for all Emerald DAO keycard segments. Every green light enough for the dark
+  // surface and dark enough for the light one sits too close to the BCH green, so the keycard
+  // green is picked per theme: a deep green on the light surface, and on the dark surface the
+  // green of the keycard icon itself, which the deeper BCH green there leaves room for.
+  const KEYCARD_COLORS = { light: '#006c00', dark: '#15de5a' }
+  const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
 
   const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
   const bchValueFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 5 })
@@ -181,10 +190,35 @@
     })
   })
 
+  // Emerald DAO keycards. The BCH backing a keycard was written onto the keycard itself when
+  // the DAO minted it, so the value takes no lookup and no price
+  interface KeycardAsset {
+    id: string
+    name: string
+    serial: number
+    bchValue: number
+  }
+  const keycardAssets = computed<KeycardAsset[]>(() => {
+    const keycards: KeycardAsset[] = []
+    const name = store.bcmrRegistries?.[EMERALD_DAO_CATEGORY]?.name ?? 'Emerald DAO'
+    for (const token of store.tokenList ?? []) {
+      if (!('nfts' in token) || token.category !== EMERALD_DAO_CATEGORY) continue
+      for (const utxo of token.nfts) {
+        const keycard = parseEmeraldKeycard(utxo.token?.nft?.commitment)
+        if (!keycard) continue
+        keycards.push({
+          id: nftUtxoId(utxo), name, serial: keycard.serial, bchValue: satsToBch(keycard.satoshis)
+        })
+      }
+    }
+    return keycards
+  })
+
   const totalBchValue = computed(() => {
     if (!assets.value) return undefined
     const pricedTotal = assets.value.priced.reduce((sum, asset) => sum + asset.bchValue, 0)
     const poolsTotal = poolAssets.value.reduce((sum, pool) => sum + pool.bchValue, 0)
+    const keycardsTotal = keycardAssets.value.reduce((sum, keycard) => sum + keycard.bchValue, 0)
     const loansTotal = chartedLoans.value.reduce((sum, loan) => sum + loan.netBch, 0)
     let stakingTotal = 0
     if (includeStaking.value) {
@@ -192,7 +226,7 @@
         (sum, receipt) => sum + Math.max(stakingState(receipt.utxo)?.stakeBch ?? 0, 0), 0
       )
     }
-    return pricedTotal + poolsTotal + loansTotal + stakingTotal
+    return pricedTotal + poolsTotal + keycardsTotal + loansTotal + stakingTotal
   })
 
   // split the priced list for display while keeping the original index, since
@@ -203,12 +237,13 @@
   })
   interface AssetRow { kind: 'asset', asset: PricedAsset, index: number, value: number }
   interface PoolRow { kind: 'pool', pool: PoolAsset, value: number }
+  interface KeycardRow { kind: 'keycard', keycard: KeycardAsset, value: number }
   interface LoanRow { kind: 'loan', loan: { category: string, utxo: Utxo, name: string }, value: number }
   interface StakingRow { kind: 'staking', receipt: { category: string, utxo: Utxo, name: string }, value: number }
-  type DisplayRow = AssetRow | PoolRow | LoanRow | StakingRow
+  type DisplayRow = AssetRow | PoolRow | KeycardRow | LoanRow | StakingRow
 
-  // priced assets, pools, loans and staking receipts merged and sorted big to small for
-  // display; an underwater loan sorts with value 0 but stays visible in the main list
+  // priced assets, pools, keycards, loans and staking receipts merged and sorted big to small
+  // for display; an underwater loan sorts with value 0 but stays visible in the main list
   const displayRows = computed<DisplayRow[]>(() => {
     const assetRows: DisplayRow[] = pricedWithIndex.value.map(({ asset, index }) => (
       { kind: 'asset', asset, index, value: asset.bchValue }
@@ -216,16 +251,21 @@
     const poolRows: DisplayRow[] = poolAssets.value.map(pool => (
       { kind: 'pool', pool, value: pool.bchValue }
     ))
+    const keycardRows: DisplayRow[] = keycardAssets.value.map(keycard => (
+      { kind: 'keycard', keycard, value: keycard.bchValue }
+    ))
     const loanRows: DisplayRow[] = loanKeyNfts.value.map(loan => (
       { kind: 'loan', loan, value: Math.max(loanState(loan.utxo)?.netBch ?? 0, 0) }
     ))
     const stakingRows: DisplayRow[] = stakingReceiptNfts.value.map(receipt => (
       { kind: 'staking', receipt, value: stakingState(receipt.utxo)?.stakeBch ?? 0 }
     ))
-    return [...assetRows, ...poolRows, ...loanRows, ...stakingRows].sort((a, b) => b.value - a.value)
+    return [...assetRows, ...poolRows, ...keycardRows, ...loanRows, ...stakingRows]
+      .sort((a, b) => b.value - a.value)
   })
 
-  // BCH, pools, loans and staking receipts always show in the main list, small token holdings collapse
+  // BCH, pools, keycards, loans and staking receipts always show in the main list,
+  // small token holdings collapse
   const mainRows = computed(() => {
     return displayRows.value.filter(row =>
       row.kind !== 'asset' || row.index === 0 || assetShare(row.value) >= SMALL_SHARE_THRESHOLD
@@ -240,6 +280,7 @@
   function rowKey(row: DisplayRow) {
     if (row.kind === 'asset') return row.asset.category ?? 'bch'
     if (row.kind === 'pool') return row.pool.id
+    if (row.kind === 'keycard') return row.keycard.id
     return nftUtxoId(row.kind === 'loan' ? row.loan.utxo : row.receipt.utxo)
   }
 
@@ -533,6 +574,8 @@
         }
       } else if (row.kind === 'pool' && row.value > 0) {
         segments.push({ label: row.pool.name, bchValue: row.value, color: POOL_COLOR })
+      } else if (row.kind === 'keycard' && row.value > 0) {
+        segments.push({ label: row.keycard.name, bchValue: row.value, color: keycardColor.value })
       } else if (row.kind === 'loan' && row.value > 0) {
         segments.push({ label: row.loan.name, bchValue: row.value, color: LOAN_COLOR })
       } else if (row.kind === 'staking' && includeStaking.value && row.value > 0) {
@@ -664,6 +707,14 @@
             :token-display="row.pool.tokenDisplay"
             :value-display="formatBchValue(row.pool.bchValue)"
             :share-display="row.pool.bchValue > 0 ? formatShare(assetShare(row.pool.bchValue)) : undefined"
+          />
+          <emeraldKeycardItem
+            v-else-if="row.kind === 'keycard'"
+            :name="row.keycard.name"
+            :dot-color="keycardColor"
+            :serial="row.keycard.serial"
+            :value-display="formatBchValue(row.keycard.bchValue)"
+            :share-display="row.keycard.bchValue > 0 ? formatShare(assetShare(row.keycard.bchValue)) : undefined"
           />
           <loanKeyItem
             v-else-if="row.kind === 'loan'"
