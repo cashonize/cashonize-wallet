@@ -712,9 +712,19 @@
       "splittingButton": "Splitting...",
       "splitButton": "Split BCH from Tokens"
     },
-    "labels": {
-      "utxoCount": "{count} UTXO | {count} UTXOs",
-      "commitment": "commitment:"
+    "tableHeaders": {
+      "number": "#",
+      "bch": "BCH",
+      "token": "Token",
+      "type": "Type",
+      "txId": "TxId",
+      "vout": "Vout",
+      "address": "Address",
+      "utxoCount": "UTXOs",
+      "bchHeld": "BCH held",
+      "amount": "Amount",
+      "capability": "Capability",
+      "commitment": "Commitment"
     },
     "notifications": {
       "consolidating": "Consolidating BCH UTXOs...",
