@@ -86,15 +86,21 @@
   });
 
   // The wallet tools menu marks this page when token utxos hold BCH, and that is all the mark
-  // ever means, so arriving on it opens the half it points at. The utxos load after the page
-  // does, hence the watch, and it runs only for the first set: after that the shown half is
-  // the user's to pick and nothing switches under them.
+  // ever means, so the half it points at is the one to open. The utxos load after the page
+  // does, hence the watch, and it runs for the first set of each wallet only: after that the
+  // shown half is the user's to pick and nothing switches under them.
   let openedOnAlert = false;
   watch(utxosWithBchAndTokens, (affectedUtxos) => {
     if (openedOnAlert || affectedUtxos === undefined) return;
     openedOnAlert = true;
     if (affectedUtxos.length) activeFilter.value = 'tokens';
   }, { immediate: true });
+
+  // The page is cached for the whole session, so without this a wallet switched to after the
+  // first one would keep whichever half the wallet before it opened, mark or no mark
+  watch(() => [store.activeWalletName, store.network], () => {
+    openedOnAlert = false;
+  });
 
   // hasNftUtxos and satsToSplit are only used in template when utxosWithBchAndTokens is defined
   const hasNftUtxos = computed(() => {
@@ -941,12 +947,6 @@ $col-commitment: 8em;
   overflow: hidden;
 }
 
-/* an amount must never be shown shortened, so when the column runs out it is the marker
-   beside it that gets clipped, never a digit */
-.bch-value {
-  flex: none;
-}
-
 .row-number {
   opacity: 0.5;
 }
@@ -971,8 +971,9 @@ $col-commitment: 8em;
   white-space: nowrap;
 }
 
-/* the symbol lives in the token column already, repeating it here only forced the amount
-   onto a second line. The title carries the amount with its symbol either way */
+/* a value that outgrows its column ends in an ellipsis rather than being cut mid character.
+   The token amount leaves its symbol to its title, the token column already shows it */
+.bch-value,
 .amount-value,
 .commitment-value {
   overflow: hidden;
