@@ -813,11 +813,15 @@
   transform: rotate(180deg);
 }
 
-/* Aligned columns like a table on desktop, one stacked card per utxo on a phone. Grid rather
-   than a real table because a table can only overflow where a grid can re-lay its columns.
-   Every row of a list shares its column template, so the columns line up down the list. */
+/* Aligned columns like a table on wide screens, one stacked card per utxo when they no longer
+   fit. Grid rather than a real table because a table can only overflow where a grid can re-lay
+   its columns. Every row of a list shares its column template, so the columns line up.
+   The font size is fixed here because the column widths below are in em: a row that sized its
+   own text differently would compute different columns and break the alignment. */
 .utxo-grid {
   margin-top: 10px;
+  font-size: 14px;
+  container-type: inline-size;
 }
 
 .utxo-row {
@@ -834,7 +838,6 @@
 
 .utxo-row.heading {
   color: #888;
-  font-size: 0.85em;
   padding-bottom: 5px;
 }
 .dark .utxo-row.heading {
@@ -852,6 +855,8 @@ $col-capability: 6em;
 $col-address: 9.5em;
 $col-commitment: 11em;
 $col-txid: 12em;
+/* the name is the one value with no length at all to go on, it only needs to stay legible */
+$col-name: 7em;
 
 /* The slack all goes to the token name and amount, the only two columns that vary in length */
 .grid-bch .utxo-row {
@@ -861,19 +866,19 @@ $col-txid: 12em;
   grid-template-columns: $col-number minmax(8.5em, 1fr) minmax($col-address, 1fr) minmax($col-txid, 1fr) $col-vout;
 }
 .grid-categories .utxo-row {
-  grid-template-columns: minmax(0, 1fr) $col-count $col-bch;
+  grid-template-columns: minmax($col-name, 1fr) $col-count $col-bch;
 }
 .grid-affected .utxo-row {
-  grid-template-columns: $col-number minmax(0, 1fr) $col-type $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 1fr) $col-type $col-bch $col-txid $col-vout;
 }
 .grid-fungible .utxo-row {
-  grid-template-columns: $col-number minmax(0, 2fr) minmax(0, 1fr) $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 2fr) minmax(5em, 1fr) $col-bch $col-txid $col-vout;
 }
 .grid-nft .utxo-row {
-  grid-template-columns: $col-number minmax(0, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
 }
 .grid-ftnft .utxo-row {
-  grid-template-columns: $col-number minmax(0, 2fr) minmax(0, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 2fr) minmax(5em, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
 }
 
 .cell {
@@ -898,6 +903,11 @@ $col-txid: 12em;
   gap: 8px;
 }
 
+/* the icon is the token's identity, it gives up no width to the name beside it */
+.token-cell > :first-child {
+  flex: none;
+}
+
 .token-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -905,8 +915,7 @@ $col-txid: 12em;
 }
 
 /* the symbol lives in the token column already, repeating it here only forced the amount
-   onto a second line. Long amounts stay whole until the column runs out, and the title
-   carries the amount with its symbol either way */
+   onto a second line. The title carries the amount with its symbol either way */
 .amount-value {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -936,7 +945,7 @@ $col-txid: 12em;
   white-space: nowrap;
 }
 
-/* the column headings carry the meaning on desktop, each cell repeats its own on a phone */
+/* the column headings carry the meaning on a wide screen, each cell repeats its own on a narrow one */
 .cell-label {
   display: none;
 }
@@ -951,12 +960,13 @@ $col-txid: 12em;
   font-family: monospace;
 }
 
-/* Once the column floors no longer fit side by side the utxo becomes a stacked card and every
-   value carries the heading it lost. Neutral grey alphas keep the cards theme-agnostic.
-   Each list stacks at its own width: they do not all carry the same number of columns, and a
-   short list has no reason to give up its columns at the width that forces a wide one to. */
+/* Once the columns no longer fit the utxo becomes a stacked card and every value carries the
+   heading it lost. Neutral grey alphas keep the cards theme-agnostic.
+   The width that matters is the list's own, not the window's: the page caps its width, so a
+   wide window still leaves a list narrower than its columns need. Hence container queries,
+   each list named so it can stack at the width its own set of columns stops fitting. */
 @mixin stacked-card {
-  .utxo-row {
+  .utxo-grid .utxo-row {
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1px;
     border: 1px solid rgba(128, 128, 128, 0.2);
@@ -964,55 +974,47 @@ $col-txid: 12em;
     border-radius: 12px;
     padding: 8px 12px;
     margin-bottom: 6px;
-    font-size: 0.9em;
   }
   /* a row number means nothing once the rows no longer share a column to count down */
-  .utxo-row.heading,
-  .row-number {
+  .utxo-grid .utxo-row.heading,
+  .utxo-grid .row-number {
     display: none;
   }
-  .cell-label {
+  .utxo-grid .cell-label {
     display: inline;
     color: #888;
     min-width: 90px;
   }
 }
 
-@media only screen and (max-width: 600px) {
-  .grid-bch,
-  .grid-categories {
-    @include stacked-card;
-  }
-}
+.grid-bch { container-name: bch-grid; }
+.grid-bch-hd { container-name: bch-hd-grid; }
+.grid-categories { container-name: categories-grid; }
+.grid-affected { container-name: affected-grid; }
+.grid-fungible { container-name: fungible-grid; }
+.grid-nft { container-name: nft-grid; }
+.grid-ftnft { container-name: ftnft-grid; }
 
-@media only screen and (max-width: 700px) {
-  .grid-bch-hd {
-    @include stacked-card;
-  }
+@container bch-grid (max-width: 440px) {
+  @include stacked-card;
 }
-
-@media only screen and (max-width: 820px) {
-  .grid-affected {
-    @include stacked-card;
-  }
+@container bch-hd-grid (max-width: 600px) {
+  @include stacked-card;
 }
-
-@media only screen and (max-width: 880px) {
-  .grid-fungible {
-    @include stacked-card;
-  }
+@container categories-grid (max-width: 340px) {
+  @include stacked-card;
 }
-
-@media only screen and (max-width: 1020px) {
-  .grid-nft {
-    @include stacked-card;
-  }
+@container affected-grid (max-width: 620px) {
+  @include stacked-card;
 }
-
-@media only screen and (max-width: 1180px) {
-  .grid-ftnft {
-    @include stacked-card;
-  }
+@container fungible-grid (max-width: 620px) {
+  @include stacked-card;
+}
+@container nft-grid (max-width: 800px) {
+  @include stacked-card;
+}
+@container ftnft-grid (max-width: 900px) {
+  @include stacked-card;
 }
 
 /* after the stacking rules, which set the light mode label colour at the same specificity */
