@@ -47,6 +47,10 @@
 
   const bchUtxoCount = computed(() => utxoLists.value?.bch.length);
 
+  const loadingUtxos = computed(() => store.walletUtxos === undefined);
+  // fetched after the utxos, and it carries the decimals a fungible amount is shown in
+  const loadingTokenData = computed(() => store.bcmrRegistries === undefined);
+
   const collapsedLists = ref({ bch: false, tokens: false, fungible: true, nft: true, ftNft: true });
   const listPages = ref<Record<UtxoList, number>>({ bch: 1, fungible: 1, nft: 1, ftNft: 1 });
 
@@ -286,7 +290,17 @@
       </button>
     </div>
 
-    <template v-if="activeFilter === 'bch'">
+    <div v-if="activeFilter === 'bch' && loadingUtxos" class="loading-state">
+      <template v-if="store.walletInitFailed">{{ t('utxoManagement.loadingFailed') }}</template>
+      <template v-else>{{ t('utxoManagement.loading') }} <q-spinner-dots size="1.2em" /></template>
+    </div>
+
+    <div v-else-if="activeFilter === 'tokens' && loadingTokenData" class="loading-state">
+      <template v-if="store.walletInitFailed">{{ t('tokens.loadingFailed') }}</template>
+      <template v-else>{{ t('tokens.loading') }} <q-spinner-dots size="1.2em" /></template>
+    </div>
+
+    <template v-else-if="activeFilter === 'bch'">
       <!-- BCH-only UTXO list -->
       <div class="section">
         <div class="list-header" @click="toggleList('bch')">
@@ -760,6 +774,11 @@
   color: #888;
   font-size: 13px;
   margin-top: 8px;
+}
+
+.loading-state {
+  margin-top: 20px;
+  text-align: center;
 }
 
 .pill-marker {

@@ -663,6 +663,8 @@
     "title": "UTXO Management",
     "description": "The individual UTXOs that make up your balance.",
     "usageHint": "Every payment spends whole UTXOs and returns the change as a new one, so their number and sizes shift with each transaction. Other wallets call them coins, and call choosing between them coin control.",
+    "loading": "Loading UTXO data",
+    "loadingFailed": "Failed to load UTXO data",
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"

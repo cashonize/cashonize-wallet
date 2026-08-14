@@ -663,6 +663,8 @@
     "title": "UTXO-Verwaltung",
     "description": "Die einzelnen UTXOs, aus denen sich dein Guthaben zusammensetzt.",
     "usageHint": "Jede Zahlung gibt ganze UTXOs aus und gibt das Wechselgeld als neues zurück, ihre Anzahl und Größen ändern sich also mit jeder Transaktion. Andere Wallets nennen sie Münzen und die Auswahl zwischen ihnen Coin Control.",
+    "loading": "Lade UTXO-Daten",
+    "loadingFailed": "UTXO-Daten konnten nicht geladen werden",
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"

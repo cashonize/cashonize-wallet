@@ -663,6 +663,8 @@
     "title": "Gestion des UTXO",
     "description": "Les UTXOs individuels qui composent votre solde.",
     "usageHint": "Chaque paiement dépense des UTXOs entiers et rend la monnaie sous la forme d'un nouveau, leur nombre et leurs tailles changent donc à chaque transaction. D'autres portefeuilles les appellent des pièces, et appellent le choix entre elles le contrôle des pièces.",
+    "loading": "Chargement des données des UTXOs",
+    "loadingFailed": "Échec du chargement des données des UTXOs",
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"
