@@ -16,6 +16,7 @@
   import stakingReceiptItem from './stakingReceiptItem.vue'
   import cauldronPoolItem from './cauldronPoolItem.vue'
   import emeraldKeycardItem from './emeraldKeycardItem.vue'
+  import badgerLocksItem from './badgerLocksItem.vue'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -56,6 +57,11 @@
   // green is picked per theme: a deep green on the light surface, and on the dark surface the
   // green of the keycard icon itself, which the deeper BCH green there leaves room for.
   const KEYCARD_COLORS = { light: '#006c00', dark: '#15de5a' }
+
+  // shared color for the Badgers.cash locked BCH segment
+  const BADGERS_COLOR = '#f08c00'
+  // blocks BCH aims for per day, for turning a wait in blocks into a rough number of days
+  const BLOCKS_PER_DAY = 144
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
 
   const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
@@ -82,6 +88,7 @@
   // Prices are fetched after the pools so the pools' tokens are priced along with the held ones.
   async function loadPoolsAndPrices() {
     await store.fetchWalletCauldronPools()
+    await store.fetchWalletBadgerLocks()
     await store.fetchCauldronPricesForTokens(true)
   }
   // The view is kept alive: onActivated covers entering it, so watching the token list while
@@ -214,11 +221,37 @@
     return keycards
   })
 
+  // BCH locked in the Badgers.cash contract, one row per lock. Each lock opens at its own block,
+  // which is the part worth seeing, so they are not merged. The BCH is the wallet's and comes
+  // back to it, so it counts towards the total even while it is locked
+  const badgerLocks = computed(() => {
+    return (store.badgerLocks ?? []).map(lock => ({
+      id: `${lock.txid}:${lock.vout}`,
+      bchValue: satsToBch(lock.satoshis),
+      confirmedAtHeight: lock.confirmedAtHeight,
+      stakeBlocks: lock.stakeBlocks
+    }))
+  })
+
+  // How long until a lock opens. A short wait is counted in blocks: rounding a lock that opens
+  // within the hour up to a day would be wrong.
+  function lockUnlockDisplay(lock: { confirmedAtHeight: number | undefined, stakeBlocks: number }) {
+    if (store.currentBlockHeight === undefined) return undefined
+    // a lock still in the mempool has no height to count from yet, and is near certain to make
+    // the next block, which is close enough for a wait shown to the block
+    const confirmedAt = lock.confirmedAtHeight ?? store.currentBlockHeight + 1
+    const blocksLeft = confirmedAt + lock.stakeBlocks - store.currentBlockHeight
+    if (blocksLeft <= 0) return t('portfolio.unlockable')
+    if (blocksLeft < BLOCKS_PER_DAY) return t('portfolio.unlocksInBlocks', blocksLeft)
+    return t('portfolio.unlocksIn', Math.ceil(blocksLeft / BLOCKS_PER_DAY))
+  }
+
   const totalBchValue = computed(() => {
     if (!assets.value) return undefined
     const pricedTotal = assets.value.priced.reduce((sum, asset) => sum + asset.bchValue, 0)
     const poolsTotal = poolAssets.value.reduce((sum, pool) => sum + pool.bchValue, 0)
     const keycardsTotal = keycardAssets.value.reduce((sum, keycard) => sum + keycard.bchValue, 0)
+    const badgersTotal = badgerLocks.value.reduce((sum, lock) => sum + lock.bchValue, 0)
     const loansTotal = chartedLoans.value.reduce((sum, loan) => sum + loan.netBch, 0)
     let stakingTotal = 0
     if (includeStaking.value) {
@@ -226,7 +259,7 @@
         (sum, receipt) => sum + Math.max(stakingState(receipt.utxo)?.stakeBch ?? 0, 0), 0
       )
     }
-    return pricedTotal + poolsTotal + keycardsTotal + loansTotal + stakingTotal
+    return pricedTotal + poolsTotal + keycardsTotal + badgersTotal + loansTotal + stakingTotal
   })
 
   // split the priced list for display while keeping the original index, since
@@ -238,9 +271,14 @@
   interface AssetRow { kind: 'asset', asset: PricedAsset, index: number, value: number }
   interface PoolRow { kind: 'pool', pool: PoolAsset, value: number }
   interface KeycardRow { kind: 'keycard', keycard: KeycardAsset, value: number }
+  interface BadgersRow {
+    kind: 'badgers'
+    lock: { id: string, confirmedAtHeight: number | undefined, stakeBlocks: number }
+    value: number
+  }
   interface LoanRow { kind: 'loan', loan: { category: string, utxo: Utxo, name: string }, value: number }
   interface StakingRow { kind: 'staking', receipt: { category: string, utxo: Utxo, name: string }, value: number }
-  type DisplayRow = AssetRow | PoolRow | KeycardRow | LoanRow | StakingRow
+  type DisplayRow = AssetRow | PoolRow | KeycardRow | BadgersRow | LoanRow | StakingRow
 
   // priced assets, pools, keycards, loans and staking receipts merged and sorted big to small
   // for display; an underwater loan sorts with value 0 but stays visible in the main list
@@ -254,13 +292,16 @@
     const keycardRows: DisplayRow[] = keycardAssets.value.map(keycard => (
       { kind: 'keycard', keycard, value: keycard.bchValue }
     ))
+    const badgerRows: DisplayRow[] = badgerLocks.value.map(lock => (
+      { kind: 'badgers', lock, value: lock.bchValue }
+    ))
     const loanRows: DisplayRow[] = loanKeyNfts.value.map(loan => (
       { kind: 'loan', loan, value: Math.max(loanState(loan.utxo)?.netBch ?? 0, 0) }
     ))
     const stakingRows: DisplayRow[] = stakingReceiptNfts.value.map(receipt => (
       { kind: 'staking', receipt, value: stakingState(receipt.utxo)?.stakeBch ?? 0 }
     ))
-    return [...assetRows, ...poolRows, ...keycardRows, ...loanRows, ...stakingRows]
+    return [...assetRows, ...poolRows, ...keycardRows, ...badgerRows, ...loanRows, ...stakingRows]
       .sort((a, b) => b.value - a.value)
   })
 
@@ -281,6 +322,7 @@
     if (row.kind === 'asset') return row.asset.category ?? 'bch'
     if (row.kind === 'pool') return row.pool.id
     if (row.kind === 'keycard') return row.keycard.id
+    if (row.kind === 'badgers') return row.lock.id
     return nftUtxoId(row.kind === 'loan' ? row.loan.utxo : row.receipt.utxo)
   }
 
@@ -451,6 +493,8 @@
     if (hasFungibleTokens.value && store.cauldronPrices === null) return false
     // pools are looked up on entering the view and add to the total and the chart
     if (store.cauldronPools === null) return false
+    // locked BCH adds to the total and the chart, so wait for the lookup
+    if (store.badgerLocks === null) return false
     if (!settingsStore.disableTokenIcons) {
       // without fungible tokens this loop only sees the BCH entry and no-ops
       for (const { asset } of pricedWithIndex.value.slice(0, MAX_SEGMENTS)) {
@@ -576,6 +620,8 @@
         segments.push({ label: row.pool.name, bchValue: row.value, color: POOL_COLOR })
       } else if (row.kind === 'keycard' && row.value > 0) {
         segments.push({ label: row.keycard.name, bchValue: row.value, color: keycardColor.value })
+      } else if (row.kind === 'badgers' && row.value > 0) {
+        segments.push({ label: t('portfolio.badgersStake'), bchValue: row.value, color: BADGERS_COLOR })
       } else if (row.kind === 'loan' && row.value > 0) {
         segments.push({ label: row.loan.name, bchValue: row.value, color: LOAN_COLOR })
       } else if (row.kind === 'staking' && includeStaking.value && row.value > 0) {
@@ -715,6 +761,13 @@
             :serial="row.keycard.serial"
             :value-display="formatBchValue(row.keycard.bchValue)"
             :share-display="row.keycard.bchValue > 0 ? formatShare(assetShare(row.keycard.bchValue)) : undefined"
+          />
+          <badgerLocksItem
+            v-else-if="row.kind === 'badgers'"
+            :dot-color="BADGERS_COLOR"
+            :unlock-display="lockUnlockDisplay(row.lock)"
+            :value-display="formatBchValue(row.value)"
+            :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
           />
           <loanKeyItem
             v-else-if="row.kind === 'loan'"

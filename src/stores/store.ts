@@ -56,6 +56,7 @@ import {
   publicKeyHashFromAddress,
   type CauldronPool
 } from "src/utils/defi/cauldronPools"
+import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -125,6 +126,8 @@ export const useStore = defineStore('store', () => {
   const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
   // Cauldron liquidity pools owned by the wallet, null until the portfolio view looks them up
   const cauldronPools = ref<CauldronPool[] | null>(null);
+  // BCH locked in the Badgers.cash contract, null until the portfolio view looks it up
+  const badgerLocks = ref<BadgerLock[] | null>(null);
   const exchangeRate = ref<number | undefined>(undefined);
   let exchangeRateInterval: ReturnType<typeof setInterval> | undefined;
   let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
@@ -670,6 +673,7 @@ export const useStore = defineStore('store', () => {
     queriedHistoryCategories = [];
     cauldronPrices.value = null;
     cauldronPools.value = null;
+    badgerLocks.value = null;
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
@@ -1079,6 +1083,30 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // Find the BCH the wallet has locked in the Badgers.cash contract. The wallet holds nothing
+  // that represents a lock, they all sit at the contract address with the owner in their
+  // commitment, so this is one lookup there. Only the portfolio view shows them, so it drives
+  // the fetch. The contract is mainnet only, on chipnet there is nothing to look up.
+  async function fetchWalletBadgerLocks() {
+    // the portfolio view can ask before the wallet is set, the retry comes with the token list
+    if (!_wallet.value) return;
+    if (network.value !== 'mainnet') {
+      badgerLocks.value = [];
+      return;
+    }
+    try {
+      const initialization = currentInitialization;
+      const locks = await fetchBadgerLocks(wallet.value.provider, walletPublicKeyHashes());
+      if (initialization !== currentInitialization) return;
+      badgerLocks.value = locks;
+    } catch (error) {
+      // swallowed like the Cauldron lookup, so one unreachable request does not keep the
+      // portfolio from rendering everything else
+      console.error("Failed to look up Badgers.cash locks:", error);
+      badgerLocks.value ??= [];
+    }
+  }
+
   // Periodically refetch exchange rate and Cauldron prices on separate intervals
   function startRefetchIntervals() {
     stopRefetchIntervals();
@@ -1245,6 +1273,7 @@ export const useStore = defineStore('store', () => {
     bcmrRegistries,
     cauldronPrices,
     cauldronPools,
+    badgerLocks,
     exchangeRate,
     currentBlockHeight,
     canGoBack,
@@ -1266,6 +1295,7 @@ export const useStore = defineStore('store', () => {
     fetchTokenMetadata,
     fetchCauldronPricesForTokens,
     fetchWalletCauldronPools,
+    fetchWalletBadgerLocks,
     toggleFavorite,
     toggleHidden,
     tokenIconUrl,
