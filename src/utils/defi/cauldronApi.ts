@@ -1,5 +1,5 @@
-import { CauldronValueLockedSchema } from "./zodValidation";
-import { cachedFetch } from "./cacheUtils";
+import { CauldronValueLockedSchema } from "../zodValidation";
+import { cachedFetch } from "../cacheUtils";
 import { useSettingsStore } from "src/stores/settingsStore";
 
 // The chipnet indexer is not user-configurable, it is the only one serving chipnet

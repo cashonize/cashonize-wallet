@@ -23,7 +23,7 @@ import {
 } from './mocks/walletUtils.mocks'
 
 // Import module under test after mocks
-import { createNewWallet, importWallet, createNewHDWallet, importHDWallet, validateWalletName, scanDerivationPaths } from '../src/utils/walletUtils'
+import { createNewWallet, importWallet, createNewHDWallet, importHDWallet, validateWalletName, scanDerivationPaths } from '../src/utils/wallet/walletUtils'
 
 describe('validateWalletName', () => {
   it('returns null for valid names', () => {

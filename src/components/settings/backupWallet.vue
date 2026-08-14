@@ -6,7 +6,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils'
   import { confirmDialog } from 'src/utils/txHelpers'
-  import { DERIVATION_PATHS } from 'src/utils/walletUtils'
+  import { DERIVATION_PATHS } from 'src/utils/wallet/walletUtils'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()

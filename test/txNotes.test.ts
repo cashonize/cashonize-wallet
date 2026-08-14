@@ -1,4 +1,4 @@
-import { loadTxNotes, saveTxNote, removeTxNotes, maxTxNoteLength } from "../src/utils/txNotes";
+import { loadTxNotes, saveTxNote, removeTxNotes, maxTxNoteLength } from "../src/utils/history/txNotes";
 
 // The global setup stubs localStorage as a no-op; these tests need a working store
 function makeLocalStorage() {

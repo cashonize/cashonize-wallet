@@ -7,7 +7,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { copyToClipboard } from 'src/utils/utils'
   import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation'
-  import { resolvePrivateKeyForAddress, verifyMessage } from 'src/utils/messageSigning'
+  import { resolvePrivateKeyForAddress, verifyMessage } from 'src/utils/tools/messageSigning'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import HdAddressSelectDialog from 'src/components/general/hdAddressSelectDialog.vue'
 

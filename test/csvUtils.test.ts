@@ -1,4 +1,4 @@
-import { csvEscape, historyToCsv } from "../src/utils/csvUtils";
+import { csvEscape, historyToCsv } from "../src/utils/history/csvUtils";
 import type { TransactionHistoryItem } from "mainnet-js";
 import type { BcmrTokenMetadata } from "../src/interfaces/interfaces";
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { DERIVATION_PATHS, scanDerivationPaths } from 'src/utils/walletUtils'
-  import type { DerivationPathType } from 'src/utils/walletUtils'
+  import { DERIVATION_PATHS, scanDerivationPaths } from 'src/utils/wallet/walletUtils'
+  import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
   const { t } = useI18n()
 
   const emit = defineEmits<{

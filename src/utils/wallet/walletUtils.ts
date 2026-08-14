@@ -1,7 +1,7 @@
 import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "mainnet-js"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
-import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
+import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
 import { isQuotaExceededError } from 'src/utils/errorHandling'
 import { isValidBip39Mnemonic, normalizeSeedPhrase } from 'src/utils/utils'
 import { i18n } from 'src/boot/i18n'

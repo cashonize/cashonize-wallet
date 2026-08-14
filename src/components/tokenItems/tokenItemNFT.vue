@@ -9,11 +9,11 @@
   import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { useNftCommitmentParsing } from 'src/utils/nftCommitmentParsing'
-  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
+  import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
+  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/tokenRecipientUtils'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
-  import { appendBlockieIcon } from 'src/utils/blockieIcon'
+  import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()

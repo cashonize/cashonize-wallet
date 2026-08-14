@@ -1,5 +1,5 @@
 import { Wallet, SignedMessage } from "mainnet-js";
-import { resolvePrivateKeyForAddress, verifyMessage } from "../src/utils/messageSigning";
+import { resolvePrivateKeyForAddress, verifyMessage } from "../src/utils/tools/messageSigning";
 
 // same throwaway key as wcSigning.test.ts
 const throwAwayTestKeyWif = 'L15RRkJJdgWARpbwHaZV4a99ciHhKEmWz8bR8aQ5T94FqhfAw3Ac'

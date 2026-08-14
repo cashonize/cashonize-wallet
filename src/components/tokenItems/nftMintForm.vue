@@ -4,7 +4,7 @@
   import { bigIntToVmNumber, binToHex } from "@bitauth/libauth"
   import type { TokenActionType } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
-  import { parseTokenRecipientRequest, validateTokenRecipientAddress } from 'src/utils/tokenRecipientUtils'
+  import { parseTokenRecipientRequest, validateTokenRecipientAddress } from 'src/utils/payments/tokenRecipientUtils'
   import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { useI18n } from 'vue-i18n'

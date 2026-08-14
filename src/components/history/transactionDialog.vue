@@ -11,7 +11,7 @@
   import InfoPopup from '../general/InfoPopup.vue';
   import CharCounter from '../general/CharCounter.vue';
   import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, tokenChangeChips } from 'src/utils/utils';
-  import { maxTxNoteLength } from 'src/utils/txNotes';
+  import { maxTxNoteLength } from 'src/utils/history/txNotes';
   import { useI18n } from 'vue-i18n'
 
   const store = useStore()

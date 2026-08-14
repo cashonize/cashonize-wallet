@@ -6,7 +6,7 @@
   import { useI18n } from 'vue-i18n'
   import { HDWallet } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
-  import { buildAddressRows, type AddressRow } from 'src/utils/addressRows'
+  import { buildAddressRows, type AddressRow } from 'src/utils/wallet/addressRows'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
 
   const store = useStore()

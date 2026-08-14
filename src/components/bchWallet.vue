@@ -4,7 +4,7 @@
   import { decodeCashAddress } from "@bitauth/libauth"
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount, convertToCurrency } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/bip21';
+  import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/payments/bip21';
   import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'

@@ -1,4 +1,4 @@
-import { parseBip21Uri, isBip21Uri, buildBip21Uri, formatSatoshisAsBch } from "../src/utils/bip21";
+import { parseBip21Uri, isBip21Uri, buildBip21Uri, formatSatoshisAsBch } from "../src/utils/payments/bip21";
 
 const testAddress = "bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv";
 

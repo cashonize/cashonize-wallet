@@ -48,15 +48,15 @@ import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/dbUtils"
-import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/cauldronApi"
+import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
+import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
   fetchCauldronPools,
   cauldronChainPublicKeyHashes,
   publicKeyHashFromAddress,
   type CauldronPool
-} from "src/utils/cauldronPools"
-import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/txNotes"
+} from "src/utils/defi/cauldronPools"
+import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
   saveAddressMark,
@@ -65,7 +65,7 @@ import {
   saveAddressLabel,
   removeAddressManagementData,
   deriveFreshAddressIndex
-} from "src/utils/addressManagement"
+} from "src/utils/wallet/addressManagement"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global

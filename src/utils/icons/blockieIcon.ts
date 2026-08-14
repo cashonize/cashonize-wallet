@@ -1,4 +1,4 @@
-import { createIcon } from 'src/utils/blockies';
+import { createIcon } from 'src/utils/icons/blockies';
 
 export function appendBlockieIcon(tokenId: string, templateSelector: string) {
   const icon = createIcon({

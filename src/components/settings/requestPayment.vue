@@ -7,7 +7,7 @@
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { copyToClipboard, formatNumber, parseTokenAmountToBigInt } from 'src/utils/utils'
-  import { buildBip21Uri } from 'src/utils/bip21'
+  import { buildBip21Uri } from 'src/utils/payments/bip21'
   import { toTokenAddress } from 'src/utils/addressValidation'
   import CharCounter from 'src/components/general/CharCounter.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'

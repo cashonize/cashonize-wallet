@@ -8,7 +8,7 @@
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
-  import { isWalletConnectUri, isCashConnectUri, isWizardConnectUri } from 'src/utils/dappUri';
+  import { isWalletConnectUri, isCashConnectUri, isWizardConnectUri } from 'src/utils/dapp/dappUri';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
 
   // Components.

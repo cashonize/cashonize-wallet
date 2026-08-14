@@ -115,7 +115,7 @@ function defaultGetNamedWalletIdFromDb(
 }
 export const mockGetNamedWalletIdFromDb = vi.fn(defaultGetNamedWalletIdFromDb)
 
-vi.mock('src/utils/dbUtils', () => ({
+vi.mock('src/utils/wallet/dbUtils', () => ({
   getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
   deleteWalletFromDb: mockDeleteWalletFromDb,
   namedWalletExistsInDb: mockNamedWalletExistsInDb,

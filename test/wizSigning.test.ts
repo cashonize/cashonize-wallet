@@ -10,7 +10,7 @@ import {
   type TransactionCommon,
 } from "@bitauth/libauth";
 import type { WcSignTransactionRequest, WcSourceOutput } from "@bch-wc2/interfaces";
-import { createSignedWizTransaction, type WizInputSigningKey } from "../src/utils/wizSigning";
+import { createSignedWizTransaction, type WizInputSigningKey } from "../src/utils/dapp/wizSigning";
 
 // SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID, mandated by the WizardConnect spec
 const expectedHashType = 0x61;

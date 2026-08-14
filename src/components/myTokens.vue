@@ -7,7 +7,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useWindowSize } from 'src/utils/composables'
-  import { calculateTokenFiatValue } from 'src/utils/cauldronApi'
+  import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { CurrencySymbols } from 'src/interfaces/interfaces'
 
   const store = useStore()

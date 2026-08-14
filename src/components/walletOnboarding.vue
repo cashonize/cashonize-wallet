@@ -9,8 +9,8 @@
   import seedPhraseInput from './general/seedPhraseInput.vue'
   import derivationPathSelect from './general/derivationPathSelect.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet } from 'src/utils/walletUtils'
-  import type { DerivationPathType } from 'src/utils/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet } from 'src/utils/wallet/walletUtils'
+  import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
   import type { Currency } from 'src/interfaces/interfaces'
   const store = useStore()
   const settingsStore = useSettingsStore()

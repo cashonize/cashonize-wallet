@@ -2,7 +2,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
-  import { EMERALD_DAO_CATEGORY } from 'src/utils/emeraldDao'
+  import { EMERALD_DAO_CATEGORY } from 'src/utils/defi/emeraldDao'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
   const store = useStore()

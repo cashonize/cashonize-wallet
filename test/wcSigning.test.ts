@@ -1,6 +1,6 @@
 import { parseExtendedJson } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaJsonString1 } from "./fixtures/wcFixtures";
-import { createSignedWcTransaction } from "../src/utils/wcSigning";
+import { createSignedWcTransaction } from "../src/utils/dapp/wcSigning";
 import { encodeLockingBytecodeP2pkh, binToHex } from "@bitauth/libauth"
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
 import { Wallet } from "mainnet-js";

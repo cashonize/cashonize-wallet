@@ -20,9 +20,9 @@
   import { defineComponent, ref, computed, watch, onMounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
-  import { preloadIcons } from 'src/utils/preloadIcons'
-  import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/dbUtils'
-  import { isDappConnectionUri } from 'src/utils/dappUri'
+  import { preloadIcons } from 'src/utils/icons/preloadIcons'
+  import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
+  import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()

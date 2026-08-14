@@ -55,7 +55,7 @@ vi.mock('src/stores/settingsStore', () => ({
   }))
 }))
 
-vi.mock('src/utils/dbUtils', () => ({
+vi.mock('src/utils/wallet/dbUtils', () => ({
   namedWalletExistsInDb: mockNamedWalletExistsInDb
 }))
 

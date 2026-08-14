@@ -6,8 +6,8 @@
   import { useI18n } from 'vue-i18n'
   import { HDWallet } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
-  import { maxAddressLabelLength } from 'src/utils/addressManagement'
-  import { buildAddressRows, type AddressRow } from 'src/utils/addressRows'
+  import { maxAddressLabelLength } from 'src/utils/wallet/addressManagement'
+  import { buildAddressRows, type AddressRow } from 'src/utils/wallet/addressRows'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'

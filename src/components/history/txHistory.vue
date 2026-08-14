@@ -5,9 +5,9 @@
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips, dayLabel, localDayStart } from 'src/utils/utils';
-  import { historyToCsv } from 'src/utils/csvUtils';
-  import { maxTxNoteLength } from 'src/utils/txNotes';
-  import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/txDirection';
+  import { historyToCsv } from 'src/utils/history/csvUtils';
+  import { maxTxNoteLength } from 'src/utils/history/txNotes';
+  import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/history/txDirection';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import InlineTextEdit from '../general/InlineTextEdit.vue';

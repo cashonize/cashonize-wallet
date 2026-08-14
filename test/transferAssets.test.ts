@@ -1,4 +1,4 @@
-import { transferAllAssets, type TransferProgress } from "../src/utils/transferAssets";
+import { transferAllAssets, type TransferProgress } from "../src/utils/tools/transferAssets";
 import type { WalletType } from "../src/interfaces/interfaces";
 
 const destinationAddress = "bitcoincash:zzd7ucdmlvkarqr3ytft3trl94007r6dr53jj2x88s";

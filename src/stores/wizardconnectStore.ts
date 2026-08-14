@@ -31,7 +31,7 @@ import type { DappMetadata } from "src/interfaces/interfaces";
 import { useStore } from "./store";
 import { useSettingsStore } from "./settingsStore";
 import { walletConnectMetadata } from "./constants";
-import { createSignedWizTransaction, type WizInputSigningKey } from "src/utils/wizSigning";
+import { createSignedWizTransaction, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
 import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
 import { displayAndLogError } from "src/utils/errorHandling";
 import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRequest.vue";

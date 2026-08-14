@@ -2,9 +2,9 @@
   import { ref, computed, onMounted } from "vue"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
-  import { namedWalletExistsInDb } from 'src/utils/dbUtils'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, suggestNextWalletName } from 'src/utils/walletUtils'
-  import type { DerivationPathType } from 'src/utils/walletUtils'
+  import { namedWalletExistsInDb } from 'src/utils/wallet/dbUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, suggestNextWalletName } from 'src/utils/wallet/walletUtils'
+  import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
   import seedPhraseInput from '../general/seedPhraseInput.vue'
   import derivationPathSelect from '../general/derivationPathSelect.vue'
   import { useI18n } from 'vue-i18n'

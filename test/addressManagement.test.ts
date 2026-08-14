@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveFreshAddressIndex } from "../src/utils/addressManagement";
+import { deriveFreshAddressIndex } from "../src/utils/wallet/addressManagement";
 
 // Addresses are identified by index ("addr0", "addr1", ...) so marks can be
 // expressed as indices; usedIndices simulates on-chain history per address

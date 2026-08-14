@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { encodePrivateKeyWif } from "@bitauth/libauth";
-import { decryptBip38Key, isBip38Key } from "../src/utils/bip38";
+import { decryptBip38Key, isBip38Key } from "../src/utils/tools/bip38";
 
 // The eight test vectors from the BIP itself:
 // https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki#test-vectors

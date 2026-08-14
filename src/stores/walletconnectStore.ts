@@ -20,7 +20,7 @@ import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRe
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
 import type { WcSignMessageRequest, WcSignTransactionRequest } from "@bch-wc2/interfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
-import { createSignedWcTransaction } from "src/utils/wcSigning"
+import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"

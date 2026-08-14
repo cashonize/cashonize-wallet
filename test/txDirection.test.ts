@@ -1,4 +1,4 @@
-import { txDirection, isCombined, isDappInteraction } from "../src/utils/txDirection";
+import { txDirection, isCombined, isDappInteraction } from "../src/utils/history/txDirection";
 import type { TransactionHistoryItem } from "mainnet-js";
 
 const category = "aabbccdd".repeat(8);

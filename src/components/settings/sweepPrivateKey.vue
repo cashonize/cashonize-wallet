@@ -12,8 +12,8 @@
   import { useI18n } from 'vue-i18n'
   import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
-  import { transferAllAssets, type TransferProgress } from 'src/utils/transferAssets'
-  import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/bip38'
+  import { transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
+  import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/tools/bip38'
   import type { TokenList } from 'src/interfaces/interfaces'
   import type { BcmrTokenResponse } from 'src/utils/zodValidation'
 
