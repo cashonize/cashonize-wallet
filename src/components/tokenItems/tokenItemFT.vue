@@ -7,7 +7,8 @@
   import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/tokenRecipientUtils'
+  import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
+  import { getCashAddressScanError, validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
@@ -101,19 +102,14 @@
     targetState.value = numberFormatter.format(amountTokens);
   }
   function parseAddrParams(){
-    const parsed = parseTokenRecipientRequest(destinationAddr.value, tokenData.value.category);
+    const parsed = parseTokenPaymentRequest(destinationAddr.value, tokenData.value.category);
     if(!parsed) return;
     destinationAddr.value = parsed.address;
 
-    // Auto-fill fungible token amount from token payment requests. The amount arrives in base
-    // units and is read as a bigint, token supplies go well past what a number holds exactly.
-    // f is the spec name for the amount, ft the alias other wallets and older requests use
-    const fungibleAmountParam = parsed.otherParams?.f ?? parsed.otherParams?.ft;
-    if(parsed.otherParams?.c === tokenData.value.category && fungibleAmountParam){
+    // Auto-fill the amount from a token payment request for this category
+    if(parsed.category && parsed.fungibleAmount !== undefined){
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      if (/^\d+$/.test(fungibleAmountParam)) {
-        tokenSendAmount.value = formatTokenAmountFromBigInt(BigInt(fungibleAmountParam), decimals);
-      }
+      tokenSendAmount.value = formatTokenAmountFromBigInt(parsed.fungibleAmount, decimals);
     }
   }
   const qrDecode = (content: string) => {
@@ -126,7 +122,7 @@
     activeAction.value = 'sending';
     try{
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
-      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
@@ -230,7 +226,10 @@
       const reservedSupply = parseTokenAmountToBigInt(reservedSupplyInput.value, decimals);
       if(reservedSupply > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
-      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
+      // the auth output only carries tokens when reserved supply rides along with it
+      destinationAddr.value = reservedSupply
+        ? validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix)
+        : validateRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       const authTransfer = !reservedSupply? {
         cashaddr: destinationAddr.value,
         value: 1000n,

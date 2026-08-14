@@ -8,7 +8,8 @@
  * Some implementations also embed BIP70-like params directly (time, exp, sig).
  * BIP70 is largely deprecated - we don't handle these specially, they end up in otherParams.
  *
- * BCH-specific extensions (c, ft, nft for CashTokens, op_return) also land in otherParams.
+ * This module knows the BIP21 keys only. Everything else lands in otherParams as raw strings,
+ * including the CashTokens parameters, which paymentRequest.ts reads and writes on top of this.
  */
 
 import { formatTokenAmountFromBigInt } from 'src/utils/utils'
@@ -113,42 +114,6 @@ export function parseBip21Uri(uri: string): Bip21ParseResult {
   return result;
 }
 
-/** The parameters Cashonize puts in a payment request it generates */
-export interface Bip21RequestParams {
-  /** Full cashaddress including the scheme prefix, as the wallet hands it out */
-  address: string;
-  /** Requested amount in satoshis, left out of the URI when zero or undefined */
-  satoshis?: bigint | undefined;
-  /** Note for the payer, shown by wallets that display it */
-  message?: string | undefined;
-  /** Token category to request, only valid on a token-aware address */
-  category?: string | undefined;
-  /**
-   * Fungible token amount in base units, only emitted together with a category.
-   * Emitted as f=, the name chip-paypro gives it. ft= is the alias both our own send
-   * form and other wallets also accept.
-   */
-  fungibleAmount?: bigint | undefined;
-}
-
-/**
- * Build a BIP21 payment request URI.
- *
- * Only emits the parameters Cashonize itself understands when paying, so a request
- * generated here can always be paid back by another Cashonize wallet.
- */
-export function buildBip21Uri({ address, satoshis, message, category, fungibleAmount }: Bip21RequestParams): string {
-  const params: string[] = [];
-  if (satoshis !== undefined && satoshis > 0n) params.push(`amount=${formatSatoshisAsBch(satoshis)}`);
-  if (category) {
-    params.push(`c=${category}`);
-    if (fungibleAmount !== undefined && fungibleAmount > 0n) params.push(`f=${fungibleAmount}`);
-  }
-  if (message) params.push(`message=${encodeURIComponent(message)}`);
-  if (!params.length) return address;
-  return `${address}?${params.join('&')}`;
-}
-
 /**
  * Format satoshis as the whole-BCH decimal string BIP21 asks for, without trailing zeros.
  * Uses integer math so amounts never pick up floating point artifacts.
@@ -179,6 +144,21 @@ export function isBip21Uri(uri: string): boolean {
 
   const lowerUri = uri.toLowerCase();
   return VALID_SCHEMES.some(s => lowerUri.startsWith(s));
+}
+
+/**
+ * The address a pasted or scanned string points at: the address part of a BIP21 URI, or the
+ * input unchanged when it is not one. Used to check the address before the rest of the URI
+ * is looked at, so a malformed URI still gets judged on the address it carries.
+ */
+export function addressFromUri(content: string) {
+  if (!isBip21Uri(content) || !content.includes("?")) return content;
+  try {
+    return parseBip21Uri(content).address;
+  } catch {
+    // not parseable as a URI, treat the whole input as the address
+    return content;
+  }
 }
 
 /**

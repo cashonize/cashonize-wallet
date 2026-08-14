@@ -4,7 +4,8 @@
   import { bigIntToVmNumber, binToHex } from "@bitauth/libauth"
   import type { TokenActionType } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
-  import { parseTokenRecipientRequest, validateTokenRecipientAddress } from 'src/utils/payments/tokenRecipientUtils'
+  import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
+  import { validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { useI18n } from 'vue-i18n'
@@ -29,7 +30,7 @@
   const destinationAddr = ref("");
 
   function parseAddrParams(){
-    const parsed = parseTokenRecipientRequest(destinationAddr.value, props.category);
+    const parsed = parseTokenPaymentRequest(destinationAddr.value, props.category);
     if(!parsed) return;
     destinationAddr.value = parsed.address;
   }

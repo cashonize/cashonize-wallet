@@ -8,8 +8,8 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { satsToBch, formatFiatAmount } from 'src/utils/utils'
-  import { isBip21Uri, parseBip21Uri } from 'src/utils/payments/bip21'
-  import { validateTokenRecipientAddress, getCashAddressScanError } from 'src/utils/payments/tokenRecipientUtils'
+  import { addressFromUri } from 'src/utils/payments/bip21'
+  import { validateRecipientAddress, validateTokenRecipientAddress, getCashAddressScanError } from 'src/utils/payments/recipientAddress'
   import { toPlainAddress } from 'src/utils/addressValidation'
   import { transferAllAssets, type TransferPhase, type TransferProgress } from 'src/utils/tools/transferAssets'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue'
@@ -120,9 +120,9 @@
   }
 
   function getDestinationAddress() {
-    const destination = validateTokenRecipientAddress(destinationInput.value, networkPrefix.value, {
-      requireTokenSupport: hasTokens.value
-    });
+    const destination = hasTokens.value
+      ? validateTokenRecipientAddress(destinationInput.value, networkPrefix.value)
+      : validateRecipientAddress(destinationInput.value, networkPrefix.value);
     // Covers every address of an HD wallet, not just the one currently handed out
     if (store.walletHasAddress(toPlainAddress(destination))) {
       throw new Error(t('transferAllAssets.errors.ownAddress'));
@@ -169,15 +169,7 @@
   }
 
   const qrDecode = (content: string) => {
-    let scannedAddress = content;
-    if (isBip21Uri(content) && content.includes("?")) {
-      try {
-        scannedAddress = parseBip21Uri(content).address;
-      } catch {
-        // If parsing fails, leave the scanned content as-is.
-      }
-    }
-    destinationInput.value = scannedAddress;
+    destinationInput.value = addressFromUri(content);
   }
   const qrFilter = (content: string) => {
     return getCashAddressScanError(content, networkPrefix.value) ?? true;

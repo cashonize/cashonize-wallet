@@ -10,7 +10,8 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
-  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/tokenRecipientUtils'
+  import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
+  import { getCashAddressScanError, validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
@@ -159,7 +160,7 @@
   }
 
   function parseAddrParams(){
-    const parsed = parseTokenRecipientRequest(destinationAddr.value, tokenData.value.category);
+    const parsed = parseTokenPaymentRequest(destinationAddr.value, tokenData.value.category);
     if(!parsed) return;
     destinationAddr.value = parsed.address;
   }
@@ -175,7 +176,7 @@
     activeAction.value = 'sending';
     try{
       if(selectedNftCount.value === 0) throw new Error(t('tokenItem.errors.noNftsSelected'))
-      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const category = tokenData.value.category;
@@ -237,7 +238,7 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       // confirm payment if setting is enabled
@@ -323,7 +324,8 @@
     const authNft = tokenData.value.authUtxo?.token;
     activeAction.value = 'transferAuth';
     try {
-      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
+      // the auth NFT stays behind as change, the recipient only gets a plain BCH output
+      destinationAddr.value = validateRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       const authTransfer: SendRequest = {
         cashaddr: destinationAddr.value,
         value: 1000n,

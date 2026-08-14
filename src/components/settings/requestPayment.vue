@@ -7,7 +7,7 @@
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { copyToClipboard, formatNumber, parseTokenAmountToBigInt } from 'src/utils/utils'
-  import { buildBip21Uri } from 'src/utils/payments/bip21'
+  import { buildPaymentRequestUri } from 'src/utils/payments/paymentRequest'
   import { toTokenAddress } from 'src/utils/addressValidation'
   import CharCounter from 'src/components/general/CharCounter.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
@@ -97,14 +97,14 @@
   const requestUri = computed(() => {
     const message = requestMessage.value.trim();
     if (mode.value === 'token') {
-      return buildBip21Uri({
+      return buildPaymentRequestUri({
         address: effectiveAddress.value,
         category: selectedCategory.value,
         fungibleAmount: parsedTokenAmount.value.baseUnits,
         message,
       });
     }
-    return buildBip21Uri({ address: effectiveAddress.value, satoshis: requestSatoshis.value, message });
+    return buildPaymentRequestUri({ address: effectiveAddress.value, satoshis: requestSatoshis.value, message });
   });
 
   // What the request actually asks for, restated at the moment the code is handed over

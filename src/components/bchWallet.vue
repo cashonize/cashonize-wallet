@@ -4,7 +4,8 @@
   import { decodeCashAddress } from "@bitauth/libauth"
   import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount, convertToCurrency } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri, getBip21ValidationError } from 'src/utils/payments/bip21';
+  import { parseBip21Uri, isBip21Uri, getBip21ValidationError, addressFromUri } from 'src/utils/payments/bip21';
+  import { parsePayProParams } from 'src/utils/payments/paymentRequest';
   import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -114,9 +115,10 @@
         return;
       }
 
-      // Token payment requests (c= param) are paid from the token's own send form
-      if(parsed.otherParams?.c){
-        notifyTokenPaymentRequest(parsed.otherParams.c);
+      // Token payment requests are paid from the token's own send form
+      const requestedCategory = parsePayProParams(parsed).category;
+      if(requestedCategory){
+        notifyTokenPaymentRequest(requestedCategory);
         return;
       }
 
@@ -245,17 +247,7 @@
     parseAddrParams()
   }
   const qrFilter = (content: string) => {
-    // Extract address without query params if it's a BIP21 URI
-    let addressInput = content;
-    if(isBip21Uri(content) && content.includes("?")){
-      try {
-        const parsed = parseBip21Uri(content);
-        addressInput = parsed.address;
-      } catch {
-        // If parsing fails, try with original content
-      }
-    }
-    const decoded = decodeCashAddress(addressInput);
+    const decoded = decodeCashAddress(addressFromUri(content));
     if (typeof decoded === "string" || decoded.prefix !== `${store.wallet.networkPrefix}`) {
       return t('wallet.errors.notCashaddress');
     }

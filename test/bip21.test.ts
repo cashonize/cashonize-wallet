@@ -1,4 +1,4 @@
-import { parseBip21Uri, isBip21Uri, buildBip21Uri, formatSatoshisAsBch } from "../src/utils/payments/bip21";
+import { parseBip21Uri, isBip21Uri, addressFromUri, formatSatoshisAsBch } from "../src/utils/payments/bip21";
 
 const testAddress = "bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv";
 
@@ -229,6 +229,26 @@ describe("isBip21Uri", () => {
   });
 });
 
+describe("addressFromUri", () => {
+  it("should strip the query params off a uri", () => {
+    expect(addressFromUri(`${testAddress}?amount=1.5&message=Order+123`)).toBe(testAddress);
+  });
+
+  it("should leave a uri without params alone", () => {
+    expect(addressFromUri(testAddress)).toBe(testAddress);
+  });
+
+  it("should leave a plain address alone", () => {
+    expect(addressFromUri("qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv"))
+      .toBe("qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv");
+  });
+
+  it("should return the input unchanged when the uri does not parse", () => {
+    // the caller then judges the whole input as an address and reports it as invalid itself
+    expect(addressFromUri("bitcoincash:?amount=1")).toBe("bitcoincash:?amount=1");
+  });
+});
+
 describe("formatSatoshisAsBch", () => {
   it("should format whole bch amounts without decimals", () => {
     expect(formatSatoshisAsBch(100_000_000n)).toBe("1");
@@ -252,104 +272,6 @@ describe("formatSatoshisAsBch", () => {
 
   it("should format zero", () => {
     expect(formatSatoshisAsBch(0n)).toBe("0");
-  });
-});
-
-describe("buildBip21Uri", () => {
-  it("should return the bare address when nothing is requested", () => {
-    expect(buildBip21Uri({ address: testAddress })).toBe(testAddress);
-  });
-
-  it("should add the amount in whole bch", () => {
-    expect(buildBip21Uri({ address: testAddress, satoshis: 5_000_000n }))
-      .toBe(`${testAddress}?amount=0.05`);
-  });
-
-  it("should leave out a zero amount", () => {
-    expect(buildBip21Uri({ address: testAddress, satoshis: 0n })).toBe(testAddress);
-  });
-
-  it("should url-encode the message", () => {
-    expect(buildBip21Uri({ address: testAddress, message: "Order #123 & more" }))
-      .toBe(`${testAddress}?message=Order%20%23123%20%26%20more`);
-  });
-
-  it("should combine amount and message", () => {
-    expect(buildBip21Uri({ address: testAddress, satoshis: 100_000n, message: "Invoice 1041" }))
-      .toBe(`${testAddress}?amount=0.001&message=Invoice%201041`);
-  });
-
-  it("should build chipnet requests", () => {
-    const chipnetAddress = "bchtest:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgspcw7ktl";
-    expect(buildBip21Uri({ address: chipnetAddress, satoshis: 100_000_000n }))
-      .toBe(`${chipnetAddress}?amount=1`);
-  });
-});
-
-describe("buildBip21Uri for token requests", () => {
-  const tokenAddress = "bitcoincash:zr7fzmep8g7h7ymfxy74lgc0v950j3r295z4y4gq0v";
-  const category = "3a29bd2fe2ca319181035844dcff236c518bae26f417911043dc653b1a9dedc7";
-
-  it("should add the category", () => {
-    expect(buildBip21Uri({ address: tokenAddress, category }))
-      .toBe(`${tokenAddress}?c=${category}`);
-  });
-
-  it("should add the fungible amount in base units as the spec named f", () => {
-    expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 10_000_000n }))
-      .toBe(`${tokenAddress}?c=${category}&f=10000000`);
-  });
-
-  it("should keep base unit amounts too large for a number exact", () => {
-    const hugeAmount = 9_007_199_254_740_993n;
-    expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: hugeAmount }))
-      .toBe(`${tokenAddress}?c=${category}&f=9007199254740993`);
-  });
-
-  it("should leave out a zero token amount", () => {
-    expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 0n }))
-      .toBe(`${tokenAddress}?c=${category}`);
-  });
-
-  it("should not emit a token amount without a category", () => {
-    expect(buildBip21Uri({ address: tokenAddress, fungibleAmount: 100n })).toBe(tokenAddress);
-  });
-
-  it("should combine the token request with a message", () => {
-    expect(buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 100n, message: "Invoice 1041" }))
-      .toBe(`${tokenAddress}?c=${category}&f=100&message=Invoice%201041`);
-  });
-
-  it("should parse back into the params the token send form reads", () => {
-    const uri = buildBip21Uri({ address: tokenAddress, category, fungibleAmount: 250n, message: "Order #7" });
-    const parsed = parseBip21Uri(uri);
-    expect(parsed.address).toBe(tokenAddress);
-    expect(parsed.otherParams?.c).toBe(category);
-    expect(parsed.otherParams?.f).toBe("250");
-    expect(parsed.message).toBe("Order #7");
-    expect(parsed.hasUnknownRequired).toBe(false);
-    expect(parsed.hasDuplicateKeys).toBeUndefined();
-  });
-});
-
-// Every request we generate must be payable by our own send flow
-describe("generated requests round-trip through the parser", () => {
-  it("should parse back the amount and message unchanged", () => {
-    const uri = buildBip21Uri({ address: testAddress, satoshis: 123_456_789n, message: "Order #7 & tip" });
-    const parsed = parseBip21Uri(uri);
-    expect(parsed.address).toBe(testAddress);
-    expect(parsed.amount).toBe(1.23456789);
-    expect(parsed.message).toBe("Order #7 & tip");
-  });
-
-  it("should never produce a uri the send flow rejects", () => {
-    const uri = buildBip21Uri({ address: testAddress, satoshis: 1n, message: "req-test=1&amount=999" });
-    const parsed = parseBip21Uri(uri);
-    expect(parsed.hasUnknownRequired).toBe(false);
-    expect(parsed.hasDuplicateKeys).toBeUndefined();
-    expect(parsed.hasInvalidAmount).toBeUndefined();
-    expect(parsed.amount).toBe(0.00000001);
-    expect(parsed.message).toBe("req-test=1&amount=999");
   });
 });
 

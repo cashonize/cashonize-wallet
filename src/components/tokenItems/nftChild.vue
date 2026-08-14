@@ -9,7 +9,8 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
-  import { parseTokenRecipientRequest, getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/tokenRecipientUtils'
+  import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
+  import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
@@ -95,7 +96,7 @@
   })
 
   function parseAddrParams(){
-    const parsed = parseTokenRecipientRequest(destinationAddr.value, category.value);
+    const parsed = parseTokenPaymentRequest(destinationAddr.value, category.value);
     if(!parsed) return;
     destinationAddr.value = parsed.address;
   }
@@ -108,7 +109,7 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix, { requireTokenSupport: true });
+      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const nftInfo = nftData.value.token as TokenI;
