@@ -661,6 +661,38 @@
   },
   "utxoManagement": {
     "title": "UTXO Management",
+    "description": "The individual UTXOs that make up your balance.",
+    "usageHint": "Every payment spends whole UTXOs and returns the change as a new one, so their number and sizes shift with each transaction. Other wallets call them coins, and call choosing between them coin control.",
+    "loading": "Loading UTXO data",
+    "loadingFailed": "Failed to load UTXO data",
+    "markers": {
+      "bchOnToken": "Holds more BCH than a token UTXO needs",
+      "largeBch": "Holds a large amount of BCH"
+    },
+    "filters": {
+      "bch": "BCH",
+      "tokens": "Tokens"
+    },
+    "bchList": {
+      "title": "BCH-only UTXOs",
+      "empty": "This wallet has no BCH-only UTXOs."
+    },
+    "tokenList": {
+      "title": "Token UTXOs per category",
+      "empty": "This wallet has no token UTXOs."
+    },
+    "fungibleList": {
+      "title": "Fungible token UTXOs",
+      "empty": "This wallet has no fungible token UTXOs."
+    },
+    "nftList": {
+      "title": "NFT UTXOs",
+      "empty": "This wallet has no NFT UTXOs."
+    },
+    "ftNftList": {
+      "title": "Fungible token + NFT UTXOs",
+      "empty": "This wallet has no UTXOs holding a fungible amount and an NFT at once."
+    },
     "stats": {
       "totalUtxos": "Total UTXOs",
       "bchOnlyUtxos": "BCH-only UTXOs",
@@ -669,6 +701,7 @@
     "consolidate": {
       "title": "Consolidate BCH UTXOs",
       "description": "Combine all BCH-only UTXOs into a single UTXO. If a dApp asks you to \"consolidate your funds\" even though you have enough balance, it means you have too many small UTXOs.",
+      "usageHint": "A dApp may ask you to consolidate when its transaction building or its contract can only take a single input from you. That one UTXO then has to cover the whole amount, no matter how much you hold in total.",
       "consolidatingButton": "Consolidating...",
       "consolidateButton": "Consolidate BCH",
       "alreadyConsolidated": "Your wallet already has {status} BCH-only UTXO.",
@@ -695,7 +728,12 @@
       "type": "Type",
       "txId": "TxId",
       "vout": "Vout",
-      "copy": "copy"
+      "address": "Address",
+      "utxoCount": "UTXOs",
+      "bchHeld": "BCH held",
+      "amount": "Amount",
+      "capability": "Capability",
+      "commitment": "Commitment"
     },
     "notifications": {
       "consolidating": "Consolidating BCH UTXOs...",

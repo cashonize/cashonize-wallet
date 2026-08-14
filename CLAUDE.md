@@ -125,6 +125,8 @@ Docs: https://quasar.dev/docs
 ### Styling
 Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom styles in `src/css/`. Material icon names are mapped to SVG constants in `src/boot/icons.ts`; Quasar components use the `svg-material-icons` icon set, with no icon webfont.
 
+Component styles are plain CSS by default; a few use `<style scoped lang="scss">` where variables or a mixin avoid repeating a block (sass is available through Quasar).
+
 ### Internationalization (i18n)
 Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from `src/boot/i18n.ts`.
 

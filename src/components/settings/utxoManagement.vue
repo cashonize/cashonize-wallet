@@ -1,8 +1,11 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
-  import { copyToClipboard, formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
+  import { computed, ref, watch } from 'vue';
+  import { copyToClipboard, formatBchAmount, formatFiatAmount, formatTokenAmountFromBigInt, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
+  import InfoPopup from 'src/components/general/InfoPopup.vue';
+  import TokenIcon from 'src/components/general/TokenIcon.vue';
   import { HDWallet, TokenSendRequest } from 'mainnet-js';
+  import type { Utxo } from 'mainnet-js';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -14,14 +17,89 @@
   const { t } = useI18n()
   const activeAction = ref<'consolidating' | 'splitting' | null>(null);
 
-  const bchOnlyUtxos = computed(() => store.walletUtxos?.filter(utxo => !utxo.token)?.length);
-  // Consolidating spends utxos from every address at once, which only links addresses on HD wallets
-  const isHdWallet = computed(() => store._wallet instanceof HDWallet);
+  // The page is split by asset kind because each maintenance action only concerns one half:
+  // consolidating operates on the BCH-only utxos, splitting on the token utxos holding BCH.
+  const activeFilter = ref<'bch' | 'tokens'>('bch');
+  const utxosPerPage = 25;
+
   // TODO: consider lowering this to 1000 satoshis in the future
   // note: the bliss airdrop tool uses 2000 sats so from that point, many users would have combined UTXOs
+  const significantBchOnTokenUtxo = 5_000n;
+
+  // Consolidating spends utxos from every address at once, which only links addresses on HD wallets
+  const isHdWallet = computed(() => store._wallet instanceof HDWallet);
+
+  // The utxos are listed per kind, because what there is to see about one differs per kind: a
+  // fungible amount, an NFT capability and commitment, or both at once. Largest BCH amount first
+  // throughout, so every list reads as what a spend would reach for and what holds the BCH.
+  const utxoLists = computed(() => {
+    if (!store.walletUtxos) return undefined;
+    // safe to sort in place, every array here is a fresh result of filter()
+    const largestFirst = (utxos: Utxo[]) => utxos.sort((left, right) => Number(right.satoshis - left.satoshis));
+    return {
+      bch: largestFirst(store.walletUtxos.filter(utxo => !utxo.token)),
+      fungible: largestFirst(store.walletUtxos.filter(utxo => utxo.token?.amount && !utxo.token.nft)),
+      nft: largestFirst(store.walletUtxos.filter(utxo => utxo.token?.nft && !utxo.token.amount)),
+      ftNft: largestFirst(store.walletUtxos.filter(utxo => utxo.token?.amount && utxo.token.nft)),
+    };
+  });
+  type UtxoList = keyof NonNullable<typeof utxoLists.value>;
+
+  const bchUtxoCount = computed(() => utxoLists.value?.bch.length);
+
+  const loadingUtxos = computed(() => store.walletUtxos === undefined);
+  // fetched after the utxos, and it carries the decimals a fungible amount is shown in
+  const loadingTokenData = computed(() => store.bcmrRegistries === undefined);
+
+  const collapsedLists = ref({ bch: false, tokens: false, fungible: true, nft: true, ftNft: true });
+  const listPages = ref<Record<UtxoList, number>>({ bch: 1, fungible: 1, nft: 1, ftNft: 1 });
+
+  function toggleList(key: keyof typeof collapsedLists.value) {
+    collapsedLists.value[key] = !collapsedLists.value[key];
+  }
+
+  function pageCount(list: UtxoList) {
+    return Math.ceil((utxoLists.value?.[list].length ?? 0) / utxosPerPage);
+  }
+  function pageOf(list: UtxoList) {
+    const start = (listPages.value[list] - 1) * utxosPerPage;
+    return utxoLists.value?.[list].slice(start, start + utxosPerPage);
+  }
+  function rowNumber(list: UtxoList, index: number) {
+    return (listPages.value[list] - 1) * utxosPerPage + index + 1;
+  }
+
+  const bchDisplayUnit = computed(() => {
+    return store.network === "mainnet" ? "BCH" : "tBCH";
+  });
+
+  // Consolidating or splitting shortens a list, which can leave its pager past the last page
+  watch(utxoLists, () => {
+    for (const list of Object.keys(listPages.value) as UtxoList[]) {
+      if (listPages.value[list] > pageCount(list)) listPages.value[list] = 1;
+    }
+  });
+
   const utxosWithBchAndTokens = computed(() => {
     if (!store.walletUtxos) return undefined;
-    return store.walletUtxos.filter(utxo => utxo.token?.category && utxo.satoshis > 5_000n);
+    return store.walletUtxos.filter(utxo => utxo.token?.category && utxo.satoshis > significantBchOnTokenUtxo);
+  });
+
+  // The wallet tools menu marks this page when token utxos hold BCH, and that is all the mark
+  // ever means, so the half it points at is the one to open. The utxos load after the page
+  // does, hence the watch, and it runs for the first set of each wallet only: after that the
+  // shown half is the user's to pick and nothing switches under them.
+  let openedOnAlert = false;
+  watch(utxosWithBchAndTokens, (affectedUtxos) => {
+    if (openedOnAlert || affectedUtxos === undefined) return;
+    openedOnAlert = true;
+    if (affectedUtxos.length) activeFilter.value = 'tokens';
+  }, { immediate: true });
+
+  // The page is cached for the whole session, so without this a wallet switched to after the
+  // first one would keep whichever half the wallet before it opened, mark or no mark
+  watch(() => [store.activeWalletName, store.network], () => {
+    openedOnAlert = false;
   });
 
   // hasNftUtxos and satsToSplit are only used in template when utxosWithBchAndTokens is defined
@@ -34,8 +112,80 @@
     return utxosWithBchAndTokens.value.reduce((sum:bigint, utxo) => sum + utxo.satoshis - 1000n, 0n)
   })
 
+  const affectedUtxos = computed(() => {
+    if (!utxosWithBchAndTokens.value) return undefined;
+    return [...utxosWithBchAndTokens.value].sort((left, right) => Number(right.satoshis - left.satoshis));
+  });
+
+  interface TokenCategoryGroup {
+    category: string;
+    utxoCount: number;
+    satoshis: bigint;
+    holdsSignificantBch: boolean;
+  }
+
+  // Token utxos also get a per category summary, above the per utxo lists: with hundreds of them
+  // the count and the BCH locked up per token is what tells the user whether there is anything to
+  // clean up, which no individual row shows.
+  const tokenCategoryGroups = computed(() => {
+    if (!store.walletUtxos) return undefined;
+    const groups: Record<string, TokenCategoryGroup> = {};
+    for (const utxo of getTokenUtxos(store.walletUtxos)) {
+      const category = utxo.token?.category;
+      if (!category) continue; // should never happen
+      const group = groups[category] ?? { category, utxoCount: 0, satoshis: 0n, holdsSignificantBch: false };
+      group.utxoCount += 1;
+      group.satoshis += utxo.satoshis;
+      if (utxo.satoshis > significantBchOnTokenUtxo) group.holdsSignificantBch = true;
+      groups[category] = group;
+    }
+    // Categories holding the most BCH first, those are the ones worth acting on
+    return Object.values(groups).sort((a, b) => Number(b.satoshis - a.satoshis) || b.utxoCount - a.utxoCount);
+  });
+
+  // Enough to tell two utxos apart and to recognise one, the full value is a click away.
+  // Every column holding one of these is sized to fit it whole, they never shorten further.
   function truncateHash(hash: string) {
-    return hash.slice(0, 10) + '...' + hash.slice(-6);
+    return hash.slice(0, 8) + '...' + hash.slice(-6);
+  }
+
+  // The prefix is the same for every row, only the body distinguishes the addresses
+  function truncateAddress(address: string) {
+    const body = address.split(':')[1] ?? address;
+    return body.slice(0, 6) + '...' + body.slice(-6);
+  }
+
+  function tokenName(category: string) {
+    return store.bcmrRegistries?.[category]?.name || truncateHash(category);
+  }
+
+  function tokenUtxoType(utxo: Utxo) {
+    if (utxo.token?.amount && utxo.token.nft?.capability) return 'FT+NFT';
+    return utxo.token?.amount ? 'FT' : 'NFT';
+  }
+
+  function tokenSymbol(category: string) {
+    return store.bcmrRegistries?.[category]?.token?.symbol ?? '';
+  }
+
+  function fungibleAmount(utxo: Utxo) {
+    const token = utxo.token;
+    if (!token) return ''; // should never happen
+    const decimals = store.bcmrRegistries?.[token.category]?.token?.decimals ?? 0;
+    return formatTokenAmountFromBigInt(token.amount, decimals);
+  }
+
+  function nftCapability(utxo: Utxo) {
+    const capability = utxo.token?.nft?.capability;
+    if (!capability) return ''; // should never happen
+    return capability === 'none' ? t('tokenItem.info.immutable') : capability;
+  }
+
+  // Commitments are up to 40 bytes and most are far shorter, so the column shows what fits and
+  // its own ellipsis takes the rest. Unlike a hash there is no tail worth keeping, and leaving
+  // the shortening to css is what lets the column be narrow without cutting a value twice.
+  function nftCommitment(utxo: Utxo) {
+    return utxo.token?.nft?.commitment || t('tokenItem.empty');
   }
 
   async function consolidateBchUtxos() {
@@ -126,126 +276,461 @@
   <fieldset class="item" :class="{ dark: settingsStore.darkMode }">
     <legend>{{ t('utxoManagement.title') }}</legend>
 
+    <div style="margin-bottom: 20px;">
+      {{ t('utxoManagement.description') }}
+      <InfoPopup>
+        <div style="max-width: 300px;">{{ t('utxoManagement.usageHint') }}</div>
+      </InfoPopup>
+    </div>
+
     <!-- Stats -->
     <div class="stats-row">
       <div>
         <span class="stat-value">{{ store.walletUtxos?.length?.toLocaleString('en-US')  ?? '...'}}</span> {{ t('utxoManagement.stats.totalUtxos') }}
       </div>
       <div>
-        <span class="stat-value">{{ bchOnlyUtxos?.toLocaleString('en-US') ?? '...' }}</span> {{ t('utxoManagement.stats.bchOnlyUtxos') }}
+        <span class="stat-value">{{ bchUtxoCount?.toLocaleString('en-US') ?? '...' }}</span> {{ t('utxoManagement.stats.bchOnlyUtxos') }}
       </div>
       <div>
         <span class="stat-value">{{ store.walletUtxos ? getTokenUtxos(store.walletUtxos).length.toLocaleString('en-US') : '...' }}</span> {{ t('utxoManagement.stats.tokenUtxos') }}
       </div>
     </div>
 
-    <!-- Consolidate BCH Section -->
-    <div class="section">
-      <div><strong>{{ t('utxoManagement.consolidate.title') }}</strong></div>
-      <div class="description">
-        {{ t('utxoManagement.consolidate.description') }}
-      </div>
-      <div v-if="isHdWallet && bchOnlyUtxos !== undefined && bchOnlyUtxos > 1" class="warning-box" style="margin-bottom: 10px;">
-        <q-icon name="warning" size="20px" class="warning-box-icon" />
-        <div><b>{{ t('common.attention') }}</b> {{ t('common.hdPrivacyWarning') }}</div>
-      </div>
-      <input
-        @click="consolidateBchUtxos()"
-        type="button"
-        class="primaryButton"
-        :value="activeAction === 'consolidating' ? t('utxoManagement.consolidate.consolidatingButton') : t('utxoManagement.consolidate.consolidateButton')"
-        :disabled="activeAction !== null || (bchOnlyUtxos !== undefined && bchOnlyUtxos <= 1)"
-      >
-      <div v-if="bchOnlyUtxos !== undefined && bchOnlyUtxos <= 1" class="hint">
-        {{ t('utxoManagement.consolidate.alreadyConsolidated', { status: bchOnlyUtxos === 0 ? t('utxoManagement.consolidate.noUtxos') : t('utxoManagement.consolidate.oneUtxo') }) }}
-      </div>
+    <!-- Asset kind, each half carries its own maintenance action and lists -->
+    <div class="type-filter">
+      <button :class="{ active: activeFilter === 'bch' }" @click="activeFilter = 'bch'">
+        {{ t('utxoManagement.filters.bch') }}
+      </button>
+      <button :class="{ active: activeFilter === 'tokens' }" @click="activeFilter = 'tokens'">
+        {{ t('utxoManagement.filters.tokens') }}
+        <span v-if="utxosWithBchAndTokens?.length" class="pill-marker">!</span>
+      </button>
     </div>
 
-    <!-- UTXO Status Section -->
-    <div class="utxo-status-section">
+    <div v-if="activeFilter === 'bch' && loadingUtxos" class="loading-state">
+      <template v-if="store.walletInitFailed">{{ t('utxoManagement.loadingFailed') }}</template>
+      <template v-else>{{ t('utxoManagement.loading') }} <q-spinner-dots size="1.2em" /></template>
+    </div>
+
+    <div v-else-if="activeFilter === 'tokens' && loadingTokenData" class="loading-state">
+      <template v-if="store.walletInitFailed">{{ t('tokens.loadingFailed') }}</template>
+      <template v-else>{{ t('tokens.loading') }} <q-spinner-dots size="1.2em" /></template>
+    </div>
+
+    <template v-else-if="activeFilter === 'bch'">
+      <!-- BCH-only UTXO list -->
+      <div class="section">
+        <div class="list-header" @click="toggleList('bch')">
+          <strong>{{ t('utxoManagement.bchList.title') }}</strong>
+          <span v-if="bchUtxoCount !== undefined">({{ bchUtxoCount.toLocaleString('en-US') }})</span>
+          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.bch }" />
+        </div>
+        <template v-if="!collapsedLists.bch">
+          <div v-if="bchUtxoCount === 0" class="description">{{ t('utxoManagement.bchList.empty') }}</div>
+          <div v-else class="utxo-grid" :class="isHdWallet ? 'grid-bch-hd' : 'grid-bch'">
+            <div class="utxo-row heading">
+              <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
+              <span v-if="isHdWallet">{{ t('utxoManagement.tableHeaders.address') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+            </div>
+            <div v-for="(utxo, index) in pageOf('bch')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+              <div class="cell row-number">{{ rowNumber('bch', index) }}</div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+              </div>
+              <div v-if="isHdWallet" class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.address') }}</span>
+                <span class="mono muted">{{ truncateAddress(utxo.address) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
+                <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
+                  <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+                  <img class="copyIcon" src="images/copyGrey.svg">
+                </span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
+                <span class="mono">{{ utxo.vout }}</span>
+              </div>
+            </div>
+          </div>
+          <q-pagination
+            v-if="pageCount('bch') > 1"
+            v-model="listPages.bch"
+            :max="pageCount('bch')"
+            input
+            direction-links
+            color="primary"
+            class="pager"
+          />
+        </template>
+      </div>
+
+      <!-- Consolidate BCH Section -->
+      <div class="section divided">
+        <div><strong>{{ t('utxoManagement.consolidate.title') }}</strong></div>
+        <div class="description">
+          {{ t('utxoManagement.consolidate.description') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('utxoManagement.consolidate.usageHint') }}</div>
+          </InfoPopup>
+        </div>
+        <div v-if="isHdWallet && bchUtxoCount !== undefined && bchUtxoCount > 1" class="warning-box" style="margin-bottom: 10px;">
+          <q-icon name="warning" size="20px" class="warning-box-icon" />
+          <div><b>{{ t('common.attention') }}</b> {{ t('common.hdPrivacyWarning') }}</div>
+        </div>
+        <input
+          @click="consolidateBchUtxos()"
+          type="button"
+          class="primaryButton"
+          :value="activeAction === 'consolidating' ? t('utxoManagement.consolidate.consolidatingButton') : t('utxoManagement.consolidate.consolidateButton')"
+          :disabled="activeAction !== null || (bchUtxoCount !== undefined && bchUtxoCount <= 1)"
+        >
+        <div v-if="bchUtxoCount !== undefined && bchUtxoCount <= 1" class="hint">
+          {{ t('utxoManagement.consolidate.alreadyConsolidated', { status: bchUtxoCount === 0 ? t('utxoManagement.consolidate.noUtxos') : t('utxoManagement.consolidate.oneUtxo') }) }}
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
       <!-- Combined BCH + Token UTXOs -->
-      <div v-if="utxosWithBchAndTokens?.length">
-        <div class="status-line text-warning">
-          <span class="status-icon">!</span>
-          <span>{{ utxosWithBchAndTokens.length > 1 ? t('utxoManagement.combined.warningCountPlural', { count: utxosWithBchAndTokens.length }) : t('utxoManagement.combined.warningCountSingle', { count: utxosWithBchAndTokens.length }) }}</span>
-        </div>
-        <div class="description" v-if="satsToSplit !== undefined">
-          {{ t('utxoManagement.combined.description') }}
-          {{ t('utxoManagement.combined.splittableAmount', { bch: satsToBch(satsToSplit) }) }}
-          <span v-if="store.exchangeRate">({{ formatFiatAmount(store.exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})</span>
-        </div>
+      <div class="section">
+        <div v-if="affectedUtxos?.length">
+          <div class="status-line text-warning">
+            <span class="status-icon">!</span>
+            <span>{{ affectedUtxos.length > 1 ? t('utxoManagement.combined.warningCountPlural', { count: affectedUtxos.length }) : t('utxoManagement.combined.warningCountSingle', { count: affectedUtxos.length }) }}</span>
+          </div>
+          <div class="description" v-if="satsToSplit !== undefined">
+            {{ t('utxoManagement.combined.description') }}
+            {{ t('utxoManagement.combined.splittableAmount', { bch: satsToBch(satsToSplit) }) }}
+            <span v-if="store.exchangeRate">({{ formatFiatAmount(store.exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})</span>
+          </div>
 
-        <div v-if="hasNftUtxos" class="description" style="font-style: italic;">
-          {{ t('utxoManagement.combined.nftNote') }}
-        </div>
+          <div v-if="hasNftUtxos" class="description" style="font-style: italic;">
+            {{ t('utxoManagement.combined.nftNote') }}
+          </div>
 
-        <!-- Affected UTXOs List -->
-        <details class="utxo-details">
-          <summary>
-            {{ t('utxoManagement.combined.viewAffected') }}
-            <img
-              class="icon"
-              :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
-            >
-          </summary>
-          <table class="utxo-table">
-            <thead>
-              <tr>
-                <th>{{ t('utxoManagement.tableHeaders.number') }}</th>
-                <th>{{ t('utxoManagement.tableHeaders.bch') }}</th>
-                <th>{{ t('utxoManagement.tableHeaders.token') }}</th>
-                <th>{{ t('utxoManagement.tableHeaders.type') }}</th>
-                <th>{{ t('utxoManagement.tableHeaders.txId') }}</th>
-                <th>{{ t('utxoManagement.tableHeaders.vout') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(utxo, index) in [...utxosWithBchAndTokens!].sort((a, b) => Number(b.satoshis - a.satoshis))" :key="utxo.txid + ':' + utxo.vout">
-                <td>{{ index + 1 }}</td>
-                <td class="mono">
-                  {{ satsToBch(utxo.satoshis) }}
-                  <EmojiItem v-if="utxo.satoshis > 100_000n" emoji="⚠️" :sizePx="20"/>
-                </td>
-                <td class="token-name">{{ store.bcmrRegistries?.[utxo.token!.category]?.name || truncateHash(utxo.token!.category) }}</td>
-                <td>{{ utxo.token?.amount && utxo.token.nft?.capability ? 'FT+NFT' : (utxo.token?.amount ? 'FT' : 'NFT') }}</td>
-                <td>
-                  <span @click="copyToClipboard(utxo.txid)" style="cursor: pointer;">
-                    <span class="txid-full mono" style="color: var(--color-grey);">{{ truncateHash(utxo.txid) }}</span>
-                    <span class="txid-mobile" style="color: var(--color-grey);">{{ t('utxoManagement.tableHeaders.copy') }}</span>
+          <!-- Affected UTXOs List -->
+          <details class="utxo-details">
+            <summary>
+              {{ t('utxoManagement.combined.viewAffected') }}
+              <img
+                class="icon"
+                :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
+              >
+            </summary>
+            <div class="utxo-grid grid-affected">
+              <div class="utxo-row heading">
+                <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
+                <span>{{ t('utxoManagement.tableHeaders.token') }}</span>
+                <span>{{ t('utxoManagement.tableHeaders.type') }}</span>
+                <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
+                <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
+                <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+              </div>
+              <div v-for="(utxo, index) in affectedUtxos" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+                <div class="cell row-number">{{ index + 1 }}</div>
+                <div class="cell token-cell">
+                  <TokenIcon
+                    :token-id="utxo.token!.category"
+                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
+                    :size="24"
+                  />
+                  <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                  <EmojiItem v-if="utxo.satoshis > 100_000n" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.largeBch')"/>
+                </div>
+                <div class="cell">
+                  <span class="cell-label">{{ t('utxoManagement.tableHeaders.type') }}</span>
+                  <span>{{ tokenUtxoType(utxo) }}</span>
+                </div>
+                <div class="cell">
+                  <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
+                  <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
+                </div>
+                <div class="cell">
+                  <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
+                  <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
+                    <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
                     <img class="copyIcon" src="images/copyGrey.svg">
                   </span>
-                </td>
-                <td class="mono">{{ utxo.vout }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </details>
+                </div>
+                <div class="cell">
+                  <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
+                  <span class="mono">{{ utxo.vout }}</span>
+                </div>
+              </div>
+            </div>
+          </details>
 
-        <input
-          @click="splitBchFromTokenUtxos()"
-          type="button"
-          class="warningButton"
-          :value="activeAction === 'splitting' ? t('utxoManagement.combined.splittingButton') : t('utxoManagement.combined.splitButton')"
-          :disabled="activeAction !== null"
-        >
+          <input
+            @click="splitBchFromTokenUtxos()"
+            type="button"
+            class="warningButton"
+            :value="activeAction === 'splitting' ? t('utxoManagement.combined.splittingButton') : t('utxoManagement.combined.splitButton')"
+            :disabled="activeAction !== null"
+          >
+        </div>
+
+        <!-- No issues (only show when loaded) -->
+        <div v-else-if="store.walletUtxos">
+          <div><strong>{{ t('utxoManagement.combined.title') }}</strong></div>
+          <div class="description">
+            {{ t('utxoManagement.combined.description') }}
+          </div>
+          <div class="status-line text-verified">
+            <span class="status-icon">✓</span>
+            <span>{{ t('utxoManagement.combined.noIssues') }}</span>
+          </div>
+        </div>
       </div>
 
-      <!-- No issues (only show when loaded) -->
-      <div v-else-if="store.walletUtxos">
-        <div><strong>{{ t('utxoManagement.combined.title') }}</strong></div>
-        <div class="description">
-          {{ t('utxoManagement.combined.description') }}
+      <!-- Token UTXOs per category -->
+      <div class="section divided">
+        <div class="list-header" @click="toggleList('tokens')">
+          <strong>{{ t('utxoManagement.tokenList.title') }}</strong>
+          <span v-if="tokenCategoryGroups">({{ tokenCategoryGroups.length.toLocaleString('en-US') }})</span>
+          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.tokens }" />
         </div>
-        <div class="status-line text-verified" style="margin-bottom: 15px;">
-          <span class="status-icon">✓</span>
-          <span>{{ t('utxoManagement.combined.noIssues') }}</span>
-        </div>
+        <template v-if="!collapsedLists.tokens">
+          <div v-if="tokenCategoryGroups?.length === 0" class="description">{{ t('utxoManagement.tokenList.empty') }}</div>
+          <div v-else-if="tokenCategoryGroups?.length" class="utxo-grid grid-categories">
+            <div class="utxo-row heading">
+              <span>{{ t('utxoManagement.tableHeaders.token') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.utxoCount') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.bchHeld') }}</span>
+            </div>
+            <div v-for="group in tokenCategoryGroups" :key="group.category" class="utxo-row">
+              <div class="cell token-cell">
+                <TokenIcon
+                  :token-id="group.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(group.category) : undefined"
+                  :size="24"
+                />
+                <span class="token-name">{{ tokenName(group.category) }}</span>
+                <EmojiItem v-if="group.holdsSignificantBch" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.utxoCount') }}</span>
+                <span class="mono">{{ group.utxoCount.toLocaleString('en-US') }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.bchHeld') }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(group.satoshis), false, 8) }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
-    </div>
+
+      <!-- Fungible token UTXOs -->
+      <div class="section divided">
+        <div class="list-header" @click="toggleList('fungible')">
+          <strong>{{ t('utxoManagement.fungibleList.title') }}</strong>
+          <span v-if="utxoLists">({{ utxoLists.fungible.length.toLocaleString('en-US') }})</span>
+          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.fungible }" />
+        </div>
+        <template v-if="!collapsedLists.fungible">
+          <div v-if="utxoLists?.fungible.length === 0" class="description">{{ t('utxoManagement.fungibleList.empty') }}</div>
+          <div v-else class="utxo-grid grid-fungible">
+            <div class="utxo-row heading">
+              <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.token') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.amount') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+            </div>
+            <div v-for="(utxo, index) in pageOf('fungible')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+              <div class="cell row-number">{{ rowNumber('fungible', index) }}</div>
+              <div class="cell token-cell">
+                <TokenIcon
+                  :token-id="utxo.token!.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
+                  :size="24"
+                />
+                <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.amount') }}</span>
+                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
+                <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
+                  <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+                  <img class="copyIcon" src="images/copyGrey.svg">
+                </span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
+                <span class="mono">{{ utxo.vout }}</span>
+              </div>
+            </div>
+          </div>
+          <q-pagination
+            v-if="pageCount('fungible') > 1"
+            v-model="listPages.fungible"
+            :max="pageCount('fungible')"
+            input
+            direction-links
+            color="primary"
+            class="pager"
+          />
+        </template>
+      </div>
+
+      <!-- NFT UTXOs -->
+      <div class="section divided">
+        <div class="list-header" @click="toggleList('nft')">
+          <strong>{{ t('utxoManagement.nftList.title') }}</strong>
+          <span v-if="utxoLists">({{ utxoLists.nft.length.toLocaleString('en-US') }})</span>
+          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.nft }" />
+        </div>
+        <template v-if="!collapsedLists.nft">
+          <div v-if="utxoLists?.nft.length === 0" class="description">{{ t('utxoManagement.nftList.empty') }}</div>
+          <div v-else class="utxo-grid grid-nft">
+            <div class="utxo-row heading">
+              <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.token') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.capability') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.commitment') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+            </div>
+            <div v-for="(utxo, index) in pageOf('nft')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+              <div class="cell row-number">{{ rowNumber('nft', index) }}</div>
+              <div class="cell token-cell">
+                <TokenIcon
+                  :token-id="utxo.token!.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
+                  :size="24"
+                />
+                <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.capability') }}</span>
+                <span>{{ nftCapability(utxo) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.commitment') }}</span>
+                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
+                <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
+                  <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+                  <img class="copyIcon" src="images/copyGrey.svg">
+                </span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
+                <span class="mono">{{ utxo.vout }}</span>
+              </div>
+            </div>
+          </div>
+          <q-pagination
+            v-if="pageCount('nft') > 1"
+            v-model="listPages.nft"
+            :max="pageCount('nft')"
+            input
+            direction-links
+            color="primary"
+            class="pager"
+          />
+        </template>
+      </div>
+
+      <!-- UTXOs holding a fungible amount and an NFT at once -->
+      <div class="section divided closing">
+        <div class="list-header" @click="toggleList('ftNft')">
+          <strong>{{ t('utxoManagement.ftNftList.title') }}</strong>
+          <span v-if="utxoLists">({{ utxoLists.ftNft.length.toLocaleString('en-US') }})</span>
+          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.ftNft }" />
+        </div>
+        <template v-if="!collapsedLists.ftNft">
+          <div v-if="utxoLists?.ftNft.length === 0" class="description">{{ t('utxoManagement.ftNftList.empty') }}</div>
+          <div v-else class="utxo-grid grid-ftnft">
+            <div class="utxo-row heading">
+              <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.token') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.amount') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.capability') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.commitment') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
+              <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+            </div>
+            <div v-for="(utxo, index) in pageOf('ftNft')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+              <div class="cell row-number">{{ rowNumber('ftNft', index) }}</div>
+              <div class="cell token-cell">
+                <TokenIcon
+                  :token-id="utxo.token!.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
+                  :size="24"
+                />
+                <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.amount') }}</span>
+                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.capability') }}</span>
+                <span>{{ nftCapability(utxo) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.commitment') }}</span>
+                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
+                <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
+                  <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+                  <img class="copyIcon" src="images/copyGrey.svg">
+                </span>
+              </div>
+              <div class="cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
+                <span class="mono">{{ utxo.vout }}</span>
+              </div>
+            </div>
+          </div>
+          <q-pagination
+            v-if="pageCount('ftNft') > 1"
+            v-model="listPages.ftNft"
+            :max="pageCount('ftNft')"
+            input
+            direction-links
+            color="primary"
+            class="pager"
+          />
+        </template>
+      </div>
+    </template>
   </fieldset>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .stats-row {
   display: flex;
   gap: 20px;
@@ -260,12 +745,46 @@
 }
 
 .section {
-  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+/* separates the second half of a filter, so a collapsed list stays visibly its own block */
+.section.divided {
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+.dark .section.divided {
+  border-top-color: #333;
+}
+
+/* a section that ends a filter needs the same bottom margin the action buttons give theirs */
+.section.closing {
+  margin-bottom: 15px;
+}
+
+/* same collapse affordance as the address groups on the HD addresses page */
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.list-header .chevron {
+  transition: transform 0.2s;
+}
+
+.list-header .chevron.collapsed {
+  transform: rotate(-90deg);
 }
 
 .description {
   color: #888;
   margin: 5px 0 10px 0;
+}
+.dark .description {
+  color: #aaa;
 }
 
 .hint {
@@ -274,13 +793,18 @@
   margin-top: 8px;
 }
 
-.utxo-status-section {
+.loading-state {
   margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
+  text-align: center;
 }
-.dark .utxo-status-section {
-  border-top-color: #333;
+
+.pill-marker {
+  color: orange;
+  font-weight: bold;
+  margin-left: 5px;
+}
+.type-filter button.active .pill-marker {
+  color: white;
 }
 
 .status-line {
@@ -298,6 +822,10 @@
 }
 .dark .text-warning {
   color: #ffcc80;
+}
+
+.primaryButton {
+  margin-bottom: 15px;
 }
 
 .warningButton {
@@ -331,56 +859,227 @@
   transform: rotate(180deg);
 }
 
-.utxo-table {
-  width: 100%;
-  border-collapse: collapse;
+/* Everything a row is built from is in em, so the widths below and the widths a list stacks
+   at stay in step with each other whatever font size the grid is given */
+$gap: 0.7em;
+$row-padding-x: 0.45em;
+
+/* Wide enough to fit their value whole, so it is never cut a second time by an ellipsis */
+$col-number: 1.9em;
+$col-vout: 3em;
+$col-capability: 5em;
+$col-type: 5em;
+$col-count: 5.5em;
+/* token utxos hold dust, the BCH-only list sizes its own column wider */
+$col-bch: 6em;
+$col-txid: 12em;
+$col-address: 9.5em;
+/* the BCH-only list holds real balances rather than dust, so its amounts run longer */
+$col-bch-amount: 8.5em;
+/* these three shorten in css instead, so they only need to stay readable */
+$col-name: 7em;
+$col-amount: 5em;
+$col-commitment: 8em;
+
+/* Aligned columns like a table on wide screens, one stacked card per utxo when they no longer
+   fit. Grid rather than a real table because a table can only overflow where a grid can re-lay
+   its columns. Every row of a list shares its column template, so the columns line up.
+   The font size is fixed here because the column widths are in em: a row that sized its own
+   text differently would compute different columns and break the alignment. */
+.utxo-grid {
   margin-top: 10px;
+  font-size: 14px;
+  container-type: inline-size;
+  /* a webview too old for container queries never stacks, so it would overflow the page
+     with the columns at their narrowest instead. There it scrolls the list rather than
+     the page, everywhere else the list has stacked long before it can overflow */
+  overflow-x: auto;
 }
 
-.utxo-table th,
-.utxo-table td {
-  padding: 6px 8px;
-  text-align: left;
-  border-bottom: 1px solid var(--color-border, #ddd);
+.utxo-row {
+  display: grid;
+  align-items: center;
+  column-gap: $gap;
+  padding: 7px $row-padding-x;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
 }
 
-.utxo-table th {
+.utxo-row:not(.heading):hover {
+  background-color: rgba(128, 128, 128, 0.08);
+}
+
+.utxo-row.heading {
   color: #888;
+  padding-bottom: 5px;
+}
+.dark .utxo-row.heading {
+  color: #aaa;
+}
+
+/* The slack all goes to the token name and amount, the only two columns that vary in length */
+.grid-bch .utxo-row {
+  grid-template-columns: $col-number minmax($col-bch-amount, 1fr) minmax($col-txid, 1fr) $col-vout;
+}
+.grid-bch-hd .utxo-row {
+  grid-template-columns: $col-number minmax($col-bch-amount, 1fr) minmax($col-address, 1fr) minmax($col-txid, 1fr) $col-vout;
+}
+.grid-categories .utxo-row {
+  grid-template-columns: minmax($col-name, 1fr) $col-count $col-bch;
+}
+.grid-affected .utxo-row {
+  grid-template-columns: $col-number minmax($col-name, 1fr) $col-type $col-bch $col-txid $col-vout;
+}
+.grid-fungible .utxo-row {
+  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-bch $col-txid $col-vout;
+}
+.grid-nft .utxo-row {
+  grid-template-columns: $col-number minmax($col-name, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
+}
+.grid-ftnft .utxo-row {
+  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.row-number {
+  opacity: 0.5;
+}
+
+.token-cell {
+  gap: 8px;
+}
+
+/* the icon is the token's identity, it gives up no width to the name beside it */
+.token-cell > :first-child {
+  flex: none;
+}
+
+/* the marker sits in the token column because that one is flexible, so the name shortens for it */
+.warn-marker {
+  flex: none;
+}
+
+.token-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* a value that outgrows its column ends in an ellipsis rather than being cut mid character.
+   The token amount leaves its symbol to its title, the token column already shows it */
+.bch-value,
+.amount-value,
+.commitment-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--color-grey);
+}
+
+/* the copy icon belongs to the txid it copies, never floating on its own */
+.copy-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.copy-target:active .copyIcon {
+  transform: scale(1.2);
+}
+
+.copy-target .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the column headings carry the meaning on a wide screen, each cell repeats its own on a narrow one */
+.cell-label {
+  display: none;
+  color: #888;
+}
+.dark .cell-label {
+  color: #aaa;
+}
+
+.pager {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
 }
 
 .mono {
   font-family: monospace;
 }
 
-/* Responsive table display */
-.txid-mobile {
-  display: none;
-}
-@media (max-width: 600px) {
-  .txid-full {
+/* Once the columns no longer fit the utxo becomes a stacked card and every value carries the
+   heading it lost. Neutral grey alphas keep the cards theme-agnostic.
+   The width that matters is the list's own, not the window's: the page caps its width, so a
+   wide window still leaves a list narrower than its columns need. Hence container queries,
+   each list named so it can stack at the width its own set of columns stops fitting. */
+@mixin stacked-card {
+  .utxo-grid .utxo-row {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 1px;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    background-color: rgba(128, 128, 128, 0.06);
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+  }
+  /* a row number means nothing once the rows no longer share a column to count down */
+  .utxo-grid .utxo-row.heading,
+  .utxo-grid .row-number {
     display: none;
   }
-  .txid-mobile {
+  .utxo-grid .cell-label {
     display: inline;
-  }
-}
-@media (max-width: 500px) {
-  .token-name {
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 90px;
   }
 }
 
-/* Dark mode */
-.dark .description,
-.dark .utxo-table th {
-  color: #aaa;
-}
+.grid-bch { container-name: bch-grid; }
+.grid-bch-hd { container-name: bch-hd-grid; }
+.grid-categories { container-name: categories-grid; }
+.grid-affected { container-name: affected-grid; }
+.grid-fungible { container-name: fungible-grid; }
+.grid-nft { container-name: nft-grid; }
+.grid-ftnft { container-name: ftnft-grid; }
 
-.dark .utxo-table th,
-.dark .utxo-table td {
-  border-bottom-color: #444;
+/* Each width is that list's own columns added up, so a list gives up its columns the moment
+   they stop fitting. Raising one does not gain room, it only takes the columns away earlier.
+   In em rather than the px the breakpoints elsewhere in the app use: those describe a device,
+   these describe a sum of em column widths, and in px would drift from it. */
+@container categories-grid (max-width: 20.8em) {
+  @include stacked-card;
+}
+@container bch-grid (max-width: 28.4em) {
+  @include stacked-card;
+}
+@container bch-hd-grid (max-width: 38.6em) {
+  @include stacked-card;
+}
+@container affected-grid (max-width: 39.3em) {
+  @include stacked-card;
+}
+@container fungible-grid (max-width: 39.3em) {
+  @include stacked-card;
+}
+@container nft-grid (max-width: 48em) {
+  @include stacked-card;
+}
+@container ftnft-grid (max-width: 53.7em) {
+  @include stacked-card;
 }
 </style>

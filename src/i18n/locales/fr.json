@@ -661,6 +661,38 @@
   },
   "utxoManagement": {
     "title": "Gestion des UTXO",
+    "description": "Les UTXOs individuels qui composent votre solde.",
+    "usageHint": "Chaque paiement dépense des UTXOs entiers et rend la monnaie sous la forme d'un nouveau, leur nombre et leurs tailles changent donc à chaque transaction. D'autres portefeuilles les appellent des pièces, et appellent le choix entre elles le contrôle des pièces.",
+    "loading": "Chargement des données des UTXOs",
+    "loadingFailed": "Échec du chargement des données des UTXOs",
+    "markers": {
+      "bchOnToken": "Contient plus de BCH qu'un UTXO de token n'en a besoin",
+      "largeBch": "Contient une grande quantité de BCH"
+    },
+    "filters": {
+      "bch": "BCH",
+      "tokens": "Tokens"
+    },
+    "bchList": {
+      "title": "UTXOs BCH uniquement",
+      "empty": "Ce portefeuille n'a pas d'UTXOs BCH uniquement."
+    },
+    "tokenList": {
+      "title": "UTXOs de tokens par catégorie",
+      "empty": "Ce portefeuille n'a pas d'UTXOs de tokens."
+    },
+    "fungibleList": {
+      "title": "UTXOs de tokens fongibles",
+      "empty": "Ce portefeuille n'a pas d'UTXOs de tokens fongibles."
+    },
+    "nftList": {
+      "title": "UTXOs de NFTs",
+      "empty": "Ce portefeuille n'a pas d'UTXOs de NFTs."
+    },
+    "ftNftList": {
+      "title": "UTXOs de tokens fongibles + NFT",
+      "empty": "Ce portefeuille n'a pas d'UTXOs contenant à la fois un montant fongible et un NFT."
+    },
     "stats": {
       "totalUtxos": "Total des UTXOs",
       "bchOnlyUtxos": "UTXOs BCH uniquement",
@@ -669,6 +701,7 @@
     "consolidate": {
       "title": "Consolider les UTXOs BCH",
       "description": "Combinez tous les UTXOs BCH uniquement en un seul UTXO. Si une dApp vous demande de « consolider vos fonds » alors que vous avez suffisamment de solde, cela signifie que vous avez trop de petits UTXOs.",
+      "usageHint": "Une dApp peut vous demander de consolider lorsque sa construction de transaction ou son contrat ne peut accepter qu'une seule entrée de votre part. Cet unique UTXO doit alors couvrir la totalité du montant, quel que soit votre solde.",
       "consolidatingButton": "Consolidation...",
       "consolidateButton": "Consolider BCH",
       "alreadyConsolidated": "Votre portefeuille a déjà {status} UTXO BCH uniquement.",
@@ -695,7 +728,12 @@
       "type": "Type",
       "txId": "TxId",
       "vout": "Vout",
-      "copy": "copier"
+      "address": "Adresse",
+      "utxoCount": "UTXOs",
+      "bchHeld": "BCH retenu",
+      "amount": "Montant",
+      "capability": "Capacité",
+      "commitment": "Commitment"
     },
     "notifications": {
       "consolidating": "Consolidation des UTXOs BCH...",

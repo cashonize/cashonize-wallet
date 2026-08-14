@@ -661,6 +661,38 @@
   },
   "utxoManagement": {
     "title": "Gerenciamento de UTXOs",
+    "description": "Os UTXOs individuais que compõem seu saldo.",
+    "usageHint": "Cada pagamento gasta UTXOs inteiros e devolve o troco como um novo, então a quantidade e os tamanhos mudam a cada transação. Outras carteiras os chamam de moedas, e chamam a escolha entre eles de controle de moedas.",
+    "loading": "Carregando dados dos UTXOs",
+    "loadingFailed": "Falha ao carregar os dados dos UTXOs",
+    "markers": {
+      "bchOnToken": "Contém mais BCH do que um UTXO de token precisa",
+      "largeBch": "Contém uma grande quantidade de BCH"
+    },
+    "filters": {
+      "bch": "BCH",
+      "tokens": "Tokens"
+    },
+    "bchList": {
+      "title": "UTXOs apenas BCH",
+      "empty": "Esta carteira não tem UTXOs apenas de BCH."
+    },
+    "tokenList": {
+      "title": "UTXOs de tokens por categoria",
+      "empty": "Esta carteira não tem UTXOs de tokens."
+    },
+    "fungibleList": {
+      "title": "UTXOs de tokens fungíveis",
+      "empty": "Esta carteira não tem UTXOs de tokens fungíveis."
+    },
+    "nftList": {
+      "title": "UTXOs de NFTs",
+      "empty": "Esta carteira não tem UTXOs de NFTs."
+    },
+    "ftNftList": {
+      "title": "UTXOs de tokens fungíveis + NFT",
+      "empty": "Esta carteira não tem UTXOs que contenham ao mesmo tempo uma quantia fungível e um NFT."
+    },
     "stats": {
       "totalUtxos": "Total de UTXOs",
       "bchOnlyUtxos": "UTXOs apenas BCH",
@@ -669,6 +701,7 @@
     "consolidate": {
       "title": "Consolidar UTXOs de BCH",
       "description": "Combinar todos os UTXOs apenas de BCH em um único UTXO. Se um dApp pedir para \"consolidar seus fundos\" mesmo tendo saldo suficiente, significa que você tem muitos UTXOs pequenos.",
+      "usageHint": "Um dApp pode pedir que você consolide quando a forma como ele monta a transação, ou o contrato que usa, só aceita uma única entrada sua. Esse único UTXO precisa cobrir todo o valor, não importa quanto você tenha no total.",
       "consolidatingButton": "Consolidando...",
       "consolidateButton": "Consolidar BCH",
       "alreadyConsolidated": "Sua carteira já possui {status} UTXO apenas de BCH.",
@@ -695,7 +728,12 @@
       "type": "Tipo",
       "txId": "TxId",
       "vout": "Vout",
-      "copy": "copiar"
+      "address": "Endereço",
+      "utxoCount": "UTXOs",
+      "bchHeld": "BCH retido",
+      "amount": "Quantia",
+      "capability": "Capacidade",
+      "commitment": "Commitment"
     },
     "notifications": {
       "consolidating": "Consolidando UTXOs de BCH...",
