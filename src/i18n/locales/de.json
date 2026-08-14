@@ -660,7 +660,19 @@
     }
   },
   "utxoManagement": {
-    "title": "UTXO-Verwaltung",
+    "title": "Münzen",
+    "filters": {
+      "bch": "BCH",
+      "tokens": "Tokens"
+    },
+    "bchList": {
+      "title": "Reine BCH-UTXOs",
+      "empty": "Dieses Wallet hat keine reinen BCH-UTXOs."
+    },
+    "tokenList": {
+      "title": "Token-UTXOs pro Kategorie",
+      "empty": "Dieses Wallet hat keine Token-UTXOs."
+    },
     "stats": {
       "totalUtxos": "UTXOs gesamt",
       "bchOnlyUtxos": "Reine BCH-UTXOs",
@@ -695,7 +707,10 @@
       "type": "Typ",
       "txId": "TxId",
       "vout": "Vout",
-      "copy": "Kopieren"
+      "copy": "Kopieren",
+      "address": "Adresse",
+      "utxoCount": "UTXOs",
+      "bchHeld": "Enthaltenes BCH"
     },
     "notifications": {
       "consolidating": "BCH-UTXOs werden konsolidiert...",
@@ -1126,7 +1141,7 @@
       "tools": "Wallet-Werkzeuge",
       "hdAddresses": "HD Adressen",
       "requestPayment": "Zahlungsanforderung erstellen",
-      "utxoManagement": "UTXO-Verwaltung",
+      "utxoManagement": "Münzen",
       "sweepPrivateKey": "Privaten Schlüssel sweepen",
       "transferAllAssets": "Alle Werte übertragen",
       "signVerifyMessage": "Nachricht signieren / verifizieren",

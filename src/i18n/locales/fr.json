@@ -660,7 +660,19 @@
     }
   },
   "utxoManagement": {
-    "title": "Gestion des UTXO",
+    "title": "Pièces",
+    "filters": {
+      "bch": "BCH",
+      "tokens": "Tokens"
+    },
+    "bchList": {
+      "title": "UTXOs BCH uniquement",
+      "empty": "Ce portefeuille n'a pas d'UTXOs BCH uniquement."
+    },
+    "tokenList": {
+      "title": "UTXOs de tokens par catégorie",
+      "empty": "Ce portefeuille n'a pas d'UTXOs de tokens."
+    },
     "stats": {
       "totalUtxos": "Total des UTXOs",
       "bchOnlyUtxos": "UTXOs BCH uniquement",
@@ -695,7 +707,10 @@
       "type": "Type",
       "txId": "TxId",
       "vout": "Vout",
-      "copy": "copier"
+      "copy": "copier",
+      "address": "Adresse",
+      "utxoCount": "UTXOs",
+      "bchHeld": "BCH retenu"
     },
     "notifications": {
       "consolidating": "Consolidation des UTXOs BCH...",
@@ -1126,7 +1141,7 @@
       "tools": "Outils du portefeuille",
       "hdAddresses": "Adresses HD",
       "requestPayment": "Créer une demande de paiement",
-      "utxoManagement": "Gestion des UTXO",
+      "utxoManagement": "Pièces",
       "sweepPrivateKey": "Balayer une clé privée",
       "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",
