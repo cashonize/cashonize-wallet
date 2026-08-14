@@ -673,6 +673,18 @@
       "title": "Token-UTXOs pro Kategorie",
       "empty": "Dieses Wallet hat keine Token-UTXOs."
     },
+    "fungibleList": {
+      "title": "Fungible Token-UTXOs",
+      "empty": "Dieses Wallet hat keine fungiblen Token-UTXOs."
+    },
+    "nftList": {
+      "title": "NFT-UTXOs",
+      "empty": "Dieses Wallet hat keine NFT-UTXOs."
+    },
+    "ftNftList": {
+      "title": "Fungible Token + NFT UTXOs",
+      "empty": "Dieses Wallet hat keine UTXOs, die zugleich einen fungiblen Betrag und ein NFT enthalten."
+    },
     "stats": {
       "totalUtxos": "UTXOs gesamt",
       "bchOnlyUtxos": "Reine BCH-UTXOs",
@@ -710,7 +722,10 @@
       "copy": "Kopieren",
       "address": "Adresse",
       "utxoCount": "UTXOs",
-      "bchHeld": "Enthaltenes BCH"
+      "bchHeld": "Enthaltenes BCH",
+      "amount": "Betrag",
+      "capability": "Fähigkeit",
+      "commitment": "Commitment"
     },
     "notifications": {
       "consolidating": "BCH-UTXOs werden konsolidiert...",

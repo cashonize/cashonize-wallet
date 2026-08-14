@@ -673,6 +673,18 @@
       "title": "UTXOs de tokens par catégorie",
       "empty": "Ce portefeuille n'a pas d'UTXOs de tokens."
     },
+    "fungibleList": {
+      "title": "UTXOs de tokens fongibles",
+      "empty": "Ce portefeuille n'a pas d'UTXOs de tokens fongibles."
+    },
+    "nftList": {
+      "title": "UTXOs de NFTs",
+      "empty": "Ce portefeuille n'a pas d'UTXOs de NFTs."
+    },
+    "ftNftList": {
+      "title": "UTXOs de tokens fongibles + NFT",
+      "empty": "Ce portefeuille n'a pas d'UTXOs contenant à la fois un montant fongible et un NFT."
+    },
     "stats": {
       "totalUtxos": "Total des UTXOs",
       "bchOnlyUtxos": "UTXOs BCH uniquement",
@@ -710,7 +722,10 @@
       "copy": "copier",
       "address": "Adresse",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH retenu"
+      "bchHeld": "BCH retenu",
+      "amount": "Montant",
+      "capability": "Capacité",
+      "commitment": "Commitment"
     },
     "notifications": {
       "consolidating": "Consolidation des UTXOs BCH...",

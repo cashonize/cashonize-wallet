@@ -673,6 +673,18 @@
       "title": "UTXOs de tokens por categoría",
       "empty": "Esta billetera no tiene UTXOs de tokens."
     },
+    "fungibleList": {
+      "title": "UTXOs de tokens fungibles",
+      "empty": "Esta billetera no tiene UTXOs de tokens fungibles."
+    },
+    "nftList": {
+      "title": "UTXOs de NFTs",
+      "empty": "Esta billetera no tiene UTXOs de NFTs."
+    },
+    "ftNftList": {
+      "title": "UTXOs de tokens fungibles + NFT",
+      "empty": "Esta billetera no tiene UTXOs que contengan a la vez una cantidad fungible y un NFT."
+    },
     "stats": {
       "totalUtxos": "UTXOs totales",
       "bchOnlyUtxos": "UTXOs solo de BCH",
@@ -710,7 +722,10 @@
       "copy": "copiar",
       "address": "Dirección",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH retenido"
+      "bchHeld": "BCH retenido",
+      "amount": "Cantidad",
+      "capability": "Capacidad",
+      "commitment": "Commitment"
     },
     "notifications": {
       "consolidating": "Consolidando UTXOs de BCH...",
