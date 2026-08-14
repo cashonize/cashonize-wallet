@@ -121,6 +121,8 @@
     return Object.values(groups).sort((a, b) => Number(b.satoshis - a.satoshis) || b.utxoCount - a.utxoCount);
   });
 
+  // Enough to tell two utxos apart and to recognise one, the full value is a click away.
+  // Every column holding one of these is sized to fit it whole, they never shorten further.
   function truncateHash(hash: string) {
     return hash.slice(0, 8) + '...' + hash.slice(-6);
   }
@@ -161,7 +163,7 @@
   function nftCommitment(utxo: Utxo) {
     const commitment = utxo.token?.nft?.commitment;
     if (!commitment) return t('tokenItem.empty');
-    if (commitment.length > 20) return commitment.slice(0, 10) + '...' + commitment.slice(-6);
+    if (commitment.length > 17) return commitment.slice(0, 8) + '...' + commitment.slice(-6);
     return commitment;
   }
 
@@ -299,7 +301,7 @@
               <div class="cell row-number">{{ rowNumber('bch', index) }}</div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                <span class="mono">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
               </div>
               <div v-if="isHdWallet" class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.address') }}</span>
@@ -405,7 +407,7 @@
                 </div>
                 <div class="cell">
                   <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                  <span class="mono">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
+                  <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
                   <EmojiItem v-if="utxo.satoshis > 100_000n" emoji="⚠️" :sizePx="16"/>
                 </div>
                 <div class="cell">
@@ -475,7 +477,7 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bchHeld') }}</span>
-                <span class="mono">{{ formatBchAmount(Number(group.satoshis), false, 8) }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(group.satoshis), false, 8) }}</span>
                 <EmojiItem v-if="group.holdsSignificantBch" emoji="⚠️" :sizePx="16"/>
               </div>
             </div>
@@ -513,11 +515,11 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.amount') }}</span>
-                <span class="mono">{{ fungibleAmount(utxo) }} {{ tokenSymbol(utxo.token!.category) }}</span>
+                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                <span class="mono">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" emoji="⚠️" :sizePx="16"/>
               </div>
               <div class="cell">
@@ -584,7 +586,7 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                <span class="mono">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" emoji="⚠️" :sizePx="16"/>
               </div>
               <div class="cell">
@@ -644,7 +646,7 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.amount') }}</span>
-                <span class="mono">{{ fungibleAmount(utxo) }} {{ tokenSymbol(utxo.token!.category) }}</span>
+                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.capability') }}</span>
@@ -656,7 +658,7 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                <span class="mono">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" emoji="⚠️" :sizePx="16"/>
               </div>
               <div class="cell">
@@ -687,7 +689,7 @@
   </fieldset>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .stats-row {
   display: flex;
   gap: 20px;
@@ -839,26 +841,39 @@
   color: #aaa;
 }
 
+/* Wide enough to fit their value whole, so it is never cut a second time by an ellipsis */
+$col-number: 30px;
+$col-vout: 3em;
+$col-type: 5em;
+$col-count: 5.5em;
+/* token utxos hold dust, the BCH-only list sizes its own column wider */
+$col-bch: 6em;
+$col-capability: 6em;
+$col-address: 9.5em;
+$col-commitment: 11em;
+$col-txid: 12em;
+
+/* The slack all goes to the token name and amount, the only two columns that vary in length */
 .grid-bch .utxo-row {
-  grid-template-columns: 34px minmax(0, 1.4fr) minmax(0, 1.4fr) 60px;
+  grid-template-columns: $col-number minmax(8.5em, 1fr) minmax($col-txid, 1fr) $col-vout;
 }
 .grid-bch-hd .utxo-row {
-  grid-template-columns: 34px minmax(0, 1.3fr) minmax(0, 1.2fr) minmax(0, 1.3fr) 60px;
+  grid-template-columns: $col-number minmax(8.5em, 1fr) minmax($col-address, 1fr) minmax($col-txid, 1fr) $col-vout;
 }
 .grid-categories .utxo-row {
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 1fr) $col-count $col-bch;
 }
 .grid-affected .utxo-row {
-  grid-template-columns: 34px minmax(0, 1.6fr) minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 1.3fr) 60px;
+  grid-template-columns: $col-number minmax(0, 1fr) $col-type $col-bch $col-txid $col-vout;
 }
 .grid-fungible .utxo-row {
-  grid-template-columns: 34px minmax(0, 1.6fr) minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.3fr) 60px;
+  grid-template-columns: $col-number minmax(0, 2fr) minmax(0, 1fr) $col-bch $col-txid $col-vout;
 }
 .grid-nft .utxo-row {
-  grid-template-columns: 34px minmax(0, 1.5fr) minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1.3fr) 60px;
+  grid-template-columns: $col-number minmax(0, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
 }
 .grid-ftnft .utxo-row {
-  grid-template-columns: 34px minmax(0, 1.4fr) minmax(0, 1.2fr) minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.3fr) 60px;
+  grid-template-columns: $col-number minmax(0, 2fr) minmax(0, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
 }
 
 .cell {
@@ -866,6 +881,13 @@
   align-items: center;
   gap: 5px;
   min-width: 0;
+  overflow: hidden;
+}
+
+/* an amount must never be shown shortened, so when the column runs out it is the marker
+   beside it that gets clipped, never a digit */
+.bch-value {
+  flex: none;
 }
 
 .row-number {
@@ -877,6 +899,15 @@
 }
 
 .token-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the symbol lives in the token column already, repeating it here only forced the amount
+   onto a second line. Long amounts stay whole until the column runs out, and the title
+   carries the amount with its symbol either way */
+.amount-value {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -920,10 +951,12 @@
   font-family: monospace;
 }
 
-/* Below this the columns no longer fit side by side, so each utxo becomes a stacked card and
-   every value carries the heading it lost. Neutral grey alphas keep the cards theme-agnostic. */
-@media only screen and (max-width: 700px) {
-  .utxo-grid .utxo-row {
+/* Once the column floors no longer fit side by side the utxo becomes a stacked card and every
+   value carries the heading it lost. Neutral grey alphas keep the cards theme-agnostic.
+   Each list stacks at its own width: they do not all carry the same number of columns, and a
+   short list has no reason to give up its columns at the width that forces a wide one to. */
+@mixin stacked-card {
+  .utxo-row {
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1px;
     border: 1px solid rgba(128, 128, 128, 0.2);
@@ -933,8 +966,9 @@
     margin-bottom: 6px;
     font-size: 0.9em;
   }
-  .utxo-grid .utxo-row.heading,
-  .utxo-grid .row-number {
+  /* a row number means nothing once the rows no longer share a column to count down */
+  .utxo-row.heading,
+  .row-number {
     display: none;
   }
   .cell-label {
@@ -942,8 +976,47 @@
     color: #888;
     min-width: 90px;
   }
-  .dark .cell-label {
-    color: #aaa;
+}
+
+@media only screen and (max-width: 600px) {
+  .grid-bch,
+  .grid-categories {
+    @include stacked-card;
   }
+}
+
+@media only screen and (max-width: 700px) {
+  .grid-bch-hd {
+    @include stacked-card;
+  }
+}
+
+@media only screen and (max-width: 820px) {
+  .grid-affected {
+    @include stacked-card;
+  }
+}
+
+@media only screen and (max-width: 880px) {
+  .grid-fungible {
+    @include stacked-card;
+  }
+}
+
+@media only screen and (max-width: 1020px) {
+  .grid-nft {
+    @include stacked-card;
+  }
+}
+
+@media only screen and (max-width: 1180px) {
+  .grid-ftnft {
+    @include stacked-card;
+  }
+}
+
+/* after the stacking rules, which set the light mode label colour at the same specificity */
+.dark .utxo-grid .cell-label {
+  color: #aaa;
 }
 </style>
