@@ -159,12 +159,11 @@
     return capability === 'none' ? t('tokenItem.info.immutable') : capability;
   }
 
-  // Commitments are up to 40 bytes, too wide to show in full in a column
+  // Commitments are up to 40 bytes and most are far shorter, so the column shows what fits and
+  // its own ellipsis takes the rest. Unlike a hash there is no tail worth keeping, and leaving
+  // the shortening to css is what lets the column be narrow without cutting a value twice.
   function nftCommitment(utxo: Utxo) {
-    const commitment = utxo.token?.nft?.commitment;
-    if (!commitment) return t('tokenItem.empty');
-    if (commitment.length > 17) return commitment.slice(0, 8) + '...' + commitment.slice(-6);
-    return commitment;
+    return utxo.token?.nft?.commitment || t('tokenItem.empty');
   }
 
   async function consolidateBchUtxos() {
@@ -582,7 +581,7 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.commitment') }}</span>
-                <span class="mono muted" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
+                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
@@ -654,7 +653,7 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.commitment') }}</span>
-                <span class="mono muted" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
+                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
@@ -827,7 +826,7 @@
 .utxo-row {
   display: grid;
   align-items: center;
-  column-gap: 12px;
+  column-gap: 10px;
   padding: 7px 6px;
   border-bottom: 1px solid rgba(128, 128, 128, 0.2);
 }
@@ -845,18 +844,19 @@
 }
 
 /* Wide enough to fit their value whole, so it is never cut a second time by an ellipsis */
-$col-number: 30px;
+$col-number: 26px;
 $col-vout: 3em;
+$col-capability: 5em;
 $col-type: 5em;
 $col-count: 5.5em;
 /* token utxos hold dust, the BCH-only list sizes its own column wider */
 $col-bch: 6em;
-$col-capability: 6em;
-$col-address: 9.5em;
-$col-commitment: 11em;
 $col-txid: 12em;
-/* the name is the one value with no length at all to go on, it only needs to stay legible */
+$col-address: 9.5em;
+/* these three shorten in css instead, so they only need to stay readable */
 $col-name: 7em;
+$col-amount: 5em;
+$col-commitment: 8em;
 
 /* The slack all goes to the token name and amount, the only two columns that vary in length */
 .grid-bch .utxo-row {
@@ -872,13 +872,13 @@ $col-name: 7em;
   grid-template-columns: $col-number minmax($col-name, 1fr) $col-type $col-bch $col-txid $col-vout;
 }
 .grid-fungible .utxo-row {
-  grid-template-columns: $col-number minmax($col-name, 2fr) minmax(5em, 1fr) $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-bch $col-txid $col-vout;
 }
 .grid-nft .utxo-row {
   grid-template-columns: $col-number minmax($col-name, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
 }
 .grid-ftnft .utxo-row {
-  grid-template-columns: $col-number minmax($col-name, 2fr) minmax(5em, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
 }
 
 .cell {
@@ -916,7 +916,8 @@ $col-name: 7em;
 
 /* the symbol lives in the token column already, repeating it here only forced the amount
    onto a second line. The title carries the amount with its symbol either way */
-.amount-value {
+.amount-value,
+.commitment-value {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -995,25 +996,28 @@ $col-name: 7em;
 .grid-nft { container-name: nft-grid; }
 .grid-ftnft { container-name: ftnft-grid; }
 
-@container bch-grid (max-width: 440px) {
+/* Each width is that list's columns added up, so a list keeps its columns for as long as they
+   genuinely fit and gives them up the moment they do not. Raising one of these does not gain
+   room, it only takes the columns away earlier. */
+@container categories-grid (max-width: 295px) {
   @include stacked-card;
 }
-@container bch-hd-grid (max-width: 600px) {
+@container bch-grid (max-width: 400px) {
   @include stacked-card;
 }
-@container categories-grid (max-width: 340px) {
+@container bch-hd-grid (max-width: 545px) {
   @include stacked-card;
 }
-@container affected-grid (max-width: 620px) {
+@container affected-grid (max-width: 555px) {
   @include stacked-card;
 }
-@container fungible-grid (max-width: 620px) {
+@container fungible-grid (max-width: 555px) {
   @include stacked-card;
 }
-@container nft-grid (max-width: 800px) {
+@container nft-grid (max-width: 675px) {
   @include stacked-card;
 }
-@container ftnft-grid (max-width: 900px) {
+@container ftnft-grid (max-width: 755px) {
   @include stacked-card;
 }
 
