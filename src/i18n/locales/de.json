@@ -660,7 +660,9 @@
     }
   },
   "utxoManagement": {
-    "title": "Münzen",
+    "title": "UTXO-Verwaltung",
+    "description": "Die einzelnen UTXOs, aus denen sich dein Guthaben zusammensetzt.",
+    "usageHint": "Jede Zahlung gibt ganze UTXOs aus und gibt das Wechselgeld als neues zurück, ihre Anzahl und Größen ändern sich also mit jeder Transaktion. Andere Wallets nennen sie Münzen und die Auswahl zwischen ihnen Coin Control.",
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"
@@ -693,6 +695,7 @@
     "consolidate": {
       "title": "BCH-UTXOs konsolidieren",
       "description": "Alle reinen BCH-UTXOs zu einem einzigen UTXO zusammenfassen. Wenn eine dApp dich auffordert, \"deine Mittel zu konsolidieren\", obwohl du genug Guthaben hast, bedeutet das, dass du zu viele kleine UTXOs hast.",
+      "usageHint": "Eine dApp kann dich bitten zu konsolidieren, wenn ihr Transaktionsaufbau oder ihr Contract nur einen einzigen Input von dir annehmen kann. Dieser eine UTXO muss dann den ganzen Betrag abdecken, egal wie viel du insgesamt hältst.",
       "consolidatingButton": "Konsolidieren...",
       "consolidateButton": "BCH konsolidieren",
       "alreadyConsolidated": "Dein Wallet hat bereits {status} reinen BCH-UTXO.",
@@ -1155,7 +1158,7 @@
       "tools": "Wallet-Werkzeuge",
       "hdAddresses": "HD Adressen",
       "requestPayment": "Zahlungsanforderung erstellen",
-      "utxoManagement": "Münzen",
+      "utxoManagement": "UTXO-Verwaltung",
       "sweepPrivateKey": "Privaten Schlüssel sweepen",
       "transferAllAssets": "Alle Werte übertragen",
       "signVerifyMessage": "Nachricht signieren / verifizieren",

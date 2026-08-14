@@ -660,7 +660,9 @@
     }
   },
   "utxoManagement": {
-    "title": "Pièces",
+    "title": "Gestion des UTXO",
+    "description": "Les UTXOs individuels qui composent votre solde.",
+    "usageHint": "Chaque paiement dépense des UTXOs entiers et rend la monnaie sous la forme d'un nouveau, leur nombre et leurs tailles changent donc à chaque transaction. D'autres portefeuilles les appellent des pièces, et appellent le choix entre elles le contrôle des pièces.",
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"
@@ -693,6 +695,7 @@
     "consolidate": {
       "title": "Consolider les UTXOs BCH",
       "description": "Combinez tous les UTXOs BCH uniquement en un seul UTXO. Si une dApp vous demande de « consolider vos fonds » alors que vous avez suffisamment de solde, cela signifie que vous avez trop de petits UTXOs.",
+      "usageHint": "Une dApp peut vous demander de consolider lorsque sa construction de transaction ou son contrat ne peut accepter qu'une seule entrée de votre part. Cet unique UTXO doit alors couvrir la totalité du montant, quel que soit votre solde.",
       "consolidatingButton": "Consolidation...",
       "consolidateButton": "Consolider BCH",
       "alreadyConsolidated": "Votre portefeuille a déjà {status} UTXO BCH uniquement.",
@@ -1155,7 +1158,7 @@
       "tools": "Outils du portefeuille",
       "hdAddresses": "Adresses HD",
       "requestPayment": "Créer une demande de paiement",
-      "utxoManagement": "Pièces",
+      "utxoManagement": "Gestion des UTXO",
       "sweepPrivateKey": "Balayer une clé privée",
       "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",

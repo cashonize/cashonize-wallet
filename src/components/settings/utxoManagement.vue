@@ -2,6 +2,7 @@
   import { computed, ref, watch } from 'vue';
   import { copyToClipboard, formatBchAmount, formatFiatAmount, formatTokenAmountFromBigInt, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
+  import InfoPopup from 'src/components/general/InfoPopup.vue';
   import TokenIcon from 'src/components/general/TokenIcon.vue';
   import { HDWallet, TokenSendRequest } from 'mainnet-js';
   import type { Utxo } from 'mainnet-js';
@@ -254,6 +255,13 @@
   <fieldset class="item" :class="{ dark: settingsStore.darkMode }">
     <legend>{{ t('utxoManagement.title') }}</legend>
 
+    <div style="margin-bottom: 20px;">
+      {{ t('utxoManagement.description') }}
+      <InfoPopup>
+        <div style="max-width: 300px;">{{ t('utxoManagement.usageHint') }}</div>
+      </InfoPopup>
+    </div>
+
     <!-- Stats -->
     <div class="stats-row">
       <div>
@@ -336,6 +344,9 @@
         <div><strong>{{ t('utxoManagement.consolidate.title') }}</strong></div>
         <div class="description">
           {{ t('utxoManagement.consolidate.description') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('utxoManagement.consolidate.usageHint') }}</div>
+          </InfoPopup>
         </div>
         <div v-if="isHdWallet && bchUtxoCount !== undefined && bchUtxoCount > 1" class="warning-box" style="margin-bottom: 10px;">
           <q-icon name="warning" size="20px" class="warning-box-icon" />

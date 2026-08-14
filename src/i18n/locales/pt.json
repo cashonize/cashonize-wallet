@@ -660,7 +660,9 @@
     }
   },
   "utxoManagement": {
-    "title": "Moedas",
+    "title": "Gerenciamento de UTXOs",
+    "description": "Os UTXOs individuais que compõem seu saldo.",
+    "usageHint": "Cada pagamento gasta UTXOs inteiros e devolve o troco como um novo, então a quantidade e os tamanhos mudam a cada transação. Outras carteiras os chamam de moedas, e chamam a escolha entre eles de controle de moedas.",
     "filters": {
       "bch": "BCH",
       "tokens": "Tokens"
@@ -693,6 +695,7 @@
     "consolidate": {
       "title": "Consolidar UTXOs de BCH",
       "description": "Combinar todos os UTXOs apenas de BCH em um único UTXO. Se um dApp pedir para \"consolidar seus fundos\" mesmo tendo saldo suficiente, significa que você tem muitos UTXOs pequenos.",
+      "usageHint": "Um dApp pode pedir que você consolide quando a forma como ele monta a transação, ou o contrato que usa, só aceita uma única entrada sua. Esse único UTXO precisa cobrir todo o valor, não importa quanto você tenha no total.",
       "consolidatingButton": "Consolidando...",
       "consolidateButton": "Consolidar BCH",
       "alreadyConsolidated": "Sua carteira já possui {status} UTXO apenas de BCH.",
@@ -1155,7 +1158,7 @@
       "tools": "Ferramentas da carteira",
       "hdAddresses": "Endereços HD",
       "requestPayment": "Criar solicitação de pagamento",
-      "utxoManagement": "Moedas",
+      "utxoManagement": "Gerenciamento de UTXOs",
       "sweepPrivateKey": "Sweep de Chave Privada",
       "transferAllAssets": "Transferir todos os ativos",
       "signVerifyMessage": "Assinar / Verificar mensagem",
