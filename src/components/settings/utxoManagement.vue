@@ -19,8 +19,13 @@
   // The page is split by asset kind because each maintenance action only concerns one half:
   // consolidating operates on the BCH-only utxos, splitting on the token utxos holding BCH.
   const activeFilter = ref<'bch' | 'tokens'>('bch');
+  const collapsedLists = ref({ bch: false, tokens: false });
   const currentPage = ref(1);
   const utxosPerPage = 25;
+
+  function toggleList(key: 'bch' | 'tokens') {
+    collapsedLists.value[key] = !collapsedLists.value[key];
+  }
 
   // TODO: consider lowering this to 1000 satoshis in the future
   // note: the bliss airdrop tool uses 2000 sats so from that point, many users would have combined UTXOs
@@ -219,8 +224,56 @@
     </div>
 
     <template v-if="activeFilter === 'bch'">
-      <!-- Consolidate BCH Section -->
+      <!-- BCH-only UTXO list -->
       <div class="section">
+        <div class="list-header" @click="toggleList('bch')">
+          <strong>{{ t('utxoManagement.bchList.title') }}</strong>
+          <span v-if="bchUtxoCount !== undefined">({{ bchUtxoCount.toLocaleString('en-US') }})</span>
+          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.bch }" />
+        </div>
+        <template v-if="!collapsedLists.bch">
+          <div v-if="bchUtxoCount === 0" class="description">{{ t('utxoManagement.bchList.empty') }}</div>
+          <table v-else-if="paginatedBchUtxos?.length" class="utxo-table">
+            <thead>
+              <tr>
+                <th>{{ t('utxoManagement.tableHeaders.number') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.bch') }}</th>
+                <th v-if="isHdWallet">{{ t('utxoManagement.tableHeaders.address') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.txId') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.vout') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(utxo, index) in paginatedBchUtxos" :key="utxo.txid + ':' + utxo.vout">
+                <td>{{ (currentPage - 1) * utxosPerPage + index + 1 }}</td>
+                <td class="mono">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</td>
+                <td v-if="isHdWallet" class="mono" style="color: var(--color-grey);">{{ truncateAddress(utxo.address) }}</td>
+                <td>
+                  <span @click="copyToClipboard(utxo.txid)" style="cursor: pointer;">
+                    <span class="txid-full mono" style="color: var(--color-grey);">{{ truncateHash(utxo.txid) }}</span>
+                    <span class="txid-mobile" style="color: var(--color-grey);">{{ t('utxoManagement.tableHeaders.copy') }}</span>
+                    <img class="copyIcon" src="images/copyGrey.svg">
+                  </span>
+                </td>
+                <td class="mono">{{ utxo.vout }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <q-pagination
+            v-if="totalPages > 1"
+            v-model="currentPage"
+            :max="totalPages"
+            input
+            direction-links
+            boundary-numbers
+            color="primary"
+            class="pager"
+          />
+        </template>
+      </div>
+
+      <!-- Consolidate BCH Section -->
+      <div class="section divided">
         <div><strong>{{ t('utxoManagement.consolidate.title') }}</strong></div>
         <div class="description">
           {{ t('utxoManagement.consolidate.description') }}
@@ -239,48 +292,6 @@
         <div v-if="bchUtxoCount !== undefined && bchUtxoCount <= 1" class="hint">
           {{ t('utxoManagement.consolidate.alreadyConsolidated', { status: bchUtxoCount === 0 ? t('utxoManagement.consolidate.noUtxos') : t('utxoManagement.consolidate.oneUtxo') }) }}
         </div>
-      </div>
-
-      <!-- BCH-only UTXO list -->
-      <div class="list-section">
-        <div><strong>{{ t('utxoManagement.bchList.title') }}</strong></div>
-        <div v-if="bchUtxoCount === 0" class="description">{{ t('utxoManagement.bchList.empty') }}</div>
-        <table v-else-if="paginatedBchUtxos?.length" class="utxo-table">
-          <thead>
-            <tr>
-              <th>{{ t('utxoManagement.tableHeaders.number') }}</th>
-              <th>{{ t('utxoManagement.tableHeaders.bch') }}</th>
-              <th v-if="isHdWallet">{{ t('utxoManagement.tableHeaders.address') }}</th>
-              <th>{{ t('utxoManagement.tableHeaders.txId') }}</th>
-              <th>{{ t('utxoManagement.tableHeaders.vout') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(utxo, index) in paginatedBchUtxos" :key="utxo.txid + ':' + utxo.vout">
-              <td>{{ (currentPage - 1) * utxosPerPage + index + 1 }}</td>
-              <td class="mono">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</td>
-              <td v-if="isHdWallet" class="mono" style="color: var(--color-grey);">{{ truncateAddress(utxo.address) }}</td>
-              <td>
-                <span @click="copyToClipboard(utxo.txid)" style="cursor: pointer;">
-                  <span class="txid-full mono" style="color: var(--color-grey);">{{ truncateHash(utxo.txid) }}</span>
-                  <span class="txid-mobile" style="color: var(--color-grey);">{{ t('utxoManagement.tableHeaders.copy') }}</span>
-                  <img class="copyIcon" src="images/copyGrey.svg">
-                </span>
-              </td>
-              <td class="mono">{{ utxo.vout }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <q-pagination
-          v-if="totalPages > 1"
-          v-model="currentPage"
-          :max="totalPages"
-          input
-          direction-links
-          boundary-numbers
-          color="primary"
-          class="pager"
-        />
       </div>
     </template>
 
@@ -367,37 +378,43 @@
       </div>
 
       <!-- Token UTXOs per category -->
-      <div class="list-section">
-        <div><strong>{{ t('utxoManagement.tokenList.title') }}</strong></div>
-        <div v-if="tokenCategoryGroups?.length === 0" class="description">{{ t('utxoManagement.tokenList.empty') }}</div>
-        <table v-else-if="tokenCategoryGroups?.length" class="utxo-table">
-          <thead>
-            <tr>
-              <th>{{ t('utxoManagement.tableHeaders.token') }}</th>
-              <th>{{ t('utxoManagement.tableHeaders.utxoCount') }}</th>
-              <th>{{ t('utxoManagement.tableHeaders.bchHeld') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="group in tokenCategoryGroups" :key="group.category">
-              <td>
-                <div class="token-cell">
-                  <TokenIcon
-                    :token-id="group.category"
-                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(group.category) : undefined"
-                    :size="22"
-                  />
-                  <span class="token-name">{{ tokenName(group.category) }}</span>
-                </div>
-              </td>
-              <td class="mono">{{ group.utxoCount.toLocaleString('en-US') }}</td>
-              <td class="mono">
-                {{ formatBchAmount(Number(group.satoshis), false, 8) }}
-                <EmojiItem v-if="group.holdsSignificantBch" emoji="⚠️" :sizePx="18"/>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="section divided closing">
+        <div class="list-header" @click="toggleList('tokens')">
+          <strong>{{ t('utxoManagement.tokenList.title') }}</strong>
+          <span v-if="tokenCategoryGroups">({{ tokenCategoryGroups.length.toLocaleString('en-US') }})</span>
+          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.tokens }" />
+        </div>
+        <template v-if="!collapsedLists.tokens">
+          <div v-if="tokenCategoryGroups?.length === 0" class="description">{{ t('utxoManagement.tokenList.empty') }}</div>
+          <table v-else-if="tokenCategoryGroups?.length" class="utxo-table">
+            <thead>
+              <tr>
+                <th>{{ t('utxoManagement.tableHeaders.token') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.utxoCount') }}</th>
+                <th>{{ t('utxoManagement.tableHeaders.bchHeld') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="group in tokenCategoryGroups" :key="group.category">
+                <td>
+                  <div class="token-cell">
+                    <TokenIcon
+                      :token-id="group.category"
+                      :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(group.category) : undefined"
+                      :size="22"
+                    />
+                    <span class="token-name">{{ tokenName(group.category) }}</span>
+                  </div>
+                </td>
+                <td class="mono">{{ group.utxoCount.toLocaleString('en-US') }}</td>
+                <td class="mono">
+                  {{ formatBchAmount(Number(group.satoshis), false, 8) }}
+                  <EmojiItem v-if="group.holdsSignificantBch" emoji="⚠️" :sizePx="18"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
       </div>
     </template>
   </fieldset>
@@ -421,14 +438,35 @@
   margin-top: 20px;
 }
 
-/* the lists are the detail behind the maintenance action above them */
-.list-section {
-  margin-top: 20px;
+/* separates the second half of a filter, so a collapsed list stays visibly its own block */
+.section.divided {
   padding-top: 20px;
   border-top: 1px solid #e0e0e0;
 }
-.dark .list-section {
+.dark .section.divided {
   border-top-color: #333;
+}
+
+/* a section that ends a filter needs the same bottom margin the action buttons give theirs */
+.section.closing {
+  margin-bottom: 15px;
+}
+
+/* same collapse affordance as the address groups on the HD addresses page */
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.list-header .chevron {
+  transition: transform 0.2s;
+}
+
+.list-header .chevron.collapsed {
+  transform: rotate(-90deg);
 }
 
 .description {
@@ -466,6 +504,10 @@
 }
 .dark .text-warning {
   color: #ffcc80;
+}
+
+.primaryButton {
+  margin-bottom: 15px;
 }
 
 .warningButton {
