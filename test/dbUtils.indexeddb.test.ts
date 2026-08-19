@@ -78,6 +78,30 @@ async function mainnetJsCanUseCache(dbName: string): Promise<boolean> {
   }
 }
 
+// Every key in every database, so an assertion can find what mainnet-js wrote without being told
+// where it put it. If it ever moved its cache, this still sees the entry and the prune does not.
+async function everyStoredKey(): Promise<string[]> {
+  const found: string[] = [];
+  for (const { name } of await indexedDB.databases()) {
+    if (!name) continue;
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(name);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(new Error(`Failed to open ${name}`));
+    });
+    for (const storeName of [...db.objectStoreNames]) {
+      const keys = await new Promise<IDBValidKey[]>((resolve, reject) => {
+        const request = db.transaction(storeName, "readonly").objectStore(storeName).getAllKeys();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(new Error(`Failed to read ${name}`));
+      });
+      for (const key of keys) if (typeof key === "string") found.push(key);
+    }
+    db.close();
+  }
+  return found;
+}
+
 describe('pruneHdWalletKeyCache', () => {
   it('removes the entries of wallets that are gone and keeps the ones still in the databases', async () => {
     await addWallet("bitcoincash", "kept", hdWalletId(mnemonic, "mainnet"));
@@ -287,5 +311,24 @@ describe('getAllWalletsWithNetworkInfo', () => {
 
   it('returns nothing before any wallet exists', async () => {
     expect(await getAllWalletsWithNetworkInfo()).toEqual([]);
+  });
+});
+
+describe('pruneHdWalletKeyCache against mainnet-js', () => {
+  it('removes an entry mainnet-js wrote itself', async () => {
+    Config.UseIndexedDBCache = true;
+    DefaultProvider.servers.mainnet = ["wss://127.0.0.1:1"];
+    const wallet = await HDWallet.fromId(hdWalletId(mnemonic, "mainnet"));
+    // let mainnet-js write the entry through its own database name, store name and key prefix,
+    // so none of those are assumed here. persist does not await its own write.
+    await wallet.walletCache.persist();
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const written = (await everyStoredKey()).filter((key) => key.startsWith("walletCache-"));
+    expect(written).toHaveLength(1);
+
+    // no wallet records exist, so everything is orphaned
+    await pruneHdWalletKeyCache();
+
+    expect(await everyStoredKey()).not.toContain(written[0]);
   });
 });
