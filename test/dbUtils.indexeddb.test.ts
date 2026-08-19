@@ -184,6 +184,54 @@ describe('deleteWalletFromDb', () => {
   // This one opens without a version, unlike the caches, and is only safe because
   // IndexedDBProvider asks for 31: a database created here at version 1 still gets its upgrade,
   // and its store, when mainnet-js next opens it
+  it('removes the record it names and leaves the other wallets', async () => {
+    await addWallet("bitcoincash", "goes", hdWalletId(mnemonic, "mainnet"));
+    await addWallet("bitcoincash", "stays", hdWalletId(otherMnemonic, "mainnet"));
+
+    await deleteWalletFromDb("goes", "bitcoincash");
+
+    const db = new IndexedDBProvider("bitcoincash");
+    await db.init();
+    const goes = await db.getWallet("goes");
+    const stays = await db.getWallet("stays");
+    await db.close();
+
+    expect(goes).toBeUndefined();
+    expect(stays?.wallet).toBe(hdWalletId(otherMnemonic, "mainnet"));
+  });
+
+  // deleteWallet calls this once per network, so each call has to touch only its own database
+  it('leaves the same wallet on the other network alone', async () => {
+    await addWallet("bitcoincash", "both", hdWalletId(mnemonic, "mainnet"));
+    await addWallet("bchtest", "both", hdWalletId(mnemonic, "testnet"));
+
+    await deleteWalletFromDb("both", "bitcoincash");
+
+    const mainnetDb = new IndexedDBProvider("bitcoincash");
+    const chipnetDb = new IndexedDBProvider("bchtest");
+    await Promise.all([mainnetDb.init(), chipnetDb.init()]);
+    const fromMainnet = await mainnetDb.getWallet("both");
+    const fromChipnet = await chipnetDb.getWallet("both");
+    await Promise.all([mainnetDb.close(), chipnetDb.close()]);
+
+    expect(fromMainnet).toBeUndefined();
+    expect(fromChipnet?.wallet).toBe(hdWalletId(mnemonic, "testnet"));
+  });
+
+  // a database left without the wallet store holds no record to remove, so resolving is the
+  // honest answer rather than a failure
+  it('resolves when the database has no wallet store', async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("bitcoincash", 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(new Error("Failed to open bitcoincash"));
+    });
+    expect([...db.objectStoreNames]).toEqual([]);
+    db.close();
+
+    await expect(deleteWalletFromDb("anything", "bitcoincash")).resolves.toBeUndefined();
+  });
+
   it('leaves a database mainnet-js can still add wallets to', async () => {
     // deleting from a network the wallet was never on is reachable today, since deleteWallet
     // always tries both and wallets can exist on one network only
