@@ -168,9 +168,10 @@ export async function pruneHdWalletKeyCache(): Promise<void> {
   }
 
   return new Promise((resolve, reject) => {
-    // Opening without a version creates the database empty when it does not exist yet, and
-    // mainnet-js only ever opens it at version 1, so its own upgrade would never fire and it
-    // could never add its store. Match its version and create the store the same way it does.
+    // Object stores can only be created during an upgrade, which runs only when the version
+    // asked for is higher than the one stored. Opening without a version creates this database
+    // at version 1 with no store, and mainnet-js only ever asks for version 1, so it would never
+    // upgrade and never get to add its own. Match its version and create the store too.
     const request = indexedDB.open(CACHE_DB, 1);
 
     request.onerror = () => reject(new Error(`Failed to open database: ${CACHE_DB}`));
