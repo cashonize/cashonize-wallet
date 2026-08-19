@@ -88,6 +88,12 @@ function setDefaultElectrumServers() {
 }
 setDefaultElectrumServers();
 
+// Pin the fee rate mainnet-js builds transactions at, instead of letting it ask the electrum
+// server: it reads these globals before calling blockchain.relayfee and skips the call. A
+// server can advertise a fee far below what the rest of the network relays, leaving the wallet
+// building transactions no peer will pass on. BCH per kB, so 0.00001 is 1 sat/byte.
+Object.assign(globalThis, { BCH_RELAY_FEE: 0.00001, tBCH_RELAY_FEE: 0.00001 });
+
 const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const CAULDRON_REFETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
