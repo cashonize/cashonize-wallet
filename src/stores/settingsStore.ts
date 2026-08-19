@@ -437,8 +437,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
   }
 
-  // Everything per wallet is keyed by name, and a new wallet may take the name of a deleted one,
-  // so what the old one left has to go before the new one records anything of its own
+  // A new wallet can take the name of a deleted one, and both the backup status and the wallet
+  // metadata are stored under that name, so the old wallet's have to go before the new one
+  // writes its own
   function clearWalletSettings(walletName: string) {
     clearBackupStatus(walletName);
     clearWalletMetadata(walletName);

@@ -157,9 +157,9 @@ export function hdWalletCacheKey(storedWalletId: string): string | undefined {
   return `walletCache-${walletId}`;
 }
 
-// Every wallet's stored id, both networks, for callers matching records that are keyed by
-// wallet rather than by name. Each database is read once, since getWallets already returns the
-// stored id alongside the name.
+// Every wallet's stored id, from both databases. The prune needs these to work out which cached
+// keys still belong to a wallet. Each database is read once, since getWallets already returns the
+// stored id next to the name.
 async function getAllStoredWalletIds(): Promise<string[]> {
   const mainnetDb = new IndexedDBProvider("bitcoincash");
   const chipnetDb = new IndexedDBProvider("bchtest");
@@ -180,15 +180,13 @@ async function getAllStoredWalletIds(): Promise<string[]> {
   }
 }
 
-// Drops every cache entry that belongs to no wallet still in the databases. Pruning against the
-// wallets that remain, rather than deleting the entries of the one that just went, is what lets
-// this also collect what earlier deletions orphaned, from before anything cleaned up here at all.
+// Deletes the cached keys of every wallet that is no longer in the databases. Deleting a wallet
+// left these keys behind up to and including v0.12, so working from the wallets that remain
+// rather than from the one just deleted is what clears those too, and matching no current wallet
+// is the expected state for anyone upgrading rather than a sign something is wrong.
 //
-// It degrades safely too: if hdWalletCacheKey ever stopped agreeing with mainnet-js, every entry
-// would look orphaned and be dropped, costing an address rescan rather than leaving keys behind.
-//
-// The entries go one by one rather than the database being deleted, since deleteDatabase blocks
-// on the open connection the running wallet holds and nothing reloads the page here to close it.
+// Keys are deleted one at a time rather than the database dropped, because deleteDatabase waits
+// on the connection the running wallet holds open and nothing reloads the page here to close it.
 export async function pruneHdWalletKeyCache(): Promise<void> {
   // mainnet-js passes this one name as both the database and the object store
   const CACHE_DB = "WalletCache";

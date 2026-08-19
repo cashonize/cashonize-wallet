@@ -813,10 +813,10 @@ export const useStore = defineStore('store', () => {
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
-    // mainnet-js caches a private key per address for HD wallets. This prunes every entry no
-    // remaining wallet owns rather than the departing one's, so it runs whichever kind just went
-    // and also collects what earlier deletions left behind. The wallet is already gone by now, so
-    // a failure here is reported on its own instead of failing the deletion.
+    // mainnet-js stores a private key for every address of an HD wallet. This deletes the cached
+    // keys of any wallet no longer in the databases, not only the one just deleted, so it also
+    // picks up keys left by wallets deleted before this existed, whatever kind just went.
+    // The wallet is already gone by now, so a failure here is not a failed deletion.
     try {
       await pruneHdWalletKeyCache();
     } catch (error) {
