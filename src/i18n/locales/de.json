@@ -1051,6 +1051,8 @@
       "capability": "Capability:",
       "signButton": "Signieren",
       "cancelButton": "Abbrechen",
+      "networkFee": "Netzwerkgebühr:",
+      "lowFeeWarning": "Diese Transaktion zahlt {rate} sat/Byte. Knoten leiten Transaktionen standardmäßig ab 1 sat/Byte weiter, daher kann sie beim Senden abgelehnt werden.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen.",
       "unverifiedTokenNoteSingular": "Token nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen.",
       "unverifiedTokenNotePlural": "Tokens nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen."
