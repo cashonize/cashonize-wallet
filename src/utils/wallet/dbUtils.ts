@@ -1,4 +1,5 @@
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
+import { binToHex, sha256, utf8ToBin } from "@bitauth/libauth"
 
 export interface WalletInfo {
   name: string;
@@ -115,18 +116,48 @@ export async function deleteWalletFromDb(
 // For HD wallets mainnet-js keeps a derived private key per address in a database of its own,
 // so deleting a wallet has to clear that too or spendable key material outlives the wallet it
 // belonged to. Single-address wallets hold their key in memory and leave nothing here.
+
+// mainnet-js keys those entries by a hash of the seed rather than by the wallet name, so the key
+// has to be rebuilt from the stored wallet record. Mirrors HDWallet's own derivation.
+export function hdWalletCacheKey(storedWalletId: string): string | undefined {
+  const [walletType, network, secret, fourthField] = storedWalletId.split(":");
+  if (walletType !== "hd" || !network || !secret) return undefined;
+  // mnemonic wallets store the derivation path after the mnemonic and hash the two together,
+  // xpriv and xpub wallets hash the key on its own
+  const seedSource = fourthField?.startsWith("m/") ? secret + fourthField : secret;
+  const walletId = binToHex(sha256.hash(utf8ToBin(`${seedSource}-${network}`)));
+  return `walletCache-${walletId}`;
+}
+
+// Every wallet's stored id, both networks, for callers matching records that are keyed by
+// wallet rather than by name
+export async function getAllStoredWalletIds(): Promise<string[]> {
+  const wallets = await getAllWalletsWithNetworkInfo();
+  const lookups: Promise<string | undefined>[] = [];
+  for (const wallet of wallets) {
+    if (wallet.hasMainnet) lookups.push(getNamedWalletIdFromDb(wallet.name, "bitcoincash"));
+    if (wallet.hasChipnet) lookups.push(getNamedWalletIdFromDb(wallet.name, "bchtest"));
+  }
+  const storedIds = await Promise.all(lookups);
+  return storedIds.filter((storedId): storedId is string => storedId !== undefined);
+}
+
+// Drops every cache entry that belongs to no wallet still in the databases. Pruning against the
+// wallets that remain, rather than deleting the entries of the one that just went, is what lets
+// this also collect what earlier deletions orphaned, from before anything cleaned up here at all.
 //
-// Everything goes rather than the one wallet's entry, for two reasons. The entries are keyed by
-// a hash of the seed rather than by the wallet name, so reproducing that derivation here would
-// silently stop matching if mainnet-js ever changed it, which is a poor failure mode for
-// deleting key material. And a cache entry costs only an address rescan to rebuild, so the
-// price of clearing another wallet's is small and paid once.
+// It degrades safely too: if hdWalletCacheKey ever stopped agreeing with mainnet-js, every entry
+// would look orphaned and be dropped, costing an address rescan rather than leaving keys behind.
 //
-// The store is cleared rather than the database deleted: deleteDatabase blocks on the open
-// connection the running wallet holds, and nothing reloads the page here to close it.
-export async function clearHdWalletKeyCache(): Promise<void> {
+// The entries go one by one rather than the database being deleted, since deleteDatabase blocks
+// on the open connection the running wallet holds and nothing reloads the page here to close it.
+export async function pruneHdWalletKeyCache(): Promise<void> {
   // mainnet-js passes this one name as both the database and the object store
   const CACHE_DB = "WalletCache";
+
+  const liveCacheKeys = (await getAllStoredWalletIds())
+    .map(hdWalletCacheKey)
+    .filter((cacheKey): cacheKey is string => cacheKey !== undefined);
 
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(CACHE_DB);
@@ -135,24 +166,39 @@ export async function clearHdWalletKeyCache(): Promise<void> {
 
     request.onsuccess = () => {
       const db = request.result;
-      // nothing cached yet, so nothing to clear
+      // nothing has ever been cached, so nothing to prune
       if (!db.objectStoreNames.contains(CACHE_DB)) {
         db.close();
         resolve();
         return;
       }
 
-      const dbTx = db.transaction(CACHE_DB, "readwrite");
-      const clearRequest = dbTx.objectStore(CACHE_DB).clear();
+      const objectStore = db.transaction(CACHE_DB, "readwrite").objectStore(CACHE_DB);
+      const keysRequest = objectStore.getAllKeys();
 
-      clearRequest.onsuccess = () => {
+      keysRequest.onerror = () => {
         db.close();
-        resolve();
+        reject(new Error("Failed to read the HD wallet key cache"));
       };
 
-      clearRequest.onerror = () => {
-        db.close();
-        reject(new Error(`Failed to clear the HD wallet key cache`));
+      keysRequest.onsuccess = () => {
+        // anything that is not one of mainnet-js's string keys is left alone rather than
+        // deleted, since it is not ours to interpret
+        const orphaned = keysRequest.result.filter(
+          (cacheKey) => typeof cacheKey === "string" && !liveCacheKeys.includes(cacheKey)
+        );
+        for (const cacheKey of orphaned) {
+          objectStore.delete(cacheKey);
+        }
+        // the transaction carries the deletes, so wait on it rather than on each request
+        objectStore.transaction.oncomplete = () => {
+          db.close();
+          resolve();
+        };
+        objectStore.transaction.onerror = () => {
+          db.close();
+          reject(new Error("Failed to prune the HD wallet key cache"));
+        };
       };
     };
   });

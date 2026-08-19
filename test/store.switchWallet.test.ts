@@ -15,7 +15,7 @@ import {
   localStorageMock,
   mockGetAllWalletsWithNetworkInfo,
   mockDeleteWalletFromDb,
-  mockClearHdWalletKeyCache,
+  mockPruneHdWalletKeyCache,
   mockGetNamedWalletIdFromDb,
 } from './mocks/store.mocks'
 
@@ -354,16 +354,16 @@ describe('deleteWallet', () => {
 
   // The seed is deleted above, but mainnet-js caches a private key per address for HD wallets
   // in a database of its own, which would still be able to spend from the deleted wallet
-  it('clears the HD wallet key cache so no spendable keys outlive the wallet', async () => {
+  it('prunes the HD wallet key cache so no spendable keys outlive the wallet', async () => {
     const store = useStore()
     store.setWallet(mockMainnetWallet as never)
 
     await store.deleteWallet('otherWallet')
 
-    expect(mockClearHdWalletKeyCache).toHaveBeenCalled()
+    expect(mockPruneHdWalletKeyCache).toHaveBeenCalled()
   })
 
-  it('does not clear the key cache when the delete is refused', async () => {
+  it('does not prune the key cache when the delete is refused', async () => {
     const store = useStore()
     store.setWallet(mockMainnetWallet as never)
 
@@ -373,7 +373,7 @@ describe('deleteWallet', () => {
       // Expected to throw, deleting the active wallet is refused
     }
 
-    expect(mockClearHdWalletKeyCache).not.toHaveBeenCalled()
+    expect(mockPruneHdWalletKeyCache).not.toHaveBeenCalled()
   })
 
   it('refreshes available wallets after deletion', async () => {

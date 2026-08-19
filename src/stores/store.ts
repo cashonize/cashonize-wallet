@@ -48,7 +48,7 @@ import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { clearHdWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
+import { pruneHdWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
   fetchCauldronPools,
@@ -811,7 +811,7 @@ export const useStore = defineStore('store', () => {
     await deleteWalletFromDb(walletName, 'bchtest');
     // The seed is gone but mainnet-js caches a private key per address for HD wallets, which
     // would still be able to spend from every address the deleted wallet used
-    await clearHdWalletKeyCache();
+    await pruneHdWalletKeyCache();
     removeTxNotes(walletName);
     removeAddressManagementData(walletName);
     // Refresh the available wallets list
