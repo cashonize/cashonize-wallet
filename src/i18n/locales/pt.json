@@ -471,6 +471,8 @@
     "confirmationsProgress": "{count}/6 confirmações",
     "unconfirmedChain": "cadeia não confirmada",
     "unconfirmedChainTooltip": "Esta transação depende de outra transação não confirmada, o que aumenta o risco de que não seja confirmada.",
+    "lowFee": "taxa baixa",
+    "lowFeeTooltip": "Esta transação paga menos do que 1 sat/byte, a taxa que os nós retransmitem por padrão, por isso pode demorar muito a confirmar ou nunca confirmar.",
     "transactionCountPartial": "{count}+ Transações",
     "loadingFullHistory": "Carregando histórico completo"
   },
@@ -1049,6 +1051,8 @@
       "capability": "Capability:",
       "signButton": "Assinar",
       "cancelButton": "Cancelar",
+      "networkFee": "Taxa de rede:",
+      "lowFeeWarning": "Esta transação paga {rate} sat/byte. Os nós retransmitem transações a 1 sat/byte por padrão, por isso pode ser rejeitada ao ser difundida.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} não presente na sua carteira. Novos metadados obtidos para pré-visualização.",
       "unverifiedTokenNoteSingular": "Token não presente na sua carteira. Novos metadados obtidos para pré-visualização.",
       "unverifiedTokenNotePlural": "Tokens não presentes na sua carteira. Novos metadados obtidos para pré-visualização."

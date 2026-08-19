@@ -471,6 +471,8 @@
     "confirmationsProgress": "{count}/6 confirmations",
     "unconfirmedChain": "chaîne non confirmée",
     "unconfirmedChainTooltip": "Cette transaction dépend d'une autre transaction non confirmée, ce qui augmente le risque qu'elle ne soit pas confirmée.",
+    "lowFee": "frais faibles",
+    "lowFeeTooltip": "Cette transaction paie moins que les 1 sat/octet que les nœuds relaient par défaut, elle peut donc mettre longtemps à être confirmée ou ne jamais l'être.",
     "transactionCountPartial": "{count}+ Transactions",
     "loadingFullHistory": "Chargement de l'historique complet"
   },
@@ -1049,6 +1051,8 @@
       "capability": "Capability :",
       "signButton": "Signer",
       "cancelButton": "Annuler",
+      "networkFee": "Frais de réseau :",
+      "lowFeeWarning": "Cette transaction paie {rate} sat/octet. Les nœuds relaient les transactions à 1 sat/octet par défaut, elle peut donc être rejetée lors de sa diffusion.",
       "unverifiedTokenNote": "{count, plural, one {Le token} other {Les tokens}} ne {count, plural, one {figure} other {figurent}} pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNoteSingular": "Le token ne figure pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu."

@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { toRefs, ref } from 'vue';
-  import { binToHex, decodeTransactionUnsafe, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
+  import { binToHex, decodeTransactionUnsafe, encodeTransaction, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { convertToCurrency, formatFiatAmount, formatNumber, sanitizeUrl } from 'src/utils/utils'
@@ -8,6 +8,7 @@
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
+  import { minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
   const store = useStore()
@@ -69,6 +70,25 @@
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
   const currencyBalanceChange = convertToCurrency(bchBalanceChange, exchangeRate.value);
+
+  // The fee is what all the inputs pay over all the outputs, third party ones included
+  const totalInputValue = sourceOutputs.reduce((total:bigint, sourceOutput) => total + sourceOutput.valueSatoshis, 0n);
+  const totalOutputValue = txDetails.outputs.reduce((total:bigint, output) => total + output.valueSatoshis, 0n);
+  const transactionFee = totalInputValue - totalOutputValue;
+
+  // The request holds an unsigned transaction, so its length is short by the signatures
+  // the wallet still has to add: for each of its own inputs that arrives empty, a 65 byte
+  // schnorr signature and a 33 byte public key, each behind a single byte push opcode.
+  const signedInputSize = 100;
+  const inputsAwaitingSignature = sourceOutputs.filter(sourceOutput =>
+    !sourceOutput.unlockingBytecode?.length && store.walletHasAddress(toCashaddr(sourceOutput.lockingBytecode))
+  ).length;
+  const transactionSize = encodeTransaction(txDetails).length + (inputsAwaitingSignature * signedInputSize);
+  const transactionFeeRate = Number(transactionFee) / transactionSize;
+  const paysBelowRelayFee = transactionFee < BigInt(transactionSize * minRelayFeeRate);
+  // below the relay fee the exact rate is what matters, and a single decimal would round
+  // a rate like 0.96 up to a reassuring 1.0
+  const feeRateText = transactionFeeRate < minRelayFeeRate ? transactionFeeRate.toFixed(2) : transactionFeeRate.toFixed(1);
 
   // Track net fungible token changes and separate NFT changes
   const ftNetChanges: Record<string, bigint> = {};
@@ -244,6 +264,12 @@
             * {{ Object.keys(unverifiedTokenMetadata).length === 1 ? t('walletConnect.transactionRequest.unverifiedTokenNoteSingular') : t('walletConnect.transactionRequest.unverifiedTokenNotePlural') }}
           </div>
 
+          <div class="wc-modal-heading" style="margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.networkFee') }}</div>
+          <div>
+            {{ satoshiToBCHString(transactionFee) }}
+            (<span :class="{ 'low-fee-rate': paysBelowRelayFee }">{{ feeRateText }} sat/byte</span>)
+          </div>
+
           <hr style="margin-top: 2rem;">
 
         <details>
@@ -333,6 +359,11 @@
             </table>
           </div>
         </details>
+        <div v-if="paysBelowRelayFee" class="warning-box" style="margin-top: 1.5rem;">
+          <q-icon name="warning" size="20px" class="warning-box-icon" />
+          <div><b>{{ t('common.attention') }}</b> {{ t('walletConnect.transactionRequest.lowFeeWarning', { rate: feeRateText }) }}</div>
+        </div>
+
         <div class="wc-modal-bottom-buttons">
           <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="onDialogOK">
           <input type="button" :value="t('walletConnect.transactionRequest.cancelButton')" @click="onDialogCancel" v-close-popup>
@@ -394,6 +425,11 @@
     display: flex;
     align-items: center;
     gap: 6px;
+  }
+  /* the rate itself is tinted when it sits below what nodes relay by default */
+  .low-fee-rate {
+    color: #e6a23c;
+    font-weight: 600;
   }
 
   @media only screen and (max-width: 570px) {

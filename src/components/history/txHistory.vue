@@ -8,6 +8,7 @@
   import { historyToCsv } from 'src/utils/history/csvUtils';
   import { maxTxNoteLength } from 'src/utils/history/txNotes';
   import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/history/txDirection';
+  import { isBelowRelayFee } from 'src/utils/history/txFeeRate';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import InlineTextEdit from '../general/InlineTextEdit.vue';
@@ -257,11 +258,17 @@
                   {{ t('history.' + txDirection(transaction)) }}
                   <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
                   <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
-                  <InfoPopup v-if="transaction.blockHeight < 0" class="chain-popup" @click.stop>
+                  <InfoPopup v-if="transaction.blockHeight < 0" class="badge-popup" @click.stop>
                     <template #trigger>
-                      <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                      <span class="warning-badge">{{ t('history.unconfirmedChain') }}</span>
                     </template>
                     {{ t('history.unconfirmedChainTooltip') }}
+                  </InfoPopup>
+                  <InfoPopup v-if="isBelowRelayFee(transaction)" class="badge-popup" @click.stop>
+                    <template #trigger>
+                      <span class="warning-badge">{{ t('history.lowFee') }}</span>
+                    </template>
+                    {{ t('history.lowFeeTooltip') }}
                   </InfoPopup>
                 </div>
                 <div class="tx-time">{{ transaction.timestamp ? formatTime(transaction.timestamp) : t('history.pending') }}</div>
@@ -303,13 +310,19 @@
                 {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
               </div>
             </div>
-            <div class="tx-badges-line" v-if="isDappInteraction(transaction, walletHasAddress) || transaction.blockHeight < 0">
+            <div class="tx-badges-line" v-if="isDappInteraction(transaction, walletHasAddress) || transaction.blockHeight < 0 || isBelowRelayFee(transaction)">
               <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
               <InfoPopup v-if="transaction.blockHeight < 0" @click.stop>
                 <template #trigger>
-                  <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                  <span class="warning-badge">{{ t('history.unconfirmedChain') }}</span>
                 </template>
                 {{ t('history.unconfirmedChainTooltip') }}
+              </InfoPopup>
+              <InfoPopup v-if="isBelowRelayFee(transaction)" @click.stop>
+                <template #trigger>
+                  <span class="warning-badge">{{ t('history.lowFee') }}</span>
+                </template>
+                {{ t('history.lowFeeTooltip') }}
               </InfoPopup>
             </div>
           </div>
@@ -566,7 +579,9 @@ fieldset.item {
   gap: 4px;
 }
 
-.tx-badges-line .dapp-badge {
+/* the line spaces its badges with a gap, so they drop their own left margin */
+.tx-badges-line .dapp-badge,
+.tx-badges-line .warning-badge {
   margin-left: 0;
 }
 
@@ -576,9 +591,10 @@ fieldset.item {
   white-space: nowrap;
 }
 
-/* a transaction depending on unconfirmed inputs has a higher risk of not
-   confirming; the badge opens an info popup with the explanation */
-.chain-badge {
+/* transactions that carry a risk of not confirming, either because they depend on
+   unconfirmed inputs or because they pay below the relay fee; each badge opens an
+   info popup with the explanation */
+.warning-badge {
   display: inline-block;
   margin-left: 4px;
   padding: 0 7px;
@@ -761,7 +777,7 @@ body.dark .negative {
 @media only screen and (max-width: 400px) {
   /* the badges leave the crowded label line for their own line at the card bottom */
   .tx-type .dapp-badge,
-  .tx-type .chain-popup {
+  .tx-type .badge-popup {
     display: none;
   }
   .tx-badges-line {

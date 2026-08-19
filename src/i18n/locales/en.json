@@ -471,6 +471,8 @@
     "confirmationsProgress": "{count}/6 confirmations",
     "unconfirmedChain": "unconfirmed chain",
     "unconfirmedChainTooltip": "This transaction depends on another unconfirmed transaction, which increases the risk that it does not confirm.",
+    "lowFee": "low fee",
+    "lowFeeTooltip": "This transaction pays less than the 1 sat/byte that nodes relay by default, so it may take a long time to confirm or may never confirm.",
     "transactionCountPartial": "{count}+ Transactions",
     "loadingFullHistory": "Loading full history"
   },
@@ -1049,6 +1051,8 @@
       "capability": "Capability:",
       "signButton": "Sign",
       "cancelButton": "Cancel",
+      "networkFee": "Network Fee:",
+      "lowFeeWarning": "This transaction pays {rate} sat/byte. Nodes relay transactions at 1 sat/byte by default, so it may be rejected when it is broadcast.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} not in your wallet. New metadata fetched for preview.",
       "unverifiedTokenNoteSingular": "Token not in your wallet. New metadata fetched for preview.",
       "unverifiedTokenNotePlural": "Tokens not in your wallet. New metadata fetched for preview."
