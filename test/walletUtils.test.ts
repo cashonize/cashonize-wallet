@@ -206,6 +206,22 @@ describe('createNewWallet', () => {
       expect(mockSetWalletCreatedAt).toHaveBeenCalledWith('newWallet')
     })
 
+    // Both of these are keyed by wallet name, and nothing else on this path writes them, so a
+    // value left behind by an earlier wallet of the same name would be inherited uncorrected:
+    // a seed the user has never seen shown as backed up, or a single-address wallet offered
+    // the HD-only features
+    it('clears any backup status left by an earlier wallet of the same name', async () => {
+      await createNewWallet('newWallet')
+
+      expect(mockSetBackupStatus).toHaveBeenCalledWith('newWallet', 'none')
+    })
+
+    it('records the wallet type rather than relying on the default', async () => {
+      await createNewWallet('newWallet')
+
+      expect(mockSetWalletType).toHaveBeenCalledWith('newWallet', 'single')
+    })
+
     it('returns success with trimmed wallet name', async () => {
       const result = await createNewWallet('  newWallet  ')
 

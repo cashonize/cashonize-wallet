@@ -192,6 +192,7 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     // left behind. Nothing else on this path writes it, and a stale 'verified' would tell the
     // user a seed they have never seen is already backed up.
     settingsStore.setBackupStatus(trimmedName, 'none');
+    settingsStore.setWalletType(trimmedName, 'single');
 
     return { success: true, walletName: trimmedName };
   } catch (error) {

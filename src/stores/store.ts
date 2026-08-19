@@ -721,11 +721,10 @@ export const useStore = defineStore('store', () => {
     if (!walletId) {
       throw new Error(t('store.errors.walletNotFoundOnNetwork', { name: walletName, network }));
     }
-    const metadata = settingsStore.getWalletMetadata(walletName);
-    if (!metadata?.walletType) {
-      const walletType = walletTypeFromWalletId(walletId);
-      settingsStore.setWalletType(walletName, walletType);
-    }
+    // The stored id says which kind this is, so write it every time rather than only when it is
+    // missing: metadata is keyed by wallet name, and a stale type from an earlier wallet of the
+    // same name would otherwise stand forever
+    settingsStore.setWalletType(walletName, walletTypeFromWalletId(walletId));
     const loadedWallet = await loadWalletFromId(walletId, network);
     loadedWallet.name = walletName;
     return loadedWallet;

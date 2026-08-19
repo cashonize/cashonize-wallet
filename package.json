@@ -55,6 +55,7 @@
     "autoprefixer": "^10.5.4",
     "eslint": "^10.8.0",
     "eslint-plugin-vue": "^10.10.0",
+    "fake-indexeddb": "^6.2.5",
     "globals": "^17.9.0",
     "jiti": "^2.7.0",
     "rollup-plugin-visualizer": "^7.0.1",
