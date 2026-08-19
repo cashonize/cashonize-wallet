@@ -6,7 +6,7 @@
   import LanguageSelector from './general/LanguageSelector.vue'
   import { computed, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { Connection, type ElectrumNetworkProvider, Config } from "mainnet-js"
+  import { Connection, type ElectrumNetworkProvider } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useWalletconnectStore } from '../stores/walletconnectStore'
@@ -157,7 +157,6 @@
 
   // store watches settingsStore.currency and refetches the exchange rate automatically
   async function changeCurrency(){
-    Config.DefaultCurrency = selectedCurrency.value;
     settingsStore.currency = selectedCurrency.value;
     localStorage.setItem("currency", selectedCurrency.value);
     store.changeView(1);

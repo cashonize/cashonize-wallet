@@ -72,8 +72,20 @@ import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 const settingsStore = useSettingsStore()
 
-// set mainnet-js config
+const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
+const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const CAULDRON_REFETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+
+//-----------------------------------------------------------------------------
+// mainnet-js configuration
+//-----------------------------------------------------------------------------
+// All of it has to be applied before the first wallet is constructed. Wallet
+// creation reads several of these at construction time, and an HD wallet starts
+// address discovery straight away, so anything set later arrives too late.
+
 Config.EnforceCashTokenReceiptAddresses = true;
+// Never set Config.UseLocalStorageCache instead: its clear() is a bare localStorage.clear(),
+// which would take every app setting, transaction note and address label with it
 Config.UseIndexedDBCache = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
 
@@ -94,9 +106,9 @@ setDefaultElectrumServers();
 // building transactions no peer will pass on. BCH per kB, so 0.00001 is 1 sat/byte.
 Object.assign(globalThis, { BCH_RELAY_FEE: 0.00001, tBCH_RELAY_FEE: 0.00001 });
 
-const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
-const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-const CAULDRON_REFETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+// Config.DefaultCurrency is deliberately not set: mainnet-js reads it as it loads, before any
+// app code has run, to warm an exchange rate cache. Assigning it afterwards is always too late,
+// so currency-aware calls pass settingsStore.currency explicitly instead.
 
 export const useStore = defineStore('store', () => {
   const displayView = ref(undefined as (number | undefined));

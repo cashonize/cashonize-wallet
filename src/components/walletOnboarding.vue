@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { ref, computed } from "vue"
-  import { Config } from "mainnet-js"
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
@@ -113,7 +112,6 @@
 
   function savePreferencesAndFinish() {
     // Save currency
-    Config.DefaultCurrency = selectedCurrency.value;
     settingsStore.currency = selectedCurrency.value;
     localStorage.setItem("currency", selectedCurrency.value);
 

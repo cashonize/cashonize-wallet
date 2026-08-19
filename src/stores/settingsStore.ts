@@ -90,7 +90,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readCurrency = localStorage.getItem("currency");
   if(readCurrency && readCurrency in CurrencySymbols) {
     currency.value = readCurrency as Currency;
-    Config.DefaultCurrency = readCurrency;
   }
 
   const readUnit = localStorage.getItem("unit");
