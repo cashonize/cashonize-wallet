@@ -811,6 +811,8 @@ export const useStore = defineStore('store', () => {
     await deleteWalletFromDb(walletName, 'bchtest');
     removeTxNotes(walletName);
     removeAddressManagementData(walletName);
+    settingsStore.clearBackupStatus(walletName);
+    settingsStore.clearWalletMetadata(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
     // The seed is gone but mainnet-js caches a private key per address for HD wallets, which

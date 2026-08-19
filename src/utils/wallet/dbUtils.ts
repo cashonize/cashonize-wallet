@@ -136,16 +136,26 @@ export function hdWalletCacheKey(storedWalletId: string): string | undefined {
 }
 
 // Every wallet's stored id, both networks, for callers matching records that are keyed by
-// wallet rather than by name
-export async function getAllStoredWalletIds(): Promise<string[]> {
-  const wallets = await getAllWalletsWithNetworkInfo();
-  const lookups: Promise<string | undefined>[] = [];
-  for (const wallet of wallets) {
-    if (wallet.hasMainnet) lookups.push(getNamedWalletIdFromDb(wallet.name, "bitcoincash"));
-    if (wallet.hasChipnet) lookups.push(getNamedWalletIdFromDb(wallet.name, "bchtest"));
+// wallet rather than by name. Each database is read once, since getWallets already returns the
+// stored id alongside the name.
+async function getAllStoredWalletIds(): Promise<string[]> {
+  const mainnetDb = new IndexedDBProvider("bitcoincash");
+  const chipnetDb = new IndexedDBProvider("bchtest");
+  await Promise.all([mainnetDb.init(), chipnetDb.init()]);
+
+  try {
+    const [mainnetWallets, chipnetWallets] = await Promise.all([
+      mainnetDb.getWallets(),
+      chipnetDb.getWallets()
+    ]);
+    const storedIds: string[] = [];
+    for (const walletEntry of [...mainnetWallets, ...chipnetWallets]) {
+      if (walletEntry.wallet) storedIds.push(walletEntry.wallet);
+    }
+    return storedIds;
+  } finally {
+    await Promise.all([mainnetDb.close(), chipnetDb.close()]);
   }
-  const storedIds = await Promise.all(lookups);
-  return storedIds.filter((storedId): storedId is string => storedId !== undefined);
 }
 
 // Drops every cache entry that belongs to no wallet still in the databases. Pruning against the

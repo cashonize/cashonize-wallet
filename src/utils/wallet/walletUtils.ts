@@ -188,6 +188,10 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
 
     // Store wallet creation date
     settingsStore.setWalletCreatedAt(trimmedName);
+    // Backup status is keyed by wallet name, so clear whatever a previous wallet of this name
+    // left behind. Nothing else on this path writes it, and a stale 'verified' would tell the
+    // user a seed they have never seen is already backed up.
+    settingsStore.setBackupStatus(trimmedName, 'none');
 
     return { success: true, walletName: trimmedName };
   } catch (error) {

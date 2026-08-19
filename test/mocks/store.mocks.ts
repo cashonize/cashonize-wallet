@@ -125,6 +125,9 @@ vi.mock('src/utils/wallet/dbUtils', () => ({
 }))
 
 // Mock settingsStore
+export const mockClearBackupStatus = vi.fn()
+export const mockClearWalletMetadata = vi.fn()
+
 vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     currency: 'usd',
@@ -140,6 +143,8 @@ vi.mock('src/stores/settingsStore', () => ({
     getWalletType: vi.fn().mockReturnValue('single'),
     getWalletMetadata: vi.fn().mockReturnValue({ walletType: 'single' }),
     setWalletType: vi.fn(),
+    clearBackupStatus: mockClearBackupStatus,
+    clearWalletMetadata: mockClearWalletMetadata,
   })),
 }))
 
