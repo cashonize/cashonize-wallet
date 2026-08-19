@@ -113,6 +113,12 @@ export async function deleteWalletFromDb(
   });
 }
 
+//-----------------------------------------------------------------------------
+// HD wallet key cache
+//-----------------------------------------------------------------------------
+// Everything above works on the mainnet-js wallet databases, everything below on the separate
+// one holding its HD address cache.
+//
 // For HD wallets mainnet-js keeps a derived private key per address in a database of its own,
 // so deleting a wallet has to clear that too or spendable key material outlives the wallet it
 // belonged to. Single-address wallets hold their key in memory and leave nothing here.
@@ -155,9 +161,11 @@ export async function pruneHdWalletKeyCache(): Promise<void> {
   // mainnet-js passes this one name as both the database and the object store
   const CACHE_DB = "WalletCache";
 
-  const liveCacheKeys = (await getAllStoredWalletIds())
-    .map(hdWalletCacheKey)
-    .filter((cacheKey): cacheKey is string => cacheKey !== undefined);
+  const liveCacheKeys: string[] = [];
+  for (const storedWalletId of await getAllStoredWalletIds()) {
+    const cacheKey = hdWalletCacheKey(storedWalletId);
+    if (cacheKey) liveCacheKeys.push(cacheKey);
+  }
 
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(CACHE_DB);
