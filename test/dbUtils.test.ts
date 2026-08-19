@@ -6,8 +6,9 @@ import { hdWalletCacheKey } from "../src/utils/wallet/dbUtils";
 // itself and not just our implementation of it.
 //
 // What they do not catch is mainnet-js changing the derivation on a version bump. Nothing in a
-// unit test can, since constructing an HD wallet offline never settles. That case is handled at
-// runtime instead: deleteHdWalletKeyCache clears the whole store when no key matches.
+// unit test can, since constructing an HD wallet offline never settles. That case degrades safely
+// at runtime instead: every entry would look orphaned to pruneHdWalletKeyCache and be cleared,
+// costing an address rescan rather than leaving keys behind.
 const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 const derivation = "m/44'/145'/0'";
 const xpriv = "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi";

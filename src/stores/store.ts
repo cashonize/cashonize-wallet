@@ -809,13 +809,14 @@ export const useStore = defineStore('store', () => {
     // Delete from both mainnet and testnet databases
     await deleteWalletFromDb(walletName, 'bitcoincash');
     await deleteWalletFromDb(walletName, 'bchtest');
-    // The seed is gone but mainnet-js caches a private key per address for HD wallets, which
-    // would still be able to spend from every address the deleted wallet used
-    await pruneHdWalletKeyCache();
     removeTxNotes(walletName);
     removeAddressManagementData(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
+    // The seed is gone but mainnet-js caches a private key per address for HD wallets, which
+    // would still be able to spend from every address the deleted wallet used. Last, so that a
+    // failure here surfaces without leaving the rest of the deletion half done.
+    await pruneHdWalletKeyCache();
   }
 
   async function initializeWalletConnect() {
