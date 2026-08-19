@@ -515,6 +515,17 @@ describe('importWallet', () => {
       expect(mockSetBackupStatus).toHaveBeenCalledWith('imported', 'imported')
     })
 
+    it('records the wallet type rather than relying on the default', async () => {
+      await importWallet({
+        name: 'imported',
+        seedPhrase: validSeedPhrase,
+        seedPhraseValid: true,
+        derivationPath: 'standard'
+      })
+
+      expect(mockSetWalletType).toHaveBeenCalledWith('imported', 'single')
+    })
+
     it('records wallet creation date', async () => {
       await importWallet({
         name: 'imported',

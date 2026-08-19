@@ -273,6 +273,7 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
 
     // Mark as 'imported' - user already demonstrated having the seed phrase
     settingsStore.setBackupStatus(trimmedName, 'imported');
+    settingsStore.setWalletType(trimmedName, 'single');
 
     // Store wallet creation date (import date)
     settingsStore.setWalletCreatedAt(trimmedName);
