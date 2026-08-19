@@ -4,6 +4,10 @@ import type { TransactionHistoryItem } from "mainnet-js";
 // non-standard and may sit unmined indefinitely. This is node policy, not consensus.
 export const minRelayFeeRate = 1;
 
+// Transactions pay 1 sat/byte, so 20 times that is no longer a margin a dapp added to
+// its own size estimate, it is a mistake or an attempt to burn the fee
+export const excessiveFeeRate = 20;
+
 export function feeRate(transaction: TransactionHistoryItem): number {
   return transaction.fee / transaction.size;
 }

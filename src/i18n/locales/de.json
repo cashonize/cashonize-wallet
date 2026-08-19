@@ -1053,6 +1053,7 @@
       "cancelButton": "Abbrechen",
       "networkFee": "Netzwerkgebühr:",
       "lowFeeWarning": "Diese Transaktion zahlt {rate} sat/Byte. Knoten leiten Transaktionen standardmäßig ab 1 sat/Byte weiter, daher kann sie beim Senden abgelehnt werden.",
+      "highFeeWarning": "Diese Transaktion zahlt {rate} sat/Byte, weit mehr als das 1 sat/Byte, das Transaktionen normalerweise zahlen.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen.",
       "unverifiedTokenNoteSingular": "Token nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen.",
       "unverifiedTokenNotePlural": "Tokens nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen."

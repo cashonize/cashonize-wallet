@@ -8,7 +8,7 @@
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
-  import { minRelayFeeRate } from 'src/utils/history/txFeeRate';
+  import { excessiveFeeRate, minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
   const store = useStore()
@@ -86,6 +86,7 @@
   const transactionSize = encodeTransaction(txDetails).length + (inputsAwaitingSignature * signedInputSize);
   const transactionFeeRate = Number(transactionFee) / transactionSize;
   const paysBelowRelayFee = transactionFee < BigInt(transactionSize * minRelayFeeRate);
+  const paysExcessiveFee = transactionFee > BigInt(transactionSize * excessiveFeeRate);
   // below the relay fee the exact rate is what matters, and a single decimal would round
   // a rate like 0.96 up to a reassuring 1.0
   const feeRateText = transactionFeeRate < minRelayFeeRate ? transactionFeeRate.toFixed(2) : transactionFeeRate.toFixed(1);
@@ -267,7 +268,7 @@
           <div class="wc-modal-heading" style="margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.networkFee') }}</div>
           <div>
             {{ satoshiToBCHString(transactionFee) }}
-            (<span :class="{ 'low-fee-rate': paysBelowRelayFee }">{{ feeRateText }} sat/byte</span>)
+            (<span :class="{ 'fee-rate-warning': paysBelowRelayFee || paysExcessiveFee }">{{ feeRateText }} sat/byte</span>)
           </div>
 
           <hr style="margin-top: 2rem;">
@@ -363,6 +364,10 @@
           <q-icon name="warning" size="20px" class="warning-box-icon" />
           <div><b>{{ t('common.attention') }}</b> {{ t('walletConnect.transactionRequest.lowFeeWarning', { rate: feeRateText }) }}</div>
         </div>
+        <div v-if="paysExcessiveFee" class="warning-box" style="margin-top: 1.5rem;">
+          <q-icon name="warning" size="20px" class="warning-box-icon" />
+          <div><b>{{ t('common.attention') }}</b> {{ t('walletConnect.transactionRequest.highFeeWarning', { rate: feeRateText }) }}</div>
+        </div>
 
         <div class="wc-modal-bottom-buttons">
           <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="onDialogOK">
@@ -426,8 +431,8 @@
     align-items: center;
     gap: 6px;
   }
-  /* the rate itself is tinted when it sits below what nodes relay by default */
-  .low-fee-rate {
+  /* the rate itself is tinted when it sits outside what transactions normally pay */
+  .fee-rate-warning {
     color: #e6a23c;
     font-weight: 600;
   }

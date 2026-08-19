@@ -1053,6 +1053,7 @@
       "cancelButton": "Cancel",
       "networkFee": "Network Fee:",
       "lowFeeWarning": "This transaction pays {rate} sat/byte. Nodes relay transactions at 1 sat/byte by default, so it may be rejected when it is broadcast.",
+      "highFeeWarning": "This transaction pays {rate} sat/byte, far more than the 1 sat/byte that transactions normally pay.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} not in your wallet. New metadata fetched for preview.",
       "unverifiedTokenNoteSingular": "Token not in your wallet. New metadata fetched for preview.",
       "unverifiedTokenNotePlural": "Tokens not in your wallet. New metadata fetched for preview."

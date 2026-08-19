@@ -1053,6 +1053,7 @@
       "cancelButton": "Cancelar",
       "networkFee": "Comisión de red:",
       "lowFeeWarning": "Esta transacción paga {rate} sat/byte. Los nodos retransmiten transacciones a 1 sat/byte de forma predeterminada, por lo que puede ser rechazada al difundirse.",
+      "highFeeWarning": "Esta transacción paga {rate} sat/byte, mucho más que el 1 sat/byte que pagan normalmente las transacciones.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} no {count, plural, one {está} other {están}} en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
       "unverifiedTokenNoteSingular": "El token no está en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
       "unverifiedTokenNotePlural": "Los tokens no están en tu billetera. Se obtuvieron nuevos metadatos para vista previa."

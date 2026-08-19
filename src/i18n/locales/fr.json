@@ -1053,6 +1053,7 @@
       "cancelButton": "Annuler",
       "networkFee": "Frais de réseau :",
       "lowFeeWarning": "Cette transaction paie {rate} sat/octet. Les nœuds relaient les transactions à 1 sat/octet par défaut, elle peut donc être rejetée lors de sa diffusion.",
+      "highFeeWarning": "Cette transaction paie {rate} sat/octet, bien plus que le 1 sat/octet que paient normalement les transactions.",
       "unverifiedTokenNote": "{count, plural, one {Le token} other {Les tokens}} ne {count, plural, one {figure} other {figurent}} pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNoteSingular": "Le token ne figure pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu."
