@@ -12,6 +12,7 @@
   import CharCounter from '../general/CharCounter.vue';
   import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, tokenChangeChips } from 'src/utils/utils';
   import { maxTxNoteLength } from 'src/utils/history/txNotes';
+  import { feeRate, isBelowRelayFee, minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import { useI18n } from 'vue-i18n'
 
   const store = useStore()
@@ -67,6 +68,13 @@
 
   // A transaction in the current tip block has 1 confirmation
   const confirmations = computed(() => (store.currentBlockHeight as number) - props.historyItem.blockHeight + 1);
+
+  // Below the relay fee the exact rate is what matters, and a single decimal would
+  // round a rate like 0.96 up to a reassuring 1.0
+  const feeRateText = computed(() => {
+    const rate = feeRate(props.historyItem);
+    return rate < minRelayFeeRate ? rate.toFixed(2) : rate.toFixed(1);
+  });
 
   function formatTokenAmount(amount: bigint, category: string) {
     const decimals = store.bcmrRegistries?.[category]?.token.decimals ?? 0;
@@ -153,9 +161,15 @@
                 <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
                 <InfoPopup v-if="historyItem.blockHeight < 0">
                   <template #trigger>
-                    <span class="chain-badge">{{ t('history.unconfirmedChain') }}</span>
+                    <span class="warning-badge">{{ t('history.unconfirmedChain') }}</span>
                   </template>
                   {{ t('history.unconfirmedChainTooltip') }}
+                </InfoPopup>
+                <InfoPopup v-if="isBelowRelayFee(historyItem)">
+                  <template #trigger>
+                    <span class="warning-badge">{{ t('history.lowFee') }}</span>
+                  </template>
+                  {{ t('history.lowFeeTooltip') }}
                 </InfoPopup>
               </span>
               <!-- under the customary 6 confirmations, show progress toward finality -->
@@ -214,7 +228,7 @@
             </div>
             <div v-if="!isCoinbase">
               {{ t('transactionDialog.fee') }}
-                <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat ({{ (historyItem.fee / historyItem.size).toFixed(1) }} sat/byte)</span>
+                <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat (<span :class="{ 'low-fee-rate': isBelowRelayFee(historyItem) }">{{ feeRateText }} sat/byte</span>)</span>
             </div>
             <div v-else>
               {{ t('transactionDialog.feesCollected') }}
@@ -375,7 +389,7 @@
     color: hsla(160, 100%, 37%, 1)
   }
   /* same amber pill as the history rows, the info popup carries the explanation */
-  .chain-badge {
+  .warning-badge {
     display: inline-block;
     margin-left: 2px;
     padding: 0 7px;
@@ -385,6 +399,11 @@
     vertical-align: middle;
     background-color: rgba(230, 162, 60, 0.18);
     color: #e6a23c;
+  }
+  /* the rate itself is tinted when it sits below what nodes relay by default */
+  .low-fee-rate {
+    color: #e6a23c;
+    font-weight: 600;
   }
 
   @media only screen and (max-width: 450px) {

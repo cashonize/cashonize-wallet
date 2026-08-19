@@ -471,6 +471,8 @@
     "confirmationsProgress": "{count}/6 confirmações",
     "unconfirmedChain": "cadeia não confirmada",
     "unconfirmedChainTooltip": "Esta transação depende de outra transação não confirmada, o que aumenta o risco de que não seja confirmada.",
+    "lowFee": "taxa baixa",
+    "lowFeeTooltip": "Esta transação paga menos do que 1 sat/byte, a taxa que os nós retransmitem por padrão, por isso pode demorar muito a confirmar ou nunca confirmar.",
     "transactionCountPartial": "{count}+ Transações",
     "loadingFullHistory": "Carregando histórico completo"
   },

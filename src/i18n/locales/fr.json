@@ -471,6 +471,8 @@
     "confirmationsProgress": "{count}/6 confirmations",
     "unconfirmedChain": "chaîne non confirmée",
     "unconfirmedChainTooltip": "Cette transaction dépend d'une autre transaction non confirmée, ce qui augmente le risque qu'elle ne soit pas confirmée.",
+    "lowFee": "frais faibles",
+    "lowFeeTooltip": "Cette transaction paie moins que les 1 sat/octet que les nœuds relaient par défaut, elle peut donc mettre longtemps à être confirmée ou ne jamais l'être.",
     "transactionCountPartial": "{count}+ Transactions",
     "loadingFullHistory": "Chargement de l'historique complet"
   },
