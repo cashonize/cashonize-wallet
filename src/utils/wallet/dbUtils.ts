@@ -7,6 +7,15 @@ export interface WalletInfo {
   hasChipnet: boolean;
 }
 
+//-----------------------------------------------------------------------------
+// Through mainnet-js's own storage provider
+//-----------------------------------------------------------------------------
+// IndexedDBProvider is mainnet-js's own class, so the database name, its version and the shape
+// of a record stay its business. Only the layer above it is bypassed, for the reasons below.
+
+// BaseWallet.namedExists reads the same record, but constructs a wallet to get there, and that
+// builds an electrum client and network provider, which becomes the session's global one when
+// there is none yet.
 export async function namedWalletExistsInDb(
   name: string,
   dbName: "bitcoincash" | "bchtest"
@@ -22,6 +31,7 @@ export async function namedWalletExistsInDb(
   }
 }
 
+// mainnet-js has no wallet listing above the storage provider, so this uses its getWallets().
 export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
   // Get wallets from both networks
   const mainnetDb = new IndexedDBProvider("bitcoincash");
@@ -56,8 +66,8 @@ export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
   }
 }
 
-// Mirrors the IndexedDB lookup inside mainnet-js BaseWallet.named(), but stops after
-// reading the saved walletId. Calling .named() directly would create a new wallet if missing.
+// mainnet-js's getNamedWalletId reads the same record, but throws when the name is not in that
+// database. A wallet legitimately exists on one network only, so the caller needs that returned.
 export async function getNamedWalletIdFromDb(
   name: string,
   dbName: "bitcoincash" | "bchtest"
@@ -73,6 +83,12 @@ export async function getNamedWalletIdFromDb(
     await db.close();
   }
 }
+
+//-----------------------------------------------------------------------------
+// Raw IndexedDB
+//-----------------------------------------------------------------------------
+// Deleting is the one thing mainnet-js offers no way to do, neither on BaseWallet nor on the
+// StorageProvider interface, so the database is opened directly and its store name matched here.
 
 export async function deleteWalletFromDb(
   name: string,
@@ -117,7 +133,7 @@ export async function deleteWalletFromDb(
 }
 
 //-----------------------------------------------------------------------------
-// HD wallet key cache
+// HD wallet key cache (Raw IndexedDB)
 //-----------------------------------------------------------------------------
 // Everything above works on the mainnet-js wallet databases, everything below on the separate
 // one holding its HD address cache.
@@ -125,6 +141,9 @@ export async function deleteWalletFromDb(
 // For HD wallets mainnet-js keeps a derived private key per address in a database of its own,
 // so deleting a wallet has to clear that too or spendable key material outlives the wallet it
 // belonged to. Single-address wallets hold their key in memory and leave nothing here.
+//
+// mainnet-js does not export the class it reads that database with, and it could not list what
+// it holds anyway, which the prune needs.
 
 // mainnet-js keys those entries by a hash of the seed rather than by the wallet name, so the key
 // has to be rebuilt from the stored wallet record. Mirrors HDWallet's own derivation.
