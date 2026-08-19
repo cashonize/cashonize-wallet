@@ -84,6 +84,9 @@ export async function deleteWalletFromDb(
   const STORE_NAME = "wallet";
 
   return new Promise((resolve, reject) => {
+    // Opening without a version is safe for these two, unlike for the caches below:
+    // IndexedDBProvider asks for version 31, so a database created here at version 1 still gets
+    // its upgrade, and its store, the next time mainnet-js opens it.
     const request = indexedDB.open(dbName);
 
     request.onerror = () => reject(new Error(`Failed to open database: ${dbName}`));
@@ -190,7 +193,9 @@ export async function pruneHdWalletKeyCache(): Promise<void> {
 
     request.onsuccess = () => {
       const db = request.result;
-      // nothing has ever been cached, so nothing to prune
+      // a fresh database gets its store from the upgrade above, so reaching here means something
+      // else left this one without one. Adding it now would take a version mainnet-js never asks
+      // for, so the only safe move is to leave it be.
       if (!db.objectStoreNames.contains(CACHE_DB)) {
         db.close();
         resolve();

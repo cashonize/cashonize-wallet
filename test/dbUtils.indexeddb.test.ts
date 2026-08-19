@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage";
-import { pruneHdWalletKeyCache, hdWalletCacheKey } from "../src/utils/wallet/dbUtils";
+import { pruneHdWalletKeyCache, hdWalletCacheKey, deleteWalletFromDb } from "../src/utils/wallet/dbUtils";
 import { openIndexedDB } from "../src/utils/cacheUtils";
 
 // These run against a real IndexedDB implementation rather than a mock on purpose: both bugs
@@ -62,7 +62,9 @@ async function cacheKeys(): Promise<IDBValidKey[]> {
 }
 
 // mainnet-js reads its cache through a transaction on that store, so a database left without one
-// throws here. This is what a wallet hits when creating or importing an HD wallet.
+// throws NotFoundError here. Its own try/catch covers only the JSON parse, so the throw takes
+// PersistentWalletCache.init() with it and creating or importing an HD wallet fails outright,
+// for that browser profile, permanently.
 async function mainnetJsCanUseCache(dbName: string): Promise<boolean> {
   const db = await openLikeMainnetJs(dbName);
   try {
@@ -175,5 +177,24 @@ describe('openIndexedDB', () => {
     db.close();
 
     expect(value).toBe("cached");
+  });
+});
+
+describe('deleteWalletFromDb', () => {
+  // This one opens without a version, unlike the caches, and is only safe because
+  // IndexedDBProvider asks for 31: a database created here at version 1 still gets its upgrade,
+  // and its store, when mainnet-js next opens it
+  it('leaves a database mainnet-js can still add wallets to', async () => {
+    // deleting from a network the wallet was never on is reachable today, since deleteWallet
+    // always tries both and wallets can exist on one network only
+    await deleteWalletFromDb("neverExisted", "bchtest");
+
+    const db = new IndexedDBProvider("bchtest");
+    await db.init();
+    await db.addWallet("later", hdWalletId(mnemonic, "testnet"));
+    const stored = await db.getWallet("later");
+    await db.close();
+
+    expect(stored?.wallet).toBe(hdWalletId(mnemonic, "testnet"));
   });
 });
