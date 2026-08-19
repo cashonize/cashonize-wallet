@@ -1,6 +1,7 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage";
+import { HDWallet, Config, DefaultProvider } from "mainnet-js";
 import { pruneHdWalletKeyCache, hdWalletCacheKey, deleteWalletFromDb } from "../src/utils/wallet/dbUtils";
 import { openIndexedDB } from "../src/utils/cacheUtils";
 
@@ -244,5 +245,22 @@ describe('deleteWalletFromDb', () => {
     await db.close();
 
     expect(stored?.wallet).toBe(hdWalletId(mnemonic, "testnet"));
+  });
+});
+
+describe('hdWalletCacheKey against mainnet-js', () => {
+  // The derivation mirrors a private one, so this is the contract that would otherwise break
+  // silently on a version bump. Constructing the wallet is safe here: initialize() sets walletId
+  // and awaits only the cache, leaving address discovery unawaited, so the offline wedge that
+  // catches consumers of watchPromise does not catch this.
+  it('derives the key mainnet-js will store the entry under', async () => {
+    Config.UseIndexedDBCache = true;
+    // unroutable, so a connection attempt cannot reach anything or depend on the network
+    DefaultProvider.servers.mainnet = ["wss://127.0.0.1:1"];
+    const storedWalletId = hdWalletId(mnemonic, "mainnet");
+
+    const wallet = await HDWallet.fromId(storedWalletId);
+
+    expect(hdWalletCacheKey(storedWalletId)).toBe(`walletCache-${wallet.walletId}`);
   });
 });
