@@ -72,6 +72,7 @@
     },
     "errors": {
       "cannotDeleteActiveWallet": "Não é possível excluir a carteira ativa",
+      "cachedKeysNotCleared": "A carteira foi eliminada, mas as chaves que tinha em cache não puderam ser removidas.",
       "walletNotFoundOnNetwork": "A carteira \"{name}\" não existe em {network}",
       "errorInitializingWalletConnect": "Erro ao inicializar WalletConnect",
       "errorInitializingCashConnect": "Erro ao inicializar CashConnect",

@@ -1,4 +1,4 @@
-import { binToHex, sha256, utf8ToBin } from 'mainnet-js';
+import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth';
 
 const CACHE_TTL_DAYS = 7;
 const CACHE_TTL_MS = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
@@ -16,9 +16,14 @@ export async function clearElectrumCache(): Promise<void> {
 
 /* Native IndexedDB helper functions */
 
+// Object stores can only be created during an upgrade, which runs only when the version asked
+// for is higher than the one stored. Opening without a version creates this database at version
+// 1 with no store, and mainnet-js opens its caches at version 1 too, so it would never upgrade
+// and never add its own. Match its version and create the store, which it names after the database.
 export async function openIndexedDB(dbName: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const openRequest = indexedDB.open(dbName);
+    const openRequest = indexedDB.open(dbName, 1);
+    openRequest.onupgradeneeded = () => openRequest.result.createObjectStore(dbName);
     openRequest.onsuccess = () => resolve(openRequest.result);
     openRequest.onerror = () => reject(new Error("Error opening IndexedDB"));
   });

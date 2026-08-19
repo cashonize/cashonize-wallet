@@ -26,6 +26,8 @@ export const mockRefreshAvailableWallets = vi.fn()
 export const mockSetWalletCreatedAt = vi.fn()
 export const mockSetBackupStatus = vi.fn()
 export const mockSetWalletType = vi.fn()
+export const mockClearBackupStatus = vi.fn()
+export const mockClearWalletSettings = vi.fn()
 
 // Mock localStorage
 export const localStorageMock = {
@@ -51,6 +53,8 @@ vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     setWalletCreatedAt: mockSetWalletCreatedAt,
     setBackupStatus: mockSetBackupStatus,
+    clearBackupStatus: mockClearBackupStatus,
+    clearWalletSettings: mockClearWalletSettings,
     setWalletType: mockSetWalletType,
   }))
 }))

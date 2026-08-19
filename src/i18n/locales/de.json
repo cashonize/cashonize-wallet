@@ -72,6 +72,7 @@
     },
     "errors": {
       "cannotDeleteActiveWallet": "Das aktive Wallet kann nicht gelöscht werden",
+      "cachedKeysNotCleared": "Die Wallet wurde gelöscht, aber die von ihr zwischengespeicherten Schlüssel konnten nicht entfernt werden.",
       "walletNotFoundOnNetwork": "Wallet \"{name}\" existiert nicht auf {network}",
       "errorInitializingWalletConnect": "Fehler beim Initialisieren von WalletConnect",
       "errorInitializingCashConnect": "Fehler beim Initialisieren von CashConnect",

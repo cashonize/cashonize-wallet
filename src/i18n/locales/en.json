@@ -72,6 +72,7 @@
     },
     "errors": {
       "cannotDeleteActiveWallet": "Cannot delete the currently active wallet",
+      "cachedKeysNotCleared": "The wallet was deleted, but the keys it had cached could not be removed.",
       "walletNotFoundOnNetwork": "Wallet \"{name}\" does not exist on {network}",
       "errorInitializingWalletConnect": "Error initializing WalletConnect",
       "errorInitializingCashConnect": "Error initializing CashConnect",

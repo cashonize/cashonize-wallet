@@ -87,9 +87,6 @@
     if (confirmed) {
       try {
         await store.deleteWallet(walletName);
-        // Clear backup status and metadata for deleted wallet
-        settingsStore.clearBackupStatus(walletName);
-        settingsStore.clearWalletMetadata(walletName);
         $q.notify({
           message: t('walletsOverview.deleteWallet.deleted', { name: walletName }),
           icon: 'info',

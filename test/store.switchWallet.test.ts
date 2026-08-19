@@ -15,6 +15,8 @@ import {
   localStorageMock,
   mockGetAllWalletsWithNetworkInfo,
   mockDeleteWalletFromDb,
+  mockPruneHdWalletKeyCache,
+  mockClearWalletSettings,
   mockGetNamedWalletIdFromDb,
 } from './mocks/store.mocks'
 
@@ -349,6 +351,52 @@ describe('deleteWallet', () => {
     expect(mockDeleteWalletFromDb).toHaveBeenCalledWith('otherWallet', 'bitcoincash')
     expect(mockDeleteWalletFromDb).toHaveBeenCalledWith('otherWallet', 'bchtest')
     expect(mockDeleteWalletFromDb).toHaveBeenCalledTimes(2)
+  })
+
+  // The seed is deleted above, but mainnet-js caches a private key per address for HD wallets
+  // in a database of its own, which would still be able to spend from the deleted wallet
+  it('prunes the HD wallet key cache so no spendable keys outlive the wallet', async () => {
+    const store = useStore()
+    store.setWallet(mockMainnetWallet as never)
+
+    await store.deleteWallet('otherWallet')
+
+    expect(mockPruneHdWalletKeyCache).toHaveBeenCalled()
+  })
+
+  it('clears the settings of the deleted wallet', async () => {
+    const store = useStore()
+    store.setWallet(mockMainnetWallet as never)
+
+    await store.deleteWallet('otherWallet')
+
+    expect(mockClearWalletSettings).toHaveBeenCalledWith('otherWallet')
+  })
+
+  // The wallet is already gone when the prune runs, so its failure is reported on its own rather
+  // than making the deletion look like it failed and stranding the per-wallet cleanup with it
+  it('still succeeds and cleans up when the key cache prune fails', async () => {
+    const store = useStore()
+    store.setWallet(mockMainnetWallet as never)
+    mockPruneHdWalletKeyCache.mockRejectedValueOnce(new Error('prune failed'))
+
+    await expect(store.deleteWallet('otherWallet')).resolves.toBeUndefined()
+
+    expect(mockClearWalletSettings).toHaveBeenCalledWith('otherWallet')
+    expect(mockDeleteWalletFromDb).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not prune the key cache when the delete is refused', async () => {
+    const store = useStore()
+    store.setWallet(mockMainnetWallet as never)
+
+    try {
+      await store.deleteWallet('mywallet')
+    } catch {
+      // Expected to throw, deleting the active wallet is refused
+    }
+
+    expect(mockPruneHdWalletKeyCache).not.toHaveBeenCalled()
   })
 
   it('refreshes available wallets after deletion', async () => {

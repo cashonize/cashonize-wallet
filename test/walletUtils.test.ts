@@ -18,6 +18,7 @@ import {
   mockSetWalletCreatedAt,
   mockSetBackupStatus,
   mockSetWalletType,
+  mockClearWalletSettings,
   mockWalletFromSeed,
   localStorageMock,
 } from './mocks/walletUtils.mocks'
@@ -204,6 +205,16 @@ describe('createNewWallet', () => {
       await createNewWallet('newWallet')
 
       expect(mockSetWalletCreatedAt).toHaveBeenCalledWith('newWallet')
+    })
+
+    // Both of these are keyed by wallet name, and nothing else on this path writes them, so a
+    // value left behind by an earlier wallet of the same name would be inherited uncorrected:
+    // a seed the user has never seen shown as backed up, or a single-address wallet offered
+    // the HD-only features
+    it('clears what a previous wallet of the same name left behind', async () => {
+      await createNewWallet('newWallet')
+
+      expect(mockClearWalletSettings).toHaveBeenCalledWith('newWallet')
     })
 
     it('returns success with trimmed wallet name', async () => {
@@ -498,6 +509,17 @@ describe('importWallet', () => {
       expect(mockSetBackupStatus).toHaveBeenCalledWith('imported', 'imported')
     })
 
+    it('clears what a previous wallet of the same name left behind', async () => {
+      await importWallet({
+        name: 'imported',
+        seedPhrase: validSeedPhrase,
+        seedPhraseValid: true,
+        derivationPath: 'standard'
+      })
+
+      expect(mockClearWalletSettings).toHaveBeenCalledWith('imported')
+    })
+
     it('records wallet creation date', async () => {
       await importWallet({
         name: 'imported',
@@ -650,6 +672,12 @@ describe('createNewHDWallet', () => {
       await createNewHDWallet('newHDWallet')
 
       expect(mockSetWalletType).toHaveBeenCalledWith('newHDWallet', 'hd')
+    })
+
+    it('clears what a previous wallet of the same name left behind', async () => {
+      await createNewHDWallet('newHDWallet')
+
+      expect(mockClearWalletSettings).toHaveBeenCalledWith('newHDWallet')
     })
 
     it('records wallet creation date in settings', async () => {

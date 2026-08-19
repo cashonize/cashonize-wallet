@@ -183,6 +183,9 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     // Refresh available wallets list
     await store.refreshAvailableWallets();
 
+    // A new wallet can take the name of a deleted one, and everything per wallet is keyed by
+    // name, so drop what the old one left before recording anything of this one's
+    settingsStore.clearWalletSettings(trimmedName);
     // Fire-and-forget: don't wait on full wallet initialization
     void store.initializeWallet();
 
@@ -263,6 +266,7 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     // Refresh available wallets list
     await store.refreshAvailableWallets();
 
+    settingsStore.clearWalletSettings(trimmedName);
     // Fire-and-forget: don't wait on full wallet initialization
     void store.initializeWallet();
 
@@ -316,6 +320,7 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     await store.resetWalletState();
     store.setWallet(mainnetWallet);
 
+    settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)
     settingsStore.setWalletType(trimmedName, 'hd');
     settingsStore.setWalletCreatedAt(trimmedName);
@@ -385,6 +390,7 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
     await store.resetWalletState();
     store.setWallet(mainnetWallet);
 
+    settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)
     settingsStore.setWalletType(trimmedName, 'hd');
     settingsStore.setBackupStatus(trimmedName, 'imported');

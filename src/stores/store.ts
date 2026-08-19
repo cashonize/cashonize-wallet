@@ -48,7 +48,7 @@ import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
+import { pruneHdWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
   fetchCauldronPools,
@@ -721,11 +721,10 @@ export const useStore = defineStore('store', () => {
     if (!walletId) {
       throw new Error(t('store.errors.walletNotFoundOnNetwork', { name: walletName, network }));
     }
-    const metadata = settingsStore.getWalletMetadata(walletName);
-    if (!metadata?.walletType) {
-      const walletType = walletTypeFromWalletId(walletId);
-      settingsStore.setWalletType(walletName, walletType);
-    }
+    // The stored id says which kind this is, so write it every time rather than only when it is
+    // missing: metadata is keyed by wallet name, and a stale type from an earlier wallet of the
+    // same name would otherwise stand forever
+    settingsStore.setWalletType(walletName, walletTypeFromWalletId(walletId));
     const loadedWallet = await loadWalletFromId(walletId, network);
     loadedWallet.name = walletName;
     return loadedWallet;
@@ -811,8 +810,23 @@ export const useStore = defineStore('store', () => {
     await deleteWalletFromDb(walletName, 'bchtest');
     removeTxNotes(walletName);
     removeAddressManagementData(walletName);
+    settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
+    // mainnet-js stores a private key for every address of an HD wallet. This deletes the cached
+    // keys of any wallet no longer in the databases, not only the one just deleted, so it also
+    // picks up keys left by wallets deleted before this existed, whatever kind just went.
+    // The wallet is already gone by now, so a failure here is not a failed deletion.
+    try {
+      await pruneHdWalletKeyCache();
+    } catch (error) {
+      console.error(error);
+      Notify.create({
+        message: t('store.errors.cachedKeysNotCleared'),
+        icon: 'warning',
+        color: "red"
+      })
+    }
   }
 
   async function initializeWalletConnect() {

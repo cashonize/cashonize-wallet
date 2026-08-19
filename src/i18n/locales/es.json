@@ -72,6 +72,7 @@
     },
     "errors": {
       "cannotDeleteActiveWallet": "No se puede eliminar la billetera actualmente activa",
+      "cachedKeysNotCleared": "La cartera fue eliminada, pero no se pudieron eliminar las claves que tenía en caché.",
       "walletNotFoundOnNetwork": "La billetera \"{name}\" no existe en {network}",
       "errorInitializingWalletConnect": "Error al inicializar WalletConnect",
       "errorInitializingCashConnect": "Error al inicializar CashConnect",
