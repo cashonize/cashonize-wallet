@@ -111,3 +111,49 @@ export async function deleteWalletFromDb(
     };
   });
 }
+
+// For HD wallets mainnet-js keeps a derived private key per address in a database of its own,
+// so deleting a wallet has to clear that too or spendable key material outlives the wallet it
+// belonged to. Single-address wallets hold their key in memory and leave nothing here.
+//
+// Everything goes rather than the one wallet's entry, for two reasons. The entries are keyed by
+// a hash of the seed rather than by the wallet name, so reproducing that derivation here would
+// silently stop matching if mainnet-js ever changed it, which is a poor failure mode for
+// deleting key material. And a cache entry costs only an address rescan to rebuild, so the
+// price of clearing another wallet's is small and paid once.
+//
+// The store is cleared rather than the database deleted: deleteDatabase blocks on the open
+// connection the running wallet holds, and nothing reloads the page here to close it.
+export async function clearHdWalletKeyCache(): Promise<void> {
+  // mainnet-js passes this one name as both the database and the object store
+  const CACHE_DB = "WalletCache";
+
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(CACHE_DB);
+
+    request.onerror = () => reject(new Error(`Failed to open database: ${CACHE_DB}`));
+
+    request.onsuccess = () => {
+      const db = request.result;
+      // nothing cached yet, so nothing to clear
+      if (!db.objectStoreNames.contains(CACHE_DB)) {
+        db.close();
+        resolve();
+        return;
+      }
+
+      const dbTx = db.transaction(CACHE_DB, "readwrite");
+      const clearRequest = dbTx.objectStore(CACHE_DB).clear();
+
+      clearRequest.onsuccess = () => {
+        db.close();
+        resolve();
+      };
+
+      clearRequest.onerror = () => {
+        db.close();
+        reject(new Error(`Failed to clear the HD wallet key cache`));
+      };
+    };
+  });
+}
