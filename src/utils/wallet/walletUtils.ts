@@ -266,10 +266,10 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     // Refresh available wallets list
     await store.refreshAvailableWallets();
 
+    settingsStore.clearWalletSettings(trimmedName);
     // Fire-and-forget: don't wait on full wallet initialization
     void store.initializeWallet();
 
-    settingsStore.clearWalletSettings(trimmedName);
     // Mark as 'imported' - user already demonstrated having the seed phrase
     settingsStore.setBackupStatus(trimmedName, 'imported');
 
