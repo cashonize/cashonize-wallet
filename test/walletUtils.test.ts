@@ -18,7 +18,7 @@ import {
   mockSetWalletCreatedAt,
   mockSetBackupStatus,
   mockSetWalletType,
-  mockClearBackupStatus,
+  mockClearWalletSettings,
   mockWalletFromSeed,
   localStorageMock,
 } from './mocks/walletUtils.mocks'
@@ -211,16 +211,10 @@ describe('createNewWallet', () => {
     // value left behind by an earlier wallet of the same name would be inherited uncorrected:
     // a seed the user has never seen shown as backed up, or a single-address wallet offered
     // the HD-only features
-    it('clears any backup status left by an earlier wallet of the same name', async () => {
+    it('clears what a previous wallet of the same name left behind', async () => {
       await createNewWallet('newWallet')
 
-      expect(mockClearBackupStatus).toHaveBeenCalledWith('newWallet')
-    })
-
-    it('records the wallet type rather than relying on the default', async () => {
-      await createNewWallet('newWallet')
-
-      expect(mockSetWalletType).toHaveBeenCalledWith('newWallet', 'single')
+      expect(mockClearWalletSettings).toHaveBeenCalledWith('newWallet')
     })
 
     it('returns success with trimmed wallet name', async () => {
@@ -515,7 +509,7 @@ describe('importWallet', () => {
       expect(mockSetBackupStatus).toHaveBeenCalledWith('imported', 'imported')
     })
 
-    it('records the wallet type rather than relying on the default', async () => {
+    it('clears what a previous wallet of the same name left behind', async () => {
       await importWallet({
         name: 'imported',
         seedPhrase: validSeedPhrase,
@@ -523,7 +517,7 @@ describe('importWallet', () => {
         derivationPath: 'standard'
       })
 
-      expect(mockSetWalletType).toHaveBeenCalledWith('imported', 'single')
+      expect(mockClearWalletSettings).toHaveBeenCalledWith('imported')
     })
 
     it('records wallet creation date', async () => {
@@ -680,10 +674,10 @@ describe('createNewHDWallet', () => {
       expect(mockSetWalletType).toHaveBeenCalledWith('newHDWallet', 'hd')
     })
 
-    it('clears any backup status left by an earlier wallet of the same name', async () => {
+    it('clears what a previous wallet of the same name left behind', async () => {
       await createNewHDWallet('newHDWallet')
 
-      expect(mockClearBackupStatus).toHaveBeenCalledWith('newHDWallet')
+      expect(mockClearWalletSettings).toHaveBeenCalledWith('newHDWallet')
     })
 
     it('records wallet creation date in settings', async () => {

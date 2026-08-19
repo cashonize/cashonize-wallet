@@ -437,6 +437,13 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
   }
 
+  // Everything per wallet is keyed by name, and a new wallet may take the name of a deleted one,
+  // so what the old one left has to go before the new one records anything of its own
+  function clearWalletSettings(walletName: string) {
+    clearBackupStatus(walletName);
+    clearWalletMetadata(walletName);
+  }
+
   function removeOldCacheData(){
     // remove tx- and header- keys from localStorage
     Object.keys(localStorage).forEach(key => {
@@ -481,6 +488,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     getWalletType,
     setWalletType,
     clearWalletMetadata,
+    clearWalletSettings,
     mintNfts,
     authchains,
     strictWcSchema,

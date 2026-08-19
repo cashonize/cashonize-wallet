@@ -183,16 +183,14 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     // Refresh available wallets list
     await store.refreshAvailableWallets();
 
+    // A new wallet can take the name of a deleted one, and everything per wallet is keyed by
+    // name, so drop what the old one left before recording anything of this one's
+    settingsStore.clearWalletSettings(trimmedName);
     // Fire-and-forget: don't wait on full wallet initialization
     void store.initializeWallet();
 
     // Store wallet creation date
     settingsStore.setWalletCreatedAt(trimmedName);
-    // Backup status is keyed by wallet name, so clear whatever a previous wallet of this name
-    // left behind. Nothing else on this path writes it, and a stale 'verified' would tell the
-    // user a seed they have never seen is already backed up.
-    settingsStore.clearBackupStatus(trimmedName);
-    settingsStore.setWalletType(trimmedName, 'single');
 
     return { success: true, walletName: trimmedName };
   } catch (error) {
@@ -271,9 +269,9 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     // Fire-and-forget: don't wait on full wallet initialization
     void store.initializeWallet();
 
+    settingsStore.clearWalletSettings(trimmedName);
     // Mark as 'imported' - user already demonstrated having the seed phrase
     settingsStore.setBackupStatus(trimmedName, 'imported');
-    settingsStore.setWalletType(trimmedName, 'single');
 
     // Store wallet creation date (import date)
     settingsStore.setWalletCreatedAt(trimmedName);
@@ -322,11 +320,10 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     await store.resetWalletState();
     store.setWallet(mainnetWallet);
 
+    settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)
     settingsStore.setWalletType(trimmedName, 'hd');
     settingsStore.setWalletCreatedAt(trimmedName);
-    // as in createNewWallet, drop a backup status an earlier wallet of this name left behind
-    settingsStore.clearBackupStatus(trimmedName);
 
     await store.refreshAvailableWallets();
     void store.initializeWallet();
@@ -393,6 +390,7 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
     await store.resetWalletState();
     store.setWallet(mainnetWallet);
 
+    settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)
     settingsStore.setWalletType(trimmedName, 'hd');
     settingsStore.setBackupStatus(trimmedName, 'imported');

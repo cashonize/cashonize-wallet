@@ -16,8 +16,7 @@ import {
   mockGetAllWalletsWithNetworkInfo,
   mockDeleteWalletFromDb,
   mockPruneHdWalletKeyCache,
-  mockClearBackupStatus,
-  mockClearWalletMetadata,
+  mockClearWalletSettings,
   mockGetNamedWalletIdFromDb,
 } from './mocks/store.mocks'
 
@@ -365,14 +364,13 @@ describe('deleteWallet', () => {
     expect(mockPruneHdWalletKeyCache).toHaveBeenCalled()
   })
 
-  it('clears the backup status and metadata of the deleted wallet', async () => {
+  it('clears the settings of the deleted wallet', async () => {
     const store = useStore()
     store.setWallet(mockMainnetWallet as never)
 
     await store.deleteWallet('otherWallet')
 
-    expect(mockClearBackupStatus).toHaveBeenCalledWith('otherWallet')
-    expect(mockClearWalletMetadata).toHaveBeenCalledWith('otherWallet')
+    expect(mockClearWalletSettings).toHaveBeenCalledWith('otherWallet')
   })
 
   // The wallet is already gone when the prune runs, so its failure is reported on its own rather
@@ -384,8 +382,7 @@ describe('deleteWallet', () => {
 
     await expect(store.deleteWallet('otherWallet')).resolves.toBeUndefined()
 
-    expect(mockClearBackupStatus).toHaveBeenCalledWith('otherWallet')
-    expect(mockClearWalletMetadata).toHaveBeenCalledWith('otherWallet')
+    expect(mockClearWalletSettings).toHaveBeenCalledWith('otherWallet')
     expect(mockDeleteWalletFromDb).toHaveBeenCalledTimes(2)
   })
 
