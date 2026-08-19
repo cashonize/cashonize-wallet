@@ -265,17 +265,18 @@
             * {{ Object.keys(unverifiedTokenMetadata).length === 1 ? t('walletConnect.transactionRequest.unverifiedTokenNoteSingular') : t('walletConnect.transactionRequest.unverifiedTokenNotePlural') }}
           </div>
 
-          <div class="wc-modal-heading" style="margin-top: 1.5rem;">{{ t('walletConnect.transactionRequest.networkFee') }}</div>
-          <div>
-            {{ satoshiToBCHString(transactionFee) }}
-            (<span :class="{ 'fee-rate-warning': paysBelowRelayFee || paysExcessiveFee }">{{ feeRateText }} sat/byte</span>)
-          </div>
-
           <hr style="margin-top: 2rem;">
 
         <details>
           <summary style="display: list-item" class="hover">{{ t('walletConnect.transactionRequest.fullDetails') }}</summary>
           <div class="wc-modal-details" style="margin-top: 1rem;">
+            <!-- the balance change above already nets out the fee whenever the wallet pays it,
+                 so the fee sits here with the rest of the detail, as in the history dialog -->
+            <div class="wc-modal-heading">{{ t('walletConnect.transactionRequest.networkFee') }}</div>
+            <div style="margin-bottom: 1rem;">
+              {{ satoshiToBCHString(transactionFee) }}
+              (<span :class="{ 'fee-rate-warning': paysBelowRelayFee || paysExcessiveFee }">{{ feeRateText }} sat/byte</span>)
+            </div>
             <div class="wc-modal-heading">{{ t('walletConnect.transactionRequest.inputs') }}</div>
             <table class="wc-data-table">
               <tbody v-for="(input, inputIndex) in sourceOutputs" :key="binToHex(input.outpointTransactionHash) + inputIndex">
