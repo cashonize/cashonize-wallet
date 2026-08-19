@@ -191,7 +191,7 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     // Backup status is keyed by wallet name, so clear whatever a previous wallet of this name
     // left behind. Nothing else on this path writes it, and a stale 'verified' would tell the
     // user a seed they have never seen is already backed up.
-    settingsStore.setBackupStatus(trimmedName, 'none');
+    settingsStore.clearBackupStatus(trimmedName);
     settingsStore.setWalletType(trimmedName, 'single');
 
     return { success: true, walletName: trimmedName };
@@ -324,6 +324,8 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     // Set wallet type BEFORE initializeWallet (which validates type matches)
     settingsStore.setWalletType(trimmedName, 'hd');
     settingsStore.setWalletCreatedAt(trimmedName);
+    // as in createNewWallet, drop a backup status an earlier wallet of this name left behind
+    settingsStore.clearBackupStatus(trimmedName);
 
     await store.refreshAvailableWallets();
     void store.initializeWallet();

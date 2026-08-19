@@ -18,6 +18,7 @@ import {
   mockSetWalletCreatedAt,
   mockSetBackupStatus,
   mockSetWalletType,
+  mockClearBackupStatus,
   mockWalletFromSeed,
   localStorageMock,
 } from './mocks/walletUtils.mocks'
@@ -213,7 +214,7 @@ describe('createNewWallet', () => {
     it('clears any backup status left by an earlier wallet of the same name', async () => {
       await createNewWallet('newWallet')
 
-      expect(mockSetBackupStatus).toHaveBeenCalledWith('newWallet', 'none')
+      expect(mockClearBackupStatus).toHaveBeenCalledWith('newWallet')
     })
 
     it('records the wallet type rather than relying on the default', async () => {
@@ -666,6 +667,12 @@ describe('createNewHDWallet', () => {
       await createNewHDWallet('newHDWallet')
 
       expect(mockSetWalletType).toHaveBeenCalledWith('newHDWallet', 'hd')
+    })
+
+    it('clears any backup status left by an earlier wallet of the same name', async () => {
+      await createNewHDWallet('newHDWallet')
+
+      expect(mockClearBackupStatus).toHaveBeenCalledWith('newHDWallet')
     })
 
     it('records wallet creation date in settings', async () => {

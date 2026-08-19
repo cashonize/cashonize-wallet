@@ -16,6 +16,8 @@ import {
   mockGetAllWalletsWithNetworkInfo,
   mockDeleteWalletFromDb,
   mockPruneHdWalletKeyCache,
+  mockClearBackupStatus,
+  mockClearWalletMetadata,
   mockGetNamedWalletIdFromDb,
 } from './mocks/store.mocks'
 
@@ -361,6 +363,29 @@ describe('deleteWallet', () => {
     await store.deleteWallet('otherWallet')
 
     expect(mockPruneHdWalletKeyCache).toHaveBeenCalled()
+  })
+
+  it('clears the backup status and metadata of the deleted wallet', async () => {
+    const store = useStore()
+    store.setWallet(mockMainnetWallet as never)
+
+    await store.deleteWallet('otherWallet')
+
+    expect(mockClearBackupStatus).toHaveBeenCalledWith('otherWallet')
+    expect(mockClearWalletMetadata).toHaveBeenCalledWith('otherWallet')
+  })
+
+  // Both are keyed by wallet name, so a status surviving a failed deletion would be inherited by
+  // the next wallet of that name. The prune runs last precisely so it cannot skip them.
+  it('clears them even when the key cache prune fails', async () => {
+    const store = useStore()
+    store.setWallet(mockMainnetWallet as never)
+    mockPruneHdWalletKeyCache.mockRejectedValueOnce(new Error('prune failed'))
+
+    await expect(store.deleteWallet('otherWallet')).rejects.toThrowError()
+
+    expect(mockClearBackupStatus).toHaveBeenCalledWith('otherWallet')
+    expect(mockClearWalletMetadata).toHaveBeenCalledWith('otherWallet')
   })
 
   it('does not prune the key cache when the delete is refused', async () => {
