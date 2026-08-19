@@ -52,7 +52,8 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 - The wallet type (`WalletType`) is a union of all four classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB via `@mainnet-cash/indexeddb-storage`
-- The app overrides two mainnet-js global defaults: `Config.DefaultParentDerivationPath` (derivation path, in `walletUtils.ts`) and `DefaultProvider.servers` (electrum servers, in `store.ts`). The electrum override must be applied before any `WalletClass.named()`, since HD wallets start address discovery on the default provider during construction.
+- mainnet-js builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. Dapp-supplied transactions are the exception, signed against libauth directly in `wcSigning.ts` / `wizSigning.ts`.
+- The app overrides several mainnet-js defaults. Those in `store.ts` must be applied before the first wallet is constructed, since HD wallets start address discovery during construction; the rest follow a user action instead.
 - Docs: https://mainnet.cash/tutorial/
 
 ### Other Key Dependencies
@@ -70,6 +71,9 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
 
 ***Note:*** some environments (e.g. Safari, iOS) aggressively kill idle WebSocket connections in backgrounded tabs, which may cause stale connections when returning — mainnet-js handles reconnection on actual connection failures separately.
+
+### Electrum Trust Model
+Blockchain data comes from one electrum server at a time and is not verified. `@electrum-cash/network` is a single-server client with no cluster or SPV support, so balance, history, confirmations and block height are that server's claims rather than anything the wallet checks, and they are cached to IndexedDB.
 
 ### CashConnect Transport
 CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). The relay is store-and-forward with per-message TTLs, so dApp and wallet don't need to be online at the same time — a session survives either side going offline (short-lived messages like balance pushes simply expire rather than being replayed). Sessions persist in localStorage, namespaced per wallet identity key, and are restored by the library's `start()`; the app's `cashconnectStore.stop()` stops the service without un-pairing.
