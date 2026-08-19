@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage";
 import { HDWallet, Config, DefaultProvider } from "mainnet-js";
-import { pruneHdWalletKeyCache, hdWalletCacheKey, deleteWalletFromDb } from "../src/utils/wallet/dbUtils";
+import { pruneHdWalletKeyCache, hdWalletCacheKey, deleteWalletFromDb, getAllWalletsWithNetworkInfo } from "../src/utils/wallet/dbUtils";
 import { openIndexedDB } from "../src/utils/cacheUtils";
 
 // These run against a real IndexedDB implementation rather than a mock on purpose: both bugs
@@ -262,5 +262,30 @@ describe('hdWalletCacheKey against mainnet-js', () => {
     const wallet = await HDWallet.fromId(storedWalletId);
 
     expect(hdWalletCacheKey(storedWalletId)).toBe(`walletCache-${wallet.walletId}`);
+  });
+});
+
+describe('getAllWalletsWithNetworkInfo', () => {
+  // The flags decide which network a fallback wallet loads on at startup, so getting one of them
+  // backwards would open the wrong chain rather than merely mislabel a list
+  it('reports each wallet once, with the networks it exists on', async () => {
+    await addWallet("bitcoincash", "mainnetOnly", hdWalletId(mnemonic, "mainnet"));
+    await addWallet("bchtest", "chipnetOnly", hdWalletId(mnemonic, "testnet"));
+    await addWallet("bitcoincash", "both", hdWalletId(otherMnemonic, "mainnet"));
+    await addWallet("bchtest", "both", hdWalletId(otherMnemonic, "testnet"));
+
+    const wallets = await getAllWalletsWithNetworkInfo();
+
+    expect(wallets).toHaveLength(3);
+    expect(wallets.find((wallet) => wallet.name === "mainnetOnly"))
+      .toEqual({ name: "mainnetOnly", hasMainnet: true, hasChipnet: false });
+    expect(wallets.find((wallet) => wallet.name === "chipnetOnly"))
+      .toEqual({ name: "chipnetOnly", hasMainnet: false, hasChipnet: true });
+    expect(wallets.find((wallet) => wallet.name === "both"))
+      .toEqual({ name: "both", hasMainnet: true, hasChipnet: true });
+  });
+
+  it('returns nothing before any wallet exists', async () => {
+    expect(await getAllWalletsWithNetworkInfo()).toEqual([]);
   });
 });
