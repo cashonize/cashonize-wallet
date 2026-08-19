@@ -375,17 +375,18 @@ describe('deleteWallet', () => {
     expect(mockClearWalletMetadata).toHaveBeenCalledWith('otherWallet')
   })
 
-  // Both are keyed by wallet name, so a status surviving a failed deletion would be inherited by
-  // the next wallet of that name. The prune runs last precisely so it cannot skip them.
-  it('clears them even when the key cache prune fails', async () => {
+  // The wallet is already gone when the prune runs, so its failure is reported on its own rather
+  // than making the deletion look like it failed and stranding the per-wallet cleanup with it
+  it('still succeeds and cleans up when the key cache prune fails', async () => {
     const store = useStore()
     store.setWallet(mockMainnetWallet as never)
     mockPruneHdWalletKeyCache.mockRejectedValueOnce(new Error('prune failed'))
 
-    await expect(store.deleteWallet('otherWallet')).rejects.toThrowError()
+    await expect(store.deleteWallet('otherWallet')).resolves.toBeUndefined()
 
     expect(mockClearBackupStatus).toHaveBeenCalledWith('otherWallet')
     expect(mockClearWalletMetadata).toHaveBeenCalledWith('otherWallet')
+    expect(mockDeleteWalletFromDb).toHaveBeenCalledTimes(2)
   })
 
   it('does not prune the key cache when the delete is refused', async () => {

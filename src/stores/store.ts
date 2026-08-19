@@ -815,9 +815,19 @@ export const useStore = defineStore('store', () => {
     // Refresh the available wallets list
     await refreshAvailableWallets();
     // The seed is gone but mainnet-js caches a private key per address for HD wallets, which
-    // would still be able to spend from every address the deleted wallet used. Last, so that a
-    // failure here surfaces without leaving the rest of the deletion half done.
-    await pruneHdWalletKeyCache();
+    // would still be able to spend from every address the deleted wallet used. The wallet itself
+    // is already deleted by this point, so a failure here is reported on its own rather than
+    // making the whole deletion look like it failed.
+    try {
+      await pruneHdWalletKeyCache();
+    } catch (error) {
+      console.error(error);
+      Notify.create({
+        message: t('store.errors.cachedKeysNotCleared'),
+        icon: 'warning',
+        color: "red"
+      })
+    }
   }
 
   async function initializeWalletConnect() {
