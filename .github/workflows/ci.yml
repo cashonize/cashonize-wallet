@@ -24,6 +24,7 @@ jobs:
       - run: pnpm exec quasar prepare  # generates .quasar/tsconfig.json for path aliases
       - run: pnpm lint
       - run: pnpm exec vue-tsc --noEmit
+      - run: pnpm check:i18n
       - run: pnpm test
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e

@@ -4,6 +4,7 @@
 // Usage: node scripts/prStats.ts <base-revision>
 
 import { execFileSync } from 'node:child_process';
+import { flattenKeys, localesDirectory, referenceLocale } from './locales.ts';
 
 function requireBaseRevision(): string {
   const revision = process.argv[2];
@@ -312,16 +313,6 @@ for (const change of changes.filter((change) => change.filePath.endsWith('packag
   for (const name of Object.keys(before)) {
     if (!(name in after)) removedDependencies.push(`\`${name}\``);
   }
-}
-
-const localesDirectory = 'src/i18n/locales';
-const referenceLocale = 'en.json';
-
-function flattenKeys(value: unknown, prefix = ''): string[] {
-  if (typeof value !== 'object' || value === null) return [prefix];
-  return Object.entries(value).flatMap(([key, nested]) =>
-    flattenKeys(nested, prefix === '' ? key : `${prefix}.${key}`),
-  );
 }
 
 function localeKeys(fileName: string): string[] {

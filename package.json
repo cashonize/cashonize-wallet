@@ -14,6 +14,7 @@
   "scripts": {
     "lint": "eslint -c ./eslint.config.ts \"./src*/**/*.{ts,js,vue}\" \"./test/**/*.{ts,js,vue}\"",
     "test": "vitest",
+    "check:i18n": "node scripts/checkI18n.ts",
     "dev": "quasar dev",
     "build": "quasar build",
     "test:e2e": "playwright test --config test/e2e/playwright.config.ts",

@@ -1,7 +1,10 @@
 {
   "extends": "./.quasar/tsconfig.json",
   "compilerOptions": {
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    // scripts/ runs straight through node, which strips types rather than resolving them, so an
+    // import between two scripts has to name the .ts file it means
+    "allowImportingTsExtensions": true
   },
   "exclude": [
     "dist",
