@@ -137,7 +137,9 @@
     if (isPledging.value || !pledgeTemplate) return;
     isPledging.value = true;
     try {
-      if (expired.value) throw new Error(t('flipstarter.errors.campaignExpired'));
+      // Not the expired computed, which only recalculates when the template changes: the page
+      // can sit open past the deadline
+      if (isTemplateExpired(pledgeTemplate, nowSeconds())) throw new Error(t('flipstarter.errors.campaignExpired'));
 
       const donationAmount = pledgeTemplate.donation.amount;
       const confirmed = await confirmDialog(
@@ -146,6 +148,8 @@
         t('flipstarter.confirm.button')
       );
       if (!confirmed) return;
+      // The dialog can sit open past the deadline as well
+      if (isTemplateExpired(pledgeTemplate, nowSeconds())) throw new Error(t('flipstarter.errors.campaignExpired'));
 
       // The preparation transaction: a coin of exactly the donation amount, paid to this wallet.
       // It is a real transaction with its own fee, paid whether or not the campaign ever fills.

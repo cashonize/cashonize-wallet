@@ -384,10 +384,9 @@ export type CauldronValueLocked = z.infer<typeof CauldronValueLockedSchema>;
 // Satoshi values arrive as int, float or string depending on the campaign frontend. Floats with
 // decimal places, and strings that are not whole numbers, are rejected rather than rounded.
 const flipstarterSatoshiSchema = z.union([
-  z.number().int(),
-  z.number().refine(Number.isInteger, "Value should not have decimal places"),
-  z.string().regex(/^\d+$/, "Must be a whole number").transform(Number),
-]).transform((val) => BigInt(val)).refine((val) => val > 0n, "Zero or negative value");
+  z.number().int().transform((val) => BigInt(val)),
+  z.string().regex(/^\d+$/, "Must be a whole number").transform((val) => BigInt(val)),
+]).refine((val) => val > 0n, "Zero or negative value");
 
 // The template a campaign hands the user, base64-encoded. It carries no campaign identity at
 // all: no name, no description, no domain, nothing tying the addresses to anyone.

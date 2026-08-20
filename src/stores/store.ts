@@ -1244,7 +1244,8 @@ export const useStore = defineStore('store', () => {
   }
 
   function hasPreGenesis(){
-    const preGenesisUtxo = walletUtxos.value?.find(utxo => !utxo.token && utxo.vout === 0);
+    // The spendable pool is the set tokenGenesis selects its genesis input from
+    const preGenesisUtxo = spendableUtxos.value?.find(utxo => !utxo.token && utxo.vout === 0);
     plannedTokenId.value = preGenesisUtxo?.txid ?? undefined;
   }
 
@@ -1337,26 +1338,29 @@ export const useStore = defineStore('store', () => {
 
   // maxAmountToSend is fetched, not derived, so it does not follow the spendable pool on its own
   async function refreshMaxAmountToSend() {
-    const pool = spendableUtxos.value;
-    if (!pool) return;
     try {
-      maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options: { utxoIds: pool } });
+      maxAmountToSend.value = await spend.getMaxAmountToSend();
     } catch (error) {
       maxAmountToSend.value = undefined;
       console.error("Failed to update maxAmountToSend:", error);
     }
   }
 
-  // Spending goes through store.spend so mainnet-js's coin selection is always narrowed to the
-  // spendable pool; the no-restricted-syntax rule in eslint.config.ts enforces it.
   type SpendOptions = Omit<SendRequestOptionsI, 'utxoIds'>;
 
-  // A missing pool means the utxos have not loaded, and falling through would hand mainnet-js an
-  // unrestricted selection
-  function spendPool(): Utxo[] {
-    const pool = spendableUtxos.value;
-    if (!pool) throw new Error(t('store.errors.utxosNotLoaded'));
-    return pool;
+  // Spending goes through store.spend so a reserved coin never enters mainnet-js's coin selection
+  // utxoIds is only set while a coin is reserved, and from the wallet's current coins rather than
+  // the walletUtxos ref: mainnet-js rejects any passed coin missing from its own fresher view.
+  async function excludeReservedUtxos() {
+    const hasReservedUtxos = Object.keys(reservedUtxos.value).length > 0;
+    if (!hasReservedUtxos) return undefined;
+    return spendableFromUtxos(await wallet.value.getUtxos(), reservedUtxos.value);
+  }
+
+  function createSpendConfig(options?: SpendOptions, utxoIds?: Utxo[]) {
+    if (!utxoIds) return options;
+    // utxoIds last, so a spread can never win over it
+    return { ...options, utxoIds };
   }
 
   // Narrowing utxoIds does not cover ensureUtxos: mainnet-js seeds its selection with every
@@ -1370,42 +1374,46 @@ export const useStore = defineStore('store', () => {
   }
 
   const spend = {
-    send(requests: SendRequestType, options?: SpendOptions) {
+    async send(requests: SendRequestType, options?: SpendOptions) {
       checkNoReservedUtxos(options);
-      // utxoIds last, so a spread can never win over it
-      return wallet.value.send(requests, { ...options, utxoIds: spendPool() });
+      const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
+      return wallet.value.send(requests, spendConfig);
     },
-    sendMax(cashaddr: string, options?: SpendOptions) {
+    async sendMax(cashaddr: string, options?: SpendOptions) {
       checkNoReservedUtxos(options);
-      return wallet.value.sendMax(cashaddr, { ...options, utxoIds: spendPool() });
+      const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
+      return wallet.value.sendMax(cashaddr, spendConfig);
     },
-    tokenGenesis(
+    async tokenGenesis(
       genesisRequest: TokenGenesisRequest,
       sendRequests?: SendRequestType | SendRequestType[],
       options?: SpendOptions
     ) {
       checkNoReservedUtxos(options);
-      return wallet.value.tokenGenesis(genesisRequest, sendRequests, { ...options, utxoIds: spendPool() });
+      const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
+      return wallet.value.tokenGenesis(genesisRequest, sendRequests, spendConfig);
     },
     // tokenMint and tokenBurn discard an ensureUtxos passed here, using their own to locate the
     // token input; utxoIds still applies to everything else they select
-    tokenMint(
+    async tokenMint(
       category: string,
       mintRequests: TokenMintRequest | TokenMintRequest[],
       deductTokenAmount?: boolean,
       options?: SpendOptions
     ) {
       checkNoReservedUtxos(options);
-      return wallet.value.tokenMint(category, mintRequests, deductTokenAmount, { ...options, utxoIds: spendPool() });
+      const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
+      return wallet.value.tokenMint(category, mintRequests, deductTokenAmount, spendConfig);
     },
-    tokenBurn(burnRequest: TokenBurnRequest, message?: string, options?: SpendOptions) {
+    async tokenBurn(burnRequest: TokenBurnRequest, message?: string, options?: SpendOptions) {
       checkNoReservedUtxos(options);
-      return wallet.value.tokenBurn(burnRequest, message, { ...options, utxoIds: spendPool() });
+      const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
+      return wallet.value.tokenBurn(burnRequest, message, spendConfig);
     },
-    getMaxAmountToSend(outputCount?: number) {
-      const options = { utxoIds: spendPool() };
-      if (outputCount === undefined) return wallet.value.getMaxAmountToSend({ options });
-      return wallet.value.getMaxAmountToSend({ outputCount, options });
+    async getMaxAmountToSend(outputCount?: number) {
+      const spendConfig = createSpendConfig(undefined, await excludeReservedUtxos()) ?? {};
+      if (outputCount === undefined) return wallet.value.getMaxAmountToSend({ options: spendConfig });
+      return wallet.value.getMaxAmountToSend({ outputCount, options: spendConfig });
     },
 
     // The only way a reserved coin is spent: a pool of the one coin sent back to this wallet,

@@ -82,7 +82,6 @@
       "unableToConnectElectrum": "Impossible de se connecter au serveur Electrum '{server}'",
       "deviceOffline": "Votre appareil semble être hors ligne, veuillez vérifier votre connexion internet",
       "bcmrIndexerValidationError": "Erreur de validation de la réponse de l'indexeur BCMR",
-      "utxosNotLoaded": "Les pièces du portefeuille ne sont pas encore chargées",
       "utxoNotReserved": "Cette pièce n'est pas réservée",
       "cannotReserveTokenUtxo": "Une pièce portant un jeton ne peut pas être retenue",
       "reservedEnsureUtxos": "Cette action a besoin d'une pièce que le portefeuille retient"

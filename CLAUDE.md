@@ -38,10 +38,10 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - Wallets are stored in both IndexedDB databases by default (mainnet and chipnet)
 
 ### Platform Concurrency
-Only the web (SPA) target can run multiple live app instances at once: several browser tabs (or a PWA window plus a tab) share the same localStorage and IndexedDB, but each has its own in-memory Pinia state, electrum connections, WalletKit instance, and CashConnect Nostr relay connection (tabs restore the same persisted CashConnect sessions, so a dApp request can trigger approval dialogs in every open tab). There is no cross-tab sync (no `storage` listener or `BroadcastChannel`), so code that persists mutable state must assume another tab can read or write the same keys concurrently and that in-memory state may be stale relative to storage. Electron is single-window by construction (one `createWindow`, all `window.open` denied in `electron-main.ts`) and the Android activity is `launchMode="singleTask"`, so desktop and mobile always have exactly one live instance.
+Only the web (SPA) target can run several live instances at once: browser tabs share localStorage and IndexedDB but nothing in memory (so a dApp request can raise dialogs in every open tab). There is no cross-tab sync: writes to a shared key re-read it first and change only their own entry, and reads trust the copy loaded at wallet activation, so another tab's writes stay invisible until reload. Electron and Android are single-instance by construction.
 
 ### Wallet Concurrency
-Regardless of app instances, the same wallet can be live elsewhere: the user may run Cashonize on several devices at once, or share the seed with other wallet software. On-chain wallet state can therefore change at any moment from outside the running app: in-memory UTXOs, balance and history are a cache kept fresh by electrum subscriptions, not a source of truth, and flows that hold UTXO state across user interaction (coin selection, sign dialogs) must tolerate it going stale.
+Regardless of app instances, the same wallet can be live elsewhere (other devices, other wallet software), so on-chain state can change at any moment: in-memory UTXOs, balance and history are a cache, not a source of truth, and flows holding utxo state across user interaction must tolerate it going stale.
 
 ### mainnet-js (Core Wallet Library)
 

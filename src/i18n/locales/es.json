@@ -82,7 +82,6 @@
       "unableToConnectElectrum": "No se puede conectar al servidor Electrum '{server}'",
       "deviceOffline": "Tu dispositivo parece estar sin conexión, comprueba tu conexión a internet",
       "bcmrIndexerValidationError": "Error de validación de respuesta del indexador BCMR",
-      "utxosNotLoaded": "Las monedas de la cartera aún no se han cargado",
       "utxoNotReserved": "Esta moneda no está reservada",
       "cannotReserveTokenUtxo": "Una moneda que lleva un token no se puede retener",
       "reservedEnsureUtxos": "Esta acción necesita una moneda que la cartera está reteniendo"

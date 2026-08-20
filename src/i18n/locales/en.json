@@ -82,7 +82,6 @@
       "unableToConnectElectrum": "Unable to connect to Electrum server '{server}'",
       "deviceOffline": "Your device appears to be offline, please check your internet connection",
       "bcmrIndexerValidationError": "BCMR indexer response validation error",
-      "utxosNotLoaded": "Wallet coins have not loaded yet",
       "utxoNotReserved": "This coin is not reserved",
       "cannotReserveTokenUtxo": "A coin carrying a token cannot be held back",
       "reservedEnsureUtxos": "This action needs a coin the wallet is holding back"
