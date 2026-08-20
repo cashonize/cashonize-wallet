@@ -33,7 +33,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Transaction history** - Filterable, searchable history with private transaction notes
 - **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
 - **HD address management** - Address overview with balances, labels and marking addresses as used
-- **Wallet tools** - Sign and verify messages, and transfer all assets to another wallet
+- **Wallet tools** - Sign and verify messages, freeze coins, and transfer all assets to another wallet
 - **Sweep functionality** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
 
 
@@ -49,6 +49,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Cauldron price display** - View live Cauldron DEX prices for fungible tokens
 - **Parsable NFTs** - Decode NFT commitments and display their data as human-readable attributes (parsable BCMR support)
 - **ParyonUSD loan keys** - Supports the ParyonUSD loan key extension to fetch and display live loan state
+- **Flipstarter pledges** - Make and cancel pledges to Flipstarter campaigns from the wallet
 
 ## Platforms
 

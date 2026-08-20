@@ -15,6 +15,7 @@ pnpm dev                   # Start development server (opens browser)
 pnpm build                 # Production build (generates dist/stats.html bundle analysis)
 pnpm lint                  # ESLint check
 pnpm test                  # Run vitest tests
+pnpm check:i18n            # Locale files: duplicate keys, key parity, placeholders
 pnpm exec vue-tsc --noEmit # Type check (Vue projects use vue-tsc, not plain tsc)
 ```
 
@@ -28,6 +29,7 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - **settingsStore.ts**: User preferences persisted to localStorage - currency, dark mode, electrum servers, per-wallet backup status, auto-approve settings for WalletConnect.
 - **walletconnectStore.ts** / **cashconnectStore.ts**: dApp connection protocol handlers. Access the wallet via Pinia cross-store ref (`useStore()` inside `defineStore` setup).
 - `_wallet` is a `shallowRef`: mainnet-js owns the wallet's internal state, so only swapping wallets is reactive, not changes inside the wallet object. Reactive code reading wallet internals depends on `walletUtxos` instead, which is why `store.walletHasAddress()` exists next to `store.wallet.hasAddress()`.
+- Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to the spendable pool; an ESLint rule enforces it.
 
 ### Multi-Wallet Support
 - Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet)
@@ -65,7 +67,7 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 
 ### Persistent Storage
 - **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (via `@mainnet-cash/indexeddb-storage`, see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
-- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
+- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
 The app reaches into mainnet-js's databases itself, in `dbUtils.ts` and the settings menu's cache-size/clear and delete flows. Some of that goes through mainnet-js's own storage provider, the rest is raw IndexedDB where not even that reaches. There we have to keep matching its versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and mainnet-js finding it already there never runs its own setup.
@@ -143,7 +145,9 @@ Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). See `devel
 
 ## Dependency Pinning
 
-Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together. `@wizardconnect/wallet` additionally carries a pnpm patch (`patches/`) fixing a disconnect race — re-check whether it's still needed on upgrades.
+Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
+
+Two deps carry pnpm patches (`patches/`) — re-check whether either is still needed on upgrades: `@wizardconnect/wallet` fixes a disconnect race, and `mainnet-js` adds `encodedTransaction` to the send response, which `send()` otherwise discards after broadcasting.
 
 ## Code Style Preferences
 
