@@ -72,6 +72,13 @@
     const sats = Number(store.balance);
     return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
+  // Part of the balance above, not a separate amount: shown so the balance and the lower figure
+  // the send form will accept do not silently disagree
+  const reservedInBchUnit = computed(() => {
+    if (!store.reservedBalance) return undefined;
+    const sats = Number(store.reservedBalance);
+    return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
+  });
   const maxAmountToSendInBchUnit = computed(() => {
     if (store.maxAmountToSend === undefined) return undefined;
     const sats = Number(store.maxAmountToSend);
@@ -227,7 +234,7 @@
       if(settingsStore.bchUnit === 'sat') amountSats = BigInt(bchSendAmount.value)
       const sendBchOutput = { cashaddr: destinationAddr.value, value:amountSats } ;
       notifySending(t('wallet.sendingTransaction'));
-      const { txId } = await store.wallet.send([ sendBchOutput ]);
+      const { txId } = await store.spend.send([ sendBchOutput ]);
       const formattedAmount = numberFormatter.format(bchSendAmount.value)
       const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address: destinationAddr.value })
       // reset fields
@@ -285,6 +292,11 @@
         {{ balanceInBchUnit !== undefined ? numberFormatter.format(balanceInBchUnit) + displayUnitLong : "" }}
       </span>
     </span>
+    <div v-if="reservedInBchUnit" style="color: grey;">
+      {{ t('wallet.reservedBalance', {
+        amount: numberFormatter.format(reservedInBchUnit) + displayUnitLong
+      }) }}
+    </div>
     <div style="word-break: break-all;">
       {{ t('wallet.address', { network: bchDisplayNetwork }) }}
       <span @click="() => copyToClipboard(store.currentDepositAddress)" style="cursor:pointer;">

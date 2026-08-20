@@ -92,6 +92,25 @@ export default defineConfigWithVueTs(
   },
 
   {
+    // Spending must go through store.spend, which narrows mainnet-js's coin selection to the
+    // spendable pool so a reserved coin can never be picked up as an incidental input. Calling
+    // the wallet's spending methods directly bypasses that, and the result does not fail: the
+    // transaction is built and broadcast, having quietly spent a coin something was holding.
+    // This guards against forgetting, not against evasion: it matches store.wallet.send(), the
+    // shape the codebase actually writes, and not a destructured wallet ref.
+    files: ['src/**/*.ts', 'src/**/*.vue'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...['send', 'sendMax', 'tokenGenesis', 'tokenMint', 'tokenBurn', 'getMaxAmountToSend'].map(method => ({
+          selector: `CallExpression > MemberExpression[property.name='${method}'][object.property.name='wallet']`,
+          message: `Use store.spend.${method}() instead of store.wallet.${method}(), so coin selection stays narrowed to the spendable pool and cannot pick up a reserved coin.`,
+        })),
+      ],
+    }
+  },
+
+  {
     files: [ 'src-pwa/custom-service-worker.ts' ],
     languageOptions: {
       globals: {

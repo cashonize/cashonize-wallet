@@ -37,6 +37,10 @@
       → {{ t('settings.menu.transferAllAssets') }}
     </div>
 
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(18)">
+      → {{ t('settings.menu.flipstarter') }}
+    </div>
+
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">
       → {{ t('settings.menu.signVerifyMessage') }}
     </div>

@@ -32,7 +32,7 @@
       store.plannedTokenId = undefined;
       const walletAddr = store.wallet.getDepositAddress();
       notifySending(t('createTokens.notifications.preparingPreGenesis'));
-      const { txId } = await store.wallet.send([{ cashaddr: walletAddr, value: 10000n }]);
+      const { txId } = await store.spend.send([{ cashaddr: walletAddr, value: 10000n }]);
       $q.notify({
         type: 'positive',
         message: t('createTokens.notifications.transactionSent')
@@ -96,7 +96,7 @@
       const totalSupply = inputFungibleSupply.value;
       const opreturnData = await getOpreturnData();
       notifySending(t('createTokens.notifications.creatingTokens'));
-      const genesisResponse = await store.wallet.tokenGenesis(
+      const genesisResponse = await store.spend.tokenGenesis(
         {
           cashaddr: store.wallet.getTokenDepositAddress(),
           amount: BigInt(totalSupply),    // fungible token amount
@@ -124,7 +124,7 @@
     try{
       const opreturnData = await getOpreturnData();
       notifySending(t('createTokens.notifications.creatingMintingNft'));
-      const genesisResponse = await store.wallet.tokenGenesis(
+      const genesisResponse = await store.spend.tokenGenesis(
         {
           cashaddr: store.wallet.getTokenDepositAddress(),
           nft: {
@@ -163,7 +163,7 @@
         <br><br>
       </div>
 
-      <div v-if="store.balance === 0n" style="color: red;">{{ t('createTokens.needBch') }}</div>
+      <div v-if="store.spendableBalance === 0n" style="color: red;">{{ t('createTokens.needBch') }}</div>
       <div style="margin-bottom: 1em;">
         <div v-if="store.plannedTokenId == ''">
           {{ t('createTokens.noUtxos') }} <br>

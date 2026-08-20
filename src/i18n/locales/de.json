@@ -81,7 +81,10 @@
       "errorFetchingHistory": "Fehler beim Abrufen der Wallet-Historie",
       "unableToConnectElectrum": "Verbindung zum Electrum-Server '{server}' nicht möglich",
       "deviceOffline": "Dein Gerät scheint offline zu sein, bitte überprüfe deine Internetverbindung",
-      "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort"
+      "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort",
+      "utxoNotReserved": "Diese Coin ist nicht reserviert",
+      "cannotReserveTokenUtxo": "Ein Coin, der einen Token trägt, kann nicht zurückgehalten werden",
+      "reservedEnsureUtxos": "Diese Aktion benötigt einen Coin, den die Wallet zurückhält"
     }
   },
   "onboarding": {
@@ -163,7 +166,8 @@
       "insufficientFunds": "Nicht genug BCH im Wallet",
       "invalidAddress": "Ungültige BCH-Adresse angegeben",
       "notCashaddress": "Keine cashaddress im aktuellen Netzwerk"
-    }
+    },
+    "reservedBalance": "Zurückgehalten: {amount}"
   },
   "portfolio": {
     "title": "Portfolio",
@@ -670,7 +674,15 @@
     "loadingFailed": "UTXO-Daten konnten nicht geladen werden",
     "markers": {
       "bchOnToken": "Enthält mehr BCH, als ein Token-UTXO braucht",
-      "largeBch": "Enthält eine große Menge BCH"
+      "largeBch": "Enthält eine große Menge BCH",
+      "reserved": "Zurückgehalten für ein offenes Flipstarter-Pledge, eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
+      "reservedRelease": "Brich das Pledge auf der Flipstarter-Seite ab, um die Münze freizugeben.",
+      "freeze": "Zum Einfrieren klicken",
+      "frozen": "Von dir eingefroren, zum Auftauen klicken",
+      "unfreeze": "Auftauen",
+      "availableShort": "Verfügbar",
+      "frozenShort": "Eingefroren",
+      "reservedShort": "Reserviert"
     },
     "filters": {
       "bch": "BCH",
@@ -696,15 +708,23 @@
       "title": "Fungible Token + NFT UTXOs",
       "empty": "Dieses Wallet hat keine UTXOs, die zugleich einen fungiblen Betrag und ein NFT enthalten."
     },
+    "reservedSummary": "{count} zurückgehaltene Münze, außerhalb deines verfügbaren Guthabens | {count} zurückgehaltene Münzen, außerhalb deines verfügbaren Guthabens",
+    "freeze": {
+      "title": "Diese Münze einfrieren",
+      "message": "Eine eingefrorene Münze bleibt in deinem Wallet, wird aber von jeder Zahlung dieser App ausgelassen, dein verfügbares Guthaben sinkt also um {amount}. Du kannst sie jederzeit aus dieser Liste wieder auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere dieselbe Münze auch dort ein.",
+      "button": "Einfrieren"
+    },
     "stats": {
       "totalUtxos": "UTXOs gesamt",
       "bchOnlyUtxos": "Reine BCH-UTXOs",
-      "tokenUtxos": "Token-UTXOs"
+      "tokenUtxos": "Token-UTXOs",
+      "reservedUtxos": "Reservierte UTXOs"
     },
     "consolidate": {
       "title": "BCH-UTXOs konsolidieren",
       "description": "Alle reinen BCH-UTXOs zu einem einzigen UTXO zusammenfassen. Wenn eine dApp dich auffordert, \"deine Mittel zu konsolidieren\", obwohl du genug Guthaben hast, bedeutet das, dass du zu viele kleine UTXOs hast.",
       "usageHint": "Eine dApp kann dich bitten zu konsolidieren, wenn ihr Transaktionsaufbau oder ihr Contract nur einen einzigen Input von dir annehmen kann. Dieser eine UTXO muss dann den ganzen Betrag abdecken, egal wie viel du insgesamt hältst.",
+      "heldExcluded": "Dies schließt alle als reserviert oder eingefroren markierten BCH-UTXOs aus.",
       "consolidatingButton": "Konsolidieren...",
       "consolidateButton": "BCH konsolidieren",
       "alreadyConsolidated": "Dein Wallet hat bereits {status} reinen BCH-UTXO.",
@@ -731,6 +751,8 @@
       "type": "Typ",
       "txId": "TxId",
       "vout": "Vout",
+      "status": "Status",
+      "action": "Aktion",
       "address": "Adresse",
       "utxoCount": "UTXOs",
       "bchHeld": "Enthaltenes BCH",
@@ -868,7 +890,8 @@
       "success": "Alle Werte erfolgreich übertragen"
     },
     "errors": {
-      "ownAddress": "Das Ziel ist eine Adresse dieses selben Wallets"
+      "ownAddress": "Das Ziel ist eine Adresse dieses selben Wallets",
+      "reservedCoins": "Diese Wallet hält Coins zurück und kann daher nicht alles übertragen. Die Seite UTXO-Verwaltung zeigt, welche Coins zurückgehalten werden und warum."
     }
   },
   "requestPayment": {
@@ -1098,7 +1121,8 @@
       "noAddressForSession": "Keine Adresse für Sitzung gefunden",
       "addressNotInHdCache": "Adresse nicht im HD Wallet Cache gefunden: {address}",
       "noPrivateKeyForAddress": "Kein privater Schlüssel für Adresse verfügbar (Watch-only Wallet)",
-      "failedToCompressPublicKey": "Öffentlicher Schlüssel konnte nicht komprimiert werden"
+      "failedToCompressPublicKey": "Öffentlicher Schlüssel konnte nicht komprimiert werden",
+      "reservedInputs": "Diese Anfrage würde einen Coin ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche Coins zurückgehalten werden und warum."
     },
     "notifications": {
       "successfullySignedMessage": "Nachricht erfolgreich signiert",
@@ -1139,7 +1163,8 @@
       "invalidUri": "Keine gültige WizardConnect-URI",
       "invalidTransactionSchema": "Fehler bei der Schema-Validierung der WizardConnect-Transaktionsanfrage",
       "failedToSignTransaction": "Transaktion konnte nicht signiert werden",
-      "errorSendingTransaction": "Fehler beim Senden der Transaktion"
+      "errorSendingTransaction": "Fehler beim Senden der Transaktion",
+      "reservedInputs": "Diese Anfrage würde einen Coin ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche Coins zurückgehalten werden und warum."
     },
     "notifications": {
       "sendingTransaction": "Transaktion wird gesendet...",
@@ -1176,7 +1201,8 @@
       "signVerifyMessage": "Nachricht signieren / verifizieren",
       "exportXpub": "Xpub exportieren",
       "tokenCreationPage": "Token-Erstellungsseite",
-      "aboutCashonize": "Über Cashonize"
+      "aboutCashonize": "Über Cashonize",
+      "flipstarter": "Flipstarter"
     },
     "localization": {
       "language": "Sprache:",
@@ -1253,5 +1279,96 @@
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu."
     },
     "madeWith": "Erstellt mit {heart} von Mathieu G."
+  },
+  "flipstarter": {
+    "title": "Flipstarter",
+    "description": "Sage einer Flipstarter-Kampagne einen Beitrag zu. Füge die Pledge-Anfrage von der Kampagnenseite ein, und dieses Wallet gibt dir ein signiertes Pledge zurück, das du dort wieder einfügst.",
+    "newPledgeMode": "Neues Pledge",
+    "step": "Schritt {current} von {total}",
+    "templateLabel": "Pledge-Anfrage",
+    "templatePlaceholder": "Füge die Pledge-Anfrage von der Kampagnenseite ein",
+    "recipientCount": "{count} Empfänger | {count} Empfänger",
+    "expires": "Kampagne läuft ab: {date}",
+    "ecPluginCompatible": "Cashonize ist mit dem EC-Plugin-Ablauf kompatibel.",
+    "ecPluginCompatibleDetail": "Cashonize erzeugt dasselbe Pledge wie das Electron-Cash-Plugin, also gelten hier die Plugin-Schritte einer Kampagne, und ihr Schritt \"Copy details\" gibt dir die Pledge-Anfrage zum Einfügen oben.",
+    "readTemplate": "Pledge prüfen",
+    "startOver": "Neu beginnen",
+    "aliasLabel": "Name",
+    "aliasPlaceholder": "Wie du genannt werden möchtest (optional)",
+    "commentLabel": "Kommentar",
+    "commentPlaceholder": "Ein Kommentar für die Kampagnenseite (optional)",
+    "dataPublished": "Dein Name und Kommentar werden auf der Kampagnenseite veröffentlicht.",
+    "pledgeButton": "Zusage vorbereiten",
+    "pledgingButton": "Wird vorbereitet...",
+    "preparingCoin": "Zusage-Coin wird vorbereitet...",
+    "warnings": {
+      "notAPayment": "Eine Zusage ist keine Zahlung. Das Geld bewegt sich nur, wenn die Kampagne ihr Ziel erreicht, und bis dahin wird die Coin zurückgehalten und zählt nicht zu deinem verfügbaren Guthaben.",
+      "dappActions": "Solange ein Pledge offen ist, können dApp-Aktionen aus diesem Wallet fehlschlagen, weil das Wallet die zugesagte Münze nicht zum Ausgeben signiert. Nutze ein eigenes Wallet für Pledges, wenn du dApps regelmäßig verwendest.",
+      "dappActionsDetail": "Das betrifft WalletConnect und WizardConnect, wo die dApp ihre eigene Transaktion baut und die zugesagte Münze auswählen kann. CashConnect ist nicht betroffen: dort wählt das Wallet die Münzen und lässt die zugesagte weg.",
+      "otherDevices": "Die Münze wird nur in dieser App zurückgehalten. Gib aus diesem Wallet nichts auf einem anderen Gerät oder in anderer Wallet-Software aus, solange ein Pledge offen ist, denn das kann dein Pledge stornieren.",
+      "otherDevicesDetail": "Ein anderes Wallet kann nicht wissen, dass die Münze zurückgehalten wird, und wählt sie womöglich für eine gewöhnliche Zahlung. Die Kampagne kann dein signiertes Pledge dann nicht mehr verwenden, und dieses Wallet sieht nur, dass die Münze weg ist, nicht warum. Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere oder reserviere dieselbe Münze auch dort, was die meisten Wallets unterstützen."
+    },
+    "review": {
+      "title": "Zusage-Infos",
+      "noCampaignIdentity": "Die Pledge-Anfrage enthält keinen Kampagnennamen, keine Beschreibung und keine Domain.",
+      "recipient": "Empfänger",
+      "amount": "Betrag",
+      "campaignTotal": "Kampagnenziel: {amount}",
+      "yourPledge": "Dein Pledge: {amount} {fiat} ({share}% des Ziels)",
+      "alreadyExpired": "(bereits abgelaufen)",
+      "ownAddressRecipient": "Eine der Empfängeradressen gehört zu dieser Wallet."
+    },
+    "signedPledge": {
+      "title": "Dein signiertes Pledge",
+      "instructions": "Kopiere dies und füge es auf der Kampagnenseite ein, um deine Zusage abzuschließen. Diese Wallet sendet nichts an die Kampagne.",
+      "copy": "Signiertes Pledge kopieren",
+      "detail": "Die Kampagne kann deine Zusage erst nutzen, wenn du dies auf ihrer Seite einfügst. Diese Wallet sendet es nicht für dich.",
+      "detailNote": "Bis dahin bleibt die Coin zurückgehalten und deckt nichts ab. Storniere die Zusage, um sie freizugeben."
+    },
+    "pledges": {
+      "title": "Deine Zusagen",
+      "empty": "Keine Zusagen aus dieser Wallet.",
+      "recipientCount": "an {count} Empfänger | an {count} Empfänger",
+      "status": {
+        "open": "Coin für diese Zusage zurückgehalten",
+        "expired": "Kampagne abgelaufen, Coin weiterhin zurückgehalten"
+      },
+      "cannotConfirm": "Das Wallet kann nicht bestätigen, dass die Kampagne ein Pledge angenommen hat.",
+      "cannotConfirmDetail": "Diese Einträge sind das, was du hier getan hast, nicht das, was die Kampagne hat. Das Wallet kontaktiert die Kampagne nie und kann daher nicht erfahren, ob dein Pledge angenommen wurde.",
+      "cannotConfirmRecovery": "Wurde eine Zusage nicht angenommen, storniere sie, um die Coin freizugeben."
+    },
+    "confirm": {
+      "title": "Diese Zusage vorbereiten?",
+      "message": "Das zahlt jetzt {amount} an dich selbst und lässt diese Münze bei jeder Zahlung dieser App aus, bis die Kampagne abgeschlossen ist oder du abbrichst. Die Münze wird nur in dieser App zurückgehalten.",
+      "button": "Zusage vorbereiten"
+    },
+    "cancel": {
+      "title": "Diese Zusage stornieren?",
+      "message": "Das gibt die zugesagte Münze zurück an dein Wallet und macht das signierte Pledge, das die Kampagne hat, unbrauchbar.",
+      "button": "Zusage stornieren",
+      "cancelling": "Storniere...",
+      "sending": "Zusage wird storniert...",
+      "done": "Zusage storniert und Coin freigegeben",
+      "doneTitle": "Zusage storniert"
+    },
+    "alerts": {
+      "pledgePrepared": "Pledge-Münze vorbereitet. Kopiere das signierte Pledge unten auf die Kampagnenseite.",
+      "pledgePreparedTitle": "Zusage vorbereitet"
+    },
+    "errors": {
+      "emptyTemplate": "Keine Pledge-Anfrage eingefügt",
+      "templateNotBase64Json": "Das sieht nicht nach einer Pledge-Anfrage von einer Kampagnenseite aus",
+      "invalidTemplate": "Die Pledge-Anfrage ist ungültig",
+      "invalidOutputAddress": "Die Pledge-Anfrage enthält eine ungültige Empfängeradresse: {address}",
+      "pledgeUtxoHasToken": "Die Zusage-Coin trägt einen Token, den die Kampagnentransaktion verbrennen würde",
+      "pledgeUtxoWrongValue": "Der Wert der Zusage-Coin entspricht nicht dem Spendenbetrag",
+      "signingFailed": "Die Zusage konnte nicht signiert werden",
+      "noBroadcastTxid": "Die Vorbereitungstransaktion wurde gesendet, hat aber keine Transaktions-ID zurückgegeben",
+      "noPrivateKey": "Kein privater Schlüssel für die Zusage-Adresse verfügbar",
+      "campaignExpired": "Diese Kampagne ist bereits abgelaufen",
+      "notEnoughSpendable": "Nicht genug verfügbares BCH für diese Zusage"
+    },
+    "whatIsAPledge": "Die Wallet zahlt sich den Zusagebetrag in einer eigenen Transaktion selbst aus, hält diese Coin zurück und signiert sie an die Empfänger der Kampagne. Die Signatur bleibt gültig, wenn die Kampagne weitere Zusagen hinzufügt, die Coin bewegt sich also erst, wenn genug Menschen zugesagt haben.",
+    "whatIsAPledgeNote": "Diese Vorbereitungstransaktion ist eine echte Transaktion mit eigener Gebühr, die anfällt, ob die Kampagne zustande kommt oder nicht."
   }
 }

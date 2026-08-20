@@ -46,6 +46,7 @@
   const transactionCount = computed(() => fungibleTokens.value.length + nftTokens.value.length + 1);
   // Only 'empty' once the utxos have actually loaded
   const isEmpty = computed(() => store.walletUtxos !== undefined && store.walletUtxos.length === 0);
+  const hasReservedCoins = computed(() => (store.reservedWalletUtxos?.length ?? 0) > 0);
 
   const bchDisplayUnit = computed(() => {
     if (store.network == 'mainnet') return settingsStore.bchUnit == 'bch' ? 'BCH' : 'sats';
@@ -132,6 +133,12 @@
 
   async function startTransfer() {
     if (isTransferring.value) return;
+    // This empties the wallet, so there is no version of it that leaves a reserved coin behind:
+    // the coin either moves, breaking whatever holds it, or the wallet is not emptied at all
+    if (hasReservedCoins.value) {
+      displayAndLogError(new Error(t('transferAllAssets.errors.reservedCoins')));
+      return;
+    }
     let destination: string;
     try {
       destination = getDestinationAddress();
@@ -260,12 +267,16 @@
         <span v-if="transactionCount > 1">{{ t('transferAllAssets.transactionCountNote') }}</span>
       </div>
 
+      <div v-if="hasReservedCoins" style="margin-top: 12px; color: red;">
+        {{ t('transferAllAssets.errors.reservedCoins') }}
+      </div>
+
       <input
         @click="startTransfer()"
         type="button"
         class="primaryButton"
         :value="isTransferring ? t('transferAllAssets.transferringButton') : t('transferAllAssets.transferButton')"
-        :disabled="isTransferring || !destinationInput"
+        :disabled="isTransferring || !destinationInput || hasReservedCoins"
         style="margin-top: 12px;"
       >
 

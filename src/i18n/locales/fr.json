@@ -81,7 +81,10 @@
       "errorFetchingHistory": "Erreur lors de la récupération de l'historique du portefeuille",
       "unableToConnectElectrum": "Impossible de se connecter au serveur Electrum '{server}'",
       "deviceOffline": "Votre appareil semble être hors ligne, veuillez vérifier votre connexion internet",
-      "bcmrIndexerValidationError": "Erreur de validation de la réponse de l'indexeur BCMR"
+      "bcmrIndexerValidationError": "Erreur de validation de la réponse de l'indexeur BCMR",
+      "utxoNotReserved": "Cette pièce n'est pas réservée",
+      "cannotReserveTokenUtxo": "Une pièce portant un jeton ne peut pas être retenue",
+      "reservedEnsureUtxos": "Cette action a besoin d'une pièce que le portefeuille retient"
     }
   },
   "onboarding": {
@@ -163,7 +166,8 @@
       "insufficientFunds": "Pas assez de BCH dans le portefeuille",
       "invalidAddress": "Adresse BCH invalide fournie",
       "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel"
-    }
+    },
+    "reservedBalance": "Retenu : {amount}"
   },
   "portfolio": {
     "title": "Portfolio",
@@ -670,7 +674,15 @@
     "loadingFailed": "Échec du chargement des données des UTXOs",
     "markers": {
       "bchOnToken": "Contient plus de BCH qu'un UTXO de token n'en a besoin",
-      "largeBch": "Contient une grande quantité de BCH"
+      "largeBch": "Contient une grande quantité de BCH",
+      "reserved": "Retenue pour un engagement Flipstarter en cours, une dépense depuis ce portefeuille ne la prendra donc pas.",
+      "reservedRelease": "Annulez l'engagement sur la page Flipstarter pour libérer la pièce.",
+      "freeze": "Cliquez pour geler",
+      "frozen": "Gelée par vous, cliquez pour dégeler",
+      "unfreeze": "Dégeler",
+      "availableShort": "Disponible",
+      "frozenShort": "Gelée",
+      "reservedShort": "Réservée"
     },
     "filters": {
       "bch": "BCH",
@@ -696,15 +708,23 @@
       "title": "UTXOs de tokens fongibles + NFT",
       "empty": "Ce portefeuille n'a pas d'UTXOs contenant à la fois un montant fongible et un NFT."
     },
+    "reservedSummary": "{count} pièce retenue, hors de votre solde disponible | {count} pièces retenues, hors de votre solde disponible",
+    "freeze": {
+      "title": "Geler cette pièce",
+      "message": "Une pièce gelée reste dans votre portefeuille mais est écartée de chaque paiement fait par cette application, votre solde disponible baisse donc de {amount}. Vous pouvez la dégeler depuis cette liste à tout moment.\n\nLe gel ne vaut qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y aussi la même pièce.",
+      "button": "Geler"
+    },
     "stats": {
       "totalUtxos": "Total des UTXOs",
       "bchOnlyUtxos": "UTXOs BCH uniquement",
-      "tokenUtxos": "UTXOs de tokens"
+      "tokenUtxos": "UTXOs de tokens",
+      "reservedUtxos": "UTXOs réservés"
     },
     "consolidate": {
       "title": "Consolider les UTXOs BCH",
       "description": "Combinez tous les UTXOs BCH uniquement en un seul UTXO. Si une dApp vous demande de « consolider vos fonds » alors que vous avez suffisamment de solde, cela signifie que vous avez trop de petits UTXOs.",
       "usageHint": "Une dApp peut vous demander de consolider lorsque sa construction de transaction ou son contrat ne peut accepter qu'une seule entrée de votre part. Cet unique UTXO doit alors couvrir la totalité du montant, quel que soit votre solde.",
+      "heldExcluded": "Ceci exclut tout UTXO BCH marqué comme réservé ou gelé.",
       "consolidatingButton": "Consolidation...",
       "consolidateButton": "Consolider BCH",
       "alreadyConsolidated": "Votre portefeuille a déjà {status} UTXO BCH uniquement.",
@@ -731,6 +751,8 @@
       "type": "Type",
       "txId": "TxId",
       "vout": "Vout",
+      "status": "État",
+      "action": "Action",
       "address": "Adresse",
       "utxoCount": "UTXOs",
       "bchHeld": "BCH retenu",
@@ -868,7 +890,8 @@
       "success": "Tous les actifs ont été transférés avec succès"
     },
     "errors": {
-      "ownAddress": "La destination est une adresse de ce même portefeuille"
+      "ownAddress": "La destination est une adresse de ce même portefeuille",
+      "reservedCoins": "Ce portefeuille retient des pièces, il ne peut donc pas tout transférer. La page Gestion des UTXO indique quelles pièces sont retenues et pourquoi."
     }
   },
   "requestPayment": {
@@ -1098,7 +1121,8 @@
       "noAddressForSession": "Aucune adresse trouvée pour la session",
       "addressNotInHdCache": "Adresse non trouvée dans le cache du portefeuille HD : {address}",
       "noPrivateKeyForAddress": "Aucune clé privée disponible pour l'adresse (portefeuille en lecture seule)",
-      "failedToCompressPublicKey": "Échec de la compression de la clé publique"
+      "failedToCompressPublicKey": "Échec de la compression de la clé publique",
+      "reservedInputs": "Cette demande dépenserait une pièce que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quelles pièces sont retenues et pourquoi."
     },
     "notifications": {
       "successfullySignedMessage": "Message signé avec succès",
@@ -1139,7 +1163,8 @@
       "invalidUri": "Ce n'est pas une URI WizardConnect valide",
       "invalidTransactionSchema": "Erreur lors de la validation du schéma de la demande de transaction WizardConnect",
       "failedToSignTransaction": "Échec de la signature de la transaction",
-      "errorSendingTransaction": "Erreur lors de l'envoi de la transaction"
+      "errorSendingTransaction": "Erreur lors de l'envoi de la transaction",
+      "reservedInputs": "Cette demande dépenserait une pièce que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quelles pièces sont retenues et pourquoi."
     },
     "notifications": {
       "sendingTransaction": "Envoi de la transaction...",
@@ -1176,7 +1201,8 @@
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
       "tokenCreationPage": "Page de création de tokens",
-      "aboutCashonize": "À propos de Cashonize"
+      "aboutCashonize": "À propos de Cashonize",
+      "flipstarter": "Flipstarter"
     },
     "localization": {
       "language": "Langue :",
@@ -1253,5 +1279,96 @@
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique."
     },
     "madeWith": "Fait avec {heart} par Mathieu G."
+  },
+  "flipstarter": {
+    "title": "Flipstarter",
+    "description": "Engagez-vous sur une campagne Flipstarter. Collez la demande d'engagement de la page de la campagne, et ce portefeuille vous rend un engagement signé à recoller dedans.",
+    "newPledgeMode": "Nouvel engagement",
+    "step": "Étape {current} sur {total}",
+    "templateLabel": "Demande d'engagement",
+    "templatePlaceholder": "Collez la demande d'engagement de la page de la campagne",
+    "recipientCount": "{count} destinataire | {count} destinataires",
+    "expires": "La campagne expire : {date}",
+    "ecPluginCompatible": "Cashonize est compatible avec le flux EC Plugin.",
+    "ecPluginCompatibleDetail": "Cashonize produit le même engagement que le plugin Electron Cash, ce sont donc les étapes du plugin d'une campagne qui s'appliquent ici, et son étape « Copy details » vous donne la demande d'engagement à coller ci-dessus.",
+    "readTemplate": "Vérifier l'engagement",
+    "startOver": "Recommencer",
+    "aliasLabel": "Nom",
+    "aliasPlaceholder": "Comment vous souhaitez apparaître (facultatif)",
+    "commentLabel": "Commentaire",
+    "commentPlaceholder": "Un commentaire à afficher sur la page de la campagne (facultatif)",
+    "dataPublished": "Votre nom et votre commentaire sont publiés sur la page de la campagne.",
+    "pledgeButton": "Préparer la promesse",
+    "pledgingButton": "Préparation...",
+    "preparingCoin": "Préparation de la pièce de la promesse...",
+    "warnings": {
+      "notAPayment": "Une promesse n'est pas un paiement. L'argent ne bouge que si la campagne atteint son objectif, et jusque-là la pièce est retenue et exclue de ce que vous pouvez dépenser.",
+      "dappActions": "Tant qu'un engagement est ouvert, les actions dApp depuis ce portefeuille peuvent échouer, car le portefeuille refuse de signer la dépense de la pièce engagée. Utilisez un portefeuille distinct pour les engagements si vous utilisez des dApps régulièrement.",
+      "dappActionsDetail": "Cela concerne WalletConnect et WizardConnect, où la dApp construit sa propre transaction et peut choisir la pièce engagée. CashConnect n'est pas concerné : c'est le portefeuille qui choisit les pièces et il laisse de côté celle qui est engagée.",
+      "otherDevices": "La pièce n'est retenue que dans cette application. Ne dépensez pas depuis ce portefeuille sur un autre appareil ou dans un autre logiciel de portefeuille tant qu'un engagement est ouvert, car cela peut annuler votre engagement.",
+      "otherDevicesDetail": "Un autre portefeuille n'a aucun moyen de savoir que la pièce est retenue, il peut donc la choisir pour un paiement ordinaire. La campagne ne pourra alors plus utiliser votre engagement signé, et ce portefeuille verra seulement que la pièce a disparu, sans savoir pourquoi. Si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez ou réservez-y la même pièce, ce que la plupart des portefeuilles permettent."
+    },
+    "review": {
+      "title": "Infos sur la promesse",
+      "noCampaignIdentity": "La demande d'engagement ne contient ni nom, ni description, ni domaine de campagne.",
+      "recipient": "Destinataire",
+      "amount": "Montant",
+      "campaignTotal": "Objectif de la campagne : {amount}",
+      "yourPledge": "Votre engagement : {amount} {fiat} ({share}% de l'objectif)",
+      "alreadyExpired": "(déjà expirée)",
+      "ownAddressRecipient": "Une des adresses de destination appartient à ce portefeuille."
+    },
+    "signedPledge": {
+      "title": "Votre engagement signé",
+      "instructions": "Copiez ceci et collez-le sur la page de la campagne pour finaliser votre promesse. Ce portefeuille n'envoie rien à la campagne.",
+      "copy": "Copier l'engagement signé",
+      "detail": "La campagne ne peut pas utiliser votre promesse tant que vous ne collez pas ceci sur sa page. Ce portefeuille ne l'envoie pas à votre place.",
+      "detailNote": "D'ici là, la pièce reste retenue et ne garantit rien. Annulez la promesse pour la libérer."
+    },
+    "pledges": {
+      "title": "Vos promesses",
+      "empty": "Aucune promesse depuis ce portefeuille.",
+      "recipientCount": "à {count} destinataire | à {count} destinataires",
+      "status": {
+        "open": "Pièce retenue pour cette promesse",
+        "expired": "Campagne expirée, pièce toujours retenue"
+      },
+      "cannotConfirm": "Le portefeuille ne peut pas confirmer que la campagne a accepté un engagement.",
+      "cannotConfirmDetail": "Ces enregistrements sont ce que vous avez fait ici, pas ce que détient la campagne. Le portefeuille ne contacte jamais la campagne, il n'a donc aucun moyen de savoir si votre engagement a été accepté.",
+      "cannotConfirmRecovery": "Si une promesse n'a pas été acceptée, annulez-la pour libérer la pièce."
+    },
+    "confirm": {
+      "title": "Préparer cette promesse ?",
+      "message": "Ceci vous paie {amount} à vous-même maintenant, et laisse cette pièce en dehors de chaque paiement fait par cette application jusqu'à ce que la campagne aboutisse ou que vous annuliez. La pièce n'est retenue que dans cette application.",
+      "button": "Préparer la promesse"
+    },
+    "cancel": {
+      "title": "Annuler cette promesse ?",
+      "message": "Ceci dépense la pièce engagée vers votre portefeuille, ce qui rend inutilisable l'engagement signé détenu par la campagne.",
+      "button": "Annuler la promesse",
+      "cancelling": "Annulation...",
+      "sending": "Annulation de la promesse...",
+      "done": "Promesse annulée et pièce libérée",
+      "doneTitle": "Promesse annulée"
+    },
+    "alerts": {
+      "pledgePrepared": "Pièce d'engagement préparée. Copiez l'engagement signé ci-dessous dans la page de la campagne.",
+      "pledgePreparedTitle": "Promesse préparée"
+    },
+    "errors": {
+      "emptyTemplate": "Aucune demande d'engagement collée",
+      "templateNotBase64Json": "Ceci ne ressemble pas à une demande d'engagement d'une page de campagne",
+      "invalidTemplate": "La demande d'engagement n'est pas valide",
+      "invalidOutputAddress": "La demande d'engagement contient une adresse de destinataire invalide : {address}",
+      "pledgeUtxoHasToken": "La pièce de la promesse porte un jeton, que la transaction de la campagne brûlerait",
+      "pledgeUtxoWrongValue": "La valeur de la pièce ne correspond pas au montant du don",
+      "signingFailed": "Échec de la signature de la promesse",
+      "noBroadcastTxid": "La transaction de préparation a été envoyée mais n'a renvoyé aucun identifiant de transaction",
+      "noPrivateKey": "Aucune clé privée disponible pour l'adresse de la promesse",
+      "campaignExpired": "Cette campagne a déjà expiré",
+      "notEnoughSpendable": "Pas assez de BCH disponible pour cette promesse"
+    },
+    "whatIsAPledge": "Le portefeuille se verse à lui-même le montant de la promesse dans sa propre transaction, retient cette pièce et la signe au profit des destinataires de la campagne. La signature reste valide quand la campagne ajoute d'autres participants, donc la pièce ne bouge que lorsque assez de promesses ont été faites.",
+    "whatIsAPledgeNote": "Cette transaction de préparation est une vraie transaction avec ses propres frais, payés que la campagne aboutisse ou non."
   }
 }

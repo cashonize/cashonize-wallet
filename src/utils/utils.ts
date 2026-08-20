@@ -121,6 +121,24 @@ export function formatRelativeTime(timestamp: number): string {
   return t('relativeTime.monthsDaysAgo', { months, days: remainingDays });
 }
 
+// A deadline sits in the future, which the "ago" strings above cannot express. Intl says it in
+// both directions and in every locale without a translated string per unit.
+export function formatTimeUntil(timestamp: number, locale: string): string {
+  const seconds = timestamp - Math.floor(Date.now() / 1000);
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ['year', 31_536_000],
+    ['month', 2_592_000],
+    ['day', 86_400],
+    ['hour', 3_600],
+    ['minute', 60],
+  ];
+  for (const [unit, size] of units) {
+    if (Math.abs(seconds) >= size) return relative.format(Math.trunc(seconds / size), unit);
+  }
+  return relative.format(seconds, 'second');
+}
+
 export function formatTimestamp(timestamp: number | undefined, dateFormat: DateFormat, short = false): string {
   if (!timestamp) return "Unconfirmed";
   const date = new Date(timestamp * 1000);
