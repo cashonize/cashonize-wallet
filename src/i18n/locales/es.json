@@ -1363,7 +1363,6 @@
       "pledgeUtxoHasToken": "La moneda de la promesa lleva un token, que la transacción de la campaña quemaría",
       "pledgeUtxoWrongValue": "El valor de la moneda de la promesa no coincide con el importe de la donación",
       "signingFailed": "No se pudo firmar la promesa",
-      "pledgeCoinNotFound": "No se encontró la moneda de la promesa preparada",
       "noBroadcastTxid": "La transacción de preparación se envió pero no devolvió un id de transacción",
       "noPrivateKey": "No hay clave privada disponible para la dirección de la promesa",
       "campaignExpired": "Esta campaña ya ha caducado",

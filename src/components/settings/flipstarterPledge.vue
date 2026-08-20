@@ -13,7 +13,6 @@
   import {
     decodeFlipstarterTemplate,
     createPledgeCommitment,
-    findPledgeOutput,
     templateOutputTotal,
     isTemplateExpired,
   } from 'src/utils/tools/flipstarter'
@@ -155,11 +154,13 @@
       // It is a real transaction with its own fee, paid whether or not the campaign ever fills.
       notifySending(t('flipstarter.preparingCoin'));
       const pledgeAddress = store.currentDepositAddress;
-      const { txId, encodedTransaction } = await store.spend.send([{ cashaddr: pledgeAddress, value: donationAmount }]);
-      if (!txId || !encodedTransaction) throw new Error(t('flipstarter.errors.noBroadcastTxid'));
+      const { txId } = await store.spend.send([{ cashaddr: pledgeAddress, value: donationAmount }]);
+      if (!txId) throw new Error(t('flipstarter.errors.noBroadcastTxid'));
 
-      // Read out of the transaction just built rather than the wallet's utxo set, which trails it
-      const pledgeUtxo = findPledgeOutput(encodedTransaction, txId, pledgeAddress, donationAmount);
+      // Not read from the wallet's utxo set, which trails a send. Output 0 relies on mainnet-js's
+      // fixed ordering: requested outputs first in request order, change appended after them.
+      // Note: update if/when mainnet-js randomizes output order
+      const pledgeUtxo = { txid: txId, vout: 0, satoshis: donationAmount, address: pledgeAddress };
 
       // Reserved before signing, so nothing can spend the coin from the moment it exists
       await store.reserveUtxo(pledgeUtxo, 'pledge');

@@ -1363,7 +1363,6 @@
       "pledgeUtxoHasToken": "The pledge coin carries a token, which the campaign transaction would burn",
       "pledgeUtxoWrongValue": "The pledge coin value does not match the donation amount",
       "signingFailed": "Failed to sign the pledge",
-      "pledgeCoinNotFound": "Could not find the prepared pledge coin",
       "noBroadcastTxid": "The preparation transaction was sent but returned no transaction id",
       "noPrivateKey": "No private key available for the pledge address",
       "campaignExpired": "This campaign has already expired",

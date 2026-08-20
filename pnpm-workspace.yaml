@@ -62,4 +62,3 @@ allowBuilds:
 # relay promise settles. Remove once fixed upstream.
 patchedDependencies:
   '@wizardconnect/wallet@0.2.2': patches/@wizardconnect__wallet@0.2.2.patch
-  mainnet-js@3.1.7: patches/mainnet-js@3.1.7.patch

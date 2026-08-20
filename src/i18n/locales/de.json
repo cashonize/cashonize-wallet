@@ -1363,7 +1363,6 @@
       "pledgeUtxoHasToken": "Die Zusage-Coin trägt einen Token, den die Kampagnentransaktion verbrennen würde",
       "pledgeUtxoWrongValue": "Der Wert der Zusage-Coin entspricht nicht dem Spendenbetrag",
       "signingFailed": "Die Zusage konnte nicht signiert werden",
-      "pledgeCoinNotFound": "Die vorbereitete Zusage-Coin wurde nicht gefunden",
       "noBroadcastTxid": "Die Vorbereitungstransaktion wurde gesendet, hat aber keine Transaktions-ID zurückgegeben",
       "noPrivateKey": "Kein privater Schlüssel für die Zusage-Adresse verfügbar",
       "campaignExpired": "Diese Kampagne ist bereits abgelaufen",

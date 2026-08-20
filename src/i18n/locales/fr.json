@@ -1363,7 +1363,6 @@
       "pledgeUtxoHasToken": "La pièce de la promesse porte un jeton, que la transaction de la campagne brûlerait",
       "pledgeUtxoWrongValue": "La valeur de la pièce ne correspond pas au montant du don",
       "signingFailed": "Échec de la signature de la promesse",
-      "pledgeCoinNotFound": "Impossible de trouver la pièce de promesse préparée",
       "noBroadcastTxid": "La transaction de préparation a été envoyée mais n'a renvoyé aucun identifiant de transaction",
       "noPrivateKey": "Aucune clé privée disponible pour l'adresse de la promesse",
       "campaignExpired": "Cette campagne a déjà expiré",

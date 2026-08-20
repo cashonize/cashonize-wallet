@@ -7,17 +7,14 @@ import {
   generateSigningSerializationBch,
   cashAddressToLockingBytecode,
   encodeCashAddress,
-  encodeTransaction,
   hash160,
   type CompilationContextBch,
-  type Output,
   type TransactionCommon,
 } from "@bitauth/libauth";
 import type { Utxo } from "mainnet-js";
 import {
   decodeFlipstarterTemplate,
   createPledgeCommitment,
-  findPledgeOutput,
   templateOutputTotal,
   isTemplateExpired,
 } from "../src/utils/tools/flipstarter";
@@ -243,60 +240,6 @@ describe('createPledgeCommitment', () => {
   function pledgeSighash() {
     return hash256(pledgePreimage());
   }
-});
-
-// The wallet's utxo set trails a send, so the vout of the coin it created is found by matching
-// the outputs of the transaction the wallet just built.
-describe('findPledgeOutput', () => {
-  const changeAmount = 12_345n;
-
-  const encodeOutputs = (outputs: Output[]) => binToHex(encodeTransaction({
-    version: 2,
-    locktime: 0,
-    inputs: [{
-      outpointTransactionHash: hexToBin("b".repeat(64)),
-      outpointIndex: 0,
-      sequenceNumber: 0xffffffff,
-      unlockingBytecode: Uint8Array.of(),
-    }],
-    outputs,
-  }));
-
-  const pledgeOutput = { lockingBytecode: lockingBytecodeOf(pledgeAddress), valueSatoshis: 40_000n };
-
-  it('finds the pledge output among the transaction outputs', () => {
-    const hex = encodeOutputs([
-      { lockingBytecode: lockingBytecodeOf(recipientAddress), valueSatoshis: changeAmount },
-      pledgeOutput,
-    ]);
-    const utxo = findPledgeOutput(hex, pledgeTxid, pledgeAddress, 40_000n);
-    expect(utxo).toEqual({ txid: pledgeTxid, vout: 1, satoshis: 40_000n, address: pledgeAddress });
-  });
-
-  // A single-address wallet returns its change to the very address being matched, so the address
-  // alone does not identify the output and only the exact satoshi comparison carries the match
-  it('matches on value, not just address, when change returns to the same address', () => {
-    const hex = encodeOutputs([
-      { lockingBytecode: lockingBytecodeOf(pledgeAddress), valueSatoshis: changeAmount },
-      pledgeOutput,
-    ]);
-    const utxo = findPledgeOutput(hex, pledgeTxid, pledgeAddress, 40_000n);
-    expect(utxo.vout).toBe(1);
-  });
-
-  it('does not match a token-bearing output of the same address and value', () => {
-    const hex = encodeOutputs([
-      { ...pledgeOutput, token: { category: hexToBin("c".repeat(64)), amount: 1n } },
-      pledgeOutput,
-    ]);
-    const utxo = findPledgeOutput(hex, pledgeTxid, pledgeAddress, 40_000n);
-    expect(utxo.vout).toBe(1);
-  });
-
-  it('raises rather than returning a vout of -1 when nothing matches', () => {
-    const hex = encodeOutputs([{ lockingBytecode: lockingBytecodeOf(recipientAddress), valueSatoshis: 40_000n }]);
-    expect(() => findPledgeOutput(hex, pledgeTxid, pledgeAddress, 40_000n)).toThrow();
-  });
 });
 
 describe('template helpers', () => {

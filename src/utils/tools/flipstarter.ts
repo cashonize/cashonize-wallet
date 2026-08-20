@@ -10,7 +10,6 @@ import {
   secp256k1,
   SigningSerializationFlag,
   generateSigningSerializationBch,
-  decodeTransaction,
   encodeDataPush,
   cashAddressToLockingBytecode,
   type CompilationContextBch,
@@ -71,33 +70,6 @@ export function decodeFlipstarterTemplate(payload: string): FlipstarterTemplate 
     throw new Error(t('flipstarter.errors.invalidTemplate'));
   }
   return result.data;
-}
-
-// The wallet's own utxo set trails a send, so the prepared coin is found in the transaction that
-// was just built instead. Matching the value as well as the address is what makes it exact: a
-// single-address wallet returns its change to the very address being matched.
-export function findPledgeOutput(
-  encodedTransaction: string,
-  txid: string,
-  address: string,
-  satoshis: bigint,
-): Utxo {
-  const lockingBytecode = cashAddressToLockingBytecode(address);
-  if (typeof lockingBytecode === "string") throw new Error(lockingBytecode);
-  const expectedBytecode = binToHex(lockingBytecode.bytecode);
-
-  const transaction = decodeTransaction(hexToBin(encodedTransaction));
-  if (typeof transaction === "string") throw new Error(transaction);
-
-  // The preparation transaction requests no token output, so the last check is only belt and braces
-  const index = transaction.outputs.findIndex(output =>
-    output.valueSatoshis === satoshis &&
-    binToHex(output.lockingBytecode) === expectedBytecode &&
-    !output.token
-  );
-  if (index === -1) throw new Error(t('flipstarter.errors.pledgeCoinNotFound'));
-
-  return { txid, vout: index, satoshis, address };
 }
 
 export function templateOutputTotal(template: FlipstarterTemplate): bigint {

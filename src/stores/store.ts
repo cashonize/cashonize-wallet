@@ -1349,8 +1349,8 @@ export const useStore = defineStore('store', () => {
   type SpendOptions = Omit<SendRequestOptionsI, 'utxoIds'>;
 
   // Spending goes through store.spend so a reserved coin never enters mainnet-js's coin selection
-  // utxoIds is only set while a coin is reserved, and from the wallet's current coins rather than
-  // the walletUtxos ref: mainnet-js rejects any passed coin missing from its own fresher view.
+  // utxoIds is only set while a coin is reserved, and from the wallet's current coins rather
+  // than the walletUtxos ref: a snapshot that trails the wallet's own view fails the send.
   async function excludeReservedUtxos() {
     const hasReservedUtxos = Object.keys(reservedUtxos.value).length > 0;
     if (!hasReservedUtxos) return undefined;
