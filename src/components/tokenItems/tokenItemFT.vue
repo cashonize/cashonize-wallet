@@ -121,7 +121,7 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
@@ -152,7 +152,7 @@
 
       const category = tokenData.value.category;
       notifySending();
-      const { txId } = await store.wallet.send([
+      const { txId } = await store.spend.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
           amount: amountTokensInt,
@@ -178,7 +178,7 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
       if(!burnAmountFTs?.value) throw new Error(t('tokenItem.errors.amountMustBeInteger'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(burnAmountFTs.value, decimals);
@@ -196,7 +196,7 @@
       if (!confirmed) return
 
       notifySending();
-      const { txId } = await store.wallet.tokenBurn({
+      const { txId } = await store.spend.tokenBurn({
           category: category,
           amount: amountTokensInt,
         },
@@ -249,7 +249,7 @@
         outputs.push(changeOutput)
       }
       notifySending();
-      const { txId } = await store.wallet.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
+      const { txId } = await store.spend.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
       displayAuthTransfer.value = false;

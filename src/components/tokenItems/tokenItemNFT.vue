@@ -177,7 +177,7 @@
     try{
       if(selectedNftCount.value === 0) throw new Error(t('tokenItem.errors.noNftsSelected'))
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const category = tokenData.value.category;
       const isAllSelected = selectedNftCount.value === tokenData.value.nfts?.length;
@@ -213,7 +213,7 @@
         }))
       })
       notifySending();
-      const { txId } = await store.wallet.send(outputArray);
+      const { txId } = await store.spend.send(outputArray);
       const nftName = tokenName.value;
       let alertMessage = t('tokenItem.alerts.sentNfts', { count: nftCount, tokenId: category, address: destinationAddr.value });
       if (isAllSelected && nftName) {
@@ -239,7 +239,7 @@
     activeAction.value = 'sending';
     try{
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -256,7 +256,7 @@
       const category = tokenData.value.category;
       const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
       notifySending();
-      const { txId } = await store.wallet.send([
+      const { txId } = await store.spend.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
           category: category,
@@ -284,7 +284,7 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const category = tokenData.value.category;
       const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
@@ -298,7 +298,7 @@
       if (!confirmed) return
 
       notifySending();
-      const { txId } = await store.wallet.tokenBurn(
+      const { txId } = await store.spend.tokenBurn(
         {
           category: category,
           nft: {
@@ -339,7 +339,7 @@
         },
       });
       notifySending();
-      const { txId } = await store.wallet.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
+      const { txId } = await store.spend.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
       displayAuthTransfer.value = false;

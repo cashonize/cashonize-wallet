@@ -81,7 +81,11 @@
       "errorFetchingHistory": "Error in fetching wallet history",
       "unableToConnectElectrum": "Unable to connect to Electrum server '{server}'",
       "deviceOffline": "Your device appears to be offline, please check your internet connection",
-      "bcmrIndexerValidationError": "BCMR indexer response validation error"
+      "bcmrIndexerValidationError": "BCMR indexer response validation error",
+      "utxosNotLoaded": "Wallet coins have not loaded yet",
+      "utxoNotReserved": "This coin is not reserved",
+      "cannotReserveTokenUtxo": "A coin carrying a token cannot be held back",
+      "reservedEnsureUtxos": "This action needs a coin the wallet is holding back"
     }
   },
   "onboarding": {
@@ -163,7 +167,8 @@
       "insufficientFunds": "Not enough BCH in wallet",
       "invalidAddress": "Invalid BCH address provided",
       "notCashaddress": "Not a cashaddress on current network"
-    }
+    },
+    "reservedBalance": "Held back: {amount}"
   },
   "portfolio": {
     "title": "Portfolio",
@@ -670,7 +675,15 @@
     "loadingFailed": "Failed to load UTXO data",
     "markers": {
       "bchOnToken": "Holds more BCH than a token UTXO needs",
-      "largeBch": "Holds a large amount of BCH"
+      "largeBch": "Holds a large amount of BCH",
+      "reserved": "Held back for an open Flipstarter pledge, so a spend from this wallet will not reach for it.",
+      "reservedRelease": "Cancel the pledge on the Flipstarter page to release the coin.",
+      "freeze": "Click to freeze",
+      "frozen": "Frozen by you, click to unfreeze",
+      "unfreeze": "Unfreeze",
+      "availableShort": "Available",
+      "frozenShort": "Frozen",
+      "reservedShort": "Reserved"
     },
     "filters": {
       "bch": "BCH",
@@ -696,15 +709,23 @@
       "title": "Fungible token + NFT UTXOs",
       "empty": "This wallet has no UTXOs holding a fungible amount and an NFT at once."
     },
+    "reservedSummary": "{count} coin held back, kept out of your spendable balance | {count} coins held back, kept out of your spendable balance",
+    "freeze": {
+      "title": "Freeze this coin",
+      "message": "A frozen coin stays in your wallet but is left out of every payment this app makes, so your spendable balance drops by {amount}. Unfreeze it from this list at any time.\n\nFreezing only applies here: if you use this seed phrase in another wallet application, freeze the same coin there too.",
+      "button": "Freeze"
+    },
     "stats": {
       "totalUtxos": "Total UTXOs",
       "bchOnlyUtxos": "BCH-only UTXOs",
-      "tokenUtxos": "Token UTXOs"
+      "tokenUtxos": "Token UTXOs",
+      "reservedUtxos": "Reserved UTXOs"
     },
     "consolidate": {
       "title": "Consolidate BCH UTXOs",
       "description": "Combine all BCH-only UTXOs into a single UTXO. If a dApp asks you to \"consolidate your funds\" even though you have enough balance, it means you have too many small UTXOs.",
       "usageHint": "A dApp may ask you to consolidate when its transaction building or its contract can only take a single input from you. That one UTXO then has to cover the whole amount, no matter how much you hold in total.",
+      "heldExcluded": "This excludes any BCH UTXOs marked as reserved or frozen.",
       "consolidatingButton": "Consolidating...",
       "consolidateButton": "Consolidate BCH",
       "alreadyConsolidated": "Your wallet already has {status} BCH-only UTXO.",
@@ -731,6 +752,8 @@
       "type": "Type",
       "txId": "TxId",
       "vout": "Vout",
+      "status": "Status",
+      "action": "Action",
       "address": "Address",
       "utxoCount": "UTXOs",
       "bchHeld": "BCH held",
@@ -868,7 +891,8 @@
       "success": "Successfully transferred all assets"
     },
     "errors": {
-      "ownAddress": "The destination is an address of this same wallet"
+      "ownAddress": "The destination is an address of this same wallet",
+      "reservedCoins": "This wallet is holding coins back, so it cannot transfer everything. The UTXO Management page shows which coins are held and why."
     }
   },
   "requestPayment": {
@@ -1098,7 +1122,8 @@
       "noAddressForSession": "No address found for session",
       "addressNotInHdCache": "Address not found in HD wallet cache: {address}",
       "noPrivateKeyForAddress": "No private key available for address (watch-only wallet)",
-      "failedToCompressPublicKey": "Failed to compress public key"
+      "failedToCompressPublicKey": "Failed to compress public key",
+      "reservedInputs": "This request would spend a coin the wallet is holding back, so it was refused. The UTXO Management page shows which coins are held and why."
     },
     "notifications": {
       "successfullySignedMessage": "Successfully signed message",
@@ -1139,7 +1164,8 @@
       "invalidUri": "Not a valid WizardConnect URI",
       "invalidTransactionSchema": "Error in validating schema of WizardConnect transaction request",
       "failedToSignTransaction": "Failed to sign transaction",
-      "errorSendingTransaction": "Error in sending transaction"
+      "errorSendingTransaction": "Error in sending transaction",
+      "reservedInputs": "This request would spend a coin the wallet is holding back, so it was refused. The UTXO Management page shows which coins are held and why."
     },
     "notifications": {
       "sendingTransaction": "Sending transaction...",

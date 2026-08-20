@@ -14,6 +14,11 @@ import {
   type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
+  type SendRequestOptionsI,
+  type SendRequestType,
+  type TokenGenesisRequest,
+  type TokenMintRequest,
+  type TokenBurnRequest,
   NetworkType
 } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
@@ -67,6 +72,17 @@ import {
   removeAddressManagementData,
   deriveFreshAddressIndex
 } from "src/utils/wallet/addressManagement"
+import {
+  loadReservedUtxos,
+  saveReservedUtxo,
+  deleteReservedUtxo,
+  removeReservedUtxos,
+  spendableFromUtxos,
+  reservedFromUtxos,
+  outpointOf,
+  type ReservedUtxos,
+  type ReservationReason
+} from "src/utils/wallet/reservedUtxos"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -134,6 +150,8 @@ export const useStore = defineStore('store', () => {
   // (see utils/addressManagement.ts)
   const addressMarks = ref([] as string[]);
   const addressLabels = ref({} as Record<string, string>);
+  // Coins held back from coin selection, keyed by outpoint (see utils/wallet/reservedUtxos.ts)
+  const reservedUtxos = ref({} as ReservedUtxos);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   // Category a token payment request asks for, set when the user chooses to open it from
@@ -180,6 +198,29 @@ export const useStore = defineStore('store', () => {
     void walletUtxos.value;
     return wallet.value.hasAddress(address);
   }
+
+  // undefined while the utxo set is still loading, matching walletUtxos
+  const spendableUtxos = computed(() => {
+    if (!walletUtxos.value) return undefined;
+    return spendableFromUtxos(walletUtxos.value, reservedUtxos.value);
+  })
+
+  const reservedWalletUtxos = computed(() => {
+    if (!walletUtxos.value) return undefined;
+    return reservedFromUtxos(walletUtxos.value, reservedUtxos.value);
+  })
+
+  const reservedBalance = computed(() => {
+    if (!reservedWalletUtxos.value) return undefined;
+    return getBalanceFromUtxos(reservedWalletUtxos.value);
+  })
+
+  // Anything gating a spend on having enough BCH wants this rather than balance, so the check
+  // matches the pool the transaction is built from
+  const spendableBalance = computed(() => {
+    if (!spendableUtxos.value) return undefined;
+    return getBalanceFromUtxos(spendableUtxos.value);
+  })
 
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
   const bcmrIndexer = computed(() => network.value == 'mainnet' ? settingsStore.bcmrIndexerMainnet : settingsStore.bcmrIndexerChipnet)
@@ -331,6 +372,7 @@ export const useStore = defineStore('store', () => {
     txNotes.value = loadTxNotes(newNetwork, newWallet.name);
     addressMarks.value = loadAddressMarks(newNetwork, newWallet.name);
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
+    reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
   }
 
   function setTxNote(txid: string, note: string) {
@@ -460,8 +502,10 @@ export const useStore = defineStore('store', () => {
       // Fetch fiat balance and max amount to send in parallel
       // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
       console.time('fetch fiat balance & max amount to send');
+      // Filtered off the local array rather than the spendableUtxos computed, since walletUtxos
+      // is only assigned further down to keep the UI values appearing together
       const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend({
-        options: { utxoIds: walletAddressUtxos }
+        options: { utxoIds: spendableFromUtxos(walletAddressUtxos, reservedUtxos.value) }
       });
       const balancePromises = [promiseMaxAmountToSend];
       const [resultMaxAmountToSend] = await Promise.all(balancePromises);
@@ -594,7 +638,7 @@ export const useStore = defineStore('store', () => {
           // reset to undefined on failure so a stale send-limit isn't kept next to a fresh balance
           try {
             maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
-              utxoIds: walletAddressUtxos
+              utxoIds: spendableFromUtxos(walletAddressUtxos, reservedUtxos.value)
             }});
           } catch (error) {
             maxAmountToSend.value = undefined;
@@ -684,6 +728,7 @@ export const useStore = defineStore('store', () => {
     balance.value = undefined;
     maxAmountToSend.value = undefined;
     walletUtxos.value = undefined;
+    reservedUtxos.value = {}; // setWallet loads the incoming wallet's own set
     plannedTokenId.value = undefined;
     pendingTokenSearch.value = undefined;
     tokenList.value = null;
@@ -810,6 +855,7 @@ export const useStore = defineStore('store', () => {
     await deleteWalletFromDb(walletName, 'bchtest');
     removeTxNotes(walletName);
     removeAddressManagementData(walletName);
+    removeReservedUtxos(walletName);
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
@@ -1271,6 +1317,112 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // Token coins are out of scope: a fungible send consumes every coin of its category at once, so
+  // holding one back would make sends fail in a way the wallet could not explain to the user.
+  async function reserveUtxo(utxo: Utxo, reason: ReservationReason) {
+    if (utxo.token) throw new Error(t('store.errors.cannotReserveTokenUtxo'));
+    reservedUtxos.value = saveReservedUtxo(
+      network.value, wallet.value.name, utxo, reason, Math.floor(Date.now() / 1000)
+    );
+    await refreshMaxAmountToSend();
+  }
+
+  // Drops a reservation without spending; cancelling a pledge goes through spend.releaseReservedCoin
+  async function dropReservation(outpoint: string) {
+    reservedUtxos.value = deleteReservedUtxo(network.value, wallet.value.name, outpoint);
+    await refreshMaxAmountToSend();
+  }
+
+  // maxAmountToSend is fetched, not derived, so it does not follow the spendable pool on its own
+  async function refreshMaxAmountToSend() {
+    const pool = spendableUtxos.value;
+    if (!pool) return;
+    try {
+      maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options: { utxoIds: pool } });
+    } catch (error) {
+      maxAmountToSend.value = undefined;
+      console.error("Failed to update maxAmountToSend:", error);
+    }
+  }
+
+  // Spending goes through store.spend so mainnet-js's coin selection is always narrowed to the
+  // spendable pool; the no-restricted-syntax rule in eslint.config.ts enforces it.
+  type SpendOptions = Omit<SendRequestOptionsI, 'utxoIds'>;
+
+  // A missing pool means the utxos have not loaded, and falling through would hand mainnet-js an
+  // unrestricted selection
+  function spendPool(): Utxo[] {
+    const pool = spendableUtxos.value;
+    if (!pool) throw new Error(t('store.errors.utxosNotLoaded'));
+    return pool;
+  }
+
+  // Narrowing utxoIds does not cover ensureUtxos: mainnet-js seeds its selection with every
+  // ensureUtxos entry before it looks at the pool, so a reserved coin passed there would be spent.
+  function checkNoReservedUtxos(options?: SpendOptions) {
+    const ensured = options?.ensureUtxos;
+    if (!ensured?.length) return;
+    if (ensured.some(utxo => outpointOf(utxo) in reservedUtxos.value)) {
+      throw new Error(t('store.errors.reservedEnsureUtxos'));
+    }
+  }
+
+  const spend = {
+    send(requests: SendRequestType, options?: SpendOptions) {
+      checkNoReservedUtxos(options);
+      // utxoIds last, so a spread can never win over it
+      return wallet.value.send(requests, { ...options, utxoIds: spendPool() });
+    },
+    sendMax(cashaddr: string, options?: SpendOptions) {
+      checkNoReservedUtxos(options);
+      return wallet.value.sendMax(cashaddr, { ...options, utxoIds: spendPool() });
+    },
+    tokenGenesis(
+      genesisRequest: TokenGenesisRequest,
+      sendRequests?: SendRequestType | SendRequestType[],
+      options?: SpendOptions
+    ) {
+      checkNoReservedUtxos(options);
+      return wallet.value.tokenGenesis(genesisRequest, sendRequests, { ...options, utxoIds: spendPool() });
+    },
+    // tokenMint and tokenBurn discard an ensureUtxos passed here, using their own to locate the
+    // token input; utxoIds still applies to everything else they select
+    tokenMint(
+      category: string,
+      mintRequests: TokenMintRequest | TokenMintRequest[],
+      deductTokenAmount?: boolean,
+      options?: SpendOptions
+    ) {
+      checkNoReservedUtxos(options);
+      return wallet.value.tokenMint(category, mintRequests, deductTokenAmount, { ...options, utxoIds: spendPool() });
+    },
+    tokenBurn(burnRequest: TokenBurnRequest, message?: string, options?: SpendOptions) {
+      checkNoReservedUtxos(options);
+      return wallet.value.tokenBurn(burnRequest, message, { ...options, utxoIds: spendPool() });
+    },
+    getMaxAmountToSend(outputCount?: number) {
+      const options = { utxoIds: spendPool() };
+      if (outputCount === undefined) return wallet.value.getMaxAmountToSend({ options });
+      return wallet.value.getMaxAmountToSend({ outputCount, options });
+    },
+
+    // The only way a reserved coin is spent: a pool of the one coin sent back to this wallet,
+    // which is what cancelling a pledge is. The reservation is dropped only once broadcast, so a
+    // failure here leaves the coin held rather than released into the next unrelated send.
+    async releaseReservedCoin(utxo: Utxo) {
+      const outpoint = outpointOf(utxo);
+      if (!(outpoint in reservedUtxos.value)) throw new Error(t('store.errors.utxoNotReserved'));
+      const response = await wallet.value.sendMax(wallet.value.getDepositAddress(), {
+        utxoIds: [utxo]
+      });
+      // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
+      // pool still holds it and the max-amount refresh asks the server about a spent outpoint
+      await updateWalletUtxos();
+      await dropReservation(outpoint);
+      return response;
+    },
+  };
+
   return {
     activeWalletName,
     availableWallets,
@@ -1278,9 +1430,17 @@ export const useStore = defineStore('store', () => {
     _wallet, // the _wallet is the actual wallet object but this can be null
     wallet, // computed property to access the wallet, always non-null
     walletHasAddress,
-    balance,
+    balance, // everything held, including reserved coins
+    spendableBalance, // balance minus reservedBalance
+    reservedBalance,
     maxAmountToSend,
     walletUtxos,
+    spendableUtxos,
+    reservedUtxos,
+    reservedWalletUtxos,
+    reserveUtxo,
+    dropReservation,
+    spend, // the only route to the wallet's spending methods
     tokenList,
     filteredTokenList,
     walletHistory,

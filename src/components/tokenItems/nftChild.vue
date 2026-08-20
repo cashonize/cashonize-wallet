@@ -110,7 +110,7 @@
     activeAction.value = 'sending';
     try{
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const nftInfo = nftData.value.token as TokenI;
       // confirm payment if setting is enabled
@@ -126,7 +126,7 @@
       }
 
       notifySending();
-      const { txId } = await store.wallet.send([
+      const { txId } = await store.spend.send([
         new TokenSendRequest({
           cashaddr: destinationAddr.value,
           category: nftInfo.category,
@@ -154,7 +154,7 @@
     if (activeAction.value) return;
     activeAction.value = 'burning';
     try {
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const nftInfo = nftData.value.token as TokenI;
       const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
@@ -167,7 +167,7 @@
       if (!confirmed) return
 
       notifySending();
-      const { txId } = await store.wallet.tokenBurn(
+      const { txId } = await store.spend.tokenBurn(
         {
           category: category.value,
           nft: {

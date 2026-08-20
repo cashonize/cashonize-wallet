@@ -6,6 +6,8 @@
   import TokenIcon from 'src/components/general/TokenIcon.vue';
   import { HDWallet, TokenSendRequest } from 'mainnet-js';
   import type { Utxo } from 'mainnet-js';
+  import { outpointOf } from 'src/utils/wallet/reservedUtxos';
+  import { confirmDialog } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -46,6 +48,26 @@
   type UtxoList = keyof NonNullable<typeof utxoLists.value>;
 
   const bchUtxoCount = computed(() => utxoLists.value?.bch.length);
+
+  // A held coin is still listed, since it is still held; the mark says a spend will not reach for
+  // it. Freezing is the user's own, and theirs to undo. A pledge holds its coin until the pledge
+  // itself is cancelled, so this list marks those but does not offer to release them.
+  const reservedUtxoCount = computed(() => store.reservedWalletUtxos?.length);
+  const reservationReason = (utxo: Utxo) => store.reservedUtxos[outpointOf(utxo)]?.reason;
+
+  async function toggleFreeze(utxo: Utxo) {
+    if (reservationReason(utxo) === 'manual') {
+      await store.dropReservation(outpointOf(utxo));
+      return;
+    }
+    // Freezing changes what the wallet reports as spendable, so it says so before it happens
+    const confirmed = await confirmDialog(
+      t('utxoManagement.freeze.title'),
+      t('utxoManagement.freeze.message', { amount: `${formatBchAmount(Number(utxo.satoshis), false, 8)} ${bchDisplayUnit.value}` }),
+      t('utxoManagement.freeze.button')
+    );
+    if (confirmed) await store.reserveUtxo(utxo, 'manual');
+  }
 
   const loadingUtxos = computed(() => store.walletUtxos === undefined);
   // fetched after the utxos, and it carries the decimals a fungible amount is shown in
@@ -198,7 +220,7 @@
         color: 'grey-5',
         timeout: 1000
       })
-      await store.wallet.sendMax(store.wallet.getDepositAddress())
+      await store.spend.sendMax(store.wallet.getDepositAddress())
       $q.notify({
         type: 'positive',
         message: t('utxoManagement.notifications.consolidatedSuccess')
@@ -241,7 +263,7 @@
       })
       // splitBchFromTokenUtxos esentially sends all fungible tokens
       for(const uniqueTokenIdToSplit of uniqueTokenIdsToSplit) {
-        const { txId } = await store.wallet.send([
+        const { txId } = await store.spend.send([
           new TokenSendRequest({
             cashaddr: store.wallet.getTokenDepositAddress(),
             amount: fungibleTokensResult[uniqueTokenIdToSplit] as bigint,
@@ -294,6 +316,9 @@
       <div>
         <span class="stat-value">{{ store.walletUtxos ? getTokenUtxos(store.walletUtxos).length.toLocaleString('en-US') : '...' }}</span> {{ t('utxoManagement.stats.tokenUtxos') }}
       </div>
+      <div v-if="reservedUtxoCount">
+        <span class="stat-value">{{ reservedUtxoCount.toLocaleString('en-US') }}</span> {{ t('utxoManagement.stats.reservedUtxos') }}
+      </div>
     </div>
 
     <!-- Asset kind, each half carries its own maintenance action and lists -->
@@ -334,6 +359,7 @@
               <span v-if="isHdWallet">{{ t('utxoManagement.tableHeaders.address') }}</span>
               <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
               <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+              <span></span>
             </div>
             <div v-for="(utxo, index) in pageOf('bch')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
               <div class="cell row-number">{{ rowNumber('bch', index) }}</div>
@@ -356,7 +382,49 @@
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
                 <span class="mono">{{ utxo.vout }}</span>
               </div>
+              <!-- A coin held for a pledge is marked but not actionable: cancelling the pledge is
+                   what releases it. A coin the user froze is theirs to unfreeze. -->
+              <div class="cell held-cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
+                <InfoPopup v-if="reservationReason(utxo) === 'pledge'">
+                  <template #trigger>
+                    <span class="held-state">
+                      <q-icon name="lock" size="15px" class="held-marker" />
+                      <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
+                    </span>
+                  </template>
+                  <div style="max-width: 300px;">{{ t('utxoManagement.markers.reserved') }}</div>
+                  <div class="info-popup-note" style="max-width: 300px;">{{ t('utxoManagement.markers.reservedRelease') }}</div>
+                </InfoPopup>
+                <template v-else>
+                  <span class="held-label">{{
+                    reservationReason(utxo) === 'manual'
+                      ? t('utxoManagement.markers.frozenShort')
+                      : t('utxoManagement.markers.availableShort')
+                  }}</span>
+                  <span
+                    class="held-action freeze-button"
+                    :class="{ frozen: reservationReason(utxo) === 'manual' }"
+                    :title="reservationReason(utxo) === 'manual' ? t('utxoManagement.markers.frozen') : t('utxoManagement.markers.freeze')"
+                    @click="toggleFreeze(utxo)"
+                  >
+                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
+                    <q-icon name="ac_unit" size="15px" />
+                    <span class="held-label">{{
+                      reservationReason(utxo) === 'manual'
+                        ? t('utxoManagement.markers.unfreeze')
+                        : t('utxoManagement.freeze.button')
+                    }}</span>
+                  </span>
+                </template>
+              </div>
             </div>
+          </div>
+          <!-- Says out loud what a mark on one row only hints at, and why the spendable balance
+               is smaller than the coins listed here add up to -->
+          <div v-if="reservedUtxoCount" class="reserved-summary">
+            <q-icon name="ac_unit" size="14px" class="held-marker" />
+            <span>{{ t('utxoManagement.reservedSummary', reservedUtxoCount) }}</span>
           </div>
           <q-pagination
             v-if="pageCount('bch') > 1"
@@ -382,6 +450,11 @@
         <div v-if="isHdWallet && bchUtxoCount !== undefined && bchUtxoCount > 1" class="warning-box" style="margin-bottom: 10px;">
           <q-icon name="warning" size="20px" class="warning-box-icon" />
           <div><b>{{ t('common.attention') }}</b> {{ t('common.hdPrivacyWarning') }}</div>
+        </div>
+        <!-- Consolidating spends from the same pool as everything else, so it reaches for no coin
+             being held back. Saying so beforehand, since the result is a coin left uncombined -->
+        <div v-if="reservedUtxoCount" class="description">
+          {{ t('utxoManagement.consolidate.heldExcluded') }}
         </div>
         <input
           @click="consolidateBchUtxos()"
@@ -867,6 +940,7 @@ $row-padding-x: 0.45em;
 /* Wide enough to fit their value whole, so it is never cut a second time by an ellipsis */
 $col-number: 1.9em;
 $col-vout: 3em;
+$col-held: 2em;
 $col-capability: 5em;
 $col-type: 5em;
 $col-count: 5.5em;
@@ -918,10 +992,10 @@ $col-commitment: 8em;
 
 /* The slack all goes to the token name and amount, the only two columns that vary in length */
 .grid-bch .utxo-row {
-  grid-template-columns: $col-number minmax($col-bch-amount, 1fr) minmax($col-txid, 1fr) $col-vout;
+  grid-template-columns: $col-number minmax($col-bch-amount, 1fr) minmax($col-txid, 1fr) $col-vout $col-held;
 }
 .grid-bch-hd .utxo-row {
-  grid-template-columns: $col-number minmax($col-bch-amount, 1fr) minmax($col-address, 1fr) minmax($col-txid, 1fr) $col-vout;
+  grid-template-columns: $col-number minmax($col-bch-amount, 1fr) minmax($col-address, 1fr) minmax($col-txid, 1fr) $col-vout $col-held;
 }
 .grid-categories .utxo-row {
   grid-template-columns: minmax($col-name, 1fr) $col-count $col-bch;
@@ -963,6 +1037,71 @@ $col-commitment: 8em;
 /* the marker sits in the token column because that one is flexible, so the name shortens for it */
 .warn-marker {
   flex: none;
+}
+
+.reserved-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: #888;
+  font-size: 0.9em;
+}
+.dark .reserved-summary {
+  color: #aaa;
+}
+
+/* the mark and the offer to freeze share one column, so the row keeps its width either way */
+.held-cell {
+  justify-content: center;
+}
+
+.held-state,
+.held-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+// the width a stacked card gives its cell labels, which the action lines up behind
+$card-label-width: 90px;
+
+/* the column is too narrow for a word beside the mark, and does not need one under a heading */
+.held-label {
+  display: none;
+}
+
+.held-marker {
+  flex: none;
+  color: grey;
+}
+
+/* the offer to freeze is only shown when the pointer is over its row, since most coins are not
+   frozen and a mark on every one of them would say nothing. A touch screen has no hover to wait
+   for, so there it stays visible. */
+.freeze-button {
+  flex: none;
+  cursor: pointer;
+  color: grey;
+  opacity: 0.55;
+}
+.freeze-button:hover {
+  opacity: 1;
+}
+.freeze-button.frozen {
+  color: var(--color-primary);
+  opacity: 1;
+}
+@media (hover: hover) {
+  .freeze-button:not(.frozen) {
+    opacity: 0;
+  }
+  .utxo-row:hover .freeze-button:not(.frozen) {
+    opacity: 0.55;
+  }
+  .utxo-row:hover .freeze-button:not(.frozen):hover {
+    opacity: 1;
+  }
 }
 
 .token-name {
@@ -1045,7 +1184,25 @@ $col-commitment: 8em;
   }
   .utxo-grid .cell-label {
     display: inline;
-    min-width: 90px;
+    min-width: $card-label-width;
+  }
+  /* A card has the room to say what a coin is and what can be done to it separately, rather
+     than leaving one mark to mean both. The state reads on the cell's own line, the action
+     drops to its own beneath it, under a label of its own like every other value here. */
+  .utxo-grid .held-cell {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .utxo-grid .held-label {
+    display: inline;
+  }
+  .utxo-grid .held-action {
+    flex: 0 0 100%;
+    margin-top: 4px;
+  }
+  /* waiting for a hover that a card has no room to hint at would hide the action entirely */
+  .utxo-grid .freeze-button:not(.frozen) {
+    opacity: 0.75;
   }
 }
 
@@ -1064,10 +1221,10 @@ $col-commitment: 8em;
 @container categories-grid (max-width: 20.8em) {
   @include stacked-card;
 }
-@container bch-grid (max-width: 28.4em) {
+@container bch-grid (max-width: 31.1em) {
   @include stacked-card;
 }
-@container bch-hd-grid (max-width: 38.6em) {
+@container bch-hd-grid (max-width: 41.3em) {
   @include stacked-card;
 }
 @container affected-grid (max-width: 39.3em) {

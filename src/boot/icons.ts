@@ -1,5 +1,6 @@
 import { defineBoot } from '#q-app'
 import {
+  matAcUnit,
   matArchive,
   matArrowDownward,
   matArrowUpward,
@@ -27,6 +28,7 @@ import { outlinedInfo } from '@quasar/extras/material-icons-outlined'
 // TODO: Replace icon-name strings with direct SVG imports for compile-time checking.
 // Note: Until then, add every new icon name here; unmapped names render as literal text.
 const appIcons: Record<string, string> = {
+  ac_unit: matAcUnit,
   archive: matArchive,
   arrow_downward: matArrowDownward,
   arrow_upward: matArrowUpward,

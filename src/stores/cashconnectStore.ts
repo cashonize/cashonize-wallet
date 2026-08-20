@@ -9,6 +9,7 @@ import CCErrorDialogVue from "src/components/cashconnect/CCErrorDialog.vue";
 
 // Import MainnetJs and CashConnect
 import type { WalletType } from "src/interfaces/interfaces"
+import { spendableFromUtxos } from "src/utils/wallet/reservedUtxos"
 import { useStore } from "./store"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -249,7 +250,8 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     const compilerP2PKH = walletTemplateToCompilerBch(walletTemplateP2pkhNonHd);
     // Get the UTXOs from the wallet.
     // NOTE: For Mainnet, we need to marry them up with their Private Key later using the wallet's "walletCache".
-    const utxos = await mainStore.wallet.getUtxos();
+    // Reserved coins are withheld, so a dApp selecting from this list never sees them.
+    const utxos = spendableFromUtxos(await mainStore.wallet.getUtxos(), mainStore.reservedUtxos);
     const transformed = utxos.map((utxo) => {
       // Get the Wallet's Internal Information about this address (we need the Private Key for signing).
       const addressKeyPair = mainStore.wallet.walletCache.get(utxo.address);

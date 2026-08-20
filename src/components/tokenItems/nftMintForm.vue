@@ -56,7 +56,7 @@
       const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
       if(!validCommitment) throw new Error(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
 
-      if((store.balance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
@@ -82,7 +82,7 @@
         arraySendrequests.push(mintRequest);
       }
       notifySending();
-      const { txId } = await store.wallet.tokenMint(props.category, arraySendrequests);
+      const { txId } = await store.spend.tokenMint(props.category, arraySendrequests);
       const displayId = `${props.category.slice(0, 20)}...${props.category.slice(-8)}`;
       const commitmentText = nftCommitment ? `with commitment ${nftCommitment}` : "";
       let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });

@@ -81,7 +81,11 @@
       "errorFetchingHistory": "Error al obtener el historial de la billetera",
       "unableToConnectElectrum": "No se puede conectar al servidor Electrum '{server}'",
       "deviceOffline": "Tu dispositivo parece estar sin conexión, comprueba tu conexión a internet",
-      "bcmrIndexerValidationError": "Error de validación de respuesta del indexador BCMR"
+      "bcmrIndexerValidationError": "Error de validación de respuesta del indexador BCMR",
+      "utxosNotLoaded": "Las monedas de la cartera aún no se han cargado",
+      "utxoNotReserved": "Esta moneda no está reservada",
+      "cannotReserveTokenUtxo": "Una moneda que lleva un token no se puede retener",
+      "reservedEnsureUtxos": "Esta acción necesita una moneda que la cartera está reteniendo"
     }
   },
   "onboarding": {
@@ -163,7 +167,8 @@
       "insufficientFunds": "No hay suficiente BCH en la billetera",
       "invalidAddress": "Se proporcionó una dirección BCH inválida",
       "notCashaddress": "No es una cashaddress en la red actual"
-    }
+    },
+    "reservedBalance": "Retenido: {amount}"
   },
   "portfolio": {
     "title": "Portafolio",
@@ -670,7 +675,15 @@
     "loadingFailed": "Error al cargar los datos de UTXOs",
     "markers": {
       "bchOnToken": "Contiene más BCH del que necesita un UTXO de token",
-      "largeBch": "Contiene una gran cantidad de BCH"
+      "largeBch": "Contiene una gran cantidad de BCH",
+      "reserved": "Retenida por una promesa de Flipstarter abierta, así que un gasto desde esta billetera no la tomará.",
+      "reservedRelease": "Cancela la promesa en la página de Flipstarter para liberar la moneda.",
+      "freeze": "Haz clic para congelar",
+      "frozen": "Congelada por ti, haz clic para descongelar",
+      "unfreeze": "Descongelar",
+      "availableShort": "Disponible",
+      "frozenShort": "Congelada",
+      "reservedShort": "Reservada"
     },
     "filters": {
       "bch": "BCH",
@@ -696,15 +709,23 @@
       "title": "UTXOs de tokens fungibles + NFT",
       "empty": "Esta billetera no tiene UTXOs que contengan a la vez una cantidad fungible y un NFT."
     },
+    "reservedSummary": "{count} moneda retenida, fuera de tu saldo disponible | {count} monedas retenidas, fuera de tu saldo disponible",
+    "freeze": {
+      "title": "Congelar esta moneda",
+      "message": "Una moneda congelada permanece en tu billetera pero queda fuera de cada pago que hace esta aplicación, así que tu saldo disponible baja en {amount}. Puedes descongelarla desde esta lista cuando quieras.\n\nCongelar solo aplica aquí: si usas esta frase semilla en otra aplicación de billetera, congela allí la misma moneda también.",
+      "button": "Congelar"
+    },
     "stats": {
       "totalUtxos": "UTXOs totales",
       "bchOnlyUtxos": "UTXOs solo de BCH",
-      "tokenUtxos": "UTXOs de tokens"
+      "tokenUtxos": "UTXOs de tokens",
+      "reservedUtxos": "UTXOs reservados"
     },
     "consolidate": {
       "title": "Consolidar UTXOs de BCH",
       "description": "Combina todos los UTXOs solo de BCH en un único UTXO. Si una dApp te pide que \"consolides tus fondos\" aunque tengas suficiente saldo, significa que tienes demasiados UTXOs pequeños.",
       "usageHint": "Una dApp puede pedirte que consolides cuando su construcción de transacciones o su contrato solo admite una única entrada tuya. Ese único UTXO tiene que cubrir todo el importe, sin importar cuánto tengas en total.",
+      "heldExcluded": "Esto excluye cualquier UTXO de BCH marcado como reservado o congelado.",
       "consolidatingButton": "Consolidando...",
       "consolidateButton": "Consolidar BCH",
       "alreadyConsolidated": "Tu billetera ya tiene {status} UTXO solo de BCH.",
@@ -731,6 +752,8 @@
       "type": "Tipo",
       "txId": "TxId",
       "vout": "Vout",
+      "status": "Estado",
+      "action": "Acción",
       "address": "Dirección",
       "utxoCount": "UTXOs",
       "bchHeld": "BCH retenido",
@@ -868,7 +891,8 @@
       "success": "Todos los activos se transfirieron con éxito"
     },
     "errors": {
-      "ownAddress": "El destino es una dirección de esta misma billetera"
+      "ownAddress": "El destino es una dirección de esta misma billetera",
+      "reservedCoins": "Esta cartera está reteniendo monedas, por lo que no puede transferirlo todo. La página de Gestión de UTXO muestra qué monedas están retenidas y por qué."
     }
   },
   "requestPayment": {
@@ -1098,7 +1122,8 @@
       "noAddressForSession": "No se encontró dirección para la sesión",
       "addressNotInHdCache": "Dirección no encontrada en la caché de la billetera HD: {address}",
       "noPrivateKeyForAddress": "No hay clave privada disponible para la dirección (billetera de solo lectura)",
-      "failedToCompressPublicKey": "Error al comprimir la clave pública"
+      "failedToCompressPublicKey": "Error al comprimir la clave pública",
+      "reservedInputs": "Esta solicitud gastaría una moneda que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué monedas están retenidas y por qué."
     },
     "notifications": {
       "successfullySignedMessage": "Mensaje firmado exitosamente",
@@ -1139,7 +1164,8 @@
       "invalidUri": "No es una URI válida de WizardConnect",
       "invalidTransactionSchema": "Error al validar el esquema de la solicitud de transacción de WizardConnect",
       "failedToSignTransaction": "Error al firmar la transacción",
-      "errorSendingTransaction": "Error al enviar la transacción"
+      "errorSendingTransaction": "Error al enviar la transacción",
+      "reservedInputs": "Esta solicitud gastaría una moneda que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué monedas están retenidas y por qué."
     },
     "notifications": {
       "sendingTransaction": "Enviando transacción...",
