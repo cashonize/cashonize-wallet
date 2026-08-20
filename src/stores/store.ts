@@ -53,7 +53,7 @@ import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { pruneHdWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
+import { pruneWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
   fetchCauldronPools,
@@ -887,12 +887,12 @@ export const useStore = defineStore('store', () => {
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
-    // mainnet-js stores a private key for every address of an HD wallet. This deletes the cached
-    // keys of any wallet no longer in the databases, not only the one just deleted, so it also
-    // picks up keys left by wallets deleted before this existed, whatever kind just went.
+    // mainnet-js caches derived private keys for every wallet. This deletes the cached keys of
+    // any wallet no longer in the databases, not only the one just deleted, so it also picks up
+    // keys left by wallets deleted before this existed, whatever kind just went.
     // The wallet is already gone by now, so a failure here is not a failed deletion.
     try {
-      await pruneHdWalletKeyCache();
+      await pruneWalletKeyCache();
     } catch (error) {
       console.error(error);
       Notify.create({

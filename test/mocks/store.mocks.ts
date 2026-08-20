@@ -100,7 +100,7 @@ vi.mock('@mainnet-cash/indexeddb-storage', () => ({
 // Mock dbUtils
 export const mockGetAllWalletsWithNetworkInfo = vi.fn()
 export const mockDeleteWalletFromDb = vi.fn()
-export const mockPruneHdWalletKeyCache = vi.fn().mockResolvedValue(undefined)
+export const mockPruneWalletKeyCache = vi.fn().mockResolvedValue(undefined)
 
 // Wallets exist in IndexedDB by default, override per-test to exercise the missing-wallet guard
 export const mockNamedWalletExistsInDb = vi.fn().mockResolvedValue(true)
@@ -118,7 +118,7 @@ export const mockGetNamedWalletIdFromDb = vi.fn(defaultGetNamedWalletIdFromDb)
 vi.mock('src/utils/wallet/dbUtils', () => ({
   getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
   deleteWalletFromDb: mockDeleteWalletFromDb,
-  pruneHdWalletKeyCache: mockPruneHdWalletKeyCache,
+  pruneWalletKeyCache: mockPruneWalletKeyCache,
   namedWalletExistsInDb: mockNamedWalletExistsInDb,
   getNamedWalletIdFromDb: mockGetNamedWalletIdFromDb,
 }))
