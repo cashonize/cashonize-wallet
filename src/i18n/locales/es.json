@@ -1202,7 +1202,8 @@
       "signVerifyMessage": "Firmar / Verificar mensaje",
       "exportXpub": "Exportar Xpub",
       "tokenCreationPage": "Página de creación de tokens",
-      "aboutCashonize": "Acerca de Cashonize"
+      "aboutCashonize": "Acerca de Cashonize",
+      "flipstarter": "Flipstarter"
     },
     "localization": {
       "language": "Idioma:",
@@ -1279,5 +1280,97 @@
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única."
     },
     "madeWith": "Hecho con {heart} por Mathieu G."
+  },
+  "flipstarter": {
+    "title": "Flipstarter",
+    "description": "Haz una promesa a una campaña de Flipstarter. Pega la solicitud de promesa de la página de la campaña y esta billetera te devuelve una promesa firmada para pegar de vuelta en ella.",
+    "newPledgeMode": "Nueva promesa",
+    "step": "Paso {current} de {total}",
+    "templateLabel": "Solicitud de promesa",
+    "templatePlaceholder": "Pega la solicitud de promesa de la página de la campaña",
+    "recipientCount": "{count} destinatario | {count} destinatarios",
+    "expires": "La campaña caduca: {date}",
+    "ecPluginCompatible": "Cashonize es compatible con el flujo del EC Plugin.",
+    "ecPluginCompatibleDetail": "Cashonize produce la misma promesa que el plugin de Electron Cash, así que los pasos del plugin de una campaña son los que aplican aquí, y su paso \"Copy details\" te da la solicitud de promesa para pegar arriba.",
+    "readTemplate": "Revisar promesa",
+    "startOver": "Empezar de nuevo",
+    "aliasLabel": "Nombre",
+    "aliasPlaceholder": "Cómo quieres aparecer (opcional)",
+    "commentLabel": "Comentario",
+    "commentPlaceholder": "Un comentario para mostrar en la página de la campaña (opcional)",
+    "dataPublished": "Tu nombre y comentario se publican en la página de la campaña.",
+    "pledgeButton": "Preparar promesa",
+    "pledgingButton": "Preparando...",
+    "preparingCoin": "Preparando la moneda de la promesa...",
+    "warnings": {
+      "notAPayment": "Una promesa no es un pago. El dinero solo se mueve si la campaña alcanza su objetivo, y hasta entonces la moneda queda retenida y fuera de lo que puedes gastar.",
+      "dappActions": "Mientras una promesa está abierta, las acciones de dApps desde esta billetera pueden fallar, porque la billetera no firmará el gasto de la moneda comprometida. Usa una billetera aparte para las promesas si usas dApps con regularidad.",
+      "dappActionsDetail": "Esto aplica a WalletConnect y WizardConnect, donde la dApp construye su propia transacción y puede elegir la moneda comprometida. CashConnect no se ve afectado: allí la billetera elige las monedas y deja fuera la comprometida.",
+      "otherDevices": "La moneda solo se retiene en esta aplicación. No gastes desde esta billetera en otro dispositivo ni en otro software de billetera mientras una promesa esté abierta, porque eso puede cancelar tu promesa.",
+      "otherDevicesDetail": "Otra billetera no tiene forma de saber que la moneda está retenida, así que puede elegirla para un pago normal. La campaña ya no podrá usar tu promesa firmada, y esta billetera solo verá que la moneda desapareció, no por qué. Si usas esta frase semilla en otra aplicación de billetera, congela o reserva allí la misma moneda, algo que la mayoría de las billeteras permite."
+    },
+    "review": {
+      "title": "Información de la promesa",
+      "noCampaignIdentity": "La solicitud de promesa no contiene nombre, descripción ni dominio de la campaña.",
+      "recipient": "Destinatario",
+      "amount": "Importe",
+      "campaignTotal": "Objetivo de la campaña: {amount}",
+      "yourPledge": "Tu promesa: {amount} {fiat} ({share}% del objetivo)",
+      "alreadyExpired": "(ya caducada)",
+      "ownAddressRecipient": "Una de las direcciones de destino pertenece a esta cartera."
+    },
+    "signedPledge": {
+      "title": "Tu promesa firmada",
+      "instructions": "Copia esto y pégalo en la página de la campaña para completar tu promesa. Esta cartera no envía nada a la campaña.",
+      "copy": "Copiar promesa firmada",
+      "detail": "La campaña no puede usar tu promesa hasta que pegues esto en su página. Esta cartera no lo envía por ti.",
+      "detailNote": "Hasta que lo hagas, la moneda sigue retenida y no respalda nada. Cancela la promesa para liberarla."
+    },
+    "pledges": {
+      "title": "Tus promesas",
+      "empty": "No hay promesas desde esta cartera.",
+      "recipientCount": "a {count} destinatario | a {count} destinatarios",
+      "status": {
+        "open": "Moneda retenida para esta promesa",
+        "expired": "Campaña caducada, moneda aún retenida"
+      },
+      "cannotConfirm": "La billetera no puede confirmar que la campaña haya aceptado una promesa.",
+      "cannotConfirmDetail": "Estos registros son lo que hiciste aquí, no lo que tiene la campaña. La billetera nunca contacta a la campaña, así que no tiene forma de saber si tu promesa fue aceptada.",
+      "cannotConfirmRecovery": "Si una promesa no fue aceptada, cancélala para liberar la moneda."
+    },
+    "confirm": {
+      "title": "¿Preparar esta promesa?",
+      "message": "Esto te paga {amount} a ti mismo ahora, y deja esa moneda fuera de cada pago que hace esta aplicación hasta que la campaña se complete o la canceles. La moneda solo se retiene en esta aplicación.",
+      "button": "Preparar promesa"
+    },
+    "cancel": {
+      "title": "¿Cancelar esta promesa?",
+      "message": "Esto gasta la moneda comprometida de vuelta a tu billetera, lo que deja inutilizable la promesa firmada que tiene la campaña.",
+      "button": "Cancelar promesa",
+      "cancelling": "Cancelando...",
+      "sending": "Cancelando promesa...",
+      "done": "Promesa cancelada y moneda liberada",
+      "doneTitle": "Promesa cancelada"
+    },
+    "alerts": {
+      "pledgePrepared": "Moneda de la promesa preparada. Copia la promesa firmada de abajo en la página de la campaña.",
+      "pledgePreparedTitle": "Promesa preparada"
+    },
+    "errors": {
+      "emptyTemplate": "No se pegó ninguna solicitud de promesa",
+      "templateNotBase64Json": "Esto no parece una solicitud de promesa de una página de campaña",
+      "invalidTemplate": "La solicitud de promesa no es válida",
+      "invalidOutputAddress": "La solicitud de promesa contiene una dirección de destinatario inválida: {address}",
+      "pledgeUtxoHasToken": "La moneda de la promesa lleva un token, que la transacción de la campaña quemaría",
+      "pledgeUtxoWrongValue": "El valor de la moneda de la promesa no coincide con el importe de la donación",
+      "signingFailed": "No se pudo firmar la promesa",
+      "pledgeCoinNotFound": "No se encontró la moneda de la promesa preparada",
+      "noBroadcastTxid": "La transacción de preparación se envió pero no devolvió un id de transacción",
+      "noPrivateKey": "No hay clave privada disponible para la dirección de la promesa",
+      "campaignExpired": "Esta campaña ya ha caducado",
+      "notEnoughSpendable": "No hay suficiente BCH disponible para esta promesa"
+    },
+    "whatIsAPledge": "La cartera se paga a sí misma el importe de la promesa en su propia transacción, retiene esa moneda y la firma a favor de los destinatarios de la campaña. La firma sigue siendo válida cuando la campaña añade a otros participantes, así que la moneda solo se mueve cuando hay suficientes promesas.",
+    "whatIsAPledgeNote": "Esa transacción de preparación es una transacción real con su propia comisión, que se paga tanto si la campaña se completa como si no."
   }
 }

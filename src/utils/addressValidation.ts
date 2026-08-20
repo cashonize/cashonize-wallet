@@ -1,4 +1,9 @@
-import { assertSuccess, decodeCashAddress, encodeCashAddress } from "@bitauth/libauth";
+import {
+  assertSuccess,
+  decodeCashAddress,
+  decodeCashAddressFormatWithoutPrefix,
+  encodeCashAddress
+} from "@bitauth/libauth";
 
 const CASH_ADDRESS_PREFIXES = ["bitcoincash:", "bchtest:"];
 
@@ -24,6 +29,19 @@ export function toTokenAddress(address: string): string {
     type: "p2pkhWithTokens",
     payload: decodedAddress.payload,
   }).address;
+}
+
+// A cashaddr is often written without its prefix, and Electron Cash accepts that form, so a
+// campaign template may carry one. Returns the prefixed form, or undefined if it is not a cashaddr.
+export function toPrefixedAddress(address: string): string | undefined {
+  const trimmedAddress = address.trim();
+  const lowerAddress = trimmedAddress.toLowerCase();
+  if (CASH_ADDRESS_PREFIXES.some(prefix => lowerAddress.startsWith(prefix))) {
+    return typeof decodeCashAddress(trimmedAddress) === "string" ? undefined : trimmedAddress;
+  }
+  const decodedAddress = decodeCashAddressFormatWithoutPrefix(trimmedAddress);
+  if (typeof decodedAddress === "string") return undefined;
+  return `${decodedAddress.prefix}:${trimmedAddress}`;
 }
 
 export function normalizeCashAddressForNetwork(

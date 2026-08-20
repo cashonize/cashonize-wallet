@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { hexToBin } from "@bitauth/libauth";
+import { toPrefixedAddress } from "src/utils/addressValidation";
 
 /* WcMessageObjSchema */
 
@@ -376,3 +377,37 @@ export const CauldronValueLockedSchema = z.object({
   token_amount: z.number()
 });
 export type CauldronValueLocked = z.infer<typeof CauldronValueLockedSchema>;
+
+
+/* FlipstarterTemplateSchema */
+
+// Satoshi values arrive as int, float or string depending on the campaign frontend. Floats with
+// decimal places, and strings that are not whole numbers, are rejected rather than rounded.
+const flipstarterSatoshiSchema = z.union([
+  z.number().int(),
+  z.number().refine(Number.isInteger, "Value should not have decimal places"),
+  z.string().regex(/^\d+$/, "Must be a whole number").transform(Number),
+]).transform((val) => BigInt(val)).refine((val) => val > 0n, "Zero or negative value");
+
+// The template a campaign hands the user, base64-encoded. It carries no campaign identity at
+// all: no name, no description, no domain, nothing tying the addresses to anyone.
+export const FlipstarterTemplateSchema = z.object({
+  outputs: z.array(z.object({
+    // Checked here so a bad template fails on Review pledge: parsing these addresses is otherwise
+    // left to the signing step, which runs after the preparation transaction has been paid for.
+    address: z.string().transform(toPrefixedAddress).pipe(z.string("Invalid recipient address")),
+    value: flipstarterSatoshiSchema,
+  })).nonempty("Outputs are empty"),
+  donation: z.object({
+    amount: flipstarterSatoshiSchema,
+  }),
+  expires: z.number().int().positive(), // unix seconds
+  data: z.object({
+    alias: z.string(),
+    comment: z.string(),
+  }),
+}).refine(
+  (tpl) => tpl.donation.amount <= tpl.outputs.reduce((sum, output) => sum + output.value, 0n),
+  "Donation amount is larger than the outputs",
+);
+export type FlipstarterTemplate = z.infer<typeof FlipstarterTemplateSchema>;

@@ -83,6 +83,7 @@ import {
   type ReservedUtxos,
   type ReservationReason
 } from "src/utils/wallet/reservedUtxos"
+import { removePledges } from "src/utils/tools/flipstarterPledges"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -856,6 +857,7 @@ export const useStore = defineStore('store', () => {
     removeTxNotes(walletName);
     removeAddressManagementData(walletName);
     removeReservedUtxos(walletName);
+    removePledges(walletName);
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();

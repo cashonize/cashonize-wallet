@@ -1,0 +1,32 @@
+diff --git a/dist/module/wallet/Base.js b/dist/module/wallet/Base.js
+index 9baa2496b379fc0dd2efb8229d93be9caefdc97f..f5397c9f8f7f05b5d78da403c5e2f5362386309d 100644
+--- a/dist/module/wallet/Base.js
++++ b/dist/module/wallet/Base.js
+@@ -501,6 +501,7 @@ export class BaseWallet {
+             const txId = await this.submitTransaction(encodedTransaction, options?.awaitTransactionPropagation === undefined ||
+                 options?.awaitTransactionPropagation === true);
+             resp.txId = txId;
++            resp.encodedTransaction = binToHex(encodedTransaction);
+             resp.explorerUrl = this.explorerUrl(resp.txId);
+             if (options?.queryBalance === undefined ||
+                 options?.queryBalance === true) {
+@@ -553,6 +554,7 @@ export class BaseWallet {
+             const txId = await this.submitTransaction(encodedTransaction, options?.awaitTransactionPropagation === undefined ||
+                 options?.awaitTransactionPropagation === true);
+             resp.txId = txId;
++            resp.encodedTransaction = binToHex(encodedTransaction);
+             resp.explorerUrl = this.explorerUrl(resp.txId);
+             if (options?.queryBalance === undefined ||
+                 options?.queryBalance === true) {
+diff --git a/dist/module/wallet/model.d.ts b/dist/module/wallet/model.d.ts
+index 309e3e0a24aad6ee19ae8a22f6548b8772f5f2ae..1b4f0b2e02f7e261d6affca077b6f9423dea8999 100644
+--- a/dist/module/wallet/model.d.ts
++++ b/dist/module/wallet/model.d.ts
+@@ -143,6 +143,7 @@ export declare class SendResponse {
+     categories?: string[];
+     unsignedTransaction?: string;
+     sourceOutputs?: SourceOutput[];
++    encodedTransaction?: string;
+     constructor({ txId, balance, explorerUrl, }: {
+         txId?: string;
+         balance?: any;

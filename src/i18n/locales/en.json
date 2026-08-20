@@ -1202,7 +1202,8 @@
       "signVerifyMessage": "Sign / Verify Message",
       "exportXpub": "Export Xpub",
       "tokenCreationPage": "Token Creation Page",
-      "aboutCashonize": "About Cashonize"
+      "aboutCashonize": "About Cashonize",
+      "flipstarter": "Flipstarter"
     },
     "localization": {
       "language": "Language:",
@@ -1279,5 +1280,97 @@
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets."
     },
     "madeWith": "Made with {heart} by Mathieu G."
+  },
+  "flipstarter": {
+    "title": "Flipstarter",
+    "description": "Pledge to a Flipstarter campaign. Paste the pledge request from the campaign page, and this wallet gives you back a signed pledge to paste back into it.",
+    "newPledgeMode": "New pledge",
+    "step": "Step {current} of {total}",
+    "templateLabel": "Pledge request",
+    "templatePlaceholder": "Paste the pledge request from the campaign page",
+    "recipientCount": "{count} recipient | {count} recipients",
+    "expires": "Campaign expires: {date}",
+    "ecPluginCompatible": "Cashonize is compatible with the EC Plugin flow.",
+    "ecPluginCompatibleDetail": "Cashonize produces the same pledge as the Electron Cash plugin, so a campaign's plugin steps are the ones that apply here, and its \"Copy details\" step gives you the pledge request to paste above.",
+    "readTemplate": "Review pledge",
+    "startOver": "Start over",
+    "aliasLabel": "Name",
+    "aliasPlaceholder": "How you want to be listed (optional)",
+    "commentLabel": "Comment",
+    "commentPlaceholder": "A comment to show on the campaign page (optional)",
+    "dataPublished": "Your name and comment are published on the campaign page.",
+    "pledgeButton": "Prepare pledge",
+    "pledgingButton": "Preparing...",
+    "preparingCoin": "Preparing the pledge coin...",
+    "warnings": {
+      "notAPayment": "A pledge is not a payment. The money only moves if the campaign reaches its target, and until then the coin is held back and not part of what you can spend.",
+      "dappActions": "While a pledge is open, dApp actions from this wallet may fail, because the wallet will not sign away the pledged coin. Use a separate wallet for pledges if you use dApps regularly.",
+      "dappActionsDetail": "This applies to WalletConnect and WizardConnect, where the dApp builds its own transaction and can pick the pledged coin. CashConnect is unaffected: the wallet picks the coins there, and leaves the pledged one out.",
+      "otherDevices": "The coin is only held back in this app. Do not spend from this wallet on another device or in other wallet software while a pledge is open, because that can cancel your pledge.",
+      "otherDevicesDetail": "Another wallet has no way to know the coin is held back, so it may pick it for an ordinary payment. The campaign can then no longer use your signed pledge, and this wallet will only see that the coin is gone, not why. If you use this seed phrase in another wallet application, freeze or reserve the same coin there too, which most wallets support."
+    },
+    "review": {
+      "title": "Pledge info",
+      "noCampaignIdentity": "The pledge request carries no campaign name, description or domain.",
+      "recipient": "Recipient",
+      "amount": "Amount",
+      "campaignTotal": "Campaign target: {amount}",
+      "yourPledge": "Your pledge: {amount} {fiat} ({share}% of the target)",
+      "alreadyExpired": "(already expired)",
+      "ownAddressRecipient": "One of the recipient addresses belongs to this wallet."
+    },
+    "signedPledge": {
+      "title": "Your signed pledge",
+      "instructions": "Copy this and paste it into the campaign page to complete your pledge. Nothing is sent to the campaign by this wallet.",
+      "copy": "Copy signed pledge",
+      "detail": "The campaign cannot use your pledge until you paste this into its page. This wallet never sends it for you.",
+      "detailNote": "Until you do, the coin stays held back and backs nothing. Cancel the pledge to release it."
+    },
+    "pledges": {
+      "title": "Your pledges",
+      "empty": "No pledges from this wallet.",
+      "recipientCount": "to {count} recipient | to {count} recipients",
+      "status": {
+        "open": "Coin held back for this pledge",
+        "expired": "Campaign expired, coin still held back"
+      },
+      "cannotConfirm": "The wallet cannot confirm a pledge was accepted by the campaign.",
+      "cannotConfirmDetail": "These records are what you did here, not what the campaign holds. The wallet never contacts the campaign, so it has no way to learn whether your pledge was taken.",
+      "cannotConfirmRecovery": "If a pledge was not accepted, cancel it to release the coin."
+    },
+    "confirm": {
+      "title": "Prepare this pledge?",
+      "message": "This sends {amount} to yourself now, and leaves that coin out of every payment this app makes until the campaign completes or you cancel. The coin is only held back in this app.",
+      "button": "Prepare pledge"
+    },
+    "cancel": {
+      "title": "Cancel this pledge?",
+      "message": "This spends the pledged coin back to your wallet, which makes the signed pledge the campaign holds unusable.",
+      "button": "Cancel pledge",
+      "cancelling": "Cancelling...",
+      "sending": "Cancelling pledge...",
+      "done": "Pledge cancelled and coin released",
+      "doneTitle": "Pledge cancelled"
+    },
+    "alerts": {
+      "pledgePrepared": "Pledge coin prepared. Copy the signed pledge below into the campaign page.",
+      "pledgePreparedTitle": "Pledge prepared"
+    },
+    "errors": {
+      "emptyTemplate": "No pledge request pasted",
+      "templateNotBase64Json": "This does not look like a pledge request from a campaign page",
+      "invalidTemplate": "The pledge request is not valid",
+      "invalidOutputAddress": "The pledge request contains an invalid recipient address: {address}",
+      "pledgeUtxoHasToken": "The pledge coin carries a token, which the campaign transaction would burn",
+      "pledgeUtxoWrongValue": "The pledge coin value does not match the donation amount",
+      "signingFailed": "Failed to sign the pledge",
+      "pledgeCoinNotFound": "Could not find the prepared pledge coin",
+      "noBroadcastTxid": "The preparation transaction was sent but returned no transaction id",
+      "noPrivateKey": "No private key available for the pledge address",
+      "campaignExpired": "This campaign has already expired",
+      "notEnoughSpendable": "Not enough spendable BCH for this pledge"
+    },
+    "whatIsAPledge": "The wallet pays itself the pledge amount in its own transaction, holds that coin back, and signs it over to the campaign recipients. The signature stays valid when the campaign adds other pledgers, so the coin only moves once enough people have pledged.",
+    "whatIsAPledgeNote": "That preparation transaction is a real transaction with its own fee, paid whether or not the campaign ever fills."
   }
 }
