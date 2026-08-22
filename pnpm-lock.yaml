@@ -17,9 +17,6 @@ overrides:
   micromatch>picomatch: 2.3.2
   picomatch: 4.0.4
 
-patchedDependencies:
-  '@wizardconnect/wallet@0.2.2': dbd94ee240729f29e1e5ed7279ece1d070c96710019a92ef3431aca531dba895
-
 importers:
 
   .:
@@ -61,8 +58,8 @@ importers:
         specifier: 0.2.4
         version: 0.2.4(typescript@6.0.3)
       '@wizardconnect/wallet':
-        specifier: 0.2.2
-        version: 0.2.2(patch_hash=dbd94ee240729f29e1e5ed7279ece1d070c96710019a92ef3431aca531dba895)(typescript@6.0.3)
+        specifier: 0.2.3
+        version: 0.2.3(typescript@6.0.3)
       mainnet-js:
         specifier: 3.1.7
         version: 3.1.7
@@ -73,8 +70,8 @@ importers:
         specifier: ^1.4.2
         version: 1.4.2
       quasar:
-        specifier: ^2.25.1
-        version: 2.25.1
+        specifier: ^2.26.0
+        version: 2.26.0
       vue:
         specifier: ^3.5.41
         version: 3.5.41(typescript@6.0.3)
@@ -104,8 +101,8 @@ importers:
         specifier: ^1.62.0
         version: 1.62.0
       '@quasar/app-vite':
-        specifier: ^3.7.0
-        version: 3.7.0(@types/node@24.13.3)(pinia@4.0.3(@vue/devtools-api@7.7.10)(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(quasar@2.25.1)(sass@1.100.0)(terser@5.49.0)(typescript@6.0.3)(vue-router@4.6.4(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))
+        specifier: ^3.8.0
+        version: 3.8.0(@types/node@24.13.3)(pinia@4.0.3(@vue/devtools-api@7.7.10)(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(quasar@2.26.0)(sass@1.100.0)(terser@5.49.0)(typescript@6.0.3)(vue-router@4.6.4(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))
       '@types/node':
         specifier: ^24.13.3
         version: 24.13.3
@@ -525,8 +522,8 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  '@quasar/app-vite@3.7.0':
-    resolution: {integrity: sha512-b71fAE9GbitRPUR6O1slyuamhY0t7uCxrF5vrPgH1Lk1bJ4f00ZSdsiZP1s2/ay0BbRj6yr3o/nzEEG3D104Yw==}
+  '@quasar/app-vite@3.8.0':
+    resolution: {integrity: sha512-iNZKl86C80r2u3d/MCP7zK7Ia2Jv9FpOng2vIsPYaiawkJMku3WY+BegnicR7c2PWZrAQFDf6cn1IPF5GRwG0Q==}
     engines: {node: ^30 || ^28 || ^26 || ^24 || ^22.22.0}
     hasBin: true
     peerDependencies:
@@ -573,8 +570,8 @@ packages:
     resolution: {integrity: sha512-QFg1sxmQW3o7WyHG+gMkdQYperKAfSdDKt/kuOgrjOvWFC0TRsub65rYO47SVnjdnSZUVBgQSzB0F3NB88uYyw==}
     engines: {node: '>= 16'}
 
-  '@quasar/vite-plugin@2.0.0':
-    resolution: {integrity: sha512-eY47hWU6sW/v9vEIlT/OcXLy8KqQyjmqiO7Ws8r8CmLxYQ50poUfYttX8dqOgamOGzvkm2H5urIcdf04OQ04Nw==}
+  '@quasar/vite-plugin@2.0.1':
+    resolution: {integrity: sha512-FHw7tjI9aNowd56Eyc6sNlNvkwdb3WCR2mOltUCUZq4byUC6MMG+BDoG38Rxpt6NC4kVgYxyy+p7+cHg8zyiNQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       '@vitejs/plugin-vue': ^6.0.5
@@ -962,8 +959,8 @@ packages:
   '@wizardconnect/core@0.2.4':
     resolution: {integrity: sha512-CHcm3YWEdZHGSH6+Ml2H8LE4HCe2DWKX6PbzvGIaExYg1LGbiTXABPoBWMhCOibcQFz3BIgjfcewP29M0JFrUw==}
 
-  '@wizardconnect/wallet@0.2.2':
-    resolution: {integrity: sha512-mP8xBSnzEDc2VKPQ2tWQfqXBCiyxL244VNhOYLAm3fXewPvs0mW18aPkfjjt9Cqca25/VeKLRtP37TzpG/t12A==}
+  '@wizardconnect/wallet@0.2.3':
+    resolution: {integrity: sha512-god55ulA6nT5+VnL8pDypMr4ZqgkwvhNRswsnY3JBL6P6HHXVemM9PIciSIauTi7dBMqT3+4t3lD3dtJUU1gfA==}
 
   abitype@1.2.4:
     resolution: {integrity: sha512-dpKH+N27vRjarMVTFFkeY445VTKftzGWpL0FiT7xmVmzQRKazZexzC5uHG0f6XKsVLAuUlndnbGau6lRejClxg==}
@@ -1893,8 +1890,8 @@ packages:
   qr-scanner@1.4.2:
     resolution: {integrity: sha512-kV1yQUe2FENvn59tMZW6mOVfpq9mGxGf8l6+EGaXUOd4RBOLg7tRC83OrirM5AtDvZRpdjdlXURsHreAOSPOUw==}
 
-  quasar@2.25.1:
-    resolution: {integrity: sha512-wDc+rLS0MHzp3wl1ILo7FXk6V15aotljHDO8DVpBlm1foATO4jbY8QTfZJW5e8tqAD/zJw6paHC6BeV4eSPMwg==}
+  quasar@2.26.0:
+    resolution: {integrity: sha512-ywVtVRJIA12f5Py7Ld8xZJTg16Hw7yG2/mPdTGMEadQpKP1zZUlig9h9DSh/kS6k5z7l3Mr/sWvAUbCXFgrqtQ==}
     engines: {node: '>= 10.18.1', npm: '>= 6.13.4', yarn: '>= 1.21.1'}
 
   queue-microtask@1.2.3:
@@ -3022,13 +3019,13 @@ snapshots:
     dependencies:
       playwright: 1.62.0
 
-  '@quasar/app-vite@3.7.0(@types/node@24.13.3)(pinia@4.0.3(@vue/devtools-api@7.7.10)(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(quasar@2.25.1)(sass@1.100.0)(terser@5.49.0)(typescript@6.0.3)(vue-router@4.6.4(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))':
+  '@quasar/app-vite@3.8.0(@types/node@24.13.3)(pinia@4.0.3(@vue/devtools-api@7.7.10)(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(quasar@2.26.0)(sass@1.100.0)(terser@5.49.0)(typescript@6.0.3)(vue-router@4.6.4(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))':
     dependencies:
       '@clack/prompts': 1.7.0
       '@quasar/art': 1.0.0
       '@quasar/render-ssr-error': 2.2.6
       '@quasar/ssl-certificate': 2.1.0
-      '@quasar/vite-plugin': 2.0.0(@vitejs/plugin-vue@6.0.8(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3)))(quasar@2.25.1)(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3))
+      '@quasar/vite-plugin': 2.0.1(@vitejs/plugin-vue@6.0.8(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3)))(quasar@2.26.0)(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3))
       '@types/chrome': 0.2.5
       '@types/cordova': 11.0.3
       '@vitejs/plugin-vue': 6.0.8(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3))
@@ -3047,7 +3044,7 @@ snapshots:
       mlly: 1.8.2
       open: 11.0.0
       picomatch: 4.0.4
-      quasar: 2.25.1
+      quasar: 2.26.0
       rolldown: 1.2.4
       sass-embedded: 1.100.0
       semver: 7.8.5
@@ -3088,10 +3085,10 @@ snapshots:
       fs-extra: 11.4.0
       selfsigned: 5.5.0
 
-  '@quasar/vite-plugin@2.0.0(@vitejs/plugin-vue@6.0.8(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3)))(quasar@2.25.1)(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3))':
+  '@quasar/vite-plugin@2.0.1(@vitejs/plugin-vue@6.0.8(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3)))(quasar@2.26.0)(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3))':
     dependencies:
       '@vitejs/plugin-vue': 6.0.8(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0))(vue@3.5.41(typescript@6.0.3))
-      quasar: 2.25.1
+      quasar: 2.26.0
       vite: 8.2.1(@types/node@24.13.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.49.0)
       vue: 3.5.41(typescript@6.0.3)
 
@@ -3752,7 +3749,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@wizardconnect/wallet@0.2.2(patch_hash=dbd94ee240729f29e1e5ed7279ece1d070c96710019a92ef3431aca531dba895)(typescript@6.0.3)':
+  '@wizardconnect/wallet@0.2.3(typescript@6.0.3)':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
       '@wizardconnect/core': 0.2.4(typescript@6.0.3)
@@ -4604,7 +4601,7 @@ snapshots:
     dependencies:
       '@types/offscreencanvas': 2019.7.3
 
-  quasar@2.25.1: {}
+  quasar@2.26.0: {}
 
   queue-microtask@1.2.3: {}
 
