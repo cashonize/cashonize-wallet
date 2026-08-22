@@ -29,13 +29,12 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - **settingsStore.ts**: User preferences persisted to localStorage - currency, dark mode, electrum servers, per-wallet backup status, auto-approve settings for WalletConnect.
 - **walletconnectStore.ts** / **cashconnectStore.ts**: dApp connection protocol handlers. Access the wallet via Pinia cross-store ref (`useStore()` inside `defineStore` setup).
 - `_wallet` is a `shallowRef`: mainnet-js owns the wallet's internal state, so only swapping wallets is reactive, not changes inside the wallet object. Reactive code reading wallet internals depends on `walletUtxos` instead, which is why `store.walletHasAddress()` exists next to `store.wallet.hasAddress()`.
-- Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to the spendable pool; an ESLint rule enforces it.
+- Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to `spendableUtxos`: the wallet's utxos minus the reserved outpoints (user-frozen coins and flipstarter pledges, `utils/wallet/reservedUtxos.ts`). A reservation is local to this app; another wallet on the same keys can still spend the coin.
 
 ### Multi-Wallet Support
-- Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet)
+- Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet); by default each wallet is stored in both databases
 - `activeWalletName` persisted in localStorage
-- `dbUtils.ts`: Direct IndexedDB operations for checking wallet existence, listing wallets, deletion
-- Wallets are stored in both IndexedDB databases by default (mainnet and chipnet)
+- `utils/wallet/dbUtils.ts`: Direct IndexedDB operations for checking wallet existence, listing wallets, deletion
 
 ### Platform Concurrency
 Only the web (SPA) target can run several live instances at once: browser tabs share localStorage and IndexedDB but nothing in memory (so a dApp request can raise dialogs in every open tab). There is no cross-tab sync: writes to a shared key re-read it first and change only their own entry, and reads trust the copy loaded at wallet activation, so another tab's writes stay invisible until reload. Electron and Android are single-instance by construction.
@@ -47,14 +46,12 @@ Regardless of app instances, the same wallet can be live elsewhere (other device
 
 The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers.
 
-v3 introduced breaking changes including HD wallet support with new classes (`HDWallet`, `TestNetHDWallet`) and a `walletCache` for address/key management.
-
 - Single-address wallets: `Wallet` for mainnet, `TestNetWallet` for chipnet
-- HD wallets: `HDWallet` for mainnet, `TestNetHDWallet` for chipnet
+- HD wallets: `HDWallet` for mainnet, `TestNetHDWallet` for chipnet; address/key management goes through a `walletCache`
 - The wallet type (`WalletType`) is a union of all four classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
-- Named wallets persist to IndexedDB via `@mainnet-cash/indexeddb-storage`
-- mainnet-js builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. Dapp-supplied transactions are the exception, signed against libauth directly in `wcSigning.ts` / `wizSigning.ts`.
+- Named wallets persist to IndexedDB (see Multi-Wallet Support)
+- mainnet-js builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. Dapp-supplied transactions are the exception: a shortcoming of the WalletConnect/WizardConnect protocols is that the dapp builds the transaction and the wallet only signs it, against libauth directly in `utils/dapp/wcSigning.ts` / `wizSigning.ts`.
 - The app overrides several mainnet-js defaults. Those in `store.ts` must be applied before the first wallet is constructed, since HD wallets start address discovery during construction; the rest follow a user action instead.
 - Docs: https://mainnet.cash/tutorial/
 
@@ -66,11 +63,11 @@ v3 introduced breaking changes including HD wallet support with new classes (`HD
 - **@wizardconnect/core** & **@wizardconnect/wallet**: WizardConnect protocol for BCH HD-wallet dApp connections. Repo: https://gitlab.com/riftenlabs/lib/wizardconnect
 
 ### Persistent Storage
-- **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (via `@mainnet-cash/indexeddb-storage`, see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
+- **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
 - **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
-The app reaches into mainnet-js's databases itself, in `dbUtils.ts` and the settings menu's cache-size/clear and delete flows. Some of that goes through mainnet-js's own storage provider, the rest is raw IndexedDB where not even that reaches. There we have to keep matching its versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and mainnet-js finding it already there never runs its own setup.
+The app reaches into mainnet-js's databases itself, in `utils/wallet/dbUtils.ts` and the settings menu's cache-size/clear and delete flows. Some of that goes through mainnet-js's own storage provider, the rest is raw IndexedDB where not even that reaches. There we have to keep matching its versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and mainnet-js finding it already there never runs its own setup.
 
 ### Electrum Connections
 mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
@@ -89,10 +86,10 @@ WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the 
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for CashTokens on BCH. Spec: https://github.com/bitjson/chip-bcmr
 
-Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.com/paytaca/bcmr-indexer) rather than importing full BCMR registry files. The `fetchTokenMetadata` function in `storeUtils.ts` handles this. The codebase operates on the indexer's response types (`BcmrTokenMetadata`) directly — it does not use or construct full BCMR `Registry` objects. Supporting full registries (e.g. from on-chain or imported files) would require a refactor to bridge between `Registry` and the current parsing/display code.
+Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.com/paytaca/bcmr-indexer) rather than importing full BCMR registry files. The `fetchTokenMetadata` function in `storeUtils.ts` handles this, and the codebase operates on the indexer's response types (`BcmrTokenMetadata`) directly, not full BCMR `Registry` objects. Like blockchain data (see Electrum Trust Model), token metadata is trusted as served: the wallet does not resolve or verify on-chain registries itself.
 
 ### Parsable NFTs
-Cashonize is the first wallet to support parsable BCMR NFTs. When the indexer returns `nft_type: "parsable"` with `token.nfts` parse info (bytecode, types, fields), the wallet runs the parsing bytecode locally in a libauth VM to extract and display structured data from NFT commitments.
+When the indexer returns `nft_type: "parsable"` with `token.nfts` parse info (bytecode, types, fields), the wallet runs the parsing bytecode locally in a libauth VM to extract and display structured data from NFT commitments.
 
 Key files:
 - `src/parsing/nftParsing.ts`: VM-based commitment parsing engine (`NftParseInfo` interface, `parseNft` function)
@@ -102,7 +99,13 @@ Key files:
 BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method. The main extension is ParyonUSD (`paryonusd.ts`), which fetches the live on-chain loan state for loan-key NFTs.
 
 ### Cauldron DEX
-Cauldron is the main AMM DEX in the CashTokens ecosystem; fungible token values come from its indexer (`utils/cauldronApi.ts`, one per network). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting). Pools the wallet owns are found over electrum instead (`utils/cauldronPools.ts`), by deriving the pool contract address from the wallet's public key hashes, including the `defi` chain shared over WizardConnect.
+Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one per network). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
+
+### Portfolio Integrations
+The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, and ParyonUSD loans and staking. It is valuation only; acting on a position belongs in the dApps. For now every dapp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups vs. data on held NFTs) and is documented in each module's header comment.
+
+### Wallet Tools
+The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin.
 
 ### Component Organization
 ```
@@ -119,6 +122,8 @@ src/components/
 ├── qr/                # QR scanning components
 └── general/           # Reusable components (alertDialog, seedPhraseInput, TokenIcon, ...)
 ```
+
+`src/utils/` is grouped into subfolders the same way (`dapp/`, `defi/`, `wallet/`, ...).
 
 ### Validation
 Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect params, API responses, BCMR data).
@@ -141,7 +146,7 @@ Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files 
 
 ## Testing
 
-Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). See `development.md` for full setup details.
+Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). IndexedDB-backed code (wallet storage) is unit-testable against `fake-indexeddb`. See `development.md` for full setup details.
 
 ## Dependency Pinning
 
