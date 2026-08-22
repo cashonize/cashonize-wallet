@@ -1,7 +1,8 @@
 // Shared row model for the HD address list views: the settings page overview and the
 // WalletConnect address selector both render addresses from the wallet cache this way.
 
-import { GAP_SIZE, type HDWallet, type TestNetHDWallet, type Utxo } from 'mainnet-js';
+import { type HDWallet, type TestNetHDWallet, type Utxo } from 'mainnet-js';
+import { GAP_SIZE } from 'src/utils/wallet/addressManagement';
 
 export interface AddressRow {
   index: number;

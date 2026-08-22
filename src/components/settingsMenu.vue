@@ -6,7 +6,6 @@
   import LanguageSelector from './general/LanguageSelector.vue'
   import { computed, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { Connection, type ElectrumNetworkProvider } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useWalletconnectStore } from '../stores/walletconnectStore'
@@ -188,26 +187,8 @@
   async function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
     if (targetNetwork === "mainnet" && selectedElectrumServer.value === "custom") return;
     if (targetNetwork === "chipnet" && selectedElectrumServerChipnet.value === "custom") return;
-    if(!store._wallet) throw new Error('No wallet set in global store');
-    store.changeView(1)
-    // Only reset electrum state, keep WC/CC sessions alive
-    await store.resetWalletState({ resetDappConnections: false })
-    if(targetNetwork == "mainnet"){
-      const newConnection = new Connection("mainnet", electrumWssUrl(selectedElectrumServer.value))
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-      settingsStore.electrumServerMainnet = selectedElectrumServer.value
-      localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
-    }
-    if(targetNetwork == "chipnet"){
-      const newConnection = new Connection("testnet", electrumWssUrl(selectedElectrumServerChipnet.value))
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-      settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
-      localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
-    }
-    // fire-and-forget promise does not wait on full wallet initialization
-    void store.initializeWallet();
+    const newServer = targetNetwork === "mainnet" ? selectedElectrumServer.value : selectedElectrumServerChipnet.value;
+    await store.changeElectrumServer(targetNetwork, newServer);
   }
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
   async function saveCustomElectrumServer(targetNetwork: "mainnet" | "chipnet"){
@@ -216,28 +197,9 @@
     // and trailing slash so the stored value is always host or host:port
     const trimmedServer = customServer.trim().replace(/^(wss?|https?):\/\//i, "").replace(/\/+$/, "");
     if (!trimmedServer) return;
-    if(!store._wallet) throw new Error('No wallet set in global store');
-    store.changeView(1)
-    // Only reset electrum state, keep WC/CC sessions alive
-    await store.resetWalletState({ resetDappConnections: false })
-    if(targetNetwork == "mainnet"){
-      const newConnection = new Connection("mainnet", electrumWssUrl(trimmedServer))
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-      settingsStore.electrumServerMainnet = trimmedServer;
-      localStorage.setItem("electrum-mainnet", trimmedServer);
-      customElectrumServer.value = trimmedServer;
-    }
-    if(targetNetwork == "chipnet"){
-      const newConnection = new Connection("testnet", electrumWssUrl(trimmedServer))
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
-      settingsStore.electrumServerChipnet = trimmedServer;
-      localStorage.setItem("electrum-chipnet", trimmedServer);
-      customElectrumServerChipnet.value = trimmedServer;
-    }
-    // fire-and-forget promise does not wait on full wallet initialization
-    void store.initializeWallet();
+    if(targetNetwork == "mainnet") customElectrumServer.value = trimmedServer;
+    else customElectrumServerChipnet.value = trimmedServer;
+    await store.changeElectrumServer(targetNetwork, trimmedServer);
   }
   function changeIpfsGateway(){
     if (selectedIpfsGateway.value === "custom") return;

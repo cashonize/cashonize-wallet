@@ -50,15 +50,11 @@ export const localStorageMock = {
 }
 vi.stubGlobal('localStorage', localStorageMock)
 
-// Mock Connection class
-class MockConnection {
-  networkProvider = {
-    connect: vi.fn().mockResolvedValue(undefined),
-    getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
-  }
-  constructor() {
-    // Constructor does nothing, just provides networkProvider
-  }
+// Mock network provider (global-provider api of mainnet-js v4)
+export const mockProvider = {
+  connect: vi.fn().mockResolvedValue(undefined),
+  disconnect: vi.fn().mockResolvedValue(true),
+  getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
 }
 
 // Mock wallet classes (must be real classes so instanceof checks work)
@@ -87,10 +83,13 @@ vi.mock('mainnet-js', () => ({
   convert: vi.fn().mockResolvedValue(0),
   balanceResponseFromSatoshi: vi.fn().mockReturnValue({ sat: 0, bch: 0 }),
   binToHex: vi.fn((arr: Uint8Array) => Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')),
-  Connection: MockConnection,
   DefaultProvider: {
-    servers: { mainnet: [], testnet: [], regtest: [] },
+    servers: { mainnet: "", testnet: "", regtest: "" },
   },
+  createProvider: vi.fn().mockResolvedValue(mockProvider),
+  getGlobalProvider: vi.fn().mockReturnValue(undefined),
+  removeGlobalProvider: vi.fn(),
+  setGlobalProvider: vi.fn(),
 }))
 
 // Mock IndexedDB provider
@@ -101,7 +100,7 @@ vi.mock('@mainnet-cash/indexeddb-storage', () => ({
 // Mock dbUtils
 export const mockGetAllWalletsWithNetworkInfo = vi.fn()
 export const mockDeleteWalletFromDb = vi.fn()
-export const mockPruneHdWalletKeyCache = vi.fn().mockResolvedValue(undefined)
+export const mockPruneWalletKeyCache = vi.fn().mockResolvedValue(undefined)
 
 // Wallets exist in IndexedDB by default, override per-test to exercise the missing-wallet guard
 export const mockNamedWalletExistsInDb = vi.fn().mockResolvedValue(true)
@@ -119,7 +118,7 @@ export const mockGetNamedWalletIdFromDb = vi.fn(defaultGetNamedWalletIdFromDb)
 vi.mock('src/utils/wallet/dbUtils', () => ({
   getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
   deleteWalletFromDb: mockDeleteWalletFromDb,
-  pruneHdWalletKeyCache: mockPruneHdWalletKeyCache,
+  pruneWalletKeyCache: mockPruneWalletKeyCache,
   namedWalletExistsInDb: mockNamedWalletExistsInDb,
   getNamedWalletIdFromDb: mockGetNamedWalletIdFromDb,
 }))

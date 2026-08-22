@@ -72,6 +72,7 @@
           }
         }
         const mintRequest = new TokenMintRequest({
+          category: props.category,
           cashaddr: recipientAddr,
           nft: {
             commitment: nftCommitment,
@@ -82,7 +83,7 @@
         arraySendrequests.push(mintRequest);
       }
       notifySending();
-      const { txId } = await store.spend.tokenMint(props.category, arraySendrequests);
+      const { txId } = await store.spend.tokenMint(arraySendrequests);
       const displayId = `${props.category.slice(0, 20)}...${props.category.slice(-8)}`;
       const commitmentText = nftCommitment ? `with commitment ${nftCommitment}` : "";
       let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });

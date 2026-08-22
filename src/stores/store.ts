@@ -4,15 +4,15 @@ import {
   HDWallet,
   TestNetHDWallet,
   BaseWallet,
-  GAP_SIZE,
   Config,
-  Connection,
   DefaultProvider,
   disconnectProviders,
   convert,
-  ExchangeRate,
+  createProvider,
+  getGlobalProvider,
+  removeGlobalProvider,
+  setGlobalProvider,
   type Utxo,
-  type ElectrumNetworkProvider,
   type CancelFn,
   type SendRequestOptionsI,
   type SendRequestType,
@@ -53,7 +53,7 @@ import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
-import { pruneHdWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
+import { pruneWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
   fetchCauldronPools,
@@ -70,7 +70,8 @@ import {
   loadAddressLabels,
   saveAddressLabel,
   removeAddressManagementData,
-  deriveFreshAddressIndex
+  deriveFreshAddressIndex,
+  GAP_SIZE
 } from "src/utils/wallet/addressManagement"
 import {
   loadReservedUtxos,
@@ -111,9 +112,11 @@ BaseWallet.StorageProvider = IndexedDBProvider;
 // network provider from these defaults BEFORE the app assigns one via setWallet. Without this, mainnet-js
 // falls back to its hardcoded default server (blackie.c3-soft.com), leaking the wallet's address
 // subscriptions to a server the user never selected. Kept in sync with settings via a watch (see below).
+// Each network entry is a single URL string in rpckit parse notation (a plain URL here;
+// fallback(url1,url2) notation would enable multi-server failover).
 function setDefaultElectrumServers() {
-  DefaultProvider.servers.mainnet = [electrumWssUrl(settingsStore.electrumServerMainnet)];
-  DefaultProvider.servers.testnet = [electrumWssUrl(settingsStore.electrumServerChipnet)];
+  DefaultProvider.servers.mainnet = electrumWssUrl(settingsStore.electrumServerMainnet);
+  DefaultProvider.servers.testnet = electrumWssUrl(settingsStore.electrumServerChipnet);
 }
 setDefaultElectrumServers();
 
@@ -354,19 +357,11 @@ export const useStore = defineStore('store', () => {
   const canGoBack = computed(() => viewStack.length > 1);
 
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
-  // It adds the configured electrum network provider on the wallet depending on the network.
+  // The wallet already carries the right network provider: construction takes the per-network
+  // global provider, which is built from the user-selected servers (see setDefaultElectrumServers)
+  // and replaced on server change (see changeElectrumServer).
   // Call initializeWallet() afterwards to actually connect to the electrum client and to fetch initial data.
   function setWallet(newWallet: WalletType){
-    if(newWallet.network == NetworkType.Mainnet){
-      const connectionMainnet = new Connection("mainnet", electrumWssUrl(settingsStore.electrumServerMainnet))
-      // @ts-ignore currently no other way to set a specific provider
-      newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider
-    }
-    if(newWallet.network == NetworkType.Testnet){
-      const connectionChipnet = new Connection("testnet", electrumWssUrl(settingsStore.electrumServerChipnet))
-      // @ts-ignore currently no other way to set a specific provider
-      newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider
-    }
     _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
     const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
@@ -759,6 +754,37 @@ export const useStore = defineStore('store', () => {
     await cancelWalletSubscriptions();
   }
 
+  // Changing electrum servers resets wallet state and triggers a full wallet reinitialization.
+  // Replaces the cached per-network global provider (used for future wallet constructions) and
+  // swaps the new provider onto the active wallet. The settings UI only offers the selector for
+  // the active network, so targetNetwork always matches the active wallet's network.
+  async function changeElectrumServer(targetNetwork: 'mainnet' | 'chipnet', server: string){
+    if(!_wallet.value) throw new Error('No wallet set in global store');
+    changeView(1);
+    // Only reset electrum state, keep WC/CC sessions alive
+    await resetWalletState({ resetDappConnections: false });
+    if(targetNetwork == 'mainnet'){
+      settingsStore.electrumServerMainnet = server;
+      localStorage.setItem("electrum-mainnet", server);
+    } else {
+      settingsStore.electrumServerChipnet = server;
+      localStorage.setItem("electrum-chipnet", server);
+    }
+    const providerNetwork = targetNetwork == 'mainnet' ? 'mainnet' : 'testnet';
+    // Disconnect the replaced provider (after the reset above cancelled its subscriptions)
+    // so the old socket doesn't leak
+    const replacedProvider = getGlobalProvider(providerNetwork);
+    removeGlobalProvider(providerNetwork);
+    if(replacedProvider) await replacedProvider.disconnect().catch(() => {});
+    const newProvider = await createProvider(providerNetwork, electrumWssUrl(server));
+    setGlobalProvider(providerNetwork, newProvider);
+    // @ts-expect-error provider is a readonly property; mainnet-js has no api to swap the
+    // provider on an existing wallet, so assign it directly
+    _wallet.value.provider = newProvider;
+    // fire-and-forget promise does not wait on full wallet initialization
+    void initializeWallet();
+  }
+
   // Avoid WalletClass.named() here: it creates a fresh random wallet if the name is missing.
   // Loading must reconstruct from the saved walletId; .named() is only for creation flows.
   async function loadExistingWallet(walletName: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
@@ -861,12 +887,12 @@ export const useStore = defineStore('store', () => {
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
-    // mainnet-js stores a private key for every address of an HD wallet. This deletes the cached
-    // keys of any wallet no longer in the databases, not only the one just deleted, so it also
-    // picks up keys left by wallets deleted before this existed, whatever kind just went.
+    // mainnet-js caches derived private keys for every wallet. This deletes the cached keys of
+    // any wallet no longer in the databases, not only the one just deleted, so it also picks up
+    // keys left by wallets deleted before this existed, whatever kind just went.
     // The wallet is already gone by now, so a failure here is not a failed deletion.
     try {
-      await pruneHdWalletKeyCache();
+      await pruneWalletKeyCache();
     } catch (error) {
       console.error(error);
       Notify.create({
@@ -1073,7 +1099,7 @@ export const useStore = defineStore('store', () => {
     try {
       const initialization = currentInitialization;
       const currency = settingsStore.currency;
-      const rate = await ExchangeRate.get(currency, true);
+      const rate = await convert(1, 'bch', currency);
       // discard a rate that no longer belongs: the state may have been reset, or the user may
       // have switched currency, which starts a second fetch that can resolve before this one
       if (initialization !== currentInitialization || currency !== settingsStore.currency) return;
@@ -1396,14 +1422,13 @@ export const useStore = defineStore('store', () => {
     // tokenMint and tokenBurn discard an ensureUtxos passed here, using their own to locate the
     // token input; utxoIds still applies to everything else they select
     async tokenMint(
-      category: string,
       mintRequests: TokenMintRequest | TokenMintRequest[],
       deductTokenAmount?: boolean,
       options?: SpendOptions
     ) {
       checkNoReservedUtxos(options);
       const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
-      return wallet.value.tokenMint(category, mintRequests, deductTokenAmount, spendConfig);
+      return wallet.value.tokenMint(mintRequests, deductTokenAmount, spendConfig);
     },
     async tokenBurn(burnRequest: TokenBurnRequest, message?: string, options?: SpendOptions) {
       checkNoReservedUtxos(options);
@@ -1483,6 +1508,7 @@ export const useStore = defineStore('store', () => {
     setWallet,
     initializeWallet,
     resetWalletState,
+    changeElectrumServer,
     updateWalletUtxos,
     updateWalletHistory,
     changeNetwork,
