@@ -147,8 +147,6 @@ Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). See `devel
 
 Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
 
-Two deps carry pnpm patches (`patches/`) — re-check whether either is still needed on upgrades: `@wizardconnect/wallet` fixes a disconnect race, and `mainnet-js` adds `encodedTransaction` to the send response, which `send()` otherwise discards after broadcasting.
-
 ## Code Style Preferences
 
 This is a crypto wallet - a security-sensitive environment where being overly careful is preferred over under-careful.
