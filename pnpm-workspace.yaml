@@ -55,10 +55,3 @@ overrides:
 # (src-electron has its own allowBuilds for electron's binary download.)
 allowBuilds:
   '@parcel/watcher': true
-
-# Fix a disconnect race in @wizardconnect/wallet: doDisconnect tore down the relay
-# connection synchronously while the courtesy disconnect message was still in flight,
-# so the dapp never learned of the disconnect. The patch defers cleanup until the
-# relay promise settles. Remove once fixed upstream.
-patchedDependencies:
-  '@wizardconnect/wallet@0.2.2': patches/@wizardconnect__wallet@0.2.2.patch

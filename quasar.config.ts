@@ -12,7 +12,8 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://quasar.dev/quasar-cli-vite/boot-files
-    boot: ('capacitor' in ctx.mode ? ['icons', 'i18n', 'deepLinking', 'qrCodeComponent'] : ['icons', 'i18n', 'qrCodeComponent', 'plausible']),
+    // ctx.mode contains every mode as a key preset to false, so test the value, never key presence
+    boot: (ctx.mode.capacitor ? ['icons', 'i18n', 'deepLinking', 'qrCodeComponent'] : ['icons', 'i18n', 'qrCodeComponent', 'plausible']),
 
     // https://quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: [
