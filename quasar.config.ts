@@ -5,6 +5,11 @@ import { defineConfig } from '#q-app';
 import packageJson from './package.json';
 
 export default defineConfig((ctx) => {
+  // ctx.mode contains every mode as a key preset to false, so test the value, never key presence
+  const bootFiles = ['icons', 'i18n', 'qrCodeComponent'];
+  if (ctx.mode.capacitor) bootFiles.push('deepLinking');
+  if (ctx.mode.spa) bootFiles.push('plausible');
+
   return {
     // https://quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -12,8 +17,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://quasar.dev/quasar-cli-vite/boot-files
-    // ctx.mode contains every mode as a key preset to false, so test the value, never key presence
-    boot: (ctx.mode.capacitor ? ['icons', 'i18n', 'deepLinking', 'qrCodeComponent'] : ['icons', 'i18n', 'qrCodeComponent', 'plausible']),
+    boot: bootFiles,
 
     // https://quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: [
