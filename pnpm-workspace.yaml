@@ -8,11 +8,6 @@
 # does not re-check what is already in the committed lockfile.
 minimumReleaseAge: 2880
 
-# Exempt from the release-age quarantine. Only needed for versions still inside the
-# window at the moment they are resolved; drop entries once they have aged past it.
-minimumReleaseAgeExclude:
-  - '@quasar/app-vite@3.5.0'
-
 # Enforce the "engines" field (node / pnpm) instead of just warning.
 engineStrict: true
 
