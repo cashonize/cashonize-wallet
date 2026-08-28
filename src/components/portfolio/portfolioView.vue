@@ -476,9 +476,9 @@
     }
   }, { immediate: true })
 
-  // Row data for one TapSwap listing. An NFT row shows the NFT's own name and icon with the
-  // collection as detail, falling back to the collection name and commitment; a fungible row
-  // shows its amount.
+  // Row data for one TapSwap listing. An NFT row shows the NFT's own name and icon, with the
+  // collection name and commitment filling in when it has no metadata of its own; a fungible
+  // row shows its amount.
   function tapswapListingRow(listing: TapswapListing) {
     const metadata = store.bcmrRegistries?.[listing.category]
     const collectionName = metadata?.name ?? listing.category.slice(0, 8) + '...'
@@ -491,7 +491,7 @@
       const nftName = nftMetadata?.name
       if (nftName && nftName !== collectionName) {
         name = nftName
-        detailDisplay = collectionName
+        detailDisplay = undefined
       }
     } else {
       detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
@@ -506,6 +506,14 @@
       if (nftIconUri.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + nftIconUri.slice(7)
     }
 
+    // the asking price is a term of the listing, so it always shows in BCH, with the
+    // fiat value alongside
+    const priceBch = satsToBch(listing.priceSats)
+    let priceDisplay = bchValueFormatter.format(priceBch) + ' ' + bchUnitName.value
+    if (store.exchangeRate !== undefined) {
+      priceDisplay += ` (${formatFiatAmount(priceBch * store.exchangeRate, settingsStore.currency)})`
+    }
+
     return {
       id: `${listing.txid}:0`,
       category: listing.category,
@@ -513,7 +521,7 @@
       name,
       detailDisplay,
       iconUrl,
-      priceBch: satsToBch(listing.priceSats)
+      priceDisplay
     }
   }
 
@@ -901,6 +909,10 @@
         <div class="section-label collapsible" @click="showTapswapListings = !showTapswapListings">
           <q-icon name="expand_more" class="chevron" :class="{ open: showTapswapListings }" />
           {{ t('portfolio.tapswapListings', { count: tapswapRows.length }) }}
+          <!-- click.stop so opening the popup by tap does not also toggle the section -->
+          <InfoPopup @click.stop>
+            <div style="max-width: 260px;">{{ t('portfolio.tapswapInfo') }}</div>
+          </InfoPopup>
         </div>
         <div v-if="showTapswapListings" class="asset-list">
           <div v-for="row in tapswapRows" :key="row.id" class="asset-row">
@@ -912,12 +924,10 @@
             />
             <div class="asset-name">
               <div>{{ row.name }}</div>
-              <div class="sub">{{ row.detailDisplay }}</div>
+              <div v-if="row.detailDisplay" class="sub">{{ row.detailDisplay }}</div>
+              <div class="sub">{{ t('portfolio.askingPrice') }}: {{ row.priceDisplay }}</div>
             </div>
-            <div class="asset-value">
-              <div>{{ formatBchValue(row.priceBch) }}</div>
-              <div class="sub">{{ t('portfolio.askingPrice') }}</div>
-            </div>
+            <div class="asset-value"></div>
           </div>
           <i18n-t keypath="portfolio.manageListings" tag="div" class="manage-listings-note">
             <template #link>

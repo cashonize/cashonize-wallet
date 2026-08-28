@@ -182,6 +182,7 @@
     "tapswapListings": "Annonces TapSwap ({count})",
     "askingPrice": "Prix demandé",
     "manageListings": "Gérez vos annonces sur {link}.",
+    "tapswapInfo": "Les actifs mis en vente appartiennent toujours au portefeuille, mais ils sont détenus par un contrat de vente TapSwap, ils n'apparaissent donc pas dans la liste des tokens du portefeuille.",
     "collateral": "Collatéral",
     "debt": "Dette",
     "netValue": "Valeur nette",

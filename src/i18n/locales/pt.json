@@ -182,6 +182,7 @@
     "tapswapListings": "Anúncios no TapSwap ({count})",
     "askingPrice": "Preço pedido",
     "manageListings": "Gerencie seus anúncios em {link}.",
+    "tapswapInfo": "Os ativos anunciados continuam a pertencer à carteira, mas ficam num contrato de venda do TapSwap, por isso não aparecem na lista de tokens da carteira.",
     "collateral": "Colateral",
     "debt": "Dívida",
     "netValue": "Valor líquido",

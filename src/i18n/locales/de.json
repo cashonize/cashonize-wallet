@@ -182,6 +182,7 @@
     "tapswapListings": "TapSwap-Angebote ({count})",
     "askingPrice": "Verkaufspreis",
     "manageListings": "Verwalte deine Angebote auf {link}.",
+    "tapswapInfo": "Angebotene Assets gehören weiterhin dem Wallet, liegen aber in einem TapSwap-Verkaufsvertrag und erscheinen deshalb nicht in der Token-Liste des Wallets.",
     "collateral": "Collateral",
     "debt": "Schulden",
     "netValue": "Nettowert",

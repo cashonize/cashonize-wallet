@@ -182,6 +182,7 @@
     "tapswapListings": "TapSwap listings ({count})",
     "askingPrice": "Asking price",
     "manageListings": "Manage your listings on {link}.",
+    "tapswapInfo": "Listed assets remain owned by the wallet but are held in a TapSwap sale contract, so they do not show in the wallet's token list.",
     "collateral": "Collateral",
     "debt": "Debt",
     "netValue": "Net value",
