@@ -179,6 +179,8 @@
     "other": "Autres",
     "noPriceData": "Pas de données de prix ({count})",
     "smallBalances": "Petits soldes ({count})",
+    "tapswapListings": "Annonces TapSwap ({count})",
+    "askingPrice": "Prix demandé",
     "collateral": "Collatéral",
     "debt": "Dette",
     "netValue": "Valeur nette",

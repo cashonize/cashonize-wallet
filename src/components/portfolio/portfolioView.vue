@@ -73,6 +73,7 @@
   const displayUnit = ref<'currency' | 'bch'>('currency')
   const showSmallBalances = ref(false)
   const showUnpriced = ref(false)
+  const showTapswapListings = ref(false)
   // chipnet balances are shown in the mainnet BCH price here just like on the wallet
   // page, marked with the same 't' prefix on the unit and currency names
   const bchUnitName = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH')
@@ -87,6 +88,9 @@
   // explicitly opened the portfolio (the underlying price fetches are cached for 5 minutes).
   // Prices are fetched after the pools so the pools' tokens are priced along with the held ones.
   async function loadPoolsAndPrices() {
+    // unawaited: listings feed no chart segment or total, so the slower Chaingraph lookup
+    // holds up neither the price fetches nor the view's loading gate
+    void store.fetchWalletTapswapListings()
     await store.fetchWalletCauldronPools()
     await store.fetchWalletBadgerLocks()
     await store.fetchCauldronPricesForTokens(true)
@@ -471,6 +475,54 @@
     }
   }, { immediate: true })
 
+  // Assets listed for sale on TapSwap. The listing contract holds them until they sell or the
+  // listing is cancelled, so they are shown in their own collapsed section with the asking
+  // price, and stay out of the chart and the total like other NFTs.
+  const tapswapRows = computed(() => {
+    const rows = (store.tapswapListings ?? []).map(listing => {
+      const metadata = store.bcmrRegistries?.[listing.category]
+      const collectionName = metadata?.name ?? listing.category.slice(0, 8) + '...'
+      const nftMetadata = listing.commitment !== undefined ? metadata?.nfts?.[listing.commitment] : undefined
+
+      // an NFT row shows the NFT's own name and icon with the collection as detail, falling
+      // back to the collection name and commitment; a fungible row shows its amount
+      const symbol = metadata?.token?.symbol
+      let name = collectionName
+      let detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
+      if (symbol) detailDisplay += ' ' + symbol
+      if (listing.commitment !== undefined) {
+        detailDisplay = '#' + listing.commitment
+        const nftName = nftMetadata?.name
+        if (nftName && nftName !== collectionName) {
+          name = nftName
+          detailDisplay = collectionName
+        }
+      }
+
+      let iconUrl = store.tokenIconUrl(listing.category)
+      const nftIconUri = nftMetadata?.uris?.icon
+      if (nftIconUri) iconUrl = nftIconUri
+      if (nftIconUri?.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + nftIconUri.slice(7)
+
+      return {
+        id: `${listing.txid}:0`,
+        category: listing.category,
+        collectionName,
+        name,
+        detailDisplay,
+        iconUrl,
+        priceBch: satsToBch(listing.priceSats)
+      }
+    })
+    // keep each collection's listings together, collections in name order
+    rows.sort((a, b) => {
+      if (a.category === b.category) return 0
+      if (a.collectionName !== b.collectionName) return a.collectionName.localeCompare(b.collectionName)
+      return a.category.localeCompare(b.category)
+    })
+    return rows
+  })
+
   const hasFungibleTokens = computed(() => (store.tokenList ?? []).some(token => 'amount' in token))
 
   // Safety valve for the loading gate: a hanging icon fetch or a wedged electrum
@@ -834,6 +886,31 @@
               <div class="sub">{{ asset.amountDisplay }} {{ asset.symbol }}</div>
             </div>
             <div class="asset-value"></div>
+          </div>
+        </div>
+      </template>
+
+      <template v-if="tapswapRows.length">
+        <div class="section-label collapsible" @click="showTapswapListings = !showTapswapListings">
+          <q-icon name="expand_more" class="chevron" :class="{ open: showTapswapListings }" />
+          {{ t('portfolio.tapswapListings', { count: tapswapRows.length }) }}
+        </div>
+        <div v-if="showTapswapListings" class="asset-list">
+          <div v-for="row in tapswapRows" :key="row.id" class="asset-row">
+            <span class="dot"></span>
+            <TokenIcon
+              :token-id="row.category"
+              :icon-url="!settingsStore.disableTokenIcons ? row.iconUrl : undefined"
+              :size="32"
+            />
+            <div class="asset-name">
+              <div>{{ row.name }}</div>
+              <div class="sub">{{ row.detailDisplay }}</div>
+            </div>
+            <div class="asset-value">
+              <div>{{ formatBchValue(row.priceBch) }}</div>
+              <div class="sub">{{ t('portfolio.askingPrice') }}</div>
+            </div>
           </div>
         </div>
       </template>
