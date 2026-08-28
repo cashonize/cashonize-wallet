@@ -168,6 +168,9 @@ export const useStore = defineStore('store', () => {
   const badgerLocks = ref<BadgerLock[] | null>(null);
   // Assets listed for sale on TapSwap, null until the portfolio view looks them up
   const tapswapListings = ref<TapswapListing[] | null>(null);
+  // Metadata of the listed assets. They are not held by the wallet, so like the dapp dialogs'
+  // unverified metadata this lives in its own object rather than in bcmrRegistries.
+  const tapswapRegistries = ref<Record<string, BcmrTokenMetadata>>({});
   const exchangeRate = ref<number | undefined>(undefined);
   let exchangeRateInterval: ReturnType<typeof setInterval> | undefined;
   let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
@@ -742,6 +745,7 @@ export const useStore = defineStore('store', () => {
     cauldronPools.value = null;
     badgerLocks.value = null;
     tapswapListings.value = null;
+    tapswapRegistries.value = {};
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
@@ -1206,17 +1210,20 @@ export const useStore = defineStore('store', () => {
       if (initialization !== currentInitialization) return;
       tapswapListings.value = listings;
 
-      // A listed asset is not held by the wallet, so its metadata can be missing. NFT listings
-      // fetch their NFT-specific metadata (name, icon), which carries the collection metadata
-      // with it; fungible listings fetch the category metadata.
+      // NFT listings fetch their NFT-specific metadata (name, icon), which carries the
+      // collection metadata with it; fungible listings fetch the category metadata. The
+      // fetches merge into tapswapRegistries in place.
       for (const listing of listings) {
+        if (initialization !== currentInitialization) return;
         if (listing.commitment !== undefined) {
-          if (bcmrRegistries.value?.[listing.category]?.nfts?.[listing.commitment]) continue;
-          await fetchNftMetadata(listing.category, listing.commitment);
+          if (tapswapRegistries.value[listing.category]?.nfts?.[listing.commitment]) continue;
+          await fetchNftMetadataFromIndexer(listing.category, listing.commitment, bcmrIndexer.value, tapswapRegistries.value);
           continue;
         }
-        if (bcmrRegistries.value?.[listing.category]) continue;
-        await fetchTokenMetadata([{ category: listing.category, amount: listing.tokenAmount }], false);
+        if (tapswapRegistries.value[listing.category]) continue;
+        await fetchTokenMetadataFromIndexer(
+          [{ category: listing.category, amount: listing.tokenAmount }], false, bcmrIndexer.value, tapswapRegistries.value
+        );
       }
     } catch (error) {
       // swallowed like the Cauldron lookup, so one unreachable request does not keep the
@@ -1516,6 +1523,7 @@ export const useStore = defineStore('store', () => {
     cauldronPools,
     badgerLocks,
     tapswapListings,
+    tapswapRegistries,
     exchangeRate,
     currentBlockHeight,
     canGoBack,

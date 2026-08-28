@@ -480,7 +480,7 @@
   // collection name and commitment filling in when it has no metadata of its own; a fungible
   // row shows its amount.
   function tapswapListingRow(listing: TapswapListing) {
-    const metadata = store.bcmrRegistries?.[listing.category]
+    const metadata = store.tapswapRegistries[listing.category]
     const collectionName = metadata?.name ?? listing.category.slice(0, 8) + '...'
     const nftMetadata = listing.commitment !== undefined ? metadata?.nfts?.[listing.commitment] : undefined
 
@@ -499,12 +499,11 @@
       if (symbol) detailDisplay += ' ' + symbol
     }
 
-    let iconUrl = store.tokenIconUrl(listing.category)
-    const nftIconUri = nftMetadata?.uris?.icon
-    if (nftIconUri) {
-      iconUrl = nftIconUri
-      if (nftIconUri.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + nftIconUri.slice(7)
-    }
+    // listed assets are not in the wallet's registries, so the icon resolves from the
+    // listing metadata directly instead of through store.tokenIconUrl
+    const iconUri = nftMetadata?.uris?.icon ?? metadata?.uris?.icon
+    let iconUrl = iconUri
+    if (iconUri?.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + iconUri.slice(7)
 
     // the asking price is a term of the listing, so it always shows in BCH, with the
     // fiat value alongside
