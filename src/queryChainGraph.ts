@@ -83,14 +83,21 @@ interface SpentOutputsResponse {
   data: { search_output: ChaingraphSpentOutput[] };
 }
 
+// Chaingraph instances cap the rows a single query returns (5,000 on the default instance),
+// truncating silently, so paged queries fetch until a page comes back short
+const CHAINGRAPH_PAGE_SIZE = 1000;
+
 // The spent outputs at the given locking bytecodes, each with the spending transaction's
 // outputs 0 and 1 and whether those are spent themselves. This is the shape the TapSwap
 // listing lookup needs (utils/defi/tapswapListings.ts).
 export async function querySpentOutputs(lockingBytecodesHex: string[], chaingraphUrl: string) {
-  const querySpent = `query WalletSpentOutputs($lockingBytecodes: _text!) {
+  const querySpent = `query WalletSpentOutputs($lockingBytecodes: _text!, $limit: Int!, $offset: Int!) {
     search_output(
       args: { locking_bytecode_hex: $lockingBytecodes }
       where: { spent_by: {} }
+      limit: $limit
+      offset: $offset
+      order_by: [{ transaction_hash: asc }, { output_index: asc }]
     ) {
       spent_by {
         transaction {
@@ -109,6 +116,13 @@ export async function querySpentOutputs(lockingBytecodesHex: string[], chaingrap
   }`;
   // search_output takes its locking bytecodes as a postgres text-array literal
   const lockingBytecodes = `{${lockingBytecodesHex.join(",")}}`;
-  const response = await queryChainGraph(querySpent, chaingraphUrl, { lockingBytecodes }) as SpentOutputsResponse;
-  return response.data.search_output;
+  const spentOutputs: ChaingraphSpentOutput[] = [];
+  for (let offset = 0; ; offset += CHAINGRAPH_PAGE_SIZE) {
+    const response = await queryChainGraph(querySpent, chaingraphUrl, {
+      lockingBytecodes, limit: CHAINGRAPH_PAGE_SIZE, offset,
+    }) as SpentOutputsResponse;
+    spentOutputs.push(...response.data.search_output);
+    if (response.data.search_output.length < CHAINGRAPH_PAGE_SIZE) break;
+  }
+  return spentOutputs;
 }

@@ -486,10 +486,8 @@
 
       // an NFT row shows the NFT's own name and icon with the collection as detail, falling
       // back to the collection name and commitment; a fungible row shows its amount
-      const symbol = metadata?.token?.symbol
       let name = collectionName
-      let detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
-      if (symbol) detailDisplay += ' ' + symbol
+      let detailDisplay
       if (listing.commitment !== undefined) {
         detailDisplay = '#' + listing.commitment
         const nftName = nftMetadata?.name
@@ -497,12 +495,18 @@
           name = nftName
           detailDisplay = collectionName
         }
+      } else {
+        detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
+        const symbol = metadata?.token?.symbol
+        if (symbol) detailDisplay += ' ' + symbol
       }
 
       let iconUrl = store.tokenIconUrl(listing.category)
       const nftIconUri = nftMetadata?.uris?.icon
-      if (nftIconUri) iconUrl = nftIconUri
-      if (nftIconUri?.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + nftIconUri.slice(7)
+      if (nftIconUri) {
+        iconUrl = nftIconUri
+        if (nftIconUri.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + nftIconUri.slice(7)
+      }
 
       return {
         id: `${listing.txid}:0`,
@@ -516,7 +520,6 @@
     })
     // keep each collection's listings together, collections in name order
     rows.sort((a, b) => {
-      if (a.category === b.category) return 0
       if (a.collectionName !== b.collectionName) return a.collectionName.localeCompare(b.collectionName)
       return a.category.localeCompare(b.category)
     })

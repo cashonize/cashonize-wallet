@@ -8,16 +8,16 @@
 // UTXO is unspent; buying and cancelling both spend it.
 //
 // The contract is not open source; the announcement format was verified against the deployed
-// contract, revealed by settled trades. Reference: https://github.com/mainnet-pat/tapswap-subsquid
+// contract, revealed by settled trades. The closest thing to a spec is the TapSwap developer's
+// own barebones parsing of the format: https://github.com/mainnet-pat/tapswap-subsquid
 
 import {
   hexToBin,
   binToHex,
-  binToNumberUint16LE,
   vmNumberToBigInt,
   encodeLockingBytecodeP2pkh,
-  // the un-yeared OpcodesBch alias is only exported as a value, not as a type
-  OpcodesBch2023 as OpcodesBch,
+  decodeAuthenticationInstructions,
+  authenticationInstructionsAreMalformed,
 } from "@bitauth/libauth";
 import { querySpentOutputs, byteaToHex, type ChaingraphSpentOutput } from "src/queryChainGraph";
 
@@ -30,7 +30,7 @@ const TAPSWAP_PLATFORM_PKH = "e4da17ddbe40533c2a8638fdedf2c0997d46e953";
 
 // The announcement is ten pushes: marker, version, contract hash, platform pkh, asking price,
 // three "want" fields (empty when the listing asks plain BCH), maker pkh, and the platform fee
-const ANNOUNCEMENT_CHUNKS = { count: 10, platformPkh: 3, price: 4, makerPkh: 8 };
+const ANNOUNCEMENT_CHUNKS = { count: 10, platformPkh: 3, price: 4, wantFields: [5, 6, 7], makerPkh: 8, fee: 9 };
 
 export interface TapswapListing {
   /** The listing transaction; the contract UTXO holding the asset is always its output 0 */
@@ -43,42 +43,33 @@ export interface TapswapListing {
   priceSats: bigint;
 }
 
-// Split an OP_RETURN into its pushed chunks. Direct pushes and OP_PUSHDATA1/2 cover everything
-// OP_RETURN outputs allow; OP_PUSHDATA4 is not standard in them.
-function parseOpReturnChunks(opReturn: Uint8Array) {
-  const chunks: Uint8Array[] = [];
-  let position = 1;
-  while (opReturn[position] !== undefined) {
-    let length;
-    const opcode = opReturn[position] as OpcodesBch;
-    if (opcode === OpcodesBch.OP_PUSHDATA_1) {
-      length = opReturn[position + 1] ?? 0;
-      position += 2;
-    } else if (opcode === OpcodesBch.OP_PUSHDATA_2) {
-      length = binToNumberUint16LE(opReturn.slice(position + 1, position + 3));
-      position += 3;
-    } else {
-      // a direct push, the opcode itself is the length
-      length = opcode;
-      position += 1;
-    }
-    chunks.push(opReturn.slice(position, position + length));
-    position += length;
-  }
-  return chunks;
-}
-
-// Parse a listing announcement, returning the asking price only when the announcement is
-// well-formed and names one of the given pkhs as the maker
-export function parseListingAnnouncement(opReturnHex: string, ownerPkhs: string[]) {
+// Parse a listing announcement into its offer terms, only when it is well-formed and asks
+// plain BCH
+export function parseListingAnnouncement(opReturnHex: string) {
   if (!opReturnHex.startsWith(LISTING_ANNOUNCEMENT_PREFIX)) return undefined;
-  const chunks = parseOpReturnChunks(hexToBin(opReturnHex));
+  const instructions = decodeAuthenticationInstructions(hexToBin(opReturnHex));
+  if (authenticationInstructionsAreMalformed(instructions)) return undefined;
+
+  // the first instruction is the OP_RETURN itself, the announcement fields are the pushes after it
+  const chunks: Uint8Array[] = [];
+  for (const instruction of instructions.slice(1)) {
+    if (!('data' in instruction)) return undefined;
+    chunks.push(instruction.data);
+  }
   if (chunks.length !== ANNOUNCEMENT_CHUNKS.count) return undefined;
   if (binToHex(chunks[ANNOUNCEMENT_CHUNKS.platformPkh]!) !== TAPSWAP_PLATFORM_PKH) return undefined;
-  if (!ownerPkhs.includes(binToHex(chunks[ANNOUNCEMENT_CHUNKS.makerPkh]!))) return undefined;
+  // a listing asking tokens instead of plain BCH has no BCH asking price to show; the format
+  // supports token asks but TapSwap itself currently only creates BCH asks
+  if (ANNOUNCEMENT_CHUNKS.wantFields.some(index => chunks[index]!.length > 0)) return undefined;
   const priceSats = vmNumberToBigInt(chunks[ANNOUNCEMENT_CHUNKS.price]!);
   if (typeof priceSats === "string") return undefined;
-  return { priceSats };
+  const feeSats = vmNumberToBigInt(chunks[ANNOUNCEMENT_CHUNKS.fee]!);
+  if (typeof feeSats === "string") return undefined;
+  return {
+    makerPkh: binToHex(chunks[ANNOUNCEMENT_CHUNKS.makerPkh]!),
+    priceSats,
+    feeSats,
+  };
 }
 
 // Pick the wallet's active listings out of the transactions that spent its outputs
@@ -95,16 +86,17 @@ export function listingsFromSpentOutputs(spentOutputs: ChaingraphSpentOutput[], 
       const announcement = spend.transaction.outputs.find((output) => output.output_index === "1");
       const contractOutput = spend.transaction.outputs.find((output) => output.output_index === "0");
       if (!announcement || !contractOutput) continue;
-      const offer = parseListingAnnouncement(byteaToHex(announcement.locking_bytecode), ownerPkhs);
+      const offer = parseListingAnnouncement(byteaToHex(announcement.locking_bytecode));
       if (!offer) continue;
+      if (!ownerPkhs.includes(offer.makerPkh)) continue;
       if (contractOutput.spent_by.length > 0) continue;
-      if (contractOutput.token_category == null) continue;
+      if (contractOutput.token_category === null) continue;
 
       const rawCommitment = contractOutput.nonfungible_token_commitment;
       listings.push({
         txid,
         category: byteaToHex(contractOutput.token_category),
-        commitment: rawCommitment == null ? undefined : byteaToHex(rawCommitment),
+        commitment: rawCommitment === null ? undefined : byteaToHex(rawCommitment),
         tokenAmount: BigInt(contractOutput.fungible_token_amount ?? 0),
         priceSats: offer.priceSats,
       });

@@ -9,20 +9,25 @@ const ftAnnouncement = "6a044d5053570104043d400caf14e4da17ddbe40533c2a8638fdedf2
 const ftMakerPkh = "2458b6396f0f866f4b60af2b7655dc9fc490e0c4";
 
 describe('parseListingAnnouncement', () => {
-  it('should parse a listing made by one of the given pkhs', () => {
-    expect(parseListingAnnouncement(nftAnnouncement, [nftMakerPkh])).toEqual({ priceSats: 4_000_000n });
-    expect(parseListingAnnouncement(ftAnnouncement, [ftMakerPkh])).toEqual({ priceSats: 5n });
-  })
-  it('should reject a listing made by someone else', () => {
-    expect(parseListingAnnouncement(nftAnnouncement, [ftMakerPkh])).toBeUndefined();
-    expect(parseListingAnnouncement(nftAnnouncement, [])).toBeUndefined();
+  it('should parse the offer terms of a listing announcement', () => {
+    expect(parseListingAnnouncement(nftAnnouncement)).toEqual({
+      makerPkh: nftMakerPkh, priceSats: 4_000_000n, feeSats: 120_000n
+    });
+    expect(parseListingAnnouncement(ftAnnouncement)).toEqual({
+      makerPkh: ftMakerPkh, priceSats: 5n, feeSats: 100_000n
+    });
   })
   it('should reject other OP_RETURN outputs', () => {
-    expect(parseListingAnnouncement("6a0450555348", [nftMakerPkh])).toBeUndefined();
+    expect(parseListingAnnouncement("6a0450555348")).toBeUndefined();
   })
   it('should reject an announcement naming another platform pkh', () => {
     const otherPlatform = nftAnnouncement.replace("e4da17ddbe40533c2a8638fdedf2c0997d46e953", "0000000000000000000000000000000000000000");
-    expect(parseListingAnnouncement(otherPlatform, [nftMakerPkh])).toBeUndefined();
+    expect(parseListingAnnouncement(otherPlatform)).toBeUndefined();
+  })
+  it('should reject a listing asking tokens instead of plain BCH', () => {
+    // the real announcement with its three empty want pushes replaced by a want category push
+    const tokenAsk = nftAnnouncement.replace("0300093d000000", "0300093d20" + "aa".repeat(32) + "0000");
+    expect(parseListingAnnouncement(tokenAsk)).toBeUndefined();
   })
 })
 
@@ -67,6 +72,10 @@ describe('listingsFromSpentOutputs', () => {
   })
   it('should skip a listing whose contract utxo is spent', () => {
     expect(listingsFromSpentOutputs([spentOutputFixture([{ input_index: "0" }])], [nftMakerPkh])).toEqual([]);
+  })
+  it('should skip a listing made by someone else', () => {
+    expect(listingsFromSpentOutputs([spentOutputFixture([])], [ftMakerPkh])).toEqual([]);
+    expect(listingsFromSpentOutputs([spentOutputFixture([])], [])).toEqual([]);
   })
   it('should report a listing spending several wallet outputs once', () => {
     const listings = listingsFromSpentOutputs([spentOutputFixture([]), spentOutputFixture([])], [nftMakerPkh]);
