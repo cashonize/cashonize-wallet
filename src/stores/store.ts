@@ -62,6 +62,7 @@ import {
   type CauldronPool
 } from "src/utils/defi/cauldronPools"
 import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
+import { fetchTapswapListings, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -165,6 +166,8 @@ export const useStore = defineStore('store', () => {
   const cauldronPools = ref<CauldronPool[] | null>(null);
   // BCH locked in the Badgers.cash contract, null until the portfolio view looks it up
   const badgerLocks = ref<BadgerLock[] | null>(null);
+  // Assets listed for sale on TapSwap, null until the portfolio view looks them up
+  const tapswapListings = ref<TapswapListing[] | null>(null);
   const exchangeRate = ref<number | undefined>(undefined);
   let exchangeRateInterval: ReturnType<typeof setInterval> | undefined;
   let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
@@ -738,6 +741,7 @@ export const useStore = defineStore('store', () => {
     cauldronPrices.value = null;
     cauldronPools.value = null;
     badgerLocks.value = null;
+    tapswapListings.value = null;
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
@@ -1187,6 +1191,41 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // Find the assets the wallet has listed for sale on TapSwap. A listing is held by a sale
+  // contract, so the wallet holds nothing that represents it; the listing transactions are
+  // found through Chaingraph starting from the wallet's own addresses. Only the portfolio view
+  // shows them, so it drives the fetch. TapSwap is mainnet only.
+  async function fetchWalletTapswapListings() {
+    if (network.value !== 'mainnet') {
+      tapswapListings.value = [];
+      return;
+    }
+    try {
+      const initialization = currentInitialization;
+      const listings = await fetchTapswapListings(walletPublicKeyHashes(), settingsStore.chaingraph);
+      if (initialization !== currentInitialization) return;
+      tapswapListings.value = listings;
+
+      // A listed asset is not held by the wallet, so its metadata can be missing. NFT listings
+      // fetch their NFT-specific metadata (name, icon), which carries the collection metadata
+      // with it; fungible listings fetch the category metadata.
+      for (const listing of listings) {
+        if (listing.commitment !== undefined) {
+          if (bcmrRegistries.value?.[listing.category]?.nfts?.[listing.commitment]) continue;
+          await fetchNftMetadata(listing.category, listing.commitment);
+          continue;
+        }
+        if (bcmrRegistries.value?.[listing.category]) continue;
+        await fetchTokenMetadata([{ category: listing.category, amount: listing.tokenAmount }], false);
+      }
+    } catch (error) {
+      // swallowed like the Cauldron lookup, so one unreachable request does not keep the
+      // portfolio from rendering everything else
+      console.error("Failed to look up TapSwap listings:", error);
+      tapswapListings.value ??= [];
+    }
+  }
+
   // Periodically refetch exchange rate and Cauldron prices on separate intervals
   function startRefetchIntervals() {
     stopRefetchIntervals();
@@ -1476,6 +1515,7 @@ export const useStore = defineStore('store', () => {
     cauldronPrices,
     cauldronPools,
     badgerLocks,
+    tapswapListings,
     exchangeRate,
     currentBlockHeight,
     canGoBack,
@@ -1498,6 +1538,7 @@ export const useStore = defineStore('store', () => {
     fetchCauldronPricesForTokens,
     fetchWalletCauldronPools,
     fetchWalletBadgerLocks,
+    fetchWalletTapswapListings,
     toggleFavorite,
     toggleHidden,
     tokenIconUrl,

@@ -9,6 +9,7 @@
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { formatFiatAmount, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
+  import type { TapswapListing } from 'src/utils/defi/tapswapListings'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
@@ -73,6 +74,7 @@
   const displayUnit = ref<'currency' | 'bch'>('currency')
   const showSmallBalances = ref(false)
   const showUnpriced = ref(false)
+  const showTapswapListings = ref(false)
   // chipnet balances are shown in the mainnet BCH price here just like on the wallet
   // page, marked with the same 't' prefix on the unit and currency names
   const bchUnitName = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH')
@@ -87,6 +89,9 @@
   // explicitly opened the portfolio (the underlying price fetches are cached for 5 minutes).
   // Prices are fetched after the pools so the pools' tokens are priced along with the held ones.
   async function loadPoolsAndPrices() {
+    // unawaited: listings feed no chart segment or total, so the slower Chaingraph lookup
+    // holds up neither the price fetches nor the view's loading gate
+    void store.fetchWalletTapswapListings()
     await store.fetchWalletCauldronPools()
     await store.fetchWalletBadgerLocks()
     await store.fetchCauldronPricesForTokens(true)
@@ -471,6 +476,68 @@
     }
   }, { immediate: true })
 
+  // Row data for one TapSwap listing. An NFT row shows the NFT's own name and icon, with the
+  // collection name and commitment filling in when it has no metadata of its own; a fungible
+  // row shows its amount.
+  function tapswapListingRow(listing: TapswapListing) {
+    const metadata = store.bcmrRegistries?.[listing.category]
+    const collectionName = metadata?.name ?? listing.category.slice(0, 8) + '...'
+    const nftMetadata = listing.commitment !== undefined ? metadata?.nfts?.[listing.commitment] : undefined
+
+    let name = collectionName
+    let detailDisplay
+    if (listing.commitment !== undefined) {
+      detailDisplay = '#' + listing.commitment
+      const nftName = nftMetadata?.name
+      if (nftName && nftName !== collectionName) {
+        name = nftName
+        detailDisplay = undefined
+      }
+    } else {
+      detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
+      const symbol = metadata?.token?.symbol
+      if (symbol) detailDisplay += ' ' + symbol
+    }
+
+    let iconUrl = store.tokenIconUrl(listing.category)
+    const nftIconUri = nftMetadata?.uris?.icon
+    if (nftIconUri) {
+      iconUrl = nftIconUri
+      if (nftIconUri.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + nftIconUri.slice(7)
+    }
+
+    // the asking price is a term of the listing, so it always shows in BCH, with the
+    // fiat value alongside
+    const priceBch = satsToBch(listing.priceSats)
+    let priceDisplay = bchValueFormatter.format(priceBch) + ' ' + bchUnitName.value
+    if (store.exchangeRate !== undefined) {
+      priceDisplay += ` (${formatFiatAmount(priceBch * store.exchangeRate, settingsStore.currency)})`
+    }
+
+    return {
+      id: `${listing.txid}:0`,
+      category: listing.category,
+      collectionName,
+      name,
+      detailDisplay,
+      iconUrl,
+      priceDisplay
+    }
+  }
+
+  // Assets listed for sale on TapSwap. The listing contract holds them until they sell or the
+  // listing is cancelled, so they are shown in their own collapsed section with the asking
+  // price, and stay out of the chart and the total like other NFTs.
+  const tapswapRows = computed(() => {
+    const rows = (store.tapswapListings ?? []).map(tapswapListingRow)
+    // keep each collection's listings together, collections in name order
+    rows.sort((a, b) => {
+      if (a.collectionName !== b.collectionName) return a.collectionName.localeCompare(b.collectionName)
+      return a.category.localeCompare(b.category)
+    })
+    return rows
+  })
+
   const hasFungibleTokens = computed(() => (store.tokenList ?? []).some(token => 'amount' in token))
 
   // Safety valve for the loading gate: a hanging icon fetch or a wedged electrum
@@ -838,6 +905,38 @@
         </div>
       </template>
 
+      <template v-if="tapswapRows.length">
+        <div class="section-label collapsible" @click="showTapswapListings = !showTapswapListings">
+          <q-icon name="expand_more" class="chevron" :class="{ open: showTapswapListings }" />
+          {{ t('portfolio.tapswapListings', { count: tapswapRows.length }) }}
+          <!-- click.stop so opening the popup by tap does not also toggle the section -->
+          <InfoPopup @click.stop>
+            <div style="max-width: 260px;">{{ t('portfolio.tapswapInfo') }}</div>
+          </InfoPopup>
+        </div>
+        <div v-if="showTapswapListings" class="asset-list">
+          <div v-for="row in tapswapRows" :key="row.id" class="asset-row">
+            <span class="dot"></span>
+            <TokenIcon
+              :token-id="row.category"
+              :icon-url="!settingsStore.disableTokenIcons ? row.iconUrl : undefined"
+              :size="32"
+            />
+            <div class="asset-name">
+              <div>{{ row.name }}</div>
+              <div v-if="row.detailDisplay" class="sub">{{ row.detailDisplay }}</div>
+              <div class="sub">{{ t('portfolio.askingPrice') }}: {{ row.priceDisplay }}</div>
+            </div>
+            <div class="asset-value"></div>
+          </div>
+          <i18n-t keypath="portfolio.manageListings" tag="div" class="manage-listings-note">
+            <template #link>
+              <a href="https://tapswap.cash" target="_blank" rel="noopener" class="manage-listings-link">TapSwap.cash</a>
+            </template>
+          </i18n-t>
+        </div>
+      </template>
+
     </template>
   </fieldset>
 </template>
@@ -994,6 +1093,19 @@ body.dark .unit-toggle button:not(.active) {
   margin: 20px auto 5px;
   font-size: 0.85em;
   color: grey;
+}
+.manage-listings-note {
+  text-align: center;
+  color: grey;
+  font-size: 14px;
+  margin-top: 15px;
+}
+.manage-listings-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.manage-listings-link:hover {
+  text-decoration: underline;
 }
 .section-label.collapsible {
   cursor: pointer;
