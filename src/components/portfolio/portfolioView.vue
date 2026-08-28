@@ -9,6 +9,7 @@
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { formatFiatAmount, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
+  import type { TapswapListing } from 'src/utils/defi/tapswapListings'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
@@ -475,49 +476,52 @@
     }
   }, { immediate: true })
 
+  // Row data for one TapSwap listing. An NFT row shows the NFT's own name and icon with the
+  // collection as detail, falling back to the collection name and commitment; a fungible row
+  // shows its amount.
+  function tapswapListingRow(listing: TapswapListing) {
+    const metadata = store.bcmrRegistries?.[listing.category]
+    const collectionName = metadata?.name ?? listing.category.slice(0, 8) + '...'
+    const nftMetadata = listing.commitment !== undefined ? metadata?.nfts?.[listing.commitment] : undefined
+
+    let name = collectionName
+    let detailDisplay
+    if (listing.commitment !== undefined) {
+      detailDisplay = '#' + listing.commitment
+      const nftName = nftMetadata?.name
+      if (nftName && nftName !== collectionName) {
+        name = nftName
+        detailDisplay = collectionName
+      }
+    } else {
+      detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
+      const symbol = metadata?.token?.symbol
+      if (symbol) detailDisplay += ' ' + symbol
+    }
+
+    let iconUrl = store.tokenIconUrl(listing.category)
+    const nftIconUri = nftMetadata?.uris?.icon
+    if (nftIconUri) {
+      iconUrl = nftIconUri
+      if (nftIconUri.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + nftIconUri.slice(7)
+    }
+
+    return {
+      id: `${listing.txid}:0`,
+      category: listing.category,
+      collectionName,
+      name,
+      detailDisplay,
+      iconUrl,
+      priceBch: satsToBch(listing.priceSats)
+    }
+  }
+
   // Assets listed for sale on TapSwap. The listing contract holds them until they sell or the
   // listing is cancelled, so they are shown in their own collapsed section with the asking
   // price, and stay out of the chart and the total like other NFTs.
   const tapswapRows = computed(() => {
-    const rows = (store.tapswapListings ?? []).map(listing => {
-      const metadata = store.bcmrRegistries?.[listing.category]
-      const collectionName = metadata?.name ?? listing.category.slice(0, 8) + '...'
-      const nftMetadata = listing.commitment !== undefined ? metadata?.nfts?.[listing.commitment] : undefined
-
-      // an NFT row shows the NFT's own name and icon with the collection as detail, falling
-      // back to the collection name and commitment; a fungible row shows its amount
-      let name = collectionName
-      let detailDisplay
-      if (listing.commitment !== undefined) {
-        detailDisplay = '#' + listing.commitment
-        const nftName = nftMetadata?.name
-        if (nftName && nftName !== collectionName) {
-          name = nftName
-          detailDisplay = collectionName
-        }
-      } else {
-        detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
-        const symbol = metadata?.token?.symbol
-        if (symbol) detailDisplay += ' ' + symbol
-      }
-
-      let iconUrl = store.tokenIconUrl(listing.category)
-      const nftIconUri = nftMetadata?.uris?.icon
-      if (nftIconUri) {
-        iconUrl = nftIconUri
-        if (nftIconUri.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + nftIconUri.slice(7)
-      }
-
-      return {
-        id: `${listing.txid}:0`,
-        category: listing.category,
-        collectionName,
-        name,
-        detailDisplay,
-        iconUrl,
-        priceBch: satsToBch(listing.priceSats)
-      }
-    })
+    const rows = (store.tapswapListings ?? []).map(tapswapListingRow)
     // keep each collection's listings together, collections in name order
     rows.sort((a, b) => {
       if (a.collectionName !== b.collectionName) return a.collectionName.localeCompare(b.collectionName)
@@ -915,6 +919,11 @@
               <div class="sub">{{ t('portfolio.askingPrice') }}</div>
             </div>
           </div>
+          <i18n-t keypath="portfolio.manageListings" tag="div" class="manage-listings-note">
+            <template #link>
+              <a href="https://tapswap.cash" target="_blank" rel="noopener" class="manage-listings-link">TapSwap.cash</a>
+            </template>
+          </i18n-t>
         </div>
       </template>
 
@@ -1074,6 +1083,19 @@ body.dark .unit-toggle button:not(.active) {
   margin: 20px auto 5px;
   font-size: 0.85em;
   color: grey;
+}
+.manage-listings-note {
+  text-align: center;
+  color: grey;
+  font-size: 14px;
+  margin-top: 15px;
+}
+.manage-listings-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.manage-listings-link:hover {
+  text-decoration: underline;
 }
 .section-label.collapsible {
   cursor: pointer;

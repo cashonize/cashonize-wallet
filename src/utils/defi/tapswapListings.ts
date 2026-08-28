@@ -1,15 +1,18 @@
 // Assets the wallet has listed for sale on TapSwap (tapswap.cash).
 //
 // A listing locks the asset in a per-listing sale contract, announced by an "MPSW" OP_RETURN at
-// output 1 of the listing transaction, with the contract UTXO at output 0. The maker funds the
-// listing from their own address, so the wallet's listings are found by walking the transactions
-// that spent the wallet's outputs, in one Chaingraph query (which does share the wallet's
-// address list with the configured Chaingraph server). A listing is active while its contract
-// UTXO is unspent; buying and cancelling both spend it.
+// output 1 of the listing transaction, with the contract UTXO at output 0. A listing is active
+// while its contract UTXO is unspent; buying or cancelling spends it.
 //
-// The contract is not open source; the announcement format was verified against the deployed
-// contract, revealed by settled trades. The closest thing to a spec is the TapSwap developer's
-// own barebones parsing of the format: https://github.com/mainnet-pat/tapswap-subsquid
+// The announcement names the maker only at a variable offset, out of reach of Chaingraph's
+// prefix search, so listings cannot be looked up by maker directly. Instead, since the maker
+// funds the listing from their own address, the wallet's listings are found by walking the
+// transactions that spent the wallet's outputs, in one Chaingraph query (which does share the
+// wallet's address list with the configured Chaingraph server).
+//
+// The announcement format was verified against the deployed contract, revealed by settled
+// trades. The closest thing to a spec is the TapSwap developer's parsing example:
+// https://github.com/mainnet-pat/tapswap-subsquid
 
 import {
   hexToBin,

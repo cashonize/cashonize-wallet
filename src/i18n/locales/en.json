@@ -181,6 +181,7 @@
     "smallBalances": "Small balances ({count})",
     "tapswapListings": "TapSwap listings ({count})",
     "askingPrice": "Asking price",
+    "manageListings": "Manage your listings on {link}.",
     "collateral": "Collateral",
     "debt": "Debt",
     "netValue": "Net value",

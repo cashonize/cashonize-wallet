@@ -181,6 +181,7 @@
     "smallBalances": "Petits soldes ({count})",
     "tapswapListings": "Annonces TapSwap ({count})",
     "askingPrice": "Prix demandé",
+    "manageListings": "Gérez vos annonces sur {link}.",
     "collateral": "Collatéral",
     "debt": "Dette",
     "netValue": "Valeur nette",

@@ -181,6 +181,7 @@
     "smallBalances": "Saldos pequenos ({count})",
     "tapswapListings": "Anúncios no TapSwap ({count})",
     "askingPrice": "Preço pedido",
+    "manageListings": "Gerencie seus anúncios em {link}.",
     "collateral": "Colateral",
     "debt": "Dívida",
     "netValue": "Valor líquido",
