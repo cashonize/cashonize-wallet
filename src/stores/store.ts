@@ -62,7 +62,9 @@ import {
   type CauldronPool
 } from "src/utils/defi/cauldronPools"
 import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
-import { fetchTapswapListings, type TapswapListing } from "src/utils/defi/tapswapListings"
+import { listingsFromSpentOutputs, type TapswapListing } from "src/utils/defi/tapswapListings"
+import { hodlContractsFromSpentOutputs, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
+import { querySpentOutputs } from "src/queryChainGraph"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -171,6 +173,8 @@ export const useStore = defineStore('store', () => {
   // Metadata of the listed assets. They are not held by the wallet, so like the dapp dialogs'
   // unverified metadata this lives in its own object rather than in bcmrRegistries.
   const tapswapRegistries = ref<Record<string, BcmrTokenMetadata>>({});
+  // BCH locked in hodl contracts, null until the portfolio view looks it up
+  const hodlContracts = ref<HodlContract[] | null>(null);
   const exchangeRate = ref<number | undefined>(undefined);
   let exchangeRateInterval: ReturnType<typeof setInterval> | undefined;
   let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
@@ -746,6 +750,7 @@ export const useStore = defineStore('store', () => {
     badgerLocks.value = null;
     tapswapListings.value = null;
     tapswapRegistries.value = {};
+    hodlContracts.value = null;
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
@@ -1195,20 +1200,29 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Find the assets the wallet has listed for sale on TapSwap. A listing is held by a sale
-  // contract, so the wallet holds nothing that represents it; the listing transactions are
-  // found through Chaingraph starting from the wallet's own addresses. Only the portfolio view
-  // shows them, so it drives the fetch. TapSwap is mainnet only.
-  async function fetchWalletTapswapListings() {
+  // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the
+  // wallet holds nothing that represents them, and both are announced by an OP_RETURN on a
+  // transaction the wallet funded, so one Chaingraph walk of the transactions that spent the
+  // wallet's outputs feeds both lookups. Only the portfolio view shows them, so it drives the
+  // fetch. Both protocols are mainnet only.
+  async function fetchWalletAnnouncedAssets() {
     if (network.value !== 'mainnet') {
       tapswapListings.value = [];
+      hodlContracts.value = [];
       return;
     }
     try {
       const initialization = currentInitialization;
-      const listings = await fetchTapswapListings(walletPublicKeyHashes(), settingsStore.chaingraph);
+      const ownerPkhs = walletPublicKeyHashes();
+      const spentOutputs = await querySpentOutputs(ownerPkhs, settingsStore.chaingraph);
       if (initialization !== currentInitialization) return;
+      const listings = listingsFromSpentOutputs(spentOutputs, ownerPkhs);
       tapswapListings.value = listings;
+
+      const hodlCandidates = hodlContractsFromSpentOutputs(spentOutputs, ownerPkhs);
+      const contracts = await fetchHodlContractStates(wallet.value.provider, hodlCandidates);
+      if (initialization !== currentInitialization) return;
+      hodlContracts.value = contracts;
 
       // NFT listings fetch their NFT-specific metadata (name, icon), which carries the
       // collection metadata with it; fungible listings fetch the category metadata. The
@@ -1228,8 +1242,9 @@ export const useStore = defineStore('store', () => {
     } catch (error) {
       // swallowed like the Cauldron lookup, so one unreachable request does not keep the
       // portfolio from rendering everything else
-      console.error("Failed to look up TapSwap listings:", error);
+      console.error("Failed to look up TapSwap listings and hodl contracts:", error);
       tapswapListings.value ??= [];
+      hodlContracts.value ??= [];
     }
   }
 
@@ -1524,6 +1539,7 @@ export const useStore = defineStore('store', () => {
     badgerLocks,
     tapswapListings,
     tapswapRegistries,
+    hodlContracts,
     exchangeRate,
     currentBlockHeight,
     canGoBack,
@@ -1546,7 +1562,7 @@ export const useStore = defineStore('store', () => {
     fetchCauldronPricesForTokens,
     fetchWalletCauldronPools,
     fetchWalletBadgerLocks,
-    fetchWalletTapswapListings,
+    fetchWalletAnnouncedAssets,
     toggleFavorite,
     toggleHidden,
     tokenIconUrl,

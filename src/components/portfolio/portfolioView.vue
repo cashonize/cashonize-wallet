@@ -10,6 +10,7 @@
   import { formatFiatAmount, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
+  import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
@@ -18,6 +19,7 @@
   import cauldronPoolItem from './cauldronPoolItem.vue'
   import emeraldKeycardItem from './emeraldKeycardItem.vue'
   import badgerLocksItem from './badgerLocksItem.vue'
+  import hodlLockItem from './hodlLockItem.vue'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -61,6 +63,8 @@
 
   // shared color for the Badgers.cash locked BCH segment
   const BADGERS_COLOR = '#f08c00'
+  // shared color for the hodl contract locked BCH segments
+  const HODL_COLOR = '#0c8599'
   // blocks BCH aims for per day, for turning a wait in blocks into a rough number of days
   const BLOCKS_PER_DAY = 144
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
@@ -84,16 +88,15 @@
   // fall back to BCH display while no exchange rate is available
   const effectiveUnit = computed(() => store.exchangeRate === undefined ? 'bch' : displayUnit.value)
 
-  // Look up the wallet's Cauldron pools and fetch prices whenever the token list is (re)loaded
-  // and on entering the view; 'force' bypasses the fiat-value display setting since the user
-  // explicitly opened the portfolio (the underlying price fetches are cached for 5 minutes).
-  // Prices are fetched after the pools so the pools' tokens are priced along with the held ones.
-  async function loadPoolsAndPrices() {
-    // unawaited: listings feed no chart segment or total, so the slower Chaingraph lookup
-    // holds up neither the price fetches nor the view's loading gate
-    void store.fetchWalletTapswapListings()
+  // Load the wallet's DeFi positions and prices; 'force' bypasses the fiat-value display
+  // setting since the user explicitly opened the portfolio (the price fetches are cached
+  // for 5 minutes)
+  async function loadPortfolioData() {
+    // unawaited: the slower Chaingraph walk should not hold up the view's loading gate
+    void store.fetchWalletAnnouncedAssets()
     await store.fetchWalletCauldronPools()
     await store.fetchWalletBadgerLocks()
+    // after the pools, so the pools' tokens are priced along with the held ones
     await store.fetchCauldronPricesForTokens(true)
   }
   // The view is kept alive: onActivated covers entering it, so watching the token list while
@@ -102,11 +105,11 @@
   const isActive = ref(false)
   onActivated(() => {
     isActive.value = true
-    void loadPoolsAndPrices()
+    void loadPortfolioData()
   })
   onDeactivated(() => { isActive.value = false })
   watch(() => store.tokenList, () => {
-    if (isActive.value) void loadPoolsAndPrices()
+    if (isActive.value) void loadPortfolioData()
   })
 
   interface PricedAsset {
@@ -238,6 +241,32 @@
     }))
   })
 
+  // BCH locked in hodl contracts, one row per contract, each opening at its own absolute
+  // locktime. Like the Badgers locks the BCH is the wallet's and comes back to it, so it
+  // counts towards the total
+  const hodlLocks = computed(() => {
+    return (store.hodlContracts ?? []).map(contract => ({
+      id: contract.scriptHash,
+      bchValue: satsToBch(contract.satoshis),
+      locktime: contract.locktime
+    }))
+  })
+
+  // A hodl locktime is a block height counted against the chain tip, or a unix timestamp
+  // counted against the clock
+  function hodlUnlockDisplay(lock: { locktime: number }) {
+    if (lock.locktime >= LOCKTIME_TIMESTAMP_THRESHOLD) {
+      const unlockDate = new Date(lock.locktime * 1000)
+      if (unlockDate.getTime() <= Date.now()) return t('portfolio.unlockable')
+      return t('portfolio.unlocksOn', { date: unlockDate.toLocaleDateString() })
+    }
+    if (store.currentBlockHeight === undefined) return undefined
+    const blocksLeft = lock.locktime - store.currentBlockHeight
+    if (blocksLeft <= 0) return t('portfolio.unlockable')
+    if (blocksLeft < BLOCKS_PER_DAY) return t('portfolio.unlocksInBlocks', blocksLeft)
+    return t('portfolio.unlocksIn', Math.ceil(blocksLeft / BLOCKS_PER_DAY))
+  }
+
   // How long until a lock opens. A short wait is counted in blocks: rounding a lock that opens
   // within the hour up to a day would be wrong.
   function lockUnlockDisplay(lock: { confirmedAtHeight: number | undefined, stakeBlocks: number }) {
@@ -257,6 +286,7 @@
     const poolsTotal = poolAssets.value.reduce((sum, pool) => sum + pool.bchValue, 0)
     const keycardsTotal = keycardAssets.value.reduce((sum, keycard) => sum + keycard.bchValue, 0)
     const badgersTotal = badgerLocks.value.reduce((sum, lock) => sum + lock.bchValue, 0)
+    const hodlTotal = hodlLocks.value.reduce((sum, lock) => sum + lock.bchValue, 0)
     const loansTotal = chartedLoans.value.reduce((sum, loan) => sum + loan.netBch, 0)
     let stakingTotal = 0
     if (includeStaking.value) {
@@ -264,7 +294,7 @@
         (sum, receipt) => sum + Math.max(stakingState(receipt.utxo)?.stakeBch ?? 0, 0), 0
       )
     }
-    return pricedTotal + poolsTotal + keycardsTotal + badgersTotal + loansTotal + stakingTotal
+    return pricedTotal + poolsTotal + keycardsTotal + badgersTotal + hodlTotal + loansTotal + stakingTotal
   })
 
   // split the priced list for display while keeping the original index, since
@@ -281,9 +311,10 @@
     lock: { id: string, confirmedAtHeight: number | undefined, stakeBlocks: number }
     value: number
   }
+  interface HodlRow { kind: 'hodl', lock: { id: string, locktime: number }, value: number }
   interface LoanRow { kind: 'loan', loan: { category: string, utxo: Utxo, name: string }, value: number }
   interface StakingRow { kind: 'staking', receipt: { category: string, utxo: Utxo, name: string }, value: number }
-  type DisplayRow = AssetRow | PoolRow | KeycardRow | BadgersRow | LoanRow | StakingRow
+  type DisplayRow = AssetRow | PoolRow | KeycardRow | BadgersRow | HodlRow | LoanRow | StakingRow
 
   // priced assets, pools, keycards, loans and staking receipts merged and sorted big to small
   // for display; an underwater loan sorts with value 0 but stays visible in the main list
@@ -300,13 +331,16 @@
     const badgerRows: DisplayRow[] = badgerLocks.value.map(lock => (
       { kind: 'badgers', lock, value: lock.bchValue }
     ))
+    const hodlRows: DisplayRow[] = hodlLocks.value.map(lock => (
+      { kind: 'hodl', lock, value: lock.bchValue }
+    ))
     const loanRows: DisplayRow[] = loanKeyNfts.value.map(loan => (
       { kind: 'loan', loan, value: Math.max(loanState(loan.utxo)?.netBch ?? 0, 0) }
     ))
     const stakingRows: DisplayRow[] = stakingReceiptNfts.value.map(receipt => (
       { kind: 'staking', receipt, value: stakingState(receipt.utxo)?.stakeBch ?? 0 }
     ))
-    return [...assetRows, ...poolRows, ...keycardRows, ...badgerRows, ...loanRows, ...stakingRows]
+    return [...assetRows, ...poolRows, ...keycardRows, ...badgerRows, ...hodlRows, ...loanRows, ...stakingRows]
       .sort((a, b) => b.value - a.value)
   })
 
@@ -328,6 +362,7 @@
     if (row.kind === 'pool') return row.pool.id
     if (row.kind === 'keycard') return row.keycard.id
     if (row.kind === 'badgers') return row.lock.id
+    if (row.kind === 'hodl') return row.lock.id
     return nftUtxoId(row.kind === 'loan' ? row.loan.utxo : row.receipt.utxo)
   }
 
@@ -688,6 +723,8 @@
         segments.push({ label: row.keycard.name, bchValue: row.value, color: keycardColor.value })
       } else if (row.kind === 'badgers' && row.value > 0) {
         segments.push({ label: t('portfolio.badgersStake'), bchValue: row.value, color: BADGERS_COLOR })
+      } else if (row.kind === 'hodl' && row.value > 0) {
+        segments.push({ label: t('portfolio.hodlContract'), bchValue: row.value, color: HODL_COLOR })
       } else if (row.kind === 'loan' && row.value > 0) {
         segments.push({ label: row.loan.name, bchValue: row.value, color: LOAN_COLOR })
       } else if (row.kind === 'staking' && includeStaking.value && row.value > 0) {
@@ -832,6 +869,13 @@
             v-else-if="row.kind === 'badgers'"
             :dot-color="BADGERS_COLOR"
             :unlock-display="lockUnlockDisplay(row.lock)"
+            :value-display="formatBchValue(row.value)"
+            :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
+          />
+          <hodlLockItem
+            v-else-if="row.kind === 'hodl'"
+            :dot-color="HODL_COLOR"
+            :unlock-display="hodlUnlockDisplay(row.lock)"
             :value-display="formatBchValue(row.value)"
             :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
           />

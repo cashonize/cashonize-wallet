@@ -18,11 +18,10 @@ import {
   hexToBin,
   binToHex,
   vmNumberToBigInt,
-  encodeLockingBytecodeP2pkh,
   decodeAuthenticationInstructions,
   authenticationInstructionsAreMalformed,
 } from "@bitauth/libauth";
-import { querySpentOutputs, byteaToHex, type ChaingraphSpentOutput } from "src/queryChainGraph";
+import { byteaToHex, type ChaingraphSpentOutput } from "src/queryChainGraph";
 
 // OP_RETURN, "MPSW", version 4, then the first 4 bytes of the sha256 of the contract's constant
 // bytecode, pinning the exact contract version the rest of the announcement describes
@@ -108,10 +107,3 @@ export function listingsFromSpentOutputs(spentOutputs: ChaingraphSpentOutput[], 
   return listings;
 }
 
-// Look up the active TapSwap listings made by the given public key hashes
-export async function fetchTapswapListings(ownerPkhs: string[], chaingraphUrl: string) {
-  if (!ownerPkhs.length) return [];
-  const lockingBytecodes = ownerPkhs.map((pkh) => binToHex(encodeLockingBytecodeP2pkh(hexToBin(pkh))));
-  const spentOutputs = await querySpentOutputs(lockingBytecodes, chaingraphUrl);
-  return listingsFromSpentOutputs(spentOutputs, ownerPkhs);
-}

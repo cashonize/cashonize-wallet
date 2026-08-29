@@ -1,6 +1,7 @@
 import {
   ChaingraphAuthHeadSchema,
 } from "src/utils/zodValidation";
+import { hexToBin, binToHex, encodeLockingBytecodeP2pkh } from "@bitauth/libauth";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -87,10 +88,11 @@ interface SpentOutputsResponse {
 // truncating silently, so paged queries fetch until a page comes back short
 const CHAINGRAPH_PAGE_SIZE = 1000;
 
-// The spent outputs at the given locking bytecodes, each with the spending transaction's
-// outputs 0 and 1 and whether those are spent themselves. This is the shape the TapSwap
-// listing lookup needs (utils/defi/tapswapListings.ts).
-export async function querySpentOutputs(lockingBytecodesHex: string[], chaingraphUrl: string) {
+// The spent outputs at the given pkhs' addresses, each with the spending transaction's
+// outputs 0 and 1 and whether those are spent themselves. This is the shape the TapSwap and
+// hodl lookups share: their announcements sit at outputs 1 and 0 of the transactions that
+// spent the wallet's outputs (utils/defi/tapswapListings.ts, utils/defi/hodlContracts.ts).
+export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: string) {
   const querySpent = `query WalletSpentOutputs($lockingBytecodes: _text!, $limit: Int!, $offset: Int!) {
     search_output(
       args: { locking_bytecode_hex: $lockingBytecodes }
@@ -115,6 +117,7 @@ export async function querySpentOutputs(lockingBytecodesHex: string[], chaingrap
     }
   }`;
   // search_output takes its locking bytecodes as a postgres text-array literal
+  const lockingBytecodesHex = ownerPkhs.map((pkh) => binToHex(encodeLockingBytecodeP2pkh(hexToBin(pkh))));
   const lockingBytecodes = `{${lockingBytecodesHex.join(",")}}`;
   const spentOutputs: ChaingraphSpentOutput[] = [];
   for (let offset = 0; ; offset += CHAINGRAPH_PAGE_SIZE) {
