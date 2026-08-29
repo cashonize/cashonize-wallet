@@ -50,6 +50,8 @@ export interface HodlContract {
   satoshis: bigint;
 }
 
+// The locktime is pushed as a minimal VM number: the same bytes creating software writes,
+// for every locktime OP_CHECKLOCKTIMEVERIFY can accept
 function hodlRedeemScript(locktime: number, ownerPkh: string) {
   const locktimeBytes = bigIntToVmNumber(BigInt(locktime));
   const locktimePush = Uint8Array.from([locktimeBytes.length, ...locktimeBytes]);

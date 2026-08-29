@@ -7,7 +7,7 @@
   import { convert } from 'mainnet-js'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
-  import { formatFiatAmount, satsToBch } from 'src/utils/utils'
+  import { formatFiatAmount, satsToBch, formatTimeUntil, formatReadableDate } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
   import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
@@ -22,7 +22,7 @@
   import hodlLockItem from './hodlLockItem.vue'
   const store = useStore()
   const settingsStore = useSettingsStore()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   // number of individually colored chart segments, all further assets group into 'Other'
   const MAX_SEGMENTS = 4
@@ -252,19 +252,18 @@
     }))
   })
 
-  // A hodl locktime is a block height counted against the chain tip, or a unix timestamp
-  // counted against the clock
+  // A hodl locktime is a block height counted against the chain tip (its unlock time estimated
+  // at 10 minutes per block), or a unix timestamp counted against the clock
   function hodlUnlockDisplay(lock: { locktime: number }) {
-    if (lock.locktime >= LOCKTIME_TIMESTAMP_THRESHOLD) {
-      const unlockDate = new Date(lock.locktime * 1000)
-      if (unlockDate.getTime() <= Date.now()) return t('portfolio.unlockable')
-      return t('portfolio.unlocksOn', { date: unlockDate.toLocaleDateString() })
+    let unlockTimestamp = lock.locktime
+    if (lock.locktime < LOCKTIME_TIMESTAMP_THRESHOLD) {
+      if (store.currentBlockHeight === undefined) return undefined
+      const blocksLeft = lock.locktime - store.currentBlockHeight
+      unlockTimestamp = Math.floor(Date.now() / 1000) + blocksLeft * 600
     }
-    if (store.currentBlockHeight === undefined) return undefined
-    const blocksLeft = lock.locktime - store.currentBlockHeight
-    if (blocksLeft <= 0) return t('portfolio.unlockable')
-    if (blocksLeft < BLOCKS_PER_DAY) return t('portfolio.unlocksInBlocks', blocksLeft)
-    return t('portfolio.unlocksIn', Math.ceil(blocksLeft / BLOCKS_PER_DAY))
+    if (unlockTimestamp * 1000 <= Date.now()) return t('portfolio.unlockable')
+    const timeUntil = formatTimeUntil(unlockTimestamp, locale.value)
+    return t('portfolio.unlocksOn', { date: `${timeUntil} (${formatReadableDate(unlockTimestamp)})` })
   }
 
   // How long until a lock opens. A short wait is counted in blocks: rounding a lock that opens

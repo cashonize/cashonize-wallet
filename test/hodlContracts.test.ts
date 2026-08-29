@@ -22,6 +22,13 @@ describe('parseHodlAnnouncement', () => {
       scriptHash: cashaddrScriptHash, locktime: 886662
     });
   })
+  it('should parse a cashaddr announcement without the bitcoincash: prefix', () => {
+    // the real announcement with the prefix stripped from the pushed address
+    const prefixless = cashaddrAnnouncement.replace("36626974636f696e636173683a", "2a");
+    expect(parseHodlAnnouncement(prefixless)).toEqual({
+      scriptHash: cashaddrScriptHash, locktime: 886662
+    });
+  })
   it('should reject other OP_RETURN outputs', () => {
     expect(parseHodlAnnouncement("6a0450555348")).toBeUndefined();
   })

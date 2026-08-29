@@ -93,6 +93,7 @@ const CHAINGRAPH_PAGE_SIZE = 1000;
 // hodl lookups share: their announcements sit at outputs 1 and 0 of the transactions that
 // spent the wallet's outputs (utils/defi/tapswapListings.ts, utils/defi/hodlContracts.ts).
 export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: string) {
+  if (!ownerPkhs.length) return [];
   const querySpent = `query WalletSpentOutputs($lockingBytecodes: _text!, $limit: Int!, $offset: Int!) {
     search_output(
       args: { locking_bytecode_hex: $lockingBytecodes }
