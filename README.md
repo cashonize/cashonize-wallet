@@ -51,6 +51,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **ParyonUSD loan keys** - Supports the ParyonUSD loan key extension to fetch and display live loan state
 - **Flipstarter pledges** - Make and cancel pledges to Flipstarter campaigns from the wallet
 - **TapSwap listings** - Shows the assets you have listed for sale on TapSwap in the portfolio
+- **Hodl contracts** - Shows BCH locked in hodl timelock contracts in the portfolio
 
 ## Platforms
 
