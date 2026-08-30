@@ -64,7 +64,7 @@
   // shared color for the Badgers.cash locked BCH segment
   const BADGERS_COLOR = '#f08c00'
   // shared color for the hodl contract locked BCH segments
-  const HODL_COLOR = '#0c8599'
+  const HODL_COLOR = '#20c5f8'
   // blocks BCH aims for per day, for turning a wait in blocks into a rough number of days
   const BLOCKS_PER_DAY = 144
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
@@ -252,18 +252,25 @@
     }))
   })
 
-  // A hodl locktime is a block height counted against the chain tip (its unlock time estimated
-  // at 10 minutes per block), or a unix timestamp counted against the clock
+  // A hodl locktime is a block height counted against the chain tip, or a unix timestamp
+  // counted against the clock. The line stays objective (blocks left, or relative time); the
+  // date, estimated at 10 minutes per block for heights, shows on hover.
   function hodlUnlockDisplay(lock: { locktime: number }) {
-    let unlockTimestamp = lock.locktime
-    if (lock.locktime < LOCKTIME_TIMESTAMP_THRESHOLD) {
-      if (store.currentBlockHeight === undefined) return undefined
-      const blocksLeft = lock.locktime - store.currentBlockHeight
-      unlockTimestamp = Math.floor(Date.now() / 1000) + blocksLeft * 600
+    if (lock.locktime >= LOCKTIME_TIMESTAMP_THRESHOLD) {
+      if (lock.locktime * 1000 <= Date.now()) return { text: t('portfolio.unlockable'), date: undefined }
+      return {
+        text: t('portfolio.unlocksOn', { date: formatTimeUntil(lock.locktime, locale.value) }),
+        date: formatReadableDate(lock.locktime)
+      }
     }
-    if (unlockTimestamp * 1000 <= Date.now()) return t('portfolio.unlockable')
-    const timeUntil = formatTimeUntil(unlockTimestamp, locale.value)
-    return t('portfolio.unlocksOn', { date: `${timeUntil} (${formatReadableDate(unlockTimestamp)})` })
+    if (store.currentBlockHeight === undefined) return undefined
+    const blocksLeft = lock.locktime - store.currentBlockHeight
+    if (blocksLeft <= 0) return { text: t('portfolio.unlockable'), date: undefined }
+    const unlockTimestamp = Math.floor(Date.now() / 1000) + blocksLeft * 600
+    return {
+      text: t('portfolio.unlocksInBlocks', blocksLeft) + ` (${formatTimeUntil(unlockTimestamp, locale.value)})`,
+      date: formatReadableDate(unlockTimestamp)
+    }
   }
 
   // How long until a lock opens. A short wait is counted in blocks: rounding a lock that opens
@@ -874,7 +881,8 @@
           <hodlLockItem
             v-else-if="row.kind === 'hodl'"
             :dot-color="HODL_COLOR"
-            :unlock-display="hodlUnlockDisplay(row.lock)"
+            :bch-display="bchValueFormatter.format(row.value) + ' ' + bchUnitName"
+            :unlock="hodlUnlockDisplay(row.lock)"
             :value-display="formatBchValue(row.value)"
             :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
           />
