@@ -91,16 +91,20 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
    svg by generateQrCodeSvg. The rules below add only the keyframes and the timing, so the
    browser runs the intro on its own without any javascript per frame.
    The intro is decorative, so gate the whole block: a viewer who asks for reduced motion gets
-   no animation rules at all and the code simply renders. */
+   no animation rules at all and the code simply renders.
+   The fill is backwards, not both: every preset ends on the element's natural state, so filling
+   forwards only leaves a finished animation applying an identity transform or an opacity of one.
+   That kept the whole code on a compositing path it does not need, so it settled measurably
+   softer than the same code rendered without an animation. */
 @media (prefers-reduced-motion: no-preference) {
   .qrContainer.animate-FadeInTopDown {
     :deep(.module), :deep(.position-ring), :deep(.position-center), .iconWrapper {
-      animation: qrFadeIn 300ms ease both;
+      animation: qrFadeIn 300ms ease backwards;
     }
   }
   .qrContainer.animate-FadeInCenterOut, .qrContainer.animate-MaterializeIn {
     :deep(.module), :deep(.position-ring), :deep(.position-center), .iconWrapper {
-      animation: qrFadeIn 200ms ease both;
+      animation: qrFadeIn 200ms ease backwards;
     }
   }
   /* The two ripple presets pulse the icon down before the wave reaches it, so it gets its
@@ -108,18 +112,18 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
      which turns the size pulse into the outward wave. */
   .qrContainer.animate-RadialRipple {
     :deep(.module), :deep(.position-ring), :deep(.position-center) {
-      animation: qrRipple 1000ms $rippleEasing both;
+      animation: qrRipple 1000ms $rippleEasing backwards;
     }
     .iconWrapper {
-      animation: qrRippleIcon 1000ms $rippleEasing both;
+      animation: qrRippleIcon 1000ms $rippleEasing backwards;
     }
   }
   .qrContainer.animate-RadialRippleIn {
     :deep(.module), :deep(.position-ring), :deep(.position-center) {
-      animation: qrRippleIn 1000ms $rippleEasing both, qrRippleReveal 1000ms $rippleEasing both;
+      animation: qrRippleIn 1000ms $rippleEasing backwards, qrRippleReveal 1000ms $rippleEasing backwards;
     }
     .iconWrapper {
-      animation: qrRippleIcon 1000ms $rippleEasing both, qrRippleReveal 1000ms $rippleEasing both;
+      animation: qrRippleIcon 1000ms $rippleEasing backwards, qrRippleReveal 1000ms $rippleEasing backwards;
     }
   }
 }
