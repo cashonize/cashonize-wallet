@@ -88,7 +88,8 @@
       "bcmrIndexerValidationError": "Erreur de validation de la réponse de l'indexeur BCMR",
       "utxoNotReserved": "Cette pièce n'est pas réservée",
       "cannotReserveTokenUtxo": "Une pièce portant un jeton ne peut pas être retenue",
-      "reservedEnsureUtxos": "Cette action a besoin d'une pièce que le portefeuille retient"
+      "reservedEnsureUtxos": "Cette action a besoin d'une pièce que le portefeuille retient",
+      "cannotSendPledgedCoin": "Cette pièce est retenue pour un engagement en cours. Annulez l'engagement pour la libérer."
     }
   },
   "onboarding": {
@@ -690,7 +691,6 @@
       "largeBch": "Contient une grande quantité de BCH",
       "reserved": "Retenue pour un engagement Flipstarter en cours, une dépense depuis ce portefeuille ne la prendra donc pas.",
       "reservedRelease": "Annulez l'engagement sur la page Flipstarter pour libérer la pièce.",
-      "freeze": "Cliquez pour geler",
       "frozen": "Gelée par vous, cliquez pour dégeler",
       "unfreeze": "Dégeler",
       "availableShort": "Disponible",
@@ -726,6 +726,16 @@
       "title": "Geler cette pièce",
       "message": "Une pièce gelée reste dans votre portefeuille mais est écartée de chaque paiement fait par cette application, votre solde disponible baisse donc de {amount}. Vous pouvez la dégeler depuis cette liste à tout moment.\n\nLe gel ne vaut qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y aussi la même pièce.",
       "button": "Geler"
+    },
+    "send": {
+      "title": "Envoyer cette pièce",
+      "description": "Envoie cette pièce entière à l'adresse de destination, moins les frais de réseau. Aucune autre pièce n'entre dans le paiement et aucune monnaie ne revient.",
+      "frozenNote": "Cette pièce est gelée. L'envoyer dépense la pièce, ce qui met fin au gel.",
+      "destinationLabel": "Adresse de destination :",
+      "destinationPlaceholder": "Collez une adresse Bitcoin Cash",
+      "cancelButton": "Annuler",
+      "sent": "Cette pièce ({amount}) a été envoyée à {address}",
+      "success": "Pièce envoyée avec succès !"
     },
     "stats": {
       "totalUtxos": "Total des UTXOs",

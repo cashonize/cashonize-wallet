@@ -1441,6 +1441,20 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // Spends one coin whole: a pool of only that coin, sent with sendMax, so no other coin joins
+  // the transaction and no change returns. A reservation on the coin is dropped only once
+  // broadcast, so a failure leaves the coin held rather than released into the next unrelated send.
+  async function sendSingleCoin(utxo: Utxo, cashaddr: string) {
+    const response = await wallet.value.sendMax(cashaddr, { utxoIds: [utxo] });
+    // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
+    // pool still holds it and the max-amount refresh asks the server about a spent outpoint
+    await updateWalletUtxos();
+    const outpoint = outpointOf(utxo);
+    if (outpoint in reservedUtxos.value) await dropReservation(outpoint);
+    else await refreshMaxAmountToSend();
+    return response;
+  }
+
   const spend = {
     async send(requests: SendRequestType, options?: SpendOptions) {
       checkNoReservedUtxos(options);
@@ -1484,20 +1498,20 @@ export const useStore = defineStore('store', () => {
       return wallet.value.getMaxAmountToSend({ outputCount, options: spendConfig });
     },
 
-    // The only way a reserved coin is spent: a pool of the one coin sent back to this wallet,
-    // which is what cancelling a pledge is. The reservation is dropped only once broadcast, so a
-    // failure here leaves the coin held rather than released into the next unrelated send.
+    // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
+    // makes the signed pledge the campaign holds unusable
     async releaseReservedCoin(utxo: Utxo) {
-      const outpoint = outpointOf(utxo);
-      if (!(outpoint in reservedUtxos.value)) throw new Error(t('store.errors.utxoNotReserved'));
-      const response = await wallet.value.sendMax(wallet.value.getDepositAddress(), {
-        utxoIds: [utxo]
-      });
-      // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
-      // pool still holds it and the max-amount refresh asks the server about a spent outpoint
-      await updateWalletUtxos();
-      await dropReservation(outpoint);
-      return response;
+      if (!(outpointOf(utxo) in reservedUtxos.value)) throw new Error(t('store.errors.utxoNotReserved'));
+      return sendSingleCoin(utxo, wallet.value.getDepositAddress());
+    },
+
+    // The user spending one chosen coin whole, frozen or not. A pledged coin is refused: the
+    // campaign holds a signed pledge against it, so cancelling the pledge is its only release.
+    async sendCoin(utxo: Utxo, cashaddr: string) {
+      if (reservedUtxos.value[outpointOf(utxo)]?.reason === 'pledge') {
+        throw new Error(t('store.errors.cannotSendPledgedCoin'));
+      }
+      return sendSingleCoin(utxo, cashaddr);
     },
   };
 

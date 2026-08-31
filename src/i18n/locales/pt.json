@@ -88,7 +88,8 @@
       "bcmrIndexerValidationError": "Erro de validação na resposta do indexador BCMR",
       "utxoNotReserved": "Esta moeda não está reservada",
       "cannotReserveTokenUtxo": "Uma moeda que carrega um token não pode ser retida",
-      "reservedEnsureUtxos": "Esta ação precisa de uma moeda que a carteira está a reter"
+      "reservedEnsureUtxos": "Esta ação precisa de uma moeda que a carteira está a reter",
+      "cannotSendPledgedCoin": "Esta moeda está retida por uma promessa em aberto. Cancele a promessa para liberá-la."
     }
   },
   "onboarding": {
@@ -690,7 +691,6 @@
       "largeBch": "Contém uma grande quantidade de BCH",
       "reserved": "Retida por uma promessa Flipstarter em aberto, então um gasto desta carteira não vai pegá-la.",
       "reservedRelease": "Cancele a promessa na página do Flipstarter para liberar a moeda.",
-      "freeze": "Clique para congelar",
       "frozen": "Congelada por você, clique para descongelar",
       "unfreeze": "Descongelar",
       "availableShort": "Disponível",
@@ -726,6 +726,16 @@
       "title": "Congelar esta moeda",
       "message": "Uma moeda congelada continua na sua carteira mas fica de fora de cada pagamento que este aplicativo faz, então seu saldo disponível cai em {amount}. Você pode descongelá-la nesta lista quando quiser.\n\nCongelar vale só aqui: se você usa esta frase semente em outro aplicativo de carteira, congele a mesma moeda lá também.",
       "button": "Congelar"
+    },
+    "send": {
+      "title": "Enviar esta moeda",
+      "description": "Envia esta moeda inteira para o endereço de destino, menos a taxa de rede. Nenhuma outra moeda entra no pagamento e nenhum troco retorna.",
+      "frozenNote": "Esta moeda está congelada. Enviá-la gasta a moeda, o que encerra o congelamento.",
+      "destinationLabel": "Endereço de destino:",
+      "destinationPlaceholder": "Cole um endereço Bitcoin Cash",
+      "cancelButton": "Cancelar",
+      "sent": "Esta moeda ({amount}) foi enviada para {address}",
+      "success": "Moeda enviada com sucesso!"
     },
     "stats": {
       "totalUtxos": "Total de UTXOs",

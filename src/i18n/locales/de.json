@@ -88,7 +88,8 @@
       "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort",
       "utxoNotReserved": "Diese Coin ist nicht reserviert",
       "cannotReserveTokenUtxo": "Ein Coin, der einen Token trägt, kann nicht zurückgehalten werden",
-      "reservedEnsureUtxos": "Diese Aktion benötigt einen Coin, den die Wallet zurückhält"
+      "reservedEnsureUtxos": "Diese Aktion benötigt einen Coin, den die Wallet zurückhält",
+      "cannotSendPledgedCoin": "Diese Coin wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um sie freizugeben."
     }
   },
   "onboarding": {
@@ -690,7 +691,6 @@
       "largeBch": "Enthält eine große Menge BCH",
       "reserved": "Zurückgehalten für ein offenes Flipstarter-Pledge, eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
       "reservedRelease": "Brich das Pledge auf der Flipstarter-Seite ab, um die Münze freizugeben.",
-      "freeze": "Zum Einfrieren klicken",
       "frozen": "Von dir eingefroren, zum Auftauen klicken",
       "unfreeze": "Auftauen",
       "availableShort": "Verfügbar",
@@ -726,6 +726,16 @@
       "title": "Diese Münze einfrieren",
       "message": "Eine eingefrorene Münze bleibt in deinem Wallet, wird aber von jeder Zahlung dieser App ausgelassen, dein verfügbares Guthaben sinkt also um {amount}. Du kannst sie jederzeit aus dieser Liste wieder auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere dieselbe Münze auch dort ein.",
       "button": "Einfrieren"
+    },
+    "send": {
+      "title": "Diese Münze senden",
+      "description": "Sendet diese Münze im Ganzen an die Zieladresse, abzüglich der Netzwerkgebühr. Keine andere Münze kommt in die Zahlung und kein Wechselgeld kehrt zurück.",
+      "frozenNote": "Diese Münze ist eingefroren. Sie zu senden gibt die Münze aus, womit das Einfrieren endet.",
+      "destinationLabel": "Zieladresse:",
+      "destinationPlaceholder": "Bitcoin-Cash-Adresse einfügen",
+      "cancelButton": "Abbrechen",
+      "sent": "Diese Münze ({amount}) wurde an {address} gesendet",
+      "success": "Münze erfolgreich gesendet!"
     },
     "stats": {
       "totalUtxos": "UTXOs gesamt",
