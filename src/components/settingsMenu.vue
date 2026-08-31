@@ -605,7 +605,12 @@
     </div>
     <div v-else-if="settingsSection == 3">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.electrumMainnet') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.electrumMainnet') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
           <option v-for="(server, index) in predefinedElectrumServersMainnet" :key="server" :value="server">
             {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
@@ -638,7 +643,12 @@
       </div>
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.electrumChipnet') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.electrumChipnet') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
           <option v-for="(server, index) in predefinedElectrumServersChipnet" :key="server" :value="server">
             {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
@@ -671,7 +681,12 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.ipfsGateway') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.ipfsGateway') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.ipfsGatewayHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedIpfsGateway" @change="changeIpfsGateway()">
           <option v-for="(gateway, index) in predefinedIpfsGateways" :key="gateway" :value="gateway">
             {{ getHostname(gateway) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
@@ -700,7 +715,12 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.chaingraph') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.chaingraph') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.chaingraphHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
@@ -727,7 +747,12 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.cauldronIndexer') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.cauldronIndexer') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.cauldronIndexerHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedCauldronIndexer" @change="changeCauldronIndexer()">
           <option value="https://indexer.riften.net">indexer.riften.net {{ t('settings.advanced.default') }}</option>
           <option value="https://indexer.cauldron.quest">indexer.cauldron.quest</option>
@@ -735,7 +760,12 @@
       </div>
 
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.bcmrIndexer') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.bcmrIndexer') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.bcmrIndexerHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedBcmrIndexer" @change="changeBcmrIndexer('mainnet')">
           <option v-for="(indexer, index) in predefinedBcmrIndexersMainnet" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
@@ -755,7 +785,12 @@
       </div>
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.bcmrIndexer') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.bcmrIndexer') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.bcmrIndexerHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedBcmrIndexerChipnet" @change="changeBcmrIndexer('chipnet')">
           <option v-for="(indexer, index) in predefinedBcmrIndexersChipnet" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
