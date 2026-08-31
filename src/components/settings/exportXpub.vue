@@ -48,7 +48,7 @@
         {{ t('exportXpub.derivationPath') }} <span style="font-family: monospace;">{{ derivationPath }}</span>
       </div>
       <div class="qr-frame" style="margin: 0 auto 15px;">
-        <QrCode :contents="xpub" class="qr-code" @click="copyToClipboard(xpub)" />
+        <QrCode :contents="xpub" :label="t('qrCode.xpub')" class="qr-code" @click="copyToClipboard(xpub)" />
       </div>
       <div class="xpub-result" @click="copyToClipboard(xpub)">{{ xpub }}</div>
       <div class="xpub-button-row">

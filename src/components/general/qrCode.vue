@@ -8,6 +8,8 @@
 
   const props = defineProps<{
     contents: string
+    /** Describes what the code encodes, for screen readers; the modules themselves say nothing. */
+    label: string
   }>()
 
   const emit = defineEmits<{ rendered: [] }>()
@@ -35,7 +37,9 @@
 </script>
 
 <template>
-  <div class="qrCode">
+  <!-- role="img" collapses the hundreds of svg modules into one labelled image for
+       assistive technology, which would otherwise read out nothing at all -->
+  <div class="qrCode" role="img" :aria-label="label">
     <div class="qrContainer" :class="activeAnimation !== 'None' ? `animate-${activeAnimation}` : ''">
       <div class="iconContainer">
         <div

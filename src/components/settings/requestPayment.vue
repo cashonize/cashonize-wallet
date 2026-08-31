@@ -316,8 +316,8 @@
     </div>
 
     <div class="qr-frame">
-      <QrCode :contents="requestUri" @click="copyToClipboard(requestUri)" class="qr-code">
-        <img :src="mode === 'bch' ? 'images/bch-icon.png' : 'images/tokenicon.png'" />
+      <QrCode :contents="requestUri" :label="t('qrCode.paymentRequest')" @click="copyToClipboard(requestUri)" class="qr-code">
+        <img :src="mode === 'bch' ? 'images/bch-icon.png' : 'images/tokenicon.png'" alt="" />
       </QrCode>
     </div>
 
