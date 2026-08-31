@@ -26,7 +26,7 @@ const coin = {
   address: 'bitcoincash:qtest',
 } as Utxo
 
-describe('spend.sendCoin', () => {
+describe('spend.sendUtxo', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock.clear()
@@ -40,7 +40,7 @@ describe('spend.sendCoin', () => {
     store.setWallet(wallet as never)
     await store.reserveUtxo(coin, 'pledge')
 
-    await expect(store.spend.sendCoin(coin, 'bitcoincash:qdest')).rejects.toThrow()
+    await expect(store.spend.sendUtxo(coin, 'bitcoincash:qdest')).rejects.toThrow()
     expect(wallet.sendMax).not.toHaveBeenCalled()
     expect(outpointOf(coin) in store.reservedUtxos).toBe(true)
   })
@@ -51,7 +51,7 @@ describe('spend.sendCoin', () => {
     store.setWallet(wallet as never)
     await store.reserveUtxo(coin, 'manual')
 
-    const response = await store.spend.sendCoin(coin, 'bitcoincash:qdest')
+    const response = await store.spend.sendUtxo(coin, 'bitcoincash:qdest')
 
     expect(wallet.sendMax).toHaveBeenCalledWith('bitcoincash:qdest', { utxoIds: [coin] })
     expect(response.txId).toBe('sent-tx')
@@ -65,7 +65,7 @@ describe('spend.sendCoin', () => {
     await store.reserveUtxo(coin, 'manual')
     wallet.sendMax.mockRejectedValue(new Error('broadcast failed'))
 
-    await expect(store.spend.sendCoin(coin, 'bitcoincash:qdest')).rejects.toThrow('broadcast failed')
+    await expect(store.spend.sendUtxo(coin, 'bitcoincash:qdest')).rejects.toThrow('broadcast failed')
     expect(outpointOf(coin) in store.reservedUtxos).toBe(true)
   })
 })

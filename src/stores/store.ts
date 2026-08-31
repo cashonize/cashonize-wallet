@@ -1521,9 +1521,9 @@ export const useStore = defineStore('store', () => {
 
     // The user spending one chosen coin whole, frozen or not. A pledged coin is refused: the
     // campaign holds a signed pledge against it, so cancelling the pledge is its only release.
-    async sendCoin(utxo: Utxo, cashaddr: string) {
+    async sendUtxo(utxo: Utxo, cashaddr: string) {
       if (reservedUtxos.value[outpointOf(utxo)]?.reason === 'pledge') {
-        throw new Error(t('store.errors.cannotSendPledgedCoin'));
+        throw new Error(t('store.errors.cannotSendPledgedUtxo'));
       }
       return sendSingleCoin(utxo, cashaddr);
     },

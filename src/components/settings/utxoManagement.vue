@@ -10,7 +10,7 @@
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { displayAndLogError } from 'src/utils/errorHandling';
-  import SendCoinDialog from 'src/components/settings/sendCoinDialog.vue';
+  import SendUtxoDialog from 'src/components/settings/sendUtxoDialog.vue';
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
@@ -112,17 +112,17 @@
   }
 
   function openSendDialog(utxo: Utxo) {
-    $q.dialog({ component: SendCoinDialog, componentProps: { utxo } })
-      .onOk((destinationAddress: string) => { void sendCoin(utxo, destinationAddress); });
+    $q.dialog({ component: SendUtxoDialog, componentProps: { utxo } })
+      .onOk((destinationAddress: string) => { void sendUtxo(utxo, destinationAddress); });
   }
 
   // Sends the one coin whole, which is also the only way a frozen coin gets spent from this app
-  async function sendCoin(utxo: Utxo, destinationAddress: string) {
+  async function sendUtxo(utxo: Utxo, destinationAddress: string) {
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try {
       notifySending();
-      const { txId } = await store.spend.sendCoin(utxo, destinationAddress);
+      const { txId } = await store.spend.sendUtxo(utxo, destinationAddress);
       const amount = `${formatBchAmount(Number(utxo.satoshis), false, 8)} ${bchDisplayUnit.value}`;
       await handleTransactionBroadcastSuccess(
         t('utxoManagement.send.sent', { amount, address: destinationAddress }),
@@ -534,7 +534,6 @@
           <!-- Says out loud what a mark on one row only hints at, and why the spendable balance
                is smaller than the coins listed here add up to -->
           <div v-if="reservedUtxoCount" class="reserved-summary">
-            <q-icon name="ac_unit" size="14px" class="held-marker" />
             <span>{{ t('utxoManagement.reservedSummary', reservedUtxoCount) }}</span>
           </div>
           <q-pagination

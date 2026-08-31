@@ -86,10 +86,10 @@
       "unableToConnectElectrum": "Verbindung zum Electrum-Server '{server}' nicht möglich",
       "deviceOffline": "Dein Gerät scheint offline zu sein, bitte überprüfe deine Internetverbindung",
       "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort",
-      "utxoNotReserved": "Diese Coin ist nicht reserviert",
-      "cannotReserveTokenUtxo": "Ein Coin, der einen Token trägt, kann nicht zurückgehalten werden",
-      "reservedEnsureUtxos": "Diese Aktion benötigt einen Coin, den die Wallet zurückhält",
-      "cannotSendPledgedCoin": "Diese Coin wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um sie freizugeben."
+      "utxoNotReserved": "Dieser UTXO ist nicht reserviert",
+      "cannotReserveTokenUtxo": "Ein UTXO, der einen Token trägt, kann nicht zurückgehalten werden",
+      "reservedEnsureUtxos": "Diese Aktion benötigt einen UTXO, den die Wallet zurückhält",
+      "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben."
     }
   },
   "onboarding": {
@@ -690,7 +690,7 @@
       "bchOnToken": "Enthält mehr BCH, als ein Token-UTXO braucht",
       "largeBch": "Enthält eine große Menge BCH",
       "reserved": "Zurückgehalten für ein offenes Flipstarter-Pledge, eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
-      "reservedRelease": "Brich das Pledge auf der Flipstarter-Seite ab, um die Münze freizugeben.",
+      "reservedRelease": "Brich das Pledge auf der Flipstarter-Seite ab, um den UTXO freizugeben.",
       "frozen": "Von dir eingefroren, zum Auftauen klicken",
       "unfreeze": "Auftauen",
       "availableShort": "Verfügbar",
@@ -721,21 +721,21 @@
       "title": "Fungible Token + NFT UTXOs",
       "empty": "Dieses Wallet hat keine UTXOs, die zugleich einen fungiblen Betrag und ein NFT enthalten."
     },
-    "reservedSummary": "{count} zurückgehaltene Münze, außerhalb deines verfügbaren Guthabens | {count} zurückgehaltene Münzen, außerhalb deines verfügbaren Guthabens",
+    "reservedSummary": "{count} zurückgehaltener UTXO, außerhalb deines verfügbaren Guthabens | {count} zurückgehaltene UTXOs, außerhalb deines verfügbaren Guthabens",
     "freeze": {
-      "title": "Diese Münze einfrieren",
-      "message": "Eine eingefrorene Münze bleibt in deinem Wallet, wird aber von jeder Zahlung dieser App ausgelassen, dein verfügbares Guthaben sinkt also um {amount}. Du kannst sie jederzeit aus dieser Liste wieder auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere dieselbe Münze auch dort ein.",
+      "title": "Diesen UTXO einfrieren",
+      "message": "Ein eingefrorener UTXO bleibt in deinem Wallet, wird aber von jeder Zahlung dieser App ausgelassen, dein verfügbares Guthaben sinkt also um {amount}. Du kannst ihn jederzeit aus dieser Liste wieder auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere denselben UTXO auch dort ein.",
       "button": "Einfrieren"
     },
     "send": {
-      "title": "Diese Münze senden",
-      "description": "Sendet diese Münze im Ganzen an die Zieladresse, abzüglich der Netzwerkgebühr. Keine andere Münze kommt in die Zahlung und kein Wechselgeld kehrt zurück.",
-      "frozenNote": "Diese Münze ist eingefroren. Sie zu senden gibt die Münze aus, womit das Einfrieren endet.",
+      "title": "Diesen UTXO senden",
+      "description": "Sendet diesen UTXO im Ganzen an die Zieladresse, abzüglich der Netzwerkgebühr. Kein anderer UTXO kommt in die Zahlung und kein Wechselgeld kehrt zurück.",
+      "frozenNote": "Dieser UTXO ist eingefroren. Ihn zu senden gibt den UTXO aus, womit das Einfrieren endet.",
       "destinationLabel": "Zieladresse:",
       "destinationPlaceholder": "Bitcoin-Cash-Adresse einfügen",
       "cancelButton": "Abbrechen",
-      "sent": "Diese Münze ({amount}) wurde an {address} gesendet",
-      "success": "Münze erfolgreich gesendet!"
+      "sent": "Dieser UTXO ({amount}) wurde an {address} gesendet",
+      "success": "UTXO erfolgreich gesendet!"
     },
     "label": {
       "title": "Diesen UTXO beschriften",
@@ -824,8 +824,8 @@
     "txCount": "{count} Txs",
     "reservedAmount": "Reserviert: {amount}",
     "available": "verfügbar",
-    "reservedDappWarning": "Eine Dapp-Anfrage, die einen reservierten Coin ausgeben würde, wird abgelehnt, daher können Dapp-Aktionen mit dieser Adresse fehlschlagen.",
-    "reservedWhere": "Die Seite UTXO-Verwaltung zeigt, welche Coins reserviert sind und warum.",
+    "reservedDappWarning": "Eine Dapp-Anfrage, die einen reservierten UTXO ausgeben würde, wird abgelehnt, daher können Dapp-Aktionen mit dieser Adresse fehlschlagen.",
+    "reservedWhere": "Die Seite UTXO-Verwaltung zeigt, welche UTXOs reserviert sind und warum.",
     "tokenCount": "{count} Token | {count} Tokens"
   },
   "addressManagement": {
@@ -924,7 +924,7 @@
     },
     "errors": {
       "ownAddress": "Das Ziel ist eine Adresse dieses selben Wallets",
-      "reservedCoins": "Diese Wallet hält Coins zurück und kann daher nicht alles übertragen. Die Seite UTXO-Verwaltung zeigt, welche Coins zurückgehalten werden und warum."
+      "reservedCoins": "Diese Wallet hält UTXOs zurück und kann daher nicht alles übertragen. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum."
     }
   },
   "requestPayment": {
@@ -1155,7 +1155,7 @@
       "addressNotInHdCache": "Adresse nicht im HD Wallet Cache gefunden: {address}",
       "noPrivateKeyForAddress": "Kein privater Schlüssel für Adresse verfügbar (Watch-only Wallet)",
       "failedToCompressPublicKey": "Öffentlicher Schlüssel konnte nicht komprimiert werden",
-      "reservedInputs": "Diese Anfrage würde einen Coin ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche Coins zurückgehalten werden und warum."
+      "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum."
     },
     "notifications": {
       "successfullySignedMessage": "Nachricht erfolgreich signiert",
@@ -1197,7 +1197,7 @@
       "invalidTransactionSchema": "Fehler bei der Schema-Validierung der WizardConnect-Transaktionsanfrage",
       "failedToSignTransaction": "Transaktion konnte nicht signiert werden",
       "errorSendingTransaction": "Fehler beim Senden der Transaktion",
-      "reservedInputs": "Diese Anfrage würde einen Coin ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche Coins zurückgehalten werden und warum."
+      "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum."
     },
     "notifications": {
       "sendingTransaction": "Transaktion wird gesendet...",
@@ -1343,13 +1343,13 @@
     "dataPublished": "Dein Name und Kommentar werden auf der Kampagnenseite veröffentlicht.",
     "pledgeButton": "Zusage vorbereiten",
     "pledgingButton": "Wird vorbereitet...",
-    "preparingCoin": "Zusage-Coin wird vorbereitet...",
+    "preparingCoin": "Zusage-UTXO wird vorbereitet...",
     "warnings": {
-      "notAPayment": "Eine Zusage ist keine Zahlung. Das Geld bewegt sich nur, wenn die Kampagne ihr Ziel erreicht, und bis dahin wird die Coin zurückgehalten und zählt nicht zu deinem verfügbaren Guthaben.",
-      "dappActions": "Solange ein Pledge offen ist, können dApp-Aktionen aus diesem Wallet fehlschlagen, weil das Wallet die zugesagte Münze nicht zum Ausgeben signiert. Nutze ein eigenes Wallet für Pledges, wenn du dApps regelmäßig verwendest.",
-      "dappActionsDetail": "Das betrifft WalletConnect und WizardConnect, wo die dApp ihre eigene Transaktion baut und die zugesagte Münze auswählen kann. CashConnect ist nicht betroffen: dort wählt das Wallet die Münzen und lässt die zugesagte weg.",
-      "otherDevices": "Die Münze wird nur in dieser App zurückgehalten. Gib aus diesem Wallet nichts auf einem anderen Gerät oder in anderer Wallet-Software aus, solange ein Pledge offen ist, denn das kann dein Pledge stornieren.",
-      "otherDevicesDetail": "Ein anderes Wallet kann nicht wissen, dass die Münze zurückgehalten wird, und wählt sie womöglich für eine gewöhnliche Zahlung. Die Kampagne kann dein signiertes Pledge dann nicht mehr verwenden, und dieses Wallet sieht nur, dass die Münze weg ist, nicht warum. Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere oder reserviere dieselbe Münze auch dort, was die meisten Wallets unterstützen."
+      "notAPayment": "Eine Zusage ist keine Zahlung. Das Geld bewegt sich nur, wenn die Kampagne ihr Ziel erreicht, und bis dahin wird der UTXO zurückgehalten und zählt nicht zu deinem verfügbaren Guthaben.",
+      "dappActions": "Solange ein Pledge offen ist, können dApp-Aktionen aus diesem Wallet fehlschlagen, weil das Wallet den zugesagten UTXO nicht zum Ausgeben signiert. Nutze ein eigenes Wallet für Pledges, wenn du dApps regelmäßig verwendest.",
+      "dappActionsDetail": "Das betrifft WalletConnect und WizardConnect, wo die dApp ihre eigene Transaktion baut und den zugesagten UTXO auswählen kann. CashConnect ist nicht betroffen: dort wählt das Wallet die UTXOs und lässt den zugesagten weg.",
+      "otherDevices": "Der UTXO wird nur in dieser App zurückgehalten. Gib aus diesem Wallet nichts auf einem anderen Gerät oder in anderer Wallet-Software aus, solange ein Pledge offen ist, denn das kann dein Pledge stornieren.",
+      "otherDevicesDetail": "Ein anderes Wallet kann nicht wissen, dass der UTXO zurückgehalten wird, und wählt ihn womöglich für eine gewöhnliche Zahlung. Die Kampagne kann dein signiertes Pledge dann nicht mehr verwenden, und dieses Wallet sieht nur, dass der UTXO weg ist, nicht warum. Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere oder reserviere denselben UTXO auch dort, was die meisten Wallets unterstützen."
     },
     "review": {
       "title": "Zusage-Infos",
@@ -1366,36 +1366,36 @@
       "instructions": "Kopiere dies und füge es auf der Kampagnenseite ein, um deine Zusage abzuschließen. Diese Wallet sendet nichts an die Kampagne.",
       "copy": "Signiertes Pledge kopieren",
       "detail": "Die Kampagne kann deine Zusage erst nutzen, wenn du dies auf ihrer Seite einfügst. Diese Wallet sendet es nicht für dich.",
-      "detailNote": "Bis dahin bleibt die Coin zurückgehalten und deckt nichts ab. Storniere die Zusage, um sie freizugeben."
+      "detailNote": "Bis dahin bleibt der UTXO zurückgehalten und deckt nichts ab. Storniere die Zusage, um ihn freizugeben."
     },
     "pledges": {
       "title": "Deine Zusagen",
       "empty": "Keine Zusagen aus dieser Wallet.",
       "recipientCount": "an {count} Empfänger | an {count} Empfänger",
       "status": {
-        "open": "Coin für diese Zusage zurückgehalten",
-        "expired": "Kampagne abgelaufen, Coin weiterhin zurückgehalten"
+        "open": "UTXO für diese Zusage zurückgehalten",
+        "expired": "Kampagne abgelaufen, UTXO weiterhin zurückgehalten"
       },
       "cannotConfirm": "Das Wallet kann nicht bestätigen, dass die Kampagne ein Pledge angenommen hat.",
       "cannotConfirmDetail": "Diese Einträge sind das, was du hier getan hast, nicht das, was die Kampagne hat. Das Wallet kontaktiert die Kampagne nie und kann daher nicht erfahren, ob dein Pledge angenommen wurde.",
-      "cannotConfirmRecovery": "Wurde eine Zusage nicht angenommen, storniere sie, um die Coin freizugeben."
+      "cannotConfirmRecovery": "Wurde eine Zusage nicht angenommen, storniere sie, um den UTXO freizugeben."
     },
     "confirm": {
       "title": "Diese Zusage vorbereiten?",
-      "message": "Das zahlt jetzt {amount} an dich selbst und lässt diese Münze bei jeder Zahlung dieser App aus, bis die Kampagne abgeschlossen ist oder du abbrichst. Die Münze wird nur in dieser App zurückgehalten.",
+      "message": "Das zahlt jetzt {amount} an dich selbst und lässt diesen UTXO bei jeder Zahlung dieser App aus, bis die Kampagne abgeschlossen ist oder du abbrichst. Der UTXO wird nur in dieser App zurückgehalten.",
       "button": "Zusage vorbereiten"
     },
     "cancel": {
       "title": "Diese Zusage stornieren?",
-      "message": "Das gibt die zugesagte Münze zurück an dein Wallet und macht das signierte Pledge, das die Kampagne hat, unbrauchbar.",
+      "message": "Das gibt den zugesagten UTXO zurück an dein Wallet und macht das signierte Pledge, das die Kampagne hat, unbrauchbar.",
       "button": "Zusage stornieren",
       "cancelling": "Storniere...",
       "sending": "Zusage wird storniert...",
-      "done": "Zusage storniert und Coin freigegeben",
+      "done": "Zusage storniert und UTXO freigegeben",
       "doneTitle": "Zusage storniert"
     },
     "alerts": {
-      "pledgePrepared": "Pledge-Münze vorbereitet. Kopiere das signierte Pledge unten auf die Kampagnenseite.",
+      "pledgePrepared": "Pledge-UTXO vorbereitet. Kopiere das signierte Pledge unten auf die Kampagnenseite.",
       "pledgePreparedTitle": "Zusage vorbereitet"
     },
     "errors": {
@@ -1403,15 +1403,15 @@
       "templateNotBase64Json": "Das sieht nicht nach einer Pledge-Anfrage von einer Kampagnenseite aus",
       "invalidTemplate": "Die Pledge-Anfrage ist ungültig",
       "invalidOutputAddress": "Die Pledge-Anfrage enthält eine ungültige Empfängeradresse: {address}",
-      "pledgeUtxoHasToken": "Die Zusage-Coin trägt einen Token, den die Kampagnentransaktion verbrennen würde",
-      "pledgeUtxoWrongValue": "Der Wert der Zusage-Coin entspricht nicht dem Spendenbetrag",
+      "pledgeUtxoHasToken": "Der Zusage-UTXO trägt einen Token, den die Kampagnentransaktion verbrennen würde",
+      "pledgeUtxoWrongValue": "Der Wert des Zusage-UTXO entspricht nicht dem Spendenbetrag",
       "signingFailed": "Die Zusage konnte nicht signiert werden",
       "noBroadcastTxid": "Die Vorbereitungstransaktion wurde gesendet, hat aber keine Transaktions-ID zurückgegeben",
       "noPrivateKey": "Kein privater Schlüssel für die Zusage-Adresse verfügbar",
       "campaignExpired": "Diese Kampagne ist bereits abgelaufen",
       "notEnoughSpendable": "Nicht genug verfügbares BCH für diese Zusage"
     },
-    "whatIsAPledge": "Die Wallet zahlt sich den Zusagebetrag in einer eigenen Transaktion selbst aus, hält diese Coin zurück und signiert sie an die Empfänger der Kampagne. Die Signatur bleibt gültig, wenn die Kampagne weitere Zusagen hinzufügt, die Coin bewegt sich also erst, wenn genug Menschen zugesagt haben.",
+    "whatIsAPledge": "Die Wallet zahlt sich den Zusagebetrag in einer eigenen Transaktion selbst aus, hält diesen UTXO zurück und signiert ihn an die Empfänger der Kampagne. Die Signatur bleibt gültig, wenn die Kampagne weitere Zusagen hinzufügt, der UTXO bewegt sich also erst, wenn genug Menschen zugesagt haben.",
     "whatIsAPledgeNote": "Diese Vorbereitungstransaktion ist eine echte Transaktion mit eigener Gebühr, die anfällt, ob die Kampagne zustande kommt oder nicht."
   }
 }

@@ -86,10 +86,10 @@
       "unableToConnectElectrum": "Não foi possível conectar ao servidor Electrum '{server}'",
       "deviceOffline": "Seu dispositivo parece estar offline, verifique sua conexão com a internet",
       "bcmrIndexerValidationError": "Erro de validação na resposta do indexador BCMR",
-      "utxoNotReserved": "Esta moeda não está reservada",
-      "cannotReserveTokenUtxo": "Uma moeda que carrega um token não pode ser retida",
-      "reservedEnsureUtxos": "Esta ação precisa de uma moeda que a carteira está a reter",
-      "cannotSendPledgedCoin": "Esta moeda está retida por uma promessa em aberto. Cancele a promessa para liberá-la."
+      "utxoNotReserved": "Este UTXO não está reservado",
+      "cannotReserveTokenUtxo": "Um UTXO que carrega um token não pode ser retido",
+      "reservedEnsureUtxos": "Esta ação precisa de um UTXO que a carteira está a reter",
+      "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo."
     }
   },
   "onboarding": {
@@ -690,7 +690,7 @@
       "bchOnToken": "Contém mais BCH do que um UTXO de token precisa",
       "largeBch": "Contém uma grande quantidade de BCH",
       "reserved": "Retida por uma promessa Flipstarter em aberto, então um gasto desta carteira não vai pegá-la.",
-      "reservedRelease": "Cancele a promessa na página do Flipstarter para liberar a moeda.",
+      "reservedRelease": "Cancele a promessa na página do Flipstarter para liberar o UTXO.",
       "frozen": "Congelada por você, clique para descongelar",
       "unfreeze": "Descongelar",
       "availableShort": "Disponível",
@@ -721,21 +721,21 @@
       "title": "UTXOs de tokens fungíveis + NFT",
       "empty": "Esta carteira não tem UTXOs que contenham ao mesmo tempo uma quantia fungível e um NFT."
     },
-    "reservedSummary": "{count} moeda retida, fora do seu saldo disponível | {count} moedas retidas, fora do seu saldo disponível",
+    "reservedSummary": "{count} UTXO retido, fora do seu saldo disponível | {count} UTXOs retidos, fora do seu saldo disponível",
     "freeze": {
-      "title": "Congelar esta moeda",
-      "message": "Uma moeda congelada continua na sua carteira mas fica de fora de cada pagamento que este aplicativo faz, então seu saldo disponível cai em {amount}. Você pode descongelá-la nesta lista quando quiser.\n\nCongelar vale só aqui: se você usa esta frase semente em outro aplicativo de carteira, congele a mesma moeda lá também.",
+      "title": "Congelar este UTXO",
+      "message": "Um UTXO congelado continua na sua carteira mas fica de fora de cada pagamento que este aplicativo faz, então seu saldo disponível cai em {amount}. Você pode descongelá-lo nesta lista quando quiser.\n\nCongelar vale só aqui: se você usa esta frase semente em outro aplicativo de carteira, congele o mesmo UTXO lá também.",
       "button": "Congelar"
     },
     "send": {
-      "title": "Enviar esta moeda",
-      "description": "Envia esta moeda inteira para o endereço de destino, menos a taxa de rede. Nenhuma outra moeda entra no pagamento e nenhum troco retorna.",
-      "frozenNote": "Esta moeda está congelada. Enviá-la gasta a moeda, o que encerra o congelamento.",
+      "title": "Enviar este UTXO",
+      "description": "Envia este UTXO inteiro para o endereço de destino, menos a taxa de rede. Nenhum outro UTXO entra no pagamento e nenhum troco retorna.",
+      "frozenNote": "Este UTXO está congelado. Enviá-lo gasta o UTXO, o que encerra o congelamento.",
       "destinationLabel": "Endereço de destino:",
       "destinationPlaceholder": "Cole um endereço Bitcoin Cash",
       "cancelButton": "Cancelar",
-      "sent": "Esta moeda ({amount}) foi enviada para {address}",
-      "success": "Moeda enviada com sucesso!"
+      "sent": "Este UTXO ({amount}) foi enviado para {address}",
+      "success": "UTXO enviado com sucesso!"
     },
     "label": {
       "title": "Etiquetar este UTXO",
@@ -824,8 +824,8 @@
     "txCount": "{count} txs",
     "reservedAmount": "Reservado: {amount}",
     "available": "disponível",
-    "reservedDappWarning": "Um pedido de dapp que gastaria uma moeda reservada é recusado, por isso ações de dapps com este endereço podem falhar.",
-    "reservedWhere": "A página Gerenciamento de UTXOs mostra que moedas estão reservadas e porquê.",
+    "reservedDappWarning": "Um pedido de dapp que gastaria um UTXO reservado é recusado, por isso ações de dapps com este endereço podem falhar.",
+    "reservedWhere": "A página Gerenciamento de UTXOs mostra que UTXOs estão reservados e porquê.",
     "tokenCount": "{count} token | {count} tokens"
   },
   "addressManagement": {
@@ -924,7 +924,7 @@
     },
     "errors": {
       "ownAddress": "O destino é um endereço desta mesma carteira",
-      "reservedCoins": "Esta carteira está a reter moedas, por isso não pode transferir tudo. A página Gerenciamento de UTXOs mostra que moedas estão retidas e porquê."
+      "reservedCoins": "Esta carteira está a reter UTXOs, por isso não pode transferir tudo. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê."
     }
   },
   "requestPayment": {
@@ -1155,7 +1155,7 @@
       "addressNotInHdCache": "Endereço não encontrado no cache da carteira HD: {address}",
       "noPrivateKeyForAddress": "Nenhuma chave privada disponível para este endereço (carteira somente leitura)",
       "failedToCompressPublicKey": "Falha ao comprimir chave pública",
-      "reservedInputs": "Este pedido gastaria uma moeda que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que moedas estão retidas e porquê."
+      "reservedInputs": "Este pedido gastaria um UTXO que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê."
     },
     "notifications": {
       "successfullySignedMessage": "Mensagem assinada com sucesso",
@@ -1197,7 +1197,7 @@
       "invalidTransactionSchema": "Erro na validação do schema da requisição de transação WizardConnect",
       "failedToSignTransaction": "Falha ao assinar transação",
       "errorSendingTransaction": "Erro ao enviar transação",
-      "reservedInputs": "Este pedido gastaria uma moeda que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que moedas estão retidas e porquê."
+      "reservedInputs": "Este pedido gastaria um UTXO que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê."
     },
     "notifications": {
       "sendingTransaction": "Enviando transação...",
@@ -1343,13 +1343,13 @@
     "dataPublished": "O seu nome e comentário são publicados na página da campanha.",
     "pledgeButton": "Preparar promessa",
     "pledgingButton": "A preparar...",
-    "preparingCoin": "A preparar a moeda da promessa...",
+    "preparingCoin": "A preparar o UTXO da promessa...",
     "warnings": {
-      "notAPayment": "Uma promessa não é um pagamento. O dinheiro só se move se a campanha atingir o objetivo, e até lá a moeda fica retida e fora do que pode gastar.",
-      "dappActions": "Enquanto uma promessa estiver aberta, ações de dApps desta carteira podem falhar, porque a carteira não vai assinar o gasto da moeda prometida. Use uma carteira separada para as promessas se você usa dApps com frequência.",
-      "dappActionsDetail": "Isto se aplica ao WalletConnect e ao WizardConnect, onde o dApp monta sua própria transação e pode escolher a moeda prometida. O CashConnect não é afetado: nele a carteira escolhe as moedas e deixa a prometida de fora.",
-      "otherDevices": "A moeda só fica retida neste aplicativo. Não gaste desta carteira em outro dispositivo nem em outro software de carteira enquanto uma promessa estiver aberta, porque isso pode cancelar sua promessa.",
-      "otherDevicesDetail": "Outra carteira não tem como saber que a moeda está retida, então pode escolhê-la para um pagamento comum. A campanha não poderá mais usar sua promessa assinada, e esta carteira só verá que a moeda sumiu, não o motivo. Se você usa esta frase semente em outro aplicativo de carteira, congele ou reserve a mesma moeda lá também, algo que a maioria das carteiras permite."
+      "notAPayment": "Uma promessa não é um pagamento. O dinheiro só se move se a campanha atingir o objetivo, e até lá o UTXO fica retido e fora do que pode gastar.",
+      "dappActions": "Enquanto uma promessa estiver aberta, ações de dApps desta carteira podem falhar, porque a carteira não vai assinar o gasto do UTXO prometido. Use uma carteira separada para as promessas se você usa dApps com frequência.",
+      "dappActionsDetail": "Isto se aplica ao WalletConnect e ao WizardConnect, onde o dApp monta sua própria transação e pode escolher o UTXO prometido. O CashConnect não é afetado: nele a carteira escolhe os UTXOs e deixa o prometido de fora.",
+      "otherDevices": "O UTXO só fica retido neste aplicativo. Não gaste desta carteira em outro dispositivo nem em outro software de carteira enquanto uma promessa estiver aberta, porque isso pode cancelar sua promessa.",
+      "otherDevicesDetail": "Outra carteira não tem como saber que o UTXO está retido, então pode escolhê-lo para um pagamento comum. A campanha não poderá mais usar sua promessa assinada, e esta carteira só verá que o UTXO sumiu, não o motivo. Se você usa esta frase semente em outro aplicativo de carteira, congele ou reserve o mesmo UTXO lá também, algo que a maioria das carteiras permite."
     },
     "review": {
       "title": "Informações da promessa",
@@ -1366,36 +1366,36 @@
       "instructions": "Copie isto e cole na página da campanha para concluir a promessa. Esta carteira não envia nada à campanha.",
       "copy": "Copiar promessa assinada",
       "detail": "A campanha não pode usar a sua promessa até colar isto na página dela. Esta carteira não o envia por si.",
-      "detailNote": "Até o fazer, a moeda continua retida e não garante nada. Cancele a promessa para a libertar."
+      "detailNote": "Até o fazer, o UTXO continua retido e não garante nada. Cancele a promessa para o libertar."
     },
     "pledges": {
       "title": "As suas promessas",
       "empty": "Sem promessas desta carteira.",
       "recipientCount": "para {count} destinatário | para {count} destinatários",
       "status": {
-        "open": "Moeda retida para esta promessa",
-        "expired": "Campanha expirada, moeda ainda retida"
+        "open": "UTXO retido para esta promessa",
+        "expired": "Campanha expirada, UTXO ainda retido"
       },
       "cannotConfirm": "A carteira não pode confirmar que a campanha aceitou uma promessa.",
       "cannotConfirmDetail": "Estes registros são o que você fez aqui, não o que a campanha tem. A carteira nunca contata a campanha, então não tem como saber se sua promessa foi aceita.",
-      "cannotConfirmRecovery": "Se uma promessa não foi aceite, cancele-a para libertar a moeda."
+      "cannotConfirmRecovery": "Se uma promessa não foi aceite, cancele-a para libertar o UTXO."
     },
     "confirm": {
       "title": "Preparar esta promessa?",
-      "message": "Isto paga {amount} para você mesmo agora, e deixa essa moeda de fora de cada pagamento que este aplicativo faz até a campanha ser concluída ou você cancelar. A moeda só fica retida neste aplicativo.",
+      "message": "Isto paga {amount} para você mesmo agora, e deixa esse UTXO de fora de cada pagamento que este aplicativo faz até a campanha ser concluída ou você cancelar. O UTXO só fica retido neste aplicativo.",
       "button": "Preparar promessa"
     },
     "cancel": {
       "title": "Cancelar esta promessa?",
-      "message": "Isto gasta a moeda prometida de volta para sua carteira, o que torna inutilizável a promessa assinada que a campanha tem.",
+      "message": "Isto gasta o UTXO prometido de volta para sua carteira, o que torna inutilizável a promessa assinada que a campanha tem.",
       "button": "Cancelar promessa",
       "cancelling": "A cancelar...",
       "sending": "A cancelar promessa...",
-      "done": "Promessa cancelada e moeda libertada",
+      "done": "Promessa cancelada e UTXO libertado",
       "doneTitle": "Promessa cancelada"
     },
     "alerts": {
-      "pledgePrepared": "Moeda da promessa preparada. Copie a promessa assinada abaixo na página da campanha.",
+      "pledgePrepared": "UTXO da promessa preparado. Copie a promessa assinada abaixo na página da campanha.",
       "pledgePreparedTitle": "Promessa preparada"
     },
     "errors": {
@@ -1403,15 +1403,15 @@
       "templateNotBase64Json": "Isto não parece uma solicitação de promessa de uma página de campanha",
       "invalidTemplate": "A solicitação de promessa não é válida",
       "invalidOutputAddress": "A solicitação de promessa contém um endereço de destinatário inválido: {address}",
-      "pledgeUtxoHasToken": "A moeda da promessa tem um token, que a transação da campanha queimaria",
-      "pledgeUtxoWrongValue": "O valor da moeda da promessa não corresponde ao valor do donativo",
+      "pledgeUtxoHasToken": "O UTXO da promessa tem um token, que a transação da campanha queimaria",
+      "pledgeUtxoWrongValue": "O valor do UTXO da promessa não corresponde ao valor do donativo",
       "signingFailed": "Falha ao assinar a promessa",
       "noBroadcastTxid": "A transação de preparação foi enviada mas não devolveu um id de transação",
       "noPrivateKey": "Sem chave privada disponível para o endereço da promessa",
       "campaignExpired": "Esta campanha já expirou",
       "notEnoughSpendable": "BCH disponível insuficiente para esta promessa"
     },
-    "whatIsAPledge": "A carteira paga a si própria o valor da promessa numa transação própria, retém essa moeda e assina-a a favor dos destinatários da campanha. A assinatura continua válida quando a campanha junta outros participantes, por isso a moeda só se move quando houver promessas suficientes.",
+    "whatIsAPledge": "A carteira paga a si própria o valor da promessa numa transação própria, retém esse UTXO e assina-o a favor dos destinatários da campanha. A assinatura continua válida quando a campanha junta outros participantes, por isso o UTXO só se move quando houver promessas suficientes.",
     "whatIsAPledgeNote": "Essa transação de preparação é uma transação real com a sua própria taxa, paga quer a campanha se complete quer não."
   }
 }

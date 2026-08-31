@@ -58,8 +58,8 @@
     <q-card class="dialogCard">
       <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ t('utxoManagement.send.title') }}</legend>
-        <div class="coin-line">
-          <span class="coin-amount">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+        <div class="utxo-line">
+          <span class="utxo-amount">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
           <span class="mono muted" :title="utxo.txid">{{ truncatedOutpoint }}</span>
         </div>
         <div>{{ t('utxoManagement.send.description') }}</div>
@@ -100,14 +100,14 @@
     width: 500px;
     max-width: 100%;
   }
-  .coin-line {
+  .utxo-line {
     display: flex;
     align-items: baseline;
     gap: 10px;
     flex-wrap: wrap;
     margin-bottom: 10px;
   }
-  .coin-amount {
+  .utxo-amount {
     font-weight: bold;
   }
   .frozen-note {
