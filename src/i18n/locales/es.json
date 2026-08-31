@@ -1247,6 +1247,8 @@
       "electrumSelfSignedApp": "Nota: los certificados autofirmados no son compatibles actualmente en la app.",
       "ipfsGateway": "Gateway IPFS:",
       "chaingraph": "Servidor Chaingraph:",
+      "chaingraphCustomPlaceholder": "ej. https://chaingraph.example.com",
+      "chaingraphCustomHint": "/v1/graphql se añade automáticamente cuando solo se proporciona un host.",
       "cauldronIndexer": "Indexador de Cauldron:",
       "exchangeRate": "Proveedor de tasa de cambio:",
       "exchangeRateDefault": "Predeterminado (bitcoin.com para USD, BitPay para el resto)",

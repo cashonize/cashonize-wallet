@@ -12,7 +12,7 @@
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
-  import { electrumWssUrl } from 'src/utils/utils'
+  import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
   import { confirmDialog } from 'src/utils/txHelpers'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -88,7 +88,14 @@
   const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);
   const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
-  const selectedChaingraph = ref(settingsStore.chaingraph);
+  const predefinedChaingraphs = [
+    "https://gql.chaingraph.pat.mn/v1/graphql",
+    "https://demo.chaingraph.cash/v1/graphql"
+  ];
+  const storedChaingraph = settingsStore.chaingraph;
+  const isCustomChaingraph = !predefinedChaingraphs.includes(storedChaingraph);
+  const selectedChaingraph = ref(isCustomChaingraph ? "custom" : storedChaingraph);
+  const customChaingraph = ref(isCustomChaingraph ? storedChaingraph : "");
   const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
   const predefinedBcmrIndexersMainnet = ["https://bcmr.paytaca.com/api"];
   const predefinedBcmrIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
@@ -251,8 +258,19 @@
     localStorage.setItem("ipfsGateway", trimmedGateway);
   }
   function changeChaingraph(){
-    settingsStore.chaingraph = selectedChaingraph.value
-    localStorage.setItem("chaingraph", selectedChaingraph.value);
+    if (selectedChaingraph.value === "custom") return;
+    applyChaingraph(selectedChaingraph.value);
+  }
+  function saveCustomChaingraph(){
+    const trimmedChaingraph = customChaingraph.value.trim();
+    if (!trimmedChaingraph) return;
+    const normalizedChaingraph = chaingraphGraphqlUrl(trimmedChaingraph);
+    customChaingraph.value = normalizedChaingraph;
+    applyChaingraph(normalizedChaingraph);
+  }
+  function applyChaingraph(chaingraphUrl: string){
+    settingsStore.chaingraph = chaingraphUrl;
+    localStorage.setItem("chaingraph", chaingraphUrl);
   }
   function changeCauldronIndexer(){
     settingsStore.cauldronIndexer = selectedCauldronIndexer.value;
@@ -667,7 +685,21 @@
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
+        <div v-if="selectedChaingraph === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customChaingraph"
+            @blur="saveCustomChaingraph()"
+            @keyup.enter="saveCustomChaingraph()"
+            type="text"
+            :placeholder="t('settings.advanced.chaingraphCustomPlaceholder')"
+            style="width: 100%;"
+          >
+          <div style="font-size: smaller; color: grey;">
+            {{ t('settings.advanced.chaingraphCustomHint') }}
+          </div>
+        </div>
       </div>
 
       <div style="margin-top:15px">
