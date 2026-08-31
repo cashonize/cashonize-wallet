@@ -737,6 +737,10 @@
       "sent": "Esta moeda ({amount}) foi enviada para {address}",
       "success": "Moeda enviada com sucesso!"
     },
+    "label": {
+      "title": "Etiquetar este UTXO",
+      "placeholder": "Adicionar etiqueta de UTXO"
+    },
     "stats": {
       "totalUtxos": "Total de UTXOs",
       "bchOnlyUtxos": "UTXOs apenas BCH",
@@ -776,6 +780,7 @@
       "vout": "Vout",
       "status": "Estado",
       "action": "Ação",
+      "label": "Etiqueta",
       "address": "Endereço",
       "utxoCount": "UTXOs",
       "bchHeld": "BCH retido",
@@ -1326,6 +1331,7 @@
     "templatePlaceholder": "Cole a solicitação de promessa da página da campanha",
     "recipientCount": "{count} destinatário | {count} destinatários",
     "expires": "A campanha expira: {date}",
+    "pledgeLabel": "Promessa de Flipstarter, a campanha expira: {date}",
     "ecPluginCompatible": "O Cashonize é compatível com o fluxo do EC Plugin.",
     "ecPluginCompatibleDetail": "O Cashonize produz a mesma promessa que o plugin do Electron Cash, então os passos do plugin de uma campanha são os que valem aqui, e o passo \"Copy details\" dela te dá a solicitação de promessa para colar acima.",
     "readTemplate": "Revisar promessa",

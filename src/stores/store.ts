@@ -86,6 +86,12 @@ import {
   type ReservedUtxos,
   type ReservationReason
 } from "src/utils/wallet/reservedUtxos"
+import {
+  loadUtxoLabels,
+  saveUtxoLabel,
+  removeUtxoLabels,
+  type UtxoLabels,
+} from "src/utils/wallet/utxoLabels"
 import { removePledges } from "src/utils/tools/flipstarterPledges"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -156,6 +162,8 @@ export const useStore = defineStore('store', () => {
   const addressLabels = ref({} as Record<string, string>);
   // Coins held back from coin selection, keyed by outpoint (see utils/wallet/reservedUtxos.ts)
   const reservedUtxos = ref({} as ReservedUtxos);
+  // Private labels on the wallet's coins, keyed by outpoint (see utils/wallet/utxoLabels.ts)
+  const utxoLabels = ref({} as UtxoLabels);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   // Category a token payment request asks for, set when the user chooses to open it from
@@ -386,6 +394,7 @@ export const useStore = defineStore('store', () => {
     addressMarks.value = loadAddressMarks(newNetwork, newWallet.name);
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
     reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
+    utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
   }
 
   function setTxNote(txid: string, note: string) {
@@ -428,6 +437,10 @@ export const useStore = defineStore('store', () => {
 
   function setAddressLabel(address: string, label: string) {
     addressLabels.value = saveAddressLabel(network.value, wallet.value.name, address, label);
+  }
+
+  function setUtxoLabel(outpoint: string, label: string) {
+    utxoLabels.value = saveUtxoLabel(network.value, wallet.value.name, outpoint, label);
   }
 
   async function initializeWallet() {
@@ -873,6 +886,7 @@ export const useStore = defineStore('store', () => {
     removeTxNotes(walletName);
     removeAddressManagementData(walletName);
     removeReservedUtxos(walletName);
+    removeUtxoLabels(walletName);
     removePledges(walletName);
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
@@ -1532,6 +1546,8 @@ export const useStore = defineStore('store', () => {
     reservedWalletUtxos,
     reserveUtxo,
     dropReservation,
+    utxoLabels,
+    setUtxoLabel,
     spend, // the only route to the wallet's spending methods
     tokenList,
     filteredTokenList,

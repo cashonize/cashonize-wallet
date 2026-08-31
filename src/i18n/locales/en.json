@@ -737,6 +737,10 @@
       "sent": "Sent this coin ({amount}) to {address}",
       "success": "Sent coin successfully!"
     },
+    "label": {
+      "title": "Label this UTXO",
+      "placeholder": "Add UTXO label"
+    },
     "stats": {
       "totalUtxos": "Total UTXOs",
       "bchOnlyUtxos": "BCH-only UTXOs",
@@ -776,6 +780,7 @@
       "vout": "Vout",
       "status": "Status",
       "action": "Action",
+      "label": "Label",
       "address": "Address",
       "utxoCount": "UTXOs",
       "bchHeld": "BCH held",
@@ -1326,6 +1331,7 @@
     "templatePlaceholder": "Paste the pledge request from the campaign page",
     "recipientCount": "{count} recipient | {count} recipients",
     "expires": "Campaign expires: {date}",
+    "pledgeLabel": "Flipstarter pledge, campaign expires: {date}",
     "ecPluginCompatible": "Cashonize is compatible with the EC Plugin flow.",
     "ecPluginCompatibleDetail": "Cashonize produces the same pledge as the Electron Cash plugin, so a campaign's plugin steps are the ones that apply here, and its \"Copy details\" step gives you the pledge request to paste above.",
     "readTemplate": "Review pledge",

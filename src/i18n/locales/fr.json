@@ -737,6 +737,10 @@
       "sent": "Cette pièce ({amount}) a été envoyée à {address}",
       "success": "Pièce envoyée avec succès !"
     },
+    "label": {
+      "title": "Étiqueter cet UTXO",
+      "placeholder": "Ajouter une étiquette d'UTXO"
+    },
     "stats": {
       "totalUtxos": "Total des UTXOs",
       "bchOnlyUtxos": "UTXOs BCH uniquement",
@@ -776,6 +780,7 @@
       "vout": "Vout",
       "status": "État",
       "action": "Action",
+      "label": "Étiquette",
       "address": "Adresse",
       "utxoCount": "UTXOs",
       "bchHeld": "BCH retenu",
@@ -1326,6 +1331,7 @@
     "templatePlaceholder": "Collez la demande d'engagement de la page de la campagne",
     "recipientCount": "{count} destinataire | {count} destinataires",
     "expires": "La campagne expire : {date}",
+    "pledgeLabel": "Engagement Flipstarter, la campagne expire : {date}",
     "ecPluginCompatible": "Cashonize est compatible avec le flux EC Plugin.",
     "ecPluginCompatibleDetail": "Cashonize produit le même engagement que le plugin Electron Cash, ce sont donc les étapes du plugin d'une campagne qui s'appliquent ici, et son étape « Copy details » vous donne la demande d'engagement à coller ci-dessus.",
     "readTemplate": "Vérifier l'engagement",

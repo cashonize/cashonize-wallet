@@ -737,6 +737,10 @@
       "sent": "Diese Münze ({amount}) wurde an {address} gesendet",
       "success": "Münze erfolgreich gesendet!"
     },
+    "label": {
+      "title": "Diesen UTXO beschriften",
+      "placeholder": "UTXO-Beschriftung hinzufügen"
+    },
     "stats": {
       "totalUtxos": "UTXOs gesamt",
       "bchOnlyUtxos": "Reine BCH-UTXOs",
@@ -776,6 +780,7 @@
       "vout": "Vout",
       "status": "Status",
       "action": "Aktion",
+      "label": "Beschriftung",
       "address": "Adresse",
       "utxoCount": "UTXOs",
       "bchHeld": "Enthaltenes BCH",
@@ -1326,6 +1331,7 @@
     "templatePlaceholder": "Füge die Pledge-Anfrage von der Kampagnenseite ein",
     "recipientCount": "{count} Empfänger | {count} Empfänger",
     "expires": "Kampagne läuft ab: {date}",
+    "pledgeLabel": "Flipstarter-Pledge, Kampagne läuft ab: {date}",
     "ecPluginCompatible": "Cashonize ist mit dem EC-Plugin-Ablauf kompatibel.",
     "ecPluginCompatibleDetail": "Cashonize erzeugt dasselbe Pledge wie das Electron-Cash-Plugin, also gelten hier die Plugin-Schritte einer Kampagne, und ihr Schritt \"Copy details\" gibt dir die Pledge-Anfrage zum Einfügen oben.",
     "readTemplate": "Pledge prüfen",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue';
+  import { computed, nextTick, ref, watch } from 'vue';
   import { copyToClipboard, formatBchAmount, formatFiatAmount, formatTokenAmountFromBigInt, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
@@ -7,9 +7,11 @@
   import { HDWallet, TokenSendRequest } from 'mainnet-js';
   import type { Utxo } from 'mainnet-js';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
+  import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { displayAndLogError } from 'src/utils/errorHandling';
   import SendCoinDialog from 'src/components/settings/sendCoinDialog.vue';
+  import InlineTextEdit from 'src/components/general/InlineTextEdit.vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -69,6 +71,44 @@
       t('utxoManagement.freeze.button')
     );
     if (confirmed) await store.reserveUtxo(utxo, 'manual');
+  }
+
+  // A row's label line only exists while it has a label or its editor is open, so the menu
+  // action first brings the line into the DOM and then opens its editor by ref
+  const labelEditingOutpoint = ref<string | null>(null);
+  const labelEditRefs: Record<string, InstanceType<typeof InlineTextEdit> | null> = {};
+
+  function utxoLabel(utxo: Utxo): string | undefined {
+    return store.utxoLabels[outpointOf(utxo)];
+  }
+
+  function setLabelEditRef(outpoint: string, componentInstance: unknown) {
+    labelEditRefs[outpoint] = componentInstance as InstanceType<typeof InlineTextEdit> | null;
+  }
+
+  async function openLabelEditor(utxo: Utxo) {
+    const outpoint = outpointOf(utxo);
+    labelEditingOutpoint.value = outpoint;
+    await nextTick();
+    await labelEditRefs[outpoint]?.startEdit();
+  }
+
+  // Opening the editor straight from the menu click races the closing menu, which can pull
+  // focus back and blur the fresh editor shut, so the edit waits until the menu has hidden
+  let pendingLabelUtxo: Utxo | null = null;
+  function queueLabelEdit(utxo: Utxo) {
+    pendingLabelUtxo = utxo;
+  }
+  function onMenuHidden() {
+    if (!pendingLabelUtxo) return;
+    const utxo = pendingLabelUtxo;
+    pendingLabelUtxo = null;
+    void openLabelEditor(utxo);
+  }
+
+  function saveLabel(utxo: Utxo, label: string) {
+    store.setUtxoLabel(outpointOf(utxo), label);
+    labelEditingOutpoint.value = null;
   }
 
   function openSendDialog(utxo: Utxo) {
@@ -450,8 +490,26 @@
                   </span>
                 </template>
               </div>
+              <!-- The label spans the whole row as a line of its own, so it needs no column and
+                   rows without one keep their height. It edits in place: a click on the text
+                   opens the editor directly, the menu action opens it for an unlabeled row. -->
+              <div
+                v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
+                class="cell utxo-label-line"
+              >
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.label') }}</span>
+                <InlineTextEdit
+                  :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+                  class="utxo-label-edit"
+                  :value="utxoLabel(utxo)"
+                  :hint="t('utxoManagement.label.placeholder')"
+                  :max-length="maxUtxoLabelLength"
+                  @save="(label) => saveLabel(utxo, label)"
+                  @cancel="labelEditingOutpoint = null"
+                />
+              </div>
               <!-- Attached to the row itself, so a click anywhere on it opens the actions -->
-              <q-menu v-if="reservationReason(utxo) !== 'pledge'" anchor="bottom right" self="top right" class="utxo-actions-menu">
+              <q-menu v-if="reservationReason(utxo) !== 'pledge'" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
                 <q-list dense>
                   <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
                     <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
@@ -464,6 +522,10 @@
                   <q-item clickable v-close-popup @click="openSendDialog(utxo)">
                     <q-item-section avatar><q-icon name="send" size="18px" /></q-item-section>
                     <q-item-section>{{ t('utxoManagement.send.title') }}</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
+                    <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+                    <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -1143,6 +1205,19 @@ $card-label-width: 90px;
 /* the whole row opens the actions, so the whole row says it is clickable */
 .utxo-row.actionable {
   cursor: pointer;
+}
+
+/* spans every column of its row, so labels need no column of their own and only
+   the rows that have one grow the extra line */
+.utxo-label-line {
+  grid-column: 1 / -1;
+  justify-content: center;
+  padding-top: 2px;
+}
+/* a bounded centered box, for the shown label and its editor alike, so the
+   editing underline does not stretch across the whole row */
+.utxo-label-line .inline-edit {
+  flex: 0 1 30em;
 }
 
 .token-name {
