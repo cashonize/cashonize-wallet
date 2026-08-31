@@ -37,6 +37,24 @@ function distanceFromCenter(x: number, y: number, count: number, entity: QrCodeE
   return Math.hypot(adjustedX - center, adjustedY - center);
 }
 
+/**
+ * The radial presets animate a transform rather than an opacity, which on several hundred
+ * separate svg elements costs enough style recalc per frame to visibly stall a mid-range phone.
+ * They stagger by distance from the center, so many modules share a delay: quantising to this
+ * step collapses a 41x41 code's modules into a few dozen <g> wrappers that carry the animation
+ * between them, which is what keeps the wave at 60Hz on a mid-range phone.
+ * A coarser step groups harder but pulls modules further off the wave. At 8ms the steepest frame
+ * of the ripple already differs from the ungrouped one on a couple of hundred pixels; 4ms brings
+ * that down to a handful and still costs nothing measurable, so it is the balance point.
+ * The fade presets stay one animation per module: they are far cheaper already, and grouping an
+ * opacity animation rasterises the group through an offscreen buffer, which shifts its edges.
+ */
+const radialGroupStepMs = 4;
+
+function isRadial(animation: QRCodeAnimationName | 'None') {
+  return animation === 'RadialRipple' || animation === 'RadialRippleIn';
+}
+
 /** Start offset of one element on the shared timeline, in milliseconds. */
 function animationDelay(
   animation: QRCodeAnimationName, x: number, y: number, count: number, entity: QrCodeEntity
@@ -122,7 +140,11 @@ export function generateQrCodeSvg(
   }
 
   function renderModules() {
+    // Radial presets carry the delay on a shared wrapper, everything else carries its own.
+    const grouped = isRadial(animation);
+    const byDelay = new Map<number, string>();
     let svgModules = '';
+
     for (let column = 0; column < moduleCount; column += 1) {
       const positionX = column + margin;
       for (let row = 0; row < moduleCount; row += 1) {
@@ -132,17 +154,32 @@ export function generateQrCodeSvg(
           !isRemovableCenter(row, column)
         ) {
           const positionY = row + margin;
-          svgModules += `
+          const circle = `
             <circle
                 class="module"
-                fill="#000"${delayAttribute(column, row, 'module')}
+                fill="#000"${grouped ? '' : delayAttribute(column, row, 'module')}
                 cx="${positionX - coordinateShift}"
                 cy="${positionY - coordinateShift}"
                 r="0.5"/>`;
+          if (!grouped) {
+            svgModules += circle;
+            continue;
+          }
+          const delay = animationDelay(animation, column, row, moduleCount, 'module');
+          const step = Math.round(delay / radialGroupStepMs) * radialGroupStepMs;
+          byDelay.set(step, (byDelay.get(step) ?? '') + circle);
         }
       }
     }
-    return svgModules;
+
+    if (!grouped) return svgModules;
+    // Every module already scales around the same point, the center of the viewBox, so scaling
+    // the wrapper instead of each child leaves the geometry unchanged.
+    return [...byDelay.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([delay, modules]) => `
+        <g class="module-group" style="animation-delay:${delay}ms">${modules}</g>`)
+      .join('');
   }
 
   /** The three corner patterns are drawn as paths instead, so their modules are skipped. */

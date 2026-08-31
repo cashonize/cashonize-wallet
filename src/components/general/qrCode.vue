@@ -110,8 +110,9 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
   /* The two ripple presets pulse the icon down before the wave reaches it, so it gets its
      own keyframes; the scale is deliberately left to resolve around the svg's own center,
      which turns the size pulse into the outward wave. */
+  /* The modules ride on shared .module-group wrappers here, see radialGroupStepMs. */
   .qrContainer.animate-RadialRipple {
-    :deep(.module), :deep(.position-ring), :deep(.position-center) {
+    :deep(.module-group), :deep(.position-ring), :deep(.position-center) {
       animation: qrRipple 1000ms $rippleEasing backwards;
     }
     .iconWrapper {
@@ -119,7 +120,7 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
     }
   }
   .qrContainer.animate-RadialRippleIn {
-    :deep(.module), :deep(.position-ring), :deep(.position-center) {
+    :deep(.module-group), :deep(.position-ring), :deep(.position-center) {
       animation: qrRippleIn 1000ms $rippleEasing backwards, qrRippleReveal 1000ms $rippleEasing backwards;
     }
     .iconWrapper {
