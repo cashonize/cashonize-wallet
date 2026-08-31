@@ -111,7 +111,7 @@ Fungible token values come from the indexer of Cauldron, the main AMM DEX in the
 The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. For now every dapp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups, data on held NFTs, or a Chaingraph walk of the wallet's spent outputs for OP_RETURN protocol markers) and is documented in each module's header comment.
 
 ### Wallet Tools
-The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin.
+The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves a token identity's authhead, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere.
 
 ### Component Organization
 ```

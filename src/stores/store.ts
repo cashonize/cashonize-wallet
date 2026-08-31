@@ -32,7 +32,6 @@ import {
 import {
   electrumWssUrl,
   getBalanceFromUtxos,
-  getTokenUtxos,
   loadWalletFromId,
   runAsyncVoid,
   walletTypeFromWalletId
@@ -93,6 +92,14 @@ import {
   type UtxoLabels,
 } from "src/utils/wallet/utxoLabels"
 import { removePledges } from "src/utils/tools/flipstarterPledges"
+import {
+  loadIdentityCategories,
+  saveIdentityCategory,
+  deleteIdentityCategory,
+  removeIdentityCategories,
+  resolveIdentities,
+  type IdentityState
+} from "src/utils/tools/authchainIdentity"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -164,6 +171,12 @@ export const useStore = defineStore('store', () => {
   const reservedUtxos = ref({} as ReservedUtxos);
   // Private labels on the wallet's coins, keyed by outpoint (see utils/wallet/utxoLabels.ts)
   const utxoLabels = ref({} as UtxoLabels);
+  // Token categories whose authhead this wallet keeps custody of, and where those authheads sit
+  // now. Only the categories persist, the resolved state is rebuilt from Chaingraph every time
+  // (see utils/tools/authchainIdentity.ts).
+  const identityCategories = ref([] as string[]);
+  const identities = ref(undefined as (IdentityState[] | undefined));
+  const identitiesResolving = ref(false);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   // Category a token payment request asks for, set when the user chooses to open it from
@@ -395,6 +408,8 @@ export const useStore = defineStore('store', () => {
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
     reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
     utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
+    identityCategories.value = loadIdentityCategories(newNetwork, newWallet.name);
+    identities.value = undefined;
   }
 
   function setTxNote(txid: string, note: string) {
@@ -566,6 +581,10 @@ export const useStore = defineStore('store', () => {
         await fetchAuthUtxos();
         console.timeEnd('fetch authUtxos');
       }
+      // After the detection above, so an authhead it just found joins the identities in one pass
+      console.time('resolve identities');
+      await refreshIdentities();
+      console.timeEnd('resolve identities');
     } catch (error) {
       // A stale initialization must not flag the newer one as failed
       if (initialization === currentInitialization) walletInitFailed.value = true;
@@ -888,6 +907,7 @@ export const useStore = defineStore('store', () => {
     removeReservedUtxos(walletName);
     removeUtxoLabels(walletName);
     removePledges(walletName);
+    removeIdentityCategories(walletName);
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
@@ -1333,9 +1353,88 @@ export const useStore = defineStore('store', () => {
 
   async function fetchAuthUtxos() {
     if(!tokenList.value?.length || !walletUtxos.value) return
-    const tokenUtxos = getTokenUtxos(walletUtxos.value);
-    const newTokenList = await updateTokenListWithAuthUtxos(tokenList.value, settingsStore.chaingraph, tokenUtxos)
+    const newTokenList = await updateTokenListWithAuthUtxos(tokenList.value, settingsStore.chaingraph, walletUtxos.value)
     tokenList.value = newTokenList;
+  }
+
+  // Where each listed identity's authhead sits now. Nothing about an authhead is restored from
+  // storage: it moves to a new outpoint every time the identity's metadata is updated, and those
+  // updates happen outside this wallet, so the outpoint is re-resolved and the 'auth' reservations
+  // are rewritten from the result. That is what makes a reservation follow the authchain.
+  async function refreshIdentities() {
+    const currentUtxos = walletUtxos.value;
+    if (!currentUtxos) return;
+    // Detection rides along on the token list: fetchAuthUtxos resolves an authhead per held
+    // category, and one carrying no tokens is an authhead this wallet can hold back, so it joins
+    // the identities list. Its txid is the authhead, so those categories need no second query.
+    const detectedAuthheads: Record<string, string> = {};
+    for (const token of tokenList.value ?? []) {
+      if (!token.authUtxo || token.authUtxo.token) continue;
+      detectedAuthheads[token.category] = token.authUtxo.txid;
+      if (identityCategories.value.includes(token.category)) continue;
+      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, token.category);
+    }
+    if (!identityCategories.value.length) {
+      identities.value = [];
+      // clears an 'auth' reservation left behind by an identity that is no longer listed
+      await syncAuthReservations([]);
+      return;
+    }
+    identitiesResolving.value = true;
+    try {
+      const initialization = currentInitialization;
+      const resolved = await resolveIdentities(
+        identityCategories.value, settingsStore.chaingraph, currentUtxos, detectedAuthheads
+      );
+      if (initialization !== currentInitialization) return;
+      identities.value = resolved;
+      await syncAuthReservations(resolved);
+    } finally {
+      identitiesResolving.value = false;
+    }
+  }
+
+  // Every authhead the wallet holds as a BCH-only coin is held back from coin selection, and an
+  // 'auth' reservation on a coin that is no longer one is dropped. A failed query says nothing
+  // about where its authhead went, so nothing is dropped while any identity is unresolved: an
+  // outage leaves coins locked rather than releasing them.
+  async function syncAuthReservations(resolved: IdentityState[]) {
+    const authOutpoints: string[] = [];
+    for (const identity of resolved) {
+      if (!identity.authUtxo) continue;
+      const outpoint = outpointOf(identity.authUtxo);
+      authOutpoints.push(outpoint);
+      // A reservation already made for another reason is left alone: the coin is held back either
+      // way, and rewriting the reason would take it away from whatever made it
+      if (!reservedUtxos.value[outpoint]) await reserveUtxo(identity.authUtxo, 'auth');
+    }
+    if (resolved.some(identity => identity.status === 'unresolved')) return;
+    for (const [outpoint, reservation] of Object.entries(reservedUtxos.value)) {
+      if (reservation.reason !== 'auth') continue;
+      if (authOutpoints.includes(outpoint)) continue;
+      await dropReservation(outpoint);
+    }
+  }
+
+  async function addIdentity(category: string) {
+    identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+    await refreshIdentities();
+  }
+
+  // The wallet's only way to stop holding an authhead back, for when the user wants to spend that
+  // coin outside the identities page. Detection adds the identity again on the next wallet start
+  // if the wallet still holds its authhead.
+  async function removeIdentity(category: string) {
+    const removed = identities.value?.find(identity => identity.category === category);
+    identityCategories.value = deleteIdentityCategory(network.value, wallet.value.name, category);
+    identities.value = identities.value?.filter(identity => identity.category !== category);
+    // Detection leaves its result on the token list, so the authhead found there is cleared too:
+    // without that, the next resolve would list the identity straight back
+    const detectedToken = tokenList.value?.find(token => token.category === category);
+    if (detectedToken?.authUtxo && !detectedToken.authUtxo.token) delete detectedToken.authUtxo;
+    if (!removed?.authUtxo) return;
+    const outpoint = outpointOf(removed.authUtxo);
+    if (reservedUtxos.value[outpoint]?.reason === 'auth') await dropReservation(outpoint);
   }
 
   function toggleFavorite(tokenId: string) {
@@ -1596,6 +1695,12 @@ export const useStore = defineStore('store', () => {
     parseNftCommitment,
     hasPreGenesis,
     fetchAuthUtxos,
+    identityCategories,
+    identities,
+    identitiesResolving,
+    refreshIdentities,
+    addIdentity,
+    removeIdentity,
     fetchTokenMetadata,
     fetchCauldronPricesForTokens,
     fetchWalletCauldronPools,

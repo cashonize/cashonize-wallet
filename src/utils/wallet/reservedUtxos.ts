@@ -7,9 +7,11 @@ import { binToHex } from "@bitauth/libauth";
 
 type Network = 'mainnet' | 'chipnet';
 
-// 'manual' is the user freezing a coin themselves and is theirs to undo; 'pledge' is held by a
-// feature, and is released by cancelling that pledge rather than by unfreezing it here
-export type ReservationReason = 'pledge' | 'manual';
+// 'manual' is the user freezing a coin themselves and is theirs to undo; 'pledge' and 'auth' are
+// held by a feature, and are released through that feature rather than by unfreezing them here:
+// a pledge by cancelling it, an authhead by transferring the identity or removing it from the
+// identities page
+export type ReservationReason = 'pledge' | 'manual' | 'auth';
 
 export interface ReservedUtxo {
   reason: ReservationReason;

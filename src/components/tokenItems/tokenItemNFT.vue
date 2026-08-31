@@ -319,9 +319,11 @@
   }
   async function transferAuth() {
     if (activeAction.value) return;
-    if(!tokenData.value?.authUtxo) return;
+    // An authhead carrying no token is transferred from the identities page instead: this form
+    // keeps the auth NFT behind as change, which such an authhead does not have
+    if(!tokenData.value?.authUtxo?.token) return;
     const category = tokenData.value.category;
-    const authNft = tokenData.value.authUtxo?.token;
+    const authNft = tokenData.value.authUtxo.token;
     activeAction.value = 'transferAuth';
     try {
       // the auth NFT stays behind as change, the recipient only gets a plain BCH output
@@ -334,8 +336,8 @@
         cashaddr: store.wallet.getTokenDepositAddress(),
         category: tokenData.value.category,
         nft: {
-          commitment: authNft!.nft!.commitment,
-          capability: authNft!.nft!.capability
+          commitment: authNft.nft!.commitment,
+          capability: authNft.nft!.capability
         },
       });
       notifySending();
@@ -452,7 +454,7 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             <span>{{ t('tokenItem.actions.burnNft') }}</span>
           </span>
-          <span v-if="settingsStore.authchains && tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
+          <span v-if="settingsStore.authchains && tokenData?.authUtxo?.token" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
             <span>{{ t('tokenItem.actions.authTransfer') }}</span>
           </span>

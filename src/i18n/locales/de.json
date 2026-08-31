@@ -691,6 +691,8 @@
       "largeBch": "Enthält eine große Menge BCH",
       "reserved": "Zurückgehalten für ein offenes Flipstarter-Pledge, eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
       "reservedRelease": "Brich das Pledge auf der Flipstarter-Seite ab, um den UTXO freizugeben.",
+      "reservedAuth": "Zurückgehalten, weil es der AuthHead einer Token-Identität ist, eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
+      "reservedAuthRelease": "Übertrage die Identität oder entferne sie auf der Identitäten-Seite, um den UTXO freizugeben.",
       "frozen": "Von dir eingefroren, zum Auftauen klicken",
       "unfreeze": "Auftauen",
       "availableShort": "Verfügbar",
@@ -1241,7 +1243,8 @@
       "exportXpub": "Xpub exportieren",
       "tokenCreationPage": "Token-Erstellungsseite",
       "aboutCashonize": "Über Cashonize",
-      "flipstarter": "Flipstarter"
+      "flipstarter": "Flipstarter",
+      "identities": "Identitäten"
     },
     "localization": {
       "language": "Sprache:",
@@ -1419,5 +1422,57 @@
     },
     "whatIsAPledge": "Die Wallet zahlt sich den Zusagebetrag in einer eigenen Transaktion selbst aus, hält diesen UTXO zurück und signiert ihn an die Empfänger der Kampagne. Die Signatur bleibt gültig, wenn die Kampagne weitere Zusagen hinzufügt, der UTXO bewegt sich also erst, wenn genug Menschen zugesagt haben.",
     "whatIsAPledgeNote": "Diese Vorbereitungstransaktion ist eine echte Transaktion mit eigener Gebühr, die anfällt, ob die Kampagne zustande kommt oder nicht."
+  },
+  "identities": {
+    "title": "Identitäten",
+    "description": "Die Token-Identitäten, über die dieses Wallet die Hoheit hat.",
+    "whatIsAnIdentity": "Die Metadaten eines Tokens, also Name, Icon und Beschreibung, kann nur aktualisieren, wer seinen AuthHead hält: ein bestimmter UTXO, der mit jeder Aktualisierung an einen neuen Outpoint wandert.",
+    "whatIsAnIdentityNote": "Der AuthHead ist es, der dieses Wallet zu dem macht, das neue Metadaten für den Token veröffentlichen kann.",
+    "updatedElsewhere": "Metadaten werden außerhalb von Cashonize veröffentlicht, mit Werkzeugen wie CashTokens Studio. Diese Seite verfolgt, wohin der AuthHead gewandert ist, und schützt ihn in der Zwischenzeit.",
+    "reserveNote": "Ein AuthHead in diesem Wallet bleibt von der Münzauswahl ausgenommen, damit ein gewöhnlicher Versand ihn nicht versehentlich ausgibt.",
+    "resolving": "Suche, wo die AuthHeads liegen...",
+    "empty": "Noch keine Identitäten in der Liste.",
+    "heldCount": "{count} AuthHead in diesem Wallet | {count} AuthHeads in diesem Wallet",
+    "unnamedIdentity": "Identität ohne Namen",
+    "categoryLabel": "Kategorie:",
+    "authheadLabel": "AuthHead:",
+    "authheadAmount": "Enthält {amount}",
+    "viewOnExplorer": "Authchain auf TokenExplorer ansehen",
+    "carriesTokensWarning": "Dieser AuthHead trägt Tokens, die dieses Wallet noch nicht von der Münzauswahl ausnehmen kann, ein Versand dieser Token-Kategorie kann ihn also ausgeben. Unterstützung dafür kommt in einer späteren Version.",
+    "status": {
+      "held": "AuthHead in diesem Wallet",
+      "carriesTokens": "AuthHead im Wallet, mit Tokens",
+      "notHeld": "Der AuthHead ist nicht in diesem Wallet",
+      "unresolved": "AuthHead konnte nicht abgefragt werden"
+    },
+    "add": {
+      "label": "Identität über die Token-Kategorie hinzufügen",
+      "placeholder": "Token-Kategorie (64 Hexadezimalzeichen)",
+      "button": "Identität hinzufügen",
+      "addingButton": "Wird hinzugefügt...",
+      "hint": "Cashonize sucht, wo der AuthHead dieser Kategorie liegt, und listet ihn hier auf. Identitäten von Tokens in diesem Wallet werden von selbst gefunden."
+    },
+    "transfer": {
+      "label": "Diese Identität übertragen",
+      "hint": "Die AuthHead-Münze geht vollständig an das Ziel und übergibt damit die Hoheit über die Metadaten dieses Tokens. Das Ziel erhält die Münze abzüglich der Transaktionsgebühr.",
+      "destinationPlaceholder": "Adresse, an die die Identität gehen soll",
+      "button": "Identität übertragen",
+      "transferringButton": "Wird übertragen...",
+      "confirmTitle": "Diese Identität übertragen?",
+      "confirmMessage": "Der AuthHead ({amount}) geht an {address} und übergibt damit die Hoheit über die Metadaten dieses Tokens. Das lässt sich nicht rückgängig machen.",
+      "confirmButton": "Übertragen",
+      "done": "Identität an {address} übertragen",
+      "doneTitle": "Identität übertragen"
+    },
+    "remove": {
+      "title": "Aus dieser Liste entfernen?",
+      "message": "Die Identität wird aus dieser Liste entfernt. Cashonize listet sie wieder auf, wenn es ihren AuthHead in diesem Wallet findet.",
+      "messageHeld": "Die Identität wird aus dieser Liste entfernt und ihr AuthHead ist nicht mehr von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also ausgeben. Cashonize listet sie beim nächsten Wallet-Start wieder auf, wenn der AuthHead noch hier liegt.",
+      "button": "Entfernen"
+    },
+    "errors": {
+      "invalidCategory": "Das ist keine Token-Kategorie. Eine Kategorie besteht aus 64 Hexadezimalzeichen.",
+      "alreadyListed": "Diese Identität ist bereits in der Liste."
+    }
   }
 }

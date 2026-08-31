@@ -54,10 +54,14 @@
   const bchUtxoCount = computed(() => utxoLists.value?.bch.length);
 
   // A held coin is still listed, since it is still held; the mark says a spend will not reach for
-  // it. Freezing is the user's own, and theirs to undo. A pledge holds its coin until the pledge
-  // itself is cancelled, so this list marks those but does not offer to release them.
+  // it. Freezing is the user's own, and theirs to undo. A pledge and an authhead are held by the
+  // feature that made the reservation, so this list marks those but does not offer to release them.
   const reservedUtxoCount = computed(() => store.reservedWalletUtxos?.length);
   const reservationReason = (utxo: Utxo) => store.reservedUtxos[outpointOf(utxo)]?.reason;
+  const heldByFeature = (utxo: Utxo) => {
+    const reason = reservationReason(utxo);
+    return reason === 'pledge' || reason === 'auth';
+  };
 
   async function toggleFreeze(utxo: Utxo) {
     if (reservationReason(utxo) === 'manual') {
@@ -432,7 +436,7 @@
               v-for="(utxo, index) in pageOf('bch')"
               :key="utxo.txid + ':' + utxo.vout"
               class="utxo-row"
-              :class="{ actionable: reservationReason(utxo) !== 'pledge' }"
+              :class="{ actionable: !heldByFeature(utxo) }"
             >
               <div class="cell row-number">{{ rowNumber('bch', index) }}</div>
               <div class="cell">
@@ -455,19 +459,28 @@
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
                 <span class="mono">{{ utxo.vout }}</span>
               </div>
-              <!-- A coin held for a pledge is marked but not actionable: cancelling the pledge is
-                   what releases it. Every other coin opens its actions on a click on the row. -->
+              <!-- A coin held for a pledge or for an identity's authhead is marked but not
+                   actionable: the feature holding it is what releases it. Every other coin opens
+                   its actions on a click on the row. -->
               <div class="cell held-cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
-                <InfoPopup v-if="reservationReason(utxo) === 'pledge'">
+                <InfoPopup v-if="heldByFeature(utxo)">
                   <template #trigger>
                     <span class="held-state">
                       <q-icon name="lock" size="15px" class="held-marker" />
                       <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
                     </span>
                   </template>
-                  <div style="max-width: 300px;">{{ t('utxoManagement.markers.reserved') }}</div>
-                  <div class="info-popup-note" style="max-width: 300px;">{{ t('utxoManagement.markers.reservedRelease') }}</div>
+                  <div style="max-width: 300px;">{{
+                    reservationReason(utxo) === 'auth'
+                      ? t('utxoManagement.markers.reservedAuth')
+                      : t('utxoManagement.markers.reserved')
+                  }}</div>
+                  <div class="info-popup-note" style="max-width: 300px;">{{
+                    reservationReason(utxo) === 'auth'
+                      ? t('utxoManagement.markers.reservedAuthRelease')
+                      : t('utxoManagement.markers.reservedRelease')
+                  }}</div>
                 </InfoPopup>
                 <template v-else>
                   <span class="held-state">
@@ -509,7 +522,7 @@
                 />
               </div>
               <!-- Attached to the row itself, so a click anywhere on it opens the actions -->
-              <q-menu v-if="reservationReason(utxo) !== 'pledge'" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
                 <q-list dense>
                   <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
                     <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>

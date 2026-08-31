@@ -41,6 +41,10 @@
       → {{ t('settings.menu.flipstarter') }}
     </div>
 
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(19)">
+      → {{ t('settings.menu.identities') }}
+    </div>
+
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">
       → {{ t('settings.menu.signVerifyMessage') }}
     </div>

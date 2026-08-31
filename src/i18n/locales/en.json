@@ -691,6 +691,8 @@
       "largeBch": "Holds a large amount of BCH",
       "reserved": "Held back for an open Flipstarter pledge, so a spend from this wallet will not reach for it.",
       "reservedRelease": "Cancel the pledge on the Flipstarter page to release the UTXO.",
+      "reservedAuth": "Held back because it is the AuthHead of a token identity, so a spend from this wallet will not reach for it.",
+      "reservedAuthRelease": "Transfer the identity or remove it on the Identities page to release the UTXO.",
       "frozen": "Frozen by you, click to unfreeze",
       "unfreeze": "Unfreeze",
       "availableShort": "Available",
@@ -1241,7 +1243,8 @@
       "exportXpub": "Export Xpub",
       "tokenCreationPage": "Token Creation Page",
       "aboutCashonize": "About Cashonize",
-      "flipstarter": "Flipstarter"
+      "flipstarter": "Flipstarter",
+      "identities": "Identities"
     },
     "localization": {
       "language": "Language:",
@@ -1419,5 +1422,57 @@
     },
     "whatIsAPledge": "The wallet pays itself the pledge amount in its own transaction, holds that UTXO back, and signs it over to the campaign recipients. The signature stays valid when the campaign adds other pledgers, so the UTXO only moves once enough people have pledged.",
     "whatIsAPledgeNote": "That preparation transaction is a real transaction with its own fee, paid whether or not the campaign ever fills."
+  },
+  "identities": {
+    "title": "Identities",
+    "description": "The token identities this wallet has the authority over.",
+    "whatIsAnIdentity": "A token's metadata, its name, icon and description, can only be updated by whoever holds its AuthHead: one specific UTXO that moves to a new outpoint with every update.",
+    "whatIsAnIdentityNote": "Holding the AuthHead is what makes this wallet the one that can publish new metadata for the token.",
+    "updatedElsewhere": "Publishing metadata happens outside Cashonize, in tools like CashTokens Studio. This page follows where the AuthHead moved and keeps it safe in between.",
+    "reserveNote": "An AuthHead this wallet holds is kept out of coin selection, so an ordinary send cannot spend it by accident.",
+    "resolving": "Looking up where the AuthHeads are...",
+    "empty": "No identities listed yet.",
+    "heldCount": "{count} AuthHead held by this wallet | {count} AuthHeads held by this wallet",
+    "unnamedIdentity": "Unnamed identity",
+    "categoryLabel": "Category:",
+    "authheadLabel": "AuthHead:",
+    "authheadAmount": "Holds {amount}",
+    "viewOnExplorer": "View the authchain on TokenExplorer",
+    "carriesTokensWarning": "This AuthHead carries tokens, which this wallet cannot keep out of coin selection yet, so a send of that token category can spend it. Support for these comes in a later version.",
+    "status": {
+      "held": "AuthHead held by this wallet",
+      "carriesTokens": "AuthHead held, carrying tokens",
+      "notHeld": "AuthHead is not in this wallet",
+      "unresolved": "Could not look up the AuthHead"
+    },
+    "add": {
+      "label": "Add an identity by token category",
+      "placeholder": "Token category (64 hexadecimal characters)",
+      "button": "Add identity",
+      "addingButton": "Adding...",
+      "hint": "Cashonize looks up where that category's AuthHead is and lists it here. Identities of tokens this wallet holds are found on their own."
+    },
+    "transfer": {
+      "label": "Transfer this identity",
+      "hint": "The AuthHead coin is sent whole to the destination, handing over the authority to update this token's metadata. The destination receives the coin minus the transaction fee.",
+      "destinationPlaceholder": "Address to transfer the identity to",
+      "button": "Transfer identity",
+      "transferringButton": "Transferring...",
+      "confirmTitle": "Transfer this identity?",
+      "confirmMessage": "The AuthHead ({amount}) is sent to {address}, handing over the authority to update this token's metadata. This cannot be undone.",
+      "confirmButton": "Transfer",
+      "done": "Transferred the identity to {address}",
+      "doneTitle": "Identity transferred"
+    },
+    "remove": {
+      "title": "Remove from this list?",
+      "message": "The identity is removed from this list. Cashonize lists it again when it finds this wallet holding its AuthHead.",
+      "messageHeld": "The identity is removed from this list and its AuthHead is no longer kept out of coin selection, so an ordinary send can spend it. Cashonize lists it again on the next wallet start if this wallet still holds the AuthHead.",
+      "button": "Remove"
+    },
+    "errors": {
+      "invalidCategory": "That is not a token category. A category is 64 hexadecimal characters.",
+      "alreadyListed": "That identity is already in the list."
+    }
   }
 }

@@ -160,8 +160,10 @@ export async function parseNftCommitment(
   return parseNft(libauthOutput, parseInfo);
 }
 
+// Searches every wallet utxo rather than only the category's token utxos: an authhead does not have
+// to carry the token it is the authhead of, and a BCH-only one would otherwise be invisible here.
 export async function updateTokenListWithAuthUtxos(
-  tokenList: TokenList, chaingraphUrl: string, tokenUtxos: Utxo[]
+  tokenList: TokenList, chaingraphUrl: string, walletUtxos: Utxo[]
 ) {
   const copyTokenList = [...tokenList]
   // get all authHeadTxIds in parallel
@@ -176,13 +178,10 @@ export async function updateTokenListWithAuthUtxos(
     console.error("ChainGraph query failed:", result.reason);
     return undefined;
   });
-  // check if any tokenUtxo of category is the authUtxo for that category
+  // check if any wallet utxo is the authUtxo for that category
   copyTokenList.forEach((token, index) => {
     const authHeadTxId = authHeadTxIdResults[index];
-    const filteredTokenUtxos = tokenUtxos.filter(
-      (tokenUtxo) => tokenUtxo.token?.category === token.category
-    );
-    const authUtxo = filteredTokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
+    const authUtxo = walletUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
     if(authUtxo) token.authUtxo = authUtxo;
   })
   return copyTokenList

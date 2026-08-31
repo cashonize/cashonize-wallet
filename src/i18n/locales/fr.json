@@ -691,6 +691,8 @@
       "largeBch": "Contient une grande quantité de BCH",
       "reserved": "Retenue pour un engagement Flipstarter en cours, une dépense depuis ce portefeuille ne la prendra donc pas.",
       "reservedRelease": "Annulez l'engagement sur la page Flipstarter pour libérer l'UTXO.",
+      "reservedAuth": "Retenu parce qu'il est l'AuthHead d'une identité de jeton, un envoi depuis ce portefeuille ne l'utilisera donc pas.",
+      "reservedAuthRelease": "Transférez l'identité ou retirez-la sur la page Identités pour libérer l'UTXO.",
       "frozen": "Gelée par vous, cliquez pour dégeler",
       "unfreeze": "Dégeler",
       "availableShort": "Disponible",
@@ -1241,7 +1243,8 @@
       "exportXpub": "Exporter la xpub",
       "tokenCreationPage": "Page de création de tokens",
       "aboutCashonize": "À propos de Cashonize",
-      "flipstarter": "Flipstarter"
+      "flipstarter": "Flipstarter",
+      "identities": "Identités"
     },
     "localization": {
       "language": "Langue :",
@@ -1419,5 +1422,57 @@
     },
     "whatIsAPledge": "Le portefeuille se verse à lui-même le montant de la promesse dans sa propre transaction, retient cet UTXO et le signe au profit des destinataires de la campagne. La signature reste valide quand la campagne ajoute d'autres participants, donc l'UTXO ne bouge que lorsque assez de promesses ont été faites.",
     "whatIsAPledgeNote": "Cette transaction de préparation est une vraie transaction avec ses propres frais, payés que la campagne aboutisse ou non."
+  },
+  "identities": {
+    "title": "Identités",
+    "description": "Les identités de jeton sur lesquelles ce portefeuille a autorité.",
+    "whatIsAnIdentity": "Les métadonnées d'un jeton, son nom, son icône et sa description, ne peuvent être mises à jour que par le détenteur de son AuthHead : un UTXO précis qui passe à un nouvel outpoint à chaque mise à jour.",
+    "whatIsAnIdentityNote": "C'est la détention de l'AuthHead qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le jeton.",
+    "updatedElsewhere": "La publication des métadonnées se fait hors de Cashonize, avec des outils comme CashTokens Studio. Cette page suit où l'AuthHead a bougé et le protège entre-temps.",
+    "reserveNote": "Un AuthHead détenu par ce portefeuille est écarté de la sélection des pièces, pour qu'un envoi ordinaire ne le dépense pas par accident.",
+    "resolving": "Recherche de l'emplacement des AuthHeads...",
+    "empty": "Aucune identité dans la liste pour l'instant.",
+    "heldCount": "{count} AuthHead détenu par ce portefeuille | {count} AuthHeads détenus par ce portefeuille",
+    "unnamedIdentity": "Identité sans nom",
+    "categoryLabel": "Catégorie :",
+    "authheadLabel": "AuthHead :",
+    "authheadAmount": "Contient {amount}",
+    "viewOnExplorer": "Voir l'authchain sur TokenExplorer",
+    "carriesTokensWarning": "Cet AuthHead porte des jetons, que ce portefeuille ne peut pas encore écarter de la sélection des pièces : un envoi de cette catégorie peut donc le dépenser. La prise en charge arrivera dans une version ultérieure.",
+    "status": {
+      "held": "AuthHead détenu par ce portefeuille",
+      "carriesTokens": "AuthHead détenu, portant des jetons",
+      "notHeld": "L'AuthHead n'est pas dans ce portefeuille",
+      "unresolved": "Impossible de consulter l'AuthHead"
+    },
+    "add": {
+      "label": "Ajouter une identité par catégorie de jeton",
+      "placeholder": "Catégorie de jeton (64 caractères hexadécimaux)",
+      "button": "Ajouter l'identité",
+      "addingButton": "Ajout...",
+      "hint": "Cashonize cherche où se trouve l'AuthHead de cette catégorie et l'affiche ici. Les identités des jetons détenus par ce portefeuille sont trouvées toutes seules."
+    },
+    "transfer": {
+      "label": "Transférer cette identité",
+      "hint": "La pièce de l'AuthHead est envoyée entière au destinataire, ce qui cède l'autorité de mettre à jour les métadonnées de ce jeton. Le destinataire reçoit la pièce moins les frais de transaction.",
+      "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
+      "button": "Transférer l'identité",
+      "transferringButton": "Transfert...",
+      "confirmTitle": "Transférer cette identité ?",
+      "confirmMessage": "L'AuthHead ({amount}) est envoyé à {address}, ce qui cède l'autorité de mettre à jour les métadonnées de ce jeton. C'est irréversible.",
+      "confirmButton": "Transférer",
+      "done": "Identité transférée à {address}",
+      "doneTitle": "Identité transférée"
+    },
+    "remove": {
+      "title": "Retirer de cette liste ?",
+      "message": "L'identité est retirée de cette liste. Cashonize l'affichera de nouveau s'il trouve son AuthHead dans ce portefeuille.",
+      "messageHeld": "L'identité est retirée de cette liste et son AuthHead n'est plus écarté de la sélection des pièces : un envoi ordinaire peut donc le dépenser. Cashonize l'affichera de nouveau au prochain démarrage du portefeuille si l'AuthHead y est toujours.",
+      "button": "Retirer"
+    },
+    "errors": {
+      "invalidCategory": "Ceci n'est pas une catégorie de jeton. Une catégorie compte 64 caractères hexadécimaux.",
+      "alreadyListed": "Cette identité est déjà dans la liste."
+    }
   }
 }

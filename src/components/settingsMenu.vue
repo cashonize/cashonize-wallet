@@ -473,6 +473,8 @@
     if(enableAuthchains.value) {
       try{
         await store.fetchAuthUtxos()
+        // an authhead the detection just found joins the identities list and gets held back
+        await store.refreshIdentities()
       } catch (error) {
         console.error("Error fetching auth UTXOs:", error)
       }

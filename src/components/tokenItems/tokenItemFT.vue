@@ -218,7 +218,9 @@
   }
   async function transferAuth() {
     if (activeAction.value) return;
-    if(!tokenData.value?.authUtxo) return;
+    // An authhead carrying no tokens is transferred from the identities page instead: this form
+    // moves the token supply riding along with it, which such an authhead does not have
+    if(!tokenData.value?.authUtxo?.token) return;
     activeAction.value = 'transferAuth';
     try {
       if(!reservedSupplyInput?.value) throw new Error(t('tokenItem.errors.reservedSupplyInvalid'));
@@ -321,7 +323,7 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             {{ t('tokenItem.actions.burnTokens') }}
           </span>
-          <span v-if="settingsStore.authchains && tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
+          <span v-if="settingsStore.authchains && tokenData?.authUtxo?.token" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
             {{ t('tokenItem.actions.authTransfer') }}
           </span>
