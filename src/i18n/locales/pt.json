@@ -806,7 +806,12 @@
     "showTokenAddresses": "Mostrar endereços no formato de token",
     "changeToTokenAddress": "Mudar para endereço de token",
     "changeToRegularAddress": "Mudar para endereço normal",
-    "txCount": "{count} txs"
+    "txCount": "{count} txs",
+    "reservedAmount": "Reservado: {amount}",
+    "available": "disponível",
+    "reservedDappWarning": "Um pedido de dapp que gastaria uma moeda reservada é recusado, por isso ações de dapps com este endereço podem falhar.",
+    "reservedWhere": "A página Gerenciamento de UTXOs mostra que moedas estão reservadas e porquê.",
+    "tokenCount": "{count} token | {count} tokens"
   },
   "addressManagement": {
     "markAddressUsed": "Marcar endereço como usado",

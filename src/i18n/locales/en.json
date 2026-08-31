@@ -806,7 +806,12 @@
     "showTokenAddresses": "Show addresses in token format",
     "changeToTokenAddress": "Change to token address",
     "changeToRegularAddress": "Change to regular address",
-    "txCount": "{count} txs"
+    "txCount": "{count} txs",
+    "reservedAmount": "Reserved: {amount}",
+    "available": "available",
+    "reservedDappWarning": "A dapp request that would spend a reserved coin is refused, so dapp actions using this address can fail.",
+    "reservedWhere": "The UTXO Management page shows which coins are reserved and why.",
+    "tokenCount": "{count} token | {count} tokens"
   },
   "addressManagement": {
     "markAddressUsed": "Mark address as used",

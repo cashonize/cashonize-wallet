@@ -7,7 +7,7 @@
   import { HDWallet } from 'mainnet-js';
   import { useWindowSize } from 'src/utils/composables'
   import { maxAddressLabelLength } from 'src/utils/wallet/addressManagement'
-  import { buildAddressRows, type AddressRow } from 'src/utils/wallet/addressRows'
+  import { buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
@@ -144,8 +144,8 @@
     // KeepAlive preserves this HD-only view, so its watchEffect can rerun after setWallet()
     // swaps in a single-address wallet but before changeView(1) navigates away.
     if (!(hdWallet instanceof HDWallet)) return;
-    receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false);
-    changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true);
+    receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false, store.reservedUtxos);
+    changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true, store.reservedUtxos);
   });
 </script>
 
@@ -224,11 +224,24 @@
                 <span v-if="isMarked(row)" class="marked-tag">{{ t('addressManagement.markedTag') }}</span>
               </div>
               <div class="address-sub">
-                {{ t('hdAddresses.txCount', { count: row.txCount }) }} ·
-                <span class="mono">{{ satsToBch(row.balance) }} {{ bchDisplayUnit }}</span>
-                <span v-if="row.balance && store.exchangeRate !== undefined">
-                  ({{ formatFiatAmount(satsToBch(row.balance) * store.exchangeRate, settingsStore.currency) }})
+                <span class="mono">{{ satsToBch(row.spendableBalance) }} {{ bchDisplayUnit }}</span>
+                <template v-if="row.reservedBalance">{{ ' ' + t('hdAddresses.available') }}</template>
+                <span v-if="row.spendableBalance && store.exchangeRate !== undefined">
+                  {{ ' (' + formatFiatAmount(satsToBch(row.spendableBalance) * store.exchangeRate, settingsStore.currency) + ')' }}
                 </span>
+                <span class="dim">{{ ' · ' + t('hdAddresses.txCount', { count: row.txCount }) }}</span>
+              </div>
+              <div v-if="row.reservedBalance" class="reserved-line" @click.stop>
+                <InfoPopup>
+                  <template #trigger>
+                    <span class="reserved-badge">
+                      <q-icon name="lock" size="13px" />
+                      {{ t('hdAddresses.reservedAmount', { amount: satsToBch(row.reservedBalance) + ' ' + bchDisplayUnit }) }}
+                    </span>
+                  </template>
+                  <div style="max-width: 300px;">{{ t('hdAddresses.reservedDappWarning') }}</div>
+                  <div class="info-popup-note" style="max-width: 300px;">{{ t('hdAddresses.reservedWhere') }}</div>
+                </InfoPopup>
               </div>
             </div>
             <!-- labels edit inline in the empty middle of the row, the hint appears on hover;
@@ -260,7 +273,7 @@
               >
                 <q-icon name="unarchive" size="22px" />
               </span>
-              <span v-if="hasTokens(row)" class="tokens-button" @click.stop="toggleTokens(row)">
+              <span v-if="hasTokens(row)" class="tokens-button" :title="t('hdAddresses.tokenCount', tokenCategoryCount(row))" @click.stop="toggleTokens(row)">
                 <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
               </span>
               <span class="qr-button" @click.stop="openQrDialog(row)">
@@ -517,9 +530,24 @@
   gap: 4px;
 }
 
-.address-sub {
-  font-size: 0.85em;
+/* the balance shows at full strength, only the trailing details are secondary */
+.address-sub .dim {
   opacity: 0.65;
+}
+
+/* caution tint: dapp requests spending a reserved coin are refused */
+.reserved-line {
+  margin-top: 3px;
+}
+
+.reserved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: rgba(230, 162, 60, 0.15);
+  color: #e6a23c;
+  border-radius: 10px;
+  padding: 1px 8px;
 }
 
 .mono {

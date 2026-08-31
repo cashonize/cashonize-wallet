@@ -806,7 +806,12 @@
     "showTokenAddresses": "Adressen im Token-Format anzeigen",
     "changeToTokenAddress": "Zur Token-Adresse wechseln",
     "changeToRegularAddress": "Zur normalen Adresse wechseln",
-    "txCount": "{count} Txs"
+    "txCount": "{count} Txs",
+    "reservedAmount": "Reserviert: {amount}",
+    "available": "verfügbar",
+    "reservedDappWarning": "Eine Dapp-Anfrage, die einen reservierten Coin ausgeben würde, wird abgelehnt, daher können Dapp-Aktionen mit dieser Adresse fehlschlagen.",
+    "reservedWhere": "Die Seite UTXO-Verwaltung zeigt, welche Coins reserviert sind und warum.",
+    "tokenCount": "{count} Token | {count} Tokens"
   },
   "addressManagement": {
     "markAddressUsed": "Adresse als verwendet markieren",
