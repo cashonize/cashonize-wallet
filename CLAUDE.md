@@ -77,6 +77,12 @@ mainnet-js configures `@electrum-cash/web-socket` to keep connections alive acro
 ### Electrum Trust Model
 Blockchain data comes from one electrum server at a time and is not verified. `@electrum-cash/network` is a single-server client with no cluster or SPV support, so balance, history, confirmations and block height are that server's claims rather than anything the wallet checks, and they are cached to IndexedDB.
 
+### Chaingraph
+Chaingraph is a secondary blockchain indexer next to electrum, a GraphQL (Hasura) service that allows arbitrary queries. Everything core to the wallet runs on electrum; Chaingraph only serves some novel data displays: the walk of the wallet's spent outputs behind the portfolio's TapSwap and hodl discovery, and detecting whether the wallet holds a token's authhead. The few queries live in `src/queryChainGraph.ts`, sent with plain fetch.
+
+### Configurable Backends
+Every backend the app talks to is one user-swappable server: electrum (per network), the Chaingraph instance, the BCMR and Cauldron indexers, the IPFS gateway and the exchange rate provider all live in settingsStore, selectable in the advanced settings from predefined choices plus, for most, a custom URL.
+
 ### CashConnect Transport
 CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). The relay is store-and-forward with per-message TTLs, so dApp and wallet don't need to be online at the same time — a session survives either side going offline (short-lived messages like balance pushes simply expire rather than being replayed). Sessions persist in localStorage, namespaced per wallet identity key, and are restored by the library's `start()`; the app's `cashconnectStore.stop()` stops the service without un-pairing.
 
