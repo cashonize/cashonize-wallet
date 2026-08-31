@@ -1,6 +1,6 @@
 ![Cashonize Banner](https://github.com/cashonize/cashonize-wallet/assets/53938059/fd6b8244-76ba-4d3d-9b84-c757e0fb0e21)
 
-## Cashonize: a Bitcoin Cash Wallet
+## Cashonize: a modern Bitcoin Cash Wallet
 
 **Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet.**
 
@@ -10,7 +10,9 @@ For users, the [Cashonize about page](https://about.cashonize.com) introduces th
 
 ### Your entry point to CashTokens and BCH DeFi
 
-On Bitcoin Cash, dapps never hold your funds: your wallet is where every action gets approved. Cashonize is built around that role.
+CashTokens are Bitcoin Cash's native tokens, the foundation of BCH DeFi. Cashonize was the first CashTokens wallet and has been built around them from day one.
+
+On Bitcoin Cash, dapps never hold your funds: your wallet is where every action gets approved. Cashonize is designed around that role.
 
 Cashonize works with any dapp on BCH: it supports all three connection methods in the ecosystem (WalletConnect, CashConnect and WizardConnect) and shows you plainly what a transaction will do to your balances before you sign.
 
