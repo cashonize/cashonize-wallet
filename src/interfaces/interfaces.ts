@@ -37,9 +37,6 @@ export type QRCodeAnimationName =
   | 'MaterializeIn'
   | 'RadialRipple'
   | 'RadialRippleIn';
-export interface QrCodeElement extends HTMLElement {
-  animateQRCode: (animationName: QRCodeAnimationName) => void;
-}
 
 export type TokenActionType = 'sending' | 'minting' | 'burning' | 'transferAuth';
 

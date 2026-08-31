@@ -12,6 +12,7 @@
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
   import CharCounter from 'src/components/general/CharCounter.vue'
+  import QrCode from 'src/components/general/qrCode.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -290,9 +291,9 @@
   <q-dialog v-model="showQrDialog" transition-show="scale" transition-hide="scale">
     <q-card class="qr-card">
       <div class="qr-frame">
-        <qr-code :contents="qrDialogAddress" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
-          <img :src="qrDialogTokenAddress ? 'images/tokenicon.png' : 'images/bch-icon.png'" slot="icon" /> <!-- eslint-disable-line -->
-        </qr-code>
+        <QrCode :contents="qrDialogAddress" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
+          <img :src="qrDialogTokenAddress ? 'images/tokenicon.png' : 'images/bch-icon.png'" />
+        </QrCode>
       </div>
       <!-- no address label here: this dialog is held out to whoever scans the code,
            and labels are written for yourself, not for the payer to read -->

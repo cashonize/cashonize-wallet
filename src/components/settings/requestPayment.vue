@@ -14,6 +14,7 @@
   import HdAddressSelectDialog from 'src/components/general/hdAddressSelectDialog.vue'
   import TokenSelectDialog from 'src/components/general/tokenSelectDialog.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
+  import QrCode from 'src/components/general/qrCode.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -315,9 +316,9 @@
     </div>
 
     <div class="qr-frame">
-      <qr-code :contents="requestUri" @click="copyToClipboard(requestUri)" class="qr-code">
-        <img :src="mode === 'bch' ? 'images/bch-icon.png' : 'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
-      </qr-code>
+      <QrCode :contents="requestUri" @click="copyToClipboard(requestUri)" class="qr-code">
+        <img :src="mode === 'bch' ? 'images/bch-icon.png' : 'images/tokenicon.png'" />
+      </QrCode>
     </div>
 
     <div v-if="requestedAmountDisplay" class="requestSummary">

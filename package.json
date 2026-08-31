@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "@bitauth/libauth": "3.1.0-next.8",
-    "@bitjson/qr-code": "^1.0.2",
     "@cashconnect-js/core": "1.0.0-alpha.31",
     "@cashconnect-js/nostr": "1.0.0-alpha.31",
     "@mainnet-cash/indexeddb-storage": "3.1.7",
@@ -37,6 +36,7 @@
     "mainnet-js": "3.1.7",
     "pinia": "^4.0.3",
     "qr-scanner": "^1.4.2",
+    "qrcode-generator": "2.0.4",
     "quasar": "^2.28.0",
     "vue": "^3.5.42",
     "vue-i18n": "^11.4.10",

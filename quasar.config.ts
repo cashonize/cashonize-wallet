@@ -6,7 +6,7 @@ import packageJson from './package.json';
 
 export default defineConfig((ctx) => {
   // ctx.mode contains every mode as a key preset to false, so test the value, never key presence
-  const bootFiles = ['icons', 'i18n', 'qrCodeComponent'];
+  const bootFiles = ['icons', 'i18n'];
   if (ctx.mode.capacitor) bootFiles.push('deepLinking');
   if (ctx.mode.spa) bootFiles.push('plausible');
 
@@ -88,14 +88,6 @@ export default defineConfig((ctx) => {
             : undefined,
         })
       },
-      viteVuePluginOptions: {
-        template: {
-          compilerOptions: {
-            isCustomElement: (tag) => tag === 'qr-code',
-          }
-        }
-      },
-      
       vitePlugins: [
         ['rollup-plugin-visualizer', {
           open: true,
