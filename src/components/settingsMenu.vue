@@ -12,7 +12,9 @@
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
+  import { displayAndLogError } from "src/utils/errorHandling";
   import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
+  import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -261,11 +263,28 @@
     if (selectedChaingraph.value === "custom") return;
     applyChaingraph(selectedChaingraph.value);
   }
-  function saveCustomChaingraph(){
+  const verifyingCustomChaingraph = ref(false);
+  async function saveCustomChaingraph(){
     const trimmedChaingraph = customChaingraph.value.trim();
-    if (!trimmedChaingraph) return;
-    const normalizedChaingraph = chaingraphGraphqlUrl(trimmedChaingraph);
+    if (!trimmedChaingraph || verifyingCustomChaingraph.value) return;
+    let normalizedChaingraph: string;
+    try {
+      normalizedChaingraph = chaingraphGraphqlUrl(trimmedChaingraph);
+    } catch {
+      displayAndLogError(new Error(t('settings.advanced.chaingraphInvalidUrl')));
+      return;
+    }
     customChaingraph.value = normalizedChaingraph;
+    // check the server actually answers Chaingraph queries before applying it
+    verifyingCustomChaingraph.value = true;
+    try {
+      await queryBlockHeight(normalizedChaingraph);
+    } catch (error) {
+      displayAndLogError(error);
+      return;
+    } finally {
+      verifyingCustomChaingraph.value = false;
+    }
     applyChaingraph(normalizedChaingraph);
   }
   function applyChaingraph(chaingraphUrl: string){
@@ -697,7 +716,12 @@
             style="width: 100%;"
           >
           <div style="font-size: smaller; color: grey;">
-            {{ t('settings.advanced.chaingraphCustomHint') }}
+            <template v-if="verifyingCustomChaingraph">
+              {{ t('settings.advanced.chaingraphChecking') }} <q-spinner-dots size="1em" />
+            </template>
+            <template v-else>
+              {{ t('settings.advanced.chaingraphCustomHint') }}
+            </template>
           </div>
         </div>
       </div>

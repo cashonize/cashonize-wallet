@@ -55,6 +55,10 @@
   "chaingraph": {
     "errors": {
       "requestFailed": "Chaingraph request failed: {status}",
+      "unreachable": "Unable to reach the Chaingraph server.",
+      "timeout": "The Chaingraph server did not respond within {seconds} seconds.",
+      "rejected": "The Chaingraph server rejected the request: {reason}",
+      "invalidResponse": "The server did not return a valid Chaingraph response.",
       "tokenNotFound": "Token not found",
       "authchainNotFound": "Authchain not found"
     }
@@ -178,6 +182,7 @@
     "totalValue": "Total value",
     "other": "Other",
     "noPriceData": "No price data ({count})",
+    "checkingAdditionalContractAssets": "Checking for additional contract-locked assets",
     "smallBalances": "Small balances ({count})",
     "tapswapListings": "TapSwap listings ({count})",
     "askingPrice": "Asking price",
@@ -208,7 +213,8 @@
     "stakingInfo": "A staking receipt records the amount staked at a specific epoch. The current stake can be lower by the time it is withdrawn, so this value is an estimate.",
     "noAssets": "No BCH or tokens in this wallet yet",
     "loading": "Loading wallet data",
-    "loadingFailed": "Failed to load wallet data"
+    "loadingFailed": "Failed to load wallet data",
+    "announcedAssetsLoadingFailed": "Failed to load TapSwap listings and hodl contracts"
   },
   "tokens": {
     "loading": "Loading token data",
@@ -1249,6 +1255,8 @@
       "chaingraph": "Chaingraph server:",
       "chaingraphCustomPlaceholder": "e.g. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql is added automatically when only a host is provided.",
+      "chaingraphInvalidUrl": "Invalid Chaingraph server URL",
+      "chaingraphChecking": "Checking the Chaingraph server",
       "cauldronIndexer": "Cauldron indexer:",
       "exchangeRate": "Exchange rate provider:",
       "exchangeRateDefault": "Default (bitcoin.com for USD, BitPay for rest)",

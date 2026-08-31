@@ -55,6 +55,10 @@
   "chaingraph": {
     "errors": {
       "requestFailed": "Chaingraph-Anfrage fehlgeschlagen: {status}",
+      "unreachable": "Der Chaingraph-Server ist nicht erreichbar.",
+      "timeout": "Der Chaingraph-Server hat nicht innerhalb von {seconds} Sekunden geantwortet.",
+      "rejected": "Der Chaingraph-Server hat die Anfrage abgelehnt: {reason}",
+      "invalidResponse": "Der Server hat keine gültige Chaingraph-Antwort zurückgegeben.",
       "tokenNotFound": "Token nicht gefunden",
       "authchainNotFound": "Authchain nicht gefunden"
     }
@@ -178,6 +182,7 @@
     "totalValue": "Gesamtwert",
     "other": "Andere",
     "noPriceData": "Keine Preisdaten ({count})",
+    "checkingAdditionalContractAssets": "Suche nach weiteren in Verträgen gesperrten Assets",
     "smallBalances": "Kleine Beträge ({count})",
     "tapswapListings": "TapSwap-Angebote ({count})",
     "askingPrice": "Verkaufspreis",
@@ -208,7 +213,8 @@
     "stakingInfo": "Ein Staking-Beleg hält den zu einer bestimmten Epoche gestakten Betrag fest. Der aktuelle Einsatz kann bei der Auszahlung niedriger sein, dieser Wert ist daher eine Schätzung.",
     "noAssets": "Noch kein BCH und keine Tokens in diesem Wallet",
     "loading": "Lade Wallet-Daten",
-    "loadingFailed": "Wallet-Daten konnten nicht geladen werden"
+    "loadingFailed": "Wallet-Daten konnten nicht geladen werden",
+    "announcedAssetsLoadingFailed": "TapSwap-Angebote und Hodl-Verträge konnten nicht geladen werden"
   },
   "tokens": {
     "loading": "Lade Token-Daten",
@@ -1249,6 +1255,8 @@
       "chaingraph": "Chaingraph-Server:",
       "chaingraphCustomPlaceholder": "z.B. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql wird automatisch ergänzt, wenn nur ein Host angegeben wird.",
+      "chaingraphInvalidUrl": "Ungültige Chaingraph-Server-URL",
+      "chaingraphChecking": "Chaingraph-Server wird überprüft",
       "cauldronIndexer": "Cauldron-Indexer:",
       "exchangeRate": "Wechselkursanbieter:",
       "exchangeRateDefault": "Standard (bitcoin.com für USD, BitPay für Rest)",

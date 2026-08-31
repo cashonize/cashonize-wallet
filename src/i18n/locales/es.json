@@ -55,6 +55,10 @@
   "chaingraph": {
     "errors": {
       "requestFailed": "Solicitud a Chaingraph falló: {status}",
+      "unreachable": "No se puede conectar con el servidor Chaingraph.",
+      "timeout": "El servidor Chaingraph no respondió en {seconds} segundos.",
+      "rejected": "El servidor Chaingraph rechazó la solicitud: {reason}",
+      "invalidResponse": "El servidor no devolvió una respuesta válida de Chaingraph.",
       "tokenNotFound": "Token no encontrado",
       "authchainNotFound": "Authchain no encontrada"
     }
@@ -178,6 +182,7 @@
     "totalValue": "Valor total",
     "other": "Otros",
     "noPriceData": "Sin datos de precio ({count})",
+    "checkingAdditionalContractAssets": "Buscando activos adicionales bloqueados en contratos",
     "smallBalances": "Saldos pequeños ({count})",
     "tapswapListings": "Anuncios en TapSwap ({count})",
     "askingPrice": "Precio de venta",
@@ -208,7 +213,8 @@
     "stakingInfo": "Un recibo de staking registra la cantidad depositada en una época específica. La cantidad actual puede ser menor al momento de retirarla, por lo que este valor es una estimación.",
     "noAssets": "Aún no hay BCH ni tokens en esta billetera",
     "loading": "Cargando datos de la billetera",
-    "loadingFailed": "Error al cargar los datos de la billetera"
+    "loadingFailed": "Error al cargar los datos de la billetera",
+    "announcedAssetsLoadingFailed": "Error al cargar las ofertas de TapSwap y los contratos hodl"
   },
   "tokens": {
     "loading": "Cargando datos de tokens",
@@ -1249,6 +1255,8 @@
       "chaingraph": "Servidor Chaingraph:",
       "chaingraphCustomPlaceholder": "ej. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql se añade automáticamente cuando solo se proporciona un host.",
+      "chaingraphInvalidUrl": "URL del servidor Chaingraph no válida",
+      "chaingraphChecking": "Comprobando el servidor Chaingraph",
       "cauldronIndexer": "Indexador de Cauldron:",
       "exchangeRate": "Proveedor de tasa de cambio:",
       "exchangeRateDefault": "Predeterminado (bitcoin.com para USD, BitPay para el resto)",

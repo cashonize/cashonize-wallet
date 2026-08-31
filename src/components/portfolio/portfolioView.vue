@@ -79,6 +79,7 @@
   const showSmallBalances = ref(false)
   const showUnpriced = ref(false)
   const showTapswapListings = ref(false)
+  const checkingAdditionalContractAssets = ref(false)
   // chipnet balances are shown in the mainnet BCH price here just like on the wallet
   // page, marked with the same 't' prefix on the unit and currency names
   const bchUnitName = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH')
@@ -92,8 +93,15 @@
   // setting since the user explicitly opened the portfolio (the price fetches are cached
   // for 5 minutes)
   async function loadPortfolioData() {
-    // unawaited: the slower Chaingraph walk should not hold up the view's loading gate
-    void store.fetchWalletAnnouncedAssets()
+    // unawaited: the slower Chaingraph walk should not hold up the view's loading gate.
+    // The spinner only accompanies the first walk and retries after a failure;
+    // re-entries with data on screen refresh silently behind the rows already shown.
+    if (store.tapswapListings === null || store.hodlContracts === null || store.announcedAssetsError) {
+      checkingAdditionalContractAssets.value = true
+    }
+    void store.fetchWalletAnnouncedAssets().finally(() => {
+      checkingAdditionalContractAssets.value = false
+    })
     await store.fetchWalletCauldronPools()
     await store.fetchWalletBadgerLocks()
     // after the pools, so the pools' tokens are priced along with the held ones
@@ -954,6 +962,13 @@
           </div>
         </div>
       </template>
+
+      <div v-if="checkingAdditionalContractAssets" class="section-label">
+        {{ t('portfolio.checkingAdditionalContractAssets') }} <q-spinner-dots size="1.2em" />
+      </div>
+      <div v-else-if="store.announcedAssetsError" class="section-label">
+        {{ store.announcedAssetsError }}
+      </div>
 
       <template v-if="tapswapRows.length">
         <div class="section-label collapsible" @click="showTapswapListings = !showTapswapListings">
