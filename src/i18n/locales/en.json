@@ -1020,6 +1020,12 @@
     "words12": "12 words",
     "words24": "24 words"
   },
+  "qrCode": {
+    "bchAddress": "QR code of the Bitcoin Cash address",
+    "tokenAddress": "QR code of the token address",
+    "xpub": "QR code of the xpub",
+    "paymentRequest": "QR code of the payment request"
+  },
   "qrScanner": {
     "scanQrCode": "Scan QR Code",
     "chooseImage": "Choose image",

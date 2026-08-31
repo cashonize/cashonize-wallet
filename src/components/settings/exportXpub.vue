@@ -5,6 +5,7 @@
   import { useI18n } from 'vue-i18n'
   import { copyToClipboard } from 'src/utils/utils'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
+  import QrCode from 'src/components/general/qrCode.vue'
 
   const store = useStore()
   const { t } = useI18n()
@@ -47,7 +48,7 @@
         {{ t('exportXpub.derivationPath') }} <span style="font-family: monospace;">{{ derivationPath }}</span>
       </div>
       <div class="qr-frame" style="margin: 0 auto 15px;">
-        <qr-code :contents="xpub" class="qr-code" @click="copyToClipboard(xpub)"></qr-code>
+        <QrCode :contents="xpub" :label="t('qrCode.xpub')" class="qr-code" @click="copyToClipboard(xpub)" />
       </div>
       <div class="xpub-result" @click="copyToClipboard(xpub)">{{ xpub }}</div>
       <div class="xpub-button-row">

@@ -2,7 +2,7 @@
   import { ref, computed, watch, shallowRef } from 'vue'
   import { convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
-  import { CurrencySymbols, CurrencyShortNames, type QrCodeElement } from 'src/interfaces/interfaces'
+  import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount, convertToCurrency } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, getBip21ValidationError, addressFromUri } from 'src/utils/payments/bip21';
   import { parsePayProParams } from 'src/utils/payments/paymentRequest';
@@ -14,6 +14,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import QrCode from './general/qrCode.vue';
   import portfolioIcon from './portfolio/portfolioIcon.vue';
 
   const $q = useQuasar()
@@ -35,12 +36,12 @@
   const destinationAddr = ref("");
   const showQrCodeDialog = ref(false);
   const isSending = ref(false);
-  // We keep the <qr-code> element in a ref so that we can call animateQrCode on codeRendered()
-  // This event handler calls the animation after rendering the qr-code web component
-  // Consecutive animations are only triggered when addressQrcode changes as reactive property of the qr-code
+  // We keep the qr code in a ref so that we can call animateQrCode on rendered()
+  // This event handler calls the animation after the qr code has rendered
+  // Consecutive animations are only triggered when addressQrcode changes as reactive property of the qr code
   // Using shallowRef avoids Vue’s deep reactivity re-activation when re-navigating to this view
   // This speeds up the rendering of the component
-  const qrCodeRef = shallowRef<QrCodeElement | null>(null);
+  const qrCodeRef = shallowRef<InstanceType<typeof QrCode> | null>(null);
 
   const addressQrcode = computed(() => displayBchQr.value ? store.currentDepositAddress : store.currentTokenDepositAddress)
 
@@ -100,7 +101,7 @@
   // general functions
   const animateQrCode = () => {
     if (qrCodeRef.value && !settingsStore.hasPlayedAnimation && settingsStore.qrAnimation != 'None') {
-      qrCodeRef.value.animateQRCode(settingsStore.qrAnimation);
+      qrCodeRef.value.animate();
       settingsStore.hasPlayedAnimation = true;
     }
   };
@@ -317,9 +318,9 @@
       </span>
     </div>
     <div class="qr-frame">
-      <qr-code ref="qrCodeRef" :contents="addressQrcode" @click="copyToClipboard(addressQrcode)" class="qr-code" @codeRendered="animateQrCode">
-        <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" slot="icon" /> <!-- eslint-disable-line -->
-      </qr-code>
+      <QrCode ref="qrCodeRef" :contents="addressQrcode" :animation="settingsStore.qrAnimation" :label="displayBchQr ? t('qrCode.bchAddress') : t('qrCode.tokenAddress')" @click="copyToClipboard(addressQrcode)" class="qr-code" @rendered="animateQrCode">
+        <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" alt="" />
+      </QrCode>
     </div>
     <div style="text-align: center;">
       <div class="switchAddressButton icon" :class="{ flipped: !displayBchQr }" @click="switchAddressTypeQr()">⇄
