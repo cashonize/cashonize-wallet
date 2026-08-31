@@ -53,7 +53,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
   // developer settings
   const mintNfts = ref(false);
-  const authchains = ref(false);
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
   const showPrivateKeyWif = ref(false);
@@ -224,8 +223,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  const readAuthchains = localStorage.getItem("authchains") ?? "";
-  if(readAuthchains) authchains.value = readAuthchains == "true";
+  // Cleanup: authchain resolution is no longer a setting, the identities page looks them up
+  localStorage.removeItem("authchains");
 
   const readDateFormat = localStorage.getItem("dateFormat");
   if(readDateFormat && (readDateFormat=="DD/MM/YY" || readDateFormat=="MM/DD/YY" || readDateFormat=="YY-MM-DD")) {
@@ -491,7 +490,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     clearWalletMetadata,
     clearWalletSettings,
     mintNfts,
-    authchains,
     strictWcSchema,
     showPrivateKeyWif,
     dateFormat,

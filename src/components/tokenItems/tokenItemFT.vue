@@ -8,7 +8,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
-  import { getCashAddressScanError, validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
+  import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
@@ -34,13 +34,11 @@
 
   const displaySendTokens = ref(false);
   const displayBurnFungibles = ref(false);
-  const displayAuthTransfer = ref(false);
   const displayTokenInfo = ref(false);
   const tokenSendAmount = ref("");
   const destinationAddr = ref("");
   const showQrCodeDialog = ref(false);
   const burnAmountFTs = ref("");
-  const reservedSupplyInput = ref("")
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
   const activeAction = ref<TokenActionType | null>(null);
   const starAnimating = ref(false);
@@ -128,7 +126,13 @@
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
       const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-      if(tokenData.value?.authUtxo){
+      // Warns when a listed identity's authhead is a coin carrying this category's tokens, which
+      // a send can spend away. An authhead carrying no tokens is reserved instead, so it never
+      // enters the transaction and needs no warning here.
+      const authheadCarriesTokens = store.identities?.some(identity =>
+        identity.category === tokenData.value.category && identity.status === 'carriesTokens'
+      );
+      if(authheadCarriesTokens){
         const authConfirmed = await confirmDialog(
           t('tokenItem.dialogs.authWarning.title'),
           t('tokenItem.dialogs.authWarning.message'),
@@ -216,53 +220,6 @@
       activeAction.value = null;
     }
   }
-  async function transferAuth() {
-    if (activeAction.value) return;
-    // An authhead carrying no tokens is transferred from the identities page instead: this form
-    // moves the token supply riding along with it, which such an authhead does not have
-    if(!tokenData.value?.authUtxo?.token) return;
-    activeAction.value = 'transferAuth';
-    try {
-      if(!reservedSupplyInput?.value) throw new Error(t('tokenItem.errors.reservedSupplyInvalid'));
-      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      const reservedSupply = parseTokenAmountToBigInt(reservedSupplyInput.value, decimals);
-      if(reservedSupply > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-      const category = tokenData.value.category;
-      // the auth output only carries tokens when reserved supply rides along with it
-      destinationAddr.value = reservedSupply
-        ? validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix)
-        : validateRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-      const authTransfer = !reservedSupply? {
-        cashaddr: destinationAddr.value,
-        value: 1000n,
-      } : new TokenSendRequest({
-        cashaddr: destinationAddr.value,
-        category: category,
-        amount: reservedSupply
-      });
-      const outputs = [authTransfer];
-      const changeAmount = reservedSupply? tokenData.value.amount - reservedSupply : tokenData.value.amount;
-      if(changeAmount){
-        const changeOutput = new TokenSendRequest({
-          cashaddr: store.wallet.getTokenDepositAddress(),
-          category: category,
-          amount: changeAmount
-        });
-        outputs.push(changeOutput)
-      }
-      notifySending();
-      const { txId } = await store.spend.send(outputs, { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
-      displayAuthTransfer.value = false;
-      destinationAddr.value = "";
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      activeAction.value = null;
-    }
-  }
 </script>
 
 <template>
@@ -323,10 +280,6 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             {{ t('tokenItem.actions.burnTokens') }}
           </span>
-          <span v-if="settingsStore.authchains && tokenData?.authUtxo?.token" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
-            {{ t('tokenItem.actions.authTransfer') }}
-          </span>
         </div>
         <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
@@ -384,25 +337,6 @@
             <button @click="maxTokenAmount(false)">{{ t('tokenItem.actions.max') }}</button>
           </div>
           <input @click="burnFungibles()" type="button" :value="activeAction === 'burning' ? t('tokenItem.burn.burningButton') : t('tokenItem.burn.burnButton')" class="button error" style="margin-top: 10px;" :disabled="activeAction !== null">
-        </div>
-        <div v-if="displayAuthTransfer" class="tokenAction">
-          {{ t('tokenItem.authTransfer.description') }} <br>
-          <i18n-t keypath="tokenItem.authTransfer.dedicatedWalletNote" tag="span">
-            <template #link>
-              <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>
-            </template>
-          </i18n-t><br>
-          {{ t('tokenItem.authTransfer.reservedSupplyNote') }} <br>
-          <span class="grouped tokenAction">
-            <input v-model="destinationAddr" :placeholder="t('tokenItem.authTransfer.destinationPlaceholder')">
-            <span style="width: 100%; position: relative; display: flex; margin: 0">
-              <input v-model="reservedSupplyInput" :placeholder="t('tokenItem.authTransfer.reservedSupplyPlaceholder')" name="tokenAmountInput">
-              <i class="input-icon" style="width: min-content; padding-right: 15px;">
-                {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
-              </i>
-            </span>
-          </span>
-          <input @click="transferAuth()" type="button" class="primaryButton" :value="activeAction === 'transferAuth' ? t('tokenItem.authTransfer.transferringButton') : t('tokenItem.authTransfer.transferButton')" style="margin-top: 10px;" :disabled="activeAction !== null">
         </div>
       </div>
     </fieldset>

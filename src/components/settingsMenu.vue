@@ -113,7 +113,6 @@
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
-  const enableAuthchains = ref(settingsStore.authchains);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
   const strictWcSchema = ref(settingsStore.strictWcSchema);
   const showPrivateKeyWif = ref(settingsStore.showPrivateKeyWif);
@@ -466,19 +465,6 @@
   function changeMintNfts(){
     localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
     settingsStore.mintNfts = enableMintNfts.value;
-  }
-  async function changeAuthchains(){
-    localStorage.setItem("authchains", enableAuthchains.value? "true" : "false");
-    settingsStore.authchains = enableAuthchains.value;
-    if(enableAuthchains.value) {
-      try{
-        await store.fetchAuthUtxos()
-        // an authhead the detection just found joins the identities list and gets held back
-        await store.refreshIdentities()
-      } catch (error) {
-        console.error("Error fetching auth UTXOs:", error)
-      }
-    }
   }
   function changeDisableTokenIcons(){
     localStorage.setItem("disableTokenIcons", disableTokenIcons.value ? "true" : "false");
@@ -854,13 +840,6 @@
           {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
           <div style="font-size: smaller; color: grey;">
             {{ t('settings.developer.enableMintNftsHint') }}
-          </div>
-        </div>
-
-        <div style="margin-top:15px; margin-bottom: 15px">
-          {{ t('settings.developer.enableAuthchains') }} <q-toggle v-model="enableAuthchains" @update:model-value="changeAuthchains()" dense />
-          <div style="font-size: smaller; color: grey;">
-            {{ t('settings.developer.enableAuthchainsHint') }}
           </div>
         </div>
 

@@ -330,10 +330,11 @@ export function parseExtendedJson(jsonString: string){
 export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | undefined){
   if(!electrumTokenData) return
   if(electrumTokenData.amount && BigInt(electrumTokenData.amount)){
-    return {
+    const tokenDataFT: TokenDataFT = {
       amount: BigInt(electrumTokenData.amount),
       category: electrumTokenData.category,
-    } as TokenDataFT
+    }
+    return tokenDataFT
   }
   return {
     category: electrumTokenData.category,

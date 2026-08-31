@@ -40,7 +40,6 @@ import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
   tokenListFromUtxos,
-  updateTokenListWithAuthUtxos,
   parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
 import { convertElectrumTokenData } from "src/utils/utils"
@@ -98,7 +97,8 @@ import {
   deleteIdentityCategory,
   removeIdentityCategories,
   resolveIdentities,
-  type IdentityState
+  type IdentityState,
+  type IdentityScanSummary
 } from "src/utils/tools/authchainIdentity"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -176,7 +176,6 @@ export const useStore = defineStore('store', () => {
   // (see utils/tools/authchainIdentity.ts).
   const identityCategories = ref([] as string[]);
   const identities = ref(undefined as (IdentityState[] | undefined));
-  const identitiesResolving = ref(false);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   // Category a token payment request asks for, set when the user chooses to open it from
@@ -575,13 +574,7 @@ export const useStore = defineStore('store', () => {
       walletInitialized.value = true;
       // get plannedTokenId
       hasPreGenesis()
-      // fetchAuthUtxos start last because it is not critical
-      if(settingsStore.authchains){
-        console.time('fetch authUtxos');
-        await fetchAuthUtxos();
-        console.timeEnd('fetch authUtxos');
-      }
-      // After the detection above, so an authhead it just found joins the identities in one pass
+      // resolve identities last because it is not critical
       console.time('resolve identities');
       await refreshIdentities();
       console.timeEnd('resolve identities');
@@ -1351,12 +1344,6 @@ export const useStore = defineStore('store', () => {
     plannedTokenId.value = preGenesisUtxo?.txid ?? undefined;
   }
 
-  async function fetchAuthUtxos() {
-    if(!tokenList.value?.length || !walletUtxos.value) return
-    const newTokenList = await updateTokenListWithAuthUtxos(tokenList.value, settingsStore.chaingraph, walletUtxos.value)
-    tokenList.value = newTokenList;
-  }
-
   // Where each listed identity's authhead sits now. Nothing about an authhead is restored from
   // storage: it moves to a new outpoint every time the identity's metadata is updated, and those
   // updates happen outside this wallet, so the outpoint is re-resolved and the 'auth' reservations
@@ -1364,34 +1351,17 @@ export const useStore = defineStore('store', () => {
   async function refreshIdentities() {
     const currentUtxos = walletUtxos.value;
     if (!currentUtxos) return;
-    // Detection rides along on the token list: fetchAuthUtxos resolves an authhead per held
-    // category, and one carrying no tokens is an authhead this wallet can hold back, so it joins
-    // the identities list. Its txid is the authhead, so those categories need no second query.
-    const detectedAuthheads: Record<string, string> = {};
-    for (const token of tokenList.value ?? []) {
-      if (!token.authUtxo || token.authUtxo.token) continue;
-      detectedAuthheads[token.category] = token.authUtxo.txid;
-      if (identityCategories.value.includes(token.category)) continue;
-      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, token.category);
-    }
     if (!identityCategories.value.length) {
       identities.value = [];
       // clears an 'auth' reservation left behind by an identity that is no longer listed
       await syncAuthReservations([]);
       return;
     }
-    identitiesResolving.value = true;
-    try {
-      const initialization = currentInitialization;
-      const resolved = await resolveIdentities(
-        identityCategories.value, settingsStore.chaingraph, currentUtxos, detectedAuthheads
-      );
-      if (initialization !== currentInitialization) return;
-      identities.value = resolved;
-      await syncAuthReservations(resolved);
-    } finally {
-      identitiesResolving.value = false;
-    }
+    const initialization = currentInitialization;
+    const resolved = await resolveIdentities(identityCategories.value, settingsStore.chaingraph, currentUtxos);
+    if (initialization !== currentInitialization) return;
+    identities.value = resolved;
+    await syncAuthReservations(resolved);
   }
 
   // Every authhead the wallet holds as a BCH-only coin is held back from coin selection, and an
@@ -1416,6 +1386,33 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // The explicit check for authhead ownership, over the categories this wallet holds tokens of.
+  // A found authhead joins the list the same way a manual add does; one carrying tokens is only
+  // reported, since holding a token coin back from coin selection does not bind yet.
+  // Categories with no held supply are not covered here and stay a manual add.
+  async function scanForIdentities(): Promise<IdentityScanSummary | undefined> {
+    const currentUtxos = walletUtxos.value;
+    if (!currentUtxos) return undefined;
+    const heldCategories = (tokenList.value ?? []).map(token => token.category);
+    const listedCount = heldCategories.filter(category => identityCategories.value.includes(category)).length;
+    const categoriesToCheck = heldCategories.filter(category => !identityCategories.value.includes(category));
+    const initialization = currentInitialization;
+    const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
+    if (initialization !== currentInitialization) return undefined;
+    const found = resolved.filter(identity => identity.status === 'held');
+    for (const identity of found) {
+      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, identity.category);
+    }
+    identities.value = [...(identities.value ?? []), ...found];
+    await syncAuthReservations(identities.value);
+    return {
+      found: found.length,
+      alreadyListed: listedCount,
+      carriesTokens: resolved.filter(identity => identity.status === 'carriesTokens').length,
+      failed: resolved.filter(identity => identity.status === 'unresolved').length,
+    };
+  }
+
   async function addIdentity(category: string) {
     identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
     await refreshIdentities();
@@ -1428,10 +1425,6 @@ export const useStore = defineStore('store', () => {
     const removed = identities.value?.find(identity => identity.category === category);
     identityCategories.value = deleteIdentityCategory(network.value, wallet.value.name, category);
     identities.value = identities.value?.filter(identity => identity.category !== category);
-    // Detection leaves its result on the token list, so the authhead found there is cleared too:
-    // without that, the next resolve would list the identity straight back
-    const detectedToken = tokenList.value?.find(token => token.category === category);
-    if (detectedToken?.authUtxo && !detectedToken.authUtxo.token) delete detectedToken.authUtxo;
     if (!removed?.authUtxo) return;
     const outpoint = outpointOf(removed.authUtxo);
     if (reservedUtxos.value[outpoint]?.reason === 'auth') await dropReservation(outpoint);
@@ -1694,11 +1687,10 @@ export const useStore = defineStore('store', () => {
     fetchNftMetadata,
     parseNftCommitment,
     hasPreGenesis,
-    fetchAuthUtxos,
     identityCategories,
     identities,
-    identitiesResolving,
     refreshIdentities,
+    scanForIdentities,
     addIdentity,
     removeIdentity,
     fetchTokenMetadata,

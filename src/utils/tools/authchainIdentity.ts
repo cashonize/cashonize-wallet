@@ -14,6 +14,14 @@ type Network = 'mainnet' | 'chipnet';
 // which says nothing about where the authhead is.
 export type IdentityStatus = 'held' | 'carriesTokens' | 'notHeld' | 'unresolved';
 
+// What one run of the ownership scan over the wallet's token categories turned up
+export interface IdentityScanSummary {
+  found: number; // authheads newly added to the list
+  alreadyListed: number; // categories the list already covered, which the scan skips
+  carriesTokens: number; // held authheads a reservation does not yet bind for
+  failed: number; // categories whose lookup did not come back
+}
+
 export interface IdentityState {
   category: string;
   authheadTxid?: string;
@@ -63,20 +71,17 @@ export function isTokenCategory(category: string): boolean {
   return /^[0-9a-f]{64}$/i.test(category);
 }
 
-// Resolves where each identity's authhead sits now and whether this wallet holds it. Queries run in
-// parallel and a failed one only marks its own identity 'unresolved'; knownAuthheads lets a caller
-// pass authheads already resolved this round so the same category is not queried twice.
+// Resolves where each category's authhead sits now and whether this wallet holds it. Queries run
+// in parallel and a failed one only marks its own category 'unresolved', so one unreachable answer
+// does not cost the others. Shared by the identities list and the ownership scan.
 export async function resolveIdentities(
   categories: string[],
   chaingraphUrl: string,
   walletUtxos: Utxo[],
-  knownAuthheads: Record<string, string> = {},
 ): Promise<IdentityState[]> {
-  const authheadResults = await Promise.allSettled(categories.map(category => {
-    const knownAuthhead = knownAuthheads[category];
-    if (knownAuthhead) return Promise.resolve(knownAuthhead);
-    return queryAuthHeadTxid(category, chaingraphUrl);
-  }));
+  const authheadResults = await Promise.allSettled(
+    categories.map(category => queryAuthHeadTxid(category, chaingraphUrl))
+  );
 
   return categories.map((category, index) => {
     const result = authheadResults[index];

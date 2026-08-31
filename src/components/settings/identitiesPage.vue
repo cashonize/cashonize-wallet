@@ -9,7 +9,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { validateRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { isTokenCategory, type IdentityState } from 'src/utils/tools/authchainIdentity'
+  import { isTokenCategory, type IdentityState, type IdentityScanSummary } from 'src/utils/tools/authchainIdentity'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -17,6 +17,8 @@
 
   const categoryInput = ref("");
   const isAdding = ref(false);
+  const isScanning = ref(false);
+  const scanSummary = ref<IdentityScanSummary | undefined>(undefined);
   // The destination of an open transfer form, keyed by category so each card keeps its own
   const destinationInputs = ref<Record<string, string>>({});
   const transferringCategory = ref<string | undefined>(undefined);
@@ -55,6 +57,7 @@
   watch(() => store._wallet, () => {
     categoryInput.value = "";
     destinationInputs.value = {};
+    scanSummary.value = undefined;
   });
 
   async function addIdentity() {
@@ -77,6 +80,21 @@
       displayAndLogError(error);
     } finally {
       isAdding.value = false;
+    }
+  }
+
+  // Checking costs a Chaingraph query per held category, so it only ever runs on the user's word
+  async function scanForIdentities() {
+    if (isScanning.value) return;
+    isScanning.value = true;
+    scanSummary.value = undefined;
+    try {
+      scanSummary.value = await store.scanForIdentities();
+      await fetchMissingMetadata();
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      isScanning.value = false;
     }
   }
 
@@ -167,7 +185,25 @@
     </div>
 
     <div class="section">
-      <div v-if="store.identitiesResolving || !store.identities" class="description">{{ t('identities.resolving') }}</div>
+      <div class="description">
+        <i18n-t keypath="identities.scan.prompt" tag="span">
+          <template #link>
+            <span class="scan-link" @click="scanForIdentities()">{{ t('identities.scan.linkText') }}</span>
+          </template>
+        </i18n-t>
+      </div>
+      <div v-if="isScanning" class="description" style="margin-top: 6px;">{{ t('identities.scan.scanning') }}</div>
+      <div v-else-if="scanSummary" class="description" style="margin-top: 6px;">
+        <div v-if="scanSummary.found">{{ t('identities.scan.found', scanSummary.found) }}</div>
+        <div v-else>{{ t('identities.scan.noneFound') }}</div>
+        <div v-if="scanSummary.alreadyListed">{{ t('identities.scan.alreadyListed', scanSummary.alreadyListed) }}</div>
+        <div v-if="scanSummary.carriesTokens">{{ t('identities.scan.carriesTokens', scanSummary.carriesTokens) }}</div>
+        <div v-if="scanSummary.failed">{{ t('identities.scan.failed', scanSummary.failed) }}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div v-if="!store.identities" class="description">{{ t('identities.resolving') }}</div>
       <div v-else-if="!identities.length" class="description">{{ t('identities.empty') }}</div>
       <div v-else class="description">{{ t('identities.heldCount', heldCount) }}</div>
 
@@ -314,5 +350,13 @@
 .remove-identity {
   cursor: pointer;
   color: grey;
+}
+/* the prompt reads as description, only the action it offers is coloured */
+.scan-link {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.scan-link:hover {
+  text-decoration: underline;
 }
 </style>

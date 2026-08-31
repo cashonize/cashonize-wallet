@@ -3,7 +3,7 @@
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
   import nftMintForm from './nftMintForm.vue'
-  import { TokenSendRequest, type SendRequest, type TokenI } from "mainnet-js"
+  import { TokenSendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
@@ -11,7 +11,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
-  import { getCashAddressScanError, validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
+  import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
@@ -40,7 +40,6 @@
   const displayBatchTransfer = ref(false);
   const displayMintNfts = ref(false);
   const displayBurnNft = ref(false);
-  const displayAuthTransfer = ref(false);
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
   const loadingChildNftMetadata = ref(false);
@@ -317,42 +316,6 @@
       activeAction.value = null;
     }
   }
-  async function transferAuth() {
-    if (activeAction.value) return;
-    // An authhead carrying no token is transferred from the identities page instead: this form
-    // keeps the auth NFT behind as change, which such an authhead does not have
-    if(!tokenData.value?.authUtxo?.token) return;
-    const category = tokenData.value.category;
-    const authNft = tokenData.value.authUtxo.token;
-    activeAction.value = 'transferAuth';
-    try {
-      // the auth NFT stays behind as change, the recipient only gets a plain BCH output
-      destinationAddr.value = validateRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-      const authTransfer: SendRequest = {
-        cashaddr: destinationAddr.value,
-        value: 1000n,
-      };
-      const changeOutputNft = new TokenSendRequest({
-        cashaddr: store.wallet.getTokenDepositAddress(),
-        category: tokenData.value.category,
-        nft: {
-          commitment: authNft.nft!.commitment,
-          capability: authNft.nft!.capability
-        },
-      });
-      notifySending();
-      const { txId } = await store.spend.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
-      displayAuthTransfer.value = false;
-      destinationAddr.value = "";
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
-    } catch (error) {
-      displayAndLogError(error)
-    } finally {
-      activeAction.value = null;
-    }
-  }
 </script>
 
 <template>
@@ -454,10 +417,6 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             <span>{{ t('tokenItem.actions.burnNft') }}</span>
           </span>
-          <span v-if="settingsStore.authchains && tokenData?.authUtxo?.token" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
-            <span>{{ t('tokenItem.actions.authTransfer') }}</span>
-          </span>
         </div>
         <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
@@ -522,18 +481,6 @@
           <span v-else>{{ t('tokenItem.burn.burnNftDescription') }}</span>
           <br>
           <input @click="burnNft()" type="button" :value="activeAction === 'burning' ? t('tokenItem.burn.burningButton') : t('tokenItem.burn.burnNftButton')" class="button error" :disabled="activeAction !== null">
-        </div>
-        <div v-if="displayAuthTransfer" class="tokenAction">
-          {{ t('tokenItem.authTransfer.descriptionNft') }} <br>
-          <i18n-t keypath="tokenItem.authTransfer.dedicatedWalletNote" tag="span">
-            <template #link>
-              <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>
-            </template>
-          </i18n-t><br>
-          <span class="grouped" style="margin-top: 10px;">
-            <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('tokenItem.mint.destinationPlaceholder')">
-            <input @click="transferAuth()" type="button" :value="activeAction === 'transferAuth' ? t('tokenItem.authTransfer.transferringButton') : t('tokenItem.authTransfer.transferButton')" class="primaryButton" :disabled="activeAction !== null">
-          </span>
         </div>
       </div>
     </fieldset>

@@ -29,8 +29,24 @@ const utxo = (txid: string, vout: number, token?: Utxo["token"]): Utxo =>
 
 const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
 
-// Every category is passed as already resolved, so no query is made and no fetch is needed
-const known = (authheads: Record<string, string>) => authheads;
+// Answers each authhead query with the txid mapped to the category it asks about, and rejects a
+// query for any category not in the map, the way an unreachable server would
+function stubAuthheadQueries(authheads: Record<string, string>) {
+  vi.stubGlobal("fetch", vi.fn((_url: string, options: RequestInit) => {
+    const query = (JSON.parse(options.body as string) as { query: string }).query;
+    const category = Object.keys(authheads).find(listed => query.includes(listed));
+    if (!category) return Promise.reject(new TypeError("Failed to fetch"));
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        data: { transaction: [{ authchains: [{ authhead: {
+          hash: `\\x${authheads[category]}`, // chaingraph returns bytea as \x-prefixed hex
+          identity_output: [{ fungible_token_amount: "0" }],
+        } }] }] },
+      }),
+    });
+  }));
+}
 
 describe('identity categories', () => {
   beforeEach(() => {
@@ -89,11 +105,14 @@ describe('identity categories', () => {
 });
 
 describe('resolveIdentities', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('holds an authhead the wallet has as a BCH-only coin at vout 0', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA });
     const authUtxo = utxo(authheadA, 0);
-    const resolved = await resolveIdentities(
-      [categoryA], chaingraphUrl, [authUtxo], known({ [categoryA]: authheadA })
-    );
+    const resolved = await resolveIdentities([categoryA], chaingraphUrl, [authUtxo]);
     expect(resolved).toEqual([
       { category: categoryA, authheadTxid: authheadA, authUtxo, status: 'held' },
     ]);
@@ -102,31 +121,27 @@ describe('resolveIdentities', () => {
   // the authhead is output 0 of the authchain's latest transaction, another output of the same
   // transaction is an ordinary coin
   it('does not take another output of the authhead transaction for the authhead', async () => {
-    const resolved = await resolveIdentities(
-      [categoryA], chaingraphUrl, [utxo(authheadA, 1)], known({ [categoryA]: authheadA })
-    );
+    stubAuthheadQueries({ [categoryA]: authheadA });
+    const resolved = await resolveIdentities([categoryA], chaingraphUrl, [utxo(authheadA, 1)]);
     expect(resolved[0]?.status).toBe('notHeld');
     expect(resolved[0]?.authUtxo).toBeUndefined();
   });
 
   // reservation exclusion does not bind for token coins yet, so these are listed but not held back
   it('separates an authhead carrying tokens from one this wallet can hold back', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA });
     const tokenAuthUtxo = utxo(authheadA, 0, { category: categoryA, amount: 100n });
-    const resolved = await resolveIdentities(
-      [categoryA], chaingraphUrl, [tokenAuthUtxo], known({ [categoryA]: authheadA })
-    );
+    const resolved = await resolveIdentities([categoryA], chaingraphUrl, [tokenAuthUtxo]);
     expect(resolved[0]?.status).toBe('carriesTokens');
     expect(resolved[0]?.authUtxo).toBeUndefined();
   });
 
   it('marks only the identity whose query failed as unresolved', async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+    // only categoryB answers, so categoryA's query is the one that fails
+    stubAuthheadQueries({ [categoryB]: authheadB });
     const authUtxo = utxo(authheadB, 0);
-    const resolved = await resolveIdentities(
-      [categoryA, categoryB], chaingraphUrl, [authUtxo], known({ [categoryB]: authheadB })
-    );
+    const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, [authUtxo]);
     expect(resolved[0]).toEqual({ category: categoryA, status: 'unresolved' });
     expect(resolved[1]?.status).toBe('held');
-    vi.unstubAllGlobals();
   });
 });

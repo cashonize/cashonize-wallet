@@ -259,7 +259,6 @@
       "swap": "tauschen",
       "burnTokens": "Tokens verbrennen",
       "burnNft": "NFT verbrennen",
-      "authTransfer": "Auth-Transfer",
       "mintNfts": "NFTs minten",
       "batchTransfer": "Batch Transfer",
       "all": "alle",
@@ -315,16 +314,6 @@
       "burnNftButton": "NFT verbrennen",
       "burnMintingDescription": "Diesen NFT verbrennen, sodass keine neuen NFTs dieser Kategorie mehr gemintet werden können",
       "burnNftDescription": "Diesen NFT verbrennen, um ihn dauerhaft aus deinem Wallet zu entfernen"
-    },
-    "authTransfer": {
-      "description": "Die Berechtigung zur Änderung der Token-Metadaten übertragen",
-      "descriptionNft": "Die Berechtigung zur Änderung der Token-Metadaten an ein anderes Wallet übertragen",
-      "dedicatedWalletNote": "Du kannst die Auth entweder an ein separates Wallet oder an das {link} übertragen.",
-      "reservedSupplyNote": "Token-Menge, die am Auth-UTXO gehalten wird, wird als reservierte Menge markiert, noch nicht im Umlauf.",
-      "destinationPlaceholder": "Zieladresse",
-      "reservedSupplyPlaceholder": "Reservierte Menge",
-      "transferButton": "Auth übertragen",
-      "transferringButton": "Auth wird übertragen..."
     },
     "mint": {
       "modeLabel": "Modus:",
@@ -385,8 +374,7 @@
     "success": {
       "transactionSent": "Transaktion erfolgreich gesendet!",
       "burnSuccessful": "Erfolgreich verbrannt",
-      "mintSuccessful": "Erfolgreich gemintet",
-      "authTransferSuccessful": "Auth-Transfer erfolgreich"
+      "mintSuccessful": "Erfolgreich gemintet"
     },
     "alerts": {
       "sentTokens": "{amount} {symbol} an {address} gesendet",
@@ -401,8 +389,7 @@
       "burnedTokensNoSymbol": "{amount} Tokens der Kategorie {tokenId} verbrannt",
       "burnedNft": "{nftType} der Kategorie {tokenId} verbrannt",
       "mintedNft": "Unveränderlichen NFT der Kategorie {tokenId} gemintet {commitmentText}",
-      "mintedNfts": "{amount} NFTs der Kategorie {tokenId} gemintet",
-      "transferredAuth": "Auth des UTXO {tokenId} an {address} übertragen"
+      "mintedNfts": "{amount} NFTs der Kategorie {tokenId} gemintet"
     },
     "errors": {
       "needBchForFee": "BCH für die Transaktionsgebühr benötigt",
@@ -420,7 +407,6 @@
       "invalidAmountNfts": "Ungültige Anzahl NFTs zum Minten",
       "invalidStartingNumber": "Ungültige Startnummer",
       "commitmentMustBeHex": "nftCommitment '{commitment}' muss hexadezimal sein",
-      "reservedSupplyInvalid": "Anzahl Tokens für reservierte Menge muss eine gültige Ganzzahl sein",
       "noNftsSelected": "Keine NFTs ausgewählt",
       "notCashaddress": "Keine cashaddress im aktuellen Netzwerk"
     }
@@ -1320,8 +1306,6 @@
       "tokenCreation": "Token-Erstellungsfunktionen:",
       "enableMintNfts": "Mint NFTs aktivieren",
       "enableMintNftsHint": "Fügt eine Mint-Aktion zu minting NFTs hinzu, mit der du weitere NFTs in derselben Kategorie erstellen kannst",
-      "enableAuthchains": "Authchain-Auflösung aktivieren",
-      "enableAuthchainsHint": "Prüft, ob du den AuthHead (Berechtigung zur Aktualisierung der Token-Metadaten) besitzt, und ermöglicht dessen Übertragung",
       "disableTokenIcons": "Token-Bilder deaktivieren",
       "disableTokenIconsHint": "Verhindert das Laden von Token-Bildern von externen Servern",
       "strictWcSchema": "Strikte WalletConnect-Schema-Validierung",
@@ -1450,7 +1434,17 @@
       "placeholder": "Token-Kategorie (64 Hexadezimalzeichen)",
       "button": "Identität hinzufügen",
       "addingButton": "Wird hinzugefügt...",
-      "hint": "Cashonize sucht, wo der AuthHead dieser Kategorie liegt, und listet ihn hier auf. Identitäten von Tokens in diesem Wallet werden von selbst gefunden."
+      "hint": "Cashonize sucht, wo der AuthHead dieser Kategorie liegt, und listet ihn hier auf. Bei einem Token in diesem Wallet findet ihn auch die Prüfung unten."
+    },
+    "scan": {
+      "prompt": "Cashonize kann die Tokens in diesem Wallet auf AuthHead-Besitz prüfen. {link}",
+      "linkText": "Auf AuthHeads prüfen",
+      "scanning": "Die Token-Kategorien des Wallets werden geprüft...",
+      "found": "{count} Identität gefunden und der Liste hinzugefügt | {count} Identitäten gefunden und der Liste hinzugefügt",
+      "noneFound": "Keine neuen Identitäten gefunden.",
+      "alreadyListed": "{count} Kategorie stand bereits in der Liste. | {count} Kategorien standen bereits in der Liste.",
+      "carriesTokens": "{count} AuthHead trägt Tokens, die dieses Wallet noch nicht von der Münzauswahl ausnehmen kann. | {count} AuthHeads tragen Tokens, die dieses Wallet noch nicht von der Münzauswahl ausnehmen kann.",
+      "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden."
     },
     "transfer": {
       "label": "Diese Identität übertragen",
@@ -1466,8 +1460,8 @@
     },
     "remove": {
       "title": "Aus dieser Liste entfernen?",
-      "message": "Die Identität wird aus dieser Liste entfernt. Cashonize listet sie wieder auf, wenn es ihren AuthHead in diesem Wallet findet.",
-      "messageHeld": "Die Identität wird aus dieser Liste entfernt und ihr AuthHead ist nicht mehr von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also ausgeben. Cashonize listet sie beim nächsten Wallet-Start wieder auf, wenn der AuthHead noch hier liegt.",
+      "message": "Die Identität wird aus dieser Liste entfernt. Die Prüfung auf AuthHeads listet sie wieder auf, wenn dieses Wallet ihren AuthHead hält.",
+      "messageHeld": "Die Identität wird aus dieser Liste entfernt und ihr AuthHead ist nicht mehr von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also ausgeben. Die Prüfung auf AuthHeads listet sie wieder auf, solange dieses Wallet den AuthHead hält.",
       "button": "Entfernen"
     },
     "errors": {
