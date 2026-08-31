@@ -2,7 +2,7 @@
   // Drop-in replacement for the <qr-code> web component of @bitjson/qr-code, rendering the
   // same svg (see qrCodeSvg.ts) and offering the same intro animations. The presets are the
   // library's, reimplemented as css keyframes over a per-element animation-delay.
-  import { computed, nextTick, onMounted, ref, useSlots, watch } from 'vue'
+  import { computed, nextTick, onDeactivated, onMounted, ref, useSlots, watch } from 'vue'
   import { generateQrCodeSvg, iconWidthPercentage } from 'src/utils/qrCodeSvg'
   import type { QRCodeAnimationName } from 'src/interfaces/interfaces'
 
@@ -36,6 +36,11 @@
     playing.value = false
     void nextTick(() => emit('rendered'))
   })
+
+  // The wallet view is kept alive, so navigating away detaches this dom and returning re-inserts
+  // it, which restarts every css animation. Drop the class on the way out so the intro does not
+  // replay on every visit; a preset change made while away still sets it again before we return.
+  onDeactivated(() => { playing.value = false })
 
   function animate() {
     playing.value = true
