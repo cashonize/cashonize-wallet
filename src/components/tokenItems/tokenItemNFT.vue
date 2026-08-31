@@ -76,7 +76,7 @@
     const nftData = tokenData.value.nfts?.[0];
     const commitment = nftData?.token?.nft?.commitment;
     const matchedNftMetadata = tokenMetaData?.value?.nfts?.[commitment ?? ""]
-    return matchedNftMetadata ? matchedNftMetadata : tokenMetaData?.value
+    return matchedNftMetadata ?? tokenMetaData?.value
   })
   const httpsUrlTokenIcon = computed(() => {
     let tokenIconUri = tokenMetaData.value?.uris?.icon;

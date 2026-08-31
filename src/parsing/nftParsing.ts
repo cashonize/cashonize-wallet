@@ -1,5 +1,5 @@
 import {
-  createVirtualMachineBCH,
+  createVirtualMachineBch,
   hexToBin,
   binToHex,
   vmNumberToBigInt,
@@ -336,7 +336,7 @@ export function parseNft(
       transaction: parsingTransaction,
     };
 
-    const vm = createVirtualMachineBCH();
+    const vm = createVirtualMachineBch();
     let result;
 
     try {
