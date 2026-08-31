@@ -4,16 +4,21 @@
 
 **Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet.**
 
-Cashonize supports CashTokens and the WalletConnect, CashConnect and WizardConnect connection methods, which makes it an ideal wallet for using dapps on BCH.
 It is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an installable web app, and comes in English, Spanish, French, German, and Portuguese.
 
-Learn more about the wallet on the [Cashonize about page](https://about.cashonize.com).
+For users, the [Cashonize about page](https://about.cashonize.com) introduces the wallet and its features, while this readme goes into more detail.
+
+### Your entry point to CashTokens and BCH DeFi
+
+On Bitcoin Cash, dapps never hold your funds: your wallet is where every action gets approved. Cashonize is built around that role.
+
+Cashonize works with any dapp on BCH: it supports all three connection methods in the ecosystem (WalletConnect, CashConnect and WizardConnect) and shows you plainly what a transaction will do to your balances before you sign.
+
+The portfolio view values your BCH, tokens and DeFi positions together, so you always know where you stand.
 
 ### The wallet for you?
 
-Because of its minimalist design, Cashonize is a user-friendly wallet, even for inexperienced users.
-Cashonize has an easy-to-understand transaction preview screen for WalletConnect, CashConnect and WizardConnect, empowering users before signing DeFi transactions.
-Further, Cashonize nicely groups and displays your NFTs, making it ideal for NFT collectors.
+Because of its minimalist design and modern look, Cashonize is a user-friendly wallet, even for inexperienced users.
 
 Cashonize lets you create and switch between multiple wallets. There are two wallet types supported: single-address wallet and HD wallet. HD wallets use a new address for each transaction, providing basic privacy for everyday payments.
 
@@ -26,7 +31,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **WizardConnect support** - Connect HD wallets to dApps through the Nostr-based WizardConnect protocol
 - **Open-source and non-custodial** - You control your keys
 - **Multi-wallet support** - Create and manage multiple wallets (single-address or HD)
-- **Minimalist design** - Easy to use with a clean, simple interface
+- **Minimalist design** - Easy to use with a clean, modern interface
 - **Fast and lightweight** - Quick startup, fast data loading, and snappy navigation
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
 - **Localization** - Available in English, Spanish, French, German, and Portuguese
@@ -41,7 +46,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 
 - **CashConnect support** - Connect to BCH-native dApps through the CashConnect protocol
 - **Detailed dApp transaction preview** - Shows your balance changes for BCH and tokens before signing
-- **Portfolio view** - Chart of your total wallet value across BCH and fungible tokens
+- **Portfolio view** - Chart of your total wallet value across your assets and DeFi positions
 - **Portfolio integrations** - Also values your Cauldron liquidity pools, ParyonUSD loans and stakes
 - **Dapp-aware history** - Labels dapp transactions and classifies swaps as combined, both filterable
 - **Token pills in history** - Token changes shown as pills with icon and amount in the history
@@ -108,7 +113,7 @@ Also a thank you to users reporting bugs: samrock5000, Stockleezy and Steve Thur
 
 Cashonize started in 2023, when CashTokens was only live on chipnet. It pioneered CashTokens and BCMR token metadata support before the upgrade activated on mainnet, making it the first wallet where users could hold and send CashTokens with rich token info.
 
-Cashonize has kept pioneering since: it was the first wallet to support CashConnect and the first to display parsable NFTs.
+Cashonize has kept pioneering since: it was the first wallet to support CashConnect, the first to display parsable NFTs, and the first to show BCH, tokens and DeFi positions as a single portfolio.
 
 An important milestone at the start of 2026 was the addition of multi-wallet support and HD wallets for improved transaction privacy.
 
