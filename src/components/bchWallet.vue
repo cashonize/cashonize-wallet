@@ -101,7 +101,7 @@
   // general functions
   const animateQrCode = () => {
     if (qrCodeRef.value && !settingsStore.hasPlayedAnimation && settingsStore.qrAnimation != 'None') {
-      qrCodeRef.value.animate(settingsStore.qrAnimation);
+      qrCodeRef.value.animate();
       settingsStore.hasPlayedAnimation = true;
     }
   };
@@ -318,7 +318,7 @@
       </span>
     </div>
     <div class="qr-frame">
-      <QrCode ref="qrCodeRef" :contents="addressQrcode" :label="displayBchQr ? t('qrCode.bchAddress') : t('qrCode.tokenAddress')" @click="copyToClipboard(addressQrcode)" class="qr-code" @rendered="animateQrCode">
+      <QrCode ref="qrCodeRef" :contents="addressQrcode" :animation="settingsStore.qrAnimation" :label="displayBchQr ? t('qrCode.bchAddress') : t('qrCode.tokenAddress')" @click="copyToClipboard(addressQrcode)" class="qr-code" @rendered="animateQrCode">
         <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" alt="" />
       </QrCode>
     </div>

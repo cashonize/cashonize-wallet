@@ -6,11 +6,17 @@
   import { generateQrCodeSvg, iconWidthPercentage } from 'src/utils/qrCodeSvg'
   import type { QRCodeAnimationName } from 'src/interfaces/interfaces'
 
-  const props = defineProps<{
+  const props = withDefaults(defineProps<{
     contents: string
     /** Describes what the code encodes, for screen readers; the modules themselves say nothing. */
     label: string
-  }>()
+    /**
+     * Intro preset to bake delays for. Kept a prop rather than an argument to animate() so the
+     * markup is built once: starting the animation then only has to add a class, instead of
+     * regenerating ~120kB of svg and rebuilding every module while the wallet page loads.
+     */
+    animation?: QRCodeAnimationName | 'None'
+  }>(), { animation: 'None' })
 
   const emit = defineEmits<{ rendered: [] }>()
 
@@ -18,19 +24,21 @@
   // punches a matching hole in the modules behind it.
   const hasIcon = Boolean(useSlots().default)
 
-  const activeAnimation = ref<QRCodeAnimationName | 'None'>('None')
-  const qrCode = computed(() => generateQrCodeSvg(props.contents, hasIcon, activeAnimation.value))
+  const playing = ref(false)
+  const qrCode = computed(() => generateQrCodeSvg(props.contents, hasIcon, props.animation))
 
   // The parent animates a new code from the 'rendered' handler. onMounted announces the first
   // one, because an immediate watcher would run during setup, before the parent's ref is set.
   onMounted(() => emit('rendered'))
+  // A new code starts static: leaving the class on would replay the intro on every address
+  // change, including the ones the parent does not want animated.
   watch(() => props.contents, () => {
-    activeAnimation.value = 'None'
+    playing.value = false
     void nextTick(() => emit('rendered'))
   })
 
-  function animate(animation: QRCodeAnimationName) {
-    activeAnimation.value = animation
+  function animate() {
+    playing.value = true
   }
 
   defineExpose({ animate })
@@ -40,7 +48,7 @@
   <!-- role="img" collapses the hundreds of svg modules into one labelled image for
        assistive technology, which would otherwise read out nothing at all -->
   <div class="qrCode" role="img" :aria-label="label">
-    <div class="qrContainer" :class="activeAnimation !== 'None' ? `animate-${activeAnimation}` : ''">
+    <div class="qrContainer" :class="playing && animation !== 'None' ? `animate-${animation}` : ''">
       <div class="iconContainer">
         <div
           class="iconWrapper"
@@ -70,18 +78,22 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
   justify-content: center;
 }
 
-/* Each animated element carries its own animation-delay as an inline style, written into the
-   svg by generateQrCodeSvg. The rules below add only the keyframes and the timing, so the
-   browser runs the intro on its own without any javascript per frame. */
 .qrContainer {
   position: relative;
+}
 
-  &.animate-FadeInTopDown {
+/* Each animated element carries its own animation-delay as an inline style, written into the
+   svg by generateQrCodeSvg. The rules below add only the keyframes and the timing, so the
+   browser runs the intro on its own without any javascript per frame.
+   The intro is decorative, so gate the whole block: a viewer who asks for reduced motion gets
+   no animation rules at all and the code simply renders. */
+@media (prefers-reduced-motion: no-preference) {
+  .qrContainer.animate-FadeInTopDown {
     :deep(.module), :deep(.position-ring), :deep(.position-center), .iconWrapper {
       animation: qrFadeIn 300ms ease both;
     }
   }
-  &.animate-FadeInCenterOut, &.animate-MaterializeIn {
+  .qrContainer.animate-FadeInCenterOut, .qrContainer.animate-MaterializeIn {
     :deep(.module), :deep(.position-ring), :deep(.position-center), .iconWrapper {
       animation: qrFadeIn 200ms ease both;
     }
@@ -89,7 +101,7 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
   /* The two ripple presets pulse the icon down before the wave reaches it, so it gets its
      own keyframes; the scale is deliberately left to resolve around the svg's own center,
      which turns the size pulse into the outward wave. */
-  &.animate-RadialRipple {
+  .qrContainer.animate-RadialRipple {
     :deep(.module), :deep(.position-ring), :deep(.position-center) {
       animation: qrRipple 1000ms $rippleEasing both;
     }
@@ -97,7 +109,7 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
       animation: qrRippleIcon 1000ms $rippleEasing both;
     }
   }
-  &.animate-RadialRippleIn {
+  .qrContainer.animate-RadialRippleIn {
     :deep(.module), :deep(.position-ring), :deep(.position-center) {
       animation: qrRippleIn 1000ms $rippleEasing both, qrRippleReveal 1000ms $rippleEasing both;
     }
