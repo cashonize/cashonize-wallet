@@ -35,13 +35,6 @@ overrides:
   '@wizardconnect/core': 0.2.4
   mainnet-js: 3.1.7
 
-  # Dependabot security bumps for indirect dependencies.
-  postcss: 8.5.25
-  tar: 7.5.21
-  'anymatch>picomatch': 2.3.2
-  'micromatch>picomatch': 2.3.2
-  picomatch: 4.0.4
-
 # Packages explicitly allowed to run install/build lifecycle scripts. Everything else is
 # blocked by pnpm; a future dep that adds an install script fails the install until
 # reviewed and added here.
