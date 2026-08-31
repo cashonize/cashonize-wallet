@@ -30,6 +30,13 @@
 </template>
 
 <style>
+  /* For text acting as the popup trigger (via the trigger slot): a dotted underline
+     as the conventional "hover for an explanation" affordance */
+  .info-popup-text-trigger {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+  }
   /* the icon is taller than the lowercase text next to it, drop it slightly below the
      baseline so it reads as vertically centered rather than floating above the line */
   .info-popup-icon {

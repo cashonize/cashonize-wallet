@@ -26,6 +26,16 @@ export function electrumWssUrl(server: string): string {
   return server.includes(":") ? `wss://${server}` : `wss://${server}:50004`;
 }
 
+// Chaingraph's Hasura API conventionally serves GraphQL at /v1/graphql. Keep
+// explicitly supplied paths intact for instances configured differently.
+export function chaingraphGraphqlUrl(server: string): string {
+  const serverWithScheme = /^https?:\/\//i.test(server) ? server : `https://${server}`;
+  const url = new URL(serverWithScheme);
+  if (url.pathname === "/") url.pathname = "/v1/graphql";
+  else url.pathname = url.pathname.replace(/\/+$/, "");
+  return url.toString();
+}
+
 export function walletTypeFromWalletId(walletId: string): 'single' | 'hd' {
   return walletId.startsWith('hd:') ? 'hd' : 'single';
 }

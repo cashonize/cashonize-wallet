@@ -55,6 +55,10 @@
   "chaingraph": {
     "errors": {
       "requestFailed": "Requête Chaingraph échouée : {status}",
+      "unreachable": "Impossible de joindre le serveur Chaingraph.",
+      "timeout": "Le serveur Chaingraph n’a pas répondu dans les {seconds} secondes.",
+      "rejected": "Le serveur Chaingraph a rejeté la requête : {reason}",
+      "invalidResponse": "Le serveur n'a pas renvoyé de réponse Chaingraph valide.",
       "tokenNotFound": "Token non trouvé",
       "authchainNotFound": "Authchain non trouvée"
     }
@@ -172,17 +176,18 @@
   "portfolio": {
     "title": "Portfolio",
     "backToWallet": "Retour au portefeuille",
-    "description": "La valeur totale de votre portefeuille en BCH et tokens fongibles",
+    "description": "La valeur totale de votre portefeuille entre actifs détenus et positions DeFi",
     "pricesInfo": "Les valeurs des tokens sont basées sur les prix du DEX Cauldron",
-    "nftsExcluded": "Les NFTs ne sont pas inclus dans le total, sauf les NFTs de prêt et de staking ParyonUSD et les cartes-clés Emerald DAO",
+    "nftsExcluded": "Les NFTs ne sont pas comptés dans le total, sauf ceux représentant une position : prêts et staking ParyonUSD, et cartes-clés Emerald DAO",
     "totalValue": "Valeur totale",
     "other": "Autres",
     "noPriceData": "Pas de données de prix ({count})",
+    "checkingAdditionalContractAssets": "Recherche d’actifs supplémentaires verrouillés dans des contrats",
     "smallBalances": "Petits soldes ({count})",
     "tapswapListings": "Annonces TapSwap ({count})",
     "askingPrice": "Prix demandé",
     "manageListings": "Gérez vos annonces sur {link}.",
-    "tapswapInfo": "Les actifs mis en vente appartiennent toujours au portefeuille, mais ils sont détenus par un contrat de vente TapSwap, ils n'apparaissent donc pas dans la liste des tokens du portefeuille.",
+    "tapswapInfo": "Les actifs mis en vente appartiennent toujours au portefeuille, mais ils sont détenus par un contrat de vente TapSwap, ils n'apparaissent donc pas dans la liste des tokens du portefeuille. Les prix demandés ne sont pas comptés dans le total.",
     "collateral": "Collatéral",
     "debt": "Dette",
     "netValue": "Valeur nette",
@@ -208,7 +213,8 @@
     "stakingInfo": "Un reçu de staking enregistre le montant staké à une époque donnée. Le montant actuel peut être plus bas au moment du retrait, cette valeur est donc une estimation.",
     "noAssets": "Pas encore de BCH ni de tokens dans ce portefeuille",
     "loading": "Chargement des données du portefeuille",
-    "loadingFailed": "Échec du chargement des données du portefeuille"
+    "loadingFailed": "Échec du chargement des données du portefeuille",
+    "announcedAssetsLoadingFailed": "Échec du chargement des offres TapSwap et des contrats hodl"
   },
   "tokens": {
     "loading": "Chargement des données des tokens",
@@ -1238,7 +1244,9 @@
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",
       "electrumChipnet": "Serveur Electrum chipnet :",
+      "electrumHint": "La connexion du portefeuille au réseau BCH. Les soldes, l'historique des transactions et les envois passent par ce serveur.",
       "bcmrIndexer": "Indexeur BCMR :",
+      "bcmrIndexerHint": "Utilisé pour récupérer les métadonnées des tokens comme les noms, les icônes et les décimales.",
       "bcmrIndexerCustomPlaceholder": "ex. https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "ex. 127.0.0.1 ou fulcrum.example.com:443",
       "electrumCustomHint": "Nécessite WSS, le port 50004 est utilisé sauf si un autre est indiqué.",
@@ -1246,8 +1254,15 @@
       "electrumSelfSignedVisit": "Visitez ici",
       "electrumSelfSignedApp": "Remarque : les certificats auto-signés ne sont pas actuellement supportés dans l'app.",
       "ipfsGateway": "Passerelle IPFS :",
+      "ipfsGatewayHint": "Utilisée pour charger les icônes de tokens et les autres médias de tokens hébergés sur IPFS.",
       "chaingraph": "Serveur Chaingraph :",
+      "chaingraphHint": "Un indexeur de la blockchain BCH. Utilisé pour trouver les annonces TapSwap et les contrats hodl du portefeuille pour la vue portfolio, et pour détecter la possession de l'authchain des tokens.",
+      "chaingraphCustomPlaceholder": "ex. https://chaingraph.example.com",
+      "chaingraphCustomHint": "/v1/graphql est ajouté automatiquement lorsque seul un hôte est indiqué.",
+      "chaingraphInvalidUrl": "URL du serveur Chaingraph invalide",
+      "chaingraphChecking": "Vérification du serveur Chaingraph",
       "cauldronIndexer": "Indexeur Cauldron :",
+      "cauldronIndexerHint": "Utilisé pour obtenir les prix des tokens depuis le DEX Cauldron pour le portfolio et la liste des tokens.",
       "exchangeRate": "Fournisseur de taux de change :",
       "exchangeRateDefault": "Par défaut (bitcoin.com pour USD, BitPay pour le reste)",
       "deleteAllWallets": "Supprimer tous les portefeuilles et données de {platform}",

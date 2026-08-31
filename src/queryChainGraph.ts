@@ -4,6 +4,9 @@ import {
 import { hexToBin, binToHex, encodeLockingBytecodeP2pkh } from "@bitauth/libauth";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
+const CHAINGRAPH_REQUEST_TIMEOUT_MS = 10_000;
+
+export class ChaingraphRequestError extends Error {}
 
 async function queryChainGraph(queryReq:string, chaingraphUrl:string, variables: Record<string, unknown> = {}){
     const jsonObj = {
@@ -11,23 +14,65 @@ async function queryChainGraph(queryReq:string, chaingraphUrl:string, variables:
         "variables": variables,
         "query": queryReq
     };
-    const response = await fetch(chaingraphUrl, {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        redirect: "follow",
-        referrerPolicy: "no-referrer",
-        body: JSON.stringify(jsonObj),
-    });
-    if (!response.ok) throw new Error(t('chaingraph.errors.requestFailed', { status: response.status }));
-    return await response.json();
+    let response: Response;
+    const timeoutSignal = AbortSignal.timeout(CHAINGRAPH_REQUEST_TIMEOUT_MS);
+    try {
+      response = await fetch(chaingraphUrl, {
+          method: "POST",
+          mode: "cors",
+          cache: "no-cache",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          redirect: "follow",
+          referrerPolicy: "no-referrer",
+          signal: timeoutSignal,
+          body: JSON.stringify(jsonObj),
+      });
+    } catch {
+      if (timeoutSignal.aborted) {
+        throw new ChaingraphRequestError(t('chaingraph.errors.timeout', { seconds: CHAINGRAPH_REQUEST_TIMEOUT_MS / 1000 }));
+      }
+      throw new ChaingraphRequestError(t('chaingraph.errors.unreachable'));
+    }
+    if (!response.ok) {
+      throw new ChaingraphRequestError(t('chaingraph.errors.requestFailed', { status: response.status }));
+    }
+    let jsonResponse: unknown;
+    try {
+      jsonResponse = await response.json();
+    } catch {
+      if (timeoutSignal.aborted) {
+        throw new ChaingraphRequestError(t('chaingraph.errors.timeout', { seconds: CHAINGRAPH_REQUEST_TIMEOUT_MS / 1000 }));
+      }
+      throw new ChaingraphRequestError(t('chaingraph.errors.invalidResponse'));
+    }
+    if (jsonResponse && typeof jsonResponse === "object" && "errors" in jsonResponse) {
+      const errors = (jsonResponse as { errors?: { message?: unknown }[] }).errors;
+      if (errors?.length) {
+        const reason = typeof errors[0]?.message === "string" ? errors[0].message : t('common.errors.somethingWentWrong');
+        throw new ChaingraphRequestError(t('chaingraph.errors.rejected', { reason }));
+      }
+    }
+    return jsonResponse;
 }
 
 // Chaingraph returns bytea values as \x-prefixed hex strings
 export function byteaToHex(bytea: string) {
   return bytea.replace(/^\\x/, "");
+}
+
+// The smallest meaningful query, used to check that a server is a working Chaingraph instance
+export async function queryBlockHeight(chaingraphUrl: string) {
+  const queryReqBlockHeight = `query {
+    block(limit: 1, order_by: { height: desc }) {
+      height
+    }
+  }`;
+  const response = await queryChainGraph(queryReqBlockHeight, chaingraphUrl) as
+    { data?: { block?: { height: string }[] } };
+  const height = response.data?.block?.[0]?.height;
+  if (height === undefined) throw new ChaingraphRequestError(t('chaingraph.errors.invalidResponse'));
+  return Number(height);
 }
 
 export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
@@ -125,8 +170,9 @@ export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: stri
     const response = await queryChainGraph(querySpent, chaingraphUrl, {
       lockingBytecodes, limit: CHAINGRAPH_PAGE_SIZE, offset,
     }) as SpentOutputsResponse;
-    spentOutputs.push(...response.data.search_output);
-    if (response.data.search_output.length < CHAINGRAPH_PAGE_SIZE) break;
+    const page = response.data.search_output;
+    spentOutputs.push(...page);
+    if (page.length < CHAINGRAPH_PAGE_SIZE) break;
   }
   return spentOutputs;
 }

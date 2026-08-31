@@ -64,7 +64,7 @@ import {
 import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromSpentOutputs, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromSpentOutputs, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
-import { querySpentOutputs } from "src/queryChainGraph"
+import { ChaingraphRequestError, querySpentOutputs } from "src/queryChainGraph"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -175,6 +175,8 @@ export const useStore = defineStore('store', () => {
   const tapswapRegistries = ref<Record<string, BcmrTokenMetadata>>({});
   // BCH locked in hodl contracts, null until the portfolio view looks it up
   const hodlContracts = ref<HodlContract[] | null>(null);
+  // Why the last TapSwap and hodl lookup failed, shown inline in the portfolio view
+  const announcedAssetsError = ref<string | undefined>(undefined);
   const exchangeRate = ref<number | undefined>(undefined);
   let exchangeRateInterval: ReturnType<typeof setInterval> | undefined;
   let cauldronPriceInterval: ReturnType<typeof setInterval> | undefined;
@@ -751,6 +753,7 @@ export const useStore = defineStore('store', () => {
     tapswapListings.value = null;
     tapswapRegistries.value = {};
     hodlContracts.value = null;
+    announcedAssetsError.value = undefined;
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
@@ -1211,6 +1214,7 @@ export const useStore = defineStore('store', () => {
       hodlContracts.value = [];
       return;
     }
+    announcedAssetsError.value = undefined;
     try {
       const initialization = currentInitialization;
       const ownerPkhs = walletPublicKeyHashes();
@@ -1240,9 +1244,12 @@ export const useStore = defineStore('store', () => {
         );
       }
     } catch (error) {
-      // swallowed like the Cauldron lookup, so one unreachable request does not keep the
-      // portfolio from rendering everything else
+      // shown inline in the portfolio view rather than toasted: this fetch re-runs on
+      // every portfolio entry, so an unreachable server would toast on each visit
       console.error("Failed to look up TapSwap listings and hodl contracts:", error);
+      announcedAssetsError.value = error instanceof ChaingraphRequestError
+        ? error.message
+        : t('portfolio.announcedAssetsLoadingFailed');
       tapswapListings.value ??= [];
       hodlContracts.value ??= [];
     }
@@ -1540,6 +1547,7 @@ export const useStore = defineStore('store', () => {
     tapswapListings,
     tapswapRegistries,
     hodlContracts,
+    announcedAssetsError,
     exchangeRate,
     currentBlockHeight,
     canGoBack,

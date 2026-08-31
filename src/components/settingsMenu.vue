@@ -12,7 +12,9 @@
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
-  import { electrumWssUrl } from 'src/utils/utils'
+  import { displayAndLogError } from "src/utils/errorHandling";
+  import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
+  import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -88,7 +90,14 @@
   const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);
   const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
-  const selectedChaingraph = ref(settingsStore.chaingraph);
+  const predefinedChaingraphs = [
+    "https://gql.chaingraph.pat.mn/v1/graphql",
+    "https://demo.chaingraph.cash/v1/graphql"
+  ];
+  const storedChaingraph = settingsStore.chaingraph;
+  const isCustomChaingraph = !predefinedChaingraphs.includes(storedChaingraph);
+  const selectedChaingraph = ref(isCustomChaingraph ? "custom" : storedChaingraph);
+  const customChaingraph = ref(isCustomChaingraph ? storedChaingraph : "");
   const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
   const predefinedBcmrIndexersMainnet = ["https://bcmr.paytaca.com/api"];
   const predefinedBcmrIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
@@ -251,8 +260,36 @@
     localStorage.setItem("ipfsGateway", trimmedGateway);
   }
   function changeChaingraph(){
-    settingsStore.chaingraph = selectedChaingraph.value
-    localStorage.setItem("chaingraph", selectedChaingraph.value);
+    if (selectedChaingraph.value === "custom") return;
+    applyChaingraph(selectedChaingraph.value);
+  }
+  const verifyingCustomChaingraph = ref(false);
+  async function saveCustomChaingraph(){
+    const trimmedChaingraph = customChaingraph.value.trim();
+    if (!trimmedChaingraph || verifyingCustomChaingraph.value) return;
+    let normalizedChaingraph: string;
+    try {
+      normalizedChaingraph = chaingraphGraphqlUrl(trimmedChaingraph);
+    } catch {
+      displayAndLogError(new Error(t('settings.advanced.chaingraphInvalidUrl')));
+      return;
+    }
+    customChaingraph.value = normalizedChaingraph;
+    // check the server actually answers Chaingraph queries before applying it
+    verifyingCustomChaingraph.value = true;
+    try {
+      await queryBlockHeight(normalizedChaingraph);
+    } catch (error) {
+      displayAndLogError(error);
+      return;
+    } finally {
+      verifyingCustomChaingraph.value = false;
+    }
+    applyChaingraph(normalizedChaingraph);
+  }
+  function applyChaingraph(chaingraphUrl: string){
+    settingsStore.chaingraph = chaingraphUrl;
+    localStorage.setItem("chaingraph", chaingraphUrl);
   }
   function changeCauldronIndexer(){
     settingsStore.cauldronIndexer = selectedCauldronIndexer.value;
@@ -568,7 +605,12 @@
     </div>
     <div v-else-if="settingsSection == 3">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.electrumMainnet') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.electrumMainnet') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
           <option v-for="(server, index) in predefinedElectrumServersMainnet" :key="server" :value="server">
             {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
@@ -601,7 +643,12 @@
       </div>
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.electrumChipnet') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.electrumChipnet') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
           <option v-for="(server, index) in predefinedElectrumServersChipnet" :key="server" :value="server">
             {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
@@ -634,7 +681,12 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.ipfsGateway') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.ipfsGateway') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.ipfsGatewayHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedIpfsGateway" @change="changeIpfsGateway()">
           <option v-for="(gateway, index) in predefinedIpfsGateways" :key="gateway" :value="gateway">
             {{ getHostname(gateway) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
@@ -663,15 +715,44 @@
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.chaingraph') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.chaingraph') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.chaingraphHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedChaingraph" @change="changeChaingraph()">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
           <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
+        <div v-if="selectedChaingraph === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customChaingraph"
+            @blur="saveCustomChaingraph()"
+            @keyup.enter="saveCustomChaingraph()"
+            type="text"
+            :placeholder="t('settings.advanced.chaingraphCustomPlaceholder')"
+            style="width: 100%;"
+          >
+          <div style="font-size: smaller; color: grey;">
+            <template v-if="verifyingCustomChaingraph">
+              {{ t('settings.advanced.chaingraphChecking') }} <q-spinner-dots size="1em" />
+            </template>
+            <template v-else>
+              {{ t('settings.advanced.chaingraphCustomHint') }}
+            </template>
+          </div>
+        </div>
       </div>
 
       <div style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.cauldronIndexer') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.cauldronIndexer') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.cauldronIndexerHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedCauldronIndexer" @change="changeCauldronIndexer()">
           <option value="https://indexer.riften.net">indexer.riften.net {{ t('settings.advanced.default') }}</option>
           <option value="https://indexer.cauldron.quest">indexer.cauldron.quest</option>
@@ -679,7 +760,12 @@
       </div>
 
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.bcmrIndexer') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.bcmrIndexer') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.bcmrIndexerHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedBcmrIndexer" @change="changeBcmrIndexer('mainnet')">
           <option v-for="(indexer, index) in predefinedBcmrIndexersMainnet" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
@@ -699,7 +785,12 @@
       </div>
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <label for="selectNetwork">{{ t('settings.advanced.bcmrIndexer') }}</label>
+        <InfoPopup>
+          <template #trigger>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.bcmrIndexer') }}</label>
+          </template>
+          <div style="max-width: 300px;">{{ t('settings.advanced.bcmrIndexerHint') }}</div>
+        </InfoPopup>
         <select v-model="selectedBcmrIndexerChipnet" @change="changeBcmrIndexer('chipnet')">
           <option v-for="(indexer, index) in predefinedBcmrIndexersChipnet" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}

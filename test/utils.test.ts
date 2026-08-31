@@ -1,4 +1,4 @@
-import { electrumWssUrl, parseExtendedJson, formatTokenAmountFromBigInt, parseTokenAmountToBigInt } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, electrumWssUrl, parseExtendedJson, formatTokenAmountFromBigInt, parseTokenAmountToBigInt } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -8,6 +8,17 @@ describe('test electrumWssUrl', () => {
   it('should keep a specified port', () => {
     expect(electrumWssUrl("fulcrum.pat.mn:443")).toBe("wss://fulcrum.pat.mn:443");
     expect(electrumWssUrl("127.0.0.1:50004")).toBe("wss://127.0.0.1:50004");
+  })
+})
+
+describe('test chaingraphGraphqlUrl', () => {
+  it('should append the conventional GraphQL path to a bare host', () => {
+    expect(chaingraphGraphqlUrl("chaingraph.example.com")).toBe("https://chaingraph.example.com/v1/graphql");
+    expect(chaingraphGraphqlUrl("http://localhost:8080")).toBe("http://localhost:8080/v1/graphql");
+  })
+  it('should preserve an explicitly supplied path', () => {
+    expect(chaingraphGraphqlUrl("https://chaingraph.example.com/graphql"))
+      .toBe("https://chaingraph.example.com/graphql");
   })
 })
 

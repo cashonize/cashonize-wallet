@@ -55,6 +55,10 @@
   "chaingraph": {
     "errors": {
       "requestFailed": "Requisição ao Chaingraph falhou: {status}",
+      "unreachable": "Não foi possível acessar o servidor Chaingraph.",
+      "timeout": "O servidor Chaingraph não respondeu em {seconds} segundos.",
+      "rejected": "O servidor Chaingraph rejeitou a solicitação: {reason}",
+      "invalidResponse": "O servidor não retornou uma resposta válida do Chaingraph.",
       "tokenNotFound": "Token não encontrado",
       "authchainNotFound": "Authchain não encontrada"
     }
@@ -172,17 +176,18 @@
   "portfolio": {
     "title": "Portfólio",
     "backToWallet": "Voltar à carteira",
-    "description": "O valor total da sua carteira entre BCH e tokens fungíveis",
+    "description": "O valor total da sua carteira entre ativos em posse e posições DeFi",
     "pricesInfo": "Os valores dos tokens são baseados nos preços do DEX Cauldron",
-    "nftsExcluded": "NFTs não são incluídos no total, exceto os NFTs de empréstimo e staking ParyonUSD e os cartões-chave da Emerald DAO",
+    "nftsExcluded": "NFTs não são contados no total, exceto os que representam uma posição: empréstimos e staking ParyonUSD, e cartões-chave da Emerald DAO",
     "totalValue": "Valor total",
     "other": "Outros",
     "noPriceData": "Sem dados de preço ({count})",
+    "checkingAdditionalContractAssets": "Buscando ativos adicionais bloqueados em contratos",
     "smallBalances": "Saldos pequenos ({count})",
     "tapswapListings": "Anúncios no TapSwap ({count})",
     "askingPrice": "Preço pedido",
     "manageListings": "Gerencie seus anúncios em {link}.",
-    "tapswapInfo": "Os ativos anunciados continuam a pertencer à carteira, mas ficam num contrato de venda do TapSwap, por isso não aparecem na lista de tokens da carteira.",
+    "tapswapInfo": "Os ativos anunciados continuam a pertencer à carteira, mas ficam num contrato de venda do TapSwap, por isso não aparecem na lista de tokens da carteira. Os preços de venda não são contados no total.",
     "collateral": "Colateral",
     "debt": "Dívida",
     "netValue": "Valor líquido",
@@ -208,7 +213,8 @@
     "stakingInfo": "Um recibo de staking registra a quantia depositada em uma época específica. A quantia atual pode ser menor no momento do saque, portanto este valor é uma estimativa.",
     "noAssets": "Ainda não há BCH nem tokens nesta carteira",
     "loading": "Carregando dados da carteira",
-    "loadingFailed": "Falha ao carregar os dados da carteira"
+    "loadingFailed": "Falha ao carregar os dados da carteira",
+    "announcedAssetsLoadingFailed": "Falha ao carregar ofertas do TapSwap e contratos hodl"
   },
   "tokens": {
     "loading": "Carregando dados dos tokens",
@@ -1238,7 +1244,9 @@
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
       "electrumChipnet": "Servidor Electrum chipnet:",
+      "electrumHint": "A conexão da carteira com a rede BCH. Saldos, histórico de transações e envios passam por este servidor.",
       "bcmrIndexer": "Indexador BCMR:",
+      "bcmrIndexerHint": "Usado para buscar metadados de tokens como nomes, ícones e decimais.",
       "bcmrIndexerCustomPlaceholder": "ex: https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "ex: 127.0.0.1 ou fulcrum.example.com:443",
       "electrumCustomHint": "Requer WSS, a porta 50004 é assumida se nenhuma outra for especificada.",
@@ -1246,8 +1254,15 @@
       "electrumSelfSignedVisit": "Acesse aqui",
       "electrumSelfSignedApp": "Nota: certificados autoassinados não são suportados no aplicativo no momento.",
       "ipfsGateway": "Gateway IPFS:",
+      "ipfsGatewayHint": "Usado para carregar ícones de tokens e outras mídias de tokens hospedadas no IPFS.",
       "chaingraph": "Servidor Chaingraph:",
+      "chaingraphHint": "Um indexador da blockchain BCH. Usado para encontrar os anúncios no TapSwap e os contratos hodl da carteira para a visão de portfólio, e para detectar a posse da authchain dos tokens.",
+      "chaingraphCustomPlaceholder": "ex: https://chaingraph.example.com",
+      "chaingraphCustomHint": "/v1/graphql é adicionado automaticamente quando apenas um host é fornecido.",
+      "chaingraphInvalidUrl": "URL do servidor Chaingraph inválida",
+      "chaingraphChecking": "Verificando o servidor Chaingraph",
       "cauldronIndexer": "Indexador Cauldron:",
+      "cauldronIndexerHint": "Usado para obter preços de tokens da DEX Cauldron para o portfólio e a lista de tokens.",
       "exchangeRate": "Provedor de cotações:",
       "exchangeRateDefault": "Padrão (bitcoin.com para USD, BitPay para o resto)",
       "deleteAllWallets": "Remover todas as carteiras e dados do {platform}",

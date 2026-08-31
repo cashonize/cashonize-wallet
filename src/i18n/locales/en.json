@@ -55,6 +55,10 @@
   "chaingraph": {
     "errors": {
       "requestFailed": "Chaingraph request failed: {status}",
+      "unreachable": "Unable to reach the Chaingraph server.",
+      "timeout": "The Chaingraph server did not respond within {seconds} seconds.",
+      "rejected": "The Chaingraph server rejected the request: {reason}",
+      "invalidResponse": "The server did not return a valid Chaingraph response.",
       "tokenNotFound": "Token not found",
       "authchainNotFound": "Authchain not found"
     }
@@ -172,17 +176,18 @@
   "portfolio": {
     "title": "Portfolio",
     "backToWallet": "Back to wallet",
-    "description": "Your total wallet value across BCH and fungible tokens",
+    "description": "Your total wallet value across held assets and DeFi positions",
     "pricesInfo": "Token values are based on Cauldron DEX prices",
-    "nftsExcluded": "NFTs are not included in the total, except ParyonUSD loan and staking NFTs and Emerald DAO keycards",
+    "nftsExcluded": "NFTs are not counted in the total, except those representing a position: ParyonUSD loans and staking, and Emerald DAO keycards",
     "totalValue": "Total value",
     "other": "Other",
     "noPriceData": "No price data ({count})",
+    "checkingAdditionalContractAssets": "Checking for additional contract-locked assets",
     "smallBalances": "Small balances ({count})",
     "tapswapListings": "TapSwap listings ({count})",
     "askingPrice": "Asking price",
     "manageListings": "Manage your listings on {link}.",
-    "tapswapInfo": "Listed assets remain owned by the wallet but are held in a TapSwap sale contract, so they do not show in the wallet's token list.",
+    "tapswapInfo": "Listed assets remain owned by the wallet but are held in a TapSwap sale contract, so they do not show in the wallet's token list. Asking prices are not counted in the total.",
     "collateral": "Collateral",
     "debt": "Debt",
     "netValue": "Net value",
@@ -208,7 +213,8 @@
     "stakingInfo": "A staking receipt records the amount staked at a specific epoch. The current stake can be lower by the time it is withdrawn, so this value is an estimate.",
     "noAssets": "No BCH or tokens in this wallet yet",
     "loading": "Loading wallet data",
-    "loadingFailed": "Failed to load wallet data"
+    "loadingFailed": "Failed to load wallet data",
+    "announcedAssetsLoadingFailed": "Failed to load TapSwap listings and hodl contracts"
   },
   "tokens": {
     "loading": "Loading token data",
@@ -1238,7 +1244,9 @@
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",
       "electrumChipnet": "Electrum server chipnet:",
+      "electrumHint": "The wallet's connection to the BCH network. Balances, transaction history and sending all go through this server.",
       "bcmrIndexer": "BCMR indexer:",
+      "bcmrIndexerHint": "Used to fetch token metadata such as names, icons and decimals.",
       "bcmrIndexerCustomPlaceholder": "e.g. https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "e.g. 127.0.0.1 or fulcrum.example.com:443",
       "electrumCustomHint": "Requires WSS, port 50004 is assumed unless another is specified.",
@@ -1246,8 +1254,15 @@
       "electrumSelfSignedVisit": "Visit here",
       "electrumSelfSignedApp": "Note: self-signed certs are not currently supported in the app.",
       "ipfsGateway": "IPFS gateway:",
+      "ipfsGatewayHint": "Used to load token icons and other token media hosted on IPFS.",
       "chaingraph": "Chaingraph server:",
+      "chaingraphHint": "A BCH blockchain indexer. Used to find the wallet's TapSwap listings and hodl contracts for the portfolio view, and to detect token authchain ownership.",
+      "chaingraphCustomPlaceholder": "e.g. https://chaingraph.example.com",
+      "chaingraphCustomHint": "/v1/graphql is added automatically when only a host is provided.",
+      "chaingraphInvalidUrl": "Invalid Chaingraph server URL",
+      "chaingraphChecking": "Checking the Chaingraph server",
       "cauldronIndexer": "Cauldron indexer:",
+      "cauldronIndexerHint": "Used to get token prices from the Cauldron DEX for the portfolio and the token list.",
       "exchangeRate": "Exchange rate provider:",
       "exchangeRateDefault": "Default (bitcoin.com for USD, BitPay for rest)",
       "deleteAllWallets": "Remove all wallets and all data from {platform}",
