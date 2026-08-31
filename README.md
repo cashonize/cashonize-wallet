@@ -84,6 +84,8 @@ For more details see the [security considerations](./security-considerations.md)
 
 </> For local development check out the [developer instructions](./development.md).
 
+🗺️ For an overview of the architecture, see [CLAUDE.md](./CLAUDE.md): written to guide AI agents, it doubles as the codebase's architecture documentation.
+
 ## For dApp Developers
 
 Cashonize supports three connection methods for dapps: [WalletConnect](https://github.com/mainnet-pat/wc2-bch-bcr) (following the WC2-BCH spec), [CashConnect](https://cashconnect.developers.cash/) and [WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect).
