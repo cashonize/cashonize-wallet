@@ -86,9 +86,10 @@
       "unableToConnectElectrum": "Unable to connect to Electrum server '{server}'",
       "deviceOffline": "Your device appears to be offline, please check your internet connection",
       "bcmrIndexerValidationError": "BCMR indexer response validation error",
-      "utxoNotReserved": "This coin is not reserved",
-      "cannotReserveTokenUtxo": "A coin carrying a token cannot be held back",
-      "reservedEnsureUtxos": "This action needs a coin the wallet is holding back"
+      "utxoNotReserved": "This UTXO is not reserved",
+      "cannotReserveTokenUtxo": "A UTXO carrying a token cannot be held back",
+      "reservedEnsureUtxos": "This action needs a UTXO the wallet is holding back",
+      "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it."
     }
   },
   "onboarding": {
@@ -689,8 +690,7 @@
       "bchOnToken": "Holds more BCH than a token UTXO needs",
       "largeBch": "Holds a large amount of BCH",
       "reserved": "Held back for an open Flipstarter pledge, so a spend from this wallet will not reach for it.",
-      "reservedRelease": "Cancel the pledge on the Flipstarter page to release the coin.",
-      "freeze": "Click to freeze",
+      "reservedRelease": "Cancel the pledge on the Flipstarter page to release the UTXO.",
       "frozen": "Frozen by you, click to unfreeze",
       "unfreeze": "Unfreeze",
       "availableShort": "Available",
@@ -721,11 +721,25 @@
       "title": "Fungible token + NFT UTXOs",
       "empty": "This wallet has no UTXOs holding a fungible amount and an NFT at once."
     },
-    "reservedSummary": "{count} coin held back, kept out of your spendable balance | {count} coins held back, kept out of your spendable balance",
+    "reservedSummary": "{count} UTXO held back, kept out of your spendable balance | {count} UTXOs held back, kept out of your spendable balance",
     "freeze": {
-      "title": "Freeze this coin",
-      "message": "A frozen coin stays in your wallet but is left out of every payment this app makes, so your spendable balance drops by {amount}. Unfreeze it from this list at any time.\n\nFreezing only applies here: if you use this seed phrase in another wallet application, freeze the same coin there too.",
+      "title": "Freeze this UTXO",
+      "message": "A frozen UTXO stays in your wallet but is left out of every payment this app makes, so your spendable balance drops by {amount}. Unfreeze it from this list at any time.\n\nFreezing only applies here: if you use this seed phrase in another wallet application, freeze the same UTXO there too.",
       "button": "Freeze"
+    },
+    "send": {
+      "title": "Send this UTXO",
+      "description": "Sends this whole UTXO to the destination address, minus the network fee. No other UTXO joins the payment and no change returns.",
+      "frozenNote": "This UTXO is frozen. Sending it spends the UTXO, which ends the freeze.",
+      "destinationLabel": "Destination address:",
+      "destinationPlaceholder": "Paste a Bitcoin Cash address",
+      "cancelButton": "Cancel",
+      "sent": "Sent this UTXO ({amount}) to {address}",
+      "success": "Sent UTXO successfully!"
+    },
+    "label": {
+      "title": "Label this UTXO",
+      "placeholder": "Add UTXO label"
     },
     "stats": {
       "totalUtxos": "Total UTXOs",
@@ -766,6 +780,7 @@
       "vout": "Vout",
       "status": "Status",
       "action": "Action",
+      "label": "Label",
       "address": "Address",
       "utxoCount": "UTXOs",
       "bchHeld": "BCH held",
@@ -809,8 +824,8 @@
     "txCount": "{count} txs",
     "reservedAmount": "Reserved: {amount}",
     "available": "available",
-    "reservedDappWarning": "A dapp request that would spend a reserved coin is refused, so dapp actions using this address can fail.",
-    "reservedWhere": "The UTXO Management page shows which coins are reserved and why.",
+    "reservedDappWarning": "A dapp request that would spend a reserved UTXO is refused, so dapp actions using this address can fail.",
+    "reservedWhere": "The UTXO Management page shows which UTXOs are reserved and why.",
     "tokenCount": "{count} token | {count} tokens"
   },
   "addressManagement": {
@@ -909,7 +924,7 @@
     },
     "errors": {
       "ownAddress": "The destination is an address of this same wallet",
-      "reservedCoins": "This wallet is holding coins back, so it cannot transfer everything. The UTXO Management page shows which coins are held and why."
+      "reservedCoins": "This wallet is holding UTXOs back, so it cannot transfer everything. The UTXO Management page shows which UTXOs are held and why."
     }
   },
   "requestPayment": {
@@ -1140,7 +1155,7 @@
       "addressNotInHdCache": "Address not found in HD wallet cache: {address}",
       "noPrivateKeyForAddress": "No private key available for address (watch-only wallet)",
       "failedToCompressPublicKey": "Failed to compress public key",
-      "reservedInputs": "This request would spend a coin the wallet is holding back, so it was refused. The UTXO Management page shows which coins are held and why."
+      "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why."
     },
     "notifications": {
       "successfullySignedMessage": "Successfully signed message",
@@ -1182,7 +1197,7 @@
       "invalidTransactionSchema": "Error in validating schema of WizardConnect transaction request",
       "failedToSignTransaction": "Failed to sign transaction",
       "errorSendingTransaction": "Error in sending transaction",
-      "reservedInputs": "This request would spend a coin the wallet is holding back, so it was refused. The UTXO Management page shows which coins are held and why."
+      "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why."
     },
     "notifications": {
       "sendingTransaction": "Sending transaction...",
@@ -1316,6 +1331,7 @@
     "templatePlaceholder": "Paste the pledge request from the campaign page",
     "recipientCount": "{count} recipient | {count} recipients",
     "expires": "Campaign expires: {date}",
+    "pledgeLabel": "Flipstarter pledge, campaign expires: {date}",
     "ecPluginCompatible": "Cashonize is compatible with the EC Plugin flow.",
     "ecPluginCompatibleDetail": "Cashonize produces the same pledge as the Electron Cash plugin, so a campaign's plugin steps are the ones that apply here, and its \"Copy details\" step gives you the pledge request to paste above.",
     "readTemplate": "Review pledge",
@@ -1327,13 +1343,13 @@
     "dataPublished": "Your name and comment are published on the campaign page.",
     "pledgeButton": "Prepare pledge",
     "pledgingButton": "Preparing...",
-    "preparingCoin": "Preparing the pledge coin...",
+    "preparingCoin": "Preparing the pledge UTXO...",
     "warnings": {
-      "notAPayment": "A pledge is not a payment. The money only moves if the campaign reaches its target, and until then the coin is held back and not part of what you can spend.",
-      "dappActions": "While a pledge is open, dApp actions from this wallet may fail, because the wallet will not sign away the pledged coin. Use a separate wallet for pledges if you use dApps regularly.",
-      "dappActionsDetail": "This applies to WalletConnect and WizardConnect, where the dApp builds its own transaction and can pick the pledged coin. CashConnect is unaffected: the wallet picks the coins there, and leaves the pledged one out.",
-      "otherDevices": "The coin is only held back in this app. Do not spend from this wallet on another device or in other wallet software while a pledge is open, because that can cancel your pledge.",
-      "otherDevicesDetail": "Another wallet has no way to know the coin is held back, so it may pick it for an ordinary payment. The campaign can then no longer use your signed pledge, and this wallet will only see that the coin is gone, not why. If you use this seed phrase in another wallet application, freeze or reserve the same coin there too, which most wallets support."
+      "notAPayment": "A pledge is not a payment. The money only moves if the campaign reaches its target, and until then the UTXO is held back and not part of what you can spend.",
+      "dappActions": "While a pledge is open, dApp actions from this wallet may fail, because the wallet will not sign away the pledged UTXO. Use a separate wallet for pledges if you use dApps regularly.",
+      "dappActionsDetail": "This applies to WalletConnect and WizardConnect, where the dApp builds its own transaction and can pick the pledged UTXO. CashConnect is unaffected: the wallet picks the UTXOs there, and leaves the pledged one out.",
+      "otherDevices": "The UTXO is only held back in this app. Do not spend from this wallet on another device or in other wallet software while a pledge is open, because that can cancel your pledge.",
+      "otherDevicesDetail": "Another wallet has no way to know the UTXO is held back, so it may pick it for an ordinary payment. The campaign can then no longer use your signed pledge, and this wallet will only see that the UTXO is gone, not why. If you use this seed phrase in another wallet application, freeze or reserve the same UTXO there too, which most wallets support."
     },
     "review": {
       "title": "Pledge info",
@@ -1350,36 +1366,36 @@
       "instructions": "Copy this and paste it into the campaign page to complete your pledge. Nothing is sent to the campaign by this wallet.",
       "copy": "Copy signed pledge",
       "detail": "The campaign cannot use your pledge until you paste this into its page. This wallet never sends it for you.",
-      "detailNote": "Until you do, the coin stays held back and backs nothing. Cancel the pledge to release it."
+      "detailNote": "Until you do, the UTXO stays held back and backs nothing. Cancel the pledge to release it."
     },
     "pledges": {
       "title": "Your pledges",
       "empty": "No pledges from this wallet.",
       "recipientCount": "to {count} recipient | to {count} recipients",
       "status": {
-        "open": "Coin held back for this pledge",
-        "expired": "Campaign expired, coin still held back"
+        "open": "UTXO held back for this pledge",
+        "expired": "Campaign expired, UTXO still held back"
       },
       "cannotConfirm": "The wallet cannot confirm a pledge was accepted by the campaign.",
       "cannotConfirmDetail": "These records are what you did here, not what the campaign holds. The wallet never contacts the campaign, so it has no way to learn whether your pledge was taken.",
-      "cannotConfirmRecovery": "If a pledge was not accepted, cancel it to release the coin."
+      "cannotConfirmRecovery": "If a pledge was not accepted, cancel it to release the UTXO."
     },
     "confirm": {
       "title": "Prepare this pledge?",
-      "message": "This sends {amount} to yourself now, and leaves that coin out of every payment this app makes until the campaign completes or you cancel. The coin is only held back in this app.",
+      "message": "This sends {amount} to yourself now, and leaves that UTXO out of every payment this app makes until the campaign completes or you cancel. The UTXO is only held back in this app.",
       "button": "Prepare pledge"
     },
     "cancel": {
       "title": "Cancel this pledge?",
-      "message": "This spends the pledged coin back to your wallet, which makes the signed pledge the campaign holds unusable.",
+      "message": "This spends the pledged UTXO back to your wallet, which makes the signed pledge the campaign holds unusable.",
       "button": "Cancel pledge",
       "cancelling": "Cancelling...",
       "sending": "Cancelling pledge...",
-      "done": "Pledge cancelled and coin released",
+      "done": "Pledge cancelled and UTXO released",
       "doneTitle": "Pledge cancelled"
     },
     "alerts": {
-      "pledgePrepared": "Pledge coin prepared. Copy the signed pledge below into the campaign page.",
+      "pledgePrepared": "Pledge UTXO prepared. Copy the signed pledge below into the campaign page.",
       "pledgePreparedTitle": "Pledge prepared"
     },
     "errors": {
@@ -1387,15 +1403,15 @@
       "templateNotBase64Json": "This does not look like a pledge request from a campaign page",
       "invalidTemplate": "The pledge request is not valid",
       "invalidOutputAddress": "The pledge request contains an invalid recipient address: {address}",
-      "pledgeUtxoHasToken": "The pledge coin carries a token, which the campaign transaction would burn",
-      "pledgeUtxoWrongValue": "The pledge coin value does not match the donation amount",
+      "pledgeUtxoHasToken": "The pledge UTXO carries a token, which the campaign transaction would burn",
+      "pledgeUtxoWrongValue": "The pledge UTXO value does not match the donation amount",
       "signingFailed": "Failed to sign the pledge",
       "noBroadcastTxid": "The preparation transaction was sent but returned no transaction id",
       "noPrivateKey": "No private key available for the pledge address",
       "campaignExpired": "This campaign has already expired",
       "notEnoughSpendable": "Not enough spendable BCH for this pledge"
     },
-    "whatIsAPledge": "The wallet pays itself the pledge amount in its own transaction, holds that coin back, and signs it over to the campaign recipients. The signature stays valid when the campaign adds other pledgers, so the coin only moves once enough people have pledged.",
+    "whatIsAPledge": "The wallet pays itself the pledge amount in its own transaction, holds that UTXO back, and signs it over to the campaign recipients. The signature stays valid when the campaign adds other pledgers, so the UTXO only moves once enough people have pledged.",
     "whatIsAPledgeNote": "That preparation transaction is a real transaction with its own fee, paid whether or not the campaign ever fills."
   }
 }

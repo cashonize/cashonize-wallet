@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue';
+  import { computed, nextTick, ref, watch } from 'vue';
   import { copyToClipboard, formatBchAmount, formatFiatAmount, formatTokenAmountFromBigInt, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
@@ -7,7 +7,11 @@
   import { HDWallet, TokenSendRequest } from 'mainnet-js';
   import type { Utxo } from 'mainnet-js';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
-  import { confirmDialog } from 'src/utils/txHelpers';
+  import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
+  import { displayAndLogError } from 'src/utils/errorHandling';
+  import SendUtxoDialog from 'src/components/settings/sendUtxoDialog.vue';
+  import InlineTextEdit from 'src/components/general/InlineTextEdit.vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -17,7 +21,7 @@
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
-  const activeAction = ref<'consolidating' | 'splitting' | null>(null);
+  const activeAction = ref<'consolidating' | 'splitting' | 'sending' | null>(null);
 
   // The page is split by asset kind because each maintenance action only concerns one half:
   // consolidating operates on the BCH-only utxos, splitting on the token utxos holding BCH.
@@ -67,6 +71,69 @@
       t('utxoManagement.freeze.button')
     );
     if (confirmed) await store.reserveUtxo(utxo, 'manual');
+  }
+
+  // A row's label line only exists while it has a label or its editor is open, so the menu
+  // action first brings the line into the DOM and then opens its editor by ref
+  const labelEditingOutpoint = ref<string | null>(null);
+  const labelEditRefs: Record<string, InstanceType<typeof InlineTextEdit> | null> = {};
+
+  function utxoLabel(utxo: Utxo): string | undefined {
+    return store.utxoLabels[outpointOf(utxo)];
+  }
+
+  function setLabelEditRef(outpoint: string, componentInstance: unknown) {
+    labelEditRefs[outpoint] = componentInstance as InstanceType<typeof InlineTextEdit> | null;
+  }
+
+  async function openLabelEditor(utxo: Utxo) {
+    const outpoint = outpointOf(utxo);
+    labelEditingOutpoint.value = outpoint;
+    await nextTick();
+    await labelEditRefs[outpoint]?.startEdit();
+  }
+
+  // Opening the editor straight from the menu click races the closing menu, which can pull
+  // focus back and blur the fresh editor shut, so the edit waits until the menu has hidden
+  let pendingLabelUtxo: Utxo | null = null;
+  function queueLabelEdit(utxo: Utxo) {
+    pendingLabelUtxo = utxo;
+  }
+  function onMenuHidden() {
+    if (!pendingLabelUtxo) return;
+    const utxo = pendingLabelUtxo;
+    pendingLabelUtxo = null;
+    void openLabelEditor(utxo);
+  }
+
+  function saveLabel(utxo: Utxo, label: string) {
+    store.setUtxoLabel(outpointOf(utxo), label);
+    labelEditingOutpoint.value = null;
+  }
+
+  function openSendDialog(utxo: Utxo) {
+    $q.dialog({ component: SendUtxoDialog, componentProps: { utxo } })
+      .onOk((destinationAddress: string) => { void sendUtxo(utxo, destinationAddress); });
+  }
+
+  // Sends the one coin whole, which is also the only way a frozen coin gets spent from this app
+  async function sendUtxo(utxo: Utxo, destinationAddress: string) {
+    if (activeAction.value) return;
+    activeAction.value = 'sending';
+    try {
+      notifySending();
+      const { txId } = await store.spend.sendUtxo(utxo, destinationAddress);
+      const amount = `${formatBchAmount(Number(utxo.satoshis), false, 8)} ${bchDisplayUnit.value}`;
+      await handleTransactionBroadcastSuccess(
+        t('utxoManagement.send.sent', { amount, address: destinationAddress }),
+        txId,
+        t('utxoManagement.send.success')
+      );
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      activeAction.value = null;
+    }
   }
 
   const loadingUtxos = computed(() => store.walletUtxos === undefined);
@@ -361,7 +428,12 @@
               <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
               <span></span>
             </div>
-            <div v-for="(utxo, index) in pageOf('bch')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+            <div
+              v-for="(utxo, index) in pageOf('bch')"
+              :key="utxo.txid + ':' + utxo.vout"
+              class="utxo-row"
+              :class="{ actionable: reservationReason(utxo) !== 'pledge' }"
+            >
               <div class="cell row-number">{{ rowNumber('bch', index) }}</div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
@@ -373,7 +445,8 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
-                <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
+                <!-- .stop so copying the txid does not also open the row's actions -->
+                <span class="copy-target" :title="utxo.txid" @click.stop="copyToClipboard(utxo.txid)">
                   <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
                 </span>
@@ -383,7 +456,7 @@
                 <span class="mono">{{ utxo.vout }}</span>
               </div>
               <!-- A coin held for a pledge is marked but not actionable: cancelling the pledge is
-                   what releases it. A coin the user froze is theirs to unfreeze. -->
+                   what releases it. Every other coin opens its actions on a click on the row. -->
               <div class="cell held-cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
                 <InfoPopup v-if="reservationReason(utxo) === 'pledge'">
@@ -397,33 +470,70 @@
                   <div class="info-popup-note" style="max-width: 300px;">{{ t('utxoManagement.markers.reservedRelease') }}</div>
                 </InfoPopup>
                 <template v-else>
-                  <span class="held-label">{{
-                    reservationReason(utxo) === 'manual'
-                      ? t('utxoManagement.markers.frozenShort')
-                      : t('utxoManagement.markers.availableShort')
-                  }}</span>
-                  <span
-                    class="held-action freeze-button"
-                    :class="{ frozen: reservationReason(utxo) === 'manual' }"
-                    :title="reservationReason(utxo) === 'manual' ? t('utxoManagement.markers.frozen') : t('utxoManagement.markers.freeze')"
-                    @click="toggleFreeze(utxo)"
-                  >
-                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
-                    <q-icon name="ac_unit" size="15px" />
+                  <span class="held-state">
+                    <q-icon
+                      v-if="reservationReason(utxo) === 'manual'"
+                      name="ac_unit"
+                      size="15px"
+                      class="held-marker frozen"
+                      :title="t('utxoManagement.markers.frozen')"
+                    />
                     <span class="held-label">{{
                       reservationReason(utxo) === 'manual'
-                        ? t('utxoManagement.markers.unfreeze')
-                        : t('utxoManagement.freeze.button')
+                        ? t('utxoManagement.markers.frozenShort')
+                        : t('utxoManagement.markers.availableShort')
                     }}</span>
+                  </span>
+                  <span class="held-action actions-trigger">
+                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
+                    <q-icon name="more_vert" size="18px" />
                   </span>
                 </template>
               </div>
+              <!-- The label spans the whole row as a line of its own, so it needs no column and
+                   rows without one keep their height. It edits in place: a click on the text
+                   opens the editor directly, the menu action opens it for an unlabeled row. -->
+              <div
+                v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
+                class="cell utxo-label-line"
+              >
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.label') }}</span>
+                <InlineTextEdit
+                  :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+                  class="utxo-label-edit"
+                  :value="utxoLabel(utxo)"
+                  :hint="t('utxoManagement.label.placeholder')"
+                  :max-length="maxUtxoLabelLength"
+                  @save="(label) => saveLabel(utxo, label)"
+                  @cancel="labelEditingOutpoint = null"
+                />
+              </div>
+              <!-- Attached to the row itself, so a click anywhere on it opens the actions -->
+              <q-menu v-if="reservationReason(utxo) !== 'pledge'" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+                <q-list dense>
+                  <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
+                    <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
+                    <q-item-section>{{
+                      reservationReason(utxo) === 'manual'
+                        ? t('utxoManagement.markers.unfreeze')
+                        : t('utxoManagement.freeze.button')
+                    }}</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="openSendDialog(utxo)">
+                    <q-item-section avatar><q-icon name="send" size="18px" /></q-item-section>
+                    <q-item-section>{{ t('utxoManagement.send.title') }}</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
+                    <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+                    <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
             </div>
           </div>
           <!-- Says out loud what a mark on one row only hints at, and why the spendable balance
                is smaller than the coins listed here add up to -->
           <div v-if="reservedUtxoCount" class="reserved-summary">
-            <q-icon name="ac_unit" size="14px" class="held-marker" />
             <span>{{ t('utxoManagement.reservedSummary', reservedUtxoCount) }}</span>
           </div>
           <q-pagination
@@ -940,7 +1050,8 @@ $row-padding-x: 0.45em;
 /* Wide enough to fit their value whole, so it is never cut a second time by an ellipsis */
 $col-number: 1.9em;
 $col-vout: 3em;
-$col-held: 2em;
+/* wide enough for a frozen marker and the actions trigger side by side */
+$col-held: 3em;
 $col-capability: 5em;
 $col-type: 5em;
 $col-count: 5.5em;
@@ -1076,32 +1187,36 @@ $card-label-width: 90px;
   color: grey;
 }
 
-/* the offer to freeze is only shown when the pointer is over its row, since most coins are not
-   frozen and a mark on every one of them would say nothing. A touch screen has no hover to wait
-   for, so there it stays visible. */
-.freeze-button {
+/* the trigger is explicit on every actionable row, brightened by the row's own hover */
+.actions-trigger {
   flex: none;
   cursor: pointer;
   color: grey;
   opacity: 0.55;
 }
-.freeze-button:hover {
+.utxo-row:hover .actions-trigger,
+.actions-trigger:hover {
   opacity: 1;
 }
-.freeze-button.frozen {
+.held-marker.frozen {
   color: var(--color-primary);
-  opacity: 1;
 }
-@media (hover: hover) {
-  .freeze-button:not(.frozen) {
-    opacity: 0;
-  }
-  .utxo-row:hover .freeze-button:not(.frozen) {
-    opacity: 0.55;
-  }
-  .utxo-row:hover .freeze-button:not(.frozen):hover {
-    opacity: 1;
-  }
+/* the whole row opens the actions, so the whole row says it is clickable */
+.utxo-row.actionable {
+  cursor: pointer;
+}
+
+/* spans every column of its row, so labels need no column of their own and only
+   the rows that have one grow the extra line */
+.utxo-label-line {
+  grid-column: 1 / -1;
+  justify-content: center;
+  padding-top: 2px;
+}
+/* a bounded centered box, for the shown label and its editor alike, so the
+   editing underline does not stretch across the whole row */
+.utxo-label-line .inline-edit {
+  flex: 0 1 30em;
 }
 
 .token-name {
@@ -1186,9 +1301,9 @@ $card-label-width: 90px;
     display: inline;
     min-width: $card-label-width;
   }
-  /* A card has the room to say what a coin is and what can be done to it separately, rather
-     than leaving one mark to mean both. The state reads on the cell's own line, the action
-     drops to its own beneath it, under a label of its own like every other value here. */
+  /* A card has the room to say what a coin is and what can be done to it separately. The state
+     reads on the cell's own line, the actions trigger drops to its own beneath it, under a
+     label of its own like every other value here. */
   .utxo-grid .held-cell {
     justify-content: flex-start;
     flex-wrap: wrap;
@@ -1200,8 +1315,8 @@ $card-label-width: 90px;
     flex: 0 0 100%;
     margin-top: 4px;
   }
-  /* waiting for a hover that a card has no room to hint at would hide the action entirely */
-  .utxo-grid .freeze-button:not(.frozen) {
+  /* a touch screen has no row hover to brighten the trigger, so it starts more visible */
+  .utxo-grid .actions-trigger {
     opacity: 0.75;
   }
 }
@@ -1221,10 +1336,10 @@ $card-label-width: 90px;
 @container categories-grid (max-width: 20.8em) {
   @include stacked-card;
 }
-@container bch-grid (max-width: 31.1em) {
+@container bch-grid (max-width: 32.1em) {
   @include stacked-card;
 }
-@container bch-hd-grid (max-width: 41.3em) {
+@container bch-hd-grid (max-width: 42.3em) {
   @include stacked-card;
 }
 @container affected-grid (max-width: 39.3em) {
@@ -1238,5 +1353,16 @@ $card-label-width: 90px;
 }
 @container ftnft-grid (max-width: 53.7em) {
   @include stacked-card;
+}
+</style>
+
+<style>
+/* Global (unscoped) on purpose: the actions menu is teleported outside this component.
+   Quasar's default menu surface is white, so dark mode gives it the app's own dark
+   surfaces, like the inputs and pill bars get in app.css */
+body.dark .utxo-actions-menu {
+  background: var(--bg-secondary-color);
+  color: var(--font-color);
+  border: 1px solid var(--color-lightGrey);
 }
 </style>

@@ -181,6 +181,10 @@
         signedPledge: signedPledge.value,
       });
 
+      // The template names no campaign, so the label records what there is to know: what the
+      // coin is held for and how long the campaign can still take it
+      store.setUtxoLabel(outpointOf(pledgeUtxo), t('flipstarter.pledgeLabel', { date: expiryDate(pledgeTemplate.expires) }));
+
       await handleTransactionBroadcastSuccess(
         t('flipstarter.alerts.pledgePrepared'), txId, t('flipstarter.alerts.pledgePreparedTitle')
       );

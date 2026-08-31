@@ -14,7 +14,7 @@
     maxLength: number;
   }>();
 
-  const emit = defineEmits<{ save: [value: string] }>();
+  const emit = defineEmits<{ save: [value: string]; cancel: [] }>();
 
   const editing = ref(false);
   const draft = ref("");
@@ -37,7 +37,12 @@
 
   function cancelEdit() {
     editing.value = false;
+    emit('cancel');
   }
+
+  // For a parent that opens the editor from its own control (a menu action) rather
+  // than a click on the displayed text
+  defineExpose({ startEdit });
 
   // Blur alone can't close the editor: pressing Quasar controls (pagination, toggles)
   // prevents default on mousedown, so the input never blurs. Watch presses at the

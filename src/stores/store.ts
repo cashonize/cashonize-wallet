@@ -86,6 +86,12 @@ import {
   type ReservedUtxos,
   type ReservationReason
 } from "src/utils/wallet/reservedUtxos"
+import {
+  loadUtxoLabels,
+  saveUtxoLabel,
+  removeUtxoLabels,
+  type UtxoLabels,
+} from "src/utils/wallet/utxoLabels"
 import { removePledges } from "src/utils/tools/flipstarterPledges"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -156,6 +162,8 @@ export const useStore = defineStore('store', () => {
   const addressLabels = ref({} as Record<string, string>);
   // Coins held back from coin selection, keyed by outpoint (see utils/wallet/reservedUtxos.ts)
   const reservedUtxos = ref({} as ReservedUtxos);
+  // Private labels on the wallet's coins, keyed by outpoint (see utils/wallet/utxoLabels.ts)
+  const utxoLabels = ref({} as UtxoLabels);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   // Category a token payment request asks for, set when the user chooses to open it from
@@ -386,6 +394,7 @@ export const useStore = defineStore('store', () => {
     addressMarks.value = loadAddressMarks(newNetwork, newWallet.name);
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
     reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
+    utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
   }
 
   function setTxNote(txid: string, note: string) {
@@ -428,6 +437,10 @@ export const useStore = defineStore('store', () => {
 
   function setAddressLabel(address: string, label: string) {
     addressLabels.value = saveAddressLabel(network.value, wallet.value.name, address, label);
+  }
+
+  function setUtxoLabel(outpoint: string, label: string) {
+    utxoLabels.value = saveUtxoLabel(network.value, wallet.value.name, outpoint, label);
   }
 
   async function initializeWallet() {
@@ -873,6 +886,7 @@ export const useStore = defineStore('store', () => {
     removeTxNotes(walletName);
     removeAddressManagementData(walletName);
     removeReservedUtxos(walletName);
+    removeUtxoLabels(walletName);
     removePledges(walletName);
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
@@ -1441,6 +1455,20 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // Spends one coin whole: a pool of only that coin, sent with sendMax, so no other coin joins
+  // the transaction and no change returns. A reservation on the coin is dropped only once
+  // broadcast, so a failure leaves the coin held rather than released into the next unrelated send.
+  async function sendSingleCoin(utxo: Utxo, cashaddr: string) {
+    const response = await wallet.value.sendMax(cashaddr, { utxoIds: [utxo] });
+    // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
+    // pool still holds it and the max-amount refresh asks the server about a spent outpoint
+    await updateWalletUtxos();
+    const outpoint = outpointOf(utxo);
+    if (outpoint in reservedUtxos.value) await dropReservation(outpoint);
+    else await refreshMaxAmountToSend();
+    return response;
+  }
+
   const spend = {
     async send(requests: SendRequestType, options?: SpendOptions) {
       checkNoReservedUtxos(options);
@@ -1484,20 +1512,20 @@ export const useStore = defineStore('store', () => {
       return wallet.value.getMaxAmountToSend({ outputCount, options: spendConfig });
     },
 
-    // The only way a reserved coin is spent: a pool of the one coin sent back to this wallet,
-    // which is what cancelling a pledge is. The reservation is dropped only once broadcast, so a
-    // failure here leaves the coin held rather than released into the next unrelated send.
+    // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
+    // makes the signed pledge the campaign holds unusable
     async releaseReservedCoin(utxo: Utxo) {
-      const outpoint = outpointOf(utxo);
-      if (!(outpoint in reservedUtxos.value)) throw new Error(t('store.errors.utxoNotReserved'));
-      const response = await wallet.value.sendMax(wallet.value.getDepositAddress(), {
-        utxoIds: [utxo]
-      });
-      // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
-      // pool still holds it and the max-amount refresh asks the server about a spent outpoint
-      await updateWalletUtxos();
-      await dropReservation(outpoint);
-      return response;
+      if (!(outpointOf(utxo) in reservedUtxos.value)) throw new Error(t('store.errors.utxoNotReserved'));
+      return sendSingleCoin(utxo, wallet.value.getDepositAddress());
+    },
+
+    // The user spending one chosen coin whole, frozen or not. A pledged coin is refused: the
+    // campaign holds a signed pledge against it, so cancelling the pledge is its only release.
+    async sendUtxo(utxo: Utxo, cashaddr: string) {
+      if (reservedUtxos.value[outpointOf(utxo)]?.reason === 'pledge') {
+        throw new Error(t('store.errors.cannotSendPledgedUtxo'));
+      }
+      return sendSingleCoin(utxo, cashaddr);
     },
   };
 
@@ -1518,6 +1546,8 @@ export const useStore = defineStore('store', () => {
     reservedWalletUtxos,
     reserveUtxo,
     dropReservation,
+    utxoLabels,
+    setUtxoLabel,
     spend, // the only route to the wallet's spending methods
     tokenList,
     filteredTokenList,
