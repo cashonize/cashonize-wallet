@@ -787,8 +787,10 @@
     <div class="page-description">
       {{ t('portfolio.description') }}
       <InfoPopup>
-        <div>{{ t('portfolio.pricesInfo') }}</div>
-        <div class="info-popup-note">{{ t('portfolio.nftsExcluded') }}</div>
+        <div style="max-width: 300px;">
+          <div>{{ t('portfolio.pricesInfo') }}</div>
+          <div class="info-popup-note">{{ t('portfolio.nftsExcluded') }}</div>
+        </div>
       </InfoPopup>
     </div>
 
