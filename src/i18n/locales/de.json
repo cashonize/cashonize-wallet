@@ -1597,7 +1597,8 @@
         "emptyReserve": "Reserve geleert",
         "transfer": "Übertragen",
         "operation": "Aktualisiert"
-      }
+      },
+      "showCount": "Historie ({count})"
     },
     "publish": {
       "action": "Update veröffentlichen",
@@ -1694,7 +1695,8 @@
       "confirmMessage": "Die Münze der Identität ({amount}) geht an {address} und übergibt damit die Hoheit über die Metadaten dieses Tokens. Das lässt sich nicht rückgängig machen.",
       "confirmButton": "Übertragen",
       "done": "Identität an {address} übertragen",
-      "doneTitle": "Identität übertragen"
+      "doneTitle": "Identität übertragen",
+      "action": "übertragen"
     },
     "remove": {
       "title": "Aus dieser Liste entfernen?",
@@ -1714,9 +1716,7 @@
       "createIdentity": "Oder erstelle oben eine Identität, die kein Token ist."
     },
     "established": {
-      "since": "Seit {year}",
-      "transactions": "{count} Transaktion | {count} Transaktionen",
-      "publications": "{count} Veröffentlichung | {count} Veröffentlichungen"
+      "since": "Seit {year}"
     }
   }
 }

@@ -1597,7 +1597,8 @@
         "emptyReserve": "Reserva vaciada",
         "transfer": "Transferida",
         "operation": "Actualizada"
-      }
+      },
+      "showCount": "Historial ({count})"
     },
     "publish": {
       "action": "publicar actualización",
@@ -1694,7 +1695,8 @@
       "confirmMessage": "La moneda de la identidad ({amount}) se envía a {address}, entregando la autoridad para actualizar los metadatos de este token. Esto no se puede deshacer.",
       "confirmButton": "Transferir",
       "done": "Identidad transferida a {address}",
-      "doneTitle": "Identidad transferida"
+      "doneTitle": "Identidad transferida",
+      "action": "transferir"
     },
     "remove": {
       "title": "¿Quitar de esta lista?",
@@ -1714,9 +1716,7 @@
       "createIdentity": "O crea arriba una identidad que no sea un token."
     },
     "established": {
-      "since": "Desde {year}",
-      "transactions": "{count} transacción | {count} transacciones",
-      "publications": "{count} publicación | {count} publicaciones"
+      "since": "Desde {year}"
     }
   }
 }

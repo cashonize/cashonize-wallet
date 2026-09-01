@@ -57,13 +57,22 @@
   const destinationInputs = ref<Record<string, string>>({});
   const transferringCategory = ref<string | undefined>(undefined);
   const keyDestination = ref("");
+  // A card shows what it is when closed and what can be done with it when open, one at a time:
+  // the details and every operation standing open on every card was the page's real weight.
+  const expandedIdentity = ref<string | undefined>(undefined);
+  const isExpanded = (identity: IdentityState) => expandedIdentity.value === identity.category;
+
+  function toggleCard(category: string) {
+    expandedIdentity.value = expandedIdentity.value === category ? undefined : category;
+  }
+
   // Which cards have their history open, and which is being fetched
   const openHistories = ref<string[]>([]);
   const loadingHistory = ref<string | undefined>(undefined);
 
   // One form open at a time across the whole list: these are deliberate, one-at-a-time operations,
   // and a card with four open forms says otherwise
-  type IdentityAction = 'publish' | 'issue' | 'addToReserve' | 'emptyReserve' | 'transferKey';
+  type IdentityAction = 'publish' | 'issue' | 'addToReserve' | 'emptyReserve' | 'transfer' | 'transferKey';
   const openAction = ref<{ category: string, action: IdentityAction } | undefined>(undefined);
   const runningAction = ref<IdentityAction | undefined>(undefined);
   const publishUris = ref<string[]>([]);
@@ -87,18 +96,20 @@
     )
   );
 
-  // What an identity has to show for itself, from the resolve, and richer for a card whose
-  // history is open: how long it has stood, how far its chain runs, how often it has published.
-  function establishment(identity: IdentityState): string[] {
-    const history = identitiesStore.identityHistories[identity.category];
-    const facts: string[] = [];
-    const since = history?.[0]?.timestamp;
-    if (since) facts.push(t('identities.established.since', { year: new Date(since * 1000).getFullYear() }));
-    const chainLength = identity.links?.length ?? history?.length;
-    if (chainLength) facts.push(t('identities.established.transactions', chainLength));
-    const publications = history?.filter(link => link.publication).length;
-    if (publications) facts.push(t('identities.established.publications', publications));
-    return facts;
+  // How long an identity has stood, once its history says. The length of its chain is a count
+  // without a subject beside a name, so it goes where it means something: the history link.
+  function establishedYear(identity: IdentityState): number | undefined {
+    const since = identitiesStore.identityHistories[identity.category]?.[0]?.timestamp;
+    return since ? new Date(since * 1000).getFullYear() : undefined;
+  }
+
+  function chainLength(identity: IdentityState): number | undefined {
+    return identity.links?.length ?? identitiesStore.identityHistories[identity.category]?.length;
+  }
+
+  // What the identity output carries, in one line for a closed card
+  function carriesLine(identity: IdentityState): string | undefined {
+    return reserveDescription(identity)?.join(' · ');
   }
   // A watched identity counts here too: the wallet follows its publication either way, and only
   // the actions depend on holding the authhead
@@ -824,7 +835,9 @@
       </div>
 
       <div v-for="identity in identities" :key="identity.category" class="section identity-card">
-        <div class="identity-header">
+        <!-- The header opens and closes the card. Both halves are used: what it is on the left,
+             which one it is on the right, where the category was an unused corner. -->
+        <div class="identity-header identity-header-row" @click="toggleCard(identity.category)">
           <TokenIcon
             :token-id="identity.category"
             :icon-url="identityIconUrl(identity.category)"
@@ -832,32 +845,47 @@
           />
           <div class="identity-title">
             <div>{{ identityName(identity.category) ?? t('identities.unnamedIdentity') }}</div>
-            <div v-if="foundAutomatically.includes(identity.category)" class="description">
-              {{ t('identities.detected.foundAutomatically') }}
+            <div v-if="establishedYear(identity)" class="description">
+              {{ t('identities.established.since', { year: establishedYear(identity) }) }}
+            </div>
+            <!-- asking what a status means is not asking to open the card -->
+            <span @click.stop>
               <InfoPopup>
-                <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
+                <template #trigger>
+                  <span class="identity-status info-popup-text-trigger" :class="identity.status">
+                    <q-icon v-if="identity.authUtxo" name="lock" size="15px" />
+                    {{ t('identities.status.' + identity.status) }}
+                  </span>
+                </template>
+                <div style="max-width: 300px;">{{ t('identities.statusHelp.' + identity.status) }}</div>
               </InfoPopup>
-            </div>
-            <div v-if="establishment(identity).length" class="description establishment">
-              {{ establishment(identity).join(' · ') }}
-            </div>
-            <InfoPopup>
-              <template #trigger>
-                <span class="identity-status info-popup-text-trigger" :class="identity.status">
-                  <q-icon v-if="identity.authUtxo" name="lock" size="15px" />
-                  {{ t('identities.status.' + identity.status) }}
-                </span>
-              </template>
-              <div style="max-width: 300px;">{{ t('identities.statusHelp.' + identity.status) }}</div>
-            </InfoPopup>
+            </span>
+          </div>
+          <div
+            class="identity-id copy-target"
+            :title="identity.category"
+            @click.stop="copyToClipboard(identity.category)"
+          >
+            <span class="mono">{{ truncateHash(identity.category) }}</span>
+            <img class="copyIcon" src="images/copyGrey.svg">
           </div>
         </div>
 
-        <div class="copy-target" :title="identity.category" @click="copyToClipboard(identity.category)">
-          <span class="description">{{ t('identities.categoryLabel') }}</span>
-          <span class="mono">{{ truncateHash(identity.category) }}</span>
-          <img class="copyIcon" src="images/copyGrey.svg">
+        <!-- States stay visible on a closed card; only the details and the actions fold away -->
+        <div v-if="foundAutomatically.includes(identity.category)" class="description">
+          {{ t('identities.detected.foundAutomatically') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
+          </InfoPopup>
         </div>
+        <div v-if="carriesLine(identity)" class="description">{{ carriesLine(identity) }}</div>
+        <div v-if="!isExpanded(identity) && identity.publication" class="publication-badge-row">
+          <template v-for="row in publicationRows(identity)" :key="row.uri">
+            <span v-if="row.status" class="publication-badge" :class="row.status">{{ row.statusText }}</span>
+          </template>
+        </div>
+
+        <template v-if="isExpanded(identity)">
         <div
           v-if="identity.authheadTxid"
           class="copy-target"
@@ -919,33 +947,31 @@
           </template>
         </div>
 
-        <div v-if="identity.status === 'carriesTokens'" class="section">
-          <div>
-            {{ t('identities.reserve.title') }}
-            <InfoPopup>
-              <div style="max-width: 300px;">{{ t('identities.reserve.help') }}</div>
-            </InfoPopup>
-          </div>
-          <div v-for="line in reserveDescription(identity)" :key="line" class="description">{{ line }}</div>
-        </div>
-
         <!-- The operations, all of them the same spend of the authhead, so they share one row of
-             actions and open one form at a time -->
-        <div v-if="identity.authUtxo" class="identity-actions">
-          <span class="action-link" @click="toggleAction(identity, 'publish')">
+             actions and open one form at a time, the way a token item's actions do -->
+        <div v-if="identity.authUtxo" class="actionBar">
+          <span @click="toggleAction(identity, 'publish')" style="white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'">
             {{ t('identities.publish.action') }}
           </span>
           <template v-if="identity.status === 'carriesTokens'">
-            <span class="action-link" @click="toggleAction(identity, 'issue')">
+            <span @click="toggleAction(identity, 'issue')" style="white-space: nowrap;">
+              <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
               {{ t('identities.reserve.issue.action') }}
             </span>
-            <span class="action-link" @click="toggleAction(identity, 'addToReserve')">
+            <span @click="toggleAction(identity, 'addToReserve')" style="white-space: nowrap;">
+              <img class="icon" :src="settingsStore.darkMode? 'images/plus-square-lightGrey.svg' : 'images/plus-square.svg'">
               {{ t('identities.reserve.add.action') }}
             </span>
-            <span class="action-link" @click="toggleAction(identity, 'emptyReserve')">
+            <span @click="toggleAction(identity, 'emptyReserve')" style="white-space: nowrap;">
+              <img class="icon" :src="settingsStore.darkMode? 'images/import-lightGrey.svg' : 'images/import.svg'">
               {{ t('identities.reserve.empty.action') }}
             </span>
           </template>
+          <span v-if="identity.status === 'held'" @click="toggleAction(identity, 'transfer')" style="white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
+            {{ t('identities.transfer.action') }}
+          </span>
         </div>
 
         <div v-if="isOpen(identity, 'publish')" class="section">
@@ -1035,25 +1061,23 @@
           >
         </div>
 
-        <!-- Transferring an identity that carries a reserve is two steps with one meaning each,
-             rather than one transfer that quietly moves the supply along with the authority -->
-        <div v-if="identity.status === 'carriesTokens'" class="description" style="margin-top: 12px;">
-          {{ t('identities.reserve.transferHint') }}
-          <ol class="walkthrough">
-            <li>
-              <q-icon name="unarchive" size="18px" />
-              <span>{{ t('identities.reserve.transferSteps.empty') }}</span>
-            </li>
-            <li>
-              <q-icon name="send" size="18px" />
-              <span>{{ t('identities.reserve.transferSteps.transfer') }}</span>
-            </li>
-          </ol>
-        </div>
-
-        <div v-if="identity.status === 'held'" class="section">
-          <div>{{ t('identities.transfer.label') }}</div>
-          <div class="description" style="margin-top: 4px;">{{ t('identities.transfer.hint') }}</div>
+        <div v-if="isOpen(identity, 'transfer')" class="section">
+          <div class="description">{{ t('identities.transfer.hint') }}</div>
+          <!-- Transferring an identity that carries a reserve is two steps with one meaning each,
+               rather than one transfer that quietly moves the supply along with the authority -->
+          <div v-if="identity.status === 'carriesTokens'" class="description" style="margin-top: 8px;">
+            {{ t('identities.reserve.transferHint') }}
+            <ol class="walkthrough">
+              <li>
+                <q-icon name="unarchive" size="18px" />
+                <span>{{ t('identities.reserve.transferSteps.empty') }}</span>
+              </li>
+              <li>
+                <q-icon name="send" size="18px" />
+                <span>{{ t('identities.reserve.transferSteps.transfer') }}</span>
+              </li>
+            </ol>
+          </div>
           <div class="transfer-identity">
             <input
               v-model="destinationInputs[identity.category]"
@@ -1128,10 +1152,13 @@
           <span class="action-link" @click="toggleHistory(identity)">{{
             openHistories.includes(identity.category)
               ? t('identities.history.hide')
-              : t('identities.history.show')
+              : chainLength(identity)
+                ? t('identities.history.showCount', { count: chainLength(identity) })
+                : t('identities.history.show')
           }}</span>
           <span class="remove-identity" @click="removeIdentity(identity)">{{ t('identities.remove.button') }}</span>
         </div>
+        </template>
       </div>
     </div>
   </fieldset>
@@ -1177,6 +1204,21 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+}
+/* the whole header is the card's toggle, so it takes the width and the pointer */
+.identity-header-row {
+  cursor: pointer;
+}
+/* the identifier sits in the header's other half, where nothing was */
+.identity-id {
+  margin-left: auto;
+  flex: none;
+}
+.publication-badge-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }
 .identity-title {
   min-width: 0;

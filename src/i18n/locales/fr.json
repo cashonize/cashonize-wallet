@@ -1597,7 +1597,8 @@
         "emptyReserve": "Réserve vidée",
         "transfer": "Transférée",
         "operation": "Mise à jour"
-      }
+      },
+      "showCount": "Historique ({count})"
     },
     "publish": {
       "action": "publier une mise à jour",
@@ -1694,7 +1695,8 @@
       "confirmMessage": "La pièce de l'identité ({amount}) est envoyée à {address}, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. C'est irréversible.",
       "confirmButton": "Transférer",
       "done": "Identité transférée à {address}",
-      "doneTitle": "Identité transférée"
+      "doneTitle": "Identité transférée",
+      "action": "transférer"
     },
     "remove": {
       "title": "Retirer de cette liste ?",
@@ -1714,9 +1716,7 @@
       "createIdentity": "Ou créez ci-dessus une identité qui n'est pas un token."
     },
     "established": {
-      "since": "Depuis {year}",
-      "transactions": "{count} transaction | {count} transactions",
-      "publications": "{count} publication | {count} publications"
+      "since": "Depuis {year}"
     }
   }
 }

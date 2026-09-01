@@ -1597,7 +1597,8 @@
         "emptyReserve": "Reserve emptied",
         "transfer": "Transferred",
         "operation": "Updated"
-      }
+      },
+      "showCount": "History ({count})"
     },
     "publish": {
       "action": "publish update",
@@ -1694,7 +1695,8 @@
       "confirmMessage": "The identity's coin ({amount}) is sent to {address}, handing over the authority to update this token's metadata. This cannot be undone.",
       "confirmButton": "Transfer",
       "done": "Transferred the identity to {address}",
-      "doneTitle": "Identity transferred"
+      "doneTitle": "Identity transferred",
+      "action": "transfer"
     },
     "remove": {
       "title": "Remove from this list?",
@@ -1714,9 +1716,7 @@
       "createIdentity": "Or create an identity that is not a token, above."
     },
     "established": {
-      "since": "Established {year}",
-      "transactions": "{count} transaction | {count} transactions",
-      "publications": "{count} publication | {count} publications"
+      "since": "Established {year}"
     }
   }
 }
