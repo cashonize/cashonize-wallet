@@ -43,7 +43,7 @@
 
   // Two things happen on this page: looking after the identities that are here, and getting one
   // onto it. Only the first is why anyone opens it, so the acquisition paths wait behind a pill.
-  const mode = ref<'identities' | 'add'>('identities');
+  const mode = ref<'identities' | 'existing' | 'create'>('identities');
 
   const categoryInput = ref("");
   // What the wallet listed on its own and the user has not seen. Taken on opening the page and
@@ -713,18 +713,20 @@
       <button :class="{ active: mode === 'identities' }" @click="mode = 'identities'">
         {{ t('identities.modes.identities') }}
       </button>
-      <button :class="{ active: mode === 'add' }" @click="mode = 'add'">
-        {{ t('identities.modes.add') }}
+      <button :class="{ active: mode === 'existing' }" @click="mode = 'existing'">
+        {{ t('identities.modes.existing') }}
+      </button>
+      <button :class="{ active: mode === 'create' }" @click="mode = 'create'">
+        {{ t('identities.modes.create') }}
       </button>
     </div>
 
-    <template v-if="mode === 'add'">
+    <template v-if="mode === 'existing'">
     <div class="section">
       <div>
         {{ t('identities.add.label') }}
         <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.add.categoryHelp') }}</div>
-          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpWhere') }}</div>
+          <div style="max-width: 300px;">{{ t('identities.add.categoryHelpWhere') }}</div>
           <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpKey') }}</div>
         </InfoPopup>
       </div>
@@ -738,24 +740,6 @@
         >
       </div>
       <div class="description" style="margin-top: 6px;">{{ t('identities.add.hint') }}</div>
-    </div>
-
-    <div class="section">
-      <div>
-        {{ t('identities.create.label') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.create.help') }}</div>
-          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.create.helpNaming') }}</div>
-        </InfoPopup>
-      </div>
-      <div class="description" style="margin-top: 6px;">{{ t('identities.create.hint') }}</div>
-      <input
-        @click="createIdentity()"
-        type="button"
-        :value="isCreating ? t('identities.create.creatingButton') : t('identities.create.button')"
-        :disabled="isCreating || identitiesStore.identitiesResolving"
-        style="margin-top: 8px;"
-      >
     </div>
 
     <div class="section">
@@ -780,7 +764,35 @@
     </div>
     </template>
 
-    <div v-else class="section">
+    <template v-if="mode === 'create'">
+    <div class="section">
+      <div>
+        {{ t('identities.create.label') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('identities.create.help') }}</div>
+          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.create.helpNaming') }}</div>
+        </InfoPopup>
+      </div>
+      <div class="description" style="margin-top: 6px;">{{ t('identities.create.hint') }}</div>
+      <input
+        @click="createIdentity()"
+        type="button"
+        :value="isCreating ? t('identities.create.creatingButton') : t('identities.create.button')"
+        :disabled="isCreating || identitiesStore.identitiesResolving"
+        style="margin-top: 8px;"
+      >
+      <!-- a token identity is made by the genesis that makes the token, not here -->
+      <div class="description" style="margin-top: 10px;">
+        <i18n-t keypath="identities.create.tokenPointer" tag="span">
+          <template #link>
+            <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.create.tokenPointerLink') }}</span>
+          </template>
+        </i18n-t>
+      </div>
+    </div>
+    </template>
+
+    <div v-if="mode === 'identities'" class="section">
       <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }}</div>
       <div v-else-if="!identities.length">
         <div class="description">{{ t('identities.empty') }}</div>
@@ -962,8 +974,15 @@
               </InfoPopup>
               <span v-else-if="identitiesStore.publicationChecksRunning" class="description">{{ t('identities.publication.checking') }}</span>
             </div>
-            <div class="description mono" :title="identity.publication.hash">
-              {{ t('identities.publication.hash', { hash: truncateHash(identity.publication.hash) }) }}
+            <div
+              class="copy-target"
+              :title="identity.publication.hash"
+              @click="copyToClipboard(identity.publication.hash)"
+            >
+              <span class="description mono">
+                {{ t('identities.publication.hash', { hash: truncateHash(identity.publication.hash) }) }}
+              </span>
+              <img class="copyIcon" src="images/copyGrey.svg">
             </div>
             <div v-if="hasDrifted(identity)" class="description" style="margin-top: 6px;">
               <i18n-t keypath="identities.publication.driftedPrompt" tag="span">
@@ -977,14 +996,15 @@
 
         <!-- The operations, all of them the same spend of the authhead, so they share one row of
              actions and open one form at a time, the way a token item's actions do -->
-        <div v-if="identity.authUtxo" class="actionBar">
+        <div class="actionBar identity-action-row">
+        <template v-if="identity.authUtxo">
           <span @click="toggleAction(identity, 'publish')" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'">
             {{ t('identities.publish.action') }}
           </span>
           <template v-if="identity.status === 'carriesTokens'">
             <span @click="toggleAction(identity, 'issue')" style="white-space: nowrap;">
-              <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
+              <img class="icon" :src="settingsStore.darkMode? 'images/minus-square-lightGrey.svg' : 'images/minus-square.svg'">
               {{ t('identities.reserve.issue.action') }}
             </span>
             <span @click="toggleAction(identity, 'addToReserve')" style="white-space: nowrap;">
@@ -1000,6 +1020,31 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
             {{ t('identities.transfer.action') }}
           </span>
+        </template>
+          <q-icon name="more_vert" size="22px" class="identity-menu-trigger">
+            <q-menu anchor="bottom right" self="top right">
+              <q-list dense>
+                <q-item clickable v-close-popup :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
+                  <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>
+                  <q-item-section>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="toggleHistory(identity)">
+                  <q-item-section avatar><q-icon name="history" size="18px" /></q-item-section>
+                  <q-item-section>{{
+                    openHistories.includes(identity.category)
+                      ? t('identities.history.hide')
+                      : chainLength(identity)
+                        ? t('identities.history.showCount', { count: chainLength(identity) })
+                        : t('identities.history.show')
+                  }}</q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="removeIdentity(identity)">
+                  <q-item-section avatar><q-icon name="delete" size="18px" /></q-item-section>
+                  <q-item-section>{{ t('identities.remove.button') }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-icon>
         </div>
 
         <div v-if="isOpen(identity, 'publish')" class="section">
@@ -1172,32 +1217,6 @@
           </div>
         </div>
 
-        <div class="identity-links">
-          <q-icon name="more_vert" size="22px" class="identity-menu-trigger">
-            <q-menu anchor="bottom right" self="top right">
-              <q-list dense>
-                <q-item clickable v-close-popup :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
-                  <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>
-                  <q-item-section>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="toggleHistory(identity)">
-                  <q-item-section avatar><q-icon name="history" size="18px" /></q-item-section>
-                  <q-item-section>{{
-                    openHistories.includes(identity.category)
-                      ? t('identities.history.hide')
-                      : chainLength(identity)
-                        ? t('identities.history.showCount', { count: chainLength(identity) })
-                        : t('identities.history.show')
-                  }}</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="removeIdentity(identity)">
-                  <q-item-section avatar><q-icon name="delete" size="18px" /></q-item-section>
-                  <q-item-section>{{ t('identities.remove.button') }}</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-icon>
-        </div>
         </template>
       </div>
     </div>
@@ -1268,6 +1287,15 @@
 }
 .identity-menu-trigger {
   cursor: pointer;
+  /* pinned to the end of the action row rather than wrapping under it */
+  margin-left: auto;
+}
+/* the operations wrap as a group, the menu stays where it is */
+.identity-action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 0;
 }
 /* the same chip the transaction history marks its own rows with */
 .identity-badge {

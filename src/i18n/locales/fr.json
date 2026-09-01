@@ -1445,7 +1445,8 @@
     "description": "Les identités de jeton sur lesquelles ce portefeuille a autorité.",
     "modes": {
       "identities": "Identités",
-      "add": "Ajouter"
+      "existing": "Ajouter",
+      "create": "Créer"
     },
     "whatIsAnIdentity": "Les métadonnées d'un token, son nom, son icône et sa description, ne peuvent être mises à jour que par qui détient sa pièce d'identité (l'AuthHead) : un UTXO précis qui passe à un nouvel outpoint à chaque mise à jour.",
     "whatIsAnIdentityNote": "C'est le fait de détenir cette pièce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le token.",
@@ -1565,7 +1566,7 @@
       "driftedPrompt": "Le registre à l'un de ces emplacements ne correspond plus à ce qui a été publié. {link}",
       "driftedLink": "Publier le contenu actuel",
       "status": {
-        "verified": "vérifié",
+        "verified": "métadonnées à jour",
         "changed": "modifié depuis la publication",
         "changedIpfs": "ne correspond pas au hash publié",
         "unreachable": "injoignable"
@@ -1641,8 +1642,7 @@
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
       "hint": "Cashonize cherche où se trouve l'identité de cette catégorie et la liste ici. Pour un token détenu par ce portefeuille, la recherche ci-dessous la trouve aussi.",
-      "categoryHelp": "Une catégorie de jeton est l'identifiant de 64 caractères d'un jeton, le même que celui de sa transaction de genèse.",
-      "categoryHelpWhere": "Vous le trouverez dans les infos du jeton sous l'onglet Jetons, ou sur tokenexplorer.cash.",
+      "categoryHelpWhere": "Vous la trouverez sur les infos du token dans l'onglet Tokens.",
       "categoryHelpKey": "La catégorie d'une clé d'identité fonctionne aussi ici : le portefeuille dérive ce qu'elle garde et suit ces identités.",
       "found": {
         "title": "Ajouter ce qui a été trouvé ?",
@@ -1668,7 +1668,9 @@
       "doneTitle": "Identité créée",
       "errors": {
         "noTxId": "La transaction a été envoyée mais son identifiant est revenu vide, l'identité n'a donc pas pu être listée."
-      }
+      },
+      "tokenPointer": "Pour une identité de token, {link} : sa genèse crée le token et son identité d'un coup.",
+      "tokenPointerLink": "créez plutôt le token"
     },
     "scan": {
       "prompt": "Cashonize peut vérifier si les tokens de ce portefeuille ont des identités qu'il détient.",

@@ -1445,7 +1445,8 @@
     "description": "The token identities this wallet has the authority over.",
     "modes": {
       "identities": "Identities",
-      "add": "Add"
+      "existing": "Add existing",
+      "create": "Create new"
     },
     "whatIsAnIdentity": "A token's metadata, its name, icon and description, can only be updated by whoever holds its identity coin (the AuthHead): one specific UTXO that moves to a new outpoint with every update.",
     "whatIsAnIdentityNote": "Holding that coin is what makes this wallet the one that can publish new metadata for the token.",
@@ -1565,7 +1566,7 @@
       "driftedPrompt": "The registry at one of these locations no longer matches what was published. {link}",
       "driftedLink": "Publish the current content",
       "status": {
-        "verified": "verified",
+        "verified": "metadata in sync",
         "changed": "changed since publication",
         "changedIpfs": "does not match the published hash",
         "unreachable": "unreachable"
@@ -1641,8 +1642,7 @@
       "button": "Add identity",
       "addingButton": "Adding...",
       "hint": "Cashonize looks up where that category's identity is held and lists it here. For a token this wallet holds, the check below finds it too.",
-      "categoryHelp": "A token category is the 64 character id of a token, the same one its genesis transaction has.",
-      "categoryHelpWhere": "Find it on the token's info in the Tokens tab, or on tokenexplorer.cash.",
+      "categoryHelpWhere": "Find it on the token's info in the Tokens tab.",
       "categoryHelpKey": "An identity key's category works here too: the wallet derives what it guards and watches those identities.",
       "found": {
         "title": "Add what was found?",
@@ -1668,7 +1668,9 @@
       "doneTitle": "Identity created",
       "errors": {
         "noTxId": "The transaction was sent but its id came back empty, so the identity could not be listed."
-      }
+      },
+      "tokenPointer": "For a token identity, {link} instead: its genesis makes the token and its identity at once.",
+      "tokenPointerLink": "create the token"
     },
     "scan": {
       "prompt": "Cashonize can check the tokens in this wallet for identities it holds.",

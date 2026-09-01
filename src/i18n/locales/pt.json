@@ -1445,7 +1445,8 @@
     "description": "As identidades de token sobre as quais esta carteira tem autoridade.",
     "modes": {
       "identities": "Identidades",
-      "add": "Adicionar"
+      "existing": "Adicionar",
+      "create": "Criar nova"
     },
     "whatIsAnIdentity": "Os metadados de um token, o seu nome, ícone e descrição, só podem ser atualizados por quem tem a sua moeda de identidade (o AuthHead): um UTXO específico que passa para um novo outpoint a cada atualização.",
     "whatIsAnIdentityNote": "Ter essa moeda é o que faz desta carteira a que pode publicar novos metadados do token.",
@@ -1565,7 +1566,7 @@
       "driftedPrompt": "O registro em um destes locais já não corresponde ao que foi publicado. {link}",
       "driftedLink": "Publicar o conteúdo atual",
       "status": {
-        "verified": "verificado",
+        "verified": "metadados em dia",
         "changed": "alterado desde a publicação",
         "changedIpfs": "não corresponde ao hash publicado",
         "unreachable": "inacessível"
@@ -1641,8 +1642,7 @@
       "button": "Adicionar identidade",
       "addingButton": "Adicionando...",
       "hint": "O Cashonize procura onde está a identidade dessa categoria e lista-a aqui. Para um token que esta carteira tenha, a busca abaixo também a encontra.",
-      "categoryHelp": "Uma categoria de token é o id de 64 caracteres de um token, o mesmo da transação de gênese dele.",
-      "categoryHelpWhere": "Você o encontra nas informações do token na aba Tokens, ou em tokenexplorer.cash.",
+      "categoryHelpWhere": "Você a encontra nas informações do token na aba Tokens.",
       "categoryHelpKey": "A categoria de uma chave de identidade também funciona aqui: a carteira deriva o que ela guarda e acompanha essas identidades.",
       "found": {
         "title": "Adicionar o que foi encontrado?",
@@ -1668,7 +1668,9 @@
       "doneTitle": "Identidade criada",
       "errors": {
         "noTxId": "A transação foi enviada mas o id dela voltou vazio, portanto a identidade não pôde ser listada."
-      }
+      },
+      "tokenPointer": "Para uma identidade de token, {link}: a génese dele cria o token e a identidade de uma vez.",
+      "tokenPointerLink": "crie o token"
     },
     "scan": {
       "prompt": "O Cashonize pode verificar os tokens desta carteira em busca de identidades que ela tenha.",

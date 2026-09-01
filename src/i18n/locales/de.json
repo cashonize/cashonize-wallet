@@ -1445,7 +1445,8 @@
     "description": "Die Token-Identitäten, über die dieses Wallet die Hoheit hat.",
     "modes": {
       "identities": "Identitäten",
-      "add": "Hinzufügen"
+      "existing": "Vorhandene",
+      "create": "Neu erstellen"
     },
     "whatIsAnIdentity": "Die Metadaten eines Tokens, also Name, Icon und Beschreibung, kann nur aktualisieren, wer seine Identitätsmünze (den AuthHead) hält: ein bestimmter UTXO, der mit jeder Aktualisierung an einen neuen Outpoint wandert.",
     "whatIsAnIdentityNote": "Diese Münze ist es, die dieses Wallet zu dem macht, das neue Metadaten für den Token veröffentlichen kann.",
@@ -1565,7 +1566,7 @@
       "driftedPrompt": "Die Registry an einem dieser Orte passt nicht mehr zum Veröffentlichten. {link}",
       "driftedLink": "Den aktuellen Inhalt veröffentlichen",
       "status": {
-        "verified": "verifiziert",
+        "verified": "Metadaten aktuell",
         "changed": "seit der Veröffentlichung geändert",
         "changedIpfs": "passt nicht zum veröffentlichten Hash",
         "unreachable": "nicht erreichbar"
@@ -1641,8 +1642,7 @@
       "button": "Identität hinzufügen",
       "addingButton": "Wird hinzugefügt...",
       "hint": "Cashonize sucht, wo die Identität dieser Kategorie liegt, und listet sie hier auf. Bei einem Token in diesem Wallet findet sie auch die Prüfung unten.",
-      "categoryHelp": "Eine Token-Kategorie ist die 64 Zeichen lange ID eines Tokens, dieselbe wie die seiner Genesis-Transaktion.",
-      "categoryHelpWhere": "Du findest sie in den Token-Infos im Tokens-Tab oder auf tokenexplorer.cash.",
+      "categoryHelpWhere": "Du findest sie bei den Token-Infos im Tokens-Tab.",
       "categoryHelpKey": "Die Kategorie eines Identitätsschlüssels geht hier auch: das Wallet leitet ab, was er bewacht, und beobachtet diese Identitäten.",
       "found": {
         "title": "Das Gefundene hinzufügen?",
@@ -1668,7 +1668,9 @@
       "doneTitle": "Identität erstellt",
       "errors": {
         "noTxId": "Die Transaktion wurde gesendet, aber ihre Id kam leer zurück, sodass die Identität nicht gelistet werden konnte."
-      }
+      },
+      "tokenPointer": "Für eine Token-Identität {link}: seine Genesis erzeugt den Token und seine Identität zugleich.",
+      "tokenPointerLink": "erstelle stattdessen den Token"
     },
     "scan": {
       "prompt": "Cashonize kann die Tokens in diesem Wallet auf gehaltene Identitäten prüfen.",

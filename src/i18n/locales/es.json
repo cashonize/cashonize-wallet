@@ -1445,7 +1445,8 @@
     "description": "Las identidades de token sobre las que esta billetera tiene autoridad.",
     "modes": {
       "identities": "Identidades",
-      "add": "Añadir"
+      "existing": "Añadir existente",
+      "create": "Crear nueva"
     },
     "whatIsAnIdentity": "Los metadatos de un token, su nombre, icono y descripción, solo los puede actualizar quien tenga su moneda de identidad (el AuthHead): un UTXO concreto que pasa a un nuevo outpoint con cada actualización.",
     "whatIsAnIdentityNote": "Tener esa moneda es lo que hace que esta billetera sea la que puede publicar nuevos metadatos del token.",
@@ -1565,7 +1566,7 @@
       "driftedPrompt": "El registro en una de estas ubicaciones ya no coincide con lo publicado. {link}",
       "driftedLink": "Publicar el contenido actual",
       "status": {
-        "verified": "verificado",
+        "verified": "metadatos al día",
         "changed": "cambiado desde la publicación",
         "changedIpfs": "no coincide con el hash publicado",
         "unreachable": "inaccesible"
@@ -1641,8 +1642,7 @@
       "button": "Añadir identidad",
       "addingButton": "Añadiendo...",
       "hint": "Cashonize busca dónde está la identidad de esa categoría y la lista aquí. Para un token que tenga esta billetera, la búsqueda de abajo también la encuentra.",
-      "categoryHelp": "Una categoría de token es el id de 64 caracteres de un token, el mismo que tiene su transacción de génesis.",
-      "categoryHelpWhere": "Lo encuentras en la info del token en la pestaña Tokens, o en tokenexplorer.cash.",
+      "categoryHelpWhere": "La encuentras en la información del token en la pestaña Tokens.",
       "categoryHelpKey": "La categoría de una clave de identidad también sirve aquí: la billetera deriva lo que guarda y observa esas identidades.",
       "found": {
         "title": "¿Añadir lo encontrado?",
@@ -1668,7 +1668,9 @@
       "doneTitle": "Identidad creada",
       "errors": {
         "noTxId": "La transacción se envió pero su id volvió vacío, así que la identidad no se pudo listar."
-      }
+      },
+      "tokenPointer": "Para una identidad de token, {link}: su génesis crea el token y su identidad a la vez.",
+      "tokenPointerLink": "crea el token"
     },
     "scan": {
       "prompt": "Cashonize puede revisar los tokens de esta billetera en busca de identidades que tenga.",
