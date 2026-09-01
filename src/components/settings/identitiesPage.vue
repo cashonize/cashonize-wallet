@@ -461,7 +461,13 @@
     <div class="description" style="margin-top: 6px;">{{ t('identities.reserveNote') }}</div>
 
     <div class="section">
-      <div>{{ t('identities.add.label') }}</div>
+      <div>
+        {{ t('identities.add.label') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('identities.add.categoryHelp') }}</div>
+          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpWhere') }}</div>
+        </InfoPopup>
+      </div>
       <div class="add-identity">
         <input v-model="categoryInput" :placeholder="t('identities.add.placeholder')" @keyup.enter="addIdentity()">
         <input
@@ -499,7 +505,19 @@
 
     <div class="section">
       <div v-if="!store.identities" class="description">{{ t('identities.resolving') }}</div>
-      <div v-else-if="!identities.length" class="description">{{ t('identities.empty') }}</div>
+      <div v-else-if="!identities.length">
+        <div class="description">{{ t('identities.empty') }}</div>
+        <ol class="walkthrough">
+          <li>
+            <q-icon name="edit" size="18px" />
+            <span>{{ t('identities.emptySteps.paste') }}</span>
+          </li>
+          <li>
+            <q-icon name="search" size="18px" />
+            <span>{{ t('identities.emptySteps.check') }}</span>
+          </li>
+        </ol>
+      </div>
       <div v-else class="description">{{ t('identities.listedCount', listedCount) }}</div>
 
       <div v-for="identity in identities" :key="identity.category" class="section identity-card">
@@ -511,10 +529,15 @@
           />
           <div class="identity-title">
             <div>{{ identityName(identity.category) ?? t('identities.unnamedIdentity') }}</div>
-            <div class="identity-status" :class="identity.status">
-              <q-icon v-if="identity.status === 'held'" name="lock" size="15px" />
-              {{ t('identities.status.' + identity.status) }}
-            </div>
+            <InfoPopup>
+              <template #trigger>
+                <span class="identity-status info-popup-text-trigger" :class="identity.status">
+                  <q-icon v-if="identity.authUtxo" name="lock" size="15px" />
+                  {{ t('identities.status.' + identity.status) }}
+                </span>
+              </template>
+              <div style="max-width: 300px;">{{ t('identities.statusHelp.' + identity.status) }}</div>
+            </InfoPopup>
           </div>
         </div>
 
@@ -545,7 +568,15 @@
           <template v-else>
             <div v-for="row in publicationRows(identity)" :key="row.uri" class="publication-uri">
               <a :href="row.url" target="_blank" class="mono">{{ row.uri }}</a>
-              <span v-if="row.status" class="publication-badge" :class="row.status">{{ row.statusText }}</span>
+              <InfoPopup v-if="row.status">
+                <template #trigger>
+                  <span class="publication-badge" :class="row.status">{{ row.statusText }}</span>
+                </template>
+                <div style="max-width: 300px;">{{ t('identities.publication.statusHelp.' + row.status) }}</div>
+                <div v-if="row.status === 'changed'" class="info-popup-note" style="max-width: 300px;">
+                  {{ t('identities.publication.statusHelp.changedNote') }}
+                </div>
+              </InfoPopup>
               <span v-else-if="store.publicationChecksRunning" class="description">{{ t('identities.publication.checking') }}</span>
             </div>
             <div class="description mono" :title="identity.publication.hash">
@@ -562,7 +593,12 @@
         </div>
 
         <div v-if="identity.status === 'carriesTokens'" class="section">
-          <div>{{ t('identities.reserve.title') }}</div>
+          <div>
+            {{ t('identities.reserve.title') }}
+            <InfoPopup>
+              <div style="max-width: 300px;">{{ t('identities.reserve.help') }}</div>
+            </InfoPopup>
+          </div>
           <div v-for="line in reserveDescription(identity)" :key="line" class="description">{{ line }}</div>
         </div>
 
@@ -586,13 +622,24 @@
         </div>
 
         <div v-if="isOpen(identity, 'publish')" class="section">
-          <div class="description">
-            <i18n-t keypath="identities.publish.hint" tag="span">
-              <template #generator>
-                <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
-              </template>
-            </i18n-t>
-          </div>
+          <ol class="walkthrough">
+            <li>
+              <q-icon name="edit" size="18px" />
+              <i18n-t keypath="identities.publish.steps.author" tag="span">
+                <template #generator>
+                  <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+                </template>
+              </i18n-t>
+            </li>
+            <li>
+              <q-icon name="archive" size="18px" />
+              <span>{{ t('identities.publish.steps.host') }}</span>
+            </li>
+            <li>
+              <q-icon name="send" size="18px" />
+              <span>{{ t('identities.publish.steps.publish') }}</span>
+            </li>
+          </ol>
           <div class="description" style="margin-top: 4px;">{{ t('identities.publish.locationsHint') }}</div>
           <div v-for="(uri, index) in publishUris" :key="index" class="publish-uri-row">
             <input v-model="publishUris[index]" :placeholder="t('identities.publish.uriPlaceholder')">
@@ -665,6 +712,16 @@
              rather than one transfer that quietly moves the supply along with the authority -->
         <div v-if="identity.status === 'carriesTokens'" class="description" style="margin-top: 12px;">
           {{ t('identities.reserve.transferHint') }}
+          <ol class="walkthrough">
+            <li>
+              <q-icon name="unarchive" size="18px" />
+              <span>{{ t('identities.reserve.transferSteps.empty') }}</span>
+            </li>
+            <li>
+              <q-icon name="send" size="18px" />
+              <span>{{ t('identities.reserve.transferSteps.transfer') }}</span>
+            </li>
+          </ol>
         </div>
 
         <div v-if="identity.status === 'held'" class="section">
@@ -829,6 +886,31 @@
 }
 .action-link:hover {
   text-decoration: underline;
+}
+
+/* A process reads as numbered steps, each with the one icon that says what kind of step it is.
+   Grey like the descriptions around it: the steps explain, the actions below them act. */
+.walkthrough {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: walkthrough-step;
+  color: grey;
+}
+.walkthrough li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+.walkthrough li::before {
+  counter-increment: walkthrough-step;
+  content: counter(walkthrough-step) ")";
+  flex: none;
+}
+.walkthrough li .q-icon {
+  flex: none;
+  align-self: center;
 }
 
 /* the prompt reads as description, only the action it offers is coloured */

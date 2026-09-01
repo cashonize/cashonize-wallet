@@ -1427,6 +1427,12 @@
       "notHeld": "Beobachtet, der AuthHead ist nicht in diesem Wallet",
       "unresolved": "AuthHead konnte nicht abgefragt werden"
     },
+    "statusHelp": {
+      "held": "Dieses Wallet hält den AuthHead und kann die Metadaten dieser Identität also aktualisieren. Die Münze ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann sie ausgeben.",
+      "carriesTokens": "Dieses Wallet hält den AuthHead, und er trägt neben der Hoheit eine Token-Reserve. Die Münze ist von der Münzauswahl ausgenommen, wie jeder AuthHead.",
+      "notHeld": "Der AuthHead liegt woanders, dieses Wallet beobachtet diese Identität also nur: die Veröffentlichung wird gezeigt, aktualisieren kann sie das Wallet mit dem AuthHead.",
+      "unresolved": "Der AuthHead konnte nicht abgefragt werden, wo er gerade liegt ist also unbekannt. Was für diese Identität zurückgehalten wird, bleibt es bis eine Antwort kommt."
+    },
     "reserve": {
       "title": "Dieser AuthHead trägt:",
       "supply": "{amount} {symbol} als reservierter Bestand außerhalb des Umlaufs",
@@ -1474,6 +1480,11 @@
         "confirmButton": "Leeren",
         "done": "Reserve geleert",
         "doneTitle": "Reserve geleert"
+      },
+      "help": "Tokens auf dem AuthHead sind die Reserve der Kategorie: ausgegeben, aber nicht im Umlauf, und nicht zum Umlaufbestand gezählt. Alles andere dieser Kategorie im Wallet ist gewöhnlicher Bestand.",
+      "transferSteps": {
+        "empty": "Leere die Reserve, damit der Bestand hier bleibt.",
+        "transfer": "Dann übertrage die Identität."
       }
     },
     "publication": {
@@ -1488,11 +1499,16 @@
         "changed": "seit der Veröffentlichung geändert",
         "changedIpfs": "passt nicht zum veröffentlichten Hash",
         "unreachable": "nicht erreichbar"
+      },
+      "statusHelp": {
+        "verified": "Die hier ausgelieferte Datei ergibt genau den Hash, den diese Identität on chain veröffentlicht hat.",
+        "changed": "Die hier ausgelieferte Datei ist nicht die on chain veröffentlichte. Sieh sie durch und veröffentliche sie erneut, damit Holder sehen, was du ausbleiferst.",
+        "changedNote": "Wenn du die Datei nicht geändert hast, prüfe dein Hosting: etwas anderes antwortet für sie.",
+        "unreachable": "Dieser Ort hat nicht geantwortet. Holder, die die Metadaten dort holen, sehen nichts, prüfe also, ob Hosting oder IPFS-Pin abgelaufen ist."
       }
     },
     "publish": {
       "action": "Update veröffentlichen",
-      "hint": "Erstelle oder überarbeite das Registry-JSON mit dem {generator}, hoste es an den Orten unten und veröffentliche hier den Zeiger. Das Wallet lädt, was diese Orte ausliefern, hasht es und veröffentlicht diesen Hash.",
       "locationsHint": "Eine Domain, eine vollständige HTTPS-URL oder eine IPFS-CID. Alle Orte müssen dieselbe Datei ausliefern.",
       "uriPlaceholder": "example.com oder ipfs://baf...",
       "addLocation": "weiteren Ort hinzufügen",
@@ -1522,6 +1538,11 @@
         "unreachable": "Die Registry unter {uri} konnte nicht geladen werden.",
         "mirrorMismatch": "{uri} liefert einen anderen Inhalt als der erste Ort. Alle müssen dieselbe Datei ausliefern.",
         "noIdentity": "Diese Registry beschreibt diese Identität nicht. Prüfe, ob die Datei diese Token-Kategorie nennt."
+      },
+      "steps": {
+        "author": "Schreibe das Registry-JSON mit dem {generator}.",
+        "host": "Hoste es auf deiner eigenen Domain oder auf IPFS.",
+        "publish": "Gib unten an, wo es liegt, und dieses Wallet prüft es und veröffentlicht den Zeiger."
       }
     },
     "add": {
@@ -1529,7 +1550,9 @@
       "placeholder": "Token-Kategorie (64 Hexadezimalzeichen)",
       "button": "Identität hinzufügen",
       "addingButton": "Wird hinzugefügt...",
-      "hint": "Cashonize sucht, wo der AuthHead dieser Kategorie liegt, und listet ihn hier auf. Bei einem Token in diesem Wallet findet ihn auch die Prüfung unten."
+      "hint": "Cashonize sucht, wo der AuthHead dieser Kategorie liegt, und listet ihn hier auf. Bei einem Token in diesem Wallet findet ihn auch die Prüfung unten.",
+      "categoryHelp": "Eine Token-Kategorie ist die 64 Zeichen lange ID eines Tokens, dieselbe wie die seiner Genesis-Transaktion.",
+      "categoryHelpWhere": "Du findest sie in den Token-Infos im Tokens-Tab oder auf tokenexplorer.cash."
     },
     "scan": {
       "prompt": "Cashonize kann die Tokens in diesem Wallet auf AuthHead-Besitz prüfen. {link}",
@@ -1562,6 +1585,10 @@
     "errors": {
       "invalidCategory": "Das ist keine Token-Kategorie. Eine Kategorie besteht aus 64 Hexadezimalzeichen.",
       "alreadyListed": "Diese Identität ist bereits in der Liste."
+    },
+    "emptySteps": {
+      "paste": "Füge oben die Token-Kategorie einer Identität ein.",
+      "check": "Oder prüfe die Tokens dieses Wallets auf AuthHeads."
     }
   }
 }

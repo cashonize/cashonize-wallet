@@ -1427,6 +1427,12 @@
       "notHeld": "Watched, the AuthHead is not in this wallet",
       "unresolved": "Could not look up the AuthHead"
     },
+    "statusHelp": {
+      "held": "This wallet holds the AuthHead, so it can update this identity's metadata. The coin is kept out of coin selection, so no ordinary send can spend it.",
+      "carriesTokens": "This wallet holds the AuthHead and it carries a token reserve alongside the authority. The coin is kept out of coin selection, like any AuthHead.",
+      "notHeld": "The AuthHead is somewhere else, so this wallet only watches this identity: its publication is shown, but updating it takes the wallet that holds the AuthHead.",
+      "unresolved": "The AuthHead could not be looked up, so where it is right now is unknown. Anything held for this identity stays held until an answer comes back."
+    },
     "reserve": {
       "title": "This AuthHead carries:",
       "supply": "{amount} {symbol} held out of circulation as reserved supply",
@@ -1474,6 +1480,11 @@
         "confirmButton": "Empty",
         "done": "Emptied the reserve",
         "doneTitle": "Reserve emptied"
+      },
+      "help": "Tokens riding on the AuthHead are the category's reserve: issued but not in circulation, and not counted as circulating supply. Everything else of this category the wallet holds is ordinary supply.",
+      "transferSteps": {
+        "empty": "Empty the reserve, so the supply stays here.",
+        "transfer": "Then transfer the identity."
       }
     },
     "publication": {
@@ -1488,11 +1499,16 @@
         "changed": "changed since publication",
         "changedIpfs": "does not match the published hash",
         "unreachable": "unreachable"
+      },
+      "statusHelp": {
+        "verified": "The file served here hashes to exactly what this identity published on chain.",
+        "changed": "The file served here is not the one published on chain. Review it and publish it again, so holders see what you are serving.",
+        "changedNote": "If you did not edit the file, check your hosting: something else is answering for it.",
+        "unreachable": "This location did not answer. Holders fetching the metadata from it see nothing, so check whether the hosting or the IPFS pin has lapsed."
       }
     },
     "publish": {
       "action": "publish update",
-      "hint": "Create or revise the registry JSON with the {generator}, host it at the locations below, then publish the pointer here. The wallet fetches what those locations serve, hashes it, and publishes that hash.",
       "locationsHint": "A domain, a full HTTPS URL, or an IPFS CID. Every location must serve the same file.",
       "uriPlaceholder": "example.com or ipfs://baf...",
       "addLocation": "add another location",
@@ -1522,6 +1538,11 @@
         "unreachable": "Could not fetch the registry at {uri}.",
         "mirrorMismatch": "{uri} serves different content than the first location. Every location must serve the same file.",
         "noIdentity": "That registry does not describe this identity. Check that the file names this token category."
+      },
+      "steps": {
+        "author": "Write the registry JSON with the {generator}.",
+        "host": "Host it on your own domain or on IPFS.",
+        "publish": "Enter where it is hosted below, and this wallet verifies it and publishes the pointer."
       }
     },
     "add": {
@@ -1529,7 +1550,9 @@
       "placeholder": "Token category (64 hexadecimal characters)",
       "button": "Add identity",
       "addingButton": "Adding...",
-      "hint": "Cashonize looks up where that category's AuthHead is and lists it here. For a token this wallet holds, the check below finds it too."
+      "hint": "Cashonize looks up where that category's AuthHead is and lists it here. For a token this wallet holds, the check below finds it too.",
+      "categoryHelp": "A token category is the 64 character id of a token, the same one its genesis transaction has.",
+      "categoryHelpWhere": "Find it on the token's info in the Tokens tab, or on tokenexplorer.cash."
     },
     "scan": {
       "prompt": "Cashonize can check the tokens in this wallet for authhead ownership. {link}",
@@ -1562,6 +1585,10 @@
     "errors": {
       "invalidCategory": "That is not a token category. A category is 64 hexadecimal characters.",
       "alreadyListed": "That identity is already in the list."
+    },
+    "emptySteps": {
+      "paste": "Paste the token category of an identity above.",
+      "check": "Or check the tokens this wallet holds for AuthHeads."
     }
   }
 }

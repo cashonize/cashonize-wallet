@@ -1427,6 +1427,12 @@
       "notHeld": "Suivie, l'AuthHead n'est pas dans ce portefeuille",
       "unresolved": "Impossible de consulter l'AuthHead"
     },
+    "statusHelp": {
+      "held": "Ce portefeuille détient l'AuthHead, il peut donc mettre à jour les métadonnées de cette identité. La pièce est écartée de la sélection, aucun envoi ordinaire ne peut la dépenser.",
+      "carriesTokens": "Ce portefeuille détient l'AuthHead, et celui-ci porte une réserve de jetons à côté de l'autorité. La pièce est écartée de la sélection, comme tout AuthHead.",
+      "notHeld": "L'AuthHead est ailleurs : ce portefeuille ne fait que suivre cette identité. Sa publication est affichée, mais la mettre à jour demande le portefeuille qui détient l'AuthHead.",
+      "unresolved": "L'AuthHead n'a pas pu être consulté, on ignore donc où il se trouve. Ce qui est retenu pour cette identité le reste jusqu'à ce qu'une réponse arrive."
+    },
     "reserve": {
       "title": "Cet AuthHead porte :",
       "supply": "{amount} {symbol} gardés hors circulation en réserve",
@@ -1474,6 +1480,11 @@
         "confirmButton": "Vider",
         "done": "Réserve vidée",
         "doneTitle": "Réserve vidée"
+      },
+      "help": "Les jetons portés par l'AuthHead sont la réserve de la catégorie : émis mais hors circulation, et non comptés dans l'offre en circulation. Le reste de cette catégorie dans le portefeuille est de l'offre ordinaire.",
+      "transferSteps": {
+        "empty": "Videz la réserve, pour que l'offre reste ici.",
+        "transfer": "Puis transférez l'identité."
       }
     },
     "publication": {
@@ -1488,11 +1499,16 @@
         "changed": "modifié depuis la publication",
         "changedIpfs": "ne correspond pas au hash publié",
         "unreachable": "injoignable"
+      },
+      "statusHelp": {
+        "verified": "Le fichier servi ici correspond exactement à ce que cette identité a publié sur la chaîne.",
+        "changed": "Le fichier servi ici n'est pas celui publié sur la chaîne. Vérifiez-le et publiez-le de nouveau, pour que les détenteurs voient ce que vous servez.",
+        "changedNote": "Si vous n'avez pas modifié le fichier, vérifiez votre hébergement : autre chose répond à sa place.",
+        "unreachable": "Cet emplacement n'a pas répondu. Les détenteurs qui y cherchent les métadonnées ne voient rien : vérifiez si l'hébergement ou le pin IPFS a expiré."
       }
     },
     "publish": {
       "action": "publier une mise à jour",
-      "hint": "Créez ou révisez le JSON du registre avec le {generator}, hébergez-le aux emplacements ci-dessous, puis publiez le pointeur ici. Le portefeuille récupère ce que ces emplacements servent, le hache et publie ce hash.",
       "locationsHint": "Un domaine, une URL HTTPS complète ou un CID IPFS. Tous les emplacements doivent servir le même fichier.",
       "uriPlaceholder": "example.com ou ipfs://baf...",
       "addLocation": "ajouter un emplacement",
@@ -1522,6 +1538,11 @@
         "unreachable": "Impossible de récupérer le registre à {uri}.",
         "mirrorMismatch": "{uri} sert un contenu différent du premier emplacement. Tous doivent servir le même fichier.",
         "noIdentity": "Ce registre ne décrit pas cette identité. Vérifiez que le fichier nomme cette catégorie de jeton."
+      },
+      "steps": {
+        "author": "Rédigez le JSON du registre avec le {generator}.",
+        "host": "Hébergez-le sur votre domaine ou sur IPFS.",
+        "publish": "Indiquez ci-dessous où il est hébergé, ce portefeuille le vérifie et publie le pointeur."
       }
     },
     "add": {
@@ -1529,7 +1550,9 @@
       "placeholder": "Catégorie de jeton (64 caractères hexadécimaux)",
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
-      "hint": "Cashonize cherche où se trouve l'AuthHead de cette catégorie et l'affiche ici. Pour un jeton détenu par ce portefeuille, la vérification ci-dessous le trouve aussi."
+      "hint": "Cashonize cherche où se trouve l'AuthHead de cette catégorie et l'affiche ici. Pour un jeton détenu par ce portefeuille, la vérification ci-dessous le trouve aussi.",
+      "categoryHelp": "Une catégorie de jeton est l'identifiant de 64 caractères d'un jeton, le même que celui de sa transaction de genèse.",
+      "categoryHelpWhere": "Vous le trouverez dans les infos du jeton sous l'onglet Jetons, ou sur tokenexplorer.cash."
     },
     "scan": {
       "prompt": "Cashonize peut vérifier si les jetons de ce portefeuille y ont leur AuthHead. {link}",
@@ -1562,6 +1585,10 @@
     "errors": {
       "invalidCategory": "Ceci n'est pas une catégorie de jeton. Une catégorie compte 64 caractères hexadécimaux.",
       "alreadyListed": "Cette identité est déjà dans la liste."
+    },
+    "emptySteps": {
+      "paste": "Collez ci-dessus la catégorie de jeton d'une identité.",
+      "check": "Ou vérifiez si les jetons de ce portefeuille ont des AuthHeads."
     }
   }
 }

@@ -1427,6 +1427,12 @@
       "notHeld": "En seguimiento, el AuthHead no está en esta billetera",
       "unresolved": "No se pudo consultar el AuthHead"
     },
+    "statusHelp": {
+      "held": "Esta billetera tiene el AuthHead, así que puede actualizar los metadatos de esta identidad. La moneda queda fuera de la selección de monedas, así que ningún envío normal puede gastarla.",
+      "carriesTokens": "Esta billetera tiene el AuthHead y este lleva una reserva de tokens junto a la autoridad. La moneda queda fuera de la selección de monedas, como cualquier AuthHead.",
+      "notHeld": "El AuthHead está en otro sitio, así que esta billetera solo observa esta identidad: se muestra su publicación, pero actualizarla requiere la billetera que tiene el AuthHead.",
+      "unresolved": "No se pudo consultar el AuthHead, así que no se sabe dónde está ahora. Lo que esté retenido por esta identidad sigue retenido hasta que haya respuesta."
+    },
     "reserve": {
       "title": "Este AuthHead lleva:",
       "supply": "{amount} {symbol} fuera de circulación como suministro reservado",
@@ -1474,6 +1480,11 @@
         "confirmButton": "Vaciar",
         "done": "Reserva vaciada",
         "doneTitle": "Reserva vaciada"
+      },
+      "help": "Los tokens que van sobre el AuthHead son la reserva de la categoría: emitidos pero fuera de circulación, y no cuentan como suministro circulante. El resto de esta categoría en la billetera es suministro normal.",
+      "transferSteps": {
+        "empty": "Vacía la reserva, para que el suministro se quede aquí.",
+        "transfer": "Luego transfiere la identidad."
       }
     },
     "publication": {
@@ -1488,11 +1499,16 @@
         "changed": "cambiado desde la publicación",
         "changedIpfs": "no coincide con el hash publicado",
         "unreachable": "inaccesible"
+      },
+      "statusHelp": {
+        "verified": "El archivo que se sirve aquí coincide exactamente con lo que esta identidad publicó en la cadena.",
+        "changed": "El archivo que se sirve aquí no es el publicado en la cadena. Revísalo y publícalo de nuevo, para que los holders vean lo que sirves.",
+        "changedNote": "Si tú no editaste el archivo, revisa tu alojamiento: hay algo más respondiendo por él.",
+        "unreachable": "Esta ubicación no respondió. Los holders que busquen los metadatos aquí no ven nada, así que comprueba si caducó el alojamiento o el pin de IPFS."
       }
     },
     "publish": {
       "action": "publicar actualización",
-      "hint": "Crea o revisa el JSON del registro con el {generator}, alójalo en las ubicaciones de abajo y publica aquí el puntero. La billetera descarga lo que sirven esas ubicaciones, lo hashea y publica ese hash.",
       "locationsHint": "Un dominio, una URL HTTPS completa o un CID de IPFS. Todas las ubicaciones deben servir el mismo archivo.",
       "uriPlaceholder": "example.com o ipfs://baf...",
       "addLocation": "añadir otra ubicación",
@@ -1522,6 +1538,11 @@
         "unreachable": "No se pudo descargar el registro en {uri}.",
         "mirrorMismatch": "{uri} sirve un contenido distinto al de la primera ubicación. Todas deben servir el mismo archivo.",
         "noIdentity": "Ese registro no describe esta identidad. Comprueba que el archivo nombre esta categoría de token."
+      },
+      "steps": {
+        "author": "Escribe el JSON del registro con el {generator}.",
+        "host": "Alójalo en tu propio dominio o en IPFS.",
+        "publish": "Indica abajo dónde está alojado, y esta billetera lo verifica y publica el puntero."
       }
     },
     "add": {
@@ -1529,7 +1550,9 @@
       "placeholder": "Categoría de token (64 caracteres hexadecimales)",
       "button": "Añadir identidad",
       "addingButton": "Añadiendo...",
-      "hint": "Cashonize busca dónde está el AuthHead de esa categoría y lo muestra aquí. Para un token que tiene esta billetera, la comprobación de abajo también lo encuentra."
+      "hint": "Cashonize busca dónde está el AuthHead de esa categoría y lo muestra aquí. Para un token que tiene esta billetera, la comprobación de abajo también lo encuentra.",
+      "categoryHelp": "Una categoría de token es el id de 64 caracteres de un token, el mismo que tiene su transacción de génesis.",
+      "categoryHelpWhere": "Lo encuentras en la info del token en la pestaña Tokens, o en tokenexplorer.cash."
     },
     "scan": {
       "prompt": "Cashonize puede comprobar si los tokens de esta billetera tienen su AuthHead aquí. {link}",
@@ -1562,6 +1585,10 @@
     "errors": {
       "invalidCategory": "Eso no es una categoría de token. Una categoría son 64 caracteres hexadecimales.",
       "alreadyListed": "Esa identidad ya está en la lista."
+    },
+    "emptySteps": {
+      "paste": "Pega arriba la categoría de token de una identidad.",
+      "check": "O comprueba si los tokens de esta billetera tienen AuthHeads."
     }
   }
 }

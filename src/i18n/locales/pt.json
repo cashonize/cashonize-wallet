@@ -1427,6 +1427,12 @@
       "notHeld": "Acompanhada, o AuthHead não está nesta carteira",
       "unresolved": "Não foi possível consultar o AuthHead"
     },
+    "statusHelp": {
+      "held": "Esta carteira tem o AuthHead, então pode atualizar os metadados desta identidade. A moeda fica fora da seleção de moedas, então nenhum envio comum pode gastá-la.",
+      "carriesTokens": "Esta carteira tem o AuthHead e ele carrega uma reserva de tokens junto com a autoridade. A moeda fica fora da seleção de moedas, como qualquer AuthHead.",
+      "notHeld": "O AuthHead está em outro lugar, então esta carteira só acompanha esta identidade: a publicação é mostrada, mas atualizá-la exige a carteira que tem o AuthHead.",
+      "unresolved": "Não foi possível consultar o AuthHead, então onde ele está agora é desconhecido. O que estiver retido por esta identidade continua retido até vir uma resposta."
+    },
     "reserve": {
       "title": "Este AuthHead carrega:",
       "supply": "{amount} {symbol} fora de circulação como oferta reservada",
@@ -1474,6 +1480,11 @@
         "confirmButton": "Esvaziar",
         "done": "Reserva esvaziada",
         "doneTitle": "Reserva esvaziada"
+      },
+      "help": "Tokens que ficam no AuthHead são a reserva da categoria: emitidos mas fora de circulação, e não contam como oferta circulante. O resto desta categoria na carteira é oferta comum.",
+      "transferSteps": {
+        "empty": "Esvazie a reserva, para a oferta ficar aqui.",
+        "transfer": "Depois transfira a identidade."
       }
     },
     "publication": {
@@ -1488,11 +1499,16 @@
         "changed": "alterado desde a publicação",
         "changedIpfs": "não corresponde ao hash publicado",
         "unreachable": "inacessível"
+      },
+      "statusHelp": {
+        "verified": "O arquivo servido aqui bate exatamente com o que esta identidade publicou na cadeia.",
+        "changed": "O arquivo servido aqui não é o publicado na cadeia. Revise-o e publique de novo, para que os holders vejam o que você serve.",
+        "changedNote": "Se você não editou o arquivo, verifique sua hospedagem: outra coisa está respondendo por ela.",
+        "unreachable": "Este local não respondeu. Holders que buscam os metadados por ele não veem nada, então verifique se a hospedagem ou o pin de IPFS expirou."
       }
     },
     "publish": {
       "action": "publicar atualização",
-      "hint": "Crie ou revise o JSON do registro com o {generator}, hospede-o nos locais abaixo e publique o ponteiro aqui. A carteira busca o que esses locais servem, calcula o hash e publica esse hash.",
       "locationsHint": "Um domínio, uma URL HTTPS completa ou um CID de IPFS. Todos os locais devem servir o mesmo arquivo.",
       "uriPlaceholder": "example.com ou ipfs://baf...",
       "addLocation": "adicionar outro local",
@@ -1522,6 +1538,11 @@
         "unreachable": "Não foi possível buscar o registro em {uri}.",
         "mirrorMismatch": "{uri} serve um conteúdo diferente do primeiro local. Todos devem servir o mesmo arquivo.",
         "noIdentity": "Esse registro não descreve esta identidade. Verifique se o arquivo nomeia esta categoria de token."
+      },
+      "steps": {
+        "author": "Escreva o JSON do registro com o {generator}.",
+        "host": "Hospede-o no seu próprio domínio ou no IPFS.",
+        "publish": "Informe abaixo onde está hospedado, e esta carteira verifica e publica o ponteiro."
       }
     },
     "add": {
@@ -1529,7 +1550,9 @@
       "placeholder": "Categoria do token (64 caracteres hexadecimais)",
       "button": "Adicionar identidade",
       "addingButton": "Adicionando...",
-      "hint": "O Cashonize procura onde está o AuthHead dessa categoria e o lista aqui. Para um token desta carteira, a verificação abaixo também o encontra."
+      "hint": "O Cashonize procura onde está o AuthHead dessa categoria e o lista aqui. Para um token desta carteira, a verificação abaixo também o encontra.",
+      "categoryHelp": "Uma categoria de token é o id de 64 caracteres de um token, o mesmo da transação de gênese dele.",
+      "categoryHelpWhere": "Você o encontra nas informações do token na aba Tokens, ou em tokenexplorer.cash."
     },
     "scan": {
       "prompt": "O Cashonize pode verificar se os tokens desta carteira têm o AuthHead aqui. {link}",
@@ -1562,6 +1585,10 @@
     "errors": {
       "invalidCategory": "Isso não é uma categoria de token. Uma categoria tem 64 caracteres hexadecimais.",
       "alreadyListed": "Essa identidade já está na lista."
+    },
+    "emptySteps": {
+      "paste": "Cole acima a categoria de token de uma identidade.",
+      "check": "Ou verifique se os tokens desta carteira têm AuthHeads."
     }
   }
 }
