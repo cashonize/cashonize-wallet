@@ -1,15 +1,15 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue';
   import {
+    fetchCandidateRegistry,
+    maxPublicationOutputSize,
     publicationOutput,
-    registryContentHash,
-    registryUrlOf,
+    publicationOutputSize,
     summarizeRegistry,
   } from 'src/utils/tools/authchainIdentity';
   import { copyToClipboard, formatBchAmount } from 'src/utils/utils';
   import { NFTCapability, TokenSendRequest } from 'mainnet-js';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
-  import EmojiItem from '../general/emojiItem.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
@@ -26,9 +26,7 @@
   const inputFungibleSupply = ref("");
   const inputCirculating = ref("");
   const createMintingNft = ref(false);
-  const selectedUri = ref("-select-");
-  const inputBcmr = ref("");
-  const validityCheck = ref(undefined as boolean | undefined);
+  const metadataUris = ref<string[]>([""]);
   const activeAction = ref<'creatingPreGenesis' | 'creating' | null>(null);
 
   const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
@@ -116,56 +114,35 @@
     }
   }
 
-  // What the registry location becomes on chain, which is the form the identities page reads back
-  function publishedUri() {
-    if (selectedUri.value === "IPFS") return `ipfs://${inputBcmr.value}`;
-    return inputBcmr.value;
+  const filledUris = computed(() => metadataUris.value.map(uri => uri.trim()).filter(uri => uri.length));
+
+  const publicationBytesLeft = computed(() =>
+    maxPublicationOutputSize - publicationOutputSize(filledUris.value)
+  );
+
+  function addUriRow() {
+    metadataUris.value = [...metadataUris.value, ""];
   }
 
-  // The genesis publishes the same output an update does, so it is built by the same code: one
-  // module owns the format, and creating an identity cannot drift from maintaining one.
-  async function getOpreturnData(){
-    validityCheck.value = undefined;
-    const inputField = inputBcmr.value;
-    if(selectedUri.value == "-select-") return
-    const validinput = selectedUri.value != "IPFS"? !inputField.startsWith("http"): inputField.startsWith("baf");
-    if(!validinput){
-      const errorMessage = selectedUri.value != "IPFS" ? t('createTokens.notifications.urlPrefixError') : t('createTokens.notifications.ipfsCidError');
-      $q.notify({
-        message: errorMessage,
-        icon: 'warning',
-        color: "red"
-      })
-      validityCheck.value = false;
-      return
-    }
-    const uri = publishedUri();
-    try{
-      // fetched fresh rather than through the metadata cache: what is hashed has to be what the
-      // host serves now, or the hash commits to something nobody can fetch
-      const response = await fetch(registryUrlOf(uri, settingsStore.ipfsGateway), { cache: "no-store" });
-      if(!response.ok) throw new Error(t('createTokens.notifications.bcmrUnreachable'));
-      const bcmrContent = await response.text();
-
-      // The planned category is known before the genesis is signed, so the wrong-file mistake can
-      // be caught at the one moment it costs nothing: the registry has to name this identity.
-      if(plannedCategory.value && !summarizeRegistry(bcmrContent, plannedCategory.value)){
-        $q.notify({
-          message: t('createTokens.notifications.bcmrWrongIdentity'),
-          icon: 'warning',
-          color: "red"
-        })
-        validityCheck.value = false;
-        return
-      }
-
-      validityCheck.value = true;
-      return publicationOutput(registryContentHash(bcmrContent), [uri]);
-    } catch{
-      validityCheck.value = false;
-    }
+  function removeUriRow(index: number) {
+    metadataUris.value = metadataUris.value.filter((_, rowIndex) => rowIndex !== index);
+    if (!metadataUris.value.length) metadataUris.value = [""];
   }
-  
+
+  // The publication a genesis carries is verified the same way an update's is, by the same code:
+  // every location has to serve the file the hash commits to, and the file has to name this
+  // identity. That last check is only possible before signing because the category is known in
+  // advance, which is the one moment the wrong file costs nothing.
+  async function metadataOutput(category: string) {
+    if (!filledUris.value.length) return undefined;
+    if (publicationBytesLeft.value < 0) throw new Error(t('identities.publish.errors.tooLarge'));
+    const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
+    if (!summarizeRegistry(candidate.content, category)) {
+      throw new Error(t('createTokens.notifications.bcmrWrongIdentity'));
+    }
+    return publicationOutput(candidate.hash, filledUris.value);
+  }
+
   // One genesis builds the whole issuer kit: output 0 is the AuthHead, carrying the reserve and
   // the minting NFT if there is one, and a second output carries what is issued to circulation.
   async function createToken(){
@@ -177,7 +154,7 @@
     if (reserveAmount === undefined || circulatingAmount === undefined) return;
     activeAction.value = 'creating';
     try{
-      const opreturnData = await getOpreturnData();
+      const opreturnData = await metadataOutput(pickedCoin.txid);
       const tokenAddress = store.wallet.getTokenDepositAddress();
       const circulationOutput = new TokenSendRequest({
         cashaddr: tokenAddress,
@@ -207,6 +184,7 @@
       inputFungibleSupply.value = "";
       inputCirculating.value = "";
       createMintingNft.value = false;
+      metadataUris.value = [""];
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
     } catch(error){
       displayAndLogError(error)
@@ -329,71 +307,56 @@
         <div class="description"><i>{{ t('createTokens.mintingNote') }}</i></div>
       </div>
 
-      <div>
-        <details style="margin-bottom: 0.5em;">
+      <details style="margin-bottom: 0.5em;">
           <summary style="display: list-item">{{ t('createTokens.linkMetadata') }}</summary>
-          <i18n-t keypath="createTokens.metadataIntro" tag="span">
-            <template #link>
-              <a href="https://github.com/bitjson/chip-bcmr" target="_blank">{{ t('createTokens.bcmrStandard') }}</a>
-            </template>
-          </i18n-t>
-          <br><br>
-
-          <label for="selectUri">{{ t('createTokens.selectUploadLocation') }} </label>
-          <select name="selectUri" v-model="selectedUri">
-            <option value="-select-">{{ t('createTokens.selectPlaceholder') }}</option>
-            <option value="IPFS">{{ t('createTokens.ipfs') }}</option>
-            <option value="website">{{ t('createTokens.httpsWebsite') }}</option>
-            <option value="github">{{ t('createTokens.httpsGithub') }}</option>
-          </select>
-          <div v-if="selectedUri == 'github'">
-            If you have a GitHub account and know how to use git, you can easily host your BCMR on Github Gist, similar to 
-              <a href="https://gist.github.com/mr-zwets/84b0057808af20df392815fb27d4a661" target="_blank">DogeCash</a>. <br>
-            1) First add the static images like token icon and image to your gist by following <a href="https://gist.github.com/mroderick/1afdd71aa69f6b29601d335751a1a9be" target="_blank">these steps</a> or upload them to IPFS.<br>
-            2) Then you can create the BCMR JSON file with the <a href="https://bcmr-generator.netlify.app/" target="_blank">BCMR generator</a> or
-              with the <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.ts" target="_blank">BCMR-schema</a>.<br>
-            3) Add the JSON file to your github gist.<br>
-            4) Then press the "raw" button on your Github Gist and copy the url until <code>/raw</code> below. <br>
-            The BCMR location together with the hash of its content will be stored on the blockchain.
-            <input v-model="inputBcmr" @input="getOpreturnData" placeholder="gist.githubusercontent.com/mr-zwets/323c7786e2acf01e3c04a440d7cf6c2c/raw">
+          <ol class="walkthrough">
+            <li>
+              <q-icon name="edit" size="18px" />
+              <i18n-t keypath="createTokens.steps.author" tag="span">
+                <template #generator>
+                  <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+                </template>
+              </i18n-t>
+            </li>
+            <li>
+              <q-icon name="archive" size="18px" />
+              <span>{{ t('createTokens.steps.host') }}</span>
+            </li>
+            <li>
+              <q-icon name="check_circle" size="18px" />
+              <span>{{ t('createTokens.steps.verify') }}</span>
+            </li>
+            <li>
+              <q-icon name="add_circle" size="18px" />
+              <span>{{ t('createTokens.steps.create') }}</span>
+            </li>
+          </ol>
+          <div class="description" style="margin-top: 8px;">{{ t('identities.publish.locationsHint') }}</div>
+          <div v-for="(uri, index) in metadataUris" :key="index" class="publish-uri-row">
+            <input v-model="metadataUris[index]" :placeholder="t('identities.publish.uriPlaceholder')">
+            <span
+              v-if="metadataUris.length > 1"
+              class="remove-uri"
+              @click="removeUriRow(index)"
+            >{{ t('identities.publish.removeLocation') }}</span>
           </div>
-          <div v-if="selectedUri == 'website'">
-            1) First host the static images like token icon and image on your website or on IPFS.<br>
-            2) Then you can create the BCMR JSON file with the <a href="https://bcmr-generator.netlify.app/" target="_blank">BCMR generator</a> or
-              with the <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.ts" target="_blank">BCMR-schema</a>.<br>
-            3) To host the JSON file on your own website, the recommended location for it is <code>/.well-known/bitcoin-cash-metadata-registry.json</code> 
-                like <a href="https://otr.cash/.well-known/bitcoin-cash-metadata-registry.json" target="_blank">the OTR registry</a> does. <br>
-            4) Enter the base url of your website (like 'yourtokenwebsite.com') below.  <br>
-            The BCMR location together with the hash of its content will be stored on the blockchain.
-            <input v-model="inputBcmr" @input="getOpreturnData" placeholder="yourtokenwebsite.com">
+          <div class="publish-uri-actions">
+            <span class="action-link" @click="addUriRow()">{{ t('identities.publish.addLocation') }}</span>
+            <span class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
+              {{ t('identities.publish.bytesLeft', { bytes: publicationBytesLeft }) }}
+            </span>
           </div>
-          <div v-if="selectedUri == 'IPFS'">
-            1) First upload (pin) your tokenIcon and image on IPFS. <br>
-            2) Then, you can create the BCMR JSON file with the <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a> or
-              with the <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.ts" target="_blank">BCMR-schema</a>.<br>
-            3) Upload the BCMR JSON file to IPFS.<br>
-            4) Enter the IPFS location of your BCMR json file (version 1 CID starting with <code>baf...</code>) below. <br>
-            The BCMR location together with the hash of its content will be stored on the blockchain.
-            <input v-model="inputBcmr" @input="getOpreturnData" placeholder="bafkreiaqpmlrtsdf5cvwgh46mpyric2r44ikqzqgtevny74qdmrjc5dkxy">
-          </div><br>
-          <b>{{ t('createTokens.validityCheck') }}
-            <EmojiItem v-if="validityCheck != undefined" :emoji="validityCheck ? '✅':'❌'" style="vertical-align: baseline;"/>
-            <span v-else>...</span>
-          </b>
-        </details>
-        <div style="margin: 15px 0px;">
-          <b>{{ t('createTokens.metadataNote') }}</b>
-        </div>
-        <div v-if="genesisInput && genesisProblem" class="genesis-problem">{{ genesisProblem }}</div>
-        <input
-          @click="createToken"
-          type="button"
-          class="primaryButton"
-          :value="activeAction === 'creating' ? t('createTokens.creatingTokensButton') : t('createTokens.createButton')"
-          style="margin: 8px 0;"
-          :disabled="activeAction !== null || !genesisInput || genesisProblem !== undefined"
-        >
-      </div>
+      </details>
+      <div class="description" style="margin: 15px 0px;">{{ t('createTokens.metadataNote') }}</div>
+      <div v-if="genesisInput && genesisProblem" class="genesis-problem">{{ genesisProblem }}</div>
+      <input
+        @click="createToken"
+        type="button"
+        class="primaryButton"
+        :value="activeAction === 'creating' ? t('createTokens.creatingTokensButton') : t('createTokens.createButton')"
+        style="margin: 8px 0;"
+        :disabled="activeAction !== null || !genesisInput || genesisProblem !== undefined"
+      >
     </fieldset>
   </div>
 </template>
@@ -435,6 +398,53 @@
 }
 .token-shape {
   margin-bottom: 1em;
+}
+.walkthrough {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: walkthrough-step;
+  color: grey;
+}
+.walkthrough li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+.walkthrough li::before {
+  counter-increment: walkthrough-step;
+  content: counter(walkthrough-step) ")";
+  flex: none;
+}
+.walkthrough li .q-icon {
+  flex: none;
+  align-self: center;
+}
+.publish-uri-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.publish-uri-row input {
+  flex: 1 1 260px;
+  margin: 0;
+}
+.publish-uri-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.remove-uri {
+  cursor: pointer;
+  color: grey;
+}
+/* what will not relay reads as an error rather than as one more grey number */
+.over-budget {
+  color: var(--color-error);
 }
 .minting-option {
   margin-top: 12px;

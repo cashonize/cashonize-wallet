@@ -663,15 +663,13 @@
       "split": "{reserve} reste sur l'AuthHead en réserve, {circulating} entre en circulation."
     },
     "linkMetadata": "Lier les métadonnées du token",
-    "metadataIntro": "Pour ajouter des métadonnées à votre token, vous devez télécharger la ou les images du token, créer un fichier JSON selon le {link}, le télécharger quelque part, puis publier ce lien sur la blockchain.",
-    "bcmrStandard": "standard BCMR",
-    "selectUploadLocation": "Sélectionnez où télécharger vos métadonnées (IPFS recommandé) :",
-    "selectPlaceholder": "- sélectionner -",
-    "ipfs": "IPFS",
-    "httpsWebsite": "HTTPS : site web personnel",
-    "httpsGithub": "HTTPS : gist GitHub",
-    "validityCheck": "Vérification de la validité des métadonnées :",
-    "metadataNote": "Remarque : Les métadonnées du token peuvent encore être ajoutées/mises à jour après la création avec l'AuthUTXO du token. Pour utiliser cette fonctionnalité, activez « Activer la résolution d'authchain » dans les paramètres développeur. Transférez l'AuthUTXO vers un portefeuille dédié juste après la création.",
+    "steps": {
+      "author": "Rédigez le JSON du registre avec le {generator}, en y nommant le tokenId prévu ci-dessus.",
+      "host": "Hébergez-le sur votre propre domaine ou sur IPFS.",
+      "verify": "Indiquez ci-dessous où il est hébergé. Ce portefeuille le récupère et vérifie qu'il nomme ce token.",
+      "create": "Créez le token : la même transaction publie l'empreinte du fichier et où le trouver."
+    },
+    "metadataNote": "Les métadonnées peuvent aussi être ajoutées après la création : l'AuthHead reste dans ce portefeuille, et la page des identités publie les mises à jour avec lui.",
     "creatingTokensButton": "Création des tokens...",
     "createButton": "Créer",
     "notifications": {
@@ -679,9 +677,6 @@
       "transactionSent": "Transaction envoyée avec succès !",
       "creatingTokens": "Création des tokens...",
       "creatingMintingNft": "Création du NFT de création...",
-      "urlPrefixError": "Les URLs ne doivent pas avoir de préfixe !",
-      "ipfsCidError": "L'emplacement IPFS doit être un CID v1",
-      "bcmrUnreachable": "Impossible de récupérer le registre à cet emplacement.",
       "bcmrWrongIdentity": "Ce registre ne décrit pas l'identité en cours de création. Vérifiez que le fichier nomme cette catégorie de jeton."
     },
     "errors": {

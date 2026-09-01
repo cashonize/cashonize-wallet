@@ -663,15 +663,13 @@
       "split": "{reserve} stays on the AuthHead as reserve, {circulating} enters circulation."
     },
     "linkMetadata": "Link Token-Metadata",
-    "metadataIntro": "To add metadata to your token you need to upload the token image(s), create a JSON file following the {link}, upload it somewhere and then post that link on-chain.",
-    "bcmrStandard": "BCMR-standard",
-    "selectUploadLocation": "Select where to upload your metadata (IPFS recommended):",
-    "selectPlaceholder": "- select -",
-    "ipfs": "IPFS",
-    "httpsWebsite": "HTTPS: own website",
-    "httpsGithub": "HTTPS: github gist",
-    "validityCheck": "Validity check metadata:",
-    "metadataNote": "Note: Token metadata can still be added/updated after creation with the token's AuthUTXO. To use this functionality toggle \"Enable authchain resolution\" in the developer settings. Transfer the AuthUTXO to a dedicated wallet right after creation.",
+    "steps": {
+      "author": "Write the registry JSON with the {generator}, naming the planned tokenId above.",
+      "host": "Host it on your own domain or on IPFS.",
+      "verify": "Enter where it is hosted below. This wallet fetches it and checks that it names this token.",
+      "create": "Create the token: the same transaction publishes the file's hash and where to find it."
+    },
+    "metadataNote": "Metadata can also be added after creation: the AuthHead stays in this wallet, and the identities page publishes updates with it.",
     "creatingTokensButton": "Creating Tokens...",
     "createButton": "Create",
     "notifications": {
@@ -679,9 +677,6 @@
       "transactionSent": "Transaction successfully sent!",
       "creatingTokens": "Creating tokens...",
       "creatingMintingNft": "Creating minting NFT...",
-      "urlPrefixError": "Urls should not have any prefix!",
-      "ipfsCidError": "Ipfs location should be a v1 CID",
-      "bcmrUnreachable": "Could not fetch the registry at that location.",
       "bcmrWrongIdentity": "That registry does not describe the identity being created. Check that the file names this token category."
     },
     "errors": {

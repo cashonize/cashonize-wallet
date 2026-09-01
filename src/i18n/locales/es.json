@@ -663,15 +663,13 @@
       "split": "{reserve} queda en el AuthHead como reserva, {circulating} entra en circulación."
     },
     "linkMetadata": "Vincular metadatos del token",
-    "metadataIntro": "Para agregar metadatos a tu token necesitas subir la(s) imagen(es) del token, crear un archivo JSON siguiendo el {link}, subirlo en algún lugar y luego publicar ese enlace en la cadena.",
-    "bcmrStandard": "estándar BCMR",
-    "selectUploadLocation": "Selecciona dónde subir tus metadatos (IPFS recomendado):",
-    "selectPlaceholder": "- seleccionar -",
-    "ipfs": "IPFS",
-    "httpsWebsite": "HTTPS: sitio web propio",
-    "httpsGithub": "HTTPS: gist de GitHub",
-    "validityCheck": "Verificación de validez de metadatos:",
-    "metadataNote": "Nota: Los metadatos del token aún se pueden agregar/actualizar después de la creación con el AuthUTXO del token. Para usar esta funcionalidad activa \"Habilitar resolución de authchain\" en la configuración de desarrollador. Transfiere el AuthUTXO a una billetera dedicada justo después de la creación.",
+    "steps": {
+      "author": "Escribe el JSON del registro con el {generator}, nombrando el tokenId planificado de arriba.",
+      "host": "Alójalo en tu propio dominio o en IPFS.",
+      "verify": "Indica abajo dónde está alojado. Esta billetera lo descarga y comprueba que nombre este token.",
+      "create": "Crea el token: la misma transacción publica el hash del archivo y dónde encontrarlo."
+    },
+    "metadataNote": "Los metadatos también se pueden añadir después de la creación: el AuthHead se queda en esta billetera, y la página de identidades publica actualizaciones con él.",
     "creatingTokensButton": "Creando tokens...",
     "createButton": "Crear",
     "notifications": {
@@ -679,9 +677,6 @@
       "transactionSent": "¡Transacción enviada exitosamente!",
       "creatingTokens": "Creando tokens...",
       "creatingMintingNft": "Creando NFT de acuñación...",
-      "urlPrefixError": "¡Las URLs no deben tener ningún prefijo!",
-      "ipfsCidError": "La ubicación de IPFS debe ser un CID v1",
-      "bcmrUnreachable": "No se pudo descargar el registro en esa ubicación.",
       "bcmrWrongIdentity": "Ese registro no describe la identidad que se está creando. Comprueba que el archivo nombre esta categoría de token."
     },
     "errors": {

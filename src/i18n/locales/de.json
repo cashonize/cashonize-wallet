@@ -663,15 +663,13 @@
       "split": "{reserve} bleibt als Reserve auf dem AuthHead, {circulating} kommt in Umlauf."
     },
     "linkMetadata": "Token-Metadaten verknüpfen",
-    "metadataIntro": "Um Metadaten zu deinem Token hinzuzufügen, musst du die Token-Bilder hochladen, eine JSON-Datei gemäß dem {link} erstellen, sie irgendwo hochladen und dann den Link on-chain veröffentlichen.",
-    "bcmrStandard": "BCMR-Standard",
-    "selectUploadLocation": "Wähle, wo du deine Metadaten hochladen möchtest (IPFS empfohlen):",
-    "selectPlaceholder": "- auswählen -",
-    "ipfs": "IPFS",
-    "httpsWebsite": "HTTPS: eigene Website",
-    "httpsGithub": "HTTPS: GitHub Gist",
-    "validityCheck": "Gültigkeitsprüfung Metadaten:",
-    "metadataNote": "Hinweis: Token-Metadaten können auch nach der Erstellung mit dem AuthUTXO des Tokens hinzugefügt/aktualisiert werden. Um diese Funktionalität zu nutzen, aktiviere \"Authchain-Auflösung aktivieren\" in den Entwicklereinstellungen. Übertrage den AuthUTXO direkt nach der Erstellung an ein separates Wallet.",
+    "steps": {
+      "author": "Schreibe die Registry-JSON mit dem {generator} und nenne darin die oben geplante TokenId.",
+      "host": "Hoste sie auf deiner eigenen Domain oder auf IPFS.",
+      "verify": "Gib unten an, wo sie gehostet ist. Dieses Wallet holt sie und prüft, dass sie diesen Token nennt.",
+      "create": "Erstelle den Token: dieselbe Transaktion veröffentlicht den Hash der Datei und wo sie zu finden ist."
+    },
+    "metadataNote": "Metadaten lassen sich auch nach der Erstellung hinzufügen: der AuthHead bleibt in diesem Wallet, und die Identitäten-Seite veröffentlicht damit Aktualisierungen.",
     "creatingTokensButton": "Tokens werden erstellt...",
     "createButton": "Erstellen",
     "notifications": {
@@ -679,9 +677,6 @@
       "transactionSent": "Transaktion erfolgreich gesendet!",
       "creatingTokens": "Tokens werden erstellt...",
       "creatingMintingNft": "Minting NFT wird erstellt...",
-      "urlPrefixError": "URLs sollten kein Präfix haben!",
-      "ipfsCidError": "IPFS-Speicherort sollte eine v1 CID sein",
-      "bcmrUnreachable": "Die Registry an diesem Ort konnte nicht geladen werden.",
       "bcmrWrongIdentity": "Diese Registry beschreibt nicht die Identität, die hier erstellt wird. Prüfe, ob die Datei diese Token-Kategorie nennt."
     },
     "errors": {

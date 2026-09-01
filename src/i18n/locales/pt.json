@@ -663,15 +663,13 @@
       "split": "{reserve} fica no AuthHead como reserva, {circulating} entra em circulação."
     },
     "linkMetadata": "Vincular Metadados do Token",
-    "metadataIntro": "Para adicionar metadados ao seu token, você precisa fazer upload da(s) imagem(ns) do token, criar um arquivo JSON seguindo o {link}, fazer upload dele em algum lugar e publicar o link on-chain.",
-    "bcmrStandard": "padrão BCMR",
-    "selectUploadLocation": "Selecione onde fazer upload dos metadados (IPFS recomendado):",
-    "selectPlaceholder": "- selecione -",
-    "ipfs": "IPFS",
-    "httpsWebsite": "HTTPS: site próprio",
-    "httpsGithub": "HTTPS: github gist",
-    "validityCheck": "Verificação de validade dos metadados:",
-    "metadataNote": "Nota: Metadados do token ainda podem ser adicionados/atualizados após a criação com o AuthUTXO do token. Para usar esta funcionalidade, ative \"Habilitar resolução de authchain\" nas configurações de desenvolvedor. Transfira o AuthUTXO para uma carteira dedicada logo após a criação.",
+    "steps": {
+      "author": "Escreva o JSON do registro com o {generator}, nomeando o tokenId planejado acima.",
+      "host": "Hospede-o no seu próprio domínio ou no IPFS.",
+      "verify": "Informe abaixo onde ele está hospedado. Esta carteira o busca e verifica que ele nomeia este token.",
+      "create": "Crie o token: a mesma transação publica o hash do arquivo e onde encontrá-lo."
+    },
+    "metadataNote": "Os metadados também podem ser adicionados após a criação: o AuthHead fica nesta carteira, e a página de identidades publica atualizações com ele.",
     "creatingTokensButton": "Criando Tokens...",
     "createButton": "Criar",
     "notifications": {
@@ -679,9 +677,6 @@
       "transactionSent": "Transação enviada com sucesso!",
       "creatingTokens": "Criando tokens...",
       "creatingMintingNft": "Criando NFT de minting...",
-      "urlPrefixError": "URLs não devem ter nenhum prefixo!",
-      "ipfsCidError": "A localização IPFS deve ser um CID v1",
-      "bcmrUnreachable": "Não foi possível buscar o registro nesse local.",
       "bcmrWrongIdentity": "Esse registro não descreve a identidade que está sendo criada. Verifique se o arquivo nomeia esta categoria de token."
     },
     "errors": {
