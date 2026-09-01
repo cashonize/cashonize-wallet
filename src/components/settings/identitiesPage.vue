@@ -62,8 +62,13 @@
   const expandedIdentity = ref<string | undefined>(undefined);
   const isExpanded = (identity: IdentityState) => expandedIdentity.value === identity.category;
 
-  function toggleCard(category: string) {
-    expandedIdentity.value = expandedIdentity.value === category ? undefined : category;
+  function toggleCard(identity: IdentityState) {
+    const category = identity.category;
+    const opening = expandedIdentity.value !== category;
+    expandedIdentity.value = opening ? category : undefined;
+    // opening one card is interest in one identity, which is when its chain is worth a query: the
+    // page load stays free of them, and the age and length fill in without a second click
+    if (opening) void loadHistory(identity);
   }
 
   // Which cards have their history open, and which is being fetched
@@ -116,6 +121,13 @@
   const listedCount = computed(() =>
     identities.value.filter(identity => identity.status !== 'unresolved').length
   );
+
+  // Owned and watched are different things, so the summary counts them apart rather than calling
+  // somebody else's identity one of this wallet's
+  const ownedCount = computed(() =>
+    identities.value.filter(identity => identity.authUtxo || identity.keyUtxo).length
+  );
+  const watchedCount = computed(() => listedCount.value - ownedCount.value);
 
   // Naming these needs a lookup back from an output's txid to the authchain it ends, which this
   // version does not have. Counted rather than dropped, so a key guarding only them is not
@@ -588,12 +600,7 @@
 
   // The chain is the identity's whole history. The explorer shows it raw; this says what each
   // step did, and which of them were made from this wallet.
-  async function toggleHistory(identity: IdentityState) {
-    if (openHistories.value.includes(identity.category)) {
-      openHistories.value = openHistories.value.filter(open => open !== identity.category);
-      return;
-    }
-    openHistories.value = [...openHistories.value, identity.category];
+  async function loadHistory(identity: IdentityState) {
     if (identitiesStore.identityHistories[identity.category]) return;
     loadingHistory.value = identity.category;
     try {
@@ -603,6 +610,15 @@
     } finally {
       loadingHistory.value = undefined;
     }
+  }
+
+  async function toggleHistory(identity: IdentityState) {
+    if (openHistories.value.includes(identity.category)) {
+      openHistories.value = openHistories.value.filter(open => open !== identity.category);
+      return;
+    }
+    openHistories.value = [...openHistories.value, identity.category];
+    await loadHistory(identity);
   }
 
   // Told by the wallet's own history: the links made here, and the ones made elsewhere with the
@@ -690,9 +706,6 @@
       <InfoPopup>
         <div style="max-width: 300px;">{{ t('identities.whatIsAnIdentity') }}</div>
         <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.whatIsAnIdentityNote') }}</div>
-        <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.updatedElsewhere') }}</div>
-        <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.reserveNote') }}</div>
-        <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.noUpkeep') }}</div>
       </InfoPopup>
     </div>
 
@@ -750,6 +763,7 @@
       <input
         @click="scanForIdentities()"
         type="button"
+        class="primaryButton"
         :value="isScanning ? t('identities.scan.scanning') : t('identities.scan.linkText')"
         :disabled="isScanning || identitiesStore.identitiesResolving"
         style="margin-top: 8px;"
@@ -794,7 +808,11 @@
         </ol>
       </div>
       <div v-else class="description">
-        {{ needsAttention ? t('identities.listedCount', listedCount) : t('identities.allQuiet', listedCount) }}
+        <template v-if="needsAttention">{{ t('identities.listedCount', listedCount) }}</template>
+        <template v-else-if="watchedCount">
+          {{ t('identities.ownedCount', ownedCount) }}{{ t('identities.watchedSuffix', watchedCount) }}
+        </template>
+        <template v-else>{{ t('identities.ownedCount', ownedCount) }}</template>
       </div>
 
       <!-- Found in this wallet's own history and held back, with nothing on the coin to say which
@@ -834,38 +852,40 @@
       <div v-for="identity in identities" :key="identity.category" class="section identity-card">
         <!-- The header opens and closes the card. Both halves are used: what it is on the left,
              which one it is on the right, where the category was an unused corner. -->
-        <div class="identity-header identity-header-row" @click="toggleCard(identity.category)">
+        <div class="identity-header identity-header-row" @click="toggleCard(identity)">
           <TokenIcon
             :token-id="identity.category"
             :icon-url="identityIconUrl(identity.category)"
             :size="40"
           />
+          <!-- name over identifier, the shape the token list uses for the same pair -->
           <div class="identity-title">
             <div>{{ identityName(identity.category) ?? t('identities.unnamedIdentity') }}</div>
+            <div
+              class="copy-target"
+              :title="identity.category"
+              @click.stop="copyToClipboard(identity.category)"
+            >
+              <span class="mono description">{{ truncateHash(identity.category) }}</span>
+              <img class="copyIcon" src="images/copyGrey.svg">
+            </div>
             <div v-if="establishedYear(identity)" class="description">
               {{ t('identities.established.since', { year: establishedYear(identity) }) }}
             </div>
-            <!-- asking what a status means is not asking to open the card -->
-            <span @click.stop>
-              <InfoPopup>
-                <template #trigger>
-                  <span class="identity-status info-popup-text-trigger" :class="identity.status">
-                    <q-icon v-if="identity.authUtxo" name="lock" size="15px" />
-                    {{ t('identities.status.' + identity.status) }}
-                  </span>
-                </template>
-                <div style="max-width: 300px;">{{ t('identities.statusHelp.' + identity.status) }}</div>
-              </InfoPopup>
-            </span>
           </div>
-          <div
-            class="identity-id copy-target"
-            :title="identity.category"
-            @click.stop="copyToClipboard(identity.category)"
-          >
-            <span class="mono">{{ truncateHash(identity.category) }}</span>
-            <img class="copyIcon" src="images/copyGrey.svg">
-          </div>
+          <!-- asking what a status means is not asking to open the card -->
+          <span class="identity-state" @click.stop>
+            <InfoPopup>
+              <template #trigger>
+                <span class="identity-status info-popup-text-trigger" :class="identity.status">
+                  <q-icon v-if="identity.authUtxo" name="lock" size="15px" />
+                  {{ t('identities.status.' + identity.status) }}
+                </span>
+              </template>
+              <div style="max-width: 300px;">{{ t('identities.statusHelp.' + identity.status) }}</div>
+            </InfoPopup>
+          </span>
+          <q-icon name="expand_more" class="chevron" :class="{ open: isExpanded(identity) }" />
         </div>
 
         <!-- States stay visible on a closed card; only the details and the actions fold away -->
@@ -1143,7 +1163,7 @@
                 : t('identities.history.reserveDown', { amount: linkAmount(identity, link.reserveDelta) }) }}
             </span>
             <span v-if="linkDate(link.timestamp)" class="description">{{ linkDate(link.timestamp) }}</span>
-            <span v-if="madeByThisWallet(link.hash)" class="made-here">{{ t('identities.history.madeHere') }}</span>
+            <span v-if="madeByThisWallet(link.hash)" class="identity-badge">{{ t('identities.history.madeHere') }}</span>
             <a
               :href="`${store.explorerUrl}/${link.hash}`"
               target="_blank"
@@ -1153,18 +1173,30 @@
         </div>
 
         <div class="identity-links">
-          <a :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
-            {{ t('identities.viewOnExplorer') }}
-            <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;">
-          </a>
-          <span class="action-link" @click="toggleHistory(identity)">{{
-            openHistories.includes(identity.category)
-              ? t('identities.history.hide')
-              : chainLength(identity)
-                ? t('identities.history.showCount', { count: chainLength(identity) })
-                : t('identities.history.show')
-          }}</span>
-          <span class="remove-identity" @click="removeIdentity(identity)">{{ t('identities.remove.button') }}</span>
+          <q-icon name="more_vert" size="22px" class="identity-menu-trigger">
+            <q-menu anchor="bottom right" self="top right">
+              <q-list dense>
+                <q-item clickable v-close-popup :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
+                  <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>
+                  <q-item-section>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="toggleHistory(identity)">
+                  <q-item-section avatar><q-icon name="history" size="18px" /></q-item-section>
+                  <q-item-section>{{
+                    openHistories.includes(identity.category)
+                      ? t('identities.history.hide')
+                      : chainLength(identity)
+                        ? t('identities.history.showCount', { count: chainLength(identity) })
+                        : t('identities.history.show')
+                  }}</q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="removeIdentity(identity)">
+                  <q-item-section avatar><q-icon name="delete" size="18px" /></q-item-section>
+                  <q-item-section>{{ t('identities.remove.button') }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-icon>
         </div>
         </template>
       </div>
@@ -1217,10 +1249,37 @@
 .identity-header-row {
   cursor: pointer;
 }
-/* the identifier sits in the header's other half, where nothing was */
-.identity-id {
+/* the state sits in the header's other half, where nothing was */
+.identity-state {
   margin-left: auto;
   flex: none;
+}
+.chevron {
+  flex: none;
+  transition: transform 0.2s;
+}
+.chevron.open {
+  transform: rotate(180deg);
+}
+/* one size for the operation icons, whatever each file happens to be drawn at */
+.actionBar .icon {
+  width: 18px;
+  height: 18px;
+}
+.identity-menu-trigger {
+  cursor: pointer;
+}
+/* the same chip the transaction history marks its own rows with */
+.identity-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 0.7em;
+  font-weight: 600;
+  vertical-align: middle;
+  background-color: rgba(128, 128, 128, 0.18);
+  color: var(--font-color);
 }
 .publication-badge-row {
   display: flex;
@@ -1295,10 +1354,6 @@
   margin-top: 6px;
 }
 /* the annotation an explorer cannot make: these keys signed this one */
-.made-here {
-  color: var(--color-primary);
-  font-size: 0.85em;
-}
 .identity-actions {
   display: flex;
   gap: 15px;

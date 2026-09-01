@@ -835,14 +835,10 @@
         </select>
       </div>
 
-      <div style="margin-top:15px">{{ t('settings.developer.tokenCreation') }}</div>
-      <div style="margin: 0px 10px;">
-
-        <div style="margin-top:15px">
-          {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
-          <div style="font-size: smaller; color: grey;">
-            {{ t('settings.developer.enableMintNftsHint') }}
-          </div>
+      <div style="margin-top:15px">
+        {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.developer.enableMintNftsHint') }}
         </div>
       </div>
 

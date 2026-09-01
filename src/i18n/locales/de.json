@@ -1337,7 +1337,6 @@
       "changeNetwork": "Netzwerk wechseln:",
       "mainnet": "mainnet",
       "chipnet": "chipnet",
-      "tokenCreation": "Token-Erstellungsfunktionen:",
       "enableMintNfts": "Mint NFTs aktivieren",
       "enableMintNftsHint": "Fügt eine Mint-Aktion zu minting NFTs hinzu, mit der du weitere NFTs in derselben Kategorie erstellen kannst",
       "disableTokenIcons": "Token-Bilder deaktivieren",
@@ -1450,9 +1449,6 @@
     },
     "whatIsAnIdentity": "Die Metadaten eines Tokens, also Name, Icon und Beschreibung, kann nur aktualisieren, wer seine Identitätsmünze (den AuthHead) hält: ein bestimmter UTXO, der mit jeder Aktualisierung an einen neuen Outpoint wandert.",
     "whatIsAnIdentityNote": "Diese Münze ist es, die dieses Wallet zu dem macht, das neue Metadaten für den Token veröffentlichen kann.",
-    "updatedElsewhere": "Metadaten werden außerhalb von Cashonize veröffentlicht, mit Werkzeugen wie CashTokens Studio. Diese Seite verfolgt, wohin die Identität gewandert ist, und schützt sie in der Zwischenzeit.",
-    "reserveNote": "Eine Identität in diesem Wallet bleibt von der Münzauswahl ausgenommen, damit ein gewöhnlicher Versand sie nicht versehentlich ausgibt.",
-    "noUpkeep": "Eine Identität läuft nie ab und wird nie verlängert. Sie zu behalten kostet nichts, und sie in Ruhe zu lassen ist völlig in Ordnung.",
     "resolving": "Suche, wo diese Identitäten liegen...",
     "empty": "Noch keine Identitäten in der Liste.",
     "detected": {
@@ -1468,12 +1464,12 @@
       "removeMessage": "Die Münze kommt zurück in die Münzauswahl und ein gewöhnlicher Versand kann sie ausgeben, was die Identität beendet, die sie trägt. Sie wird nicht wieder aufgelistet."
     },
     "listedCount": "{count} Identität, der dieses Wallet folgt | {count} Identitäten, denen dieses Wallet folgt",
-    "allQuiet": "{count} Identität hier, und nichts braucht dich. | {count} Identitäten hier, und nichts braucht dich.",
+    "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
+    "watchedSuffix": ", {count} beobachtet | , {count} beobachtet",
     "unnamedIdentity": "Identität ohne Namen",
     "categoryLabel": "Kategorie:",
-    "authheadLabel": "Identitätsmünze:",
+    "authheadLabel": "Identitäts-UTXO:",
     "authheadAmount": "Enthält {amount}",
-    "viewOnExplorer": "Öffentliche Seite ansehen",
     "status": {
       "held": "In diesem Wallet gehalten",
       "carriesTokens": "In diesem Wallet gehalten, mit Reserve",

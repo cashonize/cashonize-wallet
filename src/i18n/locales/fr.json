@@ -1337,7 +1337,6 @@
       "changeNetwork": "Changer de réseau :",
       "mainnet": "mainnet",
       "chipnet": "chipnet",
-      "tokenCreation": "Fonctionnalité de création de tokens :",
       "enableMintNfts": "Activer la création de NFTs",
       "enableMintNftsHint": "Ajoute une action de création aux NFTs de création, vous permettant de créer plus de NFTs dans la même catégorie",
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
@@ -1450,9 +1449,6 @@
     },
     "whatIsAnIdentity": "Les métadonnées d'un token, son nom, son icône et sa description, ne peuvent être mises à jour que par qui détient sa pièce d'identité (l'AuthHead) : un UTXO précis qui passe à un nouvel outpoint à chaque mise à jour.",
     "whatIsAnIdentityNote": "C'est le fait de détenir cette pièce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le token.",
-    "updatedElsewhere": "La publication des métadonnées se fait hors de Cashonize, avec des outils comme CashTokens Studio. Cette page suit où l'identité s'est déplacée et la garde en sécurité entre-temps.",
-    "reserveNote": "Une identité détenue par ce portefeuille est écartée de la sélection des pièces, pour qu'un envoi ordinaire ne la dépense pas par accident.",
-    "noUpkeep": "Une identité n'expire jamais et ne se renouvelle jamais. La garder ne coûte rien, et la laisser tranquille convient très bien.",
     "resolving": "Recherche de l'endroit où sont ces identités...",
     "empty": "Aucune identité dans la liste pour l'instant.",
     "detected": {
@@ -1468,12 +1464,12 @@
       "removeMessage": "La pièce revient dans la sélection des pièces et un envoi ordinaire peut la dépenser, ce qui met fin à l'identité qu'elle porte. Elle ne sera plus listée."
     },
     "listedCount": "{count} identité suivie par ce portefeuille | {count} identités suivies par ce portefeuille",
-    "allQuiet": "{count} identité ici, et rien ne vous demande quoi que ce soit. | {count} identités ici, et rien ne vous demande quoi que ce soit.",
+    "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
+    "watchedSuffix": ", {count} surveillée | , {count} surveillées",
     "unnamedIdentity": "Identité sans nom",
     "categoryLabel": "Catégorie :",
-    "authheadLabel": "Pièce de l'identité :",
+    "authheadLabel": "UTXO de l'identité :",
     "authheadAmount": "Contient {amount}",
-    "viewOnExplorer": "Voir la page publique",
     "status": {
       "held": "Détenue par ce portefeuille",
       "carriesTokens": "Détenue par ce portefeuille, avec une réserve",

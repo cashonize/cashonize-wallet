@@ -1337,7 +1337,6 @@
       "changeNetwork": "Mudar rede:",
       "mainnet": "mainnet",
       "chipnet": "chipnet",
-      "tokenCreation": "Funcionalidade de Criação de Tokens:",
       "enableMintNfts": "Habilitar mint de NFTs",
       "enableMintNftsHint": "Adiciona uma ação de mint aos NFTs de minting, permitindo criar mais NFTs na mesma categoria",
       "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
@@ -1450,9 +1449,6 @@
     },
     "whatIsAnIdentity": "Os metadados de um token, o seu nome, ícone e descrição, só podem ser atualizados por quem tem a sua moeda de identidade (o AuthHead): um UTXO específico que passa para um novo outpoint a cada atualização.",
     "whatIsAnIdentityNote": "Ter essa moeda é o que faz desta carteira a que pode publicar novos metadados do token.",
-    "updatedElsewhere": "A publicação de metadados acontece fora do Cashonize, em ferramentas como o CashTokens Studio. Esta página acompanha para onde a identidade se moveu e mantém-na segura nesse meio-tempo.",
-    "reserveNote": "Uma identidade desta carteira fica de fora da seleção de moedas, para que um envio comum não a gaste por acidente.",
-    "noUpkeep": "Uma identidade nunca expira nem se renova. Mantê-la não custa nada, e deixá-la quieta está ótimo.",
     "resolving": "Procurando onde estão estas identidades...",
     "empty": "Ainda não há identidades na lista.",
     "detected": {
@@ -1468,12 +1464,12 @@
       "removeMessage": "A moeda volta para a seleção de moedas e um envio comum pode gastá-la, o que encerra a identidade que ela carrega. Ela não será listada de novo."
     },
     "listedCount": "{count} identidade acompanhada por esta carteira | {count} identidades acompanhadas por esta carteira",
-    "allQuiet": "{count} identidade aqui, e nada precisa de você. | {count} identidades aqui, e nada precisa de você.",
+    "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
+    "watchedSuffix": ", {count} observada | , {count} observadas",
     "unnamedIdentity": "Identidade sem nome",
     "categoryLabel": "Categoria:",
-    "authheadLabel": "Moeda da identidade:",
+    "authheadLabel": "UTXO da identidade:",
     "authheadAmount": "Contém {amount}",
-    "viewOnExplorer": "Ver página pública",
     "status": {
       "held": "Nesta carteira",
       "carriesTokens": "Nesta carteira, com reserva",
