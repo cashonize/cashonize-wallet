@@ -1411,9 +1411,8 @@ export const useStore = defineStore('store', () => {
   }
 
   // The explicit check for authhead ownership, over the categories this wallet holds tokens of.
-  // A found authhead joins the list the same way a manual add does; one carrying tokens is only
-  // reported, since holding a token coin back from coin selection does not bind yet.
-  // Categories with no held supply are not covered here and stay a manual add.
+  // A found authhead joins the list the same way a manual add does, whether or not it carries a
+  // reserve. Categories with no held supply are not covered here and stay a manual add.
   async function scanForIdentities(): Promise<IdentityScanSummary | undefined> {
     if (identitiesResolving.value) return undefined;
     const currentUtxos = walletUtxos.value;

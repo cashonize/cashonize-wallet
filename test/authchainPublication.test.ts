@@ -49,6 +49,11 @@ describe('registryUrlOf', () => {
       .toBe('https://example.com/.well-known/bitcoin-cash-metadata-registry.json')
   })
 
+  // the two domain forms are not the same location: a trailing slash names the root itself
+  it('leaves a domain published with a trailing slash at its root', () => {
+    expect(registryUrlOf('example.com/', ipfsGateway)).toBe('https://example.com/')
+  })
+
   it('leaves a location that names a file alone', () => {
     expect(registryUrlOf('example.com/registry.json', ipfsGateway))
       .toBe('https://example.com/registry.json')

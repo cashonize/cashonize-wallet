@@ -53,9 +53,6 @@ async function queryChainGraph(queryReq:string, chaingraphUrl:string, variables:
     return jsonResponse;
 }
 
-// OP_RETURN followed by a push of "BCMR", which is what makes an output a metadata publication
-const BCMR_OUTPUT_PREFIX = "6a0442434d52";
-
 // Chaingraph returns bytea values as \x-prefixed hex strings
 export function byteaToHex(bytea: string) {
   return bytea.replace(/^\\x/, "");
@@ -121,22 +118,17 @@ export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
   return transaction;
 }
 
-// The authhead's txid and, when its transaction carries one, the metadata publication it made.
-// Both come out of the one query: the publication is an output of that same transaction, and the
-// identity card wants the two together.
-export async function queryAuthHeadWithPublication(tokenId:string, chaingraphUrl:string){
+// The authhead's txid and the locking bytecodes of its transaction's outputs, in output order.
+// Both come out of the one query: a metadata publication is an output of that same transaction,
+// and recognising it among these belongs to the module that owns the publication format.
+export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:string){
   const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
   const authchain = authHeadObj.authchains[0];
   if (!authchain) throw new Error(t('chaingraph.errors.authchainNotFound'));
-  const publicationOutput = (authchain.authhead.outputs ?? [])
-    // by output index, since the spec takes the first matching output of the transaction
+  const outputs = (authchain.authhead.outputs ?? [])
     .sort((left, right) => Number(left.output_index) - Number(right.output_index))
-    .map(output => byteaToHex(output.locking_bytecode))
-    .find(lockingBytecode => lockingBytecode.startsWith(BCMR_OUTPUT_PREFIX));
-  return {
-    txid: byteaToHex(authchain.authhead.hash),
-    publicationOutput,
-  };
+    .map(output => byteaToHex(output.locking_bytecode));
+  return { txid: byteaToHex(authchain.authhead.hash), outputs };
 }
 
 // Bigint values arrive as decimal strings, like the bytea values arrive as hex strings

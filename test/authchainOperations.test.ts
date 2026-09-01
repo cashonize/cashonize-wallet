@@ -121,6 +121,19 @@ describe('summarizeRegistry', () => {
   it('reports a file that is not a registry', () => {
     expect(summarizeRegistry('not json at all', category)).toBeUndefined()
   })
+
+  // hosting is untrusted by design, and what comes out of this file is shown to the signer, so a
+  // file of the wrong shape is refused rather than rendered as nonsense in the review dialog
+  it('refuses a registry whose snapshot is not shaped like one', () => {
+    const malformed = JSON.stringify({
+      version: { major: 1, minor: 0, patch: 0 },
+      latestRevision: '2024-01-01T00:00:00.000Z',
+      registryIdentity: { name: 'Test registry' },
+      identities: { [category]: { '2024-01-01T00:00:00.000Z': { name: { first: 'not a string' } } } },
+    })
+
+    expect(summarizeRegistry(malformed, category)).toBeUndefined()
+  })
 })
 
 describe('diffRegistries', () => {

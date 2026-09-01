@@ -5,10 +5,15 @@
   import { useI18n } from 'vue-i18n'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
-  import { copyToClipboard, formatBchAmount, formatTokenAmountFromBigInt } from 'src/utils/utils'
+  import {
+    copyToClipboard,
+    formatBchAmount,
+    formatTokenAmountFromBigInt,
+    parseTokenAmountToBigInt,
+  } from 'src/utils/utils'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
-  import { validateRecipientAddress } from 'src/utils/payments/recipientAddress'
+  import { validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import {
     diffRegistries,
     fetchCandidateRegistry,
@@ -26,8 +31,6 @@
     type RegistrySummary,
   } from 'src/utils/tools/authchainIdentity'
   import { TokenSendRequest } from 'mainnet-js'
-  import { parseTokenAmountToBigInt } from 'src/utils/utils'
-  import { validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
 
   const store = useStore()
   const settingsStore = useSettingsStore()

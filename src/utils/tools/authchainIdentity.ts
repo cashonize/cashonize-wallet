@@ -8,8 +8,8 @@
 import type { Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest } from "mainnet-js";
 import { binToHex, binToUtf8, hexToBin, sha256, utf8ToBin } from "@bitauth/libauth";
-import { queryAuthHeadWithPublication } from "src/queryChainGraph";
-import type { Registry } from "src/parsing/bcmr-v2.schema";
+import { queryAuthHeadWithOutputs } from "src/queryChainGraph";
+import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -58,6 +58,15 @@ const BCMR_OUTPUT_PREFIX = "6a0442434d52";
 // per spec, a bare domain names the registry at this well-known path
 const WELL_KNOWN_REGISTRY_PATH = "/.well-known/bitcoin-cash-metadata-registry.json";
 
+// The first output of the transaction that is a publication, which is the one the spec takes.
+export function findPublication(outputs: string[]): MetadataPublication | undefined {
+  for (const lockingBytecode of outputs) {
+    const publication = parsePublicationOutput(lockingBytecode);
+    if (publication) return publication;
+  }
+  return undefined;
+}
+
 // The chunks after "BCMR" are the hash and then the locations, all of them optional in the sense
 // that a malformed output is simply not a publication this wallet reads.
 export function parsePublicationOutput(lockingBytecode: string): MetadataPublication | undefined {
@@ -75,10 +84,11 @@ export function parsePublicationOutput(lockingBytecode: string): MetadataPublica
 // spec asks for, so an https:// prefix is stripped and a bare domain names the well-known path.
 export function registryUrlOf(uri: string, ipfsGateway: string): string {
   if (uri.startsWith("ipfs://")) return ipfsGateway + uri.slice("ipfs://".length);
-  // a location naming no file is a bare domain, which per spec means the well-known path on it
-  const location = uri.replace(/^https:\/\//, "").replace(/\/$/, "");
-  const namesAFile = location.includes("/");
-  return `https://${location}${namesAFile ? "" : WELL_KNOWN_REGISTRY_PATH}`;
+  // Per spec a bare domain means the well-known file on it, while anything naming a path is taken
+  // as published. A trailing slash is such a path, the root itself, so the two forms differ.
+  const location = uri.replace(/^https:\/\//, "");
+  const namesAPath = location.includes("/");
+  return `https://${location}${namesAPath ? "" : WELL_KNOWN_REGISTRY_PATH}`;
 }
 
 // The hash the wallet publishes for a registry file, and so also the one it verifies against:
@@ -123,26 +133,35 @@ export async function fetchPublishedRegistry(
   ipfsGateway: string,
 ): Promise<string | undefined> {
   for (const uri of uris) {
-    try {
-      const response = await fetch(registryUrlOf(uri, ipfsGateway), { cache: "no-store" });
-      if (response.ok) return await response.text();
-    } catch { /* a location that does not answer is not the one to read the current file from */ }
+    const content = await fetchRegistryText(uri, ipfsGateway);
+    // a location that does not answer is not the one to read the current file from
+    if (content !== undefined) return content;
   }
   return undefined;
 }
 
-// What one publication output may take up. The hash and the locations share the standard
-// data-carrier limit, so the number of locations is capped by their length rather than by the form.
+// What one publication output may take up. The hash and the locations share it, so the number of
+// locations is capped by their length rather than by the form. Standardness allows 223 bytes of
+// data carrier; the ceiling that actually applies is mainnet-js's own builder, which refuses more
+// than 220, so that is the number the form is held to.
 export const maxPublicationOutputSize = 220;
 
-// Mirrors how mainnet-js encodes the output: OP_RETURN, then a length-prefixed push per chunk,
-// two bytes of prefix once a chunk reaches 76 bytes.
+// Only its length matters: the size of a publication does not depend on which hash it carries
+const placeholderHash = "00".repeat(32);
+
+// Measured on the real output rather than by mirroring the encoder's rules, one location at a
+// time so that a set too large for a single output can still be sized: each location is one push,
+// so the parts add up to the whole.
 export function publicationOutputSize(uris: string[]): number {
-  const pushSize = (length: number) => (length < 76 ? 1 : 2) + length;
-  const bcmrPrefix = pushSize(4);
-  const hash = pushSize(32);
-  const locations = uris.reduce((total, uri) => total + pushSize(utf8ToBin(uri).length), 0);
-  return 1 + bcmrPrefix + hash + locations;
+  const withoutLocations = publicationOutput(placeholderHash, []).buffer.length;
+  return uris.reduce((total, uri) => {
+    try {
+      return total + publicationOutput(placeholderHash, [uri]).buffer.length - withoutLocations;
+    } catch {
+      // a location the encoder refuses on its own is past the budget whatever the others cost
+      return total + maxPublicationOutputSize;
+    }
+  }, withoutLocations);
 }
 
 // What the wallet reads out of a registry to say what an update changes. Undefined when the file
@@ -156,13 +175,15 @@ export interface RegistrySummary {
 }
 
 export function summarizeRegistry(content: string, authbase: string): RegistrySummary | undefined {
-  let registry: Registry;
+  let parsed: unknown;
   try {
-    registry = JSON.parse(content) as Registry;
+    parsed = JSON.parse(content);
   } catch {
     return undefined;
   }
-  const history = registry.identities?.[authbase];
+  const registry = MetadataRegistrySchema.safeParse(parsed);
+  if (!registry.success) return undefined;
+  const history = registry.data.identities?.[authbase];
   if (!history) return undefined;
   const snapshots = Object.keys(history).sort();
   const latest = snapshots.length ? history[snapshots[snapshots.length - 1]!] : undefined;
@@ -212,14 +233,8 @@ export async function fetchCandidateRegistry(
 ): Promise<CandidateRegistry> {
   if (!uris.length) throw new Error(t('identities.publish.errors.noUris'));
   const fetched = await Promise.all(uris.map(async uri => {
-    let content: string;
-    try {
-      const response = await fetch(registryUrlOf(uri, ipfsGateway), { cache: "no-store" });
-      if (!response.ok) throw new Error();
-      content = await response.text();
-    } catch {
-      throw new Error(t('identities.publish.errors.unreachable', { uri }));
-    }
+    const content = await fetchRegistryText(uri, ipfsGateway);
+    if (content === undefined) throw new Error(t('identities.publish.errors.unreachable', { uri }));
     return { uri, content, hash: registryContentHash(content) };
   }));
   const first = fetched[0]!;
@@ -228,21 +243,26 @@ export async function fetchCandidateRegistry(
   return { hash: first.hash, content: first.content };
 }
 
-// Fetched rather than read from the metadata cache on purpose: the question is what the host is
-// serving now, which a cached copy cannot answer.
+// Always a fresh fetch, never the metadata cache: every caller here is asking what a location
+// serves right now, which a cached copy cannot answer. Undefined when it does not answer at all.
+async function fetchRegistryText(uri: string, ipfsGateway: string): Promise<string | undefined> {
+  try {
+    const response = await fetch(registryUrlOf(uri, ipfsGateway), { cache: "no-store" });
+    if (!response.ok) return undefined;
+    return await response.text();
+  } catch {
+    return undefined;
+  }
+}
+
 export async function checkPublicationUri(
   uri: string,
   expectedHash: string,
   ipfsGateway: string,
 ): Promise<PublicationUriCheck> {
-  try {
-    const response = await fetch(registryUrlOf(uri, ipfsGateway), { cache: "no-store" });
-    if (!response.ok) return { uri, status: 'unreachable' };
-    const content = await response.text();
-    return { uri, status: registryContentHash(content) === expectedHash ? 'verified' : 'changed' };
-  } catch {
-    return { uri, status: 'unreachable' };
-  }
+  const content = await fetchRegistryText(uri, ipfsGateway);
+  if (content === undefined) return { uri, status: 'unreachable' };
+  return { uri, status: registryContentHash(content) === expectedHash ? 'verified' : 'changed' };
 }
 
 function identitiesKey(network: Network, walletName: string): string {
@@ -296,7 +316,7 @@ export async function resolveIdentities(
   walletUtxos: Utxo[],
 ): Promise<IdentityState[]> {
   const authheadResults = await Promise.allSettled(
-    categories.map(category => queryAuthHeadWithPublication(category, chaingraphUrl))
+    categories.map(category => queryAuthHeadWithOutputs(category, chaingraphUrl))
   );
 
   return categories.map((category, index) => {
@@ -305,8 +325,8 @@ export async function resolveIdentities(
       console.error("Failed to resolve authchain identity:", category, result.reason);
     }
     if (result?.status !== 'fulfilled') return { category, status: 'unresolved' };
-    const { txid: authheadTxid, publicationOutput } = result.value;
-    const publication = publicationOutput ? parsePublicationOutput(publicationOutput) : undefined;
+    const { txid: authheadTxid, outputs } = result.value;
+    const publication = findPublication(outputs);
     const resolved = { category, authheadTxid, ...(publication ? { publication } : {}) };
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);

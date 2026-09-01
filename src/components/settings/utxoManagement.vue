@@ -3,6 +3,7 @@
   import { copyToClipboard, formatBchAmount, formatFiatAmount, formatTokenAmountFromBigInt, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
+  import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue';
   import TokenIcon from 'src/components/general/TokenIcon.vue';
   import { HDWallet, TokenSendRequest } from 'mainnet-js';
   import type { Utxo } from 'mainnet-js';
@@ -469,47 +470,7 @@
               <!-- A coin held for a pledge or for an identity's authhead is marked but not
                    actionable: the feature holding it is what releases it. Every other coin opens
                    its actions on a click on the row. -->
-              <div class="cell held-cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
-                <InfoPopup v-if="heldByFeature(utxo)">
-                  <template #trigger>
-                    <span class="held-state">
-                      <q-icon name="lock" size="15px" class="held-marker" />
-                      <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
-                    </span>
-                  </template>
-                  <div style="max-width: 300px;">{{
-                    reservationReason(utxo) === 'auth'
-                      ? t('utxoManagement.markers.reservedAuth')
-                      : t('utxoManagement.markers.reserved')
-                  }}</div>
-                  <div class="info-popup-note" style="max-width: 300px;">{{
-                    reservationReason(utxo) === 'auth'
-                      ? t('utxoManagement.markers.reservedAuthRelease')
-                      : t('utxoManagement.markers.reservedRelease')
-                  }}</div>
-                </InfoPopup>
-                <template v-else>
-                  <span class="held-state">
-                    <q-icon
-                      v-if="reservationReason(utxo) === 'manual'"
-                      name="ac_unit"
-                      size="15px"
-                      class="held-marker frozen"
-                      :title="t('utxoManagement.markers.frozen')"
-                    />
-                    <span class="held-label">{{
-                      reservationReason(utxo) === 'manual'
-                        ? t('utxoManagement.markers.frozenShort')
-                        : t('utxoManagement.markers.availableShort')
-                    }}</span>
-                  </span>
-                  <span class="held-action actions-trigger">
-                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
-                    <q-icon name="more_vert" size="18px" />
-                  </span>
-                </template>
-              </div>
+              <utxoRowStatus :utxo="utxo" />
               <!-- The label spans the whole row as a line of its own, so it needs no column and
                    rows without one keep their height. It edits in place: a click on the text
                    opens the editor directly, the menu action opens it for an unlabeled row. -->
@@ -785,47 +746,7 @@
               </div>
               <!-- The same marks and actions as the BCH list, without the send: a token coin is
                    spent from its token card rather than from here -->
-              <div class="cell held-cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
-                <InfoPopup v-if="heldByFeature(utxo)">
-                  <template #trigger>
-                    <span class="held-state">
-                      <q-icon name="lock" size="15px" class="held-marker" />
-                      <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
-                    </span>
-                  </template>
-                  <div style="max-width: 300px;">{{
-                    reservationReason(utxo) === 'auth'
-                      ? t('utxoManagement.markers.reservedAuth')
-                      : t('utxoManagement.markers.reserved')
-                  }}</div>
-                  <div class="info-popup-note" style="max-width: 300px;">{{
-                    reservationReason(utxo) === 'auth'
-                      ? t('utxoManagement.markers.reservedAuthRelease')
-                      : t('utxoManagement.markers.reservedRelease')
-                  }}</div>
-                </InfoPopup>
-                <template v-else>
-                  <span class="held-state">
-                    <q-icon
-                      v-if="reservationReason(utxo) === 'manual'"
-                      name="ac_unit"
-                      size="15px"
-                      class="held-marker frozen"
-                      :title="t('utxoManagement.markers.frozen')"
-                    />
-                    <span class="held-label">{{
-                      reservationReason(utxo) === 'manual'
-                        ? t('utxoManagement.markers.frozenShort')
-                        : t('utxoManagement.markers.availableShort')
-                    }}</span>
-                  </span>
-                  <span class="held-action actions-trigger">
-                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
-                    <q-icon name="more_vert" size="18px" />
-                  </span>
-                </template>
-              </div>
+              <utxoRowStatus :utxo="utxo" />
               <div
                 v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
                 class="cell utxo-label-line"
@@ -932,47 +853,7 @@
               </div>
               <!-- The same marks and actions as the BCH list, without the send: a token coin is
                    spent from its token card rather than from here -->
-              <div class="cell held-cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
-                <InfoPopup v-if="heldByFeature(utxo)">
-                  <template #trigger>
-                    <span class="held-state">
-                      <q-icon name="lock" size="15px" class="held-marker" />
-                      <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
-                    </span>
-                  </template>
-                  <div style="max-width: 300px;">{{
-                    reservationReason(utxo) === 'auth'
-                      ? t('utxoManagement.markers.reservedAuth')
-                      : t('utxoManagement.markers.reserved')
-                  }}</div>
-                  <div class="info-popup-note" style="max-width: 300px;">{{
-                    reservationReason(utxo) === 'auth'
-                      ? t('utxoManagement.markers.reservedAuthRelease')
-                      : t('utxoManagement.markers.reservedRelease')
-                  }}</div>
-                </InfoPopup>
-                <template v-else>
-                  <span class="held-state">
-                    <q-icon
-                      v-if="reservationReason(utxo) === 'manual'"
-                      name="ac_unit"
-                      size="15px"
-                      class="held-marker frozen"
-                      :title="t('utxoManagement.markers.frozen')"
-                    />
-                    <span class="held-label">{{
-                      reservationReason(utxo) === 'manual'
-                        ? t('utxoManagement.markers.frozenShort')
-                        : t('utxoManagement.markers.availableShort')
-                    }}</span>
-                  </span>
-                  <span class="held-action actions-trigger">
-                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
-                    <q-icon name="more_vert" size="18px" />
-                  </span>
-                </template>
-              </div>
+              <utxoRowStatus :utxo="utxo" />
               <div
                 v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
                 class="cell utxo-label-line"
@@ -1084,47 +965,7 @@
               </div>
               <!-- The same marks and actions as the BCH list, without the send: a token coin is
                    spent from its token card rather than from here -->
-              <div class="cell held-cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
-                <InfoPopup v-if="heldByFeature(utxo)">
-                  <template #trigger>
-                    <span class="held-state">
-                      <q-icon name="lock" size="15px" class="held-marker" />
-                      <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
-                    </span>
-                  </template>
-                  <div style="max-width: 300px;">{{
-                    reservationReason(utxo) === 'auth'
-                      ? t('utxoManagement.markers.reservedAuth')
-                      : t('utxoManagement.markers.reserved')
-                  }}</div>
-                  <div class="info-popup-note" style="max-width: 300px;">{{
-                    reservationReason(utxo) === 'auth'
-                      ? t('utxoManagement.markers.reservedAuthRelease')
-                      : t('utxoManagement.markers.reservedRelease')
-                  }}</div>
-                </InfoPopup>
-                <template v-else>
-                  <span class="held-state">
-                    <q-icon
-                      v-if="reservationReason(utxo) === 'manual'"
-                      name="ac_unit"
-                      size="15px"
-                      class="held-marker frozen"
-                      :title="t('utxoManagement.markers.frozen')"
-                    />
-                    <span class="held-label">{{
-                      reservationReason(utxo) === 'manual'
-                        ? t('utxoManagement.markers.frozenShort')
-                        : t('utxoManagement.markers.availableShort')
-                    }}</span>
-                  </span>
-                  <span class="held-action actions-trigger">
-                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
-                    <q-icon name="more_vert" size="18px" />
-                  </span>
-                </template>
-              </div>
+              <utxoRowStatus :utxo="utxo" />
               <div
                 v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
                 class="cell utxo-label-line"
@@ -1427,13 +1268,15 @@ $col-commitment: 8em;
   color: #aaa;
 }
 
-/* the mark and the offer to freeze share one column, so the row keeps its width either way */
+/* The status cell is its own component, so the rules for what is inside it reach through the
+   scope with :deep. Its root element keeps this component's scope, so .held-cell does not.
+   The mark and the offer to freeze share one column, so the row keeps its width either way. */
 .held-cell {
   justify-content: center;
 }
 
-.held-state,
-.held-action {
+:deep(.held-state),
+:deep(.held-action) {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -1443,27 +1286,27 @@ $col-commitment: 8em;
 $card-label-width: 90px;
 
 /* the column is too narrow for a word beside the mark, and does not need one under a heading */
-.held-label {
+:deep(.held-label) {
   display: none;
 }
 
-.held-marker {
+:deep(.held-marker) {
   flex: none;
   color: grey;
 }
 
 /* the trigger is explicit on every actionable row, brightened by the row's own hover */
-.actions-trigger {
+:deep(.actions-trigger) {
   flex: none;
   cursor: pointer;
   color: grey;
   opacity: 0.55;
 }
-.utxo-row:hover .actions-trigger,
-.actions-trigger:hover {
+.utxo-row:hover :deep(.actions-trigger),
+:deep(.actions-trigger:hover) {
   opacity: 1;
 }
-.held-marker.frozen {
+:deep(.held-marker.frozen) {
   color: var(--color-primary);
 }
 /* the whole row opens the actions, so the whole row says it is clickable */
@@ -1524,11 +1367,11 @@ $card-label-width: 90px;
 }
 
 /* the column headings carry the meaning on a wide screen, each cell repeats its own on a narrow one */
-.cell-label {
+:deep(.cell-label) {
   display: none;
   color: #888;
 }
-.dark .cell-label {
+.dark :deep(.cell-label) {
   color: #aaa;
 }
 
@@ -1562,7 +1405,7 @@ $card-label-width: 90px;
   .utxo-grid .row-number {
     display: none;
   }
-  .utxo-grid .cell-label {
+  .utxo-grid :deep(.cell-label) {
     display: inline;
     min-width: $card-label-width;
   }
@@ -1573,15 +1416,15 @@ $card-label-width: 90px;
     justify-content: flex-start;
     flex-wrap: wrap;
   }
-  .utxo-grid .held-label {
+  .utxo-grid :deep(.held-label) {
     display: inline;
   }
-  .utxo-grid .held-action {
+  .utxo-grid :deep(.held-action) {
     flex: 0 0 100%;
     margin-top: 4px;
   }
   /* a touch screen has no row hover to brighten the trigger, so it starts more visible */
-  .utxo-grid .actions-trigger {
+  .utxo-grid :deep(.actions-trigger) {
     opacity: 0.75;
   }
 }
