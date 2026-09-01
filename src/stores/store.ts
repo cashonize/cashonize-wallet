@@ -1639,12 +1639,8 @@ export const useStore = defineStore('store', () => {
     return guarded;
   }
 
-  // Where each listed identity's authhead sits now. Nothing about an authhead is restored from
-  // storage: it moves to a new outpoint every time the identity's metadata is updated, and those
-  // updates happen outside this wallet, so the outpoint is re-resolved and the 'auth' reservations
-  // are rewritten from the result. That is what makes a reservation follow the authchain.
-  // This is the single owner of both the list and those reservations: everything that changes what
-  // is listed writes the categories and then hands the resolving over to it.
+  // Re-resolved rather than restored: an authhead moves to a new outpoint whenever the metadata is
+  // updated elsewhere. One owner for both the list and the 'auth' reservations rewritten from it.
   async function resolveListedIdentities() {
     const currentUtxos = walletUtxos.value;
     if (!currentUtxos) return;
@@ -1701,17 +1697,16 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Every authhead the wallet holds as a BCH-only coin is held back from coin selection, and an
-  // 'auth' reservation on a coin that is no longer one is dropped. A failed query says nothing
-  // about where its authhead went, so nothing is dropped while any identity is unresolved: an
-  // outage leaves coins locked rather than releasing them.
-  // The held authheads that carry no identity of their own on the list: same protection, no name
+  // Held authheads that carry no identity of their own on the list: same protection, no name
   function unnamedAuthheadCoins() {
     return (walletUtxos.value ?? []).filter(
       utxo => utxo.vout === 0 && unnamedAuthheads.value.includes(utxo.txid)
     );
   }
 
+  // Holds back every authhead this wallet has and drops an 'auth' reservation on a coin that is no
+  // longer one - never while an identity is unresolved though, since a failed lookup says nothing
+  // about where its authhead went: an outage leaves coins locked rather than releasing them.
   async function syncAuthReservations(resolved: IdentityState[]) {
     const authOutpoints: string[] = [];
     for (const coin of unnamedAuthheadCoins()) {
