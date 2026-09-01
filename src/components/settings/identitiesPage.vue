@@ -675,6 +675,14 @@
             <q-icon name="search" size="18px" />
             <span>{{ t('identities.emptySteps.check') }}</span>
           </li>
+          <li>
+            <q-icon name="add_circle" size="18px" />
+            <i18n-t keypath="identities.emptySteps.create" tag="span">
+              <template #link>
+                <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.emptySteps.createLink') }}</span>
+              </template>
+            </i18n-t>
+          </li>
         </ol>
       </div>
       <div v-else class="description">{{ t('identities.listedCount', listedCount) }}</div>

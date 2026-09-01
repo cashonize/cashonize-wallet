@@ -1237,11 +1237,11 @@
       "hdAddresses": "Adresses HD",
       "requestPayment": "Créer une demande de paiement",
       "utxoManagement": "Gestion des UTXO",
+      "createTokens": "Créer des jetons",
       "sweepPrivateKey": "Balayer une clé privée",
       "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
-      "tokenCreationPage": "Page de création de tokens",
       "aboutCashonize": "À propos de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identités"
@@ -1666,7 +1666,9 @@
     },
     "emptySteps": {
       "paste": "Collez ci-dessus la catégorie de jeton d'une identité.",
-      "check": "Ou vérifiez si les jetons de ce portefeuille ont des AuthHeads."
+      "check": "Ou vérifiez si les jetons de ce portefeuille ont des AuthHeads.",
+      "create": "Ou {link} pour en créer une.",
+      "createLink": "créez un jeton"
     }
   }
 }

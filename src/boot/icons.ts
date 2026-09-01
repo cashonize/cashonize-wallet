@@ -1,6 +1,7 @@
 import { defineBoot } from '#q-app'
 import {
   matAcUnit,
+  matAddCircle,
   matArchive,
   matArrowDownward,
   matArrowUpward,
@@ -31,6 +32,7 @@ import { outlinedInfo } from '@quasar/extras/material-icons-outlined'
 // Note: Until then, add every new icon name here; unmapped names render as literal text.
 const appIcons: Record<string, string> = {
   ac_unit: matAcUnit,
+  add_circle: matAddCircle,
   archive: matArchive,
   arrow_downward: matArrowDownward,
   arrow_upward: matArrowUpward,

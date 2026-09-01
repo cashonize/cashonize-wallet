@@ -1237,11 +1237,11 @@
       "hdAddresses": "HD Addresses",
       "requestPayment": "Create Payment Request",
       "utxoManagement": "UTXO Management",
+      "createTokens": "Create Tokens",
       "sweepPrivateKey": "Sweep Private Key",
       "transferAllAssets": "Transfer All Assets",
       "signVerifyMessage": "Sign / Verify Message",
       "exportXpub": "Export Xpub",
-      "tokenCreationPage": "Token Creation Page",
       "aboutCashonize": "About Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identities"
@@ -1666,7 +1666,9 @@
     },
     "emptySteps": {
       "paste": "Paste the token category of an identity above.",
-      "check": "Or check the tokens this wallet holds for AuthHeads."
+      "check": "Or check the tokens this wallet holds for AuthHeads.",
+      "create": "Or {link} to make a new one.",
+      "createLink": "create a token"
     }
   }
 }

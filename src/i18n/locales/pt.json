@@ -1237,11 +1237,11 @@
       "hdAddresses": "Endereços HD",
       "requestPayment": "Criar solicitação de pagamento",
       "utxoManagement": "Gerenciamento de UTXOs",
+      "createTokens": "Criar tokens",
       "sweepPrivateKey": "Sweep de Chave Privada",
       "transferAllAssets": "Transferir todos os ativos",
       "signVerifyMessage": "Assinar / Verificar mensagem",
       "exportXpub": "Exportar Xpub",
-      "tokenCreationPage": "Página de Criação de Tokens",
       "aboutCashonize": "Sobre o Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades"
@@ -1666,7 +1666,9 @@
     },
     "emptySteps": {
       "paste": "Cole acima a categoria de token de uma identidade.",
-      "check": "Ou verifique se os tokens desta carteira têm AuthHeads."
+      "check": "Ou verifique se os tokens desta carteira têm AuthHeads.",
+      "create": "Ou {link} para criar uma nova.",
+      "createLink": "crie um token"
     }
   }
 }

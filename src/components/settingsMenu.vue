@@ -842,10 +842,6 @@
             {{ t('settings.developer.enableMintNftsHint') }}
           </div>
         </div>
-
-        <div v-if="!isMobile" style="margin-top:15px; margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
-          → {{ t('settings.menu.tokenCreationPage') }}
-        </div>
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">

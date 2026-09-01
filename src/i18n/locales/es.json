@@ -1237,11 +1237,11 @@
       "hdAddresses": "Direcciones HD",
       "requestPayment": "Crear solicitud de pago",
       "utxoManagement": "Gestión de UTXO",
+      "createTokens": "Crear tokens",
       "sweepPrivateKey": "Barrer clave privada",
       "transferAllAssets": "Transferir todos los activos",
       "signVerifyMessage": "Firmar / Verificar mensaje",
       "exportXpub": "Exportar Xpub",
-      "tokenCreationPage": "Página de creación de tokens",
       "aboutCashonize": "Acerca de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades"
@@ -1666,7 +1666,9 @@
     },
     "emptySteps": {
       "paste": "Pega arriba la categoría de token de una identidad.",
-      "check": "O comprueba si los tokens de esta billetera tienen AuthHeads."
+      "check": "O comprueba si los tokens de esta billetera tienen AuthHeads.",
+      "create": "O {link} para hacer una nueva.",
+      "createLink": "crea un token"
     }
   }
 }
