@@ -1448,6 +1448,7 @@
     "whatIsAnIdentityNote": "Holding that coin is what makes this wallet the one that can publish new metadata for the token.",
     "updatedElsewhere": "Publishing metadata happens outside Cashonize, in tools like CashTokens Studio. This page follows where the identity moved and keeps it safe in between.",
     "reserveNote": "An identity this wallet holds is kept out of coin selection, so an ordinary send cannot spend it by accident.",
+    "noUpkeep": "An identity never expires and never renews. Keeping one costs nothing, and leaving it alone is fine.",
     "resolving": "Looking up where these identities are held...",
     "empty": "No identities listed yet.",
     "detected": {
@@ -1463,11 +1464,12 @@
       "removeMessage": "The coin returns to coin selection and an ordinary send can spend it, which ends the identity it carries. It will not be listed again."
     },
     "listedCount": "{count} identity followed by this wallet | {count} identities followed by this wallet",
+    "allQuiet": "{count} identity here, and nothing needs you. | {count} identities here, and nothing needs you.",
     "unnamedIdentity": "Unnamed identity",
     "categoryLabel": "Category:",
     "authheadLabel": "Identity coin:",
     "authheadAmount": "Holds {amount}",
-    "viewOnExplorer": "View the identity's history on TokenExplorer",
+    "viewOnExplorer": "View public page",
     "status": {
       "held": "Held by this wallet",
       "carriesTokens": "Held by this wallet, with a reserve",
@@ -1706,6 +1708,11 @@
       "create": "Or {link} to make a new one.",
       "createLink": "create a token",
       "createIdentity": "Or create an identity that is not a token, above."
+    },
+    "established": {
+      "since": "Established {year}",
+      "transactions": "{count} transaction | {count} transactions",
+      "publications": "{count} publication | {count} publications"
     }
   }
 }

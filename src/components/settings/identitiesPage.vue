@@ -70,6 +70,29 @@
   const truncateHash = (hash: string) => `${hash.slice(0, 16)}...${hash.slice(-8)}`;
 
   const identities = computed(() => store.identities ?? []);
+
+  // Statuses speak when something changed; when nothing has, the page says so once and stops
+  // talking. An identity nobody can look up, or a location serving something else, is a change.
+  const needsAttention = computed(() =>
+    identities.value.some(identity => identity.status === 'unresolved')
+    || Object.values(store.publicationChecks).some(
+      checks => checks.some(check => check.status !== 'verified')
+    )
+  );
+
+  // What an identity has to show for itself, from the resolve, and richer for a card whose
+  // history is open: how long it has stood, how far its chain runs, how often it has published.
+  function establishment(identity: IdentityState): string[] {
+    const history = store.identityHistories[identity.category];
+    const facts: string[] = [];
+    const since = history?.[0]?.timestamp;
+    if (since) facts.push(t('identities.established.since', { year: new Date(since * 1000).getFullYear() }));
+    const chainLength = identity.links?.length ?? history?.length;
+    if (chainLength) facts.push(t('identities.established.transactions', chainLength));
+    const publications = history?.filter(link => link.publication).length;
+    if (publications) facts.push(t('identities.established.publications', publications));
+    return facts;
+  }
   // A watched identity counts here too: the wallet follows its publication either way, and only
   // the actions depend on holding the authhead
   const listedCount = computed(() =>
@@ -648,6 +671,7 @@
     </div>
     <div class="description" style="margin-top: 6px;">{{ t('identities.updatedElsewhere') }}</div>
     <div class="description" style="margin-top: 6px;">{{ t('identities.reserveNote') }}</div>
+    <div class="description" style="margin-top: 6px;">{{ t('identities.noUpkeep') }}</div>
 
     <div class="section">
       <div>
@@ -740,7 +764,9 @@
           </li>
         </ol>
       </div>
-      <div v-else class="description">{{ t('identities.listedCount', listedCount) }}</div>
+      <div v-else class="description">
+        {{ needsAttention ? t('identities.listedCount', listedCount) : t('identities.allQuiet', listedCount) }}
+      </div>
 
       <!-- Found in this wallet's own history and held back, with nothing on the coin to say which
            identity it belongs to. Protected first, named if it can be. -->
@@ -790,6 +816,9 @@
               <InfoPopup>
                 <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
               </InfoPopup>
+            </div>
+            <div v-if="establishment(identity).length" class="description establishment">
+              {{ establishment(identity).join(' · ') }}
             </div>
             <InfoPopup>
               <template #trigger>
@@ -1130,6 +1159,9 @@
 }
 .identity-title {
   min-width: 0;
+}
+.establishment {
+  margin-top: 2px;
 }
 .identity-status {
   color: grey;

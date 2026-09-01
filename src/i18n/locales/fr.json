@@ -1448,6 +1448,7 @@
     "whatIsAnIdentityNote": "C'est le fait de détenir cette pièce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le token.",
     "updatedElsewhere": "La publication des métadonnées se fait hors de Cashonize, avec des outils comme CashTokens Studio. Cette page suit où l'identité s'est déplacée et la garde en sécurité entre-temps.",
     "reserveNote": "Une identité détenue par ce portefeuille est écartée de la sélection des pièces, pour qu'un envoi ordinaire ne la dépense pas par accident.",
+    "noUpkeep": "Une identité n'expire jamais et ne se renouvelle jamais. La garder ne coûte rien, et la laisser tranquille convient très bien.",
     "resolving": "Recherche de l'endroit où sont ces identités...",
     "empty": "Aucune identité dans la liste pour l'instant.",
     "detected": {
@@ -1463,11 +1464,12 @@
       "removeMessage": "La pièce revient dans la sélection des pièces et un envoi ordinaire peut la dépenser, ce qui met fin à l'identité qu'elle porte. Elle ne sera plus listée."
     },
     "listedCount": "{count} identité suivie par ce portefeuille | {count} identités suivies par ce portefeuille",
+    "allQuiet": "{count} identité ici, et rien ne vous demande quoi que ce soit. | {count} identités ici, et rien ne vous demande quoi que ce soit.",
     "unnamedIdentity": "Identité sans nom",
     "categoryLabel": "Catégorie :",
     "authheadLabel": "Pièce de l'identité :",
     "authheadAmount": "Contient {amount}",
-    "viewOnExplorer": "Voir l'historique de l'identité sur TokenExplorer",
+    "viewOnExplorer": "Voir la page publique",
     "status": {
       "held": "Détenue par ce portefeuille",
       "carriesTokens": "Détenue par ce portefeuille, avec une réserve",
@@ -1706,6 +1708,11 @@
       "create": "Ou {link} pour en créer une.",
       "createLink": "créez un jeton",
       "createIdentity": "Ou créez ci-dessus une identité qui n'est pas un token."
+    },
+    "established": {
+      "since": "Depuis {year}",
+      "transactions": "{count} transaction | {count} transactions",
+      "publications": "{count} publication | {count} publications"
     }
   }
 }

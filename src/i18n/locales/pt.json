@@ -1448,6 +1448,7 @@
     "whatIsAnIdentityNote": "Ter essa moeda é o que faz desta carteira a que pode publicar novos metadados do token.",
     "updatedElsewhere": "A publicação de metadados acontece fora do Cashonize, em ferramentas como o CashTokens Studio. Esta página acompanha para onde a identidade se moveu e mantém-na segura nesse meio-tempo.",
     "reserveNote": "Uma identidade desta carteira fica de fora da seleção de moedas, para que um envio comum não a gaste por acidente.",
+    "noUpkeep": "Uma identidade nunca expira nem se renova. Mantê-la não custa nada, e deixá-la quieta está ótimo.",
     "resolving": "Procurando onde estão estas identidades...",
     "empty": "Ainda não há identidades na lista.",
     "detected": {
@@ -1463,11 +1464,12 @@
       "removeMessage": "A moeda volta para a seleção de moedas e um envio comum pode gastá-la, o que encerra a identidade que ela carrega. Ela não será listada de novo."
     },
     "listedCount": "{count} identidade acompanhada por esta carteira | {count} identidades acompanhadas por esta carteira",
+    "allQuiet": "{count} identidade aqui, e nada precisa de você. | {count} identidades aqui, e nada precisa de você.",
     "unnamedIdentity": "Identidade sem nome",
     "categoryLabel": "Categoria:",
     "authheadLabel": "Moeda da identidade:",
     "authheadAmount": "Contém {amount}",
-    "viewOnExplorer": "Ver o histórico da identidade no TokenExplorer",
+    "viewOnExplorer": "Ver página pública",
     "status": {
       "held": "Nesta carteira",
       "carriesTokens": "Nesta carteira, com reserva",
@@ -1706,6 +1708,11 @@
       "create": "Ou {link} para criar uma nova.",
       "createLink": "crie um token",
       "createIdentity": "Ou crie acima uma identidade que não seja um token."
+    },
+    "established": {
+      "since": "Desde {year}",
+      "transactions": "{count} transação | {count} transações",
+      "publications": "{count} publicação | {count} publicações"
     }
   }
 }

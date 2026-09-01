@@ -1448,6 +1448,7 @@
     "whatIsAnIdentityNote": "Tener esa moneda es lo que hace que esta billetera sea la que puede publicar nuevos metadatos del token.",
     "updatedElsewhere": "Los metadatos se publican fuera de Cashonize, con herramientas como CashTokens Studio. Esta página sigue a dónde se movió la identidad y la mantiene a salvo mientras tanto.",
     "reserveNote": "Una identidad que tiene esta billetera queda fuera de la selección de monedas, para que un envío normal no la gaste por accidente.",
+    "noUpkeep": "Una identidad nunca caduca ni se renueva. Mantenerla no cuesta nada, y dejarla tranquila está bien.",
     "resolving": "Buscando dónde están estas identidades...",
     "empty": "Todavía no hay identidades en la lista.",
     "detected": {
@@ -1463,11 +1464,12 @@
       "removeMessage": "La moneda vuelve a la selección de monedas y un envío normal puede gastarla, lo que termina la identidad que lleva. No se volverá a listar."
     },
     "listedCount": "{count} identidad seguida por esta billetera | {count} identidades seguidas por esta billetera",
+    "allQuiet": "{count} identidad aquí, y nada te necesita. | {count} identidades aquí, y nada te necesita.",
     "unnamedIdentity": "Identidad sin nombre",
     "categoryLabel": "Categoría:",
     "authheadLabel": "Moneda de la identidad:",
     "authheadAmount": "Contiene {amount}",
-    "viewOnExplorer": "Ver el historial de la identidad en TokenExplorer",
+    "viewOnExplorer": "Ver página pública",
     "status": {
       "held": "En esta billetera",
       "carriesTokens": "En esta billetera, con reserva",
@@ -1706,6 +1708,11 @@
       "create": "O {link} para hacer una nueva.",
       "createLink": "crea un token",
       "createIdentity": "O crea arriba una identidad que no sea un token."
+    },
+    "established": {
+      "since": "Desde {year}",
+      "transactions": "{count} transacción | {count} transacciones",
+      "publications": "{count} publicación | {count} publicaciones"
     }
   }
 }
