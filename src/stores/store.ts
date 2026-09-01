@@ -1812,11 +1812,8 @@ export const useStore = defineStore('store', () => {
     await refreshIdentities();
   }
 
-  // A token this wallet just created. The genesis put the new authhead at output 0, so the coin
-  // carrying the authority is known here without asking anyone, and it is held back straight away
-  // rather than when an indexer or this wallet's own view catches up with the transaction.
-  // Chaingraph may not have the genesis yet, which leaves the identity unresolved for a while:
-  // that is also what keeps this reservation, since nothing is dropped while one is unresolved.
+  // A token this wallet just created: the genesis put its authhead at output 0, so the coin is
+  // held back straight away rather than when Chaingraph or this wallet's own view catches up.
   async function listCreatedIdentity(category: string, genesisTxId: string, authheadSatoshis: bigint) {
     dismissedIdentities.value = undismissIdentity(network.value, wallet.value.name, category);
     identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);

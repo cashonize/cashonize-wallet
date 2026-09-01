@@ -132,10 +132,8 @@
     if (!metadataUris.value.length) metadataUris.value = [""];
   }
 
-  // The publication a genesis carries is verified the same way an update's is, by the same code:
-  // every location has to serve the file the hash commits to, and the file has to name this
-  // identity. That last check is only possible before signing because the category is known in
-  // advance, which is the one moment the wrong file costs nothing.
+  // Verified by the same code an update's publication is. Checking that the file names this
+  // identity is only possible before signing because the category is known in advance.
   async function metadataOutput(category: string) {
     if (!filledUris.value.length) return undefined;
     if (publicationBytesLeft.value < 0) throw new Error(t('identities.publish.errors.tooLarge'));
@@ -198,8 +196,7 @@
     }
   }
 
-  // What was just made, for the dialog that reports it: the supply, the minting NFT, and how much
-  // of the supply stayed behind as reserve
+  // What was just made, for the dialog that reports it
   function creationSummary(category: string, reserveAmount: bigint) {
     const supply = inputFungibleSupply.value;
     const lines: string[] = [];
