@@ -508,8 +508,9 @@ export interface DescribedLink {
   publication?: MetadataPublication;
 }
 
-const identityOutputOf = (link: AuthchainLink) =>
-  link.outputs.find(output => output.output_index === "0");
+function identityOutputOf(link: AuthchainLink) {
+  return link.outputs.find(output => output.output_index === "0");
+}
 
 export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
   let previousReserve = 0n;

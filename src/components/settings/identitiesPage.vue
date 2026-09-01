@@ -95,8 +95,11 @@
 
   // A location serving something other than what was published is not just a warning on an
   // identity this wallet can act on: it is the state the publish flow exists to resolve
-  const hasDrifted = (identity: IdentityState) =>
-    !!identity.authUtxo && !!store.publicationChecks[identity.category]?.some(check => check.status === 'changed');
+  function hasDrifted(identity: IdentityState) {
+    if (!identity.authUtxo) return false;
+    const checks = store.publicationChecks[identity.category] ?? [];
+    return checks.some(check => check.status === 'changed');
+  }
 
   // One row per published location: the location as published, where it is actually fetched from,
   // and what fetching it found once the check has run
@@ -221,8 +224,10 @@
     }
   }
 
-  const isOpen = (identity: IdentityState, action: IdentityAction) =>
-    openAction.value?.category === identity.category && openAction.value.action === action;
+  function isOpen(identity: IdentityState, action: IdentityAction) {
+    if (openAction.value?.category !== identity.category) return false;
+    return openAction.value.action === action;
+  }
 
   async function toggleAction(identity: IdentityState, action: IdentityAction) {
     if (isOpen(identity, action)) {
@@ -245,10 +250,14 @@
   }
 
   const tokenDecimals = (category: string) => store.bcmrRegistries?.[category]?.token?.decimals ?? 0;
-  const reserveOf = (identity: IdentityState) =>
-    (identity.authUtxo ?? identity.guardedOutput)?.token?.amount ?? 0n;
-  const reserveDisplay = (identity: IdentityState) =>
-    formatTokenAmountFromBigInt(reserveOf(identity), tokenDecimals(identity.category));
+  function reserveOf(identity: IdentityState) {
+    const identityOutput = identity.authUtxo ?? identity.guardedOutput;
+    return identityOutput?.token?.amount ?? 0n;
+  }
+
+  function reserveDisplay(identity: IdentityState) {
+    return formatTokenAmountFromBigInt(reserveOf(identity), tokenDecimals(identity.category));
+  }
 
   const filledUris = computed(() => publishUris.value.map(uri => uri.trim()).filter(uri => uri.length));
   // The hash and the locations share one output, so the locations are capped by their own length
@@ -477,9 +486,11 @@
   }
 
   // Which watched key guards this identity, told by deriving the key's covenant and comparing
-  const guardsIdentity = (keyCategory: string, identity: IdentityState) =>
-    identity.guardAddress === authGuardAddresses(keyCategory, store.wallet.networkPrefix).p2sh20.tokenAddress
-    || identity.guardAddress === authGuardAddresses(keyCategory, store.wallet.networkPrefix).p2sh32.tokenAddress;
+  function guardsIdentity(keyCategory: string, identity: IdentityState) {
+    const guards = authGuardAddresses(keyCategory, store.wallet.networkPrefix);
+    if (identity.guardAddress === guards.p2sh20.tokenAddress) return true;
+    return identity.guardAddress === guards.p2sh32.tokenAddress;
+  }
 
   // These have no name to confirm against, so the dialog says what the coin is instead
   async function removeUnnamed(txid: string) {
@@ -517,14 +528,19 @@
 
   // Told by the wallet's own history: the links made here, and the ones made elsewhere with the
   // same keys, which is the half an explorer cannot show
-  const madeByThisWallet = (hash: string) =>
-    (store.walletHistory ?? []).some(transaction => transaction.hash === hash);
+  function madeByThisWallet(hash: string) {
+    return (store.walletHistory ?? []).some(transaction => transaction.hash === hash);
+  }
 
-  const linkAmount = (identity: IdentityState, amount: bigint) =>
-    formatTokenAmountFromBigInt(amount < 0n ? -amount : amount, tokenDecimals(identity.category));
+  function linkAmount(identity: IdentityState, amount: bigint) {
+    const size = amount < 0n ? -amount : amount;
+    return formatTokenAmountFromBigInt(size, tokenDecimals(identity.category));
+  }
 
-  const linkDate = (timestamp?: number) =>
-    timestamp ? new Date(timestamp * 1000).toLocaleDateString() : undefined;
+  function linkDate(timestamp?: number) {
+    if (!timestamp) return undefined;
+    return new Date(timestamp * 1000).toLocaleDateString();
+  }
 
   async function removeIdentity(identity: IdentityState) {
     const confirmed = await confirmDialog(

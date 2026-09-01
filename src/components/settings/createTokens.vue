@@ -55,8 +55,10 @@
   }
 
   // What the registry location becomes on chain, which is the form the identities page reads back
-  const publishedUri = () =>
-    selectedUri.value === "IPFS" ? `ipfs://${inputBcmr.value}` : inputBcmr.value;
+  function publishedUri() {
+    if (selectedUri.value === "IPFS") return `ipfs://${inputBcmr.value}`;
+    return inputBcmr.value;
+  }
 
   // The genesis publishes the same output an update does, so it is built by the same code: one
   // module owns the format, and creating an identity cannot drift from maintaining one.
