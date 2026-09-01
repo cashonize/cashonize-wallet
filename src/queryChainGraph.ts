@@ -1,15 +1,21 @@
 import { hexToBin, binToHex, encodeLockingBytecodeP2pkh } from "@bitauth/libauth";
+import { print } from "@0no-co/graphql.web";
+import { graphql, type ResultOf, type TadaDocumentNode } from "src/chainGraphSchema";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 const CHAINGRAPH_REQUEST_TIMEOUT_MS = 10_000;
 
 export class ChaingraphRequestError extends Error {}
 
-async function queryChainGraph(queryReq:string, chaingraphUrl:string, variables: Record<string, unknown> = {}){
+async function queryChainGraph<Result, Variables>(
+    document: TadaDocumentNode<Result, Variables>,
+    chaingraphUrl: string,
+    variables: Variables,
+) {
     const jsonObj = {
         "operationName": null,
         "variables": variables,
-        "query": queryReq
+        "query": print(document)
     };
     let response: Response;
     const timeoutSignal = AbortSignal.timeout(CHAINGRAPH_REQUEST_TIMEOUT_MS);
@@ -50,7 +56,8 @@ async function queryChainGraph(queryReq:string, chaingraphUrl:string, variables:
         throw new ChaingraphRequestError(t('chaingraph.errors.rejected', { reason }));
       }
     }
-    return jsonResponse;
+    // A trusted server's response, taken as served like the rest of what it answers
+    return jsonResponse as { data: Result };
 }
 
 // Chaingraph returns bytea values as \x-prefixed hex strings
@@ -59,14 +66,16 @@ export function byteaToHex(bytea: string) {
 }
 
 // The smallest meaningful query, used to check that a server is a working Chaingraph instance
-export async function queryBlockHeight(chaingraphUrl: string) {
-  const queryReqBlockHeight = `query {
+const blockHeightQuery = graphql(`query BlockHeight {
     block(limit: 1, order_by: { height: desc }) {
       height
     }
-  }`;
-  const response = await queryChainGraph(queryReqBlockHeight, chaingraphUrl) as
-    { data?: { block?: { height: string }[] } };
+  }`);
+
+export async function queryBlockHeight(chaingraphUrl: string) {
+  const response = await queryChainGraph(blockHeightQuery, chaingraphUrl, {});
+  // guarded rather than trusted: the types say what a Chaingraph answers, and this is the query
+  // that asks whether the server is one
   const height = response.data?.block?.[0]?.height;
   if (height === undefined) throw new ChaingraphRequestError(t('chaingraph.errors.invalidResponse'));
   return Number(height);
@@ -74,35 +83,7 @@ export async function queryBlockHeight(chaingraphUrl: string) {
 
 // One identity's whole authchain, with the outputs of every link. Asked for only when a card's
 // history is opened: it is the one query here that grows with a chain's length.
-export interface AuthchainLink {
-  hash: string;
-  timestamp?: number;
-  outputs: {
-    output_index: string;
-    locking_bytecode: string;
-    token_category: string | null;
-    fungible_token_amount: string | null;
-  }[];
-}
-
-interface AuthchainLinksResponse {
-  data: {
-    transaction: {
-      authchains: {
-        migrations: {
-          transaction: {
-            hash: string;
-            block_inclusions: { block: { timestamp: string } }[];
-            outputs: AuthchainLink['outputs'];
-          }[];
-        }[];
-      }[];
-    }[];
-  };
-}
-
-export async function queryAuthchainLinks(tokenId: string, chaingraphUrl: string): Promise<AuthchainLink[]> {
-  const queryLinks = `query AuthchainLinks($hash: bytea!) {
+const authchainLinksQuery = graphql(`query AuthchainLinks($hash: bytea!) {
     transaction(where: { hash: { _eq: $hash } }) {
       authchains {
         migrations {
@@ -119,63 +100,51 @@ export async function queryAuthchainLinks(tokenId: string, chaingraphUrl: string
         }
       }
     }
-  }`;
-  const response = await queryChainGraph(queryLinks, chaingraphUrl, {
+  }`);
+
+// One transaction of the chain, as the query asks for it
+type AuthchainMigration = ResultOf<typeof authchainLinksQuery>['transaction'][number]['authchains'][number]['migrations'][number];
+type MigrationTransaction = NonNullable<AuthchainMigration['transaction']>[number];
+
+export interface AuthchainLink {
+  hash: string;
+  timestamp?: number;
+  outputs: NonNullable<MigrationTransaction['outputs']>;
+}
+
+export async function queryAuthchainLinks(tokenId: string, chaingraphUrl: string): Promise<AuthchainLink[]> {
+  const response = await queryChainGraph(authchainLinksQuery, chaingraphUrl, {
     hash: `\\x${tokenId}`,
-  }) as AuthchainLinksResponse;
+  });
   const authchain = response.data.transaction[0]?.authchains[0];
   if (!authchain) throw new Error(t('chaingraph.errors.authchainNotFound'));
   // migrations come back oldest first, from the authbase to the authhead
-  return authchain.migrations.flatMap(migration => migration.transaction.map(transaction => {
+  return authchain.migrations.flatMap(migration => (migration.transaction ?? []).map(transaction => {
     const timestamp = transaction.block_inclusions?.[0]?.block?.timestamp;
     return {
       hash: byteaToHex(transaction.hash),
       ...(timestamp ? { timestamp: Number(timestamp) } : {}),
-      outputs: transaction.outputs,
+      outputs: transaction.outputs ?? [],
     };
   }));
 }
 
-// Bigint values arrive as decimal strings and bytea values as hex strings, as everywhere here
-interface AuthHeadResponse {
-  data: {
-    transaction: {
-      authchains: {
-        authhead: {
-          hash: string;
-          identity_output: { fungible_token_amount: string | null }[];
-          // every output of the authhead transaction, so the BCMR publication among them can be
-          // recognised by its locking bytecode
-          outputs: { output_index: string; locking_bytecode: string }[];
-        };
-        // every transaction of the chain, oldest first: the authbase, then each update, ending at
-        // the authhead. Free here, since the query is already asking about this authchain.
-        migrations: { transaction: { hash: string }[] }[];
-      }[];
-    }[];
-  };
-}
-
-export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
-  const queryReqAuthHead = `query {
-    transaction(
-      where: {
-        hash: {
-          _eq: "\\\\x${tokenId}"
-        }
-      }
-    ) {
+// Where an identity's authchain ends now. The authhead transaction's outputs come along, so the
+// BCMR publication among them can be recognised by its locking bytecode, and so do the chain's
+// transactions, oldest first, which the history reads to name the wallet's own identity operations.
+const authHeadQuery = graphql(`query AuthHead($hash: bytea!) {
+    transaction(where: { hash: { _eq: $hash } }) {
       authchains {
         authhead {
-          hash,
+          hash
           identity_output {
             fungible_token_amount
-          },
+          }
           outputs {
-            output_index,
+            output_index
             locking_bytecode
           }
-        },
+        }
         migrations {
           transaction {
             hash
@@ -183,8 +152,12 @@ export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
         }
       }
     }
-  }`;
-  const response = await queryChainGraph(queryReqAuthHead, chaingraphUrl) as AuthHeadResponse;
+  }`);
+
+export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
+  const response = await queryChainGraph(authHeadQuery, chaingraphUrl, {
+    hash: `\\x${tokenId}`,
+  });
   const transaction = response.data.transaction[0];
   if (!transaction) throw new Error(t('chaingraph.errors.tokenNotFound'));
   return transaction;
@@ -196,36 +169,15 @@ export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
 export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:string){
   const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
   const authchain = authHeadObj.authchains[0];
-  if (!authchain) throw new Error(t('chaingraph.errors.authchainNotFound'));
+  if (!authchain?.authhead) throw new Error(t('chaingraph.errors.authchainNotFound'));
   const outputs = (authchain.authhead.outputs ?? [])
     .sort((left, right) => Number(left.output_index) - Number(right.output_index))
     .map(output => byteaToHex(output.locking_bytecode));
   // the chain's transactions, which is what lets the history recognise an identity operation
   const links = (authchain.migrations ?? []).flatMap(
-    migration => migration.transaction.map(transaction => byteaToHex(transaction.hash))
+    migration => (migration.transaction ?? []).map(transaction => byteaToHex(transaction.hash))
   );
   return { txid: byteaToHex(authchain.authhead.hash), outputs, links };
-}
-
-// Bigint values arrive as decimal strings, like the bytea values arrive as hex strings
-export interface ChaingraphSpentOutput {
-  // the wallet's own output that was spent, which a genesis marker is read against: a category
-  // equal to the txid of a spent vout-0 outpoint is a token genesised by these keys
-  transaction_hash: string;
-  output_index: string;
-  spent_by: {
-    transaction: {
-      hash: string;
-      outputs: {
-        output_index: string;
-        locking_bytecode: string;
-        token_category: string | null;
-        nonfungible_token_commitment: string | null;
-        fungible_token_amount: string | null;
-        spent_by: { input_index: string }[];
-      }[];
-    };
-  }[];
 }
 
 // OP_RETURN followed by a push of "BCMR". bytea has no prefix operator, but it is ordered, so a
@@ -233,23 +185,7 @@ export interface ChaingraphSpentOutput {
 // publication; the alternative, fetching every output and filtering here, would carry far more.
 const bcmrPrefixRange = { from: "6a0442434d52", to: "6a0442434d53" };
 
-interface SpentOutputsResponse {
-  data: { search_output: ChaingraphSpentOutput[] };
-}
-
-// Chaingraph instances cap the rows a single query returns (5,000 on the default instance),
-// truncating silently, so paged queries fetch until a page comes back short
-const CHAINGRAPH_PAGE_SIZE = 1000;
-
-// The spent outputs at the given pkhs' addresses, each with the spending transaction's outputs
-// and whether those are spent themselves. Three readings share this one walk: TapSwap and hodl
-// announcements sit at outputs 1 and 0 (utils/defi/tapswapListings.ts, utils/defi/hodlContracts.ts),
-// and a metadata publication or token genesis these keys made is read off the same transactions
-// (utils/tools/identityDetection.ts). Outputs are fetched by position for the first two and by
-// the publication prefix for the third, so widening the reading costs no extra query.
-export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: string) {
-  if (!ownerPkhs.length) return [];
-  const querySpent = `query WalletSpentOutputs($lockingBytecodes: _text!, $limit: Int!, $offset: Int!, $bcmrFrom: bytea!, $bcmrTo: bytea!) {
+const spentOutputsQuery = graphql(`query WalletSpentOutputs($lockingBytecodes: _text!, $limit: Int!, $offset: Int!, $bcmrFrom: bytea!, $bcmrTo: bytea!) {
     search_output(
       args: { locking_bytecode_hex: $lockingBytecodes }
       where: { spent_by: {} }
@@ -276,19 +212,36 @@ export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: stri
         }
       }
     }
-  }`;
+  }`);
+
+// One spent output of the wallet's, with the transaction that spent it. A genesis marker is read
+// against it: a category equal to the txid of a spent vout-0 outpoint is a token these keys made.
+export type ChaingraphSpentOutput = ResultOf<typeof spentOutputsQuery>['search_output'][number];
+
+// Chaingraph instances cap the rows a single query returns (5,000 on the default instance),
+// truncating silently, so paged queries fetch until a page comes back short
+const CHAINGRAPH_PAGE_SIZE = 1000;
+
+// The spent outputs at the given pkhs' addresses, each with the spending transaction's outputs
+// and whether those are spent themselves. Three readings share this one walk: TapSwap and hodl
+// announcements sit at outputs 1 and 0 (utils/defi/tapswapListings.ts, utils/defi/hodlContracts.ts),
+// and a metadata publication or token genesis these keys made is read off the same transactions
+// (utils/tools/identityDetection.ts). Outputs are fetched by position for the first two and by
+// the publication prefix for the third, so widening the reading costs no extra query.
+export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: string) {
+  if (!ownerPkhs.length) return [];
   // search_output takes its locking bytecodes as a postgres text-array literal
   const lockingBytecodesHex = ownerPkhs.map((pkh) => binToHex(encodeLockingBytecodeP2pkh(hexToBin(pkh))));
   const lockingBytecodes = `{${lockingBytecodesHex.join(",")}}`;
   const spentOutputs: ChaingraphSpentOutput[] = [];
   for (let offset = 0; ; offset += CHAINGRAPH_PAGE_SIZE) {
-    const response = await queryChainGraph(querySpent, chaingraphUrl, {
+    const response = await queryChainGraph(spentOutputsQuery, chaingraphUrl, {
       lockingBytecodes,
       limit: CHAINGRAPH_PAGE_SIZE,
       offset,
       bcmrFrom: `\\x${bcmrPrefixRange.from}`,
       bcmrTo: `\\x${bcmrPrefixRange.to}`,
-    }) as SpentOutputsResponse;
+    });
     const page = response.data.search_output;
     spentOutputs.push(...page);
     if (page.length < CHAINGRAPH_PAGE_SIZE) break;

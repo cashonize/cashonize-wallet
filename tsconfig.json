@@ -4,7 +4,17 @@
     "types": ["vitest/globals"],
     // scripts/ runs straight through node, which strips types rather than resolving them, so an
     // import between two scripts has to name the .ts file it means
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    // Types for the Chaingraph queries, derived from the schema rather than hand-written.
+    // Editor-only: the committed graphql-env.d.ts is what vue-tsc and the build read.
+    "plugins": [
+      {
+        "name": "gql.tada/ts-plugin",
+        "schema": "https://gql.chaingraph.pat.mn/v1/graphql",
+        "trackFieldUsage": false,
+        "tadaOutputLocation": "./src/generated/graphql-env.d.ts"
+      }
+    ]
   },
   "exclude": [
     "dist",

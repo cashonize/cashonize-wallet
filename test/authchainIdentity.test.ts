@@ -33,8 +33,8 @@ const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
 // query for any category not in the map, the way an unreachable server would
 function stubAuthheadQueries(authheads: Record<string, string>) {
   vi.stubGlobal("fetch", vi.fn((_url: string, options: RequestInit) => {
-    const query = (JSON.parse(options.body as string) as { query: string }).query;
-    const category = Object.keys(authheads).find(listed => query.includes(listed));
+    const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string } };
+    const category = Object.keys(authheads).find(listed => variables.hash === `\\x${listed}`);
     if (!category) return Promise.reject(new TypeError("Failed to fetch"));
     return Promise.resolve({
       ok: true,

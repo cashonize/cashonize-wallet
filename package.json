@@ -21,6 +21,7 @@
     "test:e2e:ui": "playwright test --config test/e2e/playwright.config.ts --ui"
   },
   "dependencies": {
+    "@0no-co/graphql.web": "^1.3.4",
     "@bitauth/libauth": "3.1.0-next.8",
     "@cashconnect-js/core": "1.0.0-alpha.31",
     "@cashconnect-js/nostr": "1.0.0-alpha.31",
@@ -33,6 +34,7 @@
     "@walletconnect/core": "2.23.10",
     "@wizardconnect/core": "0.2.4",
     "@wizardconnect/wallet": "0.2.3",
+    "gql.tada": "^1.11.3",
     "mainnet-js": "3.1.7",
     "pinia": "^4.0.3",
     "qr-scanner": "^1.4.2",
