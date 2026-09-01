@@ -689,7 +689,8 @@
       "fungibles": "{supply} fungible Token der Kategorie {category} erstellt",
       "mintingNft": "Minting-NFT der Kategorie {category} erstellt",
       "hybrid": "{supply} fungible Token und ein Minting-NFT der Kategorie {category} erstellt",
-      "reserve": "{amount} bleibt als reservierte Menge auf dem AuthHead."
+      "reserve": "{amount} bleibt als reservierte Menge auf dem AuthHead.",
+      "listed": "Sie steht auf der Identitäten-Seite, und ihr AuthHead ist von der Münzauswahl ausgenommen."
     }
   },
   "utxoManagement": {

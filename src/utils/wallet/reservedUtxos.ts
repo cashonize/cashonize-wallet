@@ -53,6 +53,24 @@ export function loadReservedUtxos(network: Network, walletName: string): Reserve
 // Fresh read-modify-write: another tab may have written reservations since this tab loaded them,
 // so re-read before writing to only ever change the single outpoint in hand.
 // Returns the updated map for the caller's reactive state.
+export function saveReservedOutpoint(
+  network: Network,
+  walletName: string,
+  outpoint: Outpoint,
+  satoshis: bigint,
+  reason: ReservationReason,
+  reservedAt: number,
+): ReservedUtxos {
+  const reservedUtxos = loadReservedUtxos(network, walletName);
+  reservedUtxos[outpoint] = {
+    reason,
+    satoshis: satoshis.toString(),
+    reservedAt,
+  };
+  localStorage.setItem(reservedUtxosKey(network, walletName), JSON.stringify(reservedUtxos));
+  return reservedUtxos;
+}
+
 export function saveReservedUtxo(
   network: Network,
   walletName: string,
@@ -60,14 +78,7 @@ export function saveReservedUtxo(
   reason: ReservationReason,
   reservedAt: number,
 ): ReservedUtxos {
-  const reservedUtxos = loadReservedUtxos(network, walletName);
-  reservedUtxos[outpointOf(utxo)] = {
-    reason,
-    satoshis: utxo.satoshis.toString(),
-    reservedAt,
-  };
-  localStorage.setItem(reservedUtxosKey(network, walletName), JSON.stringify(reservedUtxos));
-  return reservedUtxos;
+  return saveReservedOutpoint(network, walletName, outpointOf(utxo), utxo.satoshis, reason, reservedAt);
 }
 
 // Same fresh read-modify-write approach as saveReservedUtxo.

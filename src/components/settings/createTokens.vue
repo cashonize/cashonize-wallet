@@ -29,6 +29,9 @@
   const metadataUris = ref<string[]>([""]);
   const activeAction = ref<'creatingPreGenesis' | 'creating' | null>(null);
 
+  // The satoshis each token output of the genesis carries, the AuthHead included
+  const tokenOutputValue = 1000n;
+
   const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
   const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
   const truncateHash = (hash: string) => `${hash.slice(0, 16)}...${hash.slice(-8)}`;
@@ -160,7 +163,7 @@
         cashaddr: tokenAddress,
         category: pickedCoin.txid,
         amount: circulatingAmount,
-        value: 1000n,
+        value: tokenOutputValue,
       });
       const extraOutputs = [
         ...(circulatingAmount > 0n ? [circulationOutput] : []),
@@ -172,7 +175,7 @@
         {
           cashaddr: tokenAddress,
           amount: reserveAmount,
-          value: 1000n,
+          value: tokenOutputValue,
           ...(createMintingNft.value ? { nft: { commitment: "", capability: NFTCapability.minting } } : {}),
         },
         extraOutputs
@@ -186,6 +189,8 @@
       createMintingNft.value = false;
       metadataUris.value = [""];
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
+      // creation ends where management begins: the identity is listed and its AuthHead held back
+      if (txId) await store.listCreatedIdentity(pickedCoin.txid, txId, tokenOutputValue);
     } catch(error){
       displayAndLogError(error)
     } finally {
@@ -208,6 +213,7 @@
     if (reserveAmount > 0n && reserveAmount !== totalSupply.value) {
       lines.push(t('createTokens.created.reserve', { amount: reserveAmount.toString() }));
     }
+    lines.push(t('createTokens.created.listed'));
     return lines.join('\n');
   }
 </script>

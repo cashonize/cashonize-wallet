@@ -689,7 +689,8 @@
       "fungibles": "{supply} tokens fongibles de la catégorie {category} créés",
       "mintingNft": "NFT de frappe de la catégorie {category} créé",
       "hybrid": "{supply} tokens fongibles et un NFT de frappe de la catégorie {category} créés",
-      "reserve": "{amount} reste sur l'AuthHead en offre réservée."
+      "reserve": "{amount} reste sur l'AuthHead en offre réservée.",
+      "listed": "Elle figure sur la page des identités, et son AuthHead est écarté de la sélection des pièces."
     }
   },
   "utxoManagement": {

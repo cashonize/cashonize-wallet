@@ -689,7 +689,8 @@
       "fungibles": "Created {supply} fungible tokens of category {category}",
       "mintingNft": "Created a minting NFT of category {category}",
       "hybrid": "Created {supply} fungible tokens and a minting NFT of category {category}",
-      "reserve": "{amount} stays on the AuthHead as reserved supply."
+      "reserve": "{amount} stays on the AuthHead as reserved supply.",
+      "listed": "It is listed on the identities page, and its AuthHead is held back from coin selection."
     }
   },
   "utxoManagement": {

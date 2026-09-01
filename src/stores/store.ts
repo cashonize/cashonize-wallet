@@ -77,11 +77,13 @@ import {
 import {
   loadReservedUtxos,
   saveReservedUtxo,
+  saveReservedOutpoint,
   deleteReservedUtxo,
   removeReservedUtxos,
   spendableFromUtxos,
   reservedFromUtxos,
   outpointOf,
+  type Outpoint,
   type ReservedUtxos,
   type ReservationReason
 } from "src/utils/wallet/reservedUtxos"
@@ -1810,6 +1812,19 @@ export const useStore = defineStore('store', () => {
     await refreshIdentities();
   }
 
+  // A token this wallet just created. The genesis put the new authhead at output 0, so the coin
+  // carrying the authority is known here without asking anyone, and it is held back straight away
+  // rather than when an indexer or this wallet's own view catches up with the transaction.
+  // Chaingraph may not have the genesis yet, which leaves the identity unresolved for a while:
+  // that is also what keeps this reservation, since nothing is dropped while one is unresolved.
+  async function listCreatedIdentity(category: string, genesisTxId: string, authheadSatoshis: bigint) {
+    dismissedIdentities.value = undismissIdentity(network.value, wallet.value.name, category);
+    identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+    const outpoint = `${genesisTxId}:0`;
+    if (!reservedUtxos.value[outpoint]) await reserveOutpoint(outpoint, authheadSatoshis, 'auth');
+    await refreshIdentities();
+  }
+
   // The wallet's only way to stop holding an authhead back, for when the user wants to spend that
   // coin outside the identities page. Adding the identity again, by category or through the
   // ownership check, reserves its authhead again.
@@ -1906,6 +1921,16 @@ export const useStore = defineStore('store', () => {
     );
     // the fungible balances count what can be spent, and nothing else re-reads them on their own
     if (utxo.token) updateTokenList();
+    await refreshMaxAmountToSend();
+  }
+
+  // Holds back a coin this wallet made but may not have seen yet. Reservations are keyed by
+  // outpoint, so the coin does not have to be in hand to be kept out of the spendable pool.
+  async function reserveOutpoint(outpoint: Outpoint, satoshis: bigint, reason: ReservationReason) {
+    reservedUtxos.value = saveReservedOutpoint(
+      network.value, wallet.value.name, outpoint, satoshis, reason, Math.floor(Date.now() / 1000)
+    );
+    updateTokenList();
     await refreshMaxAmountToSend();
   }
 
@@ -2182,6 +2207,7 @@ export const useStore = defineStore('store', () => {
     refreshIdentities,
     scanForIdentities,
     addIdentity,
+    listCreatedIdentity,
     removeIdentity,
     fetchTokenMetadata,
     fetchCauldronPricesForTokens,

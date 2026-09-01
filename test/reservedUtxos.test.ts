@@ -3,6 +3,7 @@ import type { Utxo } from "mainnet-js";
 import {
   loadReservedUtxos,
   saveReservedUtxo,
+  saveReservedOutpoint,
   deleteReservedUtxo,
   removeReservedUtxos,
   spendableFromUtxos,
@@ -65,6 +66,18 @@ describe('reservedUtxos', () => {
     saveReservedUtxo('mainnet', 'mywallet', coinB, 'pledge', 2);
     expect(Object.keys(otherTab)).toHaveLength(1);
     expect(Object.keys(loadReservedUtxos('mainnet', 'mywallet'))).toHaveLength(2);
+  });
+
+  // Creating a token holds its authhead back the moment the genesis is broadcast, before the coin
+  // has reached the wallet's own view of its utxos, which reservations allow because they are kept
+  // by outpoint rather than against a coin in hand.
+  it('reserves an outpoint for a coin the wallet has not seen yet', () => {
+    saveReservedOutpoint('mainnet', 'mywallet', `${txidC}:0`, 1000n, 'auth', 1_700_000_000);
+    expect(loadReservedUtxos('mainnet', 'mywallet')).toEqual({
+      [`${txidC}:0`]: { reason: 'auth', satoshis: '1000', reservedAt: 1_700_000_000 },
+    });
+    // and the coin is out of the spendable pool as soon as it does arrive
+    expect(spendableFromUtxos([coinA, coinC], loadReservedUtxos('mainnet', 'mywallet'))).toEqual([coinA]);
   });
 
   it('deletes only the outpoint given', () => {

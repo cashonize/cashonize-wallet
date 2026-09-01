@@ -689,7 +689,8 @@
       "fungibles": "Creados {supply} tokens fungibles de la categoría {category}",
       "mintingNft": "Creado un NFT de acuñación de la categoría {category}",
       "hybrid": "Creados {supply} tokens fungibles y un NFT de acuñación de la categoría {category}",
-      "reserve": "{amount} queda en el AuthHead como suministro reservado."
+      "reserve": "{amount} queda en el AuthHead como suministro reservado.",
+      "listed": "Aparece en la página de identidades, y su AuthHead queda fuera de la selección de monedas."
     }
   },
   "utxoManagement": {
