@@ -199,6 +199,7 @@
       const selectedNftsList = tokenData.value.nfts?.filter(nft =>
         selectedNfts.value.has(getNftKey(nft.txid, nft.vout))
       ) ?? [];
+      store.checkTokenUtxosSpendable(selectedNftsList);
 
       const outputArray:TokenSendRequest[] = [];
       selectedNftsList.forEach(nftItem => {
@@ -240,6 +241,7 @@
     try{
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      store.checkTokenUtxosSpendable(tokenData.value.nfts.slice(0, 1));
       if (!await confirmSpendingTokenAuthhead(tokenData.value.category)) return;
 
       // confirm payment if setting is enabled
@@ -288,6 +290,7 @@
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const category = tokenData.value.category;
+      store.checkTokenUtxosSpendable(tokenData.value.nfts.slice(0, 1));
       if (!await confirmSpendingTokenAuthhead(category)) return;
       const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
       const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')

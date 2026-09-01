@@ -88,6 +88,7 @@
       "bcmrIndexerValidationError": "Erreur de validation de la réponse de l'indexeur BCMR",
       "utxoNotReserved": "Cet UTXO n'est pas réservé",
       "reservedEnsureUtxos": "Cette action a besoin d'un UTXO que le portefeuille retient",
+      "tokenUtxoHeldBack": "Cet UTXO est écarté de la sélection des pièces. La page de gestion des UTXO montre lesquels sont retenus et pourquoi, et c'est là qu'un UTXO gelé se dégèle.",
       "notEnoughSpendableBch": "Cette transaction demande {needed} et seuls {available} peuvent être dépensés. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "notEnoughSpendableTokens": "Pas assez de jetons dépensables pour cette transaction. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer."
@@ -711,10 +712,12 @@
       "empty": "Ce portefeuille n'a pas d'UTXOs contenant à la fois un montant fongible et un NFT."
     },
     "reservedSummary": "{count} UTXO retenu, hors de votre solde disponible | {count} UTXOs retenus, hors de votre solde disponible",
+    "reservedTokenSummary": "{count} UTXO de jeton retenu, écarté de chaque transfert que fait cette application | {count} UTXO de jetons retenus, écartés de chaque transfert que fait cette application",
     "freeze": {
       "title": "Geler cet UTXO",
       "message": "Un UTXO gelé reste dans votre portefeuille mais est écarté de chaque paiement fait par cette application, votre solde disponible baisse donc de {amount}. Vous pouvez le dégeler depuis cette liste à tout moment.\n\nLe gel ne vaut qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y aussi le même UTXO.",
-      "button": "Geler"
+      "button": "Geler",
+      "messageToken": "Un UTXO gelé reste dans votre portefeuille mais est écarté de chaque paiement et de chaque transfert de jetons que fait cette application : les jetons qu'il porte et les {amount} qu'il contient ne peuvent donc pas être dépensés d'ici. Vous pouvez le dégeler depuis cette liste à tout moment.\n\nLe gel ne vaut qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y le même UTXO."
     },
     "send": {
       "title": "Envoyer cet UTXO",
@@ -887,6 +890,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Transactions nécessaires : {count}.",
     "transactionCountNote": "Elles sont envoyées une par une et prennent quelques secondes chacune, gardez donc Cashonize ouvert jusqu'à la fin.",
+    "heldBack": "{count} UTXO reste en place : il est écarté de la sélection des pièces, ce transfert ne le prend donc pas. | {count} UTXO restent en place : ils sont écartés de la sélection des pièces, ce transfert ne les prend donc pas.",
     "destinationLabel": "Adresse de destination :",
     "destinationTokenLabel": "Adresse de token de destination :",
     "destinationPlaceholder": "Adresse vers laquelle tout transférer",
@@ -912,8 +916,7 @@
       "success": "Tous les actifs ont été transférés avec succès"
     },
     "errors": {
-      "ownAddress": "La destination est une adresse de ce même portefeuille",
-      "reservedCoins": "Ce portefeuille retient des UTXOs, il ne peut donc pas tout transférer. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi."
+      "ownAddress": "La destination est une adresse de ce même portefeuille"
     }
   },
   "requestPayment": {

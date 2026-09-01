@@ -88,6 +88,7 @@
       "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort",
       "utxoNotReserved": "Dieser UTXO ist nicht reserviert",
       "reservedEnsureUtxos": "Diese Aktion benötigt einen UTXO, den die Wallet zurückhält",
+      "tokenUtxoHeldBack": "Dieser UTXO ist von der Münzauswahl ausgenommen. Die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum, und dort wird ein eingefrorener wieder aufgetaut.",
       "notEnoughSpendableBch": "Diese Transaktion braucht {needed} und nur {available} sind ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "notEnoughSpendableTokens": "Für diese Transaktion sind nicht genug Tokens ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben."
@@ -711,10 +712,12 @@
       "empty": "Dieses Wallet hat keine UTXOs, die zugleich einen fungiblen Betrag und ein NFT enthalten."
     },
     "reservedSummary": "{count} zurückgehaltener UTXO, außerhalb deines verfügbaren Guthabens | {count} zurückgehaltene UTXOs, außerhalb deines verfügbaren Guthabens",
+    "reservedTokenSummary": "{count} Token-UTXO zurückgehalten, aus jedem Transfer dieser App herausgehalten | {count} Token-UTXOs zurückgehalten, aus jedem Transfer dieser App herausgehalten",
     "freeze": {
       "title": "Diesen UTXO einfrieren",
       "message": "Ein eingefrorener UTXO bleibt in deinem Wallet, wird aber von jeder Zahlung dieser App ausgelassen, dein verfügbares Guthaben sinkt also um {amount}. Du kannst ihn jederzeit aus dieser Liste wieder auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere denselben UTXO auch dort ein.",
-      "button": "Einfrieren"
+      "button": "Einfrieren",
+      "messageToken": "Ein eingefrorener UTXO bleibt in deinem Wallet, wird aber aus jeder Zahlung und jedem Token-Transfer dieser App herausgehalten, die Tokens darauf und die {amount} darin sind von hier also nicht ausgebbar. Du kannst ihn jederzeit aus dieser Liste wieder auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-Anwendung nutzt, friere den UTXO auch dort ein."
     },
     "send": {
       "title": "Diesen UTXO senden",
@@ -887,6 +890,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Benötigte Transaktionen: {count}.",
     "transactionCountNote": "Sie werden einzeln gesendet und dauern jeweils ein paar Sekunden, lass Cashonize also offen, bis es fertig ist.",
+    "heldBack": "{count} UTXO bleibt zurück: er ist von der Münzauswahl ausgenommen, dieser Transfer greift also nicht darauf zu. | {count} UTXOs bleiben zurück: sie sind von der Münzauswahl ausgenommen, dieser Transfer greift also nicht darauf zu.",
     "destinationLabel": "Zieladresse:",
     "destinationTokenLabel": "Ziel-Token-Adresse:",
     "destinationPlaceholder": "Adresse, an die alles übertragen wird",
@@ -912,8 +916,7 @@
       "success": "Alle Werte erfolgreich übertragen"
     },
     "errors": {
-      "ownAddress": "Das Ziel ist eine Adresse dieses selben Wallets",
-      "reservedCoins": "Diese Wallet hält UTXOs zurück und kann daher nicht alles übertragen. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum."
+      "ownAddress": "Das Ziel ist eine Adresse dieses selben Wallets"
     }
   },
   "requestPayment": {

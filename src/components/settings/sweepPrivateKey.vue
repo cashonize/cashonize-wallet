@@ -289,7 +289,8 @@
       const tempWallet = await createTempWallet(wif);
       const tokenAwareAddress = store.wallet.getTokenDepositAddress();
 
-      await transferAllAssets(tempWallet, tokenAwareAddress, notifySweepPhase);
+      // no reservations: they belong to this wallet, and the coins being swept are another key's
+      await transferAllAssets(tempWallet, tokenAwareAddress, {}, notifySweepPhase);
 
       $q.notify({
         type: 'positive',

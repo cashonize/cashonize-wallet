@@ -12,6 +12,7 @@
   import { validateRecipientAddress, validateTokenRecipientAddress, getCashAddressScanError } from 'src/utils/payments/recipientAddress'
   import { toPlainAddress } from 'src/utils/addressValidation'
   import { transferAllAssets, type TransferPhase, type TransferProgress } from 'src/utils/tools/transferAssets'
+  import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
@@ -39,26 +40,29 @@
   const isHdWallet = computed(() => store._wallet instanceof HDWallet);
   const networkPrefix = computed(() => store.network === 'mainnet' ? 'bitcoincash' : 'bchtest');
 
-  // The wallet's own token list already covers everything held, including hidden tokens
-  const fungibleTokens = computed(() => store.tokenList?.filter(item => 'amount' in item) ?? []);
-  const nftTokens = computed(() => store.tokenList?.filter(item => 'nfts' in item) ?? []);
-  const hasTokens = computed(() => (store.tokenList?.length ?? 0) > 0);
+  // Built from the spendable coins rather than the wallet's token list, which counts the held
+  // back coins too: this transfer leaves those behind, so they belong in neither the list of what
+  // moves nor the count of transactions it takes.
+  const transferableTokens = computed(() => tokenListFromUtxos(store.spendableUtxos ?? []));
+  const fungibleTokens = computed(() => transferableTokens.value.filter(item => 'amount' in item));
+  const nftTokens = computed(() => transferableTokens.value.filter(item => 'nfts' in item));
+  const hasTokens = computed(() => transferableTokens.value.length > 0);
   const transactionCount = computed(() => fungibleTokens.value.length + nftTokens.value.length + 1);
   // Only 'empty' once the utxos have actually loaded
-  const isEmpty = computed(() => store.walletUtxos !== undefined && store.walletUtxos.length === 0);
-  const hasReservedCoins = computed(() => (store.reservedWalletUtxos?.length ?? 0) > 0);
+  const isEmpty = computed(() => store.spendableUtxos !== undefined && store.spendableUtxos.length === 0);
+  const heldBackCount = computed(() => store.reservedWalletUtxos?.length ?? 0);
 
   const bchDisplayUnit = computed(() => {
     if (store.network == 'mainnet') return settingsStore.bchUnit == 'bch' ? 'BCH' : 'sats';
     return settingsStore.bchUnit == 'bch' ? 'tBCH' : 'tsats';
   });
   const balanceInBchUnit = computed(() => {
-    const sats = Number(store.balance ?? 0n);
+    const sats = Number(store.spendableBalance ?? 0n);
     return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
   const fiatBalance = computed(() => {
-    if (!store.balance || store.exchangeRate === undefined) return undefined;
-    return formatFiatAmount(satsToBch(store.balance) * store.exchangeRate, settingsStore.currency);
+    if (!store.spendableBalance || store.exchangeRate === undefined) return undefined;
+    return formatFiatAmount(satsToBch(store.spendableBalance) * store.exchangeRate, settingsStore.currency);
   });
 
   const assetGroups = computed(() => {
@@ -133,12 +137,6 @@
 
   async function startTransfer() {
     if (isTransferring.value) return;
-    // This empties the wallet, so there is no version of it that leaves a reserved coin behind:
-    // the coin either moves, breaking whatever holds it, or the wallet is not emptied at all
-    if (hasReservedCoins.value) {
-      displayAndLogError(new Error(t('transferAllAssets.errors.reservedCoins')));
-      return;
-    }
     let destination: string;
     try {
       destination = getDestinationAddress();
@@ -161,7 +159,7 @@
     activePhase.value = undefined;
     phaseProgress.value = {};
     try {
-      await transferAllAssets(store.wallet, destination, onTransferProgress);
+      await transferAllAssets(store.wallet, destination, store.reservedUtxos, onTransferProgress);
       destinationInput.value = "";
       $q.notify({ type: 'positive', message: t('transferAllAssets.notifications.success') });
     } catch (error) {
@@ -267,8 +265,10 @@
         <span v-if="transactionCount > 1">{{ t('transferAllAssets.transactionCountNote') }}</span>
       </div>
 
-      <div v-if="hasReservedCoins" style="margin-top: 12px; color: red;">
-        {{ t('transferAllAssets.errors.reservedCoins') }}
+      <!-- Said before the transfer rather than after: the wallet does not end up empty, and the
+           coins left in it are the ones a spend never reaches for -->
+      <div v-if="heldBackCount" class="description" style="margin-top: 12px;">
+        {{ t('transferAllAssets.heldBack', heldBackCount) }}
       </div>
 
       <input
@@ -276,7 +276,7 @@
         type="button"
         class="primaryButton"
         :value="isTransferring ? t('transferAllAssets.transferringButton') : t('transferAllAssets.transferButton')"
-        :disabled="isTransferring || !destinationInput || hasReservedCoins"
+        :disabled="isTransferring || !destinationInput"
         style="margin-top: 12px;"
       >
 

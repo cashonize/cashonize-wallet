@@ -88,6 +88,7 @@
       "bcmrIndexerValidationError": "BCMR indexer response validation error",
       "utxoNotReserved": "This UTXO is not reserved",
       "reservedEnsureUtxos": "This action needs a UTXO the wallet is holding back",
+      "tokenUtxoHeldBack": "This UTXO is held back from coin selection. The UTXO Management page shows which coins are held and why, and is where a frozen one is unfrozen.",
       "notEnoughSpendableBch": "This transaction needs {needed} and only {available} can be spent. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "notEnoughSpendableTokens": "Not enough tokens can be spent for this transaction. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it."
@@ -711,10 +712,12 @@
       "empty": "This wallet has no UTXOs holding a fungible amount and an NFT at once."
     },
     "reservedSummary": "{count} UTXO held back, kept out of your spendable balance | {count} UTXOs held back, kept out of your spendable balance",
+    "reservedTokenSummary": "{count} token UTXO held back, left out of every transfer this app makes | {count} token UTXOs held back, left out of every transfer this app makes",
     "freeze": {
       "title": "Freeze this UTXO",
       "message": "A frozen UTXO stays in your wallet but is left out of every payment this app makes, so your spendable balance drops by {amount}. Unfreeze it from this list at any time.\n\nFreezing only applies here: if you use this seed phrase in another wallet application, freeze the same UTXO there too.",
-      "button": "Freeze"
+      "button": "Freeze",
+      "messageToken": "A frozen UTXO stays in your wallet but is left out of every payment and token transfer this app makes, so the tokens on it and the {amount} it holds cannot be spent from here. Unfreeze it from this list at any time.\n\nFreezing only applies here: if you use this seed phrase in another wallet application, freeze the same UTXO there too."
     },
     "send": {
       "title": "Send this UTXO",
@@ -887,6 +890,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Transactions needed: {count}.",
     "transactionCountNote": "They are sent one at a time and take a few seconds each, so keep Cashonize open until it finishes.",
+    "heldBack": "{count} UTXO stays behind: it is held back from coin selection, so this transfer does not reach for it. | {count} UTXOs stay behind: they are held back from coin selection, so this transfer does not reach for them.",
     "destinationLabel": "Destination address:",
     "destinationTokenLabel": "Destination token address:",
     "destinationPlaceholder": "Address to transfer everything to",
@@ -912,8 +916,7 @@
       "success": "Successfully transferred all assets"
     },
     "errors": {
-      "ownAddress": "The destination is an address of this same wallet",
-      "reservedCoins": "This wallet is holding UTXOs back, so it cannot transfer everything. The UTXO Management page shows which UTXOs are held and why."
+      "ownAddress": "The destination is an address of this same wallet"
     }
   },
   "requestPayment": {

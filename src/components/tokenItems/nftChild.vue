@@ -111,6 +111,7 @@
     try{
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      store.checkTokenUtxosSpendable([nftData.value]);
 
       const nftInfo = nftData.value.token as TokenI;
       // confirm payment if setting is enabled
@@ -155,6 +156,7 @@
     activeAction.value = 'burning';
     try {
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      store.checkTokenUtxosSpendable([nftData.value]);
 
       const nftInfo = nftData.value.token as TokenI;
       const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')

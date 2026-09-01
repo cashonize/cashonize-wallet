@@ -58,6 +58,13 @@
   // feature that made the reservation, so this list marks those but does not offer to release them.
   const reservedUtxoCount = computed(() => store.reservedWalletUtxos?.length);
   const reservationReason = (utxo: Utxo) => store.reservedUtxos[outpointOf(utxo)]?.reason;
+  // The mark on a row only hints at it, so each half says out loud how many of its coins are held
+  const heldBchCount = computed(() => utxoLists.value?.bch.filter(reservationReason).length);
+  const heldTokenCount = computed(() => {
+    if (!utxoLists.value) return undefined;
+    const tokenUtxos = [...utxoLists.value.fungible, ...utxoLists.value.nft, ...utxoLists.value.ftNft];
+    return tokenUtxos.filter(reservationReason).length;
+  });
   const heldByFeature = (utxo: Utxo) => isFeatureReservation(reservationReason(utxo));
 
   async function toggleFreeze(utxo: Utxo) {
@@ -66,9 +73,12 @@
       return;
     }
     // Freezing changes what the wallet reports as spendable, so it says so before it happens
+    const amount = `${formatBchAmount(Number(utxo.satoshis), false, 8)} ${bchDisplayUnit.value}`;
     const confirmed = await confirmDialog(
       t('utxoManagement.freeze.title'),
-      t('utxoManagement.freeze.message', { amount: `${formatBchAmount(Number(utxo.satoshis), false, 8)} ${bchDisplayUnit.value}` }),
+      utxo.token
+        ? t('utxoManagement.freeze.messageToken', { amount })
+        : t('utxoManagement.freeze.message', { amount }),
       t('utxoManagement.freeze.button')
     );
     if (confirmed) await store.reserveUtxo(utxo, 'manual');
@@ -543,8 +553,8 @@
           </div>
           <!-- Says out loud what a mark on one row only hints at, and why the spendable balance
                is smaller than the coins listed here add up to -->
-          <div v-if="reservedUtxoCount" class="reserved-summary">
-            <span>{{ t('utxoManagement.reservedSummary', reservedUtxoCount) }}</span>
+          <div v-if="heldBchCount" class="reserved-summary">
+            <span>{{ t('utxoManagement.reservedSummary', heldBchCount) }}</span>
           </div>
           <q-pagination
             v-if="pageCount('bch') > 1"
@@ -736,8 +746,14 @@
               <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
               <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
               <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+              <span></span>
             </div>
-            <div v-for="(utxo, index) in pageOf('fungible')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+            <div
+              v-for="(utxo, index) in pageOf('fungible')"
+              :key="utxo.txid + ':' + utxo.vout"
+              class="utxo-row"
+              :class="{ actionable: !heldByFeature(utxo) }"
+            >
               <div class="cell row-number">{{ rowNumber('fungible', index) }}</div>
               <div class="cell token-cell">
                 <TokenIcon
@@ -767,6 +783,80 @@
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
                 <span class="mono">{{ utxo.vout }}</span>
               </div>
+              <!-- The same marks and actions as the BCH list, without the send: a token coin is
+                   spent from its token card rather than from here -->
+              <div class="cell held-cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
+                <InfoPopup v-if="heldByFeature(utxo)">
+                  <template #trigger>
+                    <span class="held-state">
+                      <q-icon name="lock" size="15px" class="held-marker" />
+                      <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
+                    </span>
+                  </template>
+                  <div style="max-width: 300px;">{{
+                    reservationReason(utxo) === 'auth'
+                      ? t('utxoManagement.markers.reservedAuth')
+                      : t('utxoManagement.markers.reserved')
+                  }}</div>
+                  <div class="info-popup-note" style="max-width: 300px;">{{
+                    reservationReason(utxo) === 'auth'
+                      ? t('utxoManagement.markers.reservedAuthRelease')
+                      : t('utxoManagement.markers.reservedRelease')
+                  }}</div>
+                </InfoPopup>
+                <template v-else>
+                  <span class="held-state">
+                    <q-icon
+                      v-if="reservationReason(utxo) === 'manual'"
+                      name="ac_unit"
+                      size="15px"
+                      class="held-marker frozen"
+                      :title="t('utxoManagement.markers.frozen')"
+                    />
+                    <span class="held-label">{{
+                      reservationReason(utxo) === 'manual'
+                        ? t('utxoManagement.markers.frozenShort')
+                        : t('utxoManagement.markers.availableShort')
+                    }}</span>
+                  </span>
+                  <span class="held-action actions-trigger">
+                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
+                    <q-icon name="more_vert" size="18px" />
+                  </span>
+                </template>
+              </div>
+              <div
+                v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
+                class="cell utxo-label-line"
+              >
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.label') }}</span>
+                <InlineTextEdit
+                  :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+                  class="utxo-label-edit"
+                  :value="utxoLabel(utxo)"
+                  :hint="t('utxoManagement.label.placeholder')"
+                  :max-length="maxUtxoLabelLength"
+                  @save="(label) => saveLabel(utxo, label)"
+                  @cancel="labelEditingOutpoint = null"
+                />
+              </div>
+              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+                <q-list dense>
+                  <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
+                    <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
+                    <q-item-section>{{
+                      reservationReason(utxo) === 'manual'
+                        ? t('utxoManagement.markers.unfreeze')
+                        : t('utxoManagement.freeze.button')
+                    }}</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
+                    <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+                    <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
             </div>
           </div>
           <q-pagination
@@ -799,8 +889,14 @@
               <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
               <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
               <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+              <span></span>
             </div>
-            <div v-for="(utxo, index) in pageOf('nft')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+            <div
+              v-for="(utxo, index) in pageOf('nft')"
+              :key="utxo.txid + ':' + utxo.vout"
+              class="utxo-row"
+              :class="{ actionable: !heldByFeature(utxo) }"
+            >
               <div class="cell row-number">{{ rowNumber('nft', index) }}</div>
               <div class="cell token-cell">
                 <TokenIcon
@@ -834,6 +930,80 @@
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
                 <span class="mono">{{ utxo.vout }}</span>
               </div>
+              <!-- The same marks and actions as the BCH list, without the send: a token coin is
+                   spent from its token card rather than from here -->
+              <div class="cell held-cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
+                <InfoPopup v-if="heldByFeature(utxo)">
+                  <template #trigger>
+                    <span class="held-state">
+                      <q-icon name="lock" size="15px" class="held-marker" />
+                      <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
+                    </span>
+                  </template>
+                  <div style="max-width: 300px;">{{
+                    reservationReason(utxo) === 'auth'
+                      ? t('utxoManagement.markers.reservedAuth')
+                      : t('utxoManagement.markers.reserved')
+                  }}</div>
+                  <div class="info-popup-note" style="max-width: 300px;">{{
+                    reservationReason(utxo) === 'auth'
+                      ? t('utxoManagement.markers.reservedAuthRelease')
+                      : t('utxoManagement.markers.reservedRelease')
+                  }}</div>
+                </InfoPopup>
+                <template v-else>
+                  <span class="held-state">
+                    <q-icon
+                      v-if="reservationReason(utxo) === 'manual'"
+                      name="ac_unit"
+                      size="15px"
+                      class="held-marker frozen"
+                      :title="t('utxoManagement.markers.frozen')"
+                    />
+                    <span class="held-label">{{
+                      reservationReason(utxo) === 'manual'
+                        ? t('utxoManagement.markers.frozenShort')
+                        : t('utxoManagement.markers.availableShort')
+                    }}</span>
+                  </span>
+                  <span class="held-action actions-trigger">
+                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
+                    <q-icon name="more_vert" size="18px" />
+                  </span>
+                </template>
+              </div>
+              <div
+                v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
+                class="cell utxo-label-line"
+              >
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.label') }}</span>
+                <InlineTextEdit
+                  :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+                  class="utxo-label-edit"
+                  :value="utxoLabel(utxo)"
+                  :hint="t('utxoManagement.label.placeholder')"
+                  :max-length="maxUtxoLabelLength"
+                  @save="(label) => saveLabel(utxo, label)"
+                  @cancel="labelEditingOutpoint = null"
+                />
+              </div>
+              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+                <q-list dense>
+                  <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
+                    <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
+                    <q-item-section>{{
+                      reservationReason(utxo) === 'manual'
+                        ? t('utxoManagement.markers.unfreeze')
+                        : t('utxoManagement.freeze.button')
+                    }}</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
+                    <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+                    <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
             </div>
           </div>
           <q-pagination
@@ -867,8 +1037,14 @@
               <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
               <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
               <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
+              <span></span>
             </div>
-            <div v-for="(utxo, index) in pageOf('ftNft')" :key="utxo.txid + ':' + utxo.vout" class="utxo-row">
+            <div
+              v-for="(utxo, index) in pageOf('ftNft')"
+              :key="utxo.txid + ':' + utxo.vout"
+              class="utxo-row"
+              :class="{ actionable: !heldByFeature(utxo) }"
+            >
               <div class="cell row-number">{{ rowNumber('ftNft', index) }}</div>
               <div class="cell token-cell">
                 <TokenIcon
@@ -906,6 +1082,80 @@
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
                 <span class="mono">{{ utxo.vout }}</span>
               </div>
+              <!-- The same marks and actions as the BCH list, without the send: a token coin is
+                   spent from its token card rather than from here -->
+              <div class="cell held-cell">
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
+                <InfoPopup v-if="heldByFeature(utxo)">
+                  <template #trigger>
+                    <span class="held-state">
+                      <q-icon name="lock" size="15px" class="held-marker" />
+                      <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
+                    </span>
+                  </template>
+                  <div style="max-width: 300px;">{{
+                    reservationReason(utxo) === 'auth'
+                      ? t('utxoManagement.markers.reservedAuth')
+                      : t('utxoManagement.markers.reserved')
+                  }}</div>
+                  <div class="info-popup-note" style="max-width: 300px;">{{
+                    reservationReason(utxo) === 'auth'
+                      ? t('utxoManagement.markers.reservedAuthRelease')
+                      : t('utxoManagement.markers.reservedRelease')
+                  }}</div>
+                </InfoPopup>
+                <template v-else>
+                  <span class="held-state">
+                    <q-icon
+                      v-if="reservationReason(utxo) === 'manual'"
+                      name="ac_unit"
+                      size="15px"
+                      class="held-marker frozen"
+                      :title="t('utxoManagement.markers.frozen')"
+                    />
+                    <span class="held-label">{{
+                      reservationReason(utxo) === 'manual'
+                        ? t('utxoManagement.markers.frozenShort')
+                        : t('utxoManagement.markers.availableShort')
+                    }}</span>
+                  </span>
+                  <span class="held-action actions-trigger">
+                    <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
+                    <q-icon name="more_vert" size="18px" />
+                  </span>
+                </template>
+              </div>
+              <div
+                v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
+                class="cell utxo-label-line"
+              >
+                <span class="cell-label">{{ t('utxoManagement.tableHeaders.label') }}</span>
+                <InlineTextEdit
+                  :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+                  class="utxo-label-edit"
+                  :value="utxoLabel(utxo)"
+                  :hint="t('utxoManagement.label.placeholder')"
+                  :max-length="maxUtxoLabelLength"
+                  @save="(label) => saveLabel(utxo, label)"
+                  @cancel="labelEditingOutpoint = null"
+                />
+              </div>
+              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+                <q-list dense>
+                  <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
+                    <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
+                    <q-item-section>{{
+                      reservationReason(utxo) === 'manual'
+                        ? t('utxoManagement.markers.unfreeze')
+                        : t('utxoManagement.freeze.button')
+                    }}</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
+                    <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+                    <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
             </div>
           </div>
           <q-pagination
@@ -918,6 +1168,11 @@
             class="pager"
           />
         </template>
+        <!-- Counts every held token coin, not only this list's: the three lists split one kind of
+             asset, and what a spend will not reach for is the same fact across them -->
+        <div v-if="heldTokenCount" class="reserved-summary">
+          <span>{{ t('utxoManagement.reservedTokenSummary', heldTokenCount) }}</span>
+        </div>
       </div>
     </template>
   </fieldset>
@@ -1125,13 +1380,13 @@ $col-commitment: 8em;
   grid-template-columns: $col-number minmax($col-name, 1fr) $col-type $col-bch $col-txid $col-vout;
 }
 .grid-fungible .utxo-row {
-  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-bch $col-txid $col-vout $col-held;
 }
 .grid-nft .utxo-row {
-  grid-template-columns: $col-number minmax($col-name, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout $col-held;
 }
 .grid-ftnft .utxo-row {
-  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout;
+  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout $col-held;
 }
 
 .cell {
@@ -1355,13 +1610,13 @@ $card-label-width: 90px;
 @container affected-grid (max-width: 39.3em) {
   @include stacked-card;
 }
-@container fungible-grid (max-width: 39.3em) {
+@container fungible-grid (max-width: 43em) {
   @include stacked-card;
 }
-@container nft-grid (max-width: 48em) {
+@container nft-grid (max-width: 51.7em) {
   @include stacked-card;
 }
-@container ftnft-grid (max-width: 53.7em) {
+@container ftnft-grid (max-width: 57.4em) {
   @include stacked-card;
 }
 </style>

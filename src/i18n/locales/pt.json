@@ -88,6 +88,7 @@
       "bcmrIndexerValidationError": "Erro de validação na resposta do indexador BCMR",
       "utxoNotReserved": "Este UTXO não está reservado",
       "reservedEnsureUtxos": "Esta ação precisa de um UTXO que a carteira está a reter",
+      "tokenUtxoHeldBack": "Este UTXO está retido fora da seleção de moedas. A página de gestão de UTXOs mostra quais estão retidos e por quê, e é onde um congelado é descongelado.",
       "notEnoughSpendableBch": "Esta transação precisa de {needed} e só {available} pode ser gasto. Moedas retidas fora da seleção de moedas não contam; a página de gestão de UTXOs mostra quais estão retidas e por quê.",
       "notEnoughSpendableTokens": "Não há tokens suficientes para gastar nesta transação. Moedas retidas fora da seleção de moedas não contam; a página de gestão de UTXOs mostra quais estão retidas e por quê.",
       "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo."
@@ -711,10 +712,12 @@
       "empty": "Esta carteira não tem UTXOs que contenham ao mesmo tempo uma quantia fungível e um NFT."
     },
     "reservedSummary": "{count} UTXO retido, fora do seu saldo disponível | {count} UTXOs retidos, fora do seu saldo disponível",
+    "reservedTokenSummary": "{count} UTXO de token retido, fora de cada transferência que este app faz | {count} UTXOs de token retidos, fora de cada transferência que este app faz",
     "freeze": {
       "title": "Congelar este UTXO",
       "message": "Um UTXO congelado continua na sua carteira mas fica de fora de cada pagamento que este aplicativo faz, então seu saldo disponível cai em {amount}. Você pode descongelá-lo nesta lista quando quiser.\n\nCongelar vale só aqui: se você usa esta frase semente em outro aplicativo de carteira, congele o mesmo UTXO lá também.",
-      "button": "Congelar"
+      "button": "Congelar",
+      "messageToken": "Um UTXO congelado continua na sua carteira mas fica de fora de cada pagamento e cada transferência de tokens que este app faz, então os tokens nele e os {amount} que ele contém não podem ser gastos daqui. Você pode descongelá-lo nesta lista quando quiser.\n\nCongelar só vale aqui: se você usar esta frase semente em outro aplicativo de carteira, congele o mesmo UTXO lá também."
     },
     "send": {
       "title": "Enviar este UTXO",
@@ -887,6 +890,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Transações necessárias: {count}.",
     "transactionCountNote": "Elas são enviadas uma por uma e levam alguns segundos cada, então mantenha o Cashonize aberto até terminar.",
+    "heldBack": "{count} UTXO fica para trás: está retido fora da seleção de moedas, então esta transferência não o pega. | {count} UTXOs ficam para trás: estão retidos fora da seleção de moedas, então esta transferência não os pega.",
     "destinationLabel": "Endereço de destino:",
     "destinationTokenLabel": "Endereço de token de destino:",
     "destinationPlaceholder": "Endereço para onde transferir tudo",
@@ -912,8 +916,7 @@
       "success": "Todos os ativos foram transferidos com sucesso"
     },
     "errors": {
-      "ownAddress": "O destino é um endereço desta mesma carteira",
-      "reservedCoins": "Esta carteira está a reter UTXOs, por isso não pode transferir tudo. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê."
+      "ownAddress": "O destino é um endereço desta mesma carteira"
     }
   },
   "requestPayment": {

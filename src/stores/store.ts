@@ -1436,6 +1436,15 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // A spend that names one specific coin, an NFT transfer or burn, cannot fall back on another the
+  // way an amount can, so a held back one is refused here rather than left to fail on mainnet-js's
+  // terms. Frozen coins are spendable deliberately, but from utxo management rather than from here.
+  function checkTokenUtxosSpendable(utxos: Utxo[]) {
+    if (utxos.some(utxo => outpointOf(utxo) in reservedUtxos.value)) {
+      throw new Error(t('store.errors.tokenUtxoHeldBack'));
+    }
+  }
+
   // A listed identity whose authhead carries tokens is not kept out of coin selection yet, so every
   // path spending the category's coins asks this before it can move or burn that authhead away
   function identityAuthheadCarriesTokens(category: string) {
@@ -1753,6 +1762,7 @@ export const useStore = defineStore('store', () => {
     identities,
     identitiesResolving,
     identityAuthheadCarriesTokens,
+    checkTokenUtxosSpendable,
     refreshIdentities,
     scanForIdentities,
     addIdentity,

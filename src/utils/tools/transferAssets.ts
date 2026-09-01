@@ -1,5 +1,6 @@
 import { TokenSendRequest } from "mainnet-js";
 import { tokenListFromUtxos } from "src/stores/storeUtils";
+import { spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";
 import type { WalletType } from "src/interfaces/interfaces";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -16,15 +17,20 @@ export interface TransferProgress {
 // (one transaction per category), then NFTs (one transaction per category, all NFTs of a
 // category together), then the remaining BCH. BCH goes last because the token transactions
 // need it to pay their fees.
-// The destination must be a token-aware address whenever the wallet holds tokens.
+// The destination must be a token-aware address whenever the wallet holds tokens. Coins the
+// wallet holds back stay behind, which is why this empties the wallet of everything else rather
+// than of everything.
 export async function transferAllAssets(
   sourceWallet: WalletType,
   destinationAddress: string,
+  reservedUtxos: ReservedUtxos,
   onProgress?: (progress: TransferProgress) => void
 ) {
-  // The utxos are read here rather than passed in: a summary shown to the user can be minutes
-  // old, and the same wallet may be spending from elsewhere
-  const utxos = await sourceWallet.getUtxos();
+  // Read fresh before each transaction rather than once up front: every transaction here spends
+  // coins the next must no longer name, and a summary shown to the user can be minutes old anyway
+  const spendablePool = async () => spendableFromUtxos(await sourceWallet.getUtxos(), reservedUtxos);
+
+  const utxos = await spendablePool();
   if (!utxos.length) throw new Error(t('common.errors.nothingToTransfer'));
   const tokenList = tokenListFromUtxos(utxos);
 
@@ -41,7 +47,7 @@ export async function transferAllAssets(
         amount: token.amount,
         category: token.category,
       }),
-    ]);
+    ], { utxoIds: await spendablePool() });
     transferredFungibleTokens += 1;
     onProgress?.({ phase: "fungibleTokens", completed: transferredFungibleTokens, total: fungibleTokens.length });
   }
@@ -62,12 +68,15 @@ export async function transferAllAssets(
         },
       });
     });
-    if (nftOutputs.length) await sourceWallet.send(nftOutputs);
+    if (nftOutputs.length) await sourceWallet.send(nftOutputs, { utxoIds: await spendablePool() });
     transferredNfts += 1;
     onProgress?.({ phase: "nfts", completed: transferredNfts, total: nftTokens.length });
   }
 
   onProgress?.({ phase: "bch", completed: 0, total: 1 });
-  await sourceWallet.sendMax(destinationAddress);
+  // Naming a pool turns off the token filter sendMax applies to a pool it picks itself, so the
+  // token coins are dropped here instead: a token coin swept as plain BCH would burn its tokens
+  const bchPool = (await spendablePool()).filter(utxo => !utxo.token);
+  await sourceWallet.sendMax(destinationAddress, { utxoIds: bchPool });
   onProgress?.({ phase: "bch", completed: 1, total: 1 });
 }
