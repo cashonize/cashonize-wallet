@@ -1490,7 +1490,7 @@
     },
     "reserve": {
       "title": "Diese Identität trägt:",
-      "supply": "{amount} {symbol} als reservierter Bestand außerhalb des Umlaufs",
+      "supply": "Reservierte Menge: {amount}",
       "mintingNft": "Ein Minting-NFT, das neue NFTs dieser Kategorie erzeugt",
       "nft": "Ein NFT dieser Kategorie",
       "transferHint": "Leere vor dem Übertragen dieser Identität ihre Reserve: die Übertragung bewegt die Hoheit, und der Bestand sollte nicht unbemerkt mitgehen.",
@@ -1579,7 +1579,8 @@
         "changed": "Die hier ausgelieferte Datei ist nicht die on chain veröffentlichte. Sieh sie durch und veröffentliche sie erneut, damit Holder sehen, was du ausbleiferst.",
         "changedNote": "Wenn du die Datei nicht geändert hast, prüfe dein Hosting: etwas anderes antwortet für sie.",
         "unreachable": "Dieser Ort hat nicht geantwortet. Holder, die die Metadaten dort holen, sehen nichts, prüfe also, ob Hosting oder IPFS-Pin abgelaufen ist."
-      }
+      },
+      "noneAction": "jetzt veröffentlichen"
     },
     "history": {
       "title": "Historie dieser Identität",
@@ -1640,7 +1641,7 @@
     },
     "add": {
       "label": "Identität über die Token-Kategorie hinzufügen",
-      "placeholder": "Token-Kategorie (64 Hexadezimalzeichen)",
+      "placeholder": "Kategorie-Id des Tokens einfügen",
       "button": "Identität hinzufügen",
       "addingButton": "Wird hinzugefügt...",
       "hint": "Cashonize sucht, wo die Identität dieser Kategorie liegt, und listet sie hier auf. Bei einem Token in diesem Wallet findet sie auch die Prüfung unten.",
@@ -1674,7 +1675,7 @@
       }
     },
     "scan": {
-      "prompt": "Cashonize kann die Tokens in diesem Wallet auf gehaltene Identitäten prüfen. {link}",
+      "prompt": "Cashonize kann die Tokens in diesem Wallet auf gehaltene Identitäten prüfen.",
       "linkText": "Auf Identitäten prüfen",
       "scanning": "Die Token-Kategorien des Wallets werden geprüft...",
       "found": "{count} Identität gefunden und der Liste hinzugefügt | {count} Identitäten gefunden und der Liste hinzugefügt",
@@ -1686,7 +1687,6 @@
       "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden."
     },
     "transfer": {
-      "label": "Diese Identität übertragen",
       "hint": "Die Münze der Identität geht vollständig an das Ziel und übergibt damit die Hoheit über die Metadaten dieses Tokens. Das Ziel erhält die Münze abzüglich der Transaktionsgebühr.",
       "destinationPlaceholder": "Adresse, an die die Identität gehen soll",
       "button": "Identität übertragen",
@@ -1705,7 +1705,7 @@
       "button": "Entfernen"
     },
     "errors": {
-      "invalidCategory": "Das ist keine Token-Kategorie. Eine Kategorie besteht aus 64 Hexadezimalzeichen.",
+      "invalidCategory": "Das ist keine Token-Kategorie. Du findest sie bei den Token-Infos im Tokens-Tab oder auf TokenExplorer.",
       "alreadyListed": "Diese Identität ist bereits in der Liste."
     },
     "emptySteps": {

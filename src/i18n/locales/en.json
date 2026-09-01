@@ -1490,7 +1490,7 @@
     },
     "reserve": {
       "title": "This identity carries:",
-      "supply": "{amount} {symbol} held out of circulation as reserved supply",
+      "supply": "Reserved supply: {amount}",
       "mintingNft": "A minting NFT, which creates new NFTs of this category",
       "nft": "An NFT of this category",
       "transferHint": "To transfer this identity, empty its reserve first: the transfer moves the authority, and the supply should not ride along unnoticed.",
@@ -1579,7 +1579,8 @@
         "changed": "The file served here is not the one published on chain. Review it and publish it again, so holders see what you are serving.",
         "changedNote": "If you did not edit the file, check your hosting: something else is answering for it.",
         "unreachable": "This location did not answer. Holders fetching the metadata from it see nothing, so check whether the hosting or the IPFS pin has lapsed."
-      }
+      },
+      "noneAction": "publish one"
     },
     "history": {
       "title": "This identity's history",
@@ -1640,7 +1641,7 @@
     },
     "add": {
       "label": "Add an identity by token category",
-      "placeholder": "Token category (64 hexadecimal characters)",
+      "placeholder": "Paste the token's category id",
       "button": "Add identity",
       "addingButton": "Adding...",
       "hint": "Cashonize looks up where that category's identity is held and lists it here. For a token this wallet holds, the check below finds it too.",
@@ -1674,7 +1675,7 @@
       }
     },
     "scan": {
-      "prompt": "Cashonize can check the tokens in this wallet for identities it holds. {link}",
+      "prompt": "Cashonize can check the tokens in this wallet for identities it holds.",
       "linkText": "Check for identities",
       "scanning": "Checking the wallet's token categories...",
       "found": "{count} identity found and added to the list | {count} identities found and added to the list",
@@ -1686,7 +1687,6 @@
       "failed": "{count} category could not be checked. | {count} categories could not be checked."
     },
     "transfer": {
-      "label": "Transfer this identity",
       "hint": "The identity's coin is sent whole to the destination, handing over the authority to update this token's metadata. The destination receives the coin minus the transaction fee.",
       "destinationPlaceholder": "Address to transfer the identity to",
       "button": "Transfer identity",
@@ -1705,7 +1705,7 @@
       "button": "Remove"
     },
     "errors": {
-      "invalidCategory": "That is not a token category. A category is 64 hexadecimal characters.",
+      "invalidCategory": "That is not a token category. Find it on the token's info in the Tokens tab, or on TokenExplorer.",
       "alreadyListed": "That identity is already in the list."
     },
     "emptySteps": {

@@ -1490,7 +1490,7 @@
     },
     "reserve": {
       "title": "Cette identité porte :",
-      "supply": "{amount} {symbol} gardés hors circulation en réserve",
+      "supply": "Offre réservée : {amount}",
       "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
       "nft": "Un NFT de cette catégorie",
       "transferHint": "Pour transférer cette identité, videz d'abord sa réserve : le transfert déplace l'autorité, et l'offre ne devrait pas suivre sans qu'on le remarque.",
@@ -1579,7 +1579,8 @@
         "changed": "Le fichier servi ici n'est pas celui publié sur la chaîne. Vérifiez-le et publiez-le de nouveau, pour que les détenteurs voient ce que vous servez.",
         "changedNote": "Si vous n'avez pas modifié le fichier, vérifiez votre hébergement : autre chose répond à sa place.",
         "unreachable": "Cet emplacement n'a pas répondu. Les détenteurs qui y cherchent les métadonnées ne voient rien : vérifiez si l'hébergement ou le pin IPFS a expiré."
-      }
+      },
+      "noneAction": "en publier un"
     },
     "history": {
       "title": "Historique de cette identité",
@@ -1640,7 +1641,7 @@
     },
     "add": {
       "label": "Ajouter une identité par catégorie de jeton",
-      "placeholder": "Catégorie de jeton (64 caractères hexadécimaux)",
+      "placeholder": "Collez l'identifiant de catégorie du token",
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
       "hint": "Cashonize cherche où se trouve l'identité de cette catégorie et la liste ici. Pour un token détenu par ce portefeuille, la recherche ci-dessous la trouve aussi.",
@@ -1674,7 +1675,7 @@
       }
     },
     "scan": {
-      "prompt": "Cashonize peut vérifier si les tokens de ce portefeuille ont des identités qu'il détient. {link}",
+      "prompt": "Cashonize peut vérifier si les tokens de ce portefeuille ont des identités qu'il détient.",
       "linkText": "Rechercher des identités",
       "scanning": "Vérification des catégories de jetons du portefeuille...",
       "found": "{count} identité trouvée et ajoutée à la liste | {count} identités trouvées et ajoutées à la liste",
@@ -1686,7 +1687,6 @@
       "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées."
     },
     "transfer": {
-      "label": "Transférer cette identité",
       "hint": "La pièce de l'identité est envoyée entière à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. La destination reçoit la pièce moins les frais de transaction.",
       "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
       "button": "Transférer l'identité",
@@ -1705,7 +1705,7 @@
       "button": "Retirer"
     },
     "errors": {
-      "invalidCategory": "Ceci n'est pas une catégorie de jeton. Une catégorie compte 64 caractères hexadécimaux.",
+      "invalidCategory": "Ce n'est pas une catégorie de token. Vous la trouverez sur les infos du token dans l'onglet Tokens, ou sur TokenExplorer.",
       "alreadyListed": "Cette identité est déjà dans la liste."
     },
     "emptySteps": {

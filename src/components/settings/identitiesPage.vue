@@ -170,7 +170,9 @@
     const lines: string[] = [];
     if (token.amount) {
       const amount = formatTokenAmountFromBigInt(token.amount, metadata?.token?.decimals ?? 0);
-      lines.push(t('identities.reserve.supply', { amount, symbol: metadata?.token?.symbol ?? '' }).trim());
+      lines.push(t('identities.reserve.supply', {
+        amount: `${amount} ${metadata?.token?.symbol ?? ''}`.trim(),
+      }));
     }
     if (token.nft?.capability === 'minting') lines.push(t('identities.reserve.mintingNft'));
     else if (token.nft) lines.push(t('identities.reserve.nft'));
@@ -744,20 +746,15 @@
     </div>
 
     <div class="section">
-      <div class="description">
-        <i18n-t keypath="identities.scan.prompt" tag="span">
-          <template #link>
-            <span
-              v-if="!isScanning && !identitiesStore.identitiesResolving"
-              class="scan-link"
-              @click="scanForIdentities()"
-            >{{ t('identities.scan.linkText') }}</span>
-            <span v-else>{{ t('identities.scan.linkText') }}</span>
-          </template>
-        </i18n-t>
-      </div>
-      <div v-if="isScanning" class="description" style="margin-top: 6px;">{{ t('identities.scan.scanning') }}</div>
-      <div v-else-if="scanSummary" class="description" style="margin-top: 6px;">
+      <div class="description">{{ t('identities.scan.prompt') }}</div>
+      <input
+        @click="scanForIdentities()"
+        type="button"
+        :value="isScanning ? t('identities.scan.scanning') : t('identities.scan.linkText')"
+        :disabled="isScanning || identitiesStore.identitiesResolving"
+        style="margin-top: 8px;"
+      >
+      <div v-if="!isScanning && scanSummary" class="description" style="margin-top: 6px;">
         <div v-if="scanSummary.found">{{ t('identities.scan.found', scanSummary.found) }}</div>
         <div v-else>{{ t('identities.scan.noneFound') }}</div>
         <div v-if="scanSummary.alreadyListed">{{ t('identities.scan.alreadyListed', scanSummary.alreadyListed) }}</div>
@@ -809,7 +806,7 @@
             <div style="max-width: 300px;">{{ t('identities.unnamed.help') }}</div>
           </InfoPopup>
         </div>
-        <div class="identity-status held">
+        <div class="identity-status">
           <q-icon name="lock" size="15px" />
           {{ t('identities.unnamed.status') }}
         </div>
@@ -872,11 +869,14 @@
         </div>
 
         <!-- States stay visible on a closed card; only the details and the actions fold away -->
-        <div v-if="foundAutomatically.includes(identity.category)" class="description">
-          {{ t('identities.detected.foundAutomatically') }}
-          <InfoPopup>
-            <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
-          </InfoPopup>
+        <div v-if="foundAutomatically.includes(identity.category)" class="info-box" style="margin-top: 8px;">
+          <q-icon name="info" size="20px" class="warning-box-icon" />
+          <div>
+            {{ t('identities.detected.foundAutomatically') }}
+            <InfoPopup>
+              <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
+            </InfoPopup>
+          </div>
         </div>
         <div v-if="carriesLine(identity)" class="description">{{ carriesLine(identity) }}</div>
         <div v-if="!isExpanded(identity) && identity.publication" class="publication-badge-row">
@@ -919,7 +919,15 @@
              Shown for a watched identity as much as a held one: reading it needs no custody. -->
         <div class="section">
           <div>{{ t('identities.publication.title') }}</div>
-          <div v-if="!identity.publication" class="description">{{ t('identities.publication.none') }}</div>
+          <div v-if="!identity.publication" class="info-box" style="margin-top: 6px;">
+            <q-icon name="info" size="20px" class="warning-box-icon" />
+            <div>
+              {{ t('identities.publication.none') }}
+              <span v-if="identity.authUtxo" class="action-link" @click="toggleAction(identity, 'publish')">
+                {{ t('identities.publication.noneAction') }}
+              </span>
+            </div>
+          </div>
           <template v-else>
             <div v-for="row in publicationRows(identity)" :key="row.uri" class="publication-uri">
               <a :href="row.url" target="_blank" class="mono">{{ row.uri }}</a>
@@ -1223,24 +1231,19 @@
 .identity-title {
   min-width: 0;
 }
-.establishment {
-  margin-top: 2px;
-}
 .identity-status {
   color: grey;
 }
-.identity-status.held {
-  color: var(--color-primary);
-}
-.identity-status.carriesTokens {
-  color: var(--color-primary);
+/* a held identity is simply how things should be, and a colour that reads as a link on something
+   that does not click is worse than plain text */
+.identity-status.held,
+.identity-status.carriesTokens,
+.identity-status.heldViaKey {
+  color: var(--font-color);
 }
 /* an identity whose authhead lives elsewhere is watched, not broken, so it reads as neither */
 .identity-status.notHeld {
   color: grey;
-}
-.identity-status.heldViaKey {
-  color: var(--color-primary);
 }
 .identity-status.unresolved {
   color: orange;
@@ -1356,12 +1359,4 @@
   align-self: center;
 }
 
-/* the prompt reads as description, only the action it offers is coloured */
-.scan-link {
-  color: var(--color-primary);
-  cursor: pointer;
-}
-.scan-link:hover {
-  text-decoration: underline;
-}
 </style>

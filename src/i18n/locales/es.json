@@ -1490,7 +1490,7 @@
     },
     "reserve": {
       "title": "Esta identidad lleva:",
-      "supply": "{amount} {symbol} fuera de circulación como suministro reservado",
+      "supply": "Suministro reservado: {amount}",
       "mintingNft": "Un NFT de acuñación, que crea nuevos NFTs de esta categoría",
       "nft": "Un NFT de esta categoría",
       "transferHint": "Para transferir esta identidad, vacía antes su reserva: la transferencia mueve la autoridad, y el suministro no debería ir con ella sin que se note.",
@@ -1579,7 +1579,8 @@
         "changed": "El archivo que se sirve aquí no es el publicado en la cadena. Revísalo y publícalo de nuevo, para que los holders vean lo que sirves.",
         "changedNote": "Si tú no editaste el archivo, revisa tu alojamiento: hay algo más respondiendo por él.",
         "unreachable": "Esta ubicación no respondió. Los holders que busquen los metadatos aquí no ven nada, así que comprueba si caducó el alojamiento o el pin de IPFS."
-      }
+      },
+      "noneAction": "publicar una"
     },
     "history": {
       "title": "Historial de esta identidad",
@@ -1640,7 +1641,7 @@
     },
     "add": {
       "label": "Añadir una identidad por categoría de token",
-      "placeholder": "Categoría de token (64 caracteres hexadecimales)",
+      "placeholder": "Pega el id de categoría del token",
       "button": "Añadir identidad",
       "addingButton": "Añadiendo...",
       "hint": "Cashonize busca dónde está la identidad de esa categoría y la lista aquí. Para un token que tenga esta billetera, la búsqueda de abajo también la encuentra.",
@@ -1674,7 +1675,7 @@
       }
     },
     "scan": {
-      "prompt": "Cashonize puede revisar los tokens de esta billetera en busca de identidades que tenga. {link}",
+      "prompt": "Cashonize puede revisar los tokens de esta billetera en busca de identidades que tenga.",
       "linkText": "Buscar identidades",
       "scanning": "Comprobando las categorías de token de la billetera...",
       "found": "{count} identidad encontrada y añadida a la lista | {count} identidades encontradas y añadidas a la lista",
@@ -1686,7 +1687,6 @@
       "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías."
     },
     "transfer": {
-      "label": "Transferir esta identidad",
       "hint": "La moneda de la identidad se envía entera al destino, entregando la autoridad para actualizar los metadatos de este token. El destino recibe la moneda menos la comisión de la transacción.",
       "destinationPlaceholder": "Dirección a la que transferir la identidad",
       "button": "Transferir identidad",
@@ -1705,7 +1705,7 @@
       "button": "Quitar"
     },
     "errors": {
-      "invalidCategory": "Eso no es una categoría de token. Una categoría son 64 caracteres hexadecimales.",
+      "invalidCategory": "Eso no es una categoría de token. La encuentras en la información del token en la pestaña Tokens, o en TokenExplorer.",
       "alreadyListed": "Esa identidad ya está en la lista."
     },
     "emptySteps": {
