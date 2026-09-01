@@ -1580,7 +1580,17 @@
       "addingButton": "Ajout...",
       "hint": "Cashonize cherche où se trouve l'AuthHead de cette catégorie et l'affiche ici. Pour un jeton détenu par ce portefeuille, la vérification ci-dessous le trouve aussi.",
       "categoryHelp": "Une catégorie de jeton est l'identifiant de 64 caractères d'un jeton, le même que celui de sa transaction de genèse.",
-      "categoryHelpWhere": "Vous le trouverez dans les infos du jeton sous l'onglet Jetons, ou sur tokenexplorer.cash."
+      "categoryHelpWhere": "Vous le trouverez dans les infos du jeton sous l'onglet Jetons, ou sur tokenexplorer.cash.",
+      "categoryHelpKey": "La catégorie d'une clé d'identité fonctionne aussi ici : le portefeuille dérive ce qu'elle garde et suit ces identités.",
+      "found": {
+        "title": "Ajouter ce qui a été trouvé ?",
+        "identity": "Une identité de jeton avec cette catégorie.",
+        "key": "Une clé d'identité gardant {count} identité. | Une clé d'identité gardant {count} identités.",
+        "button": "Ajouter"
+      },
+      "errors": {
+        "nothingFound": "Rien trouvé pour cette catégorie : ni identité de jeton, ni clé d'identité gardant quoi que ce soit."
+      }
     },
     "scan": {
       "prompt": "Cashonize peut vérifier si les jetons de ce portefeuille y ont leur AuthHead. {link}",

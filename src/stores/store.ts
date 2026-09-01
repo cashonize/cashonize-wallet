@@ -97,6 +97,9 @@ import {
   saveIdentityCategory,
   deleteIdentityCategory,
   removeIdentityCategories,
+  loadAuthKeyCategories,
+  saveAuthKeyCategory,
+  deleteAuthKeyCategory,
   resolveIdentities,
   checkPublicationUri,
   identityKeyCoin,
@@ -110,6 +113,7 @@ import {
   guardContentsFromUtxos,
   isAuthKeyCandidate,
 } from "src/utils/tools/authGuard"
+import { queryAuthHeadWithOutputs } from "src/queryChainGraph"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -185,6 +189,8 @@ export const useStore = defineStore('store', () => {
   // now. Only the categories persist, the resolved state is rebuilt from Chaingraph every time
   // (see utils/tools/authchainIdentity.ts).
   const identityCategories = ref([] as string[]);
+  // AuthKey categories this wallet watches without holding the key
+  const watchedAuthKeys = ref([] as string[]);
   const identities = ref(undefined as (IdentityState[] | undefined));
   // What each listed identity's published registry locations actually serve, keyed by category.
   // Kept beside the identities rather than on them: resolution reads the chain, this reads the
@@ -436,6 +442,7 @@ export const useStore = defineStore('store', () => {
     reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
     utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
     identityCategories.value = loadIdentityCategories(newNetwork, newWallet.name);
+    watchedAuthKeys.value = loadAuthKeyCategories(newNetwork, newWallet.name);
     identities.value = undefined;
     publicationChecks.value = {};
     guardedIdentities.value = {};
@@ -1381,13 +1388,20 @@ export const useStore = defineStore('store', () => {
   // ordinary NFTs. A key is confirmed by its covenant holding something, never by shape alone:
   // freezing an innocent NFT on a lucky commitment would be protection nobody asked for.
   async function resolveAuthKeys() {
-    const candidates = (walletUtxos.value ?? []).filter(
+    const heldCandidates = (walletUtxos.value ?? []).filter(
       utxo => isAuthKeyCandidate(utxo) && !settledNonKeys.includes(utxo.token!.category)
     );
+    // A watched key has no coin here; its guard is derived and listed the same way, and what it
+    // holds reads as watched rather than held.
+    const candidates: { category: string, keyUtxo?: Utxo }[] = [
+      ...heldCandidates.map(keyUtxo => ({ category: keyUtxo.token!.category, keyUtxo })),
+      ...watchedAuthKeys.value
+        .filter(category => !heldCandidates.some(utxo => utxo.token!.category === category))
+        .map(category => ({ category })),
+    ];
     const guarded: Record<string, GuardedIdentity> = {};
     const unidentified: Record<string, number> = {};
-    for (const keyUtxo of candidates) {
-      const category = keyUtxo.token!.category;
+    for (const { category, keyUtxo } of candidates) {
       const guardAddresses = authGuardAddresses(category, wallet.value.networkPrefix);
       // both hash lengths a covenant address can use, since deployments exist in both
       const guardUtxos = await Promise.all([
@@ -1401,7 +1415,8 @@ export const useStore = defineStore('store', () => {
       const found = contents.reduce((total, guard) =>
         total + guard.contents.identified.length + guard.contents.unidentified, 0);
       if (!found) {
-        settledNonKeys.push(category);
+        // only a held candidate is a guess worth settling; a watched one the user named stays
+        if (keyUtxo) settledNonKeys.push(category);
         continue;
       }
       unidentified[category] = contents.reduce((total, guard) => total + guard.contents.unidentified, 0);
@@ -1411,7 +1426,7 @@ export const useStore = defineStore('store', () => {
             category: output.category,
             authheadTxid: output.utxo.txid,
             identityOutput: output.utxo,
-            keyUtxo,
+            ...(keyUtxo ? { keyUtxo } : {}),
             guardAddress: guard.addresses.tokenAddress,
           };
         }
@@ -1558,6 +1573,32 @@ export const useStore = defineStore('store', () => {
     return identities.value?.filter(
       identity => identity.keyUtxo?.token?.category === keyCategory
     ) ?? [];
+  }
+
+  // A token category and an AuthKey category are both 64 hex, so the add input does not ask which
+  // one it was given: it tries both readings and reports what each found.
+  async function inspectCategory(category: string) {
+    const guardAddresses = authGuardAddresses(category, wallet.value.networkPrefix);
+    const [authchain, p2sh20Utxos, p2sh32Utxos] = await Promise.all([
+      queryAuthHeadWithOutputs(category, settingsStore.chaingraph).then(() => true).catch(() => false),
+      wallet.value.provider.getUtxos(guardAddresses.p2sh20.tokenAddress),
+      wallet.value.provider.getUtxos(guardAddresses.p2sh32.tokenAddress),
+    ]);
+    const contents = [guardContentsFromUtxos(p2sh20Utxos), guardContentsFromUtxos(p2sh32Utxos)];
+    return {
+      isTokenIdentity: authchain,
+      guardedCategories: contents.flatMap(guard => guard.identified.map(output => output.category)),
+      unidentifiedGuarded: contents.reduce((total, guard) => total + guard.unidentified, 0),
+    };
+  }
+
+  async function addAuthKey(category: string) {
+    watchedAuthKeys.value = saveAuthKeyCategory(network.value, wallet.value.name, category);
+    await refreshIdentities();
+  }
+
+  function removeAuthKey(category: string) {
+    watchedAuthKeys.value = deleteAuthKeyCategory(network.value, wallet.value.name, category);
   }
 
   async function addIdentity(category: string) {
@@ -1898,6 +1939,10 @@ export const useStore = defineStore('store', () => {
     identitiesResolving,
     unidentifiedGuarded,
     identitiesGuardedByKey,
+    watchedAuthKeys,
+    inspectCategory,
+    addAuthKey,
+    removeAuthKey,
     publicationChecks,
     publicationChecksRunning,
     checkPublications,

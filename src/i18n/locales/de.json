@@ -1580,7 +1580,17 @@
       "addingButton": "Wird hinzugefügt...",
       "hint": "Cashonize sucht, wo der AuthHead dieser Kategorie liegt, und listet ihn hier auf. Bei einem Token in diesem Wallet findet ihn auch die Prüfung unten.",
       "categoryHelp": "Eine Token-Kategorie ist die 64 Zeichen lange ID eines Tokens, dieselbe wie die seiner Genesis-Transaktion.",
-      "categoryHelpWhere": "Du findest sie in den Token-Infos im Tokens-Tab oder auf tokenexplorer.cash."
+      "categoryHelpWhere": "Du findest sie in den Token-Infos im Tokens-Tab oder auf tokenexplorer.cash.",
+      "categoryHelpKey": "Die Kategorie eines Identitätsschlüssels geht hier auch: das Wallet leitet ab, was er bewacht, und beobachtet diese Identitäten.",
+      "found": {
+        "title": "Das Gefundene hinzufügen?",
+        "identity": "Eine Token-Identität mit dieser Kategorie.",
+        "key": "Ein Identitätsschlüssel, der {count} Identität bewacht. | Ein Identitätsschlüssel, der {count} Identitäten bewacht.",
+        "button": "Hinzufügen"
+      },
+      "errors": {
+        "nothingFound": "Zu dieser Kategorie wurde nichts gefunden: keine Token-Identität und kein Identitätsschlüssel, der etwas bewacht."
+      }
     },
     "scan": {
       "prompt": "Cashonize kann die Tokens in diesem Wallet auf AuthHead-Besitz prüfen. {link}",

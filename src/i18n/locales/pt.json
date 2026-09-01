@@ -1580,7 +1580,17 @@
       "addingButton": "Adicionando...",
       "hint": "O Cashonize procura onde está o AuthHead dessa categoria e o lista aqui. Para um token desta carteira, a verificação abaixo também o encontra.",
       "categoryHelp": "Uma categoria de token é o id de 64 caracteres de um token, o mesmo da transação de gênese dele.",
-      "categoryHelpWhere": "Você o encontra nas informações do token na aba Tokens, ou em tokenexplorer.cash."
+      "categoryHelpWhere": "Você o encontra nas informações do token na aba Tokens, ou em tokenexplorer.cash.",
+      "categoryHelpKey": "A categoria de uma chave de identidade também funciona aqui: a carteira deriva o que ela guarda e acompanha essas identidades.",
+      "found": {
+        "title": "Adicionar o que foi encontrado?",
+        "identity": "Uma identidade de token com esta categoria.",
+        "key": "Uma chave de identidade guardando {count} identidade. | Uma chave de identidade guardando {count} identidades.",
+        "button": "Adicionar"
+      },
+      "errors": {
+        "nothingFound": "Nada encontrado para essa categoria: nem identidade de token, nem chave de identidade guardando algo."
+      }
     },
     "scan": {
       "prompt": "O Cashonize pode verificar se os tokens desta carteira têm o AuthHead aqui. {link}",

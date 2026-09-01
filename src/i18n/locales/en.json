@@ -1580,7 +1580,17 @@
       "addingButton": "Adding...",
       "hint": "Cashonize looks up where that category's AuthHead is and lists it here. For a token this wallet holds, the check below finds it too.",
       "categoryHelp": "A token category is the 64 character id of a token, the same one its genesis transaction has.",
-      "categoryHelpWhere": "Find it on the token's info in the Tokens tab, or on tokenexplorer.cash."
+      "categoryHelpWhere": "Find it on the token's info in the Tokens tab, or on tokenexplorer.cash.",
+      "categoryHelpKey": "An identity key's category works here too: the wallet derives what it guards and watches those identities.",
+      "found": {
+        "title": "Add what was found?",
+        "identity": "A token identity with this category.",
+        "key": "An identity key guarding {count} identity. | An identity key guarding {count} identities.",
+        "button": "Add"
+      },
+      "errors": {
+        "nothingFound": "Nothing found for that category: no token identity, and no identity key guarding anything."
+      }
     },
     "scan": {
       "prompt": "Cashonize can check the tokens in this wallet for authhead ownership. {link}",

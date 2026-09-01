@@ -52,7 +52,7 @@ export interface GuardedIdentity {
   category: string;
   authheadTxid: string; // the txid of the identity output sitting in the guard
   identityOutput: Utxo; // that output, which carries the identity's reserve if it has one
-  keyUtxo: Utxo;
+  keyUtxo?: Utxo; // absent when the key is watched rather than held, which makes it a watched identity
   guardAddress: string;
 }
 
@@ -316,10 +316,42 @@ export function deleteIdentityCategory(network: Network, walletName: string, cat
   return categories;
 }
 
+// The AuthKey categories this wallet watches: keys it does not hold, whose guards it follows
+// anyway. Held keys need no list, the wallet's own coins are where they are found. Only the
+// categories are stored; what a guard holds is derived on every visit, never restored.
+function authKeysKey(network: Network, walletName: string): string {
+  return `authKeys-${network}-${walletName}`;
+}
+
+export function loadAuthKeyCategories(network: Network, walletName: string): string[] {
+  const readCategories = localStorage.getItem(authKeysKey(network, walletName));
+  if (!readCategories) return [];
+  try {
+    return JSON.parse(readCategories) as string[];
+  } catch {
+    return [];
+  }
+}
+
+// Same fresh read-modify-write as the identity categories beside it.
+export function saveAuthKeyCategory(network: Network, walletName: string, category: string): string[] {
+  const categories = loadAuthKeyCategories(network, walletName);
+  if (!categories.includes(category)) categories.push(category);
+  localStorage.setItem(authKeysKey(network, walletName), JSON.stringify(categories));
+  return categories;
+}
+
+export function deleteAuthKeyCategory(network: Network, walletName: string, category: string): string[] {
+  const categories = loadAuthKeyCategories(network, walletName).filter(listed => listed !== category);
+  localStorage.setItem(authKeysKey(network, walletName), JSON.stringify(categories));
+  return categories;
+}
+
 // A future wallet created under the same name must not inherit the old wallet's identities
 export function removeIdentityCategories(walletName: string) {
   for (const network of ['mainnet', 'chipnet'] as const) {
     localStorage.removeItem(identitiesKey(network, walletName));
+    localStorage.removeItem(authKeysKey(network, walletName));
   }
 }
 
@@ -358,7 +390,10 @@ export async function resolveIdentities(
     const guardedIdentity = guarded[category];
     if (guardedIdentity?.authheadTxid === authheadTxid) {
       const { keyUtxo, guardAddress, identityOutput } = guardedIdentity;
-      return { ...resolved, keyUtxo, guardedOutput: identityOutput, guardAddress, status: 'heldViaKey' };
+      const guarded = { ...resolved, guardedOutput: identityOutput, guardAddress };
+      // without the key this is somebody else's identity, watched from here like any other
+      if (!keyUtxo) return { ...guarded, status: 'notHeld' };
+      return { ...guarded, keyUtxo, status: 'heldViaKey' };
     }
     return { ...resolved, status: 'notHeld' };
   });

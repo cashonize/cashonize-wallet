@@ -1580,7 +1580,17 @@
       "addingButton": "Añadiendo...",
       "hint": "Cashonize busca dónde está el AuthHead de esa categoría y lo muestra aquí. Para un token que tiene esta billetera, la comprobación de abajo también lo encuentra.",
       "categoryHelp": "Una categoría de token es el id de 64 caracteres de un token, el mismo que tiene su transacción de génesis.",
-      "categoryHelpWhere": "Lo encuentras en la info del token en la pestaña Tokens, o en tokenexplorer.cash."
+      "categoryHelpWhere": "Lo encuentras en la info del token en la pestaña Tokens, o en tokenexplorer.cash.",
+      "categoryHelpKey": "La categoría de una clave de identidad también sirve aquí: la billetera deriva lo que guarda y observa esas identidades.",
+      "found": {
+        "title": "¿Añadir lo encontrado?",
+        "identity": "Una identidad de token con esta categoría.",
+        "key": "Una clave de identidad que guarda {count} identidad. | Una clave de identidad que guarda {count} identidades.",
+        "button": "Añadir"
+      },
+      "errors": {
+        "nothingFound": "No se encontró nada para esa categoría: ni identidad de token, ni clave de identidad que guarde algo."
+      }
     },
     "scan": {
       "prompt": "Cashonize puede comprobar si los tokens de esta billetera tienen su AuthHead aquí. {link}",

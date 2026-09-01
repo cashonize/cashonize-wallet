@@ -32,6 +32,7 @@
   } from 'src/utils/tools/authchainIdentity'
   import { TokenSendRequest } from 'mainnet-js'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
+  import { authGuardAddresses } from 'src/utils/tools/authGuard'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -169,7 +170,24 @@
     }
     isAdding.value = true;
     try {
-      await store.addIdentity(category);
+      // A token category and an AuthKey category look alike, so both readings are tried and what
+      // was found is put to the user rather than asked about beforehand.
+      const found = await store.inspectCategory(category);
+      const guardedCount = found.guardedCategories.length + found.unidentifiedGuarded;
+      if (!found.isTokenIdentity && !guardedCount) {
+        throw new Error(t('identities.add.errors.nothingFound'));
+      }
+      const summary = [];
+      if (found.isTokenIdentity) summary.push(t('identities.add.found.identity'));
+      if (guardedCount) summary.push(t('identities.add.found.key', guardedCount));
+      const confirmed = await confirmDialog(
+        t('identities.add.found.title'),
+        summary.join('\n'),
+        t('identities.add.found.button')
+      );
+      if (!confirmed) return;
+      if (guardedCount) await store.addAuthKey(category);
+      if (found.isTokenIdentity) await store.addIdentity(category);
       await fetchMissingMetadata();
       categoryInput.value = "";
     } catch (error) {
@@ -449,6 +467,11 @@
     }
   }
 
+  // Which watched key guards this identity, told by deriving the key's covenant and comparing
+  const guardsIdentity = (keyCategory: string, identity: IdentityState) =>
+    identity.guardAddress === authGuardAddresses(keyCategory, store.wallet.networkPrefix).p2sh20.tokenAddress
+    || identity.guardAddress === authGuardAddresses(keyCategory, store.wallet.networkPrefix).p2sh32.tokenAddress;
+
   async function removeIdentity(identity: IdentityState) {
     const confirmed = await confirmDialog(
       t('identities.remove.title'),
@@ -458,6 +481,11 @@
     if (!confirmed) return;
     try {
       await store.removeIdentity(identity.category);
+      // a watched key is what put its guarded identities on the list, so it goes with them
+      const watchedKey = identity.guardAddress && !identity.keyUtxo
+        ? store.watchedAuthKeys.find(category => guardsIdentity(category, identity))
+        : undefined;
+      if (watchedKey) store.removeAuthKey(watchedKey);
     } catch (error) {
       displayAndLogError(error);
     }
@@ -524,6 +552,7 @@
         <InfoPopup>
           <div style="max-width: 300px;">{{ t('identities.add.categoryHelp') }}</div>
           <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpWhere') }}</div>
+          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpKey') }}</div>
         </InfoPopup>
       </div>
       <div class="add-identity">

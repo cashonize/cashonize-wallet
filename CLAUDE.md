@@ -109,6 +109,8 @@ A BCMR identity is an authchain: the lineage of output 0 starting at the authbas
 
 The wallet's role is custody, verification and publishing the pointer: holding authheads back from coin selection, fetching what the published locations serve and hashing it against the chain, and building the publication and reserve transactions (all one shape, the old authhead in and the new one at output 0). Authoring and hosting stay external (`utils/tools/authchainIdentity.ts`).
 
+An identity can instead keep its authhead in an AuthGuard covenant, with the authority to spend it tokenized as an "AuthKey" NFT. The covenant address follows from the key's category, so the wallet derives it and lists it rather than being told (`utils/tools/authGuard.ts`), and protects the key the way it protects an authhead. The covenant's own spends belong to the tools that build them.
+
 ### Cauldron DEX
 Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one per network). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
 
