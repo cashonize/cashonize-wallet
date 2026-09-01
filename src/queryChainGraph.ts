@@ -185,7 +185,13 @@ export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:str
 // publication; the alternative, fetching every output and filtering here, would carry far more.
 const bcmrPrefixRange = { from: "6a0442434d52", to: "6a0442434d53" };
 
-const spentOutputsQuery = graphql(`query WalletSpentOutputs($lockingBytecodes: _text!, $limit: Int!, $offset: Int!, $bcmrFrom: bytea!, $bcmrTo: bytea!) {
+const spentOutputsQuery = graphql(`query WalletSpentOutputs(
+    $lockingBytecodes: _text!
+    $limit: Int!
+    $offset: Int!
+    $bcmrFrom: bytea!
+    $bcmrTo: bytea!
+  ) {
     search_output(
       args: { locking_bytecode_hex: $lockingBytecodes }
       where: { spent_by: {} }
@@ -222,12 +228,9 @@ export type ChaingraphSpentOutput = ResultOf<typeof spentOutputsQuery>['search_o
 // truncating silently, so paged queries fetch until a page comes back short
 const CHAINGRAPH_PAGE_SIZE = 1000;
 
-// The spent outputs at the given pkhs' addresses, each with the spending transaction's outputs
-// and whether those are spent themselves. Three readings share this one walk: TapSwap and hodl
-// announcements sit at outputs 1 and 0 (utils/defi/tapswapListings.ts, utils/defi/hodlContracts.ts),
-// and a metadata publication or token genesis these keys made is read off the same transactions
-// (utils/tools/identityDetection.ts). Outputs are fetched by position for the first two and by
-// the publication prefix for the third, so widening the reading costs no extra query.
+// The spent outputs at the given pkhs' addresses, with the transactions that spent them. One walk
+// feeds three readings: TapSwap and hodl announcements sit at outputs 1 and 0, and the metadata
+// publications and token genesises these keys made are found by the publication prefix.
 export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: string) {
   if (!ownerPkhs.length) return [];
   // search_output takes its locking bytecodes as a postgres text-array literal
