@@ -72,6 +72,70 @@ export async function queryBlockHeight(chaingraphUrl: string) {
   return Number(height);
 }
 
+// One identity's whole authchain, with the outputs of every link. Asked for only when a card's
+// history is opened: it is the one query here that grows with a chain's length.
+export interface AuthchainLink {
+  hash: string;
+  timestamp?: number;
+  outputs: {
+    output_index: string;
+    locking_bytecode: string;
+    token_category: string | null;
+    fungible_token_amount: string | null;
+  }[];
+}
+
+interface AuthchainLinksResponse {
+  data: {
+    transaction: {
+      authchains: {
+        migrations: {
+          transaction: {
+            hash: string;
+            block_inclusions: { block: { timestamp: string } }[];
+            outputs: AuthchainLink['outputs'];
+          }[];
+        }[];
+      }[];
+    }[];
+  };
+}
+
+export async function queryAuthchainLinks(tokenId: string, chaingraphUrl: string): Promise<AuthchainLink[]> {
+  const queryLinks = `query AuthchainLinks($hash: bytea!) {
+    transaction(where: { hash: { _eq: $hash } }) {
+      authchains {
+        migrations {
+          transaction {
+            hash
+            block_inclusions { block { timestamp } }
+            outputs {
+              output_index
+              locking_bytecode
+              token_category
+              fungible_token_amount
+            }
+          }
+        }
+      }
+    }
+  }`;
+  const response = await queryChainGraph(queryLinks, chaingraphUrl, {
+    hash: `\\x${tokenId}`,
+  }) as AuthchainLinksResponse;
+  const authchain = response.data.transaction[0]?.authchains[0];
+  if (!authchain) throw new Error(t('chaingraph.errors.authchainNotFound'));
+  // migrations come back oldest first, from the authbase to the authhead
+  return authchain.migrations.flatMap(migration => migration.transaction.map(transaction => {
+    const timestamp = transaction.block_inclusions?.[0]?.block?.timestamp;
+    return {
+      hash: byteaToHex(transaction.hash),
+      ...(timestamp ? { timestamp: Number(timestamp) } : {}),
+      outputs: transaction.outputs,
+    };
+  }));
+}
+
 // Bigint values arrive as decimal strings and bytea values as hex strings, as everywhere here
 interface AuthHeadResponse {
   data: {

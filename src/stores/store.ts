@@ -112,10 +112,12 @@ import {
   loadUnnameableAuthheads,
   saveUnnameableAuthhead,
   resolveIdentities,
+  describeChainLinks,
   checkPublicationUri,
   identityKeyCoin,
   type IdentityState,
   type IdentityScanSummary,
+  type DescribedLink,
   type GuardedIdentity,
   type PublicationUriCheck
 } from "src/utils/tools/authchainIdentity"
@@ -124,7 +126,7 @@ import {
   guardContentsFromUtxos,
   isAuthKeyCandidate,
 } from "src/utils/tools/authGuard"
-import { queryAuthHeadWithOutputs } from "src/queryChainGraph"
+import { queryAuthHeadWithOutputs, queryAuthchainLinks } from "src/queryChainGraph"
 import { detectIdentities, nameChainByWalkingBack, publicationTxids } from "src/utils/tools/identityDetection"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -476,6 +478,7 @@ export const useStore = defineStore('store', () => {
     unnameableAuthheads.value = loadUnnameableAuthheads(newNetwork, newWallet.name);
     identities.value = undefined;
     publicationChecks.value = {};
+    identityHistories.value = {};
     guardedIdentities.value = {};
     unidentifiedGuarded.value = {};
     settledNonKeys = [];
@@ -1530,6 +1533,20 @@ export const useStore = defineStore('store', () => {
     return named;
   }
 
+  // An identity's own history, which is the chain itself: what each link did, and the reserve
+  // read down the list, which is the issuance schedule. One query, and only when a card asks for
+  // it: this is the one identity query that grows with a chain's length.
+  const identityHistories = ref({} as Record<string, DescribedLink[]>);
+
+  async function fetchIdentityHistory(category: string) {
+    if (identityHistories.value[category]) return;
+    const links = await queryAuthchainLinks(category, settingsStore.chaingraph);
+    identityHistories.value = {
+      ...identityHistories.value,
+      [category]: describeChainLinks(links),
+    };
+  }
+
   // The page has been opened, so what it found on its own is no longer news
   function markIdentitiesSeen() {
     const unseen = unseenIdentities.value;
@@ -2138,6 +2155,8 @@ export const useStore = defineStore('store', () => {
     unnamedAuthheads,
     unnameableAuthheads,
     identityPublicationTxids,
+    identityHistories,
+    fetchIdentityHistory,
     unnamedAuthheadCoins,
     removeUnnamedAuthhead,
     nameUnnamedAuthheads,

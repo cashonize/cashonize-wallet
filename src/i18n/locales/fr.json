@@ -1553,6 +1553,24 @@
         "unreachable": "Cet emplacement n'a pas répondu. Les détenteurs qui y cherchent les métadonnées ne voient rien : vérifiez si l'hébergement ou le pin IPFS a expiré."
       }
     },
+    "history": {
+      "title": "Historique de cette identité",
+      "show": "voir l'historique",
+      "hide": "masquer l'historique",
+      "loading": "Lecture de l'authchain...",
+      "madeHere": "fait par ce portefeuille",
+      "reserveUp": "{amount} vers la réserve",
+      "reserveDown": "{amount} hors de la réserve",
+      "kind": {
+        "genesis": "Créée",
+        "publication": "Métadonnées publiées",
+        "issue": "Émis depuis la réserve",
+        "addToReserve": "Ajouté à la réserve",
+        "emptyReserve": "Réserve vidée",
+        "transfer": "Transférée",
+        "operation": "Mise à jour"
+      }
+    },
     "publish": {
       "action": "publier une mise à jour",
       "locationsHint": "Un domaine, une URL HTTPS complète ou un CID IPFS. Tous les emplacements doivent servir le même fichier.",

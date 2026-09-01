@@ -1553,6 +1553,24 @@
         "unreachable": "Esta ubicación no respondió. Los holders que busquen los metadatos aquí no ven nada, así que comprueba si caducó el alojamiento o el pin de IPFS."
       }
     },
+    "history": {
+      "title": "Historial de esta identidad",
+      "show": "ver historial",
+      "hide": "ocultar historial",
+      "loading": "Leyendo la authchain...",
+      "madeHere": "hecho por esta billetera",
+      "reserveUp": "{amount} a la reserva",
+      "reserveDown": "{amount} fuera de la reserva",
+      "kind": {
+        "genesis": "Creada",
+        "publication": "Metadatos publicados",
+        "issue": "Emitido de la reserva",
+        "addToReserve": "Añadido a la reserva",
+        "emptyReserve": "Reserva vaciada",
+        "transfer": "Transferida",
+        "operation": "Actualizada"
+      }
+    },
     "publish": {
       "action": "publicar actualización",
       "locationsHint": "Un dominio, una URL HTTPS completa o un CID de IPFS. Todas las ubicaciones deben servir el mismo archivo.",

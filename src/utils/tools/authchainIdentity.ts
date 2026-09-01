@@ -8,7 +8,7 @@
 import type { Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest } from "mainnet-js";
 import { binToHex, binToUtf8, hexToBin, sha256, utf8ToBin } from "@bitauth/libauth";
-import { queryAuthHeadWithOutputs } from "src/queryChainGraph";
+import { queryAuthHeadWithOutputs, type AuthchainLink } from "src/queryChainGraph";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
@@ -484,6 +484,63 @@ export function removeIdentityCategories(walletName: string) {
 
 export function isTokenCategory(category: string): boolean {
   return /^[0-9a-f]{64}$/i.test(category);
+}
+
+// What one link of an authchain did, read off its outputs. The chain is the identity's whole
+// history, and the explorer shows it raw; what the wallet can add is what each step meant, which
+// its outputs say: a link carrying a BCMR output published metadata, and the reserve riding on the
+// identity output before and after says whether supply was issued, added back, or moved off.
+export type ChainLinkKind =
+  | 'genesis'
+  | 'publication'
+  | 'issue'
+  | 'addToReserve'
+  | 'emptyReserve'
+  | 'transfer'
+  | 'operation';
+
+export interface DescribedLink {
+  hash: string;
+  timestamp?: number;
+  kind: ChainLinkKind;
+  reserve: bigint; // what the identity output carries after this link
+  reserveDelta: bigint; // and how that changed, which is the issuance schedule read down the list
+  publication?: MetadataPublication;
+}
+
+const identityOutputOf = (link: AuthchainLink) =>
+  link.outputs.find(output => output.output_index === "0");
+
+export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
+  let previousReserve = 0n;
+  let previousLock: string | undefined;
+  return links.map((link, index) => {
+    const identityOutput = identityOutputOf(link);
+    const reserve = BigInt(identityOutput?.fungible_token_amount ?? 0);
+    const reserveDelta = reserve - previousReserve;
+    const publication = findPublication(
+      link.outputs.map(output => output.locking_bytecode.replace(/^\\x/, ""))
+    );
+    const movedAddress = previousLock !== undefined && identityOutput?.locking_bytecode !== previousLock;
+
+    let kind: ChainLinkKind = 'operation';
+    if (index === 0) kind = 'genesis';
+    else if (publication) kind = 'publication';
+    else if (reserveDelta < 0n) kind = reserve === 0n ? 'emptyReserve' : 'issue';
+    else if (reserveDelta > 0n) kind = 'addToReserve';
+    else if (movedAddress) kind = 'transfer';
+
+    previousReserve = reserve;
+    previousLock = identityOutput?.locking_bytecode;
+    return {
+      hash: link.hash,
+      ...(link.timestamp ? { timestamp: link.timestamp } : {}),
+      kind,
+      reserve,
+      reserveDelta,
+      ...(publication ? { publication } : {}),
+    };
+  });
 }
 
 // Resolves where each category's authhead sits now and whether this wallet holds it. Queries run

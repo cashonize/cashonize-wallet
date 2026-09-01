@@ -49,6 +49,9 @@
   const destinationInputs = ref<Record<string, string>>({});
   const transferringCategory = ref<string | undefined>(undefined);
   const keyDestination = ref("");
+  // Which cards have their history open, and which is being fetched
+  const openHistories = ref<string[]>([]);
+  const loadingHistory = ref<string | undefined>(undefined);
 
   // One form open at a time across the whole list: these are deliberate, one-at-a-time operations,
   // and a card with four open forms says otherwise
@@ -493,6 +496,36 @@
     }
   }
 
+  // The chain is the identity's whole history. The explorer shows it raw; this says what each
+  // step did, and which of them were made from this wallet.
+  async function toggleHistory(identity: IdentityState) {
+    if (openHistories.value.includes(identity.category)) {
+      openHistories.value = openHistories.value.filter(open => open !== identity.category);
+      return;
+    }
+    openHistories.value = [...openHistories.value, identity.category];
+    if (store.identityHistories[identity.category]) return;
+    loadingHistory.value = identity.category;
+    try {
+      await store.fetchIdentityHistory(identity.category);
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      loadingHistory.value = undefined;
+    }
+  }
+
+  // Told by the wallet's own history: the links made here, and the ones made elsewhere with the
+  // same keys, which is the half an explorer cannot show
+  const madeByThisWallet = (hash: string) =>
+    (store.walletHistory ?? []).some(transaction => transaction.hash === hash);
+
+  const linkAmount = (identity: IdentityState, amount: bigint) =>
+    formatTokenAmountFromBigInt(amount < 0n ? -amount : amount, tokenDecimals(identity.category));
+
+  const linkDate = (timestamp?: number) =>
+    timestamp ? new Date(timestamp * 1000).toLocaleDateString() : undefined;
+
   async function removeIdentity(identity: IdentityState) {
     const confirmed = await confirmDialog(
       t('identities.remove.title'),
@@ -934,11 +967,40 @@
           </div>
         </div>
 
+        <div v-if="openHistories.includes(identity.category)" class="section">
+          <div>{{ t('identities.history.title') }}</div>
+          <div v-if="loadingHistory === identity.category" class="description">{{ t('identities.history.loading') }}</div>
+          <div
+            v-for="link in store.identityHistories[identity.category] ?? []"
+            :key="link.hash"
+            class="chain-link"
+          >
+            <span>{{ t('identities.history.kind.' + link.kind) }}</span>
+            <span v-if="link.reserveDelta" class="description">
+              {{ link.reserveDelta > 0n
+                ? t('identities.history.reserveUp', { amount: linkAmount(identity, link.reserveDelta) })
+                : t('identities.history.reserveDown', { amount: linkAmount(identity, link.reserveDelta) }) }}
+            </span>
+            <span v-if="linkDate(link.timestamp)" class="description">{{ linkDate(link.timestamp) }}</span>
+            <span v-if="madeByThisWallet(link.hash)" class="made-here">{{ t('identities.history.madeHere') }}</span>
+            <a
+              :href="`${store.explorerUrl}/${link.hash}`"
+              target="_blank"
+              class="mono description"
+            >{{ link.hash.slice(0, 10) }}</a>
+          </div>
+        </div>
+
         <div class="identity-links">
           <a :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
             {{ t('identities.viewOnExplorer') }}
             <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;">
           </a>
+          <span class="action-link" @click="toggleHistory(identity)">{{
+            openHistories.includes(identity.category)
+              ? t('identities.history.hide')
+              : t('identities.history.show')
+          }}</span>
           <span class="remove-identity" @click="removeIdentity(identity)">{{ t('identities.remove.button') }}</span>
         </div>
       </div>
@@ -1046,6 +1108,19 @@
 .remove-identity {
   cursor: pointer;
   color: grey;
+}
+/* one line a link, wrapping on a narrow screen the way the rest of the card does */
+.chain-link {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+/* the annotation an explorer cannot make: these keys signed this one */
+.made-here {
+  color: var(--color-primary);
+  font-size: 0.85em;
 }
 .identity-actions {
   display: flex;

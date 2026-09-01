@@ -1553,6 +1553,24 @@
         "unreachable": "Este local não respondeu. Holders que buscam os metadados por ele não veem nada, então verifique se a hospedagem ou o pin de IPFS expirou."
       }
     },
+    "history": {
+      "title": "Histórico desta identidade",
+      "show": "ver histórico",
+      "hide": "ocultar histórico",
+      "loading": "Lendo a authchain...",
+      "madeHere": "feito por esta carteira",
+      "reserveUp": "{amount} para a reserva",
+      "reserveDown": "{amount} fora da reserva",
+      "kind": {
+        "genesis": "Criada",
+        "publication": "Metadados publicados",
+        "issue": "Emitido da reserva",
+        "addToReserve": "Adicionado à reserva",
+        "emptyReserve": "Reserva esvaziada",
+        "transfer": "Transferida",
+        "operation": "Atualizada"
+      }
+    },
     "publish": {
       "action": "publicar atualização",
       "locationsHint": "Um domínio, uma URL HTTPS completa ou um CID de IPFS. Todos os locais devem servir o mesmo arquivo.",

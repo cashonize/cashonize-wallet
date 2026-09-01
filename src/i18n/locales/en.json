@@ -1553,6 +1553,24 @@
         "unreachable": "This location did not answer. Holders fetching the metadata from it see nothing, so check whether the hosting or the IPFS pin has lapsed."
       }
     },
+    "history": {
+      "title": "This identity's history",
+      "show": "show history",
+      "hide": "hide history",
+      "loading": "Reading the authchain...",
+      "madeHere": "made by this wallet",
+      "reserveUp": "{amount} into the reserve",
+      "reserveDown": "{amount} out of the reserve",
+      "kind": {
+        "genesis": "Created",
+        "publication": "Metadata published",
+        "issue": "Issued from reserve",
+        "addToReserve": "Added to reserve",
+        "emptyReserve": "Reserve emptied",
+        "transfer": "Transferred",
+        "operation": "Updated"
+      }
+    },
     "publish": {
       "action": "publish update",
       "locationsHint": "A domain, a full HTTPS URL, or an IPFS CID. Every location must serve the same file.",

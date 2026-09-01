@@ -1553,6 +1553,24 @@
         "unreachable": "Dieser Ort hat nicht geantwortet. Holder, die die Metadaten dort holen, sehen nichts, prüfe also, ob Hosting oder IPFS-Pin abgelaufen ist."
       }
     },
+    "history": {
+      "title": "Historie dieser Identität",
+      "show": "Historie zeigen",
+      "hide": "Historie ausblenden",
+      "loading": "Authchain wird gelesen...",
+      "madeHere": "von diesem Wallet gemacht",
+      "reserveUp": "{amount} in die Reserve",
+      "reserveDown": "{amount} aus der Reserve",
+      "kind": {
+        "genesis": "Erstellt",
+        "publication": "Metadaten veröffentlicht",
+        "issue": "Aus der Reserve ausgegeben",
+        "addToReserve": "Zur Reserve hinzugefügt",
+        "emptyReserve": "Reserve geleert",
+        "transfer": "Übertragen",
+        "operation": "Aktualisiert"
+      }
+    },
     "publish": {
       "action": "Update veröffentlichen",
       "locationsHint": "Eine Domain, eine vollständige HTTPS-URL oder eine IPFS-CID. Alle Orte müssen dieselbe Datei ausliefern.",
