@@ -107,7 +107,7 @@ BCMR identities can declare `extensions` — named plugins that modify a UTXO be
 ### Authchain Identities
 A BCMR identity is an authchain: the lineage of output 0 starting at the authbase, whose latest transaction is the authhead. The authhead is a UTXO, so holding it is holding the identity, and moving it is the whole of transfer and key rotation. Metadata binds to the identity through `BCMR` publication outputs on that chain, each committing to a hash of a registry file hosted off-chain.
 
-The wallet's role is custody, verification and publishing the pointer: holding authheads back from coin selection, fetching what the published locations serve and hashing it against the chain, and building the publication and reserve transactions (all one shape, the old authhead in and the new one at output 0). Authoring and hosting stay external (`utils/tools/authchainIdentity.ts`).
+The wallet's role is creation, custody, verification and publishing the pointer: making the identity (a token genesis, or a single self-send for one that is not a token), holding authheads back from coin selection, fetching what the published locations serve and hashing it against the chain, and building the publication and reserve transactions (all one shape, the old authhead in and the new one at output 0). Authoring and hosting stay external (`utils/tools/authchainIdentity.ts`).
 
 An identity can instead keep its authhead in an AuthGuard covenant, with the authority to spend it tokenized as an "AuthKey" NFT. The covenant address follows from the key's category, so the wallet derives it and lists it rather than being told (`utils/tools/authGuard.ts`), and protects the key the way it protects an authhead. The covenant's own spends belong to the tools that build them.
 
