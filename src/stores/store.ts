@@ -99,10 +99,17 @@ import {
   removeIdentityCategories,
   resolveIdentities,
   checkPublicationUri,
+  identityKeyCoin,
   type IdentityState,
   type IdentityScanSummary,
+  type GuardedIdentity,
   type PublicationUriCheck
 } from "src/utils/tools/authchainIdentity"
+import {
+  authGuardAddresses,
+  guardContentsFromUtxos,
+  isAuthKeyCandidate,
+} from "src/utils/tools/authGuard"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -184,6 +191,16 @@ export const useStore = defineStore('store', () => {
   // hosting, and one can be present without the other.
   const publicationChecks = ref({} as Record<string, PublicationUriCheck[]>);
   const publicationChecksRunning = ref(false);
+  // Identity outputs a covenant holds for this wallet, keyed by category, rebuilt on every resolve
+  // like everything else about an authhead. Never stored: a key's guard is derived from it.
+  const guardedIdentities = ref({} as Record<string, GuardedIdentity>);
+  // Guarded outputs found but not nameable without a lookup this version does not have, per key
+  // category, so a key that guards only those does not read as guarding nothing.
+  const unidentifiedGuarded = ref({} as Record<string, number>);
+  // Candidates whose covenant turned out to hold nothing, so they are ordinary NFTs after all.
+  // Session-local on purpose: a stored answer would be a stored derivation, and asking again after
+  // a restart costs one listing.
+  let settledNonKeys: string[] = [];
   // One resolve at a time: a pass writes the identities list and the 'auth' reservations derived
   // from it whole, so two overlapping passes would undo each other's result
   const identitiesResolving = ref(false);
@@ -421,6 +438,9 @@ export const useStore = defineStore('store', () => {
     identityCategories.value = loadIdentityCategories(newNetwork, newWallet.name);
     identities.value = undefined;
     publicationChecks.value = {};
+    guardedIdentities.value = {};
+    unidentifiedGuarded.value = {};
+    settledNonKeys = [];
   }
 
   function setTxNote(txid: string, note: string) {
@@ -1356,6 +1376,52 @@ export const useStore = defineStore('store', () => {
     plannedTokenId.value = preGenesisUtxo?.txid ?? undefined;
   }
 
+  // What the AuthKeys this wallet holds are guarding. The fingerprint is local and free, the guard
+  // listing is not, so it runs only where resolution runs and skips candidates already settled as
+  // ordinary NFTs. A key is confirmed by its covenant holding something, never by shape alone:
+  // freezing an innocent NFT on a lucky commitment would be protection nobody asked for.
+  async function resolveAuthKeys() {
+    const candidates = (walletUtxos.value ?? []).filter(
+      utxo => isAuthKeyCandidate(utxo) && !settledNonKeys.includes(utxo.token!.category)
+    );
+    const guarded: Record<string, GuardedIdentity> = {};
+    const unidentified: Record<string, number> = {};
+    for (const keyUtxo of candidates) {
+      const category = keyUtxo.token!.category;
+      const guardAddresses = authGuardAddresses(category, wallet.value.networkPrefix);
+      // both hash lengths a covenant address can use, since deployments exist in both
+      const guardUtxos = await Promise.all([
+        wallet.value.provider.getUtxos(guardAddresses.p2sh20.tokenAddress),
+        wallet.value.provider.getUtxos(guardAddresses.p2sh32.tokenAddress),
+      ]);
+      const contents = [
+        { addresses: guardAddresses.p2sh20, contents: guardContentsFromUtxos(guardUtxos[0]) },
+        { addresses: guardAddresses.p2sh32, contents: guardContentsFromUtxos(guardUtxos[1]) },
+      ];
+      const found = contents.reduce((total, guard) =>
+        total + guard.contents.identified.length + guard.contents.unidentified, 0);
+      if (!found) {
+        settledNonKeys.push(category);
+        continue;
+      }
+      unidentified[category] = contents.reduce((total, guard) => total + guard.contents.unidentified, 0);
+      for (const guard of contents) {
+        for (const output of guard.contents.identified) {
+          guarded[output.category] = {
+            category: output.category,
+            authheadTxid: output.utxo.txid,
+            identityOutput: output.utxo,
+            keyUtxo,
+            guardAddress: guard.addresses.tokenAddress,
+          };
+        }
+      }
+    }
+    guardedIdentities.value = guarded;
+    unidentifiedGuarded.value = unidentified;
+    return guarded;
+  }
+
   // Where each listed identity's authhead sits now. Nothing about an authhead is restored from
   // storage: it moves to a new outpoint every time the identity's metadata is updated, and those
   // updates happen outside this wallet, so the outpoint is re-resolved and the 'auth' reservations
@@ -1365,6 +1431,12 @@ export const useStore = defineStore('store', () => {
   async function resolveListedIdentities() {
     const currentUtxos = walletUtxos.value;
     if (!currentUtxos) return;
+    // before the listing is read, since a guarded identity found here joins it
+    const guarded = await resolveAuthKeys();
+    for (const category of Object.keys(guarded)) {
+      if (identityCategories.value.includes(category)) continue;
+      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+    }
     if (!identityCategories.value.length) {
       identities.value = [];
       // clears an 'auth' reservation left behind by an identity that is no longer listed
@@ -1372,7 +1444,9 @@ export const useStore = defineStore('store', () => {
       return;
     }
     const initialization = currentInitialization;
-    const resolved = await resolveIdentities(identityCategories.value, settingsStore.chaingraph, currentUtxos);
+    const resolved = await resolveIdentities(
+      identityCategories.value, settingsStore.chaingraph, currentUtxos, guarded
+    );
     if (initialization !== currentInitialization) return;
     identities.value = resolved;
     await syncAuthReservations(resolved);
@@ -1395,12 +1469,15 @@ export const useStore = defineStore('store', () => {
   async function syncAuthReservations(resolved: IdentityState[]) {
     const authOutpoints: string[] = [];
     for (const identity of resolved) {
-      if (!identity.authUtxo) continue;
-      const outpoint = outpointOf(identity.authUtxo);
+      // the identity output when this wallet holds it, the AuthKey when a covenant does: either
+      // way it is the coin the authority rides on, and one key can carry several identities
+      const keyCoin = identityKeyCoin(identity);
+      if (!keyCoin) continue;
+      const outpoint = outpointOf(keyCoin);
       authOutpoints.push(outpoint);
       // A reservation already made for another reason is left alone: the coin is held back either
       // way, and rewriting the reason would take it away from whatever made it
-      if (!reservedUtxos.value[outpoint]) await reserveUtxo(identity.authUtxo, 'auth');
+      if (!reservedUtxos.value[outpoint]) await reserveUtxo(keyCoin, 'auth');
     }
     if (resolved.some(identity => identity.status === 'unresolved')) return;
     for (const [outpoint, reservation] of Object.entries(reservedUtxos.value)) {
@@ -1473,6 +1550,14 @@ export const useStore = defineStore('store', () => {
     } finally {
       publicationChecksRunning.value = false;
     }
+  }
+
+  // The identities an AuthKey of this category guards, so the token list can render a key as what
+  // it is rather than as an NFT with no metadata. Empty for anything that is not a confirmed key.
+  function identitiesGuardedByKey(keyCategory: string) {
+    return identities.value?.filter(
+      identity => identity.keyUtxo?.token?.category === keyCategory
+    ) ?? [];
   }
 
   async function addIdentity(category: string) {
@@ -1811,6 +1896,8 @@ export const useStore = defineStore('store', () => {
     identityCategories,
     identities,
     identitiesResolving,
+    unidentifiedGuarded,
+    identitiesGuardedByKey,
     publicationChecks,
     publicationChecksRunning,
     checkPublications,

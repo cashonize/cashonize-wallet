@@ -269,6 +269,13 @@
       "selected": "selected",
       "max": "max"
     },
+    "authKey": {
+      "name": "Identity key",
+      "nameFor": "Identity key for {names}",
+      "manage": "manage",
+      "maybe": "This looks like an identity key. {link}",
+      "maybeLink": "Check on the identities page"
+    },
     "visibility": {
       "hideToken": "Hide token",
       "unhideToken": "Unhide token",
@@ -1425,13 +1432,15 @@
       "held": "AuthHead held by this wallet",
       "carriesTokens": "AuthHead held by this wallet, with a reserve",
       "notHeld": "Watched, the AuthHead is not in this wallet",
-      "unresolved": "Could not look up the AuthHead"
+      "unresolved": "Could not look up the AuthHead",
+      "heldViaKey": "AuthHead held through an identity key"
     },
     "statusHelp": {
       "held": "This wallet holds the AuthHead, so it can update this identity's metadata. The coin is kept out of coin selection, so no ordinary send can spend it.",
       "carriesTokens": "This wallet holds the AuthHead and it carries a token reserve alongside the authority. The coin is kept out of coin selection, like any AuthHead.",
       "notHeld": "The AuthHead is somewhere else, so this wallet only watches this identity: its publication is shown, but updating it takes the wallet that holds the AuthHead.",
-      "unresolved": "The AuthHead could not be looked up, so where it is right now is unknown. Anything held for this identity stays held until an answer comes back."
+      "unresolved": "The AuthHead could not be looked up, so where it is right now is unknown. Anything held for this identity stays held until an answer comes back.",
+      "heldViaKey": "The AuthHead is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the coin, so the key is what is kept out of coin selection."
     },
     "reserve": {
       "title": "This AuthHead carries:",
@@ -1486,6 +1495,25 @@
         "empty": "Empty the reserve, so the supply stays here.",
         "transfer": "Then transfer the identity."
       }
+    },
+    "key": {
+      "action": "transfer the key",
+      "guardLabel": "Guard:",
+      "guardHelp": "The identity output sits at this covenant address, not in your wallet. The covenant releases it only to whoever presents the AuthKey, which is the NFT this wallet holds.",
+      "manageHint": "This identity is guarded, so updating its metadata and moving its supply are done through the tool that builds the covenant's transactions. Cashonize signs them when it connects.",
+      "manageOnStudio": "Manage on CashTokens Studio",
+      "hint": "The key is an ordinary NFT and moves like one. Whoever holds it controls every identity it guards.",
+      "destinationPlaceholder": "Token address to transfer the key to",
+      "button": "Transfer key",
+      "transferringButton": "Transferring...",
+      "confirmTitle": "Transfer this identity key?",
+      "confirmMessage": "Control of {count} identity this key guards moves to {address}. This cannot be undone. | Control of the {count} identities this key guards moves to {address}. This cannot be undone.",
+      "confirmButton": "Transfer key",
+      "done": "Transferred the identity key to {address}",
+      "doneTitle": "Identity key transferred",
+      "categoryLabel": "Key category:",
+      "unnameableTitle": "An identity key with contents this version cannot name",
+      "unnameable": "This key guards {count} identity output that carries no token, and naming it needs a lookup this version does not have yet. Manage it on CashTokens Studio. | This key guards {count} identity outputs that carry no token, and naming them needs a lookup this version does not have yet. Manage them on CashTokens Studio."
     },
     "publication": {
       "title": "Latest metadata publication",

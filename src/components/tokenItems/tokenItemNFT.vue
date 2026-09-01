@@ -10,6 +10,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
+  import { isAuthKeyCandidate } from 'src/utils/tools/authGuard'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
@@ -95,6 +96,24 @@
     if(isSingleNft.value) tokenName = nftMetadata.value?.name;
     return tokenName;
   })
+  // An AuthKey carries no metadata of its own: it is the NFT itself that is the authority. Once
+  // confirmed, the wallet says what it opens instead of showing an unnamed NFT.
+  const guardedIdentities = computed(() => store.identitiesGuardedByKey(tokenData.value.category));
+  const guardedNames = computed(() => guardedIdentities.value
+    .map(identity => store.bcmrRegistries?.[identity.category]?.name)
+    .filter((name): name is string => !!name)
+    .join(', '));
+  const isIdentityKey = computed(() =>
+    guardedIdentities.value.length > 0 || (store.unidentifiedGuarded[tokenData.value.category] ?? 0) > 0
+  );
+  // The local shape alone, which is a guess: no lookup runs from the token list, so an unconfirmed
+  // candidate only gets a nudge towards the page that can settle it.
+  const looksLikeIdentityKey = computed(() => {
+    if (isIdentityKey.value || tokenMetaData.value) return false;
+    const onlyNft = isSingleNft.value ? tokenData.value.nfts[0] : undefined;
+    return !!onlyNft && isAuthKeyCandidate(onlyNft);
+  });
+
   const tokenDescription = computed(() => {
     if(parseResult.value?.success && parseResult.value.nftTypeDescription) return parseResult.value.nftTypeDescription;
     return tokenMetaData.value?.description;
@@ -351,6 +370,23 @@
 
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
+            <div v-if="isIdentityKey" class="identity-key-line">
+              {{ guardedNames
+                ? t('tokenItem.authKey.nameFor', { names: guardedNames })
+                : t('tokenItem.authKey.name') }}
+              <span class="identity-key-link" @click="store.changeView(19)">
+                {{ t('tokenItem.authKey.manage') }}
+              </span>
+            </div>
+            <div v-else-if="looksLikeIdentityKey" class="identity-key-line">
+              <i18n-t keypath="tokenItem.authKey.maybe" tag="span">
+                <template #link>
+                  <span class="identity-key-link" @click="store.changeView(19)">
+                    {{ t('tokenItem.authKey.maybeLink') }}
+                  </span>
+                </template>
+              </i18n-t>
+            </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
@@ -549,5 +585,18 @@
   .show-mobile {
     display: inline;
   }
+}
+
+/* An identity key has no metadata to show, so this line is what names it. Grey like every other
+   description, with only the way to act on it coloured. */
+.identity-key-line {
+  color: grey;
+}
+.identity-key-link {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.identity-key-link:hover {
+  text-decoration: underline;
 }
 </style>

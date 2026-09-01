@@ -31,6 +31,7 @@
     type RegistrySummary,
   } from 'src/utils/tools/authchainIdentity'
   import { TokenSendRequest } from 'mainnet-js'
+  import { outpointOf } from 'src/utils/wallet/reservedUtxos'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -43,10 +44,11 @@
   // The destination of an open transfer form, keyed by category so each card keeps its own
   const destinationInputs = ref<Record<string, string>>({});
   const transferringCategory = ref<string | undefined>(undefined);
+  const keyDestination = ref("");
 
   // One form open at a time across the whole list: these are deliberate, one-at-a-time operations,
   // and a card with four open forms says otherwise
-  type IdentityAction = 'publish' | 'issue' | 'addToReserve' | 'emptyReserve';
+  type IdentityAction = 'publish' | 'issue' | 'addToReserve' | 'emptyReserve' | 'transferKey';
   const openAction = ref<{ category: string, action: IdentityAction } | undefined>(undefined);
   const runningAction = ref<IdentityAction | undefined>(undefined);
   const publishUris = ref<string[]>([]);
@@ -64,6 +66,15 @@
   // the actions depend on holding the authhead
   const listedCount = computed(() =>
     identities.value.filter(identity => identity.status !== 'unresolved').length
+  );
+
+  // Naming these needs a lookup back from an output's txid to the authchain it ends, which this
+  // version does not have. Counted rather than dropped, so a key guarding only them is not
+  // reported as guarding nothing.
+  const unnameableGuards = computed(() =>
+    Object.entries(store.unidentifiedGuarded)
+      .filter(([, count]) => count > 0)
+      .map(([category, count]) => ({ category, count }))
   );
 
   // An IPFS CID cannot serve content other than its own, so a mismatch there says something
@@ -101,7 +112,7 @@
   // back from circulation, an NFT that mints the category's tokens, or both at once. Managing any
   // of it is not here yet, so the card only says what is there.
   function reserveDescription(identity: IdentityState) {
-    const token = identity.authUtxo?.token;
+    const token = (identity.authUtxo ?? identity.guardedOutput)?.token;
     if (!token) return undefined;
     const metadata = store.bcmrRegistries?.[identity.category];
     const lines: string[] = [];
@@ -197,6 +208,7 @@
     issueAmount.value = "";
     issueDestination.value = "";
     addToReserveAmount.value = "";
+    keyDestination.value = "";
     currentRegistry.value = undefined;
     if (action !== 'publish' || !identity.publication) return;
     // read what is published now, so the update can say what it changes
@@ -206,7 +218,8 @@
   }
 
   const tokenDecimals = (category: string) => store.bcmrRegistries?.[category]?.token?.decimals ?? 0;
-  const reserveOf = (identity: IdentityState) => identity.authUtxo?.token?.amount ?? 0n;
+  const reserveOf = (identity: IdentityState) =>
+    (identity.authUtxo ?? identity.guardedOutput)?.token?.amount ?? 0n;
   const reserveDisplay = (identity: IdentityState) =>
     formatTokenAmountFromBigInt(reserveOf(identity), tokenDecimals(identity.category));
 
@@ -391,6 +404,51 @@
     }
   }
 
+  // The key is an ordinary NFT and moves as one; what makes this different is what goes with it.
+  // It is spent through the deliberate path because it is reserved, exactly as an authhead is.
+  async function transferKey(identity: IdentityState) {
+    const keyUtxo = identity.keyUtxo;
+    if (transferringCategory.value || !keyUtxo?.token?.nft) return;
+    let destination: string;
+    try {
+      destination = validateTokenRecipientAddress(keyDestination.value, store.wallet.networkPrefix);
+    } catch (error) {
+      displayAndLogError(error);
+      return;
+    }
+    const guardedByKey = identities.value.filter(
+      listed => listed.keyUtxo && outpointOf(listed.keyUtxo) === outpointOf(keyUtxo)
+    );
+    const confirmed = await confirmDialog(
+      t('identities.key.confirmTitle'),
+      t('identities.key.confirmMessage', { count: guardedByKey.length, address: destination }),
+      t('identities.key.confirmButton'),
+      'red'
+    );
+    if (!confirmed) return;
+    transferringCategory.value = identity.category;
+    try {
+      notifySending();
+      const { txId } = await store.spend.spendAuthUtxo(keyUtxo, [
+        new TokenSendRequest({
+          cashaddr: destination,
+          category: keyUtxo.token.category,
+          amount: 0n,
+          nft: { commitment: keyUtxo.token.nft.commitment, capability: keyUtxo.token.nft.capability },
+        }),
+      ]);
+      keyDestination.value = "";
+      openAction.value = undefined;
+      await handleTransactionBroadcastSuccess(
+        t('identities.key.done', { address: destination }), txId, t('identities.key.doneTitle')
+      );
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      transferringCategory.value = undefined;
+    }
+  }
+
   async function removeIdentity(identity: IdentityState) {
     const confirmed = await confirmDialog(
       t('identities.remove.title'),
@@ -520,6 +578,16 @@
       </div>
       <div v-else class="description">{{ t('identities.listedCount', listedCount) }}</div>
 
+      <div v-for="guard in unnameableGuards" :key="guard.category" class="section identity-card">
+        <div>{{ t('identities.key.unnameableTitle') }}</div>
+        <div class="description">{{ t('identities.key.unnameable', guard.count) }}</div>
+        <div class="copy-target" :title="guard.category" @click="copyToClipboard(guard.category)">
+          <span class="description">{{ t('identities.key.categoryLabel') }}</span>
+          <span class="mono">{{ truncateHash(guard.category) }}</span>
+          <img class="copyIcon" src="images/copyGrey.svg">
+        </div>
+      </div>
+
       <div v-for="identity in identities" :key="identity.category" class="section identity-card">
         <div class="identity-header">
           <TokenIcon
@@ -558,6 +626,21 @@
         </div>
         <div v-if="identity.authUtxo" class="description">
           {{ t('identities.authheadAmount', { amount: bchOf(identity.authUtxo.satoshis) }) }}
+        </div>
+        <div
+          v-if="identity.guardAddress"
+          class="copy-target"
+          :title="identity.guardAddress"
+          @click="copyToClipboard(identity.guardAddress)"
+        >
+          <span class="description">
+            {{ t('identities.key.guardLabel') }}
+            <InfoPopup>
+              <div style="max-width: 300px;">{{ t('identities.key.guardHelp') }}</div>
+            </InfoPopup>
+          </span>
+          <span class="mono">{{ truncateHash(identity.guardAddress) }}</span>
+          <img class="copyIcon" src="images/copyGrey.svg">
         </div>
 
         <!-- The latest metadata publication of this identity, and what its locations serve now.
@@ -743,6 +826,32 @@
           </div>
         </div>
 
+        <div v-if="identity.status === 'heldViaKey'" class="section">
+          <div class="description">{{ t('identities.key.manageHint') }}</div>
+          <div class="identity-actions">
+            <a href="https://cashtokens.studio/" target="_blank" class="action-link">
+              {{ t('identities.key.manageOnStudio') }}
+            </a>
+            <span class="action-link" @click="toggleAction(identity, 'transferKey')">
+              {{ t('identities.key.action') }}
+            </span>
+          </div>
+          <div v-if="isOpen(identity, 'transferKey')" style="margin-top: 10px;">
+            <div class="description">{{ t('identities.key.hint') }}</div>
+            <div class="transfer-identity">
+              <input v-model="keyDestination" :placeholder="t('identities.key.destinationPlaceholder')">
+              <input
+                @click="transferKey(identity)"
+                type="button"
+                :value="transferringCategory === identity.category
+                  ? t('identities.key.transferringButton')
+                  : t('identities.key.button')"
+                :disabled="transferringCategory !== undefined || !keyDestination"
+              >
+            </div>
+          </div>
+        </div>
+
         <div class="identity-links">
           <a :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
             {{ t('identities.viewOnExplorer') }}
@@ -811,6 +920,9 @@
 /* an identity whose authhead lives elsewhere is watched, not broken, so it reads as neither */
 .identity-status.notHeld {
   color: grey;
+}
+.identity-status.heldViaKey {
+  color: var(--color-primary);
 }
 .identity-status.unresolved {
   color: orange;

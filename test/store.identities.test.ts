@@ -8,11 +8,13 @@ import {
 } from './mocks/store.mocks'
 
 import { useStore } from '../src/stores/store'
+import { authGuardAddresses } from '../src/utils/tools/authGuard'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
 
 function createMockWallet() {
   return {
     ...mockMainnetWallet,
+    networkPrefix: 'bitcoincash',
     getUtxos: vi.fn().mockResolvedValue([]),
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
   }
@@ -53,12 +55,25 @@ function listIdentities(categories: string[]) {
   localStorageMock.setItem('identities-mainnet-testWallet', JSON.stringify(categories))
 }
 
-function startStore(walletUtxos: Utxo[]) {
+function startStore(walletUtxos: Utxo[], guardUtxos: Record<string, Utxo[]> = {}) {
   const store = useStore()
   store.setWallet(createMockWallet() as never)
+  // setWallet gives the wallet its own network provider, so the covenant responder goes on after
+  // it: these lookups ask the wallet's electrum about an address that is not the wallet's
+  const provider = store.wallet.provider as unknown as { getUtxos: unknown }
+  provider.getUtxos = vi.fn((address: string) => Promise.resolve(guardUtxos[address] ?? []))
   store.walletUtxos = walletUtxos
   return store
 }
+
+// An AuthKey is an NFT with nothing on it: no name, no value, commitment 00. What makes it a key
+// is the covenant its category derives, which is why it is only confirmed by looking there.
+const authKeyCategory = '1122334455667788'.repeat(4)
+const authKeyUtxo: Utxo = {
+  txid: 'ee'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
+  token: { category: authKeyCategory, amount: 0n, nft: { commitment: '00', capability: 'none' } },
+}
+const guardTokenAddress = authGuardAddresses(authKeyCategory, 'bitcoincash').p2sh20.tokenAddress
 
 describe('auth reservations follow the authchain', () => {
   beforeEach(() => {
@@ -161,6 +176,53 @@ describe('auth reservations follow the authchain', () => {
     expect(store.identities?.[0]?.status).toBe('carriesTokens')
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
+  })
+
+  // the AuthGuard standard: the identity output lives in a covenant, and the wallet holds the key
+  // that opens it. Authority over the identity without the coin.
+  it('finds an identity its AuthKey guards, and reserves the key', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    const guardedOutput: Utxo = {
+      txid: authheadA, vout: 0, satoshis: 1000n, address: guardTokenAddress,
+      token: { category: categoryA, amount: 500n },
+    }
+    const store = startStore([authKeyUtxo], { [guardTokenAddress]: [guardedOutput] })
+
+    await store.refreshIdentities()
+
+    expect(store.identities?.[0]?.status).toBe('heldViaKey')
+    expect(store.identities?.[0]?.category).toBe(categoryA)
+    // the key carries the authority, so the key is what gets held back
+    expect(store.reservedUtxos[outpointOf(authKeyUtxo)]?.reason).toBe('auth')
+    expect(store.spendableUtxos).toEqual([])
+  })
+
+  // an older identity output left in the guard is not the authhead, and does not make the wallet
+  // the identity's keeper
+  it('does not claim a guarded output that is not the authhead', async () => {
+    stubAuthheadQueries({ [categoryA]: movedAuthheadA })
+    listIdentities([categoryA])
+    const staleOutput: Utxo = {
+      txid: authheadA, vout: 0, satoshis: 1000n, address: guardTokenAddress,
+      token: { category: categoryA, amount: 500n },
+    }
+    const store = startStore([authKeyUtxo], { [guardTokenAddress]: [staleOutput] })
+
+    await store.refreshIdentities()
+
+    expect(store.identities?.[0]?.status).toBe('notHeld')
+    expect(store.reservedUtxos).toEqual({})
+  })
+
+  // a commitment-00 NFT is a cheap local guess, and freezing on a guess would lock an innocent
+  // NFT with no way back
+  it('leaves an NFT that only looks like a key alone', async () => {
+    const store = startStore([authKeyUtxo])
+
+    await store.refreshIdentities()
+
+    expect(store.reservedUtxos).toEqual({})
+    expect(store.spendableUtxos).toEqual([authKeyUtxo])
   })
 
   it('releases the authhead of an identity removed from the list', async () => {

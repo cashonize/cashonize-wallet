@@ -269,6 +269,13 @@
       "selected": "selecionados",
       "max": "máx"
     },
+    "authKey": {
+      "name": "Chave de identidade",
+      "nameFor": "Chave de identidade de {names}",
+      "manage": "gerenciar",
+      "maybe": "Isto parece uma chave de identidade. {link}",
+      "maybeLink": "Verifique na página de identidades"
+    },
     "visibility": {
       "hideToken": "Ocultar token",
       "unhideToken": "Mostrar token",
@@ -1425,13 +1432,15 @@
       "held": "AuthHead nesta carteira",
       "carriesTokens": "AuthHead nesta carteira, com reserva",
       "notHeld": "Acompanhada, o AuthHead não está nesta carteira",
-      "unresolved": "Não foi possível consultar o AuthHead"
+      "unresolved": "Não foi possível consultar o AuthHead",
+      "heldViaKey": "AuthHead mantido por uma chave de identidade"
     },
     "statusHelp": {
       "held": "Esta carteira tem o AuthHead, então pode atualizar os metadados desta identidade. A moeda fica fora da seleção de moedas, então nenhum envio comum pode gastá-la.",
       "carriesTokens": "Esta carteira tem o AuthHead e ele carrega uma reserva de tokens junto com a autoridade. A moeda fica fora da seleção de moedas, como qualquer AuthHead.",
       "notHeld": "O AuthHead está em outro lugar, então esta carteira só acompanha esta identidade: a publicação é mostrada, mas atualizá-la exige a carteira que tem o AuthHead.",
-      "unresolved": "Não foi possível consultar o AuthHead, então onde ele está agora é desconhecido. O que estiver retido por esta identidade continua retido até vir uma resposta."
+      "unresolved": "Não foi possível consultar o AuthHead, então onde ele está agora é desconhecido. O que estiver retido por esta identidade continua retido até vir uma resposta.",
+      "heldViaKey": "O AuthHead está travado num contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem a moeda, então o que fica fora da seleção de moedas é a chave."
     },
     "reserve": {
       "title": "Este AuthHead carrega:",
@@ -1486,6 +1495,25 @@
         "empty": "Esvazie a reserva, para a oferta ficar aqui.",
         "transfer": "Depois transfira a identidade."
       }
+    },
+    "key": {
+      "action": "transferir a chave",
+      "guardLabel": "Guarda:",
+      "guardHelp": "A saída de identidade fica neste endereço de contrato, não na sua carteira. O contrato só a libera para quem apresentar a AuthKey, que é o NFT desta carteira.",
+      "manageHint": "Esta identidade é guardada, então atualizar os metadados dela e mover a oferta acontecem pela ferramenta que constrói as transações do contrato. O Cashonize as assina quando se conecta.",
+      "manageOnStudio": "Gerenciar no CashTokens Studio",
+      "hint": "A chave é um NFT comum e se move como um. Quem a tiver controla todas as identidades que ela guarda.",
+      "destinationPlaceholder": "Endereço de token para onde transferir a chave",
+      "button": "Transferir chave",
+      "transferringButton": "Transferindo...",
+      "confirmTitle": "Transferir esta chave de identidade?",
+      "confirmMessage": "O controle de {count} identidade guardada por esta chave passa para {address}. Isso não pode ser desfeito. | O controle das {count} identidades guardadas por esta chave passa para {address}. Isso não pode ser desfeito.",
+      "confirmButton": "Transferir chave",
+      "done": "Chave de identidade transferida para {address}",
+      "doneTitle": "Chave de identidade transferida",
+      "categoryLabel": "Categoria da chave:",
+      "unnameableTitle": "Uma chave de identidade com conteúdo que esta versão não consegue nomear",
+      "unnameable": "Esta chave guarda {count} saída de identidade sem token, e nomeá-la exige uma consulta que esta versão ainda não tem. Gerencie-a no CashTokens Studio. | Esta chave guarda {count} saídas de identidade sem token, e nomeá-las exige uma consulta que esta versão ainda não tem. Gerencie-as no CashTokens Studio."
     },
     "publication": {
       "title": "Última publicação de metadados",

@@ -269,6 +269,13 @@
       "selected": "sélectionnés",
       "max": "max"
     },
+    "authKey": {
+      "name": "Clé d'identité",
+      "nameFor": "Clé d'identité de {names}",
+      "manage": "gérer",
+      "maybe": "Ceci ressemble à une clé d'identité. {link}",
+      "maybeLink": "Vérifiez sur la page Identités"
+    },
     "visibility": {
       "hideToken": "Masquer le token",
       "unhideToken": "Afficher le token",
@@ -1425,13 +1432,15 @@
       "held": "AuthHead détenu par ce portefeuille",
       "carriesTokens": "AuthHead détenu par ce portefeuille, avec une réserve",
       "notHeld": "Suivie, l'AuthHead n'est pas dans ce portefeuille",
-      "unresolved": "Impossible de consulter l'AuthHead"
+      "unresolved": "Impossible de consulter l'AuthHead",
+      "heldViaKey": "AuthHead détenu via une clé d'identité"
     },
     "statusHelp": {
       "held": "Ce portefeuille détient l'AuthHead, il peut donc mettre à jour les métadonnées de cette identité. La pièce est écartée de la sélection, aucun envoi ordinaire ne peut la dépenser.",
       "carriesTokens": "Ce portefeuille détient l'AuthHead, et celui-ci porte une réserve de jetons à côté de l'autorité. La pièce est écartée de la sélection, comme tout AuthHead.",
       "notHeld": "L'AuthHead est ailleurs : ce portefeuille ne fait que suivre cette identité. Sa publication est affichée, mais la mettre à jour demande le portefeuille qui détient l'AuthHead.",
-      "unresolved": "L'AuthHead n'a pas pu être consulté, on ignore donc où il se trouve. Ce qui est retenu pour cette identité le reste jusqu'à ce qu'une réponse arrive."
+      "unresolved": "L'AuthHead n'a pas pu être consulté, on ignore donc où il se trouve. Ce qui est retenu pour cette identité le reste jusqu'à ce qu'une réponse arrive.",
+      "heldViaKey": "L'AuthHead est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans la pièce : c'est donc la clé qui est écartée de la sélection."
     },
     "reserve": {
       "title": "Cet AuthHead porte :",
@@ -1486,6 +1495,25 @@
         "empty": "Videz la réserve, pour que l'offre reste ici.",
         "transfer": "Puis transférez l'identité."
       }
+    },
+    "key": {
+      "action": "transférer la clé",
+      "guardLabel": "Gardien :",
+      "guardHelp": "La sortie d'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne la libère qu'à qui présente l'AuthKey, le NFT que ce portefeuille détient.",
+      "manageHint": "Cette identité est gardée : mettre à jour ses métadonnées et déplacer son offre passent par l'outil qui construit les transactions du contrat. Cashonize les signe lorsqu'il s'y connecte.",
+      "manageOnStudio": "Gérer sur CashTokens Studio",
+      "hint": "La clé est un NFT ordinaire et se déplace comme tel. Qui la détient contrôle toutes les identités qu'elle garde.",
+      "destinationPlaceholder": "Adresse de jetons à laquelle transférer la clé",
+      "button": "Transférer la clé",
+      "transferringButton": "Transfert...",
+      "confirmTitle": "Transférer cette clé d'identité ?",
+      "confirmMessage": "Le contrôle de {count} identité gardée par cette clé passe à {address}. C'est irréversible. | Le contrôle des {count} identités gardées par cette clé passe à {address}. C'est irréversible.",
+      "confirmButton": "Transférer la clé",
+      "done": "Clé d'identité transférée à {address}",
+      "doneTitle": "Clé d'identité transférée",
+      "categoryLabel": "Catégorie de la clé :",
+      "unnameableTitle": "Une clé d'identité au contenu que cette version ne sait pas nommer",
+      "unnameable": "Cette clé garde {count} sortie d'identité sans jeton, et la nommer demande une requête que cette version n'a pas encore. Gérez-la sur CashTokens Studio. | Cette clé garde {count} sorties d'identité sans jeton, et les nommer demande une requête que cette version n'a pas encore. Gérez-les sur CashTokens Studio."
     },
     "publication": {
       "title": "Dernière publication de métadonnées",

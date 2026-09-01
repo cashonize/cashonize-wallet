@@ -269,6 +269,13 @@
       "selected": "ausgewählt",
       "max": "max"
     },
+    "authKey": {
+      "name": "Identitätsschlüssel",
+      "nameFor": "Identitätsschlüssel für {names}",
+      "manage": "verwalten",
+      "maybe": "Das sieht nach einem Identitätsschlüssel aus. {link}",
+      "maybeLink": "Auf der Identitäten-Seite prüfen"
+    },
     "visibility": {
       "hideToken": "Token ausblenden",
       "unhideToken": "Token einblenden",
@@ -1425,13 +1432,15 @@
       "held": "AuthHead in diesem Wallet",
       "carriesTokens": "AuthHead in diesem Wallet, mit Reserve",
       "notHeld": "Beobachtet, der AuthHead ist nicht in diesem Wallet",
-      "unresolved": "AuthHead konnte nicht abgefragt werden"
+      "unresolved": "AuthHead konnte nicht abgefragt werden",
+      "heldViaKey": "AuthHead über einen Identitätsschlüssel gehalten"
     },
     "statusHelp": {
       "held": "Dieses Wallet hält den AuthHead und kann die Metadaten dieser Identität also aktualisieren. Die Münze ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann sie ausgeben.",
       "carriesTokens": "Dieses Wallet hält den AuthHead, und er trägt neben der Hoheit eine Token-Reserve. Die Münze ist von der Münzauswahl ausgenommen, wie jeder AuthHead.",
       "notHeld": "Der AuthHead liegt woanders, dieses Wallet beobachtet diese Identität also nur: die Veröffentlichung wird gezeigt, aktualisieren kann sie das Wallet mit dem AuthHead.",
-      "unresolved": "Der AuthHead konnte nicht abgefragt werden, wo er gerade liegt ist also unbekannt. Was für diese Identität zurückgehalten wird, bleibt es bis eine Antwort kommt."
+      "unresolved": "Der AuthHead konnte nicht abgefragt werden, wo er gerade liegt ist also unbekannt. Was für diese Identität zurückgehalten wird, bleibt es bis eine Antwort kommt.",
+      "heldViaKey": "Der AuthHead liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne die Münze, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird."
     },
     "reserve": {
       "title": "Dieser AuthHead trägt:",
@@ -1486,6 +1495,25 @@
         "empty": "Leere die Reserve, damit der Bestand hier bleibt.",
         "transfer": "Dann übertrage die Identität."
       }
+    },
+    "key": {
+      "action": "Schlüssel übertragen",
+      "guardLabel": "Guard:",
+      "guardHelp": "Die Identitäts-Ausgabe liegt an dieser Contract-Adresse, nicht in deinem Wallet. Der Contract gibt sie nur an den heraus, der den AuthKey vorlegt, also das NFT in diesem Wallet.",
+      "manageHint": "Diese Identität ist bewacht, ihre Metadaten zu aktualisieren und ihren Bestand zu bewegen läuft daher über das Werkzeug, das die Transaktionen des Contracts baut. Cashonize signiert sie, wenn es sich verbindet.",
+      "manageOnStudio": "In CashTokens Studio verwalten",
+      "hint": "Der Schlüssel ist ein gewöhnliches NFT und wandert wie eines. Wer ihn hält, kontrolliert jede Identität, die er bewacht.",
+      "destinationPlaceholder": "Token-Adresse, an die der Schlüssel gehen soll",
+      "button": "Schlüssel übertragen",
+      "transferringButton": "Wird übertragen...",
+      "confirmTitle": "Diesen Identitätsschlüssel übertragen?",
+      "confirmMessage": "Die Kontrolle über {count} von diesem Schlüssel bewachte Identität geht an {address}. Das lässt sich nicht rückgängig machen. | Die Kontrolle über die {count} von diesem Schlüssel bewachten Identitäten geht an {address}. Das lässt sich nicht rückgängig machen.",
+      "confirmButton": "Schlüssel übertragen",
+      "done": "Identitätsschlüssel an {address} übertragen",
+      "doneTitle": "Identitätsschlüssel übertragen",
+      "categoryLabel": "Schlüssel-Kategorie:",
+      "unnameableTitle": "Ein Identitätsschlüssel mit Inhalt, den diese Version nicht benennen kann",
+      "unnameable": "Dieser Schlüssel bewacht {count} Identitäts-Ausgabe ohne Token, und sie zu benennen braucht eine Abfrage, die diese Version noch nicht hat. Verwalte sie in CashTokens Studio. | Dieser Schlüssel bewacht {count} Identitäts-Ausgaben ohne Token, und sie zu benennen braucht eine Abfrage, die diese Version noch nicht hat. Verwalte sie in CashTokens Studio."
     },
     "publication": {
       "title": "Letzte Metadaten-Veröffentlichung",

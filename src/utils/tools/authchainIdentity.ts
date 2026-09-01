@@ -15,10 +15,12 @@ const { t } = i18n.global;
 
 type Network = 'mainnet' | 'chipnet';
 
-// 'held' and 'carriesTokens' are both authheads this wallet holds and keeps out of coin selection;
-// they are told apart because an authhead carrying a token reserve has no transfer of its own yet.
-// 'unresolved' is a failed Chaingraph query, which says nothing about where the authhead is.
-export type IdentityStatus = 'held' | 'carriesTokens' | 'notHeld' | 'unresolved';
+// 'held' and 'carriesTokens' are both authheads this wallet holds directly and keeps out of coin
+// selection; they are told apart because an authhead carrying a token reserve has no transfer of
+// its own yet. 'heldViaKey' is an authhead locked in an AuthGuard covenant whose key NFT this
+// wallet holds, which is authority over the identity without the coin. 'unresolved' is a failed
+// Chaingraph query, which says nothing about where the authhead is.
+export type IdentityStatus = 'held' | 'carriesTokens' | 'heldViaKey' | 'notHeld' | 'unresolved';
 
 // What one run of the ownership scan over the wallet's token categories turned up
 export interface IdentityScanSummary {
@@ -31,9 +33,27 @@ export interface IdentityScanSummary {
 export interface IdentityState {
   category: string;
   authheadTxid?: string;
-  authUtxo?: Utxo; // the coin the 'auth' reservation is made on, whenever the wallet holds it
+  authUtxo?: Utxo; // the identity output itself, when this wallet holds it directly
+  keyUtxo?: Utxo; // the AuthKey NFT, when a covenant holds the identity output instead
+  guardedOutput?: Utxo; // the identity output inside that covenant
+  guardAddress?: string; // where that covenant sits, which is not an address of this wallet
   status: IdentityStatus;
   publication?: MetadataPublication; // absent when the authchain has never carried one
+}
+
+// The coin that holds the authority, whichever way this wallet has it. What gets reserved.
+export function identityKeyCoin(identity: IdentityState): Utxo | undefined {
+  return identity.authUtxo ?? identity.keyUtxo;
+}
+
+// An identity output found in an AuthGuard covenant this wallet has the key to, waiting for the
+// authchain lookup to confirm it really is that category's authhead.
+export interface GuardedIdentity {
+  category: string;
+  authheadTxid: string; // the txid of the identity output sitting in the guard
+  identityOutput: Utxo; // that output, which carries the identity's reserve if it has one
+  keyUtxo: Utxo;
+  guardAddress: string;
 }
 
 // The metadata pointer an authhead transaction carries: OP_RETURN "BCMR" <hash> [<uri>...]. The
@@ -314,6 +334,7 @@ export async function resolveIdentities(
   categories: string[],
   chaingraphUrl: string,
   walletUtxos: Utxo[],
+  guarded: Record<string, GuardedIdentity> = {},
 ): Promise<IdentityState[]> {
   const authheadResults = await Promise.allSettled(
     categories.map(category => queryAuthHeadWithOutputs(category, chaingraphUrl))
@@ -330,8 +351,15 @@ export async function resolveIdentities(
     const resolved = { category, authheadTxid, ...(publication ? { publication } : {}) };
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
-    if (!authUtxo) return { ...resolved, status: 'notHeld' };
-    if (authUtxo.token) return { ...resolved, authUtxo, status: 'carriesTokens' };
-    return { ...resolved, authUtxo, status: 'held' };
+    if (authUtxo?.token) return { ...resolved, authUtxo, status: 'carriesTokens' };
+    if (authUtxo) return { ...resolved, authUtxo, status: 'held' };
+    // Held through a covenant instead: the guard holds an identity output, and this says it is
+    // the one the authchain ends at rather than an older link somebody left there.
+    const guardedIdentity = guarded[category];
+    if (guardedIdentity?.authheadTxid === authheadTxid) {
+      const { keyUtxo, guardAddress, identityOutput } = guardedIdentity;
+      return { ...resolved, keyUtxo, guardedOutput: identityOutput, guardAddress, status: 'heldViaKey' };
+    }
+    return { ...resolved, status: 'notHeld' };
   });
 }

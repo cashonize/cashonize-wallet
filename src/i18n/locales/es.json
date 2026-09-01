@@ -269,6 +269,13 @@
       "selected": "seleccionados",
       "max": "máx"
     },
+    "authKey": {
+      "name": "Clave de identidad",
+      "nameFor": "Clave de identidad de {names}",
+      "manage": "gestionar",
+      "maybe": "Esto parece una clave de identidad. {link}",
+      "maybeLink": "Compruébalo en la página de identidades"
+    },
     "visibility": {
       "hideToken": "Ocultar token",
       "unhideToken": "Mostrar token",
@@ -1425,13 +1432,15 @@
       "held": "AuthHead en esta billetera",
       "carriesTokens": "AuthHead en esta billetera, con reserva",
       "notHeld": "En seguimiento, el AuthHead no está en esta billetera",
-      "unresolved": "No se pudo consultar el AuthHead"
+      "unresolved": "No se pudo consultar el AuthHead",
+      "heldViaKey": "AuthHead en poder mediante una clave de identidad"
     },
     "statusHelp": {
       "held": "Esta billetera tiene el AuthHead, así que puede actualizar los metadatos de esta identidad. La moneda queda fuera de la selección de monedas, así que ningún envío normal puede gastarla.",
       "carriesTokens": "Esta billetera tiene el AuthHead y este lleva una reserva de tokens junto a la autoridad. La moneda queda fuera de la selección de monedas, como cualquier AuthHead.",
       "notHeld": "El AuthHead está en otro sitio, así que esta billetera solo observa esta identidad: se muestra su publicación, pero actualizarla requiere la billetera que tiene el AuthHead.",
-      "unresolved": "No se pudo consultar el AuthHead, así que no se sabe dónde está ahora. Lo que esté retenido por esta identidad sigue retenido hasta que haya respuesta."
+      "unresolved": "No se pudo consultar el AuthHead, así que no se sabe dónde está ahora. Lo que esté retenido por esta identidad sigue retenido hasta que haya respuesta.",
+      "heldViaKey": "El AuthHead está bloqueado en un contrato y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin la moneda, así que lo que queda fuera de la selección de monedas es la clave."
     },
     "reserve": {
       "title": "Este AuthHead lleva:",
@@ -1486,6 +1495,25 @@
         "empty": "Vacía la reserva, para que el suministro se quede aquí.",
         "transfer": "Luego transfiere la identidad."
       }
+    },
+    "key": {
+      "action": "transferir la clave",
+      "guardLabel": "Guardián:",
+      "guardHelp": "La salida de identidad está en esta dirección de contrato, no en tu billetera. El contrato solo la libera a quien presente la AuthKey, que es el NFT que tiene esta billetera.",
+      "manageHint": "Esta identidad está guardada, así que actualizar sus metadatos y mover su suministro se hacen con la herramienta que construye las transacciones del contrato. Cashonize las firma cuando se conecta.",
+      "manageOnStudio": "Gestionar en CashTokens Studio",
+      "hint": "La clave es un NFT normal y se mueve como tal. Quien la tenga controla todas las identidades que guarda.",
+      "destinationPlaceholder": "Dirección de token a la que transferir la clave",
+      "button": "Transferir clave",
+      "transferringButton": "Transfiriendo...",
+      "confirmTitle": "¿Transferir esta clave de identidad?",
+      "confirmMessage": "El control de {count} identidad que guarda esta clave pasa a {address}. Esto no se puede deshacer. | El control de las {count} identidades que guarda esta clave pasa a {address}. Esto no se puede deshacer.",
+      "confirmButton": "Transferir clave",
+      "done": "Clave de identidad transferida a {address}",
+      "doneTitle": "Clave de identidad transferida",
+      "categoryLabel": "Categoría de la clave:",
+      "unnameableTitle": "Una clave de identidad con contenido que esta versión no puede nombrar",
+      "unnameable": "Esta clave guarda {count} salida de identidad sin token, y nombrarla necesita una consulta que esta versión aún no tiene. Gestiónala en CashTokens Studio. | Esta clave guarda {count} salidas de identidad sin token, y nombrarlas necesita una consulta que esta versión aún no tiene. Gestiónalas en CashTokens Studio."
     },
     "publication": {
       "title": "Última publicación de metadatos",
