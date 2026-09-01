@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { computed, onActivated, ref, watch } from 'vue'
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
@@ -35,6 +36,8 @@
   import { authGuardAddresses } from 'src/utils/tools/authGuard'
 
   const store = useStore()
+
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
@@ -69,13 +72,13 @@
   const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
   const truncateHash = (hash: string) => `${hash.slice(0, 16)}...${hash.slice(-8)}`;
 
-  const identities = computed(() => store.identities ?? []);
+  const identities = computed(() => identitiesStore.identities ?? []);
 
   // Statuses speak when something changed; when nothing has, the page says so once and stops
   // talking. An identity nobody can look up, or a location serving something else, is a change.
   const needsAttention = computed(() =>
     identities.value.some(identity => identity.status === 'unresolved')
-    || Object.values(store.publicationChecks).some(
+    || Object.values(identitiesStore.publicationChecks).some(
       checks => checks.some(check => check.status !== 'verified')
     )
   );
@@ -83,7 +86,7 @@
   // What an identity has to show for itself, from the resolve, and richer for a card whose
   // history is open: how long it has stood, how far its chain runs, how often it has published.
   function establishment(identity: IdentityState): string[] {
-    const history = store.identityHistories[identity.category];
+    const history = identitiesStore.identityHistories[identity.category];
     const facts: string[] = [];
     const since = history?.[0]?.timestamp;
     if (since) facts.push(t('identities.established.since', { year: new Date(since * 1000).getFullYear() }));
@@ -103,7 +106,7 @@
   // version does not have. Counted rather than dropped, so a key guarding only them is not
   // reported as guarding nothing.
   const unnameableGuards = computed(() =>
-    Object.entries(store.unidentifiedGuarded)
+    Object.entries(identitiesStore.unidentifiedGuarded)
       .filter(([, count]) => count > 0)
       .map(([category, count]) => ({ category, count }))
   );
@@ -121,14 +124,14 @@
   // identity this wallet can act on: it is the state the publish flow exists to resolve
   function hasDrifted(identity: IdentityState) {
     if (!identity.authUtxo) return false;
-    const checks = store.publicationChecks[identity.category] ?? [];
+    const checks = identitiesStore.publicationChecks[identity.category] ?? [];
     return checks.some(check => check.status === 'changed');
   }
 
   // One row per published location: the location as published, where it is actually fetched from,
   // and what fetching it found once the check has run
   function publicationRows(identity: IdentityState) {
-    const checks = store.publicationChecks[identity.category];
+    const checks = identitiesStore.publicationChecks[identity.category];
     return (identity.publication?.uris ?? []).map(uri => {
       const status = checks?.find(check => check.uri === uri)?.status;
       return {
@@ -176,15 +179,15 @@
   // Re-resolving on every visit is the point of the page: the authhead moves whenever the identity's
   // metadata is updated elsewhere, and the reservations are rewritten from what comes back
   async function reloadIdentities() {
-    await store.refreshIdentities();
+    await identitiesStore.refreshIdentities();
     await fetchMissingMetadata();
     // after the resolving, which is what says where each publication is
-    await store.checkPublications();
+    await identitiesStore.checkPublications();
   }
 
   onActivated(() => {
-    foundAutomatically.value = store.markIdentitiesSeen();
-    store.markKeyCandidatesExamined();
+    foundAutomatically.value = identitiesStore.markIdentitiesSeen();
+    identitiesStore.markKeyCandidatesExamined();
     void reloadIdentities();
   });
   // The view is kept alive across navigation, so a different wallet's form input must not linger
@@ -201,7 +204,7 @@
       displayAndLogError(new Error(t('identities.errors.invalidCategory')));
       return;
     }
-    if (store.identityCategories.includes(category)) {
+    if (identitiesStore.identityCategories.includes(category)) {
       displayAndLogError(new Error(t('identities.errors.alreadyListed')));
       return;
     }
@@ -209,7 +212,7 @@
     try {
       // A token category and an AuthKey category look alike, so both readings are tried and what
       // was found is put to the user rather than asked about beforehand.
-      const found = await store.inspectCategory(category);
+      const found = await identitiesStore.inspectCategory(category);
       const guardedCount = found.guardedCategories.length + found.unidentifiedGuarded;
       if (!found.isTokenIdentity && !guardedCount) {
         throw new Error(t('identities.add.errors.nothingFound'));
@@ -223,8 +226,8 @@
         t('identities.add.found.button')
       );
       if (!confirmed) return;
-      if (guardedCount) await store.addAuthKey(category);
-      if (found.isTokenIdentity) await store.addIdentity(category);
+      if (guardedCount) await identitiesStore.addAuthKey(category);
+      if (found.isTokenIdentity) await identitiesStore.addIdentity(category);
       await fetchMissingMetadata();
       categoryInput.value = "";
     } catch (error) {
@@ -258,7 +261,7 @@
       await handleTransactionBroadcastSuccess(
         t('identities.create.done'), txId, t('identities.create.doneTitle')
       );
-      await store.listCreatedIdentity(txId, txId, newIdentityValue);
+      await identitiesStore.listCreatedIdentity(txId, txId, newIdentityValue);
     } catch (error) {
       displayAndLogError(error);
     } finally {
@@ -272,7 +275,7 @@
     isScanning.value = true;
     scanSummary.value = undefined;
     try {
-      scanSummary.value = await store.scanForIdentities();
+      scanSummary.value = await identitiesStore.scanForIdentities();
       await fetchMissingMetadata();
     } catch (error) {
       displayAndLogError(error);
@@ -558,7 +561,7 @@
     );
     if (!confirmed) return;
     try {
-      await store.removeUnnamedAuthhead(txid);
+      await identitiesStore.removeUnnamedAuthhead(txid);
     } catch (error) {
       displayAndLogError(error);
     }
@@ -572,10 +575,10 @@
       return;
     }
     openHistories.value = [...openHistories.value, identity.category];
-    if (store.identityHistories[identity.category]) return;
+    if (identitiesStore.identityHistories[identity.category]) return;
     loadingHistory.value = identity.category;
     try {
-      await store.fetchIdentityHistory(identity.category);
+      await identitiesStore.fetchIdentityHistory(identity.category);
     } catch (error) {
       displayAndLogError(error);
     } finally {
@@ -607,12 +610,12 @@
     );
     if (!confirmed) return;
     try {
-      await store.removeIdentity(identity.category);
+      await identitiesStore.removeIdentity(identity.category);
       // a watched key is what put its guarded identities on the list, so it goes with them
       const watchedKey = identity.guardAddress && !identity.keyUtxo
-        ? store.watchedAuthKeys.find(category => guardsIdentity(category, identity))
+        ? identitiesStore.watchedAuthKeys.find(category => guardsIdentity(category, identity))
         : undefined;
-      if (watchedKey) store.removeAuthKey(watchedKey);
+      if (watchedKey) identitiesStore.removeAuthKey(watchedKey);
     } catch (error) {
       displayAndLogError(error);
     }
@@ -645,7 +648,7 @@
       const { txId } = await store.spend.sendUtxo(authUtxo, destination);
       destinationInputs.value[identity.category] = "";
       // The identity is now somebody else's to update, so it leaves this wallet's list
-      await store.removeIdentity(identity.category);
+      await identitiesStore.removeIdentity(identity.category);
       await handleTransactionBroadcastSuccess(
         t('identities.transfer.done', { address: destination }),
         txId,
@@ -689,7 +692,7 @@
           @click="addIdentity()"
           type="button"
           :value="isAdding ? t('identities.add.addingButton') : t('identities.add.button')"
-          :disabled="isAdding || store.identitiesResolving || !categoryInput"
+          :disabled="isAdding || identitiesStore.identitiesResolving || !categoryInput"
         >
       </div>
       <div class="description" style="margin-top: 6px;">{{ t('identities.add.hint') }}</div>
@@ -708,7 +711,7 @@
         @click="createIdentity()"
         type="button"
         :value="isCreating ? t('identities.create.creatingButton') : t('identities.create.button')"
-        :disabled="isCreating || store.identitiesResolving"
+        :disabled="isCreating || identitiesStore.identitiesResolving"
         style="margin-top: 8px;"
       >
     </div>
@@ -718,7 +721,7 @@
         <i18n-t keypath="identities.scan.prompt" tag="span">
           <template #link>
             <span
-              v-if="!isScanning && !store.identitiesResolving"
+              v-if="!isScanning && !identitiesStore.identitiesResolving"
               class="scan-link"
               @click="scanForIdentities()"
             >{{ t('identities.scan.linkText') }}</span>
@@ -739,7 +742,7 @@
     </div>
 
     <div class="section">
-      <div v-if="!store.identities" class="description">{{ t('identities.resolving') }}</div>
+      <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }}</div>
       <div v-else-if="!identities.length">
         <div class="description">{{ t('identities.empty') }}</div>
         <ol class="walkthrough">
@@ -771,7 +774,7 @@
 
       <!-- Found in this wallet's own history and held back, with nothing on the coin to say which
            identity it belongs to. Protected first, named if it can be. -->
-      <div v-for="coin in store.unnamedAuthheadCoins()" :key="coin.txid" class="section identity-card">
+      <div v-for="coin in identitiesStore.unnamedAuthheadCoins()" :key="coin.txid" class="section identity-card">
         <div>
           {{ t('identities.unnamed.title') }}
           <InfoPopup>
@@ -884,7 +887,7 @@
                   {{ t('identities.publication.statusHelp.changedNote') }}
                 </div>
               </InfoPopup>
-              <span v-else-if="store.publicationChecksRunning" class="description">{{ t('identities.publication.checking') }}</span>
+              <span v-else-if="identitiesStore.publicationChecksRunning" class="description">{{ t('identities.publication.checking') }}</span>
             </div>
             <div class="description mono" :title="identity.publication.hash">
               {{ t('identities.publication.hash', { hash: truncateHash(identity.publication.hash) }) }}
@@ -1080,7 +1083,7 @@
           <div>{{ t('identities.history.title') }}</div>
           <div v-if="loadingHistory === identity.category" class="description">{{ t('identities.history.loading') }}</div>
           <div
-            v-for="link in store.identityHistories[identity.category] ?? []"
+            v-for="link in identitiesStore.identityHistories[identity.category] ?? []"
             :key="link.hash"
             class="chain-link"
           >

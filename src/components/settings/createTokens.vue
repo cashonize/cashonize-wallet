@@ -15,11 +15,13 @@
   import { displayAndLogError } from 'src/utils/errorHandling';
   import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
   const $q = useQuasar()
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
@@ -192,7 +194,7 @@
       metadataUris.value = [""];
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
       // creation ends where management begins: the identity is listed and its AuthHead held back
-      if (txId) await store.listCreatedIdentity(pickedCoin.txid, txId, tokenOutputValue);
+      if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId, tokenOutputValue);
     } catch(error){
       displayAndLogError(error)
     } finally {

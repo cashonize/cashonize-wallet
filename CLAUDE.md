@@ -30,6 +30,7 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - **walletconnectStore.ts** / **cashconnectStore.ts**: dApp connection protocol handlers. Access the wallet via Pinia cross-store ref (`useStore()` inside `defineStore` setup).
 - `_wallet` is a `shallowRef`: mainnet-js owns the wallet's internal state, so only swapping wallets is reactive, not changes inside the wallet object. Reactive code reading wallet internals depends on `walletUtxos` instead, which is why `store.walletHasAddress()` exists next to `store.wallet.hasAddress()`.
 - Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to `spendableUtxos`: the wallet's utxos minus the reserved outpoints, BCH and token coins alike (`utils/wallet/reservedUtxos.ts`). A reservation is local to this app; another wallet on the same keys can still spend the coin.
+- **identitiesStore.ts**: the identities the wallet follows and everything resolved about them; reads the wallet and its coins from store.ts, which keeps the reservations that hold an authhead back.
 
 ### Multi-Wallet Support
 - Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet); by default each wallet is stored in both databases

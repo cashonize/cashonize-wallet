@@ -1,9 +1,11 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
@@ -46,7 +48,7 @@
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(19)">
-      → {{ t('settings.menu.identities') }} <span v-if="store.identitiesNeedAttention" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
+      → {{ t('settings.menu.identities') }} <span v-if="identitiesStore.identitiesNeedAttention" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">

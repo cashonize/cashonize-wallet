@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { computed, ref, watch, nextTick, onActivated, onDeactivated } from 'vue';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
@@ -17,6 +18,8 @@
   import { exportFile, useQuasar } from 'quasar'
 
   const store = useStore()
+
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
   const $q = useQuasar()
@@ -80,7 +83,7 @@
   // self-send with an OP_RETURN attached
   function identityOperation(transaction: TransactionHistoryItem) {
     const operation = identityOperationOf(
-      transaction, store.identities ?? [], store.identityPublicationTxids
+      transaction, identitiesStore.identities ?? [], identitiesStore.identityPublicationTxids
     );
     if (!operation) return undefined;
     const name = store.bcmrRegistries?.[operation.category]?.name;

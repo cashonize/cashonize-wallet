@@ -8,6 +8,7 @@
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
   import { isAuthKeyCandidate } from 'src/utils/tools/authGuard'
@@ -18,6 +19,7 @@
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
   import { useWindowSize } from 'src/utils/composables'
@@ -98,13 +100,13 @@
   })
   // An AuthKey carries no metadata of its own: it is the NFT itself that is the authority. Once
   // confirmed, the wallet says what it opens instead of showing an unnamed NFT.
-  const guardedIdentities = computed(() => store.identitiesGuardedByKey(tokenData.value.category));
+  const guardedIdentities = computed(() => identitiesStore.identitiesGuardedByKey(tokenData.value.category));
   const guardedNames = computed(() => guardedIdentities.value
     .map(identity => store.bcmrRegistries?.[identity.category]?.name)
     .filter((name): name is string => !!name)
     .join(', '));
   const isIdentityKey = computed(() =>
-    guardedIdentities.value.length > 0 || (store.unidentifiedGuarded[tokenData.value.category] ?? 0) > 0
+    guardedIdentities.value.length > 0 || (identitiesStore.unidentifiedGuarded[tokenData.value.category] ?? 0) > 0
   );
   // The local shape alone, which is a guess: no lookup runs from the token list, so an unconfirmed
   // candidate only gets a nudge towards the page that can settle it.

@@ -8,6 +8,7 @@
   import { useI18n } from 'vue-i18n'
   import { Connection, type ElectrumNetworkProvider } from "mainnet-js"
   import { useStore } from '../stores/store'
+  import { useIdentitiesStore } from '../stores/identitiesStore'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
@@ -17,6 +18,7 @@
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
   const cashconnectStore = useCashconnectStore()
@@ -936,7 +938,7 @@
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(14)">
         → {{ t('settings.menu.tools') }}
         <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
-        <span v-else-if="store.identitiesNeedAttention" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
+        <span v-else-if="identitiesStore.identitiesNeedAttention" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(11)">

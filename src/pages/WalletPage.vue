@@ -26,8 +26,10 @@
   import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
@@ -213,7 +215,7 @@
     if (!store._wallet || !store.walletUtxos) return undefined;
     const needsBackup = settingsStore.getBackupStatus(store.activeWalletName) === 'none';
     return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value
-      || store.identitiesNeedAttention;
+      || identitiesStore.identitiesNeedAttention;
   });
 </script>
 

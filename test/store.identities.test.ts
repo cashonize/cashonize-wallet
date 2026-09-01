@@ -8,6 +8,7 @@ import {
 } from './mocks/store.mocks'
 
 import { useStore } from '../src/stores/store'
+import { useIdentitiesStore } from '../src/stores/identitiesStore'
 import { authGuardAddresses } from '../src/utils/tools/authGuard'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
 
@@ -57,13 +58,14 @@ function listIdentities(categories: string[]) {
 
 function startStore(walletUtxos: Utxo[], guardUtxos: Record<string, Utxo[]> = {}) {
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   store.setWallet(createMockWallet() as never)
   // setWallet gives the wallet its own network provider, so the covenant responder goes on after
   // it: these lookups ask the wallet's electrum about an address that is not the wallet's
   const provider = store.wallet.provider as unknown as { getUtxos: unknown }
   provider.getUtxos = vi.fn((address: string) => Promise.resolve(guardUtxos[address] ?? []))
   store.walletUtxos = walletUtxos
-  return store
+  return { store, identitiesStore }
 }
 
 // An AuthKey is an NFT with nothing on it: no name, no value, commitment 00. What makes it a key
@@ -87,30 +89,30 @@ describe('the identities notification', () => {
   })
 
   it('asks about a key candidate once, and never again for that category', () => {
-    const store = startStore([authKeyUtxo])
-    expect(store.unexaminedKeyCandidates).toEqual([authKeyCategory])
-    expect(store.identitiesNeedAttention).toBe(true)
+    const { identitiesStore } = startStore([authKeyUtxo])
+    expect(identitiesStore.unexaminedKeyCandidates).toEqual([authKeyCategory])
+    expect(identitiesStore.identitiesNeedAttention).toBe(true)
 
-    store.markKeyCandidatesExamined()
+    identitiesStore.markKeyCandidatesExamined()
 
-    expect(store.unexaminedKeyCandidates).toEqual([])
-    expect(store.identitiesNeedAttention).toBe(false)
+    expect(identitiesStore.unexaminedKeyCandidates).toEqual([])
+    expect(identitiesStore.identitiesNeedAttention).toBe(false)
   })
 
   it('remembers the answer across wallet opens', () => {
     const first = startStore([authKeyUtxo])
-    first.markKeyCandidatesExamined()
+    first.identitiesStore.markKeyCandidatesExamined()
 
     setActivePinia(createPinia())
     const reopened = startStore([authKeyUtxo])
 
-    expect(reopened.identitiesNeedAttention).toBe(false)
+    expect(reopened.identitiesStore.identitiesNeedAttention).toBe(false)
   })
 
   // only a category nobody has been asked about can light it again
   it('asks again for a candidate that was not there before', () => {
-    const store = startStore([authKeyUtxo])
-    store.markKeyCandidatesExamined()
+    const { store, identitiesStore } = startStore([authKeyUtxo])
+    identitiesStore.markKeyCandidatesExamined()
 
     const otherCandidate: Utxo = {
       ...authKeyUtxo,
@@ -119,25 +121,25 @@ describe('the identities notification', () => {
     }
     store.walletUtxos = [authKeyUtxo, otherCandidate]
 
-    expect(store.unexaminedKeyCandidates).toEqual([categoryB])
-    expect(store.identitiesNeedAttention).toBe(true)
+    expect(identitiesStore.unexaminedKeyCandidates).toEqual([categoryB])
+    expect(identitiesStore.identitiesNeedAttention).toBe(true)
   })
 
   // a Studio user's keys list their identities without being asked; that is worth telling them
   it('reports an identity found through a key the way the walk reports one', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     const guardedOutput = utxo(authheadA, 0, { category: categoryA, amount: 0n })
-    const store = startStore([authKeyUtxo], { [guardTokenAddress]: [guardedOutput] })
+    const { identitiesStore } = startStore([authKeyUtxo], { [guardTokenAddress]: [guardedOutput] })
 
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
-    expect(store.identityCategories).toContain(categoryA)
-    expect(store.unseenIdentities).toContain(categoryA)
-    expect(store.identitiesNeedAttention).toBe(true)
+    expect(identitiesStore.identityCategories).toContain(categoryA)
+    expect(identitiesStore.unseenIdentities).toContain(categoryA)
+    expect(identitiesStore.identitiesNeedAttention).toBe(true)
 
-    store.markIdentitiesSeen()
-    store.markKeyCandidatesExamined()
-    expect(store.identitiesNeedAttention).toBe(false)
+    identitiesStore.markIdentitiesSeen()
+    identitiesStore.markKeyCandidatesExamined()
+    expect(identitiesStore.identitiesNeedAttention).toBe(false)
   })
 })
 
@@ -154,9 +156,9 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    const store = startStore([authUtxo])
+    const { store, identitiesStore } = startStore([authUtxo])
 
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
@@ -168,11 +170,11 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const oldAuthUtxo = utxo(authheadA, 0)
     const newAuthUtxo = utxo(movedAuthheadA, 0)
-    const store = startStore([oldAuthUtxo, newAuthUtxo])
-    await store.refreshIdentities()
+    const { store, identitiesStore } = startStore([oldAuthUtxo, newAuthUtxo])
+    await identitiesStore.refreshIdentities()
 
     stubAuthheadQueries({ [categoryA]: movedAuthheadA })
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
     expect(outpointOf(oldAuthUtxo) in store.reservedUtxos).toBe(false)
     expect(store.reservedUtxos[outpointOf(newAuthUtxo)]?.reason).toBe('auth')
@@ -185,14 +187,14 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA, categoryB])
     const authUtxoA = utxo(authheadA, 0)
     const authUtxoB = utxo(authheadB, 0)
-    const store = startStore([authUtxoA, authUtxoB])
-    await store.refreshIdentities()
+    const { store, identitiesStore } = startStore([authUtxoA, authUtxoB])
+    await identitiesStore.refreshIdentities()
 
     // categoryA now answers with a different authhead, categoryB's query fails outright
     stubAuthheadQueries({ [categoryA]: movedAuthheadA })
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
-    expect(store.identities?.find(identity => identity.category === categoryB)?.status).toBe('unresolved')
+    expect(identitiesStore.identities?.find(identity => identity.category === categoryB)?.status).toBe('unresolved')
     expect(store.reservedUtxos[outpointOf(authUtxoA)]?.reason).toBe('auth')
     expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
   })
@@ -201,10 +203,10 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    const store = startStore([authUtxo])
+    const { store, identitiesStore } = startStore([authUtxo])
     await store.reserveUtxo(authUtxo, 'pledge')
 
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('pledge')
   })
@@ -216,17 +218,17 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const authUtxoA = utxo(authheadA, 0)
     const authUtxoB = utxo(authheadB, 0)
-    const store = startStore([authUtxoA, authUtxoB])
-    await store.refreshIdentities()
+    const { store, identitiesStore } = startStore([authUtxoA, authUtxoB])
+    await identitiesStore.refreshIdentities()
     // categoryB is a held token category the list does not cover yet
     store.tokenList = [{ category: categoryB, amount: 100n }]
 
-    const summary = await store.scanForIdentities()
+    const summary = await identitiesStore.scanForIdentities()
 
     expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, failed: 0, dismissed: 0, deepScanned: 0 })
     expect(store.reservedUtxos[outpointOf(authUtxoA)]?.reason).toBe('auth')
     expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
-    expect(store.identityCategories).toEqual([categoryA, categoryB])
+    expect(identitiesStore.identityCategories).toEqual([categoryA, categoryB])
   })
 
   // an authhead carrying a token reserve is protected the same way, now that a reservation binds
@@ -235,11 +237,11 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0, { category: categoryA, amount: 1000n })
-    const store = startStore([authUtxo])
+    const { store, identitiesStore } = startStore([authUtxo])
 
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
-    expect(store.identities?.[0]?.status).toBe('carriesTokens')
+    expect(identitiesStore.identities?.[0]?.status).toBe('carriesTokens')
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
   })
@@ -252,12 +254,12 @@ describe('auth reservations follow the authchain', () => {
       txid: authheadA, vout: 0, satoshis: 1000n, address: guardTokenAddress,
       token: { category: categoryA, amount: 500n },
     }
-    const store = startStore([authKeyUtxo], { [guardTokenAddress]: [guardedOutput] })
+    const { store, identitiesStore } = startStore([authKeyUtxo], { [guardTokenAddress]: [guardedOutput] })
 
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
-    expect(store.identities?.[0]?.status).toBe('heldViaKey')
-    expect(store.identities?.[0]?.category).toBe(categoryA)
+    expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
+    expect(identitiesStore.identities?.[0]?.category).toBe(categoryA)
     // the key carries the authority, so the key is what gets held back
     expect(store.reservedUtxos[outpointOf(authKeyUtxo)]?.reason).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
@@ -272,20 +274,20 @@ describe('auth reservations follow the authchain', () => {
       txid: authheadA, vout: 0, satoshis: 1000n, address: guardTokenAddress,
       token: { category: categoryA, amount: 500n },
     }
-    const store = startStore([authKeyUtxo], { [guardTokenAddress]: [staleOutput] })
+    const { store, identitiesStore } = startStore([authKeyUtxo], { [guardTokenAddress]: [staleOutput] })
 
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
-    expect(store.identities?.[0]?.status).toBe('notHeld')
+    expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
     expect(store.reservedUtxos).toEqual({})
   })
 
   // a commitment-00 NFT is a cheap local guess, and freezing on a guess would lock an innocent
   // NFT with no way back
   it('leaves an NFT that only looks like a key alone', async () => {
-    const store = startStore([authKeyUtxo])
+    const { store, identitiesStore } = startStore([authKeyUtxo])
 
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authKeyUtxo])
@@ -296,7 +298,7 @@ describe('auth reservations follow the authchain', () => {
   it('lists and holds back an authhead these keys genesised', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     const authUtxo = utxo(authheadA, 0)
-    const store = startStore([authUtxo])
+    const { store, identitiesStore } = startStore([authUtxo])
     const walk = [{
       transaction_hash: `\\x${categoryA}`,
       output_index: '0',
@@ -306,12 +308,12 @@ describe('auth reservations follow the authchain', () => {
       ] } }],
     }]
 
-    await store.detectWalletIdentities(walk)
+    await identitiesStore.detectWalletIdentities(walk)
 
-    expect(store.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
     // and it says so, rather than the coin quietly becoming unspendable
-    expect(store.unseenIdentities).toEqual([categoryA])
+    expect(identitiesStore.unseenIdentities).toEqual([categoryA])
   })
 
   // removing is a decision the automatic detection has to respect, or it is refought every open
@@ -319,9 +321,9 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    const store = startStore([authUtxo])
-    await store.refreshIdentities()
-    await store.removeIdentity(categoryA)
+    const { identitiesStore } = startStore([authUtxo])
+    await identitiesStore.refreshIdentities()
+    await identitiesStore.removeIdentity(categoryA)
     const walk = [{
       transaction_hash: `\\x${categoryA}`,
       output_index: '0',
@@ -331,17 +333,17 @@ describe('auth reservations follow the authchain', () => {
       ] } }],
     }]
 
-    await store.detectWalletIdentities(walk)
+    await identitiesStore.detectWalletIdentities(walk)
 
-    expect(store.identityCategories).toEqual([])
-    expect(store.dismissedIdentities).toEqual([categoryA])
+    expect(identitiesStore.identityCategories).toEqual([])
+    expect(identitiesStore.dismissedIdentities).toEqual([categoryA])
   })
 
   // A BCH-only chain carries nothing on its identity output to name it. Protection cannot wait
   // for that: the coin is held back first, and naming it comes after.
   it('holds back an authhead it cannot name', async () => {
     const authUtxo = utxo(authheadA, 0)
-    const store = startStore([authUtxo])
+    const { store, identitiesStore } = startStore([authUtxo])
     const walk = [{
       transaction_hash: `\\x${categoryA}`,
       output_index: '1',
@@ -353,18 +355,18 @@ describe('auth reservations follow the authchain', () => {
       ] } }],
     }]
 
-    await store.detectWalletIdentities(walk)
+    await identitiesStore.detectWalletIdentities(walk)
 
-    expect(Object.keys(store.authheadNaming)).toEqual([authheadA])
+    expect(Object.keys(identitiesStore.authheadNaming)).toEqual([authheadA])
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
     // nothing was named, so nothing joined the identity list
-    expect(store.identityCategories).toEqual([])
+    expect(identitiesStore.identityCategories).toEqual([])
   })
 
   it('releases an unnamed authhead the user drops, and does not list it again', async () => {
     const authUtxo = utxo(authheadA, 0)
-    const store = startStore([authUtxo])
+    const { store, identitiesStore } = startStore([authUtxo])
     const walk = [{
       transaction_hash: `\\x${categoryA}`,
       output_index: '1',
@@ -375,12 +377,12 @@ describe('auth reservations follow the authchain', () => {
           nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
       ] } }],
     }]
-    await store.detectWalletIdentities(walk)
+    await identitiesStore.detectWalletIdentities(walk)
 
-    await store.removeUnnamedAuthhead(authheadA)
-    await store.detectWalletIdentities(walk)
+    await identitiesStore.removeUnnamedAuthhead(authheadA)
+    await identitiesStore.detectWalletIdentities(walk)
 
-    expect(Object.keys(store.authheadNaming)).toEqual([])
+    expect(Object.keys(identitiesStore.authheadNaming)).toEqual([])
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authUtxo])
   })
@@ -390,7 +392,7 @@ describe('auth reservations follow the authchain', () => {
   // authhead has not moved.
   it('walks an unnameable authhead once and remembers the conclusion', async () => {
     const authUtxo = utxo(authheadA, 0)
-    const store = startStore([authUtxo])
+    const { store, identitiesStore } = startStore([authUtxo])
     // a chain that goes nowhere: the walk concludes rather than failing to fetch
     const fetched: string[] = []
     const provider = store.wallet.provider as unknown as { getRawTransactionObject: unknown }
@@ -408,12 +410,12 @@ describe('auth reservations follow the authchain', () => {
           nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
       ] } }],
     }]
-    await store.detectWalletIdentities(walk)
-    expect(store.authheadNaming[authheadA]).toBe('walkConcluded')
+    await identitiesStore.detectWalletIdentities(walk)
+    expect(identitiesStore.authheadNaming[authheadA]).toBe('walkConcluded')
     const afterFirst = fetched.length
     expect(afterFirst).toBeGreaterThan(0)
 
-    await store.nameUnnamedAuthheads()
+    await identitiesStore.nameUnnamedAuthheads()
 
     // still protected, and not walked a second time
     expect(fetched).toHaveLength(afterFirst)
@@ -425,37 +427,37 @@ describe('auth reservations follow the authchain', () => {
   it('forgets a cached history once its authhead has moved', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
-    const store = startStore([utxo(authheadA, 0), utxo(movedAuthheadA, 0)])
-    await store.refreshIdentities()
-    store.identityHistories = { [categoryA]: [{ hash: authheadA, kind: 'genesis', reserve: 0n, reserveDelta: 0n }] }
+    const { identitiesStore } = startStore([utxo(authheadA, 0), utxo(movedAuthheadA, 0)])
+    await identitiesStore.refreshIdentities()
+    identitiesStore.identityHistories = { [categoryA]: [{ hash: authheadA, kind: 'genesis', reserve: 0n, reserveDelta: 0n }] }
 
     stubAuthheadQueries({ [categoryA]: movedAuthheadA })
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
-    expect(store.identityHistories[categoryA]).toBeUndefined()
+    expect(identitiesStore.identityHistories[categoryA]).toBeUndefined()
   })
 
   it('keeps a cached history while its authhead has not moved', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
-    const store = startStore([utxo(authheadA, 0)])
-    await store.refreshIdentities()
+    const { identitiesStore } = startStore([utxo(authheadA, 0)])
+    await identitiesStore.refreshIdentities()
     const cached = [{ hash: authheadA, kind: 'genesis' as const, reserve: 0n, reserveDelta: 0n }]
-    store.identityHistories = { [categoryA]: cached }
+    identitiesStore.identityHistories = { [categoryA]: cached }
 
-    await store.refreshIdentities()
+    await identitiesStore.refreshIdentities()
 
-    expect(store.identityHistories[categoryA]).toEqual(cached)
+    expect(identitiesStore.identityHistories[categoryA]).toEqual(cached)
   })
 
   it('releases the authhead of an identity removed from the list', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    const store = startStore([authUtxo])
-    await store.refreshIdentities()
+    const { store, identitiesStore } = startStore([authUtxo])
+    await identitiesStore.refreshIdentities()
 
-    await store.removeIdentity(categoryA)
+    await identitiesStore.removeIdentity(categoryA)
 
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authUtxo])
