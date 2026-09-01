@@ -40,6 +40,7 @@ function stubAuthheadQueries(authheads: Record<string, string>) {
         data: { transaction: [{ authchains: [{ authhead: {
           hash: `\\x${authheads[category]}`, // chaingraph returns bytea as \x-prefixed hex
           identity_output: [{ fungible_token_amount: '0' }],
+          outputs: [],
         } }] }] },
       }),
     })

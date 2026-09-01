@@ -98,8 +98,10 @@ import {
   deleteIdentityCategory,
   removeIdentityCategories,
   resolveIdentities,
+  checkPublicationUri,
   type IdentityState,
-  type IdentityScanSummary
+  type IdentityScanSummary,
+  type PublicationUriCheck
 } from "src/utils/tools/authchainIdentity"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
@@ -177,6 +179,11 @@ export const useStore = defineStore('store', () => {
   // (see utils/tools/authchainIdentity.ts).
   const identityCategories = ref([] as string[]);
   const identities = ref(undefined as (IdentityState[] | undefined));
+  // What each listed identity's published registry locations actually serve, keyed by category.
+  // Kept beside the identities rather than on them: resolution reads the chain, this reads the
+  // hosting, and one can be present without the other.
+  const publicationChecks = ref({} as Record<string, PublicationUriCheck[]>);
+  const publicationChecksRunning = ref(false);
   // One resolve at a time: a pass writes the identities list and the 'auth' reservations derived
   // from it whole, so two overlapping passes would undo each other's result
   const identitiesResolving = ref(false);
@@ -413,6 +420,7 @@ export const useStore = defineStore('store', () => {
     utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
     identityCategories.value = loadIdentityCategories(newNetwork, newWallet.name);
     identities.value = undefined;
+    publicationChecks.value = {};
   }
 
   function setTxNote(txid: string, note: string) {
@@ -1445,6 +1453,29 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // Fetches every listed identity's published locations and compares what they serve against the
+  // hash on chain. Only ever on the user opening the page: this reaches out to the identity's
+  // hosting, which is not something to do quietly in the background on every wallet start.
+  async function checkPublications() {
+    const listed = identities.value?.filter(identity => identity.publication) ?? [];
+    if (!listed.length) return;
+    publicationChecksRunning.value = true;
+    try {
+      const initialization = currentInitialization;
+      const checked = await Promise.all(listed.map(async identity => {
+        const publication = identity.publication!;
+        const checks = await Promise.all(publication.uris.map(
+          uri => checkPublicationUri(uri, publication.hash, settingsStore.ipfsGateway)
+        ));
+        return [identity.category, checks] as const;
+      }));
+      if (initialization !== currentInitialization) return;
+      publicationChecks.value = Object.fromEntries(checked);
+    } finally {
+      publicationChecksRunning.value = false;
+    }
+  }
+
   async function addIdentity(category: string) {
     identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
     await refreshIdentities();
@@ -1762,6 +1793,9 @@ export const useStore = defineStore('store', () => {
     identityCategories,
     identities,
     identitiesResolving,
+    publicationChecks,
+    publicationChecksRunning,
+    checkPublications,
     checkTokenUtxosSpendable,
     refreshIdentities,
     scanForIdentities,

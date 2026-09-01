@@ -1415,7 +1415,7 @@
     "reserveNote": "An AuthHead this wallet holds is kept out of coin selection, so an ordinary send cannot spend it by accident.",
     "resolving": "Looking up where the AuthHeads are...",
     "empty": "No identities listed yet.",
-    "heldCount": "{count} AuthHead held by this wallet | {count} AuthHeads held by this wallet",
+    "listedCount": "{count} identity followed by this wallet | {count} identities followed by this wallet",
     "unnamedIdentity": "Unnamed identity",
     "categoryLabel": "Category:",
     "authheadLabel": "AuthHead:",
@@ -1424,7 +1424,7 @@
     "status": {
       "held": "AuthHead held by this wallet",
       "carriesTokens": "AuthHead held by this wallet, with a reserve",
-      "notHeld": "AuthHead is not in this wallet",
+      "notHeld": "Watched, the AuthHead is not in this wallet",
       "unresolved": "Could not look up the AuthHead"
     },
     "reserve": {
@@ -1433,6 +1433,18 @@
       "mintingNft": "A minting NFT, which creates new NFTs of this category",
       "nft": "An NFT of this category",
       "comingNote": "The AuthHead is held back from coin selection, so an ordinary send cannot spend it. Issuing from the reserve, adding to it and transferring the identity come in a later version."
+    },
+    "publication": {
+      "title": "Latest metadata publication",
+      "none": "This identity has never published metadata.",
+      "checking": "checking...",
+      "hash": "Published hash: {hash}",
+      "status": {
+        "verified": "verified",
+        "changed": "changed since publication",
+        "changedIpfs": "does not match the published hash",
+        "unreachable": "unreachable"
+      }
     },
     "add": {
       "label": "Add an identity by token category",

@@ -1415,7 +1415,7 @@
     "reserveNote": "Ein AuthHead in diesem Wallet bleibt von der Münzauswahl ausgenommen, damit ein gewöhnlicher Versand ihn nicht versehentlich ausgibt.",
     "resolving": "Suche, wo die AuthHeads liegen...",
     "empty": "Noch keine Identitäten in der Liste.",
-    "heldCount": "{count} AuthHead in diesem Wallet | {count} AuthHeads in diesem Wallet",
+    "listedCount": "{count} Identität, der dieses Wallet folgt | {count} Identitäten, denen dieses Wallet folgt",
     "unnamedIdentity": "Identität ohne Namen",
     "categoryLabel": "Kategorie:",
     "authheadLabel": "AuthHead:",
@@ -1424,7 +1424,7 @@
     "status": {
       "held": "AuthHead in diesem Wallet",
       "carriesTokens": "AuthHead in diesem Wallet, mit Reserve",
-      "notHeld": "Der AuthHead ist nicht in diesem Wallet",
+      "notHeld": "Beobachtet, der AuthHead ist nicht in diesem Wallet",
       "unresolved": "AuthHead konnte nicht abgefragt werden"
     },
     "reserve": {
@@ -1433,6 +1433,18 @@
       "mintingNft": "Ein Minting-NFT, das neue NFTs dieser Kategorie erzeugt",
       "nft": "Ein NFT dieser Kategorie",
       "comingNote": "Der AuthHead ist von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also nicht ausgeben. Aus der Reserve ausgeben, ihr etwas hinzufügen und die Identität übertragen kommen in einer späteren Version."
+    },
+    "publication": {
+      "title": "Letzte Metadaten-Veröffentlichung",
+      "none": "Diese Identität hat noch nie Metadaten veröffentlicht.",
+      "checking": "wird geprüft...",
+      "hash": "Veröffentlichter Hash: {hash}",
+      "status": {
+        "verified": "verifiziert",
+        "changed": "seit der Veröffentlichung geändert",
+        "changedIpfs": "passt nicht zum veröffentlichten Hash",
+        "unreachable": "nicht erreichbar"
+      }
     },
     "add": {
       "label": "Identität über die Token-Kategorie hinzufügen",

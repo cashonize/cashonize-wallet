@@ -1415,7 +1415,7 @@
     "reserveNote": "Um AuthHead desta carteira fica de fora da seleção de moedas, para que um envio comum não o gaste por acidente.",
     "resolving": "Procurando onde estão os AuthHeads...",
     "empty": "Ainda não há identidades na lista.",
-    "heldCount": "{count} AuthHead nesta carteira | {count} AuthHeads nesta carteira",
+    "listedCount": "{count} identidade acompanhada por esta carteira | {count} identidades acompanhadas por esta carteira",
     "unnamedIdentity": "Identidade sem nome",
     "categoryLabel": "Categoria:",
     "authheadLabel": "AuthHead:",
@@ -1424,7 +1424,7 @@
     "status": {
       "held": "AuthHead nesta carteira",
       "carriesTokens": "AuthHead nesta carteira, com reserva",
-      "notHeld": "O AuthHead não está nesta carteira",
+      "notHeld": "Acompanhada, o AuthHead não está nesta carteira",
       "unresolved": "Não foi possível consultar o AuthHead"
     },
     "reserve": {
@@ -1433,6 +1433,18 @@
       "mintingNft": "Um NFT de cunhagem, que cria novos NFTs desta categoria",
       "nft": "Um NFT desta categoria",
       "comingNote": "O AuthHead fica fora da seleção de moedas, então um envio comum não pode gastá-lo. Emitir da reserva, adicionar a ela e transferir a identidade vêm numa versão posterior."
+    },
+    "publication": {
+      "title": "Última publicação de metadados",
+      "none": "Esta identidade nunca publicou metadados.",
+      "checking": "verificando...",
+      "hash": "Hash publicado: {hash}",
+      "status": {
+        "verified": "verificado",
+        "changed": "alterado desde a publicação",
+        "changedIpfs": "não corresponde ao hash publicado",
+        "unreachable": "inacessível"
+      }
     },
     "add": {
       "label": "Adicionar uma identidade pela categoria do token",

@@ -9,7 +9,13 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { validateRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { isTokenCategory, type IdentityState, type IdentityScanSummary } from 'src/utils/tools/authchainIdentity'
+  import {
+    isTokenCategory,
+    registryUrlOf,
+    type IdentityState,
+    type IdentityScanSummary,
+    type PublicationUriStatus,
+  } from 'src/utils/tools/authchainIdentity'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -28,7 +34,35 @@
   const truncateHash = (hash: string) => `${hash.slice(0, 16)}...${hash.slice(-8)}`;
 
   const identities = computed(() => store.identities ?? []);
-  const heldCount = computed(() => identities.value.filter(identity => identity.status === 'held').length);
+  // A watched identity counts here too: the wallet follows its publication either way, and only
+  // the actions depend on holding the authhead
+  const listedCount = computed(() =>
+    identities.value.filter(identity => identity.status !== 'unresolved').length
+  );
+
+  // An IPFS CID cannot serve content other than its own, so a mismatch there says something
+  // different from an edited file at an HTTPS location
+  function uriStatusText(uri: string, status: PublicationUriStatus) {
+    if (status !== 'changed') return t(`identities.publication.status.${status}`);
+    return uri.startsWith('ipfs://')
+      ? t('identities.publication.status.changedIpfs')
+      : t('identities.publication.status.changed');
+  }
+
+  // One row per published location: the location as published, where it is actually fetched from,
+  // and what fetching it found once the check has run
+  function publicationRows(identity: IdentityState) {
+    const checks = store.publicationChecks[identity.category];
+    return (identity.publication?.uris ?? []).map(uri => {
+      const status = checks?.find(check => check.uri === uri)?.status;
+      return {
+        uri,
+        url: registryUrlOf(uri, settingsStore.ipfsGateway),
+        status,
+        statusText: status ? uriStatusText(uri, status) : undefined,
+      };
+    });
+  }
 
   const identityName = (category: string) => store.bcmrRegistries?.[category]?.name;
 
@@ -68,6 +102,8 @@
   async function reloadIdentities() {
     await store.refreshIdentities();
     await fetchMissingMetadata();
+    // after the resolving, which is what says where each publication is
+    await store.checkPublications();
   }
 
   onActivated(() => { void reloadIdentities() });
@@ -225,7 +261,7 @@
     <div class="section">
       <div v-if="!store.identities" class="description">{{ t('identities.resolving') }}</div>
       <div v-else-if="!identities.length" class="description">{{ t('identities.empty') }}</div>
-      <div v-else class="description">{{ t('identities.heldCount', heldCount) }}</div>
+      <div v-else class="description">{{ t('identities.listedCount', listedCount) }}</div>
 
       <div v-for="identity in identities" :key="identity.category" class="section identity-card">
         <div class="identity-header">
@@ -260,6 +296,23 @@
         </div>
         <div v-if="identity.authUtxo" class="description">
           {{ t('identities.authheadAmount', { amount: bchOf(identity.authUtxo.satoshis) }) }}
+        </div>
+
+        <!-- The latest metadata publication of this identity, and what its locations serve now.
+             Shown for a watched identity as much as a held one: reading it needs no custody. -->
+        <div class="section">
+          <div>{{ t('identities.publication.title') }}</div>
+          <div v-if="!identity.publication" class="description">{{ t('identities.publication.none') }}</div>
+          <template v-else>
+            <div v-for="row in publicationRows(identity)" :key="row.uri" class="publication-uri">
+              <a :href="row.url" target="_blank" class="mono">{{ row.uri }}</a>
+              <span v-if="row.status" class="publication-badge" :class="row.status">{{ row.statusText }}</span>
+              <span v-else-if="store.publicationChecksRunning" class="description">{{ t('identities.publication.checking') }}</span>
+            </div>
+            <div class="description mono" :title="identity.publication.hash">
+              {{ t('identities.publication.hash', { hash: truncateHash(identity.publication.hash) }) }}
+            </div>
+          </template>
         </div>
 
         <div v-if="identity.status === 'carriesTokens'" class="section">
@@ -349,9 +402,36 @@
 .identity-status.held {
   color: var(--color-primary);
 }
-.identity-status.carriesTokens,
+.identity-status.carriesTokens {
+  color: var(--color-primary);
+}
+/* an identity whose authhead lives elsewhere is watched, not broken, so it reads as neither */
+.identity-status.notHeld {
+  color: grey;
+}
 .identity-status.unresolved {
   color: orange;
+}
+.publication-uri {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.publication-badge {
+  font-size: 0.85em;
+  padding: 1px 8px;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+}
+.publication-badge.verified {
+  color: var(--color-primary);
+}
+.publication-badge.changed {
+  color: orange;
+}
+.publication-badge.unreachable {
+  color: var(--color-error);
 }
 .copy-target {
   cursor: pointer;

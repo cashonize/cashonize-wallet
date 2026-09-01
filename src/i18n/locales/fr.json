@@ -1415,7 +1415,7 @@
     "reserveNote": "Un AuthHead détenu par ce portefeuille est écarté de la sélection des pièces, pour qu'un envoi ordinaire ne le dépense pas par accident.",
     "resolving": "Recherche de l'emplacement des AuthHeads...",
     "empty": "Aucune identité dans la liste pour l'instant.",
-    "heldCount": "{count} AuthHead détenu par ce portefeuille | {count} AuthHeads détenus par ce portefeuille",
+    "listedCount": "{count} identité suivie par ce portefeuille | {count} identités suivies par ce portefeuille",
     "unnamedIdentity": "Identité sans nom",
     "categoryLabel": "Catégorie :",
     "authheadLabel": "AuthHead :",
@@ -1424,7 +1424,7 @@
     "status": {
       "held": "AuthHead détenu par ce portefeuille",
       "carriesTokens": "AuthHead détenu par ce portefeuille, avec une réserve",
-      "notHeld": "L'AuthHead n'est pas dans ce portefeuille",
+      "notHeld": "Suivie, l'AuthHead n'est pas dans ce portefeuille",
       "unresolved": "Impossible de consulter l'AuthHead"
     },
     "reserve": {
@@ -1433,6 +1433,18 @@
       "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
       "nft": "Un NFT de cette catégorie",
       "comingNote": "L'AuthHead est écarté de la sélection des pièces, un envoi ordinaire ne peut donc pas le dépenser. Émettre depuis la réserve, y ajouter et transférer l'identité arrivent dans une version ultérieure."
+    },
+    "publication": {
+      "title": "Dernière publication de métadonnées",
+      "none": "Cette identité n'a jamais publié de métadonnées.",
+      "checking": "vérification...",
+      "hash": "Hash publié : {hash}",
+      "status": {
+        "verified": "vérifié",
+        "changed": "modifié depuis la publication",
+        "changedIpfs": "ne correspond pas au hash publié",
+        "unreachable": "injoignable"
+      }
     },
     "add": {
       "label": "Ajouter une identité par catégorie de jeton",

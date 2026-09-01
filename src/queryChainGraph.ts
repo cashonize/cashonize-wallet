@@ -1,6 +1,3 @@
-import {
-  ChaingraphAuthHeadSchema,
-} from "src/utils/zodValidation";
 import { hexToBin, binToHex, encodeLockingBytecodeP2pkh } from "@bitauth/libauth";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -56,6 +53,9 @@ async function queryChainGraph(queryReq:string, chaingraphUrl:string, variables:
     return jsonResponse;
 }
 
+// OP_RETURN followed by a push of "BCMR", which is what makes an output a metadata publication
+const BCMR_OUTPUT_PREFIX = "6a0442434d52";
+
 // Chaingraph returns bytea values as \x-prefixed hex strings
 export function byteaToHex(bytea: string) {
   return bytea.replace(/^\\x/, "");
@@ -75,6 +75,23 @@ export async function queryBlockHeight(chaingraphUrl: string) {
   return Number(height);
 }
 
+// Bigint values arrive as decimal strings and bytea values as hex strings, as everywhere here
+interface AuthHeadResponse {
+  data: {
+    transaction: {
+      authchains: {
+        authhead: {
+          hash: string;
+          identity_output: { fungible_token_amount: string | null }[];
+          // every output of the authhead transaction, so the BCMR publication among them can be
+          // recognised by its locking bytecode
+          outputs: { output_index: string; locking_bytecode: string }[];
+        };
+      }[];
+    }[];
+  };
+}
+
 export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
   const queryReqAuthHead = `query {
     transaction(
@@ -89,23 +106,37 @@ export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
           hash,
           identity_output {
             fungible_token_amount
+          },
+          outputs {
+            output_index,
+            locking_bytecode
           }
         }
       }
     }
   }`;
-  const jsonRespAuthHead = await queryChainGraph(queryReqAuthHead, chaingraphUrl);
-  const parsed = ChaingraphAuthHeadSchema.parse(jsonRespAuthHead);
-  const transaction = parsed.data.transaction[0];
+  const response = await queryChainGraph(queryReqAuthHead, chaingraphUrl) as AuthHeadResponse;
+  const transaction = response.data.transaction[0];
   if (!transaction) throw new Error(t('chaingraph.errors.tokenNotFound'));
   return transaction;
 }
 
-export async function queryAuthHeadTxid(tokenId:string, chaingraphUrl:string){
+// The authhead's txid and, when its transaction carries one, the metadata publication it made.
+// Both come out of the one query: the publication is an output of that same transaction, and the
+// identity card wants the two together.
+export async function queryAuthHeadWithPublication(tokenId:string, chaingraphUrl:string){
   const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
   const authchain = authHeadObj.authchains[0];
   if (!authchain) throw new Error(t('chaingraph.errors.authchainNotFound'));
-  return byteaToHex(authchain.authhead.hash);
+  const publicationOutput = (authchain.authhead.outputs ?? [])
+    // by output index, since the spec takes the first matching output of the transaction
+    .sort((left, right) => Number(left.output_index) - Number(right.output_index))
+    .map(output => byteaToHex(output.locking_bytecode))
+    .find(lockingBytecode => lockingBytecode.startsWith(BCMR_OUTPUT_PREFIX));
+  return {
+    txid: byteaToHex(authchain.authhead.hash),
+    publicationOutput,
+  };
 }
 
 // Bigint values arrive as decimal strings, like the bytea values arrive as hex strings

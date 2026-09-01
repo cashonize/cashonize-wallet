@@ -1415,7 +1415,7 @@
     "reserveNote": "Un AuthHead que tiene esta billetera queda fuera de la selección de monedas, para que un envío normal no lo gaste por accidente.",
     "resolving": "Buscando dónde están los AuthHeads...",
     "empty": "Todavía no hay identidades en la lista.",
-    "heldCount": "{count} AuthHead en esta billetera | {count} AuthHeads en esta billetera",
+    "listedCount": "{count} identidad seguida por esta billetera | {count} identidades seguidas por esta billetera",
     "unnamedIdentity": "Identidad sin nombre",
     "categoryLabel": "Categoría:",
     "authheadLabel": "AuthHead:",
@@ -1424,7 +1424,7 @@
     "status": {
       "held": "AuthHead en esta billetera",
       "carriesTokens": "AuthHead en esta billetera, con reserva",
-      "notHeld": "El AuthHead no está en esta billetera",
+      "notHeld": "En seguimiento, el AuthHead no está en esta billetera",
       "unresolved": "No se pudo consultar el AuthHead"
     },
     "reserve": {
@@ -1433,6 +1433,18 @@
       "mintingNft": "Un NFT de acuñación, que crea nuevos NFTs de esta categoría",
       "nft": "Un NFT de esta categoría",
       "comingNote": "El AuthHead queda fuera de la selección de monedas, así que un envío normal no lo puede gastar. Emitir desde la reserva, añadir a ella y transferir la identidad llegan en una versión posterior."
+    },
+    "publication": {
+      "title": "Última publicación de metadatos",
+      "none": "Esta identidad nunca ha publicado metadatos.",
+      "checking": "comprobando...",
+      "hash": "Hash publicado: {hash}",
+      "status": {
+        "verified": "verificado",
+        "changed": "cambiado desde la publicación",
+        "changedIpfs": "no coincide con el hash publicado",
+        "unreachable": "inaccesible"
+      }
     },
     "add": {
       "label": "Añadir una identidad por categoría de token",
