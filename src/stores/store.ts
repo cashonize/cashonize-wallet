@@ -109,6 +109,8 @@ import {
   loadUnnamedAuthheads,
   saveUnnamedAuthhead,
   deleteUnnamedAuthhead,
+  loadUnnameableAuthheads,
+  saveUnnameableAuthhead,
   resolveIdentities,
   checkPublicationUri,
   identityKeyCoin,
@@ -209,6 +211,10 @@ export const useStore = defineStore('store', () => {
   // Authheads held here that the detection could not name. Protected all the same: naming is a
   // convenience, an unspendable coin is the point.
   const unnamedAuthheads = ref([] as string[]);
+  // Authheads a completed walk could not name, so an unchanged one is not walked again on every
+  // wallet open. Keyed by the authhead's txid, which makes it self-invalidating: the moment the
+  // authhead moves it is a different txid and earns a fresh walk.
+  const unnameableAuthheads = ref([] as string[]);
   const identities = ref(undefined as (IdentityState[] | undefined));
   // What each listed identity's published registry locations actually serve, keyed by category.
   // Kept beside the identities rather than on them: resolution reads the chain, this reads the
@@ -464,6 +470,7 @@ export const useStore = defineStore('store', () => {
     dismissedIdentities.value = loadDismissedIdentities(newNetwork, newWallet.name);
     unseenIdentities.value = loadUnseenIdentities(newNetwork, newWallet.name);
     unnamedAuthheads.value = loadUnnamedAuthheads(newNetwork, newWallet.name);
+    unnameableAuthheads.value = loadUnnameableAuthheads(newNetwork, newWallet.name);
     identities.value = undefined;
     publicationChecks.value = {};
     guardedIdentities.value = {};
@@ -1467,9 +1474,11 @@ export const useStore = defineStore('store', () => {
     let found = 0;
     for (const coin of candidates) {
       const initialization = currentInitialization;
-      const category = await nameChainByWalkingBack(coin.txid, fetchTransaction);
+      const walked = await nameChainByWalkingBack(coin.txid, fetchTransaction);
       if (initialization !== currentInitialization) return found;
-      if (!category || identityCategories.value.includes(category)) continue;
+      if (walked.outcome !== 'named') continue;
+      const category = walked.category;
+      if (identityCategories.value.includes(category)) continue;
       if (dismissedIdentities.value.includes(category)) continue;
       // the walk says which genesis, the forward query says that genesis still ends at this coin
       const confirmed = await queryAuthHeadWithOutputs(category, settingsStore.chaingraph)
@@ -1493,10 +1502,17 @@ export const useStore = defineStore('store', () => {
     const fetchTransaction = (txid: string) => wallet.value.provider.getRawTransactionObject(txid);
     let named = 0;
     for (const coin of coins) {
+      if (unnameableAuthheads.value.includes(coin.txid)) continue;
       const initialization = currentInitialization;
-      const category = await nameChainByWalkingBack(coin.txid, fetchTransaction);
+      const walked = await nameChainByWalkingBack(coin.txid, fetchTransaction);
       if (initialization !== currentInitialization) return named;
-      if (!category) continue;
+      if (walked.outcome === 'unnameable') {
+        unnameableAuthheads.value = saveUnnameableAuthhead(network.value, wallet.value.name, coin.txid);
+        continue;
+      }
+      // 'unavailable' says nothing about the chain, so it is simply tried again next time
+      if (walked.outcome !== 'named') continue;
+      const category = walked.category;
       const confirmed = await queryAuthHeadWithOutputs(category, settingsStore.chaingraph)
         .then(result => result.txid === coin.txid)
         .catch(() => false);
@@ -2116,6 +2132,7 @@ export const useStore = defineStore('store', () => {
     dismissedIdentities,
     unseenIdentities,
     unnamedAuthheads,
+    unnameableAuthheads,
     unnamedAuthheadCoins,
     removeUnnamedAuthhead,
     nameUnnamedAuthheads,

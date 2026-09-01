@@ -319,6 +319,41 @@ describe('auth reservations follow the authchain', () => {
     expect(store.spendableUtxos).toEqual([authUtxo])
   })
 
+  // A chain that walked to a conclusion without a genesis must not be walked again on every wallet
+  // open: that is up to the hop limit in fetches, for an answer that cannot have changed while the
+  // authhead has not moved.
+  it('walks an unnameable authhead once and remembers the conclusion', async () => {
+    const authUtxo = utxo(authheadA, 0)
+    const store = startStore([authUtxo])
+    // a chain that goes nowhere: the walk concludes rather than failing to fetch
+    const fetched: string[] = []
+    const provider = store.wallet.provider as unknown as { getRawTransactionObject: unknown }
+    provider.getRawTransactionObject = vi.fn((txid: string) => {
+      fetched.push(txid)
+      return Promise.resolve({ vin: [{ txid: categoryA, vout: 2 }], vout: [] })
+    })
+    const walk = [{
+      transaction_hash: `\\x${categoryA}`,
+      output_index: '1',
+      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+      ] } }],
+    }]
+    await store.detectWalletIdentities(walk)
+    expect(store.unnameableAuthheads).toEqual([authheadA])
+    const afterFirst = fetched.length
+    expect(afterFirst).toBeGreaterThan(0)
+
+    await store.nameUnnamedAuthheads()
+
+    // still protected, and not walked a second time
+    expect(fetched).toHaveLength(afterFirst)
+    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+  })
+
   it('releases the authhead of an identity removed from the list', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])

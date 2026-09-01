@@ -148,7 +148,8 @@ describe('nameChainByWalkingBack', () => {
       { txid: genesis, parent: genesisInput, mints: genesisInput },
     ])
 
-    expect(await nameChainByWalkingBack(authhead, fetchTransaction)).toBe(genesisInput)
+    expect(await nameChainByWalkingBack(authhead, fetchTransaction))
+      .toEqual({ outcome: 'named', category: genesisInput })
   })
 
   it('stops at the genesis rather than walking past it', async () => {
@@ -170,20 +171,26 @@ describe('nameChainByWalkingBack', () => {
     }))
     const { fetchTransaction, calls } = chainFetcher(links)
 
-    expect(await nameChainByWalkingBack(links[0]!.txid, fetchTransaction, 4)).toBeUndefined()
+    // a conclusion: walked as far as it is worth walking, so this one is worth remembering
+    expect(await nameChainByWalkingBack(links[0]!.txid, fetchTransaction, 4))
+      .toEqual({ outcome: 'unnameable' })
     expect(calls).toHaveLength(4)
   })
 
-  it('gives up when a hop cannot be fetched', async () => {
+  // an unfetchable hop says nothing about the chain, so it must not be remembered as a conclusion:
+  // one network failure would otherwise give up on naming it forever
+  it('reports an unfetchable hop as unavailable rather than as a conclusion', async () => {
     const { fetchTransaction } = chainFetcher([{ txid: authhead, parent: middle }])
 
-    expect(await nameChainByWalkingBack(authhead, fetchTransaction)).toBeUndefined()
+    expect(await nameChainByWalkingBack(authhead, fetchTransaction))
+      .toEqual({ outcome: 'unavailable' })
   })
 
   // a transaction spending no vout-0 outpoint is not an authchain link
   it('gives up where the chain does not continue', async () => {
     const fetchTransaction = () => Promise.resolve({ vin: [{ txid: middle, vout: 2 }], vout: [] })
 
-    expect(await nameChainByWalkingBack(authhead, fetchTransaction)).toBeUndefined()
+    expect(await nameChainByWalkingBack(authhead, fetchTransaction))
+      .toEqual({ outcome: 'unnameable' })
   })
 })

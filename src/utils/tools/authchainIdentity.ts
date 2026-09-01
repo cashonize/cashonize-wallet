@@ -381,6 +381,31 @@ export function deleteUnnamedAuthhead(network: Network, walletName: string, txid
   return unnamed;
 }
 
+// Authheads the backward walk followed to a conclusion without finding a genesis. Remembered by
+// the txid of the authhead, so it self-invalidates: an authhead that moves has a new txid and
+// earns its walk again. Only a walk that reached a conclusion is remembered, never one that could
+// not fetch a hop, or a single network failure would give up on a chain forever.
+function unnameableKey(network: Network, walletName: string): string {
+  return `unnameableAuthheads-${network}-${walletName}`;
+}
+
+export function loadUnnameableAuthheads(network: Network, walletName: string): string[] {
+  const read = localStorage.getItem(unnameableKey(network, walletName));
+  if (!read) return [];
+  try {
+    return JSON.parse(read) as string[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveUnnameableAuthhead(network: Network, walletName: string, txid: string): string[] {
+  const unnameable = loadUnnameableAuthheads(network, walletName);
+  if (!unnameable.includes(txid)) unnameable.push(txid);
+  localStorage.setItem(unnameableKey(network, walletName), JSON.stringify(unnameable));
+  return unnameable;
+}
+
 // Categories the user took off the list. A decision rather than a derivation, which is why this
 // is the one thing here that is stored rather than re-read from the chain: without it the
 // automatic detection would put back on every open what the user just removed.
@@ -449,6 +474,7 @@ export function removeIdentityCategories(walletName: string) {
     localStorage.removeItem(dismissedKey(network, walletName));
     localStorage.removeItem(unseenKey(network, walletName));
     localStorage.removeItem(unnamedKey(network, walletName));
+    localStorage.removeItem(unnameableKey(network, walletName));
   }
 }
 

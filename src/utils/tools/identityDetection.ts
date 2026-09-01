@@ -82,26 +82,37 @@ interface RawTransaction {
   vout: { n: number, tokenData?: { category: string } }[];
 }
 
+// Told apart because they mean different things to the caller: a chain that walked to a
+// conclusion is worth remembering as unnameable, while one whose hop could not be fetched says
+// nothing at all and must be tried again. Conflating them would let a single network failure
+// give up on a chain permanently.
+export type ChainNamingResult =
+  | { outcome: 'named', category: string }
+  | { outcome: 'unnameable' }
+  | { outcome: 'unavailable' };
+
 export async function nameChainByWalkingBack(
   authheadTxid: string,
   fetchTransaction: (txid: string) => Promise<RawTransaction>,
   hopLimit = backwardWalkHopLimit,
-): Promise<string | undefined> {
+): Promise<ChainNamingResult> {
   let txid = authheadTxid;
   for (let hop = 0; hop < hopLimit; hop += 1) {
     let transaction: RawTransaction;
     try {
       transaction = await fetchTransaction(txid);
     } catch {
-      return undefined;
+      return { outcome: 'unavailable' };
     }
     // the input that continues the authchain is the one spending a previous identity output
     const parent = transaction.vin.find(input => input.vout === 0);
-    if (!parent) return undefined;
+    // nothing continues the chain here, so there is no genesis to reach: a conclusion, not a gap
+    if (!parent) return { outcome: 'unnameable' };
     // a genesis mints the category named by the outpoint it spent, which no later link can do
     const genesised = transaction.vout.some(output => output.tokenData?.category === parent.txid);
-    if (genesised) return parent.txid;
+    if (genesised) return { outcome: 'named', category: parent.txid };
     txid = parent.txid;
   }
-  return undefined;
+  // walked as far as it is worth walking without finding one
+  return { outcome: 'unnameable' };
 }
