@@ -41,6 +41,10 @@ export interface IdentityState {
   guardAddress?: string; // where that covenant sits, which is not an address of this wallet
   status: IdentityStatus;
   publication?: MetadataPublication; // absent when the authchain has never carried one
+  // Every transaction of this identity's authchain, oldest first. Carried because the ordinary
+  // transaction history reads it to recognise its own identity operations, which otherwise show
+  // as inscrutable self-sends.
+  links?: string[];
 }
 
 // The coin that holds the authority, whichever way this wallet has it. What gets reserved.
@@ -501,9 +505,9 @@ export async function resolveIdentities(
       console.error("Failed to resolve authchain identity:", category, result.reason);
     }
     if (result?.status !== 'fulfilled') return { category, status: 'unresolved' };
-    const { txid: authheadTxid, outputs } = result.value;
+    const { txid: authheadTxid, outputs, links } = result.value;
     const publication = findPublication(outputs);
-    const resolved = { category, authheadTxid, ...(publication ? { publication } : {}) };
+    const resolved = { category, authheadTxid, links, ...(publication ? { publication } : {}) };
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
     if (authUtxo?.token) return { ...resolved, authUtxo, status: 'carriesTokens' };

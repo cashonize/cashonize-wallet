@@ -28,6 +28,23 @@ export interface DetectedIdentity {
   marker: IdentityMarker;
 }
 
+// The transactions in the walk that carry a publication. The history reads this to tell a
+// metadata update from the wallet's other identity operations: a history item has addresses and
+// values, so the OP_RETURN that says so is not visible in it.
+export function publicationTxids(spentOutputs: ChaingraphSpentOutput[]): string[] {
+  const txids: string[] = [];
+  for (const spentOutput of spentOutputs) {
+    for (const spender of spentOutput.spent_by) {
+      const publishes = spender.transaction.outputs.some(
+        output => byteaToHex(output.locking_bytecode).startsWith(BCMR_OUTPUT_PREFIX)
+      );
+      const txid = byteaToHex(spender.transaction.hash);
+      if (publishes && !txids.includes(txid)) txids.push(txid);
+    }
+  }
+  return txids;
+}
+
 export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): DetectedIdentity[] {
   const detected = new Map<string, DetectedIdentity>();
   for (const spentOutput of spentOutputs) {

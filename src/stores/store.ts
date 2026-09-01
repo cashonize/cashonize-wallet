@@ -125,7 +125,7 @@ import {
   isAuthKeyCandidate,
 } from "src/utils/tools/authGuard"
 import { queryAuthHeadWithOutputs } from "src/queryChainGraph"
-import { detectIdentities, nameChainByWalkingBack } from "src/utils/tools/identityDetection"
+import { detectIdentities, nameChainByWalkingBack, publicationTxids } from "src/utils/tools/identityDetection"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -215,6 +215,9 @@ export const useStore = defineStore('store', () => {
   // wallet open. Keyed by the authhead's txid, which makes it self-invalidating: the moment the
   // authhead moves it is a different txid and earns a fresh walk.
   const unnameableAuthheads = ref([] as string[]);
+  // The wallet's own transactions that carried a metadata publication, read off the same walk, so
+  // the history can tell a metadata update from the wallet's other identity operations
+  const identityPublicationTxids = ref([] as string[]);
   const identities = ref(undefined as (IdentityState[] | undefined));
   // What each listed identity's published registry locations actually serve, keyed by category.
   // Kept beside the identities rather than on them: resolution reads the chain, this reads the
@@ -1453,6 +1456,7 @@ export const useStore = defineStore('store', () => {
 
   // Reading the walk the portfolio already makes, so no new backend and no new round trip
   async function detectWalletIdentities(spentOutputs: ChaingraphSpentOutput[]) {
+    identityPublicationTxids.value = publicationTxids(spentOutputs);
     if (!listDetectedIdentities(spentOutputs).length) return;
     // protection first, so it never depends on the naming below working
     await refreshIdentities();
@@ -2133,6 +2137,7 @@ export const useStore = defineStore('store', () => {
     unseenIdentities,
     unnamedAuthheads,
     unnameableAuthheads,
+    identityPublicationTxids,
     unnamedAuthheadCoins,
     removeUnnamedAuthhead,
     nameUnnamedAuthheads,

@@ -462,6 +462,12 @@
     "received": "Received",
     "combined": "Combined",
     "dapp": "dapp",
+    "identity": {
+      "metadataUpdate": "metadata update",
+      "metadataUpdateNamed": "{name} metadata update",
+      "identityOperation": "identity",
+      "identityOperationNamed": "{name} identity"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "balanceLabel": "Balance:",

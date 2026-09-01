@@ -8,6 +8,7 @@
   import { historyToCsv } from 'src/utils/history/csvUtils';
   import { maxTxNoteLength } from 'src/utils/history/txNotes';
   import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/history/txDirection';
+  import { identityOperationOf } from 'src/utils/history/txIdentity';
   import { isBelowRelayFee } from 'src/utils/history/txFeeRate';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
@@ -74,6 +75,19 @@
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
   });
+
+  // An operation on one of the wallet's own identities, named rather than left reading as a
+  // self-send with an OP_RETURN attached
+  function identityOperation(transaction: TransactionHistoryItem) {
+    const operation = identityOperationOf(
+      transaction, store.identities ?? [], store.identityPublicationTxids
+    );
+    if (!operation) return undefined;
+    const name = store.bcmrRegistries?.[operation.category]?.name;
+    return name
+      ? t(`history.identity.${operation.kind}Named`, { name })
+      : t(`history.identity.${operation.kind}`);
+  }
 
   // Predicate for isDappInteraction, which is store-agnostic by design
   const walletHasAddress = (address: string) => store.walletHasAddress(address);
@@ -257,6 +271,7 @@
                 <div class="tx-type">
                   {{ t('history.' + txDirection(transaction)) }}
                   <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+                  <span v-if="identityOperation(transaction)" class="identity-badge">{{ identityOperation(transaction) }}</span>
                   <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
                   <InfoPopup v-if="transaction.blockHeight < 0" class="badge-popup" @click.stop>
                     <template #trigger>
@@ -312,6 +327,7 @@
             </div>
             <div class="tx-badges-line" v-if="isDappInteraction(transaction, walletHasAddress) || transaction.blockHeight < 0 || isBelowRelayFee(transaction)">
               <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+              <span v-if="identityOperation(transaction)" class="identity-badge">{{ identityOperation(transaction) }}</span>
               <InfoPopup v-if="transaction.blockHeight < 0" @click.stop>
                 <template #trigger>
                   <span class="warning-badge">{{ t('history.unconfirmedChain') }}</span>
@@ -545,7 +561,8 @@ fieldset.item {
 }
 
 /* transactions spending from a contract carry a small dapp tag next to the type */
-.dapp-badge {
+.dapp-badge,
+.identity-badge {
   display: inline-block;
   margin-left: 4px;
   padding: 0 7px;
@@ -555,6 +572,12 @@ fieldset.item {
   vertical-align: middle;
   background-color: rgba(142, 111, 216, 0.18);
   color: #8e6fd8;
+}
+/* an operation on the wallet's own identity, in the primary colour rather than the dapp purple:
+   this one was made here, not by somebody else's contract */
+.identity-badge {
+  background-color: rgba(13, 148, 136, 0.18);
+  color: var(--color-primary);
 }
 
 .tx-time {

@@ -84,6 +84,9 @@ interface AuthHeadResponse {
           // recognised by its locking bytecode
           outputs: { output_index: string; locking_bytecode: string }[];
         };
+        // every transaction of the chain, oldest first: the authbase, then each update, ending at
+        // the authhead. Free here, since the query is already asking about this authchain.
+        migrations: { transaction: { hash: string }[] }[];
       }[];
     }[];
   };
@@ -108,6 +111,11 @@ export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
             output_index,
             locking_bytecode
           }
+        },
+        migrations {
+          transaction {
+            hash
+          }
         }
       }
     }
@@ -128,7 +136,11 @@ export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:str
   const outputs = (authchain.authhead.outputs ?? [])
     .sort((left, right) => Number(left.output_index) - Number(right.output_index))
     .map(output => byteaToHex(output.locking_bytecode));
-  return { txid: byteaToHex(authchain.authhead.hash), outputs };
+  // the chain's transactions, which is what lets the history recognise an identity operation
+  const links = (authchain.migrations ?? []).flatMap(
+    migration => migration.transaction.map(transaction => byteaToHex(transaction.hash))
+  );
+  return { txid: byteaToHex(authchain.authhead.hash), outputs, links };
 }
 
 // Bigint values arrive as decimal strings, like the bytea values arrive as hex strings

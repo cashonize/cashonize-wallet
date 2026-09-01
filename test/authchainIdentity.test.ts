@@ -115,7 +115,7 @@ describe('resolveIdentities', () => {
     const authUtxo = utxo(authheadA, 0);
     const resolved = await resolveIdentities([categoryA], chaingraphUrl, [authUtxo]);
     expect(resolved).toEqual([
-      { category: categoryA, authheadTxid: authheadA, authUtxo, status: 'held' },
+      { category: categoryA, authheadTxid: authheadA, authUtxo, links: [], status: 'held' },
     ]);
   });
 
