@@ -91,7 +91,8 @@
       "tokenUtxoHeldBack": "Cet UTXO est écarté de la sélection des pièces. La page de gestion des UTXO montre lesquels sont retenus et pourquoi, et c'est là qu'un UTXO gelé se dégèle.",
       "notEnoughSpendableBch": "Cette transaction demande {needed} et seuls {available} peuvent être dépensés. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "notEnoughSpendableTokens": "Pas assez de jetons dépensables pour cette transaction. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
-      "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer."
+      "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
+      "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre."
     }
   },
   "onboarding": {
@@ -638,10 +639,13 @@
     "intro": "Vous pouvez utiliser le {link} pour une création de tokens plus facile, ou utiliser le processus intégré ci-dessous pour un contrôle plus fin.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "BCH requis dans le portefeuille pour créer des tokens",
-    "noUtxos": "Le portefeuille n'a actuellement aucun UTXO capable de créer des tokens.",
-    "prepareUtxo": "Préparer un UTXO pour la création de tokens :",
+    "genesisInput": {
+      "title": "Choisissez la pièce pour la création",
+      "explainer": "La pièce dépensée par cette transaction devient l'id permanent du token.",
+      "none": "Ce portefeuille n'a encore aucune pièce permettant de créer un token.",
+      "prepareLink": "Préparer une nouvelle pièce"
+    },
     "preparingButton": "Préparation...",
-    "prepareButton": "Préparer l'UTXO",
     "plannedTokenId": "TokenId prévu :",
     "loading": "chargement...",
     "selectTokenType": "Sélectionnez le type de token :",

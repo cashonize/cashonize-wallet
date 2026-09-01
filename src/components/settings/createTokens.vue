@@ -1,13 +1,15 @@
 <script setup lang="ts">
-  import { ref, computed } from 'vue';
+  import { ref, computed, watch } from 'vue';
   import {
     publicationOutput,
     registryContentHash,
     registryUrlOf,
     summarizeRegistry,
   } from 'src/utils/tools/authchainIdentity';
-  import { copyToClipboard } from 'src/utils/utils';
+  import { copyToClipboard, formatBchAmount } from 'src/utils/utils';
+  import { outpointOf } from 'src/utils/wallet/reservedUtxos';
   import EmojiItem from '../general/emojiItem.vue';
+  import TokenIcon from '../general/TokenIcon.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
   import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
@@ -24,16 +26,40 @@
   const selectedUri = ref("-select-");
   const inputBcmr = ref("");
   const validityCheck = ref(undefined as boolean | undefined);
-  const displayPlannedTokenId = computed(() =>
-    store.plannedTokenId? `${store.plannedTokenId.slice(0, 20)}...${store.plannedTokenId.slice(-8)}` : ""
-  );
   const activeAction = ref<'creatingPreGenesis' | 'creatingFungibles' | 'creatingMintingNFT' | null>(null);
 
+  const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
+  const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
+  const truncateHash = (hash: string) => `${hash.slice(0, 16)}...${hash.slice(-8)}`;
+
+  // A new token's category is the txid of the coin its genesis spends, so which coin that is
+  // decides the identity's id and its icon before anything exists.
+  const genesisCandidates = computed(() => {
+    if (!store.spendableUtxos) return undefined;
+    const eligible = store.spendableUtxos.filter(utxo => !utxo.token && utxo.vout === 0);
+    // safe to sort in place, the array is a fresh result of filter()
+    return eligible.sort((left, right) => Number(right.satoshis - left.satoshis));
+  });
+
+  // Held as an outpoint and resolved against the current coins, so a coin spent from somewhere
+  // else leaves the list and takes the selection with it
+  const pickedOutpoint = ref<string | undefined>(undefined);
+  const genesisInput = computed(() =>
+    genesisCandidates.value?.find(utxo => outpointOf(utxo) === pickedOutpoint.value)
+  );
+  const plannedCategory = computed(() => genesisInput.value?.txid);
+
+  watch(genesisCandidates, (candidates) => {
+    if (genesisInput.value) return;
+    const firstCandidate = candidates?.[0];
+    pickedOutpoint.value = firstCandidate ? outpointOf(firstCandidate) : undefined;
+  }, { immediate: true });
+
+  // A coin a genesis can spend is an ordinary one sitting at output 0, which a send to self makes
   async function createPreGenesis(){
     if (activeAction.value) return;
     activeAction.value = 'creatingPreGenesis';
     try{
-      store.plannedTokenId = undefined;
       const walletAddr = store.wallet.getDepositAddress();
       notifySending(t('createTokens.notifications.preparingPreGenesis'));
       const { txId } = await store.spend.send([{ cashaddr: walletAddr, value: 10000n }]);
@@ -42,9 +68,10 @@
         message: t('createTokens.notifications.transactionSent')
       })
       console.log(`Created valid pre-genesis for token creation \n${store.explorerUrl}/${txId}`);
-      store.plannedTokenId = txId;
       // update utxo list
       await store.updateWalletUtxos();
+      // the coin the user just asked for is the one they meant to create with
+      if (txId) pickedOutpoint.value = `${txId}:0`;
       // update wallet history as fire-and-forget promise
       void store.updateWalletHistory();
     } catch(error){
@@ -87,7 +114,7 @@
 
       // The planned category is known before the genesis is signed, so the wrong-file mistake can
       // be caught at the one moment it costs nothing: the registry has to name this identity.
-      if(store.plannedTokenId && !summarizeRegistry(bcmrContent, store.plannedTokenId)){
+      if(plannedCategory.value && !summarizeRegistry(bcmrContent, plannedCategory.value)){
         $q.notify({
           message: t('createTokens.notifications.bcmrWrongIdentity'),
           icon: 'warning',
@@ -106,6 +133,8 @@
   
   async function createFungibles(){
     if (activeAction.value) return;
+    const pickedCoin = genesisInput.value;
+    if (!pickedCoin) return;
     const validInput = isValidBigInt(inputFungibleSupply.value) && +inputFungibleSupply.value > 0;
     function isValidBigInt(value:string) {
       try { return BigInt(value) }
@@ -118,6 +147,7 @@
       const opreturnData = await getOpreturnData();
       notifySending(t('createTokens.notifications.creatingTokens'));
       const genesisResponse = await store.spend.tokenGenesis(
+        pickedCoin,
         {
           cashaddr: store.wallet.getTokenDepositAddress(),
           amount: BigInt(totalSupply),    // fungible token amount
@@ -132,7 +162,6 @@
       inputFungibleSupply.value = "";
       selectedTokenType.value  = "-select-";
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
-      store.hasPreGenesis()
     } catch(error){
       displayAndLogError(error)
     } finally {
@@ -141,11 +170,14 @@
   }
   async function createMintingNFT(){
     if (activeAction.value) return;
+    const pickedCoin = genesisInput.value;
+    if (!pickedCoin) return;
     activeAction.value = 'creatingMintingNFT';
     try{
       const opreturnData = await getOpreturnData();
       notifySending(t('createTokens.notifications.creatingMintingNft'));
       const genesisResponse = await store.spend.tokenGenesis(
+        pickedCoin,
         {
           cashaddr: store.wallet.getTokenDepositAddress(),
           nft: {
@@ -162,7 +194,6 @@
       // reset input fields
       selectedTokenType.value  = "-select-";
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
-      store.hasPreGenesis()
     } catch(error){
       displayAndLogError(error)
     } finally {
@@ -185,31 +216,44 @@
       </div>
 
       <div v-if="store.spendableBalance === 0n" style="color: red;">{{ t('createTokens.needBch') }}</div>
-      <div style="margin-bottom: 1em;">
-        <div v-if="store.plannedTokenId == ''">
-          {{ t('createTokens.noUtxos') }} <br>
-          {{ t('createTokens.prepareUtxo') }}
-          <input
-            @click="createPreGenesis"
-            type="button"
-            class="primaryButton"
-            :value="activeAction === 'creatingPreGenesis' ? t('createTokens.preparingButton') : t('createTokens.prepareButton')"
-            :disabled="activeAction !== null"
-            style="margin-top: 8px;"
-          >
-        </div>
-        <div v-else>
-           {{ t('createTokens.plannedTokenId') }}
-          <span v-if="store.plannedTokenId == undefined">{{ t('createTokens.loading') }}</span>
-          <span v-if="store.plannedTokenId" @click="copyToClipboard(store.plannedTokenId)" style="cursor: pointer;">
-            <span class="tokenId"> {{ displayPlannedTokenId }} </span>
-            <img class="copyIcon icon" src="images/copyGrey.svg">
+      <div class="genesis-input">
+        <b>{{ t('createTokens.genesisInput.title') }}</b>
+        <div class="description">{{ t('createTokens.genesisInput.explainer') }}</div>
+
+        <div v-if="genesisCandidates === undefined" class="description">{{ t('createTokens.loading') }}</div>
+        <template v-else>
+          <div v-if="!genesisCandidates.length" class="description">{{ t('createTokens.genesisInput.none') }}</div>
+          <div v-else class="coin-list">
+            <div
+              v-for="coin in genesisCandidates"
+              :key="outpointOf(coin)"
+              class="coin-row"
+              :class="{ picked: outpointOf(coin) === pickedOutpoint }"
+              @click="pickedOutpoint = outpointOf(coin)"
+            >
+              <TokenIcon :token-id="coin.txid" :size="24" />
+              <span class="mono">{{ truncateHash(coin.txid) }}</span>
+              <span class="description">{{ bchOf(coin.satoshis) }}</span>
+            </div>
+          </div>
+          <span class="action-link" @click="createPreGenesis">
+            {{ activeAction === 'creatingPreGenesis' ? t('createTokens.preparingButton') : t('createTokens.genesisInput.prepareLink') }}
           </span>
+        </template>
+
+        <div v-if="plannedCategory" class="planned-category">
+          <!-- keyed on the category because the icon is only drawn when the component mounts -->
+          <TokenIcon :key="plannedCategory" :token-id="plannedCategory" :size="40" />
+          <div class="copy-target" @click="copyToClipboard(plannedCategory)">
+            <span class="description">{{ t('createTokens.plannedTokenId') }}</span>
+            <span class="mono">{{ truncateHash(plannedCategory) }}</span>
+            <img class="copyIcon" src="images/copyGrey.svg">
+          </div>
         </div>
       </div>
 
       <label for="newtokens">{{ t('createTokens.selectTokenType') }}</label>
-      <select name="newtokens" id="newtokens"  v-model="selectedTokenType" :disabled="!store.plannedTokenId">
+      <select name="newtokens" id="newtokens"  v-model="selectedTokenType" :disabled="!genesisInput">
         <option autocomplete="off" selected value="-select-">{{ t('createTokens.selectOption') }}</option>
         <option autocomplete="off" value="fungibles">{{ t('createTokens.fungibleTokens') }}</option>
         <option autocomplete="off" value="mintingNFT">{{ t('createTokens.mintingNFT') }}</option>
@@ -289,4 +333,55 @@
         <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" :value="activeAction === 'creatingFungibles' ? t('createTokens.creatingTokensButton') : (activeAction === 'creatingMintingNFT' ? t('createTokens.creatingNftButton') : t('createTokens.createButton'))" style="margin: 8px 0;" :disabled="activeAction !== null">
       </div>
     </fieldset>
-</div></template>
+  </div>
+</template>
+
+<style scoped>
+.description {
+  color: grey;
+}
+.mono {
+  font-family: monospace;
+}
+.genesis-input {
+  margin-bottom: 1em;
+}
+/* long lists stay a list rather than pushing the form off the screen */
+.coin-list {
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 8px 0;
+}
+.coin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.coin-row:hover {
+  border-color: rgba(128, 128, 128, 0.4);
+}
+.coin-row.picked {
+  border-color: var(--color-primary);
+}
+.action-link {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.planned-category {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.copy-target {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+</style>

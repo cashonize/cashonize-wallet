@@ -240,7 +240,6 @@ export const useStore = defineStore('store', () => {
   // from it whole, so two overlapping passes would undo each other's result
   const identitiesResolving = ref(false);
   const tokenList = ref(null as (TokenList | null))
-  const plannedTokenId = ref(undefined as (undefined | string));
   // Category a token payment request asks for, set when the user chooses to open it from
   // the wallet page. The token list narrows itself to it and clears it again.
   const pendingTokenSearch = ref(undefined as (undefined | string));
@@ -645,8 +644,6 @@ export const useStore = defineStore('store', () => {
       await updateWalletHistory({ count: 100 })
       console.timeEnd('fetch initial history');
       walletInitialized.value = true;
-      // get plannedTokenId
-      hasPreGenesis()
       // resolve identities last because it is not critical
       console.time('resolve identities');
       await refreshIdentities();
@@ -840,7 +837,6 @@ export const useStore = defineStore('store', () => {
     maxAmountToSend.value = undefined;
     walletUtxos.value = undefined;
     reservedUtxos.value = {}; // setWallet loads the incoming wallet's own set
-    plannedTokenId.value = undefined;
     pendingTokenSearch.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = undefined;
@@ -1413,12 +1409,6 @@ export const useStore = defineStore('store', () => {
   async function parseNftCommitment(categoryId: string, utxo: Utxo) {
     const metadata = bcmrRegistries.value?.[categoryId];
     return parseNftCommitmentUtil(utxo, metadata, wallet.value.provider, wallet.value.networkPrefix);
-  }
-
-  function hasPreGenesis(){
-    // The spendable pool is the set tokenGenesis selects its genesis input from
-    const preGenesisUtxo = spendableUtxos.value?.find(utxo => !utxo.token && utxo.vout === 0);
-    plannedTokenId.value = preGenesisUtxo?.txid ?? undefined;
   }
 
   // Identities these keys made, found in the walk rather than asked for. This is the one place
@@ -2024,14 +2014,21 @@ export const useStore = defineStore('store', () => {
       const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
       return spendExplained(() => wallet.value.sendMax(cashaddr, spendConfig));
     },
+    // mainnet-js takes the first vout-0 BCH coin of the pool it is handed as the genesis input,
+    // and that coin's txid becomes the category, so the picked coin goes at the front of the pool.
     async tokenGenesis(
+      genesisInput: Utxo,
       genesisRequest: TokenGenesisRequest,
-      sendRequests?: SendRequestType | SendRequestType[],
-      options?: SpendOptions
+      sendRequests?: SendRequestType | SendRequestType[]
     ) {
-      checkNoReservedUtxos(options);
-      const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
-      return spendExplained(() => wallet.value.tokenGenesis(genesisRequest, sendRequests, spendConfig));
+      const outpoint = outpointOf(genesisInput);
+      const spendable = spendableFromUtxos(await wallet.value.getUtxos(), reservedUtxos.value);
+      const picked = spendable.find(utxo => outpointOf(utxo) === outpoint);
+      // a coin spent elsewhere since it was picked would otherwise create a category nobody chose
+      if (!picked || picked.vout !== 0 || picked.token) throw new Error(t('store.errors.genesisInputUnavailable'));
+      const otherCoins = spendable.filter(utxo => outpointOf(utxo) !== outpoint);
+      const pool = [picked, ...otherCoins];
+      return spendExplained(() => wallet.value.tokenGenesis(genesisRequest, sendRequests, { utxoIds: pool }));
     },
     // tokenMint and tokenBurn discard an ensureUtxos passed here, using their own to locate the
     // token input; utxoIds still applies to everything else they select
@@ -2128,7 +2125,6 @@ export const useStore = defineStore('store', () => {
     unmarkAddressUsed,
     setAddressLabel,
     walletInitFailed,
-    plannedTokenId,
     pendingTokenSearch,
     dappConnectionStoresInitDone,
     latestGithubRelease,
@@ -2158,7 +2154,6 @@ export const useStore = defineStore('store', () => {
     fetchTokenInfo,
     fetchNftMetadata,
     parseNftCommitment,
-    hasPreGenesis,
     identityCategories,
     identities,
     identitiesResolving,

@@ -91,7 +91,8 @@
       "tokenUtxoHeldBack": "Dieser UTXO ist von der Münzauswahl ausgenommen. Die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum, und dort wird ein eingefrorener wieder aufgetaut.",
       "notEnoughSpendableBch": "Diese Transaktion braucht {needed} und nur {available} sind ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "notEnoughSpendableTokens": "Für diese Transaktion sind nicht genug Tokens ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
-      "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben."
+      "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben.",
+      "genesisInputUnavailable": "Die zur Erstellung gewählte Münze ist nicht mehr verfügbar. Wähle eine andere."
     }
   },
   "onboarding": {
@@ -638,10 +639,13 @@
     "intro": "Du kannst das {link} für die einfachste Token-Erstellung verwenden, oder den eingebauten Prozess unten für detaillierte Kontrolle nutzen.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "BCH im Wallet benötigt, um Tokens zu erstellen",
-    "noUtxos": "Derzeit hat das Wallet keine UTXOs, die zur Token-Erstellung fähig sind.",
-    "prepareUtxo": "UTXO für Token-Erstellung vorbereiten:",
+    "genesisInput": {
+      "title": "Wähle die Münze für die Erstellung",
+      "explainer": "Die Münze, die diese Transaktion ausgibt, wird zur dauerhaften Id des Tokens.",
+      "none": "Dieses Wallet hat noch keine Münze, mit der ein Token erstellt werden kann.",
+      "prepareLink": "Neue Münze vorbereiten"
+    },
     "preparingButton": "Vorbereiten...",
-    "prepareButton": "UTXO vorbereiten",
     "plannedTokenId": "Geplante TokenId:",
     "loading": "Laden...",
     "selectTokenType": "Token-Typ auswählen:",

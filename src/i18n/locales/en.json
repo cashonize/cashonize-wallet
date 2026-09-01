@@ -91,7 +91,8 @@
       "tokenUtxoHeldBack": "This UTXO is held back from coin selection. The UTXO Management page shows which coins are held and why, and is where a frozen one is unfrozen.",
       "notEnoughSpendableBch": "This transaction needs {needed} and only {available} can be spent. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "notEnoughSpendableTokens": "Not enough tokens can be spent for this transaction. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
-      "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it."
+      "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it.",
+      "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one."
     }
   },
   "onboarding": {
@@ -638,10 +639,13 @@
     "intro": "You can use the {link} for the easiest token creation, or you can use the built-in process below for fine-grained control.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "Need BCH in wallet to create tokens",
-    "noUtxos": "Currently the wallet does not have any UTXOs capable of token creation.",
-    "prepareUtxo": "Prepare a UTXO for token-creation:",
+    "genesisInput": {
+      "title": "Choose the coin to create from",
+      "explainer": "The coin this transaction spends becomes the token's permanent id.",
+      "none": "This wallet has no coin that can create a token yet.",
+      "prepareLink": "Prepare a new coin"
+    },
     "preparingButton": "Preparing...",
-    "prepareButton": "Prepare UTXO",
     "plannedTokenId": "Planned tokenId:",
     "loading": "loading...",
     "selectTokenType": "Select token-type:",

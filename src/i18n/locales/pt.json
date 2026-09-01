@@ -91,7 +91,8 @@
       "tokenUtxoHeldBack": "Este UTXO está retido fora da seleção de moedas. A página de gestão de UTXOs mostra quais estão retidos e por quê, e é onde um congelado é descongelado.",
       "notEnoughSpendableBch": "Esta transação precisa de {needed} e só {available} pode ser gasto. Moedas retidas fora da seleção de moedas não contam; a página de gestão de UTXOs mostra quais estão retidas e por quê.",
       "notEnoughSpendableTokens": "Não há tokens suficientes para gastar nesta transação. Moedas retidas fora da seleção de moedas não contam; a página de gestão de UTXOs mostra quais estão retidas e por quê.",
-      "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo."
+      "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo.",
+      "genesisInputUnavailable": "A moeda escolhida para criar este token não está mais disponível. Escolha outra."
     }
   },
   "onboarding": {
@@ -638,10 +639,13 @@
     "intro": "Você pode usar o {link} para criar tokens de forma mais fácil, ou usar o processo abaixo para controle detalhado.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "É necessário BCH na carteira para criar tokens",
-    "noUtxos": "Atualmente a carteira não possui UTXOs capazes de criar tokens.",
-    "prepareUtxo": "Preparar um UTXO para criação de tokens:",
+    "genesisInput": {
+      "title": "Escolha a moeda para a criação",
+      "explainer": "A moeda que esta transação gasta torna-se o id permanente do token.",
+      "none": "Esta carteira ainda não tem nenhuma moeda com que criar um token.",
+      "prepareLink": "Preparar uma moeda nova"
+    },
     "preparingButton": "Preparando...",
-    "prepareButton": "Preparar UTXO",
     "plannedTokenId": "TokenId planejado:",
     "loading": "carregando...",
     "selectTokenType": "Selecione o tipo de token:",

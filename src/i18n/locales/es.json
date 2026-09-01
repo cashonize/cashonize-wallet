@@ -91,7 +91,8 @@
       "tokenUtxoHeldBack": "Este UTXO está retenido fuera de la selección de monedas. La página de gestión de UTXOs muestra cuáles están retenidos y por qué, y es donde se descongela uno congelado.",
       "notEnoughSpendableBch": "Esta transacción necesita {needed} y solo se puede gastar {available}. Las monedas retenidas fuera de la selección de monedas no cuentan; la página de gestión de UTXOs muestra cuáles están retenidas y por qué.",
       "notEnoughSpendableTokens": "No se pueden gastar suficientes tokens para esta transacción. Las monedas retenidas fuera de la selección de monedas no cuentan; la página de gestión de UTXOs muestra cuáles están retenidas y por qué.",
-      "cannotSendPledgedUtxo": "Este UTXO está retenido por una promesa abierta. Cancela la promesa para liberarlo."
+      "cannotSendPledgedUtxo": "Este UTXO está retenido por una promesa abierta. Cancela la promesa para liberarlo.",
+      "genesisInputUnavailable": "La moneda elegida para crear este token ya no está disponible. Elige otra."
     }
   },
   "onboarding": {
@@ -638,10 +639,13 @@
     "intro": "Puedes usar el {link} para la creación de tokens más fácil, o puedes usar el proceso integrado a continuación para un control más detallado.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "Se necesita BCH en la billetera para crear tokens",
-    "noUtxos": "Actualmente la billetera no tiene ningún UTXO capaz de crear tokens.",
-    "prepareUtxo": "Preparar un UTXO para creación de tokens:",
+    "genesisInput": {
+      "title": "Elige la moneda con la que crear",
+      "explainer": "La moneda que gasta esta transacción se convierte en el id permanente del token.",
+      "none": "Esta billetera todavía no tiene ninguna moneda con la que crear un token.",
+      "prepareLink": "Preparar una moneda nueva"
+    },
     "preparingButton": "Preparando...",
-    "prepareButton": "Preparar UTXO",
     "plannedTokenId": "TokenId planificado:",
     "loading": "cargando...",
     "selectTokenType": "Selecciona el tipo de token:",
