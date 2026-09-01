@@ -87,8 +87,9 @@
       "deviceOffline": "Dein Gerät scheint offline zu sein, bitte überprüfe deine Internetverbindung",
       "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort",
       "utxoNotReserved": "Dieser UTXO ist nicht reserviert",
-      "cannotReserveTokenUtxo": "Ein UTXO, der einen Token trägt, kann nicht zurückgehalten werden",
       "reservedEnsureUtxos": "Diese Aktion benötigt einen UTXO, den die Wallet zurückhält",
+      "notEnoughSpendableBch": "Diese Transaktion braucht {needed} und nur {available} sind ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
+      "notEnoughSpendableTokens": "Für diese Transaktion sind nicht genug Tokens ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben."
     }
   },

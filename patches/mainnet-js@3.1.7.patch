@@ -1,0 +1,28 @@
+diff --git a/dist/module/wallet/Base.js b/dist/module/wallet/Base.js
+index 9baa2496b379fc0dd2efb8229d93be9caefdc97f..ca38609c3c9b04195df7f6ed81edde6f03d34ef6 100644
+--- a/dist/module/wallet/Base.js
++++ b/dist/module/wallet/Base.js
+@@ -867,7 +867,10 @@ export class BaseWallet {
+         if (!Array.isArray(mintRequests)) {
+             mintRequests = [mintRequests];
+         }
+-        const utxos = await this.getUtxos();
++        let utxos = await this.getUtxos();
++        if (options?.utxoIds) {
++            utxos = checkUtxos(options.utxoIds.map((utxoId) => typeof utxoId === "string" ? fromUtxoId(utxoId) : utxoId), utxos);
++        }
+         const nftUtxos = utxos.filter((val) => val.token?.category === category &&
+             val.token?.nft?.capability === NFTCapability.minting);
+         if (!nftUtxos.length) {
+@@ -921,7 +924,10 @@ export class BaseWallet {
+         if (burnRequest.category?.length !== 64) {
+             throw Error(`Invalid category supplied: ${burnRequest.category}`);
+         }
+-        const utxos = await this.getUtxos();
++        let utxos = await this.getUtxos();
++        if (options?.utxoIds) {
++            utxos = checkUtxos(options.utxoIds.map((utxoId) => typeof utxoId === "string" ? fromUtxoId(utxoId) : utxoId), utxos);
++        }
+         const tokenUtxos = utxos.filter((val) => val.token?.category === burnRequest.category &&
+             val.token?.nft?.capability === burnRequest.nft?.capability &&
+             val.token?.nft?.commitment === burnRequest.nft?.commitment);

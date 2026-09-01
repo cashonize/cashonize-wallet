@@ -87,8 +87,9 @@
       "deviceOffline": "Votre appareil semble être hors ligne, veuillez vérifier votre connexion internet",
       "bcmrIndexerValidationError": "Erreur de validation de la réponse de l'indexeur BCMR",
       "utxoNotReserved": "Cet UTXO n'est pas réservé",
-      "cannotReserveTokenUtxo": "Un UTXO portant un jeton ne peut pas être retenu",
       "reservedEnsureUtxos": "Cette action a besoin d'un UTXO que le portefeuille retient",
+      "notEnoughSpendableBch": "Cette transaction demande {needed} et seuls {available} peuvent être dépensés. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
+      "notEnoughSpendableTokens": "Pas assez de jetons dépensables pour cette transaction. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer."
     }
   },

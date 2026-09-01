@@ -31,6 +31,7 @@ import {
 } from "../interfaces/interfaces"
 import {
   electrumWssUrl,
+  formatBchAmount,
   getBalanceFromUtxos,
   loadWalletFromId,
   runAsyncVoid,
@@ -1524,10 +1525,10 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Token coins are out of scope: a fungible send consumes every coin of its category at once, so
-  // holding one back would make sends fail in a way the wallet could not explain to the user.
+  // Token coins are held back the same way BCH coins are. That took the pool narrowing to reach
+  // every spend path, mainnet-js's token methods included (see the pnpm patch), and the shortfall
+  // messages below to say why a send that used to fit no longer does.
   async function reserveUtxo(utxo: Utxo, reason: ReservationReason) {
-    if (utxo.token) throw new Error(t('store.errors.cannotReserveTokenUtxo'));
     reservedUtxos.value = saveReservedUtxo(
       network.value, wallet.value.name, utxo, reason, Math.floor(Date.now() / 1000)
     );
@@ -1577,6 +1578,36 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // mainnet-js reports a spend it cannot fund against the pool it was handed, which is this
+  // wallet's coins minus the ones held back. Read against a balance that includes those, its
+  // numbers look wrong, so while anything is held back the message says what is missing from the
+  // pool and where to see it. Errors with another cause are passed through untouched.
+  function explainHeldBackCoins(error: unknown): unknown {
+    if (!(error instanceof Error)) return error;
+    if (!Object.keys(reservedUtxos.value).length) return error;
+    const bchUnit = network.value === 'mainnet' ? 'BCH' : 'tBCH';
+    // the shortfall carries the two amounts, in satoshis, alongside the message
+    const shortfall = (error as { data?: { required?: bigint; available?: bigint } }).data;
+    if (error.message.startsWith("Amount required was not met") && shortfall?.required !== undefined) {
+      return new Error(t('store.errors.notEnoughSpendableBch', {
+        needed: `${formatBchAmount(Number(shortfall.required), false, 8)} ${bchUnit}`,
+        available: `${formatBchAmount(Number(shortfall.available ?? 0n), false, 8)} ${bchUnit}`,
+      }));
+    }
+    if (error.message === "Not enough token amount to send") {
+      return new Error(t('store.errors.notEnoughSpendableTokens'));
+    }
+    return error;
+  }
+
+  async function spendExplained<T>(makeTransaction: () => Promise<T>): Promise<T> {
+    try {
+      return await makeTransaction();
+    } catch (error) {
+      throw explainHeldBackCoins(error);
+    }
+  }
+
   // Spends one coin whole: a pool of only that coin, sent with sendMax, so no other coin joins
   // the transaction and no change returns. A reservation on the coin is dropped only once
   // broadcast, so a failure leaves the coin held rather than released into the next unrelated send.
@@ -1595,12 +1626,12 @@ export const useStore = defineStore('store', () => {
     async send(requests: SendRequestType, options?: SpendOptions) {
       checkNoReservedUtxos(options);
       const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
-      return wallet.value.send(requests, spendConfig);
+      return spendExplained(() => wallet.value.send(requests, spendConfig));
     },
     async sendMax(cashaddr: string, options?: SpendOptions) {
       checkNoReservedUtxos(options);
       const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
-      return wallet.value.sendMax(cashaddr, spendConfig);
+      return spendExplained(() => wallet.value.sendMax(cashaddr, spendConfig));
     },
     async tokenGenesis(
       genesisRequest: TokenGenesisRequest,
@@ -1609,7 +1640,7 @@ export const useStore = defineStore('store', () => {
     ) {
       checkNoReservedUtxos(options);
       const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
-      return wallet.value.tokenGenesis(genesisRequest, sendRequests, spendConfig);
+      return spendExplained(() => wallet.value.tokenGenesis(genesisRequest, sendRequests, spendConfig));
     },
     // tokenMint and tokenBurn discard an ensureUtxos passed here, using their own to locate the
     // token input; utxoIds still applies to everything else they select
@@ -1621,12 +1652,12 @@ export const useStore = defineStore('store', () => {
     ) {
       checkNoReservedUtxos(options);
       const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
-      return wallet.value.tokenMint(category, mintRequests, deductTokenAmount, spendConfig);
+      return spendExplained(() => wallet.value.tokenMint(category, mintRequests, deductTokenAmount, spendConfig));
     },
     async tokenBurn(burnRequest: TokenBurnRequest, message?: string, options?: SpendOptions) {
       checkNoReservedUtxos(options);
       const spendConfig = createSpendConfig(options, await excludeReservedUtxos());
-      return wallet.value.tokenBurn(burnRequest, message, spendConfig);
+      return spendExplained(() => wallet.value.tokenBurn(burnRequest, message, spendConfig));
     },
     async getMaxAmountToSend(outputCount?: number) {
       const spendConfig = createSpendConfig(undefined, await excludeReservedUtxos()) ?? {};

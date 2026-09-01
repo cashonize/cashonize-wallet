@@ -12,6 +12,9 @@ overrides:
   '@wizardconnect/core': 0.2.4
   mainnet-js: 3.1.7
 
+patchedDependencies:
+  mainnet-js@3.1.7: 5bad83865e18afb05b1e2f5adcbddf02ac09b24db824686460de7cf1d697a2f6
+
 importers:
 
   .:
@@ -54,7 +57,7 @@ importers:
         version: 0.2.3(typescript@6.0.3)
       mainnet-js:
         specifier: 3.1.7
-        version: 3.1.7
+        version: 3.1.7(patch_hash=5bad83865e18afb05b1e2f5adcbddf02ac09b24db824686460de7cf1d697a2f6)
       pinia:
         specifier: ^4.0.3
         version: 4.0.3(@vue/devtools-api@7.7.10)(typescript@6.0.3)(vue@3.5.42(typescript@6.0.3))
@@ -2813,7 +2816,7 @@ snapshots:
 
   '@mainnet-cash/indexeddb-storage@3.1.7':
     dependencies:
-      mainnet-js: 3.1.7
+      mainnet-js: 3.1.7(patch_hash=5bad83865e18afb05b1e2f5adcbddf02ac09b24db824686460de7cf1d697a2f6)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -4356,7 +4359,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  mainnet-js@3.1.7:
+  mainnet-js@3.1.7(patch_hash=5bad83865e18afb05b1e2f5adcbddf02ac09b24db824686460de7cf1d697a2f6):
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
       '@electrum-cash/network': 4.2.2

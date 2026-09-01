@@ -87,8 +87,9 @@
       "deviceOffline": "Your device appears to be offline, please check your internet connection",
       "bcmrIndexerValidationError": "BCMR indexer response validation error",
       "utxoNotReserved": "This UTXO is not reserved",
-      "cannotReserveTokenUtxo": "A UTXO carrying a token cannot be held back",
       "reservedEnsureUtxos": "This action needs a UTXO the wallet is holding back",
+      "notEnoughSpendableBch": "This transaction needs {needed} and only {available} can be spent. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
+      "notEnoughSpendableTokens": "Not enough tokens can be spent for this transaction. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it."
     }
   },

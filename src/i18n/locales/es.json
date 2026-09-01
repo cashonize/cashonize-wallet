@@ -87,8 +87,9 @@
       "deviceOffline": "Tu dispositivo parece estar sin conexión, comprueba tu conexión a internet",
       "bcmrIndexerValidationError": "Error de validación de respuesta del indexador BCMR",
       "utxoNotReserved": "Este UTXO no está reservado",
-      "cannotReserveTokenUtxo": "Un UTXO que lleva un token no se puede retener",
       "reservedEnsureUtxos": "Esta acción necesita un UTXO que la cartera está reteniendo",
+      "notEnoughSpendableBch": "Esta transacción necesita {needed} y solo se puede gastar {available}. Las monedas retenidas fuera de la selección de monedas no cuentan; la página de gestión de UTXOs muestra cuáles están retenidas y por qué.",
+      "notEnoughSpendableTokens": "No se pueden gastar suficientes tokens para esta transacción. Las monedas retenidas fuera de la selección de monedas no cuentan; la página de gestión de UTXOs muestra cuáles están retenidas y por qué.",
       "cannotSendPledgedUtxo": "Este UTXO está retenido por una promesa abierta. Cancela la promesa para liberarlo."
     }
   },
