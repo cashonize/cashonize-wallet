@@ -1,4 +1,5 @@
-import type { Utxo } from "mainnet-js";
+import { OpReturnData, type Utxo } from "mainnet-js";
+import { binToHex, hexToBin } from "@bitauth/libauth";
 import {
   loadIdentityList,
   addToIdentityList,
@@ -31,23 +32,86 @@ const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
 
 // Answers each authhead query with the txid mapped to the category it asks about, and rejects a
 // query for any category not in the map, the way an unreachable server would
-function stubAuthheadQueries(authheads: Record<string, string>) {
+function stubAuthheadQueries(
+  authheads: Record<string, string>,
+  chains: Record<string, { hash: string; publication?: string }[]> = {},
+) {
   vi.stubGlobal("fetch", vi.fn((_url: string, options: RequestInit) => {
     const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string } };
     const category = Object.keys(authheads).find(listed => variables.hash === `\\x${listed}`);
     if (!category) return Promise.reject(new TypeError("Failed to fetch"));
+    // the query asks for each link's BCMR-prefixed outputs only, so a link without one answers empty
+    const migrations = (chains[category] ?? []).map(link => ({
+      transaction: [{
+        hash: `\\x${link.hash}`,
+        outputs: link.publication ? [{ locking_bytecode: `\\x${link.publication}` }] : [],
+      }],
+    }));
     return Promise.resolve({
       ok: true,
       json: () => Promise.resolve({
-        data: { transaction: [{ authchains: [{ authhead: {
-          hash: `\\x${authheads[category]}`, // chaingraph returns bytea as \x-prefixed hex
-          identity_output: [{ fungible_token_amount: "0" }],
-          outputs: [],
-        } }] }] },
+        data: { transaction: [{ authchains: [{
+          authhead: { hash: `\\x${authheads[category]}` }, // chaingraph returns bytea as \x-prefixed hex
+          migrations,
+        }] }] },
       }),
     });
   }));
 }
+
+// Built the way the wallet publishes one, so the resolve is read against the writer
+function publicationOutput(hash: string, uris: string[]) {
+  const chunks: (string | Uint8Array)[] = ['BCMR', hexToBin(hash), ...uris];
+  return binToHex(OpReturnData.fromArray(chunks).buffer);
+}
+
+// An identity's registry is the last publication its chain carries. Transfers and reserve moves
+// carry none, and those are the operations this wallet makes, so reading the publication off the
+// authhead alone loses the metadata of exactly the identities it manages.
+describe('the publication a resolve reports', () => {
+  const registryHash = 'ab'.repeat(32);
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('is the last one the chain carries, not the last transaction', async () => {
+    const published = publicationOutput(registryHash, ['example.com']);
+    stubAuthheadQueries({ [categoryA]: authheadA }, {
+      [categoryA]: [
+        { hash: 'aa'.repeat(32), publication: published },
+        { hash: 'bb'.repeat(32) }, // a transfer
+        { hash: authheadA }, // and another
+      ],
+    });
+
+    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+
+    expect(resolved?.publication?.uris).toEqual(['example.com']);
+    expect(resolved?.publication?.hash).toBe(registryHash);
+  });
+
+  it('is the newest of several, since a chain republishes', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, {
+      [categoryA]: [
+        { hash: 'aa'.repeat(32), publication: publicationOutput(registryHash, ['old.example']) },
+        { hash: authheadA, publication: publicationOutput(registryHash, ['new.example']) },
+      ],
+    });
+
+    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+
+    expect(resolved?.publication?.uris).toEqual(['new.example']);
+  });
+
+  it('reports none when no link ever carried one', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: [{ hash: authheadA }] });
+
+    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+
+    expect(resolved?.publication).toBeUndefined();
+  });
+});
 
 describe('identity categories', () => {
   beforeEach(() => {

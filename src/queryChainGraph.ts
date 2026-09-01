@@ -129,25 +129,30 @@ export async function queryAuthchainLinks(tokenId: string, chaingraphUrl: string
   }));
 }
 
+// OP_RETURN followed by a push of "BCMR". bytea has no prefix operator, but it is ordered, so a
+// prefix is the range from it up to the next value at the same length. Verified against a live
+// publication; the alternative, fetching every output and filtering here, would carry far more.
+const bcmrPrefixRange = { from: "6a0442434d52", to: "6a0442434d53" };
+
 // Where an identity's authchain ends now. The authhead transaction's outputs come along, so the
 // BCMR publication among them can be recognised by its locking bytecode, and so do the chain's
 // transactions, oldest first, which the history reads to name the wallet's own identity operations.
-const authHeadQuery = graphql(`query AuthHead($hash: bytea!) {
+const authHeadQuery = graphql(`query AuthHead(
+    $hash: bytea!
+    $bcmrFrom: bytea!
+    $bcmrTo: bytea!
+  ) {
     transaction(where: { hash: { _eq: $hash } }) {
       authchains {
         authhead {
           hash
-          identity_output {
-            fungible_token_amount
-          }
-          outputs {
-            output_index
-            locking_bytecode
-          }
         }
         migrations {
           transaction {
             hash
+            outputs(where: { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } }) {
+              locking_bytecode
+            }
           }
         }
       }
@@ -157,6 +162,8 @@ const authHeadQuery = graphql(`query AuthHead($hash: bytea!) {
 export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
   const response = await queryChainGraph(authHeadQuery, chaingraphUrl, {
     hash: `\\x${tokenId}`,
+    bcmrFrom: `\\x${bcmrPrefixRange.from}`,
+    bcmrTo: `\\x${bcmrPrefixRange.to}`,
   });
   const transaction = response.data.transaction[0];
   if (!transaction) throw new Error(t('chaingraph.errors.tokenNotFound'));
@@ -170,20 +177,20 @@ export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:str
   const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
   const authchain = authHeadObj.authchains[0];
   if (!authchain?.authhead) throw new Error(t('chaingraph.errors.authchainNotFound'));
-  const outputs = (authchain.authhead.outputs ?? [])
-    .sort((left, right) => Number(left.output_index) - Number(right.output_index))
-    .map(output => byteaToHex(output.locking_bytecode));
-  // the chain's transactions, which is what lets the history recognise an identity operation
-  const links = (authchain.migrations ?? []).flatMap(
-    migration => (migration.transaction ?? []).map(transaction => byteaToHex(transaction.hash))
-  );
-  return { txid: byteaToHex(authchain.authhead.hash), outputs, links };
+  // The identity's registry is the last publication its chain carries, which is not the authhead
+  // whenever the operations since were transfers or reserve moves: those carry none, and they are
+  // the ones this wallet makes. Migrations come oldest first, so the last match wins.
+  const links: string[] = [];
+  let publicationOutputs: string[] = [];
+  for (const migration of authchain.migrations ?? []) {
+    for (const transaction of migration.transaction ?? []) {
+      links.push(byteaToHex(transaction.hash));
+      const published = (transaction.outputs ?? []).map(output => byteaToHex(output.locking_bytecode));
+      if (published.length) publicationOutputs = published;
+    }
+  }
+  return { txid: byteaToHex(authchain.authhead.hash), publicationOutputs, links };
 }
-
-// OP_RETURN followed by a push of "BCMR". bytea has no prefix operator, but it is ordered, so a
-// prefix is the range from it up to the next value at the same length. Verified against a live
-// publication; the alternative, fetching every output and filtering here, would carry far more.
-const bcmrPrefixRange = { from: "6a0442434d52", to: "6a0442434d53" };
 
 const spentOutputsQuery = graphql(`query WalletSpentOutputs(
     $lockingBytecodes: _text!

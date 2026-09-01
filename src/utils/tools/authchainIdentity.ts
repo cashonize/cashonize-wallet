@@ -500,8 +500,8 @@ export async function resolveIdentities(
       console.error("Failed to resolve authchain identity:", category, result.reason);
     }
     if (result?.status !== 'fulfilled') return { category, status: 'unresolved' };
-    const { txid: authheadTxid, outputs, links } = result.value;
-    const publication = findPublication(outputs);
+    const { txid: authheadTxid, publicationOutputs, links } = result.value;
+    const publication = findPublication(publicationOutputs);
     const resolved = { category, authheadTxid, links, ...(publication ? { publication } : {}) };
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
