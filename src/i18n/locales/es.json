@@ -1460,8 +1460,8 @@
     },
     "remove": {
       "title": "¿Quitar de esta lista?",
-      "message": "La identidad se quita de esta lista. Al comprobar los AuthHeads vuelve a aparecer si esta billetera tiene el suyo.",
-      "messageHeld": "La identidad se quita de esta lista y su AuthHead deja de estar fuera de la selección de monedas, así que un envío normal puede gastarlo. Al comprobar los AuthHeads vuelve a aparecer mientras esta billetera siga teniéndolo.",
+      "message": "La identidad se quita de esta lista. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la comprobación de AuthHeads si esta billetera tiene tokens de ella.",
+      "messageHeld": "La identidad se quita de esta lista y su AuthHead deja de estar fuera de la selección de monedas, así que un envío normal puede gastarlo. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la comprobación de AuthHeads si esta billetera tiene tokens de ella.",
       "button": "Quitar"
     },
     "errors": {

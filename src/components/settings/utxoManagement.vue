@@ -6,7 +6,7 @@
   import TokenIcon from 'src/components/general/TokenIcon.vue';
   import { HDWallet, TokenSendRequest } from 'mainnet-js';
   import type { Utxo } from 'mainnet-js';
-  import { outpointOf } from 'src/utils/wallet/reservedUtxos';
+  import { isFeatureReservation, outpointOf } from 'src/utils/wallet/reservedUtxos';
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { displayAndLogError } from 'src/utils/errorHandling';
@@ -58,10 +58,7 @@
   // feature that made the reservation, so this list marks those but does not offer to release them.
   const reservedUtxoCount = computed(() => store.reservedWalletUtxos?.length);
   const reservationReason = (utxo: Utxo) => store.reservedUtxos[outpointOf(utxo)]?.reason;
-  const heldByFeature = (utxo: Utxo) => {
-    const reason = reservationReason(utxo);
-    return reason === 'pledge' || reason === 'auth';
-  };
+  const heldByFeature = (utxo: Utxo) => isFeatureReservation(reservationReason(utxo));
 
   async function toggleFreeze(utxo: Utxo) {
     if (reservationReason(utxo) === 'manual') {

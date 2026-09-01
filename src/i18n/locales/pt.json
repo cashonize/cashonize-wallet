@@ -1460,8 +1460,8 @@
     },
     "remove": {
       "title": "Remover desta lista?",
-      "message": "A identidade é removida desta lista. A verificação de AuthHeads a lista de novo se esta carteira tiver o dela.",
-      "messageHeld": "A identidade é removida desta lista e o AuthHead dela deixa de ficar fora da seleção de moedas, então um envio comum pode gastá-lo. A verificação de AuthHeads a lista de novo enquanto esta carteira tiver o AuthHead.",
+      "message": "A identidade é removida desta lista. Adicione-a de novo pela categoria, ou encontre-a com a verificação de AuthHeads se esta carteira tiver tokens dela.",
+      "messageHeld": "A identidade é removida desta lista e o AuthHead dela deixa de ficar fora da seleção de moedas, então um envio comum pode gastá-lo. Adicione-a de novo pela categoria, ou encontre-a com a verificação de AuthHeads se esta carteira tiver tokens dela.",
       "button": "Remover"
     },
     "errors": {

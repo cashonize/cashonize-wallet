@@ -6,6 +6,8 @@
  * module level to be available in both mock factories and test assertions.
  */
 import { vi } from 'vitest'
+// erased at runtime, so it is safe above the hoisted vi.mock calls below
+import type * as zodValidation from 'src/utils/zodValidation'
 
 // Mock wallet instances
 export const mockMainnetWallet = {
@@ -187,8 +189,10 @@ vi.mock('src/utils/cacheUtils', () => ({
   cachedFetch: vi.fn(),
 }))
 
-// Mock zodValidation
-vi.mock('src/utils/zodValidation', () => ({
+// Mock zodValidation, keeping the real schemas: the chaingraph ones parse responses that store
+// tests stub through fetch, so replacing them would only make those tests fail on their own mock
+vi.mock('src/utils/zodValidation', async (importOriginal) => ({
+  ...await importOriginal<typeof zodValidation>(),
   BcmrIndexerResponseSchema: { safeParse: vi.fn() },
 }))
 
@@ -196,7 +200,6 @@ vi.mock('src/utils/zodValidation', () => ({
 vi.mock('src/stores/storeUtils', () => ({
   fetchTokenMetadata: vi.fn().mockResolvedValue({}),
   tokenListFromUtxos: vi.fn().mockReturnValue([]),
-  updateTokenListWithAuthUtxos: vi.fn().mockReturnValue([]),
 }))
 
 // Mock utils

@@ -24,6 +24,7 @@
   const transferringCategory = ref<string | undefined>(undefined);
 
   const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
+  const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
   const truncateHash = (hash: string) => `${hash.slice(0, 16)}...${hash.slice(-8)}`;
 
   const identities = computed(() => store.identities ?? []);
@@ -129,10 +130,7 @@
     }
     const confirmed = await confirmDialog(
       t('identities.transfer.confirmTitle'),
-      t('identities.transfer.confirmMessage', {
-        amount: `${formatBchAmount(Number(authUtxo.satoshis), false, 8)} ${bchDisplayUnit.value}`,
-        address: destination,
-      }),
+      t('identities.transfer.confirmMessage', { amount: bchOf(authUtxo.satoshis), address: destination }),
       t('identities.transfer.confirmButton')
     );
     if (!confirmed) return;
@@ -178,7 +176,7 @@
           @click="addIdentity()"
           type="button"
           :value="isAdding ? t('identities.add.addingButton') : t('identities.add.button')"
-          :disabled="isAdding || !categoryInput"
+          :disabled="isAdding || store.identitiesResolving || !categoryInput"
         >
       </div>
       <div class="description" style="margin-top: 6px;">{{ t('identities.add.hint') }}</div>
@@ -188,7 +186,12 @@
       <div class="description">
         <i18n-t keypath="identities.scan.prompt" tag="span">
           <template #link>
-            <span class="scan-link" @click="scanForIdentities()">{{ t('identities.scan.linkText') }}</span>
+            <span
+              v-if="!isScanning && !store.identitiesResolving"
+              class="scan-link"
+              @click="scanForIdentities()"
+            >{{ t('identities.scan.linkText') }}</span>
+            <span v-else>{{ t('identities.scan.linkText') }}</span>
           </template>
         </i18n-t>
       </div>
@@ -239,9 +242,7 @@
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
         <div v-if="identity.authUtxo" class="description">
-          {{ t('identities.authheadAmount', {
-            amount: `${formatBchAmount(Number(identity.authUtxo.satoshis), false, 8)} ${bchDisplayUnit}`
-          }) }}
+          {{ t('identities.authheadAmount', { amount: bchOf(identity.authUtxo.satoshis) }) }}
         </div>
 
         <div v-if="identity.status === 'carriesTokens'" class="warning-box" style="margin-top: 10px;">

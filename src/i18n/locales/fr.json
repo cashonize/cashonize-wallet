@@ -1460,8 +1460,8 @@
     },
     "remove": {
       "title": "Retirer de cette liste ?",
-      "message": "L'identité est retirée de cette liste. La vérification des AuthHeads l'affichera de nouveau si ce portefeuille détient le sien.",
-      "messageHeld": "L'identité est retirée de cette liste et son AuthHead n'est plus écarté de la sélection des pièces : un envoi ordinaire peut donc le dépenser. La vérification des AuthHeads l'affichera de nouveau tant que ce portefeuille le détient.",
+      "message": "L'identité est retirée de cette liste. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la vérification des AuthHeads si ce portefeuille en détient des jetons.",
+      "messageHeld": "L'identité est retirée de cette liste et son AuthHead n'est plus écarté de la sélection des pièces : un envoi ordinaire peut donc le dépenser. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la vérification des AuthHeads si ce portefeuille en détient des jetons.",
       "button": "Retirer"
     },
     "errors": {

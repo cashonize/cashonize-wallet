@@ -12,7 +12,7 @@
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { confirmDialog, confirmSpendingTokenAuthhead, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
@@ -181,6 +181,7 @@
       const category = tokenData.value.category;
       const isAllSelected = selectedNftCount.value === tokenData.value.nfts?.length;
       const nftCount = selectedNftCount.value;
+      if (!await confirmSpendingTokenAuthhead(category)) return;
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -239,6 +240,7 @@
     try{
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      if (!await confirmSpendingTokenAuthhead(tokenData.value.category)) return;
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -286,6 +288,7 @@
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const category = tokenData.value.category;
+      if (!await confirmSpendingTokenAuthhead(category)) return;
       const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
       const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
       const confirmed = await confirmDialog(

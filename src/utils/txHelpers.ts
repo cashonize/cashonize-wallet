@@ -26,6 +26,20 @@ export function confirmDialog(
   })
 }
 
+// A listed identity whose authhead carries tokens is not kept out of coin selection yet, so every
+// path spending that category asks first: the spend can move the authhead away, and a burn can
+// destroy it outright. Resolves to whether the spend may go ahead.
+export async function confirmSpendingTokenAuthhead(category: string): Promise<boolean> {
+  const store = useStore()
+  if (!store.identityAuthheadCarriesTokens(category)) return true
+  return confirmDialog(
+    t('tokenItem.dialogs.authWarning.title'),
+    t('tokenItem.dialogs.authWarning.message'),
+    t('tokenItem.dialogs.authWarning.continueButton'),
+    'red'
+  )
+}
+
 export function notifySending(message?: string){
   Notify.create({
     spinner: true,

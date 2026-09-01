@@ -336,7 +336,7 @@ export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | 
     }
     return tokenDataFT
   }
-  return {
+  const tokenDataNFT = {
     category: electrumTokenData.category,
     nfts: [
       {
@@ -349,6 +349,7 @@ export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | 
       }
     ]
   } as TokenDataNFT
+  return tokenDataNFT
 }
 
 export const waitForInitialized = async function(property: Ref<boolean>): Promise<void> {

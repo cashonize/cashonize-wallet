@@ -1460,8 +1460,8 @@
     },
     "remove": {
       "title": "Remove from this list?",
-      "message": "The identity is removed from this list. Checking for authheads lists it again when this wallet holds its AuthHead.",
-      "messageHeld": "The identity is removed from this list and its AuthHead is no longer kept out of coin selection, so an ordinary send can spend it. Checking for authheads lists it again while this wallet still holds the AuthHead.",
+      "message": "The identity is removed from this list. Add it back by category, or find it again with the authhead check if this wallet holds tokens of it.",
+      "messageHeld": "The identity is removed from this list and its AuthHead is no longer kept out of coin selection, so an ordinary send can spend it. Add it back by category, or find it again with the authhead check if this wallet holds tokens of it.",
       "button": "Remove"
     },
     "errors": {

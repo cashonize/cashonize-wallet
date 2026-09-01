@@ -20,6 +20,13 @@ export interface ReservedUtxo {
   reservedAt: number; // unix seconds
 }
 
+// Held by the feature that made the reservation rather than by the user, so the coin is only
+// released through that feature. Written as "everything but 'manual'" so a reason added later is
+// treated as feature-held until it says otherwise, rather than silently becoming the user's to undo.
+export function isFeatureReservation(reason: ReservationReason | undefined): boolean {
+  return reason !== undefined && reason !== 'manual';
+}
+
 // "txid:vout", the same outpoint form mainnet-js accepts for utxoIds
 export type Outpoint = string;
 

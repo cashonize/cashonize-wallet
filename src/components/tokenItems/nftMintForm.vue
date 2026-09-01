@@ -6,7 +6,7 @@
   import { useStore } from 'src/stores/store'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { confirmSpendingTokenAuthhead, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
@@ -57,6 +57,8 @@
       if(!validCommitment) throw new Error(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
 
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      // minting spends the minting NFT, which is the authhead itself for some identities
+      if (!await confirmSpendingTokenAuthhead(props.category)) return;
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){

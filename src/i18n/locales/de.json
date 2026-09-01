@@ -1460,8 +1460,8 @@
     },
     "remove": {
       "title": "Aus dieser Liste entfernen?",
-      "message": "Die Identität wird aus dieser Liste entfernt. Die Prüfung auf AuthHeads listet sie wieder auf, wenn dieses Wallet ihren AuthHead hält.",
-      "messageHeld": "Die Identität wird aus dieser Liste entfernt und ihr AuthHead ist nicht mehr von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also ausgeben. Die Prüfung auf AuthHeads listet sie wieder auf, solange dieses Wallet den AuthHead hält.",
+      "message": "Die Identität wird aus dieser Liste entfernt. Füge sie über die Kategorie wieder hinzu, oder finde sie mit der AuthHead-Prüfung erneut, wenn dieses Wallet Tokens davon hält.",
+      "messageHeld": "Die Identität wird aus dieser Liste entfernt und ihr AuthHead ist nicht mehr von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also ausgeben. Füge sie über die Kategorie wieder hinzu, oder finde sie mit der AuthHead-Prüfung erneut, wenn dieses Wallet Tokens davon hält.",
       "button": "Entfernen"
     },
     "errors": {

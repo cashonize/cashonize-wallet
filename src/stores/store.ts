@@ -176,6 +176,9 @@ export const useStore = defineStore('store', () => {
   // (see utils/tools/authchainIdentity.ts).
   const identityCategories = ref([] as string[]);
   const identities = ref(undefined as (IdentityState[] | undefined));
+  // One resolve at a time: a pass writes the identities list and the 'auth' reservations derived
+  // from it whole, so two overlapping passes would undo each other's result
+  const identitiesResolving = ref(false);
   const tokenList = ref(null as (TokenList | null))
   const plannedTokenId = ref(undefined as (undefined | string));
   // Category a token payment request asks for, set when the user chooses to open it from
@@ -1348,7 +1351,9 @@ export const useStore = defineStore('store', () => {
   // storage: it moves to a new outpoint every time the identity's metadata is updated, and those
   // updates happen outside this wallet, so the outpoint is re-resolved and the 'auth' reservations
   // are rewritten from the result. That is what makes a reservation follow the authchain.
-  async function refreshIdentities() {
+  // This is the single owner of both the list and those reservations: everything that changes what
+  // is listed writes the categories and then hands the resolving over to it.
+  async function resolveListedIdentities() {
     const currentUtxos = walletUtxos.value;
     if (!currentUtxos) return;
     if (!identityCategories.value.length) {
@@ -1362,6 +1367,16 @@ export const useStore = defineStore('store', () => {
     if (initialization !== currentInitialization) return;
     identities.value = resolved;
     await syncAuthReservations(resolved);
+  }
+
+  async function refreshIdentities() {
+    if (identitiesResolving.value) return;
+    identitiesResolving.value = true;
+    try {
+      await resolveListedIdentities();
+    } finally {
+      identitiesResolving.value = false;
+    }
   }
 
   // Every authhead the wallet holds as a BCH-only coin is held back from coin selection, and an
@@ -1391,26 +1406,41 @@ export const useStore = defineStore('store', () => {
   // reported, since holding a token coin back from coin selection does not bind yet.
   // Categories with no held supply are not covered here and stay a manual add.
   async function scanForIdentities(): Promise<IdentityScanSummary | undefined> {
+    if (identitiesResolving.value) return undefined;
     const currentUtxos = walletUtxos.value;
     if (!currentUtxos) return undefined;
     const heldCategories = (tokenList.value ?? []).map(token => token.category);
     const listedCount = heldCategories.filter(category => identityCategories.value.includes(category)).length;
     const categoriesToCheck = heldCategories.filter(category => !identityCategories.value.includes(category));
-    const initialization = currentInitialization;
-    const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
-    if (initialization !== currentInitialization) return undefined;
-    const found = resolved.filter(identity => identity.status === 'held');
-    for (const identity of found) {
-      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, identity.category);
+    identitiesResolving.value = true;
+    try {
+      const initialization = currentInitialization;
+      const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
+      if (initialization !== currentInitialization) return undefined;
+      const found = resolved.filter(identity => identity.status === 'held');
+      for (const identity of found) {
+        identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, identity.category);
+      }
+      // The list and its reservations are resolved whole rather than merged into here: a few
+      // repeated queries for what the scan just found buy a single owner of that state.
+      await resolveListedIdentities();
+      return {
+        found: found.length,
+        alreadyListed: listedCount,
+        carriesTokens: resolved.filter(identity => identity.status === 'carriesTokens').length,
+        failed: resolved.filter(identity => identity.status === 'unresolved').length,
+      };
+    } finally {
+      identitiesResolving.value = false;
     }
-    identities.value = [...(identities.value ?? []), ...found];
-    await syncAuthReservations(identities.value);
-    return {
-      found: found.length,
-      alreadyListed: listedCount,
-      carriesTokens: resolved.filter(identity => identity.status === 'carriesTokens').length,
-      failed: resolved.filter(identity => identity.status === 'unresolved').length,
-    };
+  }
+
+  // A listed identity whose authhead carries tokens is not kept out of coin selection yet, so every
+  // path spending the category's coins asks this before it can move or burn that authhead away
+  function identityAuthheadCarriesTokens(category: string) {
+    return identities.value?.some(
+      identity => identity.category === category && identity.status === 'carriesTokens'
+    ) ?? false;
   }
 
   async function addIdentity(category: string) {
@@ -1419,8 +1449,8 @@ export const useStore = defineStore('store', () => {
   }
 
   // The wallet's only way to stop holding an authhead back, for when the user wants to spend that
-  // coin outside the identities page. Detection adds the identity again on the next wallet start
-  // if the wallet still holds its authhead.
+  // coin outside the identities page. Adding the identity again, by category or through the
+  // ownership check, reserves its authhead again.
   async function removeIdentity(category: string) {
     const removed = identities.value?.find(identity => identity.category === category);
     identityCategories.value = deleteIdentityCategory(network.value, wallet.value.name, category);
@@ -1613,6 +1643,7 @@ export const useStore = defineStore('store', () => {
 
     // The user spending one chosen coin whole, frozen or not. A pledged coin is refused: the
     // campaign holds a signed pledge against it, so cancelling the pledge is its only release.
+    // An 'auth' reserved coin passes deliberately, transferring an identity is this same spend.
     async sendUtxo(utxo: Utxo, cashaddr: string) {
       if (reservedUtxos.value[outpointOf(utxo)]?.reason === 'pledge') {
         throw new Error(t('store.errors.cannotSendPledgedUtxo'));
@@ -1689,6 +1720,8 @@ export const useStore = defineStore('store', () => {
     hasPreGenesis,
     identityCategories,
     identities,
+    identitiesResolving,
+    identityAuthheadCarriesTokens,
     refreshIdentities,
     scanForIdentities,
     addIdentity,
