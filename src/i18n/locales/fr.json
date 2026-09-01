@@ -342,11 +342,6 @@
       "nftMetadataShort": "chargement..."
     },
     "dialogs": {
-      "authWarning": {
-        "title": "Avertissement Auth",
-        "message": "Vous risquez d'envoyer involontairement l'autorité pour mettre à jour les métadonnées de ce token ailleurs.\nÊtes-vous sûr de vouloir envoyer la transaction quand même ?",
-        "continueButton": "Continuer"
-      },
       "confirmTokenSend": {
         "title": "Confirmer l'envoi de tokens",
         "message": "Envoyer {amount} {symbol} à\n{address}"
@@ -1426,12 +1421,18 @@
     "authheadLabel": "AuthHead :",
     "authheadAmount": "Contient {amount}",
     "viewOnExplorer": "Voir l'authchain sur TokenExplorer",
-    "carriesTokensWarning": "Cet AuthHead porte des jetons, que ce portefeuille ne peut pas encore écarter de la sélection des pièces : un envoi de cette catégorie peut donc le dépenser. La prise en charge arrivera dans une version ultérieure.",
     "status": {
       "held": "AuthHead détenu par ce portefeuille",
-      "carriesTokens": "AuthHead détenu, portant des jetons",
+      "carriesTokens": "AuthHead détenu par ce portefeuille, avec une réserve",
       "notHeld": "L'AuthHead n'est pas dans ce portefeuille",
       "unresolved": "Impossible de consulter l'AuthHead"
+    },
+    "reserve": {
+      "title": "Cet AuthHead porte :",
+      "supply": "{amount} {symbol} gardés hors circulation en réserve",
+      "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
+      "nft": "Un NFT de cette catégorie",
+      "comingNote": "L'AuthHead est écarté de la sélection des pièces, un envoi ordinaire ne peut donc pas le dépenser. Émettre depuis la réserve, y ajouter et transférer l'identité arrivent dans une version ultérieure."
     },
     "add": {
       "label": "Ajouter une identité par catégorie de jeton",
@@ -1447,7 +1448,7 @@
       "found": "{count} identité trouvée et ajoutée à la liste | {count} identités trouvées et ajoutées à la liste",
       "noneFound": "Aucune nouvelle identité trouvée.",
       "alreadyListed": "{count} catégorie était déjà dans la liste. | {count} catégories étaient déjà dans la liste.",
-      "carriesTokens": "{count} AuthHead porte des jetons, que ce portefeuille ne peut pas encore écarter de la sélection des pièces. | {count} AuthHeads portent des jetons, que ce portefeuille ne peut pas encore écarter de la sélection des pièces.",
+      "carriesTokens": "{count} d'entre eux porte une réserve de jetons. | {count} d'entre eux portent une réserve de jetons.",
       "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées."
     },
     "transfer": {

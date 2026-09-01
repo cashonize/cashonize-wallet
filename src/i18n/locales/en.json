@@ -342,11 +342,6 @@
       "nftMetadataShort": "loading..."
     },
     "dialogs": {
-      "authWarning": {
-        "title": "Auth Warning",
-        "message": "You risk unintentionally sending the authority to update this token's metadata elsewhere.\nAre you sure you want to send the transaction anyways?",
-        "continueButton": "Continue"
-      },
       "confirmTokenSend": {
         "title": "Confirm Token Send",
         "message": "Send {amount} {symbol} to\n{address}"
@@ -1426,12 +1421,18 @@
     "authheadLabel": "AuthHead:",
     "authheadAmount": "Holds {amount}",
     "viewOnExplorer": "View the authchain on TokenExplorer",
-    "carriesTokensWarning": "This AuthHead carries tokens, which this wallet cannot keep out of coin selection yet, so a send of that token category can spend it. Support for these comes in a later version.",
     "status": {
       "held": "AuthHead held by this wallet",
-      "carriesTokens": "AuthHead held, carrying tokens",
+      "carriesTokens": "AuthHead held by this wallet, with a reserve",
       "notHeld": "AuthHead is not in this wallet",
       "unresolved": "Could not look up the AuthHead"
+    },
+    "reserve": {
+      "title": "This AuthHead carries:",
+      "supply": "{amount} {symbol} held out of circulation as reserved supply",
+      "mintingNft": "A minting NFT, which creates new NFTs of this category",
+      "nft": "An NFT of this category",
+      "comingNote": "The AuthHead is held back from coin selection, so an ordinary send cannot spend it. Issuing from the reserve, adding to it and transferring the identity come in a later version."
     },
     "add": {
       "label": "Add an identity by token category",
@@ -1447,7 +1448,7 @@
       "found": "{count} identity found and added to the list | {count} identities found and added to the list",
       "noneFound": "No new identities found.",
       "alreadyListed": "{count} category was already listed. | {count} categories were already listed.",
-      "carriesTokens": "{count} authhead carries tokens, which this wallet cannot keep out of coin selection yet. | {count} authheads carry tokens, which this wallet cannot keep out of coin selection yet.",
+      "carriesTokens": "{count} of them carries a token reserve. | {count} of them carry a token reserve.",
       "failed": "{count} category could not be checked. | {count} categories could not be checked."
     },
     "transfer": {

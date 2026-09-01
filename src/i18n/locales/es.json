@@ -342,11 +342,6 @@
       "nftMetadataShort": "cargando..."
     },
     "dialogs": {
-      "authWarning": {
-        "title": "Advertencia de Auth",
-        "message": "Corres el riesgo de enviar involuntariamente la autoridad para actualizar los metadatos de este token a otro lugar.\n¿Estás seguro de que quieres enviar la transacción de todos modos?",
-        "continueButton": "Continuar"
-      },
       "confirmTokenSend": {
         "title": "Confirmar envío de tokens",
         "message": "Enviar {amount} {symbol} a\n{address}"
@@ -1426,12 +1421,18 @@
     "authheadLabel": "AuthHead:",
     "authheadAmount": "Contiene {amount}",
     "viewOnExplorer": "Ver la authchain en TokenExplorer",
-    "carriesTokensWarning": "Este AuthHead lleva tokens, que esta billetera todavía no puede dejar fuera de la selección de monedas, así que un envío de esa categoría puede gastarlo. El soporte llegará en una versión posterior.",
     "status": {
       "held": "AuthHead en esta billetera",
-      "carriesTokens": "AuthHead en la billetera, con tokens",
+      "carriesTokens": "AuthHead en esta billetera, con reserva",
       "notHeld": "El AuthHead no está en esta billetera",
       "unresolved": "No se pudo consultar el AuthHead"
+    },
+    "reserve": {
+      "title": "Este AuthHead lleva:",
+      "supply": "{amount} {symbol} fuera de circulación como suministro reservado",
+      "mintingNft": "Un NFT de acuñación, que crea nuevos NFTs de esta categoría",
+      "nft": "Un NFT de esta categoría",
+      "comingNote": "El AuthHead queda fuera de la selección de monedas, así que un envío normal no lo puede gastar. Emitir desde la reserva, añadir a ella y transferir la identidad llegan en una versión posterior."
     },
     "add": {
       "label": "Añadir una identidad por categoría de token",
@@ -1447,7 +1448,7 @@
       "found": "{count} identidad encontrada y añadida a la lista | {count} identidades encontradas y añadidas a la lista",
       "noneFound": "No se encontraron identidades nuevas.",
       "alreadyListed": "{count} categoría ya estaba en la lista. | {count} categorías ya estaban en la lista.",
-      "carriesTokens": "{count} AuthHead lleva tokens, que esta billetera todavía no puede dejar fuera de la selección de monedas. | {count} AuthHeads llevan tokens, que esta billetera todavía no puede dejar fuera de la selección de monedas.",
+      "carriesTokens": "{count} de ellos lleva una reserva de tokens. | {count} de ellos llevan una reserva de tokens.",
       "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías."
     },
     "transfer": {

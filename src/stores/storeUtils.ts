@@ -2,6 +2,7 @@ import { cachedFetch } from "src/utils/cacheUtils";
 import type { Utxo } from "mainnet-js";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
+import { spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 import { parseNft, type NftParseInfo, type ParseResult } from "src/parsing/nftParsing"
 import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
@@ -9,9 +10,12 @@ import { invokeExtensions } from "src/parsing/extensions/index"
 import { createElectrumAdapter } from "src/parsing/electrumAdapter"
 import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
 
-export function tokenListFromUtxos(walletUtxos: Utxo[]) {
+// A fungible balance is what the wallet can spend of a category, so coins held back are left out
+// of it: they are still held, and the UTXO management page is where that is visible. An NFT is not
+// a balance, so a held back one is still listed, and refused when a send names it.
+export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedUtxos = {}) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
-  const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
+  const fungibleTokensResult = getFungibleTokenBalances(spendableFromUtxos(tokenUtxos, reservedUtxos));
   const nftsResult = getAllNftTokenBalances(tokenUtxos);
   const arrayTokens: TokenList = [];
   for (const category of Object.keys(fungibleTokensResult)) {

@@ -342,11 +342,6 @@
       "nftMetadataShort": "carregando..."
     },
     "dialogs": {
-      "authWarning": {
-        "title": "Aviso de Auth",
-        "message": "Você corre o risco de enviar acidentalmente a autoridade de atualizar os metadados deste token.\nTem certeza que deseja enviar a transação mesmo assim?",
-        "continueButton": "Continuar"
-      },
       "confirmTokenSend": {
         "title": "Confirmar envio de tokens",
         "message": "Enviar {amount} {symbol} para\n{address}"
@@ -1426,12 +1421,18 @@
     "authheadLabel": "AuthHead:",
     "authheadAmount": "Contém {amount}",
     "viewOnExplorer": "Ver a authchain no TokenExplorer",
-    "carriesTokensWarning": "Este AuthHead carrega tokens, que esta carteira ainda não consegue manter fora da seleção de moedas, então um envio dessa categoria pode gastá-lo. O suporte vem numa versão posterior.",
     "status": {
       "held": "AuthHead nesta carteira",
-      "carriesTokens": "AuthHead na carteira, com tokens",
+      "carriesTokens": "AuthHead nesta carteira, com reserva",
       "notHeld": "O AuthHead não está nesta carteira",
       "unresolved": "Não foi possível consultar o AuthHead"
+    },
+    "reserve": {
+      "title": "Este AuthHead carrega:",
+      "supply": "{amount} {symbol} fora de circulação como oferta reservada",
+      "mintingNft": "Um NFT de cunhagem, que cria novos NFTs desta categoria",
+      "nft": "Um NFT desta categoria",
+      "comingNote": "O AuthHead fica fora da seleção de moedas, então um envio comum não pode gastá-lo. Emitir da reserva, adicionar a ela e transferir a identidade vêm numa versão posterior."
     },
     "add": {
       "label": "Adicionar uma identidade pela categoria do token",
@@ -1447,7 +1448,7 @@
       "found": "{count} identidade encontrada e adicionada à lista | {count} identidades encontradas e adicionadas à lista",
       "noneFound": "Nenhuma identidade nova encontrada.",
       "alreadyListed": "{count} categoria já estava na lista. | {count} categorias já estavam na lista.",
-      "carriesTokens": "{count} AuthHead carrega tokens, que esta carteira ainda não consegue manter fora da seleção de moedas. | {count} AuthHeads carregam tokens, que esta carteira ainda não consegue manter fora da seleção de moedas.",
+      "carriesTokens": "{count} deles carrega uma reserva de tokens. | {count} deles carregam uma reserva de tokens.",
       "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias."
     },
     "transfer": {

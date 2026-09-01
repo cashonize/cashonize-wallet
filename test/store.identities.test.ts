@@ -147,6 +147,21 @@ describe('auth reservations follow the authchain', () => {
     expect(store.identityCategories).toEqual([categoryA, categoryB])
   })
 
+  // an authhead carrying a token reserve is protected the same way, now that a reservation binds
+  // for a token coin; what it carries has no actions yet, so the card only reports it
+  it('holds back an authhead that carries a token reserve', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const authUtxo = utxo(authheadA, 0, { category: categoryA, amount: 1000n })
+    const store = startStore([authUtxo])
+
+    await store.refreshIdentities()
+
+    expect(store.identities?.[0]?.status).toBe('carriesTokens')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.spendableUtxos).toEqual([])
+  })
+
   it('releases the authhead of an identity removed from the list', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])

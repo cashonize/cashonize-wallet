@@ -8,24 +8,23 @@ import { queryAuthHeadTxid } from "src/queryChainGraph";
 
 type Network = 'mainnet' | 'chipnet';
 
-// 'held' is the only state the wallet protects: the authhead is a BCH-only coin of this wallet, so
-// it can be kept out of coin selection. 'carriesTokens' is an authhead this wallet holds that also
-// carries tokens, which reservation does not yet cover. 'unresolved' is a failed Chaingraph query,
-// which says nothing about where the authhead is.
+// 'held' and 'carriesTokens' are both authheads this wallet holds and keeps out of coin selection;
+// they are told apart because an authhead carrying a token reserve has no transfer of its own yet.
+// 'unresolved' is a failed Chaingraph query, which says nothing about where the authhead is.
 export type IdentityStatus = 'held' | 'carriesTokens' | 'notHeld' | 'unresolved';
 
 // What one run of the ownership scan over the wallet's token categories turned up
 export interface IdentityScanSummary {
   found: number; // authheads newly added to the list
   alreadyListed: number; // categories the list already covered, which the scan skips
-  carriesTokens: number; // held authheads a reservation does not yet bind for
+  carriesTokens: number; // of those found, the ones holding a token reserve alongside the authority
   failed: number; // categories whose lookup did not come back
 }
 
 export interface IdentityState {
   category: string;
   authheadTxid?: string;
-  authUtxo?: Utxo; // only set for 'held', the coin the 'auth' reservation is made on
+  authUtxo?: Utxo; // the coin the 'auth' reservation is made on, whenever the wallet holds it
   status: IdentityStatus;
 }
 
@@ -93,7 +92,7 @@ export async function resolveIdentities(
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
     if (!authUtxo) return { category, authheadTxid, status: 'notHeld' };
-    if (authUtxo.token) return { category, authheadTxid, status: 'carriesTokens' };
+    if (authUtxo.token) return { category, authheadTxid, authUtxo, status: 'carriesTokens' };
     return { category, authheadTxid, authUtxo, status: 'held' };
   });
 }

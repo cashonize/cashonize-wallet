@@ -342,11 +342,6 @@
       "nftMetadataShort": "Laden..."
     },
     "dialogs": {
-      "authWarning": {
-        "title": "Auth-Warnung",
-        "message": "Du riskierst, die Berechtigung zur Aktualisierung der Token-Metadaten unbeabsichtigt woanders hin zu senden.\nBist du sicher, dass du die Transaktion trotzdem senden willst?",
-        "continueButton": "Fortfahren"
-      },
       "confirmTokenSend": {
         "title": "Token-Sendung bestätigen",
         "message": "Sende {amount} {symbol} an\n{address}"
@@ -1426,12 +1421,18 @@
     "authheadLabel": "AuthHead:",
     "authheadAmount": "Enthält {amount}",
     "viewOnExplorer": "Authchain auf TokenExplorer ansehen",
-    "carriesTokensWarning": "Dieser AuthHead trägt Tokens, die dieses Wallet noch nicht von der Münzauswahl ausnehmen kann, ein Versand dieser Token-Kategorie kann ihn also ausgeben. Unterstützung dafür kommt in einer späteren Version.",
     "status": {
       "held": "AuthHead in diesem Wallet",
-      "carriesTokens": "AuthHead im Wallet, mit Tokens",
+      "carriesTokens": "AuthHead in diesem Wallet, mit Reserve",
       "notHeld": "Der AuthHead ist nicht in diesem Wallet",
       "unresolved": "AuthHead konnte nicht abgefragt werden"
+    },
+    "reserve": {
+      "title": "Dieser AuthHead trägt:",
+      "supply": "{amount} {symbol} als reservierter Bestand außerhalb des Umlaufs",
+      "mintingNft": "Ein Minting-NFT, das neue NFTs dieser Kategorie erzeugt",
+      "nft": "Ein NFT dieser Kategorie",
+      "comingNote": "Der AuthHead ist von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also nicht ausgeben. Aus der Reserve ausgeben, ihr etwas hinzufügen und die Identität übertragen kommen in einer späteren Version."
     },
     "add": {
       "label": "Identität über die Token-Kategorie hinzufügen",
@@ -1447,7 +1448,7 @@
       "found": "{count} Identität gefunden und der Liste hinzugefügt | {count} Identitäten gefunden und der Liste hinzugefügt",
       "noneFound": "Keine neuen Identitäten gefunden.",
       "alreadyListed": "{count} Kategorie stand bereits in der Liste. | {count} Kategorien standen bereits in der Liste.",
-      "carriesTokens": "{count} AuthHead trägt Tokens, die dieses Wallet noch nicht von der Münzauswahl ausnehmen kann. | {count} AuthHeads tragen Tokens, die dieses Wallet noch nicht von der Münzauswahl ausnehmen kann.",
+      "carriesTokens": "{count} davon trägt eine Token-Reserve. | {count} davon tragen eine Token-Reserve.",
       "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden."
     },
     "transfer": {

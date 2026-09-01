@@ -9,7 +9,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { confirmDialog, confirmSpendingTokenAuthhead, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { useI18n } from 'vue-i18n'
@@ -126,7 +126,6 @@
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
       const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-      if (!await confirmSpendingTokenAuthhead(tokenData.value.category)) return;
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -174,7 +173,6 @@
       const amountTokensInt = parseTokenAmountToBigInt(burnAmountFTs.value, decimals);
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
-      if (!await confirmSpendingTokenAuthhead(category)) return;
 
       const amountBurnFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
       const tokenSymbol = tokenMetaData.value?.token?.symbol ?? t('tokenItem.tokens')

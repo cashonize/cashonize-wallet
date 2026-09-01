@@ -5,7 +5,7 @@
   import { useI18n } from 'vue-i18n'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
-  import { copyToClipboard, formatBchAmount } from 'src/utils/utils'
+  import { copyToClipboard, formatBchAmount, formatTokenAmountFromBigInt } from 'src/utils/utils'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { validateRecipientAddress } from 'src/utils/payments/recipientAddress'
@@ -31,6 +31,23 @@
   const heldCount = computed(() => identities.value.filter(identity => identity.status === 'held').length);
 
   const identityName = (category: string) => store.bcmrRegistries?.[category]?.name;
+
+  // What an authhead carries alongside the authority to update the metadata: a token supply held
+  // back from circulation, an NFT that mints the category's tokens, or both at once. Managing any
+  // of it is not here yet, so the card only says what is there.
+  function reserveDescription(identity: IdentityState) {
+    const token = identity.authUtxo?.token;
+    if (!token) return undefined;
+    const metadata = store.bcmrRegistries?.[identity.category];
+    const lines: string[] = [];
+    if (token.amount) {
+      const amount = formatTokenAmountFromBigInt(token.amount, metadata?.token?.decimals ?? 0);
+      lines.push(t('identities.reserve.supply', { amount, symbol: metadata?.token?.symbol ?? '' }).trim());
+    }
+    if (token.nft?.capability === 'minting') lines.push(t('identities.reserve.mintingNft'));
+    else if (token.nft) lines.push(t('identities.reserve.nft'));
+    return lines;
+  }
   const identityIconUrl = (category: string) => {
     if (settingsStore.disableTokenIcons) return undefined;
     return store.tokenIconUrl(category);
@@ -245,9 +262,10 @@
           {{ t('identities.authheadAmount', { amount: bchOf(identity.authUtxo.satoshis) }) }}
         </div>
 
-        <div v-if="identity.status === 'carriesTokens'" class="warning-box" style="margin-top: 10px;">
-          <q-icon name="warning" size="20px" class="warning-box-icon" />
-          <div>{{ t('identities.carriesTokensWarning') }}</div>
+        <div v-if="identity.status === 'carriesTokens'" class="section">
+          <div>{{ t('identities.reserve.title') }}</div>
+          <div v-for="line in reserveDescription(identity)" :key="line" class="description">{{ line }}</div>
+          <div class="description" style="margin-top: 4px;">{{ t('identities.reserve.comingNote') }}</div>
         </div>
 
         <div v-if="identity.status === 'held'" class="section">

@@ -1088,7 +1088,7 @@ export const useStore = defineStore('store', () => {
   function updateTokenList() {
     // Uses the walletUtxos to create a tokenList
     if(!walletUtxos.value) return // should never happen
-    const newTokenList = tokenListFromUtxos(walletUtxos.value);
+    const newTokenList = tokenListFromUtxos(walletUtxos.value, reservedUtxos.value);
     // sort tokenList with featuredTokens first
     sortTokenList(newTokenList);
   }
@@ -1418,7 +1418,7 @@ export const useStore = defineStore('store', () => {
       const initialization = currentInitialization;
       const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
       if (initialization !== currentInitialization) return undefined;
-      const found = resolved.filter(identity => identity.status === 'held');
+      const found = resolved.filter(identity => identity.authUtxo);
       for (const identity of found) {
         identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, identity.category);
       }
@@ -1443,14 +1443,6 @@ export const useStore = defineStore('store', () => {
     if (utxos.some(utxo => outpointOf(utxo) in reservedUtxos.value)) {
       throw new Error(t('store.errors.tokenUtxoHeldBack'));
     }
-  }
-
-  // A listed identity whose authhead carries tokens is not kept out of coin selection yet, so every
-  // path spending the category's coins asks this before it can move or burn that authhead away
-  function identityAuthheadCarriesTokens(category: string) {
-    return identities.value?.some(
-      identity => identity.category === category && identity.status === 'carriesTokens'
-    ) ?? false;
   }
 
   async function addIdentity(category: string) {
@@ -1541,12 +1533,16 @@ export const useStore = defineStore('store', () => {
     reservedUtxos.value = saveReservedUtxo(
       network.value, wallet.value.name, utxo, reason, Math.floor(Date.now() / 1000)
     );
+    // the fungible balances count what can be spent, and nothing else re-reads them on their own
+    if (utxo.token) updateTokenList();
     await refreshMaxAmountToSend();
   }
 
   // Drops a reservation without spending; cancelling a pledge goes through spend.releaseReservedCoin
   async function dropReservation(outpoint: string) {
+    const releasedToken = walletUtxos.value?.find(utxo => outpointOf(utxo) === outpoint)?.token;
     reservedUtxos.value = deleteReservedUtxo(network.value, wallet.value.name, outpoint);
+    if (releasedToken) updateTokenList();
     await refreshMaxAmountToSend();
   }
 
@@ -1603,7 +1599,12 @@ export const useStore = defineStore('store', () => {
         available: `${formatBchAmount(Number(shortfall.available ?? 0n), false, 8)} ${bchUnit}`,
       }));
     }
-    if (error.message === "Not enough token amount to send") {
+    const tokenSelectionFailures = [
+      "Not enough token amount to send",
+      "You do not have any token UTXOs with minting capability for specified category",
+      "You do not have suitable token UTXOs to perform burn",
+    ];
+    if (tokenSelectionFailures.includes(error.message)) {
       return new Error(t('store.errors.notEnoughSpendableTokens'));
     }
     return error;
@@ -1761,7 +1762,6 @@ export const useStore = defineStore('store', () => {
     identityCategories,
     identities,
     identitiesResolving,
-    identityAuthheadCarriesTokens,
     checkTokenUtxosSpendable,
     refreshIdentities,
     scanForIdentities,

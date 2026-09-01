@@ -127,13 +127,14 @@ describe('resolveIdentities', () => {
     expect(resolved[0]?.authUtxo).toBeUndefined();
   });
 
-  // reservation exclusion does not bind for token coins yet, so these are listed but not held back
-  it('separates an authhead carrying tokens from one this wallet can hold back', async () => {
+  // both are held back, they are told apart because an authhead carrying a reserve cannot be
+  // transferred on its own yet
+  it('marks an authhead carrying a reserve, and still holds it back', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA });
     const tokenAuthUtxo = utxo(authheadA, 0, { category: categoryA, amount: 100n });
     const resolved = await resolveIdentities([categoryA], chaingraphUrl, [tokenAuthUtxo]);
     expect(resolved[0]?.status).toBe('carriesTokens');
-    expect(resolved[0]?.authUtxo).toBeUndefined();
+    expect(resolved[0]?.authUtxo).toEqual(tokenAuthUtxo);
   });
 
   it('marks only the identity whose query failed as unresolved', async () => {
