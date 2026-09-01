@@ -92,7 +92,8 @@
       "notEnoughSpendableBch": "Cette transaction demande {needed} et seuls {available} peuvent être dépensés. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "notEnoughSpendableTokens": "Pas assez de jetons dépensables pour cette transaction. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
-      "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre."
+      "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
+      "identityLeavesWallet": "Cette requête confierait le contrôle d'une de vos identités à un autre portefeuille, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités."
     }
   },
   "onboarding": {
@@ -1137,7 +1138,10 @@
       "highFeeWarning": "Cette transaction paie {rate} sat/octet, bien plus que le 1 sat/octet que paient normalement les transactions.",
       "unverifiedTokenNote": "{count, plural, one {Le token} other {Les tokens}} ne {count, plural, one {figure} other {figurent}} pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNoteSingular": "Le token ne figure pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
-      "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu."
+      "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
+      "identityKeyReturns": "Ceci utilise votre clé d'identité, qui revient dans votre portefeuille.",
+      "identityReturns": "Ceci utilise une de vos identités, qui revient dans votre portefeuille.",
+      "reserveMoved": "Cela retire aussi {amount} de la réserve."
     },
     "sessionRequest": {
       "title": "Approuver la session ?",

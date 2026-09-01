@@ -92,7 +92,8 @@
       "notEnoughSpendableBch": "Esta transacción necesita {needed} y solo se puede gastar {available}. Las monedas retenidas fuera de la selección de monedas no cuentan; la página de gestión de UTXOs muestra cuáles están retenidas y por qué.",
       "notEnoughSpendableTokens": "No se pueden gastar suficientes tokens para esta transacción. Las monedas retenidas fuera de la selección de monedas no cuentan; la página de gestión de UTXOs muestra cuáles están retenidas y por qué.",
       "cannotSendPledgedUtxo": "Este UTXO está retenido por una promesa abierta. Cancela la promesa para liberarlo.",
-      "genesisInputUnavailable": "La moneda elegida para crear este token ya no está disponible. Elige otra."
+      "genesisInputUnavailable": "La moneda elegida para crear este token ya no está disponible. Elige otra.",
+      "identityLeavesWallet": "Esta solicitud entregaría el control de una de tus identidades a otra billetera, así que fue rechazada. La transferencia de una identidad se hace desde la página de identidades."
     }
   },
   "onboarding": {
@@ -1137,7 +1138,10 @@
       "highFeeWarning": "Esta transacción paga {rate} sat/byte, mucho más que el 1 sat/byte que pagan normalmente las transacciones.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} no {count, plural, one {está} other {están}} en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
       "unverifiedTokenNoteSingular": "El token no está en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
-      "unverifiedTokenNotePlural": "Los tokens no están en tu billetera. Se obtuvieron nuevos metadatos para vista previa."
+      "unverifiedTokenNotePlural": "Los tokens no están en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
+      "identityKeyReturns": "Esto usa tu clave de identidad, que vuelve a tu billetera.",
+      "identityReturns": "Esto usa una de tus identidades, que vuelve a tu billetera.",
+      "reserveMoved": "También saca {amount} de la reserva."
     },
     "sessionRequest": {
       "title": "¿Aprobar sesión?",

@@ -92,7 +92,8 @@
       "notEnoughSpendableBch": "This transaction needs {needed} and only {available} can be spent. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "notEnoughSpendableTokens": "Not enough tokens can be spent for this transaction. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it.",
-      "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one."
+      "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one.",
+      "identityLeavesWallet": "This request would hand control of one of your identities to another wallet, so it was refused. Transferring an identity is done from the identities page."
     }
   },
   "onboarding": {
@@ -1137,7 +1138,10 @@
       "highFeeWarning": "This transaction pays {rate} sat/byte, far more than the 1 sat/byte that transactions normally pay.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} not in your wallet. New metadata fetched for preview.",
       "unverifiedTokenNoteSingular": "Token not in your wallet. New metadata fetched for preview.",
-      "unverifiedTokenNotePlural": "Tokens not in your wallet. New metadata fetched for preview."
+      "unverifiedTokenNotePlural": "Tokens not in your wallet. New metadata fetched for preview.",
+      "identityKeyReturns": "This uses your identity key, which returns to your wallet.",
+      "identityReturns": "This uses one of your identities, which returns to your wallet.",
+      "reserveMoved": "It also moves {amount} off the reserve."
     },
     "sessionRequest": {
       "title": "Approve Session?",

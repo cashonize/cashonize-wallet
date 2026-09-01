@@ -43,6 +43,13 @@ import {
   tokenListFromUtxos,
   parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
+import { hexToBin, lockingBytecodeToCashAddress } from "@bitauth/libauth"
+import {
+  checkReservedInputs,
+  type Bytes,
+  type SignedInput,
+  type SignedOutput,
+} from "src/utils/dapp/reservedInputs"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
@@ -1967,6 +1974,32 @@ export const useStore = defineStore('store', () => {
     return { ...options, utxoIds };
   }
 
+  // An output is this wallet's when its locking bytecode reads as an address this wallet has;
+  // an output that is not an address at all, like an OP_RETURN, never is.
+  function ownsLockingBytecode(lockingBytecode: Bytes) {
+    const prefix = network.value === 'mainnet' ? 'bitcoincash' : 'bchtest';
+    const bytecode = typeof lockingBytecode === 'string' ? hexToBin(lockingBytecode) : lockingBytecode;
+    const address = lockingBytecodeToCashAddress({ bytecode, prefix });
+    if (typeof address === 'string') return false;
+    return walletHasAddress(address.address);
+  }
+
+  // What the dapp signing paths ask before refusing a request that spends a held back coin: the
+  // identity coins are named here, and the rule itself lives in utils/dapp/reservedInputs.ts.
+  function checkDappReservedInputs(inputs: readonly SignedInput[], outputs: readonly SignedOutput[]) {
+    const listed = identities.value ?? [];
+    const identityKeys = listed.flatMap(identity => identity.keyUtxo ? [outpointOf(identity.keyUtxo)] : []);
+    const heldAuthheads = listed.flatMap(identity => identity.authUtxo ? [outpointOf(identity.authUtxo)] : []);
+    const unnamed = unnamedAuthheadCoins().map(outpointOf);
+    return checkReservedInputs(inputs, outputs, {
+      reservedUtxos: reservedUtxos.value,
+      walletUtxos: walletUtxos.value ?? [],
+      identityKeys,
+      authheads: [...heldAuthheads, ...unnamed],
+      ownsOutput: output => ownsLockingBytecode(output.lockingBytecode),
+    });
+  }
+
   // Narrowing utxoIds does not cover ensureUtxos: mainnet-js seeds its selection with every
   // ensureUtxos entry before it looks at the pool, so a reserved coin passed there would be spent.
   function checkNoReservedUtxos(options?: SpendOptions) {
@@ -2120,6 +2153,7 @@ export const useStore = defineStore('store', () => {
     _wallet, // the _wallet is the actual wallet object but this can be null
     wallet, // computed property to access the wallet, always non-null
     walletHasAddress,
+    checkDappReservedInputs,
     balance, // everything held, including reserved coins
     spendableBalance, // balance minus reservedBalance
     reservedBalance,

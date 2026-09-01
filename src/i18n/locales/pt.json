@@ -92,7 +92,8 @@
       "notEnoughSpendableBch": "Esta transação precisa de {needed} e só {available} pode ser gasto. Moedas retidas fora da seleção de moedas não contam; a página de gestão de UTXOs mostra quais estão retidas e por quê.",
       "notEnoughSpendableTokens": "Não há tokens suficientes para gastar nesta transação. Moedas retidas fora da seleção de moedas não contam; a página de gestão de UTXOs mostra quais estão retidas e por quê.",
       "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo.",
-      "genesisInputUnavailable": "A moeda escolhida para criar este token não está mais disponível. Escolha outra."
+      "genesisInputUnavailable": "A moeda escolhida para criar este token não está mais disponível. Escolha outra.",
+      "identityLeavesWallet": "Esta solicitação entregaria o controle de uma das suas identidades a outra carteira, por isso foi recusada. A transferência de uma identidade é feita na página de identidades."
     }
   },
   "onboarding": {
@@ -1137,7 +1138,10 @@
       "highFeeWarning": "Esta transação paga {rate} sat/byte, muito mais do que o 1 sat/byte que as transações pagam normalmente.",
       "unverifiedTokenNote": "{count, plural, one {Token} other {Tokens}} não presente na sua carteira. Novos metadados obtidos para pré-visualização.",
       "unverifiedTokenNoteSingular": "Token não presente na sua carteira. Novos metadados obtidos para pré-visualização.",
-      "unverifiedTokenNotePlural": "Tokens não presentes na sua carteira. Novos metadados obtidos para pré-visualização."
+      "unverifiedTokenNotePlural": "Tokens não presentes na sua carteira. Novos metadados obtidos para pré-visualização.",
+      "identityKeyReturns": "Isto usa a sua chave de identidade, que volta para a sua carteira.",
+      "identityReturns": "Isto usa uma das suas identidades, que volta para a sua carteira.",
+      "reserveMoved": "Também retira {amount} da reserva."
     },
     "sessionRequest": {
       "title": "Aprovar sessão?",

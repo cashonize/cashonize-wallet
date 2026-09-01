@@ -180,6 +180,10 @@
     }
   };
 
+  // A request spending a held back coin only reaches this dialog when the authority it takes comes
+  // back to this wallet (utils/dapp/reservedInputs.ts), which the dialog says rather than assumes.
+  const identityInputs = store.checkDappReservedInputs(txDetails.inputs, txDetails.outputs).returning;
+
   const formatTokenDisplay = (tokenSpent: NonNullable<Output['token']>, displayFullName= true): string => {
     const categoryHex = binToHex(tokenSpent.category);
     const tokenMetadata = getTokenMetadata(categoryHex);
@@ -221,6 +225,20 @@
             <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
             <!-- WizardConnect sessions carry no dapp url, so only warn when a url is present but unsafe -->
             <span v-else-if="dappMetadata.url" style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
+          </div>
+        </div>
+
+        <div v-if="identityInputs.length" class="identity-context">
+          <div v-for="identity in identityInputs" :key="identity.outpoint">
+            <q-icon name="lock" size="16px" />
+            {{ identity.kind === 'key'
+              ? t('walletConnect.transactionRequest.identityKeyReturns')
+              : t('walletConnect.transactionRequest.identityReturns') }}
+            <span v-if="identity.reserveMoved && identity.category">
+              {{ t('walletConnect.transactionRequest.reserveMoved', {
+                amount: formatTokenAmount(identity.reserveMoved, identity.category),
+              }) }}
+            </span>
           </div>
         </div>
 
@@ -389,6 +407,10 @@
   .wc-modal-details {
     font-size: smaller;
     margin: 0 5px;
+  }
+  .identity-context {
+    margin-top: 1.5rem;
+    color: grey;
   }
   .wc-modal-heading {
     font-weight: 700;
