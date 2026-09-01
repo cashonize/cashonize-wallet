@@ -60,7 +60,7 @@
       "rejected": "Der Chaingraph-Server hat die Anfrage abgelehnt: {reason}",
       "invalidResponse": "Der Server hat keine gültige Chaingraph-Antwort zurückgegeben.",
       "tokenNotFound": "Token nicht gefunden",
-      "authchainNotFound": "Authchain nicht gefunden"
+      "authchainNotFound": "Keine Identitäts-Historie für diese Id gefunden"
     }
   },
   "exchangeRate": {
@@ -659,9 +659,9 @@
     "supplyNote": "Hinweis: Füge zusätzliche Nullen für die Anzahl der in den BCMR-Metadaten festgelegten Dezimalstellen hinzu",
     "circulation": {
       "label": "Jetzt in Umlauf bringen",
-      "help": "Was jetzt ausgegeben wird, ist gewöhnliches Guthaben, das dieses Wallet ausgeben kann. Der Rest bleibt als Reserve auf dem AuthHead, geschützt mit der Identität, und kann später über die Identitäten-Seite ausgegeben werden.",
+      "help": "Was jetzt ausgegeben wird, ist gewöhnliches Guthaben, das dieses Wallet ausgeben kann. Der Rest bleibt als Reserve bei der Identität, mit ihr geschützt, und kann später über die Identitäten-Seite ausgegeben werden.",
       "placeholder": "Auszugebende Menge",
-      "split": "{reserve} bleibt als Reserve auf dem AuthHead, {circulating} kommt in Umlauf."
+      "split": "{reserve} bleibt als Reserve bei der Identität, {circulating} kommt in Umlauf."
     },
     "linkMetadata": "Token-Metadaten verknüpfen",
     "steps": {
@@ -670,7 +670,7 @@
       "verify": "Gib unten an, wo sie gehostet ist. Dieses Wallet holt sie und prüft, dass sie diesen Token nennt.",
       "create": "Erstelle den Token: dieselbe Transaktion veröffentlicht den Hash der Datei und wo sie zu finden ist."
     },
-    "metadataNote": "Metadaten lassen sich auch nach der Erstellung hinzufügen: der AuthHead bleibt in diesem Wallet, und die Identitäten-Seite veröffentlicht damit Aktualisierungen.",
+    "metadataNote": "Metadaten lassen sich auch nach der Erstellung hinzufügen: die Identität bleibt in diesem Wallet, und die Identitäten-Seite veröffentlicht damit Aktualisierungen.",
     "creatingTokensButton": "Tokens werden erstellt...",
     "createButton": "Erstellen",
     "notifications": {
@@ -685,14 +685,14 @@
       "overMaxSupply": "Das ist mehr, als eine Token-Kategorie fassen kann. Das Maximum ist {max}.",
       "overSupply": "Das ist mehr als die Gesamtmenge.",
       "nothingToCreate": "Gib eine Menge ein, füge ein Minting-NFT hinzu, oder beides.",
-      "emptyAuthhead": "Der AuthHead muss etwas tragen: behalte einen Teil der Menge als Reserve oder füge das Minting-NFT hinzu. Die Reserve lässt sich danach vollständig über die Identitäten-Seite ausgeben."
+      "emptyAuthhead": "Die Identität muss etwas tragen: behalte einen Teil der Menge als Reserve oder füge das Minting-NFT hinzu. Die Reserve lässt sich danach vollständig über die Identitäten-Seite ausgeben."
     },
     "created": {
       "fungibles": "{supply} fungible Token der Kategorie {category} erstellt",
       "mintingNft": "Minting-NFT der Kategorie {category} erstellt",
       "hybrid": "{supply} fungible Token und ein Minting-NFT der Kategorie {category} erstellt",
-      "reserve": "{amount} bleibt als reservierte Menge auf dem AuthHead.",
-      "listed": "Sie steht auf der Identitäten-Seite, und ihr AuthHead ist von der Münzauswahl ausgenommen."
+      "reserve": "{amount} bleibt als reservierte Menge bei der Identität.",
+      "listed": "Sie steht auf der Identitäten-Seite, und ihre Münze ist von der Münzauswahl ausgenommen."
     }
   },
   "utxoManagement": {
@@ -706,7 +706,7 @@
       "largeBch": "Enthält eine große Menge BCH",
       "reserved": "Zurückgehalten für ein offenes Flipstarter-Pledge, eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
       "reservedRelease": "Brich das Pledge auf der Flipstarter-Seite ab, um den UTXO freizugeben.",
-      "reservedAuth": "Zurückgehalten, weil es der AuthHead einer Token-Identität ist, eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
+      "reservedAuth": "Zurückgehalten, weil es die Münze einer Identität ist (ihr AuthHead), eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
       "reservedAuthRelease": "Übertrage die Identität oder entferne sie auf der Identitäten-Seite, um den UTXO freizugeben.",
       "frozen": "Von dir eingefroren, zum Auftauen klicken",
       "unfreeze": "Auftauen",
@@ -1305,7 +1305,7 @@
       "ipfsGateway": "IPFS-Gateway:",
       "ipfsGatewayHint": "Wird verwendet, um Token-Icons und andere auf IPFS gehostete Token-Medien zu laden.",
       "chaingraph": "Chaingraph-Server:",
-      "chaingraphHint": "Ein Indexer der BCH-Blockchain. Wird verwendet, um die TapSwap-Angebote und Hodl-Verträge der Wallet für die Portfolio-Ansicht zu finden sowie um Authchain-Besitz von Tokens zu erkennen.",
+      "chaingraphHint": "Ein Indexer der BCH-Blockchain. Wird verwendet, um die TapSwap-Angebote und Hodl-Verträge der Wallet für die Portfolio-Ansicht zu finden sowie um zu erkennen, welche Identitäten dieses Wallet hält.",
       "chaingraphCustomPlaceholder": "z.B. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql wird automatisch ergänzt, wenn nur ein Host angegeben wird.",
       "chaingraphInvalidUrl": "Ungültige Chaingraph-Server-URL",
@@ -1444,46 +1444,46 @@
   "identities": {
     "title": "Identitäten",
     "description": "Die Token-Identitäten, über die dieses Wallet die Hoheit hat.",
-    "whatIsAnIdentity": "Die Metadaten eines Tokens, also Name, Icon und Beschreibung, kann nur aktualisieren, wer seinen AuthHead hält: ein bestimmter UTXO, der mit jeder Aktualisierung an einen neuen Outpoint wandert.",
-    "whatIsAnIdentityNote": "Der AuthHead ist es, der dieses Wallet zu dem macht, das neue Metadaten für den Token veröffentlichen kann.",
-    "updatedElsewhere": "Metadaten werden außerhalb von Cashonize veröffentlicht, mit Werkzeugen wie CashTokens Studio. Diese Seite verfolgt, wohin der AuthHead gewandert ist, und schützt ihn in der Zwischenzeit.",
-    "reserveNote": "Ein AuthHead in diesem Wallet bleibt von der Münzauswahl ausgenommen, damit ein gewöhnlicher Versand ihn nicht versehentlich ausgibt.",
-    "resolving": "Suche, wo die AuthHeads liegen...",
+    "whatIsAnIdentity": "Die Metadaten eines Tokens, also Name, Icon und Beschreibung, kann nur aktualisieren, wer seine Identitätsmünze (den AuthHead) hält: ein bestimmter UTXO, der mit jeder Aktualisierung an einen neuen Outpoint wandert.",
+    "whatIsAnIdentityNote": "Diese Münze ist es, die dieses Wallet zu dem macht, das neue Metadaten für den Token veröffentlichen kann.",
+    "updatedElsewhere": "Metadaten werden außerhalb von Cashonize veröffentlicht, mit Werkzeugen wie CashTokens Studio. Diese Seite verfolgt, wohin die Identität gewandert ist, und schützt sie in der Zwischenzeit.",
+    "reserveNote": "Eine Identität in diesem Wallet bleibt von der Münzauswahl ausgenommen, damit ein gewöhnlicher Versand sie nicht versehentlich ausgibt.",
+    "resolving": "Suche, wo diese Identitäten liegen...",
     "empty": "Noch keine Identitäten in der Liste.",
     "detected": {
-      "notification": "Eine Identität dieses Wallets gefunden und ihren AuthHead von der Münzauswahl ausgenommen. | {count} Identitäten dieses Wallets gefunden und ihre AuthHeads von der Münzauswahl ausgenommen.",
+      "notification": "Eine Identität dieses Wallets gefunden und ihre Münze von der Münzauswahl ausgenommen. | {count} Identitäten dieses Wallets gefunden und ihre Münzen von der Münzauswahl ausgenommen.",
       "foundAutomatically": "Automatisch gefunden",
-      "foundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identität erstellt oder ihre Metadaten veröffentlicht, ihr AuthHead wurde also in der eigenen Historie gefunden und ist jetzt von der Münzauswahl ausgenommen. Nimm sie von der Liste, wenn dir das lieber ist."
+      "foundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identität erstellt oder ihre Metadaten veröffentlicht, sie wurde also in der eigenen Historie gefunden und ihre Münze ist jetzt von der Münzauswahl ausgenommen. Nimm sie von der Liste, wenn dir das lieber ist."
     },
     "unnamed": {
-      "title": "Ein AuthHead in diesem Wallet",
+      "title": "Eine Identität in diesem Wallet",
       "status": "Zurückgehalten, Identität noch nicht benannt",
-      "help": "Die Schlüssel dieses Wallets haben Metadaten einer Identität veröffentlicht, deren AuthHead keinen Token trägt, die Münze sagt also nicht, um welche Identität es geht. Sie bleibt trotzdem von der Münzauswahl ausgenommen: sie zu schützen wartet nicht darauf, sie zu benennen.",
+      "help": "Die Schlüssel dieses Wallets haben Metadaten einer Identität veröffentlicht, deren Münze keinen Token trägt, die Münze sagt also nicht, um welche Identität es geht. Sie bleibt trotzdem von der Münzauswahl ausgenommen: sie zu schützen wartet nicht darauf, sie zu benennen.",
       "removeTitle": "Diese Münze nicht mehr zurückhalten?",
-      "removeMessage": "Die Münze kommt zurück in die Münzauswahl und ein gewöhnlicher Versand kann sie ausgeben, was die Identität beendet, deren AuthHead sie ist. Sie wird nicht wieder aufgelistet."
+      "removeMessage": "Die Münze kommt zurück in die Münzauswahl und ein gewöhnlicher Versand kann sie ausgeben, was die Identität beendet, die sie trägt. Sie wird nicht wieder aufgelistet."
     },
     "listedCount": "{count} Identität, der dieses Wallet folgt | {count} Identitäten, denen dieses Wallet folgt",
     "unnamedIdentity": "Identität ohne Namen",
     "categoryLabel": "Kategorie:",
-    "authheadLabel": "AuthHead:",
+    "authheadLabel": "Identitätsmünze:",
     "authheadAmount": "Enthält {amount}",
-    "viewOnExplorer": "Authchain auf TokenExplorer ansehen",
+    "viewOnExplorer": "Historie der Identität auf TokenExplorer ansehen",
     "status": {
-      "held": "AuthHead in diesem Wallet",
-      "carriesTokens": "AuthHead in diesem Wallet, mit Reserve",
-      "notHeld": "Beobachtet, der AuthHead ist nicht in diesem Wallet",
-      "unresolved": "AuthHead konnte nicht abgefragt werden",
-      "heldViaKey": "AuthHead über einen Identitätsschlüssel gehalten"
+      "held": "In diesem Wallet gehalten",
+      "carriesTokens": "In diesem Wallet gehalten, mit Reserve",
+      "notHeld": "Beobachtet, in einem anderen Wallet",
+      "unresolved": "Konnte nicht abgefragt werden",
+      "heldViaKey": "Über einen Identitätsschlüssel gehalten"
     },
     "statusHelp": {
-      "held": "Dieses Wallet hält den AuthHead und kann die Metadaten dieser Identität also aktualisieren. Die Münze ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann sie ausgeben.",
-      "carriesTokens": "Dieses Wallet hält den AuthHead, und er trägt neben der Hoheit eine Token-Reserve. Die Münze ist von der Münzauswahl ausgenommen, wie jeder AuthHead.",
-      "notHeld": "Der AuthHead liegt woanders, dieses Wallet beobachtet diese Identität also nur: die Veröffentlichung wird gezeigt, aktualisieren kann sie das Wallet mit dem AuthHead.",
-      "unresolved": "Der AuthHead konnte nicht abgefragt werden, wo er gerade liegt ist also unbekannt. Was für diese Identität zurückgehalten wird, bleibt es bis eine Antwort kommt.",
-      "heldViaKey": "Der AuthHead liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne die Münze, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird."
+      "held": "Dieses Wallet hält die Münze dieser Identität und kann die Metadaten also aktualisieren. Die Münze ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann sie ausgeben.",
+      "carriesTokens": "Dieses Wallet hält diese Identität, und sie trägt neben der Hoheit eine Token-Reserve. Die Münze ist von der Münzauswahl ausgenommen, wie bei jeder Identität.",
+      "notHeld": "Diese Identität liegt woanders, dieses Wallet beobachtet sie also nur: die Veröffentlichung wird gezeigt, aktualisieren kann sie das Wallet, das sie hält.",
+      "unresolved": "Wo diese Identität liegt, konnte nicht abgefragt werden, es ist gerade unbekannt. Was für sie zurückgehalten wird, bleibt es, bis eine Antwort kommt.",
+      "heldViaKey": "Die Münze dieser Identität liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne die Münze, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird."
     },
     "reserve": {
-      "title": "Dieser AuthHead trägt:",
+      "title": "Diese Identität trägt:",
       "supply": "{amount} {symbol} als reservierter Bestand außerhalb des Umlaufs",
       "mintingNft": "Ein Minting-NFT, das neue NFTs dieser Kategorie erzeugt",
       "nft": "Ein NFT dieser Kategorie",
@@ -1492,7 +1492,7 @@
         "invalidAmount": "Gib einen gültigen Betrag ein.",
         "overReserve": "Das ist mehr, als die Reserve enthält.",
         "overBalance": "Das ist mehr, als dieses Wallet von diesem Token ausgeben kann.",
-        "nothingToEmpty": "Dieser AuthHead trägt keine Reserve zum Leeren."
+        "nothingToEmpty": "Diese Identität trägt keine Reserve zum Leeren."
       },
       "issue": {
         "action": "aus der Reserve ausgeben",
@@ -1514,23 +1514,23 @@
         "button": "Zur Reserve hinzufügen",
         "addingButton": "Wird hinzugefügt...",
         "confirmTitle": "Zur Reserve hinzufügen?",
-        "confirmMessage": "{amount} kommt zur Reserve auf dem AuthHead und verlässt den Umlauf.",
+        "confirmMessage": "{amount} kommt zur Reserve bei der Identität und verlässt den Umlauf.",
         "confirmButton": "Hinzufügen",
         "done": "Zur Reserve hinzugefügt",
         "doneTitle": "Zur Reserve hinzugefügt"
       },
       "empty": {
         "action": "Reserve leeren",
-        "hint": "Gib die ganze Reserve von {amount} an dieses Wallet zurück, sodass der AuthHead nur noch die Hoheit trägt.",
+        "hint": "Gib die ganze Reserve von {amount} an dieses Wallet zurück, sodass die Identität nur noch die Hoheit trägt.",
         "button": "Reserve leeren",
         "emptyingButton": "Wird geleert...",
         "confirmTitle": "Reserve leeren?",
-        "confirmMessage": "{amount} kommt als gewöhnlicher Bestand in dieses Wallet zurück, und der AuthHead trägt nur noch die Hoheit.",
+        "confirmMessage": "{amount} kommt als gewöhnlicher Bestand in dieses Wallet zurück, und die Identität trägt nur noch die Hoheit.",
         "confirmButton": "Leeren",
         "done": "Reserve geleert",
         "doneTitle": "Reserve geleert"
       },
-      "help": "Tokens auf dem AuthHead sind die Reserve der Kategorie: ausgegeben, aber nicht im Umlauf, und nicht zum Umlaufbestand gezählt. Alles andere dieser Kategorie im Wallet ist gewöhnlicher Bestand.",
+      "help": "Tokens auf der Münze einer Identität sind die Reserve der Kategorie: ausgegeben, aber nicht im Umlauf, und nicht zum Umlaufbestand gezählt. Alles andere dieser Kategorie im Wallet ist gewöhnlicher Bestand.",
       "transferSteps": {
         "empty": "Leere die Reserve, damit der Bestand hier bleibt.",
         "transfer": "Dann übertrage die Identität."
@@ -1539,7 +1539,7 @@
     "key": {
       "action": "Schlüssel übertragen",
       "guardLabel": "Guard:",
-      "guardHelp": "Die Identitäts-Ausgabe liegt an dieser Contract-Adresse, nicht in deinem Wallet. Der Contract gibt sie nur an den heraus, der den AuthKey vorlegt, also das NFT in diesem Wallet.",
+      "guardHelp": "Die Münze der Identität liegt an dieser Contract-Adresse, nicht in deinem Wallet. Der Contract gibt sie nur an den heraus, der den Identitätsschlüssel (den AuthKey) vorlegt, also das NFT in diesem Wallet.",
       "manageHint": "Diese Identität ist bewacht, ihre Metadaten zu aktualisieren und ihren Bestand zu bewegen läuft daher über das Werkzeug, das die Transaktionen des Contracts baut. Cashonize signiert sie, wenn es sich verbindet.",
       "manageOnStudio": "In CashTokens Studio verwalten",
       "hint": "Der Schlüssel ist ein gewöhnliches NFT und wandert wie eines. Wer ihn hält, kontrolliert jede Identität, die er bewacht.",
@@ -1579,7 +1579,7 @@
       "title": "Historie dieser Identität",
       "show": "Historie zeigen",
       "hide": "Historie ausblenden",
-      "loading": "Authchain wird gelesen...",
+      "loading": "Historie der Identität wird gelesen...",
       "madeHere": "von diesem Wallet gemacht",
       "reserveUp": "{amount} in die Reserve",
       "reserveDown": "{amount} aus der Reserve",
@@ -1636,7 +1636,7 @@
       "placeholder": "Token-Kategorie (64 Hexadezimalzeichen)",
       "button": "Identität hinzufügen",
       "addingButton": "Wird hinzugefügt...",
-      "hint": "Cashonize sucht, wo der AuthHead dieser Kategorie liegt, und listet ihn hier auf. Bei einem Token in diesem Wallet findet ihn auch die Prüfung unten.",
+      "hint": "Cashonize sucht, wo die Identität dieser Kategorie liegt, und listet sie hier auf. Bei einem Token in diesem Wallet findet sie auch die Prüfung unten.",
       "categoryHelp": "Eine Token-Kategorie ist die 64 Zeichen lange ID eines Tokens, dieselbe wie die seiner Genesis-Transaktion.",
       "categoryHelpWhere": "Du findest sie in den Token-Infos im Tokens-Tab oder auf tokenexplorer.cash.",
       "categoryHelpKey": "Die Kategorie eines Identitätsschlüssels geht hier auch: das Wallet leitet ab, was er bewacht, und beobachtet diese Identitäten.",
@@ -1652,48 +1652,48 @@
     },
     "create": {
       "label": "Eine Identität erstellen, die kein Token ist",
-      "help": "Eine Transaktion genügt: die Münze, die sie erzeugt, ist der AuthHead, und die Transaktions-Id wird zur dauerhaften Id der Identität.",
+      "help": "Eine Transaktion genügt: die Münze, die sie erzeugt, trägt die Identität, und die Transaktions-Id wird zur dauerhaften Id der Identität.",
       "helpNaming": "Die Benennung folgt danach mit einer Veröffentlichung: eine Registry muss die Id nennen, und die gibt es erst, wenn diese Transaktion signiert ist.",
       "hint": "Für eine persönliche Identität oder die einer Organisation. Für eine Token-Identität erstelle stattdessen den Token: seine Genesis macht beides auf einmal.",
       "button": "Identität erstellen",
       "creatingButton": "Wird erstellt...",
       "confirmTitle": "Eine neue Identität erstellen?",
-      "confirmMessage": "{amount} dieses Wallets wird zum AuthHead der Identität und von der Münzauswahl ausgenommen. Die Transaktions-Id wird zur dauerhaften Id der Identität.",
+      "confirmMessage": "{amount} dieses Wallets wird zur Münze der Identität und von der Münzauswahl ausgenommen. Die Transaktions-Id wird zur dauerhaften Id der Identität.",
       "confirmButton": "Erstellen",
-      "done": "Die Identität ist gelistet und ihr AuthHead von der Münzauswahl ausgenommen. Veröffentliche eine Registry, die sie nennt, um ihr einen Namen zu geben.",
+      "done": "Die Identität ist gelistet und ihre Münze von der Münzauswahl ausgenommen. Veröffentliche eine Registry, die sie nennt, um ihr einen Namen zu geben.",
       "doneTitle": "Identität erstellt",
       "errors": {
         "noTxId": "Die Transaktion wurde gesendet, aber ihre Id kam leer zurück, sodass die Identität nicht gelistet werden konnte."
       }
     },
     "scan": {
-      "prompt": "Cashonize kann die Tokens in diesem Wallet auf AuthHead-Besitz prüfen. {link}",
-      "linkText": "Auf AuthHeads prüfen",
+      "prompt": "Cashonize kann die Tokens in diesem Wallet auf gehaltene Identitäten prüfen. {link}",
+      "linkText": "Auf Identitäten prüfen",
       "scanning": "Die Token-Kategorien des Wallets werden geprüft...",
       "found": "{count} Identität gefunden und der Liste hinzugefügt | {count} Identitäten gefunden und der Liste hinzugefügt",
       "noneFound": "Keine neuen Identitäten gefunden.",
       "alreadyListed": "{count} Kategorie stand bereits in der Liste. | {count} Kategorien standen bereits in der Liste.",
       "carriesTokens": "{count} davon trägt eine Token-Reserve. | {count} davon tragen eine Token-Reserve.",
-      "deepScanned": "{count} gehaltene Münze war ein AuthHead. | {count} gehaltene Münzen waren AuthHeads.",
+      "deepScanned": "{count} gehaltene Münze war eine Identität. | {count} gehaltene Münzen waren Identitäten.",
       "dismissed": "{count} wurde ausgelassen, weil du sie vorher entfernt hast. | {count} wurden ausgelassen, weil du sie vorher entfernt hast.",
       "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden."
     },
     "transfer": {
       "label": "Diese Identität übertragen",
-      "hint": "Die AuthHead-Münze geht vollständig an das Ziel und übergibt damit die Hoheit über die Metadaten dieses Tokens. Das Ziel erhält die Münze abzüglich der Transaktionsgebühr.",
+      "hint": "Die Münze der Identität geht vollständig an das Ziel und übergibt damit die Hoheit über die Metadaten dieses Tokens. Das Ziel erhält die Münze abzüglich der Transaktionsgebühr.",
       "destinationPlaceholder": "Adresse, an die die Identität gehen soll",
       "button": "Identität übertragen",
       "transferringButton": "Wird übertragen...",
       "confirmTitle": "Diese Identität übertragen?",
-      "confirmMessage": "Der AuthHead ({amount}) geht an {address} und übergibt damit die Hoheit über die Metadaten dieses Tokens. Das lässt sich nicht rückgängig machen.",
+      "confirmMessage": "Die Münze der Identität ({amount}) geht an {address} und übergibt damit die Hoheit über die Metadaten dieses Tokens. Das lässt sich nicht rückgängig machen.",
       "confirmButton": "Übertragen",
       "done": "Identität an {address} übertragen",
       "doneTitle": "Identität übertragen"
     },
     "remove": {
       "title": "Aus dieser Liste entfernen?",
-      "message": "Die Identität wird aus dieser Liste entfernt. Füge sie über die Kategorie wieder hinzu, oder finde sie mit der AuthHead-Prüfung erneut, wenn dieses Wallet Tokens davon hält.",
-      "messageHeld": "Die Identität wird aus dieser Liste entfernt und ihr AuthHead ist nicht mehr von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also ausgeben. Füge sie über die Kategorie wieder hinzu, oder finde sie mit der AuthHead-Prüfung erneut, wenn dieses Wallet Tokens davon hält.",
+      "message": "Die Identität wird aus dieser Liste entfernt. Füge sie über die Kategorie wieder hinzu, oder finde sie mit der Identitätsprüfung erneut, wenn dieses Wallet Tokens davon hält.",
+      "messageHeld": "Die Identität wird aus dieser Liste entfernt und ihre Münze ist nicht mehr von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann sie also ausgeben. Füge sie über die Kategorie wieder hinzu, oder finde sie mit der Identitätsprüfung erneut, wenn dieses Wallet Tokens davon hält.",
       "button": "Entfernen"
     },
     "errors": {
@@ -1702,7 +1702,7 @@
     },
     "emptySteps": {
       "paste": "Füge oben die Token-Kategorie einer Identität ein.",
-      "check": "Oder prüfe die Tokens dieses Wallets auf AuthHeads.",
+      "check": "Oder prüfe die Tokens dieses Wallets auf Identitäten.",
       "create": "Oder {link}, um eine neue anzulegen.",
       "createLink": "erstelle einen Token",
       "createIdentity": "Oder erstelle oben eine Identität, die kein Token ist."

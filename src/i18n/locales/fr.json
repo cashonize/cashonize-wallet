@@ -60,7 +60,7 @@
       "rejected": "Le serveur Chaingraph a rejeté la requête : {reason}",
       "invalidResponse": "Le serveur n'a pas renvoyé de réponse Chaingraph valide.",
       "tokenNotFound": "Token non trouvé",
-      "authchainNotFound": "Authchain non trouvée"
+      "authchainNotFound": "Aucun historique d'identité trouvé pour cet identifiant"
     }
   },
   "exchangeRate": {
@@ -659,9 +659,9 @@
     "supplyNote": "Remarque : ajoutez des zéros supplémentaires selon le nombre de décimales défini dans les métadonnées BCMR",
     "circulation": {
       "label": "Mettre en circulation maintenant",
-      "help": "Ce qui est émis maintenant est de l'offre ordinaire que ce portefeuille peut dépenser. Le reste demeure sur l'AuthHead en réserve, protégé avec l'identité, et pourra être émis plus tard depuis la page des identités.",
+      "help": "Ce qui est émis maintenant est de l'offre ordinaire que ce portefeuille peut dépenser. Le reste demeure avec l'identité en réserve, protégé avec elle, et pourra être émis plus tard depuis la page des identités.",
       "placeholder": "Montant à émettre",
-      "split": "{reserve} reste sur l'AuthHead en réserve, {circulating} entre en circulation."
+      "split": "{reserve} reste avec l'identité en réserve, {circulating} entre en circulation."
     },
     "linkMetadata": "Lier les métadonnées du token",
     "steps": {
@@ -670,7 +670,7 @@
       "verify": "Indiquez ci-dessous où il est hébergé. Ce portefeuille le récupère et vérifie qu'il nomme ce token.",
       "create": "Créez le token : la même transaction publie l'empreinte du fichier et où le trouver."
     },
-    "metadataNote": "Les métadonnées peuvent aussi être ajoutées après la création : l'AuthHead reste dans ce portefeuille, et la page des identités publie les mises à jour avec lui.",
+    "metadataNote": "Les métadonnées peuvent aussi être ajoutées après la création : l'identité reste dans ce portefeuille, et la page des identités publie les mises à jour avec elle.",
     "creatingTokensButton": "Création des tokens...",
     "createButton": "Créer",
     "notifications": {
@@ -685,14 +685,14 @@
       "overMaxSupply": "C'est plus qu'une catégorie de tokens peut contenir. Le maximum est {max}.",
       "overSupply": "C'est plus que l'offre totale.",
       "nothingToCreate": "Saisissez une offre, ajoutez un NFT de frappe, ou les deux.",
-      "emptyAuthhead": "L'AuthHead doit porter quelque chose : gardez une partie de l'offre en réserve ou ajoutez le NFT de frappe. La réserve pourra ensuite être émise en totalité depuis la page des identités."
+      "emptyAuthhead": "L'identité doit porter quelque chose : gardez une partie de l'offre en réserve ou ajoutez le NFT de frappe. La réserve pourra ensuite être émise en totalité depuis la page des identités."
     },
     "created": {
       "fungibles": "{supply} tokens fongibles de la catégorie {category} créés",
       "mintingNft": "NFT de frappe de la catégorie {category} créé",
       "hybrid": "{supply} tokens fongibles et un NFT de frappe de la catégorie {category} créés",
-      "reserve": "{amount} reste sur l'AuthHead en offre réservée.",
-      "listed": "Elle figure sur la page des identités, et son AuthHead est écarté de la sélection des pièces."
+      "reserve": "{amount} reste avec l'identité en offre réservée.",
+      "listed": "Elle figure sur la page des identités, et sa pièce est écartée de la sélection des pièces."
     }
   },
   "utxoManagement": {
@@ -706,7 +706,7 @@
       "largeBch": "Contient une grande quantité de BCH",
       "reserved": "Retenue pour un engagement Flipstarter en cours, une dépense depuis ce portefeuille ne la prendra donc pas.",
       "reservedRelease": "Annulez l'engagement sur la page Flipstarter pour libérer l'UTXO.",
-      "reservedAuth": "Retenu parce qu'il est l'AuthHead d'une identité de jeton, un envoi depuis ce portefeuille ne l'utilisera donc pas.",
+      "reservedAuth": "Retenue parce qu'elle est la pièce d'une identité (son AuthHead), une dépense depuis ce portefeuille n'ira donc pas la chercher.",
       "reservedAuthRelease": "Transférez l'identité ou retirez-la sur la page Identités pour libérer l'UTXO.",
       "frozen": "Gelée par vous, cliquez pour dégeler",
       "unfreeze": "Dégeler",
@@ -1305,7 +1305,7 @@
       "ipfsGateway": "Passerelle IPFS :",
       "ipfsGatewayHint": "Utilisée pour charger les icônes de tokens et les autres médias de tokens hébergés sur IPFS.",
       "chaingraph": "Serveur Chaingraph :",
-      "chaingraphHint": "Un indexeur de la blockchain BCH. Utilisé pour trouver les annonces TapSwap et les contrats hodl du portefeuille pour la vue portfolio, et pour détecter la possession de l'authchain des tokens.",
+      "chaingraphHint": "Un indexeur de la blockchain BCH. Utilisé pour trouver les annonces TapSwap et les contrats hodl du portefeuille pour la vue portefeuille, et pour détecter quelles identités ce portefeuille détient.",
       "chaingraphCustomPlaceholder": "ex. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql est ajouté automatiquement lorsque seul un hôte est indiqué.",
       "chaingraphInvalidUrl": "URL du serveur Chaingraph invalide",
@@ -1444,46 +1444,46 @@
   "identities": {
     "title": "Identités",
     "description": "Les identités de jeton sur lesquelles ce portefeuille a autorité.",
-    "whatIsAnIdentity": "Les métadonnées d'un jeton, son nom, son icône et sa description, ne peuvent être mises à jour que par le détenteur de son AuthHead : un UTXO précis qui passe à un nouvel outpoint à chaque mise à jour.",
-    "whatIsAnIdentityNote": "C'est la détention de l'AuthHead qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le jeton.",
-    "updatedElsewhere": "La publication des métadonnées se fait hors de Cashonize, avec des outils comme CashTokens Studio. Cette page suit où l'AuthHead a bougé et le protège entre-temps.",
-    "reserveNote": "Un AuthHead détenu par ce portefeuille est écarté de la sélection des pièces, pour qu'un envoi ordinaire ne le dépense pas par accident.",
-    "resolving": "Recherche de l'emplacement des AuthHeads...",
+    "whatIsAnIdentity": "Les métadonnées d'un token, son nom, son icône et sa description, ne peuvent être mises à jour que par qui détient sa pièce d'identité (l'AuthHead) : un UTXO précis qui passe à un nouvel outpoint à chaque mise à jour.",
+    "whatIsAnIdentityNote": "C'est le fait de détenir cette pièce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le token.",
+    "updatedElsewhere": "La publication des métadonnées se fait hors de Cashonize, avec des outils comme CashTokens Studio. Cette page suit où l'identité s'est déplacée et la garde en sécurité entre-temps.",
+    "reserveNote": "Une identité détenue par ce portefeuille est écartée de la sélection des pièces, pour qu'un envoi ordinaire ne la dépense pas par accident.",
+    "resolving": "Recherche de l'endroit où sont ces identités...",
     "empty": "Aucune identité dans la liste pour l'instant.",
     "detected": {
-      "notification": "Une identité contrôlée par ce portefeuille a été trouvée, et son AuthHead écarté de la sélection des pièces. | {count} identités contrôlées par ce portefeuille ont été trouvées, et leurs AuthHeads écartés de la sélection des pièces.",
+      "notification": "Une identité contrôlée par ce portefeuille a été trouvée, et sa pièce écartée de la sélection des pièces. | {count} identités contrôlées par ce portefeuille ont été trouvées, et leurs pièces écartées de la sélection des pièces.",
       "foundAutomatically": "Trouvée automatiquement",
-      "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, son AuthHead a donc été trouvé dans l'historique du portefeuille et est désormais écarté de la sélection des pièces. Retirez-la de la liste si vous préférez."
+      "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et sa pièce est maintenant écartée de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
     },
     "unnamed": {
-      "title": "Un AuthHead détenu par ce portefeuille",
+      "title": "Une identité détenue par ce portefeuille",
       "status": "Retenu, identité pas encore nommée",
-      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont l'AuthHead ne porte pas de jeton : la pièce ne dit donc pas de quelle identité il s'agit. Elle est écartée de la sélection des pièces malgré tout, car la protéger n'attend pas de la nommer.",
+      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont la pièce ne porte aucun token, la pièce ne dit donc pas de quelle identité il s'agit. Elle reste écartée de la sélection des pièces malgré tout : la protéger n'attend pas de pouvoir la nommer.",
       "removeTitle": "Cesser de retenir cette pièce ?",
-      "removeMessage": "La pièce revient dans la sélection et un envoi ordinaire peut la dépenser, ce qui met fin à l'identité dont elle est l'AuthHead. Elle ne sera plus listée."
+      "removeMessage": "La pièce revient dans la sélection des pièces et un envoi ordinaire peut la dépenser, ce qui met fin à l'identité qu'elle porte. Elle ne sera plus listée."
     },
     "listedCount": "{count} identité suivie par ce portefeuille | {count} identités suivies par ce portefeuille",
     "unnamedIdentity": "Identité sans nom",
     "categoryLabel": "Catégorie :",
-    "authheadLabel": "AuthHead :",
+    "authheadLabel": "Pièce de l'identité :",
     "authheadAmount": "Contient {amount}",
-    "viewOnExplorer": "Voir l'authchain sur TokenExplorer",
+    "viewOnExplorer": "Voir l'historique de l'identité sur TokenExplorer",
     "status": {
-      "held": "AuthHead détenu par ce portefeuille",
-      "carriesTokens": "AuthHead détenu par ce portefeuille, avec une réserve",
-      "notHeld": "Suivie, l'AuthHead n'est pas dans ce portefeuille",
-      "unresolved": "Impossible de consulter l'AuthHead",
-      "heldViaKey": "AuthHead détenu via une clé d'identité"
+      "held": "Détenue par ce portefeuille",
+      "carriesTokens": "Détenue par ce portefeuille, avec une réserve",
+      "notHeld": "Surveillée, détenue par un autre portefeuille",
+      "unresolved": "Impossible de consulter cette identité",
+      "heldViaKey": "Détenue via une clé d'identité"
     },
     "statusHelp": {
-      "held": "Ce portefeuille détient l'AuthHead, il peut donc mettre à jour les métadonnées de cette identité. La pièce est écartée de la sélection, aucun envoi ordinaire ne peut la dépenser.",
-      "carriesTokens": "Ce portefeuille détient l'AuthHead, et celui-ci porte une réserve de jetons à côté de l'autorité. La pièce est écartée de la sélection, comme tout AuthHead.",
-      "notHeld": "L'AuthHead est ailleurs : ce portefeuille ne fait que suivre cette identité. Sa publication est affichée, mais la mettre à jour demande le portefeuille qui détient l'AuthHead.",
-      "unresolved": "L'AuthHead n'a pas pu être consulté, on ignore donc où il se trouve. Ce qui est retenu pour cette identité le reste jusqu'à ce qu'une réponse arrive.",
-      "heldViaKey": "L'AuthHead est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans la pièce : c'est donc la clé qui est écartée de la sélection."
+      "held": "Ce portefeuille détient la pièce de cette identité, il peut donc en mettre à jour les métadonnées. La pièce est écartée de la sélection des pièces, aucun envoi ordinaire ne peut la dépenser.",
+      "carriesTokens": "Ce portefeuille détient cette identité, et elle porte une réserve de tokens en plus de l'autorité. La pièce est écartée de la sélection des pièces, comme celle de toute identité.",
+      "notHeld": "Cette identité est ailleurs, ce portefeuille ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour demande le portefeuille qui la détient.",
+      "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
+      "heldViaKey": "La pièce de cette identité est verrouillée dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans la pièce, c'est donc la clé qui est écartée de la sélection des pièces."
     },
     "reserve": {
-      "title": "Cet AuthHead porte :",
+      "title": "Cette identité porte :",
       "supply": "{amount} {symbol} gardés hors circulation en réserve",
       "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
       "nft": "Un NFT de cette catégorie",
@@ -1492,7 +1492,7 @@
         "invalidAmount": "Saisissez un montant valide.",
         "overReserve": "C'est plus que ce que contient la réserve.",
         "overBalance": "C'est plus que ce que ce portefeuille peut dépenser de ce jeton.",
-        "nothingToEmpty": "Cet AuthHead ne porte aucune réserve à vider."
+        "nothingToEmpty": "Cette identité ne porte aucune réserve à vider."
       },
       "issue": {
         "action": "émettre depuis la réserve",
@@ -1514,23 +1514,23 @@
         "button": "Ajouter à la réserve",
         "addingButton": "Ajout...",
         "confirmTitle": "Ajouter à la réserve ?",
-        "confirmMessage": "{amount} rejoint la réserve sur l'AuthHead et quitte la circulation.",
+        "confirmMessage": "{amount} rejoint la réserve de l'identité et quitte la circulation.",
         "confirmButton": "Ajouter",
         "done": "Ajouté à la réserve",
         "doneTitle": "Ajouté à la réserve"
       },
       "empty": {
         "action": "vider la réserve",
-        "hint": "Renvoyez toute la réserve de {amount} à ce portefeuille, l'AuthHead ne portant plus que l'autorité.",
+        "hint": "Renvoyez toute la réserve de {amount} vers ce portefeuille, ne laissant à l'identité que l'autorité.",
         "button": "Vider la réserve",
         "emptyingButton": "Vidage...",
         "confirmTitle": "Vider la réserve ?",
-        "confirmMessage": "{amount} revient dans ce portefeuille comme offre ordinaire, et l'AuthHead ne porte plus que l'autorité.",
+        "confirmMessage": "{amount} revient dans ce portefeuille comme offre ordinaire, et l'identité ne porte plus que l'autorité.",
         "confirmButton": "Vider",
         "done": "Réserve vidée",
         "doneTitle": "Réserve vidée"
       },
-      "help": "Les jetons portés par l'AuthHead sont la réserve de la catégorie : émis mais hors circulation, et non comptés dans l'offre en circulation. Le reste de cette catégorie dans le portefeuille est de l'offre ordinaire.",
+      "help": "Les tokens portés par la pièce d'une identité sont la réserve de la catégorie : émis mais pas en circulation, et non comptés dans l'offre en circulation. Tout le reste de cette catégorie détenu par le portefeuille est de l'offre ordinaire.",
       "transferSteps": {
         "empty": "Videz la réserve, pour que l'offre reste ici.",
         "transfer": "Puis transférez l'identité."
@@ -1539,7 +1539,7 @@
     "key": {
       "action": "transférer la clé",
       "guardLabel": "Gardien :",
-      "guardHelp": "La sortie d'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne la libère qu'à qui présente l'AuthKey, le NFT que ce portefeuille détient.",
+      "guardHelp": "La pièce de l'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne la libère qu'à qui présente la clé d'identité (l'AuthKey), qui est le NFT détenu par ce portefeuille.",
       "manageHint": "Cette identité est gardée : mettre à jour ses métadonnées et déplacer son offre passent par l'outil qui construit les transactions du contrat. Cashonize les signe lorsqu'il s'y connecte.",
       "manageOnStudio": "Gérer sur CashTokens Studio",
       "hint": "La clé est un NFT ordinaire et se déplace comme tel. Qui la détient contrôle toutes les identités qu'elle garde.",
@@ -1579,7 +1579,7 @@
       "title": "Historique de cette identité",
       "show": "voir l'historique",
       "hide": "masquer l'historique",
-      "loading": "Lecture de l'authchain...",
+      "loading": "Lecture de l'historique de l'identité...",
       "madeHere": "fait par ce portefeuille",
       "reserveUp": "{amount} vers la réserve",
       "reserveDown": "{amount} hors de la réserve",
@@ -1636,7 +1636,7 @@
       "placeholder": "Catégorie de jeton (64 caractères hexadécimaux)",
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
-      "hint": "Cashonize cherche où se trouve l'AuthHead de cette catégorie et l'affiche ici. Pour un jeton détenu par ce portefeuille, la vérification ci-dessous le trouve aussi.",
+      "hint": "Cashonize cherche où se trouve l'identité de cette catégorie et la liste ici. Pour un token détenu par ce portefeuille, la recherche ci-dessous la trouve aussi.",
       "categoryHelp": "Une catégorie de jeton est l'identifiant de 64 caractères d'un jeton, le même que celui de sa transaction de genèse.",
       "categoryHelpWhere": "Vous le trouverez dans les infos du jeton sous l'onglet Jetons, ou sur tokenexplorer.cash.",
       "categoryHelpKey": "La catégorie d'une clé d'identité fonctionne aussi ici : le portefeuille dérive ce qu'elle garde et suit ces identités.",
@@ -1652,48 +1652,48 @@
     },
     "create": {
       "label": "Créer une identité qui n'est pas un token",
-      "help": "Une seule transaction suffit : la pièce qu'elle crée est l'AuthHead, et l'identifiant de la transaction devient l'identifiant permanent de l'identité.",
+      "help": "Une seule transaction suffit : la pièce qu'elle crée porte l'identité, et l'identifiant de la transaction devient l'identifiant permanent de l'identité.",
       "helpNaming": "Le nom vient ensuite, avec une publication : un registre doit nommer cet identifiant, qui n'existe pas avant la signature de cette transaction.",
       "hint": "Pour une identité personnelle ou d'organisation. Pour une identité de token, créez plutôt le token : sa genèse fait les deux à la fois.",
       "button": "Créer l'identité",
       "creatingButton": "Création...",
       "confirmTitle": "Créer une nouvelle identité ?",
-      "confirmMessage": "{amount} de ce portefeuille devient l'AuthHead de l'identité et est écarté de la sélection des pièces. L'identifiant de la transaction devient l'identifiant permanent de l'identité.",
+      "confirmMessage": "{amount} de ce portefeuille devient la pièce de l'identité et est écarté de la sélection des pièces. L'identifiant de la transaction devient l'identifiant permanent de l'identité.",
       "confirmButton": "Créer",
-      "done": "L'identité figure dans la liste et son AuthHead est écarté de la sélection des pièces. Publiez un registre qui la nomme pour lui donner un nom.",
+      "done": "L'identité figure dans la liste et sa pièce est écartée de la sélection des pièces. Publiez un registre qui la nomme pour lui donner un nom.",
       "doneTitle": "Identité créée",
       "errors": {
         "noTxId": "La transaction a été envoyée mais son identifiant est revenu vide, l'identité n'a donc pas pu être listée."
       }
     },
     "scan": {
-      "prompt": "Cashonize peut vérifier si les jetons de ce portefeuille y ont leur AuthHead. {link}",
-      "linkText": "Vérifier les AuthHeads",
+      "prompt": "Cashonize peut vérifier si les tokens de ce portefeuille ont des identités qu'il détient. {link}",
+      "linkText": "Rechercher des identités",
       "scanning": "Vérification des catégories de jetons du portefeuille...",
       "found": "{count} identité trouvée et ajoutée à la liste | {count} identités trouvées et ajoutées à la liste",
       "noneFound": "Aucune nouvelle identité trouvée.",
       "alreadyListed": "{count} catégorie était déjà dans la liste. | {count} catégories étaient déjà dans la liste.",
       "carriesTokens": "{count} d'entre eux porte une réserve de jetons. | {count} d'entre eux portent une réserve de jetons.",
-      "deepScanned": "{count} pièce détenue s'est avérée être un AuthHead. | {count} pièces détenues se sont avérées être des AuthHeads.",
+      "deepScanned": "{count} pièce retenue s'est avérée être une identité. | {count} pièces retenues se sont avérées être des identités.",
       "dismissed": "{count} a été laissée de côté parce que vous l'aviez retirée. | {count} ont été laissées de côté parce que vous les aviez retirées.",
       "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées."
     },
     "transfer": {
       "label": "Transférer cette identité",
-      "hint": "La pièce de l'AuthHead est envoyée entière au destinataire, ce qui cède l'autorité de mettre à jour les métadonnées de ce jeton. Le destinataire reçoit la pièce moins les frais de transaction.",
+      "hint": "La pièce de l'identité est envoyée entière à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. La destination reçoit la pièce moins les frais de transaction.",
       "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
       "button": "Transférer l'identité",
       "transferringButton": "Transfert...",
       "confirmTitle": "Transférer cette identité ?",
-      "confirmMessage": "L'AuthHead ({amount}) est envoyé à {address}, ce qui cède l'autorité de mettre à jour les métadonnées de ce jeton. C'est irréversible.",
+      "confirmMessage": "La pièce de l'identité ({amount}) est envoyée à {address}, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. C'est irréversible.",
       "confirmButton": "Transférer",
       "done": "Identité transférée à {address}",
       "doneTitle": "Identité transférée"
     },
     "remove": {
       "title": "Retirer de cette liste ?",
-      "message": "L'identité est retirée de cette liste. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la vérification des AuthHeads si ce portefeuille en détient des jetons.",
-      "messageHeld": "L'identité est retirée de cette liste et son AuthHead n'est plus écarté de la sélection des pièces : un envoi ordinaire peut donc le dépenser. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la vérification des AuthHeads si ce portefeuille en détient des jetons.",
+      "message": "L'identité est retirée de cette liste. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la recherche d'identités si ce portefeuille détient des tokens de celle-ci.",
+      "messageHeld": "L'identité est retirée de cette liste et sa pièce n'est plus écartée de la sélection des pièces, un envoi ordinaire peut donc la dépenser. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la recherche d'identités si ce portefeuille détient des tokens de celle-ci.",
       "button": "Retirer"
     },
     "errors": {
@@ -1702,7 +1702,7 @@
     },
     "emptySteps": {
       "paste": "Collez ci-dessus la catégorie de jeton d'une identité.",
-      "check": "Ou vérifiez si les jetons de ce portefeuille ont des AuthHeads.",
+      "check": "Ou vérifiez les tokens de ce portefeuille pour y trouver des identités.",
       "create": "Ou {link} pour en créer une.",
       "createLink": "créez un jeton",
       "createIdentity": "Ou créez ci-dessus une identité qui n'est pas un token."

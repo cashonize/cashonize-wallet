@@ -60,7 +60,7 @@
       "rejected": "O servidor Chaingraph rejeitou a solicitação: {reason}",
       "invalidResponse": "O servidor não retornou uma resposta válida do Chaingraph.",
       "tokenNotFound": "Token não encontrado",
-      "authchainNotFound": "Authchain não encontrada"
+      "authchainNotFound": "Nenhum histórico de identidade encontrado para esse id"
     }
   },
   "exchangeRate": {
@@ -659,9 +659,9 @@
     "supplyNote": "nota: adicione zeros extras para o número de decimais definido nos metadados BCMR",
     "circulation": {
       "label": "Colocar em circulação agora",
-      "help": "O que for emitido agora é fornecimento comum que esta carteira pode gastar. O restante fica no AuthHead como reserva, protegido junto com a identidade, e pode ser emitido depois na página de identidades.",
+      "help": "O que for emitido agora é fornecimento comum que esta carteira pode gastar. O restante fica com a identidade como reserva, protegido junto com ela, e pode ser emitido depois na página de identidades.",
       "placeholder": "Quantidade a emitir",
-      "split": "{reserve} fica no AuthHead como reserva, {circulating} entra em circulação."
+      "split": "{reserve} fica com a identidade como reserva, {circulating} entra em circulação."
     },
     "linkMetadata": "Vincular Metadados do Token",
     "steps": {
@@ -670,7 +670,7 @@
       "verify": "Informe abaixo onde ele está hospedado. Esta carteira o busca e verifica que ele nomeia este token.",
       "create": "Crie o token: a mesma transação publica o hash do arquivo e onde encontrá-lo."
     },
-    "metadataNote": "Os metadados também podem ser adicionados após a criação: o AuthHead fica nesta carteira, e a página de identidades publica atualizações com ele.",
+    "metadataNote": "Os metadados também podem ser adicionados após a criação: a identidade fica nesta carteira, e a página de identidades publica atualizações com ela.",
     "creatingTokensButton": "Criando Tokens...",
     "createButton": "Criar",
     "notifications": {
@@ -685,14 +685,14 @@
       "overMaxSupply": "Isso é mais do que uma categoria de tokens pode conter. O máximo é {max}.",
       "overSupply": "Isso é mais do que o fornecimento total.",
       "nothingToCreate": "Informe um fornecimento, adicione um NFT de cunhagem, ou ambos.",
-      "emptyAuthhead": "O AuthHead precisa carregar algo: guarde parte do fornecimento como reserva ou adicione o NFT de cunhagem. A reserva pode ser emitida por completo depois na página de identidades."
+      "emptyAuthhead": "A identidade precisa carregar algo: guarde parte do fornecimento como reserva ou adicione o NFT de cunhagem. A reserva pode ser emitida por completo depois na página de identidades."
     },
     "created": {
       "fungibles": "Criados {supply} tokens fungíveis da categoria {category}",
       "mintingNft": "Criado um NFT de cunhagem da categoria {category}",
       "hybrid": "Criados {supply} tokens fungíveis e um NFT de cunhagem da categoria {category}",
-      "reserve": "{amount} fica no AuthHead como fornecimento reservado.",
-      "listed": "Ela aparece na página de identidades, e o seu AuthHead fica de fora da seleção de moedas."
+      "reserve": "{amount} fica com a identidade como fornecimento reservado.",
+      "listed": "Ela aparece na página de identidades, e a sua moeda fica de fora da seleção de moedas."
     }
   },
   "utxoManagement": {
@@ -706,7 +706,7 @@
       "largeBch": "Contém uma grande quantidade de BCH",
       "reserved": "Retida por uma promessa Flipstarter em aberto, então um gasto desta carteira não vai pegá-la.",
       "reservedRelease": "Cancele a promessa na página do Flipstarter para liberar o UTXO.",
-      "reservedAuth": "Retido porque é o AuthHead de uma identidade de token, então um envio desta carteira não vai usá-lo.",
+      "reservedAuth": "Retida porque é a moeda de uma identidade (o seu AuthHead), portanto um gasto desta carteira não vai buscá-la.",
       "reservedAuthRelease": "Transfira a identidade ou remova-a na página de Identidades para liberar o UTXO.",
       "frozen": "Congelada por você, clique para descongelar",
       "unfreeze": "Descongelar",
@@ -1305,7 +1305,7 @@
       "ipfsGateway": "Gateway IPFS:",
       "ipfsGatewayHint": "Usado para carregar ícones de tokens e outras mídias de tokens hospedadas no IPFS.",
       "chaingraph": "Servidor Chaingraph:",
-      "chaingraphHint": "Um indexador da blockchain BCH. Usado para encontrar os anúncios no TapSwap e os contratos hodl da carteira para a visão de portfólio, e para detectar a posse da authchain dos tokens.",
+      "chaingraphHint": "Um indexador da blockchain BCH. Usado para encontrar os anúncios TapSwap e os contratos hodl da carteira para a visão de portfólio, e para detectar quais identidades esta carteira tem.",
       "chaingraphCustomPlaceholder": "ex: https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql é adicionado automaticamente quando apenas um host é fornecido.",
       "chaingraphInvalidUrl": "URL do servidor Chaingraph inválida",
@@ -1444,46 +1444,46 @@
   "identities": {
     "title": "Identidades",
     "description": "As identidades de token sobre as quais esta carteira tem autoridade.",
-    "whatIsAnIdentity": "Os metadados de um token, o nome, o ícone e a descrição, só podem ser atualizados por quem detém o seu AuthHead: um UTXO específico que passa a um novo outpoint a cada atualização.",
-    "whatIsAnIdentityNote": "É o AuthHead que faz desta carteira aquela que pode publicar novos metadados do token.",
-    "updatedElsewhere": "A publicação de metadados acontece fora do Cashonize, em ferramentas como o CashTokens Studio. Esta página acompanha para onde o AuthHead foi e o protege nesse meio tempo.",
-    "reserveNote": "Um AuthHead desta carteira fica de fora da seleção de moedas, para que um envio comum não o gaste por acidente.",
-    "resolving": "Procurando onde estão os AuthHeads...",
+    "whatIsAnIdentity": "Os metadados de um token, o seu nome, ícone e descrição, só podem ser atualizados por quem tem a sua moeda de identidade (o AuthHead): um UTXO específico que passa para um novo outpoint a cada atualização.",
+    "whatIsAnIdentityNote": "Ter essa moeda é o que faz desta carteira a que pode publicar novos metadados do token.",
+    "updatedElsewhere": "A publicação de metadados acontece fora do Cashonize, em ferramentas como o CashTokens Studio. Esta página acompanha para onde a identidade se moveu e mantém-na segura nesse meio-tempo.",
+    "reserveNote": "Uma identidade desta carteira fica de fora da seleção de moedas, para que um envio comum não a gaste por acidente.",
+    "resolving": "Procurando onde estão estas identidades...",
     "empty": "Ainda não há identidades na lista.",
     "detected": {
-      "notification": "Uma identidade controlada por esta carteira foi encontrada, e o AuthHead dela ficou fora da seleção de moedas. | {count} identidades controladas por esta carteira foram encontradas, e os AuthHeads delas ficaram fora da seleção de moedas.",
+      "notification": "Encontrada uma identidade que esta carteira controla, e a sua moeda ficou de fora da seleção de moedas. | Encontradas {count} identidades que esta carteira controla, e as suas moedas ficaram de fora da seleção de moedas.",
       "foundAutomatically": "Encontrada automaticamente",
-      "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os metadados dela, então o AuthHead foi encontrado no próprio histórico da carteira e agora fica fora da seleção de moedas. Remova-a da lista se preferir."
+      "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os seus metadados, portanto ela foi encontrada no próprio histórico da carteira e a sua moeda agora fica de fora da seleção de moedas. Tire-a da lista se preferir que não seja assim."
     },
     "unnamed": {
-      "title": "Um AuthHead desta carteira",
+      "title": "Uma identidade desta carteira",
       "status": "Retido, identidade ainda sem nome",
-      "help": "As chaves desta carteira publicaram metadados de uma identidade cujo AuthHead não carrega token, então a moeda não diz de qual identidade se trata. Ainda assim ela fica fora da seleção de moedas: protegê-la não espera por nomeá-la.",
+      "help": "As chaves desta carteira publicaram metadados de uma identidade cuja moeda não carrega nenhum token, portanto a moeda não diz de que identidade se trata. Ainda assim fica de fora da seleção de moedas: protegê-la não espera por conseguir nomeá-la.",
       "removeTitle": "Parar de reter esta moeda?",
-      "removeMessage": "A moeda volta para a seleção de moedas e um envio comum pode gastá-la, o que encerra a identidade da qual ela é o AuthHead. Ela não será listada de novo."
+      "removeMessage": "A moeda volta para a seleção de moedas e um envio comum pode gastá-la, o que encerra a identidade que ela carrega. Ela não será listada de novo."
     },
     "listedCount": "{count} identidade acompanhada por esta carteira | {count} identidades acompanhadas por esta carteira",
     "unnamedIdentity": "Identidade sem nome",
     "categoryLabel": "Categoria:",
-    "authheadLabel": "AuthHead:",
+    "authheadLabel": "Moeda da identidade:",
     "authheadAmount": "Contém {amount}",
-    "viewOnExplorer": "Ver a authchain no TokenExplorer",
+    "viewOnExplorer": "Ver o histórico da identidade no TokenExplorer",
     "status": {
-      "held": "AuthHead nesta carteira",
-      "carriesTokens": "AuthHead nesta carteira, com reserva",
-      "notHeld": "Acompanhada, o AuthHead não está nesta carteira",
-      "unresolved": "Não foi possível consultar o AuthHead",
-      "heldViaKey": "AuthHead mantido por uma chave de identidade"
+      "held": "Nesta carteira",
+      "carriesTokens": "Nesta carteira, com reserva",
+      "notHeld": "Observada, está em outra carteira",
+      "unresolved": "Não foi possível consultar esta identidade",
+      "heldViaKey": "Através de uma chave de identidade"
     },
     "statusHelp": {
-      "held": "Esta carteira tem o AuthHead, então pode atualizar os metadados desta identidade. A moeda fica fora da seleção de moedas, então nenhum envio comum pode gastá-la.",
-      "carriesTokens": "Esta carteira tem o AuthHead e ele carrega uma reserva de tokens junto com a autoridade. A moeda fica fora da seleção de moedas, como qualquer AuthHead.",
-      "notHeld": "O AuthHead está em outro lugar, então esta carteira só acompanha esta identidade: a publicação é mostrada, mas atualizá-la exige a carteira que tem o AuthHead.",
-      "unresolved": "Não foi possível consultar o AuthHead, então onde ele está agora é desconhecido. O que estiver retido por esta identidade continua retido até vir uma resposta.",
-      "heldViaKey": "O AuthHead está travado num contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem a moeda, então o que fica fora da seleção de moedas é a chave."
+      "held": "Esta carteira tem a moeda desta identidade, portanto pode atualizar os seus metadados. A moeda fica de fora da seleção de moedas, nenhum envio comum pode gastá-la.",
+      "carriesTokens": "Esta carteira tem esta identidade, e ela carrega uma reserva de tokens além da autoridade. A moeda fica de fora da seleção de moedas, como a de qualquer identidade.",
+      "notHeld": "Esta identidade está em outro lugar, portanto esta carteira apenas a observa: a publicação é mostrada, mas atualizá-la exige a carteira que a tem.",
+      "unresolved": "Não foi possível consultar onde esta identidade está, então isso é desconhecido agora. O que está retido por ela continua retido até chegar uma resposta.",
+      "heldViaKey": "A moeda desta identidade está trancada em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem a moeda, portanto é a chave que fica de fora da seleção de moedas."
     },
     "reserve": {
-      "title": "Este AuthHead carrega:",
+      "title": "Esta identidade carrega:",
       "supply": "{amount} {symbol} fora de circulação como oferta reservada",
       "mintingNft": "Um NFT de cunhagem, que cria novos NFTs desta categoria",
       "nft": "Um NFT desta categoria",
@@ -1492,7 +1492,7 @@
         "invalidAmount": "Informe um valor válido.",
         "overReserve": "Isso é mais do que a reserva tem.",
         "overBalance": "Isso é mais do que esta carteira pode gastar deste token.",
-        "nothingToEmpty": "Este AuthHead não carrega reserva para esvaziar."
+        "nothingToEmpty": "Esta identidade não carrega nenhuma reserva para esvaziar."
       },
       "issue": {
         "action": "emitir da reserva",
@@ -1514,23 +1514,23 @@
         "button": "Adicionar à reserva",
         "addingButton": "Adicionando...",
         "confirmTitle": "Adicionar à reserva?",
-        "confirmMessage": "{amount} entra na reserva do AuthHead e sai de circulação.",
+        "confirmMessage": "{amount} junta-se à reserva da identidade e sai de circulação.",
         "confirmButton": "Adicionar",
         "done": "Adicionado à reserva",
         "doneTitle": "Adicionado à reserva"
       },
       "empty": {
         "action": "esvaziar a reserva",
-        "hint": "Devolva toda a reserva de {amount} a esta carteira, deixando o AuthHead carregando só a autoridade.",
+        "hint": "Devolva toda a reserva de {amount} a esta carteira, deixando a identidade apenas com a autoridade.",
         "button": "Esvaziar a reserva",
         "emptyingButton": "Esvaziando...",
         "confirmTitle": "Esvaziar a reserva?",
-        "confirmMessage": "{amount} volta a esta carteira como oferta comum, e o AuthHead fica carregando só a autoridade.",
+        "confirmMessage": "{amount} volta para esta carteira como fornecimento comum, e a identidade fica apenas com a autoridade.",
         "confirmButton": "Esvaziar",
         "done": "Reserva esvaziada",
         "doneTitle": "Reserva esvaziada"
       },
-      "help": "Tokens que ficam no AuthHead são a reserva da categoria: emitidos mas fora de circulação, e não contam como oferta circulante. O resto desta categoria na carteira é oferta comum.",
+      "help": "Os tokens que andam na moeda de uma identidade são a reserva da categoria: emitidos mas não em circulação, e não contados como fornecimento circulante. Todo o resto desta categoria que a carteira tem é fornecimento comum.",
       "transferSteps": {
         "empty": "Esvazie a reserva, para a oferta ficar aqui.",
         "transfer": "Depois transfira a identidade."
@@ -1539,7 +1539,7 @@
     "key": {
       "action": "transferir a chave",
       "guardLabel": "Guarda:",
-      "guardHelp": "A saída de identidade fica neste endereço de contrato, não na sua carteira. O contrato só a libera para quem apresentar a AuthKey, que é o NFT desta carteira.",
+      "guardHelp": "A moeda da identidade está neste endereço de contrato, não na sua carteira. O contrato só a libera para quem apresentar a chave de identidade (o AuthKey), que é o NFT que esta carteira tem.",
       "manageHint": "Esta identidade é guardada, então atualizar os metadados dela e mover a oferta acontecem pela ferramenta que constrói as transações do contrato. O Cashonize as assina quando se conecta.",
       "manageOnStudio": "Gerenciar no CashTokens Studio",
       "hint": "A chave é um NFT comum e se move como um. Quem a tiver controla todas as identidades que ela guarda.",
@@ -1579,7 +1579,7 @@
       "title": "Histórico desta identidade",
       "show": "ver histórico",
       "hide": "ocultar histórico",
-      "loading": "Lendo a authchain...",
+      "loading": "Lendo o histórico da identidade...",
       "madeHere": "feito por esta carteira",
       "reserveUp": "{amount} para a reserva",
       "reserveDown": "{amount} fora da reserva",
@@ -1636,7 +1636,7 @@
       "placeholder": "Categoria do token (64 caracteres hexadecimais)",
       "button": "Adicionar identidade",
       "addingButton": "Adicionando...",
-      "hint": "O Cashonize procura onde está o AuthHead dessa categoria e o lista aqui. Para um token desta carteira, a verificação abaixo também o encontra.",
+      "hint": "O Cashonize procura onde está a identidade dessa categoria e lista-a aqui. Para um token que esta carteira tenha, a busca abaixo também a encontra.",
       "categoryHelp": "Uma categoria de token é o id de 64 caracteres de um token, o mesmo da transação de gênese dele.",
       "categoryHelpWhere": "Você o encontra nas informações do token na aba Tokens, ou em tokenexplorer.cash.",
       "categoryHelpKey": "A categoria de uma chave de identidade também funciona aqui: a carteira deriva o que ela guarda e acompanha essas identidades.",
@@ -1652,48 +1652,48 @@
     },
     "create": {
       "label": "Criar uma identidade que não é um token",
-      "help": "Basta uma transação: a moeda que ela cria é o AuthHead, e o id da transação passa a ser o id permanente da identidade.",
+      "help": "Basta uma transação: a moeda que ela cria carrega a identidade, e o id da transação passa a ser o id permanente da identidade.",
       "helpNaming": "O nome vem depois, com uma publicação: um registro precisa nomear o id, que não existe até esta transação ser assinada.",
       "hint": "Para uma identidade pessoal ou de organização. Para uma identidade de token, crie o token: a génese dele faz as duas coisas de uma vez.",
       "button": "Criar identidade",
       "creatingButton": "Criando...",
       "confirmTitle": "Criar uma nova identidade?",
-      "confirmMessage": "{amount} desta carteira passa a ser o AuthHead da identidade e fica de fora da seleção de moedas. O id da transação passa a ser o id permanente da identidade.",
+      "confirmMessage": "{amount} desta carteira passa a ser a moeda da identidade e fica de fora da seleção de moedas. O id da transação passa a ser o id permanente da identidade.",
       "confirmButton": "Criar",
-      "done": "A identidade está na lista e o seu AuthHead fica de fora da seleção de moedas. Publique um registro que a nomeie para lhe dar um nome.",
+      "done": "A identidade está na lista e a sua moeda fica de fora da seleção de moedas. Publique um registro que a nomeie para lhe dar um nome.",
       "doneTitle": "Identidade criada",
       "errors": {
         "noTxId": "A transação foi enviada mas o id dela voltou vazio, portanto a identidade não pôde ser listada."
       }
     },
     "scan": {
-      "prompt": "O Cashonize pode verificar se os tokens desta carteira têm o AuthHead aqui. {link}",
-      "linkText": "Verificar AuthHeads",
+      "prompt": "O Cashonize pode verificar os tokens desta carteira em busca de identidades que ela tenha. {link}",
+      "linkText": "Procurar identidades",
       "scanning": "Verificando as categorias de token da carteira...",
       "found": "{count} identidade encontrada e adicionada à lista | {count} identidades encontradas e adicionadas à lista",
       "noneFound": "Nenhuma identidade nova encontrada.",
       "alreadyListed": "{count} categoria já estava na lista. | {count} categorias já estavam na lista.",
       "carriesTokens": "{count} deles carrega uma reserva de tokens. | {count} deles carregam uma reserva de tokens.",
-      "deepScanned": "{count} moeda retida acabou sendo um AuthHead. | {count} moedas retidas acabaram sendo AuthHeads.",
+      "deepScanned": "{count} moeda retida acabou por ser uma identidade. | {count} moedas retidas acabaram por ser identidades.",
       "dismissed": "{count} foi deixada de fora porque você a removeu antes. | {count} foram deixadas de fora porque você as removeu antes.",
       "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias."
     },
     "transfer": {
       "label": "Transferir esta identidade",
-      "hint": "A moeda do AuthHead é enviada inteira para o destino, entregando a autoridade de atualizar os metadados deste token. O destino recebe a moeda menos a taxa da transação.",
+      "hint": "A moeda da identidade é enviada inteira para o destino, entregando a autoridade de atualizar os metadados deste token. O destino recebe a moeda menos a taxa da transação.",
       "destinationPlaceholder": "Endereço para onde transferir a identidade",
       "button": "Transferir identidade",
       "transferringButton": "Transferindo...",
       "confirmTitle": "Transferir esta identidade?",
-      "confirmMessage": "O AuthHead ({amount}) é enviado para {address}, entregando a autoridade de atualizar os metadados deste token. Isso não pode ser desfeito.",
+      "confirmMessage": "A moeda da identidade ({amount}) é enviada para {address}, entregando a autoridade de atualizar os metadados deste token. Isto não pode ser desfeito.",
       "confirmButton": "Transferir",
       "done": "Identidade transferida para {address}",
       "doneTitle": "Identidade transferida"
     },
     "remove": {
       "title": "Remover desta lista?",
-      "message": "A identidade é removida desta lista. Adicione-a de novo pela categoria, ou encontre-a com a verificação de AuthHeads se esta carteira tiver tokens dela.",
-      "messageHeld": "A identidade é removida desta lista e o AuthHead dela deixa de ficar fora da seleção de moedas, então um envio comum pode gastá-lo. Adicione-a de novo pela categoria, ou encontre-a com a verificação de AuthHeads se esta carteira tiver tokens dela.",
+      "message": "A identidade é removida desta lista. Adicione-a de novo pela categoria, ou encontre-a outra vez com a busca de identidades se esta carteira tiver tokens dela.",
+      "messageHeld": "A identidade é removida desta lista e a sua moeda deixa de ficar de fora da seleção de moedas, portanto um envio comum pode gastá-la. Adicione-a de novo pela categoria, ou encontre-a outra vez com a busca de identidades se esta carteira tiver tokens dela.",
       "button": "Remover"
     },
     "errors": {
@@ -1702,7 +1702,7 @@
     },
     "emptySteps": {
       "paste": "Cole acima a categoria de token de uma identidade.",
-      "check": "Ou verifique se os tokens desta carteira têm AuthHeads.",
+      "check": "Ou verifique os tokens desta carteira em busca de identidades.",
       "create": "Ou {link} para criar uma nova.",
       "createLink": "crie um token",
       "createIdentity": "Ou crie acima uma identidade que não seja um token."

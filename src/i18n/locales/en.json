@@ -60,7 +60,7 @@
       "rejected": "The Chaingraph server rejected the request: {reason}",
       "invalidResponse": "The server did not return a valid Chaingraph response.",
       "tokenNotFound": "Token not found",
-      "authchainNotFound": "Authchain not found"
+      "authchainNotFound": "No identity history found for that id"
     }
   },
   "exchangeRate": {
@@ -659,9 +659,9 @@
     "supplyNote": "note: add extra zeroes for the number of decimals set in the BCMR metadata",
     "circulation": {
       "label": "Issue to circulation now",
-      "help": "What is issued now is ordinary supply this wallet can spend. The rest stays on the AuthHead as reserve, protected with the identity, and can be issued later from the identities page.",
+      "help": "What is issued now is ordinary supply this wallet can spend. The rest stays with the identity as reserve, protected along with it, and can be issued later from the identities page.",
       "placeholder": "Amount to issue",
-      "split": "{reserve} stays on the AuthHead as reserve, {circulating} enters circulation."
+      "split": "{reserve} stays with the identity as reserve, {circulating} enters circulation."
     },
     "linkMetadata": "Link Token-Metadata",
     "steps": {
@@ -670,7 +670,7 @@
       "verify": "Enter where it is hosted below. This wallet fetches it and checks that it names this token.",
       "create": "Create the token: the same transaction publishes the file's hash and where to find it."
     },
-    "metadataNote": "Metadata can also be added after creation: the AuthHead stays in this wallet, and the identities page publishes updates with it.",
+    "metadataNote": "Metadata can also be added after creation: the identity stays in this wallet, and the identities page publishes updates with it.",
     "creatingTokensButton": "Creating Tokens...",
     "createButton": "Create",
     "notifications": {
@@ -685,14 +685,14 @@
       "overMaxSupply": "That is more than a token category can hold. The most is {max}.",
       "overSupply": "That is more than the total supply.",
       "nothingToCreate": "Enter a supply, add a minting NFT, or both.",
-      "emptyAuthhead": "The AuthHead has to carry something: keep part of the supply as reserve, or add the minting NFT. The reserve can be issued in full from the identities page afterwards."
+      "emptyAuthhead": "The identity has to carry something: keep part of the supply as reserve, or add the minting NFT. The reserve can be issued in full from the identities page afterwards."
     },
     "created": {
       "fungibles": "Created {supply} fungible tokens of category {category}",
       "mintingNft": "Created a minting NFT of category {category}",
       "hybrid": "Created {supply} fungible tokens and a minting NFT of category {category}",
-      "reserve": "{amount} stays on the AuthHead as reserved supply.",
-      "listed": "It is listed on the identities page, and its AuthHead is held back from coin selection."
+      "reserve": "{amount} stays with the identity as reserved supply.",
+      "listed": "It is listed on the identities page, and its coin is held back from coin selection."
     }
   },
   "utxoManagement": {
@@ -706,7 +706,7 @@
       "largeBch": "Holds a large amount of BCH",
       "reserved": "Held back for an open Flipstarter pledge, so a spend from this wallet will not reach for it.",
       "reservedRelease": "Cancel the pledge on the Flipstarter page to release the UTXO.",
-      "reservedAuth": "Held back because it is the AuthHead of a token identity, so a spend from this wallet will not reach for it.",
+      "reservedAuth": "Held back because it is an identity's coin (its AuthHead), so a spend from this wallet will not reach for it.",
       "reservedAuthRelease": "Transfer the identity or remove it on the Identities page to release the UTXO.",
       "frozen": "Frozen by you, click to unfreeze",
       "unfreeze": "Unfreeze",
@@ -1305,7 +1305,7 @@
       "ipfsGateway": "IPFS gateway:",
       "ipfsGatewayHint": "Used to load token icons and other token media hosted on IPFS.",
       "chaingraph": "Chaingraph server:",
-      "chaingraphHint": "A BCH blockchain indexer. Used to find the wallet's TapSwap listings and hodl contracts for the portfolio view, and to detect token authchain ownership.",
+      "chaingraphHint": "A BCH blockchain indexer. Used to find the wallet's TapSwap listings and hodl contracts for the portfolio view, and to detect which identities this wallet holds.",
       "chaingraphCustomPlaceholder": "e.g. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql is added automatically when only a host is provided.",
       "chaingraphInvalidUrl": "Invalid Chaingraph server URL",
@@ -1444,46 +1444,46 @@
   "identities": {
     "title": "Identities",
     "description": "The token identities this wallet has the authority over.",
-    "whatIsAnIdentity": "A token's metadata, its name, icon and description, can only be updated by whoever holds its AuthHead: one specific UTXO that moves to a new outpoint with every update.",
-    "whatIsAnIdentityNote": "Holding the AuthHead is what makes this wallet the one that can publish new metadata for the token.",
-    "updatedElsewhere": "Publishing metadata happens outside Cashonize, in tools like CashTokens Studio. This page follows where the AuthHead moved and keeps it safe in between.",
-    "reserveNote": "An AuthHead this wallet holds is kept out of coin selection, so an ordinary send cannot spend it by accident.",
-    "resolving": "Looking up where the AuthHeads are...",
+    "whatIsAnIdentity": "A token's metadata, its name, icon and description, can only be updated by whoever holds its identity coin (the AuthHead): one specific UTXO that moves to a new outpoint with every update.",
+    "whatIsAnIdentityNote": "Holding that coin is what makes this wallet the one that can publish new metadata for the token.",
+    "updatedElsewhere": "Publishing metadata happens outside Cashonize, in tools like CashTokens Studio. This page follows where the identity moved and keeps it safe in between.",
+    "reserveNote": "An identity this wallet holds is kept out of coin selection, so an ordinary send cannot spend it by accident.",
+    "resolving": "Looking up where these identities are held...",
     "empty": "No identities listed yet.",
     "detected": {
-      "notification": "Found an identity this wallet controls, and held its AuthHead back from coin selection. | Found {count} identities this wallet controls, and held their AuthHeads back from coin selection.",
+      "notification": "Found an identity this wallet controls, and held its coin back from coin selection. | Found {count} identities this wallet controls, and held their coins back from coin selection.",
       "foundAutomatically": "Found automatically",
-      "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so its AuthHead was found in this wallet's own history and is now held back from coin selection. Remove it from the list if you would rather it were not."
+      "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its coin is now held back from coin selection. Remove it from the list if you would rather it were not."
     },
     "unnamed": {
-      "title": "An AuthHead this wallet holds",
+      "title": "An identity this wallet holds",
       "status": "Held back, identity not named yet",
-      "help": "This wallet's keys published metadata for an identity whose AuthHead carries no token, so the coin says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it.",
+      "help": "This wallet's keys published metadata for an identity whose coin carries no token, so the coin says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it.",
       "removeTitle": "Stop holding this coin back?",
-      "removeMessage": "The coin returns to coin selection and an ordinary send can spend it, which ends the identity it is the AuthHead of. It will not be listed again."
+      "removeMessage": "The coin returns to coin selection and an ordinary send can spend it, which ends the identity it carries. It will not be listed again."
     },
     "listedCount": "{count} identity followed by this wallet | {count} identities followed by this wallet",
     "unnamedIdentity": "Unnamed identity",
     "categoryLabel": "Category:",
-    "authheadLabel": "AuthHead:",
+    "authheadLabel": "Identity coin:",
     "authheadAmount": "Holds {amount}",
-    "viewOnExplorer": "View the authchain on TokenExplorer",
+    "viewOnExplorer": "View the identity's history on TokenExplorer",
     "status": {
-      "held": "AuthHead held by this wallet",
-      "carriesTokens": "AuthHead held by this wallet, with a reserve",
-      "notHeld": "Watched, the AuthHead is not in this wallet",
-      "unresolved": "Could not look up the AuthHead",
-      "heldViaKey": "AuthHead held through an identity key"
+      "held": "Held by this wallet",
+      "carriesTokens": "Held by this wallet, with a reserve",
+      "notHeld": "Watched, held by another wallet",
+      "unresolved": "Could not look up this identity",
+      "heldViaKey": "Held through an identity key"
     },
     "statusHelp": {
-      "held": "This wallet holds the AuthHead, so it can update this identity's metadata. The coin is kept out of coin selection, so no ordinary send can spend it.",
-      "carriesTokens": "This wallet holds the AuthHead and it carries a token reserve alongside the authority. The coin is kept out of coin selection, like any AuthHead.",
-      "notHeld": "The AuthHead is somewhere else, so this wallet only watches this identity: its publication is shown, but updating it takes the wallet that holds the AuthHead.",
-      "unresolved": "The AuthHead could not be looked up, so where it is right now is unknown. Anything held for this identity stays held until an answer comes back.",
-      "heldViaKey": "The AuthHead is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the coin, so the key is what is kept out of coin selection."
+      "held": "This wallet holds this identity's coin, so it can update the metadata. The coin is kept out of coin selection, so no ordinary send can spend it.",
+      "carriesTokens": "This wallet holds this identity and it carries a token reserve alongside the authority. The coin is kept out of coin selection, like any identity's coin.",
+      "notHeld": "This identity is held somewhere else, so this wallet only watches it: its publication is shown, but updating it takes the wallet that holds it.",
+      "unresolved": "Where this identity is held could not be looked up, so it is unknown right now. Anything held for it stays held until an answer comes back.",
+      "heldViaKey": "This identity's coin is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the coin, so the key is what is kept out of coin selection."
     },
     "reserve": {
-      "title": "This AuthHead carries:",
+      "title": "This identity carries:",
       "supply": "{amount} {symbol} held out of circulation as reserved supply",
       "mintingNft": "A minting NFT, which creates new NFTs of this category",
       "nft": "An NFT of this category",
@@ -1492,7 +1492,7 @@
         "invalidAmount": "Enter a valid amount.",
         "overReserve": "That is more than the reserve holds.",
         "overBalance": "That is more than this wallet can spend of this token.",
-        "nothingToEmpty": "This AuthHead carries no reserve to empty."
+        "nothingToEmpty": "This identity carries no reserve to empty."
       },
       "issue": {
         "action": "issue from reserve",
@@ -1514,23 +1514,23 @@
         "button": "Add to reserve",
         "addingButton": "Adding...",
         "confirmTitle": "Add to the reserve?",
-        "confirmMessage": "{amount} joins the reserve on the AuthHead and leaves circulation.",
+        "confirmMessage": "{amount} joins the reserve on the identity and leaves circulation.",
         "confirmButton": "Add",
         "done": "Added to the reserve",
         "doneTitle": "Added to reserve"
       },
       "empty": {
         "action": "empty reserve",
-        "hint": "Return the whole reserve of {amount} to this wallet, leaving the AuthHead carrying only the authority.",
+        "hint": "Return the whole reserve of {amount} to this wallet, leaving the identity carrying only the authority.",
         "button": "Empty reserve",
         "emptyingButton": "Emptying...",
         "confirmTitle": "Empty the reserve?",
-        "confirmMessage": "{amount} returns to this wallet as ordinary supply, and the AuthHead is left carrying only the authority.",
+        "confirmMessage": "{amount} returns to this wallet as ordinary supply, and the identity is left carrying only the authority.",
         "confirmButton": "Empty",
         "done": "Emptied the reserve",
         "doneTitle": "Reserve emptied"
       },
-      "help": "Tokens riding on the AuthHead are the category's reserve: issued but not in circulation, and not counted as circulating supply. Everything else of this category the wallet holds is ordinary supply.",
+      "help": "Tokens riding on an identity's coin are the category's reserve: issued but not in circulation, and not counted as circulating supply. Everything else of this category the wallet holds is ordinary supply.",
       "transferSteps": {
         "empty": "Empty the reserve, so the supply stays here.",
         "transfer": "Then transfer the identity."
@@ -1539,7 +1539,7 @@
     "key": {
       "action": "transfer the key",
       "guardLabel": "Guard:",
-      "guardHelp": "The identity output sits at this covenant address, not in your wallet. The covenant releases it only to whoever presents the AuthKey, which is the NFT this wallet holds.",
+      "guardHelp": "The identity's coin sits at this covenant address, not in your wallet. The covenant releases it only to whoever presents the identity key (the AuthKey), which is the NFT this wallet holds.",
       "manageHint": "This identity is guarded, so updating its metadata and moving its supply are done through the tool that builds the covenant's transactions. Cashonize signs them when it connects.",
       "manageOnStudio": "Manage on CashTokens Studio",
       "hint": "The key is an ordinary NFT and moves like one. Whoever holds it controls every identity it guards.",
@@ -1579,7 +1579,7 @@
       "title": "This identity's history",
       "show": "show history",
       "hide": "hide history",
-      "loading": "Reading the authchain...",
+      "loading": "Reading the identity's history...",
       "madeHere": "made by this wallet",
       "reserveUp": "{amount} into the reserve",
       "reserveDown": "{amount} out of the reserve",
@@ -1636,7 +1636,7 @@
       "placeholder": "Token category (64 hexadecimal characters)",
       "button": "Add identity",
       "addingButton": "Adding...",
-      "hint": "Cashonize looks up where that category's AuthHead is and lists it here. For a token this wallet holds, the check below finds it too.",
+      "hint": "Cashonize looks up where that category's identity is held and lists it here. For a token this wallet holds, the check below finds it too.",
       "categoryHelp": "A token category is the 64 character id of a token, the same one its genesis transaction has.",
       "categoryHelpWhere": "Find it on the token's info in the Tokens tab, or on tokenexplorer.cash.",
       "categoryHelpKey": "An identity key's category works here too: the wallet derives what it guards and watches those identities.",
@@ -1652,48 +1652,48 @@
     },
     "create": {
       "label": "Create an identity that is not a token",
-      "help": "One transaction makes it: the coin it creates is the AuthHead, and the transaction id becomes the identity's permanent id.",
+      "help": "One transaction makes it: the coin it creates carries the identity, and the transaction id becomes the identity's permanent id.",
       "helpNaming": "Naming comes after, with a publication: a registry has to name the id, which does not exist until this transaction is signed.",
       "hint": "For a personal or organization identity. For a token identity, create the token instead: its genesis makes both at once.",
       "button": "Create identity",
       "creatingButton": "Creating...",
       "confirmTitle": "Create a new identity?",
-      "confirmMessage": "{amount} of this wallet becomes the identity's AuthHead and is held back from coin selection. The transaction id becomes the identity's permanent id.",
+      "confirmMessage": "{amount} of this wallet becomes the identity's coin and is held back from coin selection. The transaction id becomes the identity's permanent id.",
       "confirmButton": "Create",
-      "done": "The identity is listed and its AuthHead is held back from coin selection. Publish a registry naming it to give it a name.",
+      "done": "The identity is listed and its coin is held back from coin selection. Publish a registry naming it to give it a name.",
       "doneTitle": "Identity created",
       "errors": {
         "noTxId": "The transaction was sent but its id came back empty, so the identity could not be listed."
       }
     },
     "scan": {
-      "prompt": "Cashonize can check the tokens in this wallet for authhead ownership. {link}",
-      "linkText": "Check for authheads",
+      "prompt": "Cashonize can check the tokens in this wallet for identities it holds. {link}",
+      "linkText": "Check for identities",
       "scanning": "Checking the wallet's token categories...",
       "found": "{count} identity found and added to the list | {count} identities found and added to the list",
       "noneFound": "No new identities found.",
       "alreadyListed": "{count} category was already listed. | {count} categories were already listed.",
       "carriesTokens": "{count} of them carries a token reserve. | {count} of them carry a token reserve.",
-      "deepScanned": "{count} held coin turned out to be an AuthHead. | {count} held coins turned out to be AuthHeads.",
+      "deepScanned": "{count} held coin turned out to be an identity. | {count} held coins turned out to be identities.",
       "dismissed": "{count} was left off because you removed it before. | {count} were left off because you removed them before.",
       "failed": "{count} category could not be checked. | {count} categories could not be checked."
     },
     "transfer": {
       "label": "Transfer this identity",
-      "hint": "The AuthHead coin is sent whole to the destination, handing over the authority to update this token's metadata. The destination receives the coin minus the transaction fee.",
+      "hint": "The identity's coin is sent whole to the destination, handing over the authority to update this token's metadata. The destination receives the coin minus the transaction fee.",
       "destinationPlaceholder": "Address to transfer the identity to",
       "button": "Transfer identity",
       "transferringButton": "Transferring...",
       "confirmTitle": "Transfer this identity?",
-      "confirmMessage": "The AuthHead ({amount}) is sent to {address}, handing over the authority to update this token's metadata. This cannot be undone.",
+      "confirmMessage": "The identity's coin ({amount}) is sent to {address}, handing over the authority to update this token's metadata. This cannot be undone.",
       "confirmButton": "Transfer",
       "done": "Transferred the identity to {address}",
       "doneTitle": "Identity transferred"
     },
     "remove": {
       "title": "Remove from this list?",
-      "message": "The identity is removed from this list. Add it back by category, or find it again with the authhead check if this wallet holds tokens of it.",
-      "messageHeld": "The identity is removed from this list and its AuthHead is no longer kept out of coin selection, so an ordinary send can spend it. Add it back by category, or find it again with the authhead check if this wallet holds tokens of it.",
+      "message": "The identity is removed from this list. Add it back by category, or find it again with the identity check if this wallet holds tokens of it.",
+      "messageHeld": "The identity is removed from this list and its coin is no longer kept out of coin selection, so an ordinary send can spend it. Add it back by category, or find it again with the identity check if this wallet holds tokens of it.",
       "button": "Remove"
     },
     "errors": {
@@ -1702,7 +1702,7 @@
     },
     "emptySteps": {
       "paste": "Paste the token category of an identity above.",
-      "check": "Or check the tokens this wallet holds for AuthHeads.",
+      "check": "Or check the tokens this wallet holds for identities.",
       "create": "Or {link} to make a new one.",
       "createLink": "create a token",
       "createIdentity": "Or create an identity that is not a token, above."

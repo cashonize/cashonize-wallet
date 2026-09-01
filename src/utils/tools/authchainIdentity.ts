@@ -1,4 +1,4 @@
-// The token identities this wallet keeps custody of, stored in localStorage per wallet per network
+// The identities this wallet keeps custody of, stored in localStorage per wallet per network
 // as a list of categories. Everything else about an identity - which output currently is the
 // authhead, the name, the icon - is resolved at runtime, because the authhead moves every time the
 // identity's metadata is updated and those updates happen outside this wallet.

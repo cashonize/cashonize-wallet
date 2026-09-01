@@ -60,7 +60,7 @@
       "rejected": "El servidor Chaingraph rechazó la solicitud: {reason}",
       "invalidResponse": "El servidor no devolvió una respuesta válida de Chaingraph.",
       "tokenNotFound": "Token no encontrado",
-      "authchainNotFound": "Authchain no encontrada"
+      "authchainNotFound": "No se encontró historial de identidad para ese id"
     }
   },
   "exchangeRate": {
@@ -659,9 +659,9 @@
     "supplyNote": "Nota: agrega ceros adicionales según el número de decimales establecido en los metadatos BCMR",
     "circulation": {
       "label": "Poner en circulación ahora",
-      "help": "Lo que se emita ahora es suministro ordinario que esta billetera puede gastar. El resto queda en el AuthHead como reserva, protegido junto con la identidad, y puede emitirse después desde la página de identidades.",
+      "help": "Lo que se emita ahora es suministro ordinario que esta billetera puede gastar. El resto queda con la identidad como reserva, protegido junto a ella, y puede emitirse después desde la página de identidades.",
       "placeholder": "Cantidad a emitir",
-      "split": "{reserve} queda en el AuthHead como reserva, {circulating} entra en circulación."
+      "split": "{reserve} queda con la identidad como reserva, {circulating} entra en circulación."
     },
     "linkMetadata": "Vincular metadatos del token",
     "steps": {
@@ -670,7 +670,7 @@
       "verify": "Indica abajo dónde está alojado. Esta billetera lo descarga y comprueba que nombre este token.",
       "create": "Crea el token: la misma transacción publica el hash del archivo y dónde encontrarlo."
     },
-    "metadataNote": "Los metadatos también se pueden añadir después de la creación: el AuthHead se queda en esta billetera, y la página de identidades publica actualizaciones con él.",
+    "metadataNote": "Los metadatos también se pueden añadir después de la creación: la identidad se queda en esta billetera, y la página de identidades publica actualizaciones con ella.",
     "creatingTokensButton": "Creando tokens...",
     "createButton": "Crear",
     "notifications": {
@@ -685,14 +685,14 @@
       "overMaxSupply": "Eso es más de lo que puede contener una categoría de tokens. El máximo es {max}.",
       "overSupply": "Eso supera el suministro total.",
       "nothingToCreate": "Introduce un suministro, añade un NFT de acuñación, o ambos.",
-      "emptyAuthhead": "El AuthHead tiene que llevar algo: guarda parte del suministro como reserva o añade el NFT de acuñación. La reserva se puede emitir por completo después desde la página de identidades."
+      "emptyAuthhead": "La identidad tiene que llevar algo: guarda parte del suministro como reserva o añade el NFT de acuñación. La reserva se puede emitir por completo después desde la página de identidades."
     },
     "created": {
       "fungibles": "Creados {supply} tokens fungibles de la categoría {category}",
       "mintingNft": "Creado un NFT de acuñación de la categoría {category}",
       "hybrid": "Creados {supply} tokens fungibles y un NFT de acuñación de la categoría {category}",
-      "reserve": "{amount} queda en el AuthHead como suministro reservado.",
-      "listed": "Aparece en la página de identidades, y su AuthHead queda fuera de la selección de monedas."
+      "reserve": "{amount} queda con la identidad como suministro reservado.",
+      "listed": "Aparece en la página de identidades, y su moneda queda fuera de la selección de monedas."
     }
   },
   "utxoManagement": {
@@ -706,7 +706,7 @@
       "largeBch": "Contiene una gran cantidad de BCH",
       "reserved": "Retenida por una promesa de Flipstarter abierta, así que un gasto desde esta billetera no la tomará.",
       "reservedRelease": "Cancela la promesa en la página de Flipstarter para liberar el UTXO.",
-      "reservedAuth": "Retenido porque es el AuthHead de una identidad de token, así que un envío desde esta billetera no lo utilizará.",
+      "reservedAuth": "Retenida porque es la moneda de una identidad (su AuthHead), así que un gasto desde esta billetera no la tocará.",
       "reservedAuthRelease": "Transfiere la identidad o quítala en la página de Identidades para liberar el UTXO.",
       "frozen": "Congelada por ti, haz clic para descongelar",
       "unfreeze": "Descongelar",
@@ -1305,7 +1305,7 @@
       "ipfsGateway": "Gateway IPFS:",
       "ipfsGatewayHint": "Se usa para cargar los iconos de tokens y otros medios de tokens alojados en IPFS.",
       "chaingraph": "Servidor Chaingraph:",
-      "chaingraphHint": "Un indexador de la blockchain de BCH. Se usa para encontrar los anuncios en TapSwap y los contratos hodl de la billetera para la vista de portafolio, y para detectar la propiedad de la authchain de los tokens.",
+      "chaingraphHint": "Un indexador de la blockchain de BCH. Se usa para encontrar los listados de TapSwap y los contratos hodl de la billetera para la vista de portafolio, y para detectar qué identidades tiene esta billetera.",
       "chaingraphCustomPlaceholder": "ej. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql se añade automáticamente cuando solo se proporciona un host.",
       "chaingraphInvalidUrl": "URL del servidor Chaingraph no válida",
@@ -1444,46 +1444,46 @@
   "identities": {
     "title": "Identidades",
     "description": "Las identidades de token sobre las que esta billetera tiene autoridad.",
-    "whatIsAnIdentity": "Los metadatos de un token, su nombre, icono y descripción, solo los puede actualizar quien tenga su AuthHead: un UTXO concreto que pasa a un nuevo outpoint con cada actualización.",
-    "whatIsAnIdentityNote": "Tener el AuthHead es lo que hace que esta billetera sea la que puede publicar nuevos metadatos del token.",
-    "updatedElsewhere": "La publicación de metadatos ocurre fuera de Cashonize, en herramientas como CashTokens Studio. Esta página sigue adónde se movió el AuthHead y lo mantiene a salvo mientras tanto.",
-    "reserveNote": "Un AuthHead que tiene esta billetera queda fuera de la selección de monedas, para que un envío normal no lo gaste por accidente.",
-    "resolving": "Buscando dónde están los AuthHeads...",
+    "whatIsAnIdentity": "Los metadatos de un token, su nombre, icono y descripción, solo los puede actualizar quien tenga su moneda de identidad (el AuthHead): un UTXO concreto que pasa a un nuevo outpoint con cada actualización.",
+    "whatIsAnIdentityNote": "Tener esa moneda es lo que hace que esta billetera sea la que puede publicar nuevos metadatos del token.",
+    "updatedElsewhere": "Los metadatos se publican fuera de Cashonize, con herramientas como CashTokens Studio. Esta página sigue a dónde se movió la identidad y la mantiene a salvo mientras tanto.",
+    "reserveNote": "Una identidad que tiene esta billetera queda fuera de la selección de monedas, para que un envío normal no la gaste por accidente.",
+    "resolving": "Buscando dónde están estas identidades...",
     "empty": "Todavía no hay identidades en la lista.",
     "detected": {
-      "notification": "Se encontró una identidad que controla esta billetera y su AuthHead quedó fuera de la selección de monedas. | Se encontraron {count} identidades que controla esta billetera y sus AuthHeads quedaron fuera de la selección de monedas.",
+      "notification": "Se encontró una identidad que controla esta billetera y su moneda quedó fuera de la selección de monedas. | Se encontraron {count} identidades que controla esta billetera y sus monedas quedaron fuera de la selección de monedas.",
       "foundAutomatically": "Encontrada automáticamente",
-      "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que su AuthHead se encontró en el propio historial de la billetera y ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no."
+      "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su moneda ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así."
     },
     "unnamed": {
-      "title": "Un AuthHead que tiene esta billetera",
+      "title": "Una identidad que tiene esta billetera",
       "status": "Retenido, identidad aún sin nombrar",
-      "help": "Las claves de esta billetera publicaron metadatos de una identidad cuyo AuthHead no lleva token, así que la moneda no dice de qué identidad se trata. Aun así queda fuera de la selección de monedas: protegerla no espera a nombrarla.",
+      "help": "Las claves de esta billetera publicaron metadatos de una identidad cuya moneda no lleva ningún token, así que la moneda no dice de qué identidad se trata. Igualmente queda fuera de la selección de monedas: protegerla no espera a poder nombrarla.",
       "removeTitle": "¿Dejar de retener esta moneda?",
-      "removeMessage": "La moneda vuelve a la selección de monedas y un envío normal puede gastarla, lo que termina la identidad de la que es AuthHead. No se volverá a listar."
+      "removeMessage": "La moneda vuelve a la selección de monedas y un envío normal puede gastarla, lo que termina la identidad que lleva. No se volverá a listar."
     },
     "listedCount": "{count} identidad seguida por esta billetera | {count} identidades seguidas por esta billetera",
     "unnamedIdentity": "Identidad sin nombre",
     "categoryLabel": "Categoría:",
-    "authheadLabel": "AuthHead:",
+    "authheadLabel": "Moneda de la identidad:",
     "authheadAmount": "Contiene {amount}",
-    "viewOnExplorer": "Ver la authchain en TokenExplorer",
+    "viewOnExplorer": "Ver el historial de la identidad en TokenExplorer",
     "status": {
-      "held": "AuthHead en esta billetera",
-      "carriesTokens": "AuthHead en esta billetera, con reserva",
-      "notHeld": "En seguimiento, el AuthHead no está en esta billetera",
-      "unresolved": "No se pudo consultar el AuthHead",
-      "heldViaKey": "AuthHead en poder mediante una clave de identidad"
+      "held": "En esta billetera",
+      "carriesTokens": "En esta billetera, con reserva",
+      "notHeld": "Observada, está en otra billetera",
+      "unresolved": "No se pudo consultar esta identidad",
+      "heldViaKey": "A través de una clave de identidad"
     },
     "statusHelp": {
-      "held": "Esta billetera tiene el AuthHead, así que puede actualizar los metadatos de esta identidad. La moneda queda fuera de la selección de monedas, así que ningún envío normal puede gastarla.",
-      "carriesTokens": "Esta billetera tiene el AuthHead y este lleva una reserva de tokens junto a la autoridad. La moneda queda fuera de la selección de monedas, como cualquier AuthHead.",
-      "notHeld": "El AuthHead está en otro sitio, así que esta billetera solo observa esta identidad: se muestra su publicación, pero actualizarla requiere la billetera que tiene el AuthHead.",
-      "unresolved": "No se pudo consultar el AuthHead, así que no se sabe dónde está ahora. Lo que esté retenido por esta identidad sigue retenido hasta que haya respuesta.",
-      "heldViaKey": "El AuthHead está bloqueado en un contrato y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin la moneda, así que lo que queda fuera de la selección de monedas es la clave."
+      "held": "Esta billetera tiene la moneda de esta identidad, así que puede actualizar sus metadatos. La moneda queda fuera de la selección de monedas, ningún envío normal puede gastarla.",
+      "carriesTokens": "Esta billetera tiene esta identidad y además lleva una reserva de tokens junto a la autoridad. La moneda queda fuera de la selección de monedas, como la de cualquier identidad.",
+      "notHeld": "Esta identidad está en otro sitio, así que esta billetera solo la observa: se muestra su publicación, pero actualizarla requiere la billetera que la tiene.",
+      "unresolved": "No se pudo consultar dónde está esta identidad, así que ahora mismo se desconoce. Lo que se retiene por ella sigue retenido hasta que llegue una respuesta.",
+      "heldViaKey": "La moneda de esta identidad está bloqueada en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin la moneda, así que lo que queda fuera de la selección de monedas es la clave."
     },
     "reserve": {
-      "title": "Este AuthHead lleva:",
+      "title": "Esta identidad lleva:",
       "supply": "{amount} {symbol} fuera de circulación como suministro reservado",
       "mintingNft": "Un NFT de acuñación, que crea nuevos NFTs de esta categoría",
       "nft": "Un NFT de esta categoría",
@@ -1492,7 +1492,7 @@
         "invalidAmount": "Introduce una cantidad válida.",
         "overReserve": "Eso es más de lo que tiene la reserva.",
         "overBalance": "Eso es más de lo que esta billetera puede gastar de este token.",
-        "nothingToEmpty": "Este AuthHead no lleva ninguna reserva que vaciar."
+        "nothingToEmpty": "Esta identidad no lleva ninguna reserva que vaciar."
       },
       "issue": {
         "action": "emitir de la reserva",
@@ -1514,23 +1514,23 @@
         "button": "Añadir a la reserva",
         "addingButton": "Añadiendo...",
         "confirmTitle": "¿Añadir a la reserva?",
-        "confirmMessage": "{amount} se une a la reserva del AuthHead y sale de circulación.",
+        "confirmMessage": "{amount} se suma a la reserva de la identidad y sale de circulación.",
         "confirmButton": "Añadir",
         "done": "Añadido a la reserva",
         "doneTitle": "Añadido a la reserva"
       },
       "empty": {
         "action": "vaciar la reserva",
-        "hint": "Devuelve toda la reserva de {amount} a esta billetera, dejando el AuthHead solo con la autoridad.",
+        "hint": "Devuelve toda la reserva de {amount} a esta billetera, dejando la identidad con solo la autoridad.",
         "button": "Vaciar la reserva",
         "emptyingButton": "Vaciando...",
         "confirmTitle": "¿Vaciar la reserva?",
-        "confirmMessage": "{amount} vuelve a esta billetera como suministro normal, y el AuthHead queda llevando solo la autoridad.",
+        "confirmMessage": "{amount} vuelve a esta billetera como suministro ordinario, y la identidad queda con solo la autoridad.",
         "confirmButton": "Vaciar",
         "done": "Reserva vaciada",
         "doneTitle": "Reserva vaciada"
       },
-      "help": "Los tokens que van sobre el AuthHead son la reserva de la categoría: emitidos pero fuera de circulación, y no cuentan como suministro circulante. El resto de esta categoría en la billetera es suministro normal.",
+      "help": "Los tokens que van sobre la moneda de una identidad son la reserva de la categoría: emitidos pero no en circulación, y no contados como suministro circulante. Todo lo demás de esta categoría que tenga la billetera es suministro ordinario.",
       "transferSteps": {
         "empty": "Vacía la reserva, para que el suministro se quede aquí.",
         "transfer": "Luego transfiere la identidad."
@@ -1539,7 +1539,7 @@
     "key": {
       "action": "transferir la clave",
       "guardLabel": "Guardián:",
-      "guardHelp": "La salida de identidad está en esta dirección de contrato, no en tu billetera. El contrato solo la libera a quien presente la AuthKey, que es el NFT que tiene esta billetera.",
+      "guardHelp": "La moneda de la identidad está en esta dirección de contrato, no en tu billetera. El contrato solo la libera a quien presente la clave de identidad (el AuthKey), que es el NFT que tiene esta billetera.",
       "manageHint": "Esta identidad está guardada, así que actualizar sus metadatos y mover su suministro se hacen con la herramienta que construye las transacciones del contrato. Cashonize las firma cuando se conecta.",
       "manageOnStudio": "Gestionar en CashTokens Studio",
       "hint": "La clave es un NFT normal y se mueve como tal. Quien la tenga controla todas las identidades que guarda.",
@@ -1579,7 +1579,7 @@
       "title": "Historial de esta identidad",
       "show": "ver historial",
       "hide": "ocultar historial",
-      "loading": "Leyendo la authchain...",
+      "loading": "Leyendo el historial de la identidad...",
       "madeHere": "hecho por esta billetera",
       "reserveUp": "{amount} a la reserva",
       "reserveDown": "{amount} fuera de la reserva",
@@ -1636,7 +1636,7 @@
       "placeholder": "Categoría de token (64 caracteres hexadecimales)",
       "button": "Añadir identidad",
       "addingButton": "Añadiendo...",
-      "hint": "Cashonize busca dónde está el AuthHead de esa categoría y lo muestra aquí. Para un token que tiene esta billetera, la comprobación de abajo también lo encuentra.",
+      "hint": "Cashonize busca dónde está la identidad de esa categoría y la lista aquí. Para un token que tenga esta billetera, la búsqueda de abajo también la encuentra.",
       "categoryHelp": "Una categoría de token es el id de 64 caracteres de un token, el mismo que tiene su transacción de génesis.",
       "categoryHelpWhere": "Lo encuentras en la info del token en la pestaña Tokens, o en tokenexplorer.cash.",
       "categoryHelpKey": "La categoría de una clave de identidad también sirve aquí: la billetera deriva lo que guarda y observa esas identidades.",
@@ -1652,48 +1652,48 @@
     },
     "create": {
       "label": "Crear una identidad que no es un token",
-      "help": "Basta una transacción: la moneda que crea es el AuthHead, y el id de la transacción pasa a ser el id permanente de la identidad.",
+      "help": "Basta una transacción: la moneda que crea lleva la identidad, y el id de la transacción pasa a ser el id permanente de la identidad.",
       "helpNaming": "El nombre llega después, con una publicación: un registro tiene que nombrar el id, que no existe hasta que se firma esta transacción.",
       "hint": "Para una identidad personal o de una organización. Para una identidad de token, crea el token: su génesis hace ambas cosas a la vez.",
       "button": "Crear identidad",
       "creatingButton": "Creando...",
       "confirmTitle": "¿Crear una nueva identidad?",
-      "confirmMessage": "{amount} de esta billetera pasa a ser el AuthHead de la identidad y queda fuera de la selección de monedas. El id de la transacción pasa a ser el id permanente de la identidad.",
+      "confirmMessage": "{amount} de esta billetera pasa a ser la moneda de la identidad y queda fuera de la selección de monedas. El id de la transacción pasa a ser el id permanente de la identidad.",
       "confirmButton": "Crear",
-      "done": "La identidad aparece en la lista y su AuthHead queda fuera de la selección de monedas. Publica un registro que la nombre para darle un nombre.",
+      "done": "La identidad aparece en la lista y su moneda queda fuera de la selección de monedas. Publica un registro que la nombre para darle un nombre.",
       "doneTitle": "Identidad creada",
       "errors": {
         "noTxId": "La transacción se envió pero su id volvió vacío, así que la identidad no se pudo listar."
       }
     },
     "scan": {
-      "prompt": "Cashonize puede comprobar si los tokens de esta billetera tienen su AuthHead aquí. {link}",
-      "linkText": "Comprobar AuthHeads",
+      "prompt": "Cashonize puede revisar los tokens de esta billetera en busca de identidades que tenga. {link}",
+      "linkText": "Buscar identidades",
       "scanning": "Comprobando las categorías de token de la billetera...",
       "found": "{count} identidad encontrada y añadida a la lista | {count} identidades encontradas y añadidas a la lista",
       "noneFound": "No se encontraron identidades nuevas.",
       "alreadyListed": "{count} categoría ya estaba en la lista. | {count} categorías ya estaban en la lista.",
       "carriesTokens": "{count} de ellos lleva una reserva de tokens. | {count} de ellos llevan una reserva de tokens.",
-      "deepScanned": "{count} moneda retenida resultó ser un AuthHead. | {count} monedas retenidas resultaron ser AuthHeads.",
+      "deepScanned": "{count} moneda retenida resultó ser una identidad. | {count} monedas retenidas resultaron ser identidades.",
       "dismissed": "{count} se dejó fuera porque la quitaste antes. | {count} se dejaron fuera porque las quitaste antes.",
       "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías."
     },
     "transfer": {
       "label": "Transferir esta identidad",
-      "hint": "La moneda del AuthHead se envía entera al destino, cediendo la autoridad para actualizar los metadatos de este token. El destino recibe la moneda menos la comisión de la transacción.",
+      "hint": "La moneda de la identidad se envía entera al destino, entregando la autoridad para actualizar los metadatos de este token. El destino recibe la moneda menos la comisión de la transacción.",
       "destinationPlaceholder": "Dirección a la que transferir la identidad",
       "button": "Transferir identidad",
       "transferringButton": "Transfiriendo...",
       "confirmTitle": "¿Transferir esta identidad?",
-      "confirmMessage": "El AuthHead ({amount}) se envía a {address}, cediendo la autoridad para actualizar los metadatos de este token. Esto no se puede deshacer.",
+      "confirmMessage": "La moneda de la identidad ({amount}) se envía a {address}, entregando la autoridad para actualizar los metadatos de este token. Esto no se puede deshacer.",
       "confirmButton": "Transferir",
       "done": "Identidad transferida a {address}",
       "doneTitle": "Identidad transferida"
     },
     "remove": {
       "title": "¿Quitar de esta lista?",
-      "message": "La identidad se quita de esta lista. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la comprobación de AuthHeads si esta billetera tiene tokens de ella.",
-      "messageHeld": "La identidad se quita de esta lista y su AuthHead deja de estar fuera de la selección de monedas, así que un envío normal puede gastarlo. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la comprobación de AuthHeads si esta billetera tiene tokens de ella.",
+      "message": "La identidad se quita de esta lista. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la búsqueda de identidades si esta billetera tiene tokens suyos.",
+      "messageHeld": "La identidad se quita de esta lista y su moneda deja de estar fuera de la selección de monedas, así que un envío normal puede gastarla. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la búsqueda de identidades si esta billetera tiene tokens suyos.",
       "button": "Quitar"
     },
     "errors": {
@@ -1702,7 +1702,7 @@
     },
     "emptySteps": {
       "paste": "Pega arriba la categoría de token de una identidad.",
-      "check": "O comprueba si los tokens de esta billetera tienen AuthHeads.",
+      "check": "O revisa los tokens de esta billetera en busca de identidades.",
       "create": "O {link} para hacer una nueva.",
       "createLink": "crea un token",
       "createIdentity": "O crea arriba una identidad que no sea un token."
