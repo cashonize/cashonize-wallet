@@ -355,7 +355,7 @@ describe('auth reservations follow the authchain', () => {
 
     await store.detectWalletIdentities(walk)
 
-    expect(store.unnamedAuthheads).toEqual([authheadA])
+    expect(Object.keys(store.authheadNaming)).toEqual([authheadA])
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
     // nothing was named, so nothing joined the identity list
@@ -380,7 +380,7 @@ describe('auth reservations follow the authchain', () => {
     await store.removeUnnamedAuthhead(authheadA)
     await store.detectWalletIdentities(walk)
 
-    expect(store.unnamedAuthheads).toEqual([])
+    expect(Object.keys(store.authheadNaming)).toEqual([])
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authUtxo])
   })
@@ -409,7 +409,7 @@ describe('auth reservations follow the authchain', () => {
       ] } }],
     }]
     await store.detectWalletIdentities(walk)
-    expect(store.unnameableAuthheads).toEqual([authheadA])
+    expect(store.authheadNaming[authheadA]).toBe('walkConcluded')
     const afterFirst = fetched.length
     expect(afterFirst).toBeGreaterThan(0)
 

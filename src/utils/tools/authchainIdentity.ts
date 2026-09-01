@@ -291,225 +291,131 @@ export async function checkPublicationUri(
   return { uri, status: registryContentHash(content) === expectedHash ? 'verified' : 'changed' };
 }
 
-function identitiesKey(network: Network, walletName: string): string {
-  return `identities-${network}-${walletName}`;
+// What this feature persists, all of it per wallet per network and all of it a set of ids. The
+// lists hold categories or txids and share one storage shape; the naming map is the exception,
+// keyed by txid because each entry carries how far its naming got.
+const identityListKeys = {
+  // identities the wallet follows, which is what gets resolved and reserved
+  categories: 'identities',
+  // AuthKey categories it watches without holding the key, whose guards it follows anyway
+  authKeys: 'authKeys',
+  // what the user took off the list: a decision, so it is stored rather than re-derived, or the
+  // automatic detection would put back on every open what the user just removed
+  dismissed: 'dismissedIdentities',
+  // listed by the wallet itself and not yet seen by the user, so a coin quietly becoming
+  // unspendable is not the first they hear of it
+  unseen: 'unseenIdentities',
+  // key candidates already put to the user once. Only the asking is remembered: whether one
+  // really guards anything is re-derived every session, since a covenant can be filled later
+  examinedKeys: 'examinedKeyCandidates',
+} as const;
+
+export type IdentityList = keyof typeof identityListKeys;
+
+function listKey(list: IdentityList, network: Network, walletName: string): string {
+  return `${identityListKeys[list]}-${network}-${walletName}`;
 }
 
-export function loadIdentityCategories(network: Network, walletName: string): string[] {
-  const readCategories = localStorage.getItem(identitiesKey(network, walletName));
-  if (!readCategories) return [];
+function readList(key: string): string[] {
+  const stored = localStorage.getItem(key);
+  if (!stored) return [];
   try {
-    return JSON.parse(readCategories) as string[];
+    return JSON.parse(stored) as string[];
   } catch {
     return [];
   }
 }
 
-// Fresh read-modify-write: another tab may have added or removed an identity since this tab loaded
-// them, so re-read before writing to only ever change the single category in hand.
-// Returns the updated list for the caller's reactive state.
-export function saveIdentityCategory(network: Network, walletName: string, category: string): string[] {
-  const categories = loadIdentityCategories(network, walletName);
-  if (!categories.includes(category)) categories.push(category);
-  localStorage.setItem(identitiesKey(network, walletName), JSON.stringify(categories));
-  return categories;
+export function loadIdentityList(list: IdentityList, network: Network, walletName: string): string[] {
+  return readList(listKey(list, network, walletName));
 }
 
-// Same fresh read-modify-write approach as saveIdentityCategory.
-export function deleteIdentityCategory(network: Network, walletName: string, category: string): string[] {
-  const categories = loadIdentityCategories(network, walletName).filter(listed => listed !== category);
-  localStorage.setItem(identitiesKey(network, walletName), JSON.stringify(categories));
-  return categories;
+// Fresh read-modify-write throughout: another tab may have written since this one loaded, so every
+// change re-reads and touches only the entries in hand. Returns the list for the caller's state.
+export function addToIdentityList(
+  list: IdentityList,
+  network: Network,
+  walletName: string,
+  entries: string | string[],
+): string[] {
+  const key = listKey(list, network, walletName);
+  const stored = readList(key);
+  for (const entry of Array.isArray(entries) ? entries : [entries]) {
+    if (!stored.includes(entry)) stored.push(entry);
+  }
+  localStorage.setItem(key, JSON.stringify(stored));
+  return stored;
 }
 
-// The AuthKey categories this wallet watches: keys it does not hold, whose guards it follows
-// anyway. Held keys need no list, the wallet's own coins are where they are found. Only the
-// categories are stored; what a guard holds is derived on every visit, never restored.
-function authKeysKey(network: Network, walletName: string): string {
-  return `authKeys-${network}-${walletName}`;
+export function removeFromIdentityList(
+  list: IdentityList,
+  network: Network,
+  walletName: string,
+  entry: string,
+): string[] {
+  const key = listKey(list, network, walletName);
+  const remaining = readList(key).filter(stored => stored !== entry);
+  localStorage.setItem(key, JSON.stringify(remaining));
+  return remaining;
 }
 
-export function loadAuthKeyCategories(network: Network, walletName: string): string[] {
-  const readCategories = localStorage.getItem(authKeysKey(network, walletName));
-  if (!readCategories) return [];
+export function clearIdentityList(list: IdentityList, network: Network, walletName: string) {
+  localStorage.removeItem(listKey(list, network, walletName));
+}
+
+// Authheads this wallet holds and protects without a name: a BCH-only chain carries nothing on its
+// identity output to say which identity it is. Protection does not wait on naming, so an entry
+// here is reserved either way, and how far its naming got only decides whether to walk it again.
+// 'walkConcluded' is a walk that reached an answer without finding a genesis, remembered by the
+// authhead's txid so it self-invalidates: an authhead that moves has a new txid and earns a fresh
+// walk. A walk that could not fetch a hop is never remembered, or one outage would give up forever.
+export type AuthheadNaming = 'pending' | 'walkConcluded';
+
+function namingKey(network: Network, walletName: string): string {
+  return `authheadNaming-${network}-${walletName}`;
+}
+
+export function loadAuthheadNaming(network: Network, walletName: string): Record<string, AuthheadNaming> {
+  const stored = localStorage.getItem(namingKey(network, walletName));
+  if (!stored) return {};
   try {
-    return JSON.parse(readCategories) as string[];
+    return JSON.parse(stored) as Record<string, AuthheadNaming>;
   } catch {
-    return [];
+    return {};
   }
 }
 
-// Same fresh read-modify-write as the identity categories beside it.
-export function saveAuthKeyCategory(network: Network, walletName: string, category: string): string[] {
-  const categories = loadAuthKeyCategories(network, walletName);
-  if (!categories.includes(category)) categories.push(category);
-  localStorage.setItem(authKeysKey(network, walletName), JSON.stringify(categories));
-  return categories;
+export function saveAuthheadNaming(
+  network: Network,
+  walletName: string,
+  txid: string,
+  naming: AuthheadNaming,
+): Record<string, AuthheadNaming> {
+  const stored = loadAuthheadNaming(network, walletName);
+  stored[txid] = naming;
+  localStorage.setItem(namingKey(network, walletName), JSON.stringify(stored));
+  return stored;
 }
 
-export function deleteAuthKeyCategory(network: Network, walletName: string, category: string): string[] {
-  const categories = loadAuthKeyCategories(network, walletName).filter(listed => listed !== category);
-  localStorage.setItem(authKeysKey(network, walletName), JSON.stringify(categories));
-  return categories;
-}
-
-// Authheads this wallet holds that the detection found but could not name: a BCH-only chain
-// carries nothing on its identity output to say which identity it is. Protection does not wait on
-// naming, so these are kept by the txid of the transaction whose output 0 they are, reserved like
-// any other authhead, and they leave this list when naming succeeds.
-function unnamedKey(network: Network, walletName: string): string {
-  return `unnamedAuthheads-${network}-${walletName}`;
-}
-
-export function loadUnnamedAuthheads(network: Network, walletName: string): string[] {
-  const read = localStorage.getItem(unnamedKey(network, walletName));
-  if (!read) return [];
-  try {
-    return JSON.parse(read) as string[];
-  } catch {
-    return [];
-  }
-}
-
-// Same fresh read-modify-write as its siblings.
-export function saveUnnamedAuthhead(network: Network, walletName: string, txid: string): string[] {
-  const unnamed = loadUnnamedAuthheads(network, walletName);
-  if (!unnamed.includes(txid)) unnamed.push(txid);
-  localStorage.setItem(unnamedKey(network, walletName), JSON.stringify(unnamed));
-  return unnamed;
-}
-
-export function deleteUnnamedAuthhead(network: Network, walletName: string, txid: string): string[] {
-  const unnamed = loadUnnamedAuthheads(network, walletName).filter(listed => listed !== txid);
-  localStorage.setItem(unnamedKey(network, walletName), JSON.stringify(unnamed));
-  return unnamed;
-}
-
-// Authheads the backward walk followed to a conclusion without finding a genesis. Remembered by
-// the txid of the authhead, so it self-invalidates: an authhead that moves has a new txid and
-// earns its walk again. Only a walk that reached a conclusion is remembered, never one that could
-// not fetch a hop, or a single network failure would give up on a chain forever.
-function unnameableKey(network: Network, walletName: string): string {
-  return `unnameableAuthheads-${network}-${walletName}`;
-}
-
-export function loadUnnameableAuthheads(network: Network, walletName: string): string[] {
-  const read = localStorage.getItem(unnameableKey(network, walletName));
-  if (!read) return [];
-  try {
-    return JSON.parse(read) as string[];
-  } catch {
-    return [];
-  }
-}
-
-export function saveUnnameableAuthhead(network: Network, walletName: string, txid: string): string[] {
-  const unnameable = loadUnnameableAuthheads(network, walletName);
-  if (!unnameable.includes(txid)) unnameable.push(txid);
-  localStorage.setItem(unnameableKey(network, walletName), JSON.stringify(unnameable));
-  return unnameable;
-}
-
-// Categories the user took off the list. A decision rather than a derivation, which is why this
-// is the one thing here that is stored rather than re-read from the chain: without it the
-// automatic detection would put back on every open what the user just removed.
-function dismissedKey(network: Network, walletName: string): string {
-  return `dismissedIdentities-${network}-${walletName}`;
-}
-
-export function loadDismissedIdentities(network: Network, walletName: string): string[] {
-  const read = localStorage.getItem(dismissedKey(network, walletName));
-  if (!read) return [];
-  try {
-    return JSON.parse(read) as string[];
-  } catch {
-    return [];
-  }
-}
-
-// Same fresh read-modify-write as its siblings, so another tab's dismissal is not undone here.
-export function saveDismissedIdentity(network: Network, walletName: string, category: string): string[] {
-  const dismissed = loadDismissedIdentities(network, walletName);
-  if (!dismissed.includes(category)) dismissed.push(category);
-  localStorage.setItem(dismissedKey(network, walletName), JSON.stringify(dismissed));
-  return dismissed;
-}
-
-export function undismissIdentity(network: Network, walletName: string, category: string): string[] {
-  const dismissed = loadDismissedIdentities(network, walletName).filter(listed => listed !== category);
-  localStorage.setItem(dismissedKey(network, walletName), JSON.stringify(dismissed));
-  return dismissed;
-}
-
-// Identities the wallet listed on its own that the user has not seen yet. Persisted so the marker
-// survives a restart: a coin quietly becoming unspendable is exactly what this must not be.
-function unseenKey(network: Network, walletName: string): string {
-  return `unseenIdentities-${network}-${walletName}`;
-}
-
-export function loadUnseenIdentities(network: Network, walletName: string): string[] {
-  const read = localStorage.getItem(unseenKey(network, walletName));
-  if (!read) return [];
-  try {
-    return JSON.parse(read) as string[];
-  } catch {
-    return [];
-  }
-}
-
-export function saveUnseenIdentities(network: Network, walletName: string, categories: string[]): string[] {
-  const unseen = loadUnseenIdentities(network, walletName);
-  for (const category of categories) {
-    if (!unseen.includes(category)) unseen.push(category);
-  }
-  localStorage.setItem(unseenKey(network, walletName), JSON.stringify(unseen));
-  return unseen;
-}
-
-export function clearUnseenIdentities(network: Network, walletName: string) {
-  localStorage.removeItem(unseenKey(network, walletName));
+// Named at last, or the user asked for the coin back: either way it stops being one of these
+export function deleteAuthheadNaming(
+  network: Network,
+  walletName: string,
+  txid: string,
+): Record<string, AuthheadNaming> {
+  const stored = loadAuthheadNaming(network, walletName);
+  delete stored[txid];
+  localStorage.setItem(namingKey(network, walletName), JSON.stringify(stored));
+  return stored;
 }
 
 // A future wallet created under the same name must not inherit the old wallet's identities
-function examinedKeysKey(network: Network, walletName: string): string {
-  return `examinedKeyCandidates-${network}-${walletName}`;
-}
-
-// Categories that look like an identity key and have already been put to the user once. Only the
-// asking is remembered: whether a candidate really guards anything is re-derived every session,
-// because a covenant can be filled after this wallet first looked at it.
-export function loadExaminedKeyCandidates(network: Network, walletName: string): string[] {
-  const read = localStorage.getItem(examinedKeysKey(network, walletName));
-  if (!read) return [];
-  try {
-    return JSON.parse(read) as string[];
-  } catch {
-    return [];
-  }
-}
-
-export function saveExaminedKeyCandidates(
-  network: Network,
-  walletName: string,
-  categories: string[],
-): string[] {
-  const examined = loadExaminedKeyCandidates(network, walletName);
-  for (const category of categories) {
-    if (!examined.includes(category)) examined.push(category);
-  }
-  localStorage.setItem(examinedKeysKey(network, walletName), JSON.stringify(examined));
-  return examined;
-}
-
 export function removeIdentityCategories(walletName: string) {
   for (const network of ['mainnet', 'chipnet'] as const) {
-    localStorage.removeItem(identitiesKey(network, walletName));
-    localStorage.removeItem(authKeysKey(network, walletName));
-    localStorage.removeItem(dismissedKey(network, walletName));
-    localStorage.removeItem(unseenKey(network, walletName));
-    localStorage.removeItem(unnamedKey(network, walletName));
-    localStorage.removeItem(unnameableKey(network, walletName));
-    localStorage.removeItem(examinedKeysKey(network, walletName));
+    for (const list of Object.keys(identityListKeys) as IdentityList[]) {
+      clearIdentityList(list, network, walletName);
+    }
+    localStorage.removeItem(namingKey(network, walletName));
   }
 }
 

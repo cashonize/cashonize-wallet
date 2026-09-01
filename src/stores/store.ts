@@ -102,26 +102,15 @@ import {
 } from "src/utils/wallet/utxoLabels"
 import { removePledges } from "src/utils/tools/flipstarterPledges"
 import {
-  loadIdentityCategories,
-  saveIdentityCategory,
-  deleteIdentityCategory,
+  loadIdentityList,
+  addToIdentityList,
+  removeFromIdentityList,
+  clearIdentityList,
   removeIdentityCategories,
-  loadAuthKeyCategories,
-  saveAuthKeyCategory,
-  deleteAuthKeyCategory,
-  loadDismissedIdentities,
-  saveDismissedIdentity,
-  undismissIdentity,
-  loadUnseenIdentities,
-  saveUnseenIdentities,
-  loadExaminedKeyCandidates,
-  saveExaminedKeyCandidates,
-  clearUnseenIdentities,
-  loadUnnamedAuthheads,
-  saveUnnamedAuthhead,
-  deleteUnnamedAuthhead,
-  loadUnnameableAuthheads,
-  saveUnnameableAuthhead,
+  loadAuthheadNaming,
+  saveAuthheadNaming,
+  deleteAuthheadNaming,
+  type AuthheadNaming,
   resolveIdentities,
   describeChainLinks,
   checkPublicationUri,
@@ -224,13 +213,9 @@ export const useStore = defineStore('store', () => {
   // Key candidates already put to the user once. The shape of an identity key is a shape ordinary
   // NFTs can have, so an unexamined one is worth asking about exactly once.
   const examinedKeyCandidates = ref([] as string[]);
-  // Authheads held here that the detection could not name. Protected all the same: naming is a
-  // convenience, an unspendable coin is the point.
-  const unnamedAuthheads = ref([] as string[]);
-  // Authheads a completed walk could not name, so an unchanged one is not walked again on every
-  // wallet open. Keyed by the authhead's txid, which makes it self-invalidating: the moment the
-  // authhead moves it is a different txid and earns a fresh walk.
-  const unnameableAuthheads = ref([] as string[]);
+  // Authheads held here that the detection could not name, and how far naming each one got.
+  // Protected either way: naming is a convenience, an unspendable coin is the point.
+  const authheadNaming = ref({} as Record<string, AuthheadNaming>);
   // The wallet's own transactions that carried a metadata publication, read off the same walk, so
   // the history can tell a metadata update from the wallet's other identity operations
   const identityPublicationTxids = ref([] as string[]);
@@ -483,13 +468,12 @@ export const useStore = defineStore('store', () => {
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
     reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
     utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
-    identityCategories.value = loadIdentityCategories(newNetwork, newWallet.name);
-    watchedAuthKeys.value = loadAuthKeyCategories(newNetwork, newWallet.name);
-    dismissedIdentities.value = loadDismissedIdentities(newNetwork, newWallet.name);
-    unseenIdentities.value = loadUnseenIdentities(newNetwork, newWallet.name);
-    examinedKeyCandidates.value = loadExaminedKeyCandidates(newNetwork, newWallet.name);
-    unnamedAuthheads.value = loadUnnamedAuthheads(newNetwork, newWallet.name);
-    unnameableAuthheads.value = loadUnnameableAuthheads(newNetwork, newWallet.name);
+    identityCategories.value = loadIdentityList('categories', newNetwork, newWallet.name);
+    watchedAuthKeys.value = loadIdentityList('authKeys', newNetwork, newWallet.name);
+    dismissedIdentities.value = loadIdentityList('dismissed', newNetwork, newWallet.name);
+    unseenIdentities.value = loadIdentityList('unseen', newNetwork, newWallet.name);
+    examinedKeyCandidates.value = loadIdentityList('examinedKeys', newNetwork, newWallet.name);
+    authheadNaming.value = loadAuthheadNaming(newNetwork, newWallet.name);
     identities.value = undefined;
     publicationChecks.value = {};
     identityHistories.value = {};
@@ -1442,18 +1426,20 @@ export const useStore = defineStore('store', () => {
       // after, and is never a condition of protecting it
       if (!identity.category) {
         if (dismissedIdentities.value.includes(identity.authheadTxid)) continue;
-        if (unnamedAuthheads.value.includes(identity.authheadTxid)) continue;
-        unnamedAuthheads.value = saveUnnamedAuthhead(network.value, wallet.value.name, identity.authheadTxid);
+        if (identity.authheadTxid in authheadNaming.value) continue;
+        authheadNaming.value = saveAuthheadNaming(
+          network.value, wallet.value.name, identity.authheadTxid, 'pending'
+        );
         listed.push(identity.authheadTxid);
         continue;
       }
       if (dismissedIdentities.value.includes(identity.category)) continue;
       if (identityCategories.value.includes(identity.category)) continue;
-      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, identity.category);
+      identityCategories.value = addToIdentityList('categories', network.value, wallet.value.name, identity.category);
       listed.push(identity.category);
     }
     if (!listed.length) return listed;
-    unseenIdentities.value = saveUnseenIdentities(network.value, wallet.value.name, listed);
+    unseenIdentities.value = addToIdentityList('unseen', network.value, wallet.value.name, listed);
     Notify.create({
       type: 'info',
       message: t('identities.detected.notification', listed.length),
@@ -1480,7 +1466,7 @@ export const useStore = defineStore('store', () => {
     const candidates = (walletUtxos.value ?? []).filter(utxo =>
       utxo.vout === 0
       && !listedAuthheads.includes(utxo.txid)
-      && !unnamedAuthheads.value.includes(utxo.txid)
+      && !(utxo.txid in authheadNaming.value)
       && !dismissedIdentities.value.includes(utxo.txid)
     );
     let found = 0;
@@ -1498,7 +1484,7 @@ export const useStore = defineStore('store', () => {
         .catch(() => false);
       if (initialization !== currentInitialization) return found;
       if (!confirmed) continue;
-      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+      identityCategories.value = addToIdentityList('categories', network.value, wallet.value.name, category);
       found += 1;
     }
     return found;
@@ -1514,12 +1500,14 @@ export const useStore = defineStore('store', () => {
     const fetchTransaction = (txid: string) => wallet.value.provider.getRawTransactionObject(txid);
     let named = 0;
     for (const coin of coins) {
-      if (unnameableAuthheads.value.includes(coin.txid)) continue;
+      if (authheadNaming.value[coin.txid] === 'walkConcluded') continue;
       const initialization = currentInitialization;
       const walked = await nameChainByWalkingBack(coin.txid, fetchTransaction);
       if (initialization !== currentInitialization) return named;
       if (walked.outcome === 'unnameable') {
-        unnameableAuthheads.value = saveUnnameableAuthhead(network.value, wallet.value.name, coin.txid);
+        authheadNaming.value = saveAuthheadNaming(
+          network.value, wallet.value.name, coin.txid, 'walkConcluded'
+        );
         continue;
       }
       // 'unavailable' says nothing about the chain, so it is simply tried again next time
@@ -1530,9 +1518,9 @@ export const useStore = defineStore('store', () => {
         .catch(() => false);
       if (initialization !== currentInitialization) return named;
       if (!confirmed) continue;
-      unnamedAuthheads.value = deleteUnnamedAuthhead(network.value, wallet.value.name, coin.txid);
+      authheadNaming.value = deleteAuthheadNaming(network.value, wallet.value.name, coin.txid);
       if (identityCategories.value.includes(category)) continue;
-      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+      identityCategories.value = addToIdentityList('categories', network.value, wallet.value.name, category);
       named += 1;
     }
     return named;
@@ -1573,14 +1561,14 @@ export const useStore = defineStore('store', () => {
   function markKeyCandidatesExamined() {
     const unexamined = unexaminedKeyCandidates.value;
     if (!unexamined.length) return;
-    examinedKeyCandidates.value = saveExaminedKeyCandidates(
-      network.value, wallet.value.name, unexamined
+    examinedKeyCandidates.value = addToIdentityList(
+      'examinedKeys', network.value, wallet.value.name, unexamined
     );
   }
 
   function markIdentitiesSeen() {
     const unseen = unseenIdentities.value;
-    clearUnseenIdentities(network.value, wallet.value.name);
+    clearIdentityList('unseen', network.value, wallet.value.name);
     unseenIdentities.value = [];
     return unseen;
   }
@@ -1649,12 +1637,12 @@ export const useStore = defineStore('store', () => {
     const foundByKey: string[] = [];
     for (const category of Object.keys(guarded)) {
       if (identityCategories.value.includes(category)) continue;
-      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+      identityCategories.value = addToIdentityList('categories', network.value, wallet.value.name, category);
       foundByKey.push(category);
     }
     // listed without being asked for, so the page owes the user the same notice the walk gives
     if (foundByKey.length) {
-      unseenIdentities.value = saveUnseenIdentities(network.value, wallet.value.name, foundByKey);
+      unseenIdentities.value = addToIdentityList('unseen', network.value, wallet.value.name, foundByKey);
     }
     if (!identityCategories.value.length) {
       identities.value = [];
@@ -1700,7 +1688,7 @@ export const useStore = defineStore('store', () => {
   // Held authheads that carry no identity of their own on the list: same protection, no name
   function unnamedAuthheadCoins() {
     return (walletUtxos.value ?? []).filter(
-      utxo => utxo.vout === 0 && unnamedAuthheads.value.includes(utxo.txid)
+      utxo => utxo.vout === 0 && utxo.txid in authheadNaming.value
     );
   }
 
@@ -1755,7 +1743,7 @@ export const useStore = defineStore('store', () => {
         identity => identity.authUtxo && dismissedIdentities.value.includes(identity.category)
       ).length;
       for (const identity of found) {
-        identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, identity.category);
+        identityCategories.value = addToIdentityList('categories', network.value, wallet.value.name, identity.category);
       }
       // The one case the categories cannot reach: an authhead received from elsewhere, with no
       // token of its own held here and no activity by these keys to have been walked. Its coin is
@@ -1836,18 +1824,18 @@ export const useStore = defineStore('store', () => {
   }
 
   async function addAuthKey(category: string) {
-    watchedAuthKeys.value = saveAuthKeyCategory(network.value, wallet.value.name, category);
+    watchedAuthKeys.value = addToIdentityList('authKeys', network.value, wallet.value.name, category);
     await refreshIdentities();
   }
 
   function removeAuthKey(category: string) {
-    watchedAuthKeys.value = deleteAuthKeyCategory(network.value, wallet.value.name, category);
+    watchedAuthKeys.value = removeFromIdentityList('authKeys', network.value, wallet.value.name, category);
   }
 
   async function addIdentity(category: string) {
     // adding by hand undoes a dismissal: the user changed their mind, which is the whole point
-    dismissedIdentities.value = undismissIdentity(network.value, wallet.value.name, category);
-    identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+    dismissedIdentities.value = removeFromIdentityList('dismissed', network.value, wallet.value.name, category);
+    identityCategories.value = addToIdentityList('categories', network.value, wallet.value.name, category);
     await refreshIdentities();
   }
 
@@ -1855,8 +1843,8 @@ export const useStore = defineStore('store', () => {
   // transaction, so the coin is held back straight away rather than when Chaingraph or this
   // wallet's own view catches up.
   async function listCreatedIdentity(category: string, authheadTxId: string, authheadSatoshis: bigint) {
-    dismissedIdentities.value = undismissIdentity(network.value, wallet.value.name, category);
-    identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+    dismissedIdentities.value = removeFromIdentityList('dismissed', network.value, wallet.value.name, category);
+    identityCategories.value = addToIdentityList('categories', network.value, wallet.value.name, category);
     const outpoint = `${authheadTxId}:0`;
     if (!reservedUtxos.value[outpoint]) await reserveOutpoint(outpoint, authheadSatoshis, 'auth');
     await refreshIdentities();
@@ -1866,8 +1854,8 @@ export const useStore = defineStore('store', () => {
   // coin outside the identities page. Adding the identity again, by category or through the
   // ownership check, reserves its authhead again.
   async function removeUnnamedAuthhead(txid: string) {
-    dismissedIdentities.value = saveDismissedIdentity(network.value, wallet.value.name, txid);
-    unnamedAuthheads.value = deleteUnnamedAuthhead(network.value, wallet.value.name, txid);
+    dismissedIdentities.value = addToIdentityList('dismissed', network.value, wallet.value.name, txid);
+    authheadNaming.value = deleteAuthheadNaming(network.value, wallet.value.name, txid);
     const coin = (walletUtxos.value ?? []).find(utxo => utxo.vout === 0 && utxo.txid === txid);
     if (coin && reservedUtxos.value[outpointOf(coin)]?.reason === 'auth') {
       await dropReservation(outpointOf(coin));
@@ -1876,9 +1864,9 @@ export const useStore = defineStore('store', () => {
 
   async function removeIdentity(category: string) {
     // remembered, so the automatic detection does not put it back on the next wallet open
-    dismissedIdentities.value = saveDismissedIdentity(network.value, wallet.value.name, category);
+    dismissedIdentities.value = addToIdentityList('dismissed', network.value, wallet.value.name, category);
     const removed = identities.value?.find(identity => identity.category === category);
-    identityCategories.value = deleteIdentityCategory(network.value, wallet.value.name, category);
+    identityCategories.value = removeFromIdentityList('categories', network.value, wallet.value.name, category);
     identities.value = identities.value?.filter(identity => identity.category !== category);
     if (!removed?.authUtxo) return;
     const outpoint = outpointOf(removed.authUtxo);
@@ -2254,8 +2242,7 @@ export const useStore = defineStore('store', () => {
     unexaminedKeyCandidates,
     identitiesNeedAttention,
     markKeyCandidatesExamined,
-    unnamedAuthheads,
-    unnameableAuthheads,
+    authheadNaming,
     identityPublicationTxids,
     identityHistories,
     fetchIdentityHistory,

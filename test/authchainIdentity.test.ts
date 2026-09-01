@@ -1,8 +1,8 @@
 import type { Utxo } from "mainnet-js";
 import {
-  loadIdentityCategories,
-  saveIdentityCategory,
-  deleteIdentityCategory,
+  loadIdentityList,
+  addToIdentityList,
+  removeFromIdentityList,
   removeIdentityCategories,
   resolveIdentities,
   isTokenCategory,
@@ -59,41 +59,41 @@ describe('identity categories', () => {
   });
 
   it('saves and loads categories per wallet per network', () => {
-    saveIdentityCategory('mainnet', 'mywallet', categoryA);
-    expect(loadIdentityCategories('mainnet', 'mywallet')).toEqual([categoryA]);
-    expect(loadIdentityCategories('chipnet', 'mywallet')).toEqual([]);
-    expect(loadIdentityCategories('mainnet', 'otherwallet')).toEqual([]);
+    addToIdentityList('categories', 'mainnet', 'mywallet', categoryA);
+    expect(loadIdentityList('categories', 'mainnet', 'mywallet')).toEqual([categoryA]);
+    expect(loadIdentityList('categories', 'chipnet', 'mywallet')).toEqual([]);
+    expect(loadIdentityList('categories', 'mainnet', 'otherwallet')).toEqual([]);
   });
 
   it('does not list the same category twice', () => {
-    saveIdentityCategory('mainnet', 'mywallet', categoryA);
-    saveIdentityCategory('mainnet', 'mywallet', categoryA);
-    expect(loadIdentityCategories('mainnet', 'mywallet')).toEqual([categoryA]);
+    addToIdentityList('categories', 'mainnet', 'mywallet', categoryA);
+    addToIdentityList('categories', 'mainnet', 'mywallet', categoryA);
+    expect(loadIdentityList('categories', 'mainnet', 'mywallet')).toEqual([categoryA]);
   });
 
   it('re-reads before writing, so a category added in another tab survives', () => {
-    saveIdentityCategory('mainnet', 'mywallet', categoryA);
+    addToIdentityList('categories', 'mainnet', 'mywallet', categoryA);
     // simulates another tab adding a second identity against the same key
-    const otherTab = loadIdentityCategories('mainnet', 'mywallet');
-    saveIdentityCategory('mainnet', 'mywallet', categoryB);
+    const otherTab = loadIdentityList('categories', 'mainnet', 'mywallet');
+    addToIdentityList('categories', 'mainnet', 'mywallet', categoryB);
     expect(otherTab).toHaveLength(1);
-    expect(loadIdentityCategories('mainnet', 'mywallet')).toHaveLength(2);
+    expect(loadIdentityList('categories', 'mainnet', 'mywallet')).toHaveLength(2);
   });
 
   it('deletes only the category given', () => {
-    saveIdentityCategory('mainnet', 'mywallet', categoryA);
-    saveIdentityCategory('mainnet', 'mywallet', categoryB);
-    deleteIdentityCategory('mainnet', 'mywallet', categoryA);
-    expect(loadIdentityCategories('mainnet', 'mywallet')).toEqual([categoryB]);
+    addToIdentityList('categories', 'mainnet', 'mywallet', categoryA);
+    addToIdentityList('categories', 'mainnet', 'mywallet', categoryB);
+    removeFromIdentityList('categories', 'mainnet', 'mywallet', categoryA);
+    expect(loadIdentityList('categories', 'mainnet', 'mywallet')).toEqual([categoryB]);
   });
 
   // a future wallet created under the same name must not inherit these
   it('removes both networks when the wallet is deleted', () => {
-    saveIdentityCategory('mainnet', 'mywallet', categoryA);
-    saveIdentityCategory('chipnet', 'mywallet', categoryB);
+    addToIdentityList('categories', 'mainnet', 'mywallet', categoryA);
+    addToIdentityList('categories', 'chipnet', 'mywallet', categoryB);
     removeIdentityCategories('mywallet');
-    expect(loadIdentityCategories('mainnet', 'mywallet')).toEqual([]);
-    expect(loadIdentityCategories('chipnet', 'mywallet')).toEqual([]);
+    expect(loadIdentityList('categories', 'mainnet', 'mywallet')).toEqual([]);
+    expect(loadIdentityList('categories', 'chipnet', 'mywallet')).toEqual([]);
   });
 
   it('accepts a token category and rejects anything else', () => {
