@@ -43,6 +43,7 @@
   // cleared there, so the cards carry the mark for the visit that answers for it.
   const foundAutomatically = ref<string[]>([]);
   const isAdding = ref(false);
+  const isCreating = ref(false);
   const isScanning = ref(false);
   const scanSummary = ref<IdentityScanSummary | undefined>(undefined);
   // The destination of an open transfer form, keyed by category so each card keeps its own
@@ -206,6 +207,38 @@
       displayAndLogError(error);
     } finally {
       isAdding.value = false;
+    }
+  }
+
+  // What the new identity's AuthHead carries. Every later operation recreates the output with the
+  // same amount, so this is set once and stays.
+  const newIdentityValue = 10_000n;
+
+  // An identity that is not a token is one transaction: its output 0 is the identity, and its txid
+  // is the id, which is why naming has to wait for a publication that can name it.
+  async function createIdentity() {
+    if (isCreating.value) return;
+    const confirmed = await confirmDialog(
+      t('identities.create.confirmTitle'),
+      t('identities.create.confirmMessage', { amount: bchOf(newIdentityValue) }),
+      t('identities.create.confirmButton')
+    );
+    if (!confirmed) return;
+    isCreating.value = true;
+    try {
+      notifySending();
+      const { txId } = await store.spend.send([
+        { cashaddr: store.wallet.getDepositAddress(), value: newIdentityValue }
+      ]);
+      if (!txId) throw new Error(t('identities.create.errors.noTxId'));
+      await handleTransactionBroadcastSuccess(
+        t('identities.create.done'), txId, t('identities.create.doneTitle')
+      );
+      await store.listCreatedIdentity(txId, txId, newIdentityValue);
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      isCreating.value = false;
     }
   }
 
@@ -638,6 +671,24 @@
     </div>
 
     <div class="section">
+      <div>
+        {{ t('identities.create.label') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('identities.create.help') }}</div>
+          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.create.helpNaming') }}</div>
+        </InfoPopup>
+      </div>
+      <div class="description" style="margin-top: 6px;">{{ t('identities.create.hint') }}</div>
+      <input
+        @click="createIdentity()"
+        type="button"
+        :value="isCreating ? t('identities.create.creatingButton') : t('identities.create.button')"
+        :disabled="isCreating || store.identitiesResolving"
+        style="margin-top: 8px;"
+      >
+    </div>
+
+    <div class="section">
       <div class="description">
         <i18n-t keypath="identities.scan.prompt" tag="span">
           <template #link>
@@ -682,6 +733,10 @@
                 <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.emptySteps.createLink') }}</span>
               </template>
             </i18n-t>
+          </li>
+          <li>
+            <q-icon name="lock" size="18px" />
+            <span>{{ t('identities.emptySteps.createIdentity') }}</span>
           </li>
         </ol>
       </div>

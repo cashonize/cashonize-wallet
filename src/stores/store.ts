@@ -1812,12 +1812,13 @@ export const useStore = defineStore('store', () => {
     await refreshIdentities();
   }
 
-  // A token this wallet just created: the genesis put its authhead at output 0, so the coin is
-  // held back straight away rather than when Chaingraph or this wallet's own view catches up.
-  async function listCreatedIdentity(category: string, genesisTxId: string, authheadSatoshis: bigint) {
+  // An identity this wallet just created, token or not: its authhead is output 0 of the
+  // transaction, so the coin is held back straight away rather than when Chaingraph or this
+  // wallet's own view catches up.
+  async function listCreatedIdentity(category: string, authheadTxId: string, authheadSatoshis: bigint) {
     dismissedIdentities.value = undismissIdentity(network.value, wallet.value.name, category);
     identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
-    const outpoint = `${genesisTxId}:0`;
+    const outpoint = `${authheadTxId}:0`;
     if (!reservedUtxos.value[outpoint]) await reserveOutpoint(outpoint, authheadSatoshis, 'auth');
     await refreshIdentities();
   }

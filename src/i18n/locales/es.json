@@ -1645,6 +1645,22 @@
         "nothingFound": "No se encontró nada para esa categoría: ni identidad de token, ni clave de identidad que guarde algo."
       }
     },
+    "create": {
+      "label": "Crear una identidad que no es un token",
+      "help": "Basta una transacción: la moneda que crea es el AuthHead, y el id de la transacción pasa a ser el id permanente de la identidad.",
+      "helpNaming": "El nombre llega después, con una publicación: un registro tiene que nombrar el id, que no existe hasta que se firma esta transacción.",
+      "hint": "Para una identidad personal o de una organización. Para una identidad de token, crea el token: su génesis hace ambas cosas a la vez.",
+      "button": "Crear identidad",
+      "creatingButton": "Creando...",
+      "confirmTitle": "¿Crear una nueva identidad?",
+      "confirmMessage": "{amount} de esta billetera pasa a ser el AuthHead de la identidad y queda fuera de la selección de monedas. El id de la transacción pasa a ser el id permanente de la identidad.",
+      "confirmButton": "Crear",
+      "done": "La identidad aparece en la lista y su AuthHead queda fuera de la selección de monedas. Publica un registro que la nombre para darle un nombre.",
+      "doneTitle": "Identidad creada",
+      "errors": {
+        "noTxId": "La transacción se envió pero su id volvió vacío, así que la identidad no se pudo listar."
+      }
+    },
     "scan": {
       "prompt": "Cashonize puede comprobar si los tokens de esta billetera tienen su AuthHead aquí. {link}",
       "linkText": "Comprobar AuthHeads",
@@ -1683,7 +1699,8 @@
       "paste": "Pega arriba la categoría de token de una identidad.",
       "check": "O comprueba si los tokens de esta billetera tienen AuthHeads.",
       "create": "O {link} para hacer una nueva.",
-      "createLink": "crea un token"
+      "createLink": "crea un token",
+      "createIdentity": "O crea abajo una identidad que no sea un token."
     }
   }
 }

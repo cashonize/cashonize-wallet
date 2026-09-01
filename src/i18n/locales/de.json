@@ -1645,6 +1645,22 @@
         "nothingFound": "Zu dieser Kategorie wurde nichts gefunden: keine Token-Identität und kein Identitätsschlüssel, der etwas bewacht."
       }
     },
+    "create": {
+      "label": "Eine Identität erstellen, die kein Token ist",
+      "help": "Eine Transaktion genügt: die Münze, die sie erzeugt, ist der AuthHead, und die Transaktions-Id wird zur dauerhaften Id der Identität.",
+      "helpNaming": "Die Benennung folgt danach mit einer Veröffentlichung: eine Registry muss die Id nennen, und die gibt es erst, wenn diese Transaktion signiert ist.",
+      "hint": "Für eine persönliche Identität oder die einer Organisation. Für eine Token-Identität erstelle stattdessen den Token: seine Genesis macht beides auf einmal.",
+      "button": "Identität erstellen",
+      "creatingButton": "Wird erstellt...",
+      "confirmTitle": "Eine neue Identität erstellen?",
+      "confirmMessage": "{amount} dieses Wallets wird zum AuthHead der Identität und von der Münzauswahl ausgenommen. Die Transaktions-Id wird zur dauerhaften Id der Identität.",
+      "confirmButton": "Erstellen",
+      "done": "Die Identität ist gelistet und ihr AuthHead von der Münzauswahl ausgenommen. Veröffentliche eine Registry, die sie nennt, um ihr einen Namen zu geben.",
+      "doneTitle": "Identität erstellt",
+      "errors": {
+        "noTxId": "Die Transaktion wurde gesendet, aber ihre Id kam leer zurück, sodass die Identität nicht gelistet werden konnte."
+      }
+    },
     "scan": {
       "prompt": "Cashonize kann die Tokens in diesem Wallet auf AuthHead-Besitz prüfen. {link}",
       "linkText": "Auf AuthHeads prüfen",
@@ -1683,7 +1699,8 @@
       "paste": "Füge oben die Token-Kategorie einer Identität ein.",
       "check": "Oder prüfe die Tokens dieses Wallets auf AuthHeads.",
       "create": "Oder {link}, um eine neue anzulegen.",
-      "createLink": "erstelle einen Token"
+      "createLink": "erstelle einen Token",
+      "createIdentity": "Oder erstelle unten eine Identität, die kein Token ist."
     }
   }
 }

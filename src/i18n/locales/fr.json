@@ -1645,6 +1645,22 @@
         "nothingFound": "Rien trouvé pour cette catégorie : ni identité de jeton, ni clé d'identité gardant quoi que ce soit."
       }
     },
+    "create": {
+      "label": "Créer une identité qui n'est pas un token",
+      "help": "Une seule transaction suffit : la pièce qu'elle crée est l'AuthHead, et l'identifiant de la transaction devient l'identifiant permanent de l'identité.",
+      "helpNaming": "Le nom vient ensuite, avec une publication : un registre doit nommer cet identifiant, qui n'existe pas avant la signature de cette transaction.",
+      "hint": "Pour une identité personnelle ou d'organisation. Pour une identité de token, créez plutôt le token : sa genèse fait les deux à la fois.",
+      "button": "Créer l'identité",
+      "creatingButton": "Création...",
+      "confirmTitle": "Créer une nouvelle identité ?",
+      "confirmMessage": "{amount} de ce portefeuille devient l'AuthHead de l'identité et est écarté de la sélection des pièces. L'identifiant de la transaction devient l'identifiant permanent de l'identité.",
+      "confirmButton": "Créer",
+      "done": "L'identité figure dans la liste et son AuthHead est écarté de la sélection des pièces. Publiez un registre qui la nomme pour lui donner un nom.",
+      "doneTitle": "Identité créée",
+      "errors": {
+        "noTxId": "La transaction a été envoyée mais son identifiant est revenu vide, l'identité n'a donc pas pu être listée."
+      }
+    },
     "scan": {
       "prompt": "Cashonize peut vérifier si les jetons de ce portefeuille y ont leur AuthHead. {link}",
       "linkText": "Vérifier les AuthHeads",
@@ -1683,7 +1699,8 @@
       "paste": "Collez ci-dessus la catégorie de jeton d'une identité.",
       "check": "Ou vérifiez si les jetons de ce portefeuille ont des AuthHeads.",
       "create": "Ou {link} pour en créer une.",
-      "createLink": "créez un jeton"
+      "createLink": "créez un jeton",
+      "createIdentity": "Ou créez ci-dessous une identité qui n'est pas un token."
     }
   }
 }

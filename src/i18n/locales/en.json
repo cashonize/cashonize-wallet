@@ -1645,6 +1645,22 @@
         "nothingFound": "Nothing found for that category: no token identity, and no identity key guarding anything."
       }
     },
+    "create": {
+      "label": "Create an identity that is not a token",
+      "help": "One transaction makes it: the coin it creates is the AuthHead, and the transaction id becomes the identity's permanent id.",
+      "helpNaming": "Naming comes after, with a publication: a registry has to name the id, which does not exist until this transaction is signed.",
+      "hint": "For a personal or organization identity. For a token identity, create the token instead: its genesis makes both at once.",
+      "button": "Create identity",
+      "creatingButton": "Creating...",
+      "confirmTitle": "Create a new identity?",
+      "confirmMessage": "{amount} of this wallet becomes the identity's AuthHead and is held back from coin selection. The transaction id becomes the identity's permanent id.",
+      "confirmButton": "Create",
+      "done": "The identity is listed and its AuthHead is held back from coin selection. Publish a registry naming it to give it a name.",
+      "doneTitle": "Identity created",
+      "errors": {
+        "noTxId": "The transaction was sent but its id came back empty, so the identity could not be listed."
+      }
+    },
     "scan": {
       "prompt": "Cashonize can check the tokens in this wallet for authhead ownership. {link}",
       "linkText": "Check for authheads",
@@ -1683,7 +1699,8 @@
       "paste": "Paste the token category of an identity above.",
       "check": "Or check the tokens this wallet holds for AuthHeads.",
       "create": "Or {link} to make a new one.",
-      "createLink": "create a token"
+      "createLink": "create a token",
+      "createIdentity": "Or create an identity that is not a token, below."
     }
   }
 }
