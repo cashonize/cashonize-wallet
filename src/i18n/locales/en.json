@@ -673,7 +673,9 @@
       "creatingTokens": "Creating tokens...",
       "creatingMintingNft": "Creating minting NFT...",
       "urlPrefixError": "Urls should not have any prefix!",
-      "ipfsCidError": "Ipfs location should be a v1 CID"
+      "ipfsCidError": "Ipfs location should be a v1 CID",
+      "bcmrUnreachable": "Could not fetch the registry at that location.",
+      "bcmrWrongIdentity": "That registry does not describe the identity being created. Check that the file names this token category."
     }
   },
   "utxoManagement": {

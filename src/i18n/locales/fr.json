@@ -673,7 +673,9 @@
       "creatingTokens": "Création des tokens...",
       "creatingMintingNft": "Création du NFT de création...",
       "urlPrefixError": "Les URLs ne doivent pas avoir de préfixe !",
-      "ipfsCidError": "L'emplacement IPFS doit être un CID v1"
+      "ipfsCidError": "L'emplacement IPFS doit être un CID v1",
+      "bcmrUnreachable": "Impossible de récupérer le registre à cet emplacement.",
+      "bcmrWrongIdentity": "Ce registre ne décrit pas l'identité en cours de création. Vérifiez que le fichier nomme cette catégorie de jeton."
     }
   },
   "utxoManagement": {

@@ -673,7 +673,9 @@
       "creatingTokens": "Tokens werden erstellt...",
       "creatingMintingNft": "Minting NFT wird erstellt...",
       "urlPrefixError": "URLs sollten kein Präfix haben!",
-      "ipfsCidError": "IPFS-Speicherort sollte eine v1 CID sein"
+      "ipfsCidError": "IPFS-Speicherort sollte eine v1 CID sein",
+      "bcmrUnreachable": "Die Registry an diesem Ort konnte nicht geladen werden.",
+      "bcmrWrongIdentity": "Diese Registry beschreibt nicht die Identität, die hier erstellt wird. Prüfe, ob die Datei diese Token-Kategorie nennt."
     }
   },
   "utxoManagement": {

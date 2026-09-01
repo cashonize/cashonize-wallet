@@ -673,7 +673,9 @@
       "creatingTokens": "Criando tokens...",
       "creatingMintingNft": "Criando NFT de minting...",
       "urlPrefixError": "URLs não devem ter nenhum prefixo!",
-      "ipfsCidError": "A localização IPFS deve ser um CID v1"
+      "ipfsCidError": "A localização IPFS deve ser um CID v1",
+      "bcmrUnreachable": "Não foi possível buscar o registro nesse local.",
+      "bcmrWrongIdentity": "Esse registro não descreve a identidade que está sendo criada. Verifique se o arquivo nomeia esta categoria de token."
     }
   },
   "utxoManagement": {

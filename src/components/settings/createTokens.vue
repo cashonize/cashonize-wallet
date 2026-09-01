@@ -1,6 +1,11 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue';
-  import { OpReturnData, sha256, utf8ToBin } from "mainnet-js"
+  import {
+    publicationOutput,
+    registryContentHash,
+    registryUrlOf,
+    summarizeRegistry,
+  } from 'src/utils/tools/authchainIdentity';
   import { copyToClipboard } from 'src/utils/utils';
   import EmojiItem from '../general/emojiItem.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
@@ -8,7 +13,6 @@
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
-  import { cachedFetch } from 'src/utils/cacheUtils';
   import { useI18n } from 'vue-i18n'
   const $q = useQuasar()
   const store = useStore()
@@ -50,6 +54,12 @@
     }
   }
 
+  // What the registry location becomes on chain, which is the form the identities page reads back
+  const publishedUri = () =>
+    selectedUri.value === "IPFS" ? `ipfs://${inputBcmr.value}` : inputBcmr.value;
+
+  // The genesis publishes the same output an update does, so it is built by the same code: one
+  // module owns the format, and creating an identity cannot drift from maintaining one.
   async function getOpreturnData(){
     validityCheck.value = undefined;
     const inputField = inputBcmr.value;
@@ -65,19 +75,28 @@
       validityCheck.value = false;
       return
     }
-    const defaultBcmrLocation = "/.well-known/bitcoin-cash-metadata-registry.json"
-    const bcmrLocation = (selectedUri.value === "website" && !inputField.endsWith(".json"))? defaultBcmrLocation : ""
-    const fetchLocation = selectedUri.value != "IPFS" ? "https://" + inputField + bcmrLocation : settingsStore.ipfsGateway + inputField;
+    const uri = publishedUri();
     try{
-      console.log("fetching bcmr at "+fetchLocation);
-      const response = await cachedFetch(fetchLocation);
+      // fetched fresh rather than through the metadata cache: what is hashed has to be what the
+      // host serves now, or the hash commits to something nobody can fetch
+      const response = await fetch(registryUrlOf(uri, settingsStore.ipfsGateway), { cache: "no-store" });
+      if(!response.ok) throw new Error(t('createTokens.notifications.bcmrUnreachable'));
       const bcmrContent = await response.text();
-      JSON.parse(bcmrContent)
+
+      // The planned category is known before the genesis is signed, so the wrong-file mistake can
+      // be caught at the one moment it costs nothing: the registry has to name this identity.
+      if(store.plannedTokenId && !summarizeRegistry(bcmrContent, store.plannedTokenId)){
+        $q.notify({
+          message: t('createTokens.notifications.bcmrWrongIdentity'),
+          icon: 'warning',
+          color: "red"
+        })
+        validityCheck.value = false;
+        return
+      }
+
       validityCheck.value = true;
-      const hashContent = sha256.hash(utf8ToBin(bcmrContent));
-      const bcmrUri = selectedUri.value != "IPFS" ? inputField : "ipfs://" + inputField;
-      const chunks = ["BCMR", hashContent, bcmrUri];
-      return OpReturnData.fromArray(chunks);
+      return publicationOutput(registryContentHash(bcmrContent), [uri]);
     } catch{
       validityCheck.value = false;
     }
