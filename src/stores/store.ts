@@ -1637,7 +1637,22 @@ export const useStore = defineStore('store', () => {
     );
     if (initialization !== currentInitialization) return;
     identities.value = resolved;
+    forgetStaleHistories(resolved);
     await syncAuthReservations(resolved);
+  }
+
+  // A cached chain ends at the authhead it was fetched for, so an authhead that has moved since
+  // means the cache is missing its newest link. Keyed on the authhead rather than on this wallet
+  // having spent it, so an update made elsewhere with the same keys invalidates it too.
+  function forgetStaleHistories(resolved: IdentityState[]) {
+    const stale = resolved.filter(identity => {
+      const cached = identityHistories.value[identity.category];
+      return cached?.length && cached[cached.length - 1]!.hash !== identity.authheadTxid;
+    });
+    if (!stale.length) return;
+    const histories = { ...identityHistories.value };
+    for (const identity of stale) delete histories[identity.category];
+    identityHistories.value = histories;
   }
 
   async function refreshIdentities() {

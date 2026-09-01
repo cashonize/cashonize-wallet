@@ -354,6 +354,34 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
   })
 
+  // A cached chain ends at the authhead it was fetched for. Once that authhead moves, whether this
+  // wallet moved it or the same keys did elsewhere, the cache is missing its newest link.
+  it('forgets a cached history once its authhead has moved', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const store = startStore([utxo(authheadA, 0), utxo(movedAuthheadA, 0)])
+    await store.refreshIdentities()
+    store.identityHistories = { [categoryA]: [{ hash: authheadA, kind: 'genesis', reserve: 0n, reserveDelta: 0n }] }
+
+    stubAuthheadQueries({ [categoryA]: movedAuthheadA })
+    await store.refreshIdentities()
+
+    expect(store.identityHistories[categoryA]).toBeUndefined()
+  })
+
+  it('keeps a cached history while its authhead has not moved', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const store = startStore([utxo(authheadA, 0)])
+    await store.refreshIdentities()
+    const cached = [{ hash: authheadA, kind: 'genesis' as const, reserve: 0n, reserveDelta: 0n }]
+    store.identityHistories = { [categoryA]: cached }
+
+    await store.refreshIdentities()
+
+    expect(store.identityHistories[categoryA]).toEqual(cached)
+  })
+
   it('releases the authhead of an identity removed from the list', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
