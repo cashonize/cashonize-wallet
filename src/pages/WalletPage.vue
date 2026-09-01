@@ -212,7 +212,8 @@
   const showNotificationIcon = computed(() => {
     if (!store._wallet || !store.walletUtxos) return undefined;
     const needsBackup = settingsStore.getBackupStatus(store.activeWalletName) === 'none';
-    return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value;
+    return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value
+      || store.identitiesNeedAttention;
   });
 </script>
 

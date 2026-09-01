@@ -934,7 +934,9 @@
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(14)">
-        → {{ t('settings.menu.tools') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
+        → {{ t('settings.menu.tools') }}
+        <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
+        <span v-else-if="store.identitiesNeedAttention" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(11)">

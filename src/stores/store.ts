@@ -114,6 +114,8 @@ import {
   undismissIdentity,
   loadUnseenIdentities,
   saveUnseenIdentities,
+  loadExaminedKeyCandidates,
+  saveExaminedKeyCandidates,
   clearUnseenIdentities,
   loadUnnamedAuthheads,
   saveUnnamedAuthhead,
@@ -219,6 +221,9 @@ export const useStore = defineStore('store', () => {
   // Listed by the wallet itself and not yet seen: what the marker on the wallet tools entry is
   // for, and what marks the cards as found automatically on the visit that clears it
   const unseenIdentities = ref([] as string[]);
+  // Key candidates already put to the user once. The shape of an identity key is a shape ordinary
+  // NFTs can have, so an unexamined one is worth asking about exactly once.
+  const examinedKeyCandidates = ref([] as string[]);
   // Authheads held here that the detection could not name. Protected all the same: naming is a
   // convenience, an unspendable coin is the point.
   const unnamedAuthheads = ref([] as string[]);
@@ -482,6 +487,7 @@ export const useStore = defineStore('store', () => {
     watchedAuthKeys.value = loadAuthKeyCategories(newNetwork, newWallet.name);
     dismissedIdentities.value = loadDismissedIdentities(newNetwork, newWallet.name);
     unseenIdentities.value = loadUnseenIdentities(newNetwork, newWallet.name);
+    examinedKeyCandidates.value = loadExaminedKeyCandidates(newNetwork, newWallet.name);
     unnamedAuthheads.value = loadUnnamedAuthheads(newNetwork, newWallet.name);
     unnameableAuthheads.value = loadUnnameableAuthheads(newNetwork, newWallet.name);
     identities.value = undefined;
@@ -1547,6 +1553,31 @@ export const useStore = defineStore('store', () => {
   }
 
   // The page has been opened, so what it found on its own is no longer news
+  // Coins shaped like an identity key that this wallet has never put to the user. Local and free:
+  // the shape is read off the wallet's own coins, and what a candidate actually guards is looked
+  // up by the identity resolve rather than here.
+  const unexaminedKeyCandidates = computed(() => {
+    const candidates = (walletUtxos.value ?? []).filter(isAuthKeyCandidate);
+    const categories = candidates.map(utxo => utxo.token!.category);
+    return categories.filter(category => !examinedKeyCandidates.value.includes(category));
+  });
+
+  // What the notification trail asks about: identities found without being asked for, and key
+  // candidates never examined. Both are answered by opening the page, which is where it leads.
+  const identitiesNeedAttention = computed(() =>
+    unseenIdentities.value.length > 0 || unexaminedKeyCandidates.value.length > 0
+  );
+
+  // Asked once. A candidate that turns out to guard nothing is still examined: the wallet keeps
+  // looking every session, the user is not asked again.
+  function markKeyCandidatesExamined() {
+    const unexamined = unexaminedKeyCandidates.value;
+    if (!unexamined.length) return;
+    examinedKeyCandidates.value = saveExaminedKeyCandidates(
+      network.value, wallet.value.name, unexamined
+    );
+  }
+
   function markIdentitiesSeen() {
     const unseen = unseenIdentities.value;
     clearUnseenIdentities(network.value, wallet.value.name);
@@ -1619,9 +1650,15 @@ export const useStore = defineStore('store', () => {
     if (!currentUtxos) return;
     // before the listing is read, since a guarded identity found here joins it
     const guarded = await resolveAuthKeys();
+    const foundByKey: string[] = [];
     for (const category of Object.keys(guarded)) {
       if (identityCategories.value.includes(category)) continue;
       identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
+      foundByKey.push(category);
+    }
+    // listed without being asked for, so the page owes the user the same notice the walk gives
+    if (foundByKey.length) {
+      unseenIdentities.value = saveUnseenIdentities(network.value, wallet.value.name, foundByKey);
     }
     if (!identityCategories.value.length) {
       identities.value = [];
@@ -2219,6 +2256,9 @@ export const useStore = defineStore('store', () => {
     watchedAuthKeys,
     dismissedIdentities,
     unseenIdentities,
+    unexaminedKeyCandidates,
+    identitiesNeedAttention,
+    markKeyCandidatesExamined,
     unnamedAuthheads,
     unnameableAuthheads,
     identityPublicationTxids,

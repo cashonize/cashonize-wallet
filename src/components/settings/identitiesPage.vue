@@ -184,6 +184,7 @@
 
   onActivated(() => {
     foundAutomatically.value = store.markIdentitiesSeen();
+    store.markKeyCandidatesExamined();
     void reloadIdentities();
   });
   // The view is kept alive across navigation, so a different wallet's form input must not linger

@@ -471,6 +471,36 @@ export function clearUnseenIdentities(network: Network, walletName: string) {
 }
 
 // A future wallet created under the same name must not inherit the old wallet's identities
+function examinedKeysKey(network: Network, walletName: string): string {
+  return `examinedKeyCandidates-${network}-${walletName}`;
+}
+
+// Categories that look like an identity key and have already been put to the user once. Only the
+// asking is remembered: whether a candidate really guards anything is re-derived every session,
+// because a covenant can be filled after this wallet first looked at it.
+export function loadExaminedKeyCandidates(network: Network, walletName: string): string[] {
+  const read = localStorage.getItem(examinedKeysKey(network, walletName));
+  if (!read) return [];
+  try {
+    return JSON.parse(read) as string[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveExaminedKeyCandidates(
+  network: Network,
+  walletName: string,
+  categories: string[],
+): string[] {
+  const examined = loadExaminedKeyCandidates(network, walletName);
+  for (const category of categories) {
+    if (!examined.includes(category)) examined.push(category);
+  }
+  localStorage.setItem(examinedKeysKey(network, walletName), JSON.stringify(examined));
+  return examined;
+}
+
 export function removeIdentityCategories(walletName: string) {
   for (const network of ['mainnet', 'chipnet'] as const) {
     localStorage.removeItem(identitiesKey(network, walletName));
@@ -479,6 +509,7 @@ export function removeIdentityCategories(walletName: string) {
     localStorage.removeItem(unseenKey(network, walletName));
     localStorage.removeItem(unnamedKey(network, walletName));
     localStorage.removeItem(unnameableKey(network, walletName));
+    localStorage.removeItem(examinedKeysKey(network, walletName));
   }
 }
 

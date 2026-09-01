@@ -75,6 +75,72 @@ const authKeyUtxo: Utxo = {
 }
 const guardTokenAddress = authGuardAddresses(authKeyCategory, 'bitcoincash').p2sh20.tokenAddress
 
+// The notification trail leads to this page for two reasons, and both have to stop asking once
+// the page has been opened: the shape of an identity key is a shape ordinary NFTs can have, so a
+// standing lamp on a guess would train people to ignore the one the backup warning shares.
+describe('the identities notification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.clear()
+    setActivePinia(createPinia())
+    localStorageMock.setItem('network', 'mainnet')
+  })
+
+  it('asks about a key candidate once, and never again for that category', () => {
+    const store = startStore([authKeyUtxo])
+    expect(store.unexaminedKeyCandidates).toEqual([authKeyCategory])
+    expect(store.identitiesNeedAttention).toBe(true)
+
+    store.markKeyCandidatesExamined()
+
+    expect(store.unexaminedKeyCandidates).toEqual([])
+    expect(store.identitiesNeedAttention).toBe(false)
+  })
+
+  it('remembers the answer across wallet opens', () => {
+    const first = startStore([authKeyUtxo])
+    first.markKeyCandidatesExamined()
+
+    setActivePinia(createPinia())
+    const reopened = startStore([authKeyUtxo])
+
+    expect(reopened.identitiesNeedAttention).toBe(false)
+  })
+
+  // only a category nobody has been asked about can light it again
+  it('asks again for a candidate that was not there before', () => {
+    const store = startStore([authKeyUtxo])
+    store.markKeyCandidatesExamined()
+
+    const otherCandidate: Utxo = {
+      ...authKeyUtxo,
+      txid: 'dd'.repeat(32),
+      token: { category: categoryB, amount: 0n, nft: { commitment: '00', capability: 'none' } },
+    }
+    store.walletUtxos = [authKeyUtxo, otherCandidate]
+
+    expect(store.unexaminedKeyCandidates).toEqual([categoryB])
+    expect(store.identitiesNeedAttention).toBe(true)
+  })
+
+  // a Studio user's keys list their identities without being asked; that is worth telling them
+  it('reports an identity found through a key the way the walk reports one', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    const guardedOutput = utxo(authheadA, 0, { category: categoryA, amount: 0n })
+    const store = startStore([authKeyUtxo], { [guardTokenAddress]: [guardedOutput] })
+
+    await store.refreshIdentities()
+
+    expect(store.identityCategories).toContain(categoryA)
+    expect(store.unseenIdentities).toContain(categoryA)
+    expect(store.identitiesNeedAttention).toBe(true)
+
+    store.markIdentitiesSeen()
+    store.markKeyCandidatesExamined()
+    expect(store.identitiesNeedAttention).toBe(false)
+  })
+})
+
 describe('auth reservations follow the authchain', () => {
   beforeEach(() => {
     vi.clearAllMocks()
