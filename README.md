@@ -40,7 +40,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Transaction history** - Filterable, searchable history with private transaction notes
 - **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
 - **HD address management** - Address overview with balances, labels and marking addresses as used
-- **Wallet tools** - Sign and verify messages, freeze coins, and transfer all assets to another wallet
+- **Wallet tools** - Sign and verify messages, freeze and label coins, and transfer all assets to another wallet
 - **Sweep functionality** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
 
 
@@ -59,6 +59,8 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Flipstarter pledges** - Make and cancel pledges to Flipstarter campaigns from the wallet
 - **TapSwap listings** - Shows the assets you have listed for sale on TapSwap in the portfolio
 - **Hodl contracts** - Shows BCH locked in hodl timelock contracts in the portfolio
+- **Identities** - Keeps the AuthHeads you hold out of coin selection, transfers them deliberately, and watches identities whose AuthHead lives in another wallet
+- **Metadata publishing** - Checks your hosted BCMR registry against its on-chain hash, publishes updates and manages the reserved supply
 
 ## Platforms
 

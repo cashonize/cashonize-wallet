@@ -2,6 +2,8 @@
 // as a list of categories. Everything else about an identity - which output currently is the
 // authhead, the name, the icon - is resolved at runtime, because the authhead moves every time the
 // identity's metadata is updated and those updates happen outside this wallet.
+// Every mention of the BCMR publication format lives here, so reading a publication off the chain
+// and writing one cannot drift apart.
 
 import type { Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest } from "mainnet-js";
@@ -86,7 +88,7 @@ export function registryContentHash(content: string): string {
 }
 
 // Output 0 of every identity operation: the new authhead, carrying whatever the operation leaves
-// on it. Spending the old one as input 0 and recreating it here is what continues the authchain.
+// on it. Spending the old one and recreating it here is what continues the authchain.
 // A token output of amount zero is only valid while it carries an NFT, so an emptied reserve on an
 // authhead without one becomes a plain BCH output, which is the layout the CLI calls
 // keepReservedSupply: false.

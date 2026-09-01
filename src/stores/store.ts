@@ -1706,7 +1706,7 @@ export const useStore = defineStore('store', () => {
       return wallet.value.getMaxAmountToSend({ outputCount, options: spendConfig });
     },
 
-      // Every identity operation is this one spend: the authhead as input 0 and the new authhead at
+    // Every identity operation is this one spend: the old authhead in and the new authhead at
     // output 0, which is what continues the authchain. The coin is held back exactly so nothing
     // else reaches it, so this is the one path that spends past its own reservation.
     // The pool is the wallet's BCH coins plus the authhead, and only the token coins the operation
