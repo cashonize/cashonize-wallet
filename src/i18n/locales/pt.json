@@ -648,16 +648,20 @@
     "preparingButton": "Preparando...",
     "plannedTokenId": "TokenId planejado:",
     "loading": "carregando...",
-    "selectTokenType": "Selecione o tipo de token:",
-    "selectOption": "-selecione-",
-    "fungibleTokens": "Tokens Fungíveis",
     "mintingNFT": "NFT de Minting",
-    "fungibleDescription": "Tokens Fungíveis são usados para criar tokens intercambiáveis. O supply total de tokens fungíveis precisa ser definido na criação.",
     "mintingDescription": "NFT de Minting é usado para criar uma coleção de NFTs. O NFT de minting tem a capacidade de mintar novos NFTs com o mesmo tokenId.",
+    "mintingHelp": "Só a transação de criação pode conceder a capacidade de cunhagem. Sem ela, esta categoria nunca poderá ter NFTs próprios.",
     "mintingNote": "Nota: para usar um NFT de Minting, ative a opção \"Habilitar mint de NFTs\" nas configurações de desenvolvedor.",
-    "supplyLabel": "Escolha o supply total de tokens fungíveis",
+    "supplyLabel": "Fornecimento total de tokens fungíveis",
+    "supplyHelp": "O fornecimento fungível fica fixo na criação. Nunca poderá existir mais desta categoria, portanto decida o número agora.",
     "supplyPlaceholder": "supply total",
     "supplyNote": "nota: adicione zeros extras para o número de decimais definido nos metadados BCMR",
+    "circulation": {
+      "label": "Colocar em circulação agora",
+      "help": "O que for emitido agora é fornecimento comum que esta carteira pode gastar. O restante fica no AuthHead como reserva, protegido junto com a identidade, e pode ser emitido depois na página de identidades.",
+      "placeholder": "Quantidade a emitir",
+      "split": "{reserve} fica no AuthHead como reserva, {circulating} entra em circulação."
+    },
     "linkMetadata": "Vincular Metadados do Token",
     "metadataIntro": "Para adicionar metadados ao seu token, você precisa fazer upload da(s) imagem(ns) do token, criar um arquivo JSON seguindo o {link}, fazer upload dele em algum lugar e publicar o link on-chain.",
     "bcmrStandard": "padrão BCMR",
@@ -669,7 +673,6 @@
     "validityCheck": "Verificação de validade dos metadados:",
     "metadataNote": "Nota: Metadados do token ainda podem ser adicionados/atualizados após a criação com o AuthUTXO do token. Para usar esta funcionalidade, ative \"Habilitar resolução de authchain\" nas configurações de desenvolvedor. Transfira o AuthUTXO para uma carteira dedicada logo após a criação.",
     "creatingTokensButton": "Criando Tokens...",
-    "creatingNftButton": "Criando NFT...",
     "createButton": "Criar",
     "notifications": {
       "preparingPreGenesis": "Preparando pre-genesis...",
@@ -680,6 +683,18 @@
       "ipfsCidError": "A localização IPFS deve ser um CID v1",
       "bcmrUnreachable": "Não foi possível buscar o registro nesse local.",
       "bcmrWrongIdentity": "Esse registro não descreve a identidade que está sendo criada. Verifique se o arquivo nomeia esta categoria de token."
+    },
+    "errors": {
+      "invalidAmount": "Informe números inteiros para o fornecimento e a quantidade a emitir.",
+      "overSupply": "Isso é mais do que o fornecimento total.",
+      "nothingToCreate": "Informe um fornecimento, adicione um NFT de cunhagem, ou ambos.",
+      "emptyAuthhead": "O AuthHead precisa carregar algo: guarde parte do fornecimento como reserva ou adicione o NFT de cunhagem. A reserva pode ser emitida por completo depois na página de identidades."
+    },
+    "created": {
+      "fungibles": "Criados {supply} tokens fungíveis da categoria {category}",
+      "mintingNft": "Criado um NFT de cunhagem da categoria {category}",
+      "hybrid": "Criados {supply} tokens fungíveis e um NFT de cunhagem da categoria {category}",
+      "reserve": "{amount} fica no AuthHead como fornecimento reservado."
     }
   },
   "utxoManagement": {

@@ -648,16 +648,20 @@
     "preparingButton": "Préparation...",
     "plannedTokenId": "TokenId prévu :",
     "loading": "chargement...",
-    "selectTokenType": "Sélectionnez le type de token :",
-    "selectOption": "-sélectionner-",
-    "fungibleTokens": "Tokens fongibles",
     "mintingNFT": "NFT de création",
-    "fungibleDescription": "Les tokens fongibles sont utilisés pour créer des tokens interchangeables. L'offre totale de tokens fongibles doit être déterminée à la création.",
     "mintingDescription": "Le NFT de création est utilisé pour créer une collection de NFTs. Le NFT de création a la capacité de créer de nouveaux NFTs avec le même tokenId.",
+    "mintingHelp": "Seule la transaction de création peut accorder la capacité de frappe. Sans elle, cette catégorie ne pourra jamais avoir de NFT.",
     "mintingNote": "Remarque : pour utiliser un NFT de création, activez l'option « Activer la création de NFTs » dans les paramètres développeur.",
-    "supplyLabel": "Choisissez l'offre totale de tokens fongibles",
+    "supplyLabel": "Offre totale de tokens fongibles",
+    "supplyHelp": "L'offre fongible est fixée à la création. Il ne pourra jamais exister davantage de cette catégorie, décidez donc le nombre maintenant.",
     "supplyPlaceholder": "offre totale",
     "supplyNote": "Remarque : ajoutez des zéros supplémentaires selon le nombre de décimales défini dans les métadonnées BCMR",
+    "circulation": {
+      "label": "Mettre en circulation maintenant",
+      "help": "Ce qui est émis maintenant est de l'offre ordinaire que ce portefeuille peut dépenser. Le reste demeure sur l'AuthHead en réserve, protégé avec l'identité, et pourra être émis plus tard depuis la page des identités.",
+      "placeholder": "Montant à émettre",
+      "split": "{reserve} reste sur l'AuthHead en réserve, {circulating} entre en circulation."
+    },
     "linkMetadata": "Lier les métadonnées du token",
     "metadataIntro": "Pour ajouter des métadonnées à votre token, vous devez télécharger la ou les images du token, créer un fichier JSON selon le {link}, le télécharger quelque part, puis publier ce lien sur la blockchain.",
     "bcmrStandard": "standard BCMR",
@@ -669,7 +673,6 @@
     "validityCheck": "Vérification de la validité des métadonnées :",
     "metadataNote": "Remarque : Les métadonnées du token peuvent encore être ajoutées/mises à jour après la création avec l'AuthUTXO du token. Pour utiliser cette fonctionnalité, activez « Activer la résolution d'authchain » dans les paramètres développeur. Transférez l'AuthUTXO vers un portefeuille dédié juste après la création.",
     "creatingTokensButton": "Création des tokens...",
-    "creatingNftButton": "Création du NFT...",
     "createButton": "Créer",
     "notifications": {
       "preparingPreGenesis": "Préparation du pré-genesis...",
@@ -680,6 +683,18 @@
       "ipfsCidError": "L'emplacement IPFS doit être un CID v1",
       "bcmrUnreachable": "Impossible de récupérer le registre à cet emplacement.",
       "bcmrWrongIdentity": "Ce registre ne décrit pas l'identité en cours de création. Vérifiez que le fichier nomme cette catégorie de jeton."
+    },
+    "errors": {
+      "invalidAmount": "Saisissez des nombres entiers pour l'offre et le montant à émettre.",
+      "overSupply": "C'est plus que l'offre totale.",
+      "nothingToCreate": "Saisissez une offre, ajoutez un NFT de frappe, ou les deux.",
+      "emptyAuthhead": "L'AuthHead doit porter quelque chose : gardez une partie de l'offre en réserve ou ajoutez le NFT de frappe. La réserve pourra ensuite être émise en totalité depuis la page des identités."
+    },
+    "created": {
+      "fungibles": "{supply} tokens fongibles de la catégorie {category} créés",
+      "mintingNft": "NFT de frappe de la catégorie {category} créé",
+      "hybrid": "{supply} tokens fongibles et un NFT de frappe de la catégorie {category} créés",
+      "reserve": "{amount} reste sur l'AuthHead en offre réservée."
     }
   },
   "utxoManagement": {

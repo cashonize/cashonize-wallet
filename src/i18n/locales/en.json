@@ -648,16 +648,20 @@
     "preparingButton": "Preparing...",
     "plannedTokenId": "Planned tokenId:",
     "loading": "loading...",
-    "selectTokenType": "Select token-type:",
-    "selectOption": "-select-",
-    "fungibleTokens": "Fungible Tokens",
     "mintingNFT": "Minting NFT",
-    "fungibleDescription": "Fungible Tokens is used to create interchangeable tokens. The total supply of fungible tokens needs to be determined at creation.",
     "mintingDescription": "Minting NFT is used to create an NFT collection. The minting NFT has the ability to mint new NFTs with the same tokenId.",
+    "mintingHelp": "Only the creating transaction can grant the minting capability. Without it, this category can never have NFTs of its own.",
     "mintingNote": "Note: to use a Minting NFT toggle the option \"Enable mint NFTs\" in the developer settings.",
-    "supplyLabel": "Choose the total supply of fungible tokens",
+    "supplyLabel": "Total supply of fungible tokens",
+    "supplyHelp": "The fungible supply is fixed when the token is created. No more of this category can ever exist, so decide the number now.",
     "supplyPlaceholder": "total supply",
     "supplyNote": "note: add extra zeroes for the number of decimals set in the BCMR metadata",
+    "circulation": {
+      "label": "Issue to circulation now",
+      "help": "What is issued now is ordinary supply this wallet can spend. The rest stays on the AuthHead as reserve, protected with the identity, and can be issued later from the identities page.",
+      "placeholder": "Amount to issue",
+      "split": "{reserve} stays on the AuthHead as reserve, {circulating} enters circulation."
+    },
     "linkMetadata": "Link Token-Metadata",
     "metadataIntro": "To add metadata to your token you need to upload the token image(s), create a JSON file following the {link}, upload it somewhere and then post that link on-chain.",
     "bcmrStandard": "BCMR-standard",
@@ -669,7 +673,6 @@
     "validityCheck": "Validity check metadata:",
     "metadataNote": "Note: Token metadata can still be added/updated after creation with the token's AuthUTXO. To use this functionality toggle \"Enable authchain resolution\" in the developer settings. Transfer the AuthUTXO to a dedicated wallet right after creation.",
     "creatingTokensButton": "Creating Tokens...",
-    "creatingNftButton": "Creating NFT...",
     "createButton": "Create",
     "notifications": {
       "preparingPreGenesis": "Preparing pre-genesis...",
@@ -680,6 +683,18 @@
       "ipfsCidError": "Ipfs location should be a v1 CID",
       "bcmrUnreachable": "Could not fetch the registry at that location.",
       "bcmrWrongIdentity": "That registry does not describe the identity being created. Check that the file names this token category."
+    },
+    "errors": {
+      "invalidAmount": "Enter whole numbers for the supply and the amount to issue.",
+      "overSupply": "That is more than the total supply.",
+      "nothingToCreate": "Enter a supply, add a minting NFT, or both.",
+      "emptyAuthhead": "The AuthHead has to carry something: keep part of the supply as reserve, or add the minting NFT. The reserve can be issued in full from the identities page afterwards."
+    },
+    "created": {
+      "fungibles": "Created {supply} fungible tokens of category {category}",
+      "mintingNft": "Created a minting NFT of category {category}",
+      "hybrid": "Created {supply} fungible tokens and a minting NFT of category {category}",
+      "reserve": "{amount} stays on the AuthHead as reserved supply."
     }
   },
   "utxoManagement": {

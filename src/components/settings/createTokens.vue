@@ -7,9 +7,11 @@
     summarizeRegistry,
   } from 'src/utils/tools/authchainIdentity';
   import { copyToClipboard, formatBchAmount } from 'src/utils/utils';
+  import { NFTCapability, TokenSendRequest } from 'mainnet-js';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
   import EmojiItem from '../general/emojiItem.vue';
   import TokenIcon from '../general/TokenIcon.vue';
+  import InfoPopup from '../general/InfoPopup.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
   import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
@@ -21,12 +23,13 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
-  const selectedTokenType = ref("-select-");
   const inputFungibleSupply = ref("");
+  const inputCirculating = ref("");
+  const createMintingNft = ref(false);
   const selectedUri = ref("-select-");
   const inputBcmr = ref("");
   const validityCheck = ref(undefined as boolean | undefined);
-  const activeAction = ref<'creatingPreGenesis' | 'creatingFungibles' | 'creatingMintingNFT' | null>(null);
+  const activeAction = ref<'creatingPreGenesis' | 'creating' | null>(null);
 
   const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
   const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
@@ -54,6 +57,38 @@
     const firstCandidate = candidates?.[0];
     pickedOutpoint.value = firstCandidate ? outpointOf(firstCandidate) : undefined;
   }, { immediate: true });
+
+  // Amounts are whole token units here: the decimals live in the metadata, which does not exist
+  // yet at creation time
+  function parseAmount(value: string): bigint | undefined {
+    if (!value.trim()) return 0n;
+    try {
+      const amount = BigInt(value);
+      return amount >= 0n ? amount : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  const totalSupply = computed(() => parseAmount(inputFungibleSupply.value));
+  const circulating = computed(() => parseAmount(inputCirculating.value));
+  // What the AuthHead keeps: supply the wallet holds out of circulation, alongside the authority
+  const reserve = computed(() => {
+    if (totalSupply.value === undefined || circulating.value === undefined) return undefined;
+    return totalSupply.value - circulating.value;
+  });
+
+  // The genesis is the one transaction that cannot be corrected afterwards, so what it refuses is
+  // said before the button is pressed rather than by a failed broadcast.
+  const genesisProblem = computed(() => {
+    const supply = totalSupply.value;
+    const issued = circulating.value;
+    if (supply === undefined || issued === undefined) return t('createTokens.errors.invalidAmount');
+    if (issued > supply) return t('createTokens.errors.overSupply');
+    if (supply === 0n && !createMintingNft.value) return t('createTokens.errors.nothingToCreate');
+    if (issued === supply && !createMintingNft.value) return t('createTokens.errors.emptyAuthhead');
+    return undefined;
+  });
 
   // A coin a genesis can spend is an ordinary one sitting at output 0, which a send to self makes
   async function createPreGenesis(){
@@ -131,36 +166,47 @@
     }
   }
   
-  async function createFungibles(){
+  // One genesis builds the whole issuer kit: output 0 is the AuthHead, carrying the reserve and
+  // the minting NFT if there is one, and a second output carries what is issued to circulation.
+  async function createToken(){
     if (activeAction.value) return;
     const pickedCoin = genesisInput.value;
-    if (!pickedCoin) return;
-    const validInput = isValidBigInt(inputFungibleSupply.value) && +inputFungibleSupply.value > 0;
-    function isValidBigInt(value:string) {
-      try { return BigInt(value) }
-      catch{ return false }
-    }
-    if(!validInput) throw new Error(`Input total supply must be a valid integer`)
-    activeAction.value = 'creatingFungibles';
+    const reserveAmount = reserve.value;
+    const circulatingAmount = circulating.value;
+    if (!pickedCoin || genesisProblem.value) return;
+    if (reserveAmount === undefined || circulatingAmount === undefined) return;
+    activeAction.value = 'creating';
     try{
-      const totalSupply = inputFungibleSupply.value;
       const opreturnData = await getOpreturnData();
+      const tokenAddress = store.wallet.getTokenDepositAddress();
+      const circulationOutput = new TokenSendRequest({
+        cashaddr: tokenAddress,
+        category: pickedCoin.txid,
+        amount: circulatingAmount,
+        value: 1000n,
+      });
+      const extraOutputs = [
+        ...(circulatingAmount > 0n ? [circulationOutput] : []),
+        ...(opreturnData ? [opreturnData] : []),
+      ];
       notifySending(t('createTokens.notifications.creatingTokens'));
       const genesisResponse = await store.spend.tokenGenesis(
         pickedCoin,
         {
-          cashaddr: store.wallet.getTokenDepositAddress(),
-          amount: BigInt(totalSupply),    // fungible token amount
-          value: 1000n,                    // Satoshi value
+          cashaddr: tokenAddress,
+          amount: reserveAmount,
+          value: 1000n,
+          ...(createMintingNft.value ? { nft: { commitment: "", capability: NFTCapability.minting } } : {}),
         },
-        opreturnData
+        extraOutputs
       );
-      const tokenId = genesisResponse?.categories?.[0];
       const { txId } = genesisResponse;
-      const alertMessage = `Created ${totalSupply} fungible tokens of category ${tokenId}`;
+      const category = genesisResponse?.categories?.[0] ?? pickedCoin.txid;
+      const alertMessage = creationSummary(category, reserveAmount);
       // reset input fields
       inputFungibleSupply.value = "";
-      selectedTokenType.value  = "-select-";
+      inputCirculating.value = "";
+      createMintingNft.value = false;
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
     } catch(error){
       displayAndLogError(error)
@@ -168,37 +214,23 @@
       activeAction.value = null;
     }
   }
-  async function createMintingNFT(){
-    if (activeAction.value) return;
-    const pickedCoin = genesisInput.value;
-    if (!pickedCoin) return;
-    activeAction.value = 'creatingMintingNFT';
-    try{
-      const opreturnData = await getOpreturnData();
-      notifySending(t('createTokens.notifications.creatingMintingNft'));
-      const genesisResponse = await store.spend.tokenGenesis(
-        pickedCoin,
-        {
-          cashaddr: store.wallet.getTokenDepositAddress(),
-          nft: {
-            commitment: "",
-            capability: "minting",
-          },
-          value: 1000n,
-        },
-        opreturnData
-      );
-      const tokenId = genesisResponse?.categories?.[0];
-      const { txId } = genesisResponse;
-      const alertMessage = `Created minting NFT with category ${tokenId}`;
-      // reset input fields
-      selectedTokenType.value  = "-select-";
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
-    } catch(error){
-      displayAndLogError(error)
-    } finally {
-      activeAction.value = null;
+
+  // What was just made, for the dialog that reports it: the supply, the minting NFT, and how much
+  // of the supply stayed behind as reserve
+  function creationSummary(category: string, reserveAmount: bigint) {
+    const supply = inputFungibleSupply.value;
+    const lines: string[] = [];
+    if (!totalSupply.value) {
+      lines.push(t('createTokens.created.mintingNft', { category }));
+    } else if (createMintingNft.value) {
+      lines.push(t('createTokens.created.hybrid', { supply, category }));
+    } else {
+      lines.push(t('createTokens.created.fungibles', { supply, category }));
     }
+    if (reserveAmount > 0n && reserveAmount !== totalSupply.value) {
+      lines.push(t('createTokens.created.reserve', { amount: reserveAmount.toString() }));
+    }
+    return lines.join('\n');
   }
 </script>
 
@@ -252,30 +284,52 @@
         </div>
       </div>
 
-      <label for="newtokens">{{ t('createTokens.selectTokenType') }}</label>
-      <select name="newtokens" id="newtokens"  v-model="selectedTokenType" :disabled="!genesisInput">
-        <option autocomplete="off" selected value="-select-">{{ t('createTokens.selectOption') }}</option>
-        <option autocomplete="off" value="fungibles">{{ t('createTokens.fungibleTokens') }}</option>
-        <option autocomplete="off" value="mintingNFT">{{ t('createTokens.mintingNFT') }}</option>
-      </select>
-      <br>
-      <div v-if="selectedTokenType == '-select-'">
-        <div>
-        <b>{{ t('createTokens.fungibleTokens') }}</b> {{ t('createTokens.fungibleDescription') }} <br>
-        <b>{{ t('createTokens.mintingNFT') }}</b> {{ t('createTokens.mintingDescription') }}
-        </div>
-        <div style="margin: 5px 0px;">
-          <i>{{ t('createTokens.mintingNote') }}</i>
-        </div>
-      </div>
-      <div v-if="selectedTokenType != '-select-'">
-        <div v-if="selectedTokenType == 'fungibles'">
+      <div class="token-shape">
+        <label for="supply">
           {{ t('createTokens.supplyLabel') }}
-          <input v-model="inputFungibleSupply" :placeholder="t('createTokens.supplyPlaceholder')" type="number">
-          <i>{{ t('createTokens.supplyNote') }}</i>
-          <br><br>
-        </div>
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('createTokens.supplyHelp') }}</div>
+          </InfoPopup>
+        </label>
+        <input
+          id="supply"
+          v-model="inputFungibleSupply"
+          :placeholder="t('createTokens.supplyPlaceholder')"
+          :disabled="!genesisInput"
+          type="number"
+        >
+        <div class="description">{{ t('createTokens.supplyNote') }}</div>
 
+        <template v-if="totalSupply">
+          <label for="circulating">
+            {{ t('createTokens.circulation.label') }}
+            <InfoPopup>
+              <div style="max-width: 300px;">{{ t('createTokens.circulation.help') }}</div>
+            </InfoPopup>
+          </label>
+          <input
+            id="circulating"
+            v-model="inputCirculating"
+            :placeholder="t('createTokens.circulation.placeholder')"
+            type="number"
+          >
+          <div v-if="reserve !== undefined && reserve >= 0n" class="description">
+            {{ t('createTokens.circulation.split', { reserve: reserve.toString(), circulating: circulating?.toString() }) }}
+          </div>
+        </template>
+
+        <div class="minting-option">
+          {{ t('createTokens.mintingNFT') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('createTokens.mintingHelp') }}</div>
+          </InfoPopup>
+          <q-toggle v-model="createMintingNft" :disable="!genesisInput" dense />
+        </div>
+        <div class="description">{{ t('createTokens.mintingDescription') }}</div>
+        <div class="description"><i>{{ t('createTokens.mintingNote') }}</i></div>
+      </div>
+
+      <div>
         <details style="margin-bottom: 0.5em;">
           <summary style="display: list-item">{{ t('createTokens.linkMetadata') }}</summary>
           <i18n-t keypath="createTokens.metadataIntro" tag="span">
@@ -330,7 +384,15 @@
         <div style="margin: 15px 0px;">
           <b>{{ t('createTokens.metadataNote') }}</b>
         </div>
-        <input @click="() => selectedTokenType == 'fungibles' ? createFungibles() : createMintingNFT()" type="button" class="primaryButton" :value="activeAction === 'creatingFungibles' ? t('createTokens.creatingTokensButton') : (activeAction === 'creatingMintingNFT' ? t('createTokens.creatingNftButton') : t('createTokens.createButton'))" style="margin: 8px 0;" :disabled="activeAction !== null">
+        <div v-if="genesisInput && genesisProblem" class="genesis-problem">{{ genesisProblem }}</div>
+        <input
+          @click="createToken"
+          type="button"
+          class="primaryButton"
+          :value="activeAction === 'creating' ? t('createTokens.creatingTokensButton') : t('createTokens.createButton')"
+          style="margin: 8px 0;"
+          :disabled="activeAction !== null || !genesisInput || genesisProblem !== undefined"
+        >
       </div>
     </fieldset>
   </div>
@@ -370,6 +432,15 @@
 .action-link {
   color: var(--color-primary);
   cursor: pointer;
+}
+.token-shape {
+  margin-bottom: 1em;
+}
+.minting-option {
+  margin-top: 12px;
+}
+.genesis-problem {
+  color: var(--color-error);
 }
 .planned-category {
   display: flex;

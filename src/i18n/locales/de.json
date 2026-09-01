@@ -648,16 +648,20 @@
     "preparingButton": "Vorbereiten...",
     "plannedTokenId": "Geplante TokenId:",
     "loading": "Laden...",
-    "selectTokenType": "Token-Typ auswählen:",
-    "selectOption": "-auswählen-",
-    "fungibleTokens": "Fungible Tokens",
     "mintingNFT": "Minting NFT",
-    "fungibleDescription": "Fungible Tokens werden verwendet, um austauschbare Tokens zu erstellen. Die Gesamtmenge muss bei der Erstellung festgelegt werden.",
     "mintingDescription": "Ein minting NFT wird verwendet, um eine NFT-Kollektion zu erstellen. Der minting NFT hat die Fähigkeit, neue NFTs mit derselben tokenId zu minten.",
+    "mintingHelp": "Nur die erstellende Transaktion kann die Minting-Fähigkeit vergeben. Ohne sie kann diese Kategorie nie eigene NFTs haben.",
     "mintingNote": "Hinweis: Um einen minting NFT zu verwenden, aktiviere die Option \"Mint NFTs aktivieren\" in den Entwicklereinstellungen.",
-    "supplyLabel": "Gesamtmenge der fungible Tokens wählen",
+    "supplyLabel": "Gesamtmenge der fungiblen Token",
+    "supplyHelp": "Die fungible Menge steht bei der Erstellung fest. Mehr von dieser Kategorie kann nie existieren, entscheide die Zahl also jetzt.",
     "supplyPlaceholder": "Gesamtmenge",
     "supplyNote": "Hinweis: Füge zusätzliche Nullen für die Anzahl der in den BCMR-Metadaten festgelegten Dezimalstellen hinzu",
+    "circulation": {
+      "label": "Jetzt in Umlauf bringen",
+      "help": "Was jetzt ausgegeben wird, ist gewöhnliches Guthaben, das dieses Wallet ausgeben kann. Der Rest bleibt als Reserve auf dem AuthHead, geschützt mit der Identität, und kann später über die Identitäten-Seite ausgegeben werden.",
+      "placeholder": "Auszugebende Menge",
+      "split": "{reserve} bleibt als Reserve auf dem AuthHead, {circulating} kommt in Umlauf."
+    },
     "linkMetadata": "Token-Metadaten verknüpfen",
     "metadataIntro": "Um Metadaten zu deinem Token hinzuzufügen, musst du die Token-Bilder hochladen, eine JSON-Datei gemäß dem {link} erstellen, sie irgendwo hochladen und dann den Link on-chain veröffentlichen.",
     "bcmrStandard": "BCMR-Standard",
@@ -669,7 +673,6 @@
     "validityCheck": "Gültigkeitsprüfung Metadaten:",
     "metadataNote": "Hinweis: Token-Metadaten können auch nach der Erstellung mit dem AuthUTXO des Tokens hinzugefügt/aktualisiert werden. Um diese Funktionalität zu nutzen, aktiviere \"Authchain-Auflösung aktivieren\" in den Entwicklereinstellungen. Übertrage den AuthUTXO direkt nach der Erstellung an ein separates Wallet.",
     "creatingTokensButton": "Tokens werden erstellt...",
-    "creatingNftButton": "NFT wird erstellt...",
     "createButton": "Erstellen",
     "notifications": {
       "preparingPreGenesis": "Pre-Genesis wird vorbereitet...",
@@ -680,6 +683,18 @@
       "ipfsCidError": "IPFS-Speicherort sollte eine v1 CID sein",
       "bcmrUnreachable": "Die Registry an diesem Ort konnte nicht geladen werden.",
       "bcmrWrongIdentity": "Diese Registry beschreibt nicht die Identität, die hier erstellt wird. Prüfe, ob die Datei diese Token-Kategorie nennt."
+    },
+    "errors": {
+      "invalidAmount": "Gib ganze Zahlen für die Menge und den auszugebenden Betrag ein.",
+      "overSupply": "Das ist mehr als die Gesamtmenge.",
+      "nothingToCreate": "Gib eine Menge ein, füge ein Minting-NFT hinzu, oder beides.",
+      "emptyAuthhead": "Der AuthHead muss etwas tragen: behalte einen Teil der Menge als Reserve oder füge das Minting-NFT hinzu. Die Reserve lässt sich danach vollständig über die Identitäten-Seite ausgeben."
+    },
+    "created": {
+      "fungibles": "{supply} fungible Token der Kategorie {category} erstellt",
+      "mintingNft": "Minting-NFT der Kategorie {category} erstellt",
+      "hybrid": "{supply} fungible Token und ein Minting-NFT der Kategorie {category} erstellt",
+      "reserve": "{amount} bleibt als reservierte Menge auf dem AuthHead."
     }
   },
   "utxoManagement": {
