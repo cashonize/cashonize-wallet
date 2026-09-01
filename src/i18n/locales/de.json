@@ -802,10 +802,7 @@
       "label": "Beschriftung",
       "address": "Adresse",
       "utxoCount": "UTXOs",
-      "bchHeld": "Enthaltenes BCH",
-      "amount": "Betrag",
-      "capability": "Fähigkeit",
-      "commitment": "Commitment"
+      "bchHeld": "Enthaltenes BCH"
     },
     "notifications": {
       "consolidating": "BCH-UTXOs werden konsolidiert...",

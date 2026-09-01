@@ -802,10 +802,7 @@
       "label": "Etiqueta",
       "address": "Endereço",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH retido",
-      "amount": "Quantia",
-      "capability": "Capacidade",
-      "commitment": "Commitment"
+      "bchHeld": "BCH retido"
     },
     "notifications": {
       "consolidating": "Consolidando UTXOs de BCH...",

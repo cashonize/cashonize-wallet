@@ -699,59 +699,52 @@
         </div>
         <template v-if="!collapsedLists.fungible">
           <div v-if="utxoLists?.fungible.length === 0" class="description">{{ t('utxoManagement.fungibleList.empty') }}</div>
-          <div v-else class="utxo-grid grid-fungible">
-            <div class="utxo-row heading">
-              <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.token') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.amount') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
-              <span></span>
-            </div>
+          <div v-else class="utxo-lines">
             <div
-              v-for="(utxo, index) in pageOf('fungible')"
+              v-for="utxo in pageOf('fungible')"
               :key="utxo.txid + ':' + utxo.vout"
-              class="utxo-row"
-              :class="{ actionable: !heldByFeature(utxo) }"
+              class="utxo-line-row"
             >
-              <div class="cell row-number">{{ rowNumber('fungible', index) }}</div>
-              <div class="cell token-cell">
+              <div class="utxo-line">
                 <TokenIcon
                   :token-id="utxo.token!.category"
                   :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
                   :size="24"
                 />
                 <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.amount') }}</span>
-                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
-                <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
-                  <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+              <div class="utxo-line utxo-line-meta">
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+                <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
+                  <span class="mono muted">{{ truncateHash(utxo.txid) }}:{{ utxo.vout }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
                 </span>
+                <utxoRowStatus :utxo="utxo" compact />
+                <q-icon v-if="!heldByFeature(utxo)" name="more_vert" size="18px" class="row-menu-trigger">
+                  <q-menu anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+                    <q-list dense>
+                      <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
+                        <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
+                        <q-item-section>{{
+                          reservationReason(utxo) === 'manual'
+                            ? t('utxoManagement.markers.unfreeze')
+                            : t('utxoManagement.freeze.button')
+                        }}</q-item-section>
+                      </q-item>
+                      <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
+                        <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+                        <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-icon>
               </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
-                <span class="mono">{{ utxo.vout }}</span>
-              </div>
-              <!-- The same marks and actions as the BCH list, without the send: a token coin is
-                   spent from its token card rather than from here -->
-              <utxoRowStatus :utxo="utxo" />
               <div
                 v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
-                class="cell utxo-label-line"
+                class="utxo-line utxo-label-line"
               >
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.label') }}</span>
                 <InlineTextEdit
                   :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
                   class="utxo-label-edit"
@@ -762,22 +755,6 @@
                   @cancel="labelEditingOutpoint = null"
                 />
               </div>
-              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
-                <q-list dense>
-                  <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
-                    <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
-                    <q-item-section>{{
-                      reservationReason(utxo) === 'manual'
-                        ? t('utxoManagement.markers.unfreeze')
-                        : t('utxoManagement.freeze.button')
-                    }}</q-item-section>
-                  </q-item>
-                  <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
-                    <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
-                    <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
-                  </q-item>
-                </q-list>
-              </q-menu>
             </div>
           </div>
           <q-pagination
@@ -801,64 +778,53 @@
         </div>
         <template v-if="!collapsedLists.nft">
           <div v-if="utxoLists?.nft.length === 0" class="description">{{ t('utxoManagement.nftList.empty') }}</div>
-          <div v-else class="utxo-grid grid-nft">
-            <div class="utxo-row heading">
-              <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.token') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.capability') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.commitment') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
-              <span></span>
-            </div>
+          <div v-else class="utxo-lines">
             <div
-              v-for="(utxo, index) in pageOf('nft')"
+              v-for="utxo in pageOf('nft')"
               :key="utxo.txid + ':' + utxo.vout"
-              class="utxo-row"
-              :class="{ actionable: !heldByFeature(utxo) }"
+              class="utxo-line-row"
             >
-              <div class="cell row-number">{{ rowNumber('nft', index) }}</div>
-              <div class="cell token-cell">
+              <div class="utxo-line">
                 <TokenIcon
                   :token-id="utxo.token!.category"
                   :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
                   :size="24"
                 />
                 <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
+                <span class="description">{{ nftCapability(utxo) }}</span>
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.capability') }}</span>
-                <span>{{ nftCapability(utxo) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.commitment') }}</span>
-                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
-                <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
-                  <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+              <div class="utxo-line utxo-line-meta">
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+                <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
+                  <span class="mono muted">{{ truncateHash(utxo.txid) }}:{{ utxo.vout }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
                 </span>
+                <utxoRowStatus :utxo="utxo" compact />
+                <q-icon v-if="!heldByFeature(utxo)" name="more_vert" size="18px" class="row-menu-trigger">
+                  <q-menu anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+                    <q-list dense>
+                      <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
+                        <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
+                        <q-item-section>{{
+                          reservationReason(utxo) === 'manual'
+                            ? t('utxoManagement.markers.unfreeze')
+                            : t('utxoManagement.freeze.button')
+                        }}</q-item-section>
+                      </q-item>
+                      <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
+                        <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+                        <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-icon>
               </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
-                <span class="mono">{{ utxo.vout }}</span>
-              </div>
-              <!-- The same marks and actions as the BCH list, without the send: a token coin is
-                   spent from its token card rather than from here -->
-              <utxoRowStatus :utxo="utxo" />
               <div
                 v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
-                class="cell utxo-label-line"
+                class="utxo-line utxo-label-line"
               >
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.label') }}</span>
                 <InlineTextEdit
                   :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
                   class="utxo-label-edit"
@@ -869,22 +835,6 @@
                   @cancel="labelEditingOutpoint = null"
                 />
               </div>
-              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
-                <q-list dense>
-                  <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
-                    <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
-                    <q-item-section>{{
-                      reservationReason(utxo) === 'manual'
-                        ? t('utxoManagement.markers.unfreeze')
-                        : t('utxoManagement.freeze.button')
-                    }}</q-item-section>
-                  </q-item>
-                  <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
-                    <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
-                    <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
-                  </q-item>
-                </q-list>
-              </q-menu>
             </div>
           </div>
           <q-pagination
@@ -908,69 +858,54 @@
         </div>
         <template v-if="!collapsedLists.ftNft">
           <div v-if="utxoLists?.ftNft.length === 0" class="description">{{ t('utxoManagement.ftNftList.empty') }}</div>
-          <div v-else class="utxo-grid grid-ftnft">
-            <div class="utxo-row heading">
-              <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.token') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.amount') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.capability') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.commitment') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.bch') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.txId') }}</span>
-              <span>{{ t('utxoManagement.tableHeaders.vout') }}</span>
-              <span></span>
-            </div>
+          <div v-else class="utxo-lines">
             <div
-              v-for="(utxo, index) in pageOf('ftNft')"
+              v-for="utxo in pageOf('ftNft')"
               :key="utxo.txid + ':' + utxo.vout"
-              class="utxo-row"
-              :class="{ actionable: !heldByFeature(utxo) }"
+              class="utxo-line-row"
             >
-              <div class="cell row-number">{{ rowNumber('ftNft', index) }}</div>
-              <div class="cell token-cell">
+              <div class="utxo-line">
                 <TokenIcon
                   :token-id="utxo.token!.category"
                   :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
                   :size="24"
                 />
                 <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
+                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
+                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
+                <span class="description">{{ nftCapability(utxo) }}</span>
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.amount') }}</span>
-                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.capability') }}</span>
-                <span>{{ nftCapability(utxo) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.commitment') }}</span>
-                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }}</span>
-              </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
-                <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
-                  <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+              <div class="utxo-line utxo-line-meta">
+                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+                <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
+                  <span class="mono muted">{{ truncateHash(utxo.txid) }}:{{ utxo.vout }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
                 </span>
+                <utxoRowStatus :utxo="utxo" compact />
+                <q-icon v-if="!heldByFeature(utxo)" name="more_vert" size="18px" class="row-menu-trigger">
+                  <q-menu anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+                    <q-list dense>
+                      <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
+                        <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
+                        <q-item-section>{{
+                          reservationReason(utxo) === 'manual'
+                            ? t('utxoManagement.markers.unfreeze')
+                            : t('utxoManagement.freeze.button')
+                        }}</q-item-section>
+                      </q-item>
+                      <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
+                        <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+                        <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-icon>
               </div>
-              <div class="cell">
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
-                <span class="mono">{{ utxo.vout }}</span>
-              </div>
-              <!-- The same marks and actions as the BCH list, without the send: a token coin is
-                   spent from its token card rather than from here -->
-              <utxoRowStatus :utxo="utxo" />
               <div
                 v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
-                class="cell utxo-label-line"
+                class="utxo-line utxo-label-line"
               >
-                <span class="cell-label">{{ t('utxoManagement.tableHeaders.label') }}</span>
                 <InlineTextEdit
                   :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
                   class="utxo-label-edit"
@@ -981,22 +916,6 @@
                   @cancel="labelEditingOutpoint = null"
                 />
               </div>
-              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
-                <q-list dense>
-                  <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
-                    <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
-                    <q-item-section>{{
-                      reservationReason(utxo) === 'manual'
-                        ? t('utxoManagement.markers.unfreeze')
-                        : t('utxoManagement.freeze.button')
-                    }}</q-item-section>
-                  </q-item>
-                  <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
-                    <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
-                    <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
-                  </q-item>
-                </q-list>
-              </q-menu>
             </div>
           </div>
           <q-pagination
@@ -1158,7 +1077,6 @@ $col-number: 1.9em;
 $col-vout: 3em;
 /* wide enough for a frozen marker and the actions trigger side by side */
 $col-held: 3em;
-$col-capability: 5em;
 $col-type: 5em;
 $col-count: 5.5em;
 /* token utxos hold dust, the BCH-only list sizes its own column wider */
@@ -1169,8 +1087,6 @@ $col-address: 9.5em;
 $col-bch-amount: 8.5em;
 /* these three shorten in css instead, so they only need to stay readable */
 $col-name: 7em;
-$col-amount: 5em;
-$col-commitment: 8em;
 
 /* Aligned columns like a table on wide screens, one stacked card per utxo when they no longer
    fit. Grid rather than a real table because a table can only overflow where a grid can re-lay
@@ -1220,14 +1136,43 @@ $col-commitment: 8em;
 .grid-affected .utxo-row {
   grid-template-columns: $col-number minmax($col-name, 1fr) $col-type $col-bch $col-txid $col-vout;
 }
-.grid-fungible .utxo-row {
-  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-bch $col-txid $col-vout $col-held;
+/* A token coin on two lines: what it is, then where it is and what can be done with it. Table
+   density with card readability, and it stacks on a phone where the table could not. */
+.utxo-lines {
+  margin-top: 8px;
 }
-.grid-nft .utxo-row {
-  grid-template-columns: $col-number minmax($col-name, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout $col-held;
+.utxo-line-row {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-lightGrey);
 }
-.grid-ftnft .utxo-row {
-  grid-template-columns: $col-number minmax($col-name, 2fr) minmax($col-amount, 1fr) $col-capability $col-commitment $col-bch $col-txid $col-vout $col-held;
+.utxo-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+/* the second line reads as detail under the first, indented past the icon */
+.utxo-line-meta {
+  margin-left: 32px;
+  color: grey;
+  font-size: 0.9em;
+  flex-wrap: wrap;
+}
+.utxo-line-meta .copy-target {
+  display: inline-flex;
+  align-items: center;
+}
+.utxo-line-row .utxo-label-line {
+  margin-left: 32px;
+}
+/* the menu sits at the end of the row, where the eye leaves it */
+.row-menu-trigger {
+  margin-left: auto;
+  cursor: pointer;
+}
+.held-state-compact {
+  display: inline-flex;
+  align-items: center;
 }
 
 .cell {
