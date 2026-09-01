@@ -681,6 +681,7 @@
     },
     "errors": {
       "invalidAmount": "Informe números inteiros para o fornecimento e a quantidade a emitir.",
+      "overMaxSupply": "Isso é mais do que uma categoria de tokens pode conter. O máximo é {max}.",
       "overSupply": "Isso é mais do que o fornecimento total.",
       "nothingToCreate": "Informe um fornecimento, adicione um NFT de cunhagem, ou ambos.",
       "emptyAuthhead": "O AuthHead precisa carregar algo: guarde parte do fornecimento como reserva ou adicione o NFT de cunhagem. A reserva pode ser emitida por completo depois na página de identidades."
@@ -1700,7 +1701,7 @@
       "check": "Ou verifique se os tokens desta carteira têm AuthHeads.",
       "create": "Ou {link} para criar uma nova.",
       "createLink": "crie um token",
-      "createIdentity": "Ou crie abaixo uma identidade que não seja um token."
+      "createIdentity": "Ou crie acima uma identidade que não seja um token."
     }
   }
 }

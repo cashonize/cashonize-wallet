@@ -681,6 +681,7 @@
     },
     "errors": {
       "invalidAmount": "Enter whole numbers for the supply and the amount to issue.",
+      "overMaxSupply": "That is more than a token category can hold. The most is {max}.",
       "overSupply": "That is more than the total supply.",
       "nothingToCreate": "Enter a supply, add a minting NFT, or both.",
       "emptyAuthhead": "The AuthHead has to carry something: keep part of the supply as reserve, or add the minting NFT. The reserve can be issued in full from the identities page afterwards."
@@ -1700,7 +1701,7 @@
       "check": "Or check the tokens this wallet holds for AuthHeads.",
       "create": "Or {link} to make a new one.",
       "createLink": "create a token",
-      "createIdentity": "Or create an identity that is not a token, below."
+      "createIdentity": "Or create an identity that is not a token, above."
     }
   }
 }

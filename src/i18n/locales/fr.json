@@ -681,6 +681,7 @@
     },
     "errors": {
       "invalidAmount": "Saisissez des nombres entiers pour l'offre et le montant à émettre.",
+      "overMaxSupply": "C'est plus qu'une catégorie de tokens peut contenir. Le maximum est {max}.",
       "overSupply": "C'est plus que l'offre totale.",
       "nothingToCreate": "Saisissez une offre, ajoutez un NFT de frappe, ou les deux.",
       "emptyAuthhead": "L'AuthHead doit porter quelque chose : gardez une partie de l'offre en réserve ou ajoutez le NFT de frappe. La réserve pourra ensuite être émise en totalité depuis la page des identités."
@@ -1700,7 +1701,7 @@
       "check": "Ou vérifiez si les jetons de ce portefeuille ont des AuthHeads.",
       "create": "Ou {link} pour en créer une.",
       "createLink": "créez un jeton",
-      "createIdentity": "Ou créez ci-dessous une identité qui n'est pas un token."
+      "createIdentity": "Ou créez ci-dessus une identité qui n'est pas un token."
     }
   }
 }

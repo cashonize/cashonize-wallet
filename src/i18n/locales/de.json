@@ -681,6 +681,7 @@
     },
     "errors": {
       "invalidAmount": "Gib ganze Zahlen für die Menge und den auszugebenden Betrag ein.",
+      "overMaxSupply": "Das ist mehr, als eine Token-Kategorie fassen kann. Das Maximum ist {max}.",
       "overSupply": "Das ist mehr als die Gesamtmenge.",
       "nothingToCreate": "Gib eine Menge ein, füge ein Minting-NFT hinzu, oder beides.",
       "emptyAuthhead": "Der AuthHead muss etwas tragen: behalte einen Teil der Menge als Reserve oder füge das Minting-NFT hinzu. Die Reserve lässt sich danach vollständig über die Identitäten-Seite ausgeben."
@@ -1700,7 +1701,7 @@
       "check": "Oder prüfe die Tokens dieses Wallets auf AuthHeads.",
       "create": "Oder {link}, um eine neue anzulegen.",
       "createLink": "erstelle einen Token",
-      "createIdentity": "Oder erstelle unten eine Identität, die kein Token ist."
+      "createIdentity": "Oder erstelle oben eine Identität, die kein Token ist."
     }
   }
 }

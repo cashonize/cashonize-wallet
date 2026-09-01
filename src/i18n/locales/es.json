@@ -681,6 +681,7 @@
     },
     "errors": {
       "invalidAmount": "Introduce números enteros para el suministro y la cantidad a emitir.",
+      "overMaxSupply": "Eso es más de lo que puede contener una categoría de tokens. El máximo es {max}.",
       "overSupply": "Eso supera el suministro total.",
       "nothingToCreate": "Introduce un suministro, añade un NFT de acuñación, o ambos.",
       "emptyAuthhead": "El AuthHead tiene que llevar algo: guarda parte del suministro como reserva o añade el NFT de acuñación. La reserva se puede emitir por completo después desde la página de identidades."
@@ -1700,7 +1701,7 @@
       "check": "O comprueba si los tokens de esta billetera tienen AuthHeads.",
       "create": "O {link} para hacer una nueva.",
       "createLink": "crea un token",
-      "createIdentity": "O crea abajo una identidad que no sea un token."
+      "createIdentity": "O crea arriba una identidad que no sea un token."
     }
   }
 }

@@ -71,6 +71,9 @@
     }
   }
 
+  // A category's fungible supply is capped at the largest signed 64-bit integer
+  const maxTokenSupply = 9223372036854775807n;
+
   const totalSupply = computed(() => parseAmount(inputFungibleSupply.value));
   const circulating = computed(() => parseAmount(inputCirculating.value));
   // What the AuthHead keeps: supply the wallet holds out of circulation, alongside the authority
@@ -85,6 +88,7 @@
     const supply = totalSupply.value;
     const issued = circulating.value;
     if (supply === undefined || issued === undefined) return t('createTokens.errors.invalidAmount');
+    if (supply > maxTokenSupply) return t('createTokens.errors.overMaxSupply', { max: maxTokenSupply.toString() });
     if (issued > supply) return t('createTokens.errors.overSupply');
     if (supply === 0n && !createMintingNft.value) return t('createTokens.errors.nothingToCreate');
     if (issued === supply && !createMintingNft.value) return t('createTokens.errors.emptyAuthhead');
