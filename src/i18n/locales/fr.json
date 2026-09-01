@@ -1444,6 +1444,10 @@
   "identities": {
     "title": "Identités",
     "description": "Les identités de jeton sur lesquelles ce portefeuille a autorité.",
+    "modes": {
+      "identities": "Identités",
+      "add": "Ajouter"
+    },
     "whatIsAnIdentity": "Les métadonnées d'un token, son nom, son icône et sa description, ne peuvent être mises à jour que par qui détient sa pièce d'identité (l'AuthHead) : un UTXO précis qui passe à un nouvel outpoint à chaque mise à jour.",
     "whatIsAnIdentityNote": "C'est le fait de détenir cette pièce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le token.",
     "updatedElsewhere": "La publication des métadonnées se fait hors de Cashonize, avec des outils comme CashTokens Studio. Cette page suit où l'identité s'est déplacée et la garde en sécurité entre-temps.",

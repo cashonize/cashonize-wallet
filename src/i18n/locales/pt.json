@@ -1444,6 +1444,10 @@
   "identities": {
     "title": "Identidades",
     "description": "As identidades de token sobre as quais esta carteira tem autoridade.",
+    "modes": {
+      "identities": "Identidades",
+      "add": "Adicionar"
+    },
     "whatIsAnIdentity": "Os metadados de um token, o seu nome, ícone e descrição, só podem ser atualizados por quem tem a sua moeda de identidade (o AuthHead): um UTXO específico que passa para um novo outpoint a cada atualização.",
     "whatIsAnIdentityNote": "Ter essa moeda é o que faz desta carteira a que pode publicar novos metadados do token.",
     "updatedElsewhere": "A publicação de metadados acontece fora do Cashonize, em ferramentas como o CashTokens Studio. Esta página acompanha para onde a identidade se moveu e mantém-na segura nesse meio-tempo.",

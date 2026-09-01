@@ -1444,6 +1444,10 @@
   "identities": {
     "title": "Identities",
     "description": "The token identities this wallet has the authority over.",
+    "modes": {
+      "identities": "Identities",
+      "add": "Add"
+    },
     "whatIsAnIdentity": "A token's metadata, its name, icon and description, can only be updated by whoever holds its identity coin (the AuthHead): one specific UTXO that moves to a new outpoint with every update.",
     "whatIsAnIdentityNote": "Holding that coin is what makes this wallet the one that can publish new metadata for the token.",
     "updatedElsewhere": "Publishing metadata happens outside Cashonize, in tools like CashTokens Studio. This page follows where the identity moved and keeps it safe in between.",

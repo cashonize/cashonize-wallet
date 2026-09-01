@@ -41,6 +41,10 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
+  // Two things happen on this page: looking after the identities that are here, and getting one
+  // onto it. Only the first is why anyone opens it, so the acquisition paths wait behind a pill.
+  const mode = ref<'identities' | 'add'>('identities');
+
   const categoryInput = ref("");
   // What the wallet listed on its own and the user has not seen. Taken on opening the page and
   // cleared there, so the cards carry the mark for the visit that answers for it.
@@ -186,6 +190,8 @@
   }
 
   onActivated(() => {
+    // every way in leads here to look at an identity, including the notification trail
+    mode.value = 'identities';
     foundAutomatically.value = identitiesStore.markIdentitiesSeen();
     identitiesStore.markKeyCandidatesExamined();
     void reloadIdentities();
@@ -671,12 +677,22 @@
       <InfoPopup>
         <div style="max-width: 300px;">{{ t('identities.whatIsAnIdentity') }}</div>
         <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.whatIsAnIdentityNote') }}</div>
+        <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.updatedElsewhere') }}</div>
+        <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.reserveNote') }}</div>
+        <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.noUpkeep') }}</div>
       </InfoPopup>
     </div>
-    <div class="description" style="margin-top: 6px;">{{ t('identities.updatedElsewhere') }}</div>
-    <div class="description" style="margin-top: 6px;">{{ t('identities.reserveNote') }}</div>
-    <div class="description" style="margin-top: 6px;">{{ t('identities.noUpkeep') }}</div>
 
+    <div class="type-filter" style="margin-top: 12px;">
+      <button :class="{ active: mode === 'identities' }" @click="mode = 'identities'">
+        {{ t('identities.modes.identities') }}
+      </button>
+      <button :class="{ active: mode === 'add' }" @click="mode = 'add'">
+        {{ t('identities.modes.add') }}
+      </button>
+    </div>
+
+    <template v-if="mode === 'add'">
     <div class="section">
       <div>
         {{ t('identities.add.label') }}
@@ -740,8 +756,9 @@
         <div v-if="scanSummary.failed">{{ t('identities.scan.failed', scanSummary.failed) }}</div>
       </div>
     </div>
+    </template>
 
-    <div class="section">
+    <div v-else class="section">
       <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }}</div>
       <div v-else-if="!identities.length">
         <div class="description">{{ t('identities.empty') }}</div>

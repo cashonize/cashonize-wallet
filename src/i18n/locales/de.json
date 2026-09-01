@@ -1444,6 +1444,10 @@
   "identities": {
     "title": "Identitäten",
     "description": "Die Token-Identitäten, über die dieses Wallet die Hoheit hat.",
+    "modes": {
+      "identities": "Identitäten",
+      "add": "Hinzufügen"
+    },
     "whatIsAnIdentity": "Die Metadaten eines Tokens, also Name, Icon und Beschreibung, kann nur aktualisieren, wer seine Identitätsmünze (den AuthHead) hält: ein bestimmter UTXO, der mit jeder Aktualisierung an einen neuen Outpoint wandert.",
     "whatIsAnIdentityNote": "Diese Münze ist es, die dieses Wallet zu dem macht, das neue Metadaten für den Token veröffentlichen kann.",
     "updatedElsewhere": "Metadaten werden außerhalb von Cashonize veröffentlicht, mit Werkzeugen wie CashTokens Studio. Diese Seite verfolgt, wohin die Identität gewandert ist, und schützt sie in der Zwischenzeit.",

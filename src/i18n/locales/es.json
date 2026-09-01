@@ -1444,6 +1444,10 @@
   "identities": {
     "title": "Identidades",
     "description": "Las identidades de token sobre las que esta billetera tiene autoridad.",
+    "modes": {
+      "identities": "Identidades",
+      "add": "Añadir"
+    },
     "whatIsAnIdentity": "Los metadatos de un token, su nombre, icono y descripción, solo los puede actualizar quien tenga su moneda de identidad (el AuthHead): un UTXO concreto que pasa a un nuevo outpoint con cada actualización.",
     "whatIsAnIdentityNote": "Tener esa moneda es lo que hace que esta billetera sea la que puede publicar nuevos metadatos del token.",
     "updatedElsewhere": "Los metadatos se publican fuera de Cashonize, con herramientas como CashTokens Studio. Esta página sigue a dónde se movió la identidad y la mantiene a salvo mientras tanto.",
