@@ -347,11 +347,73 @@ export function deleteAuthKeyCategory(network: Network, walletName: string, cate
   return categories;
 }
 
+// Categories the user took off the list. A decision rather than a derivation, which is why this
+// is the one thing here that is stored rather than re-read from the chain: without it the
+// automatic detection would put back on every open what the user just removed.
+function dismissedKey(network: Network, walletName: string): string {
+  return `dismissedIdentities-${network}-${walletName}`;
+}
+
+export function loadDismissedIdentities(network: Network, walletName: string): string[] {
+  const read = localStorage.getItem(dismissedKey(network, walletName));
+  if (!read) return [];
+  try {
+    return JSON.parse(read) as string[];
+  } catch {
+    return [];
+  }
+}
+
+// Same fresh read-modify-write as its siblings, so another tab's dismissal is not undone here.
+export function saveDismissedIdentity(network: Network, walletName: string, category: string): string[] {
+  const dismissed = loadDismissedIdentities(network, walletName);
+  if (!dismissed.includes(category)) dismissed.push(category);
+  localStorage.setItem(dismissedKey(network, walletName), JSON.stringify(dismissed));
+  return dismissed;
+}
+
+export function undismissIdentity(network: Network, walletName: string, category: string): string[] {
+  const dismissed = loadDismissedIdentities(network, walletName).filter(listed => listed !== category);
+  localStorage.setItem(dismissedKey(network, walletName), JSON.stringify(dismissed));
+  return dismissed;
+}
+
+// Identities the wallet listed on its own that the user has not seen yet. Persisted so the marker
+// survives a restart: a coin quietly becoming unspendable is exactly what this must not be.
+function unseenKey(network: Network, walletName: string): string {
+  return `unseenIdentities-${network}-${walletName}`;
+}
+
+export function loadUnseenIdentities(network: Network, walletName: string): string[] {
+  const read = localStorage.getItem(unseenKey(network, walletName));
+  if (!read) return [];
+  try {
+    return JSON.parse(read) as string[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveUnseenIdentities(network: Network, walletName: string, categories: string[]): string[] {
+  const unseen = loadUnseenIdentities(network, walletName);
+  for (const category of categories) {
+    if (!unseen.includes(category)) unseen.push(category);
+  }
+  localStorage.setItem(unseenKey(network, walletName), JSON.stringify(unseen));
+  return unseen;
+}
+
+export function clearUnseenIdentities(network: Network, walletName: string) {
+  localStorage.removeItem(unseenKey(network, walletName));
+}
+
 // A future wallet created under the same name must not inherit the old wallet's identities
 export function removeIdentityCategories(walletName: string) {
   for (const network of ['mainnet', 'chipnet'] as const) {
     localStorage.removeItem(identitiesKey(network, walletName));
     localStorage.removeItem(authKeysKey(network, walletName));
+    localStorage.removeItem(dismissedKey(network, walletName));
+    localStorage.removeItem(unseenKey(network, walletName));
   }
 }
 

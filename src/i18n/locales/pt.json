@@ -1422,6 +1422,11 @@
     "reserveNote": "Um AuthHead desta carteira fica de fora da seleção de moedas, para que um envio comum não o gaste por acidente.",
     "resolving": "Procurando onde estão os AuthHeads...",
     "empty": "Ainda não há identidades na lista.",
+    "detected": {
+      "notification": "Uma identidade controlada por esta carteira foi encontrada, e o AuthHead dela ficou fora da seleção de moedas. | {count} identidades controladas por esta carteira foram encontradas, e os AuthHeads delas ficaram fora da seleção de moedas.",
+      "foundAutomatically": "Encontrada automaticamente",
+      "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os metadados dela, então o AuthHead foi encontrado no próprio histórico da carteira e agora fica fora da seleção de moedas. Remova-a da lista se preferir."
+    },
     "listedCount": "{count} identidade acompanhada por esta carteira | {count} identidades acompanhadas por esta carteira",
     "unnamedIdentity": "Identidade sem nome",
     "categoryLabel": "Categoria:",

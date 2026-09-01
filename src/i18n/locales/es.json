@@ -1422,6 +1422,11 @@
     "reserveNote": "Un AuthHead que tiene esta billetera queda fuera de la selección de monedas, para que un envío normal no lo gaste por accidente.",
     "resolving": "Buscando dónde están los AuthHeads...",
     "empty": "Todavía no hay identidades en la lista.",
+    "detected": {
+      "notification": "Se encontró una identidad que controla esta billetera y su AuthHead quedó fuera de la selección de monedas. | Se encontraron {count} identidades que controla esta billetera y sus AuthHeads quedaron fuera de la selección de monedas.",
+      "foundAutomatically": "Encontrada automáticamente",
+      "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que su AuthHead se encontró en el propio historial de la billetera y ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no."
+    },
     "listedCount": "{count} identidad seguida por esta billetera | {count} identidades seguidas por esta billetera",
     "unnamedIdentity": "Identidad sin nombre",
     "categoryLabel": "Categoría:",

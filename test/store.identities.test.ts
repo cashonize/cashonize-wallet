@@ -225,6 +225,52 @@ describe('auth reservations follow the authchain', () => {
     expect(store.spendableUtxos).toEqual([authKeyUtxo])
   })
 
+  // The wallet lists this one itself: these keys made it, and its authhead is sitting here as an
+  // anonymous coin that an ordinary send would spend.
+  it('lists and holds back an authhead these keys genesised', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    const authUtxo = utxo(authheadA, 0)
+    const store = startStore([authUtxo])
+    const walk = [{
+      transaction_hash: `\\x${categoryA}`,
+      output_index: '0',
+      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: `\\x${categoryA}`,
+          nonfungible_token_commitment: null, fungible_token_amount: '1000', spent_by: [] },
+      ] } }],
+    }]
+
+    await store.detectWalletIdentities(walk)
+
+    expect(store.identityCategories).toEqual([categoryA])
+    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    // and it says so, rather than the coin quietly becoming unspendable
+    expect(store.unseenIdentities).toEqual([categoryA])
+  })
+
+  // removing is a decision the automatic detection has to respect, or it is refought every open
+  it('does not list again what the user removed', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const authUtxo = utxo(authheadA, 0)
+    const store = startStore([authUtxo])
+    await store.refreshIdentities()
+    await store.removeIdentity(categoryA)
+    const walk = [{
+      transaction_hash: `\\x${categoryA}`,
+      output_index: '0',
+      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: `\\x${categoryA}`,
+          nonfungible_token_commitment: null, fungible_token_amount: '1000', spent_by: [] },
+      ] } }],
+    }]
+
+    await store.detectWalletIdentities(walk)
+
+    expect(store.identityCategories).toEqual([])
+    expect(store.dismissedIdentities).toEqual([categoryA])
+  })
+
   it('releases the authhead of an identity removed from the list', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])

@@ -39,6 +39,9 @@
   const { t } = useI18n()
 
   const categoryInput = ref("");
+  // What the wallet listed on its own and the user has not seen. Taken on opening the page and
+  // cleared there, so the cards carry the mark for the visit that answers for it.
+  const foundAutomatically = ref<string[]>([]);
   const isAdding = ref(false);
   const isScanning = ref(false);
   const scanSummary = ref<IdentityScanSummary | undefined>(undefined);
@@ -149,7 +152,10 @@
     await store.checkPublications();
   }
 
-  onActivated(() => { void reloadIdentities() });
+  onActivated(() => {
+    foundAutomatically.value = store.markIdentitiesSeen();
+    void reloadIdentities();
+  });
   // The view is kept alive across navigation, so a different wallet's form input must not linger
   watch(() => store._wallet, () => {
     categoryInput.value = "";
@@ -626,6 +632,12 @@
           />
           <div class="identity-title">
             <div>{{ identityName(identity.category) ?? t('identities.unnamedIdentity') }}</div>
+            <div v-if="foundAutomatically.includes(identity.category)" class="description">
+              {{ t('identities.detected.foundAutomatically') }}
+              <InfoPopup>
+                <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
+              </InfoPopup>
+            </div>
             <InfoPopup>
               <template #trigger>
                 <span class="identity-status info-popup-text-trigger" :class="identity.status">

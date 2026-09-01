@@ -42,7 +42,7 @@
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(19)">
-      → {{ t('settings.menu.identities') }}
+      → {{ t('settings.menu.identities') }} <span v-if="store.unseenIdentities.length" style="color: orange">{{ t('settings.menu.important') }}</span>
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">

@@ -1422,6 +1422,11 @@
     "reserveNote": "An AuthHead this wallet holds is kept out of coin selection, so an ordinary send cannot spend it by accident.",
     "resolving": "Looking up where the AuthHeads are...",
     "empty": "No identities listed yet.",
+    "detected": {
+      "notification": "Found an identity this wallet controls, and held its AuthHead back from coin selection. | Found {count} identities this wallet controls, and held their AuthHeads back from coin selection.",
+      "foundAutomatically": "Found automatically",
+      "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so its AuthHead was found in this wallet's own history and is now held back from coin selection. Remove it from the list if you would rather it were not."
+    },
     "listedCount": "{count} identity followed by this wallet | {count} identities followed by this wallet",
     "unnamedIdentity": "Unnamed identity",
     "categoryLabel": "Category:",

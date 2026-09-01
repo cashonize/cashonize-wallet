@@ -1422,6 +1422,11 @@
     "reserveNote": "Un AuthHead détenu par ce portefeuille est écarté de la sélection des pièces, pour qu'un envoi ordinaire ne le dépense pas par accident.",
     "resolving": "Recherche de l'emplacement des AuthHeads...",
     "empty": "Aucune identité dans la liste pour l'instant.",
+    "detected": {
+      "notification": "Une identité contrôlée par ce portefeuille a été trouvée, et son AuthHead écarté de la sélection des pièces. | {count} identités contrôlées par ce portefeuille ont été trouvées, et leurs AuthHeads écartés de la sélection des pièces.",
+      "foundAutomatically": "Trouvée automatiquement",
+      "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, son AuthHead a donc été trouvé dans l'historique du portefeuille et est désormais écarté de la sélection des pièces. Retirez-la de la liste si vous préférez."
+    },
     "listedCount": "{count} identité suivie par ce portefeuille | {count} identités suivies par ce portefeuille",
     "unnamedIdentity": "Identité sans nom",
     "categoryLabel": "Catégorie :",

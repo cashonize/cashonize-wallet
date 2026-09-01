@@ -133,6 +133,10 @@ export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:str
 
 // Bigint values arrive as decimal strings, like the bytea values arrive as hex strings
 export interface ChaingraphSpentOutput {
+  // the wallet's own output that was spent, which a genesis marker is read against: a category
+  // equal to the txid of a spent vout-0 outpoint is a token genesised by these keys
+  transaction_hash: string;
+  output_index: string;
   spent_by: {
     transaction: {
       hash: string;
@@ -148,6 +152,11 @@ export interface ChaingraphSpentOutput {
   }[];
 }
 
+// OP_RETURN followed by a push of "BCMR". bytea has no prefix operator, but it is ordered, so a
+// prefix is the range from it up to the next value at the same length. Verified against a live
+// publication; the alternative, fetching every output and filtering here, would carry far more.
+const bcmrPrefixRange = { from: "6a0442434d52", to: "6a0442434d53" };
+
 interface SpentOutputsResponse {
   data: { search_output: ChaingraphSpentOutput[] };
 }
@@ -156,13 +165,15 @@ interface SpentOutputsResponse {
 // truncating silently, so paged queries fetch until a page comes back short
 const CHAINGRAPH_PAGE_SIZE = 1000;
 
-// The spent outputs at the given pkhs' addresses, each with the spending transaction's
-// outputs 0 and 1 and whether those are spent themselves. This is the shape the TapSwap and
-// hodl lookups share: their announcements sit at outputs 1 and 0 of the transactions that
-// spent the wallet's outputs (utils/defi/tapswapListings.ts, utils/defi/hodlContracts.ts).
+// The spent outputs at the given pkhs' addresses, each with the spending transaction's outputs
+// and whether those are spent themselves. Three readings share this one walk: TapSwap and hodl
+// announcements sit at outputs 1 and 0 (utils/defi/tapswapListings.ts, utils/defi/hodlContracts.ts),
+// and a metadata publication or token genesis these keys made is read off the same transactions
+// (utils/tools/identityDetection.ts). Outputs are fetched by position for the first two and by
+// the publication prefix for the third, so widening the reading costs no extra query.
 export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: string) {
   if (!ownerPkhs.length) return [];
-  const querySpent = `query WalletSpentOutputs($lockingBytecodes: _text!, $limit: Int!, $offset: Int!) {
+  const querySpent = `query WalletSpentOutputs($lockingBytecodes: _text!, $limit: Int!, $offset: Int!, $bcmrFrom: bytea!, $bcmrTo: bytea!) {
     search_output(
       args: { locking_bytecode_hex: $lockingBytecodes }
       where: { spent_by: {} }
@@ -170,10 +181,15 @@ export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: stri
       offset: $offset
       order_by: [{ transaction_hash: asc }, { output_index: asc }]
     ) {
+      transaction_hash
+      output_index
       spent_by {
         transaction {
           hash
-          outputs(where: { output_index: { _in: ["0", "1"] } }) {
+          outputs(where: { _or: [
+            { output_index: { _in: ["0", "1"] } },
+            { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } }
+          ] }) {
             output_index
             locking_bytecode
             token_category
@@ -191,7 +207,11 @@ export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: stri
   const spentOutputs: ChaingraphSpentOutput[] = [];
   for (let offset = 0; ; offset += CHAINGRAPH_PAGE_SIZE) {
     const response = await queryChainGraph(querySpent, chaingraphUrl, {
-      lockingBytecodes, limit: CHAINGRAPH_PAGE_SIZE, offset,
+      lockingBytecodes,
+      limit: CHAINGRAPH_PAGE_SIZE,
+      offset,
+      bcmrFrom: `\\x${bcmrPrefixRange.from}`,
+      bcmrTo: `\\x${bcmrPrefixRange.to}`,
     }) as SpentOutputsResponse;
     const page = response.data.search_output;
     spentOutputs.push(...page);

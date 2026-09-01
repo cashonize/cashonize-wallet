@@ -63,7 +63,7 @@ import {
 import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromSpentOutputs, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromSpentOutputs, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
-import { ChaingraphRequestError, querySpentOutputs } from "src/queryChainGraph"
+import { ChaingraphRequestError, querySpentOutputs, type ChaingraphSpentOutput } from "src/queryChainGraph"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -100,6 +100,12 @@ import {
   loadAuthKeyCategories,
   saveAuthKeyCategory,
   deleteAuthKeyCategory,
+  loadDismissedIdentities,
+  saveDismissedIdentity,
+  undismissIdentity,
+  loadUnseenIdentities,
+  saveUnseenIdentities,
+  clearUnseenIdentities,
   resolveIdentities,
   checkPublicationUri,
   identityKeyCoin,
@@ -114,6 +120,7 @@ import {
   isAuthKeyCandidate,
 } from "src/utils/tools/authGuard"
 import { queryAuthHeadWithOutputs } from "src/queryChainGraph"
+import { detectIdentities } from "src/utils/tools/identityDetection"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -191,6 +198,11 @@ export const useStore = defineStore('store', () => {
   const identityCategories = ref([] as string[]);
   // AuthKey categories this wallet watches without holding the key
   const watchedAuthKeys = ref([] as string[]);
+  // Categories the user took off the list, which the automatic detection must not put back
+  const dismissedIdentities = ref([] as string[]);
+  // Listed by the wallet itself and not yet seen: what the marker on the wallet tools entry is
+  // for, and what marks the cards as found automatically on the visit that clears it
+  const unseenIdentities = ref([] as string[]);
   const identities = ref(undefined as (IdentityState[] | undefined));
   // What each listed identity's published registry locations actually serve, keyed by category.
   // Kept beside the identities rather than on them: resolution reads the chain, this reads the
@@ -443,6 +455,8 @@ export const useStore = defineStore('store', () => {
     utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
     identityCategories.value = loadIdentityCategories(newNetwork, newWallet.name);
     watchedAuthKeys.value = loadAuthKeyCategories(newNetwork, newWallet.name);
+    dismissedIdentities.value = loadDismissedIdentities(newNetwork, newWallet.name);
+    unseenIdentities.value = loadUnseenIdentities(newNetwork, newWallet.name);
     identities.value = undefined;
     publicationChecks.value = {};
     guardedIdentities.value = {};
@@ -1289,6 +1303,10 @@ export const useStore = defineStore('store', () => {
       const listings = listingsFromSpentOutputs(spentOutputs, ownerPkhs);
       tapswapListings.value = listings;
 
+      // the same walk, read a third way: identities these keys made
+      await detectWalletIdentities(spentOutputs);
+      if (initialization !== currentInitialization) return;
+
       const hodlCandidates = hodlContractsFromSpentOutputs(spentOutputs, ownerPkhs);
       const contracts = await fetchHodlContractStates(wallet.value.provider, hodlCandidates);
       if (initialization !== currentInitialization) return;
@@ -1381,6 +1399,50 @@ export const useStore = defineStore('store', () => {
     // The spendable pool is the set tokenGenesis selects its genesis input from
     const preGenesisUtxo = spendableUtxos.value?.find(utxo => !utxo.token && utxo.vout === 0);
     plannedTokenId.value = preGenesisUtxo?.txid ?? undefined;
+  }
+
+  // Identities these keys made, found in the walk rather than asked for. This is the one place
+  // the wallet lists something the user did not: the creator whose authhead sits here as an
+  // anonymous coin is exactly the one who never opens the page, and an ordinary send spends it.
+  // Deliberately amends the rule that only listed identities are reserved: the walk is evidence,
+  // not a guess, and the coin is an authhead.
+  function listDetectedIdentities(spentOutputs: ChaingraphSpentOutput[]) {
+    const heldAuthheads = (walletUtxos.value ?? []).filter(utxo => utxo.vout === 0);
+    const found = detectIdentities(spentOutputs).filter(
+      identity => heldAuthheads.some(utxo => utxo.txid === identity.authheadTxid)
+    );
+    const listed: string[] = [];
+    for (const identity of found) {
+      // a chain whose category the markers cannot name is protected all the same, by outpoint;
+      // naming it is the backward walk's job, and never a condition of protecting it
+      if (!identity.category) continue;
+      if (dismissedIdentities.value.includes(identity.category)) continue;
+      if (identityCategories.value.includes(identity.category)) continue;
+      identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, identity.category);
+      listed.push(identity.category);
+    }
+    if (!listed.length) return listed;
+    unseenIdentities.value = saveUnseenIdentities(network.value, wallet.value.name, listed);
+    Notify.create({
+      type: 'info',
+      message: t('identities.detected.notification', listed.length),
+      timeout: 8000,
+    });
+    return listed;
+  }
+
+  // Reading the walk the portfolio already makes, so no new backend and no new round trip
+  async function detectWalletIdentities(spentOutputs: ChaingraphSpentOutput[]) {
+    if (!listDetectedIdentities(spentOutputs).length) return;
+    await refreshIdentities();
+  }
+
+  // The page has been opened, so what it found on its own is no longer news
+  function markIdentitiesSeen() {
+    const unseen = unseenIdentities.value;
+    clearUnseenIdentities(network.value, wallet.value.name);
+    unseenIdentities.value = [];
+    return unseen;
   }
 
   // What the AuthKeys this wallet holds are guarding. The fingerprint is local and free, the guard
@@ -1602,6 +1664,8 @@ export const useStore = defineStore('store', () => {
   }
 
   async function addIdentity(category: string) {
+    // adding by hand undoes a dismissal: the user changed their mind, which is the whole point
+    dismissedIdentities.value = undismissIdentity(network.value, wallet.value.name, category);
     identityCategories.value = saveIdentityCategory(network.value, wallet.value.name, category);
     await refreshIdentities();
   }
@@ -1610,6 +1674,8 @@ export const useStore = defineStore('store', () => {
   // coin outside the identities page. Adding the identity again, by category or through the
   // ownership check, reserves its authhead again.
   async function removeIdentity(category: string) {
+    // remembered, so the automatic detection does not put it back on the next wallet open
+    dismissedIdentities.value = saveDismissedIdentity(network.value, wallet.value.name, category);
     const removed = identities.value?.find(identity => identity.category === category);
     identityCategories.value = deleteIdentityCategory(network.value, wallet.value.name, category);
     identities.value = identities.value?.filter(identity => identity.category !== category);
@@ -1940,6 +2006,10 @@ export const useStore = defineStore('store', () => {
     unidentifiedGuarded,
     identitiesGuardedByKey,
     watchedAuthKeys,
+    dismissedIdentities,
+    unseenIdentities,
+    markIdentitiesSeen,
+    detectWalletIdentities,
     inspectCategory,
     addAuthKey,
     removeAuthKey,

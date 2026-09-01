@@ -1422,6 +1422,11 @@
     "reserveNote": "Ein AuthHead in diesem Wallet bleibt von der Münzauswahl ausgenommen, damit ein gewöhnlicher Versand ihn nicht versehentlich ausgibt.",
     "resolving": "Suche, wo die AuthHeads liegen...",
     "empty": "Noch keine Identitäten in der Liste.",
+    "detected": {
+      "notification": "Eine Identität dieses Wallets gefunden und ihren AuthHead von der Münzauswahl ausgenommen. | {count} Identitäten dieses Wallets gefunden und ihre AuthHeads von der Münzauswahl ausgenommen.",
+      "foundAutomatically": "Automatisch gefunden",
+      "foundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identität erstellt oder ihre Metadaten veröffentlicht, ihr AuthHead wurde also in der eigenen Historie gefunden und ist jetzt von der Münzauswahl ausgenommen. Nimm sie von der Liste, wenn dir das lieber ist."
+    },
     "listedCount": "{count} Identität, der dieses Wallet folgt | {count} Identitäten, denen dieses Wallet folgt",
     "unnamedIdentity": "Identität ohne Namen",
     "categoryLabel": "Kategorie:",
