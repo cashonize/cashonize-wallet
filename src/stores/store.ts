@@ -1706,7 +1706,26 @@ export const useStore = defineStore('store', () => {
       return wallet.value.getMaxAmountToSend({ outputCount, options: spendConfig });
     },
 
-    // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
+      // Every identity operation is this one spend: the authhead as input 0 and the new authhead at
+    // output 0, which is what continues the authchain. The coin is held back exactly so nothing
+    // else reaches it, so this is the one path that spends past its own reservation.
+    // The pool is the wallet's BCH coins plus the authhead, and only the token coins the operation
+    // asked for: leaving the category's other coins out keeps a supply operation from sweeping the
+    // circulating balance into itself as change.
+    async spendAuthUtxo(authUtxo: Utxo, requests: SendRequestType, categoryUtxos: Utxo[] = []) {
+      const spendable = spendableFromUtxos(await wallet.value.getUtxos(), reservedUtxos.value);
+      const pool = [...spendable.filter(utxo => !utxo.token), authUtxo, ...categoryUtxos];
+      const response = await spendExplained(() => wallet.value.send(requests, {
+        utxoIds: pool,
+        ensureUtxos: [authUtxo],
+      }));
+      await updateWalletUtxos();
+      // the authhead has moved to a new outpoint, so its reservation has to follow it there
+      await refreshIdentities();
+      return response;
+    },
+
+  // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
     // makes the signed pledge the campaign holds unusable
     async releaseReservedCoin(utxo: Utxo) {
       if (!(outpointOf(utxo) in reservedUtxos.value)) throw new Error(t('store.errors.utxoNotReserved'));

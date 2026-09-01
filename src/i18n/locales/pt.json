@@ -1432,18 +1432,96 @@
       "supply": "{amount} {symbol} fora de circulação como oferta reservada",
       "mintingNft": "Um NFT de cunhagem, que cria novos NFTs desta categoria",
       "nft": "Um NFT desta categoria",
-      "comingNote": "O AuthHead fica fora da seleção de moedas, então um envio comum não pode gastá-lo. Emitir da reserva, adicionar a ela e transferir a identidade vêm numa versão posterior."
+      "transferHint": "Para transferir esta identidade, esvazie antes a reserva dela: a transferência move a autoridade, e a oferta não deveria ir junto sem que se perceba.",
+      "errors": {
+        "invalidAmount": "Informe um valor válido.",
+        "overReserve": "Isso é mais do que a reserva tem.",
+        "overBalance": "Isso é mais do que esta carteira pode gastar deste token.",
+        "nothingToEmpty": "Este AuthHead não carrega reserva para esvaziar."
+      },
+      "issue": {
+        "action": "emitir da reserva",
+        "hint": "Tire tokens da reserva para a circulação. A reserva tem {amount}.",
+        "amountPlaceholder": "Valor a emitir",
+        "destinationPlaceholder": "Endereço de token de destino",
+        "button": "Emitir",
+        "issuingButton": "Emitindo...",
+        "confirmTitle": "Emitir da reserva?",
+        "confirmMessage": "{amount} sai da reserva e vai para {address}, entrando em circulação.",
+        "confirmButton": "Emitir",
+        "done": "Emitido da reserva para {address}",
+        "doneTitle": "Emitido da reserva"
+      },
+      "add": {
+        "action": "adicionar à reserva",
+        "hint": "Devolva à reserva tokens que esta carteira tem, tirando-os de circulação.",
+        "amountPlaceholder": "Valor a adicionar",
+        "button": "Adicionar à reserva",
+        "addingButton": "Adicionando...",
+        "confirmTitle": "Adicionar à reserva?",
+        "confirmMessage": "{amount} entra na reserva do AuthHead e sai de circulação.",
+        "confirmButton": "Adicionar",
+        "done": "Adicionado à reserva",
+        "doneTitle": "Adicionado à reserva"
+      },
+      "empty": {
+        "action": "esvaziar a reserva",
+        "hint": "Devolva toda a reserva de {amount} a esta carteira, deixando o AuthHead carregando só a autoridade.",
+        "button": "Esvaziar a reserva",
+        "emptyingButton": "Esvaziando...",
+        "confirmTitle": "Esvaziar a reserva?",
+        "confirmMessage": "{amount} volta a esta carteira como oferta comum, e o AuthHead fica carregando só a autoridade.",
+        "confirmButton": "Esvaziar",
+        "done": "Reserva esvaziada",
+        "doneTitle": "Reserva esvaziada"
+      }
     },
     "publication": {
       "title": "Última publicação de metadados",
       "none": "Esta identidade nunca publicou metadados.",
       "checking": "verificando...",
       "hash": "Hash publicado: {hash}",
+      "driftedPrompt": "O registro em um destes locais já não corresponde ao que foi publicado. {link}",
+      "driftedLink": "Publicar o conteúdo atual",
       "status": {
         "verified": "verificado",
         "changed": "alterado desde a publicação",
         "changedIpfs": "não corresponde ao hash publicado",
         "unreachable": "inacessível"
+      }
+    },
+    "publish": {
+      "action": "publicar atualização",
+      "hint": "Crie ou revise o JSON do registro com o {generator}, hospede-o nos locais abaixo e publique o ponteiro aqui. A carteira busca o que esses locais servem, calcula o hash e publica esse hash.",
+      "locationsHint": "Um domínio, uma URL HTTPS completa ou um CID de IPFS. Todos os locais devem servir o mesmo arquivo.",
+      "uriPlaceholder": "example.com ou ipfs://baf...",
+      "addLocation": "adicionar outro local",
+      "removeLocation": "remover",
+      "bytesLeft": "Restam {bytes} bytes na saída de publicação",
+      "button": "Verificar e publicar",
+      "publishingButton": "Publicando...",
+      "done": "Atualização de metadados publicada",
+      "doneTitle": "Metadados publicados",
+      "fields": {
+        "name": "Nome",
+        "symbol": "Símbolo",
+        "decimals": "Casas decimais",
+        "icon": "Ícone"
+      },
+      "confirm": {
+        "title": "Publicar esta atualização de metadados?",
+        "message": "Publicando o hash {hash} em:",
+        "changed": "{field}: {from} passa a {to}",
+        "empty": "(nenhum)",
+        "droppedSnapshots": "Atenção: o novo arquivo descarta {count} instantâneo do histórico desta identidade. | Atenção: o novo arquivo descarta {count} instantâneos do histórico desta identidade.",
+        "button": "Publicar"
+      },
+      "errors": {
+        "noUris": "Informe pelo menos um local para o registro.",
+        "tooLarge": "Estes locais não cabem em uma saída de publicação. Remova um ou use locais mais curtos.",
+        "unreachable": "Não foi possível buscar o registro em {uri}.",
+        "mirrorMismatch": "{uri} serve um conteúdo diferente do primeiro local. Todos devem servir o mesmo arquivo.",
+        "noIdentity": "Esse registro não descreve esta identidade. Verifique se o arquivo nomeia esta categoria de token."
       }
     },
     "add": {

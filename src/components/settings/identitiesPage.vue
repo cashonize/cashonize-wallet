@@ -10,12 +10,24 @@
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { validateRecipientAddress } from 'src/utils/payments/recipientAddress'
   import {
+    diffRegistries,
+    fetchCandidateRegistry,
+    fetchPublishedRegistry,
+    identityOutput,
     isTokenCategory,
+    maxPublicationOutputSize,
+    publicationOutput,
+    publicationOutputSize,
     registryUrlOf,
+    summarizeRegistry,
     type IdentityState,
     type IdentityScanSummary,
     type PublicationUriStatus,
+    type RegistrySummary,
   } from 'src/utils/tools/authchainIdentity'
+  import { TokenSendRequest } from 'mainnet-js'
+  import { parseTokenAmountToBigInt } from 'src/utils/utils'
+  import { validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -28,6 +40,17 @@
   // The destination of an open transfer form, keyed by category so each card keeps its own
   const destinationInputs = ref<Record<string, string>>({});
   const transferringCategory = ref<string | undefined>(undefined);
+
+  // One form open at a time across the whole list: these are deliberate, one-at-a-time operations,
+  // and a card with four open forms says otherwise
+  type IdentityAction = 'publish' | 'issue' | 'addToReserve' | 'emptyReserve';
+  const openAction = ref<{ category: string, action: IdentityAction } | undefined>(undefined);
+  const runningAction = ref<IdentityAction | undefined>(undefined);
+  const publishUris = ref<string[]>([]);
+  const currentRegistry = ref<RegistrySummary | undefined>(undefined);
+  const issueAmount = ref("");
+  const issueDestination = ref("");
+  const addToReserveAmount = ref("");
 
   const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
   const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
@@ -48,6 +71,11 @@
       ? t('identities.publication.status.changedIpfs')
       : t('identities.publication.status.changed');
   }
+
+  // A location serving something other than what was published is not just a warning on an
+  // identity this wallet can act on: it is the state the publish flow exists to resolve
+  const hasDrifted = (identity: IdentityState) =>
+    !!identity.authUtxo && !!store.publicationChecks[identity.category]?.some(check => check.status === 'changed');
 
   // One row per published location: the location as published, where it is actually fetched from,
   // and what fetching it found once the check has run
@@ -149,6 +177,214 @@
       displayAndLogError(error);
     } finally {
       isScanning.value = false;
+    }
+  }
+
+  const isOpen = (identity: IdentityState, action: IdentityAction) =>
+    openAction.value?.category === identity.category && openAction.value.action === action;
+
+  async function toggleAction(identity: IdentityState, action: IdentityAction) {
+    if (isOpen(identity, action)) {
+      openAction.value = undefined;
+      return;
+    }
+    openAction.value = { category: identity.category, action };
+    // the common update changes what the locations serve, not the locations themselves
+    publishUris.value = identity.publication?.uris.length ? [...identity.publication.uris] : [""];
+    issueAmount.value = "";
+    issueDestination.value = "";
+    addToReserveAmount.value = "";
+    currentRegistry.value = undefined;
+    if (action !== 'publish' || !identity.publication) return;
+    // read what is published now, so the update can say what it changes
+    const published = await fetchPublishedRegistry(identity.publication.uris, settingsStore.ipfsGateway);
+    if (!published || !isOpen(identity, 'publish')) return;
+    currentRegistry.value = summarizeRegistry(published, identity.category);
+  }
+
+  const tokenDecimals = (category: string) => store.bcmrRegistries?.[category]?.token?.decimals ?? 0;
+  const reserveOf = (identity: IdentityState) => identity.authUtxo?.token?.amount ?? 0n;
+  const reserveDisplay = (identity: IdentityState) =>
+    formatTokenAmountFromBigInt(reserveOf(identity), tokenDecimals(identity.category));
+
+  const filledUris = computed(() => publishUris.value.map(uri => uri.trim()).filter(uri => uri.length));
+  // The hash and the locations share one output, so the locations are capped by their own length
+  const publicationBytesLeft = computed(() =>
+    maxPublicationOutputSize - publicationOutputSize(filledUris.value)
+  );
+
+  function addUriRow() {
+    publishUris.value = [...publishUris.value, ""];
+  }
+  function removeUriRow(index: number) {
+    publishUris.value = publishUris.value.filter((_, rowIndex) => rowIndex !== index);
+    if (!publishUris.value.length) publishUris.value = [""];
+  }
+
+  // Everything the publisher should see before signing: the wallet fetched what the locations
+  // serve now, hashed it, and reads out of it what holders will be told changed.
+  function publishConfirmMessage(candidateSummary: RegistrySummary, hash: string) {
+    const lines = [t('identities.publish.confirm.message', { hash })];
+    lines.push(...filledUris.value);
+    if (currentRegistry.value) {
+      const diff = diffRegistries(currentRegistry.value, candidateSummary);
+      for (const change of diff.changed) {
+        lines.push(t('identities.publish.confirm.changed', {
+          field: t(`identities.publish.fields.${change.field}`),
+          from: change.from || t('identities.publish.confirm.empty'),
+          to: change.to || t('identities.publish.confirm.empty'),
+        }));
+      }
+      if (diff.droppedSnapshots.length) {
+        lines.push(t('identities.publish.confirm.droppedSnapshots', diff.droppedSnapshots.length));
+      }
+    }
+    return lines.join('\n');
+  }
+
+  async function publishUpdate(identity: IdentityState) {
+    const authUtxo = identity.authUtxo;
+    if (runningAction.value || !authUtxo) return;
+    runningAction.value = 'publish';
+    try {
+      if (!filledUris.value.length) throw new Error(t('identities.publish.errors.noUris'));
+      if (publicationBytesLeft.value < 0) throw new Error(t('identities.publish.errors.tooLarge'));
+      const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
+      const candidateSummary = summarizeRegistry(candidate.content, identity.category);
+      if (!candidateSummary) throw new Error(t('identities.publish.errors.noIdentity'));
+
+      const confirmed = await confirmDialog(
+        t('identities.publish.confirm.title'),
+        publishConfirmMessage(candidateSummary, candidate.hash),
+        t('identities.publish.confirm.button')
+      );
+      if (!confirmed) return;
+
+      notifySending();
+      const { txId } = await store.spend.spendAuthUtxo(authUtxo, [
+        identityOutput(authUtxo, walletAddresses()),
+        publicationOutput(candidate.hash, filledUris.value),
+      ]);
+      openAction.value = undefined;
+      await handleTransactionBroadcastSuccess(
+        t('identities.publish.done'), txId, t('identities.publish.doneTitle')
+      );
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      runningAction.value = undefined;
+    }
+  }
+
+  const walletAddresses = () => ({
+    bch: store.wallet.getDepositAddress(),
+    token: store.wallet.getTokenDepositAddress(),
+  });
+
+  async function issueFromReserve(identity: IdentityState) {
+    const authUtxo = identity.authUtxo;
+    if (runningAction.value || !authUtxo?.token) return;
+    runningAction.value = 'issue';
+    try {
+      const decimals = tokenDecimals(identity.category);
+      const amount = parseTokenAmountToBigInt(issueAmount.value, decimals);
+      if (amount <= 0n) throw new Error(t('identities.reserve.errors.invalidAmount'));
+      if (amount > reserveOf(identity)) throw new Error(t('identities.reserve.errors.overReserve'));
+      const destination = validateTokenRecipientAddress(issueDestination.value, store.wallet.networkPrefix);
+      const confirmed = await confirmDialog(
+        t('identities.reserve.issue.confirmTitle'),
+        t('identities.reserve.issue.confirmMessage', {
+          amount: formatTokenAmountFromBigInt(amount, decimals), address: destination,
+        }),
+        t('identities.reserve.issue.confirmButton')
+      );
+      if (!confirmed) return;
+      notifySending();
+      // issuing the whole reserve leaves nothing for a token output to carry, which the identity
+      // output turns into the emptied layout on its own
+      const { txId } = await store.spend.spendAuthUtxo(authUtxo, [
+        identityOutput(authUtxo, walletAddresses(), reserveOf(identity) - amount),
+        new TokenSendRequest({ cashaddr: destination, category: identity.category, amount }),
+      ]);
+      openAction.value = undefined;
+      await handleTransactionBroadcastSuccess(
+        t('identities.reserve.issue.done', { address: destination }), txId, t('identities.reserve.issue.doneTitle')
+      );
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      runningAction.value = undefined;
+    }
+  }
+
+  async function addToReserve(identity: IdentityState) {
+    const authUtxo = identity.authUtxo;
+    if (runningAction.value || !authUtxo?.token) return;
+    runningAction.value = 'addToReserve';
+    try {
+      const decimals = tokenDecimals(identity.category);
+      const amount = parseTokenAmountToBigInt(addToReserveAmount.value, decimals);
+      if (amount <= 0n) throw new Error(t('identities.reserve.errors.invalidAmount'));
+      const categoryUtxos = (store.spendableUtxos ?? []).filter(
+        utxo => utxo.token?.category === identity.category && utxo.token.amount
+      );
+      const available = categoryUtxos.reduce((total, utxo) => total + (utxo.token?.amount ?? 0n), 0n);
+      if (amount > available) throw new Error(t('identities.reserve.errors.overBalance'));
+      const confirmed = await confirmDialog(
+        t('identities.reserve.add.confirmTitle'),
+        t('identities.reserve.add.confirmMessage', { amount: formatTokenAmountFromBigInt(amount, decimals) }),
+        t('identities.reserve.add.confirmButton')
+      );
+      if (!confirmed) return;
+      notifySending();
+      const { txId } = await store.spend.spendAuthUtxo(
+        authUtxo,
+        [identityOutput(authUtxo, walletAddresses(), reserveOf(identity) + amount)],
+        categoryUtxos,
+      );
+      openAction.value = undefined;
+      await handleTransactionBroadcastSuccess(
+        t('identities.reserve.add.done'), txId, t('identities.reserve.add.doneTitle')
+      );
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      runningAction.value = undefined;
+    }
+  }
+
+  async function emptyReserve(identity: IdentityState) {
+    const authUtxo = identity.authUtxo;
+    if (runningAction.value || !authUtxo?.token) return;
+    runningAction.value = 'emptyReserve';
+    try {
+      const reserve = reserveOf(identity);
+      if (reserve <= 0n) throw new Error(t('identities.reserve.errors.nothingToEmpty'));
+      const confirmed = await confirmDialog(
+        t('identities.reserve.empty.confirmTitle'),
+        t('identities.reserve.empty.confirmMessage', { amount: reserveDisplay(identity) }),
+        t('identities.reserve.empty.confirmButton')
+      );
+      if (!confirmed) return;
+      notifySending();
+      // the reserve returns to the wallet as ordinary circulating supply, leaving the authhead
+      // carrying only what it is: the authority
+      const { txId } = await store.spend.spendAuthUtxo(authUtxo, [
+        identityOutput(authUtxo, walletAddresses(), 0n),
+        new TokenSendRequest({
+          cashaddr: store.wallet.getTokenDepositAddress(),
+          category: identity.category,
+          amount: reserve,
+        }),
+      ]);
+      openAction.value = undefined;
+      await handleTransactionBroadcastSuccess(
+        t('identities.reserve.empty.done'), txId, t('identities.reserve.empty.doneTitle')
+      );
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      runningAction.value = undefined;
     }
   }
 
@@ -312,13 +548,120 @@
             <div class="description mono" :title="identity.publication.hash">
               {{ t('identities.publication.hash', { hash: truncateHash(identity.publication.hash) }) }}
             </div>
+            <div v-if="hasDrifted(identity)" class="description" style="margin-top: 6px;">
+              <i18n-t keypath="identities.publication.driftedPrompt" tag="span">
+                <template #link>
+                  <span class="action-link" @click="toggleAction(identity, 'publish')">{{ t('identities.publication.driftedLink') }}</span>
+                </template>
+              </i18n-t>
+            </div>
           </template>
         </div>
 
         <div v-if="identity.status === 'carriesTokens'" class="section">
           <div>{{ t('identities.reserve.title') }}</div>
           <div v-for="line in reserveDescription(identity)" :key="line" class="description">{{ line }}</div>
-          <div class="description" style="margin-top: 4px;">{{ t('identities.reserve.comingNote') }}</div>
+        </div>
+
+        <!-- The operations, all of them the same spend of the authhead, so they share one row of
+             actions and open one form at a time -->
+        <div v-if="identity.authUtxo" class="identity-actions">
+          <span class="action-link" @click="toggleAction(identity, 'publish')">
+            {{ t('identities.publish.action') }}
+          </span>
+          <template v-if="identity.status === 'carriesTokens'">
+            <span class="action-link" @click="toggleAction(identity, 'issue')">
+              {{ t('identities.reserve.issue.action') }}
+            </span>
+            <span class="action-link" @click="toggleAction(identity, 'addToReserve')">
+              {{ t('identities.reserve.add.action') }}
+            </span>
+            <span class="action-link" @click="toggleAction(identity, 'emptyReserve')">
+              {{ t('identities.reserve.empty.action') }}
+            </span>
+          </template>
+        </div>
+
+        <div v-if="isOpen(identity, 'publish')" class="section">
+          <div class="description">
+            <i18n-t keypath="identities.publish.hint" tag="span">
+              <template #generator>
+                <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+              </template>
+            </i18n-t>
+          </div>
+          <div class="description" style="margin-top: 4px;">{{ t('identities.publish.locationsHint') }}</div>
+          <div v-for="(uri, index) in publishUris" :key="index" class="publish-uri-row">
+            <input v-model="publishUris[index]" :placeholder="t('identities.publish.uriPlaceholder')">
+            <span
+              v-if="publishUris.length > 1"
+              class="remove-identity"
+              @click="removeUriRow(index)"
+            >{{ t('identities.publish.removeLocation') }}</span>
+          </div>
+          <div class="publish-uri-actions">
+            <span class="action-link" @click="addUriRow()">{{ t('identities.publish.addLocation') }}</span>
+            <span class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
+              {{ t('identities.publish.bytesLeft', { bytes: publicationBytesLeft }) }}
+            </span>
+          </div>
+          <input
+            @click="publishUpdate(identity)"
+            type="button"
+            class="primaryButton"
+            :value="runningAction === 'publish' ? t('identities.publish.publishingButton') : t('identities.publish.button')"
+            :disabled="runningAction !== undefined || !filledUris.length || publicationBytesLeft < 0"
+            style="margin-top: 10px;"
+          >
+        </div>
+
+        <div v-if="isOpen(identity, 'issue')" class="section">
+          <div class="description">{{ t('identities.reserve.issue.hint', { amount: reserveDisplay(identity) }) }}</div>
+          <div class="transfer-identity">
+            <input v-model="issueAmount" :placeholder="t('identities.reserve.issue.amountPlaceholder')">
+            <input v-model="issueDestination" :placeholder="t('identities.reserve.issue.destinationPlaceholder')">
+          </div>
+          <input
+            @click="issueFromReserve(identity)"
+            type="button"
+            class="primaryButton"
+            :value="runningAction === 'issue' ? t('identities.reserve.issue.issuingButton') : t('identities.reserve.issue.button')"
+            :disabled="runningAction !== undefined || !issueAmount || !issueDestination"
+            style="margin-top: 10px;"
+          >
+        </div>
+
+        <div v-if="isOpen(identity, 'addToReserve')" class="section">
+          <div class="description">{{ t('identities.reserve.add.hint') }}</div>
+          <div class="transfer-identity">
+            <input v-model="addToReserveAmount" :placeholder="t('identities.reserve.add.amountPlaceholder')">
+          </div>
+          <input
+            @click="addToReserve(identity)"
+            type="button"
+            class="primaryButton"
+            :value="runningAction === 'addToReserve' ? t('identities.reserve.add.addingButton') : t('identities.reserve.add.button')"
+            :disabled="runningAction !== undefined || !addToReserveAmount"
+            style="margin-top: 10px;"
+          >
+        </div>
+
+        <div v-if="isOpen(identity, 'emptyReserve')" class="section">
+          <div class="description">{{ t('identities.reserve.empty.hint', { amount: reserveDisplay(identity) }) }}</div>
+          <input
+            @click="emptyReserve(identity)"
+            type="button"
+            class="primaryButton"
+            :value="runningAction === 'emptyReserve' ? t('identities.reserve.empty.emptyingButton') : t('identities.reserve.empty.button')"
+            :disabled="runningAction !== undefined"
+            style="margin-top: 10px;"
+          >
+        </div>
+
+        <!-- Transferring an identity that carries a reserve is two steps with one meaning each,
+             rather than one transfer that quietly moves the supply along with the authority -->
+        <div v-if="identity.status === 'carriesTokens'" class="description" style="margin-top: 12px;">
+          {{ t('identities.reserve.transferHint') }}
         </div>
 
         <div v-if="identity.status === 'held'" class="section">
@@ -450,6 +793,41 @@
   cursor: pointer;
   color: grey;
 }
+.identity-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.publish-uri-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.publish-uri-row input {
+  flex: 1 1 260px;
+  margin: 0;
+}
+.publish-uri-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+/* what will not relay reads as an error rather than as one more grey number */
+.over-budget {
+  color: var(--color-error);
+}
+.action-link {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.action-link:hover {
+  text-decoration: underline;
+}
+
 /* the prompt reads as description, only the action it offers is coloured */
 .scan-link {
   color: var(--color-primary);

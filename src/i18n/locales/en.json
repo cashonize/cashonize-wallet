@@ -1432,18 +1432,96 @@
       "supply": "{amount} {symbol} held out of circulation as reserved supply",
       "mintingNft": "A minting NFT, which creates new NFTs of this category",
       "nft": "An NFT of this category",
-      "comingNote": "The AuthHead is held back from coin selection, so an ordinary send cannot spend it. Issuing from the reserve, adding to it and transferring the identity come in a later version."
+      "transferHint": "To transfer this identity, empty its reserve first: the transfer moves the authority, and the supply should not ride along unnoticed.",
+      "errors": {
+        "invalidAmount": "Enter a valid amount.",
+        "overReserve": "That is more than the reserve holds.",
+        "overBalance": "That is more than this wallet can spend of this token.",
+        "nothingToEmpty": "This AuthHead carries no reserve to empty."
+      },
+      "issue": {
+        "action": "issue from reserve",
+        "hint": "Move tokens out of the reserve into circulation. The reserve holds {amount}.",
+        "amountPlaceholder": "Amount to issue",
+        "destinationPlaceholder": "Token address to issue to",
+        "button": "Issue",
+        "issuingButton": "Issuing...",
+        "confirmTitle": "Issue from the reserve?",
+        "confirmMessage": "{amount} leaves the reserve and goes to {address}, entering circulation.",
+        "confirmButton": "Issue",
+        "done": "Issued from the reserve to {address}",
+        "doneTitle": "Issued from reserve"
+      },
+      "add": {
+        "action": "add to reserve",
+        "hint": "Move tokens this wallet holds back into the reserve, out of circulation.",
+        "amountPlaceholder": "Amount to add",
+        "button": "Add to reserve",
+        "addingButton": "Adding...",
+        "confirmTitle": "Add to the reserve?",
+        "confirmMessage": "{amount} joins the reserve on the AuthHead and leaves circulation.",
+        "confirmButton": "Add",
+        "done": "Added to the reserve",
+        "doneTitle": "Added to reserve"
+      },
+      "empty": {
+        "action": "empty reserve",
+        "hint": "Return the whole reserve of {amount} to this wallet, leaving the AuthHead carrying only the authority.",
+        "button": "Empty reserve",
+        "emptyingButton": "Emptying...",
+        "confirmTitle": "Empty the reserve?",
+        "confirmMessage": "{amount} returns to this wallet as ordinary supply, and the AuthHead is left carrying only the authority.",
+        "confirmButton": "Empty",
+        "done": "Emptied the reserve",
+        "doneTitle": "Reserve emptied"
+      }
     },
     "publication": {
       "title": "Latest metadata publication",
       "none": "This identity has never published metadata.",
       "checking": "checking...",
       "hash": "Published hash: {hash}",
+      "driftedPrompt": "The registry at one of these locations no longer matches what was published. {link}",
+      "driftedLink": "Publish the current content",
       "status": {
         "verified": "verified",
         "changed": "changed since publication",
         "changedIpfs": "does not match the published hash",
         "unreachable": "unreachable"
+      }
+    },
+    "publish": {
+      "action": "publish update",
+      "hint": "Create or revise the registry JSON with the {generator}, host it at the locations below, then publish the pointer here. The wallet fetches what those locations serve, hashes it, and publishes that hash.",
+      "locationsHint": "A domain, a full HTTPS URL, or an IPFS CID. Every location must serve the same file.",
+      "uriPlaceholder": "example.com or ipfs://baf...",
+      "addLocation": "add another location",
+      "removeLocation": "remove",
+      "bytesLeft": "{bytes} bytes left of the publication output",
+      "button": "Verify and publish",
+      "publishingButton": "Publishing...",
+      "done": "Published the metadata update",
+      "doneTitle": "Metadata published",
+      "fields": {
+        "name": "Name",
+        "symbol": "Symbol",
+        "decimals": "Decimals",
+        "icon": "Icon"
+      },
+      "confirm": {
+        "title": "Publish this metadata update?",
+        "message": "Publishing hash {hash} at:",
+        "changed": "{field}: {from} becomes {to}",
+        "empty": "(none)",
+        "droppedSnapshots": "Warning: the new file drops {count} snapshot of this identity's history. | Warning: the new file drops {count} snapshots of this identity's history.",
+        "button": "Publish"
+      },
+      "errors": {
+        "noUris": "Enter at least one location for the registry.",
+        "tooLarge": "These locations do not fit in one publication output. Remove one or use shorter locations.",
+        "unreachable": "Could not fetch the registry at {uri}.",
+        "mirrorMismatch": "{uri} serves different content than the first location. Every location must serve the same file.",
+        "noIdentity": "That registry does not describe this identity. Check that the file names this token category."
       }
     },
     "add": {

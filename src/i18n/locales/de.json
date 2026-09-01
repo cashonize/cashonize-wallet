@@ -1432,18 +1432,96 @@
       "supply": "{amount} {symbol} als reservierter Bestand außerhalb des Umlaufs",
       "mintingNft": "Ein Minting-NFT, das neue NFTs dieser Kategorie erzeugt",
       "nft": "Ein NFT dieser Kategorie",
-      "comingNote": "Der AuthHead ist von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann ihn also nicht ausgeben. Aus der Reserve ausgeben, ihr etwas hinzufügen und die Identität übertragen kommen in einer späteren Version."
+      "transferHint": "Leere vor dem Übertragen dieser Identität ihre Reserve: die Übertragung bewegt die Hoheit, und der Bestand sollte nicht unbemerkt mitgehen.",
+      "errors": {
+        "invalidAmount": "Gib einen gültigen Betrag ein.",
+        "overReserve": "Das ist mehr, als die Reserve enthält.",
+        "overBalance": "Das ist mehr, als dieses Wallet von diesem Token ausgeben kann.",
+        "nothingToEmpty": "Dieser AuthHead trägt keine Reserve zum Leeren."
+      },
+      "issue": {
+        "action": "aus der Reserve ausgeben",
+        "hint": "Bringe Tokens aus der Reserve in Umlauf. Die Reserve enthält {amount}.",
+        "amountPlaceholder": "Auszugebender Betrag",
+        "destinationPlaceholder": "Ziel-Token-Adresse",
+        "button": "Ausgeben",
+        "issuingButton": "Wird ausgegeben...",
+        "confirmTitle": "Aus der Reserve ausgeben?",
+        "confirmMessage": "{amount} verlässt die Reserve und geht an {address}, damit in den Umlauf.",
+        "confirmButton": "Ausgeben",
+        "done": "Aus der Reserve an {address} ausgegeben",
+        "doneTitle": "Aus der Reserve ausgegeben"
+      },
+      "add": {
+        "action": "zur Reserve hinzufügen",
+        "hint": "Lege Tokens aus diesem Wallet zurück in die Reserve, aus dem Umlauf heraus.",
+        "amountPlaceholder": "Hinzuzufügender Betrag",
+        "button": "Zur Reserve hinzufügen",
+        "addingButton": "Wird hinzugefügt...",
+        "confirmTitle": "Zur Reserve hinzufügen?",
+        "confirmMessage": "{amount} kommt zur Reserve auf dem AuthHead und verlässt den Umlauf.",
+        "confirmButton": "Hinzufügen",
+        "done": "Zur Reserve hinzugefügt",
+        "doneTitle": "Zur Reserve hinzugefügt"
+      },
+      "empty": {
+        "action": "Reserve leeren",
+        "hint": "Gib die ganze Reserve von {amount} an dieses Wallet zurück, sodass der AuthHead nur noch die Hoheit trägt.",
+        "button": "Reserve leeren",
+        "emptyingButton": "Wird geleert...",
+        "confirmTitle": "Reserve leeren?",
+        "confirmMessage": "{amount} kommt als gewöhnlicher Bestand in dieses Wallet zurück, und der AuthHead trägt nur noch die Hoheit.",
+        "confirmButton": "Leeren",
+        "done": "Reserve geleert",
+        "doneTitle": "Reserve geleert"
+      }
     },
     "publication": {
       "title": "Letzte Metadaten-Veröffentlichung",
       "none": "Diese Identität hat noch nie Metadaten veröffentlicht.",
       "checking": "wird geprüft...",
       "hash": "Veröffentlichter Hash: {hash}",
+      "driftedPrompt": "Die Registry an einem dieser Orte passt nicht mehr zum Veröffentlichten. {link}",
+      "driftedLink": "Den aktuellen Inhalt veröffentlichen",
       "status": {
         "verified": "verifiziert",
         "changed": "seit der Veröffentlichung geändert",
         "changedIpfs": "passt nicht zum veröffentlichten Hash",
         "unreachable": "nicht erreichbar"
+      }
+    },
+    "publish": {
+      "action": "Update veröffentlichen",
+      "hint": "Erstelle oder überarbeite das Registry-JSON mit dem {generator}, hoste es an den Orten unten und veröffentliche hier den Zeiger. Das Wallet lädt, was diese Orte ausliefern, hasht es und veröffentlicht diesen Hash.",
+      "locationsHint": "Eine Domain, eine vollständige HTTPS-URL oder eine IPFS-CID. Alle Orte müssen dieselbe Datei ausliefern.",
+      "uriPlaceholder": "example.com oder ipfs://baf...",
+      "addLocation": "weiteren Ort hinzufügen",
+      "removeLocation": "entfernen",
+      "bytesLeft": "{bytes} Bytes übrig in der Veröffentlichungs-Ausgabe",
+      "button": "Prüfen und veröffentlichen",
+      "publishingButton": "Wird veröffentlicht...",
+      "done": "Metadaten-Update veröffentlicht",
+      "doneTitle": "Metadaten veröffentlicht",
+      "fields": {
+        "name": "Name",
+        "symbol": "Symbol",
+        "decimals": "Nachkommastellen",
+        "icon": "Icon"
+      },
+      "confirm": {
+        "title": "Dieses Metadaten-Update veröffentlichen?",
+        "message": "Hash {hash} wird veröffentlicht unter:",
+        "changed": "{field}: {from} wird {to}",
+        "empty": "(keiner)",
+        "droppedSnapshots": "Achtung: die neue Datei lässt {count} Snapshot der Historie dieser Identität weg. | Achtung: die neue Datei lässt {count} Snapshots der Historie dieser Identität weg.",
+        "button": "Veröffentlichen"
+      },
+      "errors": {
+        "noUris": "Gib mindestens einen Ort für die Registry an.",
+        "tooLarge": "Diese Orte passen nicht in eine Veröffentlichungs-Ausgabe. Entferne einen oder nutze kürzere Orte.",
+        "unreachable": "Die Registry unter {uri} konnte nicht geladen werden.",
+        "mirrorMismatch": "{uri} liefert einen anderen Inhalt als der erste Ort. Alle müssen dieselbe Datei ausliefern.",
+        "noIdentity": "Diese Registry beschreibt diese Identität nicht. Prüfe, ob die Datei diese Token-Kategorie nennt."
       }
     },
     "add": {

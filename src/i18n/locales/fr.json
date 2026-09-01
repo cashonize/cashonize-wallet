@@ -1432,18 +1432,96 @@
       "supply": "{amount} {symbol} gardés hors circulation en réserve",
       "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
       "nft": "Un NFT de cette catégorie",
-      "comingNote": "L'AuthHead est écarté de la sélection des pièces, un envoi ordinaire ne peut donc pas le dépenser. Émettre depuis la réserve, y ajouter et transférer l'identité arrivent dans une version ultérieure."
+      "transferHint": "Pour transférer cette identité, videz d'abord sa réserve : le transfert déplace l'autorité, et l'offre ne devrait pas suivre sans qu'on le remarque.",
+      "errors": {
+        "invalidAmount": "Saisissez un montant valide.",
+        "overReserve": "C'est plus que ce que contient la réserve.",
+        "overBalance": "C'est plus que ce que ce portefeuille peut dépenser de ce jeton.",
+        "nothingToEmpty": "Cet AuthHead ne porte aucune réserve à vider."
+      },
+      "issue": {
+        "action": "émettre depuis la réserve",
+        "hint": "Sortez des jetons de la réserve vers la circulation. La réserve contient {amount}.",
+        "amountPlaceholder": "Montant à émettre",
+        "destinationPlaceholder": "Adresse de jetons destinataire",
+        "button": "Émettre",
+        "issuingButton": "Émission...",
+        "confirmTitle": "Émettre depuis la réserve ?",
+        "confirmMessage": "{amount} quitte la réserve et va à {address}, entrant en circulation.",
+        "confirmButton": "Émettre",
+        "done": "Émis depuis la réserve vers {address}",
+        "doneTitle": "Émis depuis la réserve"
+      },
+      "add": {
+        "action": "ajouter à la réserve",
+        "hint": "Remettez en réserve des jetons que ce portefeuille détient, hors circulation.",
+        "amountPlaceholder": "Montant à ajouter",
+        "button": "Ajouter à la réserve",
+        "addingButton": "Ajout...",
+        "confirmTitle": "Ajouter à la réserve ?",
+        "confirmMessage": "{amount} rejoint la réserve sur l'AuthHead et quitte la circulation.",
+        "confirmButton": "Ajouter",
+        "done": "Ajouté à la réserve",
+        "doneTitle": "Ajouté à la réserve"
+      },
+      "empty": {
+        "action": "vider la réserve",
+        "hint": "Renvoyez toute la réserve de {amount} à ce portefeuille, l'AuthHead ne portant plus que l'autorité.",
+        "button": "Vider la réserve",
+        "emptyingButton": "Vidage...",
+        "confirmTitle": "Vider la réserve ?",
+        "confirmMessage": "{amount} revient dans ce portefeuille comme offre ordinaire, et l'AuthHead ne porte plus que l'autorité.",
+        "confirmButton": "Vider",
+        "done": "Réserve vidée",
+        "doneTitle": "Réserve vidée"
+      }
     },
     "publication": {
       "title": "Dernière publication de métadonnées",
       "none": "Cette identité n'a jamais publié de métadonnées.",
       "checking": "vérification...",
       "hash": "Hash publié : {hash}",
+      "driftedPrompt": "Le registre à l'un de ces emplacements ne correspond plus à ce qui a été publié. {link}",
+      "driftedLink": "Publier le contenu actuel",
       "status": {
         "verified": "vérifié",
         "changed": "modifié depuis la publication",
         "changedIpfs": "ne correspond pas au hash publié",
         "unreachable": "injoignable"
+      }
+    },
+    "publish": {
+      "action": "publier une mise à jour",
+      "hint": "Créez ou révisez le JSON du registre avec le {generator}, hébergez-le aux emplacements ci-dessous, puis publiez le pointeur ici. Le portefeuille récupère ce que ces emplacements servent, le hache et publie ce hash.",
+      "locationsHint": "Un domaine, une URL HTTPS complète ou un CID IPFS. Tous les emplacements doivent servir le même fichier.",
+      "uriPlaceholder": "example.com ou ipfs://baf...",
+      "addLocation": "ajouter un emplacement",
+      "removeLocation": "retirer",
+      "bytesLeft": "Il reste {bytes} octets dans la sortie de publication",
+      "button": "Vérifier et publier",
+      "publishingButton": "Publication...",
+      "done": "Mise à jour des métadonnées publiée",
+      "doneTitle": "Métadonnées publiées",
+      "fields": {
+        "name": "Nom",
+        "symbol": "Symbole",
+        "decimals": "Décimales",
+        "icon": "Icône"
+      },
+      "confirm": {
+        "title": "Publier cette mise à jour des métadonnées ?",
+        "message": "Publication du hash {hash} sur :",
+        "changed": "{field} : {from} devient {to}",
+        "empty": "(aucun)",
+        "droppedSnapshots": "Attention : le nouveau fichier abandonne {count} instantané de l'historique de cette identité. | Attention : le nouveau fichier abandonne {count} instantanés de l'historique de cette identité.",
+        "button": "Publier"
+      },
+      "errors": {
+        "noUris": "Indiquez au moins un emplacement pour le registre.",
+        "tooLarge": "Ces emplacements ne tiennent pas dans une sortie de publication. Retirez-en un ou utilisez des emplacements plus courts.",
+        "unreachable": "Impossible de récupérer le registre à {uri}.",
+        "mirrorMismatch": "{uri} sert un contenu différent du premier emplacement. Tous doivent servir le même fichier.",
+        "noIdentity": "Ce registre ne décrit pas cette identité. Vérifiez que le fichier nomme cette catégorie de jeton."
       }
     },
     "add": {
