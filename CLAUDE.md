@@ -64,7 +64,7 @@ The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libau
 
 ### Persistent Storage
 - **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
-- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, identity categories, WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
+- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, identity categories and the ones dismissed from them, WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
 The app reaches into mainnet-js's databases itself, in `utils/wallet/dbUtils.ts` and the settings menu's cache-size/clear and delete flows. Some of that goes through mainnet-js's own storage provider, the rest is raw IndexedDB where not even that reaches. There we have to keep matching its versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and mainnet-js finding it already there never runs its own setup.
@@ -78,7 +78,7 @@ mainnet-js configures `@electrum-cash/web-socket` to keep connections alive acro
 Blockchain data comes from one electrum server at a time and is not verified. `@electrum-cash/network` is a single-server client with no cluster or SPV support, so balance, history, confirmations and block height are that server's claims rather than anything the wallet checks, and they are cached to IndexedDB.
 
 ### Chaingraph
-Chaingraph is a secondary blockchain indexer next to electrum, a GraphQL (Hasura) service that allows arbitrary queries. Everything core to the wallet runs on electrum; Chaingraph only serves some novel data displays: the walk of the wallet's spent outputs behind the portfolio's TapSwap and hodl discovery, and detecting whether the wallet holds a token's authhead. The few queries live in `src/queryChainGraph.ts`, sent with plain fetch.
+Chaingraph is a secondary blockchain indexer next to electrum, a GraphQL (Hasura) service that allows arbitrary queries. Spending and balances run on electrum alone, but Chaingraph is not only cosmetic: one walk of the wallet's spent outputs feeds the portfolio's TapSwap and hodl discovery and the automatic detection of identities these keys made, which decides what gets held back from coin selection. It also resolves a token's authhead. The few queries live in `src/queryChainGraph.ts`, sent with plain fetch.
 
 ### Configurable Backends
 Every backend the app talks to is one user-swappable server: electrum (per network), the Chaingraph instance, the BCMR and Cauldron indexers, the IPFS gateway and the exchange rate provider all live in settingsStore, selectable in the advanced settings from predefined choices plus, for most, a custom URL.
@@ -118,7 +118,7 @@ Fungible token values come from the indexer of Cauldron, the main AMM DEX in the
 The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. For now every dapp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups, data on held NFTs, or a Chaingraph walk of the wallet's spent outputs for OP_RETURN protocol markers) and is documented in each module's header comment.
 
 ### Wallet Tools
-The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves a token identity's authhead, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere.
+The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves a token identity's authhead, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. Automatic detection is the one path that reserves what the user never listed, reading the wallet's own chain history for identities these keys made; removing one is remembered so it is not listed again.
 
 ### Component Organization
 ```

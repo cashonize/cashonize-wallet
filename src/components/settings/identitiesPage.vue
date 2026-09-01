@@ -478,6 +478,21 @@
     identity.guardAddress === authGuardAddresses(keyCategory, store.wallet.networkPrefix).p2sh20.tokenAddress
     || identity.guardAddress === authGuardAddresses(keyCategory, store.wallet.networkPrefix).p2sh32.tokenAddress;
 
+  // These have no name to confirm against, so the dialog says what the coin is instead
+  async function removeUnnamed(txid: string) {
+    const confirmed = await confirmDialog(
+      t('identities.unnamed.removeTitle'),
+      t('identities.unnamed.removeMessage'),
+      t('identities.remove.button')
+    );
+    if (!confirmed) return;
+    try {
+      await store.removeUnnamedAuthhead(txid);
+    } catch (error) {
+      displayAndLogError(error);
+    }
+  }
+
   async function removeIdentity(identity: IdentityState) {
     const confirmed = await confirmDialog(
       t('identities.remove.title'),
@@ -592,6 +607,8 @@
         <div v-else>{{ t('identities.scan.noneFound') }}</div>
         <div v-if="scanSummary.alreadyListed">{{ t('identities.scan.alreadyListed', scanSummary.alreadyListed) }}</div>
         <div v-if="scanSummary.carriesTokens">{{ t('identities.scan.carriesTokens', scanSummary.carriesTokens) }}</div>
+        <div v-if="scanSummary.deepScanned">{{ t('identities.scan.deepScanned', scanSummary.deepScanned) }}</div>
+        <div v-if="scanSummary.dismissed">{{ t('identities.scan.dismissed', scanSummary.dismissed) }}</div>
         <div v-if="scanSummary.failed">{{ t('identities.scan.failed', scanSummary.failed) }}</div>
       </div>
     </div>
@@ -612,6 +629,30 @@
         </ol>
       </div>
       <div v-else class="description">{{ t('identities.listedCount', listedCount) }}</div>
+
+      <!-- Found in this wallet's own history and held back, with nothing on the coin to say which
+           identity it belongs to. Protected first, named if it can be. -->
+      <div v-for="coin in store.unnamedAuthheadCoins()" :key="coin.txid" class="section identity-card">
+        <div>
+          {{ t('identities.unnamed.title') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('identities.unnamed.help') }}</div>
+          </InfoPopup>
+        </div>
+        <div class="identity-status held">
+          <q-icon name="lock" size="15px" />
+          {{ t('identities.unnamed.status') }}
+        </div>
+        <div class="copy-target" :title="`${coin.txid}:0`" @click="copyToClipboard(`${coin.txid}:0`)">
+          <span class="description">{{ t('identities.authheadLabel') }}</span>
+          <span class="mono">{{ truncateHash(coin.txid) }}:0</span>
+          <img class="copyIcon" src="images/copyGrey.svg">
+        </div>
+        <div class="description">{{ t('identities.authheadAmount', { amount: bchOf(coin.satoshis) }) }}</div>
+        <div class="identity-links">
+          <span class="remove-identity" @click="removeUnnamed(coin.txid)">{{ t('identities.remove.button') }}</span>
+        </div>
+      </div>
 
       <div v-for="guard in unnameableGuards" :key="guard.category" class="section identity-card">
         <div>{{ t('identities.key.unnameableTitle') }}</div>

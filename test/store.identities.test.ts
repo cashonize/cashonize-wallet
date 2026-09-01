@@ -157,7 +157,7 @@ describe('auth reservations follow the authchain', () => {
 
     const summary = await store.scanForIdentities()
 
-    expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, failed: 0 })
+    expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, failed: 0, dismissed: 0, deepScanned: 0 })
     expect(store.reservedUtxos[outpointOf(authUtxoA)]?.reason).toBe('auth')
     expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
     expect(store.identityCategories).toEqual([categoryA, categoryB])
@@ -269,6 +269,54 @@ describe('auth reservations follow the authchain', () => {
 
     expect(store.identityCategories).toEqual([])
     expect(store.dismissedIdentities).toEqual([categoryA])
+  })
+
+  // A BCH-only chain carries nothing on its identity output to name it. Protection cannot wait
+  // for that: the coin is held back first, and naming it comes after.
+  it('holds back an authhead it cannot name', async () => {
+    const authUtxo = utxo(authheadA, 0)
+    const store = startStore([authUtxo])
+    const walk = [{
+      transaction_hash: `\\x${categoryA}`,
+      output_index: '1',
+      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+      ] } }],
+    }]
+
+    await store.detectWalletIdentities(walk)
+
+    expect(store.unnamedAuthheads).toEqual([authheadA])
+    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.spendableUtxos).toEqual([])
+    // nothing was named, so nothing joined the identity list
+    expect(store.identityCategories).toEqual([])
+  })
+
+  it('releases an unnamed authhead the user drops, and does not list it again', async () => {
+    const authUtxo = utxo(authheadA, 0)
+    const store = startStore([authUtxo])
+    const walk = [{
+      transaction_hash: `\\x${categoryA}`,
+      output_index: '1',
+      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+      ] } }],
+    }]
+    await store.detectWalletIdentities(walk)
+
+    await store.removeUnnamedAuthhead(authheadA)
+    await store.detectWalletIdentities(walk)
+
+    expect(store.unnamedAuthheads).toEqual([])
+    expect(store.reservedUtxos).toEqual({})
+    expect(store.spendableUtxos).toEqual([authUtxo])
   })
 
   it('releases the authhead of an identity removed from the list', async () => {

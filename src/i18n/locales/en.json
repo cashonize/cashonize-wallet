@@ -1427,6 +1427,13 @@
       "foundAutomatically": "Found automatically",
       "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so its AuthHead was found in this wallet's own history and is now held back from coin selection. Remove it from the list if you would rather it were not."
     },
+    "unnamed": {
+      "title": "An AuthHead this wallet holds",
+      "status": "Held back, identity not named yet",
+      "help": "This wallet's keys published metadata for an identity whose AuthHead carries no token, so the coin says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it.",
+      "removeTitle": "Stop holding this coin back?",
+      "removeMessage": "The coin returns to coin selection and an ordinary send can spend it, which ends the identity it is the AuthHead of. It will not be listed again."
+    },
     "listedCount": "{count} identity followed by this wallet | {count} identities followed by this wallet",
     "unnamedIdentity": "Unnamed identity",
     "categoryLabel": "Category:",
@@ -1605,6 +1612,8 @@
       "noneFound": "No new identities found.",
       "alreadyListed": "{count} category was already listed. | {count} categories were already listed.",
       "carriesTokens": "{count} of them carries a token reserve. | {count} of them carry a token reserve.",
+      "deepScanned": "{count} held coin turned out to be an AuthHead. | {count} held coins turned out to be AuthHeads.",
+      "dismissed": "{count} was left off because you removed it before. | {count} were left off because you removed them before.",
       "failed": "{count} category could not be checked. | {count} categories could not be checked."
     },
     "transfer": {

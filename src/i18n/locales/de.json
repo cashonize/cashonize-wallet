@@ -1427,6 +1427,13 @@
       "foundAutomatically": "Automatisch gefunden",
       "foundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identität erstellt oder ihre Metadaten veröffentlicht, ihr AuthHead wurde also in der eigenen Historie gefunden und ist jetzt von der Münzauswahl ausgenommen. Nimm sie von der Liste, wenn dir das lieber ist."
     },
+    "unnamed": {
+      "title": "Ein AuthHead in diesem Wallet",
+      "status": "Zurückgehalten, Identität noch nicht benannt",
+      "help": "Die Schlüssel dieses Wallets haben Metadaten einer Identität veröffentlicht, deren AuthHead keinen Token trägt, die Münze sagt also nicht, um welche Identität es geht. Sie bleibt trotzdem von der Münzauswahl ausgenommen: sie zu schützen wartet nicht darauf, sie zu benennen.",
+      "removeTitle": "Diese Münze nicht mehr zurückhalten?",
+      "removeMessage": "Die Münze kommt zurück in die Münzauswahl und ein gewöhnlicher Versand kann sie ausgeben, was die Identität beendet, deren AuthHead sie ist. Sie wird nicht wieder aufgelistet."
+    },
     "listedCount": "{count} Identität, der dieses Wallet folgt | {count} Identitäten, denen dieses Wallet folgt",
     "unnamedIdentity": "Identität ohne Namen",
     "categoryLabel": "Kategorie:",
@@ -1605,6 +1612,8 @@
       "noneFound": "Keine neuen Identitäten gefunden.",
       "alreadyListed": "{count} Kategorie stand bereits in der Liste. | {count} Kategorien standen bereits in der Liste.",
       "carriesTokens": "{count} davon trägt eine Token-Reserve. | {count} davon tragen eine Token-Reserve.",
+      "deepScanned": "{count} gehaltene Münze war ein AuthHead. | {count} gehaltene Münzen waren AuthHeads.",
+      "dismissed": "{count} wurde ausgelassen, weil du sie vorher entfernt hast. | {count} wurden ausgelassen, weil du sie vorher entfernt hast.",
       "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden."
     },
     "transfer": {

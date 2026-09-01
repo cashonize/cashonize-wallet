@@ -1427,6 +1427,13 @@
       "foundAutomatically": "Encontrada automáticamente",
       "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que su AuthHead se encontró en el propio historial de la billetera y ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no."
     },
+    "unnamed": {
+      "title": "Un AuthHead que tiene esta billetera",
+      "status": "Retenido, identidad aún sin nombrar",
+      "help": "Las claves de esta billetera publicaron metadatos de una identidad cuyo AuthHead no lleva token, así que la moneda no dice de qué identidad se trata. Aun así queda fuera de la selección de monedas: protegerla no espera a nombrarla.",
+      "removeTitle": "¿Dejar de retener esta moneda?",
+      "removeMessage": "La moneda vuelve a la selección de monedas y un envío normal puede gastarla, lo que termina la identidad de la que es AuthHead. No se volverá a listar."
+    },
     "listedCount": "{count} identidad seguida por esta billetera | {count} identidades seguidas por esta billetera",
     "unnamedIdentity": "Identidad sin nombre",
     "categoryLabel": "Categoría:",
@@ -1605,6 +1612,8 @@
       "noneFound": "No se encontraron identidades nuevas.",
       "alreadyListed": "{count} categoría ya estaba en la lista. | {count} categorías ya estaban en la lista.",
       "carriesTokens": "{count} de ellos lleva una reserva de tokens. | {count} de ellos llevan una reserva de tokens.",
+      "deepScanned": "{count} moneda retenida resultó ser un AuthHead. | {count} monedas retenidas resultaron ser AuthHeads.",
+      "dismissed": "{count} se dejó fuera porque la quitaste antes. | {count} se dejaron fuera porque las quitaste antes.",
       "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías."
     },
     "transfer": {

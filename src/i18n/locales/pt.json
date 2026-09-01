@@ -1427,6 +1427,13 @@
       "foundAutomatically": "Encontrada automaticamente",
       "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os metadados dela, então o AuthHead foi encontrado no próprio histórico da carteira e agora fica fora da seleção de moedas. Remova-a da lista se preferir."
     },
+    "unnamed": {
+      "title": "Um AuthHead desta carteira",
+      "status": "Retido, identidade ainda sem nome",
+      "help": "As chaves desta carteira publicaram metadados de uma identidade cujo AuthHead não carrega token, então a moeda não diz de qual identidade se trata. Ainda assim ela fica fora da seleção de moedas: protegê-la não espera por nomeá-la.",
+      "removeTitle": "Parar de reter esta moeda?",
+      "removeMessage": "A moeda volta para a seleção de moedas e um envio comum pode gastá-la, o que encerra a identidade da qual ela é o AuthHead. Ela não será listada de novo."
+    },
     "listedCount": "{count} identidade acompanhada por esta carteira | {count} identidades acompanhadas por esta carteira",
     "unnamedIdentity": "Identidade sem nome",
     "categoryLabel": "Categoria:",
@@ -1605,6 +1612,8 @@
       "noneFound": "Nenhuma identidade nova encontrada.",
       "alreadyListed": "{count} categoria já estava na lista. | {count} categorias já estavam na lista.",
       "carriesTokens": "{count} deles carrega uma reserva de tokens. | {count} deles carregam uma reserva de tokens.",
+      "deepScanned": "{count} moeda retida acabou sendo um AuthHead. | {count} moedas retidas acabaram sendo AuthHeads.",
+      "dismissed": "{count} foi deixada de fora porque você a removeu antes. | {count} foram deixadas de fora porque você as removeu antes.",
       "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias."
     },
     "transfer": {

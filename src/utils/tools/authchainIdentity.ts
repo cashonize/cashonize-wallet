@@ -28,6 +28,8 @@ export interface IdentityScanSummary {
   alreadyListed: number; // categories the list already covered, which the scan skips
   carriesTokens: number; // of those found, the ones holding a token reserve alongside the authority
   failed: number; // categories whose lookup did not come back
+  dismissed: number; // found, but left off because the user took them off before
+  deepScanned: number; // held coins walked back to a genesis, which the held categories miss
 }
 
 export interface IdentityState {
@@ -347,6 +349,38 @@ export function deleteAuthKeyCategory(network: Network, walletName: string, cate
   return categories;
 }
 
+// Authheads this wallet holds that the detection found but could not name: a BCH-only chain
+// carries nothing on its identity output to say which identity it is. Protection does not wait on
+// naming, so these are kept by the txid of the transaction whose output 0 they are, reserved like
+// any other authhead, and they leave this list when naming succeeds.
+function unnamedKey(network: Network, walletName: string): string {
+  return `unnamedAuthheads-${network}-${walletName}`;
+}
+
+export function loadUnnamedAuthheads(network: Network, walletName: string): string[] {
+  const read = localStorage.getItem(unnamedKey(network, walletName));
+  if (!read) return [];
+  try {
+    return JSON.parse(read) as string[];
+  } catch {
+    return [];
+  }
+}
+
+// Same fresh read-modify-write as its siblings.
+export function saveUnnamedAuthhead(network: Network, walletName: string, txid: string): string[] {
+  const unnamed = loadUnnamedAuthheads(network, walletName);
+  if (!unnamed.includes(txid)) unnamed.push(txid);
+  localStorage.setItem(unnamedKey(network, walletName), JSON.stringify(unnamed));
+  return unnamed;
+}
+
+export function deleteUnnamedAuthhead(network: Network, walletName: string, txid: string): string[] {
+  const unnamed = loadUnnamedAuthheads(network, walletName).filter(listed => listed !== txid);
+  localStorage.setItem(unnamedKey(network, walletName), JSON.stringify(unnamed));
+  return unnamed;
+}
+
 // Categories the user took off the list. A decision rather than a derivation, which is why this
 // is the one thing here that is stored rather than re-read from the chain: without it the
 // automatic detection would put back on every open what the user just removed.
@@ -414,6 +448,7 @@ export function removeIdentityCategories(walletName: string) {
     localStorage.removeItem(authKeysKey(network, walletName));
     localStorage.removeItem(dismissedKey(network, walletName));
     localStorage.removeItem(unseenKey(network, walletName));
+    localStorage.removeItem(unnamedKey(network, walletName));
   }
 }
 

@@ -1427,6 +1427,13 @@
       "foundAutomatically": "Trouvée automatiquement",
       "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, son AuthHead a donc été trouvé dans l'historique du portefeuille et est désormais écarté de la sélection des pièces. Retirez-la de la liste si vous préférez."
     },
+    "unnamed": {
+      "title": "Un AuthHead détenu par ce portefeuille",
+      "status": "Retenu, identité pas encore nommée",
+      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont l'AuthHead ne porte pas de jeton : la pièce ne dit donc pas de quelle identité il s'agit. Elle est écartée de la sélection des pièces malgré tout, car la protéger n'attend pas de la nommer.",
+      "removeTitle": "Cesser de retenir cette pièce ?",
+      "removeMessage": "La pièce revient dans la sélection et un envoi ordinaire peut la dépenser, ce qui met fin à l'identité dont elle est l'AuthHead. Elle ne sera plus listée."
+    },
     "listedCount": "{count} identité suivie par ce portefeuille | {count} identités suivies par ce portefeuille",
     "unnamedIdentity": "Identité sans nom",
     "categoryLabel": "Catégorie :",
@@ -1605,6 +1612,8 @@
       "noneFound": "Aucune nouvelle identité trouvée.",
       "alreadyListed": "{count} catégorie était déjà dans la liste. | {count} catégories étaient déjà dans la liste.",
       "carriesTokens": "{count} d'entre eux porte une réserve de jetons. | {count} d'entre eux portent une réserve de jetons.",
+      "deepScanned": "{count} pièce détenue s'est avérée être un AuthHead. | {count} pièces détenues se sont avérées être des AuthHeads.",
+      "dismissed": "{count} a été laissée de côté parce que vous l'aviez retirée. | {count} ont été laissées de côté parce que vous les aviez retirées.",
       "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées."
     },
     "transfer": {
