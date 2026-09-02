@@ -86,29 +86,28 @@ describe('checkPublicationUri', () => {
   it('verifies a location serving what the hash commits to', async () => {
     stubServedContent(registry)
 
-    expect(await checkPublicationUri('example.com', registryHash, ipfsGateway))
-      .toEqual({ uri: 'example.com', status: 'verified' })
+    expect(await checkPublicationUri('example.com', registryHash, ipfsGateway)).toBe('verified')
   })
 
   // the hosted file was edited without a matching publication, which is what the badge is for
   it('reports a location serving something else as changed', async () => {
     stubServedContent('{"version":{"major":2,"minor":0,"patch":0}}')
 
-    expect((await checkPublicationUri('example.com', registryHash, ipfsGateway)).status)
+    expect(await checkPublicationUri('example.com', registryHash, ipfsGateway))
       .toBe('changed')
   })
 
   it('reports a location that does not answer as unreachable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 
-    expect((await checkPublicationUri('example.com', registryHash, ipfsGateway)).status)
+    expect(await checkPublicationUri('example.com', registryHash, ipfsGateway))
       .toBe('unreachable')
   })
 
   it('reports an error response as unreachable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, text: () => Promise.resolve('') }))
 
-    expect((await checkPublicationUri('example.com', registryHash, ipfsGateway)).status)
+    expect(await checkPublicationUri('example.com', registryHash, ipfsGateway))
       .toBe('unreachable')
   })
 

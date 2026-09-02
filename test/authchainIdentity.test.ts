@@ -188,13 +188,12 @@ describe('resolveIdentities', () => {
     expect(resolved[0]?.authUtxo).toBeUndefined();
   });
 
-  // both are held back, they are told apart because an authhead carrying a reserve cannot be
-  // transferred on its own yet
-  it('marks an authhead carrying a reserve, and still holds it back', async () => {
+  // what the authhead carries is on the UTXO itself, held back like any other
+  it('holds back an authhead carrying a reserve like any other', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA });
     const tokenAuthUtxo = utxo(authheadA, 0, { category: categoryA, amount: 100n });
     const resolved = await resolveIdentities([categoryA], chaingraphUrl, [tokenAuthUtxo]);
-    expect(resolved[0]?.status).toBe('carriesTokens');
+    expect(resolved[0]?.status).toBe('held');
     expect(resolved[0]?.authUtxo).toEqual(tokenAuthUtxo);
   });
 

@@ -1514,14 +1514,12 @@
     "authheadAmount": "Contiene {amount}",
     "status": {
       "held": "En esta billetera",
-      "carriesTokens": "En esta billetera",
       "notHeld": "Observada, está en otra billetera",
       "unresolved": "No se pudo consultar esta identidad",
       "heldViaKey": "A través de una clave de identidad"
     },
     "statusHelp": {
       "held": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal puede gastarlo.",
-      "carriesTokens": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal puede gastarlo.",
       "notHeld": "Esta identidad está en otro sitio, así que esta billetera solo la observa: se muestra su publicación, pero actualizarla requiere la billetera que la tiene.",
       "unresolved": "No se pudo consultar dónde está esta identidad, así que ahora mismo se desconoce. Lo que se retiene por ella sigue retenido hasta que llegue una respuesta.",
       "heldViaKey": "El UTXO de esta identidad está bloqueado en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin el UTXO, así que lo que queda fuera de la selección de monedas es la clave."
@@ -1616,9 +1614,6 @@
       "kind": {
         "genesis": "Creada",
         "publication": "Metadatos publicados",
-        "issue": "Emitido de la reserva",
-        "addToReserve": "Añadido a la reserva",
-        "emptyReserve": "Reserva vaciada",
         "transfer": "Transferida",
         "operation": "Actualizada",
         "mint": "Acuñado"

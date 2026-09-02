@@ -1514,14 +1514,12 @@
     "authheadAmount": "Contém {amount}",
     "status": {
       "held": "Nesta carteira",
-      "carriesTokens": "Nesta carteira",
       "notHeld": "Observada, está em outra carteira",
       "unresolved": "Não foi possível consultar esta identidade",
       "heldViaKey": "Através de uma chave de identidade"
     },
     "statusHelp": {
       "held": "Esta carteira tem o UTXO desta identidade, portanto pode atualizar os seus metadados. O UTXO fica de fora da seleção de moedas, nenhum envio comum pode gastá-lo.",
-      "carriesTokens": "Esta carteira tem o UTXO desta identidade, portanto pode atualizar os seus metadados. O UTXO fica de fora da seleção de moedas, nenhum envio comum pode gastá-lo.",
       "notHeld": "Esta identidade está em outro lugar, portanto esta carteira apenas a observa: a publicação é mostrada, mas atualizá-la exige a carteira que a tem.",
       "unresolved": "Não foi possível consultar onde esta identidade está, então isso é desconhecido agora. O que está retido por ela continua retido até chegar uma resposta.",
       "heldViaKey": "O UTXO desta identidade está trancado em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem o UTXO, portanto é a chave que fica de fora da seleção de moedas."
@@ -1616,9 +1614,6 @@
       "kind": {
         "genesis": "Criada",
         "publication": "Metadados publicados",
-        "issue": "Emitido da reserva",
-        "addToReserve": "Adicionado à reserva",
-        "emptyReserve": "Reserva esvaziada",
         "transfer": "Transferida",
         "operation": "Atualizada",
         "mint": "Cunhado"

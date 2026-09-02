@@ -1514,14 +1514,12 @@
     "authheadAmount": "Contient {amount}",
     "status": {
       "held": "Détenue par ce portefeuille",
-      "carriesTokens": "Détenue par ce portefeuille",
       "notHeld": "Surveillée, détenue par un autre portefeuille",
       "unresolved": "Impossible de consulter cette identité",
       "heldViaKey": "Détenue via une clé d'identité"
     },
     "statusHelp": {
       "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire ne peut le dépenser.",
-      "carriesTokens": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire ne peut le dépenser.",
       "notHeld": "Cette identité est ailleurs, ce portefeuille ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour demande le portefeuille qui la détient.",
       "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
       "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces."
@@ -1616,9 +1614,6 @@
       "kind": {
         "genesis": "Créée",
         "publication": "Métadonnées publiées",
-        "issue": "Émis depuis la réserve",
-        "addToReserve": "Ajouté à la réserve",
-        "emptyReserve": "Réserve vidée",
         "transfer": "Transférée",
         "operation": "Mise à jour",
         "mint": "Frappé"

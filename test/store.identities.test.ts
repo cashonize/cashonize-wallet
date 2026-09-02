@@ -347,7 +347,7 @@ describe('auth reservations follow the authchain', () => {
 
     await identitiesStore.refreshIdentities()
 
-    expect(identitiesStore.identities?.[0]?.status).toBe('carriesTokens')
+    expect(identitiesStore.identities?.[0]?.status).toBe('held')
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
   })

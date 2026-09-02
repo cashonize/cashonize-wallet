@@ -15,13 +15,11 @@ const { t } = i18n.global;
 
 type Network = 'mainnet' | 'chipnet';
 
-// 'held' and 'carriesTokens' are both authheads this wallet holds directly and keeps out of coin
-// selection; the second also carries a token, a reserve or a minting NFT, which is what a transfer
-// has to ask about. A reserve is not implied: that is fungibleSupply. 'heldViaKey' is an authhead
-// locked in an AuthGuard covenant whose key NFT this wallet holds, which is authority over the
-// identity without the coin. 'unresolved' is a failed
-// Chaingraph query, which says nothing about where the authhead is.
-export type IdentityStatus = 'held' | 'carriesTokens' | 'heldViaKey' | 'notHeld' | 'unresolved';
+// 'held' is an authhead this wallet holds directly and keeps out of coin selection; what it carries,
+// a reserve or a minting NFT, is on the UTXO itself. 'heldViaKey' is an authhead locked in an
+// AuthGuard covenant whose key NFT this wallet holds, which is authority over the identity without
+// the UTXO. 'unresolved' is a failed Chaingraph query, which says nothing about where the authhead is.
+export type IdentityStatus = 'held' | 'heldViaKey' | 'notHeld' | 'unresolved';
 
 // What one run of the ownership scan over the wallet's token categories turned up
 export interface IdentityScanSummary {
@@ -75,11 +73,6 @@ export interface MetadataPublication {
 // hosted file having been edited since publication, and for an IPFS CID, which cannot serve
 // different content, that its content never matched the hash it was published with.
 export type PublicationUriStatus = 'verified' | 'changed' | 'unreachable';
-
-export interface PublicationUriCheck {
-  uri: string;
-  status: PublicationUriStatus;
-}
 
 const BCMR_OUTPUT_PREFIX = "6a0442434d52";
 // a publication location that hangs must not hang the page; the same bound the Chaingraph requests have
@@ -332,10 +325,10 @@ export async function checkPublicationUri(
   uri: string,
   expectedHash: string,
   ipfsGateway: string,
-): Promise<PublicationUriCheck> {
+): Promise<PublicationUriStatus> {
   const content = await fetchRegistryText(uri, ipfsGateway);
-  if (content === undefined) return { uri, status: 'unreachable' };
-  return { uri, status: registryContentHash(content) === expectedHash ? 'verified' : 'changed' };
+  if (content === undefined) return 'unreachable';
+  return registryContentHash(content) === expectedHash ? 'verified' : 'changed';
 }
 
 // What this feature persists, all of it per wallet per network and all of it a set of ids. The
@@ -435,16 +428,8 @@ export function removeIdentityCategories(walletName: string) {
 // What one link of an authchain did, read off its outputs. The chain is the identity's whole
 // history, and the explorer shows it raw; what the wallet can add is what each step meant, which
 // its outputs say: a link carrying a BCMR output published metadata, and the reserve riding on the
-// identity output before and after says whether supply was issued, added back, or moved off.
-export type ChainLinkKind =
-  | 'genesis'
-  | 'publication'
-  | 'issue'
-  | 'addToReserve'
-  | 'emptyReserve'
-  | 'mint'
-  | 'transfer'
-  | 'operation';
+// identity output before and after says how much supply moved.
+export type ChainLinkKind = 'genesis' | 'publication' | 'mint' | 'transfer' | 'operation';
 
 export interface DescribedLink {
   hash: string;
@@ -472,17 +457,15 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
     const movedAddress = previousLock !== undefined && identityOutput?.locking_bytecode !== previousLock;
 
     // outputs of the category beside the identity output, with the reserve unchanged, are minted
-    // NFTs; an issuance also has them, and is told apart by the reserve going down first
+    // NFTs; a reserve move also has them, and is told apart by the reserve changing
     const minted = link.outputs.filter(output =>
       output.output_index !== "0" && output.token_category && output.token_category === identityOutput?.token_category
     ).length;
     let kind: ChainLinkKind = 'operation';
     if (index === 0) kind = 'genesis';
     else if (publication) kind = 'publication';
-    else if (reserveDelta < 0n) kind = reserve === 0n ? 'emptyReserve' : 'issue';
-    else if (reserveDelta > 0n) kind = 'addToReserve';
-    else if (minted) kind = 'mint';
-    else if (movedAddress) kind = 'transfer';
+    else if (reserveDelta === 0n && minted) kind = 'mint';
+    else if (reserveDelta === 0n && movedAddress) kind = 'transfer';
 
     previousReserve = reserve;
     previousLock = identityOutput?.locking_bytecode;
@@ -523,7 +506,6 @@ export async function resolveIdentities(
     const resolved = { category, authheadTxid, links, fungibleSupply, ...(publication ? { publication } : {}) };
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
-    if (authUtxo?.token) return { ...resolved, authUtxo, status: 'carriesTokens' };
     if (authUtxo) return { ...resolved, authUtxo, status: 'held' };
     // Held through a covenant instead: the guard holds an identity output, and this says it is
     // the one the authchain ends at rather than an older link somebody left there.

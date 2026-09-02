@@ -1514,14 +1514,12 @@
     "authheadAmount": "Enthält {amount}",
     "status": {
       "held": "In diesem Wallet gehalten",
-      "carriesTokens": "In diesem Wallet gehalten",
       "notHeld": "Beobachtet, in einem anderen Wallet",
       "unresolved": "Konnte nicht abgefragt werden",
       "heldViaKey": "Über einen Identitätsschlüssel gehalten"
     },
     "statusHelp": {
       "held": "Dieses Wallet hält den UTXO dieser Identität und kann die Metadaten also aktualisieren. Der UTXO ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann ihn ausgeben.",
-      "carriesTokens": "Dieses Wallet hält den UTXO dieser Identität und kann die Metadaten also aktualisieren. Der UTXO ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann ihn ausgeben.",
       "notHeld": "Diese Identität liegt woanders, dieses Wallet beobachtet sie also nur: die Veröffentlichung wird gezeigt, aktualisieren kann sie das Wallet, das sie hält.",
       "unresolved": "Wo diese Identität liegt, konnte nicht abgefragt werden, es ist gerade unbekannt. Was für sie zurückgehalten wird, bleibt es, bis eine Antwort kommt.",
       "heldViaKey": "Der UTXO dieser Identität liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne den UTXO, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird."
@@ -1616,9 +1614,6 @@
       "kind": {
         "genesis": "Erstellt",
         "publication": "Metadaten veröffentlicht",
-        "issue": "Aus der Reserve ausgegeben",
-        "addToReserve": "Zur Reserve hinzugefügt",
-        "emptyReserve": "Reserve geleert",
         "transfer": "Übertragen",
         "operation": "Aktualisiert",
         "mint": "Geprägt"

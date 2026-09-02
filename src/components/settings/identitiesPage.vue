@@ -98,7 +98,7 @@
   const needsAttention = computed(() =>
     identities.value.some(identity => identity.status === 'unresolved')
     || Object.values(identitiesStore.publicationChecks).some(
-      checks => checks.some(check => check.status !== 'verified')
+      statuses => statuses.some(status => status !== 'verified')
     )
   );
 
@@ -152,16 +152,15 @@
   // identity this wallet can act on: it is the state the publish flow exists to resolve
   function hasDrifted(identity: IdentityState) {
     if (!identity.authUtxo) return false;
-    const checks = identitiesStore.publicationChecks[identity.category] ?? [];
-    return checks.some(check => check.status === 'changed');
+    return (identitiesStore.publicationChecks[identity.category] ?? []).some(status => status === 'changed');
   }
 
   // One row per published location: the location as published, where it is actually fetched from,
   // and what fetching it found once the check has run
   function publicationRows(identity: IdentityState) {
-    const checks = identitiesStore.publicationChecks[identity.category];
-    return (identity.publication?.uris ?? []).map(uri => {
-      const status = checks?.find(check => check.uri === uri)?.status;
+    const statuses = identitiesStore.publicationChecks[identity.category];
+    return (identity.publication?.uris ?? []).map((uri, index) => {
+      const status = statuses?.[index];
       return {
         uri,
         url: registryUrlOf(uri, settingsStore.ipfsGateway),
@@ -1123,7 +1122,7 @@
         <div v-if="isOpen(identity, 'transfer')" class="section">
           <div class="description">{{ t('identities.transfer.hint') }}</div>
           <!-- what rides on the authhead is asked about rather than moved quietly -->
-          <template v-if="identity.status === 'carriesTokens'">
+          <template v-if="identity.authUtxo?.token">
             <label :for="`carried-${identity.category}`" style="display: block; margin-top: 8px;">
               {{ t('identities.transfer.carriedLabel', { carries: carriesLine(identity) }) }}
             </label>
@@ -1322,7 +1321,6 @@
 /* a held identity is simply how things should be, and a colour that reads as a link on something
    that does not click is worse than plain text */
 .identity-status.held,
-.identity-status.carriesTokens,
 .identity-status.heldViaKey {
   color: var(--font-color);
 }

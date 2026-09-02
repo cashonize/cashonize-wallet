@@ -24,7 +24,7 @@ import {
   type IdentityStatus,
   type DescribedLink,
   type GuardedIdentity,
-  type PublicationUriCheck,
+  type PublicationUriStatus,
 } from "src/utils/tools/authchainIdentity"
 import { detectIdentities, nameChainByWalkingBack, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { authGuardAddresses, isAuthKeyCandidate, guardContentsFromUtxos } from "src/utils/tools/authGuard"
@@ -61,7 +61,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // What each listed identity's published registry locations actually serve, keyed by category.
   // Kept beside the identities rather than on them: resolution reads the chain, this reads the
   // hosting, and one can be present without the other.
-  const publicationChecks = ref({} as Record<string, PublicationUriCheck[]>);
+  const publicationChecks = ref({} as Record<string, PublicationUriStatus[]>);
   const publicationChecksRunning = ref(false);
   // Guarded outputs found but not nameable without a lookup this version does not have, per key
   // category, so a key that guards only those does not read as guarding nothing.
@@ -524,7 +524,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   function heldIdentityOf(category: string) {
     const identity = identities.value?.find(identity => identity.category === category);
     if (!identity) return undefined;
-    const heldStatuses: IdentityStatus[] = ['held', 'carriesTokens', 'heldViaKey'];
+    const heldStatuses: IdentityStatus[] = ['held', 'heldViaKey'];
     return heldStatuses.includes(identity.status) ? identity : undefined;
   }
 

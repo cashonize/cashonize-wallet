@@ -39,34 +39,16 @@ describe('describeChainLinks', () => {
   })
 
   // the reserve read down the list is the issuance schedule, which is bookkeeping for an issuer
-  it('reads an issuance out of the reserve going down', () => {
+  it('reads how much supply moved out of the reserve before and after', () => {
     const described = describeChainLinks([
       link('aa'.repeat(32), { reserve: '1000' }),
       link('bb'.repeat(32), { reserve: '900' }),
+      link('cc'.repeat(32), { reserve: null }),
+      link('dd'.repeat(32), { reserve: '1000' }),
     ])
 
-    expect(described[1]?.kind).toBe('issue')
-    expect(described[1]?.reserveDelta).toBe(-100n)
-  })
-
-  it('reads supply put back out of the reserve going up', () => {
-    const described = describeChainLinks([
-      link('aa'.repeat(32), { reserve: '900' }),
-      link('bb'.repeat(32), { reserve: '1000' }),
-    ])
-
-    expect(described[1]?.kind).toBe('addToReserve')
-    expect(described[1]?.reserveDelta).toBe(100n)
-  })
-
-  // emptying leaves nothing on the identity output, which is a different thing from issuing some
-  it('tells an emptied reserve from an issuance', () => {
-    const described = describeChainLinks([
-      link('aa'.repeat(32), { reserve: '1000' }),
-      link('bb'.repeat(32), { reserve: null }),
-    ])
-
-    expect(described[1]?.kind).toBe('emptyReserve')
+    expect(described.slice(1).map(link => link.kind)).toEqual(['operation', 'operation', 'operation'])
+    expect(described.slice(1).map(link => link.reserveDelta)).toEqual([-100n, -900n, 1000n])
   })
 
   it('reads a publication off the BCMR output, and keeps what it published', () => {
@@ -79,7 +61,7 @@ describe('describeChainLinks', () => {
     expect(described[1]?.publication?.uris).toEqual(['example.com'])
   })
 
-  // NFTs of the category beside an unchanged identity output are a mint; an issuance also puts
+  // NFTs of the category beside an unchanged identity output are a mint; a reserve move also puts
   // category outputs beside it, and is told apart by the reserve going down
   it('reads a mint off NFTs of the category minted beside the identity output', () => {
     const mintedNft: AuthchainLink['outputs'][number] = {
@@ -91,7 +73,7 @@ describe('describeChainLinks', () => {
       link('c'.repeat(64), { reserve: '400' }, [mintedNft]),
     ])
     expect(described[1]).toMatchObject({ kind: 'mint', minted: 2, reserveDelta: 0n })
-    expect(described[2]?.kind).toBe('issue')
+    expect(described[2]?.kind).toBe('operation')
   })
 
   // the identity output moving to another lock, with the reserve untouched, is a handover

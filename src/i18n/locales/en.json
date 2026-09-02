@@ -1514,14 +1514,12 @@
     "authheadAmount": "Holds {amount}",
     "status": {
       "held": "Held by this wallet",
-      "carriesTokens": "Held by this wallet",
       "notHeld": "Watched, held by another wallet",
       "unresolved": "Could not look up this identity",
       "heldViaKey": "Held through an identity key"
     },
     "statusHelp": {
       "held": "This wallet holds this identity's UTXO, so it can update the metadata. The UTXO is kept out of coin selection, so no ordinary send can spend it.",
-      "carriesTokens": "This wallet holds this identity's UTXO, so it can update the metadata. The UTXO is kept out of coin selection, so no ordinary send can spend it.",
       "notHeld": "This identity is held somewhere else, so this wallet only watches it: its publication is shown, but updating it takes the wallet that holds it.",
       "unresolved": "Where this identity is held could not be looked up, so it is unknown right now. Anything held for it stays held until an answer comes back.",
       "heldViaKey": "This identity's UTXO is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the UTXO, so the key is what is kept out of coin selection."
@@ -1616,9 +1614,6 @@
       "kind": {
         "genesis": "Created",
         "publication": "Metadata published",
-        "issue": "Issued from reserve",
-        "addToReserve": "Added to reserve",
-        "emptyReserve": "Reserve emptied",
         "transfer": "Transferred",
         "operation": "Updated",
         "mint": "Minted"
