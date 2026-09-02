@@ -231,6 +231,42 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identityCategories).toEqual([categoryA, categoryB])
   })
 
+  // "no new identities found" from a check that could not ask would be a wrong answer, not a
+  // missing one, so an outage aborts the check with the server's reason
+  it('aborts the check with the reason when every category fails to resolve', async () => {
+    stubAuthheadQueries({})
+    const { store, identitiesStore } = startStore([utxo(authheadB, 0)])
+    await identitiesStore.refreshIdentities()
+    store.tokenList = [{ category: categoryB, amount: 100n }]
+
+    await expect(identitiesStore.scanForIdentities()).rejects.toThrow()
+    expect(identitiesStore.identityCategories).toEqual([])
+  })
+
+  // the developer option runs the category half of the check on open: a find joins the list and
+  // the trail like a detected one, an outage lands on the page rather than in a toast
+  it('finds a received identity on open when the option is on, and reports an outage', async () => {
+    stubAuthheadQueries({ [categoryB]: authheadB })
+    const authUtxoB = utxo(authheadB, 0)
+    const { store, identitiesStore } = startStore([authUtxoB])
+    await identitiesStore.refreshIdentities()
+    store.tokenList = [{ category: categoryB, amount: 100n }]
+
+    await identitiesStore.checkHeldCategoriesOnOpen()
+
+    expect(identitiesStore.identityCategories).toEqual([categoryB])
+    expect(identitiesStore.unseenIdentities).toEqual([categoryB])
+    expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
+    expect(identitiesStore.openCheckError).toBeUndefined()
+
+    stubAuthheadQueries({})
+    store.tokenList = [{ category: categoryA, amount: 100n }]
+    await identitiesStore.checkHeldCategoriesOnOpen()
+
+    expect(identitiesStore.openCheckError).toEqual(expect.any(String))
+    expect(identitiesStore.identityCategories).toEqual([categoryB])
+  })
+
   // an authhead carrying a token reserve is protected the same way, now that a reservation binds
   // for a token coin; what it carries has no actions yet, so the card only reports it
   it('holds back an authhead that carries a token reserve', async () => {

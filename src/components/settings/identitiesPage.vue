@@ -782,6 +782,12 @@
     </template>
 
     <div v-if="mode === 'identities'" class="section">
+      <!-- a pass the wallet ran on its own failed: an identity it should have held back may not
+           be, which is worth stopping at, so it stays here until the next open rather than toasting -->
+      <div v-if="identitiesStore.openCheckError" class="warning-box" style="margin-bottom: 10px;">
+        <q-icon name="warning" size="20px" class="warning-box-icon" />
+        <div>{{ t('identities.openCheckFailed', { reason: identitiesStore.openCheckError }) }}</div>
+      </div>
       <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }}</div>
       <div v-else-if="!identities.length">
         <div class="description">{{ t('identities.empty') }}</div>
@@ -883,6 +889,9 @@
                 </span>
               </template>
               <div style="max-width: 300px;">{{ t('identities.statusHelp.' + identity.status) }}</div>
+              <div v-if="identity.unresolvedReason" class="info-popup-note" style="max-width: 300px;">
+                {{ identity.unresolvedReason }} {{ t('identities.unresolvedHint') }}
+              </div>
             </InfoPopup>
           </span>
           <q-icon name="expand_more" class="chevron" :class="{ open: isExpanded(identity) }" />

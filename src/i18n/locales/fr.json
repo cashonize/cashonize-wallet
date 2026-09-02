@@ -60,7 +60,7 @@
       "rejected": "Le serveur Chaingraph a rejeté la requête : {reason}",
       "invalidResponse": "Le serveur n'a pas renvoyé de réponse Chaingraph valide.",
       "tokenNotFound": "Token non trouvé",
-      "authchainNotFound": "Aucun historique d'identité trouvé pour cet identifiant"
+      "authchainNotFound": "Le serveur Chaingraph n'a trouvé aucun historique d'identité pour cet identifiant. Vérifiez l'identifiant ; s'il est correct, le serveur n'indexe peut-être pas cette chaîne."
     }
   },
   "exchangeRate": {
@@ -1346,6 +1346,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Activer la création de NFTs",
       "enableMintNftsHint": "Ajoute une action de création aux NFTs de création, vous permettant de créer plus de NFTs dans la même catégorie",
+      "checkHeldTokens": "Vérifier les tokens détenus à la recherche d'identités à l'ouverture du portefeuille",
+      "checkHeldTokensHint": "Une requête par catégorie de token détenue, à chaque ouverture. Pour les portefeuilles qui reçoivent des identités d'autres personnes ; la vérification de la page des identités fait la même chose à la main.",
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
       "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
       "strictWcSchema": "Validation stricte du schéma WalletConnect",
@@ -1713,6 +1715,8 @@
     },
     "established": {
       "since": "Depuis {year}"
-    }
+    },
+    "openCheckFailed": "Impossible de vérifier l'historique de ce portefeuille à la recherche d'identités : {reason} Une identité qu'il a créée n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
+    "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres."
   }
 }

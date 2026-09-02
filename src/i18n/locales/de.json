@@ -60,7 +60,7 @@
       "rejected": "Der Chaingraph-Server hat die Anfrage abgelehnt: {reason}",
       "invalidResponse": "Der Server hat keine gültige Chaingraph-Antwort zurückgegeben.",
       "tokenNotFound": "Token nicht gefunden",
-      "authchainNotFound": "Keine Identitäts-Historie für diese Id gefunden"
+      "authchainNotFound": "Der Chaingraph-Server hat keine Identitätshistorie zu dieser Id gefunden. Prüfe die Id; stimmt sie, indexiert der Server diese Chain womöglich nicht."
     }
   },
   "exchangeRate": {
@@ -1346,6 +1346,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Mint NFTs aktivieren",
       "enableMintNftsHint": "Fügt eine Mint-Aktion zu minting NFTs hinzu, mit der du weitere NFTs in derselben Kategorie erstellen kannst",
+      "checkHeldTokens": "Gehaltene Tokens beim Öffnen des Wallets auf Identitäten prüfen",
+      "checkHeldTokensHint": "Eine Abfrage pro gehaltener Token-Kategorie bei jedem Öffnen. Für Wallets, die Identitäten von anderen erhalten; die Prüfung auf der Identitäten-Seite macht dasselbe von Hand.",
       "disableTokenIcons": "Token-Bilder deaktivieren",
       "disableTokenIconsHint": "Verhindert das Laden von Token-Bildern von externen Servern",
       "strictWcSchema": "Strikte WalletConnect-Schema-Validierung",
@@ -1713,6 +1715,8 @@
     },
     "established": {
       "since": "Seit {year}"
-    }
+    },
+    "openCheckFailed": "Die Historie dieses Wallets konnte nicht auf Identitäten geprüft werden: {reason} Eine Identität, die es gemacht hat, ist womöglich noch nicht zurückgehalten. Lade neu oder prüfe den Chaingraph-Server in den Einstellungen.",
+    "unresolvedHint": "Lade neu oder prüfe den Chaingraph-Server in den Einstellungen."
   }
 }

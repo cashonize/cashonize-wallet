@@ -60,7 +60,7 @@
       "rejected": "El servidor Chaingraph rechazó la solicitud: {reason}",
       "invalidResponse": "El servidor no devolvió una respuesta válida de Chaingraph.",
       "tokenNotFound": "Token no encontrado",
-      "authchainNotFound": "No se encontró historial de identidad para ese id"
+      "authchainNotFound": "El servidor de Chaingraph no encontró historial de identidad para ese id. Comprueba el id; si es correcto, puede que el servidor no indexe esta cadena."
     }
   },
   "exchangeRate": {
@@ -1346,6 +1346,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Habilitar acuñar NFTs",
       "enableMintNftsHint": "Agrega una acción de acuñar a los NFTs de acuñación, permitiéndote crear más NFTs en la misma categoría",
+      "checkHeldTokens": "Comprobar los tokens en cartera en busca de identidades al abrir la billetera",
+      "checkHeldTokensHint": "Una consulta por categoría de token en cartera, en cada apertura. Para billeteras que reciben identidades de otros; la comprobación de la página de identidades hace lo mismo a mano.",
       "disableTokenIcons": "Deshabilitar carga de imágenes de tokens",
       "disableTokenIconsHint": "Previene la carga de imágenes de tokens desde servidores externos",
       "strictWcSchema": "Validación estricta del esquema WalletConnect",
@@ -1713,6 +1715,8 @@
     },
     "established": {
       "since": "Desde {year}"
-    }
+    },
+    "openCheckFailed": "No se pudo comprobar el historial de esta billetera en busca de identidades: {reason} Puede que una identidad que creó todavía no esté retenida. Recarga, o revisa el servidor de Chaingraph en los ajustes.",
+    "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes."
   }
 }

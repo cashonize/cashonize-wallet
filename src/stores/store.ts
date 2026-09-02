@@ -580,6 +580,7 @@ export const useStore = defineStore('store', () => {
       console.time('resolve identities');
       await identitiesStore.refreshIdentities();
       console.timeEnd('resolve identities');
+      void runIdentityChecksOnOpen();
     } catch (error) {
       // A stale initialization must not flag the newer one as failed
       if (initialization === currentInitialization) walletInitFailed.value = true;
@@ -1229,6 +1230,30 @@ export const useStore = defineStore('store', () => {
       console.error("Failed to look up Badgers.cash locks:", error);
       badgerLocks.value ??= [];
     }
+  }
+
+  // The identities these keys made are found from the wallet's own history at every open, so
+  // holding them back does not wait on the portfolio being visited. Mainnet only, like the walk
+  // below: the query is address-keyed and one endpoint serves both chains. A failure shows on
+  // the identities page rather than as a toast on every open.
+  async function runIdentityChecksOnOpen() {
+    const identitiesStore = useIdentitiesStore();
+    const initialization = currentInitialization;
+    identitiesStore.openCheckError = undefined;
+    if (network.value === 'mainnet') {
+      try {
+        const spentOutputs = await querySpentOutputs(walletPublicKeyHashes(), settingsStore.chaingraph);
+        if (initialization !== currentInitialization) return;
+        await identitiesStore.detectWalletIdentities(spentOutputs);
+      } catch (error) {
+        console.error("Failed to look for identities in the wallet's history:", error);
+        if (initialization !== currentInitialization) return;
+        identitiesStore.openCheckError = error instanceof Error ? error.message : String(error);
+        return;
+      }
+    }
+    if (initialization !== currentInitialization) return;
+    if (settingsStore.checkHeldTokensForIdentities) await identitiesStore.checkHeldCategoriesOnOpen();
   }
 
   // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the

@@ -115,6 +115,7 @@
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
+  const checkHeldTokensForIdentities = ref(settingsStore.checkHeldTokensForIdentities);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
   const strictWcSchema = ref(settingsStore.strictWcSchema);
   const showPrivateKeyWif = ref(settingsStore.showPrivateKeyWif);
@@ -467,6 +468,10 @@
   function changeMintNfts(){
     localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
     settingsStore.mintNfts = enableMintNfts.value;
+  }
+  function changeCheckHeldTokensForIdentities(){
+    localStorage.setItem("checkHeldTokensForIdentities", checkHeldTokensForIdentities.value ? "true" : "false");
+    settingsStore.checkHeldTokensForIdentities = checkHeldTokensForIdentities.value;
   }
   function changeDisableTokenIcons(){
     localStorage.setItem("disableTokenIcons", disableTokenIcons.value ? "true" : "false");
@@ -839,6 +844,13 @@
         {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.enableMintNftsHint') }}
+        </div>
+      </div>
+
+      <div style="margin-top:15px">
+        {{ t('settings.developer.checkHeldTokens') }} <q-toggle v-model="checkHeldTokensForIdentities" @update:model-value="changeCheckHeldTokensForIdentities()" dense />
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.developer.checkHeldTokensHint') }}
         </div>
       </div>
 

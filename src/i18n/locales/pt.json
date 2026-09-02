@@ -60,7 +60,7 @@
       "rejected": "O servidor Chaingraph rejeitou a solicitação: {reason}",
       "invalidResponse": "O servidor não retornou uma resposta válida do Chaingraph.",
       "tokenNotFound": "Token não encontrado",
-      "authchainNotFound": "Nenhum histórico de identidade encontrado para esse id"
+      "authchainNotFound": "O servidor Chaingraph não encontrou histórico de identidade para esse id. Verifique o id; se estiver certo, o servidor pode não indexar esta cadeia."
     }
   },
   "exchangeRate": {
@@ -1346,6 +1346,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Habilitar mint de NFTs",
       "enableMintNftsHint": "Adiciona uma ação de mint aos NFTs de minting, permitindo criar mais NFTs na mesma categoria",
+      "checkHeldTokens": "Verificar os tokens em carteira em busca de identidades ao abrir a carteira",
+      "checkHeldTokensHint": "Uma consulta por categoria de token em carteira, a cada abertura. Para carteiras que recebem identidades de outros; a verificação da página de identidades faz o mesmo à mão.",
       "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
       "disableTokenIconsHint": "Impede o carregamento de imagens de tokens de servidores externos",
       "strictWcSchema": "Validação estrita do schema WalletConnect",
@@ -1713,6 +1715,8 @@
     },
     "established": {
       "since": "Desde {year}"
-    }
+    },
+    "openCheckFailed": "Não foi possível verificar o histórico desta carteira em busca de identidades: {reason} Uma identidade que ela fez pode ainda não estar retida. Recarregue, ou verifique o servidor Chaingraph nas configurações.",
+    "unresolvedHint": "Recarregue, ou verifique o servidor Chaingraph nas configurações."
   }
 }

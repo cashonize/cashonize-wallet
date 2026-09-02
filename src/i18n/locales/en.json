@@ -60,7 +60,7 @@
       "rejected": "The Chaingraph server rejected the request: {reason}",
       "invalidResponse": "The server did not return a valid Chaingraph response.",
       "tokenNotFound": "Token not found",
-      "authchainNotFound": "No identity history found for that id"
+      "authchainNotFound": "The Chaingraph server found no identity history for that id. Check the id; if it is right, the server may not index this chain."
     }
   },
   "exchangeRate": {
@@ -1346,6 +1346,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Enable mint NFTs",
       "enableMintNftsHint": "Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category",
+      "checkHeldTokens": "Check held tokens for identities on wallet open",
+      "checkHeldTokensHint": "One lookup per token category held, on every open. For wallets that receive identities from others; the check on the identities page does the same by hand.",
       "disableTokenIcons": "Disable token image loading",
       "disableTokenIconsHint": "Prevents loading token images from external servers",
       "strictWcSchema": "Strict WalletConnect schema validation",
@@ -1713,6 +1715,8 @@
     },
     "established": {
       "since": "Established {year}"
-    }
+    },
+    "openCheckFailed": "Could not check this wallet's history for identities: {reason} An identity it made may not be held back yet. Reload, or check the Chaingraph server in the settings.",
+    "unresolvedHint": "Reload, or check the Chaingraph server in the settings."
   }
 }

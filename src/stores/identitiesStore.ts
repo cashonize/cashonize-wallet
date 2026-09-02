@@ -413,27 +413,47 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // The explicit check for authhead ownership, over the categories this wallet holds tokens of.
   // A found authhead joins the list the same way a manual add does, whether or not it carries a
   // reserve. Categories with no held supply are not covered here and stay a manual add.
-  async function scanForIdentities(): Promise<IdentityScanSummary | undefined> {
-    if (identitiesResolving.value) return undefined;
+  // The category half of the check: every held token category not yet listed gets its authhead
+  // resolved and compared against the wallet's coins, one query each. A find joins the list.
+  // Undefined when the wallet changed underneath it.
+  async function resolveHeldCategories() {
     const currentUtxos = mainStore.walletUtxos;
     if (!currentUtxos) return undefined;
     const heldCategories = (mainStore.tokenList ?? []).map(token => token.category);
     const listedCount = heldCategories.filter(category => identityCategories.value.includes(category)).length;
     const categoriesToCheck = heldCategories.filter(category => !identityCategories.value.includes(category));
+    const initialization = mainStore.currentInitializationToken();
+    const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
+    if (initialization !== mainStore.currentInitializationToken()) return undefined;
+    const found = resolved.filter(
+      identity => identity.authUtxo && !dismissedIdentities.value.includes(identity.category)
+    );
+    const dismissed = resolved.filter(
+      identity => identity.authUtxo && dismissedIdentities.value.includes(identity.category)
+    ).length;
+    for (const identity of found) {
+      identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, identity.category);
+    }
+    return { resolved, found, dismissed, listedCount };
+  }
+
+  // Every category failing the same way is the server being down, not a hundred separate
+  // answers; the one reason is what the caller should show
+  function outageReason(resolved: IdentityState[]) {
+    if (!resolved.length || !resolved.every(identity => identity.status === 'unresolved')) return undefined;
+    return resolved[0]?.unresolvedReason;
+  }
+
+  async function scanForIdentities(): Promise<IdentityScanSummary | undefined> {
+    if (identitiesResolving.value) return undefined;
     identitiesResolving.value = true;
     try {
-      const initialization = mainStore.currentInitializationToken();
-      const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
-      if (initialization !== mainStore.currentInitializationToken()) return undefined;
-      const found = resolved.filter(
-        identity => identity.authUtxo && !dismissedIdentities.value.includes(identity.category)
-      );
-      const dismissed = resolved.filter(
-        identity => identity.authUtxo && dismissedIdentities.value.includes(identity.category)
-      ).length;
-      for (const identity of found) {
-        identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, identity.category);
-      }
+      const categories = await resolveHeldCategories();
+      if (!categories) return undefined;
+      const { resolved, found, dismissed, listedCount } = categories;
+      // a check that could not ask has no answer to report, and "none found" would be a wrong one
+      const outage = outageReason(resolved);
+      if (outage) throw new Error(outage);
       // The one case the categories cannot reach: an authhead received from elsewhere, with no
       // token of its own held here and no activity by these keys to have been walked. Its coin is
       // walked back to a genesis instead, which costs a fetch a hop, hence only on the user's word.
@@ -450,6 +470,33 @@ export const useIdentitiesStore = defineStore('identities', () => {
         dismissed,
         deepScanned,
       };
+    } finally {
+      identitiesResolving.value = false;
+    }
+  }
+
+  // What went wrong in a pass the wallet ran on its own at open, shown on the page where the
+  // result would be rather than toasted on every open; cleared by the next pass that runs
+  const openCheckError = ref<string | undefined>(undefined);
+
+  // The developer option: the category half on every open, for wallets that receive identities.
+  // A find enters the list and the trail the way a detected one does.
+  async function checkHeldCategoriesOnOpen() {
+    if (identitiesResolving.value) return;
+    identitiesResolving.value = true;
+    try {
+      const categories = await resolveHeldCategories();
+      if (!categories) return;
+      const outage = outageReason(categories.resolved);
+      if (outage) {
+        openCheckError.value = outage;
+        return;
+      }
+      if (!categories.found.length) return;
+      unseenIdentities.value = addToIdentityList(
+        'unseen', mainStore.network, mainStore.wallet.name, categories.found.map(identity => identity.category)
+      );
+      await resolveListedIdentities();
     } finally {
       identitiesResolving.value = false;
     }
@@ -582,6 +629,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     refreshIdentities,
     resolveListedIdentities,
     scanForIdentities,
+    checkHeldCategoriesOnOpen,
+    openCheckError,
     detectWalletIdentities,
     nameUnnamedAuthheads,
     unnamedAuthheadCoins,

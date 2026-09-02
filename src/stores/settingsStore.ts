@@ -53,6 +53,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
   // developer settings
   const mintNfts = ref(false);
+  // the category half of the identity check on every wallet open, for wallets that receive identities
+  const checkHeldTokensForIdentities = ref(false);
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
   const showPrivateKeyWif = ref(false);
@@ -223,8 +225,18 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  // Cleanup: authchain resolution is no longer a setting, the identities page looks them up
-  localStorage.removeItem("authchains");
+  // The old "authchains" toggle checked every held token's authhead on open; that is what this
+  // option does now, so a wallet that had it on keeps the behaviour under the new key
+  const readCheckHeldTokens = localStorage.getItem("checkHeldTokensForIdentities");
+  if (readCheckHeldTokens) checkHeldTokensForIdentities.value = readCheckHeldTokens == "true";
+  const readAuthchains = localStorage.getItem("authchains");
+  if (readAuthchains !== null) {
+    if (readAuthchains == "true" && !readCheckHeldTokens) {
+      checkHeldTokensForIdentities.value = true;
+      localStorage.setItem("checkHeldTokensForIdentities", "true");
+    }
+    localStorage.removeItem("authchains");
+  }
 
   const readDateFormat = localStorage.getItem("dateFormat");
   if(readDateFormat && (readDateFormat=="DD/MM/YY" || readDateFormat=="MM/DD/YY" || readDateFormat=="YY-MM-DD")) {
@@ -490,6 +502,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     clearWalletMetadata,
     clearWalletSettings,
     mintNfts,
+    checkHeldTokensForIdentities,
     strictWcSchema,
     showPrivateKeyWif,
     dateFormat,

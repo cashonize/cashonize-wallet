@@ -207,7 +207,8 @@ describe('resolveIdentities', () => {
     stubAuthheadQueries({ [categoryB]: authheadB });
     const authUtxo = utxo(authheadB, 0);
     const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, [authUtxo]);
-    expect(resolved[0]).toEqual({ category: categoryA, status: 'unresolved' });
+    // the reason travels with the status, so the page can say what went wrong
+    expect(resolved[0]).toEqual({ category: categoryA, status: 'unresolved', unresolvedReason: expect.any(String) });
     expect(resolved[1]?.status).toBe('held');
   });
 });

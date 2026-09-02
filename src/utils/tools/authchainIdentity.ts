@@ -40,6 +40,7 @@ export interface IdentityState {
   guardedOutput?: Utxo; // the identity output inside that covenant
   guardAddress?: string; // where that covenant sits, which is not an address of this wallet
   status: IdentityStatus;
+  unresolvedReason?: string; // what the lookup said went wrong, for an 'unresolved' one
   publication?: MetadataPublication; // absent when the authchain has never carried one
   // Every transaction of this identity's authchain, oldest first. Carried because the ordinary
   // transaction history reads it to recognise its own identity operations, which otherwise show
@@ -81,6 +82,8 @@ export interface PublicationUriCheck {
 }
 
 const BCMR_OUTPUT_PREFIX = "6a0442434d52";
+// a publication location that hangs must not hang the page; the same bound the Chaingraph requests have
+const REGISTRY_FETCH_TIMEOUT_MS = 10_000;
 // per spec, a bare domain names the registry at this well-known path
 const WELL_KNOWN_REGISTRY_PATH = "/.well-known/bitcoin-cash-metadata-registry.json";
 
@@ -301,7 +304,10 @@ export async function fetchCandidateRegistry(
 // serves right now, which a cached copy cannot answer. Undefined when it does not answer at all.
 async function fetchRegistryText(uri: string, ipfsGateway: string): Promise<string | undefined> {
   try {
-    const response = await fetch(registryUrlOf(uri, ipfsGateway), { cache: "no-store" });
+    const response = await fetch(registryUrlOf(uri, ipfsGateway), {
+      cache: "no-store",
+      signal: AbortSignal.timeout(REGISTRY_FETCH_TIMEOUT_MS),
+    });
     if (!response.ok) return undefined;
     return await response.text();
   } catch {
@@ -526,6 +532,8 @@ export async function resolveIdentities(
     const result = authheadResults[index];
     if (result?.status === 'rejected') {
       console.error("Failed to resolve authchain identity:", category, result.reason);
+      const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      return { category, status: 'unresolved', unresolvedReason: reason };
     }
     if (result?.status !== 'fulfilled') return { category, status: 'unresolved' };
     const { txid: authheadTxid, publicationOutputs, links } = result.value;
