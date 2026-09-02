@@ -740,6 +740,7 @@
         <div v-else>{{ t('identities.scan.noneFound') }}</div>
         <div v-if="scanSummary.alreadyListed">{{ t('identities.scan.alreadyListed', scanSummary.alreadyListed) }}</div>
         <div v-if="scanSummary.carriesTokens">{{ t('identities.scan.carriesTokens', scanSummary.carriesTokens) }}</div>
+        <div v-if="scanSummary.mintingNfts">{{ t('identities.scan.mintingNfts', scanSummary.mintingNfts) }}</div>
         <div v-if="scanSummary.deepScanned">{{ t('identities.scan.deepScanned', scanSummary.deepScanned) }}</div>
         <div v-if="scanSummary.dismissed">{{ t('identities.scan.dismissed', scanSummary.dismissed) }}</div>
         <div v-if="scanSummary.failed">{{ t('identities.scan.failed', scanSummary.failed) }}</div>
@@ -999,8 +1000,10 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'">
             {{ t('identities.publish.action') }}
           </span>
-          <template v-if="identity.status === 'carriesTokens'">
-            <span @click="toggleAction(identity, 'issue')" style="white-space: nowrap;">
+          <!-- a reserve is a fungible category's thing: its genesis decides that, not what the
+               wallet holds today, so an NFT-only identity never shows these -->
+          <template v-if="identity.fungibleSupply">
+            <span v-if="reserveOf(identity) > 0n" @click="toggleAction(identity, 'issue')" style="white-space: nowrap;">
               <img class="icon" :src="settingsStore.darkMode? 'images/minus-square-lightGrey.svg' : 'images/minus-square.svg'">
               {{ t('identities.reserve.issue.action') }}
             </span>

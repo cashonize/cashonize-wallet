@@ -16,7 +16,8 @@ const { t } = i18n.global;
 type Network = 'mainnet' | 'chipnet';
 
 // 'held' and 'carriesTokens' are both authheads this wallet holds directly and keeps out of coin
-// selection; the second also carries a reserve or a minting NFT. 'heldViaKey' is an authhead
+// selection; the second also carries a token, a reserve or a minting NFT, which is what a transfer
+// has to ask about. A reserve is not implied: that is fungibleSupply. 'heldViaKey' is an authhead
 // locked in an AuthGuard covenant whose key NFT this wallet holds, which is authority over the
 // identity without the coin. 'unresolved' is a failed
 // Chaingraph query, which says nothing about where the authhead is.
@@ -26,7 +27,8 @@ export type IdentityStatus = 'held' | 'carriesTokens' | 'heldViaKey' | 'notHeld'
 export interface IdentityScanSummary {
   found: number; // authheads newly added to the list
   alreadyListed: number; // categories the list already covered, which the scan skips
-  carriesTokens: number; // of those found, the ones holding a token reserve alongside the authority
+  carriesTokens: number; // of those found, the ones holding a reserve of fungible supply alongside the authority
+  mintingNfts: number; // and the ones holding a minting NFT there
   failed: number; // categories whose lookup did not come back
   dismissed: number; // found, but left off because the user took them off before
   deepScanned: number; // held coins walked back to a genesis, which the held categories miss
@@ -41,6 +43,9 @@ export interface IdentityState {
   guardAddress?: string; // where that covenant sits, which is not an address of this wallet
   status: IdentityStatus;
   unresolvedReason?: string; // what the lookup said went wrong, for an 'unresolved' one
+  // whether the category has fungible tokens at all, read off its genesis: a reserve is only
+  // possible for one that does, whatever the wallet holds of it right now
+  fungibleSupply?: boolean;
   publication?: MetadataPublication; // absent when the authchain has never carried one
   // Every transaction of this identity's authchain, oldest first. Carried because the ordinary
   // transaction history reads it to recognise its own identity operations, which otherwise show
@@ -539,9 +544,9 @@ export async function resolveIdentities(
       return { category, status: 'unresolved', unresolvedReason: reason };
     }
     if (result?.status !== 'fulfilled') return { category, status: 'unresolved' };
-    const { txid: authheadTxid, publicationOutputs, links } = result.value;
+    const { txid: authheadTxid, publicationOutputs, links, fungibleSupply } = result.value;
     const publication = findPublication(publicationOutputs);
-    const resolved = { category, authheadTxid, links, ...(publication ? { publication } : {}) };
+    const resolved = { category, authheadTxid, links, fungibleSupply, ...(publication ? { publication } : {}) };
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
     if (authUtxo?.token) return { ...resolved, authUtxo, status: 'carriesTokens' };

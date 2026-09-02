@@ -476,7 +476,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
       return {
         found: found.length + deepScanned,
         alreadyListed: listedCount,
-        carriesTokens: resolved.filter(identity => identity.status === 'carriesTokens').length,
+        carriesTokens: resolved.filter(identity => identity.fungibleSupply && identity.authUtxo?.token?.amount).length,
+        mintingNfts: resolved.filter(identity => identity.authUtxo?.token?.nft?.capability === 'minting').length,
         failed: resolved.filter(identity => identity.status === 'unresolved').length,
         dismissed,
         deepScanned,

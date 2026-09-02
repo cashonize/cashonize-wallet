@@ -1486,14 +1486,14 @@
     "authheadAmount": "Enthält {amount}",
     "status": {
       "held": "In diesem Wallet gehalten",
-      "carriesTokens": "In diesem Wallet gehalten, mit Reserve",
+      "carriesTokens": "In diesem Wallet gehalten",
       "notHeld": "Beobachtet, in einem anderen Wallet",
       "unresolved": "Konnte nicht abgefragt werden",
       "heldViaKey": "Über einen Identitätsschlüssel gehalten"
     },
     "statusHelp": {
       "held": "Dieses Wallet hält den UTXO dieser Identität und kann die Metadaten also aktualisieren. Der UTXO ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann ihn ausgeben.",
-      "carriesTokens": "Dieses Wallet hält diese Identität, und sie trägt neben der Hoheit eine Token-Reserve. Der UTXO ist von der Münzauswahl ausgenommen, wie bei jeder Identität.",
+      "carriesTokens": "Dieses Wallet hält den UTXO dieser Identität und kann die Metadaten also aktualisieren. Der UTXO ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann ihn ausgeben.",
       "notHeld": "Diese Identität liegt woanders, dieses Wallet beobachtet sie also nur: die Veröffentlichung wird gezeigt, aktualisieren kann sie das Wallet, das sie hält.",
       "unresolved": "Wo diese Identität liegt, konnte nicht abgefragt werden, es ist gerade unbekannt. Was für sie zurückgehalten wird, bleibt es, bis eine Antwort kommt.",
       "heldViaKey": "Der UTXO dieser Identität liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne den UTXO, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird."
@@ -1676,7 +1676,8 @@
       "found": "{count} Identität gefunden und der Liste hinzugefügt | {count} Identitäten gefunden und der Liste hinzugefügt",
       "noneFound": "Keine neuen Identitäten gefunden.",
       "alreadyListed": "{count} Kategorie stand bereits in der Liste. | {count} Kategorien standen bereits in der Liste.",
-      "carriesTokens": "{count} davon trägt eine Token-Reserve. | {count} davon tragen eine Token-Reserve.",
+      "carriesTokens": "{count} davon trägt eine Reserve an Fungible-Tokens. | {count} davon tragen eine Reserve an Fungible-Tokens.",
+      "mintingNfts": "{count} davon trägt ein Minting-NFT. | {count} davon tragen ein Minting-NFT.",
       "deepScanned": "{count} gehaltener UTXO war eine Identität. | {count} gehaltene UTXOs waren Identitäten.",
       "dismissed": "{count} wurde ausgelassen, weil du sie vorher entfernt hast. | {count} wurden ausgelassen, weil du sie vorher entfernt hast.",
       "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden.",

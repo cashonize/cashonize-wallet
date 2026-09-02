@@ -1486,14 +1486,14 @@
     "authheadAmount": "Holds {amount}",
     "status": {
       "held": "Held by this wallet",
-      "carriesTokens": "Held by this wallet, with a reserve",
+      "carriesTokens": "Held by this wallet",
       "notHeld": "Watched, held by another wallet",
       "unresolved": "Could not look up this identity",
       "heldViaKey": "Held through an identity key"
     },
     "statusHelp": {
       "held": "This wallet holds this identity's UTXO, so it can update the metadata. The UTXO is kept out of coin selection, so no ordinary send can spend it.",
-      "carriesTokens": "This wallet holds this identity and it carries a token reserve alongside the authority. The UTXO is kept out of coin selection, like any identity's UTXO.",
+      "carriesTokens": "This wallet holds this identity's UTXO, so it can update the metadata. The UTXO is kept out of coin selection, so no ordinary send can spend it.",
       "notHeld": "This identity is held somewhere else, so this wallet only watches it: its publication is shown, but updating it takes the wallet that holds it.",
       "unresolved": "Where this identity is held could not be looked up, so it is unknown right now. Anything held for it stays held until an answer comes back.",
       "heldViaKey": "This identity's UTXO is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the UTXO, so the key is what is kept out of coin selection."
@@ -1676,7 +1676,8 @@
       "found": "{count} identity found and added to the list | {count} identities found and added to the list",
       "noneFound": "No new identities found.",
       "alreadyListed": "{count} category was already listed. | {count} categories were already listed.",
-      "carriesTokens": "{count} of them carries a token reserve. | {count} of them carry a token reserve.",
+      "carriesTokens": "{count} of them carries a reserve of fungible supply. | {count} of them carry a reserve of fungible supply.",
+      "mintingNfts": "{count} of them carries a minting NFT. | {count} of them carry a minting NFT.",
       "deepScanned": "{count} held UTXO turned out to be an identity. | {count} held UTXOs turned out to be identities.",
       "dismissed": "{count} was left off because you removed it before. | {count} were left off because you removed them before.",
       "failed": "{count} category could not be checked. | {count} categories could not be checked.",

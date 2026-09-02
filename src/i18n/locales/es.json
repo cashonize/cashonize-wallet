@@ -1486,14 +1486,14 @@
     "authheadAmount": "Contiene {amount}",
     "status": {
       "held": "En esta billetera",
-      "carriesTokens": "En esta billetera, con reserva",
+      "carriesTokens": "En esta billetera",
       "notHeld": "Observada, está en otra billetera",
       "unresolved": "No se pudo consultar esta identidad",
       "heldViaKey": "A través de una clave de identidad"
     },
     "statusHelp": {
       "held": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal puede gastarlo.",
-      "carriesTokens": "Esta billetera tiene esta identidad y además lleva una reserva de tokens junto a la autoridad. El UTXO queda fuera de la selección de monedas, como el de cualquier identidad.",
+      "carriesTokens": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal puede gastarlo.",
       "notHeld": "Esta identidad está en otro sitio, así que esta billetera solo la observa: se muestra su publicación, pero actualizarla requiere la billetera que la tiene.",
       "unresolved": "No se pudo consultar dónde está esta identidad, así que ahora mismo se desconoce. Lo que se retiene por ella sigue retenido hasta que llegue una respuesta.",
       "heldViaKey": "El UTXO de esta identidad está bloqueado en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin el UTXO, así que lo que queda fuera de la selección de monedas es la clave."
@@ -1676,7 +1676,8 @@
       "found": "{count} identidad encontrada y añadida a la lista | {count} identidades encontradas y añadidas a la lista",
       "noneFound": "No se encontraron identidades nuevas.",
       "alreadyListed": "{count} categoría ya estaba en la lista. | {count} categorías ya estaban en la lista.",
-      "carriesTokens": "{count} de ellos lleva una reserva de tokens. | {count} de ellos llevan una reserva de tokens.",
+      "carriesTokens": "{count} de ellas lleva una reserva de tokens fungibles. | {count} de ellas llevan una reserva de tokens fungibles.",
+      "mintingNfts": "{count} de ellas lleva un NFT de acuñación. | {count} de ellas llevan un NFT de acuñación.",
       "deepScanned": "{count} UTXO retenido resultó ser una identidad. | {count} UTXOs retenidos resultaron ser identidades.",
       "dismissed": "{count} se dejó fuera porque la quitaste antes. | {count} se dejaron fuera porque las quitaste antes.",
       "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías.",

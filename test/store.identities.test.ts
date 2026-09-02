@@ -224,7 +224,7 @@ describe('auth reservations follow the authchain', () => {
 
     const summary = await identitiesStore.scanForIdentities()
 
-    expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, failed: 0, dismissed: 0, deepScanned: 0 })
+    expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, mintingNfts: 0, failed: 0, dismissed: 0, deepScanned: 0 })
     expect(store.reservedUtxos[outpointOf(authUtxoA)]?.reason).toBe('auth')
     expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
     expect(identitiesStore.identityCategories).toEqual([categoryA, categoryB])

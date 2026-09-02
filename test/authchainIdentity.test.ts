@@ -35,6 +35,7 @@ const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
 function stubAuthheadQueries(
   authheads: Record<string, string>,
   chains: Record<string, { hash: string; publication?: string }[]> = {},
+  fungibleGenesis: string[] = [], // categories whose genesis created fungible supply
 ) {
   vi.stubGlobal("fetch", vi.fn((_url: string, options: RequestInit) => {
     const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string } };
@@ -47,10 +48,14 @@ function stubAuthheadQueries(
         outputs: link.publication ? [{ locking_bytecode: `\\x${link.publication}` }] : [],
       }],
     }));
+    // the queried transaction is the genesis, and its outputs say whether the category has supply
+    const outputs = fungibleGenesis.includes(category)
+      ? [{ token_category: `\\x${category}`, fungible_token_amount: "1000" }]
+      : [{ token_category: `\\x${category}`, fungible_token_amount: null }];
     return Promise.resolve({
       ok: true,
       json: () => Promise.resolve({
-        data: { transaction: [{ authchains: [{
+        data: { transaction: [{ outputs, authchains: [{
           authhead: { hash: `\\x${authheads[category]}` }, // chaingraph returns bytea as \x-prefixed hex
           migrations,
         }] }] },
@@ -179,7 +184,7 @@ describe('resolveIdentities', () => {
     const authUtxo = utxo(authheadA, 0);
     const resolved = await resolveIdentities([categoryA], chaingraphUrl, [authUtxo]);
     expect(resolved).toEqual([
-      { category: categoryA, authheadTxid: authheadA, authUtxo, links: [], status: 'held' },
+      { category: categoryA, authheadTxid: authheadA, authUtxo, links: [], status: 'held', fungibleSupply: false },
     ]);
   });
 
@@ -210,5 +215,14 @@ describe('resolveIdentities', () => {
     // the reason travels with the status, so the page can say what went wrong
     expect(resolved[0]).toEqual({ category: categoryA, status: 'unresolved', unresolvedReason: expect.any(String) });
     expect(resolved[1]?.status).toBe('held');
+  });
+
+  // a reserve is only possible for a category whose genesis created fungible supply, whatever the
+  // wallet holds of it now; an NFT-only category never gets the reserve actions
+  it('reads off the genesis whether the category has fungible supply', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB }, {}, [categoryA]);
+    const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, []);
+    expect(resolved[0]?.fungibleSupply).toBe(true);
+    expect(resolved[1]?.fungibleSupply).toBe(false);
   });
 });

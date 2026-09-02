@@ -146,6 +146,10 @@ const authHeadQuery = graphql(`query AuthHead(
     $bcmrTo: bytea!
   ) {
     transaction(where: { hash: { _eq: $hash } }) {
+      outputs {
+        token_category
+        fungible_token_amount
+      }
       authchains {
         authhead {
           hash
@@ -192,7 +196,12 @@ export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:str
       if (published.length) publicationOutputs = published;
     }
   }
-  return { txid: byteaToHex(authchain.authhead.hash), publicationOutputs, links };
+  // The queried transaction is the genesis, and whether a category has fungible tokens at all is
+  // decided there and never changes: supply can only be created in the genesis
+  const fungibleSupply = (authHeadObj.outputs ?? []).some(output =>
+    output.token_category && byteaToHex(output.token_category) === tokenId && BigInt(output.fungible_token_amount ?? 0) > 0n
+  );
+  return { txid: byteaToHex(authchain.authhead.hash), publicationOutputs, links, fungibleSupply };
 }
 
 const spentOutputsQuery = graphql(`query WalletSpentOutputs(
