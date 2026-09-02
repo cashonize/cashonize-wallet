@@ -7,6 +7,8 @@
 
 import { binToHex } from "@bitauth/libauth";
 import type { Utxo } from "mainnet-js";
+import { i18n } from 'src/boot/i18n';
+const { t } = i18n.global;
 import {
   outpointOf,
   reservedTransactionInputs,
@@ -51,10 +53,9 @@ export interface ReservedInputContext {
 // is a transfer rather than an operation. 'identityMerge' is two authheads spent by one
 // transaction: output 0 continues both chains, so the identities become one. The spec allows
 // that (a merger is its example); this wallet refuses it because it cannot yet show the user
-// which identity survives or that there is no way back. 'unrecognised' is a held coin this
-// wallet cannot account for, refused because it cannot be checked rather than because it is
-// known to be wrong.
-export type RefusalReason = 'pledge' | 'manual' | 'identityLeaves' | 'identityMerge' | 'unrecognised';
+// which identity survives or that there is no way back. 'held' is any other held coin: a pledge,
+// a frozen coin, or one this wallet cannot account for.
+export type RefusalReason = 'held' | 'identityLeaves' | 'identityMerge';
 
 export interface ReservedInputRefusal {
   outpoint: Outpoint;
@@ -64,13 +65,18 @@ export interface ReservedInputRefusal {
 export interface ReturningIdentity {
   outpoint: Outpoint;
   kind: 'key' | 'authhead';
-  category?: string;
-  reserveMoved?: bigint; // supply the authhead carried in that this transaction does not put back
 }
 
 export interface ReservedInputsCheck {
   refusals: ReservedInputRefusal[];
   returning: ReturningIdentity[];
+}
+
+// What the user is told when a check refuses, in the identity's own words when that is the reason
+export function refusalMessage(check: ReservedInputsCheck): string {
+  if (check.refusals.some(refusal => refusal.reason === 'identityLeaves')) return t('store.errors.identityLeavesWallet');
+  if (check.refusals.some(refusal => refusal.reason === 'identityMerge')) return t('store.errors.identityMerge');
+  return t('store.errors.reservedInputs');
 }
 
 function sameCategory(token: SignedOutputToken | undefined, category: string | undefined): boolean {
@@ -88,16 +94,6 @@ function isSameKey(output: SignedOutput, key: Utxo): boolean {
   return toHex(outputNft.commitment) === keyNft.commitment;
 }
 
-// What the identity output carries out of a transaction that spends it, against what it carried in
-function reserveMovedOut(authhead: Utxo, newAuthhead: SignedOutput): bigint | undefined {
-  const carriedIn = authhead.token?.amount ?? 0n;
-  if (!carriedIn) return undefined;
-  const carriedOut = sameCategory(newAuthhead.token, authhead.token?.category)
-    ? BigInt(newAuthhead.token?.amount ?? 0n)
-    : 0n;
-  return carriedIn > carriedOut ? carriedIn - carriedOut : undefined;
-}
-
 // Held coins a signing request would spend, and which of them are identity operations this wallet
 // can sign because the authority comes back to it.
 export function checkReservedInputs(
@@ -111,12 +107,12 @@ export function checkReservedInputs(
     const reason = context.reservedUtxos[outpoint]?.reason;
     // a pledge or a coin the user froze is held for its own reason, which an identity cannot lift
     if (reason !== 'auth') {
-      refusals.push({ outpoint, reason: reason === 'pledge' ? 'pledge' : 'manual' });
+      refusals.push({ outpoint, reason: 'held' });
       continue;
     }
     const coin = context.walletUtxos.find(utxo => outpointOf(utxo) === outpoint);
     if (!coin) {
-      refusals.push({ outpoint, reason: 'unrecognised' });
+      refusals.push({ outpoint, reason: 'held' });
       continue;
     }
     if (context.identityKeys.includes(outpoint)) {
@@ -125,7 +121,7 @@ export function checkReservedInputs(
         refusals.push({ outpoint, reason: 'identityLeaves' });
         continue;
       }
-      returning.push({ outpoint, kind: 'key', ...(coin.token ? { category: coin.token.category } : {}) });
+      returning.push({ outpoint, kind: 'key' });
       continue;
     }
     if (context.authheads.includes(outpoint)) {
@@ -135,16 +131,11 @@ export function checkReservedInputs(
         refusals.push({ outpoint, reason: 'identityLeaves' });
         continue;
       }
-      const reserveMoved = reserveMovedOut(coin, newAuthhead);
-      returning.push({
-        outpoint,
-        kind: 'authhead',
-        ...(coin.token ? { category: coin.token.category } : {}),
-        ...(reserveMoved ? { reserveMoved } : {}),
-      });
+      returning.push({ outpoint, kind: 'authhead' });
       continue;
     }
-    refusals.push({ outpoint, reason: 'unrecognised' });
+    // a held coin this wallet cannot account for: refused because it cannot be checked
+    refusals.push({ outpoint, reason: 'held' });
   }
   // Each authhead's chain continues through output 0 of the transaction that spends it, so two
   // in one transaction end up sharing one authhead: a merge, which this wallet does not support yet

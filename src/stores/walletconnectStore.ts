@@ -25,7 +25,7 @@ import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
-import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
+import { refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
 import { WcMessageObjSchema, LooseEncodedWcTransactionObjSchema, StrictEncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 import { i18n } from 'src/boot/i18n'
@@ -519,16 +519,6 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
 
   // An identity whose authority would end up elsewhere is a transfer wearing an operation's
   // clothes, so it is refused in its own words rather than as one more held back coin.
-  function refusalMessage(check: ReservedInputsCheck) {
-    if (check.refusals.some(refusal => refusal.reason === 'identityLeaves')) {
-      return t('store.errors.identityLeavesWallet');
-    }
-    if (check.refusals.some(refusal => refusal.reason === 'identityMerge')) {
-      return t('store.errors.identityMerge');
-    }
-    return t('walletConnect.errors.reservedInputs');
-  }
-
   async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {
     // isValidSignTransactionRequest has checked the params already when this function is called
     const wcSignTransactionParams = transactionRequestWC.params.request.params

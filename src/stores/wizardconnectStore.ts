@@ -35,7 +35,7 @@ import { walletConnectMetadata } from "./constants";
 import { createSignedWizTransaction, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
 import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
 import { displayAndLogError } from "src/utils/errorHandling";
-import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
+import { refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
 import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRequest.vue";
 import WizPairingDialog from "src/components/wizardconnect/WizPairingDialog.vue";
 import alertDialog from "src/components/general/alertDialog.vue";
@@ -260,16 +260,6 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
 
   // An identity whose authority would end up elsewhere is a transfer wearing an operation's
   // clothes, so it is refused in its own words rather than as one more held back coin.
-  function refusalMessage(check: ReservedInputsCheck) {
-    if (check.refusals.some(refusal => refusal.reason === 'identityLeaves')) {
-      return t('store.errors.identityLeavesWallet');
-    }
-    if (check.refusals.some(refusal => refusal.reason === 'identityMerge')) {
-      return t('store.errors.identityMerge');
-    }
-    return t('wizardConnect.errors.reservedInputs');
-  }
-
   async function showNextSignRequest() {
     if (pendingDialog) return;
     const queuedRequest = requestQueue.shift();

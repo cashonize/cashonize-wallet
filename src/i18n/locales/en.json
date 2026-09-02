@@ -95,7 +95,8 @@
       "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it.",
       "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one.",
       "identityLeavesWallet": "This request would hand control of one of your identities to another wallet, so it was refused. Transferring an identity is done from the identities page.",
-      "identityMerge": "This request would spend two of your identities in one transaction, which merges them into one. Merging identities is not supported by this wallet yet, so it was refused."
+      "identityMerge": "This request would spend two of your identities in one transaction, which merges them into one. Merging identities is not supported by this wallet yet, so it was refused.",
+      "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why."
     }
   },
   "onboarding": {
@@ -1181,8 +1182,7 @@
       "unverifiedTokenNoteSingular": "Token not in your wallet. New metadata fetched for preview.",
       "unverifiedTokenNotePlural": "Tokens not in your wallet. New metadata fetched for preview.",
       "identityKeyReturns": "This uses your identity key, which returns to your wallet.",
-      "identityReturns": "This uses one of your identities, which returns to your wallet.",
-      "reserveMoved": "It also moves {amount} off the reserve."
+      "identityReturns": "This uses one of your identities, which returns to your wallet."
     },
     "sessionRequest": {
       "title": "Approve Session?",
@@ -1223,8 +1223,7 @@
       "noAddressForSession": "No address found for session",
       "addressNotInHdCache": "Address not found in HD wallet cache: {address}",
       "noPrivateKeyForAddress": "No private key available for address (watch-only wallet)",
-      "failedToCompressPublicKey": "Failed to compress public key",
-      "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why."
+      "failedToCompressPublicKey": "Failed to compress public key"
     },
     "notifications": {
       "successfullySignedMessage": "Successfully signed message",
@@ -1265,8 +1264,7 @@
       "invalidUri": "Not a valid WizardConnect URI",
       "invalidTransactionSchema": "Error in validating schema of WizardConnect transaction request",
       "failedToSignTransaction": "Failed to sign transaction",
-      "errorSendingTransaction": "Error in sending transaction",
-      "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why."
+      "errorSendingTransaction": "Error in sending transaction"
     },
     "notifications": {
       "sendingTransaction": "Sending transaction...",
@@ -1712,7 +1710,6 @@
       "alreadyListed": "{count} category was already listed. | {count} categories were already listed.",
       "carriesTokens": "{count} of them carries a reserve of fungible supply. | {count} of them carry a reserve of fungible supply.",
       "mintingNfts": "{count} of them carries a minting NFT. | {count} of them carry a minting NFT.",
-      "deepScanned": "{count} held UTXO turned out to be an identity. | {count} held UTXOs turned out to be identities.",
       "dismissed": "{count} was left off because you removed it before. | {count} were left off because you removed them before.",
       "failed": "{count} category could not be checked. | {count} categories could not be checked.",
       "automaticHelp": "Cashonize already lists the identities these keys made: a token you created, or metadata you published, whose identity UTXO is still here. That costs nothing, so it happens on its own.",

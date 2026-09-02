@@ -31,7 +31,6 @@ export interface IdentityScanSummary {
   mintingNfts: number; // and the ones holding a minting NFT there
   failed: number; // categories whose lookup did not come back
   dismissed: number; // found, but left off because the user took them off before
-  deepScanned: number; // held coins walked back to a genesis, which the held categories miss
 }
 
 export interface IdentityState {
@@ -365,16 +364,21 @@ const identityListKeys = {
   // listed by the wallet itself and not yet seen by the user, so a coin quietly becoming
   // unspendable is not the first they hear of it
   unseen: 'unseenIdentities',
-  // key candidates already put to the user once. Only the asking is remembered: whether one
-  // really guards anything is re-derived every session, since a covenant can be filled later
-  examinedKeys: 'examinedKeyCandidates',
   // authheads held and protected without a name: a BCH-only chain carries nothing on its identity
   // output to say which identity it is. Keyed by txid, so an authhead that moves earns a fresh walk.
   unnamed: 'unnamedAuthheads',
-  // whether this wallet has had the one dialog that says it holds identities it never listed;
-  // a single marker, kept as a list for the shared storage shape
-  announced: 'identitiesAnnounced',
 } as const;
+
+// Whether this wallet has had the one dialog that says it holds identities it never listed
+function announcedKey(network: Network, walletName: string): string {
+  return `identitiesAnnounced-${network}-${walletName}`;
+}
+export function loadAnnounced(network: Network, walletName: string): boolean {
+  return localStorage.getItem(announcedKey(network, walletName)) === 'true';
+}
+export function markAnnounced(network: Network, walletName: string) {
+  localStorage.setItem(announcedKey(network, walletName), 'true');
+}
 
 export type IdentityList = keyof typeof identityListKeys;
 
@@ -436,6 +440,7 @@ export function removeIdentityCategories(walletName: string) {
     for (const list of Object.keys(identityListKeys) as IdentityList[]) {
       clearIdentityList(list, network, walletName);
     }
+    localStorage.removeItem(announcedKey(network, walletName));
   }
 }
 
@@ -461,7 +466,6 @@ export interface DescribedLink {
   hash: string;
   timestamp?: number;
   kind: ChainLinkKind;
-  reserve: bigint; // what the identity output carries after this link
   reserveDelta: bigint; // and how that changed, which is the issuance schedule read down the list
   minted?: number; // NFTs of the category this link created beside the identity output
   publication?: MetadataPublication;
@@ -502,7 +506,6 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
       hash: link.hash,
       ...(link.timestamp ? { timestamp: link.timestamp } : {}),
       kind,
-      reserve,
       reserveDelta,
       ...(kind === 'mint' ? { minted } : {}),
       ...(publication ? { publication } : {}),

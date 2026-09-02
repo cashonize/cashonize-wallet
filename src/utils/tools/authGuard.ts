@@ -36,29 +36,20 @@ export function authGuardRedeemScript(category: string): Uint8Array {
 
 type NetworkPrefix = "bitcoincash" | "bchtest" | "bchreg";
 
-// One covenant address in both of the forms it is written in. The same locking bytecode either
-// way, so a lookup can use either; a guarded identity output carries a token, so the token form is
-// the one to show.
-export interface AuthGuardAddress {
-  address: string;
-  tokenAddress: string;
-}
-
 // Both hash lengths a P2SH address can commit to. Deployments exist in both, and a hit at either
 // is self-proving: spending a coin found there means presenting this very redeem script, with this
-// key's category already inside it. So both are derived and both are listed.
+// key's category already inside it. So both are derived and both are listed, in the token-aware
+// form, since a guarded identity output carries a token.
 export interface AuthGuardAddresses {
-  p2sh20: AuthGuardAddress;
-  p2sh32: AuthGuardAddress;
+  p2sh20: string;
+  p2sh32: string;
 }
 
 export function authGuardAddresses(category: string, networkPrefix: NetworkPrefix): AuthGuardAddresses {
   const redeemScript = authGuardRedeemScript(category);
   // the payload's length is what makes an address p2sh20 or p2sh32, the type only says p2sh
-  const encode = (payload: Uint8Array): AuthGuardAddress => ({
-    address: encodeCashAddress({ prefix: networkPrefix, type: "p2sh", payload, throwErrors: true }).address,
-    tokenAddress: encodeCashAddress({ prefix: networkPrefix, type: "p2shWithTokens", payload, throwErrors: true }).address,
-  });
+  const encode = (payload: Uint8Array) =>
+    encodeCashAddress({ prefix: networkPrefix, type: "p2shWithTokens", payload, throwErrors: true }).address;
   return { p2sh20: encode(hash160(redeemScript)), p2sh32: encode(hash256(redeemScript)) };
 }
 

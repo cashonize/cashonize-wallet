@@ -76,7 +76,7 @@ const authKeyUtxo: Utxo = {
   txid: 'ee'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
   token: { category: authKeyCategory, amount: 0n, nft: { commitment: '00', capability: 'none' } },
 }
-const guardTokenAddress = authGuardAddresses(authKeyCategory, 'bitcoincash').p2sh20.tokenAddress
+const guardTokenAddress = authGuardAddresses(authKeyCategory, 'bitcoincash').p2sh20
 
 // The notification trail leads to this page for two reasons, and both have to stop asking once
 // the page has been opened: the shape of an identity key is a shape ordinary NFTs can have, so a
@@ -90,39 +90,9 @@ describe('the identities notification', () => {
   })
 
   // a key candidate is a shape guess about an NFT: the token item nudges, the menus do not
-  it('asks about a key candidate once, and never again for that category', () => {
+  it('counts nothing for a key candidate', () => {
     const { identitiesStore } = startStore([authKeyUtxo])
-    expect(identitiesStore.unexaminedKeyCandidates).toEqual([authKeyCategory])
-    expect(identitiesStore.identitiesNeedAttention).toBe(false)
-
-    identitiesStore.markKeyCandidatesExamined()
-
-    expect(identitiesStore.unexaminedKeyCandidates).toEqual([])
-  })
-
-  it('remembers the answer across wallet opens', () => {
-    const first = startStore([authKeyUtxo])
-    first.identitiesStore.markKeyCandidatesExamined()
-
-    setActivePinia(createPinia())
-    const reopened = startStore([authKeyUtxo])
-
-    expect(reopened.identitiesStore.unexaminedKeyCandidates).toEqual([])
-  })
-
-  // only a category nobody has been asked about is a candidate again
-  it('asks again for a candidate that was not there before', () => {
-    const { store, identitiesStore } = startStore([authKeyUtxo])
-    identitiesStore.markKeyCandidatesExamined()
-
-    const otherCandidate: Utxo = {
-      ...authKeyUtxo,
-      txid: 'dd'.repeat(32),
-      token: { category: categoryB, amount: 0n, nft: { commitment: '00', capability: 'none' } },
-    }
-    store.walletUtxos = [authKeyUtxo, otherCandidate]
-
-    expect(identitiesStore.unexaminedKeyCandidates).toEqual([categoryB])
+    expect(identitiesStore.unseenCount).toBe(0)
   })
 
   // a Studio user's keys list their identities without being asked; that is worth telling them
@@ -135,11 +105,10 @@ describe('the identities notification', () => {
 
     expect(identitiesStore.identityCategories).toContain(categoryA)
     expect(identitiesStore.unseenIdentities).toContain(categoryA)
-    expect(identitiesStore.identitiesNeedAttention).toBe(true)
+    expect(identitiesStore.unseenCount).toBe(1)
 
     identitiesStore.markIdentitiesSeen()
-    identitiesStore.markKeyCandidatesExamined()
-    expect(identitiesStore.identitiesNeedAttention).toBe(false)
+    expect(identitiesStore.unseenCount).toBe(0)
   })
 })
 
@@ -260,7 +229,7 @@ describe('auth reservations follow the authchain', () => {
 
     const summary = await identitiesStore.scanForIdentities()
 
-    expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, mintingNfts: 0, failed: 0, dismissed: 0, deepScanned: 0 })
+    expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, mintingNfts: 0, failed: 0, dismissed: 0 })
     expect(store.reservedUtxos[outpointOf(authUtxoA)]?.reason).toBe('auth')
     expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
     expect(identitiesStore.identityCategories).toEqual([categoryA, categoryB])
@@ -617,7 +586,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const { identitiesStore } = startStore([utxo(authheadA, 0), utxo(movedAuthheadA, 0)])
     await identitiesStore.refreshIdentities()
-    identitiesStore.identityHistories = { [categoryA]: [{ hash: authheadA, kind: 'genesis', reserve: 0n, reserveDelta: 0n }] }
+    identitiesStore.identityHistories = { [categoryA]: [{ hash: authheadA, kind: 'genesis', reserveDelta: 0n }] }
 
     stubAuthheadQueries({ [categoryA]: movedAuthheadA })
     await identitiesStore.refreshIdentities()
@@ -630,7 +599,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const { identitiesStore } = startStore([utxo(authheadA, 0)])
     await identitiesStore.refreshIdentities()
-    const cached = [{ hash: authheadA, kind: 'genesis' as const, reserve: 0n, reserveDelta: 0n }]
+    const cached = [{ hash: authheadA, kind: 'genesis' as const, reserveDelta: 0n }]
     identitiesStore.identityHistories = { [categoryA]: cached }
 
     await identitiesStore.refreshIdentities()

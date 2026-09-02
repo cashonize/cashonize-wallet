@@ -95,7 +95,8 @@
       "cannotSendPledgedUtxo": "Este UTXO está retenido por una promesa abierta. Cancela la promesa para liberarlo.",
       "genesisInputUnavailable": "La moneda elegida para crear este token ya no está disponible. Elige otra.",
       "identityLeavesWallet": "Esta solicitud entregaría el control de una de tus identidades a otra billetera, así que fue rechazada. La transferencia de una identidad se hace desde la página de identidades.",
-      "identityMerge": "Esta solicitud gastaría dos de tus identidades en una sola transacción, lo que las fusiona en una. Esta billetera todavía no admite fusionar identidades, así que se rechazó."
+      "identityMerge": "Esta solicitud gastaría dos de tus identidades en una sola transacción, lo que las fusiona en una. Esta billetera todavía no admite fusionar identidades, así que se rechazó.",
+      "reservedInputs": "Esta solicitud gastaría un UTXO que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué UTXOs están retenidos y por qué."
     }
   },
   "onboarding": {
@@ -1181,8 +1182,7 @@
       "unverifiedTokenNoteSingular": "El token no está en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
       "unverifiedTokenNotePlural": "Los tokens no están en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
       "identityKeyReturns": "Esto usa tu clave de identidad, que vuelve a tu billetera.",
-      "identityReturns": "Esto usa una de tus identidades, que vuelve a tu billetera.",
-      "reserveMoved": "También saca {amount} de la reserva."
+      "identityReturns": "Esto usa una de tus identidades, que vuelve a tu billetera."
     },
     "sessionRequest": {
       "title": "¿Aprobar sesión?",
@@ -1223,8 +1223,7 @@
       "noAddressForSession": "No se encontró dirección para la sesión",
       "addressNotInHdCache": "Dirección no encontrada en la caché de la billetera HD: {address}",
       "noPrivateKeyForAddress": "No hay clave privada disponible para la dirección (billetera de solo lectura)",
-      "failedToCompressPublicKey": "Error al comprimir la clave pública",
-      "reservedInputs": "Esta solicitud gastaría un UTXO que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué UTXOs están retenidos y por qué."
+      "failedToCompressPublicKey": "Error al comprimir la clave pública"
     },
     "notifications": {
       "successfullySignedMessage": "Mensaje firmado exitosamente",
@@ -1265,8 +1264,7 @@
       "invalidUri": "No es una URI válida de WizardConnect",
       "invalidTransactionSchema": "Error al validar el esquema de la solicitud de transacción de WizardConnect",
       "failedToSignTransaction": "Error al firmar la transacción",
-      "errorSendingTransaction": "Error al enviar la transacción",
-      "reservedInputs": "Esta solicitud gastaría un UTXO que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué UTXOs están retenidos y por qué."
+      "errorSendingTransaction": "Error al enviar la transacción"
     },
     "notifications": {
       "sendingTransaction": "Enviando transacción...",
@@ -1712,7 +1710,6 @@
       "alreadyListed": "{count} categoría ya estaba en la lista. | {count} categorías ya estaban en la lista.",
       "carriesTokens": "{count} de ellas lleva una reserva de tokens fungibles. | {count} de ellas llevan una reserva de tokens fungibles.",
       "mintingNfts": "{count} de ellas lleva un NFT de acuñación. | {count} de ellas llevan un NFT de acuñación.",
-      "deepScanned": "{count} UTXO retenido resultó ser una identidad. | {count} UTXOs retenidos resultaron ser identidades.",
       "dismissed": "{count} se dejó fuera porque la quitaste antes. | {count} se dejaron fuera porque las quitaste antes.",
       "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías.",
       "automaticHelp": "Cashonize ya lista las identidades que hicieron estas claves: un token que creaste, o metadatos que publicaste, cuyo UTXO de identidad sigue aquí. Eso no cuesta nada, así que ocurre solo.",

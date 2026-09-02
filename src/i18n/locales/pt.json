@@ -95,7 +95,8 @@
       "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo.",
       "genesisInputUnavailable": "A moeda escolhida para criar este token não está mais disponível. Escolha outra.",
       "identityLeavesWallet": "Esta solicitação entregaria o controle de uma das suas identidades a outra carteira, por isso foi recusada. A transferência de uma identidade é feita na página de identidades.",
-      "identityMerge": "Este pedido gastaria duas das suas identidades numa só transação, o que as funde numa. Esta carteira ainda não suporta fundir identidades, por isso foi recusado."
+      "identityMerge": "Este pedido gastaria duas das suas identidades numa só transação, o que as funde numa. Esta carteira ainda não suporta fundir identidades, por isso foi recusado.",
+      "reservedInputs": "Este pedido gastaria um UTXO que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê."
     }
   },
   "onboarding": {
@@ -1181,8 +1182,7 @@
       "unverifiedTokenNoteSingular": "Token não presente na sua carteira. Novos metadados obtidos para pré-visualização.",
       "unverifiedTokenNotePlural": "Tokens não presentes na sua carteira. Novos metadados obtidos para pré-visualização.",
       "identityKeyReturns": "Isto usa a sua chave de identidade, que volta para a sua carteira.",
-      "identityReturns": "Isto usa uma das suas identidades, que volta para a sua carteira.",
-      "reserveMoved": "Também retira {amount} da reserva."
+      "identityReturns": "Isto usa uma das suas identidades, que volta para a sua carteira."
     },
     "sessionRequest": {
       "title": "Aprovar sessão?",
@@ -1223,8 +1223,7 @@
       "noAddressForSession": "Nenhum endereço encontrado para a sessão",
       "addressNotInHdCache": "Endereço não encontrado no cache da carteira HD: {address}",
       "noPrivateKeyForAddress": "Nenhuma chave privada disponível para este endereço (carteira somente leitura)",
-      "failedToCompressPublicKey": "Falha ao comprimir chave pública",
-      "reservedInputs": "Este pedido gastaria um UTXO que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê."
+      "failedToCompressPublicKey": "Falha ao comprimir chave pública"
     },
     "notifications": {
       "successfullySignedMessage": "Mensagem assinada com sucesso",
@@ -1265,8 +1264,7 @@
       "invalidUri": "URI WizardConnect inválida",
       "invalidTransactionSchema": "Erro na validação do schema da requisição de transação WizardConnect",
       "failedToSignTransaction": "Falha ao assinar transação",
-      "errorSendingTransaction": "Erro ao enviar transação",
-      "reservedInputs": "Este pedido gastaria um UTXO que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê."
+      "errorSendingTransaction": "Erro ao enviar transação"
     },
     "notifications": {
       "sendingTransaction": "Enviando transação...",
@@ -1712,7 +1710,6 @@
       "alreadyListed": "{count} categoria já estava na lista. | {count} categorias já estavam na lista.",
       "carriesTokens": "{count} delas carrega uma reserva de tokens fungíveis. | {count} delas carregam uma reserva de tokens fungíveis.",
       "mintingNfts": "{count} delas carrega um NFT de cunhagem. | {count} delas carregam um NFT de cunhagem.",
-      "deepScanned": "{count} UTXO retido acabou por ser uma identidade. | {count} UTXOs retidos acabaram por ser identidades.",
       "dismissed": "{count} foi deixada de fora porque você a removeu antes. | {count} foram deixadas de fora porque você as removeu antes.",
       "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias.",
       "automaticHelp": "O Cashonize já lista as identidades que estas chaves fizeram: um token que você criou, ou metadados que você publicou, cujo UTXO de identidade ainda está aqui. Isso não custa nada, então acontece sozinho.",

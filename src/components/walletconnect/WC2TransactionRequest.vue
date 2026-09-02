@@ -234,11 +234,6 @@
             {{ identity.kind === 'key'
               ? t('walletConnect.transactionRequest.identityKeyReturns')
               : t('walletConnect.transactionRequest.identityReturns') }}
-            <span v-if="identity.reserveMoved && identity.category">
-              {{ t('walletConnect.transactionRequest.reserveMoved', {
-                amount: formatTokenAmount(identity.reserveMoved, identity.category),
-              }) }}
-            </span>
           </div>
         </div>
 

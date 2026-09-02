@@ -40,8 +40,7 @@ describe('authGuardRedeemScript', () => {
 
 describe('authGuardAddresses', () => {
   it('derives the verified mainnet covenant address', () => {
-    expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh20.tokenAddress).toBe(vector.tokenAddress)
-    expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh20.address).toBe(vector.address)
+    expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh20).toBe(vector.tokenAddress)
   })
 
   // no live P2SH32 deployment to check against, but the encoding is determined by the same redeem
@@ -54,12 +53,12 @@ describe('authGuardAddresses', () => {
       throwErrors: true,
     }).address
 
-    expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh32.tokenAddress).toBe(expected)
-    expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh32.tokenAddress).not.toBe(vector.tokenAddress)
+    expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh32).toBe(expected)
+    expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh32).not.toBe(vector.tokenAddress)
   })
 
   it('derives on the network it is asked for', () => {
-    expect(authGuardAddresses(vector.category, 'bchtest').p2sh20.tokenAddress).toMatch(/^bchtest:/)
+    expect(authGuardAddresses(vector.category, 'bchtest').p2sh20).toMatch(/^bchtest:/)
   })
 })
 

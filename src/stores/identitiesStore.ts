@@ -11,6 +11,8 @@ import { useStore } from "./store"
 import { useSettingsStore } from "./settingsStore"
 import {
   loadIdentityList,
+  loadAnnounced,
+  markAnnounced,
   addToIdentityList,
   removeFromIdentityList,
   clearIdentityList,
@@ -46,9 +48,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Listed by the wallet itself and not yet seen: what the marker on the wallet tools entry is
   // for, and what marks the cards as found automatically on the visit that clears it
   const unseenIdentities = ref([] as string[]);
-  // Key candidates already put to the user once. The shape of an identity key is a shape ordinary
-  // NFTs can have, so an unexamined one is worth asking about exactly once.
-  const examinedKeyCandidates = ref([] as string[]);
   // Authheads held here that the detection could not name, by txid. Protected either way: naming
   // is a convenience, an unspendable coin is the point. Each is walked back once per session.
   const unnamedAuthheads = ref([] as string[]);
@@ -62,9 +61,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // hosting, and one can be present without the other.
   const publicationChecks = ref({} as Record<string, PublicationUriCheck[]>);
   const publicationChecksRunning = ref(false);
-  // Identity outputs a covenant holds for this wallet, keyed by category, rebuilt on every resolve
-  // like everything else about an authhead. Never stored: a key's guard is derived from it.
-  const guardedIdentities = ref({} as Record<string, GuardedIdentity>);
   // Guarded outputs found but not nameable without a lookup this version does not have, per key
   // category, so a key that guards only those does not read as guarding nothing.
   const unidentifiedGuarded = ref({} as Record<string, number>);
@@ -83,14 +79,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     watchedAuthKeys.value = loadIdentityList('authKeys', network, walletName);
     dismissedIdentities.value = loadIdentityList('dismissed', network, walletName);
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);
-    examinedKeyCandidates.value = loadIdentityList('examinedKeys', network, walletName);
-    announced.value = loadIdentityList('announced', network, walletName);
+    announced.value = loadAnnounced(network, walletName);
     unnamedAuthheads.value = loadIdentityList('unnamed', network, walletName);
     walkedThisSession = [];
     identities.value = undefined;
     publicationChecks.value = {};
     identityHistories.value = {};
-    guardedIdentities.value = {};
     unidentifiedGuarded.value = {};
     settledNonKeys = [];
   }
@@ -130,11 +124,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // The wallet listed identities the user never asked for, so it says so once per wallet, with
   // names, at the moment the balance changes; later finds only count in the menus. Set after the
   // resolve so the dialog can say what each one carries; the wallet page opens it and clears this.
-  const announced = ref([] as string[]);
+  const announced = ref(false);
   const announcement = ref<string[] | undefined>(undefined);
   function announceFound(ids: string[]) {
-    if (!ids.length || announced.value.length) return;
-    announced.value = addToIdentityList('announced', mainStore.network, mainStore.wallet.name, 'shown');
+    if (!ids.length || announced.value) return;
+    announced.value = true;
+    markAnnounced(mainStore.network, mainStore.wallet.name);
     announcement.value = ids;
   }
 
@@ -231,32 +226,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     };
   }
 
-  // The page has been opened, so what it found on its own is no longer news
-  // Coins shaped like an identity key that this wallet has never put to the user. Local and free:
-  // the shape is read off the wallet's own coins, and what a candidate actually guards is looked
-  // up by the identity resolve rather than here.
-  const unexaminedKeyCandidates = computed(() => {
-    const candidates = (mainStore.walletUtxos ?? []).filter(isAuthKeyCandidate);
-    const categories = candidates.map(utxo => utxo.token!.category);
-    return categories.filter(category => !examinedKeyCandidates.value.includes(category));
-  });
-
   // What the notification trail counts: identities listed without being asked for, answered by
   // opening the page. A key candidate is a shape guess about an NFT and gets no wallet-level
   // marker; the token item carries that nudge.
   const unseenCount = computed(() => unseenIdentities.value.length + unnamedAuthheadCoins().length);
-  const identitiesNeedAttention = computed(() => unseenCount.value > 0);
 
-  // Asked once. A candidate that turns out to guard nothing is still examined: the wallet keeps
-  // looking every session, the user is not asked again.
-  function markKeyCandidatesExamined() {
-    const unexamined = unexaminedKeyCandidates.value;
-    if (!unexamined.length) return;
-    examinedKeyCandidates.value = addToIdentityList(
-      'examinedKeys', mainStore.network, mainStore.wallet.name, unexamined
-    );
-  }
-
+  // The page has been opened, so what it found on its own is no longer news
   function markIdentitiesSeen() {
     const unseen = unseenIdentities.value;
     clearIdentityList('unseen', mainStore.network, mainStore.wallet.name);
@@ -286,12 +261,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const guardAddresses = authGuardAddresses(category, mainStore.wallet.networkPrefix);
       // both hash lengths a covenant address can use, since deployments exist in both
       const guardUtxos = await Promise.all([
-        mainStore.wallet.provider.getUtxos(guardAddresses.p2sh20.tokenAddress),
-        mainStore.wallet.provider.getUtxos(guardAddresses.p2sh32.tokenAddress),
+        mainStore.wallet.provider.getUtxos(guardAddresses.p2sh20),
+        mainStore.wallet.provider.getUtxos(guardAddresses.p2sh32),
       ]);
       const contents = [
-        { addresses: guardAddresses.p2sh20, contents: guardContentsFromUtxos(guardUtxos[0]) },
-        { addresses: guardAddresses.p2sh32, contents: guardContentsFromUtxos(guardUtxos[1]) },
+        { address: guardAddresses.p2sh20, contents: guardContentsFromUtxos(guardUtxos[0]) },
+        { address: guardAddresses.p2sh32, contents: guardContentsFromUtxos(guardUtxos[1]) },
       ];
       const found = contents.reduce((total, guard) =>
         total + guard.contents.identified.length + guard.contents.unidentified, 0);
@@ -308,12 +283,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
             authheadTxid: output.utxo.txid,
             identityOutput: output.utxo,
             ...(keyUtxo ? { keyUtxo } : {}),
-            guardAddress: guard.addresses.tokenAddress,
+            guardAddress: guard.address,
           };
         }
       }
     }
-    guardedIdentities.value = guarded;
     unidentifiedGuarded.value = unidentified;
     return guarded;
   }
@@ -481,7 +455,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
         mintingNfts: resolved.filter(identity => identity.authUtxo?.token?.nft?.capability === 'minting').length,
         failed: resolved.filter(identity => identity.status === 'unresolved').length,
         dismissed,
-        deepScanned,
       };
     } finally {
       identitiesResolving.value = false;
@@ -562,8 +535,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const guardAddresses = authGuardAddresses(category, mainStore.wallet.networkPrefix);
     const [authchain, p2sh20Utxos, p2sh32Utxos] = await Promise.all([
       queryAuthHeadWithOutputs(category, settingsStore.chaingraph).then(() => true).catch(() => false),
-      mainStore.wallet.provider.getUtxos(guardAddresses.p2sh20.tokenAddress),
-      mainStore.wallet.provider.getUtxos(guardAddresses.p2sh32.tokenAddress),
+      mainStore.wallet.provider.getUtxos(guardAddresses.p2sh20),
+      mainStore.wallet.provider.getUtxos(guardAddresses.p2sh32),
     ]);
     const contents = [guardContentsFromUtxos(p2sh20Utxos), guardContentsFromUtxos(p2sh32Utxos)];
     return {
@@ -628,9 +601,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     watchedAuthKeys,
     dismissedIdentities,
     unseenIdentities,
-    examinedKeyCandidates,
-    unexaminedKeyCandidates,
-    identitiesNeedAttention,
     unseenCount,
     announcement,
     unnamedAuthheads,
@@ -657,7 +627,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     checkPublications,
     fetchIdentityHistory,
     markIdentitiesSeen,
-    markKeyCandidatesExamined,
     addIdentity,
     listCreatedIdentity,
     removeIdentity,

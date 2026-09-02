@@ -95,7 +95,8 @@
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
       "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
       "identityLeavesWallet": "Cette requête confierait le contrôle d'une de vos identités à un autre portefeuille, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
-      "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, ce qui les fusionne en une. Ce portefeuille ne prend pas encore en charge la fusion d'identités, elle a donc été refusée."
+      "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, ce qui les fusionne en une. Ce portefeuille ne prend pas encore en charge la fusion d'identités, elle a donc été refusée.",
+      "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi."
     }
   },
   "onboarding": {
@@ -1181,8 +1182,7 @@
       "unverifiedTokenNoteSingular": "Le token ne figure pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "identityKeyReturns": "Ceci utilise votre clé d'identité, qui revient dans votre portefeuille.",
-      "identityReturns": "Ceci utilise une de vos identités, qui revient dans votre portefeuille.",
-      "reserveMoved": "Cela retire aussi {amount} de la réserve."
+      "identityReturns": "Ceci utilise une de vos identités, qui revient dans votre portefeuille."
     },
     "sessionRequest": {
       "title": "Approuver la session ?",
@@ -1223,8 +1223,7 @@
       "noAddressForSession": "Aucune adresse trouvée pour la session",
       "addressNotInHdCache": "Adresse non trouvée dans le cache du portefeuille HD : {address}",
       "noPrivateKeyForAddress": "Aucune clé privée disponible pour l'adresse (portefeuille en lecture seule)",
-      "failedToCompressPublicKey": "Échec de la compression de la clé publique",
-      "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi."
+      "failedToCompressPublicKey": "Échec de la compression de la clé publique"
     },
     "notifications": {
       "successfullySignedMessage": "Message signé avec succès",
@@ -1265,8 +1264,7 @@
       "invalidUri": "Ce n'est pas une URI WizardConnect valide",
       "invalidTransactionSchema": "Erreur lors de la validation du schéma de la demande de transaction WizardConnect",
       "failedToSignTransaction": "Échec de la signature de la transaction",
-      "errorSendingTransaction": "Erreur lors de l'envoi de la transaction",
-      "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi."
+      "errorSendingTransaction": "Erreur lors de l'envoi de la transaction"
     },
     "notifications": {
       "sendingTransaction": "Envoi de la transaction...",
@@ -1712,7 +1710,6 @@
       "alreadyListed": "{count} catégorie était déjà dans la liste. | {count} catégories étaient déjà dans la liste.",
       "carriesTokens": "{count} d'entre elles porte une réserve de tokens fongibles. | {count} d'entre elles portent une réserve de tokens fongibles.",
       "mintingNfts": "{count} d'entre elles porte un NFT de frappe. | {count} d'entre elles portent un NFT de frappe.",
-      "deepScanned": "{count} UTXO retenu s'est avéré être une identité. | {count} UTXOs retenus se sont avérés être des identités.",
       "dismissed": "{count} a été laissée de côté parce que vous l'aviez retirée. | {count} ont été laissées de côté parce que vous les aviez retirées.",
       "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées.",
       "automaticHelp": "Cashonize liste déjà les identités que ces clés ont créées : un token que vous avez créé, ou des métadonnées que vous avez publiées, dont l'UTXO d'identité est encore ici. Cela ne coûte rien, donc cela se fait tout seul.",

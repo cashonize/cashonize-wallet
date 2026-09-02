@@ -60,7 +60,7 @@ describe('an identity operation a dapp builds', () => {
   it('is signable when the AuthKey comes back to this wallet', () => {
     const check = checkReservedInputs([spends(keyCategory, 1)], [keyOutput(ours)], context);
     expect(check.refusals).toEqual([]);
-    expect(check.returning).toEqual([{ outpoint: `${keyCategory}:1`, kind: 'key', category: keyCategory }]);
+    expect(check.returning).toEqual([{ outpoint: `${keyCategory}:1`, kind: 'key' }]);
   });
 
   it('is refused when the AuthKey goes somewhere else', () => {
@@ -87,7 +87,7 @@ describe('an identity operation a dapp builds', () => {
     );
     expect(check.refusals).toEqual([]);
     expect(check.returning).toEqual([
-      { outpoint: `${authheadTxid}:0`, kind: 'authhead', category: tokenCategory },
+      { outpoint: `${authheadTxid}:0`, kind: 'authhead' },
     ]);
   });
 
@@ -133,16 +133,6 @@ describe('an identity operation a dapp builds', () => {
     expect(check.returning.map(entry => entry.kind)).toEqual(['authhead', 'key']);
   });
 
-  // the identity stays, the supply on it does not: signable, and said out loud rather than implied
-  it('reports the reserve an operation moves off the AuthHead', () => {
-    const check = checkReservedInputs(
-      [spends(authheadTxid, 0)],
-      [identityOutput(ours, 1000n)],
-      context,
-    );
-    expect(check.refusals).toEqual([]);
-    expect(check.returning[0]?.reserveMoved).toBe(4000n);
-  });
 });
 
 describe('the exemption reaches no further than the identity input', () => {
@@ -152,7 +142,7 @@ describe('the exemption reaches no further than the identity input', () => {
       [keyOutput(ours)],
       context,
     );
-    expect(check.refusals).toEqual([{ outpoint: `${pledgeTxid}:0`, reason: 'pledge' }]);
+    expect(check.refusals).toEqual([{ outpoint: `${pledgeTxid}:0`, reason: 'held' }]);
     // the key is still recognised as returning, the transaction is refused all the same
     expect(check.returning).toHaveLength(1);
   });
@@ -167,7 +157,7 @@ describe('the exemption reaches no further than the identity input', () => {
       [identityOutput(ours, 5000n)],
       { ...context, reservedUtxos: strayReserved },
     );
-    expect(check.refusals).toEqual([{ outpoint: `${tokenCategory}:0`, reason: 'unrecognised' }]);
+    expect(check.refusals).toEqual([{ outpoint: `${tokenCategory}:0`, reason: 'held' }]);
   });
 
   it('leaves a transaction spending nothing held back alone', () => {

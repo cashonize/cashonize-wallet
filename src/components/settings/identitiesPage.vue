@@ -217,7 +217,6 @@
     // every way in leads here to look at an identity, including the notification trail
     mode.value = 'identities';
     foundAutomatically.value = identitiesStore.markIdentitiesSeen();
-    identitiesStore.markKeyCandidatesExamined();
     void reloadIdentities();
   });
   // The view is kept alive across navigation, so a different wallet's form input must not linger
@@ -544,8 +543,7 @@
   // Which watched key guards this identity, told by deriving the key's covenant and comparing
   function guardsIdentity(keyCategory: string, identity: IdentityState) {
     const guards = authGuardAddresses(keyCategory, store.wallet.networkPrefix);
-    if (identity.guardAddress === guards.p2sh20.tokenAddress) return true;
-    return identity.guardAddress === guards.p2sh32.tokenAddress;
+    return identity.guardAddress === guards.p2sh20 || identity.guardAddress === guards.p2sh32;
   }
 
   // These have no name to confirm against, so the dialog says what the coin is instead
@@ -737,7 +735,6 @@
         <div v-if="scanSummary.alreadyListed">{{ t('identities.scan.alreadyListed', scanSummary.alreadyListed) }}</div>
         <div v-if="scanSummary.carriesTokens">{{ t('identities.scan.carriesTokens', scanSummary.carriesTokens) }}</div>
         <div v-if="scanSummary.mintingNfts">{{ t('identities.scan.mintingNfts', scanSummary.mintingNfts) }}</div>
-        <div v-if="scanSummary.deepScanned">{{ t('identities.scan.deepScanned', scanSummary.deepScanned) }}</div>
         <div v-if="scanSummary.dismissed">{{ t('identities.scan.dismissed', scanSummary.dismissed) }}</div>
         <div v-if="scanSummary.failed">{{ t('identities.scan.failed', scanSummary.failed) }}</div>
       </div>

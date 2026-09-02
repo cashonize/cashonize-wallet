@@ -95,7 +95,8 @@
       "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben.",
       "genesisInputUnavailable": "Die zur Erstellung gewählte Münze ist nicht mehr verfügbar. Wähle eine andere.",
       "identityLeavesWallet": "Diese Anfrage würde die Kontrolle über eine deiner Identitäten an ein anderes Wallet übergeben und wurde daher abgelehnt. Eine Identität wird über die Identitäten-Seite übertragen.",
-      "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben, was sie zu einer verschmilzt. Identitäten zu verschmelzen unterstützt dieses Wallet noch nicht, deshalb wurde sie abgelehnt."
+      "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben, was sie zu einer verschmilzt. Identitäten zu verschmelzen unterstützt dieses Wallet noch nicht, deshalb wurde sie abgelehnt.",
+      "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum."
     }
   },
   "onboarding": {
@@ -1181,8 +1182,7 @@
       "unverifiedTokenNoteSingular": "Token nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen.",
       "unverifiedTokenNotePlural": "Tokens nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen.",
       "identityKeyReturns": "Dies verwendet deinen Identitätsschlüssel, der in dein Wallet zurückkehrt.",
-      "identityReturns": "Dies verwendet eine deiner Identitäten, die in dein Wallet zurückkehrt.",
-      "reserveMoved": "Dabei werden auch {amount} aus der Reserve bewegt."
+      "identityReturns": "Dies verwendet eine deiner Identitäten, die in dein Wallet zurückkehrt."
     },
     "sessionRequest": {
       "title": "Sitzung genehmigen?",
@@ -1223,8 +1223,7 @@
       "noAddressForSession": "Keine Adresse für Sitzung gefunden",
       "addressNotInHdCache": "Adresse nicht im HD Wallet Cache gefunden: {address}",
       "noPrivateKeyForAddress": "Kein privater Schlüssel für Adresse verfügbar (Watch-only Wallet)",
-      "failedToCompressPublicKey": "Öffentlicher Schlüssel konnte nicht komprimiert werden",
-      "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum."
+      "failedToCompressPublicKey": "Öffentlicher Schlüssel konnte nicht komprimiert werden"
     },
     "notifications": {
       "successfullySignedMessage": "Nachricht erfolgreich signiert",
@@ -1265,8 +1264,7 @@
       "invalidUri": "Keine gültige WizardConnect-URI",
       "invalidTransactionSchema": "Fehler bei der Schema-Validierung der WizardConnect-Transaktionsanfrage",
       "failedToSignTransaction": "Transaktion konnte nicht signiert werden",
-      "errorSendingTransaction": "Fehler beim Senden der Transaktion",
-      "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum."
+      "errorSendingTransaction": "Fehler beim Senden der Transaktion"
     },
     "notifications": {
       "sendingTransaction": "Transaktion wird gesendet...",
@@ -1712,7 +1710,6 @@
       "alreadyListed": "{count} Kategorie stand bereits in der Liste. | {count} Kategorien standen bereits in der Liste.",
       "carriesTokens": "{count} davon trägt eine Reserve an Fungible-Tokens. | {count} davon tragen eine Reserve an Fungible-Tokens.",
       "mintingNfts": "{count} davon trägt ein Minting-NFT. | {count} davon tragen ein Minting-NFT.",
-      "deepScanned": "{count} gehaltener UTXO war eine Identität. | {count} gehaltene UTXOs waren Identitäten.",
       "dismissed": "{count} wurde ausgelassen, weil du sie vorher entfernt hast. | {count} wurden ausgelassen, weil du sie vorher entfernt hast.",
       "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden.",
       "automaticHelp": "Cashonize listet die Identitäten, die diese Schlüssel gemacht haben, bereits von selbst: ein Token, den du erstellt hast, oder Metadaten, die du veröffentlicht hast, deren Identitäts-UTXO noch hier liegt. Das kostet nichts und passiert automatisch.",

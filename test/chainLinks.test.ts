@@ -36,7 +36,6 @@ describe('describeChainLinks', () => {
     const described = describeChainLinks([link('aa'.repeat(32), { reserve: '1000' })])
 
     expect(described[0]?.kind).toBe('genesis')
-    expect(described[0]?.reserve).toBe(1000n)
   })
 
   // the reserve read down the list is the issuance schedule, which is bookkeeping for an issuer
@@ -68,7 +67,6 @@ describe('describeChainLinks', () => {
     ])
 
     expect(described[1]?.kind).toBe('emptyReserve')
-    expect(described[1]?.reserve).toBe(0n)
   })
 
   it('reads a publication off the BCMR output, and keeps what it published', () => {
@@ -81,7 +79,6 @@ describe('describeChainLinks', () => {
     expect(described[1]?.publication?.uris).toEqual(['example.com'])
   })
 
-  // the identity output moving to another lock, with the reserve untouched, is a handover
   // NFTs of the category beside an unchanged identity output are a mint; an issuance also puts
   // category outputs beside it, and is told apart by the reserve going down
   it('reads a mint off NFTs of the category minted beside the identity output', () => {
@@ -97,6 +94,7 @@ describe('describeChainLinks', () => {
     expect(described[2]?.kind).toBe('issue')
   })
 
+  // the identity output moving to another lock, with the reserve untouched, is a handover
   it('reads a transfer off the identity output changing hands', () => {
     const described = describeChainLinks([
       link('aa'.repeat(32), { reserve: '1000' }),
