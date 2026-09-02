@@ -87,7 +87,6 @@
       "deviceOffline": "Dein Gerät scheint offline zu sein, bitte überprüfe deine Internetverbindung",
       "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort",
       "utxoNotReserved": "Dieser UTXO ist nicht reserviert",
-      "reservedEnsureUtxos": "Diese Aktion benötigt einen UTXO, den die Wallet zurückhält",
       "tokenUtxoHeldBack": "Dieser UTXO ist von der Münzauswahl ausgenommen. Die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum, und dort wird ein eingefrorener wieder aufgetaut.",
       "identityUtxoHeldBack": "Dieses NFT ist der Identitäts-UTXO seines Tokens und von der Münzauswahl ausgenommen. Verwaltet wird er auf der Identitäten-Seite.",
       "notEnoughSpendableBch": "Diese Transaktion braucht {needed} und nur {available} sind ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",

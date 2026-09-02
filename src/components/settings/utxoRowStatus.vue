@@ -17,7 +17,7 @@
   // shows only when there is one: a coin nothing holds back says nothing at all.
   const props = defineProps<{ utxo: Utxo, compact?: boolean }>()
 
-  const reason = computed(() => store.reservedUtxos[outpointOf(props.utxo)]?.reason)
+  const reason = computed(() => store.reservedUtxos[outpointOf(props.utxo)])
   const heldByFeature = computed(() => isFeatureReservation(reason.value))
 </script>
 

@@ -164,7 +164,7 @@ describe('auth reservations follow the authchain', () => {
 
     await identitiesStore.refreshIdentities()
 
-    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
   })
 
@@ -181,7 +181,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.refreshIdentities()
 
     expect(outpointOf(oldAuthUtxo) in store.reservedUtxos).toBe(false)
-    expect(store.reservedUtxos[outpointOf(newAuthUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(newAuthUtxo)]).toBe('auth')
   })
 
   // a failed query says nothing about where its authhead went, so an outage must leave coins
@@ -199,8 +199,8 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.refreshIdentities()
 
     expect(identitiesStore.identities?.find(identity => identity.category === categoryB)?.status).toBe('unresolved')
-    expect(store.reservedUtxos[outpointOf(authUtxoA)]?.reason).toBe('auth')
-    expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxoA)]).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxoB)]).toBe('auth')
   })
 
   it('leaves a reservation another feature made alone', async () => {
@@ -212,7 +212,7 @@ describe('auth reservations follow the authchain', () => {
 
     await identitiesStore.refreshIdentities()
 
-    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('pledge')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('pledge')
   })
 
   // the scan writes the identity categories and hands the resolving over, so it can never publish
@@ -230,8 +230,8 @@ describe('auth reservations follow the authchain', () => {
     const summary = await identitiesStore.scanForIdentities()
 
     expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, mintingNfts: 0, failed: 0, dismissed: 0 })
-    expect(store.reservedUtxos[outpointOf(authUtxoA)]?.reason).toBe('auth')
-    expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxoA)]).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxoB)]).toBe('auth')
     expect(identitiesStore.identityCategories).toEqual([categoryA, categoryB])
   })
 
@@ -283,7 +283,7 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.unnamedAuthheadCoins()).toEqual([])
     expect(identitiesStore.identities?.[0]?.category).toBe(categoryA)
-    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
   })
 
   // detection runs after the resolve on every open; what the list already names must not come
@@ -326,7 +326,7 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.identityCategories).toEqual([categoryB])
     expect(identitiesStore.unseenIdentities).toEqual([categoryB])
-    expect(store.reservedUtxos[outpointOf(authUtxoB)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxoB)]).toBe('auth')
     expect(identitiesStore.openCheckError).toBeUndefined()
 
     stubAuthheadQueries({})
@@ -348,7 +348,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.refreshIdentities()
 
     expect(identitiesStore.identities?.[0]?.status).toBe('carriesTokens')
-    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
   })
 
@@ -367,7 +367,7 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
     expect(identitiesStore.identities?.[0]?.category).toBe(categoryA)
     // the key carries the authority, so the key is what gets held back
-    expect(store.reservedUtxos[outpointOf(authKeyUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authKeyUtxo)]).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
   })
 
@@ -417,7 +417,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.detectWalletIdentities(walk)
 
     expect(identitiesStore.identityCategories).toEqual([categoryA])
-    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
     // and it says so, rather than the coin quietly becoming unspendable: a dialog the first time
     expect(identitiesStore.unseenIdentities).toEqual([categoryA])
     expect(identitiesStore.announcement).toEqual([categoryA])
@@ -484,7 +484,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.detectWalletIdentities(walk)
 
     expect(identitiesStore.unnamedAuthheads).toEqual([authheadA])
-    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
     // nothing was named, so nothing joined the identity list
     expect(identitiesStore.identityCategories).toEqual([])
@@ -545,7 +545,7 @@ describe('auth reservations follow the authchain', () => {
 
     // still protected, and not walked a second time
     expect(fetched).toHaveLength(afterFirst)
-    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
   })
 
   // the dialog exists to say what was found by name, so it waits for the walk that names a
@@ -576,7 +576,7 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identityCategories).toEqual([categoryA])
     expect(identitiesStore.unseenIdentities).toEqual([categoryA])
     expect(identitiesStore.announcement).toEqual([categoryA])
-    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
   })
 
   // A cached chain ends at the authhead it was fetched for. Once that authhead moves, whether this

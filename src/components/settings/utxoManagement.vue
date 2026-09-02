@@ -58,7 +58,7 @@
   // it. Freezing is the user's own, and theirs to undo. A pledge and an authhead are held by the
   // feature that made the reservation, so this list marks those but does not offer to release them.
   const reservedUtxoCount = computed(() => store.reservedWalletUtxos?.length);
-  const reservationReason = (utxo: Utxo) => store.reservedUtxos[outpointOf(utxo)]?.reason;
+  const reservationReason = (utxo: Utxo) => store.reservedUtxos[outpointOf(utxo)];
   // The mark on a row only hints at it, so each half says out loud how many of its coins are held
   const heldBchCount = computed(() => utxoLists.value?.bch.filter(reservationReason).length);
   const heldTokenCount = computed(() => {

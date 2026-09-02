@@ -290,7 +290,7 @@
       await handleTransactionBroadcastSuccess(
         t('identities.create.done'), txId, t('identities.create.doneTitle')
       );
-      await identitiesStore.listCreatedIdentity(txId, txId, newIdentityValue);
+      await identitiesStore.listCreatedIdentity(txId, txId);
     } catch (error) {
       displayAndLogError(error);
     } finally {

@@ -22,7 +22,7 @@ function nftUtxo(category: string, commitment: string) {
 }
 
 const held = (utxo: { txid: string, vout: number }): ReservedUtxos =>
-  ({ [`${utxo.txid}:${utxo.vout}`]: { reason: 'manual', satoshis: '1000', reservedAt: 1 } });
+  ({ [`${utxo.txid}:${utxo.vout}`]: 'manual' });
 
 // Records the order of the wallet calls the transfer makes, the outputs of each send, and the
 // pool each was narrowed to

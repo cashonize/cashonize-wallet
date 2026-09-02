@@ -87,7 +87,6 @@
       "deviceOffline": "Seu dispositivo parece estar offline, verifique sua conexão com a internet",
       "bcmrIndexerValidationError": "Erro de validação na resposta do indexador BCMR",
       "utxoNotReserved": "Este UTXO não está reservado",
-      "reservedEnsureUtxos": "Esta ação precisa de um UTXO que a carteira está a reter",
       "tokenUtxoHeldBack": "Este UTXO está retido fora da seleção de moedas. A página de gestão de UTXOs mostra quais estão retidos e por quê, e é onde um congelado é descongelado.",
       "identityUtxoHeldBack": "Este NFT é o UTXO de identidade do seu token, de fora da seleção de moedas. É gerido na página de identidades.",
       "notEnoughSpendableBch": "Esta transação precisa de {needed} e só {available} pode ser gasto. Moedas retidas fora da seleção de moedas não contam; a página de gestão de UTXOs mostra quais estão retidas e por quê.",

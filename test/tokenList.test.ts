@@ -15,7 +15,7 @@ const nftCoin = (vout: number, commitment: string): Utxo => ({
 })
 
 const held = (...utxos: Utxo[]): ReservedUtxos => Object.fromEntries(
-  utxos.map(utxo => [`${utxo.txid}:${utxo.vout}`, { reason: 'manual' as const, satoshis: '1000', reservedAt: 1 }])
+  utxos.map(utxo => [`${utxo.txid}:${utxo.vout}`, 'manual' as const])
 )
 
 describe('tokenListFromUtxos', () => {

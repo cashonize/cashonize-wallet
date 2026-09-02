@@ -203,7 +203,7 @@
       metadataUris.value = [""];
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
       // creation ends where management begins: the identity is listed and its AuthHead held back
-      if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId, tokenOutputValue);
+      if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
     } catch(error){
       displayAndLogError(error)
     } finally {

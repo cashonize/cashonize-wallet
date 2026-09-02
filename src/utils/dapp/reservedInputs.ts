@@ -8,13 +8,13 @@
 import { binToHex } from "@bitauth/libauth";
 import type { Utxo } from "mainnet-js";
 import { i18n } from 'src/boot/i18n';
-const { t } = i18n.global;
 import {
   outpointOf,
   reservedTransactionInputs,
   type Outpoint,
   type ReservedUtxos,
 } from "src/utils/wallet/reservedUtxos";
+const { t } = i18n.global;
 
 // What this reads of a decoded transaction, which libauth's shapes satisfy
 export interface SignedInput {
@@ -104,7 +104,7 @@ export function checkReservedInputs(
   const refusals: ReservedInputRefusal[] = [];
   const returning: ReturningIdentity[] = [];
   for (const outpoint of reservedTransactionInputs(inputs, context.reservedUtxos)) {
-    const reason = context.reservedUtxos[outpoint]?.reason;
+    const reason = context.reservedUtxos[outpoint];
     // a pledge or a coin the user froze is held for its own reason, which an identity cannot lift
     if (reason !== 'auth') {
       refusals.push({ outpoint, reason: 'held' });

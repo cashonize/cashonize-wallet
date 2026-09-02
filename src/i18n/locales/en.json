@@ -87,7 +87,6 @@
       "deviceOffline": "Your device appears to be offline, please check your internet connection",
       "bcmrIndexerValidationError": "BCMR indexer response validation error",
       "utxoNotReserved": "This UTXO is not reserved",
-      "reservedEnsureUtxos": "This action needs a UTXO the wallet is holding back",
       "tokenUtxoHeldBack": "This UTXO is held back from coin selection. The UTXO Management page shows which coins are held and why, and is where a frozen one is unfrozen.",
       "identityUtxoHeldBack": "This NFT is the identity UTXO of its token, held back from coin selection. It is managed from the identities page.",
       "notEnoughSpendableBch": "This transaction needs {needed} and only {available} can be spent. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",

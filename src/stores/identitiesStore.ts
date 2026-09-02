@@ -388,8 +388,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveUtxo(keyCoin, 'auth');
     }
     if (resolved.some(identity => identity.status === 'unresolved')) return;
-    for (const [outpoint, reservation] of Object.entries(mainStore.reservedUtxos)) {
-      if (reservation.reason !== 'auth') continue;
+    for (const [outpoint, reason] of Object.entries(mainStore.reservedUtxos)) {
+      if (reason !== 'auth') continue;
       if (authOutpoints.includes(outpoint)) continue;
       if (walletChanged()) return;
       await mainStore.dropReservation(outpoint);
@@ -565,11 +565,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // An identity this wallet just created, token or not: its authhead is output 0 of the
   // transaction, so the coin is held back straight away rather than when Chaingraph or this
   // wallet's own view catches up.
-  async function listCreatedIdentity(category: string, authheadTxId: string, authheadSatoshis: bigint) {
+  async function listCreatedIdentity(category: string, authheadTxId: string) {
     dismissedIdentities.value = removeFromIdentityList('dismissed', mainStore.network, mainStore.wallet.name, category);
     identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, category);
     const outpoint = `${authheadTxId}:0`;
-    if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoint(outpoint, authheadSatoshis, 'auth');
+    if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoint(outpoint, 'auth');
     await refreshIdentities();
   }
 
@@ -580,7 +580,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     dismissedIdentities.value = addToIdentityList('dismissed', mainStore.network, mainStore.wallet.name, txid);
     unnamedAuthheads.value = removeFromIdentityList('unnamed', mainStore.network, mainStore.wallet.name, txid);
     const coin = (mainStore.walletUtxos ?? []).find(utxo => utxo.vout === 0 && utxo.txid === txid);
-    if (coin && mainStore.reservedUtxos[outpointOf(coin)]?.reason === 'auth') {
+    if (coin && mainStore.reservedUtxos[outpointOf(coin)] === 'auth') {
       await mainStore.dropReservation(outpointOf(coin));
     }
   }
@@ -593,7 +593,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     identities.value = identities.value?.filter(identity => identity.category !== category);
     if (!removed?.authUtxo) return;
     const outpoint = outpointOf(removed.authUtxo);
-    if (mainStore.reservedUtxos[outpoint]?.reason === 'auth') await mainStore.dropReservation(outpoint);
+    if (mainStore.reservedUtxos[outpoint] === 'auth') await mainStore.dropReservation(outpoint);
   }
 
   return {

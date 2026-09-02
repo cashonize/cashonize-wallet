@@ -28,7 +28,7 @@
   const showQrCodeDialog = ref(false);
 
   // Read from the store rather than passed in, so the note follows the coin's live state
-  const isFrozen = computed(() => store.reservedUtxos[outpointOf(props.utxo)]?.reason === 'manual');
+  const isFrozen = computed(() => store.reservedUtxos[outpointOf(props.utxo)] === 'manual');
   const bchDisplayUnit = computed(() => store.network === "mainnet" ? "BCH" : "tBCH");
   const networkPrefix = computed(() => store.network === 'mainnet' ? 'bitcoincash' : 'bchtest');
   // Same shortened shape the utxo lists show, the full txid is in the title attribute

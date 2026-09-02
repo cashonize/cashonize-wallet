@@ -62,7 +62,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
   it('holds a token coin back like any other coin', async () => {
     const { store } = await storeHoldingTokenCoin()
 
-    expect(store.reservedUtxos[`${tokenCoin.txid}:0`]?.reason).toBe('manual')
+    expect(store.reservedUtxos[`${tokenCoin.txid}:0`]).toBe('manual')
     expect(store.spendableUtxos).toEqual([bchCoin, otherTokenCoin])
   })
 

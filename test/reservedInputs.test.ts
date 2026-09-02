@@ -30,9 +30,9 @@ const pledgeCoin: Utxo = {
 };
 
 const reserved: ReservedUtxos = {
-  [`${keyCategory}:1`]: { reason: 'auth', satoshis: '1000', reservedAt: 1 },
-  [`${authheadTxid}:0`]: { reason: 'auth', satoshis: '1000', reservedAt: 1 },
-  [`${pledgeTxid}:0`]: { reason: 'pledge', satoshis: '100000', reservedAt: 1 },
+  [`${keyCategory}:1`]: 'auth',
+  [`${authheadTxid}:0`]: 'auth',
+  [`${pledgeTxid}:0`]: 'pledge',
 };
 
 const context = {
@@ -106,7 +106,7 @@ describe('an identity operation a dapp builds', () => {
     const otherAuthhead: Utxo = { ...authhead, txid: otherAuthheadTxid };
     const twoAuthheads = {
       ...context,
-      reservedUtxos: { ...reserved, [`${otherAuthheadTxid}:0`]: { reason: 'auth' as const, satoshis: '1000', reservedAt: 1 } },
+      reservedUtxos: { ...reserved, [`${otherAuthheadTxid}:0`]: 'auth' as const },
       walletUtxos: [...context.walletUtxos, otherAuthhead],
       authheads: [`${authheadTxid}:0`, `${otherAuthheadTxid}:0`],
     };
@@ -150,7 +150,7 @@ describe('the exemption reaches no further than the identity input', () => {
   it('refuses a held coin it cannot account for', () => {
     const strayReserved: ReservedUtxos = {
       ...reserved,
-      [`${tokenCategory}:0`]: { reason: 'auth', satoshis: '1000', reservedAt: 1 },
+      [`${tokenCategory}:0`]: 'auth',
     };
     const check = checkReservedInputs(
       [spends(tokenCategory, 0)],
