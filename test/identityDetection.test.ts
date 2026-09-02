@@ -152,6 +152,22 @@ describe('nameChainByWalkingBack', () => {
       .toEqual({ outcome: 'named', category: genesisInput })
   })
 
+  // every link is this chain's, so a token on its output 0 is the identity's own category: an NFT
+  // collection minted from its identity UTXO has one link per mint, which a walk to the genesis
+  // would spend the hop limit on
+  it('names the chain from the first link whose output 0 carries the category', async () => {
+    const category = '77'.repeat(32)
+    const { fetchTransaction, calls } = chainFetcher([
+      { txid: authhead, parent: middle },
+      { txid: middle, parent: genesis, mints: category },
+      { txid: genesis, parent: genesisInput, mints: genesisInput },
+    ])
+
+    expect(await nameChainByWalkingBack(authhead, fetchTransaction))
+      .toEqual({ outcome: 'named', category })
+    expect(calls).toEqual([authhead, middle])
+  })
+
   it('stops at the genesis rather than walking past it', async () => {
     const { fetchTransaction, calls } = chainFetcher([
       { txid: authhead, parent: genesis },

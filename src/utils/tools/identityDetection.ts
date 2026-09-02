@@ -121,6 +121,10 @@ export async function nameChainByWalkingBack(
     } catch {
       return { outcome: 'unavailable' };
     }
+    // every link walked is one of this chain, so its output 0 is this identity's output; a token
+    // identity's output carries its own category, which names the chain without reaching the genesis
+    const carried = transaction.vout.find(output => output.n === 0)?.tokenData?.category;
+    if (carried) return { outcome: 'named', category: carried };
     // the input that continues the authchain is the one spending a previous identity output
     const parent = transaction.vin.find(input => input.vout === 0);
     // nothing continues the chain here, so there is no genesis to reach: a conclusion, not a gap
