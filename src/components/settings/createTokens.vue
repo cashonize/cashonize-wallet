@@ -7,7 +7,7 @@
     publicationOutputSize,
     summarizeRegistry,
   } from 'src/utils/tools/authchainIdentity';
-  import { copyToClipboard, formatBchAmount } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils';
   import { NFTCapability, TokenSendRequest } from 'mainnet-js';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
   import TokenIcon from '../general/TokenIcon.vue';
@@ -42,9 +42,7 @@
   // The satoshis each token output of the genesis carries, the AuthHead included
   const tokenOutputValue = 1000n;
 
-  const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
-  const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
-  const truncateHash = (hash: string) => `${hash.slice(0, 16)}...${hash.slice(-8)}`;
+  const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
 
   // A new token's category is the txid of the coin its genesis spends, so which coin that is
   // decides the identity's id and its icon before anything exists.

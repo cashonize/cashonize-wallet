@@ -166,22 +166,17 @@ const authHeadQuery = graphql(`query AuthHead(
     }
   }`);
 
-export async function queryAuthHead(tokenId:string, chaingraphUrl:string) {
+// The authhead's txid and the locking bytecodes of its transaction's outputs, in output order.
+// Both come out of the one query: a metadata publication is an output of that same transaction,
+// and recognising it among these belongs to the module that owns the publication format.
+export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:string){
   const response = await queryChainGraph(authHeadQuery, chaingraphUrl, {
     hash: `\\x${tokenId}`,
     bcmrFrom: `\\x${bcmrPrefixRange.from}`,
     bcmrTo: `\\x${bcmrPrefixRange.to}`,
   });
-  const transaction = response.data.transaction[0];
-  if (!transaction) throw new Error(t('chaingraph.errors.tokenNotFound'));
-  return transaction;
-}
-
-// The authhead's txid and the locking bytecodes of its transaction's outputs, in output order.
-// Both come out of the one query: a metadata publication is an output of that same transaction,
-// and recognising it among these belongs to the module that owns the publication format.
-export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:string){
-  const authHeadObj = await queryAuthHead(tokenId, chaingraphUrl);
+  const authHeadObj = response.data.transaction[0];
+  if (!authHeadObj) throw new Error(t('chaingraph.errors.tokenNotFound'));
   const authchain = authHeadObj.authchains[0];
   if (!authchain?.authhead) throw new Error(t('chaingraph.errors.authchainNotFound'));
   // The identity's registry is the last publication its chain carries, which is not the authhead

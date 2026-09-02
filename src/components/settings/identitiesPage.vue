@@ -8,7 +8,8 @@
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import {
     copyToClipboard,
-    formatBchAmount,
+    formatBch,
+    truncateHash,
     formatTokenAmountFromBigInt,
     parseTokenAmountToBigInt,
   } from 'src/utils/utils'
@@ -21,7 +22,6 @@
     fetchPublishedRegistry,
     identityOutput,
     transferOutputs,
-    isTokenCategory,
     maxPublicationOutputSize,
     publicationOutput,
     publicationOutputSize,
@@ -89,9 +89,7 @@
   // whether a transfer takes the reserve and minting NFT with it; staying is the default
   const transferTokensAlong = ref(false);
 
-  const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
-  const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
-  const truncateHash = (hash: string) => `${hash.slice(0, 16)}...${hash.slice(-8)}`;
+  const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
 
   const identities = computed(() => identitiesStore.identities ?? []);
 
@@ -229,7 +227,7 @@
   async function addIdentity() {
     if (isAdding.value) return;
     const category = categoryInput.value.trim().toLowerCase();
-    if (!isTokenCategory(category)) {
+    if (!/^[0-9a-f]{64}$/i.test(category)) {
       displayAndLogError(new Error(t('identities.errors.invalidCategory')));
       return;
     }

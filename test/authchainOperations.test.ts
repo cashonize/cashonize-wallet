@@ -107,7 +107,7 @@ describe('mintOutputs', () => {
 
   // the identity output leads, unchanged, so the authchain continues here with the minting NFT
   it('puts the identity output first and the minted NFTs after it', () => {
-    const outputs = mintOutputs(authUtxo({ category, amount: 500n, nft: minting }), addresses, mints)
+    const outputs = mintOutputs(authUtxo({ category, amount: 500n, nft: minting }), addresses, category, mints)
 
     const identity = outputs[0] as TokenSendRequest
     expect(identity).toBeInstanceOf(TokenSendRequest)

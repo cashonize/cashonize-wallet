@@ -6,7 +6,7 @@
   import { TokenSendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, formatTokenAmountFromBigInt, sanitizeUrl } from 'src/utils/utils';
+  import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -105,17 +105,7 @@
     .map(identity => store.bcmrRegistries?.[identity.category]?.name)
     .filter((name): name is string => !!name)
     .join(', '));
-  // Said beside the token when this wallet holds its identity, since the identities page is
-  // where it is managed; a minting NFT's category usually is one
-  const heldIdentityLine = computed(() => {
-    const identity = identitiesStore.heldIdentityOf(tokenData.value.category);
-    if (!identity) return undefined;
-    const reserve = (identity.authUtxo ?? identity.guardedOutput)?.token?.amount;
-    if (!reserve) return t('tokenItem.identity.held');
-    const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-    const amount = `${formatTokenAmountFromBigInt(reserve, decimals)} ${tokenMetaData.value?.token?.symbol ?? ''}`.trim();
-    return t('tokenItem.identity.heldWithReserve', { amount });
-  });
+  const heldIdentityLine = computed(() => identitiesStore.heldIdentityLine(tokenData.value.category));
   // The minting NFT of a category made on the create page is its identity UTXO, held back from
   // coin selection: minting from it has to continue the authchain rather than go through tokenMint
   const identityUtxo = computed(() => {

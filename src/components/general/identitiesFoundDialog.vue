@@ -6,7 +6,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { formatBchAmount, formatTokenAmountFromBigInt } from 'src/utils/utils'
+  import { formatBch, formatTokenAmountFromBigInt, truncateHash } from 'src/utils/utils'
 
   // Shown once per wallet, when the wallet held back identities the user never listed: that is
   // the moment the spendable balance and the token list change, so it is told directly, with names.
@@ -24,8 +24,6 @@
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
 
-  const bchUnit = store.network === 'mainnet' ? 'BCH' : 'tBCH'
-  const truncate = (id: string) => `${id.slice(0, 16)}...${id.slice(-8)}`
 
   // Registries may not have been fetched yet when the walk returns, so a name can be missing and
   // the id stands in for it rather than waiting
@@ -41,7 +39,7 @@
       name: metadata?.name,
       iconUrl: settingsStore.disableTokenIcons ? undefined : store.tokenIconUrl(id),
       reserve,
-      bch: output ? `${formatBchAmount(Number(output.satoshis), false, 8)} ${bchUnit}` : undefined,
+      bch: output ? formatBch(output.satoshis, store.network) : undefined,
     }
   }))
 </script>
@@ -56,7 +54,7 @@
           <div v-for="entry in entries" :key="entry.id" class="found-entry">
             <TokenIcon :token-id="entry.id" :icon-url="entry.iconUrl" :size="32" />
             <div>
-              <div>{{ entry.name ?? truncate(entry.id) }}</div>
+              <div>{{ entry.name ?? truncateHash(entry.id) }}</div>
               <div class="found-facts">
                 <span v-if="entry.reserve">{{ t('identities.found.reserve', { amount: entry.reserve }) }}</span>
                 <span v-if="entry.bch">{{ entry.bch }}</span>

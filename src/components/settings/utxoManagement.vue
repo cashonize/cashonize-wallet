@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, nextTick, ref, watch } from 'vue';
-  import { copyToClipboard, formatBchAmount, formatFiatAmount, formatTokenAmountFromBigInt, getFungibleTokenBalances, getTokenUtxos, satsToBch } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, formatTokenAmountFromBigInt, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateHash } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
   import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue';
@@ -74,7 +74,7 @@
       return;
     }
     // Freezing changes what the wallet reports as spendable, so it says so before it happens
-    const amount = `${formatBchAmount(Number(utxo.satoshis), false, 8)} ${bchDisplayUnit.value}`;
+    const amount = formatBch(utxo.satoshis, store.network);
     const confirmed = await confirmDialog(
       t('utxoManagement.freeze.title'),
       utxo.token
@@ -135,7 +135,7 @@
     try {
       notifySending();
       const { txId } = await store.spend.sendUtxo(utxo, destinationAddress);
-      const amount = `${formatBchAmount(Number(utxo.satoshis), false, 8)} ${bchDisplayUnit.value}`;
+      const amount = formatBch(utxo.satoshis, store.network);
       await handleTransactionBroadcastSuccess(
         t('utxoManagement.send.sent', { amount, address: destinationAddress }),
         txId,
@@ -169,10 +169,6 @@
   function rowNumber(list: UtxoList, index: number) {
     return (listPages.value[list] - 1) * utxosPerPage + index + 1;
   }
-
-  const bchDisplayUnit = computed(() => {
-    return store.network === "mainnet" ? "BCH" : "tBCH";
-  });
 
   // Consolidating or splitting shortens a list, which can leave its pager past the last page
   watch(utxoLists, () => {
@@ -244,12 +240,6 @@
     return Object.values(groups).sort((a, b) => Number(b.satoshis - a.satoshis) || b.utxoCount - a.utxoCount);
   });
 
-  // Enough to tell two utxos apart and to recognise one, the full value is a click away.
-  // Every column holding one of these is sized to fit it whole, they never shorten further.
-  function truncateHash(hash: string) {
-    return hash.slice(0, 8) + '...' + hash.slice(-6);
-  }
-
   // The prefix is the same for every row, only the body distinguishes the addresses
   function truncateAddress(address: string) {
     const body = address.split(':')[1] ?? address;
@@ -257,7 +247,7 @@
   }
 
   function tokenName(category: string) {
-    return store.bcmrRegistries?.[category]?.name || truncateHash(category);
+    return store.bcmrRegistries?.[category]?.name || truncateHash(category, 8, 6);
   }
 
   function tokenUtxoType(utxo: Utxo) {
@@ -449,7 +439,7 @@
               <div class="cell row-number">{{ rowNumber('bch', index) }}</div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bch') }}</span>
-                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+                <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
               </div>
               <div v-if="isHdWallet" class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.address') }}</span>
@@ -459,7 +449,7 @@
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
                 <!-- .stop so copying the txid does not also open the row's actions -->
                 <span class="copy-target" :title="utxo.txid" @click.stop="copyToClipboard(utxo.txid)">
-                  <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+                  <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
                 </span>
               </div>
@@ -618,7 +608,7 @@
                 <div class="cell">
                   <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
                   <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
-                    <span class="mono muted">{{ truncateHash(utxo.txid) }}</span>
+                    <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}</span>
                     <img class="copyIcon" src="images/copyGrey.svg">
                   </span>
                 </div>
@@ -716,9 +706,9 @@
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
               <div class="utxo-line utxo-line-meta">
-                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+                <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
                 <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-                  <span class="mono muted">{{ truncateHash(utxo.txid) }}:{{ utxo.vout }}</span>
+                  <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
                 </span>
                 <utxoRowStatus :utxo="utxo" compact />
@@ -796,9 +786,9 @@
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
               <div class="utxo-line utxo-line-meta">
-                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+                <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
                 <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-                  <span class="mono muted">{{ truncateHash(utxo.txid) }}:{{ utxo.vout }}</span>
+                  <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
                 </span>
                 <utxoRowStatus :utxo="utxo" compact />
@@ -877,9 +867,9 @@
                 <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
               </div>
               <div class="utxo-line utxo-line-meta">
-                <span class="mono bch-value">{{ formatBchAmount(Number(utxo.satoshis), false, 8) }} {{ bchDisplayUnit }}</span>
+                <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
                 <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-                  <span class="mono muted">{{ truncateHash(utxo.txid) }}:{{ utxo.vout }}</span>
+                  <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
                 </span>
                 <utxoRowStatus :utxo="utxo" compact />

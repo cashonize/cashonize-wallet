@@ -19,7 +19,6 @@ import {
   resolveIdentities,
   describeChainLinks,
   checkPublicationUri,
-  identityKeyCoin,
   type IdentityState,
   type IdentityScanSummary,
   type IdentityStatus,
@@ -31,6 +30,9 @@ import { detectIdentities, nameChainByWalkingBack, type DetectedIdentity } from 
 import { authGuardAddresses, isAuthKeyCandidate, guardContentsFromUtxos } from "src/utils/tools/authGuard"
 import { queryAuthHeadWithOutputs, queryAuthchainLinks, type ChaingraphSpentOutput } from "src/queryChainGraph"
 import { outpointOf } from "src/utils/wallet/reservedUtxos"
+import { formatTokenAmountFromBigInt } from "src/utils/utils"
+import { i18n } from 'src/boot/i18n'
+const { t } = i18n.global
 
 
 export const useIdentitiesStore = defineStore('identities', () => {
@@ -383,7 +385,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     for (const identity of resolved) {
       // the identity output when this wallet holds it, the AuthKey when a covenant does: either
       // way it is the coin the authority rides on, and one key can carry several identities
-      const keyCoin = identityKeyCoin(identity);
+      const keyCoin = identity.authUtxo ?? identity.keyUtxo;
       if (!keyCoin) continue;
       const outpoint = outpointOf(keyCoin);
       authOutpoints.push(outpoint);
@@ -526,6 +528,18 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return heldStatuses.includes(identity.status) ? identity : undefined;
   }
 
+  // What the token list says beside such a token: the balance shown leaves the reserve out, and
+  // the identities page is where the identity is managed
+  function heldIdentityLine(category: string): string | undefined {
+    const identity = heldIdentityOf(category);
+    if (!identity) return undefined;
+    const reserve = (identity.authUtxo ?? identity.guardedOutput)?.token?.amount;
+    if (!reserve) return t('tokenItem.identity.held');
+    const metadata = mainStore.bcmrRegistries?.[category];
+    const amount = `${formatTokenAmountFromBigInt(reserve, metadata?.token?.decimals ?? 0)} ${metadata?.token?.symbol ?? ''}`.trim();
+    return t('tokenItem.identity.heldWithReserve', { amount });
+  }
+
   // A token category and an AuthKey category are both 64 hex, so the add input does not ask which
   // one it was given: it tries both readings and reports what each found.
   async function inspectCategory(category: string) {
@@ -631,6 +645,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     unnamedAuthheadCoins,
     identitiesGuardedByKey,
     heldIdentityOf,
+    heldIdentityLine,
     inspectCategory,
     checkPublications,
     fetchIdentityHistory,

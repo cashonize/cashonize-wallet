@@ -228,6 +228,15 @@ export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };
 
+// An amount with its unit, for a network's own name for the coin
+export function formatBch(satoshis: bigint, network: string): string {
+  return `${formatBchAmount(Number(satoshis), false, 8)} ${network === 'mainnet' ? 'BCH' : 'tBCH'}`;
+}
+
+export function truncateHash(hash: string, head = 16, tail = 8): string {
+  return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
+}
+
 export function formatBchAmount(satoshis: number, signed = false, maxDecimals = 5): string {
   const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: maxDecimals });
   return signed && satoshis > 0 ? `+${amount}` : amount;

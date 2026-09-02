@@ -43,17 +43,7 @@
   const burnAmountFTs = ref("");
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
 
-  // Said beside the token when this wallet holds its identity: the balance above leaves the
-  // reserve out, and the identities page is where the identity is managed
-  const heldIdentityLine = computed(() => {
-    const identity = identitiesStore.heldIdentityOf(tokenData.value.category);
-    if (!identity) return undefined;
-    const reserve = (identity.authUtxo ?? identity.guardedOutput)?.token?.amount;
-    if (!reserve) return t('tokenItem.identity.held');
-    const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-    const amount = `${formatTokenAmountFromBigInt(reserve, decimals)} ${tokenMetaData.value?.token?.symbol ?? ''}`.trim();
-    return t('tokenItem.identity.heldWithReserve', { amount });
-  });
+  const heldIdentityLine = computed(() => identitiesStore.heldIdentityLine(tokenData.value.category));
   const activeAction = ref<TokenActionType | null>(null);
   const starAnimating = ref(false);
 

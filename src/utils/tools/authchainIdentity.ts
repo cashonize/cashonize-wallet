@@ -53,10 +53,6 @@ export interface IdentityState {
 }
 
 // The coin that holds the authority, whichever way this wallet has it. What gets reserved.
-export function identityKeyCoin(identity: IdentityState): Utxo | undefined {
-  return identity.authUtxo ?? identity.keyUtxo;
-}
-
 // An identity output found in an AuthGuard covenant this wallet has the key to, waiting for the
 // authchain lookup to confirm it really is that category's authhead.
 export interface GuardedIdentity {
@@ -139,17 +135,18 @@ export function identityOutput(
   authUtxo: Utxo,
   addresses: { bch: string, token: string },
   reserve?: bigint,
+  value = authUtxo.satoshis,
 ) {
   const token = authUtxo.token;
   const remaining = reserve ?? token?.amount ?? 0n;
   if (!token || (remaining === 0n && !token.nft)) {
-    return { cashaddr: addresses.bch, value: authUtxo.satoshis };
+    return { cashaddr: addresses.bch, value };
   }
   return new TokenSendRequest({
     cashaddr: addresses.token,
     category: token.category,
     amount: remaining,
-    value: authUtxo.satoshis,
+    value,
     ...(token.nft ? { nft: { commitment: token.nft.commitment, capability: token.nft.capability } } : {}),
   });
 }
@@ -163,10 +160,9 @@ const keptTokenOutputValue = 1000n;
 export function mintOutputs(
   authUtxo: Utxo,
   addresses: { bch: string, token: string },
+  category: string,
   mints: { cashaddr: string; commitment: string; capability: string; value: bigint }[],
 ) {
-  const category = authUtxo.token?.category;
-  if (!category) throw new Error("not a token identity UTXO");
   return [
     identityOutput(authUtxo, addresses),
     ...mints.map(mint => new TokenSendRequest({
@@ -187,19 +183,11 @@ export function transferOutputs(
   addresses: { bch: string, token: string },
   tokensGoAlong: boolean,
 ) {
-  const token = authUtxo.token;
-  if (!token) return [{ cashaddr: destination, value: authUtxo.satoshis }];
-  const carried = (cashaddr: string, value: bigint) => new TokenSendRequest({
-    cashaddr,
-    category: token.category,
-    amount: token.amount,
-    value,
-    ...(token.nft ? { nft: { commitment: token.nft.commitment, capability: token.nft.capability } } : {}),
-  });
-  if (tokensGoAlong) return [carried(destination, authUtxo.satoshis)];
+  if (!authUtxo.token) return [{ cashaddr: destination, value: authUtxo.satoshis }];
+  if (tokensGoAlong) return [identityOutput(authUtxo, { bch: destination, token: destination })];
   return [
     { cashaddr: destination, value: authUtxo.satoshis },
-    carried(addresses.token, keptTokenOutputValue),
+    identityOutput(authUtxo, addresses, undefined, keptTokenOutputValue),
   ];
 }
 
@@ -442,10 +430,6 @@ export function removeIdentityCategories(walletName: string) {
     }
     localStorage.removeItem(announcedKey(network, walletName));
   }
-}
-
-export function isTokenCategory(category: string): boolean {
-  return /^[0-9a-f]{64}$/i.test(category);
 }
 
 // What one link of an authchain did, read off its outputs. The chain is the identity's whole

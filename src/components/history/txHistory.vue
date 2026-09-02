@@ -9,7 +9,6 @@
   import { historyToCsv } from 'src/utils/history/csvUtils';
   import { maxTxNoteLength } from 'src/utils/history/txNotes';
   import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/history/txDirection';
-  import { identityOperationOf } from 'src/utils/history/txIdentity';
   import { isBelowRelayFee } from 'src/utils/history/txFeeRate';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
@@ -82,14 +81,13 @@
   // An operation on one of the wallet's own identities, named rather than left reading as a
   // self-send with an OP_RETURN attached
   function identityOperation(transaction: TransactionHistoryItem) {
-    const operation = identityOperationOf(
-      transaction, identitiesStore.identities ?? [], identitiesStore.identityPublicationTxids
-    );
-    if (!operation) return undefined;
-    const name = store.bcmrRegistries?.[operation.category]?.name;
-    return name
-      ? t(`history.identity.${operation.kind}Named`, { name })
-      : t(`history.identity.${operation.kind}`);
+    // a transaction on a listed identity's chain is an operation on it; whether it published
+    // metadata is told by the walk, which read the BCMR output a history item cannot see
+    const identity = (identitiesStore.identities ?? []).find(listed => listed.links?.includes(transaction.hash));
+    if (!identity) return undefined;
+    const kind = identitiesStore.identityPublicationTxids.includes(transaction.hash) ? 'metadataUpdate' : 'identityOperation';
+    const name = store.bcmrRegistries?.[identity.category]?.name;
+    return name ? t(`history.identity.${kind}Named`, { name }) : t(`history.identity.${kind}`);
   }
 
   // Predicate for isDappInteraction, which is store-agnostic by design

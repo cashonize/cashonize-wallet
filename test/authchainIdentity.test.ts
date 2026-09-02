@@ -6,7 +6,6 @@ import {
   removeFromIdentityList,
   removeIdentityCategories,
   resolveIdentities,
-  isTokenCategory,
 } from "../src/utils/tools/authchainIdentity";
 
 // The global setup stubs localStorage as a no-op; these tests need a working store
@@ -163,14 +162,6 @@ describe('identity categories', () => {
     removeIdentityCategories('mywallet');
     expect(loadIdentityList('categories', 'mainnet', 'mywallet')).toEqual([]);
     expect(loadIdentityList('categories', 'chipnet', 'mywallet')).toEqual([]);
-  });
-
-  it('accepts a token category and rejects anything else', () => {
-    expect(isTokenCategory(categoryA)).toBe(true);
-    expect(isTokenCategory(categoryA.toUpperCase())).toBe(true);
-    expect(isTokenCategory(categoryA.slice(0, 63))).toBe(false);
-    expect(isTokenCategory(`${categoryA}:0`)).toBe(false);
-    expect(isTokenCategory("")).toBe(false);
   });
 });
 

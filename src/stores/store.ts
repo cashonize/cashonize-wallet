@@ -30,7 +30,7 @@ import {
 } from "../interfaces/interfaces"
 import {
   electrumWssUrl,
-  formatBchAmount,
+  formatBch,
   getBalanceFromUtxos,
   loadWalletFromId,
   runAsyncVoid,
@@ -1525,13 +1525,12 @@ export const useStore = defineStore('store', () => {
   function explainHeldBackCoins(error: unknown): unknown {
     if (!(error instanceof Error)) return error;
     if (!Object.keys(reservedUtxos.value).length) return error;
-    const bchUnit = network.value === 'mainnet' ? 'BCH' : 'tBCH';
     // the shortfall carries the two amounts, in satoshis, alongside the message
     const shortfall = (error as { data?: { required?: bigint; available?: bigint } }).data;
     if (error.message.startsWith("Amount required was not met") && shortfall?.required !== undefined) {
       return new Error(t('store.errors.notEnoughSpendableBch', {
-        needed: `${formatBchAmount(Number(shortfall.required), false, 8)} ${bchUnit}`,
-        available: `${formatBchAmount(Number(shortfall.available ?? 0n), false, 8)} ${bchUnit}`,
+        needed: formatBch(shortfall.required, network.value),
+        available: formatBch(shortfall.available ?? 0n, network.value),
       }));
     }
     const tokenSelectionFailures = [

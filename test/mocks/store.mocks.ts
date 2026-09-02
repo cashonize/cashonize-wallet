@@ -201,6 +201,7 @@ vi.mock('src/stores/storeUtils', () => ({
 // Mock utils
 vi.mock('src/utils/utils', () => ({
   formatBchAmount: vi.fn((satoshis: number) => (satoshis / 100_000_000).toString()),
+  formatBch: vi.fn((satoshis: bigint, network: string) => `${Number(satoshis) / 100_000_000} ${network === 'mainnet' ? 'BCH' : 'tBCH'}`),
   getBalanceFromUtxos: vi.fn().mockReturnValue(0),
   getTokenUtxos: vi.fn().mockReturnValue([]),
   walletTypeFromWalletId: vi.fn((walletId: string) => walletId.startsWith('hd:') ? 'hd' : 'single'),
