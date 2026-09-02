@@ -71,6 +71,27 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // One resolve at a time: a pass writes the identities list and the 'auth' reservations derived
   // from it whole, so two overlapping passes would undo each other's result
   const identitiesResolving = ref(false);
+  async function withResolveLock<T>(pass: () => Promise<T>): Promise<T | undefined> {
+    if (identitiesResolving.value) return undefined;
+    identitiesResolving.value = true;
+    try {
+      return await pass();
+    } finally {
+      identitiesResolving.value = false;
+    }
+  }
+
+  // A pass that outlives a wallet switch must not write under the next wallet: capture the epoch
+  // when the pass starts and ask before every write whether it is still the same one
+  const walletEpoch = () => {
+    const token = mainStore.currentInitializationToken();
+    return () => token !== mainStore.currentInitializationToken();
+  };
+  // The persisted lists are per wallet per network, so every write names the pair
+  const walletKey = () => [mainStore.network, mainStore.wallet.name] as const;
+  const listCategory = (category: string) => {
+    identityCategories.value = addToIdentityList('categories', ...walletKey(), category);
+  };
 
   // Called when a wallet becomes the active one: the lists are its own, and everything derived
   // from the chain starts empty rather than carrying the last wallet's answers.
@@ -106,18 +127,18 @@ export const useIdentitiesStore = defineStore('identities', () => {
         if (unnamedAuthheads.value.includes(identity.authheadTxid)) continue;
         // already named by the list, which resolved before this ran: not unnamed, not news
         if ((identities.value ?? []).some(listed => listed.authheadTxid === identity.authheadTxid)) continue;
-        unnamedAuthheads.value = addToIdentityList('unnamed', mainStore.network, mainStore.wallet.name, identity.authheadTxid);
+        unnamedAuthheads.value = addToIdentityList('unnamed', ...walletKey(), identity.authheadTxid);
         listed.push(identity.authheadTxid);
         continue;
       }
       if (dismissedIdentities.value.includes(identity.category)) continue;
       if (identityCategories.value.includes(identity.category)) continue;
-      identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, identity.category);
+      listCategory(identity.category);
       listed.push(identity.category);
     }
     // the unseen list holds categories only; an unnamed authhead counts as news from its own list
     const categories = listed.filter(id => identityCategories.value.includes(id));
-    if (categories.length) unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, categories);
+    if (categories.length) unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), categories);
     return listed;
   }
 
@@ -129,7 +150,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   function announceFound(ids: string[]) {
     if (!ids.length || announced.value) return;
     announced.value = true;
-    markAnnounced(mainStore.network, mainStore.wallet.name);
+    markAnnounced(...walletKey());
     announcement.value = ids;
   }
 
@@ -168,19 +189,19 @@ export const useIdentitiesStore = defineStore('identities', () => {
   async function nameByWalkingBack(coins: Utxo[]) {
     const fetchTransaction = (txid: string) => mainStore.wallet.provider.getRawTransactionObject(txid);
     const named: { coin: Utxo; category: string }[] = [];
+    const walletChanged = walletEpoch();
     for (const coin of coins) {
-      const initialization = mainStore.currentInitializationToken();
       const category = await nameChainByWalkingBack(coin.txid, fetchTransaction);
-      if (initialization !== mainStore.currentInitializationToken()) return named;
+      if (walletChanged()) return named;
       if (!category) continue;
       if (identityCategories.value.includes(category)) continue;
       if (dismissedIdentities.value.includes(category)) continue;
       const confirmed = await queryAuthHeadWithOutputs(category, settingsStore.chaingraph)
         .then(result => result.txid === coin.txid)
         .catch(() => false);
-      if (initialization !== mainStore.currentInitializationToken()) return named;
+      if (walletChanged()) return named;
       if (!confirmed) continue;
-      identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, category);
+      listCategory(category);
       named.push({ coin, category });
     }
     return named;
@@ -206,8 +227,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     walkedThisSession.push(...coins.map(coin => coin.txid));
     const named = await nameByWalkingBack(coins);
     for (const { coin, category } of named) {
-      unnamedAuthheads.value = removeFromIdentityList('unnamed', mainStore.network, mainStore.wallet.name, coin.txid);
-      unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, category);
+      unnamedAuthheads.value = removeFromIdentityList('unnamed', ...walletKey(), coin.txid);
+      unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), category);
     }
     return named.length;
   }
@@ -234,7 +255,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // The page has been opened, so what it found on its own is no longer news
   function markIdentitiesSeen() {
     const unseen = unseenIdentities.value;
-    clearIdentityList('unseen', mainStore.network, mainStore.wallet.name);
+    clearIdentityList('unseen', ...walletKey());
     unseenIdentities.value = [];
     return unseen;
   }
@@ -258,16 +279,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const guarded: Record<string, GuardedIdentity> = {};
     const unidentified: Record<string, number> = {};
     for (const { category, keyUtxo } of candidates) {
-      const guardAddresses = authGuardAddresses(category, mainStore.wallet.networkPrefix);
-      // both hash lengths a covenant address can use, since deployments exist in both
-      const guardUtxos = await Promise.all([
-        mainStore.wallet.provider.getUtxos(guardAddresses.p2sh20),
-        mainStore.wallet.provider.getUtxos(guardAddresses.p2sh32),
-      ]);
-      const contents = [
-        { address: guardAddresses.p2sh20, contents: guardContentsFromUtxos(guardUtxos[0]) },
-        { address: guardAddresses.p2sh32, contents: guardContentsFromUtxos(guardUtxos[1]) },
-      ];
+      const contents = await listGuardContents(category);
       const found = contents.reduce((total, guard) =>
         total + guard.contents.identified.length + guard.contents.unidentified, 0);
       if (!found) {
@@ -302,12 +314,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const foundByKey: string[] = [];
     for (const category of Object.keys(guarded)) {
       if (identityCategories.value.includes(category)) continue;
-      identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, category);
+      listCategory(category);
       foundByKey.push(category);
     }
     // listed without being asked for, so the page owes the user the same notice the walk gives
     if (foundByKey.length) {
-      unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, foundByKey);
+      unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), foundByKey);
     }
     if (!identityCategories.value.length) {
       identities.value = [];
@@ -316,11 +328,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
       await syncAuthReservations([]);
       return;
     }
-    const initialization = mainStore.currentInitializationToken();
+    const walletChanged = walletEpoch();
     const resolved = await resolveIdentities(
       identityCategories.value, settingsStore.chaingraph, currentUtxos, guarded
     );
-    if (initialization !== mainStore.currentInitializationToken()) return;
+    if (walletChanged()) return;
     identities.value = resolved;
     forgetStaleHistories(resolved);
     await syncAuthReservations(resolved);
@@ -341,13 +353,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   async function refreshIdentities() {
-    if (identitiesResolving.value) return;
-    identitiesResolving.value = true;
-    try {
-      await resolveListedIdentities();
-    } finally {
-      identitiesResolving.value = false;
-    }
+    await withResolveLock(resolveListedIdentities);
   }
 
   // Held authheads that carry no identity of their own on the list: same protection, no name
@@ -366,8 +372,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // The writes go under whichever wallet is active when they run, so a wallet switch landing
   // between two of them is checked for before every write, not once on entry.
   async function syncAuthReservations(resolved: IdentityState[]) {
-    const initialization = mainStore.currentInitializationToken();
-    const walletChanged = () => initialization !== mainStore.currentInitializationToken();
+    const walletChanged = walletEpoch();
     const authOutpoints: string[] = [];
     for (const coin of unnamedAuthheadCoins()) {
       const outpoint = outpointOf(coin);
@@ -408,9 +413,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const heldCategories = (mainStore.tokenList ?? []).map(token => token.category);
     const listedCount = heldCategories.filter(category => identityCategories.value.includes(category)).length;
     const categoriesToCheck = heldCategories.filter(category => !identityCategories.value.includes(category));
-    const initialization = mainStore.currentInitializationToken();
+    const walletChanged = walletEpoch();
     const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
-    if (initialization !== mainStore.currentInitializationToken()) return undefined;
+    if (walletChanged()) return undefined;
     const found = resolved.filter(
       identity => identity.authUtxo && !dismissedIdentities.value.includes(identity.category)
     );
@@ -418,7 +423,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       identity => identity.authUtxo && dismissedIdentities.value.includes(identity.category)
     ).length;
     for (const identity of found) {
-      identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, identity.category);
+      listCategory(identity.category);
     }
     return { resolved, found, dismissed, listedCount };
   }
@@ -430,10 +435,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return resolved[0]?.unresolvedReason;
   }
 
-  async function scanForIdentities(): Promise<IdentityScanSummary | undefined> {
-    if (identitiesResolving.value) return undefined;
-    identitiesResolving.value = true;
-    try {
+  function scanForIdentities(): Promise<IdentityScanSummary | undefined> {
+    return withResolveLock(async () => {
       const categories = await resolveHeldCategories();
       if (!categories) return undefined;
       const { resolved, found, dismissed, listedCount } = categories;
@@ -456,9 +459,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
         failed: resolved.filter(identity => identity.status === 'unresolved').length,
         dismissed,
       };
-    } finally {
-      identitiesResolving.value = false;
-    }
+    });
   }
 
   // What went wrong in a pass the wallet ran on its own at open, shown on the page where the
@@ -468,9 +469,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // The developer option: the category half on every open, for wallets that receive identities.
   // A find enters the list and the trail the way a detected one does.
   async function checkHeldCategoriesOnOpen() {
-    if (identitiesResolving.value) return;
-    identitiesResolving.value = true;
-    try {
+    await withResolveLock(async () => {
       const categories = await resolveHeldCategories();
       if (!categories) return;
       const outage = outageReason(categories.resolved);
@@ -480,13 +479,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
       }
       if (!categories.found.length) return;
       const found = categories.found.map(identity => identity.category);
-      unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, found);
+      unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), found);
       await resolveListedIdentities();
       await fetchMetadataFor(found);
       announceFound(found);
-    } finally {
-      identitiesResolving.value = false;
-    }
+    });
   }
 
   // Fetches every listed identity's published locations and compares what they serve against the
@@ -497,7 +494,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (!listed.length) return;
     publicationChecksRunning.value = true;
     try {
-      const initialization = mainStore.currentInitializationToken();
+      const walletChanged = walletEpoch();
       const checked = await Promise.all(listed.map(async identity => {
         const publication = identity.publication!;
         const checks = await Promise.all(publication.uris.map(
@@ -505,7 +502,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
         ));
         return [identity.category, checks] as const;
       }));
-      if (initialization !== mainStore.currentInitializationToken()) return;
+      if (walletChanged()) return;
       publicationChecks.value = Object.fromEntries(checked);
     } finally {
       publicationChecksRunning.value = false;
@@ -532,33 +529,44 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // A token category and an AuthKey category are both 64 hex, so the add input does not ask which
   // one it was given: it tries both readings and reports what each found.
   async function inspectCategory(category: string) {
-    const guardAddresses = authGuardAddresses(category, mainStore.wallet.networkPrefix);
-    const [authchain, p2sh20Utxos, p2sh32Utxos] = await Promise.all([
+    const [authchain, contents] = await Promise.all([
       queryAuthHeadWithOutputs(category, settingsStore.chaingraph).then(() => true).catch(() => false),
-      mainStore.wallet.provider.getUtxos(guardAddresses.p2sh20),
-      mainStore.wallet.provider.getUtxos(guardAddresses.p2sh32),
+      listGuardContents(category),
     ]);
-    const contents = [guardContentsFromUtxos(p2sh20Utxos), guardContentsFromUtxos(p2sh32Utxos)];
     return {
       isTokenIdentity: authchain,
-      guardedCategories: contents.flatMap(guard => guard.identified.map(output => output.category)),
-      unidentifiedGuarded: contents.reduce((total, guard) => total + guard.unidentified, 0),
+      guardedCategories: contents.flatMap(guard => guard.contents.identified.map(output => output.category)),
+      unidentifiedGuarded: contents.reduce((total, guard) => total + guard.contents.unidentified, 0),
     };
   }
 
+  // What a key's covenant holds, at both hash lengths a P2SH address can commit to, since
+  // deployments exist in both
+  async function listGuardContents(category: string) {
+    const guardAddresses = authGuardAddresses(category, mainStore.wallet.networkPrefix);
+    const guardUtxos = await Promise.all([
+      mainStore.wallet.provider.getUtxos(guardAddresses.p2sh20),
+      mainStore.wallet.provider.getUtxos(guardAddresses.p2sh32),
+    ]);
+    return [
+      { address: guardAddresses.p2sh20, contents: guardContentsFromUtxos(guardUtxos[0]) },
+      { address: guardAddresses.p2sh32, contents: guardContentsFromUtxos(guardUtxos[1]) },
+    ];
+  }
+
   async function addAuthKey(category: string) {
-    watchedAuthKeys.value = addToIdentityList('authKeys', mainStore.network, mainStore.wallet.name, category);
+    watchedAuthKeys.value = addToIdentityList('authKeys', ...walletKey(), category);
     await refreshIdentities();
   }
 
   function removeAuthKey(category: string) {
-    watchedAuthKeys.value = removeFromIdentityList('authKeys', mainStore.network, mainStore.wallet.name, category);
+    watchedAuthKeys.value = removeFromIdentityList('authKeys', ...walletKey(), category);
   }
 
   async function addIdentity(category: string) {
     // adding by hand undoes a dismissal: the user changed their mind, which is the whole point
-    dismissedIdentities.value = removeFromIdentityList('dismissed', mainStore.network, mainStore.wallet.name, category);
-    identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, category);
+    dismissedIdentities.value = removeFromIdentityList('dismissed', ...walletKey(), category);
+    listCategory(category);
     await refreshIdentities();
   }
 
@@ -566,8 +574,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // transaction, so the coin is held back straight away rather than when Chaingraph or this
   // wallet's own view catches up.
   async function listCreatedIdentity(category: string, authheadTxId: string) {
-    dismissedIdentities.value = removeFromIdentityList('dismissed', mainStore.network, mainStore.wallet.name, category);
-    identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, category);
+    dismissedIdentities.value = removeFromIdentityList('dismissed', ...walletKey(), category);
+    listCategory(category);
     const outpoint = `${authheadTxId}:0`;
     if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoint(outpoint, 'auth');
     await refreshIdentities();
@@ -577,8 +585,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // coin outside the identities page. Adding the identity again, by category or through the
   // ownership check, reserves its authhead again.
   async function removeUnnamedAuthhead(txid: string) {
-    dismissedIdentities.value = addToIdentityList('dismissed', mainStore.network, mainStore.wallet.name, txid);
-    unnamedAuthheads.value = removeFromIdentityList('unnamed', mainStore.network, mainStore.wallet.name, txid);
+    dismissedIdentities.value = addToIdentityList('dismissed', ...walletKey(), txid);
+    unnamedAuthheads.value = removeFromIdentityList('unnamed', ...walletKey(), txid);
     const coin = (mainStore.walletUtxos ?? []).find(utxo => utxo.vout === 0 && utxo.txid === txid);
     if (coin && mainStore.reservedUtxos[outpointOf(coin)] === 'auth') {
       await mainStore.dropReservation(outpointOf(coin));
@@ -587,9 +595,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   async function removeIdentity(category: string) {
     // remembered, so the automatic detection does not put it back on the next wallet open
-    dismissedIdentities.value = addToIdentityList('dismissed', mainStore.network, mainStore.wallet.name, category);
+    dismissedIdentities.value = addToIdentityList('dismissed', ...walletKey(), category);
     const removed = identities.value?.find(identity => identity.category === category);
-    identityCategories.value = removeFromIdentityList('categories', mainStore.network, mainStore.wallet.name, category);
+    identityCategories.value = removeFromIdentityList('categories', ...walletKey(), category);
     identities.value = identities.value?.filter(identity => identity.category !== category);
     if (!removed?.authUtxo) return;
     const outpoint = outpointOf(removed.authUtxo);
