@@ -1271,7 +1271,8 @@
       "exportXpub": "Export Xpub",
       "aboutCashonize": "About Cashonize",
       "flipstarter": "Flipstarter",
-      "identities": "Identities"
+      "identities": "Identities",
+      "newCount": "({count} new) | ({count} new)"
     },
     "localization": {
       "language": "Language:",
@@ -1347,7 +1348,8 @@
       "enableMintNfts": "Enable mint NFTs",
       "enableMintNftsHint": "Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category",
       "checkHeldTokens": "Check held tokens for identities on wallet open",
-      "checkHeldTokensHint": "One lookup per token category held, on every open. For wallets that receive identities from others; the check on the identities page does the same by hand.",
+      "checkHeldTokensHint": "For wallets that receive identities from others; the check on the identities page does the same by hand.",
+      "checkHeldTokensDetail": "One lookup per token category held, on every wallet open.",
       "disableTokenIcons": "Disable token image loading",
       "disableTokenIconsHint": "Prevents loading token images from external servers",
       "strictWcSchema": "Strict WalletConnect schema validation",
@@ -1462,7 +1464,6 @@
     "resolving": "Looking up where these identities are held...",
     "empty": "No identities listed yet.",
     "detected": {
-      "notification": "Found an identity this wallet controls, and held its UTXO back from coin selection. | Found {count} identities this wallet controls, and held their UTXOs back from coin selection.",
       "foundAutomatically": "Found automatically",
       "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its UTXO is now held back from coin selection. Remove it from the list if you would rather it were not."
     },
@@ -1717,6 +1718,15 @@
       "since": "Established {year}"
     },
     "openCheckFailed": "Could not check this wallet's history for identities: {reason} An identity it made may not be held back yet. Reload, or check the Chaingraph server in the settings.",
-    "unresolvedHint": "Reload, or check the Chaingraph server in the settings."
+    "unresolvedHint": "Reload, or check the Chaingraph server in the settings.",
+    "found": {
+      "title": "This wallet holds token identities",
+      "intro": "These were made with this wallet's keys, so it holds the authority to update their metadata:",
+      "reserve": "reserve of {amount}",
+      "heldBack": "Their identity UTXOs are now held back from coin selection, so an ordinary send cannot spend them by accident. The BCH on them is not counted in the spendable balance, and a reserve is shown on the identities page rather than in the token list.",
+      "remove": "You can remove an identity from the list if you would rather its UTXO were not held back.",
+      "view": "View identities",
+      "close": "Close"
+    }
   }
 }

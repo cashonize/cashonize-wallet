@@ -6,7 +6,6 @@
 
 import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
-import { Notify } from 'quasar'
 import type { Utxo } from "mainnet-js"
 import { useStore } from "./store"
 import { useSettingsStore } from "./settingsStore"
@@ -34,9 +33,7 @@ import { detectIdentities, nameChainByWalkingBack, publicationTxids } from "src/
 import { authGuardAddresses, isAuthKeyCandidate, guardContentsFromUtxos } from "src/utils/tools/authGuard"
 import { queryAuthHeadWithOutputs, queryAuthchainLinks, type ChaingraphSpentOutput } from "src/queryChainGraph"
 import { outpointOf } from "src/utils/wallet/reservedUtxos"
-import { i18n } from 'src/boot/i18n'
 
-const { t } = i18n.global
 
 export const useIdentitiesStore = defineStore('identities', () => {
   const mainStore = useStore()
@@ -90,6 +87,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     dismissedIdentities.value = loadIdentityList('dismissed', network, walletName);
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);
     examinedKeyCandidates.value = loadIdentityList('examinedKeys', network, walletName);
+    announced.value = loadIdentityList('announced', network, walletName);
     authheadNaming.value = loadAuthheadNaming(network, walletName);
     identities.value = undefined;
     publicationChecks.value = {};
@@ -127,22 +125,28 @@ export const useIdentitiesStore = defineStore('identities', () => {
       identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, identity.category);
       listed.push(identity.category);
     }
-    if (!listed.length) return listed;
-    unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, listed);
-    Notify.create({
-      type: 'info',
-      message: t('identities.detected.notification', listed.length),
-      timeout: 8000,
-    });
     return listed;
   }
 
-  // Reading the walk the portfolio already makes, so no new backend and no new round trip
+  // The wallet listed identities the user never asked for, so it says so once per wallet, with
+  // names, at the moment the balance changes; later finds only count in the menus. Set after the
+  // resolve so the dialog can say what each one carries; the wallet page opens it and clears this.
+  const announced = ref([] as string[]);
+  const announcement = ref<string[] | undefined>(undefined);
+  function announceFound(listed: string[]) {
+    unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, listed);
+    if (announced.value.length) return;
+    announced.value = addToIdentityList('announced', mainStore.network, mainStore.wallet.name, 'shown');
+    announcement.value = listed;
+  }
+
   async function detectWalletIdentities(spentOutputs: ChaingraphSpentOutput[]) {
     identityPublicationTxids.value = publicationTxids(spentOutputs);
-    if (!listDetectedIdentities(spentOutputs).length) return;
+    const listed = listDetectedIdentities(spentOutputs);
+    if (!listed.length) return;
     // protection first, so it never depends on the naming below working
     await refreshIdentities();
+    announceFound(listed);
     if (await nameUnnamedAuthheads()) await refreshIdentities();
   }
 
@@ -239,11 +243,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return categories.filter(category => !examinedKeyCandidates.value.includes(category));
   });
 
-  // What the notification trail asks about: identities found without being asked for, and key
-  // candidates never examined. Both are answered by opening the page, which is where it leads.
-  const identitiesNeedAttention = computed(() =>
-    unseenIdentities.value.length > 0 || unexaminedKeyCandidates.value.length > 0
-  );
+  // What the notification trail counts: identities listed without being asked for, answered by
+  // opening the page. A key candidate is a shape guess about an NFT and gets no wallet-level
+  // marker; the token item carries that nudge.
+  const unseenCount = computed(() => unseenIdentities.value.length);
+  const identitiesNeedAttention = computed(() => unseenCount.value > 0);
 
   // Asked once. A candidate that turns out to guard nothing is still examined: the wallet keeps
   // looking every session, the user is not asked again.
@@ -493,10 +497,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
         return;
       }
       if (!categories.found.length) return;
-      unseenIdentities.value = addToIdentityList(
-        'unseen', mainStore.network, mainStore.wallet.name, categories.found.map(identity => identity.category)
-      );
       await resolveListedIdentities();
+      announceFound(categories.found.map(identity => identity.category));
     } finally {
       identitiesResolving.value = false;
     }
@@ -617,6 +619,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     examinedKeyCandidates,
     unexaminedKeyCandidates,
     identitiesNeedAttention,
+    unseenCount,
+    announcement,
     authheadNaming,
     identityPublicationTxids,
     identities,

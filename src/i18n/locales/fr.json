@@ -1271,7 +1271,8 @@
       "exportXpub": "Exporter la xpub",
       "aboutCashonize": "À propos de Cashonize",
       "flipstarter": "Flipstarter",
-      "identities": "Identités"
+      "identities": "Identités",
+      "newCount": "({count} nouvelle) | ({count} nouvelles)"
     },
     "localization": {
       "language": "Langue :",
@@ -1347,7 +1348,8 @@
       "enableMintNfts": "Activer la création de NFTs",
       "enableMintNftsHint": "Ajoute une action de création aux NFTs de création, vous permettant de créer plus de NFTs dans la même catégorie",
       "checkHeldTokens": "Vérifier les tokens détenus à la recherche d'identités à l'ouverture du portefeuille",
-      "checkHeldTokensHint": "Une requête par catégorie de token détenue, à chaque ouverture. Pour les portefeuilles qui reçoivent des identités d'autres personnes ; la vérification de la page des identités fait la même chose à la main.",
+      "checkHeldTokensHint": "Pour les portefeuilles qui reçoivent des identités d'autres personnes ; la vérification de la page des identités fait la même chose à la main.",
+      "checkHeldTokensDetail": "Une requête par catégorie de token détenue, à chaque ouverture du portefeuille.",
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
       "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
       "strictWcSchema": "Validation stricte du schéma WalletConnect",
@@ -1462,7 +1464,6 @@
     "resolving": "Recherche de l'endroit où sont ces identités...",
     "empty": "Aucune identité dans la liste pour l'instant.",
     "detected": {
-      "notification": "Une identité contrôlée par ce portefeuille a été trouvée, et son UTXO écarté de la sélection des pièces. | {count} identités contrôlées par ce portefeuille ont été trouvées, et leurs UTXOs écartés de la sélection des pièces.",
       "foundAutomatically": "Trouvée automatiquement",
       "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
     },
@@ -1717,6 +1718,15 @@
       "since": "Depuis {year}"
     },
     "openCheckFailed": "Impossible de vérifier l'historique de ce portefeuille à la recherche d'identités : {reason} Une identité qu'il a créée n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
-    "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres."
+    "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
+    "found": {
+      "title": "Ce portefeuille détient des identités de tokens",
+      "intro": "Elles ont été créées avec les clés de ce portefeuille, il détient donc l'autorité de mettre à jour leurs métadonnées :",
+      "reserve": "réserve de {amount}",
+      "heldBack": "Leurs UTXOs d'identité sont maintenant écartés de la sélection des pièces, un envoi ordinaire ne peut donc pas les dépenser par accident. Le BCH qu'ils portent n'est pas compté dans le solde disponible, et une réserve est affichée sur la page des identités plutôt que dans la liste des tokens.",
+      "remove": "Vous pouvez retirer une identité de la liste si vous préférez que son UTXO ne soit pas retenu.",
+      "view": "Voir les identités",
+      "close": "Fermer"
+    }
   }
 }

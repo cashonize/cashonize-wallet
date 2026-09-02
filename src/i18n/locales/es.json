@@ -1271,7 +1271,8 @@
       "exportXpub": "Exportar Xpub",
       "aboutCashonize": "Acerca de Cashonize",
       "flipstarter": "Flipstarter",
-      "identities": "Identidades"
+      "identities": "Identidades",
+      "newCount": "({count} nueva) | ({count} nuevas)"
     },
     "localization": {
       "language": "Idioma:",
@@ -1347,7 +1348,8 @@
       "enableMintNfts": "Habilitar acuñar NFTs",
       "enableMintNftsHint": "Agrega una acción de acuñar a los NFTs de acuñación, permitiéndote crear más NFTs en la misma categoría",
       "checkHeldTokens": "Comprobar los tokens en cartera en busca de identidades al abrir la billetera",
-      "checkHeldTokensHint": "Una consulta por categoría de token en cartera, en cada apertura. Para billeteras que reciben identidades de otros; la comprobación de la página de identidades hace lo mismo a mano.",
+      "checkHeldTokensHint": "Para billeteras que reciben identidades de otros; la comprobación de la página de identidades hace lo mismo a mano.",
+      "checkHeldTokensDetail": "Una consulta por categoría de token en cartera, en cada apertura de la billetera.",
       "disableTokenIcons": "Deshabilitar carga de imágenes de tokens",
       "disableTokenIconsHint": "Previene la carga de imágenes de tokens desde servidores externos",
       "strictWcSchema": "Validación estricta del esquema WalletConnect",
@@ -1462,7 +1464,6 @@
     "resolving": "Buscando dónde están estas identidades...",
     "empty": "Todavía no hay identidades en la lista.",
     "detected": {
-      "notification": "Se encontró una identidad que controla esta billetera y su UTXO quedó fuera de la selección de monedas. | Se encontraron {count} identidades que controla esta billetera y sus UTXOs quedaron fuera de la selección de monedas.",
       "foundAutomatically": "Encontrada automáticamente",
       "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su UTXO ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así."
     },
@@ -1717,6 +1718,15 @@
       "since": "Desde {year}"
     },
     "openCheckFailed": "No se pudo comprobar el historial de esta billetera en busca de identidades: {reason} Puede que una identidad que creó todavía no esté retenida. Recarga, o revisa el servidor de Chaingraph en los ajustes.",
-    "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes."
+    "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes.",
+    "found": {
+      "title": "Esta billetera tiene identidades de tokens",
+      "intro": "Se crearon con las claves de esta billetera, así que tiene la autoridad para actualizar sus metadatos:",
+      "reserve": "reserva de {amount}",
+      "heldBack": "Sus UTXOs de identidad quedan ahora fuera de la selección de monedas, así que un envío normal no puede gastarlos por accidente. El BCH que llevan no se cuenta en el saldo disponible, y una reserva se muestra en la página de identidades en vez de en la lista de tokens.",
+      "remove": "Puedes quitar una identidad de la lista si prefieres que su UTXO no quede retenido.",
+      "view": "Ver identidades",
+      "close": "Cerrar"
+    }
   }
 }

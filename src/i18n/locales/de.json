@@ -1271,7 +1271,8 @@
       "exportXpub": "Xpub exportieren",
       "aboutCashonize": "Über Cashonize",
       "flipstarter": "Flipstarter",
-      "identities": "Identitäten"
+      "identities": "Identitäten",
+      "newCount": "({count} neu) | ({count} neu)"
     },
     "localization": {
       "language": "Sprache:",
@@ -1347,7 +1348,8 @@
       "enableMintNfts": "Mint NFTs aktivieren",
       "enableMintNftsHint": "Fügt eine Mint-Aktion zu minting NFTs hinzu, mit der du weitere NFTs in derselben Kategorie erstellen kannst",
       "checkHeldTokens": "Gehaltene Tokens beim Öffnen des Wallets auf Identitäten prüfen",
-      "checkHeldTokensHint": "Eine Abfrage pro gehaltener Token-Kategorie bei jedem Öffnen. Für Wallets, die Identitäten von anderen erhalten; die Prüfung auf der Identitäten-Seite macht dasselbe von Hand.",
+      "checkHeldTokensHint": "Für Wallets, die Identitäten von anderen erhalten; die Prüfung auf der Identitäten-Seite macht dasselbe von Hand.",
+      "checkHeldTokensDetail": "Eine Abfrage pro gehaltener Token-Kategorie, bei jedem Öffnen des Wallets.",
       "disableTokenIcons": "Token-Bilder deaktivieren",
       "disableTokenIconsHint": "Verhindert das Laden von Token-Bildern von externen Servern",
       "strictWcSchema": "Strikte WalletConnect-Schema-Validierung",
@@ -1462,7 +1464,6 @@
     "resolving": "Suche, wo diese Identitäten liegen...",
     "empty": "Noch keine Identitäten in der Liste.",
     "detected": {
-      "notification": "Eine Identität dieses Wallets gefunden und ihren UTXO von der Münzauswahl ausgenommen. | {count} Identitäten dieses Wallets gefunden und ihre UTXOs von der Münzauswahl ausgenommen.",
       "foundAutomatically": "Automatisch gefunden",
       "foundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identität erstellt oder ihre Metadaten veröffentlicht, sie wurde also in der eigenen Historie gefunden und ihr UTXO ist jetzt von der Münzauswahl ausgenommen. Nimm sie von der Liste, wenn dir das lieber ist."
     },
@@ -1717,6 +1718,15 @@
       "since": "Seit {year}"
     },
     "openCheckFailed": "Die Historie dieses Wallets konnte nicht auf Identitäten geprüft werden: {reason} Eine Identität, die es gemacht hat, ist womöglich noch nicht zurückgehalten. Lade neu oder prüfe den Chaingraph-Server in den Einstellungen.",
-    "unresolvedHint": "Lade neu oder prüfe den Chaingraph-Server in den Einstellungen."
+    "unresolvedHint": "Lade neu oder prüfe den Chaingraph-Server in den Einstellungen.",
+    "found": {
+      "title": "Dieses Wallet hält Token-Identitäten",
+      "intro": "Sie wurden mit den Schlüsseln dieses Wallets gemacht, es hält also die Befugnis, ihre Metadaten zu ändern:",
+      "reserve": "Reserve von {amount}",
+      "heldBack": "Ihre Identitäts-UTXOs sind jetzt von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann sie also nicht aus Versehen ausgeben. Das BCH darauf zählt nicht zum verfügbaren Guthaben, und eine Reserve wird auf der Identitäten-Seite gezeigt statt in der Token-Liste.",
+      "remove": "Du kannst eine Identität von der Liste nehmen, wenn ihr UTXO lieber nicht zurückgehalten werden soll.",
+      "view": "Identitäten ansehen",
+      "close": "Schließen"
+    }
   }
 }

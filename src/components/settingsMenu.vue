@@ -848,7 +848,11 @@
       </div>
 
       <div style="margin-top:15px">
-        {{ t('settings.developer.checkHeldTokens') }} <q-toggle v-model="checkHeldTokensForIdentities" @update:model-value="changeCheckHeldTokensForIdentities()" dense />
+        {{ t('settings.developer.checkHeldTokens') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('settings.developer.checkHeldTokensDetail') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="checkHeldTokensForIdentities" @update:model-value="changeCheckHeldTokensForIdentities()" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.checkHeldTokensHint') }}
         </div>
@@ -946,7 +950,7 @@
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(14)">
         → {{ t('settings.menu.tools') }}
         <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
-        <span v-else-if="identitiesStore.identitiesNeedAttention" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
+        <span v-else-if="identitiesStore.unseenCount" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenCount) }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(11)">

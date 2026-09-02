@@ -28,6 +28,8 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { Dialog } from 'quasar'
+  import IdentitiesFoundDialog from 'src/components/general/identitiesFoundDialog.vue'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
@@ -216,6 +218,14 @@
     const needsBackup = settingsStore.getBackupStatus(store.activeWalletName) === 'none';
     return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value
       || identitiesStore.identitiesNeedAttention;
+  });
+
+  // The store says what to announce; the dialog is opened here, once, and the request cleared
+  watch(() => identitiesStore.announcement, (ids) => {
+    if (!ids) return;
+    identitiesStore.announcement = undefined;
+    Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids } })
+      .onOk(() => store.changeView(19));
   });
 </script>
 

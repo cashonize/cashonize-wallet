@@ -48,7 +48,7 @@
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(19)">
-      → {{ t('settings.menu.identities') }} <span v-if="identitiesStore.identitiesNeedAttention" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
+      → {{ t('settings.menu.identities') }} <span v-if="identitiesStore.unseenCount" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenCount) }}</span>
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">

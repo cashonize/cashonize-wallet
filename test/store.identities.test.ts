@@ -88,15 +88,15 @@ describe('the identities notification', () => {
     localStorageMock.setItem('network', 'mainnet')
   })
 
+  // a key candidate is a shape guess about an NFT: the token item nudges, the menus do not
   it('asks about a key candidate once, and never again for that category', () => {
     const { identitiesStore } = startStore([authKeyUtxo])
     expect(identitiesStore.unexaminedKeyCandidates).toEqual([authKeyCategory])
-    expect(identitiesStore.identitiesNeedAttention).toBe(true)
+    expect(identitiesStore.identitiesNeedAttention).toBe(false)
 
     identitiesStore.markKeyCandidatesExamined()
 
     expect(identitiesStore.unexaminedKeyCandidates).toEqual([])
-    expect(identitiesStore.identitiesNeedAttention).toBe(false)
   })
 
   it('remembers the answer across wallet opens', () => {
@@ -106,10 +106,10 @@ describe('the identities notification', () => {
     setActivePinia(createPinia())
     const reopened = startStore([authKeyUtxo])
 
-    expect(reopened.identitiesStore.identitiesNeedAttention).toBe(false)
+    expect(reopened.identitiesStore.unexaminedKeyCandidates).toEqual([])
   })
 
-  // only a category nobody has been asked about can light it again
+  // only a category nobody has been asked about is a candidate again
   it('asks again for a candidate that was not there before', () => {
     const { store, identitiesStore } = startStore([authKeyUtxo])
     identitiesStore.markKeyCandidatesExamined()
@@ -122,7 +122,6 @@ describe('the identities notification', () => {
     store.walletUtxos = [authKeyUtxo, otherCandidate]
 
     expect(identitiesStore.unexaminedKeyCandidates).toEqual([categoryB])
-    expect(identitiesStore.identitiesNeedAttention).toBe(true)
   })
 
   // a Studio user's keys list their identities without being asked; that is worth telling them
@@ -348,8 +347,28 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.identityCategories).toEqual([categoryA])
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
-    // and it says so, rather than the coin quietly becoming unspendable
+    // and it says so, rather than the coin quietly becoming unspendable: a dialog the first time
     expect(identitiesStore.unseenIdentities).toEqual([categoryA])
+    expect(identitiesStore.announcement).toEqual([categoryA])
+    // the wallet page opens the dialog and clears the announcement
+    identitiesStore.announcement = undefined
+
+    // a later find only counts in the menus; the dialog is the once-per-wallet introduction
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
+    const authUtxoB = utxo(authheadB, 0)
+    store.walletUtxos = [authUtxo, authUtxoB]
+    await identitiesStore.detectWalletIdentities([{
+      transaction_hash: `\\x${categoryB}`,
+      output_index: '0',
+      spent_by: [{ transaction: { hash: `\\x${authheadB}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: `\\x${categoryB}`,
+          nonfungible_token_commitment: null, fungible_token_amount: '1000', spent_by: [] },
+      ] } }],
+    }])
+
+    expect(identitiesStore.unseenIdentities).toEqual([categoryA, categoryB])
+    expect(identitiesStore.unseenCount).toBe(2)
+    expect(identitiesStore.announcement).toBeUndefined()
   })
 
   // removing is a decision the automatic detection has to respect, or it is refought every open

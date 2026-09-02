@@ -342,6 +342,9 @@ const identityListKeys = {
   // key candidates already put to the user once. Only the asking is remembered: whether one
   // really guards anything is re-derived every session, since a covenant can be filled later
   examinedKeys: 'examinedKeyCandidates',
+  // whether this wallet has had the one dialog that says it holds identities it never listed;
+  // a single marker, kept as a list for the shared storage shape
+  announced: 'identitiesAnnounced',
 } as const;
 
 export type IdentityList = keyof typeof identityListKeys;
