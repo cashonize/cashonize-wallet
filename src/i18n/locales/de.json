@@ -93,7 +93,8 @@
       "notEnoughSpendableTokens": "Für diese Transaktion sind nicht genug Tokens ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben.",
       "genesisInputUnavailable": "Die zur Erstellung gewählte Münze ist nicht mehr verfügbar. Wähle eine andere.",
-      "identityLeavesWallet": "Diese Anfrage würde die Kontrolle über eine deiner Identitäten an ein anderes Wallet übergeben und wurde daher abgelehnt. Eine Identität wird über die Identitäten-Seite übertragen."
+      "identityLeavesWallet": "Diese Anfrage würde die Kontrolle über eine deiner Identitäten an ein anderes Wallet übergeben und wurde daher abgelehnt. Eine Identität wird über die Identitäten-Seite übertragen.",
+      "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben und sie zu einer verschmelzen, deshalb wurde sie abgelehnt."
     }
   },
   "onboarding": {
@@ -924,7 +925,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Benötigte Transaktionen: {count}.",
     "transactionCountNote": "Sie werden einzeln gesendet und dauern jeweils ein paar Sekunden, lass Cashonize also offen, bis es fertig ist.",
-    "heldBack": "{count} UTXO bleibt zurück: er ist von der Münzauswahl ausgenommen, dieser Transfer greift also nicht darauf zu. | {count} UTXOs bleiben zurück: sie sind von der Münzauswahl ausgenommen, dieser Transfer greift also nicht darauf zu.",
+    "heldBack": "{count} UTXO bleibt zurück: er ist von der Münzauswahl ausgenommen, diese Übertragung greift also nicht darauf zu. Ihn später zu bewegen braucht BCH in diesem Wallet für die Gebühr. | {count} UTXOs bleiben zurück: sie sind von der Münzauswahl ausgenommen, diese Übertragung greift also nicht darauf zu. Sie später zu bewegen braucht BCH in diesem Wallet für die Gebühr.",
     "destinationLabel": "Zieladresse:",
     "destinationTokenLabel": "Ziel-Token-Adresse:",
     "destinationPlaceholder": "Adresse, an die alles übertragen wird",

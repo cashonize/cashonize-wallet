@@ -388,11 +388,16 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Holds back every authhead this wallet has and drops an 'auth' reservation on a coin that is no
   // longer one - never while an identity is unresolved though, since a failed lookup says nothing
   // about where its authhead went: an outage leaves coins locked rather than releasing them.
+  // The writes go under whichever wallet is active when they run, so a wallet switch landing
+  // between two of them is checked for before every write, not once on entry.
   async function syncAuthReservations(resolved: IdentityState[]) {
+    const initialization = mainStore.currentInitializationToken();
+    const walletChanged = () => initialization !== mainStore.currentInitializationToken();
     const authOutpoints: string[] = [];
     for (const coin of unnamedAuthheadCoins()) {
       const outpoint = outpointOf(coin);
       authOutpoints.push(outpoint);
+      if (walletChanged()) return;
       if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveUtxo(coin, 'auth');
     }
     for (const identity of resolved) {
@@ -404,12 +409,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
       authOutpoints.push(outpoint);
       // A reservation already made for another reason is left alone: the coin is held back either
       // way, and rewriting the reason would take it away from whatever made it
+      if (walletChanged()) return;
       if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveUtxo(keyCoin, 'auth');
     }
     if (resolved.some(identity => identity.status === 'unresolved')) return;
     for (const [outpoint, reservation] of Object.entries(mainStore.reservedUtxos)) {
       if (reservation.reason !== 'auth') continue;
       if (authOutpoints.includes(outpoint)) continue;
+      if (walletChanged()) return;
       await mainStore.dropReservation(outpoint);
     }
   }

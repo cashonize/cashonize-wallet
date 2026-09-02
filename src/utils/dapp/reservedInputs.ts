@@ -48,9 +48,11 @@ export interface ReservedInputContext {
 }
 
 // 'identityLeaves' is the one that matters: control over an identity would end up elsewhere, which
-// is a transfer rather than an operation. 'unrecognised' is a held coin this wallet cannot account
-// for, refused because it cannot be checked rather than because it is known to be wrong.
-export type RefusalReason = 'pledge' | 'manual' | 'identityLeaves' | 'unrecognised';
+// is a transfer rather than an operation. 'identityMerge' is two authheads spent by one
+// transaction: output 0 continues both chains, so the identities become one. 'unrecognised' is a
+// held coin this wallet cannot account for, refused because it cannot be checked rather than
+// because it is known to be wrong.
+export type RefusalReason = 'pledge' | 'manual' | 'identityLeaves' | 'identityMerge' | 'unrecognised';
 
 export interface ReservedInputRefusal {
   outpoint: Outpoint;
@@ -141,6 +143,13 @@ export function checkReservedInputs(
       continue;
     }
     refusals.push({ outpoint, reason: 'unrecognised' });
+  }
+  // Each authhead's chain continues through output 0 of the transaction that spends it, so two
+  // in one transaction would end up sharing one authhead; no operation a dapp builds means that
+  const authheadsReturning = returning.filter(entry => entry.kind === 'authhead');
+  if (authheadsReturning.length > 1) {
+    for (const entry of authheadsReturning) refusals.push({ outpoint: entry.outpoint, reason: 'identityMerge' });
+    return { refusals, returning: returning.filter(entry => entry.kind !== 'authhead') };
   }
   return { refusals, returning };
 }

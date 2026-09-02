@@ -100,6 +100,39 @@ describe('an identity operation a dapp builds', () => {
     expect(check.refusals).toEqual([{ outpoint: `${authheadTxid}:0`, reason: 'identityLeaves' }]);
   });
 
+  // output 0 would continue both chains at once, which no operation means
+  it('refuses two AuthHeads spent by one transaction, even when output 0 comes back', () => {
+    const otherAuthheadTxid = "ffeeddccbbaa99887766554433221100".repeat(2);
+    const otherAuthhead: Utxo = { ...authhead, txid: otherAuthheadTxid };
+    const twoAuthheads = {
+      ...context,
+      reservedUtxos: { ...reserved, [`${otherAuthheadTxid}:0`]: { reason: 'auth' as const, satoshis: '1000', reservedAt: 1 } },
+      walletUtxos: [...context.walletUtxos, otherAuthhead],
+      authheads: [`${authheadTxid}:0`, `${otherAuthheadTxid}:0`],
+    };
+    const check = checkReservedInputs(
+      [spends(authheadTxid, 0), spends(otherAuthheadTxid, 0)],
+      [identityOutput(ours, 10000n)],
+      twoAuthheads,
+    );
+    expect(check.refusals).toEqual([
+      { outpoint: `${authheadTxid}:0`, reason: 'identityMerge' },
+      { outpoint: `${otherAuthheadTxid}:0`, reason: 'identityMerge' },
+    ]);
+    expect(check.returning).toEqual([]);
+  });
+
+  // one identity continuing at output 0 while the key of another rides along is the covenant's shape
+  it('lets a key and one AuthHead return in the same transaction', () => {
+    const check = checkReservedInputs(
+      [spends(authheadTxid, 0), spends(keyCategory, 1)],
+      [identityOutput(ours, 5000n), keyOutput(ours)],
+      context,
+    );
+    expect(check.refusals).toEqual([]);
+    expect(check.returning.map(entry => entry.kind)).toEqual(['authhead', 'key']);
+  });
+
   // the identity stays, the supply on it does not: signable, and said out loud rather than implied
   it('reports the reserve an operation moves off the AuthHead', () => {
     const check = checkReservedInputs(

@@ -242,6 +242,28 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identityCategories).toEqual([])
   })
 
+  // the reservation writes go under whichever wallet is active when they run, so a switch landing
+  // between two of them must stop the rest rather than write them under the next wallet's key
+  it('stops writing reservations when the wallet changes between two of them', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
+    listIdentities([categoryA, categoryB])
+    const authUtxoA = utxo(authheadA, 0)
+    const authUtxoB = utxo(authheadB, 0)
+    const { store, identitiesStore } = startStore([authUtxoA, authUtxoB])
+    // the first reservation's refresh is where the switch lands
+    store.wallet.getMaxAmountToSend = vi.fn()
+      .mockImplementationOnce(async () => {
+        await store.resetWalletState({ resetDappConnections: false })
+        return 0n
+      })
+      .mockResolvedValue(0n)
+
+    await identitiesStore.refreshIdentities()
+
+    const written = JSON.parse(localStorageMock.getItem('reservedUtxos-mainnet-testWallet') ?? '{}') as Record<string, unknown>
+    expect(Object.keys(written)).toEqual([outpointOf(authUtxoA)])
+  })
+
   // the developer option runs the category half of the check on open: a find joins the list and
   // the trail like a detected one, an outage lands on the page rather than in a toast
   it('finds a received identity on open when the option is on, and reports an outage', async () => {

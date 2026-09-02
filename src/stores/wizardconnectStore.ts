@@ -264,6 +264,9 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     if (check.refusals.some(refusal => refusal.reason === 'identityLeaves')) {
       return t('store.errors.identityLeavesWallet');
     }
+    if (check.refusals.some(refusal => refusal.reason === 'identityMerge')) {
+      return t('store.errors.identityMerge');
+    }
     return t('wizardConnect.errors.reservedInputs');
   }
 

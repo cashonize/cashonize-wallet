@@ -93,7 +93,8 @@
       "notEnoughSpendableTokens": "Not enough tokens can be spent for this transaction. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it.",
       "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one.",
-      "identityLeavesWallet": "This request would hand control of one of your identities to another wallet, so it was refused. Transferring an identity is done from the identities page."
+      "identityLeavesWallet": "This request would hand control of one of your identities to another wallet, so it was refused. Transferring an identity is done from the identities page.",
+      "identityMerge": "This request would spend two of your identities in one transaction, merging them into one, so it was refused."
     }
   },
   "onboarding": {
@@ -924,7 +925,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Transactions needed: {count}.",
     "transactionCountNote": "They are sent one at a time and take a few seconds each, so keep Cashonize open until it finishes.",
-    "heldBack": "{count} UTXO stays behind: it is held back from coin selection, so this transfer does not reach for it. | {count} UTXOs stay behind: they are held back from coin selection, so this transfer does not reach for them.",
+    "heldBack": "{count} UTXO stays behind: it is held back from coin selection, so this transfer does not reach for it. Moving it later needs BCH in this wallet for the fee. | {count} UTXOs stay behind: they are held back from coin selection, so this transfer does not reach for them. Moving them later needs BCH in this wallet for the fee.",
     "destinationLabel": "Destination address:",
     "destinationTokenLabel": "Destination token address:",
     "destinationPlaceholder": "Address to transfer everything to",

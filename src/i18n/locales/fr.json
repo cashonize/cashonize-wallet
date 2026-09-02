@@ -93,7 +93,8 @@
       "notEnoughSpendableTokens": "Pas assez de jetons dépensables pour cette transaction. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
       "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
-      "identityLeavesWallet": "Cette requête confierait le contrôle d'une de vos identités à un autre portefeuille, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités."
+      "identityLeavesWallet": "Cette requête confierait le contrôle d'une de vos identités à un autre portefeuille, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
+      "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, les fusionnant en une, elle a donc été refusée."
     }
   },
   "onboarding": {
@@ -924,7 +925,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Transactions nécessaires : {count}.",
     "transactionCountNote": "Elles sont envoyées une par une et prennent quelques secondes chacune, gardez donc Cashonize ouvert jusqu'à la fin.",
-    "heldBack": "{count} UTXO reste en place : il est écarté de la sélection des pièces, ce transfert ne le prend donc pas. | {count} UTXO restent en place : ils sont écartés de la sélection des pièces, ce transfert ne les prend donc pas.",
+    "heldBack": "{count} UTXO reste : il est écarté de la sélection des pièces, ce transfert ne le prend donc pas. Le déplacer plus tard demandera du BCH dans ce portefeuille pour les frais. | {count} UTXOs restent : ils sont écartés de la sélection des pièces, ce transfert ne les prend donc pas. Les déplacer plus tard demandera du BCH dans ce portefeuille pour les frais.",
     "destinationLabel": "Adresse de destination :",
     "destinationTokenLabel": "Adresse de token de destination :",
     "destinationPlaceholder": "Adresse vers laquelle tout transférer",

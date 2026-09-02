@@ -523,6 +523,9 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     if (check.refusals.some(refusal => refusal.reason === 'identityLeaves')) {
       return t('store.errors.identityLeavesWallet');
     }
+    if (check.refusals.some(refusal => refusal.reason === 'identityMerge')) {
+      return t('store.errors.identityMerge');
+    }
     return t('walletConnect.errors.reservedInputs');
   }
 

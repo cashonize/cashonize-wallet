@@ -93,7 +93,8 @@
       "notEnoughSpendableTokens": "Não há tokens suficientes para gastar nesta transação. Moedas retidas fora da seleção de moedas não contam; a página de gestão de UTXOs mostra quais estão retidas e por quê.",
       "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo.",
       "genesisInputUnavailable": "A moeda escolhida para criar este token não está mais disponível. Escolha outra.",
-      "identityLeavesWallet": "Esta solicitação entregaria o controle de uma das suas identidades a outra carteira, por isso foi recusada. A transferência de uma identidade é feita na página de identidades."
+      "identityLeavesWallet": "Esta solicitação entregaria o controle de uma das suas identidades a outra carteira, por isso foi recusada. A transferência de uma identidade é feita na página de identidades.",
+      "identityMerge": "Este pedido gastaria duas das suas identidades numa só transação, fundindo-as numa, por isso foi recusado."
     }
   },
   "onboarding": {
@@ -924,7 +925,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Transações necessárias: {count}.",
     "transactionCountNote": "Elas são enviadas uma por uma e levam alguns segundos cada, então mantenha o Cashonize aberto até terminar.",
-    "heldBack": "{count} UTXO fica para trás: está retido fora da seleção de moedas, então esta transferência não o pega. | {count} UTXOs ficam para trás: estão retidos fora da seleção de moedas, então esta transferência não os pega.",
+    "heldBack": "{count} UTXO fica: está de fora da seleção de moedas, portanto esta transferência não o alcança. Movê-lo depois precisa de BCH nesta carteira para a taxa. | {count} UTXOs ficam: estão de fora da seleção de moedas, portanto esta transferência não os alcança. Movê-los depois precisa de BCH nesta carteira para a taxa.",
     "destinationLabel": "Endereço de destino:",
     "destinationTokenLabel": "Endereço de token de destino:",
     "destinationPlaceholder": "Endereço para onde transferir tudo",
