@@ -1508,7 +1508,7 @@ export const useStore = defineStore('store', () => {
     const listed = identitiesStore.identities ?? [];
     const identityKeys = listed.flatMap(identity => identity.keyUtxo ? [outpointOf(identity.keyUtxo)] : []);
     const heldAuthheads = listed.flatMap(identity => identity.authUtxo ? [outpointOf(identity.authUtxo)] : []);
-    const unnamed = identitiesStore.unnamedAuthheadCoins().map(outpointOf);
+    const unnamed = identitiesStore.unnamedAuthheadCoins.map(outpointOf);
     return checkReservedInputs(inputs, outputs, {
       reservedUtxos: reservedUtxos.value,
       walletUtxos: walletUtxos.value ?? [],

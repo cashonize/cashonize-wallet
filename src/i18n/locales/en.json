@@ -1505,7 +1505,6 @@
       "removeTitle": "Stop holding this UTXO back?",
       "removeMessage": "The UTXO returns to coin selection and an ordinary send can spend it, which ends the identity it carries. It will not be listed again."
     },
-    "listedCount": "{count} identity followed by this wallet | {count} identities followed by this wallet",
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
     "watchedSuffix": ", {count} watched | , {count} watched",
     "unnamedIdentity": "Unnamed identity",
@@ -1605,8 +1604,6 @@
     },
     "history": {
       "title": "This identity's history",
-      "show": "show history",
-      "hide": "hide history",
       "loading": "Reading the identity's history...",
       "madeHere": "made by this wallet",
       "reserveUp": "{amount} into the reserve",
@@ -1618,7 +1615,6 @@
         "operation": "Updated",
         "mint": "Minted"
       },
-      "showCount": "History ({count})",
       "minted": "Minted {count} NFT | Minted {count} NFTs"
     },
     "publish": {
@@ -1735,13 +1731,6 @@
     "errors": {
       "invalidCategory": "That is not a token category. Find it on the token's info in the Tokens tab, or on TokenExplorer.",
       "alreadyListed": "That identity is already in the list."
-    },
-    "emptySteps": {
-      "paste": "Paste the token category of an identity above.",
-      "check": "Or check the tokens this wallet holds for identities.",
-      "create": "Or {link} to make a new one.",
-      "createLink": "create a token",
-      "createIdentity": "Or create an identity that is not a token, above."
     },
     "established": {
       "since": "Established {year}"

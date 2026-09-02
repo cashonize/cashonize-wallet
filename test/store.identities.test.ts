@@ -277,11 +277,11 @@ describe('auth reservations follow the authchain', () => {
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
     identitiesStore.unnamedAuthheads = [authheadA]
-    expect(identitiesStore.unnamedAuthheadCoins()).toEqual([authUtxo])
+    expect(identitiesStore.unnamedAuthheadCoins).toEqual([authUtxo])
 
     await identitiesStore.refreshIdentities()
 
-    expect(identitiesStore.unnamedAuthheadCoins()).toEqual([])
+    expect(identitiesStore.unnamedAuthheadCoins).toEqual([])
     expect(identitiesStore.identities?.[0]?.category).toBe(categoryA)
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
   })

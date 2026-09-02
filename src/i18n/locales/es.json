@@ -1505,7 +1505,6 @@
       "removeTitle": "¿Dejar de retener este UTXO?",
       "removeMessage": "El UTXO vuelve a la selección de monedas y un envío normal puede gastarlo, lo que termina la identidad que lleva. No se volverá a listar."
     },
-    "listedCount": "{count} identidad seguida por esta billetera | {count} identidades seguidas por esta billetera",
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
     "watchedSuffix": ", {count} observada | , {count} observadas",
     "unnamedIdentity": "Identidad sin nombre",
@@ -1605,8 +1604,6 @@
     },
     "history": {
       "title": "Historial de esta identidad",
-      "show": "ver historial",
-      "hide": "ocultar historial",
       "loading": "Leyendo el historial de la identidad...",
       "madeHere": "hecho por esta billetera",
       "reserveUp": "{amount} a la reserva",
@@ -1618,7 +1615,6 @@
         "operation": "Actualizada",
         "mint": "Acuñado"
       },
-      "showCount": "Historial ({count})",
       "minted": "Acuñado {count} NFT | Acuñados {count} NFTs"
     },
     "publish": {
@@ -1735,13 +1731,6 @@
     "errors": {
       "invalidCategory": "Eso no es una categoría de token. La encuentras en la información del token en la pestaña Tokens, o en TokenExplorer.",
       "alreadyListed": "Esa identidad ya está en la lista."
-    },
-    "emptySteps": {
-      "paste": "Pega arriba la categoría de token de una identidad.",
-      "check": "O revisa los tokens de esta billetera en busca de identidades.",
-      "create": "O {link} para hacer una nueva.",
-      "createLink": "crea un token",
-      "createIdentity": "O crea arriba una identidad que no sea un token."
     },
     "established": {
       "since": "Desde {year}"

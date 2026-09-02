@@ -224,7 +224,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Naming what is already protected, once per session: a chain that could not be named now is
   // not walked again until the next open. A name found here is news, like any other find.
   async function nameUnnamedAuthheads() {
-    const coins = unnamedAuthheadCoins().filter(coin => !walkedThisSession.includes(coin.txid));
+    const coins = unnamedAuthheadCoins.value.filter(coin => !walkedThisSession.includes(coin.txid));
     if (!coins.length) return 0;
     walkedThisSession.push(...coins.map(coin => coin.txid));
     const named = await nameByWalkingBack(coins);
@@ -252,7 +252,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // What the notification trail counts: identities listed without being asked for, answered by
   // opening the page. A key candidate is a shape guess about an NFT and gets no wallet-level
   // marker; the token item carries that nudge.
-  const unseenCount = computed(() => unseenIdentities.value.length + unnamedAuthheadCoins().length);
+  const unseenCount = computed(() => unseenIdentities.value.length + unnamedAuthheadCoins.value.length);
 
   // The page has been opened, so what it found on its own is no longer news
   function markIdentitiesSeen() {
@@ -361,12 +361,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Held authheads that carry no identity of their own on the list: same protection, no name
   // Unnamed is derived, never stored: a coin the resolved list accounts for is not unnamed,
   // whichever list found it first, so a naming entry left in the map renders nothing
-  function unnamedAuthheadCoins() {
+  const unnamedAuthheadCoins = computed(() => {
     const named = (identities.value ?? []).map(identity => identity.authheadTxid);
     return (mainStore.walletUtxos ?? []).filter(
       utxo => utxo.vout === 0 && unnamedAuthheads.value.includes(utxo.txid) && !named.includes(utxo.txid)
     );
-  }
+  });
 
   // Holds back every authhead this wallet has and drops an 'auth' reservation on a coin that is no
   // longer one - never while an identity is unresolved though, since a failed lookup says nothing
@@ -376,7 +376,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   async function syncAuthReservations(resolved: IdentityState[]) {
     const walletChanged = walletEpoch();
     const authOutpoints: string[] = [];
-    for (const coin of unnamedAuthheadCoins()) {
+    for (const coin of unnamedAuthheadCoins.value) {
       const outpoint = outpointOf(coin);
       authOutpoints.push(outpoint);
       if (walletChanged()) return;
@@ -613,6 +613,15 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const removed = identities.value?.find(identity => identity.category === category);
     identityCategories.value = removeFromIdentityList('categories', ...walletKey(), category);
     identities.value = identities.value?.filter(identity => identity.category !== category);
+    // a watched key is what put its guarded identities on the list, so it goes with them
+    const guardAddress = removed?.guardAddress;
+    if (guardAddress && !removed?.keyUtxo) {
+      const watchedKey = watchedAuthKeys.value.find(key => {
+        const guards = authGuardAddresses(key, mainStore.wallet.networkPrefix);
+        return guards.p2sh20 === guardAddress || guards.p2sh32 === guardAddress;
+      });
+      if (watchedKey) removeAuthKey(watchedKey);
+    }
     if (!removed?.authUtxo) return;
     const outpoint = outpointOf(removed.authUtxo);
     if (mainStore.reservedUtxos[outpoint] === 'auth') await mainStore.dropReservation(outpoint);

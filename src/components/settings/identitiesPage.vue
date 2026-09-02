@@ -34,7 +34,6 @@
   } from 'src/utils/tools/authchainIdentity'
   import { TokenSendRequest } from 'mainnet-js'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
-  import { authGuardAddresses } from 'src/utils/tools/authGuard'
 
   const store = useStore()
 
@@ -50,13 +49,8 @@
   // What the wallet listed on its own and the user has not seen. Taken on opening the page and
   // cleared there, so the cards carry the mark for the visit that answers for it.
   const foundAutomatically = ref<string[]>([]);
-  const isAdding = ref(false);
-  const isCreating = ref(false);
-  const isScanning = ref(false);
   const scanSummary = ref<IdentityScanSummary | undefined>(undefined);
-  // The destination of an open transfer form, keyed by category so each card keeps its own
-  const destinationInputs = ref<Record<string, string>>({});
-  const transferringCategory = ref<string | undefined>(undefined);
+  const destination = ref("");
   const keyDestination = ref("");
   // A card shows what it is when closed and what can be done with it when open, one at a time:
   // the details and every operation standing open on every card was the page's real weight.
@@ -72,15 +66,34 @@
     if (opening) void loadHistory(identity);
   }
 
-  // Which cards have their history open, and which is being fetched
-  const openHistories = ref<string[]>([]);
+  // Which card's history is being fetched
   const loadingHistory = ref<string | undefined>(undefined);
 
-  // One form open at a time across the whole list: these are deliberate, one-at-a-time operations,
-  // and a card with four open forms says otherwise
-  type IdentityAction = 'publish' | 'issue' | 'addToReserve' | 'transfer' | 'transferKey';
+  // One form open at a time across the whole list, and one operation in flight: these are
+  // deliberate, one-at-a-time operations, and a card with four open forms says otherwise
+  type IdentityAction =
+    'add' | 'create' | 'scan' | 'remove' | 'publish' | 'issue' | 'addToReserve' | 'transfer' | 'transferKey';
   const openAction = ref<{ category: string, action: IdentityAction } | undefined>(undefined);
   const runningAction = ref<IdentityAction | undefined>(undefined);
+
+  // Every operation on this page runs in one frame: the form closed and the broadcast reported when
+  // a spend went through, an error shown rather than thrown. Each handler keeps its own validation,
+  // confirmation and outputs, and returns nothing when the user declined.
+  interface Outcome { txId: string | undefined; message: string; title: string }
+  async function runAction(action: IdentityAction, operate: () => Promise<Outcome | void>) {
+    if (runningAction.value) return;
+    runningAction.value = action;
+    try {
+      const outcome = await operate();
+      if (!outcome) return;
+      openAction.value = undefined;
+      await handleTransactionBroadcastSuccess(outcome.message, outcome.txId, outcome.title);
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      runningAction.value = undefined;
+    }
+  }
   const publishUris = ref<string[]>([]);
   const currentRegistry = ref<RegistrySummary | undefined>(undefined);
   const issueAmount = ref("");
@@ -93,24 +106,10 @@
 
   const identities = computed(() => identitiesStore.identities ?? []);
 
-  // Statuses speak when something changed; when nothing has, the page says so once and stops
-  // talking. An identity nobody can look up, or a location serving something else, is a change.
-  const needsAttention = computed(() =>
-    identities.value.some(identity => identity.status === 'unresolved')
-    || Object.values(identitiesStore.publicationChecks).some(
-      statuses => statuses.some(status => status !== 'verified')
-    )
-  );
-
-  // How long an identity has stood, once its history says. The length of its chain is a count
-  // without a subject beside a name, so it goes where it means something: the history link.
+  // How long an identity has stood, once its history says
   function establishedYear(identity: IdentityState): number | undefined {
     const since = identitiesStore.identityHistories[identity.category]?.[0]?.timestamp;
     return since ? new Date(since * 1000).getFullYear() : undefined;
-  }
-
-  function chainLength(identity: IdentityState): number | undefined {
-    return identity.links?.length ?? identitiesStore.identityHistories[identity.category]?.length;
   }
 
   // What the identity output carries, in one line for a closed card
@@ -130,14 +129,36 @@
   );
   const watchedCount = computed(() => listedCount.value - ownedCount.value);
 
-  // Naming these needs a lookup back from an output's txid to the authchain it ends, which this
-  // version does not have. Counted rather than dropped, so a key guarding only them is not
-  // reported as guarding nothing.
-  const unnameableGuards = computed(() =>
-    Object.entries(identitiesStore.unidentifiedGuarded)
+  // Two kinds of card with no name to show: authheads held back with nothing on the UTXO to say
+  // which identity they are, and the guarded identities a watched key covers that this version
+  // cannot name, since that needs a lookup back from an output to the authchain it ends. The
+  // latter are counted rather than dropped, so a key guarding only them is not reported as
+  // guarding nothing.
+  interface MiniCard {
+    id: string; shortId: string; title: string; label: string;
+    help?: string; status?: string; note?: string; amount?: string; txid?: string;
+  }
+  const miniCards = computed<MiniCard[]>(() => [
+    ...identitiesStore.unnamedAuthheadCoins.map(coin => ({
+      id: `${coin.txid}:0`,
+      shortId: `${truncateHash(coin.txid)}:0`,
+      title: t('identities.unnamed.title'),
+      help: t('identities.unnamed.help'),
+      status: t('identities.unnamed.status'),
+      label: t('identities.authheadLabel'),
+      amount: bchOf(coin.satoshis),
+      txid: coin.txid,
+    })),
+    ...Object.entries(identitiesStore.unidentifiedGuarded)
       .filter(([, count]) => count > 0)
-      .map(([category, count]) => ({ category, count }))
-  );
+      .map(([category, count]) => ({
+        id: category,
+        shortId: truncateHash(category),
+        title: t('identities.key.unnameableTitle'),
+        note: t('identities.key.unnameable', count),
+        label: t('identities.key.categoryLabel'),
+      })),
+  ]);
 
   // An IPFS CID cannot serve content other than its own, so a mismatch there says something
   // different from an edited file at an HTTPS location
@@ -156,10 +177,11 @@
   }
 
   // One row per published location: the location as published, where it is actually fetched from,
-  // and what fetching it found once the check has run
-  function publicationRows(identity: IdentityState) {
+  // and what fetching it found once the check has run. Built once per identity: a closed card
+  // shows the badges and an open one the rows.
+  const publicationRows = computed(() => Object.fromEntries(identities.value.map(identity => {
     const statuses = identitiesStore.publicationChecks[identity.category];
-    return (identity.publication?.uris ?? []).map((uri, index) => {
+    const rows = (identity.publication?.uris ?? []).map((uri, index) => {
       const status = statuses?.[index];
       return {
         uri,
@@ -168,7 +190,8 @@
         statusText: status ? uriStatusText(uri, status) : undefined,
       };
     });
-  }
+    return [identity.category, rows];
+  })));
 
   const identityName = (category: string) => store.bcmrRegistries?.[category]?.name;
 
@@ -219,30 +242,20 @@
   // The view is kept alive across navigation, so a different wallet's form input must not linger
   watch(() => store._wallet, () => {
     categoryInput.value = "";
-    destinationInputs.value = {};
+    openAction.value = undefined;
     scanSummary.value = undefined;
   });
 
   async function addIdentity() {
-    if (isAdding.value) return;
-    const category = categoryInput.value.trim().toLowerCase();
-    if (!/^[0-9a-f]{64}$/i.test(category)) {
-      displayAndLogError(new Error(t('identities.errors.invalidCategory')));
-      return;
-    }
-    if (identitiesStore.identityCategories.includes(category)) {
-      displayAndLogError(new Error(t('identities.errors.alreadyListed')));
-      return;
-    }
-    isAdding.value = true;
-    try {
+    await runAction('add', async () => {
+      const category = categoryInput.value.trim().toLowerCase();
+      if (!/^[0-9a-f]{64}$/i.test(category)) throw new Error(t('identities.errors.invalidCategory'));
+      if (identitiesStore.identityCategories.includes(category)) throw new Error(t('identities.errors.alreadyListed'));
       // A token category and an AuthKey category look alike, so both readings are tried and what
       // was found is put to the user rather than asked about beforehand.
       const found = await identitiesStore.inspectCategory(category);
       const guardedCount = found.guardedCategories.length + found.unidentifiedGuarded;
-      if (!found.isTokenIdentity && !guardedCount) {
-        throw new Error(t('identities.add.errors.nothingFound'));
-      }
+      if (!found.isTokenIdentity && !guardedCount) throw new Error(t('identities.add.errors.nothingFound'));
       const summary = [];
       if (found.isTokenIdentity) summary.push(t('identities.add.found.identity'));
       if (guardedCount) summary.push(t('identities.add.found.key', guardedCount));
@@ -256,11 +269,7 @@
       if (found.isTokenIdentity) await identitiesStore.addIdentity(category);
       await fetchMissingMetadata();
       categoryInput.value = "";
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      isAdding.value = false;
-    }
+    });
   }
 
   // What the new identity's AuthHead carries. Every later operation recreates the output with the
@@ -270,45 +279,43 @@
   // An identity that is not a token is one transaction: its output 0 is the identity, and its txid
   // is the id, which is why naming has to wait for a publication that can name it.
   async function createIdentity() {
-    if (isCreating.value) return;
-    const confirmed = await confirmDialog(
-      t('identities.create.confirmTitle'),
-      t('identities.create.confirmMessage', { amount: bchOf(newIdentityValue) }),
-      t('identities.create.confirmButton')
-    );
-    if (!confirmed) return;
-    isCreating.value = true;
-    try {
+    await runAction('create', async () => {
+      const confirmed = await confirmDialog(
+        t('identities.create.confirmTitle'),
+        t('identities.create.confirmMessage', { amount: bchOf(newIdentityValue) }),
+        t('identities.create.confirmButton')
+      );
+      if (!confirmed) return;
       notifySending();
       const { txId } = await store.spend.send([
         { cashaddr: store.wallet.getDepositAddress(), value: newIdentityValue }
       ]);
       if (!txId) throw new Error(t('identities.create.errors.noTxId'));
-      await handleTransactionBroadcastSuccess(
-        t('identities.create.done'), txId, t('identities.create.doneTitle')
-      );
       await identitiesStore.listCreatedIdentity(txId, txId);
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      isCreating.value = false;
-    }
+      return { txId, message: t('identities.create.done'), title: t('identities.create.doneTitle') };
+    });
   }
 
   // Checking costs a Chaingraph query per held category, so it only ever runs on the user's word
   async function scanForIdentities() {
-    if (isScanning.value) return;
-    isScanning.value = true;
-    scanSummary.value = undefined;
-    try {
+    await runAction('scan', async () => {
+      scanSummary.value = undefined;
       scanSummary.value = await identitiesStore.scanForIdentities();
       await fetchMissingMetadata();
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      isScanning.value = false;
-    }
+    });
   }
+
+  // The summary as lines, only the counts that are not zero
+  const scanSummaryLines = computed(() => {
+    const summary = scanSummary.value;
+    if (!summary) return [];
+    const lines = [summary.found ? t('identities.scan.found', summary.found) : t('identities.scan.noneFound')];
+    const counted = ['alreadyListed', 'carriesTokens', 'mintingNfts', 'dismissed', 'failed'] as const;
+    for (const key of counted) {
+      if (summary[key]) lines.push(t(`identities.scan.${key}`, summary[key]));
+    }
+    return lines;
+  });
 
   function isOpen(identity: IdentityState, action: IdentityAction) {
     if (openAction.value?.category !== identity.category) return false;
@@ -326,6 +333,7 @@
     issueAmount.value = "";
     issueDestination.value = "";
     addToReserveAmount.value = "";
+    destination.value = "";
     keyDestination.value = "";
     transferTokensAlong.value = false;
     currentRegistry.value = undefined;
@@ -383,9 +391,8 @@
 
   async function publishUpdate(identity: IdentityState) {
     const authUtxo = identity.authUtxo;
-    if (runningAction.value || !authUtxo) return;
-    runningAction.value = 'publish';
-    try {
+    if (!authUtxo) return;
+    await runAction('publish', async () => {
       if (!filledUris.value.length) throw new Error(t('identities.publish.errors.noUris'));
       if (publicationBytesLeft.value < 0) throw new Error(t('identities.publish.errors.tooLarge'));
       const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
@@ -404,15 +411,8 @@
         identityOutput(authUtxo, walletAddresses()),
         publicationOutput(candidate.hash, filledUris.value),
       ]);
-      openAction.value = undefined;
-      await handleTransactionBroadcastSuccess(
-        t('identities.publish.done'), txId, t('identities.publish.doneTitle')
-      );
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      runningAction.value = undefined;
-    }
+      return { txId, message: t('identities.publish.done'), title: t('identities.publish.doneTitle') };
+    });
   }
 
   const walletAddresses = () => ({
@@ -422,19 +422,16 @@
 
   async function issueFromReserve(identity: IdentityState) {
     const authUtxo = identity.authUtxo;
-    if (runningAction.value || !authUtxo?.token) return;
-    runningAction.value = 'issue';
-    try {
+    if (!authUtxo?.token) return;
+    await runAction('issue', async () => {
       const decimals = tokenDecimals(identity.category);
       const amount = parseTokenAmountToBigInt(issueAmount.value, decimals);
       if (amount <= 0n) throw new Error(t('identities.reserve.errors.invalidAmount'));
       if (amount > reserveOf(identity)) throw new Error(t('identities.reserve.errors.overReserve'));
-      const destination = validateTokenRecipientAddress(issueDestination.value, store.wallet.networkPrefix);
+      const address = validateTokenRecipientAddress(issueDestination.value, store.wallet.networkPrefix);
       const confirmed = await confirmDialog(
         t('identities.reserve.issue.confirmTitle'),
-        t('identities.reserve.issue.confirmMessage', {
-          amount: formatTokenAmountFromBigInt(amount, decimals), address: destination,
-        }),
+        t('identities.reserve.issue.confirmMessage', { amount: formatTokenAmountFromBigInt(amount, decimals), address }),
         t('identities.reserve.issue.confirmButton')
       );
       if (!confirmed) return;
@@ -443,24 +440,16 @@
       // output turns into the emptied layout on its own
       const { txId } = await store.spend.spendAuthUtxo(authUtxo, [
         identityOutput(authUtxo, walletAddresses(), reserveOf(identity) - amount),
-        new TokenSendRequest({ cashaddr: destination, category: identity.category, amount }),
+        new TokenSendRequest({ cashaddr: address, category: identity.category, amount }),
       ]);
-      openAction.value = undefined;
-      await handleTransactionBroadcastSuccess(
-        t('identities.reserve.issue.done', { address: destination }), txId, t('identities.reserve.issue.doneTitle')
-      );
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      runningAction.value = undefined;
-    }
+      return { txId, message: t('identities.reserve.issue.done', { address }), title: t('identities.reserve.issue.doneTitle') };
+    });
   }
 
   async function addToReserve(identity: IdentityState) {
     const authUtxo = identity.authUtxo;
-    if (runningAction.value || !authUtxo?.token) return;
-    runningAction.value = 'addToReserve';
-    try {
+    if (!authUtxo?.token) return;
+    await runAction('addToReserve', async () => {
       const decimals = tokenDecimals(identity.category);
       const amount = parseTokenAmountToBigInt(addToReserveAmount.value, decimals);
       if (amount <= 0n) throw new Error(t('identities.reserve.errors.invalidAmount'));
@@ -481,81 +470,52 @@
         [identityOutput(authUtxo, walletAddresses(), reserveOf(identity) + amount)],
         categoryUtxos,
       );
-      openAction.value = undefined;
-      await handleTransactionBroadcastSuccess(
-        t('identities.reserve.add.done'), txId, t('identities.reserve.add.doneTitle')
-      );
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      runningAction.value = undefined;
-    }
+      return { txId, message: t('identities.reserve.add.done'), title: t('identities.reserve.add.doneTitle') };
+    });
   }
 
   // The key is an ordinary NFT and moves as one; what makes this different is what goes with it.
   // It is spent through the deliberate path because it is reserved, exactly as an authhead is.
   async function transferKey(identity: IdentityState) {
     const keyUtxo = identity.keyUtxo;
-    if (transferringCategory.value || !keyUtxo?.token?.nft) return;
-    let destination: string;
-    try {
-      destination = validateTokenRecipientAddress(keyDestination.value, store.wallet.networkPrefix);
-    } catch (error) {
-      displayAndLogError(error);
-      return;
-    }
-    const guardedByKey = identities.value.filter(
-      listed => listed.keyUtxo && outpointOf(listed.keyUtxo) === outpointOf(keyUtxo)
-    );
-    const confirmed = await confirmDialog(
-      t('identities.key.confirmTitle'),
-      t('identities.key.confirmMessage', { count: guardedByKey.length, address: destination }),
-      t('identities.key.confirmButton'),
-      'red'
-    );
-    if (!confirmed) return;
-    transferringCategory.value = identity.category;
-    try {
+    const key = keyUtxo?.token;
+    const nft = key?.nft;
+    if (!keyUtxo || !key || !nft) return;
+    await runAction('transferKey', async () => {
+      const address = validateTokenRecipientAddress(keyDestination.value, store.wallet.networkPrefix);
+      const guardedByKey = identities.value.filter(
+        listed => listed.keyUtxo && outpointOf(listed.keyUtxo) === outpointOf(keyUtxo)
+      );
+      const confirmed = await confirmDialog(
+        t('identities.key.confirmTitle'),
+        t('identities.key.confirmMessage', { count: guardedByKey.length, address }),
+        t('identities.key.confirmButton'),
+        'red'
+      );
+      if (!confirmed) return;
       notifySending();
       const { txId } = await store.spend.spendAuthUtxo(keyUtxo, [
         new TokenSendRequest({
-          cashaddr: destination,
-          category: keyUtxo.token.category,
+          cashaddr: address,
+          category: key.category,
           amount: 0n,
-          nft: { commitment: keyUtxo.token.nft.commitment, capability: keyUtxo.token.nft.capability },
+          nft: { commitment: nft.commitment, capability: nft.capability },
         }),
       ]);
-      keyDestination.value = "";
-      openAction.value = undefined;
-      await handleTransactionBroadcastSuccess(
-        t('identities.key.done', { address: destination }), txId, t('identities.key.doneTitle')
-      );
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      transferringCategory.value = undefined;
-    }
+      return { txId, message: t('identities.key.done', { address }), title: t('identities.key.doneTitle') };
+    });
   }
 
-  // Which watched key guards this identity, told by deriving the key's covenant and comparing
-  function guardsIdentity(keyCategory: string, identity: IdentityState) {
-    const guards = authGuardAddresses(keyCategory, store.wallet.networkPrefix);
-    return identity.guardAddress === guards.p2sh20 || identity.guardAddress === guards.p2sh32;
-  }
-
-  // These have no name to confirm against, so the dialog says what the coin is instead
+  // These have no name to confirm against, so the dialog says what the UTXO is instead
   async function removeUnnamed(txid: string) {
-    const confirmed = await confirmDialog(
-      t('identities.unnamed.removeTitle'),
-      t('identities.unnamed.removeMessage'),
-      t('identities.remove.button')
-    );
-    if (!confirmed) return;
-    try {
-      await identitiesStore.removeUnnamedAuthhead(txid);
-    } catch (error) {
-      displayAndLogError(error);
-    }
+    await runAction('remove', async () => {
+      const confirmed = await confirmDialog(
+        t('identities.unnamed.removeTitle'),
+        t('identities.unnamed.removeMessage'),
+        t('identities.remove.button')
+      );
+      if (confirmed) await identitiesStore.removeUnnamedAuthhead(txid);
+    });
   }
 
   // The chain is the identity's whole history. The explorer shows it raw; this says what each
@@ -570,15 +530,6 @@
     } finally {
       loadingHistory.value = undefined;
     }
-  }
-
-  async function toggleHistory(identity: IdentityState) {
-    if (openHistories.value.includes(identity.category)) {
-      openHistories.value = openHistories.value.filter(open => open !== identity.category);
-      return;
-    }
-    openHistories.value = [...openHistories.value, identity.category];
-    await loadHistory(identity);
   }
 
   // Told by the wallet's own history: the links made here, and the ones made elsewhere with the
@@ -598,71 +549,45 @@
   }
 
   async function removeIdentity(identity: IdentityState) {
-    const confirmed = await confirmDialog(
-      t('identities.remove.title'),
-      identity.status === 'held' ? t('identities.remove.messageHeld') : t('identities.remove.message'),
-      t('identities.remove.button')
-    );
-    if (!confirmed) return;
-    try {
-      await identitiesStore.removeIdentity(identity.category);
-      // a watched key is what put its guarded identities on the list, so it goes with them
-      const watchedKey = identity.guardAddress && !identity.keyUtxo
-        ? identitiesStore.watchedAuthKeys.find(category => guardsIdentity(category, identity))
-        : undefined;
-      if (watchedKey) identitiesStore.removeAuthKey(watchedKey);
-    } catch (error) {
-      displayAndLogError(error);
-    }
+    await runAction('remove', async () => {
+      const confirmed = await confirmDialog(
+        t('identities.remove.title'),
+        identity.status === 'held' ? t('identities.remove.messageHeld') : t('identities.remove.message'),
+        t('identities.remove.button')
+      );
+      if (confirmed) await identitiesStore.removeIdentity(identity.category);
+    });
   }
 
-  // The authchain continues at output 0 of the destination. A BCH-only authhead goes as one coin
+  // The authchain continues at output 0 of the destination. A BCH-only authhead goes as one UTXO
   // (recipient gets it minus the fee); one carrying tokens needs a second output for what stays.
   async function transferIdentity(identity: IdentityState) {
-    if (transferringCategory.value) return;
     const authUtxo = identity.authUtxo;
     if (!authUtxo) return;
-    const tokensGoAlong = Boolean(authUtxo.token) && transferTokensAlong.value;
-    let destination: string;
-    try {
-      const input = destinationInputs.value[identity.category] ?? "";
-      destination = tokensGoAlong
-        ? validateTokenRecipientAddress(input, store.wallet.networkPrefix)
-        : validateRecipientAddress(input, store.wallet.networkPrefix);
-    } catch (error) {
-      displayAndLogError(error);
-      return;
-    }
-    const details = { amount: bchOf(authUtxo.satoshis), address: destination, carries: carriesLine(identity) };
-    let confirmMessage = t('identities.transfer.confirmMessage', details);
-    if (authUtxo.token) {
-      confirmMessage = tokensGoAlong
-        ? t('identities.transfer.confirmMessageAlong', details)
-        : t('identities.transfer.confirmMessageKeep', details);
-    }
-    const confirmed = await confirmDialog(
-      t('identities.transfer.confirmTitle'), confirmMessage, t('identities.transfer.confirmButton')
-    );
-    if (!confirmed) return;
-    transferringCategory.value = identity.category;
-    try {
+    await runAction('transfer', async () => {
+      const tokensGoAlong = Boolean(authUtxo.token) && transferTokensAlong.value;
+      const address = tokensGoAlong
+        ? validateTokenRecipientAddress(destination.value, store.wallet.networkPrefix)
+        : validateRecipientAddress(destination.value, store.wallet.networkPrefix);
+      const details = { amount: bchOf(authUtxo.satoshis), address, carries: carriesLine(identity) };
+      let confirmMessage = t('identities.transfer.confirmMessage', details);
+      if (authUtxo.token) {
+        confirmMessage = tokensGoAlong
+          ? t('identities.transfer.confirmMessageAlong', details)
+          : t('identities.transfer.confirmMessageKeep', details);
+      }
+      const confirmed = await confirmDialog(
+        t('identities.transfer.confirmTitle'), confirmMessage, t('identities.transfer.confirmButton')
+      );
+      if (!confirmed) return;
       notifySending();
       const { txId } = authUtxo.token
-        ? await store.spend.spendAuthUtxo(authUtxo, transferOutputs(authUtxo, destination, walletAddresses(), tokensGoAlong))
-        : await store.spend.sendUtxo(authUtxo, destination);
-      destinationInputs.value[identity.category] = "";
+        ? await store.spend.spendAuthUtxo(authUtxo, transferOutputs(authUtxo, address, walletAddresses(), tokensGoAlong))
+        : await store.spend.sendUtxo(authUtxo, address);
       // The identity is now somebody else's to update, so it leaves this wallet's list
       await identitiesStore.removeIdentity(identity.category);
-      await handleTransactionBroadcastSuccess(
-        t('identities.transfer.done', { address: destination }),
-        txId,
-        t('identities.transfer.doneTitle')
-      );
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      transferringCategory.value = undefined;
-    }
+      return { txId, message: t('identities.transfer.done', { address }), title: t('identities.transfer.doneTitle') };
+    });
   }
 </script>
 
@@ -704,8 +629,8 @@
         <input
           @click="addIdentity()"
           type="button"
-          :value="isAdding ? t('identities.add.addingButton') : t('identities.add.button')"
-          :disabled="isAdding || identitiesStore.identitiesResolving || !categoryInput"
+          :value="runningAction === 'add' ? t('identities.add.addingButton') : t('identities.add.button')"
+          :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !categoryInput"
         >
       </div>
     </div>
@@ -722,18 +647,12 @@
         @click="scanForIdentities()"
         type="button"
         class="primaryButton"
-        :value="isScanning ? t('identities.scan.scanning') : t('identities.scan.linkText')"
-        :disabled="isScanning || identitiesStore.identitiesResolving"
+        :value="runningAction === 'scan' ? t('identities.scan.scanning') : t('identities.scan.linkText')"
+        :disabled="runningAction !== undefined || identitiesStore.identitiesResolving"
         style="margin-top: 8px;"
       >
-      <div v-if="!isScanning && scanSummary" style="margin-top: 6px;">
-        <div v-if="scanSummary.found">{{ t('identities.scan.found', scanSummary.found) }}</div>
-        <div v-else>{{ t('identities.scan.noneFound') }}</div>
-        <div v-if="scanSummary.alreadyListed">{{ t('identities.scan.alreadyListed', scanSummary.alreadyListed) }}</div>
-        <div v-if="scanSummary.carriesTokens">{{ t('identities.scan.carriesTokens', scanSummary.carriesTokens) }}</div>
-        <div v-if="scanSummary.mintingNfts">{{ t('identities.scan.mintingNfts', scanSummary.mintingNfts) }}</div>
-        <div v-if="scanSummary.dismissed">{{ t('identities.scan.dismissed', scanSummary.dismissed) }}</div>
-        <div v-if="scanSummary.failed">{{ t('identities.scan.failed', scanSummary.failed) }}</div>
+      <div v-if="scanSummaryLines.length" style="margin-top: 6px;">
+        <div v-for="line in scanSummaryLines" :key="line">{{ line }}</div>
       </div>
     </div>
     </template>
@@ -765,8 +684,8 @@
       <input
         @click="createIdentity()"
         type="button"
-        :value="isCreating ? t('identities.create.creatingButton') : t('identities.create.button')"
-        :disabled="isCreating || identitiesStore.identitiesResolving"
+        :value="runningAction === 'create' ? t('identities.create.creatingButton') : t('identities.create.button')"
+        :disabled="runningAction !== undefined || identitiesStore.identitiesResolving"
         style="margin-top: 8px;"
       >
     </div>
@@ -780,72 +699,34 @@
         <div>{{ t('identities.openCheckFailed', { reason: identitiesStore.openCheckError }) }}</div>
       </div>
       <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }}</div>
-      <div v-else-if="!identities.length">
-        <div class="description">{{ t('identities.empty') }}</div>
-        <ol class="walkthrough">
-          <li>
-            <q-icon name="edit" size="18px" />
-            <span>{{ t('identities.emptySteps.paste') }}</span>
-          </li>
-          <li>
-            <q-icon name="search" size="18px" />
-            <span>{{ t('identities.emptySteps.check') }}</span>
-          </li>
-          <li>
-            <q-icon name="add_circle" size="18px" />
-            <i18n-t keypath="identities.emptySteps.create" tag="span">
-              <template #link>
-                <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.emptySteps.createLink') }}</span>
-              </template>
-            </i18n-t>
-          </li>
-          <li>
-            <q-icon name="lock" size="18px" />
-            <span>{{ t('identities.emptySteps.createIdentity') }}</span>
-          </li>
-        </ol>
-      </div>
+      <div v-else-if="!identities.length" class="description">{{ t('identities.empty') }}</div>
       <!-- the answer to what is on this page, which is the first thing read here rather than
            something said alongside what is read -->
       <div v-else>
-        <template v-if="needsAttention">{{ t('identities.listedCount', listedCount) }}</template>
-        <template v-else-if="watchedCount">
-          {{ t('identities.ownedCount', ownedCount) }}{{ t('identities.watchedSuffix', watchedCount) }}
-        </template>
-        <template v-else>{{ t('identities.ownedCount', ownedCount) }}</template>
+        {{ t('identities.ownedCount', ownedCount) }}<template v-if="watchedCount">{{ t('identities.watchedSuffix', watchedCount) }}</template>
       </div>
 
-      <!-- Found in this wallet's own history and held back, with nothing on the coin to say which
-           identity it belongs to. Protected first, named if it can be. -->
-      <div v-for="coin in identitiesStore.unnamedAuthheadCoins()" :key="coin.txid" class="section identity-card">
+      <!-- Protected first, named if it can be -->
+      <div v-for="card in miniCards" :key="card.id" class="section identity-card">
         <div>
-          {{ t('identities.unnamed.title') }}
-          <InfoPopup>
-            <div style="max-width: 300px;">{{ t('identities.unnamed.help') }}</div>
+          {{ card.title }}
+          <InfoPopup v-if="card.help">
+            <div style="max-width: 300px;">{{ card.help }}</div>
           </InfoPopup>
         </div>
-        <div class="identity-status">
+        <div v-if="card.status" class="identity-status">
           <q-icon name="lock" size="15px" />
-          {{ t('identities.unnamed.status') }}
+          {{ card.status }}
         </div>
-        <div class="copy-target" :title="`${coin.txid}:0`" @click="copyToClipboard(`${coin.txid}:0`)">
-          <span class="description">{{ t('identities.authheadLabel') }}</span>
-          <span class="mono">{{ truncateHash(coin.txid) }}:0</span>
+        <div v-if="card.note" class="description">{{ card.note }}</div>
+        <div class="copy-target" :title="card.id" @click="copyToClipboard(card.id)">
+          <span class="description">{{ card.label }}</span>
+          <span class="mono">{{ card.shortId }}</span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
-        <div>{{ t('identities.authheadAmount', { amount: bchOf(coin.satoshis) }) }}</div>
-        <div class="identity-links">
-          <span class="remove-identity" @click="removeUnnamed(coin.txid)">{{ t('identities.remove.button') }}</span>
-        </div>
-      </div>
-
-      <div v-for="guard in unnameableGuards" :key="guard.category" class="section identity-card">
-        <div>{{ t('identities.key.unnameableTitle') }}</div>
-        <div class="description">{{ t('identities.key.unnameable', guard.count) }}</div>
-        <div class="copy-target" :title="guard.category" @click="copyToClipboard(guard.category)">
-          <span class="description">{{ t('identities.key.categoryLabel') }}</span>
-          <span class="mono">{{ truncateHash(guard.category) }}</span>
-          <img class="copyIcon" src="images/copyGrey.svg">
+        <div v-if="card.amount">{{ t('identities.authheadAmount', { amount: card.amount }) }}</div>
+        <div v-if="card.txid" class="identity-links">
+          <span class="remove-identity" @click="removeUnnamed(card.txid)">{{ t('identities.remove.button') }}</span>
         </div>
       </div>
 
@@ -908,7 +789,7 @@
           >{{ t('identities.reserve.mintingNftLink') }}</span>
         </div>
         <div v-if="!isExpanded(identity) && identity.publication" class="publication-badge-row">
-          <template v-for="row in publicationRows(identity)" :key="row.uri">
+          <template v-for="row in publicationRows[identity.category]" :key="row.uri">
             <span v-if="row.status" class="publication-badge" :class="row.status">{{ row.statusText }}</span>
           </template>
         </div>
@@ -957,7 +838,7 @@
             </div>
           </div>
           <template v-else>
-            <div v-for="row in publicationRows(identity)" :key="row.uri" class="publication-uri">
+            <div v-for="row in publicationRows[identity.category]" :key="row.uri" class="publication-uri">
               <a :href="row.url" target="_blank" class="mono">{{ row.uri }}</a>
               <InfoPopup v-if="row.status">
                 <template #trigger>
@@ -1021,16 +902,6 @@
                 <q-item clickable v-close-popup :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
                   <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>
                   <q-item-section>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="toggleHistory(identity)">
-                  <q-item-section avatar><q-icon name="history" size="18px" /></q-item-section>
-                  <q-item-section>{{
-                    openHistories.includes(identity.category)
-                      ? t('identities.history.hide')
-                      : chainLength(identity)
-                        ? t('identities.history.showCount', { count: chainLength(identity) })
-                        : t('identities.history.show')
-                  }}</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="removeIdentity(identity)">
                   <q-item-section avatar><q-icon name="delete" size="18px" /></q-item-section>
@@ -1132,17 +1003,12 @@
             </select>
           </template>
           <div class="transfer-identity">
-            <input
-              v-model="destinationInputs[identity.category]"
-              :placeholder="t('identities.transfer.destinationPlaceholder')"
-            >
+            <input v-model="destination" :placeholder="t('identities.transfer.destinationPlaceholder')">
             <input
               @click="transferIdentity(identity)"
               type="button"
-              :value="transferringCategory === identity.category
-                ? t('identities.transfer.transferringButton')
-                : t('identities.transfer.button')"
-              :disabled="transferringCategory !== undefined || !destinationInputs[identity.category]"
+              :value="runningAction === 'transfer' ? t('identities.transfer.transferringButton') : t('identities.transfer.button')"
+              :disabled="runningAction !== undefined || !destination"
             >
           </div>
         </div>
@@ -1164,16 +1030,14 @@
               <input
                 @click="transferKey(identity)"
                 type="button"
-                :value="transferringCategory === identity.category
-                  ? t('identities.key.transferringButton')
-                  : t('identities.key.button')"
-                :disabled="transferringCategory !== undefined || !keyDestination"
+                :value="runningAction === 'transferKey' ? t('identities.key.transferringButton') : t('identities.key.button')"
+                :disabled="runningAction !== undefined || !keyDestination"
               >
             </div>
           </div>
         </div>
 
-        <div v-if="openHistories.includes(identity.category)" class="section">
+        <div class="section">
           <!-- the year comes from the history, so it lands here with the history rather than
                growing the header after the card was drawn -->
           <div>

@@ -1505,7 +1505,6 @@
       "removeTitle": "Diesen UTXO nicht mehr zurückhalten?",
       "removeMessage": "Der UTXO kommt zurück in die Münzauswahl und ein gewöhnlicher Versand kann ihn ausgeben, was die Identität beendet, die er trägt. Er wird nicht wieder aufgelistet."
     },
-    "listedCount": "{count} Identität, der dieses Wallet folgt | {count} Identitäten, denen dieses Wallet folgt",
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
     "watchedSuffix": ", {count} beobachtet | , {count} beobachtet",
     "unnamedIdentity": "Identität ohne Namen",
@@ -1605,8 +1604,6 @@
     },
     "history": {
       "title": "Historie dieser Identität",
-      "show": "Historie zeigen",
-      "hide": "Historie ausblenden",
       "loading": "Historie der Identität wird gelesen...",
       "madeHere": "von diesem Wallet gemacht",
       "reserveUp": "{amount} in die Reserve",
@@ -1618,7 +1615,6 @@
         "operation": "Aktualisiert",
         "mint": "Geprägt"
       },
-      "showCount": "Historie ({count})",
       "minted": "{count} NFT geprägt | {count} NFTs geprägt"
     },
     "publish": {
@@ -1735,13 +1731,6 @@
     "errors": {
       "invalidCategory": "Das ist keine Token-Kategorie. Du findest sie bei den Token-Infos im Tokens-Tab oder auf TokenExplorer.",
       "alreadyListed": "Diese Identität ist bereits in der Liste."
-    },
-    "emptySteps": {
-      "paste": "Füge oben die Token-Kategorie einer Identität ein.",
-      "check": "Oder prüfe die Tokens dieses Wallets auf Identitäten.",
-      "create": "Oder {link}, um eine neue anzulegen.",
-      "createLink": "erstelle einen Token",
-      "createIdentity": "Oder erstelle oben eine Identität, die kein Token ist."
     },
     "established": {
       "since": "Seit {year}"

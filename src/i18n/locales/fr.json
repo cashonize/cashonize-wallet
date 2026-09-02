@@ -1505,7 +1505,6 @@
       "removeTitle": "Cesser de retenir cet UTXO ?",
       "removeMessage": "L'UTXO revient dans la sélection des pièces et un envoi ordinaire peut le dépenser, ce qui met fin à l'identité qu'il porte. Il ne sera plus listé."
     },
-    "listedCount": "{count} identité suivie par ce portefeuille | {count} identités suivies par ce portefeuille",
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
     "watchedSuffix": ", {count} surveillée | , {count} surveillées",
     "unnamedIdentity": "Identité sans nom",
@@ -1605,8 +1604,6 @@
     },
     "history": {
       "title": "Historique de cette identité",
-      "show": "voir l'historique",
-      "hide": "masquer l'historique",
       "loading": "Lecture de l'historique de l'identité...",
       "madeHere": "fait par ce portefeuille",
       "reserveUp": "{amount} vers la réserve",
@@ -1618,7 +1615,6 @@
         "operation": "Mise à jour",
         "mint": "Frappé"
       },
-      "showCount": "Historique ({count})",
       "minted": "{count} NFT frappé | {count} NFTs frappés"
     },
     "publish": {
@@ -1735,13 +1731,6 @@
     "errors": {
       "invalidCategory": "Ce n'est pas une catégorie de token. Vous la trouverez sur les infos du token dans l'onglet Tokens, ou sur TokenExplorer.",
       "alreadyListed": "Cette identité est déjà dans la liste."
-    },
-    "emptySteps": {
-      "paste": "Collez ci-dessus la catégorie de jeton d'une identité.",
-      "check": "Ou vérifiez les tokens de ce portefeuille pour y trouver des identités.",
-      "create": "Ou {link} pour en créer une.",
-      "createLink": "créez un jeton",
-      "createIdentity": "Ou créez ci-dessus une identité qui n'est pas un token."
     },
     "established": {
       "since": "Depuis {year}"
