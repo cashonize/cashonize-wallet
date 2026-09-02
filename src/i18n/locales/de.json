@@ -89,12 +89,13 @@
       "utxoNotReserved": "Dieser UTXO ist nicht reserviert",
       "reservedEnsureUtxos": "Diese Aktion benötigt einen UTXO, den die Wallet zurückhält",
       "tokenUtxoHeldBack": "Dieser UTXO ist von der Münzauswahl ausgenommen. Die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum, und dort wird ein eingefrorener wieder aufgetaut.",
+      "identityUtxoHeldBack": "Dieses NFT ist der Identitäts-UTXO seines Tokens und von der Münzauswahl ausgenommen. Verwaltet wird er auf der Identitäten-Seite.",
       "notEnoughSpendableBch": "Diese Transaktion braucht {needed} und nur {available} sind ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "notEnoughSpendableTokens": "Für diese Transaktion sind nicht genug Tokens ausgebbar. Von der Münzauswahl ausgenommene Münzen zählen nicht mit, die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben.",
       "genesisInputUnavailable": "Die zur Erstellung gewählte Münze ist nicht mehr verfügbar. Wähle eine andere.",
       "identityLeavesWallet": "Diese Anfrage würde die Kontrolle über eine deiner Identitäten an ein anderes Wallet übergeben und wurde daher abgelehnt. Eine Identität wird über die Identitäten-Seite übertragen.",
-      "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben und sie zu einer verschmelzen, deshalb wurde sie abgelehnt."
+      "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben, was sie zu einer verschmilzt. Identitäten zu verschmelzen unterstützt dieses Wallet noch nicht, deshalb wurde sie abgelehnt."
     }
   },
   "onboarding": {
@@ -345,7 +346,8 @@
       "commitmentPlaceholder": "Commitment (Hex)",
       "destinationPlaceholder": "Optionale Zieladresse",
       "mintButton": "NFTs minten",
-      "mintingButton": "Minten..."
+      "mintingButton": "Minten...",
+      "identityUtxo": "Dieses NFT ist der Identitäts-UTXO des Tokens, und davon zu prägen ist noch nicht möglich."
     },
     "loading": {
       "nftMetadata": "Lade NFT-Metadaten...",
@@ -1722,7 +1724,7 @@
     "unresolvedHint": "Lade neu oder prüfe den Chaingraph-Server in den Einstellungen.",
     "found": {
       "title": "Dieses Wallet hält Token-Identitäten",
-      "intro": "Sie wurden mit den Schlüsseln dieses Wallets gemacht, es hält also die Befugnis, ihre Metadaten zu ändern:",
+      "intro": "Dieses Wallet hält diese Identitäten und damit die Befugnis, ihre Metadaten zu ändern:",
       "reserve": "Reserve von {amount}",
       "heldBack": "Ihre Identitäts-UTXOs sind jetzt von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann sie also nicht aus Versehen ausgeben. Das BCH darauf zählt nicht zum verfügbaren Guthaben, und eine Reserve wird auf der Identitäten-Seite gezeigt statt in der Token-Liste.",
       "remove": "Du kannst eine Identität von der Liste nehmen, wenn ihr UTXO lieber nicht zurückgehalten werden soll.",

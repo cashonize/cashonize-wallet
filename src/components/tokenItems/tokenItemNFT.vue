@@ -116,6 +116,14 @@
     const amount = `${formatTokenAmountFromBigInt(reserve, decimals)} ${tokenMetaData.value?.token?.symbol ?? ''}`.trim();
     return t('tokenItem.identity.heldWithReserve', { amount });
   });
+  // The minting NFT of a category made on the create page is its identity UTXO, held back from
+  // coin selection: minting from it has to continue the authchain rather than go through tokenMint
+  const identityUtxo = computed(() => {
+    const nft = tokenData.value.nfts?.[0];
+    const authUtxo = identitiesStore.heldIdentityOf(tokenData.value.category)?.authUtxo;
+    if (!nft || !authUtxo) return undefined;
+    return authUtxo.txid === nft.txid && authUtxo.vout === nft.vout ? authUtxo : undefined;
+  });
   const isIdentityKey = computed(() =>
     guardedIdentities.value.length > 0 || (identitiesStore.unidentifiedGuarded[tokenData.value.category] ?? 0) > 0
   );
@@ -466,7 +474,7 @@
           <span v-if="selectedNftCount > 0 || displayBatchTransfer" @click="clearSelection()" class="batch-action-btn">
             {{ t('tokenItem.actions.clear') }}
           </span>
-          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting' && settingsStore.mintNfts" @click="displayMintNfts = !displayMintNfts">
+          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting' && settingsStore.mintNfts && !identityUtxo" @click="displayMintNfts = !displayMintNfts">
             <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> {{ t('tokenItem.actions.mintNfts') }}
           </span>
           <span v-if="isSingleNft && settingsStore.tokenBurn" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
@@ -530,6 +538,10 @@
             </div>
             <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.batchTransfer.transferringButton') : t('tokenItem.batchTransfer.transferButton')" :disabled="activeAction !== null">
           </div>
+        </div>
+        <div v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting' && settingsStore.mintNfts && identityUtxo" class="tokenAction">
+          {{ t('tokenItem.mint.identityUtxo') }}
+          <span class="identity-key-link" @click="store.changeView(19)">{{ t('tokenItem.authKey.maybeLink') }}</span>
         </div>
         <nftMintForm v-if="displayMintNfts" :category="tokenData.category" v-model:active-action="activeAction" @minted="displayMintNfts = false"/>
         <div v-if="displayBurnNft" class="tokenAction">

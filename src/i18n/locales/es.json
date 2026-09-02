@@ -89,12 +89,13 @@
       "utxoNotReserved": "Este UTXO no está reservado",
       "reservedEnsureUtxos": "Esta acción necesita un UTXO que la cartera está reteniendo",
       "tokenUtxoHeldBack": "Este UTXO está retenido fuera de la selección de monedas. La página de gestión de UTXOs muestra cuáles están retenidos y por qué, y es donde se descongela uno congelado.",
+      "identityUtxoHeldBack": "Este NFT es el UTXO de identidad de su token y está fuera de la selección de monedas. Se gestiona desde la página de identidades.",
       "notEnoughSpendableBch": "Esta transacción necesita {needed} y solo se puede gastar {available}. Las monedas retenidas fuera de la selección de monedas no cuentan; la página de gestión de UTXOs muestra cuáles están retenidas y por qué.",
       "notEnoughSpendableTokens": "No se pueden gastar suficientes tokens para esta transacción. Las monedas retenidas fuera de la selección de monedas no cuentan; la página de gestión de UTXOs muestra cuáles están retenidas y por qué.",
       "cannotSendPledgedUtxo": "Este UTXO está retenido por una promesa abierta. Cancela la promesa para liberarlo.",
       "genesisInputUnavailable": "La moneda elegida para crear este token ya no está disponible. Elige otra.",
       "identityLeavesWallet": "Esta solicitud entregaría el control de una de tus identidades a otra billetera, así que fue rechazada. La transferencia de una identidad se hace desde la página de identidades.",
-      "identityMerge": "Esta solicitud gastaría dos de tus identidades en una sola transacción, fusionándolas en una, así que se rechazó."
+      "identityMerge": "Esta solicitud gastaría dos de tus identidades en una sola transacción, lo que las fusiona en una. Esta billetera todavía no admite fusionar identidades, así que se rechazó."
     }
   },
   "onboarding": {
@@ -345,7 +346,8 @@
       "commitmentPlaceholder": "commitment (hex)",
       "destinationPlaceholder": "Dirección de destino opcional",
       "mintButton": "Acuñar NFTs",
-      "mintingButton": "Acuñando..."
+      "mintingButton": "Acuñando...",
+      "identityUtxo": "Este NFT es el UTXO de identidad del token, y acuñar desde él todavía no está disponible."
     },
     "loading": {
       "nftMetadata": "cargando metadatos del NFT...",
@@ -1722,7 +1724,7 @@
     "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes.",
     "found": {
       "title": "Esta billetera tiene identidades de tokens",
-      "intro": "Se crearon con las claves de esta billetera, así que tiene la autoridad para actualizar sus metadatos:",
+      "intro": "Esta billetera tiene estas identidades, así que tiene la autoridad para actualizar sus metadatos:",
       "reserve": "reserva de {amount}",
       "heldBack": "Sus UTXOs de identidad quedan ahora fuera de la selección de monedas, así que un envío normal no puede gastarlos por accidente. El BCH que llevan no se cuenta en el saldo disponible, y una reserva se muestra en la página de identidades en vez de en la lista de tokens.",
       "remove": "Puedes quitar una identidad de la lista si prefieres que su UTXO no quede retenido.",

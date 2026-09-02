@@ -89,12 +89,13 @@
       "utxoNotReserved": "This UTXO is not reserved",
       "reservedEnsureUtxos": "This action needs a UTXO the wallet is holding back",
       "tokenUtxoHeldBack": "This UTXO is held back from coin selection. The UTXO Management page shows which coins are held and why, and is where a frozen one is unfrozen.",
+      "identityUtxoHeldBack": "This NFT is the identity UTXO of its token, held back from coin selection. It is managed from the identities page.",
       "notEnoughSpendableBch": "This transaction needs {needed} and only {available} can be spent. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "notEnoughSpendableTokens": "Not enough tokens can be spent for this transaction. Coins held back from coin selection do not count toward it, the UTXO Management page shows which coins are held and why.",
       "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it.",
       "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one.",
       "identityLeavesWallet": "This request would hand control of one of your identities to another wallet, so it was refused. Transferring an identity is done from the identities page.",
-      "identityMerge": "This request would spend two of your identities in one transaction, merging them into one, so it was refused."
+      "identityMerge": "This request would spend two of your identities in one transaction, which merges them into one. Merging identities is not supported by this wallet yet, so it was refused."
     }
   },
   "onboarding": {
@@ -345,7 +346,8 @@
       "commitmentPlaceholder": "commitment (hex)",
       "destinationPlaceholder": "Optional destination address",
       "mintButton": "Mint NFTs",
-      "mintingButton": "Minting..."
+      "mintingButton": "Minting...",
+      "identityUtxo": "This NFT is the identity UTXO of the token, and minting from it is not available yet."
     },
     "loading": {
       "nftMetadata": "loading NFT metadata...",
@@ -1722,7 +1724,7 @@
     "unresolvedHint": "Reload, or check the Chaingraph server in the settings.",
     "found": {
       "title": "This wallet holds token identities",
-      "intro": "These were made with this wallet's keys, so it holds the authority to update their metadata:",
+      "intro": "This wallet holds these identities, so it holds the authority to update their metadata:",
       "reserve": "reserve of {amount}",
       "heldBack": "Their identity UTXOs are now held back from coin selection, so an ordinary send cannot spend them by accident. The BCH on them is not counted in the spendable balance, and a reserve is shown on the identities page rather than in the token list.",
       "remove": "You can remove an identity from the list if you would rather its UTXO were not held back.",

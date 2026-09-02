@@ -1566,9 +1566,13 @@ export const useStore = defineStore('store', () => {
   // way an amount can, so a held back one is refused here rather than left to fail on mainnet-js's
   // terms. Frozen coins are spendable deliberately, but from utxo management rather than from here.
   function checkTokenUtxosSpendable(utxos: Utxo[]) {
-    if (utxos.some(utxo => outpointOf(utxo) in reservedUtxos.value)) {
-      throw new Error(t('store.errors.tokenUtxoHeldBack'));
+    const held = utxos.find(utxo => outpointOf(utxo) in reservedUtxos.value);
+    if (!held) return;
+    // an identity's UTXO is released from the identities page, a frozen one from utxo management
+    if (reservedUtxos.value[outpointOf(held)]?.reason === 'auth') {
+      throw new Error(t('store.errors.identityUtxoHeldBack'));
     }
+    throw new Error(t('store.errors.tokenUtxoHeldBack'));
   }
 
   // Spends one coin whole: a pool of only that coin, sent with sendMax, so no other coin joins

@@ -89,12 +89,13 @@
       "utxoNotReserved": "Cet UTXO n'est pas réservé",
       "reservedEnsureUtxos": "Cette action a besoin d'un UTXO que le portefeuille retient",
       "tokenUtxoHeldBack": "Cet UTXO est écarté de la sélection des pièces. La page de gestion des UTXO montre lesquels sont retenus et pourquoi, et c'est là qu'un UTXO gelé se dégèle.",
+      "identityUtxoHeldBack": "Ce NFT est l'UTXO d'identité de son token, écarté de la sélection des pièces. Il se gère depuis la page des identités.",
       "notEnoughSpendableBch": "Cette transaction demande {needed} et seuls {available} peuvent être dépensés. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "notEnoughSpendableTokens": "Pas assez de jetons dépensables pour cette transaction. Les pièces écartées de la sélection ne comptent pas ; la page de gestion des UTXO montre lesquelles sont retenues et pourquoi.",
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
       "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
       "identityLeavesWallet": "Cette requête confierait le contrôle d'une de vos identités à un autre portefeuille, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
-      "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, les fusionnant en une, elle a donc été refusée."
+      "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, ce qui les fusionne en une. Ce portefeuille ne prend pas encore en charge la fusion d'identités, elle a donc été refusée."
     }
   },
   "onboarding": {
@@ -345,7 +346,8 @@
       "commitmentPlaceholder": "commitment (hex)",
       "destinationPlaceholder": "Adresse de destination optionnelle",
       "mintButton": "Créer NFTs",
-      "mintingButton": "Création en cours..."
+      "mintingButton": "Création en cours...",
+      "identityUtxo": "Ce NFT est l'UTXO d'identité du token, et frapper à partir de lui n'est pas encore possible."
     },
     "loading": {
       "nftMetadata": "chargement des métadonnées du NFT...",
@@ -1722,7 +1724,7 @@
     "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
     "found": {
       "title": "Ce portefeuille détient des identités de tokens",
-      "intro": "Elles ont été créées avec les clés de ce portefeuille, il détient donc l'autorité de mettre à jour leurs métadonnées :",
+      "intro": "Ce portefeuille détient ces identités, il détient donc l'autorité de mettre à jour leurs métadonnées :",
       "reserve": "réserve de {amount}",
       "heldBack": "Leurs UTXOs d'identité sont maintenant écartés de la sélection des pièces, un envoi ordinaire ne peut donc pas les dépenser par accident. Le BCH qu'ils portent n'est pas compté dans le solde disponible, et une réserve est affichée sur la page des identités plutôt que dans la liste des tokens.",
       "remove": "Vous pouvez retirer une identité de la liste si vous préférez que son UTXO ne soit pas retenu.",
