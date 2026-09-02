@@ -16,9 +16,9 @@ const { t } = i18n.global;
 type Network = 'mainnet' | 'chipnet';
 
 // 'held' and 'carriesTokens' are both authheads this wallet holds directly and keeps out of coin
-// selection; they are told apart because an authhead carrying a token reserve has no transfer of
-// its own yet. 'heldViaKey' is an authhead locked in an AuthGuard covenant whose key NFT this
-// wallet holds, which is authority over the identity without the coin. 'unresolved' is a failed
+// selection; the second also carries a reserve or a minting NFT. 'heldViaKey' is an authhead
+// locked in an AuthGuard covenant whose key NFT this wallet holds, which is authority over the
+// identity without the coin. 'unresolved' is a failed
 // Chaingraph query, which says nothing about where the authhead is.
 export type IdentityStatus = 'held' | 'carriesTokens' | 'heldViaKey' | 'notHeld' | 'unresolved';
 
@@ -145,6 +145,34 @@ export function identityOutput(
     value: authUtxo.satoshis,
     ...(token.nft ? { nft: { commitment: token.nft.commitment, capability: token.nft.capability } } : {}),
   });
+}
+
+// What a token output kept behind by a transfer carries in BCH, the same as a genesis gives one
+const keptTokenOutputValue = 1000n;
+
+// A transfer is the same spend as every other operation, with the new authhead at the destination
+// instead of here. What the old one carried either goes with it or stays: a reserve that stays
+// becomes ordinary supply of this wallet, and a minting NFT that stays keeps its authority here.
+export function transferOutputs(
+  authUtxo: Utxo,
+  destination: string,
+  addresses: { bch: string, token: string },
+  tokensGoAlong: boolean,
+) {
+  const token = authUtxo.token;
+  if (!token) return [{ cashaddr: destination, value: authUtxo.satoshis }];
+  const carried = (cashaddr: string, value: bigint) => new TokenSendRequest({
+    cashaddr,
+    category: token.category,
+    amount: token.amount,
+    value,
+    ...(token.nft ? { nft: { commitment: token.nft.commitment, capability: token.nft.capability } } : {}),
+  });
+  if (tokensGoAlong) return [carried(destination, authUtxo.satoshis)];
+  return [
+    { cashaddr: destination, value: authUtxo.satoshis },
+    carried(addresses.token, keptTokenOutputValue),
+  ];
 }
 
 // The metadata pointer itself: OP_RETURN "BCMR" <hash> [<uri>...], the same shape this module reads

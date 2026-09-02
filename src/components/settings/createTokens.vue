@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, watch } from 'vue';
+  import { ref, computed } from 'vue';
   import {
     fetchCandidateRegistry,
     maxPublicationOutputSize,
@@ -27,7 +27,10 @@
 
   const inputFungibleSupply = ref("");
   const inputCirculating = ref("");
-  const createMintingNft = ref(false);
+  // What the token is, rather than a supply field and a toggle the user has to combine into one
+  const tokenShape = ref<'fungible' | 'mintingNft' | 'both'>('fungible');
+  const createMintingNft = computed(() => tokenShape.value !== 'fungible');
+  const hasSupply = computed(() => tokenShape.value !== 'mintingNft');
   const metadataUris = ref<string[]>([""]);
   const activeAction = ref<'creatingPreGenesis' | 'creating' | null>(null);
 
@@ -55,12 +58,6 @@
   );
   const plannedCategory = computed(() => genesisInput.value?.txid);
 
-  watch(genesisCandidates, (candidates) => {
-    if (genesisInput.value) return;
-    const firstCandidate = candidates?.[0];
-    pickedOutpoint.value = firstCandidate ? outpointOf(firstCandidate) : undefined;
-  }, { immediate: true });
-
   // Amounts are whole token units here: the decimals live in the metadata, which does not exist
   // yet at creation time
   function parseAmount(value: string): bigint | undefined {
@@ -87,14 +84,21 @@
   // The genesis is the one transaction that cannot be corrected afterwards, so what it refuses is
   // said before the button is pressed rather than by a failed broadcast.
   const genesisProblem = computed(() => {
+    if (!hasSupply.value) return undefined;
     const supply = totalSupply.value;
     const issued = circulating.value;
     if (supply === undefined || issued === undefined) return t('createTokens.errors.invalidAmount');
     if (supply > maxTokenSupply) return t('createTokens.errors.overMaxSupply', { max: maxTokenSupply.toString() });
     if (issued > supply) return t('createTokens.errors.overSupply');
-    if (supply === 0n && !createMintingNft.value) return t('createTokens.errors.nothingToCreate');
-    if (issued === supply && !createMintingNft.value) return t('createTokens.errors.emptyAuthhead');
     return undefined;
+  });
+
+  // A token output carrying neither an amount nor an NFT is invalid, so the identity output has
+  // to keep something. A limit of the transaction rather than a mistake, hence a note, not an error.
+  const reserveNote = computed(() => {
+    if (!hasSupply.value || createMintingNft.value) return undefined;
+    if (!totalSupply.value || circulating.value !== totalSupply.value) return undefined;
+    return t('createTokens.reserveNote');
   });
 
   // A coin a genesis can spend is an ordinary one sitting at output 0, which a send to self makes
@@ -155,8 +159,8 @@
   async function createToken(){
     if (activeAction.value) return;
     const pickedCoin = genesisInput.value;
-    const reserveAmount = reserve.value;
-    const circulatingAmount = circulating.value;
+    const reserveAmount = hasSupply.value ? reserve.value : 0n;
+    const circulatingAmount = hasSupply.value ? circulating.value : 0n;
     if (!pickedCoin || genesisProblem.value) return;
     if (reserveAmount === undefined || circulatingAmount === undefined) return;
     activeAction.value = 'creating';
@@ -190,7 +194,7 @@
       // reset input fields
       inputFungibleSupply.value = "";
       inputCirculating.value = "";
-      createMintingNft.value = false;
+      tokenShape.value = 'fungible';
       metadataUris.value = [""];
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
       // creation ends where management begins: the identity is listed and its AuthHead held back
@@ -206,7 +210,7 @@
   function creationSummary(category: string, reserveAmount: bigint) {
     const supply = inputFungibleSupply.value;
     const lines: string[] = [];
-    if (!totalSupply.value) {
+    if (!hasSupply.value) {
       lines.push(t('createTokens.created.mintingNft', { category }));
     } else if (createMintingNft.value) {
       lines.push(t('createTokens.created.hybrid', { supply, category }));
@@ -231,34 +235,48 @@
             <a :href="store.network == 'mainnet'? 'https://cashtokens.studio/': 'https://chipnet.cashtokens.studio/'" target="_blank">{{ t('createTokens.cashTokensStudio') }}</a>
           </template>
         </i18n-t>
-        <br><br>
       </div>
 
-      <div v-if="store.spendableBalance === 0n" style="color: red;">{{ t('createTokens.needBch') }}</div>
-      <div class="genesis-input">
-        <b>{{ t('createTokens.genesisInput.title') }}</b>
-        <div class="description">{{ t('createTokens.genesisInput.explainer') }}</div>
+      <div v-if="store.spendableBalance === 0n" style="color: red; margin-top: 15px;">{{ t('createTokens.needBch') }}</div>
 
-        <div v-if="genesisCandidates === undefined" class="description">{{ t('createTokens.loading') }}</div>
-        <template v-else>
-          <div v-if="!genesisCandidates.length" class="description">{{ t('createTokens.genesisInput.none') }}</div>
-          <div v-else class="coin-list">
-            <div
-              v-for="coin in genesisCandidates"
-              :key="outpointOf(coin)"
-              class="coin-row"
-              :class="{ picked: outpointOf(coin) === pickedOutpoint }"
-              @click="pickedOutpoint = outpointOf(coin)"
-            >
-              <TokenIcon :token-id="coin.txid" :size="24" />
-              <span class="mono">{{ truncateHash(coin.txid) }}</span>
-              <span class="description">{{ bchOf(coin.satoshis) }}</span>
+      <!-- Which coin the genesis spends decides the token's permanent id, which is the whole of
+           what this section is, so it leads with that rather than with a heading repeating it -->
+      <div class="section">
+        <div class="description">{{ t('createTokens.step', { current: 1, total: 3 }) }}</div>
+        <div>{{ t('createTokens.genesisInput.explainer') }}</div>
+
+        <!-- Preparing a coin is a step towards creating rather than the page's action, so it
+             takes the ordinary button and leaves the primary one to Create -->
+        <input
+          @click="createPreGenesis"
+          type="button"
+          :value="activeAction === 'creatingPreGenesis' ? t('createTokens.preparingButton') : t('createTokens.genesisInput.prepareButton')"
+          :disabled="activeAction !== null"
+          style="margin-top: 10px;"
+        >
+
+        <!-- Which of your coins becomes a token's id is a question nearly nobody needs asked, so
+             it waits behind a disclosure for whoever wants a particular id or one fewer fee -->
+        <details style="margin-top: 10px;">
+          <summary style="display: list-item">{{ t('createTokens.genesisInput.chooseExisting') }}</summary>
+          <div v-if="genesisCandidates === undefined" class="description">{{ t('createTokens.loading') }}</div>
+          <template v-else>
+            <div v-if="!genesisCandidates.length" class="description">{{ t('createTokens.genesisInput.none') }}</div>
+            <div v-else class="coin-list">
+              <div
+                v-for="coin in genesisCandidates"
+                :key="outpointOf(coin)"
+                class="coin-row"
+                :class="{ picked: outpointOf(coin) === pickedOutpoint }"
+                @click="pickedOutpoint = outpointOf(coin)"
+              >
+                <TokenIcon :token-id="coin.txid" :size="24" />
+                <span class="mono">{{ truncateHash(coin.txid) }}</span>
+                <span>{{ bchOf(coin.satoshis) }}</span>
+              </div>
             </div>
-          </div>
-          <span class="action-link" @click="createPreGenesis">
-            {{ activeAction === 'creatingPreGenesis' ? t('createTokens.preparingButton') : t('createTokens.genesisInput.prepareLink') }}
-          </span>
-        </template>
+          </template>
+        </details>
 
         <div v-if="plannedCategory" class="planned-category">
           <!-- keyed on the category because the icon is only drawn when the component mounts -->
@@ -271,74 +289,75 @@
         </div>
       </div>
 
-      <div class="token-shape">
+      <!-- The fields stay usable before a coin exists: deciding what to make does not depend on
+           which coin makes it, and Create says what is still missing -->
+      <div class="section">
+        <div class="description">{{ t('createTokens.step', { current: 2, total: 3 }) }}</div>
+        <label for="tokenShape">
+          {{ t('createTokens.shapeLabel') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('createTokens.mintingHelp') }}</div>
+            <div class="info-popup-note" style="max-width: 300px;">{{ t('createTokens.mintingDescription') }}</div>
+          </InfoPopup>
+        </label>
+        <select id="tokenShape" v-model="tokenShape">
+          <option value="fungible">{{ t('createTokens.shapes.fungible') }}</option>
+          <option value="mintingNft">{{ t('createTokens.shapes.mintingNft') }}</option>
+          <option value="both">{{ t('createTokens.shapes.both') }}</option>
+        </select>
+        <div v-if="createMintingNft" class="description" style="margin-top: 6px;">{{ t('createTokens.mintingNote') }}</div>
+
+        <template v-if="hasSupply">
         <label for="supply">
           {{ t('createTokens.supplyLabel') }}
           <InfoPopup>
             <div style="max-width: 300px;">{{ t('createTokens.supplyHelp') }}</div>
+            <div class="info-popup-note" style="max-width: 300px;">{{ t('createTokens.supplyNote') }}</div>
           </InfoPopup>
         </label>
         <input
           id="supply"
           v-model="inputFungibleSupply"
           :placeholder="t('createTokens.supplyPlaceholder')"
-          :disabled="!genesisInput"
           type="number"
         >
-        <div class="description">{{ t('createTokens.supplyNote') }}</div>
 
-        <template v-if="totalSupply">
-          <label for="circulating">
-            {{ t('createTokens.circulation.label') }}
-            <InfoPopup>
-              <div style="max-width: 300px;">{{ t('createTokens.circulation.help') }}</div>
-            </InfoPopup>
-          </label>
-          <input
-            id="circulating"
-            v-model="inputCirculating"
-            :placeholder="t('createTokens.circulation.placeholder')"
-            type="number"
-          >
-          <div v-if="reserve !== undefined && reserve >= 0n" class="description">
-            {{ t('createTokens.circulation.split', { reserve: reserve.toString(), circulating: circulating?.toString() }) }}
-          </div>
-        </template>
-
-        <div class="minting-option">
-          {{ t('createTokens.mintingNFT') }}
+        <label for="circulating">
+          {{ t('createTokens.circulation.label') }}
           <InfoPopup>
-            <div style="max-width: 300px;">{{ t('createTokens.mintingHelp') }}</div>
+            <div style="max-width: 300px;">{{ t('createTokens.circulation.help') }}</div>
           </InfoPopup>
-          <q-toggle v-model="createMintingNft" :disable="!genesisInput" dense />
+        </label>
+        <input
+          id="circulating"
+          v-model="inputCirculating"
+          :placeholder="t('createTokens.circulation.placeholder')"
+          type="number"
+        >
+        <div v-if="totalSupply && reserve !== undefined && reserve >= 0n" style="margin-top: 6px;">
+          {{ t('createTokens.circulation.split', { reserve: reserve.toString(), circulating: circulating?.toString() }) }}
         </div>
-        <div class="description">{{ t('createTokens.mintingDescription') }}</div>
-        <div class="description"><i>{{ t('createTokens.mintingNote') }}</i></div>
+        <div v-if="reserveNote" class="description" style="margin-top: 6px;">{{ reserveNote }}</div>
+        </template>
       </div>
 
-      <details style="margin-bottom: 0.5em;">
+      <div class="section">
+        <div class="description">{{ t('createTokens.step', { current: 3, total: 3 }) }}</div>
+        <details style="margin-top: 6px;">
           <summary style="display: list-item">{{ t('createTokens.linkMetadata') }}</summary>
+          <!-- The numbers already say these are steps in order, so an icon beside each one is a
+               second signpost for the same thing -->
           <ol class="walkthrough">
             <li>
-              <q-icon name="edit" size="18px" />
               <i18n-t keypath="createTokens.steps.author" tag="span">
                 <template #generator>
                   <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
                 </template>
               </i18n-t>
             </li>
-            <li>
-              <q-icon name="archive" size="18px" />
-              <span>{{ t('createTokens.steps.host') }}</span>
-            </li>
-            <li>
-              <q-icon name="check_circle" size="18px" />
-              <span>{{ t('createTokens.steps.verify') }}</span>
-            </li>
-            <li>
-              <q-icon name="add_circle" size="18px" />
-              <span>{{ t('createTokens.steps.create') }}</span>
-            </li>
+            <li>{{ t('createTokens.steps.host') }}</li>
+            <li>{{ t('createTokens.steps.verify') }}</li>
+            <li>{{ t('createTokens.steps.create') }}</li>
           </ol>
           <div class="description" style="margin-top: 8px;">{{ t('identities.publish.locationsHint') }}</div>
           <div v-for="(uri, index) in metadataUris" :key="index" class="publish-uri-row">
@@ -350,20 +369,26 @@
             >{{ t('identities.publish.removeLocation') }}</span>
           </div>
           <div class="publish-uri-actions">
-            <span class="action-link" @click="addUriRow()">{{ t('identities.publish.addLocation') }}</span>
+            <button @click="addUriRow()">{{ t('identities.publish.addLocation') }}</button>
             <span class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
               {{ t('identities.publish.bytesLeft', { bytes: publicationBytesLeft }) }}
             </span>
           </div>
-      </details>
-      <div class="description" style="margin: 15px 0px;">{{ t('createTokens.metadataNote') }}</div>
-      <div v-if="genesisInput && genesisProblem" class="genesis-problem">{{ genesisProblem }}</div>
+        </details>
+        <!-- Reassurance that there is nothing to be stuck on, which is an aside rather than
+             something to stop at, so it is a line and not a box -->
+        <div class="description" style="margin-top: 10px;">{{ t('createTokens.metadataNote') }}</div>
+      </div>
+
+      <div v-if="genesisInput && genesisProblem" class="genesis-problem" style="margin-top: 15px;">{{ genesisProblem }}</div>
+      <!-- A disabled Create with nothing said would leave the missing piece to be guessed at -->
+      <div v-else-if="!genesisInput" class="description" style="margin-top: 15px;">{{ t('createTokens.genesisInput.needCoin') }}</div>
       <input
         @click="createToken"
         type="button"
         class="primaryButton"
         :value="activeAction === 'creating' ? t('createTokens.creatingTokensButton') : t('createTokens.createButton')"
-        style="margin: 8px 0;"
+        style="margin: 10px 0 4px;"
         :disabled="activeAction !== null || !genesisInput || genesisProblem !== undefined"
       >
     </fieldset>
@@ -377,8 +402,15 @@
 .mono {
   font-family: monospace;
 }
-.genesis-input {
-  margin-bottom: 1em;
+/* the page's three questions are numbered the way the flipstarter tool numbers its steps,
+   rather than carrying a heading in bold over each of them */
+.section {
+  margin-top: 20px;
+}
+label {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 4px;
 }
 /* long lists stay a list rather than pushing the form off the screen */
 .coin-list {
@@ -401,13 +433,6 @@
 .coin-row.picked {
   border-color: var(--color-primary);
 }
-.action-link {
-  color: var(--color-primary);
-  cursor: pointer;
-}
-.token-shape {
-  margin-bottom: 1em;
-}
 .walkthrough {
   margin: 8px 0 0;
   padding: 0;
@@ -426,10 +451,6 @@
   content: counter(walkthrough-step) ")";
   flex: none;
 }
-.walkthrough li .q-icon {
-  flex: none;
-  align-self: center;
-}
 .publish-uri-row {
   display: flex;
   align-items: center;
@@ -446,6 +467,11 @@
   gap: 15px;
   flex-wrap: wrap;
   margin-top: 6px;
+}
+/* adding a row to a form is a small action, not one the full button size fits */
+.publish-uri-actions button {
+  padding: 8px 16px;
+  font-size: 0.9em;
 }
 .remove-uri {
   cursor: pointer;

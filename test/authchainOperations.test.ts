@@ -11,6 +11,7 @@ import {
   publicationOutput,
   publicationOutputSize,
   summarizeRegistry,
+  transferOutputs,
 } from '../src/utils/tools/authchainIdentity'
 
 const category = '0123456789abcdef'.repeat(4)
@@ -59,6 +60,40 @@ describe('identityOutput', () => {
 
     expect(output).toBeInstanceOf(TokenSendRequest)
     expect(output.amount).toBe(0n)
+  })
+})
+
+describe('transferOutputs', () => {
+  const destination = 'bitcoincash:qdestination'
+  const minting = { commitment: '', capability: 'minting' as const }
+
+  it('sends a BCH-only authhead as one plain output', () => {
+    expect(transferOutputs(authUtxo(), destination, addresses, false))
+      .toEqual([{ cashaddr: destination, value: 1000n }])
+  })
+
+  // the authority moves, the reserve and the minting NFT come back here as a second output
+  it('keeps what the authhead carries in this wallet by default', () => {
+    const outputs = transferOutputs(authUtxo({ category, amount: 500n, nft: minting }), destination, addresses, false)
+
+    expect(outputs[0]).toEqual({ cashaddr: destination, value: 1000n })
+    const kept = outputs[1] as TokenSendRequest
+    expect(kept).toBeInstanceOf(TokenSendRequest)
+    expect(kept.cashaddr).toBe(addresses.token)
+    expect(kept.amount).toBe(500n)
+    expect(kept.nft).toEqual(minting)
+  })
+
+  it('sends what the authhead carries along with it when asked', () => {
+    const outputs = transferOutputs(authUtxo({ category, amount: 500n, nft: minting }), destination, addresses, true)
+
+    expect(outputs).toHaveLength(1)
+    const moved = outputs[0] as TokenSendRequest
+    expect(moved).toBeInstanceOf(TokenSendRequest)
+    expect(moved.cashaddr).toBe(destination)
+    expect(moved.amount).toBe(500n)
+    expect(moved.nft).toEqual(minting)
+    expect(moved.value).toBe(1000n)
   })
 })
 

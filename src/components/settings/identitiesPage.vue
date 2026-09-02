@@ -20,6 +20,7 @@
     fetchCandidateRegistry,
     fetchPublishedRegistry,
     identityOutput,
+    transferOutputs,
     isTokenCategory,
     maxPublicationOutputSize,
     publicationOutput,
@@ -77,7 +78,7 @@
 
   // One form open at a time across the whole list: these are deliberate, one-at-a-time operations,
   // and a card with four open forms says otherwise
-  type IdentityAction = 'publish' | 'issue' | 'addToReserve' | 'emptyReserve' | 'transfer' | 'transferKey';
+  type IdentityAction = 'publish' | 'issue' | 'addToReserve' | 'transfer' | 'transferKey';
   const openAction = ref<{ category: string, action: IdentityAction } | undefined>(undefined);
   const runningAction = ref<IdentityAction | undefined>(undefined);
   const publishUris = ref<string[]>([]);
@@ -85,6 +86,8 @@
   const issueAmount = ref("");
   const issueDestination = ref("");
   const addToReserveAmount = ref("");
+  // whether a transfer takes the reserve and minting NFT with it; staying is the default
+  const transferTokensAlong = ref(false);
 
   const bchDisplayUnit = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
   const bchOf = (satoshis: bigint) => `${formatBchAmount(Number(satoshis), false, 8)} ${bchDisplayUnit.value}`;
@@ -332,6 +335,7 @@
     issueDestination.value = "";
     addToReserveAmount.value = "";
     keyDestination.value = "";
+    transferTokensAlong.value = false;
     currentRegistry.value = undefined;
     if (action !== 'publish' || !identity.publication) return;
     // read what is published now, so the update can say what it changes
@@ -496,41 +500,6 @@
     }
   }
 
-  async function emptyReserve(identity: IdentityState) {
-    const authUtxo = identity.authUtxo;
-    if (runningAction.value || !authUtxo?.token) return;
-    runningAction.value = 'emptyReserve';
-    try {
-      const reserve = reserveOf(identity);
-      if (reserve <= 0n) throw new Error(t('identities.reserve.errors.nothingToEmpty'));
-      const confirmed = await confirmDialog(
-        t('identities.reserve.empty.confirmTitle'),
-        t('identities.reserve.empty.confirmMessage', { amount: reserveDisplay(identity) }),
-        t('identities.reserve.empty.confirmButton')
-      );
-      if (!confirmed) return;
-      notifySending();
-      // the reserve returns to the wallet as ordinary circulating supply, leaving the authhead
-      // carrying only what it is: the authority
-      const { txId } = await store.spend.spendAuthUtxo(authUtxo, [
-        identityOutput(authUtxo, walletAddresses(), 0n),
-        new TokenSendRequest({
-          cashaddr: store.wallet.getTokenDepositAddress(),
-          category: identity.category,
-          amount: reserve,
-        }),
-      ]);
-      openAction.value = undefined;
-      await handleTransactionBroadcastSuccess(
-        t('identities.reserve.empty.done'), txId, t('identities.reserve.empty.doneTitle')
-      );
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      runningAction.value = undefined;
-    }
-  }
-
   // The key is an ordinary NFT and moves as one; what makes this different is what goes with it.
   // It is spent through the deliberate path because it is reserved, exactly as an authhead is.
   async function transferKey(identity: IdentityState) {
@@ -656,31 +625,40 @@
     }
   }
 
-  // The authhead coin is sent whole, so the transaction is one input and one output and the
-  // authchain continues at output 0 of it. What the recipient gets is the coin minus the fee.
+  // The authchain continues at output 0 of the destination. A BCH-only authhead goes as one coin
+  // (recipient gets it minus the fee); one carrying tokens needs a second output for what stays.
   async function transferIdentity(identity: IdentityState) {
     if (transferringCategory.value) return;
     const authUtxo = identity.authUtxo;
     if (!authUtxo) return;
+    const tokensGoAlong = Boolean(authUtxo.token) && transferTokensAlong.value;
     let destination: string;
     try {
-      destination = validateRecipientAddress(
-        destinationInputs.value[identity.category] ?? "", store.wallet.networkPrefix
-      );
+      const input = destinationInputs.value[identity.category] ?? "";
+      destination = tokensGoAlong
+        ? validateTokenRecipientAddress(input, store.wallet.networkPrefix)
+        : validateRecipientAddress(input, store.wallet.networkPrefix);
     } catch (error) {
       displayAndLogError(error);
       return;
     }
+    const details = { amount: bchOf(authUtxo.satoshis), address: destination, carries: carriesLine(identity) };
+    let confirmMessage = t('identities.transfer.confirmMessage', details);
+    if (authUtxo.token) {
+      confirmMessage = tokensGoAlong
+        ? t('identities.transfer.confirmMessageAlong', details)
+        : t('identities.transfer.confirmMessageKeep', details);
+    }
     const confirmed = await confirmDialog(
-      t('identities.transfer.confirmTitle'),
-      t('identities.transfer.confirmMessage', { amount: bchOf(authUtxo.satoshis), address: destination }),
-      t('identities.transfer.confirmButton')
+      t('identities.transfer.confirmTitle'), confirmMessage, t('identities.transfer.confirmButton')
     );
     if (!confirmed) return;
     transferringCategory.value = identity.category;
     try {
       notifySending();
-      const { txId } = await store.spend.sendUtxo(authUtxo, destination);
+      const { txId } = authUtxo.token
+        ? await store.spend.spendAuthUtxo(authUtxo, transferOutputs(authUtxo, destination, walletAddresses(), tokensGoAlong))
+        : await store.spend.sendUtxo(authUtxo, destination);
       destinationInputs.value[identity.category] = "";
       // The identity is now somebody else's to update, so it leaves this wallet's list
       await identitiesStore.removeIdentity(identity.category);
@@ -739,11 +717,16 @@
           :disabled="isAdding || identitiesStore.identitiesResolving || !categoryInput"
         >
       </div>
-      <div class="description" style="margin-top: 6px;">{{ t('identities.add.hint') }}</div>
     </div>
 
     <div class="section">
-      <div class="description">{{ t('identities.scan.prompt') }}</div>
+      <div>
+        {{ t('identities.scan.prompt') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('identities.scan.automaticHelp') }}</div>
+          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.scan.checkHelp') }}</div>
+        </InfoPopup>
+      </div>
       <input
         @click="scanForIdentities()"
         type="button"
@@ -752,7 +735,7 @@
         :disabled="isScanning || identitiesStore.identitiesResolving"
         style="margin-top: 8px;"
       >
-      <div v-if="!isScanning && scanSummary" class="description" style="margin-top: 6px;">
+      <div v-if="!isScanning && scanSummary" style="margin-top: 6px;">
         <div v-if="scanSummary.found">{{ t('identities.scan.found', scanSummary.found) }}</div>
         <div v-else>{{ t('identities.scan.noneFound') }}</div>
         <div v-if="scanSummary.alreadyListed">{{ t('identities.scan.alreadyListed', scanSummary.alreadyListed) }}</div>
@@ -765,6 +748,15 @@
     </template>
 
     <template v-if="mode === 'create'">
+    <!-- The common path first: a token identity is made by the genesis that makes the token.
+         What follows is the same primitive with no token on it, said as the rare thing it is -->
+    <div class="section">
+      <i18n-t keypath="identities.create.tokenPointer" tag="div">
+        <template #link>
+          <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.create.tokenPointerLink') }}</span>
+        </template>
+      </i18n-t>
+    </div>
     <div class="section">
       <div>
         {{ t('identities.create.label') }}
@@ -773,7 +765,12 @@
           <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.create.helpNaming') }}</div>
         </InfoPopup>
       </div>
-      <div class="description" style="margin-top: 6px;">{{ t('identities.create.hint') }}</div>
+      <div class="description" style="margin-top: 6px;">
+        {{ t('identities.create.hint') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('identities.create.novelHelp') }}</div>
+        </InfoPopup>
+      </div>
       <input
         @click="createIdentity()"
         type="button"
@@ -781,14 +778,6 @@
         :disabled="isCreating || identitiesStore.identitiesResolving"
         style="margin-top: 8px;"
       >
-      <!-- a token identity is made by the genesis that makes the token, not here -->
-      <div class="description" style="margin-top: 10px;">
-        <i18n-t keypath="identities.create.tokenPointer" tag="span">
-          <template #link>
-            <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.create.tokenPointerLink') }}</span>
-          </template>
-        </i18n-t>
-      </div>
     </div>
     </template>
 
@@ -819,7 +808,9 @@
           </li>
         </ol>
       </div>
-      <div v-else class="description">
+      <!-- the answer to what is on this page, which is the first thing read here rather than
+           something said alongside what is read -->
+      <div v-else>
         <template v-if="needsAttention">{{ t('identities.listedCount', listedCount) }}</template>
         <template v-else-if="watchedCount">
           {{ t('identities.ownedCount', ownedCount) }}{{ t('identities.watchedSuffix', watchedCount) }}
@@ -845,7 +836,7 @@
           <span class="mono">{{ truncateHash(coin.txid) }}:0</span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
-        <div class="description">{{ t('identities.authheadAmount', { amount: bchOf(coin.satoshis) }) }}</div>
+        <div>{{ t('identities.authheadAmount', { amount: bchOf(coin.satoshis) }) }}</div>
         <div class="identity-links">
           <span class="remove-identity" @click="removeUnnamed(coin.txid)">{{ t('identities.remove.button') }}</span>
         </div>
@@ -878,11 +869,8 @@
               :title="identity.category"
               @click.stop="copyToClipboard(identity.category)"
             >
-              <span class="mono description">{{ truncateHash(identity.category) }}</span>
+              <span class="mono">{{ truncateHash(identity.category) }}</span>
               <img class="copyIcon" src="images/copyGrey.svg">
-            </div>
-            <div v-if="establishedYear(identity)" class="description">
-              {{ t('identities.established.since', { year: establishedYear(identity) }) }}
             </div>
           </div>
           <!-- asking what a status means is not asking to open the card -->
@@ -910,7 +898,7 @@
             </InfoPopup>
           </div>
         </div>
-        <div v-if="carriesLine(identity)" class="description">{{ carriesLine(identity) }}</div>
+        <div v-if="carriesLine(identity)">{{ carriesLine(identity) }}</div>
         <div v-if="!isExpanded(identity) && identity.publication" class="publication-badge-row">
           <template v-for="row in publicationRows(identity)" :key="row.uri">
             <span v-if="row.status" class="publication-badge" :class="row.status">{{ row.statusText }}</span>
@@ -928,7 +916,7 @@
           <span class="mono">{{ truncateHash(identity.authheadTxid) }}:0</span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
-        <div v-if="identity.authUtxo" class="description">
+        <div v-if="identity.authUtxo">
           {{ t('identities.authheadAmount', { amount: bchOf(identity.authUtxo.satoshis) }) }}
         </div>
         <div
@@ -979,7 +967,7 @@
               :title="identity.publication.hash"
               @click="copyToClipboard(identity.publication.hash)"
             >
-              <span class="description mono">
+              <span class="mono">
                 {{ t('identities.publication.hash', { hash: truncateHash(identity.publication.hash) }) }}
               </span>
               <img class="copyIcon" src="images/copyGrey.svg">
@@ -1011,12 +999,8 @@
               <img class="icon" :src="settingsStore.darkMode? 'images/plus-square-lightGrey.svg' : 'images/plus-square.svg'">
               {{ t('identities.reserve.add.action') }}
             </span>
-            <span @click="toggleAction(identity, 'emptyReserve')" style="white-space: nowrap;">
-              <img class="icon" :src="settingsStore.darkMode? 'images/import-lightGrey.svg' : 'images/import.svg'">
-              {{ t('identities.reserve.empty.action') }}
-            </span>
           </template>
-          <span v-if="identity.status === 'held'" @click="toggleAction(identity, 'transfer')" style="white-space: nowrap;">
+          <span @click="toggleAction(identity, 'transfer')" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
             {{ t('identities.transfer.action') }}
           </span>
@@ -1076,7 +1060,7 @@
             >{{ t('identities.publish.removeLocation') }}</span>
           </div>
           <div class="publish-uri-actions">
-            <span class="action-link" @click="addUriRow()">{{ t('identities.publish.addLocation') }}</span>
+            <button @click="addUriRow()">{{ t('identities.publish.addLocation') }}</button>
             <span class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
               {{ t('identities.publish.bytesLeft', { bytes: publicationBytesLeft }) }}
             </span>
@@ -1093,8 +1077,11 @@
 
         <div v-if="isOpen(identity, 'issue')" class="section">
           <div class="description">{{ t('identities.reserve.issue.hint', { amount: reserveDisplay(identity) }) }}</div>
-          <div class="transfer-identity">
+          <div class="issue-amount">
             <input v-model="issueAmount" :placeholder="t('identities.reserve.issue.amountPlaceholder')">
+            <button @click="issueAmount = reserveDisplay(identity)">{{ t('tokenItem.actions.max') }}</button>
+          </div>
+          <div class="transfer-identity">
             <input v-model="issueDestination" :placeholder="t('identities.reserve.issue.destinationPlaceholder')">
           </div>
           <input
@@ -1122,35 +1109,18 @@
           >
         </div>
 
-        <div v-if="isOpen(identity, 'emptyReserve')" class="section">
-          <div class="description">{{ t('identities.reserve.empty.hint', { amount: reserveDisplay(identity) }) }}</div>
-          <input
-            @click="emptyReserve(identity)"
-            type="button"
-            class="primaryButton"
-            :value="runningAction === 'emptyReserve' ? t('identities.reserve.empty.emptyingButton') : t('identities.reserve.empty.button')"
-            :disabled="runningAction !== undefined"
-            style="margin-top: 10px;"
-          >
-        </div>
-
         <div v-if="isOpen(identity, 'transfer')" class="section">
           <div class="description">{{ t('identities.transfer.hint') }}</div>
-          <!-- Transferring an identity that carries a reserve is two steps with one meaning each,
-               rather than one transfer that quietly moves the supply along with the authority -->
-          <div v-if="identity.status === 'carriesTokens'" class="description" style="margin-top: 8px;">
-            {{ t('identities.reserve.transferHint') }}
-            <ol class="walkthrough">
-              <li>
-                <q-icon name="unarchive" size="18px" />
-                <span>{{ t('identities.reserve.transferSteps.empty') }}</span>
-              </li>
-              <li>
-                <q-icon name="send" size="18px" />
-                <span>{{ t('identities.reserve.transferSteps.transfer') }}</span>
-              </li>
-            </ol>
-          </div>
+          <!-- what rides on the authhead is asked about rather than moved quietly -->
+          <template v-if="identity.status === 'carriesTokens'">
+            <label :for="`carried-${identity.category}`" style="display: block; margin-top: 8px;">
+              {{ t('identities.transfer.carriedLabel', { carries: carriesLine(identity) }) }}
+            </label>
+            <select :id="`carried-${identity.category}`" v-model="transferTokensAlong">
+              <option :value="false">{{ t('identities.transfer.carriedStays') }}</option>
+              <option :value="true">{{ t('identities.transfer.carriedGoes') }}</option>
+            </select>
+          </template>
           <div class="transfer-identity">
             <input
               v-model="destinationInputs[identity.category]"
@@ -1194,7 +1164,14 @@
         </div>
 
         <div v-if="openHistories.includes(identity.category)" class="section">
-          <div>{{ t('identities.history.title') }}</div>
+          <!-- the year comes from the history, so it lands here with the history rather than
+               growing the header after the card was drawn -->
+          <div>
+            {{ t('identities.history.title') }}
+            <span v-if="establishedYear(identity)" class="description">
+              · {{ t('identities.established.since', { year: establishedYear(identity) }) }}
+            </span>
+          </div>
           <div v-if="loadingHistory === identity.category" class="description">{{ t('identities.history.loading') }}</div>
           <div
             v-for="link in identitiesStore.identityHistories[identity.category] ?? []"
@@ -1202,17 +1179,17 @@
             class="chain-link"
           >
             <span>{{ t('identities.history.kind.' + link.kind) }}</span>
-            <span v-if="link.reserveDelta" class="description">
+            <span v-if="link.reserveDelta">
               {{ link.reserveDelta > 0n
                 ? t('identities.history.reserveUp', { amount: linkAmount(identity, link.reserveDelta) })
                 : t('identities.history.reserveDown', { amount: linkAmount(identity, link.reserveDelta) }) }}
             </span>
-            <span v-if="linkDate(link.timestamp)" class="description">{{ linkDate(link.timestamp) }}</span>
+            <span v-if="linkDate(link.timestamp)">{{ linkDate(link.timestamp) }}</span>
             <span v-if="madeByThisWallet(link.hash)" class="identity-badge">{{ t('identities.history.madeHere') }}</span>
             <a
               :href="`${store.explorerUrl}/${link.hash}`"
               target="_blank"
-              class="mono description"
+              class="mono"
             >{{ link.hash.slice(0, 10) }}</a>
           </div>
         </div>
@@ -1284,6 +1261,15 @@
 .actionBar .icon {
   width: 18px;
   height: 18px;
+}
+.issue-amount {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+.issue-amount input {
+  flex: 1 1 auto;
+  margin: 0;
 }
 .identity-menu-trigger {
   cursor: pointer;
@@ -1404,6 +1390,11 @@
   gap: 15px;
   flex-wrap: wrap;
   margin-top: 6px;
+}
+/* adding a row to a form is a small action, not one the full button size fits */
+.publish-uri-actions button {
+  padding: 8px 16px;
+  font-size: 0.9em;
 }
 /* what will not relay reads as an error rather than as one more grey number */
 .over-budget {

@@ -7,6 +7,7 @@
   import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
@@ -15,6 +16,7 @@
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const identitiesStore = useIdentitiesStore()
   const { t } = useI18n()
   import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
@@ -40,6 +42,18 @@
   const showQrCodeDialog = ref(false);
   const burnAmountFTs = ref("");
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
+
+  // Said beside the token when this wallet holds its identity: the balance above leaves the
+  // reserve out, and the identities page is where the identity is managed
+  const heldIdentityLine = computed(() => {
+    const identity = identitiesStore.heldIdentityOf(tokenData.value.category);
+    if (!identity) return undefined;
+    const reserve = (identity.authUtxo ?? identity.guardedOutput)?.token?.amount;
+    if (!reserve) return t('tokenItem.identity.held');
+    const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+    const amount = `${formatTokenAmountFromBigInt(reserve, decimals)} ${tokenMetaData.value?.token?.symbol ?? ''}`.trim();
+    return t('tokenItem.identity.heldWithReserve', { amount });
+  });
   const activeAction = ref<TokenActionType | null>(null);
   const starAnimating = ref(false);
 
@@ -219,6 +233,10 @@
         />
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
+            <div v-if="heldIdentityLine">
+              {{ heldIdentityLine }}
+              <span class="identity-link" @click="store.changeView(19)">{{ t('tokenItem.authKey.manage') }}</span>
+            </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
@@ -330,3 +348,13 @@
     <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>
+
+<style scoped>
+.identity-link {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.identity-link:hover {
+  text-decoration: underline;
+}
+</style>

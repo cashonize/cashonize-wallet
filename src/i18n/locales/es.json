@@ -415,6 +415,10 @@
       "commitmentMustBeHex": "el commitment del NFT '{commitment}' debe ser hexadecimal",
       "noNftsSelected": "No se seleccionaron NFTs",
       "notCashaddress": "No es una cashaddress en la red actual"
+    },
+    "identity": {
+      "held": "Esta billetera tiene la identidad de este token.",
+      "heldWithReserve": "Esta billetera tiene la identidad de este token, con {amount} en reserva."
     }
   },
   "dapp": {
@@ -636,20 +640,20 @@
     "switchFailed": "Error al cambiar de billetera: {error}"
   },
   "createTokens": {
-    "title": "Crear nuevos tokens",
+    "title": "Crear un token",
     "intro": "Puedes usar el {link} para la creación de tokens más fácil, o puedes usar el proceso integrado a continuación para un control más detallado.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "Se necesita BCH en la billetera para crear tokens",
     "genesisInput": {
-      "title": "Elige la moneda con la que crear",
-      "explainer": "La moneda que gasta esta transacción se convierte en el id permanente del token.",
-      "none": "Esta billetera todavía no tiene ninguna moneda con la que crear un token.",
-      "prepareLink": "Preparar una moneda nueva"
+      "explainer": "El UTXO que gasta esta transacción se convierte en el id permanente del token.",
+      "none": "Esta billetera todavía no tiene ningún UTXO con el que crear un token.",
+      "prepareButton": "Preparar un UTXO",
+      "chooseExisting": "O elegir un UTXO que esta billetera ya tiene",
+      "needCoin": "Prepara un UTXO arriba, o elige uno que esta billetera ya tiene."
     },
     "preparingButton": "Preparando...",
     "plannedTokenId": "TokenId planificado:",
     "loading": "cargando...",
-    "mintingNFT": "NFT de acuñación",
     "mintingDescription": "El NFT de acuñación se usa para crear una colección de NFTs. El NFT de acuñación tiene la capacidad de acuñar nuevos NFTs con el mismo tokenId.",
     "mintingHelp": "Solo la transacción de creación puede otorgar la capacidad de acuñar. Sin ella, esta categoría nunca podrá tener NFTs propios.",
     "mintingNote": "Nota: para usar un NFT de acuñación activa la opción \"Habilitar acuñar NFTs\" en la configuración de desarrollador.",
@@ -683,17 +687,23 @@
     "errors": {
       "invalidAmount": "Introduce números enteros para el suministro y la cantidad a emitir.",
       "overMaxSupply": "Eso es más de lo que puede contener una categoría de tokens. El máximo es {max}.",
-      "overSupply": "Eso supera el suministro total.",
-      "nothingToCreate": "Introduce un suministro, añade un NFT de acuñación, o ambos.",
-      "emptyAuthhead": "La identidad tiene que llevar algo: guarda parte del suministro como reserva o añade el NFT de acuñación. La reserva se puede emitir por completo después desde la página de identidades."
+      "overSupply": "Eso supera el suministro total."
     },
     "created": {
       "fungibles": "Creados {supply} tokens fungibles de la categoría {category}",
       "mintingNft": "Creado un NFT de acuñación de la categoría {category}",
       "hybrid": "Creados {supply} tokens fungibles y un NFT de acuñación de la categoría {category}",
       "reserve": "{amount} queda con la identidad como suministro reservado.",
-      "listed": "Aparece en la página de identidades, y su moneda queda fuera de la selección de monedas."
-    }
+      "listed": "Aparece en la página de identidades, y su UTXO queda fuera de la selección de monedas."
+    },
+    "shapeLabel": "Tipo de token",
+    "shapes": {
+      "fungible": "Tokens fungibles",
+      "mintingNft": "Un NFT de acuñación",
+      "both": "Tokens fungibles y un NFT de acuñación"
+    },
+    "step": "Paso {current} de {total}",
+    "reserveNote": "El suministro de un token se crea en el UTXO de la identidad, así que no todo puede entrar en circulación en esta transacción. Guarda una parte como reserva y emítela después desde la página de identidades."
   },
   "utxoManagement": {
     "title": "Gestión de UTXO",
@@ -706,7 +716,7 @@
       "largeBch": "Contiene una gran cantidad de BCH",
       "reserved": "Retenida por una promesa de Flipstarter abierta, así que un gasto desde esta billetera no la tomará.",
       "reservedRelease": "Cancela la promesa en la página de Flipstarter para liberar el UTXO.",
-      "reservedAuth": "Retenida porque es la moneda de una identidad (su AuthHead), así que un gasto desde esta billetera no la tocará.",
+      "reservedAuth": "Retenido porque es el UTXO de una identidad (su AuthHead), así que un gasto desde esta billetera no lo tocará.",
       "reservedAuthRelease": "Transfiere la identidad o quítala en la página de Identidades para liberar el UTXO.",
       "frozen": "Congelada por ti, haz clic para descongelar",
       "unfreeze": "Descongelar",
@@ -1254,7 +1264,7 @@
       "hdAddresses": "Direcciones HD",
       "requestPayment": "Crear solicitud de pago",
       "utxoManagement": "Gestión de UTXO",
-      "createTokens": "Crear tokens",
+      "createTokens": "Crear token",
       "sweepPrivateKey": "Barrer clave privada",
       "transferAllAssets": "Transferir todos los activos",
       "signVerifyMessage": "Firmar / Verificar mensaje",
@@ -1445,21 +1455,21 @@
       "existing": "Añadir existente",
       "create": "Crear nueva"
     },
-    "whatIsAnIdentity": "Los metadatos de un token, su nombre, icono y descripción, solo los puede actualizar quien tenga su moneda de identidad (el AuthHead): un UTXO concreto que pasa a un nuevo outpoint con cada actualización.",
-    "whatIsAnIdentityNote": "Tener esa moneda es lo que hace que esta billetera sea la que puede publicar nuevos metadatos del token.",
+    "whatIsAnIdentity": "La autoridad para cambiar los metadatos de un token, su nombre, icono y descripción, es un único UTXO: quien lo tiene puede publicar actualizaciones, y pasa a un nuevo outpoint con cada actualización.",
+    "whatIsAnIdentityNote": "Studio, el explorador y la especificación llaman AuthHead a ese UTXO. Tenerlo es lo que hace que esta billetera sea la que puede publicar nuevos metadatos del token.",
     "resolving": "Buscando dónde están estas identidades...",
     "empty": "Todavía no hay identidades en la lista.",
     "detected": {
-      "notification": "Se encontró una identidad que controla esta billetera y su moneda quedó fuera de la selección de monedas. | Se encontraron {count} identidades que controla esta billetera y sus monedas quedaron fuera de la selección de monedas.",
+      "notification": "Se encontró una identidad que controla esta billetera y su UTXO quedó fuera de la selección de monedas. | Se encontraron {count} identidades que controla esta billetera y sus UTXOs quedaron fuera de la selección de monedas.",
       "foundAutomatically": "Encontrada automáticamente",
-      "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su moneda ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así."
+      "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su UTXO ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así."
     },
     "unnamed": {
       "title": "Una identidad que tiene esta billetera",
       "status": "Retenido, identidad aún sin nombrar",
-      "help": "Las claves de esta billetera publicaron metadatos de una identidad cuya moneda no lleva ningún token, así que la moneda no dice de qué identidad se trata. Igualmente queda fuera de la selección de monedas: protegerla no espera a poder nombrarla.",
-      "removeTitle": "¿Dejar de retener esta moneda?",
-      "removeMessage": "La moneda vuelve a la selección de monedas y un envío normal puede gastarla, lo que termina la identidad que lleva. No se volverá a listar."
+      "help": "Las claves de esta billetera publicaron metadatos de una identidad cuyo UTXO no lleva ningún token, así que el UTXO no dice de qué identidad se trata. Igualmente queda fuera de la selección de monedas: protegerlo no espera a poder nombrarlo.",
+      "removeTitle": "¿Dejar de retener este UTXO?",
+      "removeMessage": "El UTXO vuelve a la selección de monedas y un envío normal puede gastarlo, lo que termina la identidad que lleva. No se volverá a listar."
     },
     "listedCount": "{count} identidad seguida por esta billetera | {count} identidades seguidas por esta billetera",
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
@@ -1476,18 +1486,17 @@
       "heldViaKey": "A través de una clave de identidad"
     },
     "statusHelp": {
-      "held": "Esta billetera tiene la moneda de esta identidad, así que puede actualizar sus metadatos. La moneda queda fuera de la selección de monedas, ningún envío normal puede gastarla.",
-      "carriesTokens": "Esta billetera tiene esta identidad y además lleva una reserva de tokens junto a la autoridad. La moneda queda fuera de la selección de monedas, como la de cualquier identidad.",
+      "held": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal puede gastarlo.",
+      "carriesTokens": "Esta billetera tiene esta identidad y además lleva una reserva de tokens junto a la autoridad. El UTXO queda fuera de la selección de monedas, como el de cualquier identidad.",
       "notHeld": "Esta identidad está en otro sitio, así que esta billetera solo la observa: se muestra su publicación, pero actualizarla requiere la billetera que la tiene.",
       "unresolved": "No se pudo consultar dónde está esta identidad, así que ahora mismo se desconoce. Lo que se retiene por ella sigue retenido hasta que llegue una respuesta.",
-      "heldViaKey": "La moneda de esta identidad está bloqueada en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin la moneda, así que lo que queda fuera de la selección de monedas es la clave."
+      "heldViaKey": "El UTXO de esta identidad está bloqueado en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin el UTXO, así que lo que queda fuera de la selección de monedas es la clave."
     },
     "reserve": {
       "title": "Esta identidad lleva:",
       "supply": "Suministro reservado: {amount}",
       "mintingNft": "Un NFT de acuñación, que crea nuevos NFTs de esta categoría",
       "nft": "Un NFT de esta categoría",
-      "transferHint": "Para transferir esta identidad, vacía antes su reserva: la transferencia mueve la autoridad, y el suministro no debería ir con ella sin que se note.",
       "errors": {
         "invalidAmount": "Introduce una cantidad válida.",
         "overReserve": "Eso es más de lo que tiene la reserva.",
@@ -1519,27 +1528,12 @@
         "done": "Añadido a la reserva",
         "doneTitle": "Añadido a la reserva"
       },
-      "empty": {
-        "action": "vaciar la reserva",
-        "hint": "Devuelve toda la reserva de {amount} a esta billetera, dejando la identidad con solo la autoridad.",
-        "button": "Vaciar la reserva",
-        "emptyingButton": "Vaciando...",
-        "confirmTitle": "¿Vaciar la reserva?",
-        "confirmMessage": "{amount} vuelve a esta billetera como suministro ordinario, y la identidad queda con solo la autoridad.",
-        "confirmButton": "Vaciar",
-        "done": "Reserva vaciada",
-        "doneTitle": "Reserva vaciada"
-      },
-      "help": "Los tokens que van sobre la moneda de una identidad son la reserva de la categoría: emitidos pero no en circulación, y no contados como suministro circulante. Todo lo demás de esta categoría que tenga la billetera es suministro ordinario.",
-      "transferSteps": {
-        "empty": "Vacía la reserva, para que el suministro se quede aquí.",
-        "transfer": "Luego transfiere la identidad."
-      }
+      "help": "Los tokens que van sobre el UTXO de una identidad son la reserva de la categoría: emitidos pero no en circulación, y no contados como suministro circulante. Todo lo demás de esta categoría que tenga la billetera es suministro ordinario."
     },
     "key": {
       "action": "transferir la clave",
       "guardLabel": "Guardián:",
-      "guardHelp": "La moneda de la identidad está en esta dirección de contrato, no en tu billetera. El contrato solo la libera a quien presente la clave de identidad (el AuthKey), que es el NFT que tiene esta billetera.",
+      "guardHelp": "El UTXO de la identidad está en esta dirección de contrato, no en tu billetera. El contrato solo lo libera a quien presente la clave de identidad (el AuthKey), que es el NFT que tiene esta billetera.",
       "manageHint": "Esta identidad está guardada, así que actualizar sus metadatos y mover su suministro se hacen con la herramienta que construye las transacciones del contrato. Cashonize las firma cuando se conecta.",
       "manageOnStudio": "Gestionar en CashTokens Studio",
       "hint": "La clave es un NFT normal y se mueve como tal. Quien la tenga controla todas las identidades que guarda.",
@@ -1638,7 +1632,6 @@
       "placeholder": "Pega el id de categoría del token",
       "button": "Añadir identidad",
       "addingButton": "Añadiendo...",
-      "hint": "Cashonize busca dónde está la identidad de esa categoría y la lista aquí. Para un token que tenga esta billetera, la búsqueda de abajo también la encuentra.",
       "categoryHelpWhere": "La encuentras en la información del token en la pestaña Tokens.",
       "categoryHelpKey": "La categoría de una clave de identidad también sirve aquí: la billetera deriva lo que guarda y observa esas identidades.",
       "found": {
@@ -1653,50 +1646,58 @@
     },
     "create": {
       "label": "Crear una identidad que no es un token",
-      "help": "Basta una transacción: la moneda que crea lleva la identidad, y el id de la transacción pasa a ser el id permanente de la identidad.",
-      "helpNaming": "El nombre llega después, con una publicación: un registro tiene que nombrar el id, que no existe hasta que se firma esta transacción.",
-      "hint": "Para una identidad personal o de una organización. Para una identidad de token, crea el token: su génesis hace ambas cosas a la vez.",
-      "button": "Crear identidad",
+      "help": "Las identidades del estándar no son solo tokens: la misma cadena de UTXOs puede representar una dapp, un sistema de contratos o una organización, y demostrar quién la controla.",
+      "helpNaming": "Basta una transacción, y el nombre viene después, con una publicación que nombre su id.",
+      "hint": "Un nombre, icono y enlaces para una dapp, un sistema de contratos o una organización, publicados y actualizados desde un UTXO sin ningún token encima. Un concepto nuevo, así que ten claro para qué.",
+      "button": "Crear identidad sin token",
       "creatingButton": "Creando...",
       "confirmTitle": "¿Crear una nueva identidad?",
-      "confirmMessage": "{amount} de esta billetera pasa a ser la moneda de la identidad y queda fuera de la selección de monedas. El id de la transacción pasa a ser el id permanente de la identidad.",
+      "confirmMessage": "{amount} de esta billetera pasa a ser el UTXO de la identidad y queda fuera de la selección de monedas. El id de la transacción pasa a ser el id permanente de la identidad.",
       "confirmButton": "Crear",
-      "done": "La identidad aparece en la lista y su moneda queda fuera de la selección de monedas. Publica un registro que la nombre para darle un nombre.",
+      "done": "La identidad aparece en la lista y su UTXO queda fuera de la selección de monedas. Publica un registro que la nombre para darle un nombre.",
       "doneTitle": "Identidad creada",
       "errors": {
         "noTxId": "La transacción se envió pero su id volvió vacío, así que la identidad no se pudo listar."
       },
-      "tokenPointer": "Para una identidad de token, {link}: su génesis crea el token y su identidad a la vez.",
-      "tokenPointerLink": "crea el token"
+      "tokenPointer": "Casi todas las identidades pertenecen a un token. Para crear la identidad de un token, {link}: la transacción que crea el token crea al mismo tiempo su identidad.",
+      "tokenPointerLink": "crea el token",
+      "novelHelp": "Una dapp podría decir qué versión de sus contratos está vigente y dónde está su sitio; una organización podría responder por lo que publica. Casi no existe ninguna todavía y casi nada las lee, así que ten claro qué quieres de una antes de hacerla."
     },
     "scan": {
-      "prompt": "Cashonize puede revisar los tokens de esta billetera en busca de identidades que tenga.",
+      "prompt": "Púlsalo si te transfirieron una identidad, o si una que esperas no aparece.",
       "linkText": "Buscar identidades",
       "scanning": "Comprobando las categorías de token de la billetera...",
       "found": "{count} identidad encontrada y añadida a la lista | {count} identidades encontradas y añadidas a la lista",
       "noneFound": "No se encontraron identidades nuevas.",
       "alreadyListed": "{count} categoría ya estaba en la lista. | {count} categorías ya estaban en la lista.",
       "carriesTokens": "{count} de ellos lleva una reserva de tokens. | {count} de ellos llevan una reserva de tokens.",
-      "deepScanned": "{count} moneda retenida resultó ser una identidad. | {count} monedas retenidas resultaron ser identidades.",
+      "deepScanned": "{count} UTXO retenido resultó ser una identidad. | {count} UTXOs retenidos resultaron ser identidades.",
       "dismissed": "{count} se dejó fuera porque la quitaste antes. | {count} se dejaron fuera porque las quitaste antes.",
-      "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías."
+      "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías.",
+      "automaticHelp": "Cashonize ya lista las identidades que hicieron estas claves: un token que creaste, o metadatos que publicaste, cuyo UTXO de identidad sigue aquí. Eso no cuesta nada, así que ocurre solo.",
+      "checkHelp": "Esta comprobación encuentra lo que eso no puede ver: una identidad que hizo otra persona y te transfirió, a la que nada del historial de esta billetera apunta. Pregunta al indexador por cada token que tienes y recorre hacia atrás cada UTXO que podría ser de una identidad, por eso es un botón y no algo que la página haga en silencio."
     },
     "transfer": {
-      "hint": "La moneda de la identidad se envía entera al destino, entregando la autoridad para actualizar los metadatos de este token. El destino recibe la moneda menos la comisión de la transacción.",
+      "hint": "El UTXO de la identidad se envía al destino, entregando la autoridad para actualizar los metadatos de este token.",
       "destinationPlaceholder": "Dirección a la que transferir la identidad",
       "button": "Transferir identidad",
       "transferringButton": "Transfiriendo...",
       "confirmTitle": "¿Transferir esta identidad?",
-      "confirmMessage": "La moneda de la identidad ({amount}) se envía a {address}, entregando la autoridad para actualizar los metadatos de este token. Esto no se puede deshacer.",
+      "confirmMessage": "El UTXO de la identidad ({amount}) se envía a {address}, entregando la autoridad para actualizar los metadatos de este token. Esto no se puede deshacer.",
       "confirmButton": "Transferir",
       "done": "Identidad transferida a {address}",
       "doneTitle": "Identidad transferida",
-      "action": "transferir"
+      "action": "transferir",
+      "carriedLabel": "Lo que lleva ({carries})",
+      "carriedStays": "Se queda en esta billetera",
+      "carriedGoes": "Va junto con la identidad",
+      "confirmMessageKeep": "El UTXO de la identidad ({amount}) se envía a {address}, cediendo la autoridad para actualizar los metadatos de este token. Lo que lleva ({carries}) se queda en esta billetera. Esto no se puede deshacer.",
+      "confirmMessageAlong": "El UTXO de la identidad ({amount}) se envía a {address} junto con lo que lleva ({carries}), cediendo la autoridad para actualizar los metadatos de este token. Esto no se puede deshacer."
     },
     "remove": {
       "title": "¿Quitar de esta lista?",
       "message": "La identidad se quita de esta lista. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la búsqueda de identidades si esta billetera tiene tokens suyos.",
-      "messageHeld": "La identidad se quita de esta lista y su moneda deja de estar fuera de la selección de monedas, así que un envío normal puede gastarla. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la búsqueda de identidades si esta billetera tiene tokens suyos.",
+      "messageHeld": "La identidad se quita de esta lista y su UTXO deja de estar fuera de la selección de monedas, así que un envío normal puede gastarlo. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la búsqueda de identidades si esta billetera tiene tokens suyos.",
       "button": "Quitar"
     },
     "errors": {

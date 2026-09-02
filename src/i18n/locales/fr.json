@@ -415,6 +415,10 @@
       "commitmentMustBeHex": "le commitment du NFT '{commitment}' doit être en hexadécimal",
       "noNftsSelected": "Aucun NFT sélectionné",
       "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel"
+    },
+    "identity": {
+      "held": "Ce portefeuille détient l'identité de ce token.",
+      "heldWithReserve": "Ce portefeuille détient l'identité de ce token, avec {amount} en réserve."
     }
   },
   "dapp": {
@@ -636,20 +640,20 @@
     "switchFailed": "Échec du changement de portefeuille : {error}"
   },
   "createTokens": {
-    "title": "Créer de nouveaux tokens",
+    "title": "Créer un token",
     "intro": "Vous pouvez utiliser le {link} pour une création de tokens plus facile, ou utiliser le processus intégré ci-dessous pour un contrôle plus fin.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "BCH requis dans le portefeuille pour créer des tokens",
     "genesisInput": {
-      "title": "Choisissez la pièce pour la création",
-      "explainer": "La pièce dépensée par cette transaction devient l'id permanent du token.",
-      "none": "Ce portefeuille n'a encore aucune pièce permettant de créer un token.",
-      "prepareLink": "Préparer une nouvelle pièce"
+      "explainer": "L'UTXO dépensé par cette transaction devient l'id permanent du token.",
+      "none": "Ce portefeuille n'a encore aucun UTXO permettant de créer un token.",
+      "prepareButton": "Préparer un UTXO",
+      "chooseExisting": "Ou choisir un UTXO que ce portefeuille possède déjà",
+      "needCoin": "Préparez un UTXO ci-dessus, ou choisissez-en un que ce portefeuille possède déjà."
     },
     "preparingButton": "Préparation...",
     "plannedTokenId": "TokenId prévu :",
     "loading": "chargement...",
-    "mintingNFT": "NFT de création",
     "mintingDescription": "Le NFT de création est utilisé pour créer une collection de NFTs. Le NFT de création a la capacité de créer de nouveaux NFTs avec le même tokenId.",
     "mintingHelp": "Seule la transaction de création peut accorder la capacité de frappe. Sans elle, cette catégorie ne pourra jamais avoir de NFT.",
     "mintingNote": "Remarque : pour utiliser un NFT de création, activez l'option « Activer la création de NFTs » dans les paramètres développeur.",
@@ -683,17 +687,23 @@
     "errors": {
       "invalidAmount": "Saisissez des nombres entiers pour l'offre et le montant à émettre.",
       "overMaxSupply": "C'est plus qu'une catégorie de tokens peut contenir. Le maximum est {max}.",
-      "overSupply": "C'est plus que l'offre totale.",
-      "nothingToCreate": "Saisissez une offre, ajoutez un NFT de frappe, ou les deux.",
-      "emptyAuthhead": "L'identité doit porter quelque chose : gardez une partie de l'offre en réserve ou ajoutez le NFT de frappe. La réserve pourra ensuite être émise en totalité depuis la page des identités."
+      "overSupply": "C'est plus que l'offre totale."
     },
     "created": {
       "fungibles": "{supply} tokens fongibles de la catégorie {category} créés",
       "mintingNft": "NFT de frappe de la catégorie {category} créé",
       "hybrid": "{supply} tokens fongibles et un NFT de frappe de la catégorie {category} créés",
       "reserve": "{amount} reste avec l'identité en offre réservée.",
-      "listed": "Elle figure sur la page des identités, et sa pièce est écartée de la sélection des pièces."
-    }
+      "listed": "Elle figure sur la page des identités, et son UTXO est écarté de la sélection des pièces."
+    },
+    "shapeLabel": "Type de token",
+    "shapes": {
+      "fungible": "Tokens fongibles",
+      "mintingNft": "Un NFT de frappe",
+      "both": "Tokens fongibles et un NFT de frappe"
+    },
+    "step": "Étape {current} sur {total}",
+    "reserveNote": "L'offre d'un token est créée sur l'UTXO de l'identité, elle ne peut donc pas entrer entièrement en circulation dans cette transaction. Gardez-en une partie en réserve et émettez-la ensuite depuis la page des identités."
   },
   "utxoManagement": {
     "title": "Gestion des UTXO",
@@ -706,7 +716,7 @@
       "largeBch": "Contient une grande quantité de BCH",
       "reserved": "Retenue pour un engagement Flipstarter en cours, une dépense depuis ce portefeuille ne la prendra donc pas.",
       "reservedRelease": "Annulez l'engagement sur la page Flipstarter pour libérer l'UTXO.",
-      "reservedAuth": "Retenue parce qu'elle est la pièce d'une identité (son AuthHead), une dépense depuis ce portefeuille n'ira donc pas la chercher.",
+      "reservedAuth": "Retenu parce qu'il est l'UTXO d'une identité (son AuthHead), une dépense depuis ce portefeuille n'ira donc pas le chercher.",
       "reservedAuthRelease": "Transférez l'identité ou retirez-la sur la page Identités pour libérer l'UTXO.",
       "frozen": "Gelée par vous, cliquez pour dégeler",
       "unfreeze": "Dégeler",
@@ -1254,7 +1264,7 @@
       "hdAddresses": "Adresses HD",
       "requestPayment": "Créer une demande de paiement",
       "utxoManagement": "Gestion des UTXO",
-      "createTokens": "Créer des jetons",
+      "createTokens": "Créer un token",
       "sweepPrivateKey": "Balayer une clé privée",
       "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",
@@ -1445,21 +1455,21 @@
       "existing": "Ajouter",
       "create": "Créer"
     },
-    "whatIsAnIdentity": "Les métadonnées d'un token, son nom, son icône et sa description, ne peuvent être mises à jour que par qui détient sa pièce d'identité (l'AuthHead) : un UTXO précis qui passe à un nouvel outpoint à chaque mise à jour.",
-    "whatIsAnIdentityNote": "C'est le fait de détenir cette pièce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le token.",
+    "whatIsAnIdentity": "L'autorité de modifier les métadonnées d'un token, son nom, son icône et sa description, est un seul UTXO : qui le détient peut publier des mises à jour, et il passe à un nouvel outpoint à chaque mise à jour.",
+    "whatIsAnIdentityNote": "Studio, l'explorateur et la spécification appellent cet UTXO l'AuthHead. Le détenir est ce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le token.",
     "resolving": "Recherche de l'endroit où sont ces identités...",
     "empty": "Aucune identité dans la liste pour l'instant.",
     "detected": {
-      "notification": "Une identité contrôlée par ce portefeuille a été trouvée, et sa pièce écartée de la sélection des pièces. | {count} identités contrôlées par ce portefeuille ont été trouvées, et leurs pièces écartées de la sélection des pièces.",
+      "notification": "Une identité contrôlée par ce portefeuille a été trouvée, et son UTXO écarté de la sélection des pièces. | {count} identités contrôlées par ce portefeuille ont été trouvées, et leurs UTXOs écartés de la sélection des pièces.",
       "foundAutomatically": "Trouvée automatiquement",
-      "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et sa pièce est maintenant écartée de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
+      "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
     },
     "unnamed": {
       "title": "Une identité détenue par ce portefeuille",
       "status": "Retenu, identité pas encore nommée",
-      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont la pièce ne porte aucun token, la pièce ne dit donc pas de quelle identité il s'agit. Elle reste écartée de la sélection des pièces malgré tout : la protéger n'attend pas de pouvoir la nommer.",
-      "removeTitle": "Cesser de retenir cette pièce ?",
-      "removeMessage": "La pièce revient dans la sélection des pièces et un envoi ordinaire peut la dépenser, ce qui met fin à l'identité qu'elle porte. Elle ne sera plus listée."
+      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont l'UTXO ne porte aucun token, l'UTXO ne dit donc pas de quelle identité il s'agit. Il reste écarté de la sélection des pièces malgré tout : le protéger n'attend pas de pouvoir le nommer.",
+      "removeTitle": "Cesser de retenir cet UTXO ?",
+      "removeMessage": "L'UTXO revient dans la sélection des pièces et un envoi ordinaire peut le dépenser, ce qui met fin à l'identité qu'il porte. Il ne sera plus listé."
     },
     "listedCount": "{count} identité suivie par ce portefeuille | {count} identités suivies par ce portefeuille",
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
@@ -1476,18 +1486,17 @@
       "heldViaKey": "Détenue via une clé d'identité"
     },
     "statusHelp": {
-      "held": "Ce portefeuille détient la pièce de cette identité, il peut donc en mettre à jour les métadonnées. La pièce est écartée de la sélection des pièces, aucun envoi ordinaire ne peut la dépenser.",
-      "carriesTokens": "Ce portefeuille détient cette identité, et elle porte une réserve de tokens en plus de l'autorité. La pièce est écartée de la sélection des pièces, comme celle de toute identité.",
+      "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire ne peut le dépenser.",
+      "carriesTokens": "Ce portefeuille détient cette identité, et elle porte une réserve de tokens en plus de l'autorité. L'UTXO est écarté de la sélection des pièces, comme celui de toute identité.",
       "notHeld": "Cette identité est ailleurs, ce portefeuille ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour demande le portefeuille qui la détient.",
       "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
-      "heldViaKey": "La pièce de cette identité est verrouillée dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans la pièce, c'est donc la clé qui est écartée de la sélection des pièces."
+      "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces."
     },
     "reserve": {
       "title": "Cette identité porte :",
       "supply": "Offre réservée : {amount}",
       "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
       "nft": "Un NFT de cette catégorie",
-      "transferHint": "Pour transférer cette identité, videz d'abord sa réserve : le transfert déplace l'autorité, et l'offre ne devrait pas suivre sans qu'on le remarque.",
       "errors": {
         "invalidAmount": "Saisissez un montant valide.",
         "overReserve": "C'est plus que ce que contient la réserve.",
@@ -1519,27 +1528,12 @@
         "done": "Ajouté à la réserve",
         "doneTitle": "Ajouté à la réserve"
       },
-      "empty": {
-        "action": "vider la réserve",
-        "hint": "Renvoyez toute la réserve de {amount} vers ce portefeuille, ne laissant à l'identité que l'autorité.",
-        "button": "Vider la réserve",
-        "emptyingButton": "Vidage...",
-        "confirmTitle": "Vider la réserve ?",
-        "confirmMessage": "{amount} revient dans ce portefeuille comme offre ordinaire, et l'identité ne porte plus que l'autorité.",
-        "confirmButton": "Vider",
-        "done": "Réserve vidée",
-        "doneTitle": "Réserve vidée"
-      },
-      "help": "Les tokens portés par la pièce d'une identité sont la réserve de la catégorie : émis mais pas en circulation, et non comptés dans l'offre en circulation. Tout le reste de cette catégorie détenu par le portefeuille est de l'offre ordinaire.",
-      "transferSteps": {
-        "empty": "Videz la réserve, pour que l'offre reste ici.",
-        "transfer": "Puis transférez l'identité."
-      }
+      "help": "Les tokens portés par l'UTXO d'une identité sont la réserve de la catégorie : émis mais pas en circulation, et non comptés dans l'offre en circulation. Tout le reste de cette catégorie détenu par le portefeuille est de l'offre ordinaire."
     },
     "key": {
       "action": "transférer la clé",
       "guardLabel": "Gardien :",
-      "guardHelp": "La pièce de l'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne la libère qu'à qui présente la clé d'identité (l'AuthKey), qui est le NFT détenu par ce portefeuille.",
+      "guardHelp": "L'UTXO de l'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne le libère qu'à qui présente la clé d'identité (l'AuthKey), qui est le NFT détenu par ce portefeuille.",
       "manageHint": "Cette identité est gardée : mettre à jour ses métadonnées et déplacer son offre passent par l'outil qui construit les transactions du contrat. Cashonize les signe lorsqu'il s'y connecte.",
       "manageOnStudio": "Gérer sur CashTokens Studio",
       "hint": "La clé est un NFT ordinaire et se déplace comme tel. Qui la détient contrôle toutes les identités qu'elle garde.",
@@ -1638,7 +1632,6 @@
       "placeholder": "Collez l'identifiant de catégorie du token",
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
-      "hint": "Cashonize cherche où se trouve l'identité de cette catégorie et la liste ici. Pour un token détenu par ce portefeuille, la recherche ci-dessous la trouve aussi.",
       "categoryHelpWhere": "Vous la trouverez sur les infos du token dans l'onglet Tokens.",
       "categoryHelpKey": "La catégorie d'une clé d'identité fonctionne aussi ici : le portefeuille dérive ce qu'elle garde et suit ces identités.",
       "found": {
@@ -1653,50 +1646,58 @@
     },
     "create": {
       "label": "Créer une identité qui n'est pas un token",
-      "help": "Une seule transaction suffit : la pièce qu'elle crée porte l'identité, et l'identifiant de la transaction devient l'identifiant permanent de l'identité.",
-      "helpNaming": "Le nom vient ensuite, avec une publication : un registre doit nommer cet identifiant, qui n'existe pas avant la signature de cette transaction.",
-      "hint": "Pour une identité personnelle ou d'organisation. Pour une identité de token, créez plutôt le token : sa genèse fait les deux à la fois.",
-      "button": "Créer l'identité",
+      "help": "Les identités du standard ne sont pas seulement des tokens : la même chaîne d'UTXOs peut représenter une dapp, un système de contrats ou une organisation, et prouver qui la contrôle.",
+      "helpNaming": "Une seule transaction suffit, et le nom vient ensuite, avec une publication qui nomme son identifiant.",
+      "hint": "Un nom, une icône et des liens pour une dapp, un système de contrats ou une organisation, publiés et mis à jour depuis un UTXO sans token dessus. Un concept nouveau : ayez un usage précis en tête.",
+      "button": "Créer une identité sans token",
       "creatingButton": "Création...",
       "confirmTitle": "Créer une nouvelle identité ?",
-      "confirmMessage": "{amount} de ce portefeuille devient la pièce de l'identité et est écarté de la sélection des pièces. L'identifiant de la transaction devient l'identifiant permanent de l'identité.",
+      "confirmMessage": "{amount} de ce portefeuille devient l'UTXO de l'identité et est écarté de la sélection des pièces. L'identifiant de la transaction devient l'identifiant permanent de l'identité.",
       "confirmButton": "Créer",
-      "done": "L'identité figure dans la liste et sa pièce est écartée de la sélection des pièces. Publiez un registre qui la nomme pour lui donner un nom.",
+      "done": "L'identité figure dans la liste et son UTXO est écarté de la sélection des pièces. Publiez un registre qui la nomme pour lui donner un nom.",
       "doneTitle": "Identité créée",
       "errors": {
         "noTxId": "La transaction a été envoyée mais son identifiant est revenu vide, l'identité n'a donc pas pu être listée."
       },
-      "tokenPointer": "Pour une identité de token, {link} : sa genèse crée le token et son identité d'un coup.",
-      "tokenPointerLink": "créez plutôt le token"
+      "tokenPointer": "Presque toutes les identités appartiennent à un token. Pour créer l'identité d'un token, {link} : la transaction qui crée le token crée en même temps son identité.",
+      "tokenPointerLink": "créez le token",
+      "novelHelp": "Une dapp pourrait dire quelle version de ses contrats est en vigueur et où se trouve son site ; une organisation pourrait répondre de ce qu'elle publie. Il n'en existe presque aucune encore et presque rien ne les lit, alors sachez ce que vous en attendez avant d'en créer une."
     },
     "scan": {
-      "prompt": "Cashonize peut vérifier si les tokens de ce portefeuille ont des identités qu'il détient.",
+      "prompt": "Appuyez si une identité vous a été transférée, ou si une identité attendue n'est pas listée.",
       "linkText": "Rechercher des identités",
       "scanning": "Vérification des catégories de jetons du portefeuille...",
       "found": "{count} identité trouvée et ajoutée à la liste | {count} identités trouvées et ajoutées à la liste",
       "noneFound": "Aucune nouvelle identité trouvée.",
       "alreadyListed": "{count} catégorie était déjà dans la liste. | {count} catégories étaient déjà dans la liste.",
       "carriesTokens": "{count} d'entre eux porte une réserve de jetons. | {count} d'entre eux portent une réserve de jetons.",
-      "deepScanned": "{count} pièce retenue s'est avérée être une identité. | {count} pièces retenues se sont avérées être des identités.",
+      "deepScanned": "{count} UTXO retenu s'est avéré être une identité. | {count} UTXOs retenus se sont avérés être des identités.",
       "dismissed": "{count} a été laissée de côté parce que vous l'aviez retirée. | {count} ont été laissées de côté parce que vous les aviez retirées.",
-      "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées."
+      "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées.",
+      "automaticHelp": "Cashonize liste déjà les identités que ces clés ont créées : un token que vous avez créé, ou des métadonnées que vous avez publiées, dont l'UTXO d'identité est encore ici. Cela ne coûte rien, donc cela se fait tout seul.",
+      "checkHelp": "Cette vérification trouve ce que cela ne peut pas voir : une identité créée par quelqu'un d'autre et transférée à vous, vers laquelle rien dans l'historique de ce portefeuille ne pointe. Elle interroge l'indexeur sur chaque token que vous détenez et remonte chaque UTXO qui pourrait être celui d'une identité, d'où le bouton plutôt qu'une action silencieuse de la page."
     },
     "transfer": {
-      "hint": "La pièce de l'identité est envoyée entière à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. La destination reçoit la pièce moins les frais de transaction.",
+      "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token.",
       "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
       "button": "Transférer l'identité",
       "transferringButton": "Transfert...",
       "confirmTitle": "Transférer cette identité ?",
-      "confirmMessage": "La pièce de l'identité ({amount}) est envoyée à {address}, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. C'est irréversible.",
+      "confirmMessage": "L'UTXO de l'identité ({amount}) est envoyé à {address}, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. C'est irréversible.",
       "confirmButton": "Transférer",
       "done": "Identité transférée à {address}",
       "doneTitle": "Identité transférée",
-      "action": "transférer"
+      "action": "transférer",
+      "carriedLabel": "Ce qu'elle porte ({carries})",
+      "carriedStays": "Reste dans ce portefeuille",
+      "carriedGoes": "Part avec l'identité",
+      "confirmMessageKeep": "L'UTXO de l'identité ({amount}) est envoyé à {address}, cédant l'autorité de mettre à jour les métadonnées de ce token. Ce qu'il porte ({carries}) reste dans ce portefeuille. Cette action est irréversible.",
+      "confirmMessageAlong": "L'UTXO de l'identité ({amount}) est envoyé à {address} avec ce qu'il porte ({carries}), cédant l'autorité de mettre à jour les métadonnées de ce token. Cette action est irréversible."
     },
     "remove": {
       "title": "Retirer de cette liste ?",
       "message": "L'identité est retirée de cette liste. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la recherche d'identités si ce portefeuille détient des tokens de celle-ci.",
-      "messageHeld": "L'identité est retirée de cette liste et sa pièce n'est plus écartée de la sélection des pièces, un envoi ordinaire peut donc la dépenser. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la recherche d'identités si ce portefeuille détient des tokens de celle-ci.",
+      "messageHeld": "L'identité est retirée de cette liste et son UTXO n'est plus écarté de la sélection des pièces, un envoi ordinaire peut donc le dépenser. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la recherche d'identités si ce portefeuille détient des tokens de celle-ci.",
       "button": "Retirer"
     },
     "errors": {

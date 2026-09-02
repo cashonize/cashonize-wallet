@@ -6,7 +6,7 @@
   import { TokenSendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
+  import { copyToClipboard, formatTokenAmountFromBigInt, sanitizeUrl } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -105,6 +105,17 @@
     .map(identity => store.bcmrRegistries?.[identity.category]?.name)
     .filter((name): name is string => !!name)
     .join(', '));
+  // Said beside the token when this wallet holds its identity, since the identities page is
+  // where it is managed; a minting NFT's category usually is one
+  const heldIdentityLine = computed(() => {
+    const identity = identitiesStore.heldIdentityOf(tokenData.value.category);
+    if (!identity) return undefined;
+    const reserve = (identity.authUtxo ?? identity.guardedOutput)?.token?.amount;
+    if (!reserve) return t('tokenItem.identity.held');
+    const decimals = tokenMetaData.value?.token?.decimals ?? 0;
+    const amount = `${formatTokenAmountFromBigInt(reserve, decimals)} ${tokenMetaData.value?.token?.symbol ?? ''}`.trim();
+    return t('tokenItem.identity.heldWithReserve', { amount });
+  });
   const isIdentityKey = computed(() =>
     guardedIdentities.value.length > 0 || (identitiesStore.unidentifiedGuarded[tokenData.value.category] ?? 0) > 0
   );
@@ -388,6 +399,10 @@
                   </span>
                 </template>
               </i18n-t>
+            </div>
+            <div v-else-if="heldIdentityLine">
+              {{ heldIdentityLine }}
+              <span class="identity-key-link" @click="store.changeView(19)">{{ t('tokenItem.authKey.manage') }}</span>
             </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">

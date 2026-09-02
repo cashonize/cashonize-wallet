@@ -49,10 +49,10 @@ describe('mainnet-js takes its genesis input from the front of the pool', () => 
   })
 })
 
-// The creation form refuses to issue the whole supply without also creating a minting NFT, because
-// output 0 of a genesis is always a token output and one carrying neither an amount nor an NFT is
-// not a valid token output. If mainnet-js ever leaves output 0 plain, that refusal stops being
-// necessary and the form would be turning down a genesis the library can build.
+// The creation form refuses to issue the whole supply without a minting NFT because tokenGenesis
+// puts a token output at output 0, and one carrying nothing is invalid. The chain allows a plain
+// output 0 (tokenGenesis is send() with the coin ensured and the token checks off); the wallet
+// declines to build that so a genesis always leaves the identity carrying its reserve.
 describe('mainnet-js always makes output 0 of a genesis a token output', () => {
   it('keeps output 0 a token output even with nothing to carry', async () => {
     const requests = await genesisRequestsOf([coin('f'.repeat(64))], { amount: 0n })

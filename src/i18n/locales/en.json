@@ -415,6 +415,10 @@
       "commitmentMustBeHex": "nftCommitment '{commitment}' must be a hexadecimal",
       "noNftsSelected": "No NFTs selected",
       "notCashaddress": "Not a cashaddress on current network"
+    },
+    "identity": {
+      "held": "This wallet holds this token's identity.",
+      "heldWithReserve": "This wallet holds this token's identity, with {amount} in reserve."
     }
   },
   "dapp": {
@@ -636,20 +640,20 @@
     "switchFailed": "Failed to switch wallet: {error}"
   },
   "createTokens": {
-    "title": "Create new tokens",
+    "title": "Create a token",
     "intro": "You can use the {link} for the easiest token creation, or you can use the built-in process below for fine-grained control.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "Need BCH in wallet to create tokens",
     "genesisInput": {
-      "title": "Choose the coin to create from",
-      "explainer": "The coin this transaction spends becomes the token's permanent id.",
-      "none": "This wallet has no coin that can create a token yet.",
-      "prepareLink": "Prepare a new coin"
+      "explainer": "The UTXO this transaction spends becomes the token's permanent id.",
+      "none": "This wallet has no UTXO that can create a token yet.",
+      "prepareButton": "Prepare a UTXO",
+      "chooseExisting": "Or choose a UTXO this wallet already has",
+      "needCoin": "Prepare a UTXO above, or choose one this wallet already has."
     },
     "preparingButton": "Preparing...",
     "plannedTokenId": "Planned tokenId:",
     "loading": "loading...",
-    "mintingNFT": "Minting NFT",
     "mintingDescription": "Minting NFT is used to create an NFT collection. The minting NFT has the ability to mint new NFTs with the same tokenId.",
     "mintingHelp": "Only the creating transaction can grant the minting capability. Without it, this category can never have NFTs of its own.",
     "mintingNote": "Note: to use a Minting NFT toggle the option \"Enable mint NFTs\" in the developer settings.",
@@ -683,17 +687,23 @@
     "errors": {
       "invalidAmount": "Enter whole numbers for the supply and the amount to issue.",
       "overMaxSupply": "That is more than a token category can hold. The most is {max}.",
-      "overSupply": "That is more than the total supply.",
-      "nothingToCreate": "Enter a supply, add a minting NFT, or both.",
-      "emptyAuthhead": "The identity has to carry something: keep part of the supply as reserve, or add the minting NFT. The reserve can be issued in full from the identities page afterwards."
+      "overSupply": "That is more than the total supply."
     },
     "created": {
       "fungibles": "Created {supply} fungible tokens of category {category}",
       "mintingNft": "Created a minting NFT of category {category}",
       "hybrid": "Created {supply} fungible tokens and a minting NFT of category {category}",
       "reserve": "{amount} stays with the identity as reserved supply.",
-      "listed": "It is listed on the identities page, and its coin is held back from coin selection."
-    }
+      "listed": "It is listed on the identities page, and its UTXO is held back from coin selection."
+    },
+    "shapeLabel": "Token shape",
+    "shapes": {
+      "fungible": "Fungible tokens",
+      "mintingNft": "A minting NFT",
+      "both": "Fungible tokens and a minting NFT"
+    },
+    "step": "Step {current} of {total}",
+    "reserveNote": "A token's supply is created at the identity's UTXO, so not all of it can go into circulation in this transaction. Leave part as reserve and issue it from the identities page afterwards."
   },
   "utxoManagement": {
     "title": "UTXO Management",
@@ -706,7 +716,7 @@
       "largeBch": "Holds a large amount of BCH",
       "reserved": "Held back for an open Flipstarter pledge, so a spend from this wallet will not reach for it.",
       "reservedRelease": "Cancel the pledge on the Flipstarter page to release the UTXO.",
-      "reservedAuth": "Held back because it is an identity's coin (its AuthHead), so a spend from this wallet will not reach for it.",
+      "reservedAuth": "Held back because it is an identity's UTXO (its AuthHead), so a spend from this wallet will not reach for it.",
       "reservedAuthRelease": "Transfer the identity or remove it on the Identities page to release the UTXO.",
       "frozen": "Frozen by you, click to unfreeze",
       "unfreeze": "Unfreeze",
@@ -1254,7 +1264,7 @@
       "hdAddresses": "HD Addresses",
       "requestPayment": "Create Payment Request",
       "utxoManagement": "UTXO Management",
-      "createTokens": "Create Tokens",
+      "createTokens": "Create token",
       "sweepPrivateKey": "Sweep Private Key",
       "transferAllAssets": "Transfer All Assets",
       "signVerifyMessage": "Sign / Verify Message",
@@ -1445,21 +1455,21 @@
       "existing": "Add existing",
       "create": "Create new"
     },
-    "whatIsAnIdentity": "A token's metadata, its name, icon and description, can only be updated by whoever holds its identity coin (the AuthHead): one specific UTXO that moves to a new outpoint with every update.",
-    "whatIsAnIdentityNote": "Holding that coin is what makes this wallet the one that can publish new metadata for the token.",
+    "whatIsAnIdentity": "The authority to change a token's metadata, its name, icon and description, is a single UTXO: whoever holds it can publish updates, and it moves to a new outpoint with every update.",
+    "whatIsAnIdentityNote": "Studio, the explorer and the spec call that UTXO the AuthHead. Holding it is what makes this wallet the one that can publish new metadata for the token.",
     "resolving": "Looking up where these identities are held...",
     "empty": "No identities listed yet.",
     "detected": {
-      "notification": "Found an identity this wallet controls, and held its coin back from coin selection. | Found {count} identities this wallet controls, and held their coins back from coin selection.",
+      "notification": "Found an identity this wallet controls, and held its UTXO back from coin selection. | Found {count} identities this wallet controls, and held their UTXOs back from coin selection.",
       "foundAutomatically": "Found automatically",
-      "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its coin is now held back from coin selection. Remove it from the list if you would rather it were not."
+      "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its UTXO is now held back from coin selection. Remove it from the list if you would rather it were not."
     },
     "unnamed": {
       "title": "An identity this wallet holds",
       "status": "Held back, identity not named yet",
-      "help": "This wallet's keys published metadata for an identity whose coin carries no token, so the coin says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it.",
-      "removeTitle": "Stop holding this coin back?",
-      "removeMessage": "The coin returns to coin selection and an ordinary send can spend it, which ends the identity it carries. It will not be listed again."
+      "help": "This wallet's keys published metadata for an identity whose UTXO carries no token, so the UTXO says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it.",
+      "removeTitle": "Stop holding this UTXO back?",
+      "removeMessage": "The UTXO returns to coin selection and an ordinary send can spend it, which ends the identity it carries. It will not be listed again."
     },
     "listedCount": "{count} identity followed by this wallet | {count} identities followed by this wallet",
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
@@ -1476,18 +1486,17 @@
       "heldViaKey": "Held through an identity key"
     },
     "statusHelp": {
-      "held": "This wallet holds this identity's coin, so it can update the metadata. The coin is kept out of coin selection, so no ordinary send can spend it.",
-      "carriesTokens": "This wallet holds this identity and it carries a token reserve alongside the authority. The coin is kept out of coin selection, like any identity's coin.",
+      "held": "This wallet holds this identity's UTXO, so it can update the metadata. The UTXO is kept out of coin selection, so no ordinary send can spend it.",
+      "carriesTokens": "This wallet holds this identity and it carries a token reserve alongside the authority. The UTXO is kept out of coin selection, like any identity's UTXO.",
       "notHeld": "This identity is held somewhere else, so this wallet only watches it: its publication is shown, but updating it takes the wallet that holds it.",
       "unresolved": "Where this identity is held could not be looked up, so it is unknown right now. Anything held for it stays held until an answer comes back.",
-      "heldViaKey": "This identity's coin is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the coin, so the key is what is kept out of coin selection."
+      "heldViaKey": "This identity's UTXO is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the UTXO, so the key is what is kept out of coin selection."
     },
     "reserve": {
       "title": "This identity carries:",
       "supply": "Reserved supply: {amount}",
       "mintingNft": "A minting NFT, which creates new NFTs of this category",
       "nft": "An NFT of this category",
-      "transferHint": "To transfer this identity, empty its reserve first: the transfer moves the authority, and the supply should not ride along unnoticed.",
       "errors": {
         "invalidAmount": "Enter a valid amount.",
         "overReserve": "That is more than the reserve holds.",
@@ -1519,27 +1528,12 @@
         "done": "Added to the reserve",
         "doneTitle": "Added to reserve"
       },
-      "empty": {
-        "action": "empty reserve",
-        "hint": "Return the whole reserve of {amount} to this wallet, leaving the identity carrying only the authority.",
-        "button": "Empty reserve",
-        "emptyingButton": "Emptying...",
-        "confirmTitle": "Empty the reserve?",
-        "confirmMessage": "{amount} returns to this wallet as ordinary supply, and the identity is left carrying only the authority.",
-        "confirmButton": "Empty",
-        "done": "Emptied the reserve",
-        "doneTitle": "Reserve emptied"
-      },
-      "help": "Tokens riding on an identity's coin are the category's reserve: issued but not in circulation, and not counted as circulating supply. Everything else of this category the wallet holds is ordinary supply.",
-      "transferSteps": {
-        "empty": "Empty the reserve, so the supply stays here.",
-        "transfer": "Then transfer the identity."
-      }
+      "help": "Tokens riding on an identity's UTXO are the category's reserve: issued but not in circulation, and not counted as circulating supply. Everything else of this category the wallet holds is ordinary supply."
     },
     "key": {
       "action": "transfer the key",
       "guardLabel": "Guard:",
-      "guardHelp": "The identity's coin sits at this covenant address, not in your wallet. The covenant releases it only to whoever presents the identity key (the AuthKey), which is the NFT this wallet holds.",
+      "guardHelp": "The identity's UTXO sits at this covenant address, not in your wallet. The covenant releases it only to whoever presents the identity key (the AuthKey), which is the NFT this wallet holds.",
       "manageHint": "This identity is guarded, so updating its metadata and moving its supply are done through the tool that builds the covenant's transactions. Cashonize signs them when it connects.",
       "manageOnStudio": "Manage on CashTokens Studio",
       "hint": "The key is an ordinary NFT and moves like one. Whoever holds it controls every identity it guards.",
@@ -1638,7 +1632,6 @@
       "placeholder": "Paste the token's category id",
       "button": "Add identity",
       "addingButton": "Adding...",
-      "hint": "Cashonize looks up where that category's identity is held and lists it here. For a token this wallet holds, the check below finds it too.",
       "categoryHelpWhere": "Find it on the token's info in the Tokens tab.",
       "categoryHelpKey": "An identity key's category works here too: the wallet derives what it guards and watches those identities.",
       "found": {
@@ -1653,50 +1646,58 @@
     },
     "create": {
       "label": "Create an identity that is not a token",
-      "help": "One transaction makes it: the coin it creates carries the identity, and the transaction id becomes the identity's permanent id.",
-      "helpNaming": "Naming comes after, with a publication: a registry has to name the id, which does not exist until this transaction is signed.",
-      "hint": "For a personal or organization identity. For a token identity, create the token instead: its genesis makes both at once.",
-      "button": "Create identity",
+      "help": "The standard's identities are not only tokens: the same chain of UTXOs can stand for a dapp, a contract system or an organization, and prove who controls it.",
+      "helpNaming": "One transaction makes it, and naming comes after, with a publication that names its id.",
+      "hint": "A name, icon and links for a dapp, a contract system or an organization, published and updated from one UTXO with no token on it. A novel concept, so have a clear use in mind.",
+      "button": "Create non-token identity",
       "creatingButton": "Creating...",
       "confirmTitle": "Create a new identity?",
-      "confirmMessage": "{amount} of this wallet becomes the identity's coin and is held back from coin selection. The transaction id becomes the identity's permanent id.",
+      "confirmMessage": "{amount} of this wallet becomes the identity's UTXO and is held back from coin selection. The transaction id becomes the identity's permanent id.",
       "confirmButton": "Create",
-      "done": "The identity is listed and its coin is held back from coin selection. Publish a registry naming it to give it a name.",
+      "done": "The identity is listed and its UTXO is held back from coin selection. Publish a registry naming it to give it a name.",
       "doneTitle": "Identity created",
       "errors": {
         "noTxId": "The transaction was sent but its id came back empty, so the identity could not be listed."
       },
-      "tokenPointer": "For a token identity, {link} instead: its genesis makes the token and its identity at once.",
-      "tokenPointerLink": "create the token"
+      "tokenPointer": "Nearly every identity belongs to a token. To create a token identity, {link}: the transaction that creates the token creates its identity at the same time.",
+      "tokenPointerLink": "create the token",
+      "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it."
     },
     "scan": {
-      "prompt": "Cashonize can check the tokens in this wallet for identities it holds.",
+      "prompt": "Press this if an identity was transferred to you, or if one you expect is not listed.",
       "linkText": "Check for identities",
       "scanning": "Checking the wallet's token categories...",
       "found": "{count} identity found and added to the list | {count} identities found and added to the list",
       "noneFound": "No new identities found.",
       "alreadyListed": "{count} category was already listed. | {count} categories were already listed.",
       "carriesTokens": "{count} of them carries a token reserve. | {count} of them carry a token reserve.",
-      "deepScanned": "{count} held coin turned out to be an identity. | {count} held coins turned out to be identities.",
+      "deepScanned": "{count} held UTXO turned out to be an identity. | {count} held UTXOs turned out to be identities.",
       "dismissed": "{count} was left off because you removed it before. | {count} were left off because you removed them before.",
-      "failed": "{count} category could not be checked. | {count} categories could not be checked."
+      "failed": "{count} category could not be checked. | {count} categories could not be checked.",
+      "automaticHelp": "Cashonize already lists the identities these keys made: a token you created, or metadata you published, whose identity UTXO is still here. That costs nothing, so it happens on its own.",
+      "checkHelp": "This check finds what that cannot see: an identity somebody else made and transferred to you, which nothing in this wallet's history points at. It asks the indexer about every token you hold and walks back every UTXO that could be an identity's, so it is a button rather than something the page does quietly."
     },
     "transfer": {
-      "hint": "The identity's coin is sent whole to the destination, handing over the authority to update this token's metadata. The destination receives the coin minus the transaction fee.",
+      "hint": "The identity's UTXO is sent to the destination, handing over the authority to update this token's metadata.",
       "destinationPlaceholder": "Address to transfer the identity to",
       "button": "Transfer identity",
       "transferringButton": "Transferring...",
       "confirmTitle": "Transfer this identity?",
-      "confirmMessage": "The identity's coin ({amount}) is sent to {address}, handing over the authority to update this token's metadata. This cannot be undone.",
+      "confirmMessage": "The identity's UTXO ({amount}) is sent to {address}, handing over the authority to update this token's metadata. This cannot be undone.",
       "confirmButton": "Transfer",
       "done": "Transferred the identity to {address}",
       "doneTitle": "Identity transferred",
-      "action": "transfer"
+      "action": "transfer",
+      "carriedLabel": "What it carries ({carries})",
+      "carriedStays": "Stays in this wallet",
+      "carriedGoes": "Goes along with the identity",
+      "confirmMessageKeep": "The identity's UTXO ({amount}) is sent to {address}, handing over the authority to update this token's metadata. What it carries ({carries}) stays in this wallet. This cannot be undone.",
+      "confirmMessageAlong": "The identity's UTXO ({amount}) is sent to {address} together with what it carries ({carries}), handing over the authority to update this token's metadata. This cannot be undone."
     },
     "remove": {
       "title": "Remove from this list?",
       "message": "The identity is removed from this list. Add it back by category, or find it again with the identity check if this wallet holds tokens of it.",
-      "messageHeld": "The identity is removed from this list and its coin is no longer kept out of coin selection, so an ordinary send can spend it. Add it back by category, or find it again with the identity check if this wallet holds tokens of it.",
+      "messageHeld": "The identity is removed from this list and its UTXO is no longer kept out of coin selection, so an ordinary send can spend it. Add it back by category, or find it again with the identity check if this wallet holds tokens of it.",
       "button": "Remove"
     },
     "errors": {

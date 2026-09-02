@@ -415,6 +415,10 @@
       "commitmentMustBeHex": "nftCommitment '{commitment}' deve ser hexadecimal",
       "noNftsSelected": "Nenhum NFT selecionado",
       "notCashaddress": "Não é um cashaddress na rede atual"
+    },
+    "identity": {
+      "held": "Esta carteira tem a identidade deste token.",
+      "heldWithReserve": "Esta carteira tem a identidade deste token, com {amount} em reserva."
     }
   },
   "dapp": {
@@ -636,20 +640,20 @@
     "switchFailed": "Falha ao trocar de carteira: {error}"
   },
   "createTokens": {
-    "title": "Criar novos tokens",
+    "title": "Criar um token",
     "intro": "Você pode usar o {link} para criar tokens de forma mais fácil, ou usar o processo abaixo para controle detalhado.",
     "cashTokensStudio": "CashTokens Studio",
     "needBch": "É necessário BCH na carteira para criar tokens",
     "genesisInput": {
-      "title": "Escolha a moeda para a criação",
-      "explainer": "A moeda que esta transação gasta torna-se o id permanente do token.",
-      "none": "Esta carteira ainda não tem nenhuma moeda com que criar um token.",
-      "prepareLink": "Preparar uma moeda nova"
+      "explainer": "O UTXO que esta transação gasta torna-se o id permanente do token.",
+      "none": "Esta carteira ainda não tem nenhum UTXO com que criar um token.",
+      "prepareButton": "Preparar um UTXO",
+      "chooseExisting": "Ou escolher um UTXO que esta carteira já tem",
+      "needCoin": "Prepare um UTXO acima, ou escolha um que esta carteira já tem."
     },
     "preparingButton": "Preparando...",
     "plannedTokenId": "TokenId planejado:",
     "loading": "carregando...",
-    "mintingNFT": "NFT de Minting",
     "mintingDescription": "NFT de Minting é usado para criar uma coleção de NFTs. O NFT de minting tem a capacidade de mintar novos NFTs com o mesmo tokenId.",
     "mintingHelp": "Só a transação de criação pode conceder a capacidade de cunhagem. Sem ela, esta categoria nunca poderá ter NFTs próprios.",
     "mintingNote": "Nota: para usar um NFT de Minting, ative a opção \"Habilitar mint de NFTs\" nas configurações de desenvolvedor.",
@@ -683,17 +687,23 @@
     "errors": {
       "invalidAmount": "Informe números inteiros para o fornecimento e a quantidade a emitir.",
       "overMaxSupply": "Isso é mais do que uma categoria de tokens pode conter. O máximo é {max}.",
-      "overSupply": "Isso é mais do que o fornecimento total.",
-      "nothingToCreate": "Informe um fornecimento, adicione um NFT de cunhagem, ou ambos.",
-      "emptyAuthhead": "A identidade precisa carregar algo: guarde parte do fornecimento como reserva ou adicione o NFT de cunhagem. A reserva pode ser emitida por completo depois na página de identidades."
+      "overSupply": "Isso é mais do que o fornecimento total."
     },
     "created": {
       "fungibles": "Criados {supply} tokens fungíveis da categoria {category}",
       "mintingNft": "Criado um NFT de cunhagem da categoria {category}",
       "hybrid": "Criados {supply} tokens fungíveis e um NFT de cunhagem da categoria {category}",
       "reserve": "{amount} fica com a identidade como fornecimento reservado.",
-      "listed": "Ela aparece na página de identidades, e a sua moeda fica de fora da seleção de moedas."
-    }
+      "listed": "Ela aparece na página de identidades, e o seu UTXO fica de fora da seleção de moedas."
+    },
+    "shapeLabel": "Tipo de token",
+    "shapes": {
+      "fungible": "Tokens fungíveis",
+      "mintingNft": "Um NFT de cunhagem",
+      "both": "Tokens fungíveis e um NFT de cunhagem"
+    },
+    "step": "Etapa {current} de {total}",
+    "reserveNote": "O fornecimento de um token é criado no UTXO da identidade, por isso não pode entrar todo em circulação nesta transação. Guarde parte como reserva e emita-a depois na página de identidades."
   },
   "utxoManagement": {
     "title": "Gerenciamento de UTXOs",
@@ -706,7 +716,7 @@
       "largeBch": "Contém uma grande quantidade de BCH",
       "reserved": "Retida por uma promessa Flipstarter em aberto, então um gasto desta carteira não vai pegá-la.",
       "reservedRelease": "Cancele a promessa na página do Flipstarter para liberar o UTXO.",
-      "reservedAuth": "Retida porque é a moeda de uma identidade (o seu AuthHead), portanto um gasto desta carteira não vai buscá-la.",
+      "reservedAuth": "Retido porque é o UTXO de uma identidade (o seu AuthHead), portanto um gasto desta carteira não vai buscá-lo.",
       "reservedAuthRelease": "Transfira a identidade ou remova-a na página de Identidades para liberar o UTXO.",
       "frozen": "Congelada por você, clique para descongelar",
       "unfreeze": "Descongelar",
@@ -1254,7 +1264,7 @@
       "hdAddresses": "Endereços HD",
       "requestPayment": "Criar solicitação de pagamento",
       "utxoManagement": "Gerenciamento de UTXOs",
-      "createTokens": "Criar tokens",
+      "createTokens": "Criar token",
       "sweepPrivateKey": "Sweep de Chave Privada",
       "transferAllAssets": "Transferir todos os ativos",
       "signVerifyMessage": "Assinar / Verificar mensagem",
@@ -1445,21 +1455,21 @@
       "existing": "Adicionar",
       "create": "Criar nova"
     },
-    "whatIsAnIdentity": "Os metadados de um token, o seu nome, ícone e descrição, só podem ser atualizados por quem tem a sua moeda de identidade (o AuthHead): um UTXO específico que passa para um novo outpoint a cada atualização.",
-    "whatIsAnIdentityNote": "Ter essa moeda é o que faz desta carteira a que pode publicar novos metadados do token.",
+    "whatIsAnIdentity": "A autoridade para alterar os metadados de um token, o seu nome, ícone e descrição, é um único UTXO: quem o tem pode publicar atualizações, e ele passa para um novo outpoint a cada atualização.",
+    "whatIsAnIdentityNote": "O Studio, o explorador e a especificação chamam esse UTXO de AuthHead. Tê-lo é o que faz desta carteira a que pode publicar novos metadados do token.",
     "resolving": "Procurando onde estão estas identidades...",
     "empty": "Ainda não há identidades na lista.",
     "detected": {
-      "notification": "Encontrada uma identidade que esta carteira controla, e a sua moeda ficou de fora da seleção de moedas. | Encontradas {count} identidades que esta carteira controla, e as suas moedas ficaram de fora da seleção de moedas.",
+      "notification": "Encontrada uma identidade que esta carteira controla, e o seu UTXO ficou de fora da seleção de moedas. | Encontradas {count} identidades que esta carteira controla, e os seus UTXOs ficaram de fora da seleção de moedas.",
       "foundAutomatically": "Encontrada automaticamente",
-      "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os seus metadados, portanto ela foi encontrada no próprio histórico da carteira e a sua moeda agora fica de fora da seleção de moedas. Tire-a da lista se preferir que não seja assim."
+      "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os seus metadados, portanto ela foi encontrada no próprio histórico da carteira e o seu UTXO agora fica de fora da seleção de moedas. Tire-a da lista se preferir que não seja assim."
     },
     "unnamed": {
       "title": "Uma identidade desta carteira",
       "status": "Retido, identidade ainda sem nome",
-      "help": "As chaves desta carteira publicaram metadados de uma identidade cuja moeda não carrega nenhum token, portanto a moeda não diz de que identidade se trata. Ainda assim fica de fora da seleção de moedas: protegê-la não espera por conseguir nomeá-la.",
-      "removeTitle": "Parar de reter esta moeda?",
-      "removeMessage": "A moeda volta para a seleção de moedas e um envio comum pode gastá-la, o que encerra a identidade que ela carrega. Ela não será listada de novo."
+      "help": "As chaves desta carteira publicaram metadados de uma identidade cujo UTXO não carrega nenhum token, portanto o UTXO não diz de que identidade se trata. Ainda assim fica de fora da seleção de moedas: protegê-lo não espera por conseguir nomeá-lo.",
+      "removeTitle": "Parar de reter este UTXO?",
+      "removeMessage": "O UTXO volta para a seleção de moedas e um envio comum pode gastá-lo, o que encerra a identidade que ele carrega. Ele não será listado de novo."
     },
     "listedCount": "{count} identidade acompanhada por esta carteira | {count} identidades acompanhadas por esta carteira",
     "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
@@ -1476,18 +1486,17 @@
       "heldViaKey": "Através de uma chave de identidade"
     },
     "statusHelp": {
-      "held": "Esta carteira tem a moeda desta identidade, portanto pode atualizar os seus metadados. A moeda fica de fora da seleção de moedas, nenhum envio comum pode gastá-la.",
-      "carriesTokens": "Esta carteira tem esta identidade, e ela carrega uma reserva de tokens além da autoridade. A moeda fica de fora da seleção de moedas, como a de qualquer identidade.",
+      "held": "Esta carteira tem o UTXO desta identidade, portanto pode atualizar os seus metadados. O UTXO fica de fora da seleção de moedas, nenhum envio comum pode gastá-lo.",
+      "carriesTokens": "Esta carteira tem esta identidade, e ela carrega uma reserva de tokens além da autoridade. O UTXO fica de fora da seleção de moedas, como o de qualquer identidade.",
       "notHeld": "Esta identidade está em outro lugar, portanto esta carteira apenas a observa: a publicação é mostrada, mas atualizá-la exige a carteira que a tem.",
       "unresolved": "Não foi possível consultar onde esta identidade está, então isso é desconhecido agora. O que está retido por ela continua retido até chegar uma resposta.",
-      "heldViaKey": "A moeda desta identidade está trancada em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem a moeda, portanto é a chave que fica de fora da seleção de moedas."
+      "heldViaKey": "O UTXO desta identidade está trancado em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem o UTXO, portanto é a chave que fica de fora da seleção de moedas."
     },
     "reserve": {
       "title": "Esta identidade carrega:",
       "supply": "Fornecimento reservado: {amount}",
       "mintingNft": "Um NFT de cunhagem, que cria novos NFTs desta categoria",
       "nft": "Um NFT desta categoria",
-      "transferHint": "Para transferir esta identidade, esvazie antes a reserva dela: a transferência move a autoridade, e a oferta não deveria ir junto sem que se perceba.",
       "errors": {
         "invalidAmount": "Informe um valor válido.",
         "overReserve": "Isso é mais do que a reserva tem.",
@@ -1519,27 +1528,12 @@
         "done": "Adicionado à reserva",
         "doneTitle": "Adicionado à reserva"
       },
-      "empty": {
-        "action": "esvaziar a reserva",
-        "hint": "Devolva toda a reserva de {amount} a esta carteira, deixando a identidade apenas com a autoridade.",
-        "button": "Esvaziar a reserva",
-        "emptyingButton": "Esvaziando...",
-        "confirmTitle": "Esvaziar a reserva?",
-        "confirmMessage": "{amount} volta para esta carteira como fornecimento comum, e a identidade fica apenas com a autoridade.",
-        "confirmButton": "Esvaziar",
-        "done": "Reserva esvaziada",
-        "doneTitle": "Reserva esvaziada"
-      },
-      "help": "Os tokens que andam na moeda de uma identidade são a reserva da categoria: emitidos mas não em circulação, e não contados como fornecimento circulante. Todo o resto desta categoria que a carteira tem é fornecimento comum.",
-      "transferSteps": {
-        "empty": "Esvazie a reserva, para a oferta ficar aqui.",
-        "transfer": "Depois transfira a identidade."
-      }
+      "help": "Os tokens que andam no UTXO de uma identidade são a reserva da categoria: emitidos mas não em circulação, e não contados como fornecimento circulante. Todo o resto desta categoria que a carteira tem é fornecimento comum."
     },
     "key": {
       "action": "transferir a chave",
       "guardLabel": "Guarda:",
-      "guardHelp": "A moeda da identidade está neste endereço de contrato, não na sua carteira. O contrato só a libera para quem apresentar a chave de identidade (o AuthKey), que é o NFT que esta carteira tem.",
+      "guardHelp": "O UTXO da identidade está neste endereço de contrato, não na sua carteira. O contrato só o libera para quem apresentar a chave de identidade (o AuthKey), que é o NFT que esta carteira tem.",
       "manageHint": "Esta identidade é guardada, então atualizar os metadados dela e mover a oferta acontecem pela ferramenta que constrói as transações do contrato. O Cashonize as assina quando se conecta.",
       "manageOnStudio": "Gerenciar no CashTokens Studio",
       "hint": "A chave é um NFT comum e se move como um. Quem a tiver controla todas as identidades que ela guarda.",
@@ -1638,7 +1632,6 @@
       "placeholder": "Cole o id de categoria do token",
       "button": "Adicionar identidade",
       "addingButton": "Adicionando...",
-      "hint": "O Cashonize procura onde está a identidade dessa categoria e lista-a aqui. Para um token que esta carteira tenha, a busca abaixo também a encontra.",
       "categoryHelpWhere": "Você a encontra nas informações do token na aba Tokens.",
       "categoryHelpKey": "A categoria de uma chave de identidade também funciona aqui: a carteira deriva o que ela guarda e acompanha essas identidades.",
       "found": {
@@ -1653,50 +1646,58 @@
     },
     "create": {
       "label": "Criar uma identidade que não é um token",
-      "help": "Basta uma transação: a moeda que ela cria carrega a identidade, e o id da transação passa a ser o id permanente da identidade.",
-      "helpNaming": "O nome vem depois, com uma publicação: um registro precisa nomear o id, que não existe até esta transação ser assinada.",
-      "hint": "Para uma identidade pessoal ou de organização. Para uma identidade de token, crie o token: a génese dele faz as duas coisas de uma vez.",
-      "button": "Criar identidade",
+      "help": "As identidades do padrão não são só tokens: a mesma cadeia de UTXOs pode representar uma dapp, um sistema de contratos ou uma organização, e provar quem a controla.",
+      "helpNaming": "Basta uma transação, e o nome vem depois, com uma publicação que nomeie o seu id.",
+      "hint": "Um nome, ícone e links para uma dapp, um sistema de contratos ou uma organização, publicados e atualizados a partir de um UTXO sem nenhum token nele. Um conceito novo, então tenha um uso claro em mente.",
+      "button": "Criar identidade sem token",
       "creatingButton": "Criando...",
       "confirmTitle": "Criar uma nova identidade?",
-      "confirmMessage": "{amount} desta carteira passa a ser a moeda da identidade e fica de fora da seleção de moedas. O id da transação passa a ser o id permanente da identidade.",
+      "confirmMessage": "{amount} desta carteira passa a ser o UTXO da identidade e fica de fora da seleção de moedas. O id da transação passa a ser o id permanente da identidade.",
       "confirmButton": "Criar",
-      "done": "A identidade está na lista e a sua moeda fica de fora da seleção de moedas. Publique um registro que a nomeie para lhe dar um nome.",
+      "done": "A identidade está na lista e o seu UTXO fica de fora da seleção de moedas. Publique um registro que a nomeie para lhe dar um nome.",
       "doneTitle": "Identidade criada",
       "errors": {
         "noTxId": "A transação foi enviada mas o id dela voltou vazio, portanto a identidade não pôde ser listada."
       },
-      "tokenPointer": "Para uma identidade de token, {link}: a génese dele cria o token e a identidade de uma vez.",
-      "tokenPointerLink": "crie o token"
+      "tokenPointer": "Quase todas as identidades pertencem a um token. Para criar a identidade de um token, {link}: a transação que cria o token cria ao mesmo tempo a sua identidade.",
+      "tokenPointerLink": "crie o token",
+      "novelHelp": "Uma dapp poderia dizer qual versão dos seus contratos está em vigor e onde está o seu site; uma organização poderia responder pelo que publica. Quase nenhuma existe ainda e quase nada as lê, então saiba o que quer de uma antes de a fazer."
     },
     "scan": {
-      "prompt": "O Cashonize pode verificar os tokens desta carteira em busca de identidades que ela tenha.",
+      "prompt": "Pressione se uma identidade foi transferida para você, ou se uma que você espera não está na lista.",
       "linkText": "Procurar identidades",
       "scanning": "Verificando as categorias de token da carteira...",
       "found": "{count} identidade encontrada e adicionada à lista | {count} identidades encontradas e adicionadas à lista",
       "noneFound": "Nenhuma identidade nova encontrada.",
       "alreadyListed": "{count} categoria já estava na lista. | {count} categorias já estavam na lista.",
       "carriesTokens": "{count} deles carrega uma reserva de tokens. | {count} deles carregam uma reserva de tokens.",
-      "deepScanned": "{count} moeda retida acabou por ser uma identidade. | {count} moedas retidas acabaram por ser identidades.",
+      "deepScanned": "{count} UTXO retido acabou por ser uma identidade. | {count} UTXOs retidos acabaram por ser identidades.",
       "dismissed": "{count} foi deixada de fora porque você a removeu antes. | {count} foram deixadas de fora porque você as removeu antes.",
-      "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias."
+      "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias.",
+      "automaticHelp": "O Cashonize já lista as identidades que estas chaves fizeram: um token que você criou, ou metadados que você publicou, cujo UTXO de identidade ainda está aqui. Isso não custa nada, então acontece sozinho.",
+      "checkHelp": "Esta verificação encontra o que aquilo não consegue ver: uma identidade que outra pessoa fez e transferiu para você, para a qual nada no histórico desta carteira aponta. Ela pergunta ao indexador por cada token que você tem e percorre de volta cada UTXO que possa ser de uma identidade, por isso é um botão e não algo que a página faça em silêncio."
     },
     "transfer": {
-      "hint": "A moeda da identidade é enviada inteira para o destino, entregando a autoridade de atualizar os metadados deste token. O destino recebe a moeda menos a taxa da transação.",
+      "hint": "O UTXO da identidade é enviado para o destino, entregando a autoridade de atualizar os metadados deste token.",
       "destinationPlaceholder": "Endereço para onde transferir a identidade",
       "button": "Transferir identidade",
       "transferringButton": "Transferindo...",
       "confirmTitle": "Transferir esta identidade?",
-      "confirmMessage": "A moeda da identidade ({amount}) é enviada para {address}, entregando a autoridade de atualizar os metadados deste token. Isto não pode ser desfeito.",
+      "confirmMessage": "O UTXO da identidade ({amount}) é enviado para {address}, entregando a autoridade de atualizar os metadados deste token. Isto não pode ser desfeito.",
       "confirmButton": "Transferir",
       "done": "Identidade transferida para {address}",
       "doneTitle": "Identidade transferida",
-      "action": "transferir"
+      "action": "transferir",
+      "carriedLabel": "O que ela carrega ({carries})",
+      "carriedStays": "Fica nesta carteira",
+      "carriedGoes": "Vai junto com a identidade",
+      "confirmMessageKeep": "O UTXO da identidade ({amount}) é enviado para {address}, entregando a autoridade de atualizar os metadados deste token. O que ele carrega ({carries}) fica nesta carteira. Isto não pode ser desfeito.",
+      "confirmMessageAlong": "O UTXO da identidade ({amount}) é enviado para {address} junto com o que ele carrega ({carries}), entregando a autoridade de atualizar os metadados deste token. Isto não pode ser desfeito."
     },
     "remove": {
       "title": "Remover desta lista?",
       "message": "A identidade é removida desta lista. Adicione-a de novo pela categoria, ou encontre-a outra vez com a busca de identidades se esta carteira tiver tokens dela.",
-      "messageHeld": "A identidade é removida desta lista e a sua moeda deixa de ficar de fora da seleção de moedas, portanto um envio comum pode gastá-la. Adicione-a de novo pela categoria, ou encontre-a outra vez com a busca de identidades se esta carteira tiver tokens dela.",
+      "messageHeld": "A identidade é removida desta lista e o seu UTXO deixa de ficar de fora da seleção de moedas, portanto um envio comum pode gastá-lo. Adicione-a de novo pela categoria, ou encontre-a outra vez com a busca de identidades se esta carteira tiver tokens dela.",
       "button": "Remover"
     },
     "errors": {

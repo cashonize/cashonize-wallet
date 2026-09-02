@@ -25,6 +25,7 @@ import {
   type AuthheadNaming,
   type IdentityState,
   type IdentityScanSummary,
+  type IdentityStatus,
   type DescribedLink,
   type GuardedIdentity,
   type PublicationUriCheck,
@@ -485,6 +486,15 @@ export const useIdentitiesStore = defineStore('identities', () => {
     ) ?? [];
   }
 
+  // The identity of a token this wallet holds the authority over, directly or through a key, so
+  // the token list can say so beside the token and point here. Nothing for a watched identity.
+  function heldIdentityOf(category: string) {
+    const identity = identities.value?.find(identity => identity.category === category);
+    if (!identity) return undefined;
+    const heldStatuses: IdentityStatus[] = ['held', 'carriesTokens', 'heldViaKey'];
+    return heldStatuses.includes(identity.status) ? identity : undefined;
+  }
+
   // A token category and an AuthKey category are both 64 hex, so the add input does not ask which
   // one it was given: it tries both readings and reports what each found.
   async function inspectCategory(category: string) {
@@ -576,6 +586,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     nameUnnamedAuthheads,
     unnamedAuthheadCoins,
     identitiesGuardedByKey,
+    heldIdentityOf,
     inspectCategory,
     checkPublications,
     fetchIdentityHistory,
