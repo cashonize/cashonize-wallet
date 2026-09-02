@@ -106,9 +106,13 @@
 
   const identities = computed(() => identitiesStore.identities ?? []);
 
+  // The chain as fetched at this authhead; nothing to show until it is resolved
+  const historyOf = (identity: IdentityState) =>
+    identity.authheadTxid ? identitiesStore.identityHistories[identity.authheadTxid] : undefined;
+
   // How long an identity has stood, once its history says
   function establishedYear(identity: IdentityState): number | undefined {
-    const since = identitiesStore.identityHistories[identity.category]?.[0]?.timestamp;
+    const since = historyOf(identity)?.[0]?.timestamp;
     return since ? new Date(since * 1000).getFullYear() : undefined;
   }
 
@@ -521,10 +525,10 @@
   // The chain is the identity's whole history. The explorer shows it raw; this says what each
   // step did, and which of them were made from this wallet.
   async function loadHistory(identity: IdentityState) {
-    if (identitiesStore.identityHistories[identity.category]) return;
+    if (historyOf(identity)) return;
     loadingHistory.value = identity.category;
     try {
-      await identitiesStore.fetchIdentityHistory(identity.category);
+      await identitiesStore.fetchIdentityHistory(identity);
     } catch (error) {
       displayAndLogError(error);
     } finally {
@@ -1048,7 +1052,7 @@
           </div>
           <div v-if="loadingHistory === identity.category" class="description">{{ t('identities.history.loading') }}</div>
           <div
-            v-for="link in identitiesStore.identityHistories[identity.category] ?? []"
+            v-for="link in historyOf(identity) ?? []"
             :key="link.hash"
             class="chain-link"
           >

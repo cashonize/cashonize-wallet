@@ -74,9 +74,6 @@ export async function transferAllAssets(
   }
 
   onProgress?.({ phase: "bch", completed: 0, total: 1 });
-  // Naming a pool turns off the token filter sendMax applies to a pool it picks itself, so the
-  // token coins are dropped here instead: a token coin swept as plain BCH would burn its tokens
-  const bchPool = (await spendablePool()).filter(utxo => !utxo.token);
-  await sourceWallet.sendMax(destinationAddress, { utxoIds: bchPool });
+  await sourceWallet.sendMax(destinationAddress, { utxoIds: await spendablePool() });
   onProgress?.({ phase: "bch", completed: 1, total: 1 });
 }

@@ -30,7 +30,6 @@ import {
 } from "../interfaces/interfaces"
 import {
   electrumWssUrl,
-  formatBch,
   getBalanceFromUtxos,
   loadWalletFromId,
   runAsyncVoid,
@@ -70,7 +69,7 @@ import {
 import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromSpentOutputs, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromSpentOutputs, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
-import { ChaingraphRequestError, querySpentOutputs, type ChaingraphSpentOutput } from "src/queryChainGraph"
+import { ChaingraphRequestError, querySpentOutputs } from "src/queryChainGraph"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -578,7 +577,7 @@ export const useStore = defineStore('store', () => {
       console.time('resolve identities');
       await identitiesStore.refreshIdentities();
       console.timeEnd('resolve identities');
-      void runIdentityChecksOnOpen();
+      void identitiesStore.runChecksOnOpen();
     } catch (error) {
       // A stale initialization must not flag the newer one as failed
       if (initialization === currentInitialization) walletInitFailed.value = true;
@@ -673,16 +672,7 @@ export const useStore = defineStore('store', () => {
           balance.value = balanceSats;
           walletUtxos.value = walletAddressUtxos;
           void updateWalletHistory();
-          // getMaxAmountToSend makes electrum calls (blockheight, relayfee) which can reject;
-          // reset to undefined on failure so a stale send-limit isn't kept next to a fresh balance
-          try {
-            maxAmountToSend.value = await wallet.value.getMaxAmountToSend({ options:{
-              utxoIds: spendableFromUtxos(walletAddressUtxos, reservedUtxos.value)
-            }});
-          } catch (error) {
-            maxAmountToSend.value = undefined;
-            console.error("Failed to update maxAmountToSend:", error);
-          }
+          await refreshMaxAmountToSend();
         }
       })
     );
@@ -1234,41 +1224,13 @@ export const useStore = defineStore('store', () => {
   // holding them back does not wait on the portfolio being visited. Mainnet only, like the walk
   // below: the query is address-keyed and one endpoint serves both chains. A failure shows on
   // the identities page rather than as a toast on every open.
-  async function runIdentityChecksOnOpen() {
-    const identitiesStore = useIdentitiesStore();
-    const initialization = currentInitialization;
-    identitiesStore.openCheckError = undefined;
-    if (network.value === 'mainnet') {
-      try {
-        const spentOutputs = await walkSpentOutputs();
-        if (initialization !== currentInitialization) return;
-        await identitiesStore.detectWalletIdentities(spentOutputs);
-      } catch (error) {
-        console.error("Failed to look for identities in the wallet's history:", error);
-        if (initialization !== currentInitialization) return;
-        identitiesStore.openCheckError = error instanceof Error ? error.message : String(error);
-        return;
-      }
-    }
-    if (initialization !== currentInitialization) return;
-    if (settingsStore.checkHeldTokensForIdentities) await identitiesStore.checkHeldCategoriesOnOpen();
-  }
 
   // The walk of the wallet's spent outputs runs at open for detection and again from the portfolio
   // view. Its answer only changes when a UTXO of ours is spent, so the last answer is kept with
   // the outpoints held when it was made and reused while every one of them is still held;
   // incoming coins do not matter to it. Cleared on wallet switch like everything the counter guards.
-  let lastWalk: { spentOutputs: ChaingraphSpentOutput[]; heldOutpoints: string[]; initialization: number } | undefined;
   async function walkSpentOutputs() {
-    const held = (walletUtxos.value ?? []).map(outpointOf);
-    const reusable = lastWalk
-      && lastWalk.initialization === currentInitialization
-      && lastWalk.heldOutpoints.every(outpoint => held.includes(outpoint));
-    if (reusable) return lastWalk!.spentOutputs;
-    const initialization = currentInitialization;
-    const spentOutputs = await querySpentOutputs(walletPublicKeyHashes(), settingsStore.chaingraph);
-    if (initialization === currentInitialization) lastWalk = { spentOutputs, heldOutpoints: held, initialization };
-    return spentOutputs;
+    return querySpentOutputs(walletPublicKeyHashes(), settingsStore.chaingraph);
   }
 
   // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the
@@ -1277,7 +1239,6 @@ export const useStore = defineStore('store', () => {
   // wallet's outputs feeds both lookups. Only the portfolio view shows them, so it drives the
   // fetch. Both protocols are mainnet only.
   async function fetchWalletAnnouncedAssets() {
-    const identitiesStore = useIdentitiesStore();
     if (network.value !== 'mainnet') {
       tapswapListings.value = [];
       hodlContracts.value = [];
@@ -1291,10 +1252,6 @@ export const useStore = defineStore('store', () => {
       if (initialization !== currentInitialization) return;
       const listings = listingsFromSpentOutputs(spentOutputs, ownerPkhs);
       tapswapListings.value = listings;
-
-      // the same walk, read a third way: identities these keys made
-      await identitiesStore.detectWalletIdentities(spentOutputs);
-      if (initialization !== currentInitialization) return;
 
       const hodlCandidates = hodlContractsFromSpentOutputs(spentOutputs, ownerPkhs);
       const contracts = await fetchHodlContractStates(wallet.value.provider, hodlCandidates);
@@ -1518,37 +1475,14 @@ export const useStore = defineStore('store', () => {
     });
   }
 
-  // mainnet-js reports a spend it cannot fund against the pool it was handed, which is this
-  // wallet's coins minus the ones held back. Read against a balance that includes those, its
-  // numbers look wrong, so while anything is held back the message says what is missing from the
-  // pool and where to see it. Errors with another cause are passed through untouched.
-  function explainHeldBackCoins(error: unknown): unknown {
-    if (!(error instanceof Error)) return error;
-    if (!Object.keys(reservedUtxos.value).length) return error;
-    // the shortfall carries the two amounts, in satoshis, alongside the message
-    const shortfall = (error as { data?: { required?: bigint; available?: bigint } }).data;
-    if (error.message.startsWith("Amount required was not met") && shortfall?.required !== undefined) {
-      return new Error(t('store.errors.notEnoughSpendableBch', {
-        needed: formatBch(shortfall.required, network.value),
-        available: formatBch(shortfall.available ?? 0n, network.value),
-      }));
-    }
-    const tokenSelectionFailures = [
-      "Not enough token amount to send",
-      "You do not have any token UTXOs with minting capability for specified category",
-      "You do not have suitable token UTXOs to perform burn",
-    ];
-    if (tokenSelectionFailures.includes(error.message)) {
-      return new Error(t('store.errors.notEnoughSpendableTokens'));
-    }
-    return error;
-  }
-
+  // A spend that fails while UTXOs are held back may have failed for that reason, and mainnet-js
+  // cannot say so: it counted only the pool it was handed. So the reason is said after its message.
   async function spendExplained<T>(makeTransaction: () => Promise<T>): Promise<T> {
     try {
       return await makeTransaction();
     } catch (error) {
-      throw explainHeldBackCoins(error);
+      if (!(error instanceof Error) || !Object.keys(reservedUtxos.value).length) throw error;
+      throw new Error(`${error.message} ${t('store.errors.utxosHeldBack')}`, { cause: error });
     }
   }
 
@@ -1649,7 +1583,6 @@ export const useStore = defineStore('store', () => {
   // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
     // makes the signed pledge the campaign holds unusable
     async releaseReservedCoin(utxo: Utxo) {
-      if (!(outpointOf(utxo) in reservedUtxos.value)) throw new Error(t('store.errors.utxoNotReserved'));
       return sendSingleCoin(utxo, wallet.value.getDepositAddress());
     },
 
@@ -1737,6 +1670,7 @@ export const useStore = defineStore('store', () => {
     fetchWalletCauldronPools,
     fetchWalletBadgerLocks,
     fetchWalletAnnouncedAssets,
+    walkSpentOutputs,
     toggleFavorite,
     toggleHidden,
     tokenIconUrl,

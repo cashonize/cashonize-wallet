@@ -102,7 +102,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     expect(poolOf(wallet.send.mock.calls[0] as unknown[])).toBeUndefined()
   })
 
-  // mainnet-js counts what it was handed, so its "not met" numbers read as wrong to someone
+  // mainnet-js counts what it was handed, so its numbers read as wrong to someone
   // looking at a balance that includes the held back coins
   it('says why a spend fell short while coins are held back', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
@@ -116,7 +116,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
       .rejects.toThrow(/held back/)
   })
 
-  it('passes an unrelated failure through untouched', async () => {
+  it('keeps the original message in front of its sentence', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
     wallet.send.mockRejectedValue(new Error('broadcast failed'))
 

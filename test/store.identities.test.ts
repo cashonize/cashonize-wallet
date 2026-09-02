@@ -11,7 +11,6 @@ import { useStore } from '../src/stores/store'
 import { useIdentitiesStore } from '../src/stores/identitiesStore'
 import { authGuardAddresses } from '../src/utils/tools/authGuard'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
-import { encodeCashAddress, hexToBin } from '@bitauth/libauth'
 
 function createMockWallet() {
   return {
@@ -109,41 +108,6 @@ describe('the identities notification', () => {
 
     identitiesStore.markIdentitiesSeen()
     expect(identitiesStore.unseenCount).toBe(0)
-  })
-})
-
-describe('the spent-outputs walk', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    localStorageMock.clear()
-    setActivePinia(createPinia())
-    localStorageMock.setItem('network', 'mainnet')
-  })
-
-  // the walk lists what this wallet has spent, so its answer changes only when a UTXO of ours is
-  // spent: detection at open and the portfolio share one answer until then
-  it('is asked once until a held UTXO is gone', async () => {
-    let walks = 0
-    vi.stubGlobal('fetch', vi.fn((_url: string, options: RequestInit) => {
-      const { query } = JSON.parse(options.body as string) as { query: string }
-      if (!query.includes('WalletSpentOutputs')) return Promise.reject(new TypeError('Failed to fetch'))
-      walks += 1
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { search_output: [] } }) })
-    }))
-    const { store } = startStore([utxo('aa'.repeat(32), 1)])
-    // the walk is keyed by the wallet's public key hash, which the placeholder address has none of;
-    // a made-up hash rather than any real address
-    const madeUp = encodeCashAddress({ prefix: 'bitcoincash', type: 'p2pkh', payload: hexToBin('11'.repeat(20)) })
-    store.wallet.getDepositAddress = () => madeUp.address
-
-    await store.fetchWalletAnnouncedAssets()
-    await store.fetchWalletAnnouncedAssets()
-    expect(store.announcedAssetsError).toBeUndefined()
-    expect(walks).toBe(1)
-
-    store.walletUtxos = []
-    await store.fetchWalletAnnouncedAssets()
-    expect(walks).toBe(2)
   })
 })
 
@@ -577,34 +541,6 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.unseenIdentities).toEqual([categoryA])
     expect(identitiesStore.announcement).toEqual([categoryA])
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
-  })
-
-  // A cached chain ends at the authhead it was fetched for. Once that authhead moves, whether this
-  // wallet moved it or the same keys did elsewhere, the cache is missing its newest link.
-  it('forgets a cached history once its authhead has moved', async () => {
-    stubAuthheadQueries({ [categoryA]: authheadA })
-    listIdentities([categoryA])
-    const { identitiesStore } = startStore([utxo(authheadA, 0), utxo(movedAuthheadA, 0)])
-    await identitiesStore.refreshIdentities()
-    identitiesStore.identityHistories = { [categoryA]: [{ hash: authheadA, kind: 'genesis', reserveDelta: 0n }] }
-
-    stubAuthheadQueries({ [categoryA]: movedAuthheadA })
-    await identitiesStore.refreshIdentities()
-
-    expect(identitiesStore.identityHistories[categoryA]).toBeUndefined()
-  })
-
-  it('keeps a cached history while its authhead has not moved', async () => {
-    stubAuthheadQueries({ [categoryA]: authheadA })
-    listIdentities([categoryA])
-    const { identitiesStore } = startStore([utxo(authheadA, 0)])
-    await identitiesStore.refreshIdentities()
-    const cached = [{ hash: authheadA, kind: 'genesis' as const, reserveDelta: 0n }]
-    identitiesStore.identityHistories = { [categoryA]: cached }
-
-    await identitiesStore.refreshIdentities()
-
-    expect(identitiesStore.identityHistories[categoryA]).toEqual(cached)
   })
 
   it('releases the authhead of an identity removed from the list', async () => {

@@ -66,10 +66,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Guarded outputs found but not nameable without a lookup this version does not have, per key
   // category, so a key that guards only those does not read as guarding nothing.
   const unidentifiedGuarded = ref({} as Record<string, number>);
-  // Candidates whose covenant turned out to hold nothing, so they are ordinary NFTs after all.
-  // Session-local on purpose: a stored answer would be a stored derivation, and asking again after
-  // a restart costs one listing.
-  let settledNonKeys: string[] = [];
   // One resolve at a time: a pass writes the identities list and the 'auth' reservations derived
   // from it whole, so two overlapping passes would undo each other's result
   const identitiesResolving = ref(false);
@@ -106,10 +102,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     unnamedAuthheads.value = loadIdentityList('unnamed', network, walletName);
     walkedThisSession = [];
     identities.value = undefined;
+    identityPublicationTxids.value = [];
+    announcement.value = undefined;
+    openCheckError.value = undefined;
     publicationChecks.value = {};
     identityHistories.value = {};
     unidentifiedGuarded.value = {};
-    settledNonKeys = [];
   }
 
   // Identities these keys made, found in the walk rather than asked for. This is the one place
@@ -237,15 +235,17 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // An identity's own history, which is the chain itself: what each link did, and the reserve
   // read down the list, which is the issuance schedule. One query, and only when a card asks for
-  // it: this is the one identity query that grows with a chain's length.
+  // it: this is the one identity query that grows with a chain's length. Keyed by the authhead
+  // the chain was fetched at, so once the authhead moves the entry is simply not the one asked for.
   const identityHistories = ref({} as Record<string, DescribedLink[]>);
 
-  async function fetchIdentityHistory(category: string) {
-    if (identityHistories.value[category]) return;
-    const links = await queryAuthchainLinks(category, settingsStore.chaingraph);
+  async function fetchIdentityHistory(identity: IdentityState) {
+    const authhead = identity.authheadTxid;
+    if (!authhead || identityHistories.value[authhead]) return;
+    const links = await queryAuthchainLinks(identity.category, settingsStore.chaingraph);
     identityHistories.value = {
       ...identityHistories.value,
-      [category]: describeChainLinks(links),
+      [authhead]: describeChainLinks(links),
     };
   }
 
@@ -267,9 +267,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // ordinary NFTs. A key is confirmed by its covenant holding something, never by shape alone:
   // freezing an innocent NFT on a lucky commitment would be protection nobody asked for.
   async function resolveAuthKeys() {
-    const heldCandidates = (mainStore.walletUtxos ?? []).filter(
-      utxo => isAuthKeyCandidate(utxo) && !settledNonKeys.includes(utxo.token!.category)
-    );
+    const heldCandidates = (mainStore.walletUtxos ?? []).filter(isAuthKeyCandidate);
     // A watched key has no coin here; its guard is derived and listed the same way, and what it
     // holds reads as watched rather than held.
     const candidates: { category: string, keyUtxo?: Utxo }[] = [
@@ -284,11 +282,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const contents = await listGuardContents(category);
       const found = contents.reduce((total, guard) =>
         total + guard.contents.identified.length + guard.contents.unidentified, 0);
-      if (!found) {
-        // only a held candidate is a guess worth settling; a watched one the user named stays
-        if (keyUtxo) settledNonKeys.push(category);
-        continue;
-      }
+      if (!found) continue;
       unidentified[category] = contents.reduce((total, guard) => total + guard.contents.unidentified, 0);
       for (const guard of contents) {
         for (const output of guard.contents.identified) {
@@ -336,23 +330,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     );
     if (walletChanged()) return;
     identities.value = resolved;
-    forgetStaleHistories(resolved);
     await syncAuthReservations(resolved);
   }
 
   // A cached chain ends at the authhead it was fetched for, so an authhead that has moved since
   // means the cache is missing its newest link. Keyed on the authhead rather than on this wallet
   // having spent it, so an update made elsewhere with the same keys invalidates it too.
-  function forgetStaleHistories(resolved: IdentityState[]) {
-    const stale = resolved.filter(identity => {
-      const cached = identityHistories.value[identity.category];
-      return cached?.length && cached[cached.length - 1]!.hash !== identity.authheadTxid;
-    });
-    if (!stale.length) return;
-    const histories = { ...identityHistories.value };
-    for (const identity of stale) delete histories[identity.category];
-    identityHistories.value = histories;
-  }
 
   async function refreshIdentities() {
     await withResolveLock(resolveListedIdentities);
@@ -467,6 +450,27 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // What went wrong in a pass the wallet ran on its own at open, shown on the page where the
   // result would be rather than toasted on every open; cleared by the next pass that runs
   const openCheckError = ref<string | undefined>(undefined);
+
+  // The passes the wallet runs on its own once a wallet is up: the walk of its history for the
+  // identities these keys made, mainnet only like the walk itself, and the developer option below
+  async function runChecksOnOpen() {
+    const walletChanged = walletEpoch();
+    openCheckError.value = undefined;
+    if (mainStore.network === 'mainnet') {
+      try {
+        const spentOutputs = await mainStore.walkSpentOutputs();
+        if (walletChanged()) return;
+        await detectWalletIdentities(spentOutputs);
+      } catch (error) {
+        console.error("Failed to look for identities in the wallet's history:", error);
+        if (walletChanged()) return;
+        openCheckError.value = error instanceof Error ? error.message : String(error);
+        return;
+      }
+    }
+    if (walletChanged()) return;
+    if (settingsStore.checkHeldTokensForIdentities) await checkHeldCategoriesOnOpen();
+  }
 
   // The developer option: the category half on every open, for wallets that receive identities.
   // A find enters the list and the trail the way a detected one does.
@@ -648,6 +652,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     scanForIdentities,
     checkHeldCategoriesOnOpen,
     openCheckError,
+    runChecksOnOpen,
     fetchMetadataFor,
     detectWalletIdentities,
     nameUnnamedAuthheads,

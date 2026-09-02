@@ -457,7 +457,9 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
     const movedAddress = previousLock !== undefined && identityOutput?.locking_bytecode !== previousLock;
 
     // outputs of the category beside the identity output, with the reserve unchanged, are minted
-    // NFTs; a reserve move also has them, and is told apart by the reserve changing
+    // NFTs; a reserve move also has them, and is told apart by the reserve changing. A transfer
+    // that keeps a minting NFT behind looks the same and reads as a mint: telling those apart
+    // needs the wallet's addresses, which this does not have.
     const minted = link.outputs.filter(output =>
       output.output_index !== "0" && output.token_category && output.token_category === identityOutput?.token_category
     ).length;
