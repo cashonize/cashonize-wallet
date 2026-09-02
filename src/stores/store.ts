@@ -1645,11 +1645,19 @@ export const useStore = defineStore('store', () => {
     // The pool is the wallet's BCH coins plus the authhead, and only the token coins the operation
     // asked for: leaving the category's other coins out keeps a supply operation from sweeping the
     // circulating balance into itself as change.
-    async spendAuthUtxo(authUtxo: Utxo, requests: SendRequestType, categoryUtxos: Utxo[] = []) {
+    // The options a mint needs and nothing wider: a pool or an ensureUtxos passed here would undo
+    // what this function exists to guarantee.
+    async spendAuthUtxo(
+      authUtxo: Utxo,
+      requests: SendRequestType,
+      categoryUtxos: Utxo[] = [],
+      options: { tokenOperation?: 'send' | 'mint'; checkTokenQuantities?: boolean } = {},
+    ) {
       const identitiesStore = useIdentitiesStore();
       const spendable = spendableFromUtxos(await wallet.value.getUtxos(), reservedUtxos.value);
       const pool = [...spendable.filter(utxo => !utxo.token), authUtxo, ...categoryUtxos];
       const response = await spendExplained(() => wallet.value.send(requests, {
+        ...options,
         utxoIds: pool,
         ensureUtxos: [authUtxo],
       }));

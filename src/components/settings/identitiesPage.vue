@@ -908,7 +908,15 @@
             </InfoPopup>
           </div>
         </div>
-        <div v-if="carriesLine(identity)">{{ carriesLine(identity) }}</div>
+        <div v-if="carriesLine(identity)">
+          {{ carriesLine(identity) }}
+          <!-- minting lives in the token list, behind its own gate; this only points there -->
+          <span
+            v-if="identity.authUtxo?.token?.nft?.capability === 'minting'"
+            class="action-link"
+            @click.stop="store.changeView(2)"
+          >{{ t('identities.reserve.mintingNftLink') }}</span>
+        </div>
         <div v-if="!isExpanded(identity) && identity.publication" class="publication-badge-row">
           <template v-for="row in publicationRows(identity)" :key="row.uri">
             <span v-if="row.status" class="publication-badge" :class="row.status">{{ row.statusText }}</span>
@@ -1190,7 +1198,8 @@
             :key="link.hash"
             class="chain-link"
           >
-            <span>{{ t('identities.history.kind.' + link.kind) }}</span>
+            <span v-if="link.kind === 'mint'">{{ t('identities.history.minted', link.minted ?? 0) }}</span>
+            <span v-else>{{ t('identities.history.kind.' + link.kind) }}</span>
             <span v-if="link.reserveDelta">
               {{ link.reserveDelta > 0n
                 ? t('identities.history.reserveUp', { amount: linkAmount(identity, link.reserveDelta) })

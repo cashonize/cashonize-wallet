@@ -1534,7 +1534,8 @@
         "done": "Adicionado à reserva",
         "doneTitle": "Adicionado à reserva"
       },
-      "help": "Os tokens que andam no UTXO de uma identidade são a reserva da categoria: emitidos mas não em circulação, e não contados como fornecimento circulante. Todo o resto desta categoria que a carteira tem é fornecimento comum."
+      "help": "Os tokens que andam no UTXO de uma identidade são a reserva da categoria: emitidos mas não em circulação, e não contados como fornecimento circulante. Todo o resto desta categoria que a carteira tem é fornecimento comum.",
+      "mintingNftLink": "ver na lista de tokens"
     },
     "key": {
       "action": "transferir a chave",
@@ -1591,9 +1592,11 @@
         "addToReserve": "Adicionado à reserva",
         "emptyReserve": "Reserva esvaziada",
         "transfer": "Transferida",
-        "operation": "Atualizada"
+        "operation": "Atualizada",
+        "mint": "Cunhado"
       },
-      "showCount": "Histórico ({count})"
+      "showCount": "Histórico ({count})",
+      "minted": "{count} NFT cunhado | {count} NFTs cunhados"
     },
     "publish": {
       "action": "publicar atualização",

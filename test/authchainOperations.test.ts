@@ -7,6 +7,7 @@ import {
   diffRegistries,
   identityOutput,
   maxPublicationOutputSize,
+  mintOutputs,
   parsePublicationOutput,
   publicationOutput,
   publicationOutputSize,
@@ -94,6 +95,31 @@ describe('transferOutputs', () => {
     expect(moved.amount).toBe(500n)
     expect(moved.nft).toEqual(minting)
     expect(moved.value).toBe(1000n)
+  })
+})
+
+describe('mintOutputs', () => {
+  const minting = { commitment: '', capability: 'minting' as const }
+  const mints = [
+    { cashaddr: addresses.token, commitment: '01', capability: 'none', value: 1000n },
+    { cashaddr: 'bitcoincash:qsomeone', commitment: '02', capability: 'mutable', value: 1000n },
+  ]
+
+  // the identity output leads, unchanged, so the authchain continues here with the minting NFT
+  it('puts the identity output first and the minted NFTs after it', () => {
+    const outputs = mintOutputs(authUtxo({ category, amount: 500n, nft: minting }), addresses, mints)
+
+    const identity = outputs[0] as TokenSendRequest
+    expect(identity).toBeInstanceOf(TokenSendRequest)
+    expect(identity.cashaddr).toBe(addresses.token)
+    expect(identity.amount).toBe(500n)
+    expect(identity.nft).toEqual(minting)
+    expect(outputs).toHaveLength(3)
+    const [first, second] = outputs.slice(1) as TokenSendRequest[]
+    expect(first?.category).toBe(category)
+    expect(first?.nft).toEqual({ commitment: '01', capability: 'none' })
+    expect(second?.cashaddr).toBe('bitcoincash:qsomeone')
+    expect(second?.nft).toEqual({ commitment: '02', capability: 'mutable' })
   })
 })
 

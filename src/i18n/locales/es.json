@@ -1534,7 +1534,8 @@
         "done": "Añadido a la reserva",
         "doneTitle": "Añadido a la reserva"
       },
-      "help": "Los tokens que van sobre el UTXO de una identidad son la reserva de la categoría: emitidos pero no en circulación, y no contados como suministro circulante. Todo lo demás de esta categoría que tenga la billetera es suministro ordinario."
+      "help": "Los tokens que van sobre el UTXO de una identidad son la reserva de la categoría: emitidos pero no en circulación, y no contados como suministro circulante. Todo lo demás de esta categoría que tenga la billetera es suministro ordinario.",
+      "mintingNftLink": "ver en la lista de tokens"
     },
     "key": {
       "action": "transferir la clave",
@@ -1591,9 +1592,11 @@
         "addToReserve": "Añadido a la reserva",
         "emptyReserve": "Reserva vaciada",
         "transfer": "Transferida",
-        "operation": "Actualizada"
+        "operation": "Actualizada",
+        "mint": "Acuñado"
       },
-      "showCount": "Historial ({count})"
+      "showCount": "Historial ({count})",
+      "minted": "Acuñado {count} NFT | Acuñados {count} NFTs"
     },
     "publish": {
       "action": "publicar actualización",

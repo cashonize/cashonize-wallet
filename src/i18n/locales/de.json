@@ -1534,7 +1534,8 @@
         "done": "Zur Reserve hinzugefügt",
         "doneTitle": "Zur Reserve hinzugefügt"
       },
-      "help": "Tokens auf dem UTXO einer Identität sind die Reserve der Kategorie: ausgegeben, aber nicht im Umlauf, und nicht zum Umlaufbestand gezählt. Alles andere dieser Kategorie im Wallet ist gewöhnlicher Bestand."
+      "help": "Tokens auf dem UTXO einer Identität sind die Reserve der Kategorie: ausgegeben, aber nicht im Umlauf, und nicht zum Umlaufbestand gezählt. Alles andere dieser Kategorie im Wallet ist gewöhnlicher Bestand.",
+      "mintingNftLink": "in der Token-Liste ansehen"
     },
     "key": {
       "action": "Schlüssel übertragen",
@@ -1591,9 +1592,11 @@
         "addToReserve": "Zur Reserve hinzugefügt",
         "emptyReserve": "Reserve geleert",
         "transfer": "Übertragen",
-        "operation": "Aktualisiert"
+        "operation": "Aktualisiert",
+        "mint": "Geprägt"
       },
-      "showCount": "Historie ({count})"
+      "showCount": "Historie ({count})",
+      "minted": "{count} NFT geprägt | {count} NFTs geprägt"
     },
     "publish": {
       "action": "Update veröffentlichen",

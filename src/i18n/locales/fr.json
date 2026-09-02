@@ -1534,7 +1534,8 @@
         "done": "Ajouté à la réserve",
         "doneTitle": "Ajouté à la réserve"
       },
-      "help": "Les tokens portés par l'UTXO d'une identité sont la réserve de la catégorie : émis mais pas en circulation, et non comptés dans l'offre en circulation. Tout le reste de cette catégorie détenu par le portefeuille est de l'offre ordinaire."
+      "help": "Les tokens portés par l'UTXO d'une identité sont la réserve de la catégorie : émis mais pas en circulation, et non comptés dans l'offre en circulation. Tout le reste de cette catégorie détenu par le portefeuille est de l'offre ordinaire.",
+      "mintingNftLink": "voir dans la liste des tokens"
     },
     "key": {
       "action": "transférer la clé",
@@ -1591,9 +1592,11 @@
         "addToReserve": "Ajouté à la réserve",
         "emptyReserve": "Réserve vidée",
         "transfer": "Transférée",
-        "operation": "Mise à jour"
+        "operation": "Mise à jour",
+        "mint": "Frappé"
       },
-      "showCount": "Historique ({count})"
+      "showCount": "Historique ({count})",
+      "minted": "{count} NFT frappé | {count} NFTs frappés"
     },
     "publish": {
       "action": "publier une mise à jour",

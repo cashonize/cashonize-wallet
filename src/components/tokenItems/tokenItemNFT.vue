@@ -474,7 +474,7 @@
           <span v-if="selectedNftCount > 0 || displayBatchTransfer" @click="clearSelection()" class="batch-action-btn">
             {{ t('tokenItem.actions.clear') }}
           </span>
-          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting' && settingsStore.mintNfts && !identityUtxo" @click="displayMintNfts = !displayMintNfts">
+          <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting' && settingsStore.mintNfts" @click="displayMintNfts = !displayMintNfts">
             <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> {{ t('tokenItem.actions.mintNfts') }}
           </span>
           <span v-if="isSingleNft && settingsStore.tokenBurn" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
@@ -539,11 +539,7 @@
             <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.batchTransfer.transferringButton') : t('tokenItem.batchTransfer.transferButton')" :disabled="activeAction !== null">
           </div>
         </div>
-        <div v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting' && settingsStore.mintNfts && identityUtxo" class="tokenAction">
-          {{ t('tokenItem.mint.identityUtxo') }}
-          <span class="identity-key-link" @click="store.changeView(19)">{{ t('tokenItem.authKey.maybeLink') }}</span>
-        </div>
-        <nftMintForm v-if="displayMintNfts" :category="tokenData.category" v-model:active-action="activeAction" @minted="displayMintNfts = false"/>
+        <nftMintForm v-if="displayMintNfts" :category="tokenData.category" :identity-utxo="identityUtxo" v-model:active-action="activeAction" @minted="displayMintNfts = false"/>
         <div v-if="displayBurnNft" class="tokenAction">
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
           <span v-else>{{ t('tokenItem.burn.burnNftDescription') }}</span>

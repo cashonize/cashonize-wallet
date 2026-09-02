@@ -1534,7 +1534,8 @@
         "done": "Added to the reserve",
         "doneTitle": "Added to reserve"
       },
-      "help": "Tokens riding on an identity's UTXO are the category's reserve: issued but not in circulation, and not counted as circulating supply. Everything else of this category the wallet holds is ordinary supply."
+      "help": "Tokens riding on an identity's UTXO are the category's reserve: issued but not in circulation, and not counted as circulating supply. Everything else of this category the wallet holds is ordinary supply.",
+      "mintingNftLink": "view in the token list"
     },
     "key": {
       "action": "transfer the key",
@@ -1591,9 +1592,11 @@
         "addToReserve": "Added to reserve",
         "emptyReserve": "Reserve emptied",
         "transfer": "Transferred",
-        "operation": "Updated"
+        "operation": "Updated",
+        "mint": "Minted"
       },
-      "showCount": "History ({count})"
+      "showCount": "History ({count})",
+      "minted": "Minted {count} NFT | Minted {count} NFTs"
     },
     "publish": {
       "action": "publish update",

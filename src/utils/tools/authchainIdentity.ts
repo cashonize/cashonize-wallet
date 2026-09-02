@@ -6,7 +6,7 @@
 // and writing one cannot drift apart.
 
 import type { Utxo } from "mainnet-js";
-import { OpReturnData, TokenSendRequest } from "mainnet-js";
+import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
 import { binToHex, binToUtf8, hexToBin, sha256, utf8ToBin } from "@bitauth/libauth";
 import { queryAuthHeadWithOutputs, type AuthchainLink } from "src/queryChainGraph";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
@@ -157,6 +157,27 @@ export function identityOutput(
 
 // What a token output kept behind by a transfer carries in BCH, the same as a genesis gives one
 const keptTokenOutputValue = 1000n;
+
+// A mint from an identity UTXO is an authchain operation like the rest: the identity output
+// first, keeping the minting NFT and any reserve here, then the minted NFTs. mainnet-js's
+// tokenMint happens to order a mint this way; building it here makes that the rule rather than luck.
+export function mintOutputs(
+  authUtxo: Utxo,
+  addresses: { bch: string, token: string },
+  mints: { cashaddr: string; commitment: string; capability: string; value: bigint }[],
+) {
+  const category = authUtxo.token?.category;
+  if (!category) throw new Error("not a token identity UTXO");
+  return [
+    identityOutput(authUtxo, addresses),
+    ...mints.map(mint => new TokenSendRequest({
+      cashaddr: mint.cashaddr,
+      category,
+      nft: { commitment: mint.commitment, capability: mint.capability as NFTCapability },
+      value: mint.value,
+    })),
+  ];
+}
 
 // A transfer is the same spend as every other operation, with the new authhead at the destination
 // instead of here. What the old one carried either goes with it or stays: a reserve that stays
@@ -475,6 +496,7 @@ export type ChainLinkKind =
   | 'issue'
   | 'addToReserve'
   | 'emptyReserve'
+  | 'mint'
   | 'transfer'
   | 'operation';
 
@@ -484,6 +506,7 @@ export interface DescribedLink {
   kind: ChainLinkKind;
   reserve: bigint; // what the identity output carries after this link
   reserveDelta: bigint; // and how that changed, which is the issuance schedule read down the list
+  minted?: number; // NFTs of the category this link created beside the identity output
   publication?: MetadataPublication;
 }
 
@@ -503,11 +526,17 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
     );
     const movedAddress = previousLock !== undefined && identityOutput?.locking_bytecode !== previousLock;
 
+    // outputs of the category beside the identity output, with the reserve unchanged, are minted
+    // NFTs; an issuance also has them, and is told apart by the reserve going down first
+    const minted = link.outputs.filter(output =>
+      output.output_index !== "0" && output.token_category && output.token_category === identityOutput?.token_category
+    ).length;
     let kind: ChainLinkKind = 'operation';
     if (index === 0) kind = 'genesis';
     else if (publication) kind = 'publication';
     else if (reserveDelta < 0n) kind = reserve === 0n ? 'emptyReserve' : 'issue';
     else if (reserveDelta > 0n) kind = 'addToReserve';
+    else if (minted) kind = 'mint';
     else if (movedAddress) kind = 'transfer';
 
     previousReserve = reserve;
@@ -518,6 +547,7 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
       kind,
       reserve,
       reserveDelta,
+      ...(kind === 'mint' ? { minted } : {}),
       ...(publication ? { publication } : {}),
     };
   });
