@@ -300,6 +300,50 @@ describe('auth reservations follow the authchain', () => {
     expect(Object.keys(written)).toEqual([outpointOf(authUtxoA)])
   })
 
+  // unnamed is a derived view: a naming entry may stay in the map, but a UTXO the resolved list
+  // accounts for is never rendered as an unnamed card beside its named one
+  it('does not render an unnamed card for a UTXO a resolved identity accounts for', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const authUtxo = utxo(authheadA, 0)
+    const { store, identitiesStore } = startStore([authUtxo])
+    identitiesStore.authheadNaming = { [authheadA]: 'walkConcluded' }
+    expect(identitiesStore.unnamedAuthheadCoins()).toEqual([authUtxo])
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.unnamedAuthheadCoins()).toEqual([])
+    expect(identitiesStore.identities?.[0]?.category).toBe(categoryA)
+    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+  })
+
+  // detection runs after the resolve on every open; what the list already names must not come
+  // back as an unnamed entry and a "new" count each time
+  it('does not list again as unnamed what the resolve already names', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const { identitiesStore } = startStore([utxo(authheadA, 0)])
+    await identitiesStore.refreshIdentities()
+    // a publication marker on the authhead, which names nothing on its own
+    const walk = [{
+      transaction_hash: `\\x${categoryA}`,
+      output_index: '1',
+      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+      ] } }],
+    }]
+
+    await identitiesStore.detectWalletIdentities(walk)
+    await identitiesStore.detectWalletIdentities(walk)
+
+    expect(identitiesStore.authheadNaming).toEqual({})
+    expect(identitiesStore.unseenIdentities).toEqual([])
+    expect(identitiesStore.unseenCount).toBe(0)
+  })
+
   // the developer option runs the category half of the check on open: a find joins the list and
   // the trail like a detected one, an outage lands on the page rather than in a toast
   it('finds a received identity on open when the option is on, and reports an outage', async () => {

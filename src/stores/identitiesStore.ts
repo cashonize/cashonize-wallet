@@ -114,6 +114,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (!identity.category) {
         if (dismissedIdentities.value.includes(identity.authheadTxid)) continue;
         if (identity.authheadTxid in authheadNaming.value) continue;
+        // already named by the list, which resolved before this ran: not unnamed, not news
+        if ((identities.value ?? []).some(listed => listed.authheadTxid === identity.authheadTxid)) continue;
         authheadNaming.value = saveAuthheadNaming(
           mainStore.network, mainStore.wallet.name, identity.authheadTxid, 'pending'
         );
@@ -163,9 +165,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
     await refreshIdentities();
     if (await nameUnnamedAuthheads()) await refreshIdentities();
     // what this pass added to the unseen list, under the category where naming found one
-    const announced = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
-    await fetchMetadataFor(announced);
-    announceFound(announced);
+    const toAnnounce = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
+    await fetchMetadataFor(toAnnounce);
+    announceFound(toAnnounce);
   }
 
   // The explicit check's deeper half: every held vout-0 coin that is not already accounted for is
@@ -403,9 +405,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // Held authheads that carry no identity of their own on the list: same protection, no name
+  // Unnamed is derived, never stored: a coin the resolved list accounts for is not unnamed,
+  // whichever list found it first, so a naming entry left in the map renders nothing
   function unnamedAuthheadCoins() {
+    const named = (identities.value ?? []).map(identity => identity.authheadTxid);
     return (mainStore.walletUtxos ?? []).filter(
-      utxo => utxo.vout === 0 && utxo.txid in authheadNaming.value
+      utxo => utxo.vout === 0 && utxo.txid in authheadNaming.value && !named.includes(utxo.txid)
     );
   }
 
