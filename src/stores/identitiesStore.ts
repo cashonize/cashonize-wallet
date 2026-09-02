@@ -79,12 +79,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     }
   }
 
-  // A pass that outlives a wallet switch must not write under the next wallet: capture the epoch
-  // when the pass starts and ask before every write whether it is still the same one
-  const walletEpoch = () => {
-    const token = mainStore.currentInitializationToken();
-    return () => token !== mainStore.currentInitializationToken();
-  };
   // The persisted lists are per wallet per network, so every write names the pair
   const walletKey = () => [mainStore.network, mainStore.wallet.name] as const;
   const listCategory = (category: string) => {
@@ -188,17 +182,17 @@ export const useIdentitiesStore = defineStore('identities', () => {
   async function nameByWalkingBack(coins: Utxo[]) {
     const fetchTransaction = (txid: string) => mainStore.wallet.provider.getRawTransactionObject(txid);
     const named: { coin: Utxo; category: string }[] = [];
-    const walletChanged = walletEpoch();
+    const started = mainStore.currentInitializationToken();
     for (const coin of coins) {
       const category = await nameChainByWalkingBack(coin.txid, fetchTransaction);
-      if (walletChanged()) return named;
+      if (mainStore.walletSwitchedSince(started)) return named;
       if (!category) continue;
       if (identityCategories.value.includes(category)) continue;
       if (dismissedIdentities.value.includes(category)) continue;
       const confirmed = await queryAuthHeadWithOutputs(category, settingsStore.chaingraph)
         .then(result => result.txid === coin.txid)
         .catch(() => false);
-      if (walletChanged()) return named;
+      if (mainStore.walletSwitchedSince(started)) return named;
       if (!confirmed) continue;
       listCategory(category);
       named.push({ coin, category });
@@ -221,14 +215,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Naming what is already protected, once per session: a chain that could not be named now is
   // not walked again until the next open. A name found here is news, like any other find.
   async function nameUnnamedAuthheads() {
-      // the news moves to the category with the name
-      unseenIdentities.value = removeFromIdentityList('unseen', ...walletKey(), coin.txid);
     const coins = unnamedAuthheadCoins.value.filter(coin => !walkedThisSession.includes(coin.txid));
     if (!coins.length) return 0;
     walkedThisSession.push(...coins.map(coin => coin.txid));
     const named = await nameByWalkingBack(coins);
     for (const { coin, category } of named) {
       unnamedAuthheads.value = removeFromIdentityList('unnamed', ...walletKey(), coin.txid);
+      // the news moves to the category with the name
+      unseenIdentities.value = removeFromIdentityList('unseen', ...walletKey(), coin.txid);
       unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), category);
     }
     return named.length;
@@ -325,11 +319,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
       await syncAuthReservations([]);
       return;
     }
-    const walletChanged = walletEpoch();
+    const started = mainStore.currentInitializationToken();
     const resolved = await resolveIdentities(
       identityCategories.value, settingsStore.chaingraph, currentUtxos, guarded
     );
-    if (walletChanged()) return;
+    if (mainStore.walletSwitchedSince(started)) return;
     identities.value = resolved;
     await syncAuthReservations(resolved);
   }
@@ -358,12 +352,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // The writes go under whichever wallet is active when they run, so a wallet switch landing
   // between two of them is checked for before every write, not once on entry.
   async function syncAuthReservations(resolved: IdentityState[]) {
-    const walletChanged = walletEpoch();
+    const started = mainStore.currentInitializationToken();
     const authOutpoints: string[] = [];
     for (const coin of unnamedAuthheadCoins.value) {
       const outpoint = outpointOf(coin);
       authOutpoints.push(outpoint);
-      if (walletChanged()) return;
+      if (mainStore.walletSwitchedSince(started)) return;
       if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveUtxo(coin, 'auth');
     }
     for (const identity of resolved) {
@@ -375,14 +369,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
       authOutpoints.push(outpoint);
       // A reservation already made for another reason is left alone: the coin is held back either
       // way, and rewriting the reason would take it away from whatever made it
-      if (walletChanged()) return;
+      if (mainStore.walletSwitchedSince(started)) return;
       if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveUtxo(keyCoin, 'auth');
     }
     if (resolved.some(identity => identity.status === 'unresolved')) return;
     for (const [outpoint, reason] of Object.entries(mainStore.reservedUtxos)) {
       if (reason !== 'auth') continue;
       if (authOutpoints.includes(outpoint)) continue;
-      if (walletChanged()) return;
+      if (mainStore.walletSwitchedSince(started)) return;
       await mainStore.dropReservation(outpoint);
     }
   }
@@ -399,9 +393,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const heldCategories = (mainStore.tokenList ?? []).map(token => token.category);
     const listedCount = heldCategories.filter(category => identityCategories.value.includes(category)).length;
     const categoriesToCheck = heldCategories.filter(category => !identityCategories.value.includes(category));
-    const walletChanged = walletEpoch();
+    const started = mainStore.currentInitializationToken();
     const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
-    if (walletChanged()) return undefined;
+    if (mainStore.walletSwitchedSince(started)) return undefined;
     const found = resolved.filter(
       identity => identity.authUtxo && !dismissedIdentities.value.includes(identity.category)
     );
@@ -455,21 +449,21 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // The passes the wallet runs on its own once a wallet is up: the walk of its history for the
   // identities these keys made, mainnet only like the walk itself, and the developer option below
   async function runChecksOnOpen() {
-    const walletChanged = walletEpoch();
+    const started = mainStore.currentInitializationToken();
     openCheckError.value = undefined;
     if (mainStore.network === 'mainnet') {
       try {
         const spentOutputs = await mainStore.walkSpentOutputs();
-        if (walletChanged()) return;
+        if (mainStore.walletSwitchedSince(started)) return;
         await detectWalletIdentities(spentOutputs);
       } catch (error) {
         console.error("Failed to look for identities in the wallet's history:", error);
-        if (walletChanged()) return;
+        if (mainStore.walletSwitchedSince(started)) return;
         openCheckError.value = error instanceof Error ? error.message : String(error);
         return;
       }
     }
-    if (walletChanged()) return;
+    if (mainStore.walletSwitchedSince(started)) return;
     if (settingsStore.checkHeldTokensForIdentities) await checkHeldCategoriesOnOpen();
   }
 
@@ -501,7 +495,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (!listed.length) return;
     publicationChecksRunning.value = true;
     try {
-      const walletChanged = walletEpoch();
+      const started = mainStore.currentInitializationToken();
       const checked = await Promise.all(listed.map(async identity => {
         const publication = identity.publication!;
         const checks = await Promise.all(publication.uris.map(
@@ -509,7 +503,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
         ));
         return [identity.category, checks] as const;
       }));
-      if (walletChanged()) return;
+      if (mainStore.walletSwitchedSince(started)) return;
       publicationChecks.value = Object.fromEntries(checked);
     } finally {
       publicationChecksRunning.value = false;

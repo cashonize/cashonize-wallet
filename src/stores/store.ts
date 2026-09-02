@@ -405,10 +405,14 @@ export const useStore = defineStore('store', () => {
     identitiesStore.loadForWallet(newNetwork, newWallet.name);
   }
 
-  // A wallet initialization this counter has moved past is stale, and its work is dropped. Read
-  // by the identities store, whose passes outlive a wallet switch just as easily.
+  // A wallet initialization this counter has moved past is stale, and its work is dropped. The
+  // identities store's passes outlive a wallet switch just as easily: they note the token when
+  // they start and ask before every write.
   function currentInitializationToken() {
     return currentInitialization;
+  }
+  function walletSwitchedSince(started: number) {
+    return started !== currentInitialization;
   }
 
   function setTxNote(txid: string, note: string) {
@@ -1616,6 +1620,7 @@ export const useStore = defineStore('store', () => {
     reserveUtxo,
     reserveOutpoint,
     currentInitializationToken,
+    walletSwitchedSince,
     dropReservation,
     utxoLabels,
     setUtxoLabel,

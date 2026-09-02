@@ -107,8 +107,10 @@
   const identities = computed(() => identitiesStore.identities ?? []);
 
   // The chain as fetched at this authhead; nothing to show until it is resolved
-  const historyOf = (identity: IdentityState) =>
-    identity.authheadTxid ? identitiesStore.identityHistories[identity.authheadTxid] : undefined;
+  function historyOf(identity: IdentityState) {
+    if (!identity.authheadTxid) return undefined;
+    return identitiesStore.identityHistories[identity.authheadTxid];
+  }
 
   // How long an identity has stood, once its history says
   function establishedYear(identity: IdentityState): number | undefined {
