@@ -71,7 +71,7 @@ import {
 import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromSpentOutputs, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromSpentOutputs, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
-import { ChaingraphRequestError, querySpentOutputs } from "src/queryChainGraph"
+import { ChaingraphRequestError, querySpentOutputs, type ChaingraphSpentOutput } from "src/queryChainGraph"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -253,7 +253,7 @@ export const useStore = defineStore('store', () => {
   })
 
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
-  const bcmrIndexer = computed(() => network.value == 'mainnet' ? settingsStore.bcmrIndexerMainnet : settingsStore.bcmrIndexerChipnet)
+  const tokenMetadataIndexer = computed(() => network.value == 'mainnet' ? settingsStore.tokenMetadataIndexerMainnet : settingsStore.tokenMetadataIndexerChipnet)
 
   // Index of the receive address shown on the wallet page. For HD wallets this skips addresses
   // the user marked as used; undefined for single-address wallets and when every address in the
@@ -1107,7 +1107,7 @@ export const useStore = defineStore('store', () => {
   // Fetch token metadata from BCMR indexer
   async function fetchTokenMetadata(tokenList: TokenList, fetchNftInfo: boolean) {
     const initialization = currentInitialization;
-    const registries = await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, bcmrIndexer.value, bcmrRegistries.value);
+    const registries = await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, tokenMetadataIndexer.value, bcmrRegistries.value);
     if (initialization !== currentInitialization) return;
     bcmrRegistries.value = registries
   }
@@ -1242,7 +1242,7 @@ export const useStore = defineStore('store', () => {
     identitiesStore.openCheckError = undefined;
     if (network.value === 'mainnet') {
       try {
-        const spentOutputs = await querySpentOutputs(walletPublicKeyHashes(), settingsStore.chaingraph);
+        const spentOutputs = await walkSpentOutputs();
         if (initialization !== currentInitialization) return;
         await identitiesStore.detectWalletIdentities(spentOutputs);
       } catch (error) {
@@ -1254,6 +1254,23 @@ export const useStore = defineStore('store', () => {
     }
     if (initialization !== currentInitialization) return;
     if (settingsStore.checkHeldTokensForIdentities) await identitiesStore.checkHeldCategoriesOnOpen();
+  }
+
+  // The walk of the wallet's spent outputs runs at open for detection and again from the portfolio
+  // view. Its answer only changes when a UTXO of ours is spent, so the last answer is kept with
+  // the outpoints held when it was made and reused while every one of them is still held;
+  // incoming coins do not matter to it. Cleared on wallet switch like everything the counter guards.
+  let lastWalk: { spentOutputs: ChaingraphSpentOutput[]; heldOutpoints: string[]; initialization: number } | undefined;
+  async function walkSpentOutputs() {
+    const held = (walletUtxos.value ?? []).map(outpointOf);
+    const reusable = lastWalk
+      && lastWalk.initialization === currentInitialization
+      && lastWalk.heldOutpoints.every(outpoint => held.includes(outpoint));
+    if (reusable) return lastWalk!.spentOutputs;
+    const initialization = currentInitialization;
+    const spentOutputs = await querySpentOutputs(walletPublicKeyHashes(), settingsStore.chaingraph);
+    if (initialization === currentInitialization) lastWalk = { spentOutputs, heldOutpoints: held, initialization };
+    return spentOutputs;
   }
 
   // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the
@@ -1272,7 +1289,7 @@ export const useStore = defineStore('store', () => {
     try {
       const initialization = currentInitialization;
       const ownerPkhs = walletPublicKeyHashes();
-      const spentOutputs = await querySpentOutputs(ownerPkhs, settingsStore.chaingraph);
+      const spentOutputs = await walkSpentOutputs();
       if (initialization !== currentInitialization) return;
       const listings = listingsFromSpentOutputs(spentOutputs, ownerPkhs);
       tapswapListings.value = listings;
@@ -1293,12 +1310,12 @@ export const useStore = defineStore('store', () => {
         if (initialization !== currentInitialization) return;
         if (listing.commitment !== undefined) {
           if (tapswapRegistries.value[listing.category]?.nfts?.[listing.commitment]) continue;
-          await fetchNftMetadataFromIndexer(listing.category, listing.commitment, bcmrIndexer.value, tapswapRegistries.value);
+          await fetchNftMetadataFromIndexer(listing.category, listing.commitment, tokenMetadataIndexer.value, tapswapRegistries.value);
           continue;
         }
         if (tapswapRegistries.value[listing.category]) continue;
         await fetchTokenMetadataFromIndexer(
-          [{ category: listing.category, amount: listing.tokenAmount }], false, bcmrIndexer.value, tapswapRegistries.value
+          [{ category: listing.category, amount: listing.tokenAmount }], false, tokenMetadataIndexer.value, tapswapRegistries.value
         );
       }
     } catch (error) {
@@ -1340,7 +1357,7 @@ export const useStore = defineStore('store', () => {
   watch([() => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet], setDefaultElectrumServers);
 
   async function fetchTokenInfo(categoryId: string) {
-    const res = await cachedFetch(`${bcmrIndexer.value}/tokens/${categoryId}/`);
+    const res = await cachedFetch(`${tokenMetadataIndexer.value}/tokens/${categoryId}/`);
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
     const jsonResponse = await res.json()
     // validate the response to match expected schema
@@ -1349,17 +1366,17 @@ export const useStore = defineStore('store', () => {
       console.error(`BCMR indexer response validation error for URL ${res.url}: ${parseResult.error.message}`);
       throw new Error(t('store.errors.bcmrIndexerValidationError'))
     }
-    const bcmrIndexerResult = parseResult.data;
-    // check for error in bcmrIndexerResult
-    if ('error' in bcmrIndexerResult) {
-      throw new Error(`Indexer error: ${bcmrIndexerResult.error}`);
+    const tokenMetadataIndexerResult = parseResult.data;
+    // check for error in tokenMetadataIndexerResult
+    if ('error' in tokenMetadataIndexerResult) {
+      throw new Error(`Indexer error: ${tokenMetadataIndexerResult.error}`);
     }
-    return bcmrIndexerResult;
+    return tokenMetadataIndexerResult;
   }
 
   // Fetch NFT metadata for a specific category and commitment, updating bcmrRegistries
   async function fetchNftMetadata(category: string, commitment: string) {
-    const registries = await fetchNftMetadataFromIndexer(category, commitment, bcmrIndexer.value, bcmrRegistries.value);
+    const registries = await fetchNftMetadataFromIndexer(category, commitment, tokenMetadataIndexer.value, bcmrRegistries.value);
     bcmrRegistries.value = registries;
   }
 

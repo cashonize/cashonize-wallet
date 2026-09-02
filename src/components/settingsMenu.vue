@@ -101,16 +101,16 @@
   const selectedChaingraph = ref(isCustomChaingraph ? "custom" : storedChaingraph);
   const customChaingraph = ref(isCustomChaingraph ? storedChaingraph : "");
   const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
-  const predefinedBcmrIndexersMainnet = ["https://bcmr.paytaca.com/api"];
-  const predefinedBcmrIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
-  const storedBcmrIndexer = settingsStore.bcmrIndexerMainnet;
-  const isCustomBcmrIndexer = !predefinedBcmrIndexersMainnet.includes(storedBcmrIndexer);
-  const selectedBcmrIndexer = ref(isCustomBcmrIndexer ? "custom" : storedBcmrIndexer);
-  const customBcmrIndexer = ref(isCustomBcmrIndexer ? storedBcmrIndexer : "");
-  const storedBcmrIndexerChipnet = settingsStore.bcmrIndexerChipnet;
-  const isCustomBcmrIndexerChipnet = !predefinedBcmrIndexersChipnet.includes(storedBcmrIndexerChipnet);
-  const selectedBcmrIndexerChipnet = ref(isCustomBcmrIndexerChipnet ? "custom" : storedBcmrIndexerChipnet);
-  const customBcmrIndexerChipnet = ref(isCustomBcmrIndexerChipnet ? storedBcmrIndexerChipnet : "");
+  const predefinedTokenMetadataIndexersMainnet = ["https://bcmr.paytaca.com/api"];
+  const predefinedTokenMetadataIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
+  const storedTokenMetadataIndexer = settingsStore.tokenMetadataIndexerMainnet;
+  const isCustomTokenMetadataIndexer = !predefinedTokenMetadataIndexersMainnet.includes(storedTokenMetadataIndexer);
+  const selectedTokenMetadataIndexer = ref(isCustomTokenMetadataIndexer ? "custom" : storedTokenMetadataIndexer);
+  const customTokenMetadataIndexer = ref(isCustomTokenMetadataIndexer ? storedTokenMetadataIndexer : "");
+  const storedTokenMetadataIndexerChipnet = settingsStore.tokenMetadataIndexerChipnet;
+  const isCustomTokenMetadataIndexerChipnet = !predefinedTokenMetadataIndexersChipnet.includes(storedTokenMetadataIndexerChipnet);
+  const selectedTokenMetadataIndexerChipnet = ref(isCustomTokenMetadataIndexerChipnet ? "custom" : storedTokenMetadataIndexerChipnet);
+  const customTokenMetadataIndexerChipnet = ref(isCustomTokenMetadataIndexerChipnet ? storedTokenMetadataIndexerChipnet : "");
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
@@ -299,29 +299,29 @@
     // refetch token prices from the newly selected indexer
     void store.fetchCauldronPricesForTokens();
   }
-  function changeBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
-    const selected = targetNetwork == "mainnet" ? selectedBcmrIndexer.value : selectedBcmrIndexerChipnet.value;
+  function changeTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet"){
+    const selected = targetNetwork == "mainnet" ? selectedTokenMetadataIndexer.value : selectedTokenMetadataIndexerChipnet.value;
     if (selected === "custom") return;
-    applyBcmrIndexer(targetNetwork, selected);
+    applyTokenMetadataIndexer(targetNetwork, selected);
   }
-  function saveCustomBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
-    const customIndexer = targetNetwork == "mainnet" ? customBcmrIndexer.value : customBcmrIndexerChipnet.value;
+  function saveCustomTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet"){
+    const customIndexer = targetNetwork == "mainnet" ? customTokenMetadataIndexer.value : customTokenMetadataIndexerChipnet.value;
     // the store appends /tokens/... paths, so strip any trailing slash
     let trimmedIndexer = customIndexer.trim().replace(/\/+$/, "");
     if (!trimmedIndexer) return;
     // without a scheme the value would be used as a path on the app's own origin
     if (!/^https?:\/\//i.test(trimmedIndexer)) trimmedIndexer = `https://${trimmedIndexer}`;
-    if (targetNetwork == "mainnet") customBcmrIndexer.value = trimmedIndexer;
-    if (targetNetwork == "chipnet") customBcmrIndexerChipnet.value = trimmedIndexer;
-    applyBcmrIndexer(targetNetwork, trimmedIndexer);
+    if (targetNetwork == "mainnet") customTokenMetadataIndexer.value = trimmedIndexer;
+    if (targetNetwork == "chipnet") customTokenMetadataIndexerChipnet.value = trimmedIndexer;
+    applyTokenMetadataIndexer(targetNetwork, trimmedIndexer);
   }
-  function applyBcmrIndexer(targetNetwork: "mainnet" | "chipnet", indexerUrl: string){
+  function applyTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet", indexerUrl: string){
     if(targetNetwork == "mainnet"){
-      settingsStore.bcmrIndexerMainnet = indexerUrl;
+      settingsStore.tokenMetadataIndexerMainnet = indexerUrl;
       localStorage.setItem("bcmrIndexerMainnet", indexerUrl);
     }
     if(targetNetwork == "chipnet"){
-      settingsStore.bcmrIndexerChipnet = indexerUrl;
+      settingsStore.tokenMetadataIndexerChipnet = indexerUrl;
       localStorage.setItem("bcmrIndexerChipnet", indexerUrl);
     }
     // refetch token metadata from the newly selected indexer
@@ -757,23 +757,23 @@
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <InfoPopup>
           <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.bcmrIndexer') }}</label>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.tokenMetadataIndexer') }}</label>
           </template>
-          <div style="max-width: 300px;">{{ t('settings.advanced.bcmrIndexerHint') }}</div>
+          <div style="max-width: 300px;">{{ t('settings.advanced.tokenMetadataIndexerHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedBcmrIndexer" @change="changeBcmrIndexer('mainnet')">
-          <option v-for="(indexer, index) in predefinedBcmrIndexersMainnet" :key="indexer" :value="indexer">
+        <select v-model="selectedTokenMetadataIndexer" @change="changeTokenMetadataIndexer('mainnet')">
+          <option v-for="(indexer, index) in predefinedTokenMetadataIndexersMainnet" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
           </option>
           <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="selectedBcmrIndexer === 'custom'" style="margin-top: 8px;">
+        <div v-if="selectedTokenMetadataIndexer === 'custom'" style="margin-top: 8px;">
           <input
-            v-model="customBcmrIndexer"
-            @blur="saveCustomBcmrIndexer('mainnet')"
-            @keyup.enter="saveCustomBcmrIndexer('mainnet')"
+            v-model="customTokenMetadataIndexer"
+            @blur="saveCustomTokenMetadataIndexer('mainnet')"
+            @keyup.enter="saveCustomTokenMetadataIndexer('mainnet')"
             type="text"
-            :placeholder="t('settings.advanced.bcmrIndexerCustomPlaceholder')"
+            :placeholder="t('settings.advanced.tokenMetadataIndexerCustomPlaceholder')"
             style="width: 100%;"
           >
         </div>
@@ -782,23 +782,23 @@
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
         <InfoPopup>
           <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.bcmrIndexer') }}</label>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.tokenMetadataIndexer') }}</label>
           </template>
-          <div style="max-width: 300px;">{{ t('settings.advanced.bcmrIndexerHint') }}</div>
+          <div style="max-width: 300px;">{{ t('settings.advanced.tokenMetadataIndexerHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedBcmrIndexerChipnet" @change="changeBcmrIndexer('chipnet')">
-          <option v-for="(indexer, index) in predefinedBcmrIndexersChipnet" :key="indexer" :value="indexer">
+        <select v-model="selectedTokenMetadataIndexerChipnet" @change="changeTokenMetadataIndexer('chipnet')">
+          <option v-for="(indexer, index) in predefinedTokenMetadataIndexersChipnet" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
           </option>
           <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="selectedBcmrIndexerChipnet === 'custom'" style="margin-top: 8px;">
+        <div v-if="selectedTokenMetadataIndexerChipnet === 'custom'" style="margin-top: 8px;">
           <input
-            v-model="customBcmrIndexerChipnet"
-            @blur="saveCustomBcmrIndexer('chipnet')"
-            @keyup.enter="saveCustomBcmrIndexer('chipnet')"
+            v-model="customTokenMetadataIndexerChipnet"
+            @blur="saveCustomTokenMetadataIndexer('chipnet')"
+            @keyup.enter="saveCustomTokenMetadataIndexer('chipnet')"
             type="text"
-            :placeholder="t('settings.advanced.bcmrIndexerCustomPlaceholder')"
+            :placeholder="t('settings.advanced.tokenMetadataIndexerCustomPlaceholder')"
             style="width: 100%;"
           >
         </div>

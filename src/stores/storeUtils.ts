@@ -30,10 +30,13 @@ export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedU
   return arrayTokens
 }
 
+// The token metadata endpoints. The indexer indexes token identities only, keyed by category, so
+// this is not a way to name a non-token identity: the identities page reads those from their own
+// registries.
 export async function fetchTokenMetadata(
   tokenList: TokenList,
   fetchNftInfo: boolean,
-  bcmrIndexer: string,
+  tokenMetadataIndexer: string,
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
 ) {
   const metadataPromises = [];
@@ -43,11 +46,11 @@ export async function fetchTokenMetadata(
       const uniqueCommitments = new Set(listCommitments);
       for(const nftCommitment of uniqueCommitments) {
         const nftEndpoint = nftCommitment ? nftCommitment : "empty"
-        const metadataPromise = cachedFetch(`${bcmrIndexer}/tokens/${item.category}/${nftEndpoint}/`);
+        const metadataPromise = cachedFetch(`${tokenMetadataIndexer}/tokens/${item.category}/${nftEndpoint}/`);
         metadataPromises.push(metadataPromise);
       }
     } else {
-      const metadataPromise = cachedFetch(`${bcmrIndexer}/tokens/${item.category}/`);
+      const metadataPromise = cachedFetch(`${tokenMetadataIndexer}/tokens/${item.category}/`);
       metadataPromises.push(metadataPromise);
     }
   }
@@ -93,11 +96,11 @@ export async function fetchTokenMetadata(
 export async function fetchNftMetadata(
   category: string,
   commitment: string,
-  bcmrIndexer: string,
+  tokenMetadataIndexer: string,
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
 ) {
   const nftEndpoint = commitment || "empty";
-  const res = await cachedFetch(`${bcmrIndexer}/tokens/${category}/${nftEndpoint}/`);
+  const res = await cachedFetch(`${tokenMetadataIndexer}/tokens/${category}/${nftEndpoint}/`);
   if (res.status !== 200) return bcmrRegistries ?? {};
   const jsonResponse = await res.json();
   const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
