@@ -201,11 +201,7 @@
   // The metadata of a manually added identity is not in the registries yet: the wallet holds its
   // authhead rather than its token, so nothing else fetched it
   async function fetchMissingMetadata() {
-    const missing = identities.value
-      .filter(identity => !store.bcmrRegistries?.[identity.category])
-      .map(identity => ({ category: identity.category, amount: 0n }));
-    if (!missing.length) return;
-    await store.fetchTokenMetadata(missing, false);
+    await identitiesStore.fetchMetadataFor(identities.value.map(identity => identity.category));
   }
 
   // Re-resolving on every visit is the point of the page: the authhead moves whenever the identity's

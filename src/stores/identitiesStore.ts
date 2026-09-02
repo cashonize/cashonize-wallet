@@ -125,6 +125,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
       identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, identity.category);
       listed.push(identity.category);
     }
+    // on the unseen list right away, so the count and the card's box do not wait on naming
+    if (listed.length) unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, listed);
     return listed;
   }
 
@@ -133,21 +135,37 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // resolve so the dialog can say what each one carries; the wallet page opens it and clears this.
   const announced = ref([] as string[]);
   const announcement = ref<string[] | undefined>(undefined);
-  function announceFound(listed: string[]) {
-    unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, listed);
-    if (announced.value.length) return;
+  function announceFound(ids: string[]) {
+    if (!ids.length || announced.value.length) return;
     announced.value = addToIdentityList('announced', mainStore.network, mainStore.wallet.name, 'shown');
-    announcement.value = listed;
+    announcement.value = ids;
   }
 
+  // The registries of what is about to be shown, fetched so a dialog or the page can name it. A
+  // fetch that fails leaves the id standing in for the name, which is honest, so it never throws.
+  async function fetchMetadataFor(categories: string[]) {
+    const missing = categories
+      .filter(category => identityCategories.value.includes(category) && !mainStore.bcmrRegistries?.[category])
+      .map(category => ({ category, amount: 0n }));
+    if (!missing.length) return;
+    try {
+      await mainStore.fetchTokenMetadata(missing, false);
+    } catch (error) {
+      console.error("Failed to fetch metadata for identities:", error);
+    }
+  }
+
+  // Protection first, so it never waits on naming; the announcement last, so it has names to say
   async function detectWalletIdentities(spentOutputs: ChaingraphSpentOutput[]) {
     identityPublicationTxids.value = publicationTxids(spentOutputs);
-    const listed = listDetectedIdentities(spentOutputs);
-    if (!listed.length) return;
-    // protection first, so it never depends on the naming below working
+    const unseenBefore = unseenIdentities.value;
+    if (!listDetectedIdentities(spentOutputs).length) return;
     await refreshIdentities();
-    announceFound(listed);
     if (await nameUnnamedAuthheads()) await refreshIdentities();
+    // what this pass added to the unseen list, under the category where naming found one
+    const announced = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
+    await fetchMetadataFor(announced);
+    announceFound(announced);
   }
 
   // The explicit check's deeper half: every held vout-0 coin that is not already accounted for is
@@ -212,6 +230,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (initialization !== mainStore.currentInitializationToken()) return named;
       if (!confirmed) continue;
       authheadNaming.value = deleteAuthheadNaming(mainStore.network, mainStore.wallet.name, coin.txid);
+      // what was listed as a txid is now known by its category, and everything that reads the
+      // unseen list, the dialog, the count and the card's box, looks it up by category
+      if (unseenIdentities.value.includes(coin.txid)) {
+        removeFromIdentityList('unseen', mainStore.network, mainStore.wallet.name, coin.txid);
+        unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, category);
+      }
       if (identityCategories.value.includes(category)) continue;
       identityCategories.value = addToIdentityList('categories', mainStore.network, mainStore.wallet.name, category);
       named += 1;
@@ -505,8 +529,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
         return;
       }
       if (!categories.found.length) return;
+      const found = categories.found.map(identity => identity.category);
+      unseenIdentities.value = addToIdentityList('unseen', mainStore.network, mainStore.wallet.name, found);
       await resolveListedIdentities();
-      announceFound(categories.found.map(identity => identity.category));
+      await fetchMetadataFor(found);
+      announceFound(found);
     } finally {
       identitiesResolving.value = false;
     }
@@ -643,6 +670,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     scanForIdentities,
     checkHeldCategoriesOnOpen,
     openCheckError,
+    fetchMetadataFor,
     detectWalletIdentities,
     nameUnnamedAuthheads,
     unnamedAuthheadCoins,

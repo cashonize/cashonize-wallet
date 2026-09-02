@@ -499,6 +499,37 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
   })
 
+  // the dialog exists to say what was found by name, so it waits for the walk that names a
+  // publication-only identity and for its registry, and announces the category rather than the txid
+  it('announces a named identity by its category, not the txid the walk started from', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    const authUtxo = utxo(authheadA, 0)
+    const { store, identitiesStore } = startStore([authUtxo])
+    const provider = store.wallet.provider as unknown as { getRawTransactionObject: unknown }
+    // the walk names a chain at the genesis: the link that mints the category its input 0 spent
+    provider.getRawTransactionObject = vi.fn(() => Promise.resolve({
+      vin: [{ txid: categoryA, vout: 0 }],
+      vout: [{ tokenData: { category: categoryA } }],
+    }))
+    const walk = [{
+      transaction_hash: `\\x${categoryA}`,
+      output_index: '1',
+      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+      ] } }],
+    }]
+
+    await identitiesStore.detectWalletIdentities(walk)
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.unseenIdentities).toEqual([categoryA])
+    expect(identitiesStore.announcement).toEqual([categoryA])
+    expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
+  })
+
   // A cached chain ends at the authhead it was fetched for. Once that authhead moves, whether this
   // wallet moved it or the same keys did elsewhere, the cache is missing its newest link.
   it('forgets a cached history once its authhead has moved', async () => {
