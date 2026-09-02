@@ -644,8 +644,6 @@
   },
   "createTokens": {
     "title": "Create a token",
-    "intro": "You can use the {link} for the easiest token creation, or you can use the built-in process below for fine-grained control.",
-    "cashTokensStudio": "CashTokens Studio",
     "needBch": "Need BCH in wallet to create tokens",
     "genesisInput": {
       "explainer": "The UTXO this transaction spends becomes the token's permanent id.",
@@ -706,7 +704,25 @@
       "both": "Fungible tokens and a minting NFT"
     },
     "step": "Step {current} of {total}",
-    "reserveNote": "A token's supply is created at the identity's UTXO, so not all of it can go into circulation in this transaction. Leave part as reserve and issue it from the identities page afterwards."
+    "reserveNote": "A token's supply is created at the identity's UTXO, so not all of it can go into circulation in this transaction. Leave part as reserve and issue it from the identities page afterwards.",
+    "home": {
+      "question": "Where should the token's identity live?",
+      "wallet": "In this wallet",
+      "studio": "With CashTokens Studio",
+      "walletPoints": {
+        "1": "The identity UTXO stays here, held back from coin selection. Publishing, the reserve and transfer are done on the identities page: no dapp, no WalletConnect.",
+        "2": "You write and host the metadata yourself, on a domain or IPFS, so nothing about it depends on a service. The BCMR generator is for the writing.",
+        "3": "The protection is Cashonize's, not the chain's. Another Cashonize on this version finds the same identities from the chain and holds them back too, but a different wallet app on the same seed knows nothing about them, and an ordinary send from it spends the identity UTXO and ends the identity."
+      },
+      "studioPoints": {
+        "1": "The identity sits in an AuthGuard covenant, so no wallet can spend it by accident, whichever app holds the seed. This is the protection that does not depend on software care, and the reason to choose Studio when a seed is shared across apps.",
+        "2": "Control is a key NFT: movable in one send, sellable, holdable in a multisig, and one key can guard many identities.",
+        "3": "Authoring, hosting and creation are one flow, with the metadata on Studio's pinning service, and every later operation runs through Studio over WalletConnect, including leaving the covenant. Cashonize shows the key and what it guards, and links out for the rest."
+      },
+      "openStudio": "Open CashTokens Studio",
+      "studioKeyNote": "The key NFT Studio gives this wallet is shown in the token list with what it guards.",
+      "eitherWay": "Either can become the other later: sending an identity to the guard address is Studio's import, and unguarding brings it back to a plain address."
+    }
   },
   "utxoManagement": {
     "title": "UTXO Management",

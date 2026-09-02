@@ -644,8 +644,6 @@
   },
   "createTokens": {
     "title": "Einen Token erstellen",
-    "intro": "Du kannst das {link} für die einfachste Token-Erstellung verwenden, oder den eingebauten Prozess unten für detaillierte Kontrolle nutzen.",
-    "cashTokensStudio": "CashTokens Studio",
     "needBch": "BCH im Wallet benötigt, um Tokens zu erstellen",
     "genesisInput": {
       "explainer": "Der UTXO, den diese Transaktion ausgibt, wird zur dauerhaften Id des Tokens.",
@@ -706,7 +704,25 @@
       "both": "Fungible Token und ein Minting-NFT"
     },
     "step": "Schritt {current} von {total}",
-    "reserveNote": "Die Menge eines Tokens entsteht am UTXO der Identität, deshalb kann in dieser Transaktion nicht alles in den Umlauf gehen. Behalte einen Teil als Reserve und gib ihn danach über die Identitäten-Seite aus."
+    "reserveNote": "Die Menge eines Tokens entsteht am UTXO der Identität, deshalb kann in dieser Transaktion nicht alles in den Umlauf gehen. Behalte einen Teil als Reserve und gib ihn danach über die Identitäten-Seite aus.",
+    "home": {
+      "question": "Wo soll die Identität des Tokens liegen?",
+      "wallet": "In diesem Wallet",
+      "studio": "Mit CashTokens Studio",
+      "walletPoints": {
+        "1": "Der Identitäts-UTXO bleibt hier, von der Münzauswahl ausgenommen. Veröffentlichen, Reserve und Übertragung laufen über die Identitäten-Seite: keine Dapp, kein WalletConnect.",
+        "2": "Die Metadaten schreibst und hostest du selbst, auf einer Domain oder auf IPFS, also hängt nichts daran von einem Dienst ab. Der BCMR-Generator ist fürs Schreiben.",
+        "3": "Der Schutz ist der von Cashonize, nicht der der Chain. Ein anderes Cashonize dieser Version findet dieselben Identitäten aus der Chain und hält sie ebenfalls zurück, aber eine andere Wallet-App auf demselben Seed weiß nichts von ihnen, und ein gewöhnlicher Versand daraus gibt den Identitäts-UTXO aus und beendet die Identität."
+      },
+      "studioPoints": {
+        "1": "Die Identität liegt in einem AuthGuard-Contract, kein Wallet kann sie also aus Versehen ausgeben, welche App auch immer den Seed hält. Das ist der Schutz, der nicht von sorgfältiger Software abhängt, und der Grund, Studio zu wählen, wenn ein Seed in mehreren Apps steckt.",
+        "2": "Die Kontrolle ist ein Schlüssel-NFT: mit einem Versand beweglich, verkäuflich, in einer Multisig haltbar, und ein Schlüssel kann viele Identitäten bewachen.",
+        "3": "Schreiben, Hosten und Erstellen sind ein Ablauf, die Metadaten liegen auf Studios Pinning-Dienst, und jede spätere Operation läuft über Studio per WalletConnect, auch das Verlassen des Contracts. Cashonize zeigt den Schlüssel und was er bewacht und verlinkt für den Rest nach außen."
+      },
+      "openStudio": "CashTokens Studio öffnen",
+      "studioKeyNote": "Das Schlüssel-NFT, das Studio diesem Wallet gibt, wird in der Token-Liste mit dem gezeigt, was es bewacht.",
+      "eitherWay": "Beides lässt sich später in das andere verwandeln: eine Identität an die Guard-Adresse zu senden ist Studios Import, und das Aufheben des Guards bringt sie zurück auf eine gewöhnliche Adresse."
+    }
   },
   "utxoManagement": {
     "title": "UTXO-Verwaltung",

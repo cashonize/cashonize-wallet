@@ -27,6 +27,12 @@
 
   const inputFungibleSupply = ref("");
   const inputCirculating = ref("");
+  // Where the token's identity lives afterwards: here, held back, or in an AuthGuard covenant made
+  // by CashTokens Studio. This page only makes the first; the second is a link out.
+  const identityHome = ref<'wallet' | 'studio'>('wallet');
+  const homePoints = computed(() => [1, 2, 3].map(point => t(`createTokens.home.${identityHome.value}Points.${point}`)));
+  const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
+
   // What the token is, rather than a supply field and a toggle the user has to combine into one
   const tokenShape = ref<'fungible' | 'mintingNft' | 'both'>('fungible');
   const createMintingNft = computed(() => tokenShape.value !== 'fungible');
@@ -229,14 +235,28 @@
   <div>
     <fieldset class="item">
       <legend>{{ t('createTokens.title') }}</legend>
-      <div>
-        <i18n-t keypath="createTokens.intro" tag="span">
-          <template #link>
-            <a :href="store.network == 'mainnet'? 'https://cashtokens.studio/': 'https://chipnet.cashtokens.studio/'" target="_blank">{{ t('createTokens.cashTokensStudio') }}</a>
-          </template>
-        </i18n-t>
+      <!-- The one decision on this page a creator cannot see the consequences of from the form:
+           where the token's identity lives afterwards, what protects it, and what it then depends
+           on. Both sides get the same shape so neither reads as the recommended one. -->
+      <div>{{ t('createTokens.home.question') }}</div>
+      <div class="type-filter" style="margin-top: 8px;">
+        <button :class="{ active: identityHome === 'wallet' }" @click="identityHome = 'wallet'">
+          {{ t('createTokens.home.wallet') }}
+        </button>
+        <button :class="{ active: identityHome === 'studio' }" @click="identityHome = 'studio'">
+          {{ t('createTokens.home.studio') }}
+        </button>
       </div>
+      <ul class="home-points">
+        <li v-for="point in homePoints" :key="point">{{ point }}</li>
+      </ul>
+      <template v-if="identityHome === 'studio'">
+        <a :href="studioUrl" target="_blank" class="button">{{ t('createTokens.home.openStudio') }}</a>
+        <div class="description" style="margin-top: 8px;">{{ t('createTokens.home.studioKeyNote') }}</div>
+      </template>
+      <div class="description" style="margin-top: 10px;">{{ t('createTokens.home.eitherWay') }}</div>
 
+      <template v-if="identityHome === 'wallet'">
       <div v-if="store.spendableBalance === 0n" style="color: red; margin-top: 15px;">{{ t('createTokens.needBch') }}</div>
 
       <!-- Which coin the genesis spends decides the token's permanent id, which is the whole of
@@ -391,6 +411,7 @@
         style="margin: 10px 0 4px;"
         :disabled="activeAction !== null || !genesisInput || genesisProblem !== undefined"
       >
+      </template>
     </fieldset>
   </div>
 </template>
@@ -406,6 +427,13 @@
    rather than carrying a heading in bold over each of them */
 .section {
   margin-top: 20px;
+}
+.home-points {
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+.home-points li {
+  margin-top: 4px;
 }
 label {
   display: block;

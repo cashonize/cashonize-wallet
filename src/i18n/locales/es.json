@@ -644,8 +644,6 @@
   },
   "createTokens": {
     "title": "Crear un token",
-    "intro": "Puedes usar el {link} para la creación de tokens más fácil, o puedes usar el proceso integrado a continuación para un control más detallado.",
-    "cashTokensStudio": "CashTokens Studio",
     "needBch": "Se necesita BCH en la billetera para crear tokens",
     "genesisInput": {
       "explainer": "El UTXO que gasta esta transacción se convierte en el id permanente del token.",
@@ -706,7 +704,25 @@
       "both": "Tokens fungibles y un NFT de acuñación"
     },
     "step": "Paso {current} de {total}",
-    "reserveNote": "El suministro de un token se crea en el UTXO de la identidad, así que no todo puede entrar en circulación en esta transacción. Guarda una parte como reserva y emítela después desde la página de identidades."
+    "reserveNote": "El suministro de un token se crea en el UTXO de la identidad, así que no todo puede entrar en circulación en esta transacción. Guarda una parte como reserva y emítela después desde la página de identidades.",
+    "home": {
+      "question": "¿Dónde debe vivir la identidad del token?",
+      "wallet": "En esta billetera",
+      "studio": "Con CashTokens Studio",
+      "walletPoints": {
+        "1": "El UTXO de identidad se queda aquí, fuera de la selección de monedas. Publicar, la reserva y la transferencia se hacen en la página de identidades: sin dapp, sin WalletConnect.",
+        "2": "Los metadatos los escribes y alojas tú, en un dominio o en IPFS, así que nada de ellos depende de un servicio. El generador BCMR es para escribirlos.",
+        "3": "La protección es de Cashonize, no de la cadena. Otro Cashonize de esta versión encuentra las mismas identidades en la cadena y también las retiene, pero otra app de billetera con la misma semilla no sabe nada de ellas, y un envío normal desde ella gasta el UTXO de identidad y termina la identidad."
+      },
+      "studioPoints": {
+        "1": "La identidad está en un contrato AuthGuard, así que ninguna billetera puede gastarla por accidente, sea cual sea la app que tenga la semilla. Es la protección que no depende del cuidado del software, y la razón para elegir Studio cuando una semilla se usa en varias apps.",
+        "2": "El control es un NFT clave: se mueve en un envío, se puede vender, se puede tener en una multifirma, y una clave puede custodiar muchas identidades.",
+        "3": "Redactar, alojar y crear son un solo flujo, con los metadatos en el servicio de pinning de Studio, y cada operación posterior pasa por Studio mediante WalletConnect, incluida la salida del contrato. Cashonize muestra la clave y lo que custodia, y enlaza fuera para el resto."
+      },
+      "openStudio": "Abrir CashTokens Studio",
+      "studioKeyNote": "El NFT clave que Studio le da a esta billetera se muestra en la lista de tokens con lo que custodia.",
+      "eitherWay": "Cualquiera puede convertirse en la otra después: enviar una identidad a la dirección del guard es la importación de Studio, y quitar el guard la devuelve a una dirección normal."
+    }
   },
   "utxoManagement": {
     "title": "Gestión de UTXO",
