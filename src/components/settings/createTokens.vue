@@ -30,7 +30,6 @@
   // Where the token's identity lives afterwards: here, held back, or in an AuthGuard covenant made
   // by CashTokens Studio. This page only makes the first; the second is a link out.
   const identityHome = ref<'wallet' | 'studio'>('wallet');
-  const homePoints = computed(() => [1, 2, 3].map(point => t(`createTokens.home.${identityHome.value}Points.${point}`)));
   const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
 
   // What the token is, rather than a supply field and a toggle the user has to combine into one
@@ -238,7 +237,23 @@
       <!-- The one decision on this page a creator cannot see the consequences of from the form:
            where the token's identity lives afterwards, what protects it, and what it then depends
            on. Both sides get the same shape so neither reads as the recommended one. -->
-      <div>{{ t('createTokens.home.question') }}</div>
+      <div>
+        {{ t('createTokens.home.question') }}
+        <!-- the full account of each side, for whoever wants it; the rows below carry the decision -->
+        <InfoPopup>
+          <div style="max-width: 320px;">
+            <div><b>{{ t('createTokens.home.wallet') }}</b></div>
+            <ul class="home-points">
+              <li v-for="point in [1, 2, 3]" :key="point">{{ t(`createTokens.home.walletPoints.${point}`) }}</li>
+            </ul>
+            <div style="margin-top: 8px;"><b>{{ t('createTokens.home.studio') }}</b></div>
+            <ul class="home-points">
+              <li v-for="point in [1, 2, 3]" :key="point">{{ t(`createTokens.home.studioPoints.${point}`) }}</li>
+            </ul>
+            <div class="info-popup-note">{{ t('createTokens.home.eitherWay') }}</div>
+          </div>
+        </InfoPopup>
+      </div>
       <div class="type-filter" style="margin-top: 8px;">
         <button :class="{ active: identityHome === 'wallet' }" @click="identityHome = 'wallet'">
           {{ t('createTokens.home.wallet') }}
@@ -247,22 +262,24 @@
           {{ t('createTokens.home.studio') }}
         </button>
       </div>
-      <ul class="home-points">
-        <li v-for="point in homePoints" :key="point">{{ point }}</li>
-      </ul>
-      <template v-if="identityHome === 'studio'">
-        <a :href="studioUrl" target="_blank" class="button">{{ t('createTokens.home.openStudio') }}</a>
-        <div class="description" style="margin-top: 8px;">{{ t('createTokens.home.studioKeyNote') }}</div>
-      </template>
-      <div class="description" style="margin-top: 10px;">{{ t('createTokens.home.eitherWay') }}</div>
+      <!-- the same three leads on both sides, so toggling compares like with like -->
+      <div class="home-rows">
+        <div v-for="row in ['protection', 'metadata', 'operations']" :key="row">
+          <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${identityHome}Rows.${row}`) }}
+        </div>
+      </div>
+      <a v-if="identityHome === 'studio'" :href="studioUrl" target="_blank" class="button primaryButton">
+        {{ t('createTokens.home.openStudio') }}
+      </a>
+      <div class="description" style="margin-top: 10px;">{{ t('createTokens.home.moveLater') }}</div>
 
       <template v-if="identityHome === 'wallet'">
-      <div v-if="store.spendableBalance === 0n" style="color: red; margin-top: 15px;">{{ t('createTokens.needBch') }}</div>
 
       <!-- Which coin the genesis spends decides the token's permanent id, which is the whole of
            what this section is, so it leads with that rather than with a heading repeating it -->
       <div class="section">
         <div class="description">{{ t('createTokens.step', { current: 1, total: 3 }) }}</div>
+        <div v-if="store.spendableBalance === 0n" style="color: red;">{{ t('createTokens.needBch') }}</div>
         <div>{{ t('createTokens.genesisInput.explainer') }}</div>
 
         <!-- Preparing a coin is a step towards creating rather than the page's action, so it
@@ -428,8 +445,14 @@
 .section {
   margin-top: 20px;
 }
+.home-rows {
+  margin-top: 10px;
+}
+.home-rows div {
+  margin-top: 4px;
+}
 .home-points {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   padding-left: 20px;
 }
 .home-points li {

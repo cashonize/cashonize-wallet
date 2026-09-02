@@ -720,8 +720,23 @@
         "3": "Redactar, alojar y crear son un solo flujo, con los metadatos en el servicio de pinning de Studio, y cada operación posterior pasa por Studio mediante WalletConnect, incluida la salida del contrato. Cashonize muestra la clave y lo que custodia, y enlaza fuera para el resto."
       },
       "openStudio": "Abrir CashTokens Studio",
-      "studioKeyNote": "El NFT clave que Studio le da a esta billetera se muestra en la lista de tokens con lo que custodia.",
-      "eitherWay": "Cualquiera puede convertirse en la otra después: enviar una identidad a la dirección del guard es la importación de Studio, y quitar el guard la devuelve a una dirección normal."
+      "eitherWay": "Cualquiera puede convertirse en la otra después: enviar una identidad a la dirección del guard es la importación de Studio, y quitar el guard la devuelve a una dirección normal.",
+      "leads": {
+        "protection": "Protección:",
+        "metadata": "Metadatos:",
+        "operations": "Operaciones:"
+      },
+      "walletRows": {
+        "protection": "Cashonize lo retiene para que no se gaste. Otra app de billetera con la misma semilla puede gastarlo.",
+        "metadata": "los escribes y alojas tú, en un dominio o en IPFS.",
+        "operations": "publicar, reserva y transferencia aquí, en la página de identidades."
+      },
+      "studioRows": {
+        "protection": "bloqueado en un contrato en cadena. Ninguna billetera puede gastarlo por accidente.",
+        "metadata": "escritos y alojados por el servicio de Studio.",
+        "operations": "a través del sitio de Studio mediante WalletConnect. Cashonize muestra la clave que tienes."
+      },
+      "moveLater": "Puedes mover una identidad de uno a otro más adelante."
     }
   },
   "utxoManagement": {

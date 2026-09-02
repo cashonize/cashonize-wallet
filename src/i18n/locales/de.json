@@ -720,8 +720,23 @@
         "3": "Schreiben, Hosten und Erstellen sind ein Ablauf, die Metadaten liegen auf Studios Pinning-Dienst, und jede spätere Operation läuft über Studio per WalletConnect, auch das Verlassen des Contracts. Cashonize zeigt den Schlüssel und was er bewacht und verlinkt für den Rest nach außen."
       },
       "openStudio": "CashTokens Studio öffnen",
-      "studioKeyNote": "Das Schlüssel-NFT, das Studio diesem Wallet gibt, wird in der Token-Liste mit dem gezeigt, was es bewacht.",
-      "eitherWay": "Beides lässt sich später in das andere verwandeln: eine Identität an die Guard-Adresse zu senden ist Studios Import, und das Aufheben des Guards bringt sie zurück auf eine gewöhnliche Adresse."
+      "eitherWay": "Beides lässt sich später in das andere verwandeln: eine Identität an die Guard-Adresse zu senden ist Studios Import, und das Aufheben des Guards bringt sie zurück auf eine gewöhnliche Adresse.",
+      "leads": {
+        "protection": "Schutz:",
+        "metadata": "Metadaten:",
+        "operations": "Operationen:"
+      },
+      "walletRows": {
+        "protection": "von Cashonize vom Ausgeben zurückgehalten. Eine andere Wallet-App auf demselben Seed kann ihn ausgeben.",
+        "metadata": "schreibst und hostest du selbst, auf einer Domain oder auf IPFS.",
+        "operations": "veröffentlichen, Reserve und Übertragung hier, auf der Identitäten-Seite."
+      },
+      "studioRows": {
+        "protection": "in einem Contract auf der Chain gesperrt. Kein Wallet kann ihn aus Versehen ausgeben.",
+        "metadata": "von Studios Dienst geschrieben und gehostet.",
+        "operations": "über Studios Seite per WalletConnect. Cashonize zeigt den Schlüssel, den du hältst."
+      },
+      "moveLater": "Eine Identität lässt sich später vom einen ins andere bewegen."
     }
   },
   "utxoManagement": {

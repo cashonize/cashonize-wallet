@@ -720,8 +720,23 @@
         "3": "Rédaction, hébergement et création sont un seul parcours, avec les métadonnées sur le service d'épinglage de Studio, et chaque opération ultérieure passe par Studio via WalletConnect, y compris la sortie du contrat. Cashonize affiche la clé et ce qu'elle garde, et renvoie vers l'extérieur pour le reste."
       },
       "openStudio": "Ouvrir CashTokens Studio",
-      "studioKeyNote": "Le NFT clé que Studio donne à ce portefeuille apparaît dans la liste des tokens avec ce qu'il garde.",
-      "eitherWay": "L'un peut devenir l'autre plus tard : envoyer une identité à l'adresse du guard est l'import de Studio, et retirer le guard la ramène à une adresse ordinaire."
+      "eitherWay": "L'un peut devenir l'autre plus tard : envoyer une identité à l'adresse du guard est l'import de Studio, et retirer le guard la ramène à une adresse ordinaire.",
+      "leads": {
+        "protection": "Protection :",
+        "metadata": "Métadonnées :",
+        "operations": "Opérations :"
+      },
+      "walletRows": {
+        "protection": "écarté de la dépense par Cashonize. Une autre application de portefeuille sur la même graine peut le dépenser.",
+        "metadata": "vous les rédigez et hébergez vous-même, sur un domaine ou IPFS.",
+        "operations": "publication, réserve et transfert ici, sur la page des identités."
+      },
+      "studioRows": {
+        "protection": "verrouillé dans un contrat sur la chaîne. Aucun portefeuille ne peut le dépenser par accident.",
+        "metadata": "rédigées et hébergées par le service de Studio.",
+        "operations": "via le site de Studio par WalletConnect. Cashonize affiche la clé que vous détenez."
+      },
+      "moveLater": "Vous pourrez déplacer une identité de l'un à l'autre plus tard."
     }
   },
   "utxoManagement": {

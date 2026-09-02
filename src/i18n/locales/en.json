@@ -720,8 +720,23 @@
         "3": "Authoring, hosting and creation are one flow, with the metadata on Studio's pinning service, and every later operation runs through Studio over WalletConnect, including leaving the covenant. Cashonize shows the key and what it guards, and links out for the rest."
       },
       "openStudio": "Open CashTokens Studio",
-      "studioKeyNote": "The key NFT Studio gives this wallet is shown in the token list with what it guards.",
-      "eitherWay": "Either can become the other later: sending an identity to the guard address is Studio's import, and unguarding brings it back to a plain address."
+      "eitherWay": "Either can become the other later: sending an identity to the guard address is Studio's import, and unguarding brings it back to a plain address.",
+      "leads": {
+        "protection": "Protection:",
+        "metadata": "Metadata:",
+        "operations": "Operations:"
+      },
+      "walletRows": {
+        "protection": "held back from spending by Cashonize. Another wallet app on the same seed can spend it.",
+        "metadata": "you write and host it yourself, on a domain or IPFS.",
+        "operations": "publish, reserve and transfer here, on the identities page."
+      },
+      "studioRows": {
+        "protection": "locked in a contract on chain. No wallet can spend it by accident.",
+        "metadata": "written and hosted by Studio's service.",
+        "operations": "through Studio's site over WalletConnect. Cashonize shows the key you hold."
+      },
+      "moveLater": "You can move an identity from one to the other later."
     }
   },
   "utxoManagement": {
