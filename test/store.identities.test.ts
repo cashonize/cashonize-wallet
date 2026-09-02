@@ -512,6 +512,33 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
   })
 
+  // an unnamed authhead is news once, like a category: a chain the walk cannot name must not keep
+  // the menus saying "new" forever
+  it('counts an unnamed authhead as unseen until a visit, and not again after', async () => {
+    const authUtxo = utxo(authheadA, 0)
+    const { identitiesStore } = startStore([authUtxo])
+    const walk = [{
+      transaction_hash: `\\x${categoryA}`,
+      output_index: '1',
+      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
+        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
+          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
+      ] } }],
+    }]
+    await identitiesStore.detectWalletIdentities(walk)
+    expect(identitiesStore.unseenCount).toBe(1)
+    expect(identitiesStore.announcement).toEqual([authheadA])
+
+    identitiesStore.markIdentitiesSeen()
+    expect(identitiesStore.unseenCount).toBe(0)
+
+    await identitiesStore.detectWalletIdentities(walk)
+    expect(identitiesStore.unseenCount).toBe(0)
+    expect(identitiesStore.unnamedAuthheadCoins).toEqual([authUtxo])
+  })
+
   // the dialog exists to say what was found by name, so it waits for the walk that names a
   // publication-only identity and for its registry, and announces the category rather than the txid
   it('announces a named identity by its category, not the txid the walk started from', async () => {

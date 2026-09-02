@@ -136,9 +136,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
       listCategory(identity.category);
       listed.push(identity.category);
     }
-    // the unseen list holds categories only; an unnamed authhead counts as news from its own list
-    const categories = listed.filter(id => identityCategories.value.includes(id));
-    if (categories.length) unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), categories);
+    // news either way, an unnamed authhead like a category, cleared by the next visit
+    if (listed.length) unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), listed);
     return listed;
   }
 
@@ -222,6 +221,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Naming what is already protected, once per session: a chain that could not be named now is
   // not walked again until the next open. A name found here is news, like any other find.
   async function nameUnnamedAuthheads() {
+      // the news moves to the category with the name
+      unseenIdentities.value = removeFromIdentityList('unseen', ...walletKey(), coin.txid);
     const coins = unnamedAuthheadCoins.value.filter(coin => !walkedThisSession.includes(coin.txid));
     if (!coins.length) return 0;
     walkedThisSession.push(...coins.map(coin => coin.txid));
@@ -252,7 +253,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // What the notification trail counts: identities listed without being asked for, answered by
   // opening the page. A key candidate is a shape guess about an NFT and gets no wallet-level
   // marker; the token item carries that nudge.
-  const unseenCount = computed(() => unseenIdentities.value.length + unnamedAuthheadCoins.value.length);
+  const unseenCount = computed(() => unseenIdentities.value.length);
 
   // The page has been opened, so what it found on its own is no longer news
   function markIdentitiesSeen() {
