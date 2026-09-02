@@ -307,7 +307,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
-    identitiesStore.authheadNaming = { [authheadA]: 'walkConcluded' }
+    identitiesStore.unnamedAuthheads = [authheadA]
     expect(identitiesStore.unnamedAuthheadCoins()).toEqual([authUtxo])
 
     await identitiesStore.refreshIdentities()
@@ -339,7 +339,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.detectWalletIdentities(walk)
     await identitiesStore.detectWalletIdentities(walk)
 
-    expect(identitiesStore.authheadNaming).toEqual({})
+    expect(identitiesStore.unnamedAuthheads).toEqual([])
     expect(identitiesStore.unseenIdentities).toEqual([])
     expect(identitiesStore.unseenCount).toBe(0)
   })
@@ -514,7 +514,7 @@ describe('auth reservations follow the authchain', () => {
 
     await identitiesStore.detectWalletIdentities(walk)
 
-    expect(Object.keys(identitiesStore.authheadNaming)).toEqual([authheadA])
+    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA])
     expect(store.reservedUtxos[outpointOf(authUtxo)]?.reason).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
     // nothing was named, so nothing joined the identity list
@@ -539,7 +539,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.removeUnnamedAuthhead(authheadA)
     await identitiesStore.detectWalletIdentities(walk)
 
-    expect(Object.keys(identitiesStore.authheadNaming)).toEqual([])
+    expect(identitiesStore.unnamedAuthheads).toEqual([])
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authUtxo])
   })
@@ -547,7 +547,7 @@ describe('auth reservations follow the authchain', () => {
   // A chain that walked to a conclusion without a genesis must not be walked again on every wallet
   // open: that is up to the hop limit in fetches, for an answer that cannot have changed while the
   // authhead has not moved.
-  it('walks an unnameable authhead once and remembers the conclusion', async () => {
+  it('walks an unnameable authhead once per session', async () => {
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
     // a chain that goes nowhere: the walk concludes rather than failing to fetch
@@ -568,7 +568,7 @@ describe('auth reservations follow the authchain', () => {
       ] } }],
     }]
     await identitiesStore.detectWalletIdentities(walk)
-    expect(identitiesStore.authheadNaming[authheadA]).toBe('walkConcluded')
+    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA])
     const afterFirst = fetched.length
     expect(afterFirst).toBeGreaterThan(0)
 

@@ -38,7 +38,7 @@ describe('detectIdentities', () => {
       output(0, { token_category: bytea(genesisInputTxid), fungible_token_amount: '1000' }),
     ])]
 
-    expect(detectIdentities(rows)).toEqual([
+    expect(detectIdentities(rows).identities).toEqual([
       { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'genesis' },
     ])
   })
@@ -49,7 +49,7 @@ describe('detectIdentities', () => {
       output(0, { token_category: bytea(genesisInputTxid), fungible_token_amount: '1000' }),
     ])]
 
-    expect(detectIdentities(rows)).toEqual([])
+    expect(detectIdentities(rows).identities).toEqual([])
   })
 
   // a token sent onward is not a token created: the category is somebody else's outpoint
@@ -58,7 +58,7 @@ describe('detectIdentities', () => {
       output(0, { token_category: bytea(otherCategory), fungible_token_amount: '1000' }),
     ])]
 
-    expect(detectIdentities(rows)).toEqual([])
+    expect(detectIdentities(rows).identities).toEqual([])
   })
 
   it('finds a metadata publication these keys made, named by its identity output', () => {
@@ -67,7 +67,7 @@ describe('detectIdentities', () => {
       output(2, { locking_bytecode: bytea(publicationBytecode) }),
     ])]
 
-    expect(detectIdentities(rows)).toEqual([
+    expect(detectIdentities(rows).identities).toEqual([
       { authheadTxid: spenderTxid, category: otherCategory, marker: 'publication' },
     ])
   })
@@ -80,7 +80,7 @@ describe('detectIdentities', () => {
       output(1, { locking_bytecode: bytea(publicationBytecode) }),
     ])]
 
-    expect(detectIdentities(rows)).toEqual([
+    expect(detectIdentities(rows).identities).toEqual([
       { authheadTxid: spenderTxid, marker: 'publication' },
     ])
   })
@@ -88,7 +88,7 @@ describe('detectIdentities', () => {
   it('ignores a transaction that is neither', () => {
     const rows = [walkRow({ txid: genesisInputTxid, vout: 1 }, spenderTxid, [output(0), output(1)])]
 
-    expect(detectIdentities(rows)).toEqual([])
+    expect(detectIdentities(rows).identities).toEqual([])
   })
 
   // the walk lists a transaction once per wallet output it spent, and it is one identity
@@ -104,7 +104,7 @@ describe('detectIdentities', () => {
       ]),
     ]
 
-    expect(detectIdentities(rows)).toHaveLength(1)
+    expect(detectIdentities(rows).identities).toHaveLength(1)
   })
 
   // the genesis marker is the more informative one, so it is not overwritten by the other
@@ -114,7 +114,7 @@ describe('detectIdentities', () => {
       output(1, { locking_bytecode: bytea(publicationBytecode) }),
     ])]
 
-    expect(detectIdentities(rows)[0]?.marker).toBe('genesis')
+    expect(detectIdentities(rows).identities[0]?.marker).toBe('genesis')
   })
 })
 
@@ -149,7 +149,7 @@ describe('nameChainByWalkingBack', () => {
     ])
 
     expect(await nameChainByWalkingBack(authhead, fetchTransaction))
-      .toEqual({ outcome: 'named', category: genesisInput })
+      .toBe(genesisInput)
   })
 
   // every link is this chain's, so a token on its output 0 is the identity's own category: an NFT
@@ -163,8 +163,7 @@ describe('nameChainByWalkingBack', () => {
       { txid: genesis, parent: genesisInput, mints: genesisInput },
     ])
 
-    expect(await nameChainByWalkingBack(authhead, fetchTransaction))
-      .toEqual({ outcome: 'named', category })
+    expect(await nameChainByWalkingBack(authhead, fetchTransaction)).toBe(category)
     expect(calls).toEqual([authhead, middle])
   })
 
@@ -189,17 +188,17 @@ describe('nameChainByWalkingBack', () => {
 
     // a conclusion: walked as far as it is worth walking, so this one is worth remembering
     expect(await nameChainByWalkingBack(links[0]!.txid, fetchTransaction, 4))
-      .toEqual({ outcome: 'unnameable' })
+      .toBeUndefined()
     expect(calls).toHaveLength(4)
   })
 
   // an unfetchable hop says nothing about the chain, so it must not be remembered as a conclusion:
   // one network failure would otherwise give up on naming it forever
-  it('reports an unfetchable hop as unavailable rather than as a conclusion', async () => {
+  it('gives up on an unfetchable hop, to be walked again next session', async () => {
     const { fetchTransaction } = chainFetcher([{ txid: authhead, parent: middle }])
 
     expect(await nameChainByWalkingBack(authhead, fetchTransaction))
-      .toEqual({ outcome: 'unavailable' })
+      .toBeUndefined()
   })
 
   // a transaction spending no vout-0 outpoint is not an authchain link
@@ -207,6 +206,6 @@ describe('nameChainByWalkingBack', () => {
     const fetchTransaction = () => Promise.resolve({ vin: [{ txid: middle, vout: 2 }], vout: [] })
 
     expect(await nameChainByWalkingBack(authhead, fetchTransaction))
-      .toEqual({ outcome: 'unnameable' })
+      .toBeUndefined()
   })
 })

@@ -368,6 +368,9 @@ const identityListKeys = {
   // key candidates already put to the user once. Only the asking is remembered: whether one
   // really guards anything is re-derived every session, since a covenant can be filled later
   examinedKeys: 'examinedKeyCandidates',
+  // authheads held and protected without a name: a BCH-only chain carries nothing on its identity
+  // output to say which identity it is. Keyed by txid, so an authhead that moves earns a fresh walk.
+  unnamed: 'unnamedAuthheads',
   // whether this wallet has had the one dialog that says it holds identities it never listed;
   // a single marker, kept as a list for the shared storage shape
   announced: 'identitiesAnnounced',
@@ -426,51 +429,6 @@ export function clearIdentityList(list: IdentityList, network: Network, walletNa
   localStorage.removeItem(listKey(list, network, walletName));
 }
 
-// Authheads this wallet holds and protects without a name: a BCH-only chain carries nothing on its
-// identity output to say which identity it is. Protection does not wait on naming, so an entry
-// here is reserved either way, and how far its naming got only decides whether to walk it again.
-// 'walkConcluded' is a walk that reached an answer without finding a genesis, remembered by the
-// authhead's txid so it self-invalidates: an authhead that moves has a new txid and earns a fresh
-// walk. A walk that could not fetch a hop is never remembered, or one outage would give up forever.
-export type AuthheadNaming = 'pending' | 'walkConcluded';
-
-function namingKey(network: Network, walletName: string): string {
-  return `authheadNaming-${network}-${walletName}`;
-}
-
-export function loadAuthheadNaming(network: Network, walletName: string): Record<string, AuthheadNaming> {
-  const stored = localStorage.getItem(namingKey(network, walletName));
-  if (!stored) return {};
-  try {
-    return JSON.parse(stored) as Record<string, AuthheadNaming>;
-  } catch {
-    return {};
-  }
-}
-
-export function saveAuthheadNaming(
-  network: Network,
-  walletName: string,
-  txid: string,
-  naming: AuthheadNaming,
-): Record<string, AuthheadNaming> {
-  const stored = loadAuthheadNaming(network, walletName);
-  stored[txid] = naming;
-  localStorage.setItem(namingKey(network, walletName), JSON.stringify(stored));
-  return stored;
-}
-
-// Named at last, or the user asked for the coin back: either way it stops being one of these
-export function deleteAuthheadNaming(
-  network: Network,
-  walletName: string,
-  txid: string,
-): Record<string, AuthheadNaming> {
-  const stored = loadAuthheadNaming(network, walletName);
-  delete stored[txid];
-  localStorage.setItem(namingKey(network, walletName), JSON.stringify(stored));
-  return stored;
-}
 
 // A future wallet created under the same name must not inherit the old wallet's identities
 export function removeIdentityCategories(walletName: string) {
@@ -478,7 +436,6 @@ export function removeIdentityCategories(walletName: string) {
     for (const list of Object.keys(identityListKeys) as IdentityList[]) {
       clearIdentityList(list, network, walletName);
     }
-    localStorage.removeItem(namingKey(network, walletName));
   }
 }
 

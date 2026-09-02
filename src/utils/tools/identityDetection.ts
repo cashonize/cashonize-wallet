@@ -28,25 +28,17 @@ export interface DetectedIdentity {
   marker: IdentityMarker;
 }
 
-// The transactions in the walk that carry a publication. The history reads this to tell a
-// metadata update from the wallet's other identity operations: a history item has addresses and
-// values, so the OP_RETURN that says so is not visible in it.
-export function publicationTxids(spentOutputs: ChaingraphSpentOutput[]): string[] {
-  const txids: string[] = [];
-  for (const spentOutput of spentOutputs) {
-    for (const spender of spentOutput.spent_by) {
-      const publishes = spender.transaction.outputs.some(
-        output => byteaToHex(output.locking_bytecode).startsWith(BCMR_OUTPUT_PREFIX)
-      );
-      const txid = byteaToHex(spender.transaction.hash);
-      if (publishes && !txids.includes(txid)) txids.push(txid);
-    }
-  }
-  return txids;
+export interface DetectedIdentities {
+  identities: DetectedIdentity[];
+  // The transactions in the walk that carried a publication. The history reads this to tell a
+  // metadata update from the wallet's other identity operations: a history item has addresses
+  // and values, so the OP_RETURN that says so is not visible in it.
+  publicationTxids: string[];
 }
 
-export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): DetectedIdentity[] {
+export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): DetectedIdentities {
   const detected = new Map<string, DetectedIdentity>();
+  const publicationTxids: string[] = [];
   for (const spentOutput of spentOutputs) {
     const spentTxid = byteaToHex(spentOutput.transaction_hash);
     // only a vout-0 outpoint can be a genesis input, which is what makes the marker cheap
@@ -54,6 +46,10 @@ export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): Detecte
     for (const spender of spentOutput.spent_by) {
       const authheadTxid = byteaToHex(spender.transaction.hash);
       const outputs = spender.transaction.outputs;
+      const publishes = outputs.some(
+        output => byteaToHex(output.locking_bytecode).startsWith(BCMR_OUTPUT_PREFIX)
+      );
+      if (publishes && !publicationTxids.includes(authheadTxid)) publicationTxids.push(authheadTxid);
 
       // a token whose category is the outpoint this transaction spent is a token it created
       const genesised = couldBeGenesisInput
@@ -62,10 +58,6 @@ export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): Detecte
         detected.set(authheadTxid, { authheadTxid, category: spentTxid, marker: 'genesis' });
         continue;
       }
-
-      const publishes = outputs.some(
-        output => byteaToHex(output.locking_bytecode).startsWith(BCMR_OUTPUT_PREFIX)
-      );
       if (!publishes || detected.has(authheadTxid)) continue;
       // the identity output of any authchain transaction is its output 0, and a token riding on
       // it names the identity; a BCH-only one leaves the naming to the backward walk
@@ -80,7 +72,7 @@ export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): Detecte
       });
     }
   }
-  return [...detected.values()];
+  return { identities: [...detected.values()], publicationTxids };
 }
 
 // Naming a chain that carries no token on its identity output. Chaingraph answers forward, from a
@@ -91,49 +83,37 @@ export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): Detecte
 // which is a definition rather than an index's opinion, and the walk stops there.
 //
 // One transaction fetch a hop, on the wallet's own electrum. Chains are short, and the cap bounds
-// what an unusual one can cost: past it the identity stays protected and unnamed.
-export const backwardWalkHopLimit = 25;
-
+// what an unusual one can cost: past it the identity stays protected and unnamed. The category,
+// or nothing: a chain that could not be named now, for whatever reason, is walked again next session.
 interface RawTransaction {
   vin: { txid: string, vout: number }[];
   vout: { n: number, tokenData?: { category: string } }[];
 }
 
-// Told apart because they mean different things to the caller: a chain that walked to a
-// conclusion is worth remembering as unnameable, while one whose hop could not be fetched says
-// nothing at all and must be tried again. Conflating them would let a single network failure
-// give up on a chain permanently.
-export type ChainNamingResult =
-  | { outcome: 'named', category: string }
-  | { outcome: 'unnameable' }
-  | { outcome: 'unavailable' };
-
 export async function nameChainByWalkingBack(
   authheadTxid: string,
   fetchTransaction: (txid: string) => Promise<RawTransaction>,
-  hopLimit = backwardWalkHopLimit,
-): Promise<ChainNamingResult> {
+  hopLimit = 25,
+): Promise<string | undefined> {
   let txid = authheadTxid;
   for (let hop = 0; hop < hopLimit; hop += 1) {
     let transaction: RawTransaction;
     try {
       transaction = await fetchTransaction(txid);
     } catch {
-      return { outcome: 'unavailable' };
+      return undefined;
     }
     // every link walked is one of this chain, so its output 0 is this identity's output; a token
     // identity's output carries its own category, which names the chain without reaching the genesis
     const carried = transaction.vout.find(output => output.n === 0)?.tokenData?.category;
-    if (carried) return { outcome: 'named', category: carried };
+    if (carried) return carried;
     // the input that continues the authchain is the one spending a previous identity output
     const parent = transaction.vin.find(input => input.vout === 0);
-    // nothing continues the chain here, so there is no genesis to reach: a conclusion, not a gap
-    if (!parent) return { outcome: 'unnameable' };
+    if (!parent) return undefined;
     // a genesis mints the category named by the outpoint it spent, which no later link can do
     const genesised = transaction.vout.some(output => output.tokenData?.category === parent.txid);
-    if (genesised) return { outcome: 'named', category: parent.txid };
+    if (genesised) return parent.txid;
     txid = parent.txid;
   }
-  // walked as far as it is worth walking without finding one
-  return { outcome: 'unnameable' };
+  return undefined;
 }
