@@ -153,9 +153,11 @@ const keptTokenOutputValue = 1000n;
 export function mintOutputs(
   authUtxo: Utxo,
   addresses: { bch: string, token: string },
-  category: string,
   mints: { cashaddr: string; commitment: string; capability: string; value: bigint }[],
 ) {
+  // the minted NFTs are of the identity UTXO's own category, which is why it has to carry one
+  const category = authUtxo.token?.category;
+  if (!category) throw new Error("not a token identity UTXO");
   return [
     identityOutput(authUtxo, addresses),
     ...mints.map(mint => new TokenSendRequest({
