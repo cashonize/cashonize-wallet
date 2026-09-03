@@ -41,19 +41,20 @@
   // chosen until the user chooses, and nothing remembers the choice: it is one click.
   const identityHome = ref<'wallet' | 'studio' | undefined>(undefined);
   const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
-  const cardLines = ['holds', 'hosts', 'risk'] as const;
+  // A card says who its side is for and where the token is managed afterwards; the rows, the
+  // risk among them, wait behind the closed line's popup once the choice is made
+  const cardLines = ['for', 'managed'] as const;
   const homeRows = ['protection', 'metadata', 'operations'] as const;
-  // the Studio side has no form, so what to do there is the numbered walkthrough the page already
-  // uses for its metadata how-to: the rows describe the arrangement, the steps say what to do
-  const studioSteps = ['connect', 'create', 'back'] as const;
   // A step's title is what the user does in it, the same whether the step is open or closed, so
   // the greyed list under the open step and the label above it read as one sequence
-  function stepLabel(current: number, title: 'utxo' | 'shape' | 'metadata') {
+  function stepLabel(current: number, title: 'utxo' | 'shape' | 'type' | 'metadata') {
     return `${t('createTokens.step', { current, total: 3 })}: ${t(`createTokens.stepTitles.${title}`)}`;
   }
-  // the Tokens tab, where the token now shows, and the identities page, where its identity does
+  // the Tokens tab, where the token now shows, the identities page, where its identity does, and
+  // the Connect tab, where Studio's WalletConnect session is made
   const tokensView = 2;
   const identitiesView = 19;
+  const connectView = 4;
   watch(() => store._wallet, startOver);
 
   // What the token is, rather than a supply field and a toggle the user has to combine into one
@@ -94,9 +95,20 @@
     if (picked) editingUtxo.value = false;
   });
   const utxoStepOpen = computed(() => editingUtxo.value || !genesisInput.value);
-  const choiceOpen = computed(() => identityHome.value !== 'wallet' || utxoStepOpen.value);
+  // The choice is one screen. A card marks a selection and shows its rows underneath, to be read
+  // before anything is committed to. Studio's side ends there, one fact and one link; the wallet
+  // side has three steps, so Continue locks the choice in and replaces the screen with one line
+  // and the steps, and "go back" returns here with nothing selected.
+  const selectedHome = ref<'wallet' | 'studio' | undefined>(undefined);
+  const choiceOpen = computed(() => identityHome.value === undefined);
+  function confirmHome() {
+    identityHome.value = 'wallet';
+  }
+  // the shape step is titled by what it asks, which for a collection alone is only the type
+  const shapeTitle = computed(() => hasSupply.value ? 'shape' : 'type');
   function changeHome() {
     identityHome.value = undefined;
+    selectedHome.value = undefined;
     pickedOutpoint.value = undefined;
     editingUtxo.value = true;
   }
@@ -393,7 +405,7 @@
         </div>
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
-          <span>{{ stepLabel(2, 'shape') }}</span>
+          <span>{{ stepLabel(2, created.hasSupply ? 'shape' : 'type') }}</span>
         </div>
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
@@ -444,21 +456,14 @@
 
       <template v-else>
       <!-- The one decision on this page a creator cannot see the consequences of from the form:
-           where the token's identity lives afterwards, what protects it, and what it then depends
-           on. One short intro, then two cards of the same shape so neither reads as the
-           recommended one: a radio marker, the mark of the thing it stands for, a title and three
-           short lines with the same three leads, so the eye compares across. Below the pair, the
-           selected side's detail, where the consequences of the selection begin. -->
+           where the token's identity lives afterwards. One short intro, then two cards of the
+           same shape so neither reads as the recommended one: a radio marker, a title with the
+           mark of the thing it stands for, and two lines with the same leads, who the side is for
+           and where the token is managed. A pick replaces all of it with one closed line. -->
       <template v-if="choiceOpen">
       <div>{{ t('createTokens.home.intro') }}</div>
-      <div style="margin-top: 6px;">
-        {{ t('createTokens.home.moveLater') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('createTokens.home.moveLaterHelp') }}</div>
-        </InfoPopup>
-      </div>
       <div class="home-cards">
-        <div class="home-card" :class="{ selected: identityHome === 'wallet' }" @click="identityHome = 'wallet'">
+        <div class="home-card" :class="{ selected: selectedHome === 'wallet' }" @click="selectedHome = 'wallet'">
           <div class="home-card-title">
             <span class="home-radio"></span>
             <b>{{ t('createTokens.home.wallet') }}</b>
@@ -468,7 +473,7 @@
             <b>{{ t(`createTokens.home.cardLeads.${line}`) }}</b> {{ t(`createTokens.home.walletLines.${line}`) }}
           </div>
         </div>
-        <div class="home-card" :class="{ selected: identityHome === 'studio' }" @click="identityHome = 'studio'">
+        <div class="home-card" :class="{ selected: selectedHome === 'studio' }" @click="selectedHome = 'studio'">
           <div class="home-card-title">
             <span class="home-radio"></span>
             <b>{{ t('createTokens.home.studio') }}</b>
@@ -479,56 +484,47 @@
           </div>
         </div>
       </div>
-      <!-- the fork a non-hoster decides here, with the condition every earlier wording hid: Studio
-           hosts the file only for the identities it holds -->
-      <div class="description" style="margin-top: 6px;">{{ t('createTokens.home.noHosting') }}</div>
-
-      <!-- the same three leads on both sides, so the selection is compared like with like; the
-           card carries the fact, the row the mechanism, the row's popup the consequence -->
-      <div v-if="identityHome" class="section home-rows">
+      <!-- the selected side's detail, read before it is committed to: the same three leads on
+           both sides so the selection is compared like with like, the risk in the Protection row,
+           and the way back in the last line -->
+      <div v-if="selectedHome" class="section home-rows">
         <div v-for="row in homeRows" :key="row">
-          <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${identityHome}Rows.${row}`) }}
-          <InfoPopup v-if="row === 'protection'">
-            <div style="max-width: 300px;">{{ t(`createTokens.home.${identityHome}Rows.protectionHelp`) }}</div>
-          </InfoPopup>
-          <!-- releasing is Studio's word, and the dependency a creator wants to know beforehand -->
-          <InfoPopup v-if="identityHome === 'studio' && row === 'operations'">
-            <div style="max-width: 300px;">{{ t('createTokens.home.studioRows.operationsHelp') }}</div>
-          </InfoPopup>
+          <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${selectedHome}Rows.${row}`) }}
         </div>
+        <div class="description">{{ t(`createTokens.home.${selectedHome}Rows.moveLater`) }}</div>
+        <!-- the wallet path has three steps to go to, so Continue takes it there; Studio's side is
+             one fact and one link, which fit here -->
+        <input
+          v-if="selectedHome === 'wallet'"
+          @click="confirmHome()"
+          type="button"
+          class="primaryButton"
+          :value="t('createTokens.home.continueButton')"
+          style="margin-top: 10px;"
+        >
+        <template v-else>
+          <!-- the one fact a user meets on coming back from Studio, a key NFT and no tokens, beside
+               the one action, marked external like every other link out of the wallet -->
+          <div class="info-box" style="margin: 10px 0 16px;">
+            <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
+            <div>{{ t('createTokens.home.studioBox') }}</div>
+          </div>
+          <div class="studio-actions">
+            <a :href="studioUrl" target="_blank" class="button primaryButton studio-button">
+              {{ t('createTokens.home.openStudio') }}
+              <img src="images/external-link-white.svg">
+            </a>
+            <!-- the wallet's side of the same flow: Studio asks for a wallet over WalletConnect -->
+            <input type="button" :value="t('createTokens.home.connectButton')" @click="store.changeView(connectView)">
+          </div>
+        </template>
       </div>
       </template>
-      <!-- closed like a step once the form under it is committed to -->
-      <div v-else class="closed-line description">
-        <img src="images/check-circle.svg" class="step-check pop">
+      <!-- what was chosen, and the way back to re-read the choice -->
+      <div v-else class="chosen-line">
         <span>{{ t('createTokens.home.chosen') }}</span>
-        <span>·</span>
-        <span class="action-link" @click="changeHome()">{{ t('createTokens.change') }}</span>
+        <span class="go-back" @click="changeHome()">← {{ t('createTokens.goBack') }}</span>
       </div>
-
-      <template v-if="identityHome === 'studio'">
-        <div class="section">{{ t('createTokens.home.studioStepsTitle') }}</div>
-        <ol class="walkthrough">
-          <li v-for="step in studioSteps" :key="step">
-            <span>
-              {{ t(`createTokens.home.studioSteps.${step}`) }}
-              <!-- the consequence the step only names: a wallet with a key and no tokens yet -->
-              <InfoPopup v-if="step === 'create'">
-                <div style="max-width: 300px;">{{ t('createTokens.home.studioSteps.createHelp') }}</div>
-              </InfoPopup>
-            </span>
-          </li>
-        </ol>
-        <div class="section description">{{ t('createTokens.home.studioNote') }}</div>
-        <!-- this side's one action, so it takes the primary button, marked external like every
-             other link out of the wallet -->
-        <div class="section">
-          <a :href="studioUrl" target="_blank" class="button primaryButton studio-button">
-            {{ t('createTokens.home.openStudio') }}
-            <img src="images/external-link-white.svg">
-          </a>
-        </div>
-      </template>
 
       <template v-if="identityHome === 'wallet'">
 
@@ -604,39 +600,31 @@
       </div>
       <!-- the shape of the flow shows before its fields do, since the first step costs a fee -->
       <template v-if="utxoStepOpen">
-        <div class="section step-label">{{ stepLabel(2, 'shape') }}</div>
+        <div class="section step-label">{{ stepLabel(2, shapeTitle) }}</div>
         <div class="step-label" style="margin-top: 8px;">{{ stepLabel(3, 'metadata') }}</div>
       </template>
 
       <!-- Deciding what to make does not depend on which UTXO makes it, but it reads better one
            thing at a time, so this opens once the UTXO is settled -->
       <div v-if="!utxoStepOpen" class="section">
-        <div class="step-label open">{{ stepLabel(2, 'shape') }}</div>
-        <label for="tokenShape">
-          {{ t('createTokens.shapeLabel') }}
-          <InfoPopup>
-            <div style="max-width: 300px;">{{ t('createTokens.mintingDescription') }}</div>
-            <div class="info-popup-note" style="max-width: 300px;">{{ t('createTokens.mintingHelp') }}</div>
-          </InfoPopup>
-        </label>
+        <div class="step-label open">{{ stepLabel(2, shapeTitle) }}</div>
+        <!-- the sentences that change what the user does are in the lines the fields have, not
+             behind icons: what a minting NFT is, that the supply is final, what decimals mean -->
+        <label for="tokenShape">{{ t('createTokens.shapeLabel') }}</label>
         <select id="tokenShape" v-model="tokenShape">
           <option value="fungible">{{ t('createTokens.shapes.fungible') }}</option>
           <option value="mintingNft">{{ t('createTokens.shapes.mintingNft') }}</option>
           <option value="both">{{ t('createTokens.shapes.both') }}</option>
         </select>
-        <div v-if="createMintingNft" class="description" style="margin-top: 6px;">{{ t('createTokens.mintingNote') }}</div>
+        <div class="description" style="margin-top: 4px;">{{ t('createTokens.mintingDescription') }}</div>
+        <div v-if="createMintingNft" class="description" style="margin-top: 4px;">{{ t('createTokens.mintingNote') }}</div>
 
         <template v-if="hasSupply">
         <!-- the supply in tokens beside the decimals that turn it into the permanent number on
              chain, which is shown underneath rather than typed -->
         <div class="supply-row">
           <div class="supply-field">
-            <label for="supply">
-              {{ t('createTokens.supplyLabel') }}
-              <InfoPopup>
-                <div style="max-width: 300px;">{{ t('createTokens.supplyHelp') }}</div>
-              </InfoPopup>
-            </label>
+            <label for="supply">{{ t('createTokens.supplyLabel') }}</label>
             <input
               id="supply"
               v-model="inputFungibleSupply"
@@ -646,26 +634,17 @@
             >
           </div>
           <div class="decimals-field">
-            <label for="decimals">
-              {{ t('createTokens.decimalsLabel') }}
-              <InfoPopup>
-                <div style="max-width: 300px;">{{ t('createTokens.decimalsHelp') }}</div>
-              </InfoPopup>
-            </label>
+            <label for="decimals">{{ t('createTokens.decimalsLabel') }}</label>
             <input id="decimals" v-model="inputDecimals" type="number" min="0" max="18">
           </div>
         </div>
         <div class="description" style="margin-top: 4px;">{{ t('createTokens.supplyNote') }}</div>
+        <div class="description" style="margin-top: 4px;">{{ t('createTokens.decimalsNote') }}</div>
         <div v-if="decimals && totalSupply" style="margin-top: 4px;">
           {{ t('createTokens.supplyOnChain', { tokens: tokensOf(totalSupply), base: baseUnitsOf(totalSupply) }) }}
         </div>
 
-        <label for="circulating">
-          {{ t('createTokens.circulation.label') }}
-          <InfoPopup>
-            <div style="max-width: 300px;">{{ t('createTokens.circulation.help') }}</div>
-          </InfoPopup>
-        </label>
+        <label for="circulating">{{ t('createTokens.circulation.label') }}</label>
         <input
           id="circulating"
           v-model="inputCirculating"
@@ -673,14 +652,10 @@
           type="text"
           inputmode="decimal"
         >
-        <template v-if="totalSupply && reserve !== undefined && circulating !== undefined">
-          <div style="margin-top: 6px;">
-            {{ t('createTokens.circulation.split', { reserve: tokensOf(reserve), circulating: tokensOf(circulating) }) }}
-          </div>
-          <div v-if="decimals" class="description">
-            {{ t('createTokens.circulation.splitOnChain', { reserve: baseUnitsOf(reserve), circulating: baseUnitsOf(circulating) }) }}
-          </div>
-        </template>
+        <div v-if="totalSupply && reserve !== undefined && circulating !== undefined" style="margin-top: 6px;">
+          {{ t('createTokens.circulation.split', { reserve: tokensOf(reserve), circulating: tokensOf(circulating) }) }}
+        </div>
+        <div class="description" style="margin-top: 4px;">{{ t('createTokens.circulation.note') }}</div>
         <div v-if="genesisProblem" class="genesis-problem" style="margin-top: 6px;">{{ genesisProblem }}</div>
         </template>
       </div>
@@ -690,7 +665,11 @@
       <div v-if="!utxoStepOpen && supplySettled" class="section">
         <div class="step-label open">{{ stepLabel(3, 'metadata') }}</div>
         <div style="margin-top: 6px;">
-          {{ t('createTokens.metadataNote') }}
+          <i18n-t keypath="createTokens.metadataNote" tag="span">
+            <template #generator>
+              <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+            </template>
+          </i18n-t>
           <InfoPopup>
             <div style="max-width: 300px;">
               <i18n-t keypath="identities.publish.generatorHelp" tag="span">
@@ -883,6 +862,25 @@
 }
 .action-link:hover {
   text-decoration: underline;
+}
+/* the way back, in the text colour like the settings pages' own back line */
+.chosen-line {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.go-back {
+  cursor: pointer;
+}
+.studio-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 10px;
+}
+.studio-actions input {
+  margin: 0;
 }
 .studio-button {
   display: inline-flex;

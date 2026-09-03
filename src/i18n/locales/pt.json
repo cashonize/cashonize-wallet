@@ -643,62 +643,51 @@
   "createTokens": {
     "title": "Criar um token",
     "home": {
-      "intro": "Crie aqui um token novo, em três passos, ou no site do CashTokens Studio. O seu nome e ícone vêm de um ficheiro de metadados hospedado para o qual a identidade do token, um UTXO, aponta. Escolha onde essa identidade deve viver.",
-      "moveLater": "Você pode movê-la desta carteira para o Studio mais tarde, e de volta.",
-      "moveLaterHelp": "Para o Studio: crie lá uma chave e depois transfira a identidade da página de identidades para o endereço de guarda que o Studio mostra para essa chave. De volta: o \"Release UTXO\" do Studio devolve-a a um endereço comum, e a página de identidades volta a encontrá-la com a verificação de identidades.",
+      "intro": "Crie um token novo aqui ou no site do CashTokens Studio. Quem tem a identidade do token, um UTXO, controla o seu nome, ícone e reserva; escolha onde a guardar.",
       "wallet": "Nesta carteira",
       "studio": "Com o CashTokens Studio",
       "cardLeads": {
-        "holds": "Guarda:",
-        "hosts": "Metadados:",
-        "risk": "Risco:"
+        "for": "Para:",
+        "managed": "Gerido:"
       },
       "walletLines": {
-        "holds": "a sua carteira, como UTXO.",
-        "hosts": "hospedados por si, num site ou IPFS.",
-        "risk": "outra app com esta seed poderia gastá-lo."
+        "for": "utilizadores técnicos que querem controlo total.",
+        "managed": "na página de identidades, em Ferramentas."
       },
       "studioLines": {
-        "holds": "um contrato; você tem o NFT chave.",
-        "hosts": "escritos e hospedados pelo Studio.",
-        "risk": "outras carteiras mostram o NFT chave sem nome."
+        "for": "a via mais fácil, e coleções de NFTs.",
+        "managed": "no site do Studio, via WalletConnect."
       },
+      "chosen": "Método de criação do token: esta carteira",
       "leads": {
         "protection": "Proteção:",
         "metadata": "Metadados:",
         "operations": "Operações:"
       },
       "walletRows": {
-        "protection": "mantido fora da seleção de moedas pelo Cashonize; outras apps não sabem que é especial.",
-        "protectionHelp": "Um envio comum a partir de outra app de carteira gasta o UTXO e entrega a identidade a quem recebe esse envio. Se esta seed também for usada noutras apps, deixe de gastar a partir delas enquanto esta carteira tiver uma identidade, ou escolha o Studio. Uma restauração desta seed no Cashonize volta a encontrar a identidade.",
-        "metadata": "um ficheiro que você hospeda, ligado agora ou a partir da página de identidades depois.",
-        "operations": "na página de identidades, em Ferramentas; cada uma move a identidade para um UTXO novo."
+        "protection": "retido dos envios só por esta carteira; outra app com esta seed poderia gastá-lo.",
+        "metadata": "um ficheiro que você hospeda, ligado no passo 3 ou depois a partir da página de identidades.",
+        "operations": "na página de identidades; cada uma move a identidade para um UTXO novo.",
+        "moveLater": "Você pode mover a identidade do token desta carteira para o Studio mais tarde, e de volta."
       },
       "studioRows": {
-        "protection": "só se gasta com o NFT chave, seja qual for a app que tem a seed.",
-        "protectionHelp": "Outras carteiras mostram a chave como um NFT sem nome, e é assim que um é enviado ou queimado como spam, e a reserva vai com quem tiver a chave; não mexa nos NFTs sem nome na sua outra app. O Cashonize dá-lhe o nome do que ela guarda.",
-        "metadata": "redigidos e fixados no IPFS pelo Studio; guarde uma cópia do ficheiro.",
-        "operations": "alterar os metadados, emitir oferta e libertar a identidade, no site do Studio via WalletConnect.",
-        "operationsHelp": "Libertar a identidade da guarda, de volta a um endereço comum, também se faz pelo Studio."
+        "protection": "só se gasta com o NFT chave; noutras carteiras um NFT sem nome, por isso guarde-o. O Studio chama AuthGuard ao contrato e AuthKey à chave.",
+        "metadata": "redigidos e fixados no IPFS pelo Studio; guarde uma cópia.",
+        "operations": "metadados, emissão e libertação, no site do Studio via WalletConnect.",
+        "moveLater": "Você pode mover a identidade do token do Studio para esta carteira mais tarde, e de volta."
       },
+      "studioBox": "Depois de criar um token na app CashTokens Studio, o NFT chave aparece no separador Tokens e a identidade na página de identidades, em Ferramentas.",
       "openStudio": "Abrir o CashTokens Studio",
-      "chosen": "Identidade: nesta carteira",
-      "noHosting": "Sem sítio onde hospedar um ficheiro? Escolha o CashTokens Studio, que o hospeda para as identidades que guarda.",
-      "studioNote": "O CashTokens Studio é uma ferramenta web da Paytaca com código fonte consultável. Guarda a identidade num contrato a que chama AuthGuard, aberto por uma chave a que chama AuthKey.",
-      "studioSteps": {
-        "connect": "Ligue esta carteira ao Studio via WalletConnect.",
-        "create": "Crie lá o token. O NFT chave vem para esta carteira; a oferta fica com a identidade até a emitir.",
-        "createHelp": "Emitir é um passo no site do Studio que envia tokens da reserva para uma carteira; uma vez emitidos, enviam-se como qualquer token. Até lá esta carteira mostra a chave e nenhum token.",
-        "back": "De volta aqui, a identidade aparece na página de identidades, em Ferramentas."
-      },
-      "studioStepsTitle": "Passos para o CashTokens Studio"
+      "continueButton": "Continuar",
+      "connectButton": "Abrir o separador Ligar"
     },
     "change": "alterar",
     "step": "Passo {current} de {total}",
     "stepTitles": {
-      "utxo": "preparar o UTXO que se torna o id do token",
+      "utxo": "reservar o id do token",
       "shape": "escolher o tipo, as decimais e a oferta",
-      "metadata": "ligar o ficheiro de metadados hospedado (opcional)"
+      "metadata": "ligar o ficheiro de metadados hospedado (opcional)",
+      "type": "escolher o tipo"
     },
     "genesisInput": {
       "explainer": "O txid do UTXO que a génese gasta torna-se o id do token; o UTXO tem de estar na saída 0.",
@@ -719,34 +708,30 @@
     "shapeLabel": "Tipo de token",
     "shapes": {
       "fungible": "Tokens fungíveis",
-      "mintingNft": "Um NFT de cunhagem",
-      "both": "Tokens fungíveis e um NFT de cunhagem"
+      "mintingNft": "Uma coleção de NFTs (um NFT de cunhagem)",
+      "both": "Tokens fungíveis e uma coleção de NFTs"
     },
-    "mintingDescription": "Um NFT de cunhagem serve para criar uma coleção de NFTs: pode cunhar novos NFTs da mesma categoria.",
-    "mintingHelp": "Só a transação de criação pode conceder a capacidade de cunhagem. Sem ela, este token nunca poderá ter NFTs próprios.",
-    "mintingNote": "Nota: para usar um NFT de cunhagem, ative a opção \"Ativar cunhar NFTs\" nas definições de programador.",
+    "mintingDescription": "Um NFT de cunhagem cria os NFTs da coleção, e só a transação de criação pode conceder isso.",
+    "mintingNote": "Os NFTs são cunhados a partir da lista de tokens, com \"Ativar cunhar NFTs\" ligado nas definições de programador.",
     "decimalsLabel": "Decimais",
-    "decimalsHelp": "Quantas casas decimais o token tem: 2 significa montantes como 100,00. A oferta é criada em unidades base a partir daí, por isso o ficheiro de metadados tem de indicar o mesmo número.",
     "supplyLabel": "Oferta total de tokens fungíveis",
-    "supplyNote": "Escrita em tokens. O número criado na cadeia decorre das decimais e é mostrado por baixo.",
-    "supplyHelp": "A oferta fungível fica fixada quando o token é criado. Nunca poderá existir mais deste token, por isso decida o número agora.",
+    "supplyNote": "A oferta é criada uma vez e nunca pode ser aumentada; deixe uma parte em reserva para a libertar depois.",
     "supplyPlaceholder": "oferta total",
     "supplyOnChain": "{tokens} tokens, {base} unidades base na cadeia",
     "circulation": {
       "label": "Emitir para circulação agora",
-      "help": "O que é emitido agora é oferta comum que esta carteira pode gastar. O resto fica no próprio UTXO da identidade como reserva, por isso é retido com ela e vai para onde a identidade for; o aviso de proteção da identidade também se aplica a ele. Pode ser emitido depois a partir da página de identidades; cada emissão é uma transação que move a identidade para um UTXO novo.",
       "placeholder": "Montante a emitir",
       "split": "{reserve} fica com a identidade como reserva, {circulating} entra em circulação.",
-      "splitOnChain": "Na cadeia: {reserve} de reserva, {circulating} em circulação."
+      "note": "A reserva fica no UTXO da identidade e vai para onde ele for; emita-a depois a partir da página de identidades."
     },
     "errors": {
       "invalidAmount": "Escreva montantes em tokens, sem mais casas decimais do que o token tem.",
       "overMaxSupply": "Isso é mais do que um token pode conter. O máximo é {max}.",
       "overSupply": "Isso é mais do que a oferta total.",
       "invalidDecimals": "As decimais têm de ser um número inteiro de 0 a 18.",
-      "emptyReserve": "Deixe pelo menos {minimum} em reserva: o UTXO da identidade tem de carregar parte da oferta."
+      "emptyReserve": "Deixe pelo menos {minimum} em reserva: o UTXO da identidade é um UTXO de token e tem de carregar parte da oferta."
     },
-    "metadataNote": "Os metadados podem ser adicionados agora com o gerador BCMR (BCMR é o padrão de metadados que as carteiras leem), ou depois da criação a partir da página de identidades.",
+    "metadataNote": "Esta carteira não carrega nada: o nome e o ícone são um ficheiro que você escreve com o {generator}, hospeda com o ícone num site ou no IPFS, e liga aqui ou depois a partir da página de identidades.",
     "locationHint": "Um domínio, um URL HTTPS completo ou um CID do IPFS; um domínio simples significa o seu caminho de metadados well-known.",
     "sameFile": "Todas as localizações têm de servir o mesmo ficheiro.",
     "check": {
@@ -762,7 +747,7 @@
     "howTo": "Como escrever e hospedar o ficheiro",
     "steps": {
       "author": "Escreva o ficheiro de metadados com o {generator}, nomeando o id do token acima.",
-      "host": "Hospede-o no seu próprio site ou no IPFS.",
+      "host": "Hospede-o, com o ícone que ele nomeia, no seu próprio site ou no IPFS.",
       "verify": "Indique acima onde está hospedado. Esta carteira obtém-no e verifica que ele nomeia este token.",
       "create": "Crie o token: a mesma transação publica o hash do ficheiro e onde o encontrar."
     },
@@ -786,9 +771,9 @@
     "created": {
       "title": "Sucesso!",
       "supply": "{amount} criados",
-      "mintingNft": "Um NFT de cunhagem criado",
+      "mintingNft": "Um NFT de cunhagem criado, no UTXO da identidade: cunhe a partir dele os NFTs da coleção na lista de tokens.",
       "split": "{reserve} com a identidade como reserva, {circulating} nesta carteira",
-      "listed": "Listado na página de identidades; o seu UTXO está retido fora da seleção de moedas.",
+      "listed": "Listado na página de identidades, que mantém o seu UTXO fora dos envios só desta carteira.",
       "untilPublished": "As carteiras mostram-no assim até você {link}.",
       "untilPublishedLink": "publicar metadados",
       "seeToken": "Ver o token na carteira",
@@ -796,7 +781,9 @@
       "viewTransaction": "Ver a transação",
       "createAnother": "Criar outro token",
       "decimals": "Decimais: {decimals}, o ficheiro de metadados tem de o indicar"
-    }
+    },
+    "decimalsNote": "As decimais são lidas do ficheiro de metadados, não da cadeia, por isso ele tem de indicar este número.",
+    "goBack": "Voltar"
   },
   "utxoManagement": {
     "title": "Gerenciamento de UTXOs",
@@ -1683,7 +1670,7 @@
       "uriPlaceholder": "example.com ou ipfs://baf...",
       "addLocation": "adicionar outro local",
       "removeLocation": "remover",
-      "bytesLeft": "Restam {bytes} bytes na saída de publicação",
+      "bytesLeft": "{bytes} bytes livres no ponteiro na cadeia",
       "button": "Verificar e publicar",
       "publishingButton": "Publicando...",
       "done": "Atualização de metadados publicada",

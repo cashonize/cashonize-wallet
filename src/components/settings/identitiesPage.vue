@@ -783,7 +783,7 @@
 
         <!-- States stay visible on a closed card; only the details and the actions fold away -->
         <div v-if="foundAutomatically.includes(identity.category)" class="info-box" style="margin-top: 8px;">
-          <q-icon name="info" size="20px" class="warning-box-icon" />
+          <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
           <div>
             {{ t('identities.detected.foundAutomatically') }}
             <InfoPopup>
@@ -841,7 +841,7 @@
         <div class="section">
           <div>{{ t('identities.publication.title') }}</div>
           <div v-if="!identity.publication" class="info-box" style="margin-top: 6px;">
-            <q-icon name="info" size="20px" class="warning-box-icon" />
+            <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
             <div>
               {{ t('identities.publication.none') }}
               <span v-if="identity.authUtxo" class="action-link" @click="toggleAction(identity, 'publish')">
