@@ -6,6 +6,8 @@
   import { useI18n } from 'vue-i18n'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
+  import genesisInputPicker from './genesisInputPicker.vue'
+  import { genesisCandidates, preparedUtxoValue } from 'src/utils/tools/tokenCreation'
   import {
     copyToClipboard,
     formatBch,
@@ -86,7 +88,7 @@
   // One form open at a time across the whole list, and one operation in flight: these are
   // deliberate, one-at-a-time operations, and a card with four open forms says otherwise
   type IdentityAction =
-    'add' | 'create' | 'scan' | 'remove' | 'publish' | 'issue' | 'addToReserve' | 'transfer' | 'transferKey';
+    'add' | 'addUtxo' | 'scan' | 'remove' | 'publish' | 'issue' | 'addToReserve' | 'transfer' | 'transferKey';
   const openAction = ref<{ category: string, action: IdentityAction } | undefined>(undefined);
   const runningAction = ref<IdentityAction | undefined>(undefined);
 
@@ -252,6 +254,8 @@
     categoryInput.value = "";
     openAction.value = undefined;
     scanSummary.value = undefined;
+    pickedOutpoint.value = undefined;
+    editingPick.value = true;
   });
 
   async function addIdentity() {
@@ -280,27 +284,37 @@
     });
   }
 
-  // What the new identity's AuthHead carries. Every later operation recreates the output with the
-  // same amount, so this is set once and stays.
-  const newIdentityValue = 10_000n;
-
-  // An identity that is not a token is one transaction: its output 0 is the identity, and its txid
-  // is the id, which is why naming has to wait for a publication that can name it.
-  async function createIdentity() {
-    await runAction('create', async () => {
+  // A new identity that is not a token starts from any UTXO at output 0, picked or prepared the
+  // way the create page picks a genesis input: its txid is the id and the UTXO its authhead, held
+  // back from here on. Naming waits for a publication that names it. Two steps, the pick closing
+  // to one line before the add, so what is about to be listed is read before it is.
+  const pickedOutpoint = ref<string | undefined>(undefined);
+  const pickedUtxo = computed(() =>
+    store.spendableUtxos && genesisCandidates(store.spendableUtxos).find(utxo => outpointOf(utxo) === pickedOutpoint.value)
+  );
+  const editingPick = ref(true);
+  watch(pickedUtxo, picked => {
+    if (picked) editingPick.value = false;
+  });
+  const pickStepOpen = computed(() => editingPick.value || !pickedUtxo.value);
+  function addStepLabel(current: number, title: 'pick' | 'add') {
+    return `${t('createTokens.step', { current, total: 2 })}: ${t(`identities.create.steps.${title}`)}`;
+  }
+  async function addIdentityFromUtxo() {
+    await runAction('addUtxo', async () => {
+      const picked = pickedUtxo.value;
+      if (!picked) return;
+      if (identitiesStore.identityCategories.includes(picked.txid)) throw new Error(t('identities.errors.alreadyListed'));
       const confirmed = await confirmDialog(
         t('identities.create.confirmTitle'),
-        t('identities.create.confirmMessage', { amount: bchOf(newIdentityValue) }),
+        t('identities.create.confirmMessage', { outpoint: `${truncateHash(picked.txid)}:0`, amount: bchOf(picked.satoshis) }),
         t('identities.create.confirmButton')
       );
       if (!confirmed) return;
-      notifySending();
-      const { txId } = await store.spend.send([
-        { cashaddr: store.wallet.getDepositAddress(), value: newIdentityValue }
-      ]);
-      if (!txId) throw new Error(t('identities.create.errors.noTxId'));
-      await identitiesStore.listCreatedIdentity(txId, txId);
-      return { txId, message: t('identities.create.done'), title: t('identities.create.doneTitle') };
+      await identitiesStore.listCreatedIdentity(picked.txid, picked.txid);
+      pickedOutpoint.value = undefined;
+      editingPick.value = true;
+      return { txId: undefined, message: t('identities.create.done'), title: t('identities.create.doneTitle') };
     });
   }
 
@@ -690,13 +704,41 @@
           </template>
         </i18n-t>
       </div>
+    </div>
+
+    <!-- the steps open one at a time, the way the create page's do: the pick closes to the id it
+         decided, and the add opens under it -->
+    <div v-if="pickStepOpen" class="section">
+      <div class="step-label open">{{ addStepLabel(1, 'pick') }}</div>
+      <div style="margin-top: 6px;">
+        <genesisInputPicker
+          v-model="pickedOutpoint"
+          :explainer="t('identities.create.pick')"
+          :prepare-message="t('identities.create.prepareMessage', { amount: bchOf(preparedUtxoValue) })"
+          smallest-first
+        />
+      </div>
+      <div class="step-label" style="margin-top: 12px;">{{ addStepLabel(2, 'add') }}</div>
+    </div>
+    <div v-else class="section closed-line description">
+      <img src="images/check-circle.svg" class="step-check">
+      <span>{{ t('identities.create.pickedId') }}</span>
+      <span class="copy-target" @click="copyToClipboard(pickedUtxo!.txid)">
+        <span class="mono">{{ truncateHash(pickedUtxo!.txid) }}</span>
+        <img class="copyIcon" src="images/copyGrey.svg">
+      </span>
+      <span>·</span>
+      <span class="action-link" @click="editingPick = true">{{ t('createTokens.change') }}</span>
+    </div>
+    <div v-if="!pickStepOpen" class="section">
+      <div class="step-label open">{{ addStepLabel(2, 'add') }}</div>
       <!-- the caution sits on the button it is about -->
-      <div style="margin-top: 10px; font-style: italic;">{{ t('identities.create.advanced') }}</div>
+      <div style="margin-top: 6px; font-style: italic;">{{ t('identities.create.advanced') }}</div>
       <input
-        @click="createIdentity()"
+        @click="addIdentityFromUtxo()"
         type="button"
         class="primaryButton"
-        :value="runningAction === 'create' ? t('identities.create.creatingButton') : t('identities.create.button')"
+        :value="runningAction === 'addUtxo' ? t('identities.create.creatingButton') : t('identities.create.button')"
         :disabled="runningAction !== undefined || identitiesStore.identitiesResolving"
         style="margin-top: 8px;"
       >
@@ -1344,4 +1386,21 @@
   align-self: center;
 }
 
+.step-label {
+  color: grey;
+}
+.step-label.open {
+  color: var(--color-primary);
+}
+.closed-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.step-check {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
 </style>

@@ -2,6 +2,7 @@
 // tested: amounts typed in tokens become base units by the chosen decimals, and a metadata
 // location counts only once the wallet has fetched and verified what it serves.
 
+import type { Utxo } from 'mainnet-js';
 import { formatTokenAmountFromBigInt } from '../utils';
 import type { RegistrySummary } from './authchainIdentity';
 
@@ -73,3 +74,16 @@ export function metadataReadiness(uris: string[], checked: CheckedRegistry | und
   if ((checked.summary.decimals ?? 0) !== decimals) return 'decimalsMismatch';
   return 'ready';
 }
+
+// The UTXOs an identity can start from: at output 0, since that is where a category is read from,
+// and without a token, since a token UTXO already belongs to one. Largest first for a genesis,
+// which returns the change; smallest first for an identity, which keeps the whole UTXO.
+export function genesisCandidates(utxos: Utxo[], order: 'largest' | 'smallest' = 'largest'): Utxo[] {
+  const sign = order === 'largest' ? 1 : -1;
+  return utxos
+    .filter(utxo => !utxo.token && utxo.vout === 0)
+    .sort((left, right) => sign * Number(right.satoshis - left.satoshis));
+}
+
+// What a prepared UTXO carries, which stays the user's: the genesis or the identity spends it to self
+export const preparedUtxoValue = 10_000n;

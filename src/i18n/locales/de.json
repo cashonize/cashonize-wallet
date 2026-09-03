@@ -1538,7 +1538,7 @@
     "modes": {
       "identities": "Identitäten",
       "existing": "Vorhandene",
-      "create": "Neu erstellen"
+      "create": "Neu hinzufügen"
     },
     "whatIsAnIdentity": "Die Befugnis, die Metadaten eines Tokens zu ändern, seinen Namen, sein Icon und seine Beschreibung, ist ein einzelner UTXO: wer ihn hält, kann Updates veröffentlichen, und mit jedem Update wandert er zu einem neuen Outpoint.",
     "whatIsAnIdentityNote": "Studio, der Explorer und die Spezifikation nennen diesen UTXO den AuthHead. Ihn zu halten ist es, was dieses Wallet zu dem macht, das neue Metadaten für den Token veröffentlichen kann.",
@@ -1726,21 +1726,25 @@
       }
     },
     "create": {
-      "label": "Eine Identität erstellen, die kein Token ist",
+      "label": "Eine neue Identität hinzufügen, die kein Token ist",
       "help": "Die Identitäten des Standards sind nicht nur Tokens: dieselbe Kette von UTXOs kann für eine Dapp, ein Contract-System oder eine Organisation stehen und belegen, wer sie kontrolliert.",
       "helpNaming": "Eine Transaktion genügt, benannt wird danach, mit einer Veröffentlichung, die ihre Id nennt.",
       "hint": "Name, Icon und Links für eine Dapp, ein Contract-System oder eine Organisation, veröffentlicht und aktualisiert aus einem UTXO ohne Token darauf.",
       "advanced": "Funktion nur für fortgeschrittene Nutzer gedacht.",
-      "button": "Nicht-Token-Identität erstellen",
-      "creatingButton": "Wird erstellt...",
-      "confirmTitle": "Eine neue Identität erstellen?",
-      "confirmMessage": "{amount} dieses Wallets wird zum UTXO der Identität und von der Münzauswahl ausgenommen. Die Transaktions-Id wird zur dauerhaften Id der Identität.",
-      "confirmButton": "Erstellen",
-      "done": "Die Identität ist gelistet und ihr UTXO von der Münzauswahl ausgenommen. Veröffentliche eine Registry, die sie nennt, um ihr einen Namen zu geben.",
-      "doneTitle": "Identität erstellt",
-      "errors": {
-        "noTxId": "Die Transaktion wurde gesendet, aber ihre Id kam leer zurück, sodass die Identität nicht gelistet werden konnte."
+      "pick": "Jeder UTXO an Ausgang 0 ohne Token kann eine Identität sein: die Id seiner Transaktion wird zur dauerhaften Id der Identität. Sein BCH bleibt mit der Identität zurückgehalten, solange du sie hältst, also ist ein kleiner UTXO am besten.",
+      "prepareMessage": "Das sendet jetzt {amount} an dich selbst, damit die Identität einen frischen UTXO an Ausgang 0 hat. Der Betrag bleibt deiner; nur die Gebühr wird ausgegeben.",
+      "pickedId": "Id der Identität:",
+      "steps": {
+        "pick": "wähle den UTXO, der zur Id der Identität wird",
+        "add": "füge sie der Identitäten-Liste hinzu"
       },
+      "button": "Identität hinzufügen",
+      "creatingButton": "Wird hinzugefügt...",
+      "confirmTitle": "Diesen UTXO als Identität hinzufügen?",
+      "confirmMessage": "{outpoint} wird zum UTXO der Identität, mit seinen {amount} von der Münzauswahl ausgenommen. Die Id seiner Transaktion wird zur dauerhaften Id der Identität.",
+      "confirmButton": "Hinzufügen",
+      "done": "Die Identität ist gelistet und ihr UTXO von der Münzauswahl ausgenommen. Veröffentliche eine Registry, die sie nennt, um ihr einen Namen zu geben.",
+      "doneTitle": "Identität hinzugefügt",
       "tokenPointer": "Derzeit gehört fast jede Identität zu einem Token. Um eine Token-Identität zu erstellen, {link}: die Transaktion, die den Token erstellt, erstellt zugleich seine Identität.",
       "tokenPointerLink": "erstelle den Token",
       "novelHelp": "Eine Dapp könnte sagen, welche Version ihrer Contracts aktuell ist und wo ihre Seite liegt; eine Organisation könnte für das einstehen, was sie veröffentlicht. Fast keine gibt es bisher und kaum etwas liest sie, also wisse, was du von einer willst, bevor du sie machst."

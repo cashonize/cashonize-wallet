@@ -637,6 +637,21 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.publicationChecks).toEqual({ [categoryB]: ['verified'] })
   })
 
+  // the identities page lists a picked UTXO the way the create page lists a genesis: held back
+  // straight away, before any lookup catches up
+  it('lists an identity added from a held UTXO and holds it back', async () => {
+    const txid = 'cafe'.repeat(16)
+    stubAuthheadQueries({ [txid]: txid })
+    const picked = utxo(txid, 0)
+    const { store, identitiesStore } = startStore([picked])
+
+    await identitiesStore.listCreatedIdentity(txid, txid)
+
+    expect(identitiesStore.identityCategories).toContain(txid)
+    expect(store.reservedUtxos[outpointOf(picked)]).toBe('auth')
+    expect(store.spendableUtxos).toEqual([])
+  })
+
   it('releases the authhead of an identity removed from the list', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])

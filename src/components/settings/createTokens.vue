@@ -13,12 +13,15 @@
     metadataReadiness,
     parseDecimals,
     maxTokenSupply,
+    genesisCandidates,
+    preparedUtxoValue,
     type CheckedRegistry,
   } from 'src/utils/tools/tokenCreation';
   import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils';
   import { NFTCapability, TokenSendRequest } from 'mainnet-js';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
   import TokenIcon from '../general/TokenIcon.vue';
+  import genesisInputPicker from './genesisInputPicker.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
   import { confirmDialog, notifySending } from 'src/utils/txHelpers';
@@ -67,7 +70,7 @@
   const createMintingNft = computed(() => tokenShape.value !== 'fungible');
   const hasSupply = computed(() => tokenShape.value !== 'mintingNft');
   const metadataUris = ref<string[]>([""]);
-  const activeAction = ref<'creatingPreGenesis' | 'checking' | 'creating' | null>(null);
+  const activeAction = ref<'checking' | 'creating' | null>(null);
 
   // The satoshis each token output of the genesis carries, the AuthHead included
   const tokenOutputValue = 1000n;
@@ -75,19 +78,12 @@
   const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
 
   // A new token's category is the txid of the UTXO its genesis spends, so which UTXO that is
-  // decides the identity's id and its icon before anything exists.
-  const genesisCandidates = computed(() => {
-    if (!store.spendableUtxos) return undefined;
-    const eligible = store.spendableUtxos.filter(utxo => !utxo.token && utxo.vout === 0);
-    // safe to sort in place, the array is a fresh result of filter()
-    return eligible.sort((left, right) => Number(right.satoshis - left.satoshis));
-  });
-
-  // Held as an outpoint and resolved against the current UTXOs, so one spent from somewhere else
-  // leaves the list and takes the selection with it
+  // decides the identity's id and its icon before anything exists. Held as an outpoint and
+  // resolved against the current UTXOs, so one spent from somewhere else leaves the list and
+  // takes the selection with it
   const pickedOutpoint = ref<string | undefined>(undefined);
   const genesisInput = computed(() =>
-    genesisCandidates.value?.find(utxo => outpointOf(utxo) === pickedOutpoint.value)
+    store.spendableUtxos && genesisCandidates(store.spendableUtxos).find(utxo => outpointOf(utxo) === pickedOutpoint.value)
   );
   const plannedCategory = computed(() => genesisInput.value?.txid);
 
@@ -170,42 +166,9 @@
     return genesisProblem.value === undefined && (totalSupply.value ?? 0n) > 0n;
   });
 
-  // The satoshis a prepared UTXO carries, which stay the user's: the genesis spends it to self
-  const preparedUtxoValue = 10_000n;
 
   // A UTXO a genesis can spend is an ordinary one sitting at output 0, which a send to self makes.
   // Confirmed first like the flipstarter's preparation, since it is a broadcast on one tap.
-  async function createPreGenesis(){
-    if (activeAction.value) return;
-    const confirmed = await confirmDialog(
-      t('createTokens.prepare.title'),
-      t('createTokens.prepare.message', { amount: bchOf(preparedUtxoValue) }),
-      t('createTokens.genesisInput.prepareButton')
-    );
-    if (!confirmed) return;
-    activeAction.value = 'creatingPreGenesis';
-    try{
-      const walletAddr = store.wallet.getDepositAddress();
-      notifySending(t('createTokens.notifications.preparingPreGenesis'));
-      const { txId } = await store.spend.send([{ cashaddr: walletAddr, value: preparedUtxoValue }]);
-      $q.notify({
-        type: 'positive',
-        message: t('createTokens.notifications.transactionSent')
-      })
-      console.log(`Created valid pre-genesis for token creation \n${store.explorerUrl}/${txId}`);
-      // update utxo list
-      await store.updateWalletUtxos();
-      // the UTXO the user just asked for is the one they meant to create with
-      if (txId) pickedOutpoint.value = `${txId}:0`;
-      // update wallet history as fire-and-forget promise
-      void store.updateWalletHistory();
-    } catch(error){
-      displayAndLogError(error)
-    } finally {
-      activeAction.value = null;
-    }
-  }
-
   const filledUris = computed(() => metadataUris.value.map(uri => uri.trim()).filter(uri => uri.length));
 
   const publicationBytesLeft = computed(() =>
@@ -552,49 +515,13 @@
            what this section is, so it leads with that rather than with a heading repeating it -->
       <div v-if="utxoStepOpen" class="section">
         <div class="step-label open">{{ stepLabel(1, 'utxo') }}</div>
-        <div>{{ t('createTokens.genesisInput.explainer') }}</div>
-        <!-- an empty wallet is a condition, not a mistake: the wallet's caution, not its error -->
-        <div v-if="store.spendableBalance === 0n" class="warning-box" style="margin-top: 8px;">
-          <q-icon name="warning" size="20px" class="warning-box-icon" />
-          <div>{{ t('createTokens.genesisInput.needBch') }}</div>
-        </div>
-
-        <!-- the open step's one action takes the primary style; Create is not on screen until
-             this step has closed -->
-        <input
-          @click="createPreGenesis"
-          type="button"
-          class="primaryButton"
-          :value="activeAction === 'creatingPreGenesis' ? t('createTokens.preparingButton') : t('createTokens.genesisInput.prepareButton')"
-          :disabled="activeAction !== null || store.spendableBalance === 0n"
-          style="margin-top: 10px;"
-        >
-
-        <!-- Which of your UTXOs becomes a token's id is a question nearly nobody needs asked, so
-             it waits behind a disclosure for whoever wants a particular id or one fewer fee -->
-        <details style="margin-top: 10px;">
-          <summary style="display: list-item">{{ t('createTokens.genesisInput.chooseExisting', genesisCandidates?.length ?? 0) }}</summary>
-          <div class="description" style="margin-top: 4px;">{{ t('createTokens.genesisInput.rule') }}</div>
-          <div v-if="genesisCandidates === undefined" class="description">{{ t('createTokens.genesisInput.loading') }}</div>
-          <template v-else>
-            <div v-if="!genesisCandidates.length" class="description">{{ t('createTokens.genesisInput.none') }}</div>
-            <div v-else class="coin-list">
-              <div
-                v-for="coin in genesisCandidates"
-                :key="outpointOf(coin)"
-                class="coin-row"
-                :class="{ picked: outpointOf(coin) === pickedOutpoint }"
-                @click="pickedOutpoint = outpointOf(coin)"
-              >
-                <TokenIcon :token-id="coin.txid" :size="24" />
-                <span class="mono">{{ truncateHash(coin.txid) }}:{{ coin.vout }}</span>
-                <span>{{ bchOf(coin.satoshis) }}</span>
-                <span v-if="store.addressLabels[coin.address]" class="description">{{ store.addressLabels[coin.address] }}</span>
-                <span v-if="!coin.height" class="description">{{ t('createTokens.genesisInput.unconfirmed') }}</span>
-              </div>
-            </div>
-          </template>
-        </details>
+        <!-- the open step's one action, preparing, takes the primary style inside the picker;
+             Create is not on screen until this step has closed -->
+        <genesisInputPicker
+          v-model="pickedOutpoint"
+          :explainer="t('createTokens.genesisInput.explainer')"
+          :prepare-message="t('createTokens.prepare.message', { amount: bchOf(preparedUtxoValue) })"
+        />
 
         <div v-if="plannedCategory" class="planned-category">
           <!-- keyed on the category because the icon is only drawn when the component mounts -->
@@ -933,27 +860,6 @@ label {
   display: block;
   margin-top: 14px;
   margin-bottom: 4px;
-}
-/* long lists stay a list rather than pushing the form off the screen */
-.coin-list {
-  max-height: 220px;
-  overflow-y: auto;
-  margin: 8px 0;
-}
-.coin-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.coin-row:hover {
-  border-color: rgba(128, 128, 128, 0.4);
-}
-.coin-row.picked {
-  border-color: var(--color-primary);
 }
 .walkthrough {
   margin: 8px 0 0;

@@ -1538,7 +1538,7 @@
     "modes": {
       "identities": "Identidades",
       "existing": "Añadir existente",
-      "create": "Crear nueva"
+      "create": "Añadir nueva"
     },
     "whatIsAnIdentity": "La autoridad para cambiar los metadatos de un token, su nombre, icono y descripción, es un único UTXO: quien lo tiene puede publicar actualizaciones, y pasa a un nuevo outpoint con cada actualización.",
     "whatIsAnIdentityNote": "Studio, el explorador y la especificación llaman AuthHead a ese UTXO. Tenerlo es lo que hace que esta billetera sea la que puede publicar nuevos metadatos del token.",
@@ -1726,21 +1726,25 @@
       }
     },
     "create": {
-      "label": "Crear una identidad que no es un token",
+      "label": "Añadir una identidad nueva que no es un token",
       "help": "Las identidades del estándar no son solo tokens: la misma cadena de UTXOs puede representar una dapp, un sistema de contratos o una organización, y demostrar quién la controla.",
       "helpNaming": "Basta una transacción, y el nombre viene después, con una publicación que nombre su id.",
       "hint": "Un nombre, icono y enlaces para una dapp, un sistema de contratos o una organización, publicados y actualizados desde un UTXO sin ningún token encima.",
       "advanced": "Función pensada solo para usuarios avanzados.",
-      "button": "Crear identidad sin token",
-      "creatingButton": "Creando...",
-      "confirmTitle": "¿Crear una nueva identidad?",
-      "confirmMessage": "{amount} de esta billetera pasa a ser el UTXO de la identidad y queda fuera de la selección de monedas. El id de la transacción pasa a ser el id permanente de la identidad.",
-      "confirmButton": "Crear",
-      "done": "La identidad aparece en la lista y su UTXO queda fuera de la selección de monedas. Publica un registro que la nombre para darle un nombre.",
-      "doneTitle": "Identidad creada",
-      "errors": {
-        "noTxId": "La transacción se envió pero su id volvió vacío, así que la identidad no se pudo listar."
+      "pick": "Cualquier UTXO en la salida 0 sin token puede ser una identidad: el id de su transacción pasa a ser el id permanente de la identidad. Su BCH queda retenido con la identidad mientras la tengas, así que lo mejor es un UTXO pequeño.",
+      "prepareMessage": "Esto te envía {amount} ahora, para que la identidad tenga un UTXO nuevo en la salida 0. El importe sigue siendo tuyo; solo se gasta la comisión.",
+      "pickedId": "Id de la identidad:",
+      "steps": {
+        "pick": "elige el UTXO que será el id de la identidad",
+        "add": "añádelo a la lista de identidades"
       },
+      "button": "Añadir identidad",
+      "creatingButton": "Añadiendo...",
+      "confirmTitle": "¿Añadir este UTXO como identidad?",
+      "confirmMessage": "{outpoint} pasa a ser el UTXO de la identidad, fuera de la selección de monedas con sus {amount}. El id de su transacción pasa a ser el id permanente de la identidad.",
+      "confirmButton": "Añadir",
+      "done": "La identidad aparece en la lista y su UTXO queda fuera de la selección de monedas. Publica un registro que la nombre para darle un nombre.",
+      "doneTitle": "Identidad añadida",
       "tokenPointer": "Actualmente casi todas las identidades pertenecen a un token. Para crear la identidad de un token, {link}: la transacción que crea el token crea al mismo tiempo su identidad.",
       "tokenPointerLink": "crea el token",
       "novelHelp": "Una dapp podría decir qué versión de sus contratos está vigente y dónde está su sitio; una organización podría responder por lo que publica. Casi no existe ninguna todavía y casi nada las lee, así que ten claro qué quieres de una antes de hacerla."

@@ -1538,7 +1538,7 @@
     "modes": {
       "identities": "Identities",
       "existing": "Add existing",
-      "create": "Create new"
+      "create": "Add new"
     },
     "whatIsAnIdentity": "The authority to change a token's metadata, its name, icon and description, is a single UTXO: whoever holds it can publish updates, and it moves to a new outpoint with every update.",
     "whatIsAnIdentityNote": "Studio, the explorer and the spec call that UTXO the AuthHead. Holding it is what makes this wallet the one that can publish new metadata for the token.",
@@ -1726,21 +1726,25 @@
       }
     },
     "create": {
-      "label": "Create an identity that is not a token",
+      "label": "Add a new identity that is not a token",
       "help": "The standard's identities are not only tokens: the same chain of UTXOs can stand for a dapp, a contract system or an organization, and prove who controls it.",
       "helpNaming": "One transaction makes it, and naming comes after, with a publication that names its id.",
       "hint": "A name, icon and links for a dapp, a contract system or an organization, published and updated from one UTXO with no token on it.",
       "advanced": "Feature meant for advanced users only.",
-      "button": "Create non-token identity",
-      "creatingButton": "Creating...",
-      "confirmTitle": "Create a new identity?",
-      "confirmMessage": "{amount} of this wallet becomes the identity's UTXO and is held back from coin selection. The transaction id becomes the identity's permanent id.",
-      "confirmButton": "Create",
-      "done": "The identity is listed and its UTXO is held back from coin selection. Publish a registry naming it to give it a name.",
-      "doneTitle": "Identity created",
-      "errors": {
-        "noTxId": "The transaction was sent but its id came back empty, so the identity could not be listed."
+      "pick": "Any UTXO at output 0 without a token can be an identity: its transaction id becomes the identity's permanent id. Its BCH stays held back with the identity for as long as it is held, so a small UTXO is best.",
+      "prepareMessage": "This sends {amount} to yourself now, so the identity has a fresh UTXO at output 0. The amount stays yours; only the fee is spent.",
+      "pickedId": "Identity id:",
+      "steps": {
+        "pick": "pick the UTXO that becomes the identity's id",
+        "add": "add it to the identities list"
       },
+      "button": "Add identity",
+      "creatingButton": "Adding...",
+      "confirmTitle": "Add this UTXO as an identity?",
+      "confirmMessage": "{outpoint} becomes the identity's UTXO, held back from coin selection with its {amount}. Its transaction id becomes the identity's permanent id.",
+      "confirmButton": "Add",
+      "done": "The identity is listed and its UTXO is held back from coin selection. Publish a registry naming it to give it a name.",
+      "doneTitle": "Identity added",
       "tokenPointer": "Nearly every identity currently belongs to a token. To create a token identity, {link}: the transaction that creates the token creates its identity at the same time.",
       "tokenPointerLink": "create the token",
       "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it."

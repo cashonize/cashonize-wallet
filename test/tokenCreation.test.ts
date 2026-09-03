@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatTokens, genesisAmounts, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
+import type { Utxo } from 'mainnet-js'
+
+import { formatTokens, genesisAmounts, genesisCandidates, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
 
 describe('genesisAmounts', () => {
   // the supply is typed in tokens and the decimals do the zeroes, since the on-chain number is
@@ -63,5 +65,26 @@ describe('metadataReadiness', () => {
     const noDecimals = { ...checked, summary: { name: 'Test', snapshots: [] } }
     expect(metadataReadiness(['example.com'], noDecimals, 0)).toBe('ready')
     expect(metadataReadiness(['example.com'], noDecimals, 2)).toBe('decimalsMismatch')
+  })
+})
+
+describe('genesisCandidates', () => {
+  const coin = (txid: string, vout: number, satoshis: bigint, token?: Utxo['token']): Utxo =>
+    ({ txid, vout, satoshis, token }) as Utxo
+
+  // an id is read from a UTXO at output 0, and a token UTXO already belongs to an identity
+  it('offers the UTXOs at output 0 without a token, largest first', () => {
+    const small = coin('a'.repeat(64), 0, 1000n)
+    const large = coin('b'.repeat(64), 0, 5000n)
+    const atOutputOne = coin('c'.repeat(64), 1, 9000n)
+    const withToken = coin('d'.repeat(64), 0, 9000n, { category: 'e'.repeat(64), amount: 1n })
+    expect(genesisCandidates([small, atOutputOne, withToken, large])).toEqual([large, small])
+  })
+
+  // an identity keeps the whole UTXO out of the spendable balance, so the small ones lead there
+  it('offers the smallest first for an identity', () => {
+    const small = coin('a'.repeat(64), 0, 1000n)
+    const large = coin('b'.repeat(64), 0, 5000n)
+    expect(genesisCandidates([large, small], 'smallest')).toEqual([small, large])
   })
 })
