@@ -704,29 +704,30 @@
     "step": "Schritt {current} von {total}",
     "reserveNote": "Die Menge eines Tokens entsteht am UTXO der Identität, deshalb kann in dieser Transaktion nicht alles in den Umlauf gehen. Behalte einen Teil als Reserve und gib ihn danach über die Identitäten-Seite aus.",
     "home": {
-      "question": "Wo soll die Identität des Tokens liegen?",
-      "whatIsIdentity": "Die Identität eines Tokens ist der UTXO, dessen Inhaber die Metadaten des Tokens aktualisieren kann.",
-      "moveLater": "Du kannst die Identität eines Tokens später von diesem Wallet zu Studio verschieben, und zurück.",
+      "question": "Wo soll die Identität des Tokens liegen? Die Identität ist der UTXO, dessen Inhaber die Metadaten des Tokens aktualisieren kann.",
+      "moveLater": "Du kannst sie später von diesem Wallet zu Studio verschieben, und zurück.",
       "moveLaterHelp": "Zu Studio: Erstelle dort einen Schlüssel und übertrage die Identität dann von der Identitäten-Seite an die Guard-Adresse, die Studio für diesen Schlüssel anzeigt. Zurück: Studios „Release UTXO“ bringt sie an eine gewöhnliche Adresse zurück, und die Identitäten-Seite findet sie mit der Identitätsprüfung wieder.",
       "wallet": "In diesem Wallet",
-      "walletLine": "Von Cashonize zurückgehalten. Andere Wallet-Apps auf diesem Seed können ihn ausgeben.",
+      "walletStrength": "Dein Wallet hält den Identitäts-UTXO und verwaltet ihn auf der Identitäten-Seite.",
+      "walletCaveat": "Nur durch Cashonize geschützt, nicht vor anderen Wallet-Apps auf diesem Seed.",
       "studio": "Mit CashTokens Studio",
-      "studioLine": "Auf der Chain gesperrt. Kontrolliert über ein Schlüssel-NFT in deinem Wallet.",
+      "studioStrength": "Ein Contract auf der Chain hält sie; du hältst ein Schlüssel-NFT, das sie kontrolliert.",
+      "studioCaveat": "Jede Operation läuft über Studios Seite.",
       "leads": {
         "protection": "Schutz:",
         "metadata": "Metadaten:",
         "operations": "Operationen:"
       },
       "walletRows": {
-        "protection": "nur durch Cashonize. Andere Wallet-Apps auf diesem Seed können ihn ausgeben.",
-        "protectionHelp": "Ein gewöhnlicher Versand aus dieser App gibt den Identitäts-UTXO aus, und die Identität geht an den, der den ersten Output dieses Versands erhält, meist den Empfänger. Der Token funktioniert weiter. Nur dieser kann die Metadaten von da an aktualisieren.",
+        "protection": "ein gewöhnlicher Versand aus einer anderen App gibt den Identitäts-UTXO aus und übergibt die Identität an dessen Empfänger.",
+        "protectionHelp": "Der Token funktioniert weiter. Nur der Empfänger kann die Metadaten von da an aktualisieren.",
         "metadata": "schreibst und hostest du, auf einer Domain oder auf IPFS.",
         "operations": "hier, auf der Identitäten-Seite."
       },
       "studioRows": {
-        "protection": "auf der Chain. Kein Wallet kann ihn aus Versehen ausgeben.",
+        "protection": "kein Wallet kann ihn aus Versehen ausgeben, egal welche App den Seed hält.",
         "metadata": "von Studio verfasst und auf IPFS gepinnt, oder eine URL, die du hostest.",
-        "operations": "auf Studios Seite, per WalletConnect. Cashonize zeigt deinen Schlüssel.",
+        "operations": "auf Studios Seite, per WalletConnect, das Freigeben eingeschlossen.",
         "operationsHelp": "Auch das Freigeben der Identität aus dem Guard, zurück an eine gewöhnliche Adresse, geschieht über Studio."
       },
       "glossary": "Studio nennt den Contract AuthGuard und den Schlüssel AuthKey. Cashonize zeigt den Schlüssel, den du hältst, und was er schützt.",

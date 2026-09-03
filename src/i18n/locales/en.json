@@ -704,29 +704,30 @@
     "step": "Step {current} of {total}",
     "reserveNote": "A token's supply is created at the identity's UTXO, so not all of it can go into circulation in this transaction. Leave part as reserve and issue it from the identities page afterwards.",
     "home": {
-      "question": "Where should the token's identity live?",
-      "whatIsIdentity": "A token's identity is the UTXO whose holder can update the token's metadata.",
-      "moveLater": "You can move a token's identity from this wallet to Studio later, and back.",
+      "question": "Where should the token's identity live? The identity is the UTXO whose holder can update the token's metadata.",
+      "moveLater": "You can move it from this wallet to Studio later, and back.",
       "moveLaterHelp": "Into Studio: create a key there, then transfer the identity from the identities page to the guard address Studio shows for that key. Back: Studio's Release UTXO returns it to a plain address, and the identities page finds it again with the identity check.",
       "wallet": "In this wallet",
-      "walletLine": "Held back by Cashonize. Other wallet apps on this seed can spend it.",
+      "walletStrength": "Your wallet holds the identity UTXO and manages it on the identities page.",
+      "walletCaveat": "Protected by Cashonize only, not by other wallet apps on this seed.",
       "studio": "With CashTokens Studio",
-      "studioLine": "Locked on chain. Controlled by a key NFT in your wallet.",
+      "studioStrength": "A contract on chain holds it; you hold a key NFT that controls it.",
+      "studioCaveat": "Every operation runs through Studio's site.",
       "leads": {
         "protection": "Protection:",
         "metadata": "Metadata:",
         "operations": "Operations:"
       },
       "walletRows": {
-        "protection": "by Cashonize only. Other wallet apps on this seed can spend it.",
-        "protectionHelp": "An ordinary send from that app spends the identity UTXO, and the identity goes to whoever receives that send's first output, usually the recipient. The token keeps working. Only they can update its metadata from then on.",
+        "protection": "an ordinary send from another app spends the identity UTXO and hands the identity to its recipient.",
+        "protectionHelp": "The token keeps working. Only the recipient can update its metadata from then on.",
         "metadata": "you write and host it, on a domain or IPFS.",
         "operations": "here, on the identities page."
       },
       "studioRows": {
-        "protection": "on chain. No wallet can spend it by accident.",
+        "protection": "no wallet can spend it by accident, whichever app holds the seed.",
         "metadata": "authored and pinned to IPFS by Studio, or a URL you host.",
-        "operations": "on Studio's site, over WalletConnect. Cashonize shows your key.",
+        "operations": "on Studio's site, over WalletConnect, releasing it included.",
         "operationsHelp": "Releasing the identity from the guard, back to a plain address, is also done through Studio."
       },
       "glossary": "Studio calls the contract an AuthGuard and the key an AuthKey. Cashonize shows the key you hold and what it guards.",

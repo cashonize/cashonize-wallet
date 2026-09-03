@@ -239,15 +239,11 @@
       <legend>{{ t('createTokens.title') }}</legend>
       <!-- The one decision on this page a creator cannot see the consequences of from the form:
            where the token's identity lives afterwards, what protects it, and what it then depends
-           on. Two cards of the same shape, so neither reads as the recommended one; a closed card
-           is its name and the one line that is the comparison, an open one adds the three rows.
-           Above them the one fact that applies to both, which is what makes the choice safe. -->
-      <div>
-        {{ t('createTokens.home.question') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('createTokens.home.whatIsIdentity') }}</div>
-        </InfoPopup>
-      </div>
+           on. Two cards of the same shape, so neither reads as the recommended one: a title, what
+           you get, and the one caveat, and neither card changes size. Above them the one fact that
+           applies to both, which is what makes the choice safe; below the pair, the selected
+           side's detail, where the consequences of the selection begin. -->
+      <div>{{ t('createTokens.home.question') }}</div>
       <div style="margin-top: 6px;">
         {{ t('createTokens.home.moveLater') }}
         <InfoPopup>
@@ -257,29 +253,29 @@
       <div class="home-cards">
         <div class="home-card" :class="{ selected: identityHome === 'wallet' }" @click="identityHome = 'wallet'">
           <div><b>{{ t('createTokens.home.wallet') }}</b></div>
-          <div :class="{ description: identityHome === 'wallet' }">{{ t('createTokens.home.walletLine') }}</div>
-          <div v-if="identityHome === 'wallet'" class="home-rows">
-            <div v-for="row in homeRows" :key="row">
-              <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.walletRows.${row}`) }}
-              <!-- what "can spend it" comes to, which the line cannot carry -->
-              <InfoPopup v-if="row === 'protection'">
-                <div style="max-width: 300px;">{{ t('createTokens.home.walletRows.protectionHelp') }}</div>
-              </InfoPopup>
-            </div>
-          </div>
+          <div>{{ t('createTokens.home.walletStrength') }}</div>
+          <div>{{ t('createTokens.home.walletCaveat') }}</div>
         </div>
         <div class="home-card" :class="{ selected: identityHome === 'studio' }" @click="identityHome = 'studio'">
           <div><b>{{ t('createTokens.home.studio') }}</b></div>
-          <div :class="{ description: identityHome === 'studio' }">{{ t('createTokens.home.studioLine') }}</div>
-          <div v-if="identityHome === 'studio'" class="home-rows">
-            <div v-for="row in homeRows" :key="row">
-              <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.studioRows.${row}`) }}
-              <!-- the one dependency "on Studio's site" does not make obvious: leaving is there too -->
-              <InfoPopup v-if="row === 'operations'">
-                <div style="max-width: 300px;">{{ t('createTokens.home.studioRows.operationsHelp') }}</div>
-              </InfoPopup>
-            </div>
-          </div>
+          <div>{{ t('createTokens.home.studioStrength') }}</div>
+          <div>{{ t('createTokens.home.studioCaveat') }}</div>
+        </div>
+      </div>
+
+      <!-- the same three leads on both sides, so the selection is compared like with like; no row
+           says a card line again -->
+      <div v-if="identityHome" class="section home-rows">
+        <div v-for="row in homeRows" :key="row">
+          <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${identityHome}Rows.${row}`) }}
+          <!-- what the recipient of such a send can and cannot do, which the line cannot carry -->
+          <InfoPopup v-if="identityHome === 'wallet' && row === 'protection'">
+            <div style="max-width: 300px;">{{ t('createTokens.home.walletRows.protectionHelp') }}</div>
+          </InfoPopup>
+          <!-- releasing is Studio's word, and the dependency a creator wants to know beforehand -->
+          <InfoPopup v-if="identityHome === 'studio' && row === 'operations'">
+            <div style="max-width: 300px;">{{ t('createTokens.home.studioRows.operationsHelp') }}</div>
+          </InfoPopup>
         </div>
       </div>
 
@@ -485,9 +481,6 @@
 .home-card.selected {
   border-color: var(--color-primary);
   cursor: default;
-}
-.home-rows {
-  margin-top: 10px;
 }
 .home-rows div {
   margin-top: 4px;

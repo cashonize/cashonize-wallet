@@ -704,29 +704,30 @@
     "step": "Étape {current} sur {total}",
     "reserveNote": "L'offre d'un token est créée sur l'UTXO de l'identité, elle ne peut donc pas entrer entièrement en circulation dans cette transaction. Gardez-en une partie en réserve et émettez-la ensuite depuis la page des identités.",
     "home": {
-      "question": "Où l'identité du token doit-elle vivre ?",
-      "whatIsIdentity": "L'identité d'un token est l'UTXO dont le détenteur peut mettre à jour les métadonnées du token.",
-      "moveLater": "Vous pourrez déplacer l'identité d'un token de ce portefeuille vers Studio plus tard, et inversement.",
+      "question": "Où l'identité du token doit-elle vivre ? L'identité est l'UTXO dont le détenteur peut mettre à jour les métadonnées du token.",
+      "moveLater": "Vous pourrez la déplacer de ce portefeuille vers Studio plus tard, et inversement.",
       "moveLaterHelp": "Vers Studio : créez-y une clé, puis transférez l'identité depuis la page des identités vers l'adresse de garde que Studio affiche pour cette clé. Retour : le « Release UTXO » de Studio la ramène à une adresse ordinaire, et la page des identités la retrouve avec la vérification des identités.",
       "wallet": "Dans ce portefeuille",
-      "walletLine": "Écarté par Cashonize. D'autres applications de portefeuille sur cette graine peuvent le dépenser.",
+      "walletStrength": "Votre portefeuille détient l'UTXO d'identité et le gère sur la page des identités.",
+      "walletCaveat": "Protégé par Cashonize seulement, pas contre d'autres applications de portefeuille sur cette graine.",
       "studio": "Avec CashTokens Studio",
-      "studioLine": "Verrouillé sur la chaîne. Contrôlé par un NFT clé dans votre portefeuille.",
+      "studioStrength": "Un contrat sur la chaîne le détient ; vous détenez un NFT clé qui le contrôle.",
+      "studioCaveat": "Chaque opération passe par le site de Studio.",
       "leads": {
         "protection": "Protection :",
         "metadata": "Métadonnées :",
         "operations": "Opérations :"
       },
       "walletRows": {
-        "protection": "par Cashonize seulement. D'autres applications sur cette graine peuvent le dépenser.",
-        "protectionHelp": "Un envoi ordinaire depuis cette application dépense l'UTXO d'identité, et l'identité va à qui reçoit la première sortie de cet envoi, généralement le destinataire. Le token continue de fonctionner. Seule cette personne pourra ensuite mettre à jour ses métadonnées.",
+        "protection": "un envoi ordinaire depuis une autre application dépense l'UTXO d'identité et remet l'identité à son destinataire.",
+        "protectionHelp": "Le token continue de fonctionner. Seul le destinataire pourra ensuite mettre à jour ses métadonnées.",
         "metadata": "vous les rédigez et hébergez, sur un domaine ou IPFS.",
         "operations": "ici, sur la page des identités."
       },
       "studioRows": {
-        "protection": "sur la chaîne. Aucun portefeuille ne peut le dépenser par accident.",
+        "protection": "aucun portefeuille ne peut le dépenser par accident, quelle que soit l'application qui détient la graine.",
         "metadata": "rédigées et épinglées sur IPFS par Studio, ou une URL que vous hébergez.",
-        "operations": "sur le site de Studio, par WalletConnect. Cashonize affiche votre clé.",
+        "operations": "sur le site de Studio, par WalletConnect, sa libération comprise.",
         "operationsHelp": "Libérer l'identité de la garde, vers une adresse ordinaire, se fait aussi par Studio."
       },
       "glossary": "Studio appelle le contrat AuthGuard et la clé AuthKey. Cashonize affiche la clé que vous détenez et ce qu'elle garde.",

@@ -704,29 +704,30 @@
     "step": "Etapa {current} de {total}",
     "reserveNote": "O fornecimento de um token é criado no UTXO da identidade, por isso não pode entrar todo em circulação nesta transação. Guarde parte como reserva e emita-a depois na página de identidades.",
     "home": {
-      "question": "Onde deve viver a identidade do token?",
-      "whatIsIdentity": "A identidade de um token é o UTXO cujo detentor pode atualizar os metadados do token.",
-      "moveLater": "Você pode mover a identidade de um token desta carteira para o Studio mais tarde, e de volta.",
+      "question": "Onde deve viver a identidade do token? A identidade é o UTXO cujo detentor pode atualizar os metadados do token.",
+      "moveLater": "Você pode movê-la desta carteira para o Studio mais tarde, e de volta.",
       "moveLaterHelp": "Para o Studio: crie lá uma chave e depois transfira a identidade da página de identidades para o endereço de guarda que o Studio mostra para essa chave. De volta: o \"Release UTXO\" do Studio devolve-a a um endereço comum, e a página de identidades volta a encontrá-la com a verificação de identidades.",
       "wallet": "Nesta carteira",
-      "walletLine": "Retido pelo Cashonize. Outras apps de carteira com esta seed podem gastá-lo.",
+      "walletStrength": "A sua carteira guarda o UTXO de identidade e gere-o na página de identidades.",
+      "walletCaveat": "Protegido só pelo Cashonize, não de outras apps de carteira com esta seed.",
       "studio": "Com o CashTokens Studio",
-      "studioLine": "Trancado na cadeia. Controlado por um NFT chave na sua carteira.",
+      "studioStrength": "Um contrato na cadeia guarda-o; você tem um NFT chave que o controla.",
+      "studioCaveat": "Toda operação passa pelo site do Studio.",
       "leads": {
         "protection": "Proteção:",
         "metadata": "Metadados:",
         "operations": "Operações:"
       },
       "walletRows": {
-        "protection": "só pelo Cashonize. Outras apps de carteira com esta seed podem gastá-lo.",
-        "protectionHelp": "Um envio comum a partir dessa app gasta o UTXO de identidade, e a identidade passa para quem recebe a primeira saída desse envio, normalmente o destinatário. O token continua a funcionar. Só essa pessoa poderá atualizar os metadados a partir daí.",
+        "protection": "um envio comum a partir de outra app gasta o UTXO de identidade e entrega a identidade ao seu destinatário.",
+        "protectionHelp": "O token continua a funcionar. Só o destinatário poderá atualizar os metadados a partir daí.",
         "metadata": "escreve-os e hospeda-os você, num domínio ou no IPFS.",
         "operations": "aqui, na página de identidades."
       },
       "studioRows": {
-        "protection": "na cadeia. Nenhuma carteira o pode gastar por acidente.",
+        "protection": "nenhuma carteira o pode gastar por acidente, seja qual for a app que tem a seed.",
         "metadata": "redigidos e fixados no IPFS pelo Studio, ou um URL que você hospeda.",
-        "operations": "no site do Studio, via WalletConnect. O Cashonize mostra a sua chave.",
+        "operations": "no site do Studio, via WalletConnect, a sua libertação incluída.",
         "operationsHelp": "Libertar a identidade da guarda, de volta a um endereço comum, também se faz pelo Studio."
       },
       "glossary": "O Studio chama AuthGuard ao contrato e AuthKey à chave. O Cashonize mostra a chave que você tem e o que ela guarda.",
