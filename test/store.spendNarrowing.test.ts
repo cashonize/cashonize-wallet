@@ -116,11 +116,11 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
       .rejects.toThrow(/held back/)
   })
 
-  it('keeps the original message in front of its sentence', async () => {
+  it('passes an unrelated failure through untouched', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
     wallet.send.mockRejectedValue(new Error('broadcast failed'))
 
     await expect(store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }]))
-      .rejects.toThrow('broadcast failed')
+      .rejects.toThrow(/^broadcast failed$/)
   })
 })
