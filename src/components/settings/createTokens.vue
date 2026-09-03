@@ -43,6 +43,9 @@
   const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
   const cardLines = ['holds', 'hosts', 'risk'] as const;
   const homeRows = ['protection', 'metadata', 'operations'] as const;
+  // the Studio side has no form, so what to do there is the numbered walkthrough the page already
+  // uses for its metadata how-to: the rows describe the arrangement, the steps say what to do
+  const studioSteps = ['connect', 'create', 'back'] as const;
   // the Tokens tab, where the token now shows, and the identities page, where its identity does
   const tokensView = 2;
   const identitiesView = 19;
@@ -499,9 +502,19 @@
       </div>
 
       <template v-if="identityHome === 'studio'">
-        <!-- what happens, to whom, and what done looks like: the paragraph this side has room for,
-             having no form -->
-        <div class="section">{{ t('createTokens.home.studioExplained') }}</div>
+        <div class="section">{{ t('createTokens.home.studioStepsTitle') }}</div>
+        <ol class="walkthrough">
+          <li v-for="step in studioSteps" :key="step">
+            <span>
+              {{ t(`createTokens.home.studioSteps.${step}`) }}
+              <!-- the consequence the step only names: a wallet with a key and no tokens yet -->
+              <InfoPopup v-if="step === 'create'">
+                <div style="max-width: 300px;">{{ t('createTokens.home.studioSteps.createHelp') }}</div>
+              </InfoPopup>
+            </span>
+          </li>
+        </ol>
+        <div class="section description">{{ t('createTokens.home.studioNote') }}</div>
         <!-- an external link, marked the way the wallet marks every other one -->
         <div class="section">
           <a :href="studioUrl" target="_blank" class="action-link">
@@ -809,7 +822,7 @@
   margin: 20px -1.25rem 0;
 }
 .home-card {
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   cursor: pointer;
@@ -824,8 +837,12 @@
   border-color: var(--color-primary);
   cursor: default;
 }
+/* set rather than crammed: air under the title, a little between the facts */
 .home-card > div {
-  margin-top: 4px;
+  margin-top: 3px;
+}
+.home-card > .home-card-title + div {
+  margin-top: 6px;
 }
 /* the one-of-two control the page's own inputs use, so a card reads as a choice on a phone too;
    after the title, the mark of the thing the card stands for: home, or someone else's site */
@@ -903,7 +920,6 @@ label {
   counter-increment: walkthrough-step;
   content: counter(walkthrough-step) ")";
   flex: none;
-  color: grey;
 }
 .publish-uri-row {
   display: flex;

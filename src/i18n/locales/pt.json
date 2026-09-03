@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Criar um token",
     "home": {
-      "intro": "Crie aqui um token novo; o nome, o ícone e outros metadados podem ser ligados agora ou adicionados depois, e de qualquer forma o ficheiro precisa de hospedagem. As carteiras leem-nos de um ficheiro de metadados para o qual a identidade do token, um UTXO, aponta; quem tem esse UTXO controla os metadados. Escolha onde essa identidade deve viver: aqui, em três passos, ou no site do Studio.",
+      "intro": "Crie aqui um token novo, em três passos, ou no site do Studio. O seu nome e ícone vêm de um ficheiro de metadados hospedado para o qual a identidade do token, um UTXO, aponta. Escolha onde essa identidade deve viver.",
       "moveLater": "Você pode movê-la desta carteira para o Studio mais tarde, e de volta.",
       "moveLaterHelp": "Para o Studio: crie lá uma chave e depois transfira a identidade da página de identidades para o endereço de guarda que o Studio mostra para essa chave. De volta: o \"Release UTXO\" do Studio devolve-a a um endereço comum, e a página de identidades volta a encontrá-la com a verificação de identidades.",
       "wallet": "Nesta carteira",
@@ -676,16 +676,23 @@
         "operations": "aqui, na página de identidades; cada uma move a identidade para um UTXO novo."
       },
       "studioRows": {
-        "protection": "só se abre ao NFT chave, seja qual for a app que tem a seed.",
+        "protection": "só se gasta com o NFT chave, seja qual for a app que tem a seed.",
         "protectionHelp": "Outras carteiras mostram a chave como um NFT sem nome, e é assim que um é enviado ou queimado como spam, e a reserva vai com quem tiver a chave; não mexa nos NFTs sem nome na sua outra app. O Cashonize dá-lhe o nome do que ela guarda.",
-        "metadata": "redigidos e fixados no IPFS pelo Studio, ou um URL que você hospeda; guarde uma cópia.",
+        "metadata": "redigidos e fixados no IPFS pelo Studio; guarde uma cópia do ficheiro.",
         "operations": "alterar os metadados, emitir oferta e libertar a identidade, no site do Studio via WalletConnect.",
         "operationsHelp": "Libertar a identidade da guarda, de volta a um endereço comum, também se faz pelo Studio."
       },
       "openStudio": "Abrir o CashTokens Studio",
       "chosen": "Identidade: nesta carteira",
       "noHosting": "Sem sítio onde hospedar um ficheiro? Escolha o Studio, que o hospeda para as identidades que guarda.",
-      "studioExplained": "O Studio, uma ferramenta web da Paytaca com código fonte consultável, cria o token, escreve os seus metadados e fixa-os no IPFS. A oferta fica com a identidade como reserva; emitir tokens para uma carteira é um passo à parte no site do Studio, por isso esta carteira não tem nenhum até lá. O NFT chave vai para a carteira que ligar via WalletConnect. Ligue esta carteira, para que a chave tenha nome aqui. Quando terminar, a identidade aparece na página de identidades, em Ferramentas. No site do Studio o contrato chama-se AuthGuard e a chave AuthKey."
+      "studioNote": "O CashTokens Studio é uma ferramenta web da Paytaca com código fonte consultável. Guarda a identidade num contrato a que chama AuthGuard, aberto por uma chave a que chama AuthKey.",
+      "studioSteps": {
+        "connect": "Ligue esta carteira ao Studio via WalletConnect.",
+        "create": "Crie lá o token. O NFT chave vem para esta carteira; a oferta fica com a identidade até a emitir.",
+        "createHelp": "Emitir é um passo no site do Studio que envia tokens da reserva para uma carteira; uma vez emitidos, enviam-se como qualquer token. Até lá esta carteira mostra a chave e nenhum token.",
+        "back": "De volta aqui, a identidade aparece na página de identidades, em Ferramentas."
+      },
+      "studioStepsTitle": "Passos para o CashTokens Studio"
     },
     "change": "alterar",
     "step": "Passo {current} de {total}",

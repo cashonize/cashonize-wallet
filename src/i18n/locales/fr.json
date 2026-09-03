@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Créer un token",
     "home": {
-      "intro": "Créez ici un nouveau token ; le nom, l'icône et d'autres métadonnées peuvent être liés maintenant ou ajoutés plus tard, et dans les deux cas le fichier doit être hébergé. Les portefeuilles les lisent dans un fichier de métadonnées vers lequel pointe l'identité du token, un UTXO ; qui détient cet UTXO contrôle les métadonnées. Choisissez où cette identité doit vivre : ici, en trois étapes, ou sur le site de Studio.",
+      "intro": "Créez ici un nouveau token, en trois étapes, ou sur le site de Studio. Son nom et son icône viennent d'un fichier de métadonnées hébergé vers lequel pointe l'identité du token, un UTXO. Choisissez où cette identité doit vivre.",
       "moveLater": "Vous pourrez la déplacer de ce portefeuille vers Studio plus tard, et inversement.",
       "moveLaterHelp": "Vers Studio : créez-y une clé, puis transférez l'identité depuis la page des identités vers l'adresse de garde que Studio affiche pour cette clé. Retour : le « Release UTXO » de Studio la ramène à une adresse ordinaire, et la page des identités la retrouve avec la vérification des identités.",
       "wallet": "Dans ce portefeuille",
@@ -676,16 +676,23 @@
         "operations": "ici, sur la page des identités ; chacune déplace l'identité vers un nouvel UTXO."
       },
       "studioRows": {
-        "protection": "ne s'ouvre qu'au NFT clé, quelle que soit l'application qui détient la graine.",
+        "protection": "dépensable seulement avec le NFT clé, quelle que soit l'application qui détient la graine.",
         "protectionHelp": "Les autres portefeuilles affichent la clé comme un NFT sans nom, et c'est ainsi qu'on en envoie un ou qu'on le brûle comme du spam, et la réserve suit qui détient la clé ; ne touchez pas aux NFT sans nom dans votre autre application. Cashonize la nomme d'après ce qu'elle garde.",
-        "metadata": "rédigées et épinglées sur IPFS par Studio, ou une URL que vous hébergez ; gardez une copie.",
+        "metadata": "rédigées et épinglées sur IPFS par Studio ; gardez une copie du fichier.",
         "operations": "modifier les métadonnées, émettre l'offre et libérer l'identité, sur le site de Studio par WalletConnect.",
         "operationsHelp": "Libérer l'identité de la garde, vers une adresse ordinaire, se fait aussi par Studio."
       },
       "openStudio": "Ouvrir CashTokens Studio",
       "chosen": "Identité : dans ce portefeuille",
       "noHosting": "Nulle part où héberger un fichier ? Choisissez Studio, qui l'héberge pour les identités qu'il détient.",
-      "studioExplained": "Studio, un outil web de Paytaca au code source consultable, crée le token, rédige ses métadonnées et les épingle sur IPFS. L'offre reste avec l'identité comme réserve ; émettre des tokens vers un portefeuille est une étape à part sur le site de Studio, ce portefeuille n'en détient donc aucun d'ici là. Le NFT clé va au portefeuille que vous connectez par WalletConnect. Connectez ce portefeuille, pour que la clé soit nommée ici. Une fois terminé, l'identité apparaît sur la page des identités, dans Outils. Sur le site de Studio le contrat s'appelle AuthGuard et la clé AuthKey."
+      "studioNote": "CashTokens Studio est un outil web de Paytaca au code source consultable. Il garde l'identité dans un contrat qu'il appelle AuthGuard, ouvert par une clé qu'il appelle AuthKey.",
+      "studioSteps": {
+        "connect": "Connectez ce portefeuille à Studio par WalletConnect.",
+        "create": "Créez-y le token. Le NFT clé arrive dans ce portefeuille ; l'offre reste avec l'identité jusqu'à ce que vous l'émettiez.",
+        "createHelp": "Émettre est une étape sur le site de Studio qui envoie des tokens de la réserve vers un portefeuille ; une fois émis ils s'envoient comme tout token. D'ici là ce portefeuille affiche la clé et aucun token.",
+        "back": "De retour ici, l'identité apparaît sur la page des identités, dans Outils."
+      },
+      "studioStepsTitle": "Étapes pour CashTokens Studio"
     },
     "change": "modifier",
     "step": "Étape {current} sur {total}",

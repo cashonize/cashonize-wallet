@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Create a token",
     "home": {
-      "intro": "Create a new token here; name, icon and other metadata can be linked now or added later, and either way the file needs hosting. Wallets read them from a metadata file that the token's identity, a UTXO, points to; whoever holds that UTXO controls the metadata. Choose where that identity should live: here, in three steps, or on Studio's site.",
+      "intro": "Create a new token here, in three steps, or on Studio's site. Its name and icon come from a hosted metadata file that the token's identity, a UTXO, points to. Choose where that identity should live.",
       "moveLater": "You can move it from this wallet to Studio later, and back.",
       "moveLaterHelp": "Into Studio: create a key there, then transfer the identity from the identities page to the guard address Studio shows for that key. Back: Studio's Release UTXO returns it to a plain address, and the identities page finds it again with the identity check.",
       "wallet": "In this wallet",
@@ -676,16 +676,23 @@
         "operations": "here, on the identities page; each one moves the identity to a new UTXO."
       },
       "studioRows": {
-        "protection": "opens only to the key NFT, whichever app holds the seed.",
+        "protection": "spendable only with the key NFT, whichever app holds the seed.",
         "protectionHelp": "Other wallets show the key as an unnamed NFT, which is how one gets sent away or burned as spam, and the reserve goes with whoever holds the key; leave unnamed NFTs alone in your other app. Cashonize names it by what it guards.",
-        "metadata": "written and pinned to IPFS by Studio, or a URL you host; keep a copy.",
+        "metadata": "written and pinned to IPFS by Studio; keep a copy of the file.",
         "operations": "changing the metadata, issuing supply and releasing the identity, on Studio's site over WalletConnect.",
         "operationsHelp": "Releasing the identity from the guard, back to a plain address, is also done through Studio."
       },
       "openStudio": "Open CashTokens Studio",
       "chosen": "Identity: in this wallet",
       "noHosting": "Nowhere to host a file? Choose Studio, which hosts it for the identities it holds.",
-      "studioExplained": "Studio, a web tool by Paytaca with viewable source, creates the token, writes its metadata and pins it to IPFS. The supply stays with the identity as its reserve; issuing tokens to a wallet is a separate step on Studio's site, so this wallet holds none until then. The key NFT goes to the wallet you connect over WalletConnect. Connect this wallet, so the key is named here. When it is done, the identity appears on the identities page in Tools. On Studio's site the contract is called an AuthGuard and the key an AuthKey."
+      "studioNote": "CashTokens Studio is a web tool by Paytaca with viewable source. It keeps the identity in a contract it calls an AuthGuard, opened by a key it calls an AuthKey.",
+      "studioSteps": {
+        "connect": "Connect this wallet to Studio over WalletConnect.",
+        "create": "Create the token there. The key NFT comes to this wallet; the supply stays with the identity until you issue it.",
+        "createHelp": "Issuing is a step on Studio's site that sends tokens from the reserve to a wallet; once issued they send like any token. Until then this wallet shows the key and no tokens.",
+        "back": "Back here, the identity appears on the identities page in Tools."
+      },
+      "studioStepsTitle": "Steps for CashTokens Studio"
     },
     "change": "change",
     "step": "Step {current} of {total}",
