@@ -225,7 +225,7 @@
           <div class="tokenBaseInfo1">
             <div v-if="heldIdentityLine">
               {{ heldIdentityLine }}
-              <span class="identity-link" @click="store.changeView(19)">{{ t('tokenItem.authKey.manage') }}</span>
+              <span class="identity-link" @click="store.changeView(19)">{{ t('tokenItem.identity.manage') }}</span>
             </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">

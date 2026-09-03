@@ -7,6 +7,14 @@
     publicationOutputSize,
     summarizeRegistry,
   } from 'src/utils/tools/authchainIdentity';
+  import {
+    formatTokens,
+    genesisAmounts,
+    metadataReadiness,
+    parseDecimals,
+    maxTokenSupply,
+    type CheckedRegistry,
+  } from 'src/utils/tools/tokenCreation';
   import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils';
   import { NFTCapability, TokenSendRequest } from 'mainnet-js';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
@@ -27,6 +35,7 @@
 
   const inputFungibleSupply = ref("");
   const inputCirculating = ref("");
+  const inputDecimals = ref("0");
   // Where the token's identity lives afterwards: here, held back, or in an AuthGuard covenant made
   // by CashTokens Studio. This page only makes the first; the second is a link out. Nothing is
   // chosen until the user chooses, and nothing remembers the choice: it is one click.
@@ -46,7 +55,10 @@
   const createMintingNft = computed(() => tokenShape.value !== 'fungible');
   const hasSupply = computed(() => tokenShape.value !== 'mintingNft');
   const metadataUris = ref<string[]>([""]);
-  const activeAction = ref<'creatingPreGenesis' | 'creating' | null>(null);
+  const activeAction = ref<'creatingPreGenesis' | 'checking' | 'creating' | null>(null);
+  // What was just made, said above the reset page until the next choice, so the reset does not
+  // read as the creation being undone
+  const createdCategory = ref<string | undefined>(undefined);
 
   // The satoshis each token output of the genesis carries, the AuthHead included
   const tokenOutputValue = 1000n;
@@ -85,40 +97,30 @@
     pickedOutpoint.value = undefined;
     editingUtxo.value = true;
   }
-
-  // Amounts are whole token units here: the decimals live in the metadata, which does not exist
-  // yet at creation time
-  function parseAmount(value: string): bigint | undefined {
-    if (!value.trim()) return 0n;
-    try {
-      const amount = BigInt(value);
-      return amount >= 0n ? amount : undefined;
-    } catch {
-      return undefined;
-    }
-  }
-
-  // A category's fungible supply is capped at the largest signed 64-bit integer
-  const maxTokenSupply = 9223372036854775807n;
-
-  const totalSupply = computed(() => parseAmount(inputFungibleSupply.value));
-  const circulating = computed(() => parseAmount(inputCirculating.value));
-  // What the AuthHead keeps: supply the wallet holds out of circulation, alongside the authority
-  const reserve = computed(() => {
-    if (totalSupply.value === undefined || circulating.value === undefined) return undefined;
-    return totalSupply.value - circulating.value;
+  watch(identityHome, chosen => {
+    if (chosen) createdCategory.value = undefined;
   });
+
+  // Amounts are typed in tokens and the decimals field does the zeroes: the number on chain is
+  // permanent, and asking the user for that arithmetic was the mistake every walkthrough made
+  const decimals = computed(() => parseDecimals(inputDecimals.value) ?? 0);
+  const amounts = computed(() => genesisAmounts(inputFungibleSupply.value, inputCirculating.value, inputDecimals.value));
+  const totalSupply = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.supply);
+  const circulating = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.circulating);
+  // What the AuthHead keeps: supply the wallet holds out of circulation, alongside the authority
+  const reserve = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.reserve);
+  const tokensOf = (baseUnits: bigint) => formatTokens(baseUnits, decimals.value);
+  const baseUnitsOf = (baseUnits: bigint) => formatTokens(baseUnits, 0);
 
   // The genesis is the one transaction that cannot be corrected afterwards, so what it refuses is
   // said before the button is pressed rather than by a failed broadcast.
   const genesisProblem = computed(() => {
     if (!hasSupply.value) return undefined;
-    const supply = totalSupply.value;
-    const issued = circulating.value;
-    if (supply === undefined || issued === undefined) return t('createTokens.errors.invalidAmount');
-    if (supply > maxTokenSupply) return t('createTokens.errors.overMaxSupply', { max: maxTokenSupply.toString() });
-    if (issued > supply) return t('createTokens.errors.overSupply');
-    return undefined;
+    if (typeof amounts.value !== 'string') return undefined;
+    if (amounts.value === 'overMaxSupply') {
+      return t('createTokens.errors.overMaxSupply', { max: baseUnitsOf(maxTokenSupply) });
+    }
+    return t(`createTokens.errors.${amounts.value}`);
   });
 
   // Step 2 is settled when what Create acts on is: a shape, and for a shape with a supply both
@@ -137,14 +139,24 @@
     return t('createTokens.reserveNote');
   });
 
-  // A coin a genesis can spend is an ordinary one sitting at output 0, which a send to self makes
+  // The satoshis a prepared UTXO carries, which stay the user's: the genesis spends it to self
+  const preparedUtxoValue = 10_000n;
+
+  // A UTXO a genesis can spend is an ordinary one sitting at output 0, which a send to self makes.
+  // Confirmed first like the flipstarter's preparation, since it is a broadcast on one tap.
   async function createPreGenesis(){
     if (activeAction.value) return;
+    const confirmed = await confirmDialog(
+      t('createTokens.prepare.title'),
+      t('createTokens.prepare.message', { amount: bchOf(preparedUtxoValue) }),
+      t('createTokens.genesisInput.prepareButton')
+    );
+    if (!confirmed) return;
     activeAction.value = 'creatingPreGenesis';
     try{
       const walletAddr = store.wallet.getDepositAddress();
       notifySending(t('createTokens.notifications.preparingPreGenesis'));
-      const { txId } = await store.spend.send([{ cashaddr: walletAddr, value: 10000n }]);
+      const { txId } = await store.spend.send([{ cashaddr: walletAddr, value: preparedUtxoValue }]);
       $q.notify({
         type: 'positive',
         message: t('createTokens.notifications.transactionSent')
@@ -178,16 +190,52 @@
     if (!metadataUris.value.length) metadataUris.value = [""];
   }
 
-  // Verified by the same code an update's publication is. Checking that the file names this
-  // identity is only possible before signing because the category is known in advance.
-  async function metadataOutput(category: string) {
-    if (!filledUris.value.length) return undefined;
-    if (publicationBytesLeft.value < 0) throw new Error(t('identities.publish.errors.tooLarge'));
-    const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
-    if (!summarizeRegistry(candidate.content, category)) {
-      throw new Error(t('createTokens.notifications.bcmrWrongIdentity'));
+  // What the typed locations serve, fetched and verified on the user's word rather than on blur,
+  // and shown before anything is signed: the creator confirms a genesis knowing the name, the
+  // decimals and the hash it commits to. Verified by the same code an update's publication is;
+  // checking that the file names this identity is possible because the category is known already.
+  const checkedRegistry = ref<CheckedRegistry | undefined>(undefined);
+  watch(filledUris, (uris, before) => {
+    if (uris.join('\n') !== before.join('\n')) checkedRegistry.value = undefined;
+  });
+  const readiness = computed(() => metadataReadiness(filledUris.value, checkedRegistry.value, decimals.value));
+
+  async function checkRegistry() {
+    const category = plannedCategory.value;
+    if (activeAction.value || !category || !filledUris.value.length) return;
+    activeAction.value = 'checking';
+    try {
+      if (publicationBytesLeft.value < 0) throw new Error(t('identities.publish.errors.tooLarge'));
+      const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
+      const summary = summarizeRegistry(candidate.content, category);
+      if (!summary) throw new Error(t('createTokens.notifications.bcmrWrongIdentity'));
+      checkedRegistry.value = { uris: [...filledUris.value], summary, hash: candidate.hash };
+    } catch (error) {
+      displayAndLogError(error);
+    } finally {
+      activeAction.value = null;
     }
-    return publicationOutput(candidate.hash, filledUris.value);
+  }
+
+  // the registry's icon, resolved the way the token list resolves one
+  const checkedIconUrl = computed(() => {
+    const uri = checkedRegistry.value?.summary.iconUri;
+    if (!uri) return undefined;
+    return uri.startsWith('ipfs://') ? settingsStore.ipfsGateway + uri.slice('ipfs://'.length) : uri;
+  });
+
+  const checkedName = computed(() => {
+    const summary = checkedRegistry.value?.summary;
+    if (!summary) return undefined;
+    return summary.symbol ? `${summary.name} (${summary.symbol})` : summary.name;
+  });
+
+  // The publication output of a checked registry; none when no location was typed
+  function metadataOutput() {
+    if (readiness.value === 'none') return undefined;
+    const checked = checkedRegistry.value;
+    if (readiness.value !== 'ready' || !checked) throw new Error(t('createTokens.check.needed'));
+    return publicationOutput(checked.hash, checked.uris);
   }
 
   // One genesis builds the whole issuer kit: output 0 is the AuthHead, carrying the reserve and
@@ -208,7 +256,7 @@
     if (!confirmed) return;
     activeAction.value = 'creating';
     try{
-      const opreturnData = await metadataOutput(pickedCoin.txid);
+      const opreturnData = metadataOutput();
       const tokenAddress = store.wallet.getTokenDepositAddress();
       const circulationOutput = new TokenSendRequest({
         cashaddr: tokenAddress,
@@ -233,15 +281,19 @@
       );
       const { txId } = genesisResponse;
       const category = genesisResponse?.categories?.[0] ?? pickedCoin.txid;
-      const alertMessage = creationSummary(category, reserveAmount);
+      const alertMessage = creationSummary(category, reserveAmount, circulatingAmount, tokenAddress);
       // creation ends where management begins: the identity is listed and its AuthHead held back
       if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
-      // the page starts over at the choice; the dialog offers the identities page as the next step
+      // the page starts over at the choice, saying what it made; the dialog offers the identities
+      // page as the next step
       inputFungibleSupply.value = "";
       inputCirculating.value = "";
+      inputDecimals.value = "0";
       tokenShape.value = 'fungible';
       metadataUris.value = [""];
+      checkedRegistry.value = undefined;
       changeHome();
+      createdCategory.value = category;
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'), {
         label: t('createTokens.created.openIdentities'),
         onClick: () => store.changeView(identitiesView),
@@ -253,23 +305,34 @@
     }
   }
 
+  // Tokens, and the base units in brackets when the decimals make them differ
+  function amountShown(baseUnits: bigint) {
+    if (!decimals.value) return tokensOf(baseUnits);
+    return `${tokensOf(baseUnits)} (${baseUnitsOf(baseUnits)})`;
+  }
+
   // What is about to be made, for the dialog that asks before it is
   function confirmMessage(reserveAmount: bigint, circulatingAmount: bigint) {
     const lines = [t(`createTokens.shapes.${tokenShape.value}`)];
     if (hasSupply.value) {
-      lines.push(t('createTokens.confirm.supply', { supply: totalSupply.value?.toString() }));
+      lines.push(t('createTokens.confirm.supply', { supply: amountShown(totalSupply.value ?? 0n) }));
+      lines.push(t('createTokens.confirm.decimals', { decimals: decimals.value }));
       lines.push(t('createTokens.circulation.split', {
-        reserve: reserveAmount.toString(), circulating: circulatingAmount.toString(),
+        reserve: amountShown(reserveAmount), circulating: amountShown(circulatingAmount),
       }));
     }
-    if (filledUris.value.length) lines.push(t('createTokens.confirm.metadataLinked', filledUris.value.length));
-    else lines.push(t('createTokens.confirm.metadataNone'));
+    const checked = checkedRegistry.value;
+    if (checked && readiness.value === 'ready') {
+      lines.push(t('createTokens.confirm.metadataLinked', { name: checkedName.value, location: checked.uris.join(', ') }));
+    } else {
+      lines.push(t('createTokens.confirm.metadataNone'));
+    }
     return lines.join('\n');
   }
 
   // What was just made, for the dialog that reports it
-  function creationSummary(category: string, reserveAmount: bigint) {
-    const supply = inputFungibleSupply.value;
+  function creationSummary(category: string, reserveAmount: bigint, circulatingAmount: bigint, tokenAddress: string) {
+    const supply = amountShown(totalSupply.value ?? 0n);
     const lines: string[] = [];
     if (!hasSupply.value) {
       lines.push(t('createTokens.created.mintingNft', { category }));
@@ -278,8 +341,11 @@
     } else {
       lines.push(t('createTokens.created.fungibles', { supply, category }));
     }
+    if (circulatingAmount > 0n) {
+      lines.push(t('createTokens.created.circulation', { amount: amountShown(circulatingAmount), address: tokenAddress }));
+    }
     if (reserveAmount > 0n && reserveAmount !== totalSupply.value) {
-      lines.push(t('createTokens.created.reserve', { amount: reserveAmount.toString() }));
+      lines.push(t('createTokens.created.reserve', { amount: amountShown(reserveAmount) }));
     }
     lines.push(t('createTokens.created.listed'));
     return lines.join('\n');
@@ -296,6 +362,9 @@
            same shape answer, so neither reads as the recommended one: a radio marker, a title,
            what you get, and the one caveat, and neither card changes size. Below the pair, the
            selected side's detail, where the consequences of the selection begin. -->
+      <div v-if="createdCategory" style="margin-bottom: 12px;">
+        {{ t('createTokens.created.banner', { category: truncateHash(createdCategory) }) }}
+      </div>
       <template v-if="choiceOpen">
       <div>{{ t('createTokens.home.intro') }}</div>
       <div style="margin-top: 6px;">
@@ -373,7 +442,7 @@
         <!-- Which of your coins becomes a token's id is a question nearly nobody needs asked, so
              it waits behind a disclosure for whoever wants a particular id or one fewer fee -->
         <details style="margin-top: 10px;">
-          <summary style="display: list-item">{{ t('createTokens.genesisInput.chooseExisting') }}</summary>
+          <summary style="display: list-item">{{ t('createTokens.genesisInput.chooseExisting', genesisCandidates?.length ?? 0) }}</summary>
           <div v-if="genesisCandidates === undefined" class="description">{{ t('createTokens.loading') }}</div>
           <template v-else>
             <div v-if="!genesisCandidates.length" class="description">{{ t('createTokens.genesisInput.none') }}</div>
@@ -388,6 +457,8 @@
                 <TokenIcon :token-id="coin.txid" :size="24" />
                 <span class="mono">{{ truncateHash(coin.txid) }}</span>
                 <span>{{ bchOf(coin.satoshis) }}</span>
+                <span v-if="store.addressLabels[coin.address]" class="description">{{ store.addressLabels[coin.address] }}</span>
+                <span v-if="!coin.height" class="description">{{ t('createTokens.genesisInput.unconfirmed') }}</span>
               </div>
             </div>
           </template>
@@ -409,6 +480,11 @@
         <span class="mono">{{ truncateHash(plannedCategory) }}</span>
         <span class="action-link" @click="editingUtxo = true">{{ t('createTokens.change') }}</span>
       </div>
+      <!-- the shape of the flow shows before its fields do, since the first step costs a fee -->
+      <template v-if="utxoStepOpen">
+        <div class="section description">{{ t('createTokens.step', { current: 2, total: 3 }) }}: {{ t('createTokens.stepTitles.shape') }}</div>
+        <div class="description" style="margin-top: 8px;">{{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}</div>
+      </template>
 
       <!-- Deciding what to make does not depend on which UTXO makes it, but it reads better one
            thing at a time, so this opens once the UTXO is settled -->
@@ -429,19 +505,38 @@
         <div v-if="createMintingNft" class="description" style="margin-top: 6px;">{{ t('createTokens.mintingNote') }}</div>
 
         <template v-if="hasSupply">
-        <label for="supply">
-          {{ t('createTokens.supplyLabel') }}
-          <InfoPopup>
-            <div style="max-width: 300px;">{{ t('createTokens.supplyHelp') }}</div>
-            <div class="info-popup-note" style="max-width: 300px;">{{ t('createTokens.supplyNote') }}</div>
-          </InfoPopup>
-        </label>
-        <input
-          id="supply"
-          v-model="inputFungibleSupply"
-          :placeholder="t('createTokens.supplyPlaceholder')"
-          type="number"
-        >
+        <!-- the supply in tokens beside the decimals that turn it into the permanent number on
+             chain, which is shown underneath rather than typed -->
+        <div class="supply-row">
+          <div class="supply-field">
+            <label for="supply">
+              {{ t('createTokens.supplyLabel') }}
+              <InfoPopup>
+                <div style="max-width: 300px;">{{ t('createTokens.supplyHelp') }}</div>
+                <div class="info-popup-note" style="max-width: 300px;">{{ t('createTokens.supplyNote') }}</div>
+              </InfoPopup>
+            </label>
+            <input
+              id="supply"
+              v-model="inputFungibleSupply"
+              :placeholder="t('createTokens.supplyPlaceholder')"
+              type="text"
+              inputmode="decimal"
+            >
+          </div>
+          <div class="decimals-field">
+            <label for="decimals">
+              {{ t('createTokens.decimalsLabel') }}
+              <InfoPopup>
+                <div style="max-width: 300px;">{{ t('createTokens.decimalsHelp') }}</div>
+              </InfoPopup>
+            </label>
+            <input id="decimals" v-model="inputDecimals" type="number" min="0" max="18">
+          </div>
+        </div>
+        <div v-if="decimals && totalSupply" class="description" style="margin-top: 4px;">
+          {{ t('createTokens.onChain', { amount: baseUnitsOf(totalSupply) }) }}
+        </div>
 
         <label for="circulating">
           {{ t('createTokens.circulation.label') }}
@@ -453,21 +548,84 @@
           id="circulating"
           v-model="inputCirculating"
           :placeholder="t('createTokens.circulation.placeholder')"
-          type="number"
+          type="text"
+          inputmode="decimal"
         >
-        <div v-if="totalSupply && reserve !== undefined && reserve >= 0n" style="margin-top: 6px;">
-          {{ t('createTokens.circulation.split', { reserve: reserve.toString(), circulating: circulating?.toString() }) }}
-        </div>
+        <template v-if="totalSupply && reserve !== undefined && circulating !== undefined">
+          <div style="margin-top: 6px;">
+            {{ t('createTokens.circulation.split', { reserve: tokensOf(reserve), circulating: tokensOf(circulating) }) }}
+          </div>
+          <div v-if="decimals" class="description">
+            {{ t('createTokens.circulation.splitOnChain', { reserve: baseUnitsOf(reserve), circulating: baseUnitsOf(circulating) }) }}
+          </div>
+        </template>
         <div v-if="reserveNote" class="description" style="margin-top: 6px;">{{ reserveNote }}</div>
         <div v-if="genesisProblem" class="genesis-problem" style="margin-top: 6px;">{{ genesisProblem }}</div>
         </template>
       </div>
 
-      <!-- Optional, and a disclosure; the line under it is what decides whether to open it -->
+      <!-- Optional. The location is the field that delivers what the page promises, so it is in
+           the open; how to write and host the file is the collapsible part. -->
       <div v-if="!utxoStepOpen && supplySettled" class="section">
         <div class="description">{{ t('createTokens.step', { current: 3, total: 3 }) }}</div>
-        <details style="margin-top: 6px;">
-          <summary style="display: list-item">{{ t('createTokens.linkMetadata') }}</summary>
+        <div style="margin-top: 6px;">
+          {{ t('createTokens.metadataNote') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">
+              <i18n-t keypath="identities.publish.generatorHelp" tag="span">
+                <template #schema>
+                  <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+                </template>
+              </i18n-t>
+            </div>
+          </InfoPopup>
+        </div>
+        <!-- the number chosen in step 2, carried here where the file that has to agree is named -->
+        <div v-if="hasSupply" class="description" style="margin-top: 6px;">
+          {{ t('createTokens.check.decimalsReminder', { decimals }) }}
+        </div>
+        <div v-for="(uri, index) in metadataUris" :key="index" class="publish-uri-row">
+          <input v-model="metadataUris[index]" :placeholder="t('identities.publish.uriPlaceholder')">
+          <span
+            v-if="metadataUris.length > 1"
+            class="remove-uri"
+            @click="removeUriRow(index)"
+          >{{ t('identities.publish.removeLocation') }}</span>
+        </div>
+        <div class="description" style="margin-top: 4px;">{{ t('createTokens.locationHint') }}</div>
+        <div class="publish-uri-actions">
+          <button @click="addUriRow()">{{ t('identities.publish.addLocation') }}</button>
+          <span class="description">{{ t('createTokens.sameFile') }}</span>
+          <!-- a number about nothing until a location is typed -->
+          <span v-if="filledUris.length" class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
+            {{ t('identities.publish.bytesLeft', { bytes: publicationBytesLeft }) }}
+          </span>
+        </div>
+        <!-- The check is the user's action, never a fetch on blur, and what it found is shown
+             before anything is signed: the name, decimals and hash Create would commit to -->
+        <template v-if="filledUris.length">
+          <input
+            v-if="readiness === 'unchecked'"
+            @click="checkRegistry"
+            type="button"
+            :value="activeAction === 'checking' ? t('createTokens.check.checking') : t('createTokens.check.button')"
+            :disabled="activeAction !== null"
+            style="margin-top: 10px;"
+          >
+          <div v-if="readiness === 'unchecked'" class="description" style="margin-top: 6px;">{{ t('createTokens.check.needed') }}</div>
+          <div v-else-if="checkedRegistry" class="checked-registry">
+            <img v-if="checkedIconUrl" :src="checkedIconUrl" class="checked-icon">
+            <div>
+              <div>{{ t('createTokens.check.summary', { name: checkedName, decimals: checkedRegistry.summary.decimals ?? 0 }) }}</div>
+              <div class="description mono">{{ t('createTokens.check.hash', { hash: truncateHash(checkedRegistry.hash) }) }}</div>
+              <div v-if="readiness === 'decimalsMismatch'" class="genesis-problem">
+                {{ t('createTokens.check.decimalsMismatch', { registry: checkedRegistry.summary.decimals ?? 0, chosen: decimals }) }}
+              </div>
+            </div>
+          </div>
+        </template>
+        <details style="margin-top: 10px;">
+          <summary style="display: list-item">{{ t('createTokens.howTo') }}</summary>
           <!-- These four are the reader's own actions, done on other sites, so they take the text
                colour; the numbers already say they are steps in order -->
           <ol class="walkthrough">
@@ -483,36 +641,7 @@
             <li>{{ t('createTokens.steps.create') }}</li>
           </ol>
           <div style="margin-top: 8px;">{{ t('createTokens.noHosting') }}</div>
-          <div v-for="(uri, index) in metadataUris" :key="index" class="publish-uri-row">
-            <input v-model="metadataUris[index]" :placeholder="t('identities.publish.uriPlaceholder')">
-            <span
-              v-if="metadataUris.length > 1"
-              class="remove-uri"
-              @click="removeUriRow(index)"
-            >{{ t('identities.publish.removeLocation') }}</span>
-          </div>
-          <div class="description" style="margin-top: 4px;">{{ t('createTokens.locationHint') }}</div>
-          <div class="publish-uri-actions">
-            <button @click="addUriRow()">{{ t('identities.publish.addLocation') }}</button>
-            <span class="description">{{ t('createTokens.sameFile') }}</span>
-            <!-- a number about nothing until a location is typed -->
-            <span v-if="filledUris.length" class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
-              {{ t('identities.publish.bytesLeft', { bytes: publicationBytesLeft }) }}
-            </span>
-          </div>
         </details>
-        <div style="margin-top: 10px;">
-          {{ t('createTokens.metadataNote') }}
-          <InfoPopup>
-            <div style="max-width: 300px;">
-              <i18n-t keypath="identities.publish.generatorHelp" tag="span">
-                <template #schema>
-                  <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
-                </template>
-              </i18n-t>
-            </div>
-          </InfoPopup>
-        </div>
 
         <input
           @click="createToken"
@@ -520,8 +649,11 @@
           class="primaryButton"
           :value="activeAction === 'creating' ? t('createTokens.creatingTokensButton') : t('createTokens.createButton')"
           style="margin: 15px 0 4px;"
-          :disabled="activeAction !== null || genesisProblem !== undefined"
+          :disabled="activeAction !== null || genesisProblem !== undefined || (readiness !== 'none' && readiness !== 'ready')"
         >
+      </div>
+      <div v-else-if="!utxoStepOpen" class="section description">
+        {{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}
       </div>
       </template>
     </fieldset>
@@ -670,6 +802,34 @@ label {
 }
 .genesis-problem {
   color: var(--color-error);
+}
+/* the supply and its decimals on one line where the width allows */
+.supply-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.supply-field {
+  flex: 1 1 220px;
+}
+.decimals-field {
+  flex: 0 0 110px;
+}
+.supply-row input {
+  margin: 0;
+}
+.checked-registry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.checked-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 .planned-category {
   display: flex;

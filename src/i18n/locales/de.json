@@ -419,7 +419,8 @@
     },
     "identity": {
       "held": "Dieses Wallet hält die Identität dieses Tokens.",
-      "heldWithReserve": "Dieses Wallet hält die Identität dieses Tokens, mit {amount} in Reserve."
+      "heldWithReserve": "Dieses Wallet hält die Identität dieses Tokens, mit {amount} in Reserve.",
+      "manage": "Identität verwalten"
     }
   },
   "dapp": {
@@ -644,35 +645,37 @@
     "title": "Einen Token erstellen",
     "needBch": "BCH im Wallet benötigt, um Tokens zu erstellen",
     "genesisInput": {
-      "explainer": "Der UTXO, den diese Transaktion ausgibt, wird zur dauerhaften Id des Tokens.",
+      "explainer": "Die txid des UTXO, den die Genesis ausgibt, wird zur Token-ID (seiner Kategorie); der UTXO muss an Output 0 liegen.",
       "none": "Dieses Wallet hat noch keinen UTXO, mit dem ein Token erstellt werden kann.",
       "prepareButton": "UTXO vorbereiten",
-      "chooseExisting": "Oder einen UTXO wählen, den dieses Wallet schon hat"
+      "chooseExisting": "Oder wähle einen UTXO, den dieses Wallet schon hat | Oder wähle den einen UTXO, den dieses Wallet schon hat | Oder wähle einen der {count} UTXOs, die dieses Wallet schon hat",
+      "unconfirmed": "unbestätigt"
     },
     "preparingButton": "Vorbereiten...",
     "plannedTokenId": "Token-ID:",
     "loading": "Laden...",
-    "mintingDescription": "Ein minting NFT wird verwendet, um eine NFT-Kollektion zu erstellen. Der minting NFT hat die Fähigkeit, neue NFTs mit derselben tokenId zu minten.",
+    "mintingDescription": "Ein Minting-NFT dient dem Erstellen einer NFT-Sammlung: es kann neue NFTs derselben Kategorie prägen.",
     "mintingHelp": "Nur die erstellende Transaktion kann die Minting-Fähigkeit vergeben. Ohne sie kann diese Kategorie nie eigene NFTs haben.",
     "mintingNote": "Hinweis: Um einen minting NFT zu verwenden, aktiviere die Option \"Mint NFTs aktivieren\" in den Entwicklereinstellungen.",
     "supplyLabel": "Gesamtmenge der fungiblen Token",
     "supplyHelp": "Die fungible Menge steht bei der Erstellung fest. Mehr von dieser Kategorie kann nie existieren, entscheide die Zahl also jetzt.",
     "supplyPlaceholder": "Gesamtmenge",
-    "supplyNote": "Gib ganze Tokens ein. Wenn die Metadaten dem Token Dezimalstellen geben, hänge jetzt so viele Nullen an: 100,00 Tokens sind 10000.",
+    "supplyNote": "In Tokens eingegeben. Die auf der Chain erstellte Zahl folgt aus den Dezimalstellen und steht darunter.",
     "circulation": {
       "label": "Jetzt in Umlauf bringen",
-      "help": "Was jetzt ausgegeben wird, ist gewöhnlicher Vorrat, den dieses Wallet ausgeben kann. Der Rest bleibt als Reserve bei der Identität, genauso zurückgehalten wie die Identität, und kann später von der Identitäten-Seite ausgegeben werden.",
+      "help": "Was jetzt ausgegeben wird, ist gewöhnlicher Vorrat, den dieses Wallet ausgeben kann. Der Rest sitzt als Reserve auf dem eigenen UTXO der Identität, wird also mit ihr zurückgehalten und geht dorthin, wohin die Identität geht. Er kann später von der Identitäten-Seite ausgegeben werden; jede Ausgabe ist eine Transaktion, die die Identität auf einen neuen UTXO bewegt.",
       "placeholder": "Auszugebende Menge",
-      "split": "{reserve} bleibt als Reserve bei der Identität, {circulating} kommt in Umlauf."
+      "split": "{reserve} bleibt als Reserve bei der Identität, {circulating} kommt in Umlauf.",
+      "splitOnChain": "Auf der Chain: {reserve} Reserve, {circulating} im Umlauf."
     },
-    "linkMetadata": "Token-Metadaten verknüpfen",
+    "linkMetadata": "Metadaten verknüpfen",
     "steps": {
       "author": "Schreibe das Registry-JSON mit dem {generator} und nenne darin die Token-ID oben.",
       "host": "Hoste sie auf deiner eigenen Domain oder auf IPFS.",
       "verify": "Gib unten an, wo sie gehostet ist. Dieses Wallet holt sie und prüft, dass sie diesen Token nennt.",
       "create": "Erstelle den Token: dieselbe Transaktion veröffentlicht den Hash der Datei und wo sie zu finden ist."
     },
-    "metadataNote": "Metadaten können jetzt mit dem BCMR-Generator hinzugefügt werden, oder nach der Erstellung von der Identitäten-Seite.",
+    "metadataNote": "Metadaten können jetzt mit dem BCMR-Generator hinzugefügt werden (BCMR ist der Metadaten-Standard, den Wallets lesen), oder nach der Erstellung von der Identitäten-Seite.",
     "creatingTokensButton": "Tokens werden erstellt...",
     "createButton": "Erstellen",
     "notifications": {
@@ -683,9 +686,10 @@
       "bcmrWrongIdentity": "Diese Registry beschreibt nicht die Identität, die hier erstellt wird. Prüfe, ob die Datei diese Token-Kategorie nennt."
     },
     "errors": {
-      "invalidAmount": "Gib ganze Zahlen für die Menge und den auszugebenden Betrag ein.",
+      "invalidAmount": "Gib Beträge in Tokens ein, mit nicht mehr Dezimalstellen, als der Token hat.",
       "overMaxSupply": "Das ist mehr, als eine Token-Kategorie fassen kann. Das Maximum ist {max}.",
-      "overSupply": "Das ist mehr als die Gesamtmenge."
+      "overSupply": "Das ist mehr als die Gesamtmenge.",
+      "invalidDecimals": "Dezimalstellen müssen eine ganze Zahl von 0 bis 18 sein."
     },
     "created": {
       "fungibles": "{supply} fungible Token der Kategorie {category} erstellt",
@@ -693,7 +697,9 @@
       "hybrid": "{supply} fungible Token und ein Minting-NFT der Kategorie {category} erstellt",
       "reserve": "{amount} bleibt als reservierte Menge bei der Identität.",
       "listed": "Sie steht auf der Identitäten-Seite, und ihr UTXO ist von der Münzauswahl ausgenommen.",
-      "openIdentities": "Identitäten-Seite öffnen"
+      "openIdentities": "Identitäten-Seite öffnen",
+      "banner": "{category} erstellt. Verwalte ihn auf der Identitäten-Seite unter Werkzeuge.",
+      "circulation": "{amount} an die Token-Adresse dieses Wallets ausgegeben: {address}."
     },
     "shapeLabel": "Token-Art",
     "shapes": {
@@ -704,14 +710,14 @@
     "step": "Schritt {current} von {total}",
     "reserveNote": "Die Menge eines Tokens entsteht am UTXO der Identität, deshalb kann in dieser Transaktion nicht alles in den Umlauf gehen. Behalte einen Teil als Reserve und gib ihn danach über die Identitäten-Seite aus.",
     "home": {
-      "intro": "Erstelle hier einen neuen Token, mit Name, Icon und weiteren Metadaten, jetzt verknüpft oder später hinzugefügt. Jeder Token hat eine Identität: den UTXO, dessen Inhaber diese Metadaten aktualisieren kann. Wähle, wo die Identität liegen soll.",
+      "intro": "Erstelle hier einen neuen Token, mit Name, Icon und weiteren Metadaten, jetzt verknüpft oder später hinzugefügt. Wallets zeigen Name und Icon eines Tokens aus einer Metadaten-Datei, auf die seine Identität zeigt; wer den Identitäts-UTXO hält, kann diese Datei ändern. Wähle, wo die Identität liegen soll.",
       "moveLater": "Du kannst sie später von diesem Wallet zu Studio verschieben, und zurück.",
       "moveLaterHelp": "Zu Studio: Erstelle dort einen Schlüssel und übertrage die Identität dann von der Identitäten-Seite an die Guard-Adresse, die Studio für diesen Schlüssel anzeigt. Zurück: Studios „Release UTXO“ bringt sie an eine gewöhnliche Adresse zurück, und die Identitäten-Seite findet sie mit der Identitätsprüfung wieder.",
       "wallet": "In diesem Wallet",
-      "walletStrength": "Dein Wallet hält den Identitäts-UTXO und verwaltet ihn auf der Identitäten-Seite.",
-      "walletCaveat": "Nur durch Cashonize geschützt: ein Versand aus einer anderen Wallet-App auf diesem Seed könnte sie an jemand anderen übergeben.",
+      "walletStrength": "Dein Wallet hält den Identitäts-UTXO und verwaltet ihn auf der Identitäten-Seite unter Werkzeuge.",
+      "walletCaveat": "Nur durch Cashonize geschützt: ein Versand aus einer anderen Wallet-App auf diesem Seed könnte ihn als gewöhnlichen UTXO ausgeben und die Identität dorthin schicken, wohin diese Zahlung geht.",
       "studio": "Mit CashTokens Studio",
-      "studioStrength": "Ein Contract auf der Chain hält sie; du hältst ein Schlüssel-NFT, das sie kontrolliert.",
+      "studioStrength": "Ein Contract auf der Chain hält sie und du hältst ein Schlüssel-NFT; Studio schreibt und hostet die Metadaten für dich.",
       "studioCaveat": "Jede Operation läuft über Studios Seite.",
       "leads": {
         "protection": "Schutz:",
@@ -720,9 +726,9 @@
       },
       "walletRows": {
         "protection": "von Cashonize aus der Münzauswahl herausgehalten; andere Apps wissen nicht, dass er besonders ist.",
-        "protectionHelp": "Ein Seed, der in mehreren Apps genutzt wird, ist mit einem nur hier genutzten Wallet oder mit Studio besser aufgehoben.",
+        "protectionHelp": "Ein Seed, der in mehreren Apps genutzt wird, ist mit einem nur hier genutzten Wallet oder mit Studio besser aufgehoben. Eine Wiederherstellung dieses Seeds in Cashonize findet die Identität von der Chain wieder.",
         "metadata": "eine Datei, die du hostest, auf einer Domain oder IPFS, jetzt verknüpft oder später von der Identitäten-Seite.",
-        "operations": "hier, auf der Identitäten-Seite."
+        "operations": "hier, auf der Identitäten-Seite; jede Operation bewegt die Identität auf einen neuen UTXO."
       },
       "studioRows": {
         "protection": "öffnet sich nur dem Schlüssel-NFT, das andere Wallets namenlos anzeigen und wegsenden könnten.",
@@ -735,15 +741,37 @@
       "chosen": "Identität: in diesem Wallet"
     },
     "change": "ändern",
-    "noHosting": "Keine Domain und kein IPFS? CashTokens Studio kann sie für dich schreiben und hosten, und die Identität kann später dorthin umziehen.",
-    "locationHint": "Eine Domain, eine vollständige HTTPS-URL oder eine IPFS-CID.",
+    "noHosting": "Keine Domain und kein IPFS? CashTokens Studio kann sie für dich schreiben und hosten, wenn die Identität dorthin umzieht.",
+    "locationHint": "Eine Domain, eine vollständige HTTPS-URL oder eine IPFS-CID; eine bloße Domain meint ihren Well-known-Registry-Pfad.",
     "sameFile": "Jeder Ort muss dieselbe Datei liefern.",
     "confirm": {
       "title": "Diesen Token erstellen?",
       "button": "Erstellen",
       "supply": "Gesamtvorrat: {supply}",
-      "metadataLinked": "Metadaten: verknüpft von {count} Ort | Metadaten: verknüpft von {count} Orten",
-      "metadataNone": "Metadaten: noch keine verknüpft. Sie können von der Identitäten-Seite hinzugefügt werden."
+      "metadataLinked": "Metadaten: {name}, von {location}",
+      "metadataNone": "Metadaten: noch keine verknüpft. Sie können von der Identitäten-Seite hinzugefügt werden.",
+      "decimals": "Dezimalstellen: {decimals}"
+    },
+    "prepare": {
+      "title": "Einen UTXO vorbereiten?",
+      "message": "Das sendet jetzt {amount} an dich selbst, damit die Genesis einen frischen UTXO an Output 0 zum Ausgeben hat. Der Betrag bleibt deiner; nur die Gebühr wird ausgegeben."
+    },
+    "decimalsLabel": "Dezimalstellen",
+    "decimalsHelp": "Wie viele Dezimalstellen der Token hat: 2 heißt Beträge wie 100,00. Der Vorrat wird daraus in Basiseinheiten erstellt, also muss die Registry dieselbe Zahl nennen.",
+    "onChain": "{amount} auf der Chain",
+    "stepTitles": {
+      "shape": "Form und Vorrat",
+      "metadata": "Metadaten"
+    },
+    "howTo": "So wird die Datei geschrieben und gehostet",
+    "check": {
+      "button": "Prüfen",
+      "checking": "Wird geprüft...",
+      "needed": "Prüfe den Ort vor dem Erstellen.",
+      "summary": "{name}, Dezimalstellen: {decimals}",
+      "hash": "Hash: {hash}",
+      "decimalsMismatch": "Die Registry nennt Dezimalstellen: {registry}; dieser Token würde mit {chosen} erstellt. Ändere eines davon.",
+      "decimalsReminder": "Die Registry muss Dezimalstellen: {decimals} nennen."
     }
   },
   "utxoManagement": {
@@ -1661,7 +1689,7 @@
         "host": "Hoste es auf deiner eigenen Domain oder auf IPFS.",
         "publish": "Gib unten an, wo es liegt, und dieses Wallet prüft es und veröffentlicht den Zeiger."
       },
-      "generatorHelp": "Der Generator ist ein Formular, das die Metadaten-Datei, die Registry, für dich schreibt. Du kannst sie auch selbst nach dem {schema} schreiben; so oder so holt dieses Wallet die Datei und prüft, dass sie diesen Token nennt.",
+      "generatorHelp": "Der Generator ist ein Formular, das die Metadaten-Datei, die Registry, für dich schreibt. Du kannst sie auch selbst nach dem {schema} schreiben; so oder so holt dieses Wallet die Datei und prüft, dass sie diesen Token nennt, und hasht die Datei genau so, wie sie ausgeliefert wird.",
       "generatorHelpSchema": "BCMR-Schema"
     },
     "add": {
