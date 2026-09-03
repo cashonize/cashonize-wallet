@@ -30,7 +30,6 @@
     registryUrlOf,
     summarizeRegistry,
     type IdentityState,
-    type IdentityScanSummary,
     type PublicationUriStatus,
     type RegistrySummary,
   } from 'src/utils/tools/authchainIdentity'
@@ -51,7 +50,6 @@
   // What the wallet listed on its own and the user has not seen. Taken on opening the page and
   // cleared there, so the cards carry the mark for the visit that answers for it.
   const foundAutomatically = ref<string[]>([]);
-  const scanSummary = ref<IdentityScanSummary | undefined>(undefined);
   const destination = ref("");
   const keyDestination = ref("");
   // A card shows what it is when closed and what can be done with it when open, one at a time:
@@ -88,7 +86,7 @@
   // One form open at a time across the whole list, and one operation in flight: these are
   // deliberate, one-at-a-time operations, and a card with four open forms says otherwise
   type IdentityAction =
-    'add' | 'addUtxo' | 'scan' | 'remove' | 'publish' | 'issue' | 'addToReserve' | 'transfer' | 'transferKey';
+    'add' | 'addUtxo' | 'remove' | 'publish' | 'issue' | 'addToReserve' | 'transfer' | 'transferKey';
   const openAction = ref<{ category: string, action: IdentityAction } | undefined>(undefined);
   const runningAction = ref<IdentityAction | undefined>(undefined);
 
@@ -144,12 +142,15 @@
   function carriesLine(identity: IdentityState): string | undefined {
     return reserveDescription(identity)?.join(' · ');
   }
-  // Two lists: what this wallet holds, and what it only watches for somebody else. A watched
-  // identity is another wallet's, so it is never counted among this one's or shown beside them.
+  // Three lists: what this wallet holds, what the user chose to watch for somebody else, and the
+  // identities of the tokens it holds, followed passively. A watched identity is another wallet's,
+  // so it is never counted among this one's; the followed ones are neither, and their group is
+  // always there, since its head carries the toggle that turns the following on and off.
   const identityGroups = computed(() => [
     { key: 'held' as const, identities: identities.value.filter(identity => identity.status !== 'notHeld') },
     { key: 'watched' as const, identities: identities.value.filter(identity => identity.status === 'notHeld') },
-  ].filter(group => group.identities.length));
+    { key: 'tokens' as const, identities: identitiesStore.tokenIdentities ?? [] },
+  ].filter(group => group.key === 'tokens' || group.identities.length));
 
   // Guarded identities a watched key covers that this version cannot name, since that needs a
   // lookup back from an output to the authchain it ends. Counted rather than dropped, so a key
@@ -231,6 +232,8 @@
       await identitiesStore.refreshIdentities();
       // naming what the open pass protected but could not name reaches hosting, so it is done here
       if (await identitiesStore.nameUnnamedAuthheads()) await identitiesStore.refreshIdentities();
+      // the identities of every held token, all of them on a visit rather than the new ones at open
+      if (settingsStore.followTokenIdentities) await identitiesStore.followTokenIdentities('all');
       await fetchMissingMetadata();
       // after the resolving, which is what says where each publication is
       await identitiesStore.checkPublications();
@@ -249,7 +252,7 @@
   watch(() => store._wallet, () => {
     categoryInput.value = "";
     openAction.value = undefined;
-    scanSummary.value = undefined;
+    showTokenIdentities.value = false;
     pickedOutpoint.value = undefined;
     editingPick.value = true;
   });
@@ -334,26 +337,16 @@
     });
   }
 
-  // Checking costs a Chaingraph query per held category, so it only ever runs on the user's word
-  async function scanForIdentities() {
-    await runAction('scan', async () => {
-      scanSummary.value = undefined;
-      scanSummary.value = await identitiesStore.scanForIdentities();
-      await fetchMissingMetadata();
-    });
+  // The third tier follows the identities of the tokens this wallet holds, passively: collapsed,
+  // since nobody is actively watching them, and on unless turned off here, since the toggle is
+  // where the group is rather than in the settings, where nobody would find it
+  const showTokenIdentities = ref(false);
+  const followTokenIdentities = ref(settingsStore.followTokenIdentities);
+  async function changeFollowTokenIdentities() {
+    localStorage.setItem("followTokenIdentities", followTokenIdentities.value ? "true" : "false");
+    settingsStore.followTokenIdentities = followTokenIdentities.value;
+    if (followTokenIdentities.value) await identitiesStore.followTokenIdentities('all');
   }
-
-  // The summary as lines, only the counts that are not zero
-  const scanSummaryLines = computed(() => {
-    const summary = scanSummary.value;
-    if (!summary) return [];
-    const lines = [summary.found ? t('identities.scan.found', summary.found) : t('identities.scan.noneFound')];
-    const counted = ['alreadyListed', 'carriesTokens', 'mintingNfts', 'dismissed', 'failed'] as const;
-    for (const key of counted) {
-      if (summary[key]) lines.push(t(`identities.scan.${key}`, summary[key]));
-    }
-    return lines;
-  });
 
   function isOpen(identity: IdentityState, action: IdentityAction) {
     if (openAction.value?.category !== identity.category) return false;
@@ -636,7 +629,9 @@
     <div>
       {{ t('identities.description') }}
       <InfoPopup>
-        <div style="max-width: 300px;">{{ t('identities.whatIsAnIdentity') }}</div>
+        <div v-for="term in ['chain', 'base', 'head']" :key="term" style="max-width: 300px;">
+          <b>{{ t(`identities.authchain.leads.${term}`) }}</b> {{ t(`identities.authchain.${term}`) }}
+        </div>
         <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.whatIsAnIdentityNote') }}</div>
       </InfoPopup>
     </div>
@@ -654,33 +649,8 @@
     </div>
 
     <template v-if="mode === 'existing'">
-    <!-- the three words the ids come from, then the two ways in: found, or added by id -->
-    <div class="section">
-      <div v-for="term in ['chain', 'base', 'head']" :key="term">
-        <b>{{ t(`identities.authchain.leads.${term}`) }}</b> {{ t(`identities.authchain.${term}`) }}
-      </div>
-    </div>
-    <div class="section">
-      <div>
-        <b>{{ t('identities.scan.lead') }}</b> {{ t('identities.scan.prompt') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.scan.automaticHelp') }}</div>
-          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.scan.checkHelp') }}</div>
-        </InfoPopup>
-      </div>
-      <input
-        @click="scanForIdentities()"
-        type="button"
-        class="primaryButton"
-        :value="runningAction === 'scan' ? t('identities.scan.scanning') : t('identities.scan.linkText')"
-        :disabled="runningAction !== undefined || identitiesStore.identitiesResolving"
-        style="margin-top: 8px;"
-      >
-      <div v-if="scanSummaryLines.length" style="margin-top: 6px;">
-        <div v-for="line in scanSummaryLines" :key="line">{{ line }}</div>
-      </div>
-    </div>
-
+    <!-- adding an identity is pasting its authbase: the wallet looks up where it is held and says
+         so before listing it; following the tokens' identities is a tier of the list, not an action -->
     <div class="section">
       <div>
         <b>{{ t('identities.add.lead') }}</b> {{ t('identities.add.label') }}
@@ -689,11 +659,13 @@
           <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpKey') }}</div>
         </InfoPopup>
       </div>
+      <div style="margin-top: 4px;">{{ t('identities.add.outcome') }}</div>
       <div class="add-identity">
         <input v-model="categoryInput" :placeholder="t('identities.add.placeholder')" @keyup.enter="addIdentity()">
         <input
           @click="addIdentity()"
           type="button"
+          class="primaryButton"
           :value="runningAction === 'add' ? t('identities.add.addingButton') : t('identities.add.button')"
           :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !categoryInput"
         >
@@ -775,7 +747,13 @@
         <div>{{ t('identities.openCheckFailed', { reason: identitiesStore.openCheckError }) }}</div>
       </div>
       <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }}</div>
-      <div v-else-if="!identities.length" class="description">{{ t('identities.empty') }}</div>
+      <div v-else-if="!identities.length" class="description">
+        <i18n-t keypath="identities.empty" tag="span">
+          <template #link>
+            <span class="action-link" @click="mode = 'existing'">{{ t('identities.emptyLink') }}</span>
+          </template>
+        </i18n-t>
+      </div>
 
       <!-- Found in this wallet's own history and held back, with nothing on the UTXO to say which
            identity it belongs to. Protected first, named if it can be. -->
@@ -811,12 +789,36 @@
         </div>
       </div>
 
-      <!-- each list opens with the answer to what is in it, which is the first thing read here -->
+      <!-- each list opens with the answer to what is in it, which is the first thing read here;
+           the third is collapsed, its head carrying the toggle -->
       <template v-for="group in identityGroups" :key="group.key">
-      <div class="section">
+      <div v-if="group.key !== 'tokens'" class="section">
         {{ group.key === 'held' ? t('identities.ownedCount', group.identities.length) : t('identities.watchedHeader', group.identities.length) }}
       </div>
-      <div v-for="identity in group.identities" :key="identity.category" class="section identity-card">
+      <div v-else class="section">
+        <div class="follow-head">
+          <q-toggle v-model="followTokenIdentities" @update:model-value="changeFollowTokenIdentities()" dense />
+          <!-- the count only once there is one: while the lookups run, and when no token is held,
+               the head is the toggle's own label -->
+          <span v-if="followTokenIdentities && identitiesStore.tokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }}</span>
+          <span v-else-if="followTokenIdentities && group.identities.length">{{ t('identities.follow.header', group.identities.length) }}</span>
+          <span v-else>{{ t('identities.follow.toggle') }}</span>
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('identities.follow.help') }}</div>
+          </InfoPopup>
+          <span
+            v-if="followTokenIdentities && group.identities.length"
+            class="action-link"
+            @click="showTokenIdentities = !showTokenIdentities"
+          >{{ showTokenIdentities ? t('identities.follow.hide') : t('identities.follow.show') }}</span>
+        </div>
+        <div class="description" style="margin-top: 4px;">{{ t('identities.follow.line') }}</div>
+      </div>
+      <div
+        v-for="identity in (group.key === 'tokens' && !showTokenIdentities ? [] : group.identities)"
+        :key="identity.category"
+        class="section identity-card"
+      >
         <!-- The header opens and closes the card. Both halves are used: what it is on the left,
              which one it is on the right, where the category was an unused corner. -->
         <div class="identity-header identity-header-row" @click="toggleCard(identity)">
@@ -995,7 +997,14 @@
                   <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>
                   <q-item-section>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup @click="removeIdentity(identity)">
+                <!-- a followed identity is not listed, and one held through a key comes back from
+                     the key on the next resolve: the key is transferred instead -->
+                <q-item
+                  v-if="group.key !== 'tokens' && identity.status !== 'heldViaKey'"
+                  clickable
+                  v-close-popup
+                  @click="removeIdentity(identity)"
+                >
                   <q-item-section avatar><q-icon name="delete" size="18px" /></q-item-section>
                   <q-item-section>{{ t('identities.remove.button') }}</q-item-section>
                 </q-item>
@@ -1204,6 +1213,12 @@
 .add-identity input[type="button"],
 .transfer-identity input[type="button"] {
   margin: 0;
+}
+.follow-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .identity-card {
   padding: 12px;

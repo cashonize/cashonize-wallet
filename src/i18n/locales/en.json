@@ -1428,9 +1428,6 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Enable mint NFTs",
       "enableMintNftsHint": "Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category",
-      "checkHeldTokens": "Check held tokens for identities on wallet open",
-      "checkHeldTokensHint": "For wallets that receive identities from others; the check on the identities page does the same by hand.",
-      "checkHeldTokensDetail": "One lookup per token category held, on every wallet open.",
       "disableTokenIcons": "Disable token image loading",
       "disableTokenIconsHint": "Prevents loading token images from external servers",
       "strictWcSchema": "Strict WalletConnect schema validation",
@@ -1537,10 +1534,9 @@
     "description": "The identities this wallet holds or watches.",
     "modes": {
       "identities": "Identities",
-      "existing": "Add existing",
-      "create": "Add new"
+      "existing": "Add",
+      "create": "Create"
     },
-    "whatIsAnIdentity": "The authority to change a token's metadata, its name, icon and description, is a single UTXO: whoever holds it can publish updates, and it moves to a new outpoint with every update.",
     "whatIsAnIdentityNote": "Studio, the explorer and the spec call that UTXO the AuthHead, and the transaction the chain started from the authbase: for a token, its token id. Holding the AuthHead is what makes this wallet the one that can publish new metadata.",
     "authchain": {
       "leads": {
@@ -1554,7 +1550,8 @@
     },
     "authbaseLabel": "Authbase / token id:",
     "resolving": "Looking up where these identities are held...",
-    "empty": "No identities listed yet.",
+    "empty": "No identities listed yet. One this wallet made is listed on its own; one you hold or want to follow is added by its authbase under {link}. The identities of the tokens you hold are followed below.",
+    "emptyLink": "Add",
     "detected": {
       "foundAutomatically": "Found automatically",
       "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its UTXO is now held back from coin selection. Remove it from the list if you would rather it were not."
@@ -1568,6 +1565,15 @@
     },
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
     "watchedHeader": "{count} identity watched only, held by another wallet | {count} identities watched only, held by another wallet",
+    "follow": {
+      "header": "{count} identity of a token you hold, followed | {count} identities of tokens you hold, followed",
+      "toggle": "Follow the identities of the tokens you hold",
+      "line": "Followed for where each identity is held. One lookup per token at open; one whose UTXO reaches this wallet is listed as owned and held back, with a notice.",
+      "help": "The token list goes to the Chaingraph server as a set. Turning this off stops that; nothing here is held back or counted as new.",
+      "show": "show",
+      "hide": "hide",
+      "resolving": "Looking up the identities of the tokens you hold..."
+    },
     "unnamedIdentity": "Unnamed identity",
     "categoryLabel": "Category:",
     "authheadLabel": "Identity UTXO:",
@@ -1720,8 +1726,9 @@
       "generatorHelpSchema": "BCMR schema"
     },
     "add": {
-      "label": "Add it by its authbase: a token's id, or the transaction an identity that is not a token started from.",
-      "lead": "Held elsewhere, or not a token?",
+      "label": "Paste a token's id, an identity key's category, or the authbase of an identity that is not a token.",
+      "outcome": "Held here, it is listed as held and its UTXO kept out of sends. Held elsewhere, it is watched: metadata and history shown, nothing held back.",
+      "lead": "Add an identity by its authbase.",
       "placeholder": "Authbase or token id",
       "button": "Add identity",
       "addingButton": "Adding...",
@@ -1737,7 +1744,7 @@
         "button": "Add"
       },
       "errors": {
-        "nothingFound": "Nothing found for that category: no token identity, and no identity key guarding anything."
+        "nothingFound": "Nothing found for that authbase: no authchain starts there, and no identity key guards anything. Check the id, or the Chaingraph server in the settings."
       }
     },
     "create": {
@@ -1764,21 +1771,6 @@
       "tokenPointerLink": "create the token",
       "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it."
     },
-    "scan": {
-      "prompt": "Check looks up every token this wallet holds and lists the identities that are here. One sent without its token, or not a token, is added by its id below.",
-      "lead": "Transferred to you?",
-      "linkText": "Check for identities",
-      "scanning": "Checking the wallet's token categories...",
-      "found": "{count} identity found and added to the list | {count} identities found and added to the list",
-      "noneFound": "No new identities found.",
-      "alreadyListed": "{count} category was already listed. | {count} categories were already listed.",
-      "carriesTokens": "{count} of them carries a reserve of fungible supply. | {count} of them carry a reserve of fungible supply.",
-      "mintingNfts": "{count} of them carries a minting NFT. | {count} of them carry a minting NFT.",
-      "dismissed": "{count} was left off because you removed it before. | {count} were left off because you removed them before.",
-      "failed": "{count} category could not be checked. | {count} categories could not be checked.",
-      "automaticHelp": "Cashonize already lists the identities these keys made: a token you created, or metadata you published, whose identity UTXO is still here. That costs nothing, so it happens on its own.",
-      "checkHelp": "One indexer query per token you hold, asking where its identity's UTXO is, so it is a button rather than something the page does quietly."
-    },
     "transfer": {
       "hint": "The identity's UTXO is sent to the destination, handing over the authority to update this token's metadata. To move it to CashTokens Studio, create a key there and transfer to the guard address it shows for that key.",
       "destinationPlaceholder": "Address to transfer the identity to",
@@ -1798,18 +1790,18 @@
     },
     "remove": {
       "title": "Remove from this list?",
-      "message": "The identity is removed from this list. Add it back by category, or find it again with the identity check if this wallet holds tokens of it.",
-      "messageHeld": "The identity is removed from this list and its UTXO is no longer kept out of coin selection, so an ordinary send can spend it. Add it back by category, or find it again with the identity check if this wallet holds tokens of it.",
+      "message": "The identity is removed from this list. Add it back by its authbase.",
+      "messageHeld": "The identity is removed from this list and its UTXO is no longer kept out of coin selection, so the next ordinary send may spend it and hand the identity to whoever receives that send. This wallet will not hold it back again on its own; add it back by its authbase.",
       "button": "Remove"
     },
     "errors": {
-      "invalidCategory": "That is not a token category. Find it on the token's info in the Tokens tab, or on TokenExplorer.",
+      "invalidCategory": "That is not a transaction id. Paste the 64-character authbase, a token id, or a key category.",
       "alreadyListed": "That identity is already in the list."
     },
     "established": {
       "since": "Established {year}"
     },
-    "openCheckFailed": "Could not check this wallet's history for identities: {reason} An identity it made may not be held back yet. Reload, or check the Chaingraph server in the settings.",
+    "openCheckFailed": "Could not look up this wallet's identities: {reason} An identity it holds may not be held back yet. Reload, or check the Chaingraph server in the settings.",
     "unresolvedHint": "Reload, or check the Chaingraph server in the settings.",
     "found": {
       "title": "This wallet holds token identities",

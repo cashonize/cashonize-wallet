@@ -8,7 +8,7 @@
 import type { Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
 import { binToHex, binToUtf8, hexToBin, sha256, utf8ToBin } from "@bitauth/libauth";
-import { queryAuthHeadWithOutputs, type AuthchainLink } from "src/queryChainGraph";
+import { queryAuthHeadWithOutputs, queryAuthHeadsWithOutputs, type AuthchainLink, type AuthHeadResult } from "src/queryChainGraph";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
@@ -20,16 +20,6 @@ type Network = 'mainnet' | 'chipnet';
 // AuthGuard covenant whose key NFT this wallet holds, which is authority over the identity without
 // the UTXO. 'unresolved' is a failed Chaingraph query, which says nothing about where the authhead is.
 export type IdentityStatus = 'held' | 'heldViaKey' | 'notHeld' | 'unresolved';
-
-// What one run of the ownership scan over the wallet's token categories turned up
-export interface IdentityScanSummary {
-  found: number; // authheads newly added to the list
-  alreadyListed: number; // categories the list already covered, which the scan skips
-  carriesTokens: number; // of those found, the ones holding a reserve of fungible supply alongside the authority
-  mintingNfts: number; // and the ones holding a minting NFT there
-  failed: number; // categories whose lookup did not come back
-  dismissed: number; // found, but left off because the user took them off before
-}
 
 export interface IdentityState {
   category: string;
@@ -350,15 +340,29 @@ const identityListKeys = {
   unnamed: 'unnamedAuthheads',
 } as const;
 
-// Whether this wallet has had the one dialog that says it holds identities it never listed
-function announcedKey(network: Network, walletName: string): string {
-  return `identitiesAnnounced-${network}-${walletName}`;
+// What the wallet last saw of each followed token identity, per wallet per network: the authhead
+// and the publication, which is what a later diff reads and what says a category was looked up.
+// Written whole, merged over what another tab stored since, and only ever from a fulfilled lookup.
+export interface FollowedIdentity {
+  authheadTxid: string;
+  publicationHash?: string;
 }
-export function loadAnnounced(network: Network, walletName: string): boolean {
-  return localStorage.getItem(announcedKey(network, walletName)) === 'true';
+export type FollowedIdentities = Record<string, FollowedIdentity>;
+function followedKey(network: Network, walletName: string): string {
+  return `followedIdentities-${network}-${walletName}`;
 }
-export function markAnnounced(network: Network, walletName: string) {
-  localStorage.setItem(announcedKey(network, walletName), 'true');
+export function loadFollowed(network: Network, walletName: string): FollowedIdentities {
+  const stored = localStorage.getItem(followedKey(network, walletName));
+  if (!stored) return {};
+  try {
+    return JSON.parse(stored) as FollowedIdentities;
+  } catch {
+    return {};
+  }
+}
+export function saveFollowed(network: Network, walletName: string, followed: FollowedIdentities) {
+  const merged = { ...loadFollowed(network, walletName), ...followed };
+  localStorage.setItem(followedKey(network, walletName), JSON.stringify(merged));
 }
 
 export type IdentityList = keyof typeof identityListKeys;
@@ -421,7 +425,9 @@ export function removeIdentityCategories(walletName: string) {
     for (const list of Object.keys(identityListKeys) as IdentityList[]) {
       clearIdentityList(list, network, walletName);
     }
-    localStorage.removeItem(announcedKey(network, walletName));
+    localStorage.removeItem(followedKey(network, walletName));
+    // the once-per-wallet dialog gate an earlier version kept
+    localStorage.removeItem(`identitiesAnnounced-${network}-${walletName}`);
   }
 }
 
@@ -482,28 +488,40 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
   });
 }
 
-// Resolves where each category's authhead sits now and whether this wallet holds it. Queries run
-// in parallel and a failed one only marks its own category 'unresolved', so one unreachable answer
-// does not cost the others. Shared by the identities list and the ownership scan.
+// Resolves where each category's authhead sits now and whether this wallet holds it. The lookups
+// go in batches, one request after another: a public Chaingraph instance limits request size and
+// rate, and each answer carries the chain's history. A batch that fails marks only its own
+// categories 'unresolved' and does not stop the next; a category the server does not know is
+// unresolved on its own. Shared by the identities list and the followed token identities.
+export const authheadBatchSize = 25;
 export async function resolveIdentities(
   categories: string[],
   chaingraphUrl: string,
   walletUtxos: Utxo[],
   guarded: Record<string, GuardedIdentity> = {},
 ): Promise<IdentityState[]> {
-  const authheadResults = await Promise.allSettled(
-    categories.map(category => queryAuthHeadWithOutputs(category, chaingraphUrl))
-  );
-
-  return categories.map((category, index) => {
-    const result = authheadResults[index];
-    if (result?.status === 'rejected') {
-      console.error("Failed to resolve authchain identity:", category, result.reason);
-      const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      return { category, status: 'unresolved', unresolvedReason: reason };
+  const answers = new Map<string, { value?: AuthHeadResult; reason: string }>();
+  for (let start = 0; start < categories.length; start += authheadBatchSize) {
+    const batch = categories.slice(start, start + authheadBatchSize);
+    try {
+      const answered = await queryAuthHeadsWithOutputs(batch, chaingraphUrl);
+      for (const category of batch) {
+        const value = answered.get(category);
+        answers.set(category, value ? { value, reason: '' } : { reason: t('chaingraph.errors.tokenNotFound') });
+      }
+    } catch (error) {
+      console.error("Failed to resolve authchain identities:", batch, error);
+      const reason = error instanceof Error ? error.message : String(error);
+      for (const category of batch) answers.set(category, { reason });
     }
-    if (result?.status !== 'fulfilled') return { category, status: 'unresolved' };
-    const { txid: authheadTxid, publicationOutputs, links, fungibleSupply } = result.value;
+  }
+
+  return categories.map(category => {
+    const answer = answers.get(category);
+    if (!answer?.value) {
+      return { category, status: 'unresolved', ...(answer ? { unresolvedReason: answer.reason } : {}) };
+    }
+    const { txid: authheadTxid, publicationOutputs, links, fungibleSupply } = answer.value;
     const publication = findPublication(publicationOutputs);
     const resolved = { category, authheadTxid, links, fungibleSupply, ...(publication ? { publication } : {}) };
     // The authhead is always output 0 of the authchain's latest transaction

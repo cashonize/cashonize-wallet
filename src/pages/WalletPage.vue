@@ -220,12 +220,19 @@
       || identitiesStore.unseenCount > 0;
   });
 
-  // The store says what to announce; the dialog is opened here, once, and the request cleared
+  // The store says what to announce; the dialog is opened here and the request cleared. The
+  // passes at open announce one after another, so the dialog waits a moment and says them all.
+  let announcementTimer: ReturnType<typeof setTimeout> | undefined;
   watch(() => identitiesStore.announcement, (ids) => {
-    if (!ids) return;
-    identitiesStore.announcement = undefined;
-    Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids } })
-      .onOk(() => store.changeView(19));
+    if (!ids || announcementTimer) return;
+    announcementTimer = setTimeout(() => {
+      announcementTimer = undefined;
+      const pending = identitiesStore.announcement;
+      identitiesStore.announcement = undefined;
+      if (!pending?.length) return;
+      Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids: pending } })
+        .onOk(() => store.changeView(19));
+    }, 500);
   });
 </script>
 

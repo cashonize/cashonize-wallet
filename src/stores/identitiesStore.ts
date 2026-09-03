@@ -11,8 +11,6 @@ import { useStore } from "./store"
 import { useSettingsStore } from "./settingsStore"
 import {
   loadIdentityList,
-  loadAnnounced,
-  markAnnounced,
   addToIdentityList,
   removeFromIdentityList,
   clearIdentityList,
@@ -20,12 +18,14 @@ import {
   describeChainLinks,
   checkPublicationUri,
   type IdentityState,
-  type IdentityScanSummary,
   type IdentityStatus,
   type DescribedLink,
   type GuardedIdentity,
   type PublicationUriStatus,
   nameChainFromRegistry,
+  loadFollowed,
+  saveFollowed,
+  type FollowedIdentities,
 } from "src/utils/tools/authchainIdentity"
 import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { authGuardAddresses, isAuthKeyCandidate, guardContentsFromUtxos } from "src/utils/tools/authGuard"
@@ -59,6 +59,13 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // the history can tell a metadata update from the wallet's other identity operations
   const identityPublicationTxids = ref([] as string[]);
   const identities = ref(undefined as (IdentityState[] | undefined));
+  // The identity of every token this wallet holds, followed passively: not listed, not reserved,
+  // never news. What it is for is noticing an authhead arriving here, which promotes the identity
+  // to the list, and the memory the later change notices read.
+  const tokenIdentities = ref(undefined as (IdentityState[] | undefined));
+  let followed: FollowedIdentities = {};
+  // a first open on a wallet holding hundreds of categories does a bounded amount of work
+  const followedPerOpenCap = 100;
   // What each listed identity's published registry locations actually serve, keyed by category.
   // Kept beside the identities rather than on them: resolution reads the chain, this reads the
   // hosting, and one can be present without the other.
@@ -93,10 +100,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
     watchedAuthKeys.value = loadIdentityList('authKeys', network, walletName);
     dismissedIdentities.value = loadIdentityList('dismissed', network, walletName);
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);
-    announced.value = loadAnnounced(network, walletName);
     unnamedAuthheads.value = loadIdentityList('unnamed', network, walletName);
+    followed = loadFollowed(network, walletName);
     triedThisSession = [];
     identities.value = undefined;
+    tokenIdentities.value = undefined;
     identityPublicationTxids.value = [];
     announcement.value = undefined;
     openCheckError.value = undefined;
@@ -136,16 +144,16 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return listed;
   }
 
-  // The wallet listed identities the user never asked for, so it says so once per wallet, with
-  // names, at the moment the balance changes; later finds only count in the menus. Set after the
-  // resolve so the dialog can say what each one carries; the wallet page opens it and clears this.
-  const announced = ref(false);
+  // The wallet held something back the user never asked it to, so it says so every time, with
+  // names, at the moment the balance changes: a coin found in the wallet's own history, a key, a
+  // followed identity whose authhead arrived. Set after the resolve so the dialog can say what
+  // each one carries; announcements made close together accumulate, and the wallet page opens one
+  // dialog for them and clears this.
   const announcement = ref<string[] | undefined>(undefined);
   function announceFound(ids: string[]) {
-    if (!ids.length || announced.value) return;
-    announced.value = true;
-    markAnnounced(...walletKey());
-    announcement.value = ids;
+    if (!ids.length) return;
+    const pending = announcement.value ?? [];
+    announcement.value = [...pending, ...ids.filter(id => !pending.includes(id))];
   }
 
   // The registries of what is about to be shown, fetched so a dialog or the page can name it. A
@@ -279,9 +287,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // Re-resolved rather than restored: an authhead moves to a new outpoint whenever the metadata is
   // updated elsewhere. One owner for both the list and the 'auth' reservations rewritten from it.
-  async function resolveListedIdentities() {
+  // Returns what it held back that the user did not ask for: a key's identities, and a watched
+  // identity whose authhead has arrived; the caller announces them.
+  async function resolveListedIdentities(): Promise<string[]> {
+    const news: string[] = [];
     const currentUtxos = mainStore.walletUtxos;
-    if (!currentUtxos) return;
+    if (!currentUtxos) return news;
     // before the listing is read, since a guarded identity found here joins it
     const guarded = await resolveAuthKeys();
     const foundByKey: string[] = [];
@@ -299,13 +310,20 @@ export const useIdentitiesStore = defineStore('identities', () => {
       // still runs: it reserves the unnamed authheads, and clears an 'auth' reservation left
       // behind by an identity that is no longer listed
       await syncAuthReservations([]);
-      return;
+      return news;
     }
     const started = mainStore.currentInitializationToken();
     const resolved = await resolveIdentities(
       identityCategories.value, settingsStore.chaingraph, currentUtxos, guarded
     );
-    if (mainStore.walletSwitchedSince(started)) return;
+    if (mainStore.walletSwitchedSince(started)) return news;
+    // a watched identity whose authhead arrived is held from here on, which the user is told
+    const heldStatuses: IdentityStatus[] = ['held', 'heldViaKey'];
+    for (const identity of resolved) {
+      const before = identities.value?.find(listed => listed.category === identity.category);
+      if (before?.status === 'notHeld' && heldStatuses.includes(identity.status)) news.push(identity.category);
+    }
+    news.push(...foundByKey);
     // the checks answer for one publication, by position in its locations: once the publication
     // changed, they would land on the new locations, so they go until the next check runs
     const checks = { ...publicationChecks.value };
@@ -316,10 +334,17 @@ export const useIdentitiesStore = defineStore('identities', () => {
     publicationChecks.value = checks;
     identities.value = resolved;
     await syncAuthReservations(resolved);
+    return news;
   }
 
+  // The news a resolve found is announced here, so every path that resolves tells the user the
+  // same way; a caller inside a locked pass calls resolveListedIdentities itself
   async function refreshIdentities() {
-    await withResolveLock(resolveListedIdentities);
+    const news = await withResolveLock(resolveListedIdentities);
+    if (news?.length) {
+      await fetchMetadataFor(news);
+      announceFound(news);
+    }
   }
 
   // Held authheads that carry no identity of their own on the list: same protection, no name.
@@ -367,33 +392,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     }
   }
 
-  // The explicit check for authhead ownership, over the categories this wallet holds tokens of.
-  // A found authhead joins the list the same way a manual add does, whether or not it carries a
-  // reserve. Categories with no held supply are not covered here and stay a manual add.
-  // The category half of the check: every held token category not yet listed gets its authhead
-  // resolved and compared against the wallet's coins, one query each. A find joins the list.
-  // Undefined when the wallet changed underneath it.
-  async function resolveHeldCategories() {
-    const currentUtxos = mainStore.walletUtxos;
-    if (!currentUtxos) return undefined;
-    const heldCategories = (mainStore.tokenList ?? []).map(token => token.category);
-    const listedCount = heldCategories.filter(category => identityCategories.value.includes(category)).length;
-    const categoriesToCheck = heldCategories.filter(category => !identityCategories.value.includes(category));
-    const started = mainStore.currentInitializationToken();
-    const resolved = await resolveIdentities(categoriesToCheck, settingsStore.chaingraph, currentUtxos);
-    if (mainStore.walletSwitchedSince(started)) return undefined;
-    const found = resolved.filter(
-      identity => identity.authUtxo && !dismissedIdentities.value.includes(identity.category)
-    );
-    const dismissed = resolved.filter(
-      identity => identity.authUtxo && dismissedIdentities.value.includes(identity.category)
-    ).length;
-    for (const identity of found) {
-      listCategory(identity.category);
-    }
-    return { resolved, found, dismissed, listedCount };
-  }
-
   // Every category failing the same way is the server being down, not a hundred separate
   // answers; the one reason is what the caller should show
   function outageReason(resolved: IdentityState[]) {
@@ -401,25 +399,59 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return resolved[0]?.unresolvedReason;
   }
 
-  function scanForIdentities(): Promise<IdentityScanSummary | undefined> {
-    return withResolveLock(async () => {
-      const categories = await resolveHeldCategories();
-      if (!categories) return undefined;
-      const { resolved, found, dismissed, listedCount } = categories;
-      // a check that could not ask has no answer to report, and "none found" would be a wrong one
+  // The identities of the tokens this wallet holds, followed. 'new' is the open pass: only
+  // categories never looked up, up to the cap; 'all' is the page's visit. Nothing here is listed,
+  // reserved or counted as news, except an identity whose authhead turns out to be in this wallet:
+  // that one is promoted to the list, held back, and announced. The memory is written only for a
+  // fulfilled lookup, so a category the server could not answer for is asked again.
+  async function followTokenIdentities(scope: 'new' | 'all') {
+    await withResolveLock(async () => {
+      const currentUtxos = mainStore.walletUtxos;
+      if (!currentUtxos) return;
+      const held = (mainStore.tokenList ?? [])
+        .map(token => token.category)
+        .filter(category => !identityCategories.value.includes(category) && !dismissedIdentities.value.includes(category));
+      let categories = scope === 'new' ? held.filter(category => !followed[category]) : held;
+      if (scope === 'new') categories = categories.slice(0, followedPerOpenCap);
+      const started = mainStore.currentInitializationToken();
+      const resolved = categories.length
+        ? await resolveIdentities(categories, settingsStore.chaingraph, currentUtxos)
+        : [];
+      if (mainStore.walletSwitchedSince(started)) return;
       const outage = outageReason(resolved);
-      if (outage) throw new Error(outage);
-      // The list and its reservations are resolved whole rather than merged into here: a few
-      // repeated queries for what the scan just found buy a single owner of that state.
+      if (outage && scope === 'new') openCheckError.value = outage;
+      // what was not asked this time keeps its last answer, as long as the token is still held
+      const next = (tokenIdentities.value ?? []).filter(
+        identity => held.includes(identity.category) && !categories.includes(identity.category)
+      );
+      const promoted: string[] = [];
+      let remembered = false;
+      for (const identity of resolved) {
+        if (identity.status === 'unresolved' || !identity.authheadTxid) {
+          const previous = tokenIdentities.value?.find(known => known.category === identity.category);
+          if (previous) next.push(previous);
+          continue;
+        }
+        remembered = true;
+        followed[identity.category] = {
+          authheadTxid: identity.authheadTxid,
+          ...(identity.publication ? { publicationHash: identity.publication.hash } : {}),
+        };
+        if (identity.status === 'held') {
+          listCategory(identity.category);
+          promoted.push(identity.category);
+          continue;
+        }
+        next.push(identity);
+      }
+      if (mainStore.walletSwitchedSince(started)) return;
+      if (remembered) saveFollowed(...walletKey(), followed);
+      tokenIdentities.value = next;
+      if (!promoted.length) return;
+      unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), promoted);
       await resolveListedIdentities();
-      return {
-        found: found.length,
-        alreadyListed: listedCount,
-        carriesTokens: resolved.filter(identity => identity.fungibleSupply && identity.authUtxo?.token?.amount).length,
-        mintingNfts: resolved.filter(identity => identity.authUtxo?.token?.nft?.capability === 'minting').length,
-        failed: resolved.filter(identity => identity.status === 'unresolved').length,
-        dismissed,
-      };
+      await fetchMetadataFor(promoted);
+      announceFound(promoted);
     });
   }
 
@@ -428,7 +460,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   const openCheckError = ref<string | undefined>(undefined);
 
   // The passes the wallet runs on its own once a wallet is up: the walk of its history for the
-  // identities these keys made, mainnet only like the walk itself, and the developer option below
+  // identities these keys made, mainnet only like the walk itself, and the followed token
+  // identities, on both networks since those lookups are keyed by category.
   // Outside the wallet's own failure path: a lookup failing here, an electrum server refusing a
   // guard address say, must not flag a wallet that did load, so it is reported where the
   // identities are. The resolve of what the wallet follows comes first, since the walk lists
@@ -450,27 +483,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       return;
     }
     if (mainStore.walletSwitchedSince(started)) return;
-    if (settingsStore.checkHeldTokensForIdentities) await checkHeldCategoriesOnOpen();
-  }
-
-  // The developer option: the category half on every open, for wallets that receive identities.
-  // A find enters the list and the trail the way a detected one does.
-  async function checkHeldCategoriesOnOpen() {
-    await withResolveLock(async () => {
-      const categories = await resolveHeldCategories();
-      if (!categories) return;
-      const outage = outageReason(categories.resolved);
-      if (outage) {
-        openCheckError.value = outage;
-        return;
-      }
-      if (!categories.found.length) return;
-      const found = categories.found.map(identity => identity.category);
-      unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), found);
-      await resolveListedIdentities();
-      await fetchMetadataFor(found);
-      announceFound(found);
-    });
+    if (settingsStore.followTokenIdentities) await followTokenIdentities('new');
   }
 
   // Fetches every listed identity's published locations and compares what they serve against the
@@ -623,6 +636,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     unnamedAuthheads,
     identityPublicationTxids,
     identities,
+    tokenIdentities,
     identitiesResolving,
     publicationChecks,
     publicationChecksRunning,
@@ -631,8 +645,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     loadForWallet,
     refreshIdentities,
     resolveListedIdentities,
-    scanForIdentities,
-    checkHeldCategoriesOnOpen,
+    followTokenIdentities,
     openCheckError,
     runChecksOnOpen,
     fetchMetadataFor,

@@ -166,10 +166,66 @@ const authHeadQuery = graphql(`query AuthHead(
     }
   }`);
 
+// The same answer for a batch of categories, which is how the identities of every token a wallet
+// holds are followed: one request per batch rather than one per category, since a public instance
+// limits both request size and rate. A category the server has no transaction for is absent from
+// the map, which the caller reads as that one category unresolved rather than the batch failing.
+const authHeadsQuery = graphql(`query AuthHeads(
+    $hashes: [bytea!]!
+    $bcmrFrom: bytea!
+    $bcmrTo: bytea!
+  ) {
+    transaction(where: { hash: { _in: $hashes } }) {
+      hash
+      outputs {
+        token_category
+        fungible_token_amount
+      }
+      authchains {
+        authhead {
+          hash
+        }
+        migrations {
+          transaction {
+            hash
+            outputs(where: { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } }) {
+              locking_bytecode
+            }
+          }
+        }
+      }
+    }
+  }`);
+
+export interface AuthHeadResult {
+  txid: string;
+  publicationOutputs: string[];
+  links: string[];
+  fungibleSupply: boolean;
+}
+
+type AuthHeadTransaction = ResultOf<typeof authHeadQuery>['transaction'][number];
+
+export async function queryAuthHeadsWithOutputs(tokenIds: string[], chaingraphUrl: string): Promise<Map<string, AuthHeadResult>> {
+  const response = await queryChainGraph(authHeadsQuery, chaingraphUrl, {
+    hashes: tokenIds.map(tokenId => `\\x${tokenId}`),
+    bcmrFrom: `\\x${bcmrPrefixRange.from}`,
+    bcmrTo: `\\x${bcmrPrefixRange.to}`,
+  });
+  const results = new Map<string, AuthHeadResult>();
+  for (const transaction of response.data.transaction) {
+    const tokenId = byteaToHex(transaction.hash);
+    const authchain = transaction.authchains[0];
+    if (!authchain?.authhead) continue;
+    results.set(tokenId, readAuthHead(tokenId, transaction));
+  }
+  return results;
+}
+
 // The authhead's txid and the locking bytecodes of its transaction's outputs, in output order.
 // Both come out of the one query: a metadata publication is an output of that same transaction,
 // and recognising it among these belongs to the module that owns the publication format.
-export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:string){
+export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:string): Promise<AuthHeadResult> {
   const response = await queryChainGraph(authHeadQuery, chaingraphUrl, {
     hash: `\\x${tokenId}`,
     bcmrFrom: `\\x${bcmrPrefixRange.from}`,
@@ -179,6 +235,11 @@ export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:str
   if (!authHeadObj) throw new Error(t('chaingraph.errors.tokenNotFound'));
   const authchain = authHeadObj.authchains[0];
   if (!authchain?.authhead) throw new Error(t('chaingraph.errors.authchainNotFound'));
+  return readAuthHead(tokenId, authHeadObj);
+}
+
+function readAuthHead(tokenId: string, authHeadObj: AuthHeadTransaction): AuthHeadResult {
+  const authchain = authHeadObj.authchains[0]!;
   // The identity's registry is the last publication its chain carries, which is not the authhead
   // whenever the operations since were transfers or reserve moves: those carry none, and they are
   // the ones this wallet makes. Migrations come oldest first, so the last match wins.
@@ -196,7 +257,7 @@ export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:str
   const fungibleSupply = (authHeadObj.outputs ?? []).some(output =>
     output.token_category && byteaToHex(output.token_category) === tokenId && BigInt(output.fungible_token_amount ?? 0) > 0n
   );
-  return { txid: byteaToHex(authchain.authhead.hash), publicationOutputs, links, fungibleSupply };
+  return { txid: byteaToHex(authchain.authhead!.hash), publicationOutputs, links, fungibleSupply };
 }
 
 const spentOutputsQuery = graphql(`query WalletSpentOutputs(

@@ -29,17 +29,15 @@ const utxo = (txid: string, vout: number, token?: Utxo["token"]): Utxo =>
 
 const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
 
-// Answers each authhead query with the txid mapped to the category it asks about, and rejects a
-// query for any category not in the map, the way an unreachable server would
+// Answers the authhead queries, single or batched, with the txid mapped to each category asked
+// about. A batch none of whose categories is mapped rejects, the way an unreachable server would;
+// otherwise the unmapped ones are left out of the answer, which is that category unresolved alone
 function stubAuthheadQueries(
   authheads: Record<string, string>,
   chains: Record<string, { hash: string; publication?: string }[]> = {},
   fungibleGenesis: string[] = [], // categories whose genesis created fungible supply
 ) {
-  vi.stubGlobal("fetch", vi.fn((_url: string, options: RequestInit) => {
-    const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string } };
-    const category = Object.keys(authheads).find(listed => variables.hash === `\\x${listed}`);
-    if (!category) return Promise.reject(new TypeError("Failed to fetch"));
+  const answer = (category: string) => {
     // the query asks for each link's BCMR-prefixed outputs only, so a link without one answers empty
     const migrations = (chains[category] ?? []).map(link => ({
       transaction: [{
@@ -51,14 +49,19 @@ function stubAuthheadQueries(
     const outputs = fungibleGenesis.includes(category)
       ? [{ token_category: `\\x${category}`, fungible_token_amount: "1000" }]
       : [{ token_category: `\\x${category}`, fungible_token_amount: null }];
+    return { hash: `\\x${category}`, outputs, authchains: [{
+      authhead: { hash: `\\x${authheads[category]}` }, // chaingraph returns bytea as \x-prefixed hex
+      migrations,
+    }] };
+  };
+  vi.stubGlobal("fetch", vi.fn((_url: string, options: RequestInit) => {
+    const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string; hashes?: string[] } };
+    const asked = variables.hashes ?? (variables.hash ? [variables.hash] : []);
+    const known = Object.keys(authheads).filter(listed => asked.includes(`\\x${listed}`));
+    if (!known.length) return Promise.reject(new TypeError("Failed to fetch"));
     return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({
-        data: { transaction: [{ outputs, authchains: [{
-          authhead: { hash: `\\x${authheads[category]}` }, // chaingraph returns bytea as \x-prefixed hex
-          migrations,
-        }] }] },
-      }),
+      json: () => Promise.resolve({ data: { transaction: known.map(answer) } }),
     });
   }));
 }

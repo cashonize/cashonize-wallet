@@ -31,22 +31,23 @@ const movedAuthheadA = 'aabb'.repeat(16)
 const utxo = (txid: string, vout: number, token?: Utxo['token']): Utxo =>
   ({ txid, vout, satoshis: 1000n, address: 'bitcoincash:qtest', ...(token ? { token } : {}) })
 
-// Answers the authhead query for every mapped category and rejects for any other, the way an
-// unreachable server would, which is what puts an identity in the 'unresolved' state
+// Answers the authhead queries, single or batched, for every mapped category. A batch none of
+// whose categories is mapped rejects, the way an unreachable server would; a mapped batch answers
+// for the categories it knows and leaves the rest out, which is that category unresolved on its own
 function stubAuthheadQueries(authheads: Record<string, string>) {
+  const answer = (category: string) => ({
+    hash: `\\x${category}`,
+    authchains: [{ authhead: { hash: `\\x${authheads[category]}` }, migrations: [] }], // chaingraph returns bytea as \x-prefixed hex
+    outputs: [],
+  })
   vi.stubGlobal('fetch', vi.fn((_url: string, options: RequestInit) => {
-    const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string } }
-    const category = Object.keys(authheads).find(listed => variables.hash === `\\x${listed}`)
-    if (!category) return Promise.reject(new TypeError('Failed to fetch'))
+    const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string, hashes?: string[] } }
+    const asked = variables.hashes ?? (variables.hash ? [variables.hash] : [])
+    const known = Object.keys(authheads).filter(listed => asked.includes(`\\x${listed}`))
+    if (!known.length) return Promise.reject(new TypeError('Failed to fetch'))
     return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({
-        data: { transaction: [{ authchains: [{ authhead: {
-          hash: `\\x${authheads[category]}`, // chaingraph returns bytea as \x-prefixed hex
-          identity_output: [{ fungible_token_amount: '0' }],
-          outputs: [],
-        } }] }] },
-      }),
+      json: () => Promise.resolve({ data: { transaction: known.map(answer) } }),
     })
   }))
 }
@@ -229,8 +230,9 @@ describe('auth reservations follow the authchain', () => {
   })
 
   // the scan writes the identity categories and hands the resolving over, so it can never publish
-  // a partial list that the drop pass then reads as "these authheads are gone"
-  it('keeps a listed identity reserved through a scan that finds another one', async () => {
+  // the identity of a held token whose authhead is here is promoted to the list and held back,
+  // and the listed one stays reserved through the pass
+  it('promotes a followed token identity whose authhead is here, and announces it', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     listIdentities([categoryA])
     const authUtxoA = utxo(authheadA, 0)
@@ -240,24 +242,77 @@ describe('auth reservations follow the authchain', () => {
     // categoryB is a held token category the list does not cover yet
     store.tokenList = [{ category: categoryB, amount: 100n }]
 
-    const summary = await identitiesStore.scanForIdentities()
+    await identitiesStore.followTokenIdentities('all')
 
-    expect(summary).toEqual({ found: 1, alreadyListed: 0, carriesTokens: 0, mintingNfts: 0, failed: 0, dismissed: 0 })
     expect(store.reservedUtxos[outpointOf(authUtxoA)]).toBe('auth')
     expect(store.reservedUtxos[outpointOf(authUtxoB)]).toBe('auth')
     expect(identitiesStore.identityCategories).toEqual([categoryA, categoryB])
+    expect(identitiesStore.unseenIdentities).toEqual([categoryB])
+    expect(identitiesStore.announcement).toEqual([categoryB])
+    expect(identitiesStore.tokenIdentities).toEqual([])
   })
 
-  // "no new identities found" from a check that could not ask would be a wrong answer, not a
-  // missing one, so an outage aborts the check with the server's reason
-  it('aborts the check with the reason when every category fails to resolve', async () => {
+  // an outage at open lands on the page, and lists nothing: "not held" from a server that did
+  // not answer would be a wrong answer, not a missing one
+  it('reports an outage from the follow at open and lists nothing', async () => {
     stubAuthheadQueries({})
     const { store, identitiesStore } = startStore([utxo(authheadB, 0)])
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryB, amount: 100n }]
 
-    await expect(identitiesStore.scanForIdentities()).rejects.toThrow()
+    await identitiesStore.followTokenIdentities('new')
+
+    expect(identitiesStore.openCheckError).toEqual(expect.any(String))
     expect(identitiesStore.identityCategories).toEqual([])
+    expect(identitiesStore.tokenIdentities).toEqual([])
+    expect(localStorageMock.getItem('followedIdentities-mainnet-testWallet')).toBeNull()
+  })
+
+  // a followed identity held elsewhere is neither listed nor news; the memory says it was looked
+  // up, and only a fulfilled lookup writes it
+  it('follows the identity of a held token without listing it, and remembers only what answered', async () => {
+    stubAuthheadQueries({ [categoryB]: authheadB })
+    const { store, identitiesStore } = startStore([utxo('cafe'.repeat(16), 0)])
+    await identitiesStore.refreshIdentities()
+    store.tokenList = [{ category: categoryA, amount: 5n }, { category: categoryB, amount: 100n }]
+
+    await identitiesStore.followTokenIdentities('all')
+
+    expect(identitiesStore.identityCategories).toEqual([])
+    expect(identitiesStore.unseenIdentities).toEqual([])
+    expect(identitiesStore.announcement).toBeUndefined()
+    expect(identitiesStore.tokenIdentities?.map(identity => [identity.category, identity.status]))
+      .toEqual([[categoryB, 'notHeld']])
+    const followed = JSON.parse(localStorageMock.getItem('followedIdentities-mainnet-testWallet') ?? '{}') as Record<string, unknown>
+    expect(Object.keys(followed)).toEqual([categoryB])
+    expect(store.reservedUtxos).toEqual({})
+  })
+
+  // the open pass asks only for categories never looked up, up to its cap; a token sent away
+  // leaves the group on the next pass
+  it('asks at open only about categories it has not followed, and drops a token sent away', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
+    const { store, identitiesStore } = startStore([])
+    await identitiesStore.refreshIdentities()
+    store.tokenList = [{ category: categoryA, amount: 5n }]
+    await identitiesStore.followTokenIdentities('new')
+    expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryA])
+
+    const asked: string[] = []
+    const answering = fetch as unknown as { mock: { calls: unknown[][] } }
+    const before = answering.mock.calls.length
+    store.tokenList = [{ category: categoryA, amount: 5n }, { category: categoryB, amount: 1n }]
+    await identitiesStore.followTokenIdentities('new')
+    for (const call of answering.mock.calls.slice(before)) {
+      const { variables } = JSON.parse((call[1] as RequestInit).body as string) as { variables: { hashes?: string[] } }
+      asked.push(...(variables.hashes ?? []))
+    }
+    expect(asked).toEqual([`\\x${categoryB}`])
+    expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryA, categoryB])
+
+    store.tokenList = [{ category: categoryB, amount: 1n }]
+    await identitiesStore.followTokenIdentities('all')
+    expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryB])
   })
 
   // the reservation writes go under whichever wallet is active when they run, so a switch landing
@@ -342,28 +397,25 @@ describe('auth reservations follow the authchain', () => {
     expect(store.walletInitFailed).toBe(false)
   })
 
-  // the developer option runs the category half of the check on open: a find joins the list and
-  // the trail like a detected one, an outage lands on the page rather than in a toast
-  it('finds a received identity on open when the option is on, and reports an outage', async () => {
+  // a followed identity whose authhead arrives later is promoted on the next pass, held back and
+  // announced, the same as one found at open
+  it('promotes a followed identity when its authhead arrives', async () => {
     stubAuthheadQueries({ [categoryB]: authheadB })
-    const authUtxoB = utxo(authheadB, 0)
-    const { store, identitiesStore } = startStore([authUtxoB])
+    const { store, identitiesStore } = startStore([])
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryB, amount: 100n }]
+    await identitiesStore.followTokenIdentities('all')
+    expect(identitiesStore.identityCategories).toEqual([])
 
-    await identitiesStore.checkHeldCategoriesOnOpen()
+    const authUtxoB = utxo(authheadB, 0)
+    store.walletUtxos = [authUtxoB]
+    await identitiesStore.followTokenIdentities('all')
 
     expect(identitiesStore.identityCategories).toEqual([categoryB])
     expect(identitiesStore.unseenIdentities).toEqual([categoryB])
+    expect(identitiesStore.announcement).toEqual([categoryB])
     expect(store.reservedUtxos[outpointOf(authUtxoB)]).toBe('auth')
     expect(identitiesStore.openCheckError).toBeUndefined()
-
-    stubAuthheadQueries({})
-    store.tokenList = [{ category: categoryA, amount: 100n }]
-    await identitiesStore.checkHeldCategoriesOnOpen()
-
-    expect(identitiesStore.openCheckError).toEqual(expect.any(String))
-    expect(identitiesStore.identityCategories).toEqual([categoryB])
   })
 
   // an authhead carrying a token reserve is protected the same way, now that a reservation binds
@@ -453,7 +505,7 @@ describe('auth reservations follow the authchain', () => {
     // the wallet page opens the dialog and clears the announcement
     identitiesStore.announcement = undefined
 
-    // a later find only counts in the menus; the dialog is the once-per-wallet introduction
+    // a later find is told the same way: every coin the wallet holds back unasked is news
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     const authUtxoB = utxo(authheadB, 0)
     store.walletUtxos = [authUtxo, authUtxoB]
@@ -468,7 +520,7 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.unseenIdentities).toEqual([categoryA, categoryB])
     expect(identitiesStore.unseenCount).toBe(2)
-    expect(identitiesStore.announcement).toBeUndefined()
+    expect(identitiesStore.announcement).toEqual([categoryB])
   })
 
   // removing is a decision the automatic detection has to respect, or it is refought every open

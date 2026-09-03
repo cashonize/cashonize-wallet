@@ -1428,9 +1428,6 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Activer la création de NFTs",
       "enableMintNftsHint": "Ajoute une action de création aux NFTs de création, vous permettant de créer plus de NFTs dans la même catégorie",
-      "checkHeldTokens": "Vérifier les tokens détenus à la recherche d'identités à l'ouverture du portefeuille",
-      "checkHeldTokensHint": "Pour les portefeuilles qui reçoivent des identités d'autres personnes ; la vérification de la page des identités fait la même chose à la main.",
-      "checkHeldTokensDetail": "Une requête par catégorie de token détenue, à chaque ouverture du portefeuille.",
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
       "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
       "strictWcSchema": "Validation stricte du schéma WalletConnect",
@@ -1538,9 +1535,8 @@
     "modes": {
       "identities": "Identités",
       "existing": "Ajouter",
-      "create": "Ajouter une nouvelle"
+      "create": "Créer"
     },
-    "whatIsAnIdentity": "L'autorité de modifier les métadonnées d'un token, son nom, son icône et sa description, est un seul UTXO : qui le détient peut publier des mises à jour, et il passe à un nouvel outpoint à chaque mise à jour.",
     "whatIsAnIdentityNote": "Studio, l'explorateur et la spécification appellent cet UTXO l'AuthHead, et la transaction par laquelle la chaîne a commencé l'authbase : pour un token, son identifiant. Détenir l'AuthHead est ce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées.",
     "authchain": {
       "leads": {
@@ -1554,7 +1550,8 @@
     },
     "authbaseLabel": "Authbase / identifiant du token :",
     "resolving": "Recherche de l'endroit où sont ces identités...",
-    "empty": "Aucune identité dans la liste pour l'instant.",
+    "empty": "Aucune identité listée pour l'instant. Une identité créée par ce portefeuille est listée d'elle-même ; une que vous détenez ou voulez suivre s'ajoute par son authbase sous {link}. Les identités des tokens que vous détenez sont suivies ci-dessous.",
+    "emptyLink": "Ajouter",
     "detected": {
       "foundAutomatically": "Trouvée automatiquement",
       "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
@@ -1568,6 +1565,15 @@
     },
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
     "watchedHeader": "{count} identité seulement surveillée, détenue par un autre portefeuille | {count} identités seulement surveillées, détenues par un autre portefeuille",
+    "follow": {
+      "header": "{count} identité d'un token détenu, suivie | {count} identités de tokens détenus, suivies",
+      "toggle": "Suivre les identités des tokens que vous détenez",
+      "line": "Suivies pour savoir où chaque identité est détenue. Une requête par token à l'ouverture ; celle dont l'UTXO arrive dans ce portefeuille est listée comme détenue et retenue, avec un avis.",
+      "help": "La liste des tokens est envoyée au serveur Chaingraph comme un ensemble. Désactiver arrête cela ; rien ici n'est retenu ni compté comme nouveau.",
+      "show": "afficher",
+      "hide": "masquer",
+      "resolving": "Recherche des identités des tokens que vous détenez..."
+    },
     "unnamedIdentity": "Identité sans nom",
     "categoryLabel": "Catégorie :",
     "authheadLabel": "UTXO de l'identité :",
@@ -1720,8 +1726,9 @@
       "generatorHelpSchema": "schéma BCMR"
     },
     "add": {
-      "label": "Ajoutez-la par son authbase : l'identifiant d'un token, ou la transaction par laquelle une identité qui n'est pas un token a commencé.",
-      "lead": "Détenue ailleurs, ou pas un token ?",
+      "label": "Collez l'identifiant d'un token, la catégorie d'une clé d'identité, ou l'authbase d'une identité qui n'est pas un token.",
+      "outcome": "Détenue ici, elle est listée comme détenue et son UTXO écarté des envois. Détenue ailleurs, elle est surveillée : métadonnées et historique affichés, rien n'est retenu.",
+      "lead": "Ajoutez une identité par son authbase.",
       "placeholder": "Authbase ou identifiant du token",
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
@@ -1737,7 +1744,7 @@
         "button": "Ajouter"
       },
       "errors": {
-        "nothingFound": "Rien trouvé pour cette catégorie : ni identité de jeton, ni clé d'identité gardant quoi que ce soit."
+        "nothingFound": "Rien trouvé pour cette authbase : aucune authchain n'y commence et aucune clé d'identité ne garde quoi que ce soit. Vérifiez l'identifiant, ou le serveur Chaingraph dans les réglages."
       }
     },
     "create": {
@@ -1764,21 +1771,6 @@
       "tokenPointerLink": "créez le token",
       "novelHelp": "Une dapp pourrait dire quelle version de ses contrats est en vigueur et où se trouve son site ; une organisation pourrait répondre de ce qu'elle publie. Il n'en existe presque aucune encore et presque rien ne les lit, alors sachez ce que vous en attendez avant d'en créer une."
     },
-    "scan": {
-      "prompt": "Vérifier interroge chaque token de ce portefeuille et liste les identités qui sont ici. Une identité envoyée sans son token, ou qui n'est pas un token, s'ajoute par son identifiant ci-dessous.",
-      "lead": "Elle vous a été transférée ?",
-      "linkText": "Rechercher des identités",
-      "scanning": "Vérification des catégories de jetons du portefeuille...",
-      "found": "{count} identité trouvée et ajoutée à la liste | {count} identités trouvées et ajoutées à la liste",
-      "noneFound": "Aucune nouvelle identité trouvée.",
-      "alreadyListed": "{count} catégorie était déjà dans la liste. | {count} catégories étaient déjà dans la liste.",
-      "carriesTokens": "{count} d'entre elles porte une réserve de tokens fongibles. | {count} d'entre elles portent une réserve de tokens fongibles.",
-      "mintingNfts": "{count} d'entre elles porte un NFT de frappe. | {count} d'entre elles portent un NFT de frappe.",
-      "dismissed": "{count} a été laissée de côté parce que vous l'aviez retirée. | {count} ont été laissées de côté parce que vous les aviez retirées.",
-      "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées.",
-      "automaticHelp": "Cashonize liste déjà les identités que ces clés ont créées : un token que vous avez créé, ou des métadonnées que vous avez publiées, dont l'UTXO d'identité est encore ici. Cela ne coûte rien, donc cela se fait tout seul.",
-      "checkHelp": "Une requête à l'indexeur par token détenu, demandant où est l'UTXO de son identité, d'où un bouton plutôt qu'une action silencieuse de la page."
-    },
     "transfer": {
       "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",
       "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
@@ -1798,18 +1790,18 @@
     },
     "remove": {
       "title": "Retirer de cette liste ?",
-      "message": "L'identité est retirée de cette liste. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la recherche d'identités si ce portefeuille détient des tokens de celle-ci.",
-      "messageHeld": "L'identité est retirée de cette liste et son UTXO n'est plus écarté de la sélection des pièces, un envoi ordinaire peut donc le dépenser. Ajoutez-la de nouveau par catégorie, ou retrouvez-la avec la recherche d'identités si ce portefeuille détient des tokens de celle-ci.",
+      "message": "L'identité est retirée de cette liste. Rajoutez-la par son authbase.",
+      "messageHeld": "L'identité est retirée de cette liste et son UTXO n'est plus écarté de la sélection des pièces : le prochain envoi ordinaire peut le dépenser et remettre l'identité à qui reçoit cet envoi. Ce portefeuille ne le retiendra plus de lui-même ; rajoutez-la par son authbase.",
       "button": "Retirer"
     },
     "errors": {
-      "invalidCategory": "Ce n'est pas une catégorie de token. Vous la trouverez sur les infos du token dans l'onglet Tokens, ou sur TokenExplorer.",
+      "invalidCategory": "Ce n'est pas un identifiant de transaction. Collez l'authbase de 64 caractères, un identifiant de token ou la catégorie d'une clé.",
       "alreadyListed": "Cette identité est déjà dans la liste."
     },
     "established": {
       "since": "Depuis {year}"
     },
-    "openCheckFailed": "Impossible de vérifier l'historique de ce portefeuille à la recherche d'identités : {reason} Une identité qu'il a créée n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
+    "openCheckFailed": "Impossible de consulter les identités de ce portefeuille : {reason} Une identité qu'il détient n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les réglages.",
     "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
     "found": {
       "title": "Ce portefeuille détient des identités de tokens",

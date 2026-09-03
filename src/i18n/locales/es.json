@@ -1428,9 +1428,6 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Habilitar acuñar NFTs",
       "enableMintNftsHint": "Agrega una acción de acuñar a los NFTs de acuñación, permitiéndote crear más NFTs en la misma categoría",
-      "checkHeldTokens": "Comprobar los tokens en cartera en busca de identidades al abrir la billetera",
-      "checkHeldTokensHint": "Para billeteras que reciben identidades de otros; la comprobación de la página de identidades hace lo mismo a mano.",
-      "checkHeldTokensDetail": "Una consulta por categoría de token en cartera, en cada apertura de la billetera.",
       "disableTokenIcons": "Deshabilitar carga de imágenes de tokens",
       "disableTokenIconsHint": "Previene la carga de imágenes de tokens desde servidores externos",
       "strictWcSchema": "Validación estricta del esquema WalletConnect",
@@ -1537,10 +1534,9 @@
     "description": "Las identidades que esta billetera tiene o vigila.",
     "modes": {
       "identities": "Identidades",
-      "existing": "Añadir existente",
-      "create": "Añadir nueva"
+      "existing": "Añadir",
+      "create": "Crear"
     },
-    "whatIsAnIdentity": "La autoridad para cambiar los metadatos de un token, su nombre, icono y descripción, es un único UTXO: quien lo tiene puede publicar actualizaciones, y pasa a un nuevo outpoint con cada actualización.",
     "whatIsAnIdentityNote": "Studio, el explorador y la especificación llaman AuthHead a ese UTXO, y authbase a la transacción con la que empezó la cadena: en un token, su id. Tener el AuthHead es lo que hace que esta billetera sea la que puede publicar nuevos metadatos.",
     "authchain": {
       "leads": {
@@ -1554,7 +1550,8 @@
     },
     "authbaseLabel": "Authbase / id del token:",
     "resolving": "Buscando dónde están estas identidades...",
-    "empty": "Todavía no hay identidades en la lista.",
+    "empty": "Todavía no hay identidades en la lista. Una que esta billetera hizo aparece sola; una que tienes o quieres seguir se añade por su authbase en {link}. Las identidades de los tokens que tienes se siguen abajo.",
+    "emptyLink": "Añadir",
     "detected": {
       "foundAutomatically": "Encontrada automáticamente",
       "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su UTXO ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así."
@@ -1568,6 +1565,15 @@
     },
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
     "watchedHeader": "{count} identidad solo observada, está en otra billetera | {count} identidades solo observadas, están en otra billetera",
+    "follow": {
+      "header": "{count} identidad de un token que tienes, seguida | {count} identidades de tokens que tienes, seguidas",
+      "toggle": "Seguir las identidades de los tokens que tienes",
+      "line": "Seguidas para saber dónde está cada identidad. Una consulta por token al abrir; una cuyo UTXO llegue a esta billetera se lista como propia y queda retenida, con un aviso.",
+      "help": "La lista de tokens se envía al servidor Chaingraph como conjunto. Desactivarlo lo detiene; aquí nada queda retenido ni cuenta como nuevo.",
+      "show": "mostrar",
+      "hide": "ocultar",
+      "resolving": "Consultando las identidades de los tokens que tienes..."
+    },
     "unnamedIdentity": "Identidad sin nombre",
     "categoryLabel": "Categoría:",
     "authheadLabel": "UTXO de la identidad:",
@@ -1720,8 +1726,9 @@
       "generatorHelpSchema": "esquema BCMR"
     },
     "add": {
-      "label": "Añádela por su authbase: el id de un token, o la transacción con la que empezó una identidad que no es un token.",
-      "lead": "¿Está en otra parte, o no es un token?",
+      "label": "Pega el id de un token, la categoría de una clave de identidad, o la authbase de una identidad que no es un token.",
+      "outcome": "Si está aquí, se lista como tenida y su UTXO queda fuera de los envíos. Si está en otra parte, se vigila: se muestran los metadatos y el historial, nada queda retenido.",
+      "lead": "Añade una identidad por su authbase.",
       "placeholder": "Authbase o id del token",
       "button": "Añadir identidad",
       "addingButton": "Añadiendo...",
@@ -1737,7 +1744,7 @@
         "button": "Añadir"
       },
       "errors": {
-        "nothingFound": "No se encontró nada para esa categoría: ni identidad de token, ni clave de identidad que guarde algo."
+        "nothingFound": "No se encontró nada para esa authbase: ninguna authchain empieza ahí y ninguna clave de identidad guarda nada. Revisa el id, o el servidor Chaingraph en los ajustes."
       }
     },
     "create": {
@@ -1764,21 +1771,6 @@
       "tokenPointerLink": "crea el token",
       "novelHelp": "Una dapp podría decir qué versión de sus contratos está vigente y dónde está su sitio; una organización podría responder por lo que publica. Casi no existe ninguna todavía y casi nada las lee, así que ten claro qué quieres de una antes de hacerla."
     },
-    "scan": {
-      "prompt": "Comprobar consulta cada token que tiene esta billetera y lista las identidades que están aquí. Una enviada sin su token, o que no es un token, se añade por su id abajo.",
-      "lead": "¿Te la transfirieron?",
-      "linkText": "Buscar identidades",
-      "scanning": "Comprobando las categorías de token de la billetera...",
-      "found": "{count} identidad encontrada y añadida a la lista | {count} identidades encontradas y añadidas a la lista",
-      "noneFound": "No se encontraron identidades nuevas.",
-      "alreadyListed": "{count} categoría ya estaba en la lista. | {count} categorías ya estaban en la lista.",
-      "carriesTokens": "{count} de ellas lleva una reserva de tokens fungibles. | {count} de ellas llevan una reserva de tokens fungibles.",
-      "mintingNfts": "{count} de ellas lleva un NFT de acuñación. | {count} de ellas llevan un NFT de acuñación.",
-      "dismissed": "{count} se dejó fuera porque la quitaste antes. | {count} se dejaron fuera porque las quitaste antes.",
-      "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías.",
-      "automaticHelp": "Cashonize ya lista las identidades que hicieron estas claves: un token que creaste, o metadatos que publicaste, cuyo UTXO de identidad sigue aquí. Eso no cuesta nada, así que ocurre solo.",
-      "checkHelp": "Una consulta al indexador por cada token que tienes, preguntando dónde está el UTXO de su identidad, por eso es un botón y no algo que la página hace en silencio."
-    },
     "transfer": {
       "hint": "El UTXO de la identidad se envía al destino, entregando la autoridad para actualizar los metadatos de este token. Para moverla a CashTokens Studio, crea una clave allí y transfiere a la dirección de guarda que muestra para esa clave.",
       "destinationPlaceholder": "Dirección a la que transferir la identidad",
@@ -1798,18 +1790,18 @@
     },
     "remove": {
       "title": "¿Quitar de esta lista?",
-      "message": "La identidad se quita de esta lista. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la búsqueda de identidades si esta billetera tiene tokens suyos.",
-      "messageHeld": "La identidad se quita de esta lista y su UTXO deja de estar fuera de la selección de monedas, así que un envío normal puede gastarlo. Vuelve a añadirla por categoría, o encuéntrala de nuevo con la búsqueda de identidades si esta billetera tiene tokens suyos.",
+      "message": "La identidad se quita de esta lista. Vuelve a añadirla por su authbase.",
+      "messageHeld": "La identidad se quita de esta lista y su UTXO deja de estar fuera de la selección de monedas, así que el siguiente envío ordinario puede gastarlo y entregar la identidad a quien lo reciba. Esta billetera no volverá a retenerlo por su cuenta; vuelve a añadirla por su authbase.",
       "button": "Quitar"
     },
     "errors": {
-      "invalidCategory": "Eso no es una categoría de token. La encuentras en la información del token en la pestaña Tokens, o en TokenExplorer.",
+      "invalidCategory": "Eso no es un id de transacción. Pega la authbase de 64 caracteres, un id de token o la categoría de una clave.",
       "alreadyListed": "Esa identidad ya está en la lista."
     },
     "established": {
       "since": "Desde {year}"
     },
-    "openCheckFailed": "No se pudo comprobar el historial de esta billetera en busca de identidades: {reason} Puede que una identidad que creó todavía no esté retenida. Recarga, o revisa el servidor de Chaingraph en los ajustes.",
+    "openCheckFailed": "No se pudieron consultar las identidades de esta billetera: {reason} Una identidad que tiene puede no estar retenida todavía. Recarga, o revisa el servidor Chaingraph en los ajustes.",
     "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes.",
     "found": {
       "title": "Esta billetera tiene identidades de tokens",

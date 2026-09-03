@@ -1428,9 +1428,6 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Habilitar mint de NFTs",
       "enableMintNftsHint": "Adiciona uma ação de mint aos NFTs de minting, permitindo criar mais NFTs na mesma categoria",
-      "checkHeldTokens": "Verificar os tokens em carteira em busca de identidades ao abrir a carteira",
-      "checkHeldTokensHint": "Para carteiras que recebem identidades de outros; a verificação da página de identidades faz o mesmo à mão.",
-      "checkHeldTokensDetail": "Uma consulta por categoria de token em carteira, a cada abertura da carteira.",
       "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
       "disableTokenIconsHint": "Impede o carregamento de imagens de tokens de servidores externos",
       "strictWcSchema": "Validação estrita do schema WalletConnect",
@@ -1538,9 +1535,8 @@
     "modes": {
       "identities": "Identidades",
       "existing": "Adicionar",
-      "create": "Adicionar nova"
+      "create": "Criar"
     },
-    "whatIsAnIdentity": "A autoridade para alterar os metadados de um token, o seu nome, ícone e descrição, é um único UTXO: quem o tem pode publicar atualizações, e ele passa para um novo outpoint a cada atualização.",
     "whatIsAnIdentityNote": "O Studio, o explorador e a especificação chamam a esse UTXO o AuthHead, e à transação com que a cadeia começou a authbase: num token, o seu id. Ter o AuthHead é o que faz desta carteira a que pode publicar novos metadados.",
     "authchain": {
       "leads": {
@@ -1554,7 +1550,8 @@
     },
     "authbaseLabel": "Authbase / id do token:",
     "resolving": "Procurando onde estão estas identidades...",
-    "empty": "Ainda não há identidades na lista.",
+    "empty": "Ainda não há identidades na lista. Uma que esta carteira fez aparece sozinha; uma que tem ou quer seguir adiciona-se pela sua authbase em {link}. As identidades dos tokens que tem são seguidas abaixo.",
+    "emptyLink": "Adicionar",
     "detected": {
       "foundAutomatically": "Encontrada automaticamente",
       "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os seus metadados, portanto ela foi encontrada no próprio histórico da carteira e o seu UTXO agora fica de fora da seleção de moedas. Tire-a da lista se preferir que não seja assim."
@@ -1568,6 +1565,15 @@
     },
     "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
     "watchedHeader": "{count} identidade só observada, está em outra carteira | {count} identidades só observadas, estão em outra carteira",
+    "follow": {
+      "header": "{count} identidade de um token que tem, seguida | {count} identidades de tokens que tem, seguidas",
+      "toggle": "Seguir as identidades dos tokens que tem",
+      "line": "Seguidas para saber onde cada identidade está. Uma consulta por token ao abrir; uma cujo UTXO chegue a esta carteira é listada como sua e fica retida, com um aviso.",
+      "help": "A lista de tokens vai para o servidor Chaingraph como um conjunto. Desligar isto pára isso; aqui nada fica retido nem conta como novo.",
+      "show": "mostrar",
+      "hide": "ocultar",
+      "resolving": "A consultar as identidades dos tokens que tem..."
+    },
     "unnamedIdentity": "Identidade sem nome",
     "categoryLabel": "Categoria:",
     "authheadLabel": "UTXO da identidade:",
@@ -1720,8 +1726,9 @@
       "generatorHelpSchema": "esquema BCMR"
     },
     "add": {
-      "label": "Adicione-a pela sua authbase: o id de um token, ou a transação com que começou uma identidade que não é um token.",
-      "lead": "Está noutro lado, ou não é um token?",
+      "label": "Cole o id de um token, a categoria de uma chave de identidade, ou a authbase de uma identidade que não é um token.",
+      "outcome": "Se está aqui, é listada como tida e o seu UTXO fica fora dos envios. Se está noutro lado, é vigiada: metadados e historial mostrados, nada fica retido.",
+      "lead": "Adicione uma identidade pela sua authbase.",
       "placeholder": "Authbase ou id do token",
       "button": "Adicionar identidade",
       "addingButton": "Adicionando...",
@@ -1737,7 +1744,7 @@
         "button": "Adicionar"
       },
       "errors": {
-        "nothingFound": "Nada encontrado para essa categoria: nem identidade de token, nem chave de identidade guardando algo."
+        "nothingFound": "Nada encontrado para essa authbase: nenhuma authchain começa aí e nenhuma chave de identidade guarda nada. Verifique o id, ou o servidor Chaingraph nas definições."
       }
     },
     "create": {
@@ -1764,21 +1771,6 @@
       "tokenPointerLink": "crie o token",
       "novelHelp": "Uma dapp poderia dizer qual versão dos seus contratos está em vigor e onde está o seu site; uma organização poderia responder pelo que publica. Quase nenhuma existe ainda e quase nada as lê, então saiba o que quer de uma antes de a fazer."
     },
-    "scan": {
-      "prompt": "Verificar consulta cada token que esta carteira tem e lista as identidades que estão aqui. Uma enviada sem o seu token, ou que não é um token, adiciona-se pelo seu id abaixo.",
-      "lead": "Foi transferida para si?",
-      "linkText": "Procurar identidades",
-      "scanning": "Verificando as categorias de token da carteira...",
-      "found": "{count} identidade encontrada e adicionada à lista | {count} identidades encontradas e adicionadas à lista",
-      "noneFound": "Nenhuma identidade nova encontrada.",
-      "alreadyListed": "{count} categoria já estava na lista. | {count} categorias já estavam na lista.",
-      "carriesTokens": "{count} delas carrega uma reserva de tokens fungíveis. | {count} delas carregam uma reserva de tokens fungíveis.",
-      "mintingNfts": "{count} delas carrega um NFT de cunhagem. | {count} delas carregam um NFT de cunhagem.",
-      "dismissed": "{count} foi deixada de fora porque você a removeu antes. | {count} foram deixadas de fora porque você as removeu antes.",
-      "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias.",
-      "automaticHelp": "O Cashonize já lista as identidades que estas chaves fizeram: um token que você criou, ou metadados que você publicou, cujo UTXO de identidade ainda está aqui. Isso não custa nada, então acontece sozinho.",
-      "checkHelp": "Uma consulta ao indexador por cada token que tem, perguntando onde está o UTXO da sua identidade, por isso é um botão e não algo que a página faz em silêncio."
-    },
     "transfer": {
       "hint": "O UTXO da identidade é enviado para o destino, entregando a autoridade para atualizar os metadados deste token. Para a mover para o CashTokens Studio, crie lá uma chave e transfira para o endereço de guarda que ele mostra para essa chave.",
       "destinationPlaceholder": "Endereço para onde transferir a identidade",
@@ -1798,18 +1790,18 @@
     },
     "remove": {
       "title": "Remover desta lista?",
-      "message": "A identidade é removida desta lista. Adicione-a de novo pela categoria, ou encontre-a outra vez com a busca de identidades se esta carteira tiver tokens dela.",
-      "messageHeld": "A identidade é removida desta lista e o seu UTXO deixa de ficar de fora da seleção de moedas, portanto um envio comum pode gastá-lo. Adicione-a de novo pela categoria, ou encontre-a outra vez com a busca de identidades se esta carteira tiver tokens dela.",
+      "message": "A identidade é removida desta lista. Adicione-a de novo pela sua authbase.",
+      "messageHeld": "A identidade é removida desta lista e o seu UTXO deixa de ficar fora da seleção de moedas, pelo que o próximo envio comum pode gastá-lo e entregar a identidade a quem o receber. Esta carteira não voltará a retê-lo por si; adicione-a de novo pela sua authbase.",
       "button": "Remover"
     },
     "errors": {
-      "invalidCategory": "Isso não é uma categoria de token. Você a encontra nas informações do token na aba Tokens, ou no TokenExplorer.",
+      "invalidCategory": "Isso não é um id de transação. Cole a authbase de 64 caracteres, um id de token ou a categoria de uma chave.",
       "alreadyListed": "Essa identidade já está na lista."
     },
     "established": {
       "since": "Desde {year}"
     },
-    "openCheckFailed": "Não foi possível verificar o histórico desta carteira em busca de identidades: {reason} Uma identidade que ela fez pode ainda não estar retida. Recarregue, ou verifique o servidor Chaingraph nas configurações.",
+    "openCheckFailed": "Não foi possível consultar as identidades desta carteira: {reason} Uma identidade que tem pode ainda não estar retida. Recarregue, ou verifique o servidor Chaingraph nas definições.",
     "unresolvedHint": "Recarregue, ou verifique o servidor Chaingraph nas configurações.",
     "found": {
       "title": "Esta carteira tem identidades de tokens",

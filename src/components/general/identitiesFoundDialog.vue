@@ -8,8 +8,8 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { formatBch, formatTokenAmountFromBigInt, truncateHash } from 'src/utils/utils'
 
-  // Shown once per wallet, when the wallet held back identities the user never listed: that is
-  // the moment the spendable balance and the token list change, so it is told directly, with names.
+  // Shown whenever the wallet held back identities the user never listed: that is the moment the
+  // spendable balance and the token list change, so it is told directly, with names, every time.
   const props = defineProps<{
     ids: string[], // categories, or the authhead txid of one the wallet could not name yet
   }>()

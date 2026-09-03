@@ -142,6 +142,7 @@ vi.mock('src/stores/settingsStore', () => ({
     tokenMetadataIndexerMainnet: 'https://bcmr.paytaca.com/api',
     tokenMetadataIndexerChipnet: 'https://bcmr-chipnet.paytaca.com/api',
     ipfsGateway: 'https://ipfs.io/ipfs/',
+    followTokenIdentities: true,
     featuredTokens: [],
     getWalletType: vi.fn().mockReturnValue('single'),
     getWalletMetadata: vi.fn().mockReturnValue({ walletType: 'single' }),

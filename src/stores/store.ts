@@ -1584,7 +1584,12 @@ export const useStore = defineStore('store', () => {
         ensureUtxos: [authUtxo],
       }));
       await updateWalletUtxos();
-      // the authhead has moved to a new outpoint, so its reservation has to follow it there
+      // The authhead has moved to output 0 of this transaction. When that is ours, it is held back
+      // now rather than when Chaingraph sees the transaction, which can be a while; a transfer's
+      // output 0 is not ours and the resolve settles it.
+      const newAuthhead = `${response.txId}:0`;
+      const heldNew = (walletUtxos.value ?? []).some(utxo => outpointOf(utxo) === newAuthhead);
+      if (heldNew && !reservedUtxos.value[newAuthhead]) await reserveOutpoint(newAuthhead, 'auth');
       await identitiesStore.refreshIdentities();
       return response;
     },
