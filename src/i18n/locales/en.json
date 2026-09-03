@@ -643,7 +643,7 @@
   "createTokens": {
     "title": "Create a token",
     "home": {
-      "intro": "Create a new token here or on CashTokens Studio's site. Whoever holds the token's identity, one UTXO, controls its name, icon and reserve; choose where to keep it.",
+      "intro": "Create a new token here or on CashTokens Studio's site. Whoever holds the token's identity, one UTXO, controls its name, icon and any unissued supply; choose where to keep it.",
       "wallet": "In this wallet",
       "studio": "With CashTokens Studio",
       "cardLeads": {
@@ -658,7 +658,6 @@
         "for": "the easiest way, and NFT collections.",
         "managed": "on Studio's site, over WalletConnect."
       },
-      "chosen": "Token creation method: this wallet",
       "leads": {
         "protection": "Protection:",
         "metadata": "Metadata:",
@@ -667,12 +666,14 @@
       "walletRows": {
         "protection": "held back from sends by this wallet only; another app on this seed could spend it.",
         "metadata": "a file you host, linked in step 3 or later from the identities page.",
-        "operations": "on the identities page; each one moves the identity to a new UTXO.",
+        "operations": "on the identities page, in Tools.",
         "moveLater": "You can move the token identity from this wallet to Studio later, and back."
       },
       "studioRows": {
-        "protection": "spendable only with the key NFT; in other wallets a nameless NFT, so keep it. Studio calls the contract an AuthGuard and the key an AuthKey.",
-        "metadata": "written and pinned to IPFS by Studio; keep a copy.",
+        "protection": "spendable only with the key NFT; in other wallets a nameless NFT, so keep it.",
+        "protectionHelp": "The key NFT is what Studio calls an AuthKey. It opens an AuthGuard, the contract Studio keeps the identity in, so the identity spends only with the key, whichever app holds the seed. Other wallets show the key as a nameless NFT, which is how one gets sent away or burned; this wallet names it by what it guards.",
+        "metadata": "written and pinned to IPFS by Studio; recommended to keep a copy.",
+        "metadataHelp": "The IPFS pin is Studio's. If it ever lapses, the file can be hosted anywhere and the published hash still matches it, but only the exact file: keep a copy.",
         "operations": "metadata, issuing and releasing, on Studio's site over WalletConnect.",
         "moveLater": "You can move the token identity from Studio to this wallet later, and back."
       },
@@ -706,10 +707,12 @@
     "preparingButton": "Preparing...",
     "plannedTokenId": "Token id:",
     "shapeLabel": "Token type",
+    "closedSupply": "{supply} tokens, {decimals} decimals",
+    "nextButton": "Continue",
     "shapes": {
       "fungible": "Fungible tokens",
-      "mintingNft": "An NFT collection (a minting NFT)",
-      "both": "Fungible tokens and an NFT collection"
+      "mintingNft": "A minting NFT",
+      "both": "Fungible tokens and a minting NFT"
     },
     "mintingDescription": "A minting NFT creates the collection's NFTs, and only the creating transaction can grant that.",
     "mintingNote": "NFTs are minted from the token list, with \"Enable mint NFTs\" on in the developer settings.",
@@ -722,7 +725,7 @@
       "label": "Issue to circulation now",
       "placeholder": "Amount to issue",
       "split": "{reserve} stays with the identity as reserve, {circulating} enters circulation.",
-      "note": "The reserve sits on the identity's UTXO and goes wherever it goes; issue it later from the identities page."
+      "note": "The reserve stays on the identity's UTXO; issue it later from the identities page."
     },
     "errors": {
       "invalidAmount": "Enter amounts in tokens, with no more decimal places than the token has.",
@@ -782,8 +785,7 @@
       "createAnother": "Create another token",
       "decimals": "Decimals: {decimals}, the metadata file must say this"
     },
-    "decimalsNote": "Decimals are read from the metadata file, not the chain, so it must say this number.",
-    "goBack": "Go back"
+    "decimalsNote": "Decimals are read from the metadata file, not the chain, so it must say this number."
   },
   "utxoManagement": {
     "title": "UTXO Management",

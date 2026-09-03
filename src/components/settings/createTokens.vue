@@ -106,11 +106,20 @@
   }
   // the shape step is titled by what it asks, which for a collection alone is only the type
   const shapeTitle = computed(() => hasSupply.value ? 'shape' : 'type');
+  // Step 2 closes on its own Continue, so step 3 opens one step at a time for every shape, a
+  // minting NFT alone included, where nothing but the select would otherwise settle it
+  const shapeStepOpen = ref(true);
+  const shapeSummary = computed(() => {
+    const shape = t(`createTokens.shapes.${tokenShape.value}`);
+    if (!hasSupply.value || totalSupply.value === undefined) return shape;
+    return `${shape}, ${t('createTokens.closedSupply', { supply: tokensOf(totalSupply.value), decimals: decimals.value })}`;
+  });
   function changeHome() {
     identityHome.value = undefined;
     selectedHome.value = undefined;
     pickedOutpoint.value = undefined;
     editingUtxo.value = true;
+    shapeStepOpen.value = true;
   }
 
   // Amounts are typed in tokens and the decimals field does the zeroes: the number on chain is
@@ -393,7 +402,7 @@
       <template v-if="created">
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
-          <span>{{ t('createTokens.home.chosen') }}</span>
+          <span>{{ t('createTokens.home.wallet') }}</span>
         </div>
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
@@ -490,6 +499,12 @@
       <div v-if="selectedHome" class="section home-rows">
         <div v-for="row in homeRows" :key="row">
           <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${selectedHome}Rows.${row}`) }}
+          <!-- Studio's side has two mechanisms behind its rows: the covenant and the key, by the
+               names Studio uses for them, and why the file wants a copy kept; the wallet side's
+               rows carry none -->
+          <InfoPopup v-if="selectedHome === 'studio' && (row === 'protection' || row === 'metadata')">
+            <div style="max-width: 300px;">{{ t(`createTokens.home.studioRows.${row}Help`) }}</div>
+          </InfoPopup>
         </div>
         <div class="description">{{ t(`createTokens.home.${selectedHome}Rows.moveLater`) }}</div>
         <!-- the wallet path has three steps to go to, so Continue takes it there; Studio's side is
@@ -520,10 +535,12 @@
         </template>
       </div>
       </template>
-      <!-- what was chosen, and the way back to re-read the choice -->
-      <div v-else class="chosen-line">
-        <span>{{ t('createTokens.home.chosen') }}</span>
-        <span class="go-back" @click="changeHome()">← {{ t('createTokens.goBack') }}</span>
+      <!-- the choice closed like every settled step: the card's title, and change to re-read it -->
+      <div v-else class="closed-line description">
+        <img src="images/check-circle.svg" class="step-check pop">
+        <span>{{ t('createTokens.home.wallet') }}</span>
+        <span>·</span>
+        <span class="action-link" @click="changeHome()">{{ t('createTokens.change') }}</span>
       </div>
 
       <template v-if="identityHome === 'wallet'">
@@ -606,7 +623,7 @@
 
       <!-- Deciding what to make does not depend on which UTXO makes it, but it reads better one
            thing at a time, so this opens once the UTXO is settled -->
-      <div v-if="!utxoStepOpen" class="section">
+      <div v-if="!utxoStepOpen && shapeStepOpen" class="section">
         <div class="step-label open">{{ stepLabel(2, shapeTitle) }}</div>
         <!-- the sentences that change what the user does are in the lines the fields have, not
              behind icons: what a minting NFT is, that the supply is final, what decimals mean -->
@@ -616,7 +633,7 @@
           <option value="mintingNft">{{ t('createTokens.shapes.mintingNft') }}</option>
           <option value="both">{{ t('createTokens.shapes.both') }}</option>
         </select>
-        <div class="description" style="margin-top: 4px;">{{ t('createTokens.mintingDescription') }}</div>
+        <div v-if="createMintingNft" class="description" style="margin-top: 4px;">{{ t('createTokens.mintingDescription') }}</div>
         <div v-if="createMintingNft" class="description" style="margin-top: 4px;">{{ t('createTokens.mintingNote') }}</div>
 
         <template v-if="hasSupply">
@@ -635,10 +652,12 @@
           </div>
           <div class="decimals-field">
             <label for="decimals">{{ t('createTokens.decimalsLabel') }}</label>
-            <input id="decimals" v-model="inputDecimals" type="number" min="0" max="18">
+            <!-- a text input: v-model on a number input casts to a number, and the string parser
+                 the amounts share would throw on it -->
+            <input id="decimals" v-model="inputDecimals" type="text" inputmode="numeric">
           </div>
         </div>
-        <div class="description" style="margin-top: 4px;">{{ t('createTokens.supplyNote') }}</div>
+        <div style="margin-top: 4px;">{{ t('createTokens.supplyNote') }}</div>
         <div class="description" style="margin-top: 4px;">{{ t('createTokens.decimalsNote') }}</div>
         <div v-if="decimals && totalSupply" style="margin-top: 4px;">
           {{ t('createTokens.supplyOnChain', { tokens: tokensOf(totalSupply), base: baseUnitsOf(totalSupply) }) }}
@@ -658,11 +677,25 @@
         <div class="description" style="margin-top: 4px;">{{ t('createTokens.circulation.note') }}</div>
         <div v-if="genesisProblem" class="genesis-problem" style="margin-top: 6px;">{{ genesisProblem }}</div>
         </template>
+        <input
+          type="button"
+          class="primaryButton"
+          :value="t('createTokens.nextButton')"
+          style="margin-top: 12px;"
+          :disabled="!supplySettled"
+          @click="shapeStepOpen = false"
+        >
+      </div>
+      <div v-else-if="!utxoStepOpen" class="section closed-line description">
+        <img src="images/check-circle.svg" class="step-check pop">
+        <span>{{ shapeSummary }}</span>
+        <span>·</span>
+        <span class="action-link" @click="shapeStepOpen = true">{{ t('createTokens.change') }}</span>
       </div>
 
       <!-- Optional. The location is the field that delivers what the page promises, so it is in
            the open; how to write and host the file is the collapsible part. -->
-      <div v-if="!utxoStepOpen && supplySettled" class="section">
+      <div v-if="!utxoStepOpen && !shapeStepOpen" class="section">
         <div class="step-label open">{{ stepLabel(3, 'metadata') }}</div>
         <div style="margin-top: 6px;">
           <i18n-t keypath="createTokens.metadataNote" tag="span">
@@ -862,15 +895,6 @@
 }
 .action-link:hover {
   text-decoration: underline;
-}
-/* the way back, in the text colour like the settings pages' own back line */
-.chosen-line {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.go-back {
-  cursor: pointer;
 }
 .studio-actions {
   display: flex;

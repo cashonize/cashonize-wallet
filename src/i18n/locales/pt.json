@@ -643,7 +643,7 @@
   "createTokens": {
     "title": "Criar um token",
     "home": {
-      "intro": "Crie um token novo aqui ou no site do CashTokens Studio. Quem tem a identidade do token, um UTXO, controla o seu nome, ícone e reserva; escolha onde a guardar.",
+      "intro": "Crie um token novo aqui ou no site do CashTokens Studio. Quem tem a identidade do token, um UTXO, controla o seu nome, ícone e qualquer oferta não emitida; escolha onde a guardar.",
       "wallet": "Nesta carteira",
       "studio": "Com o CashTokens Studio",
       "cardLeads": {
@@ -658,7 +658,6 @@
         "for": "a via mais fácil, e coleções de NFTs.",
         "managed": "no site do Studio, via WalletConnect."
       },
-      "chosen": "Método de criação do token: esta carteira",
       "leads": {
         "protection": "Proteção:",
         "metadata": "Metadados:",
@@ -667,12 +666,14 @@
       "walletRows": {
         "protection": "retido dos envios só por esta carteira; outra app com esta seed poderia gastá-lo.",
         "metadata": "um ficheiro que você hospeda, ligado no passo 3 ou depois a partir da página de identidades.",
-        "operations": "na página de identidades; cada uma move a identidade para um UTXO novo.",
+        "operations": "na página de identidades, em Ferramentas.",
         "moveLater": "Você pode mover a identidade do token desta carteira para o Studio mais tarde, e de volta."
       },
       "studioRows": {
-        "protection": "só se gasta com o NFT chave; noutras carteiras um NFT sem nome, por isso guarde-o. O Studio chama AuthGuard ao contrato e AuthKey à chave.",
-        "metadata": "redigidos e fixados no IPFS pelo Studio; guarde uma cópia.",
+        "protection": "só se gasta com o NFT chave; noutras carteiras um NFT sem nome, por isso guarde-o.",
+        "protectionHelp": "O NFT chave é o que o Studio chama AuthKey. Abre um AuthGuard, o contrato em que o Studio guarda a identidade, pelo que a identidade só se gasta com a chave, seja qual for a app que tem a seed. Outras carteiras mostram a chave como um NFT sem nome, e é assim que uma é enviada por engano ou queimada; esta carteira nomeia-a pelo que protege.",
+        "metadata": "redigidos e fixados no IPFS pelo Studio; recomenda-se guardar uma cópia.",
+        "metadataHelp": "O pin no IPFS é do Studio. Se um dia caducar, o ficheiro pode ser alojado em qualquer lado e o hash publicado continua a corresponder, mas só ao ficheiro exato: guarde uma cópia.",
         "operations": "metadados, emissão e libertação, no site do Studio via WalletConnect.",
         "moveLater": "Você pode mover a identidade do token do Studio para esta carteira mais tarde, e de volta."
       },
@@ -706,10 +707,12 @@
     "preparingButton": "A preparar...",
     "plannedTokenId": "Id do token:",
     "shapeLabel": "Tipo de token",
+    "closedSupply": "{supply} tokens, {decimals} decimais",
+    "nextButton": "Continuar",
     "shapes": {
       "fungible": "Tokens fungíveis",
-      "mintingNft": "Uma coleção de NFTs (um NFT de cunhagem)",
-      "both": "Tokens fungíveis e uma coleção de NFTs"
+      "mintingNft": "Um NFT de cunhagem",
+      "both": "Tokens fungíveis e um NFT de cunhagem"
     },
     "mintingDescription": "Um NFT de cunhagem cria os NFTs da coleção, e só a transação de criação pode conceder isso.",
     "mintingNote": "Os NFTs são cunhados a partir da lista de tokens, com \"Ativar cunhar NFTs\" ligado nas definições de programador.",
@@ -722,7 +725,7 @@
       "label": "Emitir para circulação agora",
       "placeholder": "Montante a emitir",
       "split": "{reserve} fica com a identidade como reserva, {circulating} entra em circulação.",
-      "note": "A reserva fica no UTXO da identidade e vai para onde ele for; emita-a depois a partir da página de identidades."
+      "note": "A reserva fica no UTXO da identidade; emita-a depois a partir da página de identidades."
     },
     "errors": {
       "invalidAmount": "Escreva montantes em tokens, sem mais casas decimais do que o token tem.",
@@ -782,8 +785,7 @@
       "createAnother": "Criar outro token",
       "decimals": "Decimais: {decimals}, o ficheiro de metadados tem de o indicar"
     },
-    "decimalsNote": "As decimais são lidas do ficheiro de metadados, não da cadeia, por isso ele tem de indicar este número.",
-    "goBack": "Voltar"
+    "decimalsNote": "As decimais são lidas do ficheiro de metadados, não da cadeia, por isso ele tem de indicar este número."
   },
   "utxoManagement": {
     "title": "Gerenciamento de UTXOs",

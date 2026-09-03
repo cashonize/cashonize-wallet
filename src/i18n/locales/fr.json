@@ -643,7 +643,7 @@
   "createTokens": {
     "title": "Créer un token",
     "home": {
-      "intro": "Créez un nouveau token ici ou sur le site de CashTokens Studio. Qui détient l'identité du token, un UTXO, contrôle son nom, son icône et sa réserve ; choisissez où la garder.",
+      "intro": "Créez un nouveau token ici ou sur le site de CashTokens Studio. Qui détient l'identité du token, un UTXO, contrôle son nom, son icône et toute offre non émise ; choisissez où la garder.",
       "wallet": "Dans ce portefeuille",
       "studio": "Avec CashTokens Studio",
       "cardLeads": {
@@ -658,7 +658,6 @@
         "for": "la voie la plus simple, et les collections de NFT.",
         "managed": "sur le site de Studio, par WalletConnect."
       },
-      "chosen": "Méthode de création du token : ce portefeuille",
       "leads": {
         "protection": "Protection :",
         "metadata": "Métadonnées :",
@@ -667,12 +666,14 @@
       "walletRows": {
         "protection": "retenu des envois par ce portefeuille seulement ; une autre application sur cette graine pourrait le dépenser.",
         "metadata": "un fichier que vous hébergez, lié à l'étape 3 ou plus tard depuis la page des identités.",
-        "operations": "sur la page des identités ; chacune déplace l'identité vers un nouvel UTXO.",
+        "operations": "sur la page des identités, dans Outils.",
         "moveLater": "Vous pourrez déplacer l'identité du token de ce portefeuille vers Studio plus tard, et inversement."
       },
       "studioRows": {
-        "protection": "dépensable seulement avec le NFT clé ; dans les autres portefeuilles un NFT sans nom, gardez-le donc. Studio appelle le contrat AuthGuard et la clé AuthKey.",
-        "metadata": "rédigées et épinglées sur IPFS par Studio ; gardez une copie.",
+        "protection": "dépensable seulement avec le NFT clé ; dans d'autres portefeuilles un NFT sans nom, gardez-le.",
+        "protectionHelp": "Le NFT clé est ce que Studio appelle un AuthKey. Il ouvre un AuthGuard, le contrat dans lequel Studio garde l'identité, de sorte que l'identité ne se dépense qu'avec la clé, quelle que soit l'app qui détient la seed. D'autres portefeuilles montrent la clé comme un NFT sans nom, et c'est ainsi qu'elle se retrouve envoyée ou brûlée ; ce portefeuille la nomme d'après ce qu'elle protège.",
+        "metadata": "rédigées et épinglées sur IPFS par Studio ; il est recommandé d'en garder une copie.",
+        "metadataHelp": "Le pin IPFS est celui de Studio. S'il expire un jour, le fichier peut être hébergé n'importe où et le hash publié correspond toujours, mais seulement au fichier exact : gardez-en une copie.",
         "operations": "métadonnées, émission et libération, sur le site de Studio par WalletConnect.",
         "moveLater": "Vous pourrez déplacer l'identité du token de Studio vers ce portefeuille plus tard, et inversement."
       },
@@ -706,10 +707,12 @@
     "preparingButton": "Préparation...",
     "plannedTokenId": "Id du token :",
     "shapeLabel": "Type de token",
+    "closedSupply": "{supply} tokens, {decimals} décimales",
+    "nextButton": "Continuer",
     "shapes": {
       "fungible": "Tokens fongibles",
-      "mintingNft": "Une collection de NFT (un NFT de frappe)",
-      "both": "Tokens fongibles et une collection de NFT"
+      "mintingNft": "Un NFT de frappe",
+      "both": "Tokens fongibles et un NFT de frappe"
     },
     "mintingDescription": "Un NFT de frappe crée les NFT de la collection, et seule la transaction de création peut l'accorder.",
     "mintingNote": "Les NFT sont frappés depuis la liste des tokens, avec « Activer la frappe de NFT » activé dans les paramètres développeur.",
@@ -722,7 +725,7 @@
       "label": "Émettre en circulation maintenant",
       "placeholder": "Montant à émettre",
       "split": "{reserve} reste avec l'identité en réserve, {circulating} entre en circulation.",
-      "note": "La réserve repose sur l'UTXO de l'identité et va là où il va ; émettez-la plus tard depuis la page des identités."
+      "note": "La réserve reste sur l'UTXO de l'identité ; émettez-la plus tard depuis la page des identités."
     },
     "errors": {
       "invalidAmount": "Saisissez des montants en tokens, sans plus de décimales que le token n'en a.",
@@ -782,8 +785,7 @@
       "createAnother": "Créer un autre token",
       "decimals": "Décimales : {decimals}, le fichier de métadonnées doit l'indiquer"
     },
-    "decimalsNote": "Les décimales sont lues dans le fichier de métadonnées, pas sur la chaîne, il doit donc indiquer ce nombre.",
-    "goBack": "Retour"
+    "decimalsNote": "Les décimales sont lues dans le fichier de métadonnées, pas sur la chaîne, il doit donc indiquer ce nombre."
   },
   "utxoManagement": {
     "title": "Gestion des UTXO",

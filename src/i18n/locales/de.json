@@ -643,7 +643,7 @@
   "createTokens": {
     "title": "Token erstellen",
     "home": {
-      "intro": "Erstelle hier einen neuen Token oder auf der Seite von CashTokens Studio. Wer die Identität des Tokens hält, einen UTXO, bestimmt über Name, Icon und Reserve; wähle, wo du sie aufbewahrst.",
+      "intro": "Erstelle hier einen neuen Token oder auf der Seite von CashTokens Studio. Wer die Identität des Tokens hält, einen UTXO, bestimmt über Name, Icon und noch nicht ausgegebenes Angebot; wähle, wo du sie aufbewahrst.",
       "wallet": "In diesem Wallet",
       "studio": "Mit CashTokens Studio",
       "cardLeads": {
@@ -658,7 +658,6 @@
         "for": "den einfachsten Weg und NFT-Sammlungen.",
         "managed": "auf Studios Seite, per WalletConnect."
       },
-      "chosen": "Methode der Token-Erstellung: dieses Wallet",
       "leads": {
         "protection": "Schutz:",
         "metadata": "Metadaten:",
@@ -667,12 +666,14 @@
       "walletRows": {
         "protection": "nur von diesem Wallet vor Versand zurückgehalten; eine andere App auf diesem Seed könnte ihn ausgeben.",
         "metadata": "eine Datei, die du hostest, in Schritt 3 verknüpft oder später von der Identitäten-Seite.",
-        "operations": "auf der Identitäten-Seite; jede bewegt die Identität auf einen neuen UTXO.",
+        "operations": "auf der Identitäten-Seite unter Werkzeuge.",
         "moveLater": "Du kannst die Token-Identität später von diesem Wallet zu Studio verschieben, und zurück."
       },
       "studioRows": {
-        "protection": "nur mit dem Schlüssel-NFT ausgebbar; in anderen Wallets ein namenloses NFT, also behalte es. Studio nennt den Contract AuthGuard und den Schlüssel AuthKey.",
-        "metadata": "von Studio geschrieben und auf IPFS gepinnt; behalte eine Kopie.",
+        "protection": "nur mit dem Schlüssel-NFT ausgebbar; in anderen Wallets ein namenloses NFT, also behalte es.",
+        "protectionHelp": "Das Schlüssel-NFT ist das, was Studio einen AuthKey nennt. Es öffnet einen AuthGuard, den Vertrag, in dem Studio die Identität hält, sodass die Identität nur mit dem Schlüssel ausgegeben wird, egal welche App den Seed hält. Andere Wallets zeigen den Schlüssel als namenloses NFT, und so wird eines versehentlich verschickt oder verbrannt; diese Wallet benennt es nach dem, was es schützt.",
+        "metadata": "von Studio geschrieben und auf IPFS gepinnt; eine Kopie zu behalten wird empfohlen.",
+        "metadataHelp": "Der IPFS-Pin gehört Studio. Sollte er einmal auslaufen, kann die Datei überall gehostet werden und der veröffentlichte Hash passt weiterhin, aber nur zur exakten Datei: bewahre eine Kopie auf.",
         "operations": "Metadaten, Ausgabe und Freigabe, auf Studios Seite per WalletConnect.",
         "moveLater": "Du kannst die Token-Identität später von Studio in dieses Wallet verschieben, und zurück."
       },
@@ -706,10 +707,12 @@
     "preparingButton": "Wird vorbereitet...",
     "plannedTokenId": "Token-ID:",
     "shapeLabel": "Token-Typ",
+    "closedSupply": "{supply} Tokens, {decimals} Dezimalstellen",
+    "nextButton": "Weiter",
     "shapes": {
       "fungible": "Fungible Tokens",
-      "mintingNft": "Eine NFT-Sammlung (ein Minting-NFT)",
-      "both": "Fungible Tokens und eine NFT-Sammlung"
+      "mintingNft": "Ein Minting-NFT",
+      "both": "Fungible Tokens und ein Minting-NFT"
     },
     "mintingDescription": "Ein Minting-NFT prägt die NFTs der Sammlung, und nur die erstellende Transaktion kann das gewähren.",
     "mintingNote": "NFTs werden aus der Token-Liste geprägt, mit „NFTs prägen aktivieren“ in den Entwicklereinstellungen.",
@@ -722,7 +725,7 @@
       "label": "Jetzt in Umlauf bringen",
       "placeholder": "Auszugebender Betrag",
       "split": "{reserve} bleibt als Reserve bei der Identität, {circulating} kommt in Umlauf.",
-      "note": "Die Reserve sitzt auf dem UTXO der Identität und geht dorthin, wohin er geht; gib sie später von der Identitäten-Seite aus."
+      "note": "Die Reserve bleibt auf dem UTXO der Identität; gib sie später von der Identitäten-Seite aus."
     },
     "errors": {
       "invalidAmount": "Gib Beträge in Tokens ein, mit nicht mehr Dezimalstellen, als der Token hat.",
@@ -782,8 +785,7 @@
       "createAnother": "Noch einen Token erstellen",
       "decimals": "Dezimalstellen: {decimals}, die Metadaten-Datei muss das nennen"
     },
-    "decimalsNote": "Dezimalstellen werden aus der Metadaten-Datei gelesen, nicht von der Chain, also muss sie diese Zahl nennen.",
-    "goBack": "Zurück"
+    "decimalsNote": "Dezimalstellen werden aus der Metadaten-Datei gelesen, nicht von der Chain, also muss sie diese Zahl nennen."
   },
   "utxoManagement": {
     "title": "UTXO-Verwaltung",
