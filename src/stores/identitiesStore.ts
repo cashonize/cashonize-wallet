@@ -259,8 +259,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // What the AuthKeys this wallet holds are guarding. The fingerprint is local and free, the guard
-  // listing is not, so it runs only where resolution runs and skips candidates already settled as
-  // ordinary NFTs. A key is confirmed by its covenant holding something, never by shape alone:
+  // listing is not, so it runs only where resolution runs. A key is confirmed by its covenant
+  // holding something, never by shape alone:
   // freezing an innocent NFT on a lucky commitment would be protection nobody asked for.
   async function resolveAuthKeys() {
     const heldCandidates = (mainStore.walletUtxos ?? []).filter(isAuthKeyCandidate);
@@ -337,17 +337,13 @@ export const useIdentitiesStore = defineStore('identities', () => {
     await syncAuthReservations(resolved);
   }
 
-  // A cached chain ends at the authhead it was fetched for, so an authhead that has moved since
-  // means the cache is missing its newest link. Keyed on the authhead rather than on this wallet
-  // having spent it, so an update made elsewhere with the same keys invalidates it too.
-
   async function refreshIdentities() {
     await withResolveLock(resolveListedIdentities);
   }
 
-  // Held authheads that carry no identity of their own on the list: same protection, no name
-  // Unnamed is derived, never stored: a coin the resolved list accounts for is not unnamed,
-  // whichever list found it first, so a naming entry left in the map renders nothing
+  // Held authheads that carry no identity of their own on the list: same protection, no name.
+  // Derived, never stored: a UTXO the resolved list accounts for is not unnamed, whichever list
+  // found it first.
   const unnamedAuthheadCoins = computed(() => {
     const named = (identities.value ?? []).map(identity => identity.authheadTxid);
     return (mainStore.walletUtxos ?? []).filter(

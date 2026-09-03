@@ -50,7 +50,6 @@ export interface IdentityState {
   links?: string[];
 }
 
-// The coin that holds the authority, whichever way this wallet has it. What gets reserved.
 // An identity output found in an AuthGuard covenant this wallet has the key to, waiting for the
 // authchain lookup to confirm it really is that category's authhead.
 export interface GuardedIdentity {
@@ -333,9 +332,8 @@ export async function checkPublicationUri(
   return registryContentHash(content) === expectedHash ? 'verified' : 'changed';
 }
 
-// What this feature persists, all of it per wallet per network and all of it a set of ids. The
-// lists hold categories or txids and share one storage shape; the naming map is the exception,
-// keyed by txid because each entry carries how far its naming got.
+// The lists this feature persists, all of them per wallet per network and all of them ids,
+// categories or txids, in one storage shape
 const identityListKeys = {
   // identities the wallet follows, which is what gets resolved and reserved
   categories: 'identities',
