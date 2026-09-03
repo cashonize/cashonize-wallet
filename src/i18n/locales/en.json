@@ -646,6 +646,7 @@
       "intro": "Create a new token here or on CashTokens Studio's site. Whoever holds the token's identity, one UTXO, controls its name, icon and any unissued supply; choose where to keep it.",
       "wallet": "In this wallet",
       "studio": "With CashTokens Studio",
+      "chosen": "Token creation method: this wallet",
       "cardLeads": {
         "for": "For:",
         "managed": "Managed:"
@@ -785,7 +786,8 @@
       "createAnother": "Create another token",
       "decimals": "Decimals: {decimals}, the metadata file must say this"
     },
-    "decimalsNote": "Decimals are read from the metadata file, not the chain, so it must say this number."
+    "decimalsNote": "Decimals are read from the metadata file, not the chain, so it must say this number.",
+    "goBack": "Go back"
   },
   "utxoManagement": {
     "title": "UTXO Management",
@@ -1727,7 +1729,8 @@
       "label": "Create an identity that is not a token",
       "help": "The standard's identities are not only tokens: the same chain of UTXOs can stand for a dapp, a contract system or an organization, and prove who controls it.",
       "helpNaming": "One transaction makes it, and naming comes after, with a publication that names its id.",
-      "hint": "A name, icon and links for a dapp, a contract system or an organization, published and updated from one UTXO with no token on it. A novel concept, so have a clear use in mind.",
+      "hint": "A name, icon and links for a dapp, a contract system or an organization, published and updated from one UTXO with no token on it.",
+      "advanced": "Feature meant for advanced users only.",
       "button": "Create non-token identity",
       "creatingButton": "Creating...",
       "confirmTitle": "Create a new identity?",
@@ -1738,7 +1741,7 @@
       "errors": {
         "noTxId": "The transaction was sent but its id came back empty, so the identity could not be listed."
       },
-      "tokenPointer": "Nearly every identity belongs to a token. To create a token identity, {link}: the transaction that creates the token creates its identity at the same time.",
+      "tokenPointer": "Nearly every identity currently belongs to a token. To create a token identity, {link}: the transaction that creates the token creates its identity at the same time.",
       "tokenPointerLink": "create the token",
       "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it."
     },

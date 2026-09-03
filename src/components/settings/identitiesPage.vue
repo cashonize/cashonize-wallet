@@ -120,6 +120,12 @@
 
   const identities = computed(() => identitiesStore.identities ?? []);
 
+  // the token list narrows itself to a pending search on arrival, the way a token request opens it
+  function openInTokenList(category: string) {
+    store.pendingTokenSearch = category;
+    store.changeView(2);
+  }
+
   // The chain as fetched at this authhead; nothing to show until it is resolved
   function historyOf(identity: IdentityState) {
     if (!identity.authheadTxid) return undefined;
@@ -660,15 +666,8 @@
     </template>
 
     <template v-if="mode === 'create'">
-    <!-- The common path first: a token identity is made by the genesis that makes the token.
-         What follows is the same primitive with no token on it, said as the rare thing it is -->
-    <div class="section">
-      <i18n-t keypath="identities.create.tokenPointer" tag="div">
-        <template #link>
-          <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.create.tokenPointerLink') }}</span>
-        </template>
-      </i18n-t>
-    </div>
+    <!-- What this makes, then the common path in a box: a token identity is made by the genesis
+         that makes the token, and what is made here is the same primitive with no token on it -->
     <div class="section">
       <div>
         {{ t('identities.create.label') }}
@@ -683,9 +682,20 @@
           <div style="max-width: 300px;">{{ t('identities.create.novelHelp') }}</div>
         </InfoPopup>
       </div>
+      <div class="info-box" style="margin-top: 10px;">
+        <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
+        <i18n-t keypath="identities.create.tokenPointer" tag="div">
+          <template #link>
+            <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.create.tokenPointerLink') }}</span>
+          </template>
+        </i18n-t>
+      </div>
+      <!-- the caution sits on the button it is about -->
+      <div style="margin-top: 10px; font-style: italic;">{{ t('identities.create.advanced') }}</div>
       <input
         @click="createIdentity()"
         type="button"
+        class="primaryButton"
         :value="runningAction === 'create' ? t('identities.create.creatingButton') : t('identities.create.button')"
         :disabled="runningAction !== undefined || identitiesStore.identitiesResolving"
         style="margin-top: 8px;"
@@ -793,11 +803,11 @@
         </div>
         <div v-if="carriesLine(identity)">
           {{ carriesLine(identity) }}
-          <!-- minting lives in the token list, behind its own gate; this only points there -->
+          <!-- minting lives in the token list, behind its own gate; this points there, narrowed to this token -->
           <span
             v-if="identity.authUtxo?.token?.nft?.capability === 'minting'"
             class="action-link"
-            @click.stop="store.changeView(2)"
+            @click.stop="openInTokenList(identity.category)"
           >{{ t('identities.reserve.mintingNftLink') }}</span>
         </div>
         <div v-if="!isExpanded(identity) && identity.publication" class="publication-badge-row">

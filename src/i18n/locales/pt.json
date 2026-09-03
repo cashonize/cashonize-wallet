@@ -646,6 +646,7 @@
       "intro": "Crie um token novo aqui ou no site do CashTokens Studio. Quem tem a identidade do token, um UTXO, controla o seu nome, ícone e qualquer oferta não emitida; escolha onde a guardar.",
       "wallet": "Nesta carteira",
       "studio": "Com o CashTokens Studio",
+      "chosen": "Método de criação do token: esta carteira",
       "cardLeads": {
         "for": "Para:",
         "managed": "Gerido:"
@@ -785,7 +786,8 @@
       "createAnother": "Criar outro token",
       "decimals": "Decimais: {decimals}, o ficheiro de metadados tem de o indicar"
     },
-    "decimalsNote": "As decimais são lidas do ficheiro de metadados, não da cadeia, por isso ele tem de indicar este número."
+    "decimalsNote": "As decimais são lidas do ficheiro de metadados, não da cadeia, por isso ele tem de indicar este número.",
+    "goBack": "Voltar"
   },
   "utxoManagement": {
     "title": "Gerenciamento de UTXOs",
@@ -1727,7 +1729,8 @@
       "label": "Criar uma identidade que não é um token",
       "help": "As identidades do padrão não são só tokens: a mesma cadeia de UTXOs pode representar uma dapp, um sistema de contratos ou uma organização, e provar quem a controla.",
       "helpNaming": "Basta uma transação, e o nome vem depois, com uma publicação que nomeie o seu id.",
-      "hint": "Um nome, ícone e links para uma dapp, um sistema de contratos ou uma organização, publicados e atualizados a partir de um UTXO sem nenhum token nele. Um conceito novo, então tenha um uso claro em mente.",
+      "hint": "Um nome, ícone e links para uma dapp, um sistema de contratos ou uma organização, publicados e atualizados a partir de um UTXO sem nenhum token nele.",
+      "advanced": "Funcionalidade pensada apenas para utilizadores avançados.",
       "button": "Criar identidade sem token",
       "creatingButton": "Criando...",
       "confirmTitle": "Criar uma nova identidade?",
@@ -1738,7 +1741,7 @@
       "errors": {
         "noTxId": "A transação foi enviada mas o id dela voltou vazio, portanto a identidade não pôde ser listada."
       },
-      "tokenPointer": "Quase todas as identidades pertencem a um token. Para criar a identidade de um token, {link}: a transação que cria o token cria ao mesmo tempo a sua identidade.",
+      "tokenPointer": "Atualmente quase todas as identidades pertencem a um token. Para criar a identidade de um token, {link}: a transação que cria o token cria ao mesmo tempo a sua identidade.",
       "tokenPointerLink": "crie o token",
       "novelHelp": "Uma dapp poderia dizer qual versão dos seus contratos está em vigor e onde está o seu site; uma organização poderia responder pelo que publica. Quase nenhuma existe ainda e quase nada as lê, então saiba o que quer de uma antes de a fazer."
     },

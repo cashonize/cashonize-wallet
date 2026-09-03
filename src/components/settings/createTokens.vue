@@ -53,6 +53,11 @@
   // the Tokens tab, where the token now shows, the identities page, where its identity does, and
   // the Connect tab, where Studio's WalletConnect session is made
   const tokensView = 2;
+  // the token list narrows itself to a pending search on arrival, so the new token is the one shown
+  function openInTokenList(category: string) {
+    store.pendingTokenSearch = category;
+    store.changeView(tokensView);
+  }
   const identitiesView = 19;
   const connectView = 4;
   watch(() => store._wallet, startOver);
@@ -402,7 +407,7 @@
       <template v-if="created">
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
-          <span>{{ t('createTokens.home.wallet') }}</span>
+          <span>{{ t('createTokens.home.chosen') }}</span>
         </div>
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
@@ -451,7 +456,7 @@
           </i18n-t>
         </div>
         <div class="created-actions">
-          <input type="button" :value="t('createTokens.created.seeToken')" @click="store.changeView(tokensView)">
+          <input type="button" :value="t('createTokens.created.seeToken')" @click="openInTokenList(created.category)">
           <input type="button" :value="t('createTokens.created.seeIdentity')" @click="store.changeView(identitiesView)">
         </div>
         <div class="created-links">
@@ -535,12 +540,10 @@
         </template>
       </div>
       </template>
-      <!-- the choice closed like every settled step: the card's title, and change to re-read it -->
-      <div v-else class="closed-line description">
-        <img src="images/check-circle.svg" class="step-check pop">
-        <span>{{ t('createTokens.home.wallet') }}</span>
-        <span>·</span>
-        <span class="action-link" @click="changeHome()">{{ t('createTokens.change') }}</span>
+      <!-- what was chosen, and the way back: from the user's side Continue went to a new page -->
+      <div v-else class="chosen-line">
+        <span>{{ t('createTokens.home.chosen') }}</span>
+        <span class="go-back" @click="changeHome()">← {{ t('createTokens.goBack') }}</span>
       </div>
 
       <template v-if="identityHome === 'wallet'">
@@ -895,6 +898,15 @@
 }
 .action-link:hover {
   text-decoration: underline;
+}
+/* the way back, in the text colour like the settings pages' own back line */
+.chosen-line {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.go-back {
+  cursor: pointer;
 }
 .studio-actions {
   display: flex;

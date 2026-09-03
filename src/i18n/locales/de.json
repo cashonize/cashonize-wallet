@@ -646,6 +646,7 @@
       "intro": "Erstelle hier einen neuen Token oder auf der Seite von CashTokens Studio. Wer die Identität des Tokens hält, einen UTXO, bestimmt über Name, Icon und noch nicht ausgegebenes Angebot; wähle, wo du sie aufbewahrst.",
       "wallet": "In diesem Wallet",
       "studio": "Mit CashTokens Studio",
+      "chosen": "Methode der Token-Erstellung: dieses Wallet",
       "cardLeads": {
         "for": "Für:",
         "managed": "Verwaltet:"
@@ -785,7 +786,8 @@
       "createAnother": "Noch einen Token erstellen",
       "decimals": "Dezimalstellen: {decimals}, die Metadaten-Datei muss das nennen"
     },
-    "decimalsNote": "Dezimalstellen werden aus der Metadaten-Datei gelesen, nicht von der Chain, also muss sie diese Zahl nennen."
+    "decimalsNote": "Dezimalstellen werden aus der Metadaten-Datei gelesen, nicht von der Chain, also muss sie diese Zahl nennen.",
+    "goBack": "Zurück"
   },
   "utxoManagement": {
     "title": "UTXO-Verwaltung",
@@ -1727,7 +1729,8 @@
       "label": "Eine Identität erstellen, die kein Token ist",
       "help": "Die Identitäten des Standards sind nicht nur Tokens: dieselbe Kette von UTXOs kann für eine Dapp, ein Contract-System oder eine Organisation stehen und belegen, wer sie kontrolliert.",
       "helpNaming": "Eine Transaktion genügt, benannt wird danach, mit einer Veröffentlichung, die ihre Id nennt.",
-      "hint": "Name, Icon und Links für eine Dapp, ein Contract-System oder eine Organisation, veröffentlicht und aktualisiert aus einem UTXO ohne Token darauf. Ein neues Konzept, also mit klarem Zweck.",
+      "hint": "Name, Icon und Links für eine Dapp, ein Contract-System oder eine Organisation, veröffentlicht und aktualisiert aus einem UTXO ohne Token darauf.",
+      "advanced": "Funktion nur für fortgeschrittene Nutzer gedacht.",
       "button": "Nicht-Token-Identität erstellen",
       "creatingButton": "Wird erstellt...",
       "confirmTitle": "Eine neue Identität erstellen?",
@@ -1738,7 +1741,7 @@
       "errors": {
         "noTxId": "Die Transaktion wurde gesendet, aber ihre Id kam leer zurück, sodass die Identität nicht gelistet werden konnte."
       },
-      "tokenPointer": "Fast jede Identität gehört zu einem Token. Um eine Token-Identität zu erstellen, {link}: die Transaktion, die den Token erstellt, erstellt zugleich seine Identität.",
+      "tokenPointer": "Derzeit gehört fast jede Identität zu einem Token. Um eine Token-Identität zu erstellen, {link}: die Transaktion, die den Token erstellt, erstellt zugleich seine Identität.",
       "tokenPointerLink": "erstelle den Token",
       "novelHelp": "Eine Dapp könnte sagen, welche Version ihrer Contracts aktuell ist und wo ihre Seite liegt; eine Organisation könnte für das einstehen, was sie veröffentlicht. Fast keine gibt es bisher und kaum etwas liest sie, also wisse, was du von einer willst, bevor du sie machst."
     },

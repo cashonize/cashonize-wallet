@@ -223,10 +223,6 @@
         />
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
-            <div v-if="heldIdentityLine">
-              {{ heldIdentityLine }}
-              <span class="identity-link" @click="store.changeView(19)">{{ t('tokenItem.identity.manage') }}</span>
-            </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
@@ -237,6 +233,8 @@
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
             </div>
+            <!-- a fact about the token, under its metadata; acting on it is in the action bar -->
+            <div v-if="heldIdentityLine">{{ heldIdentityLine }}</div>
             <div style="word-break: break-all;" class="hide"></div>
           </div>
           <div v-if="tokenData?.amount" class="tokenAmount">{{ t('tokenItem.amount') }}
@@ -263,6 +261,9 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
           <span @click="displayTokenInfo = !displayTokenInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
+          </span>
+          <span v-if="heldIdentityLine" @click="store.changeView(19)" style="white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'"> {{ t('tokenItem.identity.manage') }}
           </span>
           <span v-if="settingsStore.showCauldronSwap && store.wallet.network == 'mainnet'" style="white-space: nowrap;">
             <a :href="`https://app.cauldron.quest/swap/${tokenData.category}`" target="_blank" style="color: var(--font-color);">
@@ -340,11 +341,4 @@
 </template>
 
 <style scoped>
-.identity-link {
-  color: var(--color-primary);
-  cursor: pointer;
-}
-.identity-link:hover {
-  text-decoration: underline;
-}
 </style>

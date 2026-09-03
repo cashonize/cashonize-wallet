@@ -398,10 +398,6 @@
                 </template>
               </i18n-t>
             </div>
-            <div v-else-if="heldIdentityLine">
-              {{ heldIdentityLine }}
-              <span class="identity-key-link" @click="store.changeView(19)">{{ t('tokenItem.identity.manage') }}</span>
-            </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
@@ -422,6 +418,8 @@
               {{ t('tokenItem.seeParsedData') }}
             </div>
             <div v-else style="word-break: break-all;" class="hide"></div>
+            <!-- a fact about the token, under its metadata; acting on it is in the action bar -->
+            <div v-if="heldIdentityLine">{{ heldIdentityLine }}</div>
           </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" class="showChildNfts">
             <div @click="showChildNfts()" class="showChildNftsToggle">
@@ -454,6 +452,9 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
           <span @click="displayTokenInfo = !displayTokenInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
+          </span>
+          <span v-if="heldIdentityLine" @click="store.changeView(19)" style="white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'"> {{ t('tokenItem.identity.manage') }}
           </span>
           <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayBatchTransfer = !displayBatchTransfer" style="margin-left: 10px;">
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.batchTransfer') }}{{ selectedNftCount > 0 ? ` (${selectedNftCount === tokenData.nfts?.length ? t('tokenItem.actions.all') : selectedNftCount})` : '' }}
