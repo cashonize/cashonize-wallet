@@ -662,7 +662,7 @@
       "studioLines": {
         "holds": "un contrato en cadena; tú tienes un NFT clave.",
         "hosts": "Studio, por ti.",
-        "risk": "toda operación pasa por el sitio de Studio."
+        "risk": "el NFT clave no tiene nombre; fácil de perder de vista o quemar."
       },
       "leads": {
         "protection": "Protección:",
@@ -676,8 +676,8 @@
         "operations": "aquí, en la página de identidades; cada una mueve la identidad a un UTXO nuevo."
       },
       "studioRows": {
-        "protection": "solo se abre al NFT clave, que otras billeteras muestran sin nombre.",
-        "protectionHelp": "Un NFT sin nombre es fácil de perder de vista, en esta billetera o en otra, o de quemar como si fuera spam. Cashonize lo nombra por lo que protege; otras billeteras no.",
+        "protection": "solo se abre al NFT clave, sea cual sea la app que tenga la semilla.",
+        "protectionHelp": "Otras billeteras muestran la clave como un NFT sin nombre, que es como uno acaba enviado o quemado como spam. Cashonize la nombra por lo que protege.",
         "metadata": "escritos y anclados en IPFS por Studio, o una URL que alojas tú.",
         "operations": "en el sitio de Studio, mediante WalletConnect, liberarlo incluido.",
         "operationsHelp": "Liberar la identidad de la guarda, de vuelta a una dirección normal, también se hace a través de Studio."

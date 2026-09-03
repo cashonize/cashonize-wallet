@@ -662,7 +662,7 @@
       "studioLines": {
         "holds": "un contrat sur la chaîne ; vous détenez un NFT clé.",
         "hosts": "Studio, pour vous.",
-        "risk": "chaque opération passe par le site de Studio."
+        "risk": "le NFT clé n'a pas de nom ; facile à perdre de vue ou à brûler."
       },
       "leads": {
         "protection": "Protection :",
@@ -676,8 +676,8 @@
         "operations": "ici, sur la page des identités ; chacune déplace l'identité vers un nouvel UTXO."
       },
       "studioRows": {
-        "protection": "ne s'ouvre qu'au NFT clé, que les autres portefeuilles affichent sans nom.",
-        "protectionHelp": "Un NFT sans nom se perd facilement de vue, dans ce portefeuille ou un autre, ou se brûle comme s'il s'agissait de spam. Cashonize le nomme d'après ce qu'il garde ; les autres portefeuilles non.",
+        "protection": "ne s'ouvre qu'au NFT clé, quelle que soit l'application qui détient la graine.",
+        "protectionHelp": "Les autres portefeuilles affichent la clé comme un NFT sans nom, et c'est ainsi qu'on en envoie un ou qu'on le brûle comme du spam. Cashonize la nomme d'après ce qu'elle garde.",
         "metadata": "rédigées et épinglées sur IPFS par Studio, ou une URL que vous hébergez.",
         "operations": "sur le site de Studio, par WalletConnect, sa libération comprise.",
         "operationsHelp": "Libérer l'identité de la garde, vers une adresse ordinaire, se fait aussi par Studio."

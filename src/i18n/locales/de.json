@@ -662,7 +662,7 @@
       "studioLines": {
         "holds": "ein Contract auf der Chain; du hältst ein Schlüssel-NFT.",
         "hosts": "Studio, für dich.",
-        "risk": "jede Operation läuft über Studios Seite."
+        "risk": "das Schlüssel-NFT hat keinen Namen; leicht aus den Augen zu verlieren oder zu verbrennen."
       },
       "leads": {
         "protection": "Schutz:",
@@ -676,8 +676,8 @@
         "operations": "hier, auf der Identitäten-Seite; jede bewegt die Identität auf einen neuen UTXO."
       },
       "studioRows": {
-        "protection": "öffnet sich nur dem Schlüssel-NFT, das andere Wallets ohne Namen anzeigen.",
-        "protectionHelp": "Ein namenloses NFT verliert man leicht aus den Augen, in diesem Wallet oder einem anderen, oder verbrennt es als vermeintlichen Spam. Cashonize benennt es nach dem, was es schützt; andere Wallets nicht.",
+        "protection": "öffnet sich nur dem Schlüssel-NFT, egal welche App den Seed hält.",
+        "protectionHelp": "Andere Wallets zeigen den Schlüssel als namenloses NFT, und so wird eines weggeschickt oder als Spam verbrannt. Cashonize benennt ihn nach dem, was er schützt.",
         "metadata": "von Studio geschrieben und auf IPFS gepinnt, oder eine URL, die du hostest.",
         "operations": "auf Studios Seite, per WalletConnect, das Freigeben eingeschlossen.",
         "operationsHelp": "Auch das Freigeben der Identität aus dem Guard, zurück an eine gewöhnliche Adresse, geschieht über Studio."
