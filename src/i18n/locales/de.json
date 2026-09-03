@@ -1534,14 +1534,25 @@
   },
   "identities": {
     "title": "Identitäten",
-    "description": "Die Token-Identitäten, über die dieses Wallet die Hoheit hat.",
+    "description": "Die Identitäten, die dieses Wallet hält oder beobachtet.",
     "modes": {
       "identities": "Identitäten",
       "existing": "Vorhandene",
       "create": "Neu hinzufügen"
     },
     "whatIsAnIdentity": "Die Befugnis, die Metadaten eines Tokens zu ändern, seinen Namen, sein Icon und seine Beschreibung, ist ein einzelner UTXO: wer ihn hält, kann Updates veröffentlichen, und mit jedem Update wandert er zu einem neuen Outpoint.",
-    "whatIsAnIdentityNote": "Studio, der Explorer und die Spezifikation nennen diesen UTXO den AuthHead. Ihn zu halten ist es, was dieses Wallet zu dem macht, das neue Metadaten für den Token veröffentlichen kann.",
+    "whatIsAnIdentityNote": "Studio, der Explorer und die Spezifikation nennen diesen UTXO den AuthHead und die Transaktion, mit der die Kette begann, die Authbase: bei einem Token seine Id. Den AuthHead zu halten ist es, was dieses Wallet zu dem macht, das neue Metadaten veröffentlichen kann.",
+    "authchain": {
+      "leads": {
+        "chain": "Authchain:",
+        "base": "Authbase:",
+        "head": "AuthHead:"
+      },
+      "chain": "Transaktionen, von denen jede den Ausgang 0 der vorigen ausgibt.",
+      "base": "die erste davon und die Id der Identität; bei einem Token die Token-Id.",
+      "head": "das letzte Glied: der UTXO, dessen Halter die Identität und ihre Metadaten kontrolliert."
+    },
+    "authbaseLabel": "Authbase / Token-Id:",
     "resolving": "Suche, wo diese Identitäten liegen...",
     "empty": "Noch keine Identitäten in der Liste.",
     "detected": {
@@ -1556,14 +1567,14 @@
       "removeMessage": "Der UTXO kommt zurück in die Münzauswahl, und ein gewöhnlicher Versand übergibt die Identität, die er trägt, an den Empfänger dieses Versands. Er wird nicht wieder aufgelistet."
     },
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
-    "watchedSuffix": ", {count} beobachtet | , {count} beobachtet",
+    "watchedHeader": "{count} Identität nur beobachtet, in einem anderen Wallet | {count} Identitäten nur beobachtet, in einem anderen Wallet",
     "unnamedIdentity": "Identität ohne Namen",
     "categoryLabel": "Kategorie:",
     "authheadLabel": "Identitäts-UTXO:",
     "authheadAmount": "Enthält {amount}",
     "status": {
       "held": "In diesem Wallet gehalten",
-      "notHeld": "Beobachtet, in einem anderen Wallet",
+      "notHeld": "Nur beobachtet, in einem anderen Wallet",
       "unresolved": "Konnte nicht abgefragt werden",
       "heldViaKey": "Über einen Identitätsschlüssel gehalten"
     },
@@ -1709,16 +1720,20 @@
       "generatorHelpSchema": "BCMR-Schema"
     },
     "add": {
-      "label": "Identität über die Token-Kategorie hinzufügen",
-      "placeholder": "Kategorie-Id des Tokens einfügen",
+      "label": "Füge sie über ihre Authbase hinzu: die Id eines Tokens, oder die Transaktion, mit der eine Identität begann, die kein Token ist.",
+      "lead": "Woanders gehalten, oder kein Token?",
+      "placeholder": "Authbase oder Token-Id",
       "button": "Identität hinzufügen",
       "addingButton": "Wird hinzugefügt...",
-      "categoryHelpWhere": "Du findest sie bei den Token-Infos im Tokens-Tab.",
+      "categoryHelpWhere": "Die Id eines Tokens steht in seinen Infos im Tab Tokens. Eine woanders gehaltene Identität wird von hier beobachtet, nicht gehalten. Wer eine Identität gemacht oder veröffentlicht hat, die kein Token ist, kann dir ihre Authbase nennen; eine Registry benennt sie auch danach.",
       "categoryHelpKey": "Die Kategorie eines Identitätsschlüssels geht hier auch: das Wallet leitet ab, was er bewacht, und beobachtet diese Identitäten.",
       "found": {
         "title": "Das Gefundene hinzufügen?",
-        "identity": "Eine Token-Identität mit dieser Kategorie.",
-        "key": "Ein Identitätsschlüssel, der {count} Identität bewacht. | Ein Identitätsschlüssel, der {count} Identitäten bewacht.",
+        "key": "Ein Identitätsschlüssel, der {count} Identität bewacht: | Ein Identitätsschlüssel, der {count} Identitäten bewacht:",
+        "held": "{name}: von diesem Wallet gehalten. Sein UTXO wird von Sendungen zurückgehalten.",
+        "watched": "{name}: nicht von diesem Wallet gehalten. Sie wird beobachtet; nichts wird zurückgehalten.",
+        "keyHeld": "Der Schlüssel ist in diesem Wallet und wird zurückgehalten; wer ihn hält, kontrolliert, was er bewacht.",
+        "keyWatched": "Der Schlüssel ist nicht in diesem Wallet: nur beobachtet.",
         "button": "Hinzufügen"
       },
       "errors": {
@@ -1750,7 +1765,8 @@
       "novelHelp": "Eine Dapp könnte sagen, welche Version ihrer Contracts aktuell ist und wo ihre Seite liegt; eine Organisation könnte für das einstehen, was sie veröffentlicht. Fast keine gibt es bisher und kaum etwas liest sie, also wisse, was du von einer willst, bevor du sie machst."
     },
     "scan": {
-      "prompt": "Drücke das, wenn dir eine Identität übertragen wurde oder eine erwartete nicht gelistet ist.",
+      "prompt": "Prüfen findet Token-Identitäten, die jemand an dieses Wallet gesendet hat. Eine Identität, die kein Token ist, wird unten über ihre Id hinzugefügt.",
+      "lead": "Dir übertragen?",
       "linkText": "Auf Identitäten prüfen",
       "scanning": "Die Token-Kategorien des Wallets werden geprüft...",
       "found": "{count} Identität gefunden und der Liste hinzugefügt | {count} Identitäten gefunden und der Liste hinzugefügt",
@@ -1761,7 +1777,7 @@
       "dismissed": "{count} wurde ausgelassen, weil du sie vorher entfernt hast. | {count} wurden ausgelassen, weil du sie vorher entfernt hast.",
       "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden.",
       "automaticHelp": "Cashonize listet die Identitäten, die diese Schlüssel gemacht haben, bereits von selbst: ein Token, den du erstellt hast, oder Metadaten, die du veröffentlicht hast, deren Identitäts-UTXO noch hier liegt. Das kostet nichts und passiert automatisch.",
-      "checkHelp": "Diese Prüfung findet, was das nicht sehen kann: eine Identität, die jemand anderes erstellt und dir übertragen hat, auf die nichts in der Historie dieses Wallets zeigt. Sie fragt den Indexer nach jedem Token, den du hältst, und verfolgt jeden UTXO zurück, der zu einer Identität gehören könnte. Deshalb ist es ein Knopf und nichts, was die Seite still im Hintergrund tut."
+      "checkHelp": "Es fragt den Indexer nach jedem Token, den du hältst, und geht jeden UTXO zurück, der der einer Identität sein könnte, deshalb ein Knopf statt etwas, das die Seite still tut. Eine Kette, die nie einen Token trug, hat nichts, zu dem sie zurückgehen könnte."
     },
     "transfer": {
       "hint": "Der UTXO der Identität wird an das Ziel gesendet und übergibt damit die Befugnis, die Metadaten dieses Tokens zu aktualisieren. Um sie zu CashTokens Studio zu verschieben, erstelle dort einen Schlüssel und übertrage an die Guard-Adresse, die es für diesen Schlüssel anzeigt.",

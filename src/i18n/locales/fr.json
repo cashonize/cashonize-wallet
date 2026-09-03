@@ -1534,14 +1534,25 @@
   },
   "identities": {
     "title": "Identités",
-    "description": "Les identités de jeton sur lesquelles ce portefeuille a autorité.",
+    "description": "Les identités que ce portefeuille détient ou surveille.",
     "modes": {
       "identities": "Identités",
       "existing": "Ajouter",
       "create": "Ajouter une nouvelle"
     },
     "whatIsAnIdentity": "L'autorité de modifier les métadonnées d'un token, son nom, son icône et sa description, est un seul UTXO : qui le détient peut publier des mises à jour, et il passe à un nouvel outpoint à chaque mise à jour.",
-    "whatIsAnIdentityNote": "Studio, l'explorateur et la spécification appellent cet UTXO l'AuthHead. Le détenir est ce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées pour le token.",
+    "whatIsAnIdentityNote": "Studio, l'explorateur et la spécification appellent cet UTXO l'AuthHead, et la transaction par laquelle la chaîne a commencé l'authbase : pour un token, son identifiant. Détenir l'AuthHead est ce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées.",
+    "authchain": {
+      "leads": {
+        "chain": "Authchain:",
+        "base": "Authbase:",
+        "head": "AuthHead:"
+      },
+      "chain": "des transactions dont chacune dépense la sortie 0 de la précédente.",
+      "base": "la première d'entre elles et l'identifiant de l'identité ; pour un token, l'identifiant du token.",
+      "head": "le dernier maillon : l'UTXO dont le détenteur contrôle l'identité et ses métadonnées."
+    },
+    "authbaseLabel": "Authbase / identifiant du token :",
     "resolving": "Recherche de l'endroit où sont ces identités...",
     "empty": "Aucune identité dans la liste pour l'instant.",
     "detected": {
@@ -1556,14 +1567,14 @@
       "removeMessage": "L'UTXO revient dans la sélection des pièces, et un envoi ordinaire remet l'identité qu'il porte à qui reçoit cet envoi. Il ne sera plus listé."
     },
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
-    "watchedSuffix": ", {count} surveillée | , {count} surveillées",
+    "watchedHeader": "{count} identité seulement surveillée, détenue par un autre portefeuille | {count} identités seulement surveillées, détenues par un autre portefeuille",
     "unnamedIdentity": "Identité sans nom",
     "categoryLabel": "Catégorie :",
     "authheadLabel": "UTXO de l'identité :",
     "authheadAmount": "Contient {amount}",
     "status": {
       "held": "Détenue par ce portefeuille",
-      "notHeld": "Surveillée, détenue par un autre portefeuille",
+      "notHeld": "Surveillance seule, détenue par un autre portefeuille",
       "unresolved": "Impossible de consulter cette identité",
       "heldViaKey": "Détenue via une clé d'identité"
     },
@@ -1709,16 +1720,20 @@
       "generatorHelpSchema": "schéma BCMR"
     },
     "add": {
-      "label": "Ajouter une identité par catégorie de jeton",
-      "placeholder": "Collez l'identifiant de catégorie du token",
+      "label": "Ajoutez-la par son authbase : l'identifiant d'un token, ou la transaction par laquelle une identité qui n'est pas un token a commencé.",
+      "lead": "Détenue ailleurs, ou pas un token ?",
+      "placeholder": "Authbase ou identifiant du token",
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
-      "categoryHelpWhere": "Vous la trouverez sur les infos du token dans l'onglet Tokens.",
+      "categoryHelpWhere": "L'identifiant d'un token figure dans ses infos dans l'onglet Tokens. Une identité détenue ailleurs est surveillée d'ici, pas détenue. Qui a créé ou publié une identité qui n'est pas un token peut vous donner son authbase ; un registre la nomme aussi par elle.",
       "categoryHelpKey": "La catégorie d'une clé d'identité fonctionne aussi ici : le portefeuille dérive ce qu'elle garde et suit ces identités.",
       "found": {
         "title": "Ajouter ce qui a été trouvé ?",
-        "identity": "Une identité de jeton avec cette catégorie.",
-        "key": "Une clé d'identité gardant {count} identité. | Une clé d'identité gardant {count} identités.",
+        "key": "Une clé d'identité gardant {count} identité : | Une clé d'identité gardant {count} identités :",
+        "held": "{name} : détenue par ce portefeuille. Son UTXO sera écarté des envois.",
+        "watched": "{name} : non détenue par ce portefeuille. Elle sera surveillée ; rien n'est retenu.",
+        "keyHeld": "La clé est dans ce portefeuille et sera retenue ; qui la détient contrôle ce qu'elle garde.",
+        "keyWatched": "La clé n'est pas dans ce portefeuille : surveillance seule.",
         "button": "Ajouter"
       },
       "errors": {
@@ -1750,7 +1765,8 @@
       "novelHelp": "Une dapp pourrait dire quelle version de ses contrats est en vigueur et où se trouve son site ; une organisation pourrait répondre de ce qu'elle publie. Il n'en existe presque aucune encore et presque rien ne les lit, alors sachez ce que vous en attendez avant d'en créer une."
     },
     "scan": {
-      "prompt": "Appuyez si une identité vous a été transférée, ou si une identité attendue n'est pas listée.",
+      "prompt": "Vérifier trouve les identités de tokens que quelqu'un a envoyées à ce portefeuille. Une identité qui n'est pas un token s'ajoute par son identifiant ci-dessous.",
+      "lead": "Elle vous a été transférée ?",
       "linkText": "Rechercher des identités",
       "scanning": "Vérification des catégories de jetons du portefeuille...",
       "found": "{count} identité trouvée et ajoutée à la liste | {count} identités trouvées et ajoutées à la liste",
@@ -1761,7 +1777,7 @@
       "dismissed": "{count} a été laissée de côté parce que vous l'aviez retirée. | {count} ont été laissées de côté parce que vous les aviez retirées.",
       "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées.",
       "automaticHelp": "Cashonize liste déjà les identités que ces clés ont créées : un token que vous avez créé, ou des métadonnées que vous avez publiées, dont l'UTXO d'identité est encore ici. Cela ne coûte rien, donc cela se fait tout seul.",
-      "checkHelp": "Cette vérification trouve ce que cela ne peut pas voir : une identité créée par quelqu'un d'autre et transférée à vous, vers laquelle rien dans l'historique de ce portefeuille ne pointe. Elle interroge l'indexeur sur chaque token que vous détenez et remonte chaque UTXO qui pourrait être celui d'une identité, d'où le bouton plutôt qu'une action silencieuse de la page."
+      "checkHelp": "Elle interroge l'indexeur sur chaque token que vous détenez et remonte chaque UTXO qui pourrait être celui d'une identité, d'où un bouton plutôt qu'une action silencieuse de la page. Une chaîne qui n'a jamais porté de token n'a rien jusqu'à quoi remonter."
     },
     "transfer": {
       "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",

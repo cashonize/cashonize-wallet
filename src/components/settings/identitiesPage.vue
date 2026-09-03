@@ -144,18 +144,12 @@
   function carriesLine(identity: IdentityState): string | undefined {
     return reserveDescription(identity)?.join(' · ');
   }
-  // A watched identity counts here too: the wallet follows its publication either way, and only
-  // the actions depend on holding the authhead
-  const listedCount = computed(() =>
-    identities.value.filter(identity => identity.status !== 'unresolved').length
-  );
-
-  // Owned and watched are different things, so the summary counts them apart rather than calling
-  // somebody else's identity one of this wallet's
-  const ownedCount = computed(() =>
-    identities.value.filter(identity => identity.authUtxo || identity.keyUtxo).length
-  );
-  const watchedCount = computed(() => listedCount.value - ownedCount.value);
+  // Two lists: what this wallet holds, and what it only watches for somebody else. A watched
+  // identity is another wallet's, so it is never counted among this one's or shown beside them.
+  const identityGroups = computed(() => [
+    { key: 'held' as const, identities: identities.value.filter(identity => identity.status !== 'notHeld') },
+    { key: 'watched' as const, identities: identities.value.filter(identity => identity.status === 'notHeld') },
+  ].filter(group => group.identities.length));
 
   // Guarded identities a watched key covers that this version cannot name, since that needs a
   // lookup back from an output to the authchain it ends. Counted rather than dropped, so a key
@@ -267,10 +261,30 @@
       // was found is put to the user rather than asked about beforehand.
       const found = await identitiesStore.inspectCategory(category);
       const guardedCount = found.guardedCategories.length + found.unidentifiedGuarded;
-      if (!found.isTokenIdentity && !guardedCount) throw new Error(t('identities.add.errors.nothingFound'));
-      const summary = [];
-      if (found.isTokenIdentity) summary.push(t('identities.add.found.identity'));
-      if (guardedCount) summary.push(t('identities.add.found.key', guardedCount));
+      if (found.authheadTxid === undefined && !guardedCount) throw new Error(t('identities.add.errors.nothingFound'));
+      // The confirm says what was found and where it is, so the names come first: a fetch that
+      // fails leaves the id standing in for the name. A key is read as a key: Studio mints key and
+      // token in one genesis, so the key's own category resolves to the guarded authhead too.
+      const unnamed = [category, ...found.guardedCategories].filter(named => !store.bcmrRegistries?.[named]);
+      if (unnamed.length) {
+        try {
+          await store.fetchTokenMetadata(unnamed.map(named => ({ category: named, amount: 0n })), false);
+        } catch (error) {
+          console.error("Failed to fetch metadata before adding:", error);
+        }
+      }
+      const nameOf = (named: string) => identityName(named) ?? truncateHash(named);
+      const utxos = store.walletUtxos ?? [];
+      const summary: string[] = [];
+      if (guardedCount) {
+        const names = found.guardedCategories.map(nameOf).join(', ');
+        summary.push(t('identities.add.found.key', guardedCount) + (names ? ` ${names}` : ''));
+        const keyHeld = utxos.some(utxo => utxo.token?.category === category);
+        summary.push(t(keyHeld ? 'identities.add.found.keyHeld' : 'identities.add.found.keyWatched'));
+      } else {
+        const held = utxos.some(utxo => utxo.txid === found.authheadTxid && utxo.vout === 0);
+        summary.push(t(held ? 'identities.add.found.held' : 'identities.add.found.watched', { name: nameOf(category) }));
+      }
       const confirmed = await confirmDialog(
         t('identities.add.found.title'),
         summary.join('\n'),
@@ -278,7 +292,7 @@
       );
       if (!confirmed) return;
       if (guardedCount) await identitiesStore.addAuthKey(category);
-      if (found.isTokenIdentity) await identitiesStore.addIdentity(category);
+      else await identitiesStore.addIdentity(category);
       await fetchMissingMetadata();
       categoryInput.value = "";
     });
@@ -638,28 +652,15 @@
     </div>
 
     <template v-if="mode === 'existing'">
+    <!-- the three words the ids come from, then the two ways in: found, or added by id -->
     <div class="section">
-      <div>
-        {{ t('identities.add.label') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.add.categoryHelpWhere') }}</div>
-          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpKey') }}</div>
-        </InfoPopup>
-      </div>
-      <div class="add-identity">
-        <input v-model="categoryInput" :placeholder="t('identities.add.placeholder')" @keyup.enter="addIdentity()">
-        <input
-          @click="addIdentity()"
-          type="button"
-          :value="runningAction === 'add' ? t('identities.add.addingButton') : t('identities.add.button')"
-          :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !categoryInput"
-        >
+      <div v-for="term in ['chain', 'base', 'head']" :key="term">
+        <b>{{ t(`identities.authchain.leads.${term}`) }}</b> {{ t(`identities.authchain.${term}`) }}
       </div>
     </div>
-
     <div class="section">
       <div>
-        {{ t('identities.scan.prompt') }}
+        <b>{{ t('identities.scan.lead') }}</b> {{ t('identities.scan.prompt') }}
         <InfoPopup>
           <div style="max-width: 300px;">{{ t('identities.scan.automaticHelp') }}</div>
           <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.scan.checkHelp') }}</div>
@@ -675,6 +676,25 @@
       >
       <div v-if="scanSummaryLines.length" style="margin-top: 6px;">
         <div v-for="line in scanSummaryLines" :key="line">{{ line }}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div>
+        <b>{{ t('identities.add.lead') }}</b> {{ t('identities.add.label') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('identities.add.categoryHelpWhere') }}</div>
+          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpKey') }}</div>
+        </InfoPopup>
+      </div>
+      <div class="add-identity">
+        <input v-model="categoryInput" :placeholder="t('identities.add.placeholder')" @keyup.enter="addIdentity()">
+        <input
+          @click="addIdentity()"
+          type="button"
+          :value="runningAction === 'add' ? t('identities.add.addingButton') : t('identities.add.button')"
+          :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !categoryInput"
+        >
       </div>
     </div>
     </template>
@@ -754,11 +774,6 @@
       </div>
       <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }}</div>
       <div v-else-if="!identities.length" class="description">{{ t('identities.empty') }}</div>
-      <!-- the answer to what is on this page, which is the first thing read here rather than
-           something said alongside what is read -->
-      <div v-else>
-        {{ t('identities.ownedCount', ownedCount) }}<template v-if="watchedCount">{{ t('identities.watchedSuffix', watchedCount) }}</template>
-      </div>
 
       <!-- Found in this wallet's own history and held back, with nothing on the UTXO to say which
            identity it belongs to. Protected first, named if it can be. -->
@@ -794,7 +809,12 @@
         </div>
       </div>
 
-      <div v-for="identity in identities" :key="identity.category" class="section identity-card">
+      <!-- each list opens with the answer to what is in it, which is the first thing read here -->
+      <template v-for="group in identityGroups" :key="group.key">
+      <div class="section">
+        {{ group.key === 'held' ? t('identities.ownedCount', group.identities.length) : t('identities.watchedHeader', group.identities.length) }}
+      </div>
+      <div v-for="identity in group.identities" :key="identity.category" class="section identity-card">
         <!-- The header opens and closes the card. Both halves are used: what it is on the left,
              which one it is on the right, where the category was an unused corner. -->
         <div class="identity-header identity-header-row" @click="toggleCard(identity)">
@@ -811,6 +831,7 @@
               :title="identity.category"
               @click.stop="copyToClipboard(identity.category)"
             >
+              <span class="description">{{ t('identities.authbaseLabel') }}</span>
               <span class="mono">{{ truncateHash(identity.category) }}</span>
               <img class="copyIcon" src="images/copyGrey.svg">
             </div>
@@ -1150,6 +1171,7 @@
 
         </template>
       </div>
+      </template>
     </div>
   </fieldset>
 </template>

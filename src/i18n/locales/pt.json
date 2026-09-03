@@ -1534,14 +1534,25 @@
   },
   "identities": {
     "title": "Identidades",
-    "description": "As identidades de token sobre as quais esta carteira tem autoridade.",
+    "description": "As identidades que esta carteira tem ou vigia.",
     "modes": {
       "identities": "Identidades",
       "existing": "Adicionar",
       "create": "Adicionar nova"
     },
     "whatIsAnIdentity": "A autoridade para alterar os metadados de um token, o seu nome, ícone e descrição, é um único UTXO: quem o tem pode publicar atualizações, e ele passa para um novo outpoint a cada atualização.",
-    "whatIsAnIdentityNote": "O Studio, o explorador e a especificação chamam esse UTXO de AuthHead. Tê-lo é o que faz desta carteira a que pode publicar novos metadados do token.",
+    "whatIsAnIdentityNote": "O Studio, o explorador e a especificação chamam a esse UTXO o AuthHead, e à transação com que a cadeia começou a authbase: num token, o seu id. Ter o AuthHead é o que faz desta carteira a que pode publicar novos metadados.",
+    "authchain": {
+      "leads": {
+        "chain": "Authchain:",
+        "base": "Authbase:",
+        "head": "AuthHead:"
+      },
+      "chain": "transações, cada uma gastando a saída 0 da anterior.",
+      "base": "a primeira delas e o id da identidade; num token, o id do token.",
+      "head": "o último elo: o UTXO cujo detentor controla a identidade e os seus metadados."
+    },
+    "authbaseLabel": "Authbase / id do token:",
     "resolving": "Procurando onde estão estas identidades...",
     "empty": "Ainda não há identidades na lista.",
     "detected": {
@@ -1556,14 +1567,14 @@
       "removeMessage": "O UTXO volta para a seleção de moedas, e um envio comum entrega a identidade que carrega a quem receber esse envio. Não voltará a ser listado."
     },
     "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
-    "watchedSuffix": ", {count} observada | , {count} observadas",
+    "watchedHeader": "{count} identidade só observada, está em outra carteira | {count} identidades só observadas, estão em outra carteira",
     "unnamedIdentity": "Identidade sem nome",
     "categoryLabel": "Categoria:",
     "authheadLabel": "UTXO da identidade:",
     "authheadAmount": "Contém {amount}",
     "status": {
       "held": "Nesta carteira",
-      "notHeld": "Observada, está em outra carteira",
+      "notHeld": "Só observada, está em outra carteira",
       "unresolved": "Não foi possível consultar esta identidade",
       "heldViaKey": "Através de uma chave de identidade"
     },
@@ -1709,16 +1720,20 @@
       "generatorHelpSchema": "esquema BCMR"
     },
     "add": {
-      "label": "Adicionar uma identidade pela categoria do token",
-      "placeholder": "Cole o id de categoria do token",
+      "label": "Adicione-a pela sua authbase: o id de um token, ou a transação com que começou uma identidade que não é um token.",
+      "lead": "Está noutro lado, ou não é um token?",
+      "placeholder": "Authbase ou id do token",
       "button": "Adicionar identidade",
       "addingButton": "Adicionando...",
-      "categoryHelpWhere": "Você a encontra nas informações do token na aba Tokens.",
+      "categoryHelpWhere": "O id de um token está na sua informação no separador Tokens. Uma identidade que está noutro lado é vigiada daqui, não tida. Quem fez ou publicou uma identidade que não é um token pode dizer-lhe a sua authbase; um registo também a nomeia por ela.",
       "categoryHelpKey": "A categoria de uma chave de identidade também funciona aqui: a carteira deriva o que ela guarda e acompanha essas identidades.",
       "found": {
         "title": "Adicionar o que foi encontrado?",
-        "identity": "Uma identidade de token com esta categoria.",
-        "key": "Uma chave de identidade guardando {count} identidade. | Uma chave de identidade guardando {count} identidades.",
+        "key": "Uma chave de identidade guardando {count} identidade: | Uma chave de identidade guardando {count} identidades:",
+        "held": "{name}: tida por esta carteira. O seu UTXO ficará retido dos envios.",
+        "watched": "{name}: não tida por esta carteira. Será vigiada; nada fica retido.",
+        "keyHeld": "A chave está nesta carteira e ficará retida; quem a tiver controla o que ela guarda.",
+        "keyWatched": "A chave não está nesta carteira: só vigiada.",
         "button": "Adicionar"
       },
       "errors": {
@@ -1750,7 +1765,8 @@
       "novelHelp": "Uma dapp poderia dizer qual versão dos seus contratos está em vigor e onde está o seu site; uma organização poderia responder pelo que publica. Quase nenhuma existe ainda e quase nada as lê, então saiba o que quer de uma antes de a fazer."
     },
     "scan": {
-      "prompt": "Pressione se uma identidade foi transferida para você, ou se uma que você espera não está na lista.",
+      "prompt": "Verificar encontra identidades de tokens que alguém enviou para esta carteira. Uma identidade que não é um token adiciona-se pelo seu id abaixo.",
+      "lead": "Foi transferida para si?",
       "linkText": "Procurar identidades",
       "scanning": "Verificando as categorias de token da carteira...",
       "found": "{count} identidade encontrada e adicionada à lista | {count} identidades encontradas e adicionadas à lista",
@@ -1761,7 +1777,7 @@
       "dismissed": "{count} foi deixada de fora porque você a removeu antes. | {count} foram deixadas de fora porque você as removeu antes.",
       "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias.",
       "automaticHelp": "O Cashonize já lista as identidades que estas chaves fizeram: um token que você criou, ou metadados que você publicou, cujo UTXO de identidade ainda está aqui. Isso não custa nada, então acontece sozinho.",
-      "checkHelp": "Esta verificação encontra o que aquilo não consegue ver: uma identidade que outra pessoa fez e transferiu para você, para a qual nada no histórico desta carteira aponta. Ela pergunta ao indexador por cada token que você tem e percorre de volta cada UTXO que possa ser de uma identidade, por isso é um botão e não algo que a página faça em silêncio."
+      "checkHelp": "Pergunta ao indexador por cada token que tem e recua por cada UTXO que possa ser de uma identidade, por isso é um botão e não algo que a página faz em silêncio. Uma cadeia que nunca teve um token não tem nada até ao qual recuar."
     },
     "transfer": {
       "hint": "O UTXO da identidade é enviado para o destino, entregando a autoridade para atualizar os metadados deste token. Para a mover para o CashTokens Studio, crie lá uma chave e transfira para o endereço de guarda que ele mostra para essa chave.",

@@ -1534,14 +1534,25 @@
   },
   "identities": {
     "title": "Identities",
-    "description": "The token identities this wallet has the authority over.",
+    "description": "The identities this wallet holds or watches.",
     "modes": {
       "identities": "Identities",
       "existing": "Add existing",
       "create": "Add new"
     },
     "whatIsAnIdentity": "The authority to change a token's metadata, its name, icon and description, is a single UTXO: whoever holds it can publish updates, and it moves to a new outpoint with every update.",
-    "whatIsAnIdentityNote": "Studio, the explorer and the spec call that UTXO the AuthHead. Holding it is what makes this wallet the one that can publish new metadata for the token.",
+    "whatIsAnIdentityNote": "Studio, the explorer and the spec call that UTXO the AuthHead, and the transaction the chain started from the authbase: for a token, its token id. Holding the AuthHead is what makes this wallet the one that can publish new metadata.",
+    "authchain": {
+      "leads": {
+        "chain": "Authchain:",
+        "base": "Authbase:",
+        "head": "AuthHead:"
+      },
+      "chain": "transactions, each spending the previous one's output 0.",
+      "base": "the first of them, and the identity's id; for a token, the token id.",
+      "head": "the latest link: the UTXO whose holder controls the identity and its metadata."
+    },
+    "authbaseLabel": "Authbase / token id:",
     "resolving": "Looking up where these identities are held...",
     "empty": "No identities listed yet.",
     "detected": {
@@ -1556,14 +1567,14 @@
       "removeMessage": "The UTXO returns to coin selection, and an ordinary send hands the identity it carries to whoever receives that send. It will not be listed again."
     },
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
-    "watchedSuffix": ", {count} watched | , {count} watched",
+    "watchedHeader": "{count} identity watched only, held by another wallet | {count} identities watched only, held by another wallet",
     "unnamedIdentity": "Unnamed identity",
     "categoryLabel": "Category:",
     "authheadLabel": "Identity UTXO:",
     "authheadAmount": "Holds {amount}",
     "status": {
       "held": "Held by this wallet",
-      "notHeld": "Watched, held by another wallet",
+      "notHeld": "Watch only, held by another wallet",
       "unresolved": "Could not look up this identity",
       "heldViaKey": "Held through an identity key"
     },
@@ -1709,16 +1720,20 @@
       "generatorHelpSchema": "BCMR schema"
     },
     "add": {
-      "label": "Add an identity by token category",
-      "placeholder": "Paste the token's category id",
+      "label": "Add it by its authbase: a token's id, or the transaction an identity that is not a token started from.",
+      "lead": "Held elsewhere, or not a token?",
+      "placeholder": "Authbase or token id",
       "button": "Add identity",
       "addingButton": "Adding...",
-      "categoryHelpWhere": "Find it on the token's info in the Tokens tab.",
+      "categoryHelpWhere": "A token's id is on its info in the Tokens tab. An identity held elsewhere is watched from here, not held. Whoever made or published an identity that is not a token can tell you its authbase; a registry names it by that too.",
       "categoryHelpKey": "An identity key's category works here too: the wallet derives what it guards and watches those identities.",
       "found": {
         "title": "Add what was found?",
-        "identity": "A token identity with this category.",
-        "key": "An identity key guarding {count} identity. | An identity key guarding {count} identities.",
+        "key": "An identity key guarding {count} identity: | An identity key guarding {count} identities:",
+        "held": "{name}: held by this wallet. Its UTXO will be held back from sends.",
+        "watched": "{name}: not held by this wallet. It will be watched; nothing is held back.",
+        "keyHeld": "The key is in this wallet and will be held back; whoever holds it controls what it guards.",
+        "keyWatched": "The key is not in this wallet: watched only.",
         "button": "Add"
       },
       "errors": {
@@ -1750,7 +1765,8 @@
       "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it."
     },
     "scan": {
-      "prompt": "Press this if an identity was transferred to you, or if one you expect is not listed.",
+      "prompt": "Check finds token identities somebody sent to this wallet. An identity that is not a token is added by its id below.",
+      "lead": "Transferred to you?",
       "linkText": "Check for identities",
       "scanning": "Checking the wallet's token categories...",
       "found": "{count} identity found and added to the list | {count} identities found and added to the list",
@@ -1761,7 +1777,7 @@
       "dismissed": "{count} was left off because you removed it before. | {count} were left off because you removed them before.",
       "failed": "{count} category could not be checked. | {count} categories could not be checked.",
       "automaticHelp": "Cashonize already lists the identities these keys made: a token you created, or metadata you published, whose identity UTXO is still here. That costs nothing, so it happens on its own.",
-      "checkHelp": "This check finds what that cannot see: an identity somebody else made and transferred to you, which nothing in this wallet's history points at. It asks the indexer about every token you hold and walks back every UTXO that could be an identity's, so it is a button rather than something the page does quietly."
+      "checkHelp": "It asks the indexer about every token you hold and walks back every UTXO that could be an identity's, so it is a button rather than something the page does quietly. A chain that never carried a token has nothing to walk back to."
     },
     "transfer": {
       "hint": "The identity's UTXO is sent to the destination, handing over the authority to update this token's metadata. To move it to CashTokens Studio, create a key there and transfer to the guard address it shows for that key.",

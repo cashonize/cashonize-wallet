@@ -550,14 +550,15 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // A token category and an AuthKey category are both 64 hex, so the add input does not ask which
-  // one it was given: it tries both readings and reports what each found.
+  // one it was given: it tries both readings and reports what each found. The authhead comes
+  // back with the reading, so the page can say whether it is held here before listing it.
   async function inspectCategory(category: string) {
-    const [authchain, contents] = await Promise.all([
-      queryAuthHeadWithOutputs(category, settingsStore.chaingraph).then(() => true).catch(() => false),
+    const [authheadTxid, contents] = await Promise.all([
+      queryAuthHeadWithOutputs(category, settingsStore.chaingraph).then(result => result.txid).catch(() => undefined),
       listGuardContents(category),
     ]);
     return {
-      isTokenIdentity: authchain,
+      authheadTxid,
       guardedCategories: contents.flatMap(guard => guard.contents.identified.map(output => output.category)),
       unidentifiedGuarded: contents.reduce((total, guard) => total + guard.contents.unidentified, 0),
     };
