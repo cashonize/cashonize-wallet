@@ -792,8 +792,9 @@
   height: 18px;
   flex: none;
 }
-/* side by side where the width allows, stacked on a phone; the selected card is marked the way
-   a picked UTXO is, and stops reading as clickable */
+/* side by side where the width allows, stacked on a phone; a card line is cut to the column of a
+   half-width card so it stays one line. The selected card is marked the way a picked UTXO is,
+   and stops reading as clickable. */
 .home-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
