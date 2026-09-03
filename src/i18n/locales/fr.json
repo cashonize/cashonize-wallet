@@ -705,36 +705,32 @@
     "reserveNote": "L'offre d'un token est créée sur l'UTXO de l'identité, elle ne peut donc pas entrer entièrement en circulation dans cette transaction. Gardez-en une partie en réserve et émettez-la ensuite depuis la page des identités.",
     "home": {
       "question": "Où l'identité du token doit-elle vivre ?",
+      "whatIsIdentity": "L'identité d'un token est l'UTXO dont le détenteur peut mettre à jour les métadonnées du token.",
+      "moveLater": "Vous pourrez déplacer l'identité d'un token de ce portefeuille vers Studio plus tard, et inversement.",
+      "moveLaterHelp": "Vers Studio : créez-y une clé, puis transférez l'identité depuis la page des identités vers l'adresse de garde que Studio affiche pour cette clé. Retour : le « Release UTXO » de Studio la ramène à une adresse ordinaire, et la page des identités la retrouve avec la vérification des identités.",
       "wallet": "Dans ce portefeuille",
+      "walletLine": "Écarté par Cashonize. D'autres applications de portefeuille sur cette graine peuvent le dépenser.",
       "studio": "Avec CashTokens Studio",
-      "walletPoints": {
-        "1": "L'UTXO d'identité reste ici, écarté de la sélection des pièces. La publication, la réserve et le transfert se font sur la page des identités : pas de dapp, pas de WalletConnect.",
-        "2": "Vous rédigez et hébergez les métadonnées vous-même, sur un domaine ou sur IPFS, rien n'en dépend donc d'un service. Le générateur BCMR sert à la rédaction.",
-        "3": "La protection est celle de Cashonize, pas celle de la chaîne. Un autre Cashonize de cette version retrouve les mêmes identités depuis la chaîne et les écarte aussi, mais une autre application de portefeuille sur la même graine n'en sait rien, et un envoi ordinaire depuis celle-ci dépense l'UTXO d'identité et met fin à l'identité."
-      },
-      "studioPoints": {
-        "1": "L'identité se trouve dans un contrat AuthGuard, aucun portefeuille ne peut donc la dépenser par accident, quelle que soit l'application qui détient la graine. C'est la protection qui ne dépend pas du soin du logiciel, et la raison de choisir Studio quand une graine est partagée entre applications.",
-        "2": "Le contrôle est un NFT clé : déplaçable en un envoi, vendable, détenable dans une multisignature, et une clé peut garder plusieurs identités.",
-        "3": "Rédaction, hébergement et création sont un seul parcours, avec les métadonnées sur le service d'épinglage de Studio, et chaque opération ultérieure passe par Studio via WalletConnect, y compris la sortie du contrat. Cashonize affiche la clé et ce qu'elle garde, et renvoie vers l'extérieur pour le reste."
-      },
-      "openStudio": "Ouvrir CashTokens Studio",
-      "eitherWay": "L'un peut devenir l'autre plus tard : envoyer une identité à l'adresse du guard est l'import de Studio, et retirer le guard la ramène à une adresse ordinaire.",
+      "studioLine": "Verrouillé sur la chaîne. Contrôlé par un NFT clé dans votre portefeuille.",
       "leads": {
         "protection": "Protection :",
         "metadata": "Métadonnées :",
         "operations": "Opérations :"
       },
       "walletRows": {
-        "protection": "écarté de la dépense par Cashonize. Une autre application de portefeuille sur la même graine peut le dépenser.",
-        "metadata": "vous les rédigez et hébergez vous-même, sur un domaine ou IPFS.",
-        "operations": "publication, réserve et transfert ici, sur la page des identités."
+        "protection": "par Cashonize seulement. D'autres applications sur cette graine peuvent le dépenser.",
+        "protectionHelp": "Un envoi ordinaire depuis cette application dépense l'UTXO d'identité, et l'identité va à qui reçoit la première sortie de cet envoi, généralement le destinataire. Le token continue de fonctionner. Seule cette personne pourra ensuite mettre à jour ses métadonnées.",
+        "metadata": "vous les rédigez et hébergez, sur un domaine ou IPFS.",
+        "operations": "ici, sur la page des identités."
       },
       "studioRows": {
-        "protection": "verrouillé dans un contrat sur la chaîne. Aucun portefeuille ne peut le dépenser par accident.",
-        "metadata": "rédigées et hébergées par le service de Studio.",
-        "operations": "via le site de Studio par WalletConnect. Cashonize affiche la clé que vous détenez."
+        "protection": "sur la chaîne. Aucun portefeuille ne peut le dépenser par accident.",
+        "metadata": "rédigées et épinglées sur IPFS par Studio, ou une URL que vous hébergez.",
+        "operations": "sur le site de Studio, par WalletConnect. Cashonize affiche votre clé.",
+        "operationsHelp": "Libérer l'identité de la garde, vers une adresse ordinaire, se fait aussi par Studio."
       },
-      "moveLater": "Vous pourrez déplacer une identité de l'un à l'autre plus tard."
+      "glossary": "Studio appelle le contrat AuthGuard et la clé AuthKey. Cashonize affiche la clé que vous détenez et ce qu'elle garde.",
+      "openStudio": "Ouvrir CashTokens Studio"
     }
   },
   "utxoManagement": {
@@ -1501,7 +1497,7 @@
       "status": "Retenu, identité pas encore nommée",
       "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont l'UTXO ne porte aucun token, l'UTXO ne dit donc pas de quelle identité il s'agit. Il reste écarté de la sélection des pièces malgré tout : le protéger n'attend pas de pouvoir le nommer.",
       "removeTitle": "Cesser de retenir cet UTXO ?",
-      "removeMessage": "L'UTXO revient dans la sélection des pièces et un envoi ordinaire peut le dépenser, ce qui met fin à l'identité qu'il porte. Il ne sera plus listé."
+      "removeMessage": "L'UTXO revient dans la sélection des pièces, et un envoi ordinaire remet l'identité qu'il porte à qui reçoit cet envoi. Il ne sera plus listé."
     },
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
     "watchedSuffix": ", {count} surveillée | , {count} surveillées",

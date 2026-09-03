@@ -705,36 +705,32 @@
     "reserveNote": "A token's supply is created at the identity's UTXO, so not all of it can go into circulation in this transaction. Leave part as reserve and issue it from the identities page afterwards.",
     "home": {
       "question": "Where should the token's identity live?",
+      "whatIsIdentity": "A token's identity is the UTXO whose holder can update the token's metadata.",
+      "moveLater": "You can move a token's identity from this wallet to Studio later, and back.",
+      "moveLaterHelp": "Into Studio: create a key there, then transfer the identity from the identities page to the guard address Studio shows for that key. Back: Studio's Release UTXO returns it to a plain address, and the identities page finds it again with the identity check.",
       "wallet": "In this wallet",
+      "walletLine": "Held back by Cashonize. Other wallet apps on this seed can spend it.",
       "studio": "With CashTokens Studio",
-      "walletPoints": {
-        "1": "The identity UTXO stays here, held back from coin selection. Publishing, the reserve and transfer are done on the identities page: no dapp, no WalletConnect.",
-        "2": "You write and host the metadata yourself, on a domain or IPFS, so nothing about it depends on a service. The BCMR generator is for the writing.",
-        "3": "The protection is Cashonize's, not the chain's. Another Cashonize on this version finds the same identities from the chain and holds them back too, but a different wallet app on the same seed knows nothing about them, and an ordinary send from it spends the identity UTXO and ends the identity."
-      },
-      "studioPoints": {
-        "1": "The identity sits in an AuthGuard covenant, so no wallet can spend it by accident, whichever app holds the seed. This is the protection that does not depend on software care, and the reason to choose Studio when a seed is shared across apps.",
-        "2": "Control is a key NFT: movable in one send, sellable, holdable in a multisig, and one key can guard many identities.",
-        "3": "Authoring, hosting and creation are one flow, with the metadata on Studio's pinning service, and every later operation runs through Studio over WalletConnect, including leaving the covenant. Cashonize shows the key and what it guards, and links out for the rest."
-      },
-      "openStudio": "Open CashTokens Studio",
-      "eitherWay": "Either can become the other later: sending an identity to the guard address is Studio's import, and unguarding brings it back to a plain address.",
+      "studioLine": "Locked on chain. Controlled by a key NFT in your wallet.",
       "leads": {
         "protection": "Protection:",
         "metadata": "Metadata:",
         "operations": "Operations:"
       },
       "walletRows": {
-        "protection": "held back from spending by Cashonize. Another wallet app on the same seed can spend it.",
-        "metadata": "you write and host it yourself, on a domain or IPFS.",
-        "operations": "publish, reserve and transfer here, on the identities page."
+        "protection": "by Cashonize only. Other wallet apps on this seed can spend it.",
+        "protectionHelp": "An ordinary send from that app spends the identity UTXO, and the identity goes to whoever receives that send's first output, usually the recipient. The token keeps working. Only they can update its metadata from then on.",
+        "metadata": "you write and host it, on a domain or IPFS.",
+        "operations": "here, on the identities page."
       },
       "studioRows": {
-        "protection": "locked in a contract on chain. No wallet can spend it by accident.",
-        "metadata": "written and hosted by Studio's service.",
-        "operations": "through Studio's site over WalletConnect. Cashonize shows the key you hold."
+        "protection": "on chain. No wallet can spend it by accident.",
+        "metadata": "authored and pinned to IPFS by Studio, or a URL you host.",
+        "operations": "on Studio's site, over WalletConnect. Cashonize shows your key.",
+        "operationsHelp": "Releasing the identity from the guard, back to a plain address, is also done through Studio."
       },
-      "moveLater": "You can move an identity from one to the other later."
+      "glossary": "Studio calls the contract an AuthGuard and the key an AuthKey. Cashonize shows the key you hold and what it guards.",
+      "openStudio": "Open CashTokens Studio"
     }
   },
   "utxoManagement": {
@@ -1501,7 +1497,7 @@
       "status": "Held back, identity not named yet",
       "help": "This wallet's keys published metadata for an identity whose UTXO carries no token, so the UTXO says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it.",
       "removeTitle": "Stop holding this UTXO back?",
-      "removeMessage": "The UTXO returns to coin selection and an ordinary send can spend it, which ends the identity it carries. It will not be listed again."
+      "removeMessage": "The UTXO returns to coin selection, and an ordinary send hands the identity it carries to whoever receives that send. It will not be listed again."
     },
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
     "watchedSuffix": ", {count} watched | , {count} watched",

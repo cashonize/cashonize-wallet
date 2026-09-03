@@ -705,36 +705,32 @@
     "reserveNote": "Die Menge eines Tokens entsteht am UTXO der Identität, deshalb kann in dieser Transaktion nicht alles in den Umlauf gehen. Behalte einen Teil als Reserve und gib ihn danach über die Identitäten-Seite aus.",
     "home": {
       "question": "Wo soll die Identität des Tokens liegen?",
+      "whatIsIdentity": "Die Identität eines Tokens ist der UTXO, dessen Inhaber die Metadaten des Tokens aktualisieren kann.",
+      "moveLater": "Du kannst die Identität eines Tokens später von diesem Wallet zu Studio verschieben, und zurück.",
+      "moveLaterHelp": "Zu Studio: Erstelle dort einen Schlüssel und übertrage die Identität dann von der Identitäten-Seite an die Guard-Adresse, die Studio für diesen Schlüssel anzeigt. Zurück: Studios „Release UTXO“ bringt sie an eine gewöhnliche Adresse zurück, und die Identitäten-Seite findet sie mit der Identitätsprüfung wieder.",
       "wallet": "In diesem Wallet",
+      "walletLine": "Von Cashonize zurückgehalten. Andere Wallet-Apps auf diesem Seed können ihn ausgeben.",
       "studio": "Mit CashTokens Studio",
-      "walletPoints": {
-        "1": "Der Identitäts-UTXO bleibt hier, von der Münzauswahl ausgenommen. Veröffentlichen, Reserve und Übertragung laufen über die Identitäten-Seite: keine Dapp, kein WalletConnect.",
-        "2": "Die Metadaten schreibst und hostest du selbst, auf einer Domain oder auf IPFS, also hängt nichts daran von einem Dienst ab. Der BCMR-Generator ist fürs Schreiben.",
-        "3": "Der Schutz ist der von Cashonize, nicht der der Chain. Ein anderes Cashonize dieser Version findet dieselben Identitäten aus der Chain und hält sie ebenfalls zurück, aber eine andere Wallet-App auf demselben Seed weiß nichts von ihnen, und ein gewöhnlicher Versand daraus gibt den Identitäts-UTXO aus und beendet die Identität."
-      },
-      "studioPoints": {
-        "1": "Die Identität liegt in einem AuthGuard-Contract, kein Wallet kann sie also aus Versehen ausgeben, welche App auch immer den Seed hält. Das ist der Schutz, der nicht von sorgfältiger Software abhängt, und der Grund, Studio zu wählen, wenn ein Seed in mehreren Apps steckt.",
-        "2": "Die Kontrolle ist ein Schlüssel-NFT: mit einem Versand beweglich, verkäuflich, in einer Multisig haltbar, und ein Schlüssel kann viele Identitäten bewachen.",
-        "3": "Schreiben, Hosten und Erstellen sind ein Ablauf, die Metadaten liegen auf Studios Pinning-Dienst, und jede spätere Operation läuft über Studio per WalletConnect, auch das Verlassen des Contracts. Cashonize zeigt den Schlüssel und was er bewacht und verlinkt für den Rest nach außen."
-      },
-      "openStudio": "CashTokens Studio öffnen",
-      "eitherWay": "Beides lässt sich später in das andere verwandeln: eine Identität an die Guard-Adresse zu senden ist Studios Import, und das Aufheben des Guards bringt sie zurück auf eine gewöhnliche Adresse.",
+      "studioLine": "Auf der Chain gesperrt. Kontrolliert über ein Schlüssel-NFT in deinem Wallet.",
       "leads": {
         "protection": "Schutz:",
         "metadata": "Metadaten:",
         "operations": "Operationen:"
       },
       "walletRows": {
-        "protection": "von Cashonize vom Ausgeben zurückgehalten. Eine andere Wallet-App auf demselben Seed kann ihn ausgeben.",
-        "metadata": "schreibst und hostest du selbst, auf einer Domain oder auf IPFS.",
-        "operations": "veröffentlichen, Reserve und Übertragung hier, auf der Identitäten-Seite."
+        "protection": "nur durch Cashonize. Andere Wallet-Apps auf diesem Seed können ihn ausgeben.",
+        "protectionHelp": "Ein gewöhnlicher Versand aus dieser App gibt den Identitäts-UTXO aus, und die Identität geht an den, der den ersten Output dieses Versands erhält, meist den Empfänger. Der Token funktioniert weiter. Nur dieser kann die Metadaten von da an aktualisieren.",
+        "metadata": "schreibst und hostest du, auf einer Domain oder auf IPFS.",
+        "operations": "hier, auf der Identitäten-Seite."
       },
       "studioRows": {
-        "protection": "in einem Contract auf der Chain gesperrt. Kein Wallet kann ihn aus Versehen ausgeben.",
-        "metadata": "von Studios Dienst geschrieben und gehostet.",
-        "operations": "über Studios Seite per WalletConnect. Cashonize zeigt den Schlüssel, den du hältst."
+        "protection": "auf der Chain. Kein Wallet kann ihn aus Versehen ausgeben.",
+        "metadata": "von Studio verfasst und auf IPFS gepinnt, oder eine URL, die du hostest.",
+        "operations": "auf Studios Seite, per WalletConnect. Cashonize zeigt deinen Schlüssel.",
+        "operationsHelp": "Auch das Freigeben der Identität aus dem Guard, zurück an eine gewöhnliche Adresse, geschieht über Studio."
       },
-      "moveLater": "Eine Identität lässt sich später vom einen ins andere bewegen."
+      "glossary": "Studio nennt den Contract AuthGuard und den Schlüssel AuthKey. Cashonize zeigt den Schlüssel, den du hältst, und was er schützt.",
+      "openStudio": "CashTokens Studio öffnen"
     }
   },
   "utxoManagement": {
@@ -1501,7 +1497,7 @@
       "status": "Zurückgehalten, Identität noch nicht benannt",
       "help": "Die Schlüssel dieses Wallets haben Metadaten einer Identität veröffentlicht, deren UTXO keinen Token trägt, der UTXO sagt also nicht, um welche Identität es geht. Er bleibt trotzdem von der Münzauswahl ausgenommen: ihn zu schützen wartet nicht darauf, ihn zu benennen.",
       "removeTitle": "Diesen UTXO nicht mehr zurückhalten?",
-      "removeMessage": "Der UTXO kommt zurück in die Münzauswahl und ein gewöhnlicher Versand kann ihn ausgeben, was die Identität beendet, die er trägt. Er wird nicht wieder aufgelistet."
+      "removeMessage": "Der UTXO kommt zurück in die Münzauswahl, und ein gewöhnlicher Versand übergibt die Identität, die er trägt, an den Empfänger dieses Versands. Er wird nicht wieder aufgelistet."
     },
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
     "watchedSuffix": ", {count} beobachtet | , {count} beobachtet",

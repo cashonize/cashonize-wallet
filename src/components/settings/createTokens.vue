@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed } from 'vue';
+  import { ref, computed, watch } from 'vue';
   import {
     fetchCandidateRegistry,
     maxPublicationOutputSize,
@@ -28,9 +28,14 @@
   const inputFungibleSupply = ref("");
   const inputCirculating = ref("");
   // Where the token's identity lives afterwards: here, held back, or in an AuthGuard covenant made
-  // by CashTokens Studio. This page only makes the first; the second is a link out.
-  const identityHome = ref<'wallet' | 'studio'>('wallet');
+  // by CashTokens Studio. This page only makes the first; the second is a link out. Nothing is
+  // chosen until the user chooses, and nothing remembers the choice: it is one click.
+  const identityHome = ref<'wallet' | 'studio' | undefined>(undefined);
   const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
+  const homeRows = ['protection', 'metadata', 'operations'] as const;
+  watch(() => store._wallet, () => {
+    identityHome.value = undefined;
+  });
 
   // What the token is, rather than a supply field and a toggle the user has to combine into one
   const tokenShape = ref<'fungible' | 'mintingNft' | 'both'>('fungible');
@@ -230,46 +235,60 @@
 
 <template>
   <div>
-    <fieldset class="item">
+    <fieldset class="item" style="padding-bottom: 20px;">
       <legend>{{ t('createTokens.title') }}</legend>
       <!-- The one decision on this page a creator cannot see the consequences of from the form:
            where the token's identity lives afterwards, what protects it, and what it then depends
-           on. Both sides get the same shape so neither reads as the recommended one. -->
+           on. Two cards of the same shape, so neither reads as the recommended one; a closed card
+           is its name and the one line that is the comparison, an open one adds the three rows.
+           Above them the one fact that applies to both, which is what makes the choice safe. -->
       <div>
         {{ t('createTokens.home.question') }}
-        <!-- the full account of each side, for whoever wants it; the rows below carry the decision -->
         <InfoPopup>
-          <div style="max-width: 320px;">
-            <div><b>{{ t('createTokens.home.wallet') }}</b></div>
-            <ul class="home-points">
-              <li v-for="point in [1, 2, 3]" :key="point">{{ t(`createTokens.home.walletPoints.${point}`) }}</li>
-            </ul>
-            <div style="margin-top: 8px;"><b>{{ t('createTokens.home.studio') }}</b></div>
-            <ul class="home-points">
-              <li v-for="point in [1, 2, 3]" :key="point">{{ t(`createTokens.home.studioPoints.${point}`) }}</li>
-            </ul>
-            <div class="info-popup-note">{{ t('createTokens.home.eitherWay') }}</div>
-          </div>
+          <div style="max-width: 300px;">{{ t('createTokens.home.whatIsIdentity') }}</div>
         </InfoPopup>
       </div>
-      <div class="type-filter" style="margin-top: 8px;">
-        <button :class="{ active: identityHome === 'wallet' }" @click="identityHome = 'wallet'">
-          {{ t('createTokens.home.wallet') }}
-        </button>
-        <button :class="{ active: identityHome === 'studio' }" @click="identityHome = 'studio'">
-          {{ t('createTokens.home.studio') }}
-        </button>
+      <div style="margin-top: 6px;">
+        {{ t('createTokens.home.moveLater') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('createTokens.home.moveLaterHelp') }}</div>
+        </InfoPopup>
       </div>
-      <!-- the same three leads on both sides, so toggling compares like with like -->
-      <div class="home-rows">
-        <div v-for="row in ['protection', 'metadata', 'operations']" :key="row">
-          <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${identityHome}Rows.${row}`) }}
+      <div class="home-cards">
+        <div class="home-card" :class="{ selected: identityHome === 'wallet' }" @click="identityHome = 'wallet'">
+          <div><b>{{ t('createTokens.home.wallet') }}</b></div>
+          <div :class="{ description: identityHome === 'wallet' }">{{ t('createTokens.home.walletLine') }}</div>
+          <div v-if="identityHome === 'wallet'" class="home-rows">
+            <div v-for="row in homeRows" :key="row">
+              <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.walletRows.${row}`) }}
+              <!-- what "can spend it" comes to, which the line cannot carry -->
+              <InfoPopup v-if="row === 'protection'">
+                <div style="max-width: 300px;">{{ t('createTokens.home.walletRows.protectionHelp') }}</div>
+              </InfoPopup>
+            </div>
+          </div>
+        </div>
+        <div class="home-card" :class="{ selected: identityHome === 'studio' }" @click="identityHome = 'studio'">
+          <div><b>{{ t('createTokens.home.studio') }}</b></div>
+          <div :class="{ description: identityHome === 'studio' }">{{ t('createTokens.home.studioLine') }}</div>
+          <div v-if="identityHome === 'studio'" class="home-rows">
+            <div v-for="row in homeRows" :key="row">
+              <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.studioRows.${row}`) }}
+              <!-- the one dependency "on Studio's site" does not make obvious: leaving is there too -->
+              <InfoPopup v-if="row === 'operations'">
+                <div style="max-width: 300px;">{{ t('createTokens.home.studioRows.operationsHelp') }}</div>
+              </InfoPopup>
+            </div>
+          </div>
         </div>
       </div>
-      <a v-if="identityHome === 'studio'" :href="studioUrl" target="_blank" class="button primaryButton">
-        {{ t('createTokens.home.openStudio') }}
-      </a>
-      <div class="description" style="margin-top: 10px;">{{ t('createTokens.home.moveLater') }}</div>
+
+      <template v-if="identityHome === 'studio'">
+        <div class="section">{{ t('createTokens.home.glossary') }}</div>
+        <a :href="studioUrl" target="_blank" class="button primaryButton section">
+          {{ t('createTokens.home.openStudio') }}
+        </a>
+      </template>
 
       <template v-if="identityHome === 'wallet'">
 
@@ -277,8 +296,8 @@
            what this section is, so it leads with that rather than with a heading repeating it -->
       <div class="section">
         <div class="description">{{ t('createTokens.step', { current: 1, total: 3 }) }}</div>
-        <div v-if="store.spendableBalance === 0n" style="color: red;">{{ t('createTokens.needBch') }}</div>
         <div>{{ t('createTokens.genesisInput.explainer') }}</div>
+        <div v-if="store.spendableBalance === 0n" style="color: red; margin-top: 6px;">{{ t('createTokens.needBch') }}</div>
 
         <!-- Preparing a coin is a step towards creating rather than the page's action, so it
              takes the ordinary button and leaves the primary one to Create -->
@@ -286,7 +305,7 @@
           @click="createPreGenesis"
           type="button"
           :value="activeAction === 'creatingPreGenesis' ? t('createTokens.preparingButton') : t('createTokens.genesisInput.prepareButton')"
-          :disabled="activeAction !== null"
+          :disabled="activeAction !== null || store.spendableBalance === 0n"
           style="margin-top: 10px;"
         >
 
@@ -443,17 +462,34 @@
 .section {
   margin-top: 20px;
 }
+/* side by side where the width allows, stacked on a phone; the selected card is marked the way
+   a picked coin is, and stops reading as clickable */
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+.home-card {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dark .home-card {
+  border-color: #333;
+}
+.home-card:hover {
+  border-color: rgba(128, 128, 128, 0.4);
+}
+.home-card.selected {
+  border-color: var(--color-primary);
+  cursor: default;
+}
 .home-rows {
   margin-top: 10px;
 }
 .home-rows div {
-  margin-top: 4px;
-}
-.home-points {
-  margin: 6px 0 0;
-  padding-left: 20px;
-}
-.home-points li {
   margin-top: 4px;
 }
 label {
