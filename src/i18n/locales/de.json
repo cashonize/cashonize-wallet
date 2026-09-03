@@ -656,7 +656,7 @@
       },
       "walletLines": {
         "holds": "dein Wallet, als UTXO, verwaltet hier.",
-        "hosts": "von dir gehostet, Domain oder IPFS.",
+        "hosts": "gehostet von dir, auf Website oder IPFS.",
         "risk": "andere Apps auf dem Seed können ihn ausgeben."
       },
       "studioLines": {
@@ -671,7 +671,7 @@
       },
       "walletRows": {
         "protection": "von Cashonize aus der Münzauswahl herausgehalten; andere Apps wissen nicht, dass er besonders ist.",
-        "protectionHelp": "Ein gewöhnlicher Versand aus einer anderen Wallet-App gibt den UTXO aus und übergibt die Identität an den Empfänger dieses Versands. Ein Seed, der in mehreren Apps genutzt wird, ist mit einem nur hier genutzten Wallet oder mit Studio besser aufgehoben; eine Wiederherstellung dieses Seeds in Cashonize findet die Identität wieder.",
+        "protectionHelp": "Ein gewöhnlicher Versand aus einer anderen Wallet-App gibt den UTXO aus und übergibt die Identität an den Empfänger dieses Versands. Wird dieser Seed auch in anderen Apps genutzt, gib dort nichts mehr aus, solange dieses Wallet eine Identität hält, oder wähle Studio. Eine Wiederherstellung dieses Seeds in Cashonize findet die Identität wieder.",
         "metadata": "eine Datei, die du hostest, jetzt verknüpft oder später von der Identitäten-Seite.",
         "operations": "hier, auf der Identitäten-Seite; jede bewegt die Identität auf einen neuen UTXO."
       },
@@ -684,7 +684,8 @@
       },
       "glossary": "Studio nennt den Contract AuthGuard und den Schlüssel AuthKey.",
       "openStudio": "CashTokens Studio öffnen",
-      "chosen": "Identität: in diesem Wallet"
+      "chosen": "Identität: in diesem Wallet",
+      "noHosting": "Nirgends eine Datei zu hosten? Wähle Studio, das sie für die Identitäten hostet, die es hält."
     },
     "change": "ändern",
     "step": "Schritt {current} von {total}",
@@ -708,7 +709,7 @@
     },
     "preparingButton": "Wird vorbereitet...",
     "plannedTokenId": "Token-ID:",
-    "shapeLabel": "Token-Form",
+    "shapeLabel": "Token-Typ",
     "shapes": {
       "fungible": "Fungible Tokens",
       "mintingNft": "Ein Minting-NFT",
@@ -726,7 +727,7 @@
     "supplyOnChain": "{tokens} Tokens, {base} Basiseinheiten auf der Chain",
     "circulation": {
       "label": "Jetzt in Umlauf bringen",
-      "help": "Was jetzt ausgegeben wird, ist gewöhnlicher Vorrat, den dieses Wallet ausgeben kann. Der Rest sitzt als Reserve auf dem eigenen UTXO der Identität, wird also mit ihr zurückgehalten und geht dorthin, wohin die Identität geht. Er kann später von der Identitäten-Seite ausgegeben werden; jede Ausgabe ist eine Transaktion, die die Identität auf einen neuen UTXO bewegt.",
+      "help": "Was jetzt ausgegeben wird, ist gewöhnlicher Vorrat, den dieses Wallet ausgeben kann. Der Rest sitzt als Reserve auf dem eigenen UTXO der Identität, wird also mit ihr zurückgehalten und geht dorthin, wohin die Identität geht; der Schutzhinweis zur Identität gilt auch für ihn. Er kann später von der Identitäten-Seite ausgegeben werden; jede Ausgabe ist eine Transaktion, die die Identität auf einen neuen UTXO bewegt.",
       "placeholder": "Auszugebender Betrag",
       "split": "{reserve} bleibt als Reserve bei der Identität, {circulating} kommt in Umlauf.",
       "splitOnChain": "Auf der Chain: {reserve} Reserve, {circulating} im Umlauf."
@@ -735,9 +736,9 @@
       "invalidAmount": "Gib Beträge in Tokens ein, mit nicht mehr Dezimalstellen, als der Token hat.",
       "overMaxSupply": "Das ist mehr, als ein Token fassen kann. Höchstens {max}.",
       "overSupply": "Das ist mehr als der Gesamtvorrat.",
-      "invalidDecimals": "Dezimalstellen müssen eine ganze Zahl von 0 bis 18 sein."
+      "invalidDecimals": "Dezimalstellen müssen eine ganze Zahl von 0 bis 18 sein.",
+      "emptyReserve": "Lass mindestens {minimum} in der Reserve: der UTXO der Identität muss etwas vom Vorrat tragen."
     },
-    "reserveNote": "Der Vorrat eines Tokens wird am UTXO der Identität erstellt, also kann in dieser Transaktion nicht alles in Umlauf gehen. Lass einen Teil als Reserve und gib ihn danach von der Identitäten-Seite aus.",
     "metadataNote": "Metadaten können jetzt mit dem BCMR-Generator hinzugefügt werden (BCMR ist der Metadaten-Standard, den Wallets lesen), oder nach der Erstellung von der Identitäten-Seite.",
     "locationHint": "Eine Domain, eine vollständige HTTPS-URL oder eine IPFS-CID; eine bloße Domain meint ihren Well-known-Metadaten-Pfad.",
     "sameFile": "Jeder Ort muss dieselbe Datei liefern.",
@@ -754,11 +755,11 @@
     "howTo": "So wird die Datei geschrieben und gehostet",
     "steps": {
       "author": "Schreibe die Metadaten-Datei mit dem {generator} und nenne darin die Token-ID oben.",
-      "host": "Hoste sie auf deiner eigenen Domain oder auf IPFS.",
+      "host": "Hoste sie auf deiner eigenen Website oder auf IPFS.",
       "verify": "Gib oben ein, wo sie gehostet ist. Dieses Wallet holt sie und prüft, dass sie diesen Token nennt.",
       "create": "Erstelle den Token: dieselbe Transaktion veröffentlicht den Hash der Datei und wo sie zu finden ist."
     },
-    "noHosting": "Keine Domain und kein IPFS? CashTokens Studio kann sie für dich schreiben und hosten, wenn die Identität dorthin umzieht.",
+    "noHosting": "Nirgends eine Datei zu hosten? Wähle Studio, das sie für die Identitäten hostet, die es hält.",
     "createButton": "Erstellen",
     "creatingTokensButton": "Tokens werden erstellt...",
     "confirm": {
@@ -786,7 +787,8 @@
       "seeToken": "Token im Wallet ansehen",
       "seeIdentity": "Identität im Wallet ansehen",
       "viewTransaction": "Transaktion ansehen",
-      "createAnother": "Noch einen Token erstellen"
+      "createAnother": "Noch einen Token erstellen",
+      "decimals": "Dezimalstellen: {decimals}, die Metadaten-Datei muss das nennen"
     }
   },
   "utxoManagement": {
@@ -1758,7 +1760,7 @@
       "checkHelp": "Diese Prüfung findet, was das nicht sehen kann: eine Identität, die jemand anderes erstellt und dir übertragen hat, auf die nichts in der Historie dieses Wallets zeigt. Sie fragt den Indexer nach jedem Token, den du hältst, und verfolgt jeden UTXO zurück, der zu einer Identität gehören könnte. Deshalb ist es ein Knopf und nichts, was die Seite still im Hintergrund tut."
     },
     "transfer": {
-      "hint": "Der UTXO der Identität geht an das Ziel und übergibt damit die Hoheit über die Metadaten dieses Tokens.",
+      "hint": "Der UTXO der Identität wird an das Ziel gesendet und übergibt damit die Befugnis, die Metadaten dieses Tokens zu aktualisieren. Um sie zu CashTokens Studio zu verschieben, erstelle dort einen Schlüssel und übertrage an die Guard-Adresse, die es für diesen Schlüssel anzeigt.",
       "destinationPlaceholder": "Adresse, an die die Identität gehen soll",
       "button": "Identität übertragen",
       "transferringButton": "Wird übertragen...",

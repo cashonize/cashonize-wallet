@@ -656,7 +656,7 @@
       },
       "walletLines": {
         "holds": "a sua carteira, como UTXO gerido aqui.",
-        "hosts": "hospedados por si, domínio ou IPFS.",
+        "hosts": "hospedados por si, num site ou IPFS.",
         "risk": "outra app com esta seed poderia gastá-lo."
       },
       "studioLines": {
@@ -671,7 +671,7 @@
       },
       "walletRows": {
         "protection": "mantido fora da seleção de moedas pelo Cashonize; outras apps não sabem que é especial.",
-        "protectionHelp": "Um envio comum a partir de outra app de carteira gasta o UTXO e entrega a identidade a quem recebe esse envio. Uma seed usada em várias apps fica melhor com uma carteira usada só aqui, ou com o Studio; uma restauração desta seed no Cashonize volta a encontrar a identidade.",
+        "protectionHelp": "Um envio comum a partir de outra app de carteira gasta o UTXO e entrega a identidade a quem recebe esse envio. Se esta seed também for usada noutras apps, deixe de gastar a partir delas enquanto esta carteira tiver uma identidade, ou escolha o Studio. Uma restauração desta seed no Cashonize volta a encontrar a identidade.",
         "metadata": "um ficheiro que você hospeda, ligado agora ou a partir da página de identidades depois.",
         "operations": "aqui, na página de identidades; cada uma move a identidade para um UTXO novo."
       },
@@ -684,7 +684,8 @@
       },
       "glossary": "O Studio chama AuthGuard ao contrato e AuthKey à chave.",
       "openStudio": "Abrir o CashTokens Studio",
-      "chosen": "Identidade: nesta carteira"
+      "chosen": "Identidade: nesta carteira",
+      "noHosting": "Sem sítio onde hospedar um ficheiro? Escolha o Studio, que o hospeda para as identidades que guarda."
     },
     "change": "alterar",
     "step": "Passo {current} de {total}",
@@ -708,7 +709,7 @@
     },
     "preparingButton": "A preparar...",
     "plannedTokenId": "Id do token:",
-    "shapeLabel": "Forma do token",
+    "shapeLabel": "Tipo de token",
     "shapes": {
       "fungible": "Tokens fungíveis",
       "mintingNft": "Um NFT de cunhagem",
@@ -726,7 +727,7 @@
     "supplyOnChain": "{tokens} tokens, {base} unidades base na cadeia",
     "circulation": {
       "label": "Emitir para circulação agora",
-      "help": "O que é emitido agora é oferta comum que esta carteira pode gastar. O resto fica no próprio UTXO da identidade como reserva, por isso é retido com ela e vai para onde a identidade for. Pode ser emitido depois a partir da página de identidades; cada emissão é uma transação que move a identidade para um UTXO novo.",
+      "help": "O que é emitido agora é oferta comum que esta carteira pode gastar. O resto fica no próprio UTXO da identidade como reserva, por isso é retido com ela e vai para onde a identidade for; o aviso de proteção da identidade também se aplica a ele. Pode ser emitido depois a partir da página de identidades; cada emissão é uma transação que move a identidade para um UTXO novo.",
       "placeholder": "Montante a emitir",
       "split": "{reserve} fica com a identidade como reserva, {circulating} entra em circulação.",
       "splitOnChain": "Na cadeia: {reserve} de reserva, {circulating} em circulação."
@@ -735,9 +736,9 @@
       "invalidAmount": "Escreva montantes em tokens, sem mais casas decimais do que o token tem.",
       "overMaxSupply": "Isso é mais do que um token pode conter. O máximo é {max}.",
       "overSupply": "Isso é mais do que a oferta total.",
-      "invalidDecimals": "As decimais têm de ser um número inteiro de 0 a 18."
+      "invalidDecimals": "As decimais têm de ser um número inteiro de 0 a 18.",
+      "emptyReserve": "Deixe pelo menos {minimum} em reserva: o UTXO da identidade tem de carregar parte da oferta."
     },
-    "reserveNote": "A oferta de um token é criada no UTXO da identidade, por isso nem toda pode entrar em circulação nesta transação. Deixe uma parte como reserva e emita-a depois a partir da página de identidades.",
     "metadataNote": "Os metadados podem ser adicionados agora com o gerador BCMR (BCMR é o padrão de metadados que as carteiras leem), ou depois da criação a partir da página de identidades.",
     "locationHint": "Um domínio, um URL HTTPS completo ou um CID do IPFS; um domínio simples significa o seu caminho de metadados well-known.",
     "sameFile": "Todas as localizações têm de servir o mesmo ficheiro.",
@@ -754,11 +755,11 @@
     "howTo": "Como escrever e hospedar o ficheiro",
     "steps": {
       "author": "Escreva o ficheiro de metadados com o {generator}, nomeando o id do token acima.",
-      "host": "Hospede-o no seu próprio domínio ou no IPFS.",
+      "host": "Hospede-o no seu próprio site ou no IPFS.",
       "verify": "Indique acima onde está hospedado. Esta carteira obtém-no e verifica que ele nomeia este token.",
       "create": "Crie o token: a mesma transação publica o hash do ficheiro e onde o encontrar."
     },
-    "noHosting": "Sem domínio nem IPFS? O CashTokens Studio pode escrevê-los e hospedá-los por si, se a identidade se mudar para lá.",
+    "noHosting": "Sem sítio onde hospedar um ficheiro? Escolha o Studio, que o hospeda para as identidades que guarda.",
     "createButton": "Criar",
     "creatingTokensButton": "A criar tokens...",
     "confirm": {
@@ -786,7 +787,8 @@
       "seeToken": "Ver o token na carteira",
       "seeIdentity": "Ver a identidade na carteira",
       "viewTransaction": "Ver a transação",
-      "createAnother": "Criar outro token"
+      "createAnother": "Criar outro token",
+      "decimals": "Decimais: {decimals}, o ficheiro de metadados tem de o indicar"
     }
   },
   "utxoManagement": {
@@ -1758,7 +1760,7 @@
       "checkHelp": "Esta verificação encontra o que aquilo não consegue ver: uma identidade que outra pessoa fez e transferiu para você, para a qual nada no histórico desta carteira aponta. Ela pergunta ao indexador por cada token que você tem e percorre de volta cada UTXO que possa ser de uma identidade, por isso é um botão e não algo que a página faça em silêncio."
     },
     "transfer": {
-      "hint": "O UTXO da identidade é enviado para o destino, entregando a autoridade de atualizar os metadados deste token.",
+      "hint": "O UTXO da identidade é enviado para o destino, entregando a autoridade para atualizar os metadados deste token. Para a mover para o CashTokens Studio, crie lá uma chave e transfira para o endereço de guarda que ele mostra para essa chave.",
       "destinationPlaceholder": "Endereço para onde transferir a identidade",
       "button": "Transferir identidade",
       "transferringButton": "Transferindo...",

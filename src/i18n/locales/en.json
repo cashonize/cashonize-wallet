@@ -656,7 +656,7 @@
       },
       "walletLines": {
         "holds": "your wallet, as a UTXO you manage here.",
-        "hosts": "hosted by you, on a domain or IPFS.",
+        "hosts": "hosted by you, on a website or IPFS.",
         "risk": "another app on this seed could spend it."
       },
       "studioLines": {
@@ -671,7 +671,7 @@
       },
       "walletRows": {
         "protection": "held out of coin selection by Cashonize; other apps don't know it is special.",
-        "protectionHelp": "An ordinary send from another wallet app spends the UTXO and hands the identity to whoever receives that send. A seed used in several apps is better off with a wallet used only here, or with Studio; a restore of this seed in Cashonize finds the identity again.",
+        "protectionHelp": "An ordinary send from another wallet app spends the UTXO and hands the identity to whoever receives that send. If this seed is also used in other apps, stop spending from them while this wallet holds an identity, or choose Studio. A restore of this seed in Cashonize finds the identity again.",
         "metadata": "a file you host, linked now or from the identities page later.",
         "operations": "here, on the identities page; each one moves the identity to a new UTXO."
       },
@@ -684,7 +684,8 @@
       },
       "glossary": "Studio calls the contract an AuthGuard and the key an AuthKey.",
       "openStudio": "Open CashTokens Studio",
-      "chosen": "Identity: in this wallet"
+      "chosen": "Identity: in this wallet",
+      "noHosting": "Nowhere to host a file? Choose Studio, which hosts it for the identities it holds."
     },
     "change": "change",
     "step": "Step {current} of {total}",
@@ -708,7 +709,7 @@
     },
     "preparingButton": "Preparing...",
     "plannedTokenId": "Token id:",
-    "shapeLabel": "Token shape",
+    "shapeLabel": "Token type",
     "shapes": {
       "fungible": "Fungible tokens",
       "mintingNft": "A minting NFT",
@@ -726,7 +727,7 @@
     "supplyOnChain": "{tokens} tokens, {base} base units on chain",
     "circulation": {
       "label": "Issue to circulation now",
-      "help": "What is issued now is ordinary supply this wallet can spend. The rest sits on the identity's own UTXO as reserve, so it is held back with it, and it goes wherever the identity goes. It can be issued later from the identities page; each issue is a transaction that moves the identity to a new UTXO.",
+      "help": "What is issued now is ordinary supply this wallet can spend. The rest sits on the identity's own UTXO as reserve, so it is held back with it and goes wherever the identity goes; the protection notice for the identity applies to it too. It can be issued later from the identities page; each issue is a transaction that moves the identity to a new UTXO.",
       "placeholder": "Amount to issue",
       "split": "{reserve} stays with the identity as reserve, {circulating} enters circulation.",
       "splitOnChain": "On chain: {reserve} reserve, {circulating} circulating."
@@ -735,9 +736,9 @@
       "invalidAmount": "Enter amounts in tokens, with no more decimal places than the token has.",
       "overMaxSupply": "That is more than a token can hold. The most is {max}.",
       "overSupply": "That is more than the total supply.",
-      "invalidDecimals": "Decimals must be a whole number from 0 to 18."
+      "invalidDecimals": "Decimals must be a whole number from 0 to 18.",
+      "emptyReserve": "Leave at least {minimum} in reserve: the identity's UTXO has to carry some of the supply."
     },
-    "reserveNote": "A token's supply is created at the identity's UTXO, so not all of it can go into circulation in this transaction. Leave part as reserve and issue it from the identities page afterwards.",
     "metadataNote": "Metadata can be added now with the BCMR generator (BCMR is the metadata standard wallets read), or after creation from the identities page.",
     "locationHint": "A domain, a full HTTPS URL, or an IPFS CID; a bare domain means its well-known metadata path.",
     "sameFile": "Every location must serve the same file.",
@@ -754,11 +755,11 @@
     "howTo": "How to write and host the file",
     "steps": {
       "author": "Write the metadata file with the {generator}, naming the token id above.",
-      "host": "Host it on your own domain or on IPFS.",
+      "host": "Host it on your own website or on IPFS.",
       "verify": "Enter where it is hosted above. This wallet fetches it and checks that it names this token.",
       "create": "Create the token: the same transaction publishes the file's hash and where to find it."
     },
-    "noHosting": "No domain or IPFS? CashTokens Studio can write and host it for you, if the identity moves there.",
+    "noHosting": "Nowhere to host a file? Choose Studio, which hosts it for the identities it holds.",
     "createButton": "Create",
     "creatingTokensButton": "Creating Tokens...",
     "confirm": {
@@ -786,7 +787,8 @@
       "seeToken": "See token in wallet",
       "seeIdentity": "See identity in wallet",
       "viewTransaction": "View transaction",
-      "createAnother": "Create another token"
+      "createAnother": "Create another token",
+      "decimals": "Decimals: {decimals}, the metadata file must say this"
     }
   },
   "utxoManagement": {
@@ -1758,7 +1760,7 @@
       "checkHelp": "This check finds what that cannot see: an identity somebody else made and transferred to you, which nothing in this wallet's history points at. It asks the indexer about every token you hold and walks back every UTXO that could be an identity's, so it is a button rather than something the page does quietly."
     },
     "transfer": {
-      "hint": "The identity's UTXO is sent to the destination, handing over the authority to update this token's metadata.",
+      "hint": "The identity's UTXO is sent to the destination, handing over the authority to update this token's metadata. To move it to CashTokens Studio, create a key there and transfer to the guard address it shows for that key.",
       "destinationPlaceholder": "Address to transfer the identity to",
       "button": "Transfer identity",
       "transferringButton": "Transferring...",

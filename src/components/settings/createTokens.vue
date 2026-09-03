@@ -114,11 +114,18 @@
   // said before the button is pressed rather than by a failed broadcast.
   const genesisProblem = computed(() => {
     if (!hasSupply.value) return undefined;
-    if (typeof amounts.value !== 'string') return undefined;
-    if (amounts.value === 'overMaxSupply') {
-      return t('createTokens.errors.overMaxSupply', { max: baseUnitsOf(maxTokenSupply) });
+    if (typeof amounts.value === 'string') {
+      if (amounts.value === 'overMaxSupply') {
+        return t('createTokens.errors.overMaxSupply', { max: baseUnitsOf(maxTokenSupply) });
+      }
+      return t(`createTokens.errors.${amounts.value}`);
     }
-    return t(`createTokens.errors.${amounts.value}`);
+    // a token output carrying neither an amount nor an NFT is invalid, so without a minting NFT
+    // the identity output has to keep some of the supply: refused here, before the genesis can
+    if (!createMintingNft.value && amounts.value.supply > 0n && amounts.value.reserve === 0n) {
+      return t('createTokens.errors.emptyReserve', { minimum: formatTokens(1n, decimals.value) });
+    }
+    return undefined;
   });
 
   // Step 2 is settled when what Create acts on is: a shape, and for a shape with a supply both
@@ -127,14 +134,6 @@
     if (!hasSupply.value) return true;
     if (!inputFungibleSupply.value.trim() || !inputCirculating.value.trim()) return false;
     return genesisProblem.value === undefined && (totalSupply.value ?? 0n) > 0n;
-  });
-
-  // A token output carrying neither an amount nor an NFT is invalid, so the identity output has
-  // to keep something. A limit of the transaction rather than a mistake, hence a note, not an error.
-  const reserveNote = computed(() => {
-    if (!hasSupply.value || createMintingNft.value) return undefined;
-    if (!totalSupply.value || circulating.value !== totalSupply.value) return undefined;
-    return t('createTokens.reserveNote');
   });
 
   // The satoshis a prepared UTXO carries, which stay the user's: the genesis spends it to self
@@ -408,6 +407,9 @@
             <div v-if="created.hasSupply">
               {{ t('createTokens.created.split', { reserve: createdAmount(created.reserve), circulating: createdAmount(created.circulating) }) }}
             </div>
+            <!-- the number lives nowhere else until the file is written; this is where the user is
+                 looking at their numbers -->
+            <div v-if="created.hasSupply && !created.name">{{ t('createTokens.created.decimals', { decimals: created.decimals }) }}</div>
             <div class="description">{{ t('createTokens.created.listed') }}</div>
           </div>
         </div>
@@ -469,6 +471,9 @@
           </div>
         </div>
       </div>
+      <!-- the fork a non-hoster decides here, with the condition every earlier wording hid: Studio
+           hosts the file only for the identities it holds -->
+      <div class="description" style="margin-top: 6px;">{{ t('createTokens.home.noHosting') }}</div>
 
       <!-- the same three leads on both sides, so the selection is compared like with like; the
            card carries the fact, the row the mechanism, the row's popup the consequence -->
@@ -655,7 +660,6 @@
             {{ t('createTokens.circulation.splitOnChain', { reserve: baseUnitsOf(reserve), circulating: baseUnitsOf(circulating) }) }}
           </div>
         </template>
-        <div v-if="reserveNote" class="description" style="margin-top: 6px;">{{ reserveNote }}</div>
         <div v-if="genesisProblem" class="genesis-problem" style="margin-top: 6px;">{{ genesisProblem }}</div>
         </template>
       </div>

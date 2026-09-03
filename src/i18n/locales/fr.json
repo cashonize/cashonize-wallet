@@ -656,7 +656,7 @@
       },
       "walletLines": {
         "holds": "votre portefeuille, comme UTXO géré ici.",
-        "hosts": "hébergées par vous, domaine ou IPFS.",
+        "hosts": "hébergées par vous, site web ou IPFS.",
         "risk": "une autre app de la graine peut le dépenser."
       },
       "studioLines": {
@@ -671,7 +671,7 @@
       },
       "walletRows": {
         "protection": "tenu hors de la sélection des pièces par Cashonize ; les autres applications ignorent qu'il est particulier.",
-        "protectionHelp": "Un envoi ordinaire depuis une autre application de portefeuille dépense l'UTXO et remet l'identité à qui reçoit cet envoi. Une graine utilisée dans plusieurs applications est mieux avec un portefeuille utilisé seulement ici, ou avec Studio ; une restauration de cette graine dans Cashonize retrouve l'identité.",
+        "protectionHelp": "Un envoi ordinaire depuis une autre application de portefeuille dépense l'UTXO et remet l'identité à qui reçoit cet envoi. Si cette graine est aussi utilisée dans d'autres applications, cessez d'y dépenser tant que ce portefeuille détient une identité, ou choisissez Studio. Une restauration de cette graine dans Cashonize retrouve l'identité.",
         "metadata": "un fichier que vous hébergez, lié maintenant ou depuis la page des identités plus tard.",
         "operations": "ici, sur la page des identités ; chacune déplace l'identité vers un nouvel UTXO."
       },
@@ -684,7 +684,8 @@
       },
       "glossary": "Studio appelle le contrat AuthGuard et la clé AuthKey.",
       "openStudio": "Ouvrir CashTokens Studio",
-      "chosen": "Identité : dans ce portefeuille"
+      "chosen": "Identité : dans ce portefeuille",
+      "noHosting": "Nulle part où héberger un fichier ? Choisissez Studio, qui l'héberge pour les identités qu'il détient."
     },
     "change": "modifier",
     "step": "Étape {current} sur {total}",
@@ -708,7 +709,7 @@
     },
     "preparingButton": "Préparation...",
     "plannedTokenId": "Id du token :",
-    "shapeLabel": "Forme du token",
+    "shapeLabel": "Type de token",
     "shapes": {
       "fungible": "Tokens fongibles",
       "mintingNft": "Un NFT de frappe",
@@ -726,7 +727,7 @@
     "supplyOnChain": "{tokens} tokens, {base} unités de base sur la chaîne",
     "circulation": {
       "label": "Émettre en circulation maintenant",
-      "help": "Ce qui est émis maintenant est une offre ordinaire que ce portefeuille peut dépenser. Le reste repose sur l'UTXO même de l'identité comme réserve, il est donc retenu avec elle et va là où va l'identité. Il peut être émis plus tard depuis la page des identités ; chaque émission est une transaction qui déplace l'identité vers un nouvel UTXO.",
+      "help": "Ce qui est émis maintenant est une offre ordinaire que ce portefeuille peut dépenser. Le reste repose sur l'UTXO même de l'identité comme réserve, il est donc retenu avec elle et va là où va l'identité ; l'avertissement de protection de l'identité s'applique aussi à lui. Il peut être émis plus tard depuis la page des identités ; chaque émission est une transaction qui déplace l'identité vers un nouvel UTXO.",
       "placeholder": "Montant à émettre",
       "split": "{reserve} reste avec l'identité en réserve, {circulating} entre en circulation.",
       "splitOnChain": "Sur la chaîne : {reserve} en réserve, {circulating} en circulation."
@@ -735,9 +736,9 @@
       "invalidAmount": "Saisissez des montants en tokens, sans plus de décimales que le token n'en a.",
       "overMaxSupply": "C'est plus qu'un token ne peut contenir. Le maximum est {max}.",
       "overSupply": "C'est plus que l'offre totale.",
-      "invalidDecimals": "Les décimales doivent être un nombre entier de 0 à 18."
+      "invalidDecimals": "Les décimales doivent être un nombre entier de 0 à 18.",
+      "emptyReserve": "Laissez au moins {minimum} en réserve : l'UTXO de l'identité doit porter une partie de l'offre."
     },
-    "reserveNote": "L'offre d'un token est créée à l'UTXO de l'identité, tout ne peut donc pas entrer en circulation dans cette transaction. Laissez une partie en réserve et émettez-la ensuite depuis la page des identités.",
     "metadataNote": "Les métadonnées peuvent être ajoutées maintenant avec le générateur BCMR (BCMR est le standard de métadonnées que lisent les portefeuilles), ou après la création depuis la page des identités.",
     "locationHint": "Un domaine, une URL HTTPS complète ou un CID IPFS ; un domaine seul désigne son chemin de métadonnées well-known.",
     "sameFile": "Chaque emplacement doit servir le même fichier.",
@@ -754,11 +755,11 @@
     "howTo": "Comment rédiger et héberger le fichier",
     "steps": {
       "author": "Rédigez le fichier de métadonnées avec le {generator}, en y nommant l'id du token ci-dessus.",
-      "host": "Hébergez-le sur votre propre domaine ou sur IPFS.",
+      "host": "Hébergez-le sur votre propre site web ou sur IPFS.",
       "verify": "Indiquez ci-dessus où il est hébergé. Ce portefeuille le récupère et vérifie qu'il nomme ce token.",
       "create": "Créez le token : la même transaction publie le hash du fichier et où le trouver."
     },
-    "noHosting": "Ni domaine ni IPFS ? CashTokens Studio peut les rédiger et les héberger pour vous, si l'identité y est déplacée.",
+    "noHosting": "Nulle part où héberger un fichier ? Choisissez Studio, qui l'héberge pour les identités qu'il détient.",
     "createButton": "Créer",
     "creatingTokensButton": "Création des tokens...",
     "confirm": {
@@ -786,7 +787,8 @@
       "seeToken": "Voir le token dans le portefeuille",
       "seeIdentity": "Voir l'identité dans le portefeuille",
       "viewTransaction": "Voir la transaction",
-      "createAnother": "Créer un autre token"
+      "createAnother": "Créer un autre token",
+      "decimals": "Décimales : {decimals}, le fichier de métadonnées doit l'indiquer"
     }
   },
   "utxoManagement": {
@@ -1758,7 +1760,7 @@
       "checkHelp": "Cette vérification trouve ce que cela ne peut pas voir : une identité créée par quelqu'un d'autre et transférée à vous, vers laquelle rien dans l'historique de ce portefeuille ne pointe. Elle interroge l'indexeur sur chaque token que vous détenez et remonte chaque UTXO qui pourrait être celui d'une identité, d'où le bouton plutôt qu'une action silencieuse de la page."
     },
     "transfer": {
-      "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token.",
+      "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",
       "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
       "button": "Transférer l'identité",
       "transferringButton": "Transfert...",
