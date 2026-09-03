@@ -61,13 +61,27 @@
     const category = identity.category;
     const opening = expandedIdentity.value !== category;
     expandedIdentity.value = opening ? category : undefined;
-    // opening one card is interest in one identity, which is when its chain is worth a query: the
-    // page load stays free of them, and the age and length fill in without a second click
-    if (opening) void loadHistory(identity);
+    openHistory.value = undefined;
   }
 
-  // Which card's history is being fetched
+  // The history is a view among the card's actions, opened and closed the way the token item's
+  // info panel is: it is the one identity query that grows with the chain's length, so it is
+  // fetched when asked for, not when the card opens. Which card's is open, and which is being fetched.
+  const openHistory = ref<string | undefined>(undefined);
   const loadingHistory = ref<string | undefined>(undefined);
+  function toggleHistory(identity: IdentityState) {
+    if (openHistory.value === identity.category) {
+      openHistory.value = undefined;
+      return;
+    }
+    openHistory.value = identity.category;
+    void loadHistory(identity);
+  }
+  // the label carries the chain's length when the resolve already holds it
+  function historyLabel(identity: IdentityState) {
+    const length = identity.links?.length;
+    return length ? t('identities.history.actionCount', { count: length }) : t('identities.history.action');
+  }
 
   // One form open at a time across the whole list, and one operation in flight: these are
   // deliberate, one-at-a-time operations, and a card with four open forms says otherwise
@@ -890,6 +904,11 @@
             {{ t('identities.transfer.action') }}
           </span>
         </template>
+          <!-- a view among the actions, the way the token item's "info" sits beside its actions -->
+          <span @click="toggleHistory(identity)" style="white-space: nowrap;">
+            <q-icon name="history" size="18px" />
+            {{ historyLabel(identity) }}
+          </span>
           <q-icon name="more_vert" size="22px" class="identity-menu-trigger">
             <q-menu anchor="bottom right" self="top right">
               <q-list dense>
@@ -1041,7 +1060,7 @@
           </div>
         </div>
 
-        <div class="section">
+        <div v-if="openHistory === identity.category" class="section">
           <!-- the year comes from the history, so it lands here with the history rather than
                growing the header after the card was drawn -->
           <div>

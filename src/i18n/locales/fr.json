@@ -290,7 +290,7 @@
       "tokenSymbol": "Symbole du token :",
       "numberOfDecimals": "Nombre de décimales :",
       "tokenWebLink": "Lien web du token :",
-      "seeDetailsOnExplorer": "Voir toutes les infos du token sur TokenExplorer",
+      "seeDetailsOnExplorer": "Voir sur TokenExplorer",
       "nftType": "Type de NFT :",
       "immutable": "immuable",
       "nftCommitment": "Commitment du NFT :",
@@ -1667,7 +1667,9 @@
         "operation": "Mise à jour",
         "mint": "Frappé"
       },
-      "minted": "{count} NFT frappé | {count} NFTs frappés"
+      "minted": "{count} NFT frappé | {count} NFTs frappés",
+      "action": "historique",
+      "actionCount": "historique ({count})"
     },
     "publish": {
       "action": "publier des métadonnées",

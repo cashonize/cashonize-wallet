@@ -290,7 +290,7 @@
       "tokenSymbol": "Token-Symbol:",
       "numberOfDecimals": "Anzahl Dezimalstellen:",
       "tokenWebLink": "Token-Weblink:",
-      "seeDetailsOnExplorer": "Vollständige Token-Infos auf TokenExplorer ansehen",
+      "seeDetailsOnExplorer": "Auf TokenExplorer ansehen",
       "nftType": "NFT-Typ:",
       "immutable": "unveränderlich",
       "nftCommitment": "NFT-Commitment:",
@@ -1667,7 +1667,9 @@
         "operation": "Aktualisiert",
         "mint": "Geprägt"
       },
-      "minted": "{count} NFT geprägt | {count} NFTs geprägt"
+      "minted": "{count} NFT geprägt | {count} NFTs geprägt",
+      "action": "Verlauf",
+      "actionCount": "Verlauf ({count})"
     },
     "publish": {
       "action": "Metadaten veröffentlichen",

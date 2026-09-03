@@ -290,7 +290,7 @@
       "tokenSymbol": "Símbolo del token:",
       "numberOfDecimals": "Número de decimales:",
       "tokenWebLink": "Enlace web del token:",
-      "seeDetailsOnExplorer": "Ver información completa del token en TokenExplorer",
+      "seeDetailsOnExplorer": "Ver en TokenExplorer",
       "nftType": "Tipo de NFT:",
       "immutable": "inmutable",
       "nftCommitment": "Commitment del NFT:",
@@ -1667,7 +1667,9 @@
         "operation": "Actualizada",
         "mint": "Acuñado"
       },
-      "minted": "Acuñado {count} NFT | Acuñados {count} NFTs"
+      "minted": "Acuñado {count} NFT | Acuñados {count} NFTs",
+      "action": "historial",
+      "actionCount": "historial ({count})"
     },
     "publish": {
       "action": "publicar metadatos",

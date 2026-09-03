@@ -290,7 +290,7 @@
       "tokenSymbol": "Token symbol:",
       "numberOfDecimals": "Number of decimals:",
       "tokenWebLink": "Token web link:",
-      "seeDetailsOnExplorer": "View full token info on TokenExplorer",
+      "seeDetailsOnExplorer": "View on TokenExplorer",
       "nftType": "NFT type:",
       "immutable": "immutable",
       "nftCommitment": "NFT commitment:",
@@ -1667,7 +1667,9 @@
         "operation": "Updated",
         "mint": "Minted"
       },
-      "minted": "Minted {count} NFT | Minted {count} NFTs"
+      "minted": "Minted {count} NFT | Minted {count} NFTs",
+      "action": "history",
+      "actionCount": "history ({count})"
     },
     "publish": {
       "action": "publish metadata",
