@@ -647,11 +647,10 @@
       "explainer": "L'UTXO dépensé par cette transaction devient l'id permanent du token.",
       "none": "Ce portefeuille n'a encore aucun UTXO permettant de créer un token.",
       "prepareButton": "Préparer un UTXO",
-      "chooseExisting": "Ou choisir un UTXO que ce portefeuille possède déjà",
-      "needCoin": "Préparez un UTXO ci-dessus, ou choisissez-en un que ce portefeuille possède déjà."
+      "chooseExisting": "Ou choisir un UTXO que ce portefeuille possède déjà"
     },
     "preparingButton": "Préparation...",
-    "plannedTokenId": "TokenId prévu :",
+    "plannedTokenId": "Id du token :",
     "loading": "chargement...",
     "mintingDescription": "Le NFT de création est utilisé pour créer une collection de NFTs. Le NFT de création a la capacité de créer de nouveaux NFTs avec le même tokenId.",
     "mintingHelp": "Seule la transaction de création peut accorder la capacité de frappe. Sans elle, cette catégorie ne pourra jamais avoir de NFT.",
@@ -659,25 +658,25 @@
     "supplyLabel": "Offre totale de tokens fongibles",
     "supplyHelp": "L'offre fongible est fixée à la création. Il ne pourra jamais exister davantage de cette catégorie, décidez donc le nombre maintenant.",
     "supplyPlaceholder": "offre totale",
-    "supplyNote": "Remarque : ajoutez des zéros supplémentaires selon le nombre de décimales défini dans les métadonnées BCMR",
+    "supplyNote": "Saisissez des tokens entiers. Si les métadonnées donneront des décimales au token, ajoutez autant de zéros maintenant : 100,00 tokens font 10000.",
     "circulation": {
       "label": "Mettre en circulation maintenant",
-      "help": "Ce qui est émis maintenant est de l'offre ordinaire que ce portefeuille peut dépenser. Le reste demeure avec l'identité en réserve, protégé avec elle, et pourra être émis plus tard depuis la page des identités.",
+      "help": "Ce qui est émis maintenant est une offre ordinaire que ce portefeuille peut dépenser. Le reste demeure avec l'identité comme réserve, retenu de la même façon que l'identité, et peut être émis plus tard depuis la page des identités.",
       "placeholder": "Montant à émettre",
       "split": "{reserve} reste avec l'identité en réserve, {circulating} entre en circulation."
     },
     "linkMetadata": "Lier les métadonnées du token",
     "steps": {
-      "author": "Rédigez le JSON du registre avec le {generator}, en y nommant le tokenId prévu ci-dessus.",
+      "author": "Rédigez le JSON du registre avec le {generator}, en y nommant l'id du token ci-dessus.",
       "host": "Hébergez-le sur votre propre domaine ou sur IPFS.",
       "verify": "Indiquez ci-dessous où il est hébergé. Ce portefeuille le récupère et vérifie qu'il nomme ce token.",
       "create": "Créez le token : la même transaction publie l'empreinte du fichier et où le trouver."
     },
-    "metadataNote": "Les métadonnées peuvent aussi être ajoutées après la création : l'identité reste dans ce portefeuille, et la page des identités publie les mises à jour avec elle.",
+    "metadataNote": "Les métadonnées peuvent être ajoutées maintenant avec le générateur BCMR, ou après la création depuis la page des identités.",
     "creatingTokensButton": "Création des tokens...",
     "createButton": "Créer",
     "notifications": {
-      "preparingPreGenesis": "Préparation du pré-genesis...",
+      "preparingPreGenesis": "Préparation d'un UTXO...",
       "transactionSent": "Transaction envoyée avec succès !",
       "creatingTokens": "Création des tokens...",
       "creatingMintingNft": "Création du NFT de création...",
@@ -693,7 +692,8 @@
       "mintingNft": "NFT de frappe de la catégorie {category} créé",
       "hybrid": "{supply} tokens fongibles et un NFT de frappe de la catégorie {category} créés",
       "reserve": "{amount} reste avec l'identité en offre réservée.",
-      "listed": "Elle figure sur la page des identités, et son UTXO est écarté de la sélection des pièces."
+      "listed": "Elle figure sur la page des identités, et son UTXO est écarté de la sélection des pièces.",
+      "openIdentities": "Ouvrir la page des identités"
     },
     "shapeLabel": "Type de token",
     "shapes": {
@@ -704,12 +704,12 @@
     "step": "Étape {current} sur {total}",
     "reserveNote": "L'offre d'un token est créée sur l'UTXO de l'identité, elle ne peut donc pas entrer entièrement en circulation dans cette transaction. Gardez-en une partie en réserve et émettez-la ensuite depuis la page des identités.",
     "home": {
-      "question": "Où l'identité du token doit-elle vivre ? L'identité est l'UTXO dont le détenteur peut mettre à jour les métadonnées du token.",
+      "intro": "Créez ici un nouveau token, avec un nom, une icône et d'autres métadonnées, liées maintenant ou ajoutées plus tard. Chaque token a une identité : l'UTXO dont le détenteur peut mettre à jour ces métadonnées. Choisissez où l'identité doit vivre.",
       "moveLater": "Vous pourrez la déplacer de ce portefeuille vers Studio plus tard, et inversement.",
       "moveLaterHelp": "Vers Studio : créez-y une clé, puis transférez l'identité depuis la page des identités vers l'adresse de garde que Studio affiche pour cette clé. Retour : le « Release UTXO » de Studio la ramène à une adresse ordinaire, et la page des identités la retrouve avec la vérification des identités.",
       "wallet": "Dans ce portefeuille",
       "walletStrength": "Votre portefeuille détient l'UTXO d'identité et le gère sur la page des identités.",
-      "walletCaveat": "Protégé par Cashonize seulement, pas contre d'autres applications de portefeuille sur cette graine.",
+      "walletCaveat": "Protégé par Cashonize seulement : un envoi depuis une autre application de portefeuille sur cette graine pourrait le remettre à quelqu'un d'autre.",
       "studio": "Avec CashTokens Studio",
       "studioStrength": "Un contrat sur la chaîne le détient ; vous détenez un NFT clé qui le contrôle.",
       "studioCaveat": "Chaque opération passe par le site de Studio.",
@@ -719,19 +719,31 @@
         "operations": "Opérations :"
       },
       "walletRows": {
-        "protection": "un envoi ordinaire depuis une autre application dépense l'UTXO d'identité et remet l'identité à son destinataire.",
-        "protectionHelp": "Le token continue de fonctionner. Seul le destinataire pourra ensuite mettre à jour ses métadonnées.",
-        "metadata": "vous les rédigez et hébergez, sur un domaine ou IPFS.",
+        "protection": "tenu hors de la sélection des pièces par Cashonize ; les autres applications ignorent qu'il est particulier.",
+        "protectionHelp": "Une graine utilisée dans plusieurs applications est mieux avec un portefeuille utilisé seulement ici, ou avec Studio.",
+        "metadata": "un fichier que vous hébergez, sur un domaine ou IPFS, lié maintenant ou depuis la page des identités plus tard.",
         "operations": "ici, sur la page des identités."
       },
       "studioRows": {
-        "protection": "aucun portefeuille ne peut le dépenser par accident, quelle que soit l'application qui détient la graine.",
+        "protection": "ne s'ouvre qu'au NFT clé, que les autres portefeuilles affichent sans nom et pourraient envoyer.",
         "metadata": "rédigées et épinglées sur IPFS par Studio, ou une URL que vous hébergez.",
         "operations": "sur le site de Studio, par WalletConnect, sa libération comprise.",
         "operationsHelp": "Libérer l'identité de la garde, vers une adresse ordinaire, se fait aussi par Studio."
       },
-      "glossary": "Studio appelle le contrat AuthGuard et la clé AuthKey. Cashonize affiche la clé que vous détenez et ce qu'elle garde.",
-      "openStudio": "Ouvrir CashTokens Studio"
+      "glossary": "Studio appelle le contrat AuthGuard et la clé AuthKey. La clé n'a pas de métadonnées propres ; Cashonize la nomme d'après ce qu'elle garde.",
+      "openStudio": "Ouvrir CashTokens Studio",
+      "chosen": "Identité : dans ce portefeuille"
+    },
+    "change": "modifier",
+    "noHosting": "Ni domaine ni IPFS ? CashTokens Studio peut les rédiger et les héberger pour vous, et l'identité peut y être déplacée plus tard.",
+    "locationHint": "Un domaine, une URL HTTPS complète ou un CID IPFS.",
+    "sameFile": "Chaque emplacement doit servir le même fichier.",
+    "confirm": {
+      "title": "Créer ce token ?",
+      "button": "Créer",
+      "supply": "Offre totale : {supply}",
+      "metadataLinked": "Métadonnées : liées depuis {count} emplacement | Métadonnées : liées depuis {count} emplacements",
+      "metadataNone": "Métadonnées : aucune liée pour l'instant. Elles peuvent être ajoutées depuis la page des identités."
     }
   },
   "utxoManagement": {
@@ -1648,7 +1660,9 @@
         "author": "Rédigez le JSON du registre avec le {generator}.",
         "host": "Hébergez-le sur votre domaine ou sur IPFS.",
         "publish": "Indiquez ci-dessous où il est hébergé, ce portefeuille le vérifie et publie le pointeur."
-      }
+      },
+      "generatorHelp": "Le générateur est un formulaire qui rédige pour vous le fichier de métadonnées, le registre. Vous pouvez aussi l'écrire vous-même selon le {schema} ; dans les deux cas ce portefeuille récupère le fichier et vérifie qu'il nomme ce token.",
+      "generatorHelpSchema": "schéma BCMR"
     },
     "add": {
       "label": "Ajouter une identité par catégorie de jeton",

@@ -13,7 +13,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
-  import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useQuasar } from 'quasar'
@@ -33,8 +33,12 @@
   const identityHome = ref<'wallet' | 'studio' | undefined>(undefined);
   const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
   const homeRows = ['protection', 'metadata', 'operations'] as const;
+  // the identities page, where creation ends and management begins
+  const identitiesView = 19;
   watch(() => store._wallet, () => {
     identityHome.value = undefined;
+    pickedOutpoint.value = undefined;
+    editingUtxo.value = true;
   });
 
   // What the token is, rather than a supply field and a toggle the user has to combine into one
@@ -65,6 +69,22 @@
     genesisCandidates.value?.find(utxo => outpointOf(utxo) === pickedOutpoint.value)
   );
   const plannedCategory = computed(() => genesisInput.value?.txid);
+
+  // The steps open one at a time, the way the flipstarter page's do: step 1 closes to one line
+  // once a genesis input is set and can be reopened, step 2 opens then, and step 3 with Create
+  // once step 2 is settled. The choice block closes with step 1, the form under it being
+  // committed to; "change" there gives the pick up, since the pick belongs to this path.
+  const editingUtxo = ref(true);
+  watch(genesisInput, picked => {
+    if (picked) editingUtxo.value = false;
+  });
+  const utxoStepOpen = computed(() => editingUtxo.value || !genesisInput.value);
+  const choiceOpen = computed(() => identityHome.value !== 'wallet' || utxoStepOpen.value);
+  function changeHome() {
+    identityHome.value = undefined;
+    pickedOutpoint.value = undefined;
+    editingUtxo.value = true;
+  }
 
   // Amounts are whole token units here: the decimals live in the metadata, which does not exist
   // yet at creation time
@@ -99,6 +119,14 @@
     if (supply > maxTokenSupply) return t('createTokens.errors.overMaxSupply', { max: maxTokenSupply.toString() });
     if (issued > supply) return t('createTokens.errors.overSupply');
     return undefined;
+  });
+
+  // Step 2 is settled when what Create acts on is: a shape, and for a shape with a supply both
+  // amounts typed and passing the checks
+  const supplySettled = computed(() => {
+    if (!hasSupply.value) return true;
+    if (!inputFungibleSupply.value.trim() || !inputCirculating.value.trim()) return false;
+    return genesisProblem.value === undefined && (totalSupply.value ?? 0n) > 0n;
   });
 
   // A token output carrying neither an amount nor an NFT is invalid, so the identity output has
@@ -171,6 +199,13 @@
     const circulatingAmount = hasSupply.value ? circulating.value : 0n;
     if (!pickedCoin || genesisProblem.value) return;
     if (reserveAmount === undefined || circulatingAmount === undefined) return;
+    // a genesis cannot be corrected afterwards, so what it makes is confirmed first, always
+    const confirmed = await confirmDialog(
+      t('createTokens.confirm.title'),
+      confirmMessage(reserveAmount, circulatingAmount),
+      t('createTokens.confirm.button')
+    );
+    if (!confirmed) return;
     activeAction.value = 'creating';
     try{
       const opreturnData = await metadataOutput(pickedCoin.txid);
@@ -199,19 +234,37 @@
       const { txId } = genesisResponse;
       const category = genesisResponse?.categories?.[0] ?? pickedCoin.txid;
       const alertMessage = creationSummary(category, reserveAmount);
-      // reset input fields
+      // creation ends where management begins: the identity is listed and its AuthHead held back
+      if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
+      // the page starts over at the choice; the dialog offers the identities page as the next step
       inputFungibleSupply.value = "";
       inputCirculating.value = "";
       tokenShape.value = 'fungible';
       metadataUris.value = [""];
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'));
-      // creation ends where management begins: the identity is listed and its AuthHead held back
-      if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
+      changeHome();
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'), {
+        label: t('createTokens.created.openIdentities'),
+        onClick: () => store.changeView(identitiesView),
+      });
     } catch(error){
       displayAndLogError(error)
     } finally {
       activeAction.value = null;
     }
+  }
+
+  // What is about to be made, for the dialog that asks before it is
+  function confirmMessage(reserveAmount: bigint, circulatingAmount: bigint) {
+    const lines = [t(`createTokens.shapes.${tokenShape.value}`)];
+    if (hasSupply.value) {
+      lines.push(t('createTokens.confirm.supply', { supply: totalSupply.value?.toString() }));
+      lines.push(t('createTokens.circulation.split', {
+        reserve: reserveAmount.toString(), circulating: circulatingAmount.toString(),
+      }));
+    }
+    if (filledUris.value.length) lines.push(t('createTokens.confirm.metadataLinked', filledUris.value.length));
+    else lines.push(t('createTokens.confirm.metadataNone'));
+    return lines.join('\n');
   }
 
   // What was just made, for the dialog that reports it
@@ -239,11 +292,12 @@
       <legend>{{ t('createTokens.title') }}</legend>
       <!-- The one decision on this page a creator cannot see the consequences of from the form:
            where the token's identity lives afterwards, what protects it, and what it then depends
-           on. Two cards of the same shape, so neither reads as the recommended one: a title, what
-           you get, and the one caveat, and neither card changes size. Above them the one fact that
-           applies to both, which is what makes the choice safe; below the pair, the selected
-           side's detail, where the consequences of the selection begin. -->
-      <div>{{ t('createTokens.home.question') }}</div>
+           on. The block says what the page does, defines the identity, and asks; two cards of the
+           same shape answer, so neither reads as the recommended one: a radio marker, a title,
+           what you get, and the one caveat, and neither card changes size. Below the pair, the
+           selected side's detail, where the consequences of the selection begin. -->
+      <template v-if="choiceOpen">
+      <div>{{ t('createTokens.home.intro') }}</div>
       <div style="margin-top: 6px;">
         {{ t('createTokens.home.moveLater') }}
         <InfoPopup>
@@ -252,23 +306,23 @@
       </div>
       <div class="home-cards">
         <div class="home-card" :class="{ selected: identityHome === 'wallet' }" @click="identityHome = 'wallet'">
-          <div><b>{{ t('createTokens.home.wallet') }}</b></div>
+          <div class="home-card-title"><span class="home-radio"></span><b>{{ t('createTokens.home.wallet') }}</b></div>
           <div>{{ t('createTokens.home.walletStrength') }}</div>
           <div>{{ t('createTokens.home.walletCaveat') }}</div>
         </div>
         <div class="home-card" :class="{ selected: identityHome === 'studio' }" @click="identityHome = 'studio'">
-          <div><b>{{ t('createTokens.home.studio') }}</b></div>
+          <div class="home-card-title"><span class="home-radio"></span><b>{{ t('createTokens.home.studio') }}</b></div>
           <div>{{ t('createTokens.home.studioStrength') }}</div>
           <div>{{ t('createTokens.home.studioCaveat') }}</div>
         </div>
       </div>
 
-      <!-- the same three leads on both sides, so the selection is compared like with like; no row
-           says a card line again -->
+      <!-- the same three leads on both sides, so the selection is compared like with like; the
+           card carries the fact and its consequence, the row the mechanism -->
       <div v-if="identityHome" class="section home-rows">
         <div v-for="row in homeRows" :key="row">
           <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${identityHome}Rows.${row}`) }}
-          <!-- what the recipient of such a send can and cannot do, which the line cannot carry -->
+          <!-- the advice the mechanism leads to, for a seed shared across apps -->
           <InfoPopup v-if="identityHome === 'wallet' && row === 'protection'">
             <div style="max-width: 300px;">{{ t('createTokens.home.walletRows.protectionHelp') }}</div>
           </InfoPopup>
@@ -278,28 +332,39 @@
           </InfoPopup>
         </div>
       </div>
+      </template>
+      <!-- closed like a step once the form under it is committed to -->
+      <div v-else class="description">
+        {{ t('createTokens.home.chosen') }}
+        <span class="action-link" @click="changeHome()">{{ t('createTokens.change') }}</span>
+      </div>
 
       <template v-if="identityHome === 'studio'">
         <div class="section">{{ t('createTokens.home.glossary') }}</div>
-        <a :href="studioUrl" target="_blank" class="button primaryButton section">
-          {{ t('createTokens.home.openStudio') }}
-        </a>
+        <!-- an external link, marked the way the wallet marks every other one -->
+        <div class="section">
+          <a :href="studioUrl" target="_blank" class="action-link">
+            {{ t('createTokens.home.openStudio') }}
+            <img :src="settingsStore.darkMode ? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;">
+          </a>
+        </div>
       </template>
 
       <template v-if="identityHome === 'wallet'">
 
-      <!-- Which coin the genesis spends decides the token's permanent id, which is the whole of
+      <!-- Which UTXO the genesis spends decides the token's permanent id, which is the whole of
            what this section is, so it leads with that rather than with a heading repeating it -->
-      <div class="section">
+      <div v-if="utxoStepOpen" class="section">
         <div class="description">{{ t('createTokens.step', { current: 1, total: 3 }) }}</div>
         <div>{{ t('createTokens.genesisInput.explainer') }}</div>
         <div v-if="store.spendableBalance === 0n" style="color: red; margin-top: 6px;">{{ t('createTokens.needBch') }}</div>
 
-        <!-- Preparing a coin is a step towards creating rather than the page's action, so it
-             takes the ordinary button and leaves the primary one to Create -->
+        <!-- the open step's one action takes the primary style; Create is not on screen until
+             this step has closed -->
         <input
           @click="createPreGenesis"
           type="button"
+          class="primaryButton"
           :value="activeAction === 'creatingPreGenesis' ? t('createTokens.preparingButton') : t('createTokens.genesisInput.prepareButton')"
           :disabled="activeAction !== null || store.spendableBalance === 0n"
           style="margin-top: 10px;"
@@ -338,10 +403,16 @@
           </div>
         </div>
       </div>
+      <!-- closed to the one thing the step decided, in the form the metadata names it by -->
+      <div v-else-if="plannedCategory" class="section description">
+        {{ t('createTokens.plannedTokenId') }}
+        <span class="mono">{{ truncateHash(plannedCategory) }}</span>
+        <span class="action-link" @click="editingUtxo = true">{{ t('createTokens.change') }}</span>
+      </div>
 
-      <!-- The fields stay usable before a coin exists: deciding what to make does not depend on
-           which coin makes it, and Create says what is still missing -->
-      <div class="section">
+      <!-- Deciding what to make does not depend on which UTXO makes it, but it reads better one
+           thing at a time, so this opens once the UTXO is settled -->
+      <div v-if="!utxoStepOpen" class="section">
         <div class="description">{{ t('createTokens.step', { current: 2, total: 3 }) }}</div>
         <label for="tokenShape">
           {{ t('createTokens.shapeLabel') }}
@@ -388,15 +459,17 @@
           {{ t('createTokens.circulation.split', { reserve: reserve.toString(), circulating: circulating?.toString() }) }}
         </div>
         <div v-if="reserveNote" class="description" style="margin-top: 6px;">{{ reserveNote }}</div>
+        <div v-if="genesisProblem" class="genesis-problem" style="margin-top: 6px;">{{ genesisProblem }}</div>
         </template>
       </div>
 
-      <div class="section">
+      <!-- Optional, and a disclosure; the line under it is what decides whether to open it -->
+      <div v-if="!utxoStepOpen && supplySettled" class="section">
         <div class="description">{{ t('createTokens.step', { current: 3, total: 3 }) }}</div>
         <details style="margin-top: 6px;">
           <summary style="display: list-item">{{ t('createTokens.linkMetadata') }}</summary>
-          <!-- The numbers already say these are steps in order, so an icon beside each one is a
-               second signpost for the same thing -->
+          <!-- These four are the reader's own actions, done on other sites, so they take the text
+               colour; the numbers already say they are steps in order -->
           <ol class="walkthrough">
             <li>
               <i18n-t keypath="createTokens.steps.author" tag="span">
@@ -409,7 +482,7 @@
             <li>{{ t('createTokens.steps.verify') }}</li>
             <li>{{ t('createTokens.steps.create') }}</li>
           </ol>
-          <div class="description" style="margin-top: 8px;">{{ t('identities.publish.locationsHint') }}</div>
+          <div style="margin-top: 8px;">{{ t('createTokens.noHosting') }}</div>
           <div v-for="(uri, index) in metadataUris" :key="index" class="publish-uri-row">
             <input v-model="metadataUris[index]" :placeholder="t('identities.publish.uriPlaceholder')">
             <span
@@ -418,29 +491,38 @@
               @click="removeUriRow(index)"
             >{{ t('identities.publish.removeLocation') }}</span>
           </div>
+          <div class="description" style="margin-top: 4px;">{{ t('createTokens.locationHint') }}</div>
           <div class="publish-uri-actions">
             <button @click="addUriRow()">{{ t('identities.publish.addLocation') }}</button>
-            <span class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
+            <span class="description">{{ t('createTokens.sameFile') }}</span>
+            <!-- a number about nothing until a location is typed -->
+            <span v-if="filledUris.length" class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
               {{ t('identities.publish.bytesLeft', { bytes: publicationBytesLeft }) }}
             </span>
           </div>
         </details>
-        <!-- Reassurance that there is nothing to be stuck on, which is an aside rather than
-             something to stop at, so it is a line and not a box -->
-        <div class="description" style="margin-top: 10px;">{{ t('createTokens.metadataNote') }}</div>
-      </div>
+        <div style="margin-top: 10px;">
+          {{ t('createTokens.metadataNote') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">
+              <i18n-t keypath="identities.publish.generatorHelp" tag="span">
+                <template #schema>
+                  <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+                </template>
+              </i18n-t>
+            </div>
+          </InfoPopup>
+        </div>
 
-      <div v-if="genesisInput && genesisProblem" class="genesis-problem" style="margin-top: 15px;">{{ genesisProblem }}</div>
-      <!-- A disabled Create with nothing said would leave the missing piece to be guessed at -->
-      <div v-else-if="!genesisInput" class="description" style="margin-top: 15px;">{{ t('createTokens.genesisInput.needCoin') }}</div>
-      <input
-        @click="createToken"
-        type="button"
-        class="primaryButton"
-        :value="activeAction === 'creating' ? t('createTokens.creatingTokensButton') : t('createTokens.createButton')"
-        style="margin: 10px 0 4px;"
-        :disabled="activeAction !== null || !genesisInput || genesisProblem !== undefined"
-      >
+        <input
+          @click="createToken"
+          type="button"
+          class="primaryButton"
+          :value="activeAction === 'creating' ? t('createTokens.creatingTokensButton') : t('createTokens.createButton')"
+          style="margin: 15px 0 4px;"
+          :disabled="activeAction !== null || genesisProblem !== undefined"
+        >
+      </div>
       </template>
     </fieldset>
   </div>
@@ -482,8 +564,32 @@
   border-color: var(--color-primary);
   cursor: default;
 }
+/* the one-of-two control the page's own inputs use, so a card reads as a choice on a phone too */
+.home-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.home-radio {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid grey;
+  border-radius: 50%;
+}
+.home-card.selected .home-radio {
+  border-color: var(--color-primary);
+  background: radial-gradient(circle, var(--color-primary) 45%, transparent 50%);
+}
 .home-rows div {
   margin-top: 4px;
+}
+.action-link {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.action-link:hover {
+  text-decoration: underline;
 }
 label {
   display: block;
@@ -516,7 +622,6 @@ label {
   padding: 0;
   list-style: none;
   counter-reset: walkthrough-step;
-  color: grey;
 }
 .walkthrough li {
   display: flex;
@@ -528,6 +633,7 @@ label {
   counter-increment: walkthrough-step;
   content: counter(walkthrough-step) ")";
   flex: none;
+  color: grey;
 }
 .publish-uri-row {
   display: flex;

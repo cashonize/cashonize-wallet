@@ -915,6 +915,16 @@
                   <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
                 </template>
               </i18n-t>
+              <!-- the line names a tool and cannot say what it is -->
+              <InfoPopup>
+                <div style="max-width: 300px;">
+                  <i18n-t keypath="identities.publish.generatorHelp" tag="span">
+                    <template #schema>
+                      <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+                    </template>
+                  </i18n-t>
+                </div>
+              </InfoPopup>
             </li>
             <li>
               <q-icon name="archive" size="18px" />

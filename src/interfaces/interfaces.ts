@@ -66,6 +66,8 @@ export interface DialogInfo {
   txid: string
   title?: string
   hideExplorerLink?: boolean
+  // the natural next step after what the dialog reports, offered as one tap
+  action?: { label: string; onClick: () => void }
 }
 
 export interface BcmrTokenNftsParseInfo {
