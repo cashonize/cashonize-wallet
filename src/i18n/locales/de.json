@@ -1537,12 +1537,12 @@
       "existing": "Hinzufügen",
       "create": "Erstellen"
     },
-    "whatIsAnIdentityNote": "Studio, der Explorer und die Spezifikation nennen diesen UTXO den AuthHead und die Transaktion, mit der die Kette begann, die Authbase: bei einem Token seine Id. Den AuthHead zu halten ist es, was dieses Wallet zu dem macht, das neue Metadaten veröffentlichen kann.",
+    "whatIsAnIdentityNote": "Studio und der Explorer nennen diesen UTXO den AuthHead; die Spezifikation nennt die Transaktion den authhead und ihren Ausgang 0 den Identitätsausgang. Ihn zu halten ist es, was dieses Wallet zu dem macht, das neue Metadaten veröffentlichen kann.",
     "authchain": {
       "leads": {
         "chain": "Authchain:",
         "base": "Authbase:",
-        "head": "AuthHead:"
+        "head": "die letzte Transaktion; ihr Ausgang 0 ist der UTXO der Identität, dessen Halter die Identität kontrolliert."
       },
       "chain": "Transaktionen, von denen jede den Ausgang 0 der vorigen ausgibt.",
       "base": "die erste davon und die Id der Identität; bei einem Token die Token-Id.",
@@ -1550,7 +1550,7 @@
     },
     "authbaseLabel": "Authbase / Token-Id:",
     "resolving": "Suche, wo diese Identitäten liegen...",
-    "empty": "Noch keine Identitäten gelistet. Eine, die dieses Wallet gemacht hat, wird von selbst gelistet; eine, die du hältst oder verfolgen willst, fügst du unter {link} über ihre Authbase hinzu. Die Identitäten der Tokens, die du hältst, werden unten verfolgt.",
+    "empty": "Noch keine Identitäten gelistet. Eine, die dieses Wallet gemacht hat, wird von selbst gefunden; eine, die du hältst oder verfolgen willst, fügst du unter {link} über ihre Authbase hinzu. Die Identitäten der Tokens, die du hältst, werden unten verfolgt.",
     "emptyLink": "Hinzufügen",
     "detected": {
       "foundAutomatically": "Automatisch gefunden",
@@ -1564,11 +1564,10 @@
       "removeMessage": "Der UTXO kommt zurück in die Münzauswahl, und ein gewöhnlicher Versand übergibt die Identität, die er trägt, an den Empfänger dieses Versands. Er wird nicht wieder aufgelistet."
     },
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
-    "watchedHeader": "{count} Identität nur beobachtet, in einem anderen Wallet | {count} Identitäten nur beobachtet, in einem anderen Wallet",
+    "watchedHeader": "{count} Identität nur beobachtet, nicht von diesem Wallet gehalten | {count} Identitäten nur beobachtet, nicht von diesem Wallet gehalten",
     "follow": {
       "header": "{count} Identität eines gehaltenen Tokens, verfolgt | {count} Identitäten gehaltener Tokens, verfolgt",
       "toggle": "Die Identitäten der gehaltenen Tokens verfolgen",
-      "line": "Verfolgt, um zu wissen, wo jede Identität gehalten wird. Eine Anfrage je Token beim Öffnen; eine, deren UTXO dieses Wallet erreicht, wird als eigene gelistet und zurückgehalten, mit Hinweis.",
       "help": "Die Token-Liste geht als Ganzes an den Chaingraph-Server. Ausschalten beendet das; hier wird nichts zurückgehalten oder als neu gezählt.",
       "show": "anzeigen",
       "hide": "ausblenden",
@@ -1580,13 +1579,13 @@
     "authheadAmount": "Enthält {amount}",
     "status": {
       "held": "In diesem Wallet gehalten",
-      "notHeld": "Nur beobachtet, in einem anderen Wallet",
+      "notHeld": "Nur beobachtet, nicht von diesem Wallet gehalten",
       "unresolved": "Konnte nicht abgefragt werden",
       "heldViaKey": "Über einen Identitätsschlüssel gehalten"
     },
     "statusHelp": {
       "held": "Dieses Wallet hält den UTXO dieser Identität und kann die Metadaten also aktualisieren. Der UTXO ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann ihn ausgeben.",
-      "notHeld": "Diese Identität liegt woanders, dieses Wallet beobachtet sie also nur: die Veröffentlichung wird gezeigt, aktualisieren kann sie das Wallet, das sie hält.",
+      "notHeld": "Diese Identität wird nicht von diesem Wallet gehalten, das sie deshalb nur beobachtet: ihre Veröffentlichung wird gezeigt, aktualisieren kann sie nur, wer sie hält.",
       "unresolved": "Wo diese Identität liegt, konnte nicht abgefragt werden, es ist gerade unbekannt. Was für sie zurückgehalten wird, bleibt es, bis eine Antwort kommt.",
       "heldViaKey": "Der UTXO dieser Identität liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne den UTXO, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird."
     },
@@ -1732,10 +1731,10 @@
       "placeholder": "Authbase oder Token-Id",
       "button": "Identität hinzufügen",
       "addingButton": "Wird hinzugefügt...",
-      "categoryHelpWhere": "Die Id eines Tokens steht in seinen Infos im Tab Tokens. Eine woanders gehaltene Identität wird von hier beobachtet, nicht gehalten. Wer eine Identität gemacht oder veröffentlicht hat, die kein Token ist, kann dir ihre Authbase nennen; eine Registry benennt sie auch danach.",
+      "categoryHelpWhere": "Die Id eines Tokens steht in seinen Infos im Tab Tokens. Wer eine Identität gemacht oder veröffentlicht hat, die kein Token ist, kann dir ihre Authbase nennen; eine Registry benennt sie auch danach.",
       "categoryHelpKey": "Die Kategorie eines Identitätsschlüssels geht hier auch: das Wallet leitet ab, was er bewacht, und beobachtet diese Identitäten.",
       "found": {
-        "title": "Das Gefundene hinzufügen?",
+        "title": "Dieses Wallet hält Identitäten",
         "key": "Ein Identitätsschlüssel, der {count} Identität bewacht: | Ein Identitätsschlüssel, der {count} Identitäten bewacht:",
         "held": "{name}: von diesem Wallet gehalten. Sein UTXO wird von Sendungen zurückgehalten.",
         "watched": "{name}: nicht von diesem Wallet gehalten. Sie wird beobachtet; nichts wird zurückgehalten.",
@@ -1744,7 +1743,7 @@
         "button": "Hinzufügen"
       },
       "errors": {
-        "nothingFound": "Nichts gefunden für diese Authbase: keine Authchain beginnt dort, und kein Identitätsschlüssel bewacht etwas. Prüfe die Id oder den Chaingraph-Server in den Einstellungen."
+        "nothingFound": "Nichts gefunden für diese Authbase: der Chaingraph-Server kennt keine Transaktion mit dieser Id, und kein Identitätsschlüssel bewacht etwas. Prüfe die Id oder den Server in den Einstellungen."
       }
     },
     "create": {
@@ -1805,9 +1804,9 @@
     "unresolvedHint": "Lade neu oder prüfe den Chaingraph-Server in den Einstellungen.",
     "found": {
       "title": "Dieses Wallet hält Token-Identitäten",
-      "intro": "Dieses Wallet hält diese Identitäten und damit die Befugnis, ihre Metadaten zu ändern:",
+      "intro": "Dieses Wallet hält diese Identitäten oder den Schlüssel, der sie kontrolliert, und kann damit ihre Metadaten ändern:",
       "reserve": "Reserve von {amount}",
-      "heldBack": "Ihre Identitäts-UTXOs sind jetzt von der Münzauswahl ausgenommen, ein gewöhnlicher Versand kann sie also nicht aus Versehen ausgeben. Das BCH darauf zählt nicht zum verfügbaren Guthaben, und eine Reserve wird auf der Identitäten-Seite gezeigt statt in der Token-Liste.",
+      "heldBack": "Ihre Identitäts-UTXOs, oder das Schlüssel-NFT, das sie kontrolliert, sind jetzt nur in dieser App von der Münzauswahl ausgenommen: ein gewöhnlicher Versand von hier kann sie nicht aus Versehen ausgeben, derselbe Seed in anderer Software weiterhin schon. Das BCH darauf zählt nicht zum verfügbaren Guthaben, und eine Reserve wird auf der Identitäten-Seite gezeigt statt in der Token-Liste.",
       "remove": "Du kannst eine Identität von der Liste nehmen, wenn ihr UTXO lieber nicht zurückgehalten werden soll.",
       "view": "Identitäten ansehen",
       "close": "Schließen"

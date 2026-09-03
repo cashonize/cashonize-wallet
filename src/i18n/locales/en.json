@@ -1537,12 +1537,12 @@
       "existing": "Add",
       "create": "Create"
     },
-    "whatIsAnIdentityNote": "Studio, the explorer and the spec call that UTXO the AuthHead, and the transaction the chain started from the authbase: for a token, its token id. Holding the AuthHead is what makes this wallet the one that can publish new metadata.",
+    "whatIsAnIdentityNote": "Studio and the explorer call that UTXO the AuthHead; the spec calls the transaction the authhead and its output 0 the identity output. Holding it is what makes this wallet the one that can publish new metadata.",
     "authchain": {
       "leads": {
         "chain": "Authchain:",
         "base": "Authbase:",
-        "head": "AuthHead:"
+        "head": "the latest transaction; its output 0 is the identity UTXO, whose holder controls the identity."
       },
       "chain": "transactions, each spending the previous one's output 0.",
       "base": "the first of them, and the identity's id; for a token, the token id.",
@@ -1550,7 +1550,7 @@
     },
     "authbaseLabel": "Authbase / token id:",
     "resolving": "Looking up where these identities are held...",
-    "empty": "No identities listed yet. One this wallet made is listed on its own; one you hold or want to follow is added by its authbase under {link}. The identities of the tokens you hold are followed below.",
+    "empty": "No identities listed yet. One this wallet made is found on its own; one you hold or want to follow is added by its authbase under {link}. The identities of the tokens you hold are followed below.",
     "emptyLink": "Add",
     "detected": {
       "foundAutomatically": "Found automatically",
@@ -1564,11 +1564,10 @@
       "removeMessage": "The UTXO returns to coin selection, and an ordinary send hands the identity it carries to whoever receives that send. It will not be listed again."
     },
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
-    "watchedHeader": "{count} identity watched only, held by another wallet | {count} identities watched only, held by another wallet",
+    "watchedHeader": "{count} identity watched only, not held by this wallet | {count} identities watched only, not held by this wallet",
     "follow": {
       "header": "{count} identity of a token you hold, followed | {count} identities of tokens you hold, followed",
       "toggle": "Follow the identities of the tokens you hold",
-      "line": "Followed for where each identity is held. One lookup per token at open; one whose UTXO reaches this wallet is listed as owned and held back, with a notice.",
       "help": "The token list goes to the Chaingraph server as a set. Turning this off stops that; nothing here is held back or counted as new.",
       "show": "show",
       "hide": "hide",
@@ -1580,13 +1579,13 @@
     "authheadAmount": "Holds {amount}",
     "status": {
       "held": "Held by this wallet",
-      "notHeld": "Watch only, held by another wallet",
+      "notHeld": "Watch only, not held by this wallet",
       "unresolved": "Could not look up this identity",
       "heldViaKey": "Held through an identity key"
     },
     "statusHelp": {
       "held": "This wallet holds this identity's UTXO, so it can update the metadata. The UTXO is kept out of coin selection, so no ordinary send can spend it.",
-      "notHeld": "This identity is held somewhere else, so this wallet only watches it: its publication is shown, but updating it takes the wallet that holds it.",
+      "notHeld": "This identity is not held by this wallet, so it only watches it: its publication is shown, but updating it takes whoever holds it.",
       "unresolved": "Where this identity is held could not be looked up, so it is unknown right now. Anything held for it stays held until an answer comes back.",
       "heldViaKey": "This identity's UTXO is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the UTXO, so the key is what is kept out of coin selection."
     },
@@ -1732,10 +1731,10 @@
       "placeholder": "Authbase or token id",
       "button": "Add identity",
       "addingButton": "Adding...",
-      "categoryHelpWhere": "A token's id is on its info in the Tokens tab. An identity held elsewhere is watched from here, not held. Whoever made or published an identity that is not a token can tell you its authbase; a registry names it by that too.",
+      "categoryHelpWhere": "A token's id is on its info in the Tokens tab. Whoever made or published an identity that is not a token can tell you its authbase; a registry names it by that too.",
       "categoryHelpKey": "An identity key's category works here too: the wallet derives what it guards and watches those identities.",
       "found": {
-        "title": "Add what was found?",
+        "title": "This wallet holds identities",
         "key": "An identity key guarding {count} identity: | An identity key guarding {count} identities:",
         "held": "{name}: held by this wallet. Its UTXO will be held back from sends.",
         "watched": "{name}: not held by this wallet. It will be watched; nothing is held back.",
@@ -1744,7 +1743,7 @@
         "button": "Add"
       },
       "errors": {
-        "nothingFound": "Nothing found for that authbase: no authchain starts there, and no identity key guards anything. Check the id, or the Chaingraph server in the settings."
+        "nothingFound": "Nothing found for that authbase: the Chaingraph server knows no transaction with that id, and no identity key guards anything. Check the id, or the server in the settings."
       }
     },
     "create": {
@@ -1805,9 +1804,9 @@
     "unresolvedHint": "Reload, or check the Chaingraph server in the settings.",
     "found": {
       "title": "This wallet holds token identities",
-      "intro": "This wallet holds these identities, so it holds the authority to update their metadata:",
+      "intro": "This wallet holds these identities, or the key that controls them, so it can update their metadata:",
       "reserve": "reserve of {amount}",
-      "heldBack": "Their identity UTXOs are now held back from coin selection, so an ordinary send cannot spend them by accident. The BCH on them is not counted in the spendable balance, and a reserve is shown on the identities page rather than in the token list.",
+      "heldBack": "Their identity UTXOs, or the key NFT that controls them, are now held back from coin selection by this app only, so an ordinary send from here cannot spend them by accident; the same seed in other software still can. The BCH on them is not counted in the spendable balance, and a reserve is shown on the identities page rather than in the token list.",
       "remove": "You can remove an identity from the list if you would rather its UTXO were not held back.",
       "view": "View identities",
       "close": "Close"

@@ -615,8 +615,15 @@
       const { txId } = authUtxo.token
         ? await store.spend.spendAuthUtxo(authUtxo, transferOutputs(authUtxo, address, walletAddresses(), tokensGoAlong))
         : await store.spend.sendUtxo(authUtxo, address);
-      // The identity is now somebody else's to update, so it leaves this wallet's list
-      await identitiesStore.removeIdentity(identity.category);
+      // A transfer to one of this wallet's own addresses is a key rotation: the identity stays
+      // listed and its new UTXO held back. To anyone else, it is now theirs to update.
+      await store.updateWalletUtxos();
+      const rotated = txId !== undefined && (store.walletUtxos ?? []).some(utxo => outpointOf(utxo) === `${txId}:0`);
+      if (rotated) {
+        await identitiesStore.listCreatedIdentity(identity.category, txId);
+      } else {
+        await identitiesStore.removeIdentity(identity.category);
+      }
       return { txId, message: t('identities.transfer.done', { address }), title: t('identities.transfer.doneTitle') };
     });
   }
@@ -812,7 +819,6 @@
             @click="showTokenIdentities = !showTokenIdentities"
           >{{ showTokenIdentities ? t('identities.follow.hide') : t('identities.follow.show') }}</span>
         </div>
-        <div class="description" style="margin-top: 4px;">{{ t('identities.follow.line') }}</div>
       </div>
       <div
         v-for="identity in (group.key === 'tokens' && !showTokenIdentities ? [] : group.identities)"

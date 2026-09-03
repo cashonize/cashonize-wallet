@@ -182,19 +182,36 @@ describe('auth reservations follow the authchain', () => {
     expect(store.spendableUtxos).toEqual([])
   })
 
-  // the authhead moves to a new outpoint whenever the metadata is updated elsewhere
+  // the authhead moves to a new outpoint whenever the metadata is updated elsewhere, which
+  // spends the old coin: the reservation follows to the new one and leaves the spent one
   it('moves the reservation when the authhead moved to another coin', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const oldAuthUtxo = utxo(authheadA, 0)
     const newAuthUtxo = utxo(movedAuthheadA, 0)
-    const { store, identitiesStore } = startStore([oldAuthUtxo, newAuthUtxo])
+    const { store, identitiesStore } = startStore([oldAuthUtxo])
     await identitiesStore.refreshIdentities()
 
     stubAuthheadQueries({ [categoryA]: movedAuthheadA })
+    store.walletUtxos = [newAuthUtxo]
     await identitiesStore.refreshIdentities()
 
     expect(outpointOf(oldAuthUtxo) in store.reservedUtxos).toBe(false)
+    expect(store.reservedUtxos[outpointOf(newAuthUtxo)]).toBe('auth')
+  })
+
+  // Chaingraph can be behind the wallet's own operation and still name the old outpoint: a
+  // resolve never releases a coin the wallet holds at output 0, since the chain moves only by
+  // spending it
+  it('keeps a held coin reserved when the indexer still names the old authhead', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const newAuthUtxo = utxo(movedAuthheadA, 0)
+    const { store, identitiesStore } = startStore([newAuthUtxo])
+    await store.reserveOutpoint(outpointOf(newAuthUtxo), 'auth')
+
+    await identitiesStore.refreshIdentities()
+
     expect(store.reservedUtxos[outpointOf(newAuthUtxo)]).toBe('auth')
   })
 

@@ -357,11 +357,10 @@ export const useIdentitiesStore = defineStore('identities', () => {
     );
   });
 
-  // Holds back every authhead this wallet has and drops an 'auth' reservation on a coin that is no
-  // longer one - never while an identity is unresolved though, since a failed lookup says nothing
-  // about where its authhead went: an outage leaves coins locked rather than releasing them.
-  // The writes go under whichever wallet is active when they run, so a wallet switch landing
-  // between two of them is checked for before every write, not once on entry.
+  // Holds back every authhead this wallet has. A resolve adds protection and never releases a
+  // coin the wallet still holds: a held authhead stays the authhead until spent, and Chaingraph
+  // can be behind the wallet's own transaction. Nothing is released while an identity is
+  // unresolved either. Every write checks for a wallet switch first.
   async function syncAuthReservations(resolved: IdentityState[]) {
     const started = mainStore.currentInitializationToken();
     const authOutpoints: string[] = [];
@@ -384,9 +383,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveUtxo(keyCoin, 'auth');
     }
     if (resolved.some(identity => identity.status === 'unresolved')) return;
+    const heldOutpoints = (mainStore.walletUtxos ?? []).map(outpointOf);
     for (const [outpoint, reason] of Object.entries(mainStore.reservedUtxos)) {
       if (reason !== 'auth') continue;
       if (authOutpoints.includes(outpoint)) continue;
+      if (heldOutpoints.includes(outpoint)) continue;
       if (mainStore.walletSwitchedSince(started)) return;
       await mainStore.dropReservation(outpoint);
     }
@@ -399,11 +400,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return resolved[0]?.unresolvedReason;
   }
 
-  // The identities of the tokens this wallet holds, followed. 'new' is the open pass: only
-  // categories never looked up, up to the cap; 'all' is the page's visit. Nothing here is listed,
-  // reserved or counted as news, except an identity whose authhead turns out to be in this wallet:
-  // that one is promoted to the list, held back, and announced. The memory is written only for a
-  // fulfilled lookup, so a category the server could not answer for is asked again.
+  // The identities of the tokens this wallet holds, followed: 'new' at open, categories never
+  // looked up, up to the cap; 'all' on the page's visit. Nothing is listed or reserved here except
+  // an identity whose authhead turns out to be in this wallet, which is promoted and announced.
   async function followTokenIdentities(scope: 'new' | 'all') {
     await withResolveLock(async () => {
       const currentUtxos = mainStore.walletUtxos;
@@ -411,7 +410,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const held = (mainStore.tokenList ?? [])
         .map(token => token.category)
         .filter(category => !identityCategories.value.includes(category) && !dismissedIdentities.value.includes(category));
-      let categories = scope === 'new' ? held.filter(category => !followed[category]) : held;
+      // at open, what was never looked up, and what may have arrived since: a held vout-0 coin of
+      // a followed category that is not the authhead remembered for it, which costs nothing to see
+      const arrived = (category: string) => currentUtxos.some(utxo =>
+        utxo.vout === 0 && utxo.token?.category === category && utxo.txid !== followed[category]?.authheadTxid
+      );
+      let categories = scope === 'new' ? held.filter(category => !followed[category] || arrived(category)) : held;
       if (scope === 'new') categories = categories.slice(0, followedPerOpenCap);
       const started = mainStore.currentInitializationToken();
       const resolved = categories.length

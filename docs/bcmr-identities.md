@@ -65,8 +65,8 @@ transfer transactions (all one shape: the old identity output in, the new one at
 the publication output beside it when there is one), mint from an identity UTXO as the
 authchain operation it is, and read the chain as the identity's history.
 
-Does not: author or host registries (the generator and the user's hosting do that), build
-covenant spends (Studio does), or resolve anything backward.
+Does not: author or host registries (the generator and the user's hosting do that), or build
+covenant spends (Studio does).
 
 ## How an identity gets onto the page
 
@@ -77,15 +77,21 @@ covenant spends (Studio does), or resolve anything backward.
   publication these keys made. The first names its chain; the second may not, in which
   case the coin is held back unnamed and named on the page's next visit from its own
   registry.
-- **Found among held tokens.** The check asks Chaingraph, one forward lookup per held
-  token category, whether that identity's output is here.
+- **Followed as a held token's identity.** The identity of every token the wallet holds is
+  followed passively, in batches of forward lookups at open and on the page's visit: not
+  listed, not reserved, never news, until its identity output turns out to be here, when it
+  is promoted to the list, held back and announced. A toggle at the group's head turns the
+  following off.
 - **Added by id.** Any authbase, a token's or not; an AuthKey category is read as a key
   first. The confirm says where the identity is held before listing it: here, and held
   back, or elsewhere, and only watched.
 - **Held through a key.** AuthKeys the wallet holds are recognised at every open, their
   guard addresses derived and listed, and the key reserved.
 
-Watched identities reserve nothing and are listed apart from held ones.
+Watched identities reserve nothing and are listed apart from owned ones; the followed token
+identities are a third, collapsed group. Whenever the wallet holds something back the user
+did not ask it to, a coin found in its history, a key, a promotion, it says so in a dialog
+naming what was held back and what that did to the balance.
 
 ## Spec versus convention
 
@@ -98,9 +104,11 @@ Watched identities reserve nothing and are listed apart from held ones.
 - **The token metadata indexer** indexes token identities only, keyed by category. That is
   why the identities page resolves and verifies registries itself, and why a non-token
   identity's name comes from its registry, not the indexer.
-- **The reserve** is the wallet's reading of supply left on the identity output at genesis:
-  it moves with the identity and is issued from the identities page. The spec does not
-  name it.
+- **The reserve** is the BCMR spec's reserved supply: the fungible supply held on the
+  identity output, which moves with the identity and is issued from the identities page.
+  The CashTokens CHIP defines reserved supply by capability instead, and the two
+  definitions have not been reconciled; that is tracked upstream in
+  [chip-bcmr issue #19](https://github.com/bitjson/chip-bcmr/issues/19).
 
 ## Where the code is
 
@@ -115,5 +123,26 @@ Watched identities reserve nothing and are listed apart from held ones.
 - `src/components/settings/identitiesPage.vue`, `createTokens.vue`,
   `genesisInputPicker.vue`, `src/components/general/identitiesFoundDialog.vue`.
 
-Longer-form reasoning, kept outside the repository: the identity analysis and scenario
-documents and the phase plans in the project's working notes.
+## Future items
+
+What the standard enables that the wallet does not do yet:
+
+- **Token metadata from the authchain, without the indexer.** The wallet already follows
+  every held token's authchain and reads the last publication on it; fetching that
+  registry and hashing it against the chain gives a held token's name, symbol, decimals
+  and icon verified rather than served. That makes the token metadata indexer a cache in
+  front of what the wallet can check itself, and removes the indexer's limit to token
+  identities.
+- **Change notices for held tokens.** The spec asks clients to surface a change to a held
+  token's name, symbol, decimals or icon, and a burned identity. The followed tier keeps
+  each identity's last authhead and publication for this and shows no change yet.
+- **Readers for identities that are not tokens.** The wallet makes, holds, watches and
+  publishes for the spec's dapp, contract-system and organization identities already;
+  nothing reads them yet.
+- **Pay-to-domain.** The spec's DNS-resolved registries let a domain in the send field
+  resolve to an identity through its well-known registry, the domain as the trust root.
+  [CHIP-PayPro](https://github.com/bitjson/chip-paypro) is the invoice layer that composes
+  with it: BCMR says who, PayPro says what to pay.
+- **The current snapshot.** The spec's current snapshot is the latest one not after now; the
+  wallet's own previews and diffs take the last sorted timestamp, so a registry with a
+  future-dated snapshot, the pre-announced migration, would show it early.

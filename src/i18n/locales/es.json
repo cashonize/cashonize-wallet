@@ -1537,12 +1537,12 @@
       "existing": "Añadir",
       "create": "Crear"
     },
-    "whatIsAnIdentityNote": "Studio, el explorador y la especificación llaman AuthHead a ese UTXO, y authbase a la transacción con la que empezó la cadena: en un token, su id. Tener el AuthHead es lo que hace que esta billetera sea la que puede publicar nuevos metadatos.",
+    "whatIsAnIdentityNote": "Studio y el explorador llaman AuthHead a ese UTXO; la especificación llama authhead a la transacción y salida de identidad a su salida 0. Tenerlo es lo que hace que esta billetera sea la que puede publicar nuevos metadatos.",
     "authchain": {
       "leads": {
         "chain": "Authchain:",
         "base": "Authbase:",
-        "head": "AuthHead:"
+        "head": "la última transacción; su salida 0 es el UTXO de la identidad, cuyo poseedor controla la identidad."
       },
       "chain": "transacciones, cada una gastando la salida 0 de la anterior.",
       "base": "la primera de ellas y el id de la identidad; en un token, el id del token.",
@@ -1550,7 +1550,7 @@
     },
     "authbaseLabel": "Authbase / id del token:",
     "resolving": "Buscando dónde están estas identidades...",
-    "empty": "Todavía no hay identidades en la lista. Una que esta billetera hizo aparece sola; una que tienes o quieres seguir se añade por su authbase en {link}. Las identidades de los tokens que tienes se siguen abajo.",
+    "empty": "Todavía no hay identidades en la lista. Una que esta billetera hizo se encuentra sola; una que tienes o quieres seguir se añade por su authbase en {link}. Las identidades de los tokens que tienes se siguen abajo.",
     "emptyLink": "Añadir",
     "detected": {
       "foundAutomatically": "Encontrada automáticamente",
@@ -1564,11 +1564,10 @@
       "removeMessage": "El UTXO vuelve a la selección de monedas, y un envío normal entrega la identidad que lleva a quien reciba ese envío. No volverá a aparecer en la lista."
     },
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
-    "watchedHeader": "{count} identidad solo observada, está en otra billetera | {count} identidades solo observadas, están en otra billetera",
+    "watchedHeader": "{count} identidad solo observada, no la tiene esta billetera | {count} identidades solo observadas, no las tiene esta billetera",
     "follow": {
       "header": "{count} identidad de un token que tienes, seguida | {count} identidades de tokens que tienes, seguidas",
       "toggle": "Seguir las identidades de los tokens que tienes",
-      "line": "Seguidas para saber dónde está cada identidad. Una consulta por token al abrir; una cuyo UTXO llegue a esta billetera se lista como propia y queda retenida, con un aviso.",
       "help": "La lista de tokens se envía al servidor Chaingraph como conjunto. Desactivarlo lo detiene; aquí nada queda retenido ni cuenta como nuevo.",
       "show": "mostrar",
       "hide": "ocultar",
@@ -1580,13 +1579,13 @@
     "authheadAmount": "Contiene {amount}",
     "status": {
       "held": "En esta billetera",
-      "notHeld": "Solo observada, está en otra billetera",
+      "notHeld": "Solo observada, no la tiene esta billetera",
       "unresolved": "No se pudo consultar esta identidad",
       "heldViaKey": "A través de una clave de identidad"
     },
     "statusHelp": {
       "held": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal puede gastarlo.",
-      "notHeld": "Esta identidad está en otro sitio, así que esta billetera solo la observa: se muestra su publicación, pero actualizarla requiere la billetera que la tiene.",
+      "notHeld": "Esta billetera no tiene esta identidad, así que solo la observa: se muestra su publicación, pero actualizarla depende de quien la tenga.",
       "unresolved": "No se pudo consultar dónde está esta identidad, así que ahora mismo se desconoce. Lo que se retiene por ella sigue retenido hasta que llegue una respuesta.",
       "heldViaKey": "El UTXO de esta identidad está bloqueado en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin el UTXO, así que lo que queda fuera de la selección de monedas es la clave."
     },
@@ -1732,10 +1731,10 @@
       "placeholder": "Authbase o id del token",
       "button": "Añadir identidad",
       "addingButton": "Añadiendo...",
-      "categoryHelpWhere": "El id de un token está en su información en la pestaña Tokens. Una identidad que está en otra parte se vigila desde aquí, no se tiene. Quien hizo o publicó una identidad que no es un token puede decirte su authbase; un registro también la nombra por ella.",
+      "categoryHelpWhere": "El id de un token está en su información en la pestaña Tokens. Quien hizo o publicó una identidad que no es un token puede decirte su authbase; un registro también la nombra por ella.",
       "categoryHelpKey": "La categoría de una clave de identidad también sirve aquí: la billetera deriva lo que guarda y observa esas identidades.",
       "found": {
-        "title": "¿Añadir lo encontrado?",
+        "title": "Esta billetera tiene identidades",
         "key": "Una clave de identidad que guarda {count} identidad: | Una clave de identidad que guarda {count} identidades:",
         "held": "{name}: la tiene esta billetera. Su UTXO quedará fuera de los envíos.",
         "watched": "{name}: no la tiene esta billetera. Se vigilará; nada queda retenido.",
@@ -1744,7 +1743,7 @@
         "button": "Añadir"
       },
       "errors": {
-        "nothingFound": "No se encontró nada para esa authbase: ninguna authchain empieza ahí y ninguna clave de identidad guarda nada. Revisa el id, o el servidor Chaingraph en los ajustes."
+        "nothingFound": "No se encontró nada para esa authbase: el servidor Chaingraph no conoce ninguna transacción con ese id, y ninguna clave de identidad guarda nada. Revisa el id, o el servidor en los ajustes."
       }
     },
     "create": {
@@ -1805,9 +1804,9 @@
     "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes.",
     "found": {
       "title": "Esta billetera tiene identidades de tokens",
-      "intro": "Esta billetera tiene estas identidades, así que tiene la autoridad para actualizar sus metadatos:",
+      "intro": "Esta billetera tiene estas identidades, o la clave que las controla, así que puede actualizar sus metadatos:",
       "reserve": "reserva de {amount}",
-      "heldBack": "Sus UTXOs de identidad quedan ahora fuera de la selección de monedas, así que un envío normal no puede gastarlos por accidente. El BCH que llevan no se cuenta en el saldo disponible, y una reserva se muestra en la página de identidades en vez de en la lista de tokens.",
+      "heldBack": "Sus UTXOs de identidad, o el NFT llave que las controla, quedan ahora fuera de la selección de monedas solo en esta app, así que un envío normal desde aquí no puede gastarlos por accidente; la misma semilla en otro software sí puede. El BCH que llevan no se cuenta en el saldo disponible, y una reserva se muestra en la página de identidades en vez de en la lista de tokens.",
       "remove": "Puedes quitar una identidad de la lista si prefieres que su UTXO no quede retenido.",
       "view": "Ver identidades",
       "close": "Cerrar"

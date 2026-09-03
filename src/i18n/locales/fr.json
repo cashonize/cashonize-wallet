@@ -1537,12 +1537,12 @@
       "existing": "Ajouter",
       "create": "Créer"
     },
-    "whatIsAnIdentityNote": "Studio, l'explorateur et la spécification appellent cet UTXO l'AuthHead, et la transaction par laquelle la chaîne a commencé l'authbase : pour un token, son identifiant. Détenir l'AuthHead est ce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées.",
+    "whatIsAnIdentityNote": "Studio et l'explorateur appellent cet UTXO l'AuthHead ; la spécification appelle la transaction l'authhead et sa sortie 0 la sortie d'identité. Le détenir est ce qui fait de ce portefeuille celui qui peut publier de nouvelles métadonnées.",
     "authchain": {
       "leads": {
         "chain": "Authchain:",
         "base": "Authbase:",
-        "head": "AuthHead:"
+        "head": "la dernière transaction ; sa sortie 0 est l'UTXO de l'identité, dont le détenteur contrôle l'identité."
       },
       "chain": "des transactions dont chacune dépense la sortie 0 de la précédente.",
       "base": "la première d'entre elles et l'identifiant de l'identité ; pour un token, l'identifiant du token.",
@@ -1550,7 +1550,7 @@
     },
     "authbaseLabel": "Authbase / identifiant du token :",
     "resolving": "Recherche de l'endroit où sont ces identités...",
-    "empty": "Aucune identité listée pour l'instant. Une identité créée par ce portefeuille est listée d'elle-même ; une que vous détenez ou voulez suivre s'ajoute par son authbase sous {link}. Les identités des tokens que vous détenez sont suivies ci-dessous.",
+    "empty": "Aucune identité listée pour l'instant. Une identité créée par ce portefeuille est trouvée d'elle-même ; une que vous détenez ou voulez suivre s'ajoute par son authbase sous {link}. Les identités des tokens que vous détenez sont suivies ci-dessous.",
     "emptyLink": "Ajouter",
     "detected": {
       "foundAutomatically": "Trouvée automatiquement",
@@ -1564,11 +1564,10 @@
       "removeMessage": "L'UTXO revient dans la sélection des pièces, et un envoi ordinaire remet l'identité qu'il porte à qui reçoit cet envoi. Il ne sera plus listé."
     },
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
-    "watchedHeader": "{count} identité seulement surveillée, détenue par un autre portefeuille | {count} identités seulement surveillées, détenues par un autre portefeuille",
+    "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
     "follow": {
       "header": "{count} identité d'un token détenu, suivie | {count} identités de tokens détenus, suivies",
       "toggle": "Suivre les identités des tokens que vous détenez",
-      "line": "Suivies pour savoir où chaque identité est détenue. Une requête par token à l'ouverture ; celle dont l'UTXO arrive dans ce portefeuille est listée comme détenue et retenue, avec un avis.",
       "help": "La liste des tokens est envoyée au serveur Chaingraph comme un ensemble. Désactiver arrête cela ; rien ici n'est retenu ni compté comme nouveau.",
       "show": "afficher",
       "hide": "masquer",
@@ -1580,13 +1579,13 @@
     "authheadAmount": "Contient {amount}",
     "status": {
       "held": "Détenue par ce portefeuille",
-      "notHeld": "Surveillance seule, détenue par un autre portefeuille",
+      "notHeld": "Surveillance seule, non détenue par ce portefeuille",
       "unresolved": "Impossible de consulter cette identité",
       "heldViaKey": "Détenue via une clé d'identité"
     },
     "statusHelp": {
       "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire ne peut le dépenser.",
-      "notHeld": "Cette identité est ailleurs, ce portefeuille ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour demande le portefeuille qui la détient.",
+      "notHeld": "Cette identité n'est pas détenue par ce portefeuille, qui ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour revient à qui la détient.",
       "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
       "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces."
     },
@@ -1732,10 +1731,10 @@
       "placeholder": "Authbase ou identifiant du token",
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
-      "categoryHelpWhere": "L'identifiant d'un token figure dans ses infos dans l'onglet Tokens. Une identité détenue ailleurs est surveillée d'ici, pas détenue. Qui a créé ou publié une identité qui n'est pas un token peut vous donner son authbase ; un registre la nomme aussi par elle.",
+      "categoryHelpWhere": "L'identifiant d'un token figure dans ses infos dans l'onglet Tokens. Qui a créé ou publié une identité qui n'est pas un token peut vous donner son authbase ; un registre la nomme aussi par elle.",
       "categoryHelpKey": "La catégorie d'une clé d'identité fonctionne aussi ici : le portefeuille dérive ce qu'elle garde et suit ces identités.",
       "found": {
-        "title": "Ajouter ce qui a été trouvé ?",
+        "title": "Ce portefeuille détient des identités",
         "key": "Une clé d'identité gardant {count} identité : | Une clé d'identité gardant {count} identités :",
         "held": "{name} : détenue par ce portefeuille. Son UTXO sera écarté des envois.",
         "watched": "{name} : non détenue par ce portefeuille. Elle sera surveillée ; rien n'est retenu.",
@@ -1744,7 +1743,7 @@
         "button": "Ajouter"
       },
       "errors": {
-        "nothingFound": "Rien trouvé pour cette authbase : aucune authchain n'y commence et aucune clé d'identité ne garde quoi que ce soit. Vérifiez l'identifiant, ou le serveur Chaingraph dans les réglages."
+        "nothingFound": "Rien trouvé pour cette authbase : le serveur Chaingraph ne connaît aucune transaction avec cet identifiant, et aucune clé d'identité ne garde quoi que ce soit. Vérifiez l'identifiant, ou le serveur dans les réglages."
       }
     },
     "create": {
@@ -1805,9 +1804,9 @@
     "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
     "found": {
       "title": "Ce portefeuille détient des identités de tokens",
-      "intro": "Ce portefeuille détient ces identités, il détient donc l'autorité de mettre à jour leurs métadonnées :",
+      "intro": "Ce portefeuille détient ces identités, ou la clé qui les contrôle, il peut donc mettre à jour leurs métadonnées :",
       "reserve": "réserve de {amount}",
-      "heldBack": "Leurs UTXOs d'identité sont maintenant écartés de la sélection des pièces, un envoi ordinaire ne peut donc pas les dépenser par accident. Le BCH qu'ils portent n'est pas compté dans le solde disponible, et une réserve est affichée sur la page des identités plutôt que dans la liste des tokens.",
+      "heldBack": "Leurs UTXOs d'identité, ou le NFT clé qui les contrôle, sont maintenant écartés de la sélection des pièces par cette app seulement : un envoi ordinaire d'ici ne peut pas les dépenser par accident, la même seed dans un autre logiciel le peut encore. Le BCH qu'ils portent n'est pas compté dans le solde disponible, et une réserve est affichée sur la page des identités plutôt que dans la liste des tokens.",
       "remove": "Vous pouvez retirer une identité de la liste si vous préférez que son UTXO ne soit pas retenu.",
       "view": "Voir les identités",
       "close": "Fermer"

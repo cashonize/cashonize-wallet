@@ -1537,12 +1537,12 @@
       "existing": "Adicionar",
       "create": "Criar"
     },
-    "whatIsAnIdentityNote": "O Studio, o explorador e a especificação chamam a esse UTXO o AuthHead, e à transação com que a cadeia começou a authbase: num token, o seu id. Ter o AuthHead é o que faz desta carteira a que pode publicar novos metadados.",
+    "whatIsAnIdentityNote": "O Studio e o explorador chamam a esse UTXO o AuthHead; a especificação chama à transação o authhead e à sua saída 0 a saída de identidade. Tê-lo é o que faz desta carteira a que pode publicar novos metadados.",
     "authchain": {
       "leads": {
         "chain": "Authchain:",
         "base": "Authbase:",
-        "head": "AuthHead:"
+        "head": "a última transação; a sua saída 0 é o UTXO da identidade, cujo detentor controla a identidade."
       },
       "chain": "transações, cada uma gastando a saída 0 da anterior.",
       "base": "a primeira delas e o id da identidade; num token, o id do token.",
@@ -1550,7 +1550,7 @@
     },
     "authbaseLabel": "Authbase / id do token:",
     "resolving": "Procurando onde estão estas identidades...",
-    "empty": "Ainda não há identidades na lista. Uma que esta carteira fez aparece sozinha; uma que tem ou quer seguir adiciona-se pela sua authbase em {link}. As identidades dos tokens que tem são seguidas abaixo.",
+    "empty": "Ainda não há identidades na lista. Uma que esta carteira fez encontra-se sozinha; uma que tem ou quer seguir adiciona-se pela sua authbase em {link}. As identidades dos tokens que tem são seguidas abaixo.",
     "emptyLink": "Adicionar",
     "detected": {
       "foundAutomatically": "Encontrada automaticamente",
@@ -1564,11 +1564,10 @@
       "removeMessage": "O UTXO volta para a seleção de moedas, e um envio comum entrega a identidade que carrega a quem receber esse envio. Não voltará a ser listado."
     },
     "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
-    "watchedHeader": "{count} identidade só observada, está em outra carteira | {count} identidades só observadas, estão em outra carteira",
+    "watchedHeader": "{count} identidade só observada, não tida por esta carteira | {count} identidades só observadas, não tidas por esta carteira",
     "follow": {
       "header": "{count} identidade de um token que tem, seguida | {count} identidades de tokens que tem, seguidas",
       "toggle": "Seguir as identidades dos tokens que tem",
-      "line": "Seguidas para saber onde cada identidade está. Uma consulta por token ao abrir; uma cujo UTXO chegue a esta carteira é listada como sua e fica retida, com um aviso.",
       "help": "A lista de tokens vai para o servidor Chaingraph como um conjunto. Desligar isto pára isso; aqui nada fica retido nem conta como novo.",
       "show": "mostrar",
       "hide": "ocultar",
@@ -1580,13 +1579,13 @@
     "authheadAmount": "Contém {amount}",
     "status": {
       "held": "Nesta carteira",
-      "notHeld": "Só observada, está em outra carteira",
+      "notHeld": "Só observada, não tida por esta carteira",
       "unresolved": "Não foi possível consultar esta identidade",
       "heldViaKey": "Através de uma chave de identidade"
     },
     "statusHelp": {
       "held": "Esta carteira tem o UTXO desta identidade, portanto pode atualizar os seus metadados. O UTXO fica de fora da seleção de moedas, nenhum envio comum pode gastá-lo.",
-      "notHeld": "Esta identidade está em outro lugar, portanto esta carteira apenas a observa: a publicação é mostrada, mas atualizá-la exige a carteira que a tem.",
+      "notHeld": "Esta identidade não é tida por esta carteira, que por isso só a observa: a sua publicação é mostrada, mas atualizá-la cabe a quem a tiver.",
       "unresolved": "Não foi possível consultar onde esta identidade está, então isso é desconhecido agora. O que está retido por ela continua retido até chegar uma resposta.",
       "heldViaKey": "O UTXO desta identidade está trancado em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem o UTXO, portanto é a chave que fica de fora da seleção de moedas."
     },
@@ -1732,10 +1731,10 @@
       "placeholder": "Authbase ou id do token",
       "button": "Adicionar identidade",
       "addingButton": "Adicionando...",
-      "categoryHelpWhere": "O id de um token está na sua informação no separador Tokens. Uma identidade que está noutro lado é vigiada daqui, não tida. Quem fez ou publicou uma identidade que não é um token pode dizer-lhe a sua authbase; um registo também a nomeia por ela.",
+      "categoryHelpWhere": "O id de um token está na sua informação no separador Tokens. Quem fez ou publicou uma identidade que não é um token pode dizer-lhe a sua authbase; um registo também a nomeia por ela.",
       "categoryHelpKey": "A categoria de uma chave de identidade também funciona aqui: a carteira deriva o que ela guarda e acompanha essas identidades.",
       "found": {
-        "title": "Adicionar o que foi encontrado?",
+        "title": "Esta carteira tem identidades",
         "key": "Uma chave de identidade guardando {count} identidade: | Uma chave de identidade guardando {count} identidades:",
         "held": "{name}: tida por esta carteira. O seu UTXO ficará retido dos envios.",
         "watched": "{name}: não tida por esta carteira. Será vigiada; nada fica retido.",
@@ -1744,7 +1743,7 @@
         "button": "Adicionar"
       },
       "errors": {
-        "nothingFound": "Nada encontrado para essa authbase: nenhuma authchain começa aí e nenhuma chave de identidade guarda nada. Verifique o id, ou o servidor Chaingraph nas definições."
+        "nothingFound": "Nada encontrado para essa authbase: o servidor Chaingraph não conhece nenhuma transação com esse id, e nenhuma chave de identidade guarda nada. Verifique o id, ou o servidor nas definições."
       }
     },
     "create": {
@@ -1805,9 +1804,9 @@
     "unresolvedHint": "Recarregue, ou verifique o servidor Chaingraph nas configurações.",
     "found": {
       "title": "Esta carteira tem identidades de tokens",
-      "intro": "Esta carteira tem estas identidades, portanto tem a autoridade de atualizar os seus metadados:",
+      "intro": "Esta carteira tem estas identidades, ou a chave que as controla, portanto pode atualizar os seus metadados:",
       "reserve": "reserva de {amount}",
-      "heldBack": "Os seus UTXOs de identidade ficam agora de fora da seleção de moedas, portanto um envio comum não pode gastá-los por acidente. O BCH neles não é contado no saldo disponível, e uma reserva é mostrada na página de identidades em vez de na lista de tokens.",
+      "heldBack": "Os seus UTXOs de identidade, ou o NFT chave que as controla, ficam agora de fora da seleção de moedas só nesta app, portanto um envio comum daqui não pode gastá-los por acidente; a mesma seed noutro software ainda pode. O BCH neles não é contado no saldo disponível, e uma reserva é mostrada na página de identidades em vez de na lista de tokens.",
       "remove": "Você pode remover uma identidade da lista se preferir que o seu UTXO não fique retido.",
       "view": "Ver identidades",
       "close": "Fechar"
