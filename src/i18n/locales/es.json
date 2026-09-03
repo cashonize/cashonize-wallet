@@ -643,82 +643,27 @@
   },
   "createTokens": {
     "title": "Crear un token",
-    "needBch": "Se necesita BCH en la billetera para crear tokens",
-    "genesisInput": {
-      "explainer": "El txid del UTXO que gasta la génesis se convierte en el id del token (su categoría); el UTXO debe estar en la salida 0.",
-      "none": "Esta billetera todavía no tiene ningún UTXO con el que crear un token.",
-      "prepareButton": "Preparar un UTXO",
-      "chooseExisting": "O elige un UTXO que esta billetera ya tiene | O elige el único UTXO que esta billetera ya tiene | O elige uno de los {count} UTXOs que esta billetera ya tiene",
-      "unconfirmed": "sin confirmar"
-    },
-    "preparingButton": "Preparando...",
-    "plannedTokenId": "Id del token:",
-    "loading": "cargando...",
-    "mintingDescription": "Un NFT de acuñación sirve para crear una colección de NFTs: puede acuñar nuevos NFTs de la misma categoría.",
-    "mintingHelp": "Solo la transacción de creación puede otorgar la capacidad de acuñar. Sin ella, esta categoría nunca podrá tener NFTs propios.",
-    "mintingNote": "Nota: para usar un NFT de acuñación activa la opción \"Habilitar acuñar NFTs\" en la configuración de desarrollador.",
-    "supplyLabel": "Suministro total de tokens fungibles",
-    "supplyHelp": "El suministro fungible queda fijado al crear el token. Nunca podrá existir más de esta categoría, así que decide la cifra ahora.",
-    "supplyPlaceholder": "suministro total",
-    "supplyNote": "Escrito en tokens. El número creado en cadena se deriva de los decimales y se muestra debajo.",
-    "circulation": {
-      "label": "Poner en circulación ahora",
-      "help": "Lo que se emite ahora es suministro normal que esta billetera puede gastar. El resto se queda en el propio UTXO de la identidad como reserva, así que se retiene con ella y va adonde vaya la identidad. Puede emitirse después desde la página de identidades; cada emisión es una transacción que mueve la identidad a un UTXO nuevo.",
-      "placeholder": "Cantidad a emitir",
-      "split": "{reserve} queda con la identidad como reserva, {circulating} entra en circulación.",
-      "splitOnChain": "En cadena: {reserve} de reserva, {circulating} en circulación."
-    },
-    "linkMetadata": "Enlazar metadatos",
-    "steps": {
-      "author": "Escribe el JSON del registro con el {generator}, nombrando el id del token de arriba.",
-      "host": "Alójalo en tu propio dominio o en IPFS.",
-      "verify": "Indica abajo dónde está alojado. Esta billetera lo descarga y comprueba que nombre este token.",
-      "create": "Crea el token: la misma transacción publica el hash del archivo y dónde encontrarlo."
-    },
-    "metadataNote": "Los metadatos pueden añadirse ahora con el generador BCMR (BCMR es el estándar de metadatos que leen las billeteras), o después de la creación desde la página de identidades.",
-    "creatingTokensButton": "Creando tokens...",
-    "createButton": "Crear",
-    "notifications": {
-      "preparingPreGenesis": "Preparando un UTXO...",
-      "transactionSent": "¡Transacción enviada exitosamente!",
-      "creatingTokens": "Creando tokens...",
-      "creatingMintingNft": "Creando NFT de acuñación...",
-      "bcmrWrongIdentity": "Ese registro no describe la identidad que se está creando. Comprueba que el archivo nombre esta categoría de token."
-    },
-    "errors": {
-      "invalidAmount": "Escribe cantidades en tokens, sin más decimales de los que tiene el token.",
-      "overMaxSupply": "Eso es más de lo que puede contener una categoría de tokens. El máximo es {max}.",
-      "overSupply": "Eso supera el suministro total.",
-      "invalidDecimals": "Los decimales deben ser un número entero de 0 a 18."
-    },
-    "created": {
-      "fungibles": "Creados {supply} tokens fungibles de la categoría {category}",
-      "mintingNft": "Creado un NFT de acuñación de la categoría {category}",
-      "hybrid": "Creados {supply} tokens fungibles y un NFT de acuñación de la categoría {category}",
-      "reserve": "{amount} queda con la identidad como suministro reservado.",
-      "listed": "Aparece en la página de identidades, y su UTXO queda fuera de la selección de monedas.",
-      "openIdentities": "Abrir la página de identidades",
-      "banner": "Creado {category}. Gestiónalo en la página de identidades, en Herramientas.",
-      "circulation": "{amount} emitidos a la dirección de tokens de esta billetera {address}."
-    },
-    "shapeLabel": "Tipo de token",
-    "shapes": {
-      "fungible": "Tokens fungibles",
-      "mintingNft": "Un NFT de acuñación",
-      "both": "Tokens fungibles y un NFT de acuñación"
-    },
-    "step": "Paso {current} de {total}",
-    "reserveNote": "El suministro de un token se crea en el UTXO de la identidad, así que no todo puede entrar en circulación en esta transacción. Guarda una parte como reserva y emítela después desde la página de identidades.",
     "home": {
-      "intro": "Crea aquí un token nuevo, con nombre, icono y otros metadatos, enlazados ahora o añadidos después. Las billeteras muestran el nombre y el icono de un token desde un archivo de metadatos al que apunta su identidad; quien tiene el UTXO de identidad puede cambiar ese archivo. Elige dónde debe vivir la identidad.",
+      "intro": "Crea aquí un token nuevo; el nombre, el icono y otros metadatos pueden enlazarse ahora o añadirse después. Las billeteras los leen de un archivo de metadatos al que apunta la identidad del token. Elige dónde debe vivir esa identidad.",
       "moveLater": "Puedes moverla de esta billetera a Studio más adelante, y de vuelta.",
       "moveLaterHelp": "Hacia Studio: crea una clave allí y luego transfiere la identidad desde la página de identidades a la dirección de guarda que Studio muestra para esa clave. De vuelta: el \"Release UTXO\" de Studio la devuelve a una dirección normal, y la página de identidades la encuentra de nuevo con la comprobación de identidades.",
       "wallet": "En esta billetera",
-      "walletStrength": "Tu billetera guarda el UTXO de identidad y lo gestiona en la página de identidades, en Herramientas.",
-      "walletCaveat": "Protegido solo por Cashonize: un envío desde otra app de billetera con esta semilla podría gastarlo como un UTXO normal, enviando la identidad adonde vaya ese pago.",
       "studio": "Con CashTokens Studio",
-      "studioStrength": "Un contrato en cadena lo guarda y tú tienes un NFT clave; Studio escribe y aloja los metadatos por ti.",
-      "studioCaveat": "Toda operación pasa por el sitio de Studio.",
+      "cardLeads": {
+        "holds": "La guarda:",
+        "hosts": "Aloja los metadatos:",
+        "risk": "Riesgo:"
+      },
+      "walletLines": {
+        "holds": "tu billetera, como UTXO, gestionada en la página de identidades.",
+        "hosts": "tú, en un dominio o en IPFS.",
+        "risk": "otra app de billetera con esta semilla podría gastarla y perderla."
+      },
+      "studioLines": {
+        "holds": "un contrato en cadena; tú tienes un NFT clave.",
+        "hosts": "Studio, por ti.",
+        "risk": "toda operación pasa por el sitio de Studio."
+      },
       "leads": {
         "protection": "Protección:",
         "metadata": "Metadatos:",
@@ -726,52 +671,122 @@
       },
       "walletRows": {
         "protection": "Cashonize lo deja fuera de la selección de monedas; otras apps no saben que es especial.",
-        "protectionHelp": "Una semilla usada en varias apps está mejor con una billetera usada solo aquí, o con Studio. Una restauración de esta semilla en Cashonize vuelve a encontrar la identidad desde la cadena.",
-        "metadata": "un archivo que alojas tú, en un dominio o en IPFS, enlazado ahora o desde la página de identidades después.",
-        "operations": "aquí, en la página de identidades; cada operación mueve la identidad a un UTXO nuevo."
+        "protectionHelp": "Un envío normal desde otra app de billetera gasta el UTXO y entrega la identidad a quien recibe ese envío. Una semilla usada en varias apps está mejor con una billetera usada solo aquí, o con Studio; una restauración de esta semilla en Cashonize vuelve a encontrar la identidad.",
+        "metadata": "un archivo que alojas tú, enlazado ahora o desde la página de identidades después.",
+        "operations": "aquí, en la página de identidades; cada una mueve la identidad a un UTXO nuevo."
       },
       "studioRows": {
-        "protection": "solo se abre al NFT clave, que otras billeteras muestran sin nombre y podrían enviar.",
-        "metadata": "redactados y anclados en IPFS por Studio, o una URL que alojas tú.",
+        "protection": "solo se abre al NFT clave, que otras billeteras muestran sin nombre.",
+        "protectionHelp": "Un NFT sin nombre es fácil de perder de vista, en esta billetera o en otra, o de quemar como si fuera spam. Cashonize lo nombra por lo que protege; otras billeteras no.",
+        "metadata": "escritos y anclados en IPFS por Studio, o una URL que alojas tú.",
         "operations": "en el sitio de Studio, mediante WalletConnect, liberarlo incluido.",
         "operationsHelp": "Liberar la identidad de la guarda, de vuelta a una dirección normal, también se hace a través de Studio."
       },
-      "glossary": "Studio llama AuthGuard al contrato y AuthKey a la clave. La clave no tiene metadatos propios; Cashonize la nombra por lo que protege.",
+      "glossary": "Studio llama AuthGuard al contrato y AuthKey a la clave.",
       "openStudio": "Abrir CashTokens Studio",
       "chosen": "Identidad: en esta billetera"
     },
     "change": "cambiar",
-    "noHosting": "¿Sin dominio ni IPFS? CashTokens Studio puede escribirlos y alojarlos por ti, si la identidad se mueve allí.",
-    "locationHint": "Un dominio, una URL HTTPS completa o un CID de IPFS; un dominio a secas significa su ruta de registro well-known.",
-    "sameFile": "Todas las ubicaciones deben servir el mismo archivo.",
-    "confirm": {
-      "title": "¿Crear este token?",
-      "button": "Crear",
-      "supply": "Suministro total: {supply}",
-      "metadataLinked": "Metadatos: {name}, desde {location}",
-      "metadataNone": "Metadatos: ninguno enlazado todavía. Pueden añadirse desde la página de identidades.",
-      "decimals": "Decimales: {decimals}"
+    "step": "Paso {current} de {total}",
+    "stepTitles": {
+      "shape": "forma y suministro",
+      "metadata": "metadatos"
+    },
+    "genesisInput": {
+      "explainer": "El txid del UTXO que gasta la génesis se convierte en el id del token; el UTXO debe estar en la salida 0.",
+      "needBch": "Esta billetera necesita algo de BCH para crear un token: el UTXO que prepara y las comisiones salen de ahí.",
+      "prepareButton": "Preparar un UTXO",
+      "chooseExisting": "O elige un UTXO que esta billetera ya tiene | O elige el único UTXO que esta billetera ya tiene | O elige uno de los {count} UTXOs que esta billetera ya tiene",
+      "rule": "Solo se listan UTXOs en la salida 0 sin tokens; los no confirmados también sirven.",
+      "none": "Esta billetera aún no tiene ningún UTXO que pueda crear un token.",
+      "unconfirmed": "sin confirmar",
+      "loading": "cargando..."
     },
     "prepare": {
       "title": "¿Preparar un UTXO?",
       "message": "Esto te envía {amount} a ti mismo ahora, para que la génesis tenga un UTXO nuevo en la salida 0 que gastar. La cantidad sigue siendo tuya; solo se gasta la comisión."
     },
-    "decimalsLabel": "Decimales",
-    "decimalsHelp": "Cuántos decimales tiene el token: 2 significa cantidades como 100,00. El suministro se crea en unidades base a partir de ello, así que el registro debe indicar el mismo número.",
-    "onChain": "{amount} en cadena",
-    "stepTitles": {
-      "shape": "forma y suministro",
-      "metadata": "metadatos"
+    "preparingButton": "Preparando...",
+    "plannedTokenId": "Id del token:",
+    "shapeLabel": "Forma del token",
+    "shapes": {
+      "fungible": "Tokens fungibles",
+      "mintingNft": "Un NFT de acuñación",
+      "both": "Tokens fungibles y un NFT de acuñación"
     },
-    "howTo": "Cómo escribir y alojar el archivo",
+    "mintingDescription": "Un NFT de acuñación sirve para crear una colección de NFTs: puede acuñar nuevos NFTs de la misma categoría.",
+    "mintingHelp": "Solo la transacción de creación puede otorgar la capacidad de acuñación. Sin ella, este token nunca podrá tener NFTs propios.",
+    "mintingNote": "Nota: para usar un NFT de acuñación, activa la opción \"Habilitar acuñar NFTs\" en los ajustes de desarrollador.",
+    "decimalsLabel": "Decimales",
+    "decimalsHelp": "Cuántos decimales tiene el token: 2 significa cantidades como 100,00. El suministro se crea en unidades base a partir de ello, así que el archivo de metadatos debe indicar el mismo número.",
+    "supplyLabel": "Suministro total de tokens fungibles",
+    "supplyNote": "Escrito en tokens. El número creado en cadena se deriva de los decimales y se muestra debajo.",
+    "supplyHelp": "El suministro fungible queda fijado al crear el token. Nunca podrá existir más de este token, así que decide el número ahora.",
+    "supplyPlaceholder": "suministro total",
+    "supplyOnChain": "{tokens} tokens, {base} unidades base en cadena",
+    "circulation": {
+      "label": "Emitir a circulación ahora",
+      "help": "Lo que se emite ahora es suministro normal que esta billetera puede gastar. El resto se queda en el propio UTXO de la identidad como reserva, así que se retiene con ella y va adonde vaya la identidad. Puede emitirse después desde la página de identidades; cada emisión es una transacción que mueve la identidad a un UTXO nuevo.",
+      "placeholder": "Cantidad a emitir",
+      "split": "{reserve} se queda con la identidad como reserva, {circulating} entra en circulación.",
+      "splitOnChain": "En cadena: {reserve} de reserva, {circulating} en circulación."
+    },
+    "errors": {
+      "invalidAmount": "Escribe cantidades en tokens, sin más decimales de los que tiene el token.",
+      "overMaxSupply": "Eso es más de lo que un token puede contener. El máximo es {max}.",
+      "overSupply": "Eso es más que el suministro total.",
+      "invalidDecimals": "Los decimales deben ser un número entero de 0 a 18."
+    },
+    "reserveNote": "El suministro de un token se crea en el UTXO de la identidad, así que no todo puede entrar en circulación en esta transacción. Deja una parte como reserva y emítela después desde la página de identidades.",
+    "metadataNote": "Los metadatos pueden añadirse ahora con el generador BCMR (BCMR es el estándar de metadatos que leen las billeteras), o después de la creación desde la página de identidades.",
+    "locationHint": "Un dominio, una URL HTTPS completa o un CID de IPFS; un dominio a secas significa su ruta de metadatos well-known.",
+    "sameFile": "Todas las ubicaciones deben servir el mismo archivo.",
     "check": {
+      "decimalsReminder": "El archivo de metadatos debe indicar decimales: {decimals}.",
       "button": "Comprobar",
       "checking": "Comprobando...",
       "needed": "Comprueba la ubicación antes de crear.",
+      "howShown": "Así lo mostrarán las billeteras",
       "summary": "{name}, decimales: {decimals}",
       "hash": "Hash: {hash}",
-      "decimalsMismatch": "El registro indica decimales: {registry}; este token se crearía con {chosen}. Cambia uno de los dos.",
-      "decimalsReminder": "El registro debe indicar decimales: {decimals}."
+      "decimalsMismatch": "El archivo de metadatos indica decimales: {registry}; este token se crearía con {chosen}. Cambia uno de los dos."
+    },
+    "howTo": "Cómo escribir y alojar el archivo",
+    "steps": {
+      "author": "Escribe el archivo de metadatos con el {generator}, nombrando el id del token de arriba.",
+      "host": "Alójalo en tu propio dominio o en IPFS.",
+      "verify": "Indica arriba dónde está alojado. Esta billetera lo descarga y comprueba que nombra este token.",
+      "create": "Crea el token: la misma transacción publica el hash del archivo y dónde encontrarlo."
+    },
+    "noHosting": "¿Sin dominio ni IPFS? CashTokens Studio puede escribirlos y alojarlos por ti, si la identidad se mueve allí.",
+    "createButton": "Crear",
+    "creatingTokensButton": "Creando tokens...",
+    "confirm": {
+      "title": "¿Crear este token?",
+      "button": "Crear",
+      "supply": "Suministro total: {supply}",
+      "decimals": "Decimales: {decimals}",
+      "metadataLinked": "Metadatos: {name}, desde {location}",
+      "metadataNone": "Metadatos: ninguno enlazado todavía. Hasta que se publiquen, las billeteras muestran el token por su id, con cantidades en bruto."
+    },
+    "notifications": {
+      "preparingPreGenesis": "Preparando un UTXO...",
+      "transactionSent": "¡Transacción enviada con éxito!",
+      "creatingTokens": "Creando tokens...",
+      "bcmrWrongIdentity": "Ese archivo de metadatos no describe el token que se está creando. Comprueba que el archivo nombra este id de token."
+    },
+    "created": {
+      "title": "¡Listo!",
+      "supply": "{amount} creados",
+      "mintingNft": "Un NFT de acuñación creado",
+      "split": "{reserve} con la identidad como reserva, {circulating} en esta billetera",
+      "listed": "Listado en la página de identidades; su UTXO está retenido fuera de la selección de monedas.",
+      "untilPublished": "Las billeteras lo muestran así hasta que {link}.",
+      "untilPublishedLink": "publiques los metadatos",
+      "seeToken": "Ver el token en la billetera",
+      "seeIdentity": "Ver la identidad en la billetera",
+      "viewTransaction": "Ver la transacción",
+      "createAnother": "Crear otro token"
     }
   },
   "utxoManagement": {
@@ -1635,7 +1650,7 @@
         "changedNote": "Si tú no editaste el archivo, revisa tu alojamiento: hay algo más respondiendo por él.",
         "unreachable": "Esta ubicación no respondió. Los holders que busquen los metadatos aquí no ven nada, así que comprueba si caducó el alojamiento o el pin de IPFS."
       },
-      "noneAction": "publicar una"
+      "noneAction": "publicar metadatos"
     },
     "history": {
       "title": "Historial de esta identidad",
@@ -1653,7 +1668,7 @@
       "minted": "Acuñado {count} NFT | Acuñados {count} NFTs"
     },
     "publish": {
-      "action": "publicar actualización",
+      "action": "publicar metadatos",
       "locationsHint": "Un dominio, una URL HTTPS completa o un CID de IPFS. Todas las ubicaciones deben servir el mismo archivo.",
       "uriPlaceholder": "example.com o ipfs://baf...",
       "addLocation": "añadir otra ubicación",
@@ -1689,7 +1704,7 @@
         "host": "Alójalo en tu propio dominio o en IPFS.",
         "publish": "Indica abajo dónde está alojado, y esta billetera lo verifica y publica el puntero."
       },
-      "generatorHelp": "El generador es un formulario que escribe por ti el archivo de metadatos, el registro. También puedes escribirlo tú contra el {schema}; en ambos casos esta billetera descarga el archivo y comprueba que nombra este token, calculando el hash del archivo exactamente como se sirve.",
+      "generatorHelp": "El generador es un formulario que escribe por ti el archivo de metadatos; la especificación lo llama registro. También puedes escribirlo tú contra el {schema}. En ambos casos esta billetera descarga el archivo, calcula su hash exactamente como se sirve y comprueba que nombra este token.",
       "generatorHelpSchema": "esquema BCMR"
     },
     "add": {

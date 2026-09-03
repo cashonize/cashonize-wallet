@@ -21,7 +21,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
-  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
+  import { confirmDialog, notifySending } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useQuasar } from 'quasar'
@@ -41,14 +41,12 @@
   // chosen until the user chooses, and nothing remembers the choice: it is one click.
   const identityHome = ref<'wallet' | 'studio' | undefined>(undefined);
   const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
+  const cardLines = ['holds', 'hosts', 'risk'] as const;
   const homeRows = ['protection', 'metadata', 'operations'] as const;
-  // the identities page, where creation ends and management begins
+  // the Tokens tab, where the token now shows, and the identities page, where its identity does
+  const tokensView = 2;
   const identitiesView = 19;
-  watch(() => store._wallet, () => {
-    identityHome.value = undefined;
-    pickedOutpoint.value = undefined;
-    editingUtxo.value = true;
-  });
+  watch(() => store._wallet, startOver);
 
   // What the token is, rather than a supply field and a toggle the user has to combine into one
   const tokenShape = ref<'fungible' | 'mintingNft' | 'both'>('fungible');
@@ -56,16 +54,13 @@
   const hasSupply = computed(() => tokenShape.value !== 'mintingNft');
   const metadataUris = ref<string[]>([""]);
   const activeAction = ref<'creatingPreGenesis' | 'checking' | 'creating' | null>(null);
-  // What was just made, said above the reset page until the next choice, so the reset does not
-  // read as the creation being undone
-  const createdCategory = ref<string | undefined>(undefined);
 
   // The satoshis each token output of the genesis carries, the AuthHead included
   const tokenOutputValue = 1000n;
 
   const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
 
-  // A new token's category is the txid of the coin its genesis spends, so which coin that is
+  // A new token's category is the txid of the UTXO its genesis spends, so which UTXO that is
   // decides the identity's id and its icon before anything exists.
   const genesisCandidates = computed(() => {
     if (!store.spendableUtxos) return undefined;
@@ -74,8 +69,8 @@
     return eligible.sort((left, right) => Number(right.satoshis - left.satoshis));
   });
 
-  // Held as an outpoint and resolved against the current coins, so a coin spent from somewhere
-  // else leaves the list and takes the selection with it
+  // Held as an outpoint and resolved against the current UTXOs, so one spent from somewhere else
+  // leaves the list and takes the selection with it
   const pickedOutpoint = ref<string | undefined>(undefined);
   const genesisInput = computed(() =>
     genesisCandidates.value?.find(utxo => outpointOf(utxo) === pickedOutpoint.value)
@@ -97,9 +92,6 @@
     pickedOutpoint.value = undefined;
     editingUtxo.value = true;
   }
-  watch(identityHome, chosen => {
-    if (chosen) createdCategory.value = undefined;
-  });
 
   // Amounts are typed in tokens and the decimals field does the zeroes: the number on chain is
   // permanent, and asking the user for that arithmetic was the mistake every walkthrough made
@@ -109,8 +101,14 @@
   const circulating = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.circulating);
   // What the AuthHead keeps: supply the wallet holds out of circulation, alongside the authority
   const reserve = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.reserve);
-  const tokensOf = (baseUnits: bigint) => formatTokens(baseUnits, decimals.value);
   const baseUnitsOf = (baseUnits: bigint) => formatTokens(baseUnits, 0);
+  // Tokens, with the symbol once a checked metadata file has given the token one: the first time
+  // the user's number looks like a token
+  function tokensOf(baseUnits: bigint) {
+    const symbol = readiness.value === 'ready' ? checkedRegistry.value?.summary.symbol : undefined;
+    const amount = formatTokens(baseUnits, decimals.value);
+    return symbol ? `${amount} ${symbol}` : amount;
+  }
 
   // The genesis is the one transaction that cannot be corrected afterwards, so what it refuses is
   // said before the button is pressed rather than by a failed broadcast.
@@ -164,7 +162,7 @@
       console.log(`Created valid pre-genesis for token creation \n${store.explorerUrl}/${txId}`);
       // update utxo list
       await store.updateWalletUtxos();
-      // the coin the user just asked for is the one they meant to create with
+      // the UTXO the user just asked for is the one they meant to create with
       if (txId) pickedOutpoint.value = `${txId}:0`;
       // update wallet history as fire-and-forget promise
       void store.updateWalletHistory();
@@ -217,7 +215,7 @@
     }
   }
 
-  // the registry's icon, resolved the way the token list resolves one
+  // the file's icon, resolved the way the token list resolves one
   const checkedIconUrl = computed(() => {
     const uri = checkedRegistry.value?.summary.iconUri;
     if (!uri) return undefined;
@@ -230,12 +228,45 @@
     return summary.symbol ? `${summary.name} (${summary.symbol})` : summary.name;
   });
 
-  // The publication output of a checked registry; none when no location was typed
+  // The publication output of a checked metadata file; none when no location was typed
   function metadataOutput() {
     if (readiness.value === 'none') return undefined;
     const checked = checkedRegistry.value;
     if (readiness.value !== 'ready' || !checked) throw new Error(t('createTokens.check.needed'));
     return publicationOutput(checked.hash, checked.uris);
+  }
+
+  // What the page made, shown in its place as the last step rather than as a dialog over it, the
+  // way the flipstarter page shows its signed pledge. Stays until the user starts over.
+  interface CreatedToken {
+    category: string;
+    txId: string | undefined;
+    name?: string;
+    symbol?: string;
+    iconUrl?: string;
+    hasSupply: boolean;
+    supply: bigint;
+    reserve: bigint;
+    circulating: bigint;
+    decimals: number;
+  }
+  const created = ref<CreatedToken | undefined>(undefined);
+  function createdAmount(baseUnits: bigint) {
+    const token = created.value;
+    if (!token) return '';
+    const amount = formatTokens(baseUnits, token.decimals);
+    return token.symbol ? `${amount} ${token.symbol}` : amount;
+  }
+
+  function startOver() {
+    created.value = undefined;
+    inputFungibleSupply.value = "";
+    inputCirculating.value = "";
+    inputDecimals.value = "0";
+    tokenShape.value = 'fungible';
+    metadataUris.value = [""];
+    checkedRegistry.value = undefined;
+    changeHome();
   }
 
   // One genesis builds the whole issuer kit: output 0 is the AuthHead, carrying the reserve and
@@ -281,23 +312,25 @@
       );
       const { txId } = genesisResponse;
       const category = genesisResponse?.categories?.[0] ?? pickedCoin.txid;
-      const alertMessage = creationSummary(category, reserveAmount, circulatingAmount, tokenAddress);
       // creation ends where management begins: the identity is listed and its AuthHead held back
       if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
-      // the page starts over at the choice, saying what it made; the dialog offers the identities
-      // page as the next step
-      inputFungibleSupply.value = "";
-      inputCirculating.value = "";
-      inputDecimals.value = "0";
-      tokenShape.value = 'fungible';
-      metadataUris.value = [""];
-      checkedRegistry.value = undefined;
-      changeHome();
-      createdCategory.value = category;
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('createTokens.notifications.transactionSent'), {
-        label: t('createTokens.created.openIdentities'),
-        onClick: () => store.changeView(identitiesView),
-      });
+      const linked = opreturnData ? checkedRegistry.value?.summary : undefined;
+      created.value = {
+        category,
+        txId,
+        ...(linked ? { name: linked.name } : {}),
+        ...(linked?.symbol ? { symbol: linked.symbol } : {}),
+        ...(linked && checkedIconUrl.value ? { iconUrl: checkedIconUrl.value } : {}),
+        hasSupply: hasSupply.value,
+        supply: totalSupply.value ?? 0n,
+        reserve: reserveAmount,
+        circulating: circulatingAmount,
+        decimals: decimals.value,
+      };
+      $q.notify({ type: 'positive', message: t('createTokens.notifications.transactionSent') });
+      console.log(`${store.explorerUrl}/${txId}`);
+      await store.updateWalletUtxos();
+      void store.updateWalletHistory();
     } catch(error){
       displayAndLogError(error)
     } finally {
@@ -329,42 +362,83 @@
     }
     return lines.join('\n');
   }
-
-  // What was just made, for the dialog that reports it
-  function creationSummary(category: string, reserveAmount: bigint, circulatingAmount: bigint, tokenAddress: string) {
-    const supply = amountShown(totalSupply.value ?? 0n);
-    const lines: string[] = [];
-    if (!hasSupply.value) {
-      lines.push(t('createTokens.created.mintingNft', { category }));
-    } else if (createMintingNft.value) {
-      lines.push(t('createTokens.created.hybrid', { supply, category }));
-    } else {
-      lines.push(t('createTokens.created.fungibles', { supply, category }));
-    }
-    if (circulatingAmount > 0n) {
-      lines.push(t('createTokens.created.circulation', { amount: amountShown(circulatingAmount), address: tokenAddress }));
-    }
-    if (reserveAmount > 0n && reserveAmount !== totalSupply.value) {
-      lines.push(t('createTokens.created.reserve', { amount: amountShown(reserveAmount) }));
-    }
-    lines.push(t('createTokens.created.listed'));
-    return lines.join('\n');
-  }
 </script>
 
 <template>
   <div>
     <fieldset class="item" style="padding-bottom: 20px;">
       <legend>{{ t('createTokens.title') }}</legend>
+
+      <!-- The finish, in the page's own sequence: the closed steps with their ticks, then the
+           token as the Tokens tab will show it, with the next thing to do beside it -->
+      <template v-if="created">
+        <div class="closed-line description">
+          <img src="images/check-circle.svg" class="step-check">
+          <span>{{ t('createTokens.home.chosen') }}</span>
+        </div>
+        <div class="closed-line description">
+          <img src="images/check-circle.svg" class="step-check">
+          <span>{{ t('createTokens.plannedTokenId') }}</span>
+          <span class="copy-target" @click="copyToClipboard(created.category)">
+            <span class="mono">{{ truncateHash(created.category) }}</span>
+            <img class="copyIcon" src="images/copyGrey.svg">
+          </span>
+        </div>
+        <div class="closed-line description">
+          <img src="images/check-circle.svg" class="step-check">
+          <span>{{ t('createTokens.step', { current: 2, total: 3 }) }}: {{ t('createTokens.stepTitles.shape') }}</span>
+        </div>
+        <div class="closed-line description">
+          <img src="images/check-circle.svg" class="step-check">
+          <span>{{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}</span>
+        </div>
+
+        <div class="section created-title">{{ t('createTokens.created.title') }}</div>
+        <div class="created-card">
+          <!-- keyed on the category because the generated icon is only drawn when the component mounts -->
+          <TokenIcon :key="created.category" :token-id="created.category" :icon-url="created.iconUrl" :size="48" class="pop" />
+          <div>
+            <div v-if="created.name"><b>{{ created.symbol ? `${created.name} (${created.symbol})` : created.name }}</b></div>
+            <div v-else class="copy-target" @click="copyToClipboard(created.category)">
+              <span class="mono">{{ truncateHash(created.category) }}</span>
+              <img class="copyIcon" src="images/copyGrey.svg">
+            </div>
+            <div v-if="created.hasSupply">{{ t('createTokens.created.supply', { amount: createdAmount(created.supply) }) }}</div>
+            <div v-else>{{ t('createTokens.created.mintingNft') }}</div>
+            <div v-if="created.hasSupply">
+              {{ t('createTokens.created.split', { reserve: createdAmount(created.reserve), circulating: createdAmount(created.circulating) }) }}
+            </div>
+            <div class="description">{{ t('createTokens.created.listed') }}</div>
+          </div>
+        </div>
+        <!-- the nameless token is the thing the user is looking at, with the fix one tap away -->
+        <div v-if="!created.name" style="margin-top: 10px;">
+          <i18n-t keypath="createTokens.created.untilPublished" tag="span">
+            <template #link>
+              <span class="action-link" @click="store.changeView(identitiesView)">{{ t('createTokens.created.untilPublishedLink') }}</span>
+            </template>
+          </i18n-t>
+        </div>
+        <div class="created-actions">
+          <input type="button" :value="t('createTokens.created.seeToken')" @click="store.changeView(tokensView)">
+          <input type="button" :value="t('createTokens.created.seeIdentity')" @click="store.changeView(identitiesView)">
+        </div>
+        <div class="created-links">
+          <a v-if="created.txId" :href="`${store.explorerUrl}/${created.txId}`" target="_blank" class="action-link">
+            {{ t('createTokens.created.viewTransaction') }}
+            <img :src="settingsStore.darkMode ? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;">
+          </a>
+          <span class="action-link" @click="startOver()">{{ t('createTokens.created.createAnother') }}</span>
+        </div>
+      </template>
+
+      <template v-else>
       <!-- The one decision on this page a creator cannot see the consequences of from the form:
            where the token's identity lives afterwards, what protects it, and what it then depends
-           on. The block says what the page does, defines the identity, and asks; two cards of the
-           same shape answer, so neither reads as the recommended one: a radio marker, a title,
-           what you get, and the one caveat, and neither card changes size. Below the pair, the
+           on. One short intro, then two cards of the same shape so neither reads as the
+           recommended one: a radio marker, the mark of the thing it stands for, a title and three
+           short lines with the same three leads, so the eye compares across. Below the pair, the
            selected side's detail, where the consequences of the selection begin. -->
-      <div v-if="createdCategory" style="margin-bottom: 12px;">
-        {{ t('createTokens.created.banner', { category: truncateHash(createdCategory) }) }}
-      </div>
       <template v-if="choiceOpen">
       <div>{{ t('createTokens.home.intro') }}</div>
       <div style="margin-top: 6px;">
@@ -375,25 +449,34 @@
       </div>
       <div class="home-cards">
         <div class="home-card" :class="{ selected: identityHome === 'wallet' }" @click="identityHome = 'wallet'">
-          <div class="home-card-title"><span class="home-radio"></span><b>{{ t('createTokens.home.wallet') }}</b></div>
-          <div>{{ t('createTokens.home.walletStrength') }}</div>
-          <div>{{ t('createTokens.home.walletCaveat') }}</div>
+          <div class="home-card-title">
+            <span class="home-radio"></span>
+            <b>{{ t('createTokens.home.wallet') }}</b>
+            <img src="images/cashonize-icon.png" class="home-mark">
+          </div>
+          <div v-for="line in cardLines" :key="line">
+            <b>{{ t(`createTokens.home.cardLeads.${line}`) }}</b> {{ t(`createTokens.home.walletLines.${line}`) }}
+          </div>
         </div>
         <div class="home-card" :class="{ selected: identityHome === 'studio' }" @click="identityHome = 'studio'">
-          <div class="home-card-title"><span class="home-radio"></span><b>{{ t('createTokens.home.studio') }}</b></div>
-          <div>{{ t('createTokens.home.studioStrength') }}</div>
-          <div>{{ t('createTokens.home.studioCaveat') }}</div>
+          <div class="home-card-title">
+            <span class="home-radio"></span>
+            <b>{{ t('createTokens.home.studio') }}</b>
+            <img src="images/studio.png" class="home-mark">
+          </div>
+          <div v-for="line in cardLines" :key="line">
+            <b>{{ t(`createTokens.home.cardLeads.${line}`) }}</b> {{ t(`createTokens.home.studioLines.${line}`) }}
+          </div>
         </div>
       </div>
 
       <!-- the same three leads on both sides, so the selection is compared like with like; the
-           card carries the fact and its consequence, the row the mechanism -->
+           card carries the fact, the row the mechanism, the row's popup the consequence -->
       <div v-if="identityHome" class="section home-rows">
         <div v-for="row in homeRows" :key="row">
           <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${identityHome}Rows.${row}`) }}
-          <!-- the advice the mechanism leads to, for a seed shared across apps -->
-          <InfoPopup v-if="identityHome === 'wallet' && row === 'protection'">
-            <div style="max-width: 300px;">{{ t('createTokens.home.walletRows.protectionHelp') }}</div>
+          <InfoPopup v-if="row === 'protection'">
+            <div style="max-width: 300px;">{{ t(`createTokens.home.${identityHome}Rows.protectionHelp`) }}</div>
           </InfoPopup>
           <!-- releasing is Studio's word, and the dependency a creator wants to know beforehand -->
           <InfoPopup v-if="identityHome === 'studio' && row === 'operations'">
@@ -403,8 +486,10 @@
       </div>
       </template>
       <!-- closed like a step once the form under it is committed to -->
-      <div v-else class="description">
-        {{ t('createTokens.home.chosen') }}
+      <div v-else class="closed-line description">
+        <img src="images/check-circle.svg" class="step-check pop">
+        <span>{{ t('createTokens.home.chosen') }}</span>
+        <span>·</span>
         <span class="action-link" @click="changeHome()">{{ t('createTokens.change') }}</span>
       </div>
 
@@ -424,9 +509,13 @@
       <!-- Which UTXO the genesis spends decides the token's permanent id, which is the whole of
            what this section is, so it leads with that rather than with a heading repeating it -->
       <div v-if="utxoStepOpen" class="section">
-        <div class="description">{{ t('createTokens.step', { current: 1, total: 3 }) }}</div>
+        <div class="step-label open">{{ t('createTokens.step', { current: 1, total: 3 }) }}</div>
         <div>{{ t('createTokens.genesisInput.explainer') }}</div>
-        <div v-if="store.spendableBalance === 0n" style="color: red; margin-top: 6px;">{{ t('createTokens.needBch') }}</div>
+        <!-- an empty wallet is a condition, not a mistake: the wallet's caution, not its error -->
+        <div v-if="store.spendableBalance === 0n" class="warning-box" style="margin-top: 8px;">
+          <q-icon name="warning" size="20px" class="warning-box-icon" />
+          <div>{{ t('createTokens.genesisInput.needBch') }}</div>
+        </div>
 
         <!-- the open step's one action takes the primary style; Create is not on screen until
              this step has closed -->
@@ -439,11 +528,12 @@
           style="margin-top: 10px;"
         >
 
-        <!-- Which of your coins becomes a token's id is a question nearly nobody needs asked, so
+        <!-- Which of your UTXOs becomes a token's id is a question nearly nobody needs asked, so
              it waits behind a disclosure for whoever wants a particular id or one fewer fee -->
         <details style="margin-top: 10px;">
           <summary style="display: list-item">{{ t('createTokens.genesisInput.chooseExisting', genesisCandidates?.length ?? 0) }}</summary>
-          <div v-if="genesisCandidates === undefined" class="description">{{ t('createTokens.loading') }}</div>
+          <div class="description" style="margin-top: 4px;">{{ t('createTokens.genesisInput.rule') }}</div>
+          <div v-if="genesisCandidates === undefined" class="description">{{ t('createTokens.genesisInput.loading') }}</div>
           <template v-else>
             <div v-if="!genesisCandidates.length" class="description">{{ t('createTokens.genesisInput.none') }}</div>
             <div v-else class="coin-list">
@@ -455,7 +545,7 @@
                 @click="pickedOutpoint = outpointOf(coin)"
               >
                 <TokenIcon :token-id="coin.txid" :size="24" />
-                <span class="mono">{{ truncateHash(coin.txid) }}</span>
+                <span class="mono">{{ truncateHash(coin.txid) }}:{{ coin.vout }}</span>
                 <span>{{ bchOf(coin.satoshis) }}</span>
                 <span v-if="store.addressLabels[coin.address]" class="description">{{ store.addressLabels[coin.address] }}</span>
                 <span v-if="!coin.height" class="description">{{ t('createTokens.genesisInput.unconfirmed') }}</span>
@@ -474,27 +564,33 @@
           </div>
         </div>
       </div>
-      <!-- closed to the one thing the step decided, in the form the metadata names it by -->
-      <div v-else-if="plannedCategory" class="section description">
-        {{ t('createTokens.plannedTokenId') }}
-        <span class="mono">{{ truncateHash(plannedCategory) }}</span>
+      <!-- closed to the one thing the step decided, in the form the metadata names it by, which
+           copies on tap since pasting it into the generator is the next thing a creator does -->
+      <div v-else-if="plannedCategory" class="section closed-line description">
+        <img src="images/check-circle.svg" class="step-check pop">
+        <span>{{ t('createTokens.plannedTokenId') }}</span>
+        <span class="copy-target" @click="copyToClipboard(plannedCategory)">
+          <span class="mono">{{ truncateHash(plannedCategory) }}</span>
+          <img class="copyIcon" src="images/copyGrey.svg">
+        </span>
+        <span>·</span>
         <span class="action-link" @click="editingUtxo = true">{{ t('createTokens.change') }}</span>
       </div>
       <!-- the shape of the flow shows before its fields do, since the first step costs a fee -->
       <template v-if="utxoStepOpen">
-        <div class="section description">{{ t('createTokens.step', { current: 2, total: 3 }) }}: {{ t('createTokens.stepTitles.shape') }}</div>
-        <div class="description" style="margin-top: 8px;">{{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}</div>
+        <div class="section step-label">{{ t('createTokens.step', { current: 2, total: 3 }) }}: {{ t('createTokens.stepTitles.shape') }}</div>
+        <div class="step-label" style="margin-top: 8px;">{{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}</div>
       </template>
 
       <!-- Deciding what to make does not depend on which UTXO makes it, but it reads better one
            thing at a time, so this opens once the UTXO is settled -->
       <div v-if="!utxoStepOpen" class="section">
-        <div class="description">{{ t('createTokens.step', { current: 2, total: 3 }) }}</div>
+        <div class="step-label open">{{ t('createTokens.step', { current: 2, total: 3 }) }}</div>
         <label for="tokenShape">
           {{ t('createTokens.shapeLabel') }}
           <InfoPopup>
-            <div style="max-width: 300px;">{{ t('createTokens.mintingHelp') }}</div>
-            <div class="info-popup-note" style="max-width: 300px;">{{ t('createTokens.mintingDescription') }}</div>
+            <div style="max-width: 300px;">{{ t('createTokens.mintingDescription') }}</div>
+            <div class="info-popup-note" style="max-width: 300px;">{{ t('createTokens.mintingHelp') }}</div>
           </InfoPopup>
         </label>
         <select id="tokenShape" v-model="tokenShape">
@@ -513,7 +609,6 @@
               {{ t('createTokens.supplyLabel') }}
               <InfoPopup>
                 <div style="max-width: 300px;">{{ t('createTokens.supplyHelp') }}</div>
-                <div class="info-popup-note" style="max-width: 300px;">{{ t('createTokens.supplyNote') }}</div>
               </InfoPopup>
             </label>
             <input
@@ -534,8 +629,9 @@
             <input id="decimals" v-model="inputDecimals" type="number" min="0" max="18">
           </div>
         </div>
-        <div v-if="decimals && totalSupply" class="description" style="margin-top: 4px;">
-          {{ t('createTokens.onChain', { amount: baseUnitsOf(totalSupply) }) }}
+        <div class="description" style="margin-top: 4px;">{{ t('createTokens.supplyNote') }}</div>
+        <div v-if="decimals && totalSupply" style="margin-top: 4px;">
+          {{ t('createTokens.supplyOnChain', { tokens: tokensOf(totalSupply), base: baseUnitsOf(totalSupply) }) }}
         </div>
 
         <label for="circulating">
@@ -567,7 +663,7 @@
       <!-- Optional. The location is the field that delivers what the page promises, so it is in
            the open; how to write and host the file is the collapsible part. -->
       <div v-if="!utxoStepOpen && supplySettled" class="section">
-        <div class="description">{{ t('createTokens.step', { current: 3, total: 3 }) }}</div>
+        <div class="step-label open">{{ t('createTokens.step', { current: 3, total: 3 }) }}</div>
         <div style="margin-top: 6px;">
           {{ t('createTokens.metadataNote') }}
           <InfoPopup>
@@ -602,7 +698,9 @@
           </span>
         </div>
         <!-- The check is the user's action, never a fetch on blur, and what it found is shown
-             before anything is signed: the name, decimals and hash Create would commit to -->
+             before anything is signed: the token as wallets will show it, and the hash Create
+             would commit to. The one moment of colour on the page that is not the primary green,
+             and it is the user's own. -->
         <template v-if="filledUris.length">
           <input
             v-if="readiness === 'unchecked'"
@@ -613,16 +711,19 @@
             style="margin-top: 10px;"
           >
           <div v-if="readiness === 'unchecked'" class="description" style="margin-top: 6px;">{{ t('createTokens.check.needed') }}</div>
-          <div v-else-if="checkedRegistry" class="checked-registry">
-            <img v-if="checkedIconUrl" :src="checkedIconUrl" class="checked-icon">
-            <div>
-              <div>{{ t('createTokens.check.summary', { name: checkedName, decimals: checkedRegistry.summary.decimals ?? 0 }) }}</div>
-              <div class="description mono">{{ t('createTokens.check.hash', { hash: truncateHash(checkedRegistry.hash) }) }}</div>
-              <div v-if="readiness === 'decimalsMismatch'" class="genesis-problem">
-                {{ t('createTokens.check.decimalsMismatch', { registry: checkedRegistry.summary.decimals ?? 0, chosen: decimals }) }}
+          <template v-else-if="checkedRegistry">
+            <div class="description" style="margin-top: 10px;">{{ t('createTokens.check.howShown') }}</div>
+            <div class="checked-registry pop">
+              <TokenIcon :key="checkedRegistry.hash" :token-id="plannedCategory ?? ''" :icon-url="checkedIconUrl" :size="48" />
+              <div>
+                <div>{{ t('createTokens.check.summary', { name: checkedName, decimals: checkedRegistry.summary.decimals ?? 0 }) }}</div>
+                <div class="description mono">{{ t('createTokens.check.hash', { hash: truncateHash(checkedRegistry.hash) }) }}</div>
               </div>
             </div>
-          </div>
+            <div v-if="readiness === 'decimalsMismatch'" class="genesis-problem" style="margin-top: 6px;">
+              {{ t('createTokens.check.decimalsMismatch', { registry: checkedRegistry.summary.decimals ?? 0, chosen: decimals }) }}
+            </div>
+          </template>
         </template>
         <details style="margin-top: 10px;">
           <summary style="display: list-item">{{ t('createTokens.howTo') }}</summary>
@@ -652,9 +753,10 @@
           :disabled="activeAction !== null || genesisProblem !== undefined || (readiness !== 'none' && readiness !== 'ready')"
         >
       </div>
-      <div v-else-if="!utxoStepOpen" class="section description">
+      <div v-else-if="!utxoStepOpen" class="section step-label">
         {{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}
       </div>
+      </template>
       </template>
     </fieldset>
   </div>
@@ -668,12 +770,30 @@
   font-family: monospace;
 }
 /* the page's three questions are numbered the way the flipstarter tool numbers its steps,
-   rather than carrying a heading in bold over each of them */
+   rather than carrying a heading in bold over each of them; the open one is in the primary
+   colour, so done, doing and next read as a shape */
 .section {
   margin-top: 20px;
 }
+.step-label {
+  color: grey;
+}
+.step-label.open {
+  color: var(--color-primary);
+}
+.closed-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.step-check {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
 /* side by side where the width allows, stacked on a phone; the selected card is marked the way
-   a picked coin is, and stops reading as clickable */
+   a picked UTXO is, and stops reading as clickable */
 .home-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -696,11 +816,16 @@
   border-color: var(--color-primary);
   cursor: default;
 }
-/* the one-of-two control the page's own inputs use, so a card reads as a choice on a phone too */
+.home-card > div {
+  margin-top: 4px;
+}
+/* the one-of-two control the page's own inputs use, so a card reads as a choice on a phone too;
+   after the title, the mark of the thing the card stands for: home, or someone else's site */
 .home-card-title {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 0;
 }
 .home-radio {
   flex: none;
@@ -712,6 +837,11 @@
 .home-card.selected .home-radio {
   border-color: var(--color-primary);
   background: radial-gradient(circle, var(--color-primary) 45%, transparent 50%);
+}
+.home-mark {
+  width: 20px;
+  height: 20px;
+  flex: none;
 }
 .home-rows div {
   margin-top: 4px;
@@ -797,9 +927,6 @@ label {
 .over-budget {
   color: var(--color-error);
 }
-.minting-option {
-  margin-top: 12px;
-}
 .genesis-problem {
   color: var(--color-error);
 }
@@ -823,13 +950,7 @@ label {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 10px;
-}
-.checked-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
+  margin-top: 6px;
 }
 .planned-category {
   display: flex;
@@ -843,5 +964,40 @@ label {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+/* the finish: the one glad line on the page, then the token in the shape the Tokens tab gives it */
+.created-title {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.created-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+.dark .created-card {
+  border-color: #333;
+}
+.created-card > div > div {
+  margin-top: 2px;
+}
+.created-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+.created-actions input {
+  margin: 0;
+}
+.created-links {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }
 </style>

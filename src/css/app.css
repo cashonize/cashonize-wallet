@@ -311,10 +311,13 @@ input[type='number'] {
     transform: scale(1.15);
   }
 }
-.star-pop {
-  animation: star-pop 0.35s ease;
+/* one small pop for a thing that appears because the user earned it: a favourite, a checked
+   registry, a step's tick, a created token */
+.star-pop,
+.pop {
+  animation: pop 0.35s ease;
 }
-@keyframes star-pop {
+@keyframes pop {
   0% {
     transform: scale(1);
   }

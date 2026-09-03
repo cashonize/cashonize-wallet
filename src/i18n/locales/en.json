@@ -643,82 +643,27 @@
   },
   "createTokens": {
     "title": "Create a token",
-    "needBch": "Need BCH in wallet to create tokens",
-    "genesisInput": {
-      "explainer": "The txid of the UTXO the genesis spends becomes the token id (its category); the UTXO must be at output 0.",
-      "none": "This wallet has no UTXO that can create a token yet.",
-      "prepareButton": "Prepare a UTXO",
-      "chooseExisting": "Or choose a UTXO this wallet already has | Or choose the one UTXO this wallet already has | Or choose one of the {count} UTXOs this wallet already has",
-      "unconfirmed": "unconfirmed"
-    },
-    "preparingButton": "Preparing...",
-    "plannedTokenId": "Token id:",
-    "loading": "loading...",
-    "mintingDescription": "A minting NFT is used to create an NFT collection: it can mint new NFTs of the same category.",
-    "mintingHelp": "Only the creating transaction can grant the minting capability. Without it, this category can never have NFTs of its own.",
-    "mintingNote": "Note: to use a Minting NFT toggle the option \"Enable mint NFTs\" in the developer settings.",
-    "supplyLabel": "Total supply of fungible tokens",
-    "supplyHelp": "The fungible supply is fixed when the token is created. No more of this category can ever exist, so decide the number now.",
-    "supplyPlaceholder": "total supply",
-    "supplyNote": "Typed in tokens. The number created on chain follows from the decimals and is shown underneath.",
-    "circulation": {
-      "label": "Issue to circulation now",
-      "help": "What is issued now is ordinary supply this wallet can spend. The rest sits on the identity's own UTXO as reserve, so it is held back with it, and it goes wherever the identity goes. It can be issued later from the identities page; each issue is a transaction that moves the identity to a new UTXO.",
-      "placeholder": "Amount to issue",
-      "split": "{reserve} stays with the identity as reserve, {circulating} enters circulation.",
-      "splitOnChain": "On chain: {reserve} reserve, {circulating} circulating."
-    },
-    "linkMetadata": "Link metadata",
-    "steps": {
-      "author": "Write the registry JSON with the {generator}, naming the token id above.",
-      "host": "Host it on your own domain or on IPFS.",
-      "verify": "Enter where it is hosted below. This wallet fetches it and checks that it names this token.",
-      "create": "Create the token: the same transaction publishes the file's hash and where to find it."
-    },
-    "metadataNote": "Metadata can be added now with the BCMR generator (BCMR is the metadata standard wallets read), or after creation from the identities page.",
-    "creatingTokensButton": "Creating Tokens...",
-    "createButton": "Create",
-    "notifications": {
-      "preparingPreGenesis": "Preparing a UTXO...",
-      "transactionSent": "Transaction successfully sent!",
-      "creatingTokens": "Creating tokens...",
-      "creatingMintingNft": "Creating minting NFT...",
-      "bcmrWrongIdentity": "That registry does not describe the identity being created. Check that the file names this token category."
-    },
-    "errors": {
-      "invalidAmount": "Enter amounts in tokens, with no more decimal places than the token has.",
-      "overMaxSupply": "That is more than a token category can hold. The most is {max}.",
-      "overSupply": "That is more than the total supply.",
-      "invalidDecimals": "Decimals must be a whole number from 0 to 18."
-    },
-    "created": {
-      "fungibles": "Created {supply} fungible tokens of category {category}",
-      "mintingNft": "Created a minting NFT of category {category}",
-      "hybrid": "Created {supply} fungible tokens and a minting NFT of category {category}",
-      "reserve": "{amount} stays with the identity as reserved supply.",
-      "listed": "It is listed on the identities page, and its UTXO is held back from coin selection.",
-      "openIdentities": "Open identities page",
-      "banner": "Created {category}. Manage it on the identities page in Tools.",
-      "circulation": "{amount} issued to this wallet's token address {address}."
-    },
-    "shapeLabel": "Token shape",
-    "shapes": {
-      "fungible": "Fungible tokens",
-      "mintingNft": "A minting NFT",
-      "both": "Fungible tokens and a minting NFT"
-    },
-    "step": "Step {current} of {total}",
-    "reserveNote": "A token's supply is created at the identity's UTXO, so not all of it can go into circulation in this transaction. Leave part as reserve and issue it from the identities page afterwards.",
     "home": {
-      "intro": "Create a new token here, with a name, icon and other metadata linked now or added later. Wallets show a token's name and icon from a metadata file its identity points to; whoever holds the identity UTXO can change that file. Choose where the identity should live.",
+      "intro": "Create a new token here; name, icon and other metadata can be linked now or added later. Wallets read them from a metadata file the token's identity points to. Choose where that identity should live.",
       "moveLater": "You can move it from this wallet to Studio later, and back.",
       "moveLaterHelp": "Into Studio: create a key there, then transfer the identity from the identities page to the guard address Studio shows for that key. Back: Studio's Release UTXO returns it to a plain address, and the identities page finds it again with the identity check.",
       "wallet": "In this wallet",
-      "walletStrength": "Your wallet holds the identity UTXO and manages it on the identities page in Tools.",
-      "walletCaveat": "Protected by Cashonize only: a send from another wallet app on this seed could spend it as an ordinary UTXO, sending the identity wherever that payment goes.",
       "studio": "With CashTokens Studio",
-      "studioStrength": "A contract on chain holds it and you hold a key NFT; Studio writes and hosts the metadata for you.",
-      "studioCaveat": "Every operation runs through Studio's site.",
+      "cardLeads": {
+        "holds": "Holds it:",
+        "hosts": "Hosts the metadata:",
+        "risk": "Risk:"
+      },
+      "walletLines": {
+        "holds": "your wallet, as a UTXO, managed on the identities page.",
+        "hosts": "you, on a domain or IPFS.",
+        "risk": "another wallet app on this seed could spend it away."
+      },
+      "studioLines": {
+        "holds": "a contract on chain; you hold a key NFT.",
+        "hosts": "Studio, for you.",
+        "risk": "every operation runs through Studio's site."
+      },
       "leads": {
         "protection": "Protection:",
         "metadata": "Metadata:",
@@ -726,52 +671,122 @@
       },
       "walletRows": {
         "protection": "held out of coin selection by Cashonize; other apps don't know it is special.",
-        "protectionHelp": "A seed used in several apps is better off with a wallet used only here, or with Studio. A restore of this seed in Cashonize finds the identity again from the chain.",
-        "metadata": "a file you host, on a domain or IPFS, linked now or from the identities page later.",
-        "operations": "here, on the identities page; each operation moves the identity to a new UTXO."
+        "protectionHelp": "An ordinary send from another wallet app spends the UTXO and hands the identity to whoever receives that send. A seed used in several apps is better off with a wallet used only here, or with Studio; a restore of this seed in Cashonize finds the identity again.",
+        "metadata": "a file you host, linked now or from the identities page later.",
+        "operations": "here, on the identities page; each one moves the identity to a new UTXO."
       },
       "studioRows": {
-        "protection": "opens only to the key NFT, which other wallets show nameless and could send away.",
-        "metadata": "authored and pinned to IPFS by Studio, or a URL you host.",
+        "protection": "opens only to the key NFT, which other wallets show without a name.",
+        "protectionHelp": "A nameless NFT is easy to lose track of, in this wallet or another, or to burn as if it were spam. Cashonize names it by what it guards; other wallets do not.",
+        "metadata": "written and pinned to IPFS by Studio, or a URL you host.",
         "operations": "on Studio's site, over WalletConnect, releasing it included.",
         "operationsHelp": "Releasing the identity from the guard, back to a plain address, is also done through Studio."
       },
-      "glossary": "Studio calls the contract an AuthGuard and the key an AuthKey. The key has no metadata of its own; Cashonize names it by what it guards.",
+      "glossary": "Studio calls the contract an AuthGuard and the key an AuthKey.",
       "openStudio": "Open CashTokens Studio",
       "chosen": "Identity: in this wallet"
     },
     "change": "change",
-    "noHosting": "No domain or IPFS? CashTokens Studio can write and host it for you, if the identity moves there.",
-    "locationHint": "A domain, a full HTTPS URL, or an IPFS CID; a bare domain means its well-known registry path.",
-    "sameFile": "Every location must serve the same file.",
-    "confirm": {
-      "title": "Create this token?",
-      "button": "Create",
-      "supply": "Total supply: {supply}",
-      "metadataLinked": "Metadata: {name}, from {location}",
-      "metadataNone": "Metadata: none linked yet. It can be added from the identities page.",
-      "decimals": "Decimals: {decimals}"
+    "step": "Step {current} of {total}",
+    "stepTitles": {
+      "shape": "shape and supply",
+      "metadata": "metadata"
+    },
+    "genesisInput": {
+      "explainer": "The txid of the UTXO the genesis spends becomes the token id; the UTXO must be at output 0.",
+      "needBch": "This wallet needs some BCH to create a token: the UTXO it prepares and the fees come from it.",
+      "prepareButton": "Prepare a UTXO",
+      "chooseExisting": "Or choose a UTXO this wallet already has | Or choose the one UTXO this wallet already has | Or choose one of the {count} UTXOs this wallet already has",
+      "rule": "Only UTXOs at output 0 without tokens are listed; unconfirmed ones work too.",
+      "none": "This wallet has no UTXO that can create a token yet.",
+      "unconfirmed": "unconfirmed",
+      "loading": "loading..."
     },
     "prepare": {
       "title": "Prepare a UTXO?",
       "message": "This sends {amount} to yourself now, so the genesis has a fresh UTXO at output 0 to spend. The amount stays yours; only the fee is spent."
     },
-    "decimalsLabel": "Decimals",
-    "decimalsHelp": "How many decimal places the token has: 2 means amounts like 100.00. The supply is created in base units from it, so the registry must say the same number.",
-    "onChain": "{amount} on chain",
-    "stepTitles": {
-      "shape": "shape and supply",
-      "metadata": "metadata"
+    "preparingButton": "Preparing...",
+    "plannedTokenId": "Token id:",
+    "shapeLabel": "Token shape",
+    "shapes": {
+      "fungible": "Fungible tokens",
+      "mintingNft": "A minting NFT",
+      "both": "Fungible tokens and a minting NFT"
     },
-    "howTo": "How to write and host the file",
+    "mintingDescription": "A minting NFT is used to create an NFT collection: it can mint new NFTs of the same category.",
+    "mintingHelp": "Only the creating transaction can grant the minting capability. Without it, this token can never have NFTs of its own.",
+    "mintingNote": "Note: to use a Minting NFT toggle the option \"Enable mint NFTs\" in the developer settings.",
+    "decimalsLabel": "Decimals",
+    "decimalsHelp": "How many decimal places the token has: 2 means amounts like 100.00. The supply is created in base units from it, so the metadata file must say the same number.",
+    "supplyLabel": "Total supply of fungible tokens",
+    "supplyNote": "Typed in tokens. The number created on chain follows from the decimals and is shown underneath.",
+    "supplyHelp": "The fungible supply is fixed when the token is created. No more of this token can ever exist, so decide the number now.",
+    "supplyPlaceholder": "total supply",
+    "supplyOnChain": "{tokens} tokens, {base} base units on chain",
+    "circulation": {
+      "label": "Issue to circulation now",
+      "help": "What is issued now is ordinary supply this wallet can spend. The rest sits on the identity's own UTXO as reserve, so it is held back with it, and it goes wherever the identity goes. It can be issued later from the identities page; each issue is a transaction that moves the identity to a new UTXO.",
+      "placeholder": "Amount to issue",
+      "split": "{reserve} stays with the identity as reserve, {circulating} enters circulation.",
+      "splitOnChain": "On chain: {reserve} reserve, {circulating} circulating."
+    },
+    "errors": {
+      "invalidAmount": "Enter amounts in tokens, with no more decimal places than the token has.",
+      "overMaxSupply": "That is more than a token can hold. The most is {max}.",
+      "overSupply": "That is more than the total supply.",
+      "invalidDecimals": "Decimals must be a whole number from 0 to 18."
+    },
+    "reserveNote": "A token's supply is created at the identity's UTXO, so not all of it can go into circulation in this transaction. Leave part as reserve and issue it from the identities page afterwards.",
+    "metadataNote": "Metadata can be added now with the BCMR generator (BCMR is the metadata standard wallets read), or after creation from the identities page.",
+    "locationHint": "A domain, a full HTTPS URL, or an IPFS CID; a bare domain means its well-known metadata path.",
+    "sameFile": "Every location must serve the same file.",
     "check": {
+      "decimalsReminder": "The metadata file must say decimals: {decimals}.",
       "button": "Check",
       "checking": "Checking...",
       "needed": "Check the location before creating.",
+      "howShown": "How wallets will show it",
       "summary": "{name}, decimals: {decimals}",
       "hash": "Hash: {hash}",
-      "decimalsMismatch": "The registry says decimals: {registry}; this token would be made with {chosen}. Change one of them.",
-      "decimalsReminder": "The registry must say decimals: {decimals}."
+      "decimalsMismatch": "The metadata file says decimals: {registry}; this token would be made with {chosen}. Change one of them."
+    },
+    "howTo": "How to write and host the file",
+    "steps": {
+      "author": "Write the metadata file with the {generator}, naming the token id above.",
+      "host": "Host it on your own domain or on IPFS.",
+      "verify": "Enter where it is hosted above. This wallet fetches it and checks that it names this token.",
+      "create": "Create the token: the same transaction publishes the file's hash and where to find it."
+    },
+    "noHosting": "No domain or IPFS? CashTokens Studio can write and host it for you, if the identity moves there.",
+    "createButton": "Create",
+    "creatingTokensButton": "Creating Tokens...",
+    "confirm": {
+      "title": "Create this token?",
+      "button": "Create",
+      "supply": "Total supply: {supply}",
+      "decimals": "Decimals: {decimals}",
+      "metadataLinked": "Metadata: {name}, from {location}",
+      "metadataNone": "Metadata: none linked yet. Until it is published, wallets show the token by its id, with raw amounts."
+    },
+    "notifications": {
+      "preparingPreGenesis": "Preparing a UTXO...",
+      "transactionSent": "Transaction successfully sent!",
+      "creatingTokens": "Creating tokens...",
+      "bcmrWrongIdentity": "That metadata file does not describe the token being created. Check that the file names this token id."
+    },
+    "created": {
+      "title": "Success!",
+      "supply": "{amount} created",
+      "mintingNft": "A minting NFT created",
+      "split": "{reserve} with the identity as reserve, {circulating} in this wallet",
+      "listed": "Listed on the identities page; its UTXO is held back from coin selection.",
+      "untilPublished": "Wallets show it like this until you {link}.",
+      "untilPublishedLink": "publish metadata",
+      "seeToken": "See token in wallet",
+      "seeIdentity": "See identity in wallet",
+      "viewTransaction": "View transaction",
+      "createAnother": "Create another token"
     }
   },
   "utxoManagement": {
@@ -1635,7 +1650,7 @@
         "changedNote": "If you did not edit the file, check your hosting: something else is answering for it.",
         "unreachable": "This location did not answer. Holders fetching the metadata from it see nothing, so check whether the hosting or the IPFS pin has lapsed."
       },
-      "noneAction": "publish one"
+      "noneAction": "publish metadata"
     },
     "history": {
       "title": "This identity's history",
@@ -1653,7 +1668,7 @@
       "minted": "Minted {count} NFT | Minted {count} NFTs"
     },
     "publish": {
-      "action": "publish update",
+      "action": "publish metadata",
       "locationsHint": "A domain, a full HTTPS URL, or an IPFS CID. Every location must serve the same file.",
       "uriPlaceholder": "example.com or ipfs://baf...",
       "addLocation": "add another location",
@@ -1689,7 +1704,7 @@
         "host": "Host it on your own domain or on IPFS.",
         "publish": "Enter where it is hosted below, and this wallet verifies it and publishes the pointer."
       },
-      "generatorHelp": "The generator is a form that writes the metadata file, the registry, for you. You can also write it yourself against the {schema}; either way this wallet fetches the file and checks that it names this token, hashing the file exactly as served.",
+      "generatorHelp": "The generator is a form that writes the metadata file for you; the spec calls it a registry. You can also write it yourself against the {schema}. Either way this wallet fetches the file, hashing it exactly as served, and checks that it names this token.",
       "generatorHelpSchema": "BCMR schema"
     },
     "add": {
