@@ -885,6 +885,11 @@
   gap: 6px;
   text-decoration: none;
 }
+/* the anchor hover tints the background; a button hovers by fading, like every other button */
+.studio-button:hover {
+  background-color: var(--color-primary);
+  opacity: 0.8;
+}
 label {
   display: block;
   margin-top: 14px;
