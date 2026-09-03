@@ -135,36 +135,14 @@
   );
   const watchedCount = computed(() => listedCount.value - ownedCount.value);
 
-  // Two kinds of card with no name to show: authheads held back with nothing on the UTXO to say
-  // which identity they are, and the guarded identities a watched key covers that this version
-  // cannot name, since that needs a lookup back from an output to the authchain it ends. The
-  // latter are counted rather than dropped, so a key guarding only them is not reported as
-  // guarding nothing.
-  interface MiniCard {
-    id: string; shortId: string; title: string; label: string;
-    help?: string; status?: string; note?: string; amount?: string; txid?: string;
-  }
-  const miniCards = computed<MiniCard[]>(() => [
-    ...identitiesStore.unnamedAuthheadCoins.map(coin => ({
-      id: `${coin.txid}:0`,
-      shortId: `${truncateHash(coin.txid)}:0`,
-      title: t('identities.unnamed.title'),
-      help: t('identities.unnamed.help'),
-      status: t('identities.unnamed.status'),
-      label: t('identities.authheadLabel'),
-      amount: bchOf(coin.satoshis),
-      txid: coin.txid,
-    })),
-    ...Object.entries(identitiesStore.unidentifiedGuarded)
+  // Guarded identities a watched key covers that this version cannot name, since that needs a
+  // lookup back from an output to the authchain it ends. Counted rather than dropped, so a key
+  // guarding only them is not reported as guarding nothing.
+  const unnameableGuards = computed(() =>
+    Object.entries(identitiesStore.unidentifiedGuarded)
       .filter(([, count]) => count > 0)
-      .map(([category, count]) => ({
-        id: category,
-        shortId: truncateHash(category),
-        title: t('identities.key.unnameableTitle'),
-        note: t('identities.key.unnameable', count),
-        label: t('identities.key.categoryLabel'),
-      })),
-  ]);
+      .map(([category, count]) => ({ category, count }))
+  );
 
   // An IPFS CID cannot serve content other than its own, so a mismatch there says something
   // different from an edited file at an HTTPS location
@@ -712,27 +690,37 @@
         {{ t('identities.ownedCount', ownedCount) }}<template v-if="watchedCount">{{ t('identities.watchedSuffix', watchedCount) }}</template>
       </div>
 
-      <!-- Protected first, named if it can be -->
-      <div v-for="card in miniCards" :key="card.id" class="section identity-card">
+      <!-- Found in this wallet's own history and held back, with nothing on the UTXO to say which
+           identity it belongs to. Protected first, named if it can be. -->
+      <div v-for="coin in identitiesStore.unnamedAuthheadCoins" :key="coin.txid" class="section identity-card">
         <div>
-          {{ card.title }}
-          <InfoPopup v-if="card.help">
-            <div style="max-width: 300px;">{{ card.help }}</div>
+          {{ t('identities.unnamed.title') }}
+          <InfoPopup>
+            <div style="max-width: 300px;">{{ t('identities.unnamed.help') }}</div>
           </InfoPopup>
         </div>
-        <div v-if="card.status" class="identity-status">
+        <div class="identity-status">
           <q-icon name="lock" size="15px" />
-          {{ card.status }}
+          {{ t('identities.unnamed.status') }}
         </div>
-        <div v-if="card.note" class="description">{{ card.note }}</div>
-        <div class="copy-target" :title="card.id" @click="copyToClipboard(card.id)">
-          <span class="description">{{ card.label }}</span>
-          <span class="mono">{{ card.shortId }}</span>
+        <div class="copy-target" :title="`${coin.txid}:0`" @click="copyToClipboard(`${coin.txid}:0`)">
+          <span class="description">{{ t('identities.authheadLabel') }}</span>
+          <span class="mono">{{ truncateHash(coin.txid) }}:0</span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
-        <div v-if="card.amount">{{ t('identities.authheadAmount', { amount: card.amount }) }}</div>
-        <div v-if="card.txid" class="identity-links">
-          <span class="remove-identity" @click="removeUnnamed(card.txid)">{{ t('identities.remove.button') }}</span>
+        <div>{{ t('identities.authheadAmount', { amount: bchOf(coin.satoshis) }) }}</div>
+        <div class="identity-links">
+          <span class="remove-identity" @click="removeUnnamed(coin.txid)">{{ t('identities.remove.button') }}</span>
+        </div>
+      </div>
+
+      <div v-for="guard in unnameableGuards" :key="guard.category" class="section identity-card">
+        <div>{{ t('identities.key.unnameableTitle') }}</div>
+        <div class="description">{{ t('identities.key.unnameable', guard.count) }}</div>
+        <div class="copy-target" :title="guard.category" @click="copyToClipboard(guard.category)">
+          <span class="description">{{ t('identities.key.categoryLabel') }}</span>
+          <span class="mono">{{ truncateHash(guard.category) }}</span>
+          <img class="copyIcon" src="images/copyGrey.svg">
         </div>
       </div>
 
