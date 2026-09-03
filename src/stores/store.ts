@@ -577,10 +577,8 @@ export const useStore = defineStore('store', () => {
       await updateWalletHistory({ count: 100 })
       console.timeEnd('fetch initial history');
       walletInitialized.value = true;
-      // resolve identities last because it is not critical
-      console.time('resolve identities');
-      await identitiesStore.refreshIdentities();
-      console.timeEnd('resolve identities');
+      // the identities come last and on their own: not critical to the wallet loading, and a
+      // lookup they need failing is theirs to report, not a failed wallet
       void identitiesStore.runChecksOnOpen();
     } catch (error) {
       // A stale initialization must not flag the newer one as failed
@@ -1229,10 +1227,8 @@ export const useStore = defineStore('store', () => {
   // below: the query is address-keyed and one endpoint serves both chains. A failure shows on
   // the identities page rather than as a toast on every open.
 
-  // The walk of the wallet's spent outputs runs at open for detection and again from the portfolio
-  // view. Its answer only changes when a UTXO of ours is spent, so the last answer is kept with
-  // the outpoints held when it was made and reused while every one of them is still held;
-  // incoming coins do not matter to it. Cleared on wallet switch like everything the counter guards.
+  // The walk of the wallet's spent outputs, run at open for detection and again from the portfolio
+  // view; one request each time
   async function walkSpentOutputs() {
     return querySpentOutputs(walletPublicKeyHashes(), settingsStore.chaingraph);
   }

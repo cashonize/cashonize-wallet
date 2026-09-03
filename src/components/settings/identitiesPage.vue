@@ -225,10 +225,14 @@
   // Re-resolving on every visit is the point of the page: the authhead moves whenever the identity's
   // metadata is updated elsewhere, and the reservations are rewritten from what comes back
   async function reloadIdentities() {
-    await identitiesStore.refreshIdentities();
-    await fetchMissingMetadata();
-    // after the resolving, which is what says where each publication is
-    await identitiesStore.checkPublications();
+    try {
+      await identitiesStore.refreshIdentities();
+      await fetchMissingMetadata();
+      // after the resolving, which is what says where each publication is
+      await identitiesStore.checkPublications();
+    } catch (error) {
+      displayAndLogError(error);
+    }
   }
 
   onActivated(() => {

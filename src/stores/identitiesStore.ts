@@ -453,20 +453,25 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // The passes the wallet runs on its own once a wallet is up: the walk of its history for the
   // identities these keys made, mainnet only like the walk itself, and the developer option below
+  // Outside the wallet's own failure path: a lookup failing here, an electrum server refusing a
+  // guard address say, must not flag a wallet that did load, so it is reported where the
+  // identities are. The resolve of what the wallet follows comes first, since the walk lists
+  // against it.
   async function runChecksOnOpen() {
     const started = mainStore.currentInitializationToken();
     openCheckError.value = undefined;
-    if (mainStore.network === 'mainnet') {
-      try {
+    try {
+      await refreshIdentities();
+      if (mainStore.network === 'mainnet') {
         const spentOutputs = await mainStore.walkSpentOutputs();
         if (mainStore.walletSwitchedSince(started)) return;
         await detectWalletIdentities(spentOutputs);
-      } catch (error) {
-        console.error("Failed to look for identities in the wallet's history:", error);
-        if (mainStore.walletSwitchedSince(started)) return;
-        openCheckError.value = error instanceof Error ? error.message : String(error);
-        return;
       }
+    } catch (error) {
+      console.error("Failed to look up the wallet's identities:", error);
+      if (mainStore.walletSwitchedSince(started)) return;
+      openCheckError.value = error instanceof Error ? error.message : String(error);
+      return;
     }
     if (mainStore.walletSwitchedSince(started)) return;
     if (settingsStore.checkHeldTokensForIdentities) await checkHeldCategoriesOnOpen();

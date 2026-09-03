@@ -277,6 +277,22 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.unseenCount).toBe(0)
   })
 
+  // a key candidate's guard is looked up over electrum at open; the server refusing must land on
+  // the identities page, not flag a wallet that did load
+  it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {
+    const keyCategory = 'ab'.repeat(32)
+    const candidate = utxo('cd'.repeat(32), 1, { category: keyCategory, amount: 0n, nft: { commitment: '00', capability: 'none' } })
+    const { store, identitiesStore } = startStore([candidate])
+    const provider = store.wallet.provider as unknown as { getUtxos: unknown }
+    provider.getUtxos = vi.fn(() => Promise.reject(new Error('electrum refused')))
+
+    await identitiesStore.runChecksOnOpen()
+
+    expect(identitiesStore.openCheckError).toBe('electrum refused')
+    expect(identitiesStore.identities).toBeUndefined()
+    expect(store.walletInitFailed).toBe(false)
+  })
+
   // the developer option runs the category half of the check on open: a find joins the list and
   // the trail like a detected one, an outage lands on the page rather than in a toast
   it('finds a received identity on open when the option is on, and reports an outage', async () => {
