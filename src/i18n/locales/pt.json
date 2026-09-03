@@ -650,19 +650,19 @@
       "wallet": "Nesta carteira",
       "studio": "Com o CashTokens Studio",
       "cardLeads": {
-        "holds": "Guarda-a:",
-        "hosts": "Hospeda os metadados:",
+        "holds": "Guarda:",
+        "hosts": "Metadados:",
         "risk": "Risco:"
       },
       "walletLines": {
-        "holds": "a sua carteira, como UTXO, gerida na página de identidades.",
-        "hosts": "você, num domínio ou no IPFS.",
-        "risk": "outra app de carteira com esta seed poderia gastá-la e perdê-la."
+        "holds": "a sua carteira, como UTXO gerido aqui.",
+        "hosts": "hospedados por si, domínio ou IPFS.",
+        "risk": "outra app com esta seed poderia gastá-lo."
       },
       "studioLines": {
-        "holds": "um contrato na cadeia; você tem um NFT chave.",
-        "hosts": "o Studio, por si.",
-        "risk": "o NFT chave não tem nome; fácil de perder de vista ou queimar."
+        "holds": "um contrato; você tem o NFT chave.",
+        "hosts": "escritos e hospedados pelo Studio.",
+        "risk": "o NFT chave não tem nome; fácil de perder."
       },
       "leads": {
         "protection": "Proteção:",

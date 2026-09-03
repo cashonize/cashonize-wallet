@@ -650,19 +650,19 @@
       "wallet": "In this wallet",
       "studio": "With CashTokens Studio",
       "cardLeads": {
-        "holds": "Holds it:",
-        "hosts": "Hosts the metadata:",
+        "holds": "Holds:",
+        "hosts": "Metadata:",
         "risk": "Risk:"
       },
       "walletLines": {
-        "holds": "your wallet, as a UTXO, managed on the identities page.",
-        "hosts": "you, on a domain or IPFS.",
-        "risk": "another wallet app on this seed could spend it away."
+        "holds": "your wallet, as a UTXO you manage here.",
+        "hosts": "hosted by you, on a domain or IPFS.",
+        "risk": "another app on this seed could spend it."
       },
       "studioLines": {
         "holds": "a contract on chain; you hold a key NFT.",
-        "hosts": "Studio, for you.",
-        "risk": "the key NFT has no name; easy to lose track of or burn."
+        "hosts": "written and hosted by Studio.",
+        "risk": "the key NFT has no name; easy to lose."
       },
       "leads": {
         "protection": "Protection:",

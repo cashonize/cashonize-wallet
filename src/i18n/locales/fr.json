@@ -650,19 +650,19 @@
       "wallet": "Dans ce portefeuille",
       "studio": "Avec CashTokens Studio",
       "cardLeads": {
-        "holds": "La détient :",
-        "hosts": "Héberge les métadonnées :",
+        "holds": "Détient :",
+        "hosts": "Métadonnées :",
         "risk": "Risque :"
       },
       "walletLines": {
-        "holds": "votre portefeuille, comme UTXO, gérée sur la page des identités.",
-        "hosts": "vous, sur un domaine ou IPFS.",
-        "risk": "une autre application sur cette graine pourrait la dépenser et la perdre."
+        "holds": "votre portefeuille, comme UTXO géré ici.",
+        "hosts": "hébergées par vous, domaine ou IPFS.",
+        "risk": "une autre app de la graine peut le dépenser."
       },
       "studioLines": {
-        "holds": "un contrat sur la chaîne ; vous détenez un NFT clé.",
-        "hosts": "Studio, pour vous.",
-        "risk": "le NFT clé n'a pas de nom ; facile à perdre de vue ou à brûler."
+        "holds": "un contrat ; vous détenez le NFT clé.",
+        "hosts": "rédigées et hébergées par Studio.",
+        "risk": "NFT clé sans nom ; facile à perdre."
       },
       "leads": {
         "protection": "Protection :",

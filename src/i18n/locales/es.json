@@ -650,19 +650,19 @@
       "wallet": "En esta billetera",
       "studio": "Con CashTokens Studio",
       "cardLeads": {
-        "holds": "La guarda:",
-        "hosts": "Aloja los metadatos:",
+        "holds": "Guarda:",
+        "hosts": "Metadatos:",
         "risk": "Riesgo:"
       },
       "walletLines": {
-        "holds": "tu billetera, como UTXO, gestionada en la página de identidades.",
-        "hosts": "tú, en un dominio o en IPFS.",
-        "risk": "otra app de billetera con esta semilla podría gastarla y perderla."
+        "holds": "tu billetera, como UTXO gestionado aquí.",
+        "hosts": "alojados por ti, dominio o IPFS.",
+        "risk": "otra app con esta semilla podría gastarlo."
       },
       "studioLines": {
-        "holds": "un contrato en cadena; tú tienes un NFT clave.",
-        "hosts": "Studio, por ti.",
-        "risk": "el NFT clave no tiene nombre; fácil de perder de vista o quemar."
+        "holds": "un contrato; tú tienes el NFT clave.",
+        "hosts": "escritos y alojados por Studio.",
+        "risk": "NFT clave sin nombre; fácil de perder."
       },
       "leads": {
         "protection": "Protección:",
