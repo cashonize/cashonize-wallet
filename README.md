@@ -96,7 +96,7 @@ For more details see the [security considerations](./security-considerations.md)
 Cashonize supports three connection methods for dapps: [WalletConnect](https://github.com/mainnet-pat/wc2-bch-bcr) (following the WC2-BCH spec), [CashConnect](https://cashconnect.developers.cash/) and [WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect).
 
 - The [example WalletConnect dApp](./test/e2e/test-dapp) is a minimal reference for connecting to Cashonize, sending requests and handling responses.
-- The [`docs`](./docs) folder contains protocol documentation, such as the [`bch_cancelPendingRequests`](./docs/walletconnect-cancellation.md) WalletConnect method for dismissing stale signing dialogs.
+- The [`docs`](./docs) folder contains protocol documentation, such as the [`bch_cancelPendingRequests`](./docs/walletconnect-cancellation.md) WalletConnect method for dismissing stale signing dialogs and how the wallet handles [BCMR identities](./docs/bcmr-identities.md).
 
 ## License & Disclaimer
 
