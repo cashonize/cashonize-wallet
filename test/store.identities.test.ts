@@ -603,6 +603,24 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
   })
 
+  // the checks are read by position in the publication's locations, so they answer for that
+  // publication only: after a publish with new locations, last visit's badges would land on them
+  it('drops the publication checks once the publication changed, and keeps them while it has not', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
+    listIdentities([categoryA, categoryB])
+    const { identitiesStore } = startStore([utxo(authheadA, 0), utxo(authheadB, 0)])
+    await identitiesStore.refreshIdentities()
+    // the stub answers with no publication, so A's earlier publication is the one that changed
+    identitiesStore.identities = identitiesStore.identities!.map(identity =>
+      identity.category === categoryA ? { ...identity, publication: { hash: 'ab'.repeat(32), uris: ['old.example'] } } : identity
+    )
+    identitiesStore.publicationChecks = { [categoryA]: ['changed'], [categoryB]: ['verified'] }
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.publicationChecks).toEqual({ [categoryB]: ['verified'] })
+  })
+
   it('releases the authhead of an identity removed from the list', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])

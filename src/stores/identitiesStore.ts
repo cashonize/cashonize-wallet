@@ -325,6 +325,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
       identityCategories.value, settingsStore.chaingraph, currentUtxos, guarded
     );
     if (mainStore.walletSwitchedSince(started)) return;
+    // the checks answer for one publication, by position in its locations: once the publication
+    // changed, they would land on the new locations, so they go until the next check runs
+    const checks = { ...publicationChecks.value };
+    for (const identity of resolved) {
+      const before = identities.value?.find(listed => listed.category === identity.category);
+      if (before?.publication?.hash !== identity.publication?.hash) delete checks[identity.category];
+    }
+    publicationChecks.value = checks;
     identities.value = resolved;
     await syncAuthReservations(resolved);
   }
