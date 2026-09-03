@@ -1765,7 +1765,7 @@
       "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it."
     },
     "scan": {
-      "prompt": "Check finds token identities somebody sent to this wallet. An identity that is not a token is added by its id below.",
+      "prompt": "Check looks up every token this wallet holds and lists the identities that are here. One sent without its token, or not a token, is added by its id below.",
       "lead": "Transferred to you?",
       "linkText": "Check for identities",
       "scanning": "Checking the wallet's token categories...",
@@ -1777,7 +1777,7 @@
       "dismissed": "{count} was left off because you removed it before. | {count} were left off because you removed them before.",
       "failed": "{count} category could not be checked. | {count} categories could not be checked.",
       "automaticHelp": "Cashonize already lists the identities these keys made: a token you created, or metadata you published, whose identity UTXO is still here. That costs nothing, so it happens on its own.",
-      "checkHelp": "It asks the indexer about every token you hold and walks back every UTXO that could be an identity's, so it is a button rather than something the page does quietly. A chain that never carried a token has nothing to walk back to."
+      "checkHelp": "One indexer query per token you hold, asking where its identity's UTXO is, so it is a button rather than something the page does quietly."
     },
     "transfer": {
       "hint": "The identity's UTXO is sent to the destination, handing over the authority to update this token's metadata. To move it to CashTokens Studio, create a key there and transfer to the guard address it shows for that key.",

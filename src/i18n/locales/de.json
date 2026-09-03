@@ -1765,7 +1765,7 @@
       "novelHelp": "Eine Dapp könnte sagen, welche Version ihrer Contracts aktuell ist und wo ihre Seite liegt; eine Organisation könnte für das einstehen, was sie veröffentlicht. Fast keine gibt es bisher und kaum etwas liest sie, also wisse, was du von einer willst, bevor du sie machst."
     },
     "scan": {
-      "prompt": "Prüfen findet Token-Identitäten, die jemand an dieses Wallet gesendet hat. Eine Identität, die kein Token ist, wird unten über ihre Id hinzugefügt.",
+      "prompt": "Prüfen fragt jeden Token ab, den dieses Wallet hält, und listet die Identitäten, die hier sind. Eine ohne ihren Token gesendete, oder eine, die kein Token ist, wird unten über ihre Id hinzugefügt.",
       "lead": "Dir übertragen?",
       "linkText": "Auf Identitäten prüfen",
       "scanning": "Die Token-Kategorien des Wallets werden geprüft...",
@@ -1777,7 +1777,7 @@
       "dismissed": "{count} wurde ausgelassen, weil du sie vorher entfernt hast. | {count} wurden ausgelassen, weil du sie vorher entfernt hast.",
       "failed": "{count} Kategorie konnte nicht geprüft werden. | {count} Kategorien konnten nicht geprüft werden.",
       "automaticHelp": "Cashonize listet die Identitäten, die diese Schlüssel gemacht haben, bereits von selbst: ein Token, den du erstellt hast, oder Metadaten, die du veröffentlicht hast, deren Identitäts-UTXO noch hier liegt. Das kostet nichts und passiert automatisch.",
-      "checkHelp": "Es fragt den Indexer nach jedem Token, den du hältst, und geht jeden UTXO zurück, der der einer Identität sein könnte, deshalb ein Knopf statt etwas, das die Seite still tut. Eine Kette, die nie einen Token trug, hat nichts, zu dem sie zurückgehen könnte."
+      "checkHelp": "Eine Indexer-Anfrage je gehaltenem Token, wo der UTXO seiner Identität ist, deshalb ein Knopf statt etwas, das die Seite still tut."
     },
     "transfer": {
       "hint": "Der UTXO der Identität wird an das Ziel gesendet und übergibt damit die Befugnis, die Metadaten dieses Tokens zu aktualisieren. Um sie zu CashTokens Studio zu verschieben, erstelle dort einen Schlüssel und übertrage an die Guard-Adresse, die es für diesen Schlüssel anzeigt.",

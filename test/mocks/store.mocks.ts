@@ -5,6 +5,8 @@
  * Note: vi.mock() calls are hoisted, so mock functions must be defined at
  * module level to be available in both mock factories and test assertions.
  */
+import type * as MainnetJs from 'mainnet-js'
+import type * as ZodValidation from 'src/utils/zodValidation'
 import { vi } from 'vitest'
 
 // Mock wallet instances
@@ -67,8 +69,10 @@ class MockTestNetWallet { static named = mockTestNetWalletNamed; static fromId =
 class MockHDWallet { static named = mockHDWalletNamed; static fromId = mockHDWalletFromId }
 class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static fromId = mockTestNetHDWalletFromId }
 
-// Mock mainnet-js
-vi.mock('mainnet-js', () => ({
+// Mock mainnet-js. The publication output parser is the real one: a publication is bytes on the
+// chain, and the tests that name an identity from one hand the store real bytecode.
+vi.mock('mainnet-js', async (importOriginal) => ({
+  OpReturnData: (await importOriginal<typeof MainnetJs>()).OpReturnData,
   Wallet: MockWallet,
   TestNetWallet: MockTestNetWallet,
   HDWallet: MockHDWallet,
@@ -188,8 +192,10 @@ vi.mock('src/utils/cacheUtils', () => ({
 }))
 
 // Mock zodValidation
-vi.mock('src/utils/zodValidation', () => ({
+// the registry schema is the real one: naming an identity from a registry parses what a host served
+vi.mock('src/utils/zodValidation', async (importOriginal) => ({
   BcmrIndexerResponseSchema: { safeParse: vi.fn() },
+  MetadataRegistrySchema: (await importOriginal<typeof ZodValidation>()).MetadataRegistrySchema,
 }))
 
 // Mock storeUtils

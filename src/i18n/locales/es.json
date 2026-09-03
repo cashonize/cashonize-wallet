@@ -1765,7 +1765,7 @@
       "novelHelp": "Una dapp podría decir qué versión de sus contratos está vigente y dónde está su sitio; una organización podría responder por lo que publica. Casi no existe ninguna todavía y casi nada las lee, así que ten claro qué quieres de una antes de hacerla."
     },
     "scan": {
-      "prompt": "Comprobar encuentra identidades de tokens que alguien envió a esta billetera. Una identidad que no es un token se añade por su id abajo.",
+      "prompt": "Comprobar consulta cada token que tiene esta billetera y lista las identidades que están aquí. Una enviada sin su token, o que no es un token, se añade por su id abajo.",
       "lead": "¿Te la transfirieron?",
       "linkText": "Buscar identidades",
       "scanning": "Comprobando las categorías de token de la billetera...",
@@ -1777,7 +1777,7 @@
       "dismissed": "{count} se dejó fuera porque la quitaste antes. | {count} se dejaron fuera porque las quitaste antes.",
       "failed": "No se pudo comprobar {count} categoría. | No se pudieron comprobar {count} categorías.",
       "automaticHelp": "Cashonize ya lista las identidades que hicieron estas claves: un token que creaste, o metadatos que publicaste, cuyo UTXO de identidad sigue aquí. Eso no cuesta nada, así que ocurre solo.",
-      "checkHelp": "Pregunta al indexador por cada token que tienes y recorre hacia atrás cada UTXO que podría ser de una identidad, por eso es un botón y no algo que la página hace en silencio. Una cadena que nunca llevó un token no tiene nada hasta lo que recorrer."
+      "checkHelp": "Una consulta al indexador por cada token que tienes, preguntando dónde está el UTXO de su identidad, por eso es un botón y no algo que la página hace en silencio."
     },
     "transfer": {
       "hint": "El UTXO de la identidad se envía al destino, entregando la autoridad para actualizar los metadatos de este token. Para moverla a CashTokens Studio, crea una clave allí y transfiere a la dirección de guarda que muestra para esa clave.",

@@ -1765,7 +1765,7 @@
       "novelHelp": "Une dapp pourrait dire quelle version de ses contrats est en vigueur et où se trouve son site ; une organisation pourrait répondre de ce qu'elle publie. Il n'en existe presque aucune encore et presque rien ne les lit, alors sachez ce que vous en attendez avant d'en créer une."
     },
     "scan": {
-      "prompt": "Vérifier trouve les identités de tokens que quelqu'un a envoyées à ce portefeuille. Une identité qui n'est pas un token s'ajoute par son identifiant ci-dessous.",
+      "prompt": "Vérifier interroge chaque token de ce portefeuille et liste les identités qui sont ici. Une identité envoyée sans son token, ou qui n'est pas un token, s'ajoute par son identifiant ci-dessous.",
       "lead": "Elle vous a été transférée ?",
       "linkText": "Rechercher des identités",
       "scanning": "Vérification des catégories de jetons du portefeuille...",
@@ -1777,7 +1777,7 @@
       "dismissed": "{count} a été laissée de côté parce que vous l'aviez retirée. | {count} ont été laissées de côté parce que vous les aviez retirées.",
       "failed": "{count} catégorie n'a pas pu être vérifiée. | {count} catégories n'ont pas pu être vérifiées.",
       "automaticHelp": "Cashonize liste déjà les identités que ces clés ont créées : un token que vous avez créé, ou des métadonnées que vous avez publiées, dont l'UTXO d'identité est encore ici. Cela ne coûte rien, donc cela se fait tout seul.",
-      "checkHelp": "Elle interroge l'indexeur sur chaque token que vous détenez et remonte chaque UTXO qui pourrait être celui d'une identité, d'où un bouton plutôt qu'une action silencieuse de la page. Une chaîne qui n'a jamais porté de token n'a rien jusqu'à quoi remonter."
+      "checkHelp": "Une requête à l'indexeur par token détenu, demandant où est l'UTXO de son identité, d'où un bouton plutôt qu'une action silencieuse de la page."
     },
     "transfer": {
       "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",

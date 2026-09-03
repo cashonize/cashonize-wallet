@@ -60,7 +60,7 @@ export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): Detecte
       }
       if (!publishes || detected.has(authheadTxid)) continue;
       // the identity output of any authchain transaction is its output 0, and a token riding on
-      // it names the identity; a BCH-only one leaves the naming to the backward walk
+      // it names the identity; a BCH-only one is named later from the registry it published
       const identityOutput = outputs.find(output => output.output_index === "0");
       const category = identityOutput?.token_category
         ? byteaToHex(identityOutput.token_category)
@@ -73,47 +73,4 @@ export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): Detecte
     }
   }
   return { identities: [...detected.values()], publicationTxids };
-}
-
-// Naming a chain that carries no token on its identity output. Chaingraph answers forward, from a
-// category to its authhead, and has no usable answer backward, so this walks the chain itself: each
-// authchain transaction spends the previous identity output, which is that transaction's output 0,
-// so hopping through the input that spends a vout-0 outpoint climbs towards the genesis. The
-// genesis is where a transaction's token outputs carry the category of the very outpoint it spent,
-// which is a definition rather than an index's opinion, and the walk stops there.
-//
-// One transaction fetch a hop, on the wallet's own electrum. Chains are short, and the cap bounds
-// what an unusual one can cost: past it the identity stays protected and unnamed. The category,
-// or nothing: a chain that could not be named now, for whatever reason, is walked again next session.
-interface RawTransaction {
-  vin: { txid: string, vout: number }[];
-  vout: { n: number, tokenData?: { category: string } }[];
-}
-
-export async function nameChainByWalkingBack(
-  authheadTxid: string,
-  fetchTransaction: (txid: string) => Promise<RawTransaction>,
-  hopLimit = 25,
-): Promise<string | undefined> {
-  let txid = authheadTxid;
-  for (let hop = 0; hop < hopLimit; hop += 1) {
-    let transaction: RawTransaction;
-    try {
-      transaction = await fetchTransaction(txid);
-    } catch {
-      return undefined;
-    }
-    // every link walked is one of this chain, so its output 0 is this identity's output; a token
-    // identity's output carries its own category, which names the chain without reaching the genesis
-    const carried = transaction.vout.find(output => output.n === 0)?.tokenData?.category;
-    if (carried) return carried;
-    // the input that continues the authchain is the one spending a previous identity output
-    const parent = transaction.vin.find(input => input.vout === 0);
-    if (!parent) return undefined;
-    // a genesis mints the category named by the outpoint it spent, which no later link can do
-    const genesised = transaction.vout.some(output => output.tokenData?.category === parent.txid);
-    if (genesised) return parent.txid;
-    txid = parent.txid;
-  }
-  return undefined;
 }

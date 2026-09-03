@@ -1765,7 +1765,7 @@
       "novelHelp": "Uma dapp poderia dizer qual versão dos seus contratos está em vigor e onde está o seu site; uma organização poderia responder pelo que publica. Quase nenhuma existe ainda e quase nada as lê, então saiba o que quer de uma antes de a fazer."
     },
     "scan": {
-      "prompt": "Verificar encontra identidades de tokens que alguém enviou para esta carteira. Uma identidade que não é um token adiciona-se pelo seu id abaixo.",
+      "prompt": "Verificar consulta cada token que esta carteira tem e lista as identidades que estão aqui. Uma enviada sem o seu token, ou que não é um token, adiciona-se pelo seu id abaixo.",
       "lead": "Foi transferida para si?",
       "linkText": "Procurar identidades",
       "scanning": "Verificando as categorias de token da carteira...",
@@ -1777,7 +1777,7 @@
       "dismissed": "{count} foi deixada de fora porque você a removeu antes. | {count} foram deixadas de fora porque você as removeu antes.",
       "failed": "Não foi possível verificar {count} categoria. | Não foi possível verificar {count} categorias.",
       "automaticHelp": "O Cashonize já lista as identidades que estas chaves fizeram: um token que você criou, ou metadados que você publicou, cujo UTXO de identidade ainda está aqui. Isso não custa nada, então acontece sozinho.",
-      "checkHelp": "Pergunta ao indexador por cada token que tem e recua por cada UTXO que possa ser de uma identidade, por isso é um botão e não algo que a página faz em silêncio. Uma cadeia que nunca teve um token não tem nada até ao qual recuar."
+      "checkHelp": "Uma consulta ao indexador por cada token que tem, perguntando onde está o UTXO da sua identidade, por isso é um botão e não algo que a página faz em silêncio."
     },
     "transfer": {
       "hint": "O UTXO da identidade é enviado para o destino, entregando a autoridade para atualizar os metadados deste token. Para a mover para o CashTokens Studio, crie lá uma chave e transfira para o endereço de guarda que ele mostra para essa chave.",

@@ -229,6 +229,8 @@
   async function reloadIdentities() {
     try {
       await identitiesStore.refreshIdentities();
+      // naming what the open pass protected but could not name reaches hosting, so it is done here
+      if (await identitiesStore.nameUnnamedAuthheads()) await identitiesStore.refreshIdentities();
       await fetchMissingMetadata();
       // after the resolving, which is what says where each publication is
       await identitiesStore.checkPublications();

@@ -25,8 +25,9 @@ import {
   type DescribedLink,
   type GuardedIdentity,
   type PublicationUriStatus,
+  nameChainFromRegistry,
 } from "src/utils/tools/authchainIdentity"
-import { detectIdentities, nameChainByWalkingBack, type DetectedIdentity } from "src/utils/tools/identityDetection"
+import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { authGuardAddresses, isAuthKeyCandidate, guardContentsFromUtxos } from "src/utils/tools/authGuard"
 import { queryAuthHeadWithOutputs, queryAuthchainLinks, type ChaingraphSpentOutput } from "src/queryChainGraph"
 import { outpointOf } from "src/utils/wallet/reservedUtxos"
@@ -51,9 +52,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // for, and what marks the cards as found automatically on the visit that clears it
   const unseenIdentities = ref([] as string[]);
   // Authheads held here that the detection could not name, by txid. Protected either way: naming
-  // is a convenience, an unspendable coin is the point. Each is walked back once per session.
+  // is a convenience, an unspendable coin is the point. Each is asked its registry once per session, on the page's visit.
   const unnamedAuthheads = ref([] as string[]);
-  let walkedThisSession: string[] = [];
+  let triedThisSession: string[] = [];
   // The wallet's own transactions that carried a metadata publication, read off the same walk, so
   // the history can tell a metadata update from the wallet's other identity operations
   const identityPublicationTxids = ref([] as string[]);
@@ -94,7 +95,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);
     announced.value = loadAnnounced(network, walletName);
     unnamedAuthheads.value = loadIdentityList('unnamed', network, walletName);
-    walkedThisSession = [];
+    triedThisSession = [];
     identities.value = undefined;
     identityPublicationTxids.value = [];
     announcement.value = undefined;
@@ -168,58 +169,38 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const unseenBefore = unseenIdentities.value;
     if (!listDetectedIdentities(detected.identities).length) return;
     await refreshIdentities();
-    if (await nameUnnamedAuthheads()) await refreshIdentities();
-    // what this pass added to the unseen list, under the category where naming found one
+    // what this pass added to the unseen list; an unnamed authhead is announced by its txid and
+    // named on the page's visit, since naming reaches hosting
     const toAnnounce = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
     await fetchMetadataFor(toAnnounce);
     announceFound(toAnnounce);
   }
 
-  // Naming coins by walking their chain back over electrum, and confirming each answer forward
-  // through the authhead query the rest of the page uses: the walk says which category, the
-  // confirmation says that category's chain still ends at this coin. A name that does not confirm
-  // is discarded and the coin stays as it was. Returns what it listed, or nothing once the wallet
-  // switched underneath it: the caller writes lists under the current wallet.
-  async function nameByWalkingBack(coins: Utxo[]) {
-    const fetchTransaction = (txid: string) => mainStore.wallet.provider.getRawTransactionObject(txid);
+  // Naming coins from the registry their own chain published, forward at every step and never
+  // at open, since it reaches hosting. Returns what it listed, or nothing once the wallet switched
+  // underneath it: the caller writes lists under the current wallet.
+  async function nameFromRegistries(coins: Utxo[]) {
     const named: { coin: Utxo; category: string }[] = [];
     const started = mainStore.currentInitializationToken();
     for (const coin of coins) {
-      const category = await nameChainByWalkingBack(coin.txid, fetchTransaction);
+      const category = await nameChainFromRegistry(coin.txid, settingsStore.chaingraph, settingsStore.ipfsGateway);
       if (mainStore.walletSwitchedSince(started)) return [];
       if (!category) continue;
       if (identityCategories.value.includes(category)) continue;
       if (dismissedIdentities.value.includes(category)) continue;
-      const confirmed = await queryAuthHeadWithOutputs(category, settingsStore.chaingraph)
-        .then(result => result.txid === coin.txid)
-        .catch(() => false);
-      if (mainStore.walletSwitchedSince(started)) return [];
-      if (!confirmed) continue;
       listCategory(category);
       named.push({ coin, category });
     }
     return named;
   }
 
-  // The explicit check's deeper half: every held vout-0 coin that is not already accounted for
-  async function deepScanHeldCoins() {
-    const listedAuthheads = (identities.value ?? []).map(identity => identity.authheadTxid);
-    const candidates = (mainStore.walletUtxos ?? []).filter(utxo =>
-      utxo.vout === 0
-      && !listedAuthheads.includes(utxo.txid)
-      && !unnamedAuthheads.value.includes(utxo.txid)
-      && !dismissedIdentities.value.includes(utxo.txid)
-    );
-    return (await nameByWalkingBack(candidates)).length;
-  }
-
   // Naming what is already protected, once per session: a chain that could not be named now is
-  // not walked again until the next open. A name found here is news, like any other find.
+  // not asked again until the next open. A name found here is news, like any other find.
   async function nameUnnamedAuthheads() {
-    const coins = unnamedAuthheadCoins.value.filter(coin => !walkedThisSession.includes(coin.txid));
+    const coins = unnamedAuthheadCoins.value.filter(coin => !triedThisSession.includes(coin.txid));
     if (!coins.length) return 0;
-    walkedThisSession.push(...coins.map(coin => coin.txid));
-    const named = await nameByWalkingBack(coins);
+    triedThisSession.push(...coins.map(coin => coin.txid));
+    const named = await nameFromRegistries(coins);
     for (const { coin, category } of named) {
       unnamedAuthheads.value = removeFromIdentityList('unnamed', ...walletKey(), coin.txid);
       // the news moves to the category with the name
@@ -428,16 +409,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
       // a check that could not ask has no answer to report, and "none found" would be a wrong one
       const outage = outageReason(resolved);
       if (outage) throw new Error(outage);
-      // The one case the categories cannot reach: an authhead received from elsewhere, with no
-      // token of its own held here and no activity by these keys to have been walked. Its coin is
-      // walked back to a genesis instead, which costs a fetch a hop, hence only on the user's word.
-      const deepScanned = await deepScanHeldCoins();
-
       // The list and its reservations are resolved whole rather than merged into here: a few
       // repeated queries for what the scan just found buy a single owner of that state.
       await resolveListedIdentities();
       return {
-        found: found.length + deepScanned,
+        found: found.length,
         alreadyListed: listedCount,
         carriesTokens: resolved.filter(identity => identity.fungibleSupply && identity.authUtxo?.token?.amount).length,
         mintingNfts: resolved.filter(identity => identity.authUtxo?.token?.nft?.capability === 'minting').length,
