@@ -178,21 +178,22 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Naming coins by walking their chain back over electrum, and confirming each answer forward
   // through the authhead query the rest of the page uses: the walk says which category, the
   // confirmation says that category's chain still ends at this coin. A name that does not confirm
-  // is discarded and the coin stays as it was. Returns what it listed.
+  // is discarded and the coin stays as it was. Returns what it listed, or nothing once the wallet
+  // switched underneath it: the caller writes lists under the current wallet.
   async function nameByWalkingBack(coins: Utxo[]) {
     const fetchTransaction = (txid: string) => mainStore.wallet.provider.getRawTransactionObject(txid);
     const named: { coin: Utxo; category: string }[] = [];
     const started = mainStore.currentInitializationToken();
     for (const coin of coins) {
       const category = await nameChainByWalkingBack(coin.txid, fetchTransaction);
-      if (mainStore.walletSwitchedSince(started)) return named;
+      if (mainStore.walletSwitchedSince(started)) return [];
       if (!category) continue;
       if (identityCategories.value.includes(category)) continue;
       if (dismissedIdentities.value.includes(category)) continue;
       const confirmed = await queryAuthHeadWithOutputs(category, settingsStore.chaingraph)
         .then(result => result.txid === coin.txid)
         .catch(() => false);
-      if (mainStore.walletSwitchedSince(started)) return named;
+      if (mainStore.walletSwitchedSince(started)) return [];
       if (!confirmed) continue;
       listCategory(category);
       named.push({ coin, category });

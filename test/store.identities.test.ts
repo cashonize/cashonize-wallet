@@ -512,6 +512,39 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
   })
 
+  // a walk cut short by a wallet switch must not write what it had named under the next wallet
+  it('writes nothing from a walk the wallet switched away from', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    const { store, identitiesStore } = startStore([utxo(authheadA, 0), utxo(authheadB, 0)])
+    const provider = store.wallet.provider as unknown as { getRawTransactionObject: unknown }
+    provider.getRawTransactionObject = vi.fn((txid: string) => {
+      // the first chain names, then the wallet switches while the second is being fetched
+      const category = txid === authheadA ? categoryA : categoryB
+      if (txid === authheadB) store.walletSwitchedSince = () => true
+      return Promise.resolve({ vin: [{ txid: category, vout: 0 }], vout: [{ tokenData: { category } }] })
+    })
+    const publicationOutput = {
+      output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111',
+      token_category: null, nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [],
+    }
+    const identityOutput = {
+      output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
+      nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [],
+    }
+    const walk = [authheadA, authheadB].map(authhead => ({
+      transaction_hash: `\\x${'ff'.repeat(32)}`,
+      output_index: '1',
+      spent_by: [{ transaction: { hash: `\\x${authhead}`, outputs: [identityOutput, publicationOutput] } }],
+    }))
+
+    await identitiesStore.detectWalletIdentities(walk)
+
+    // the first name was listed before the switch; the lists the caller rewrites were not touched
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA, authheadB])
+    expect(identitiesStore.unseenIdentities).toEqual([authheadA, authheadB])
+  })
+
   // an unnamed authhead is news once, like a category: a chain the walk cannot name must not keep
   // the menus saying "new" forever
   it('counts an unnamed authhead as unseen until a visit, and not again after', async () => {
