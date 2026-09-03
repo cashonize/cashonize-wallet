@@ -697,8 +697,9 @@
     "change": "change",
     "step": "Step {current} of {total}",
     "stepTitles": {
-      "shape": "shape and supply",
-      "metadata": "metadata"
+      "utxo": "prepare the UTXO that becomes the token id",
+      "shape": "choose the type, decimals and supply",
+      "metadata": "link the hosted metadata file (optional)"
     },
     "genesisInput": {
       "explainer": "The txid of the UTXO the genesis spends becomes the token id; the UTXO must be at output 0.",

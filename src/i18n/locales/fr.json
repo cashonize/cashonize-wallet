@@ -697,8 +697,9 @@
     "change": "modifier",
     "step": "Étape {current} sur {total}",
     "stepTitles": {
-      "shape": "forme et offre",
-      "metadata": "métadonnées"
+      "utxo": "préparer l'UTXO qui devient l'id du token",
+      "shape": "choisir le type, les décimales et l'offre",
+      "metadata": "lier le fichier de métadonnées hébergé (facultatif)"
     },
     "genesisInput": {
       "explainer": "Le txid de l'UTXO que la genèse dépense devient l'id du token ; l'UTXO doit être à la sortie 0.",

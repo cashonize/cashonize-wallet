@@ -46,6 +46,11 @@
   // the Studio side has no form, so what to do there is the numbered walkthrough the page already
   // uses for its metadata how-to: the rows describe the arrangement, the steps say what to do
   const studioSteps = ['connect', 'create', 'back'] as const;
+  // A step's title is what the user does in it, the same whether the step is open or closed, so
+  // the greyed list under the open step and the label above it read as one sequence
+  function stepLabel(current: number, title: 'utxo' | 'shape' | 'metadata') {
+    return `${t('createTokens.step', { current, total: 3 })}: ${t(`createTokens.stepTitles.${title}`)}`;
+  }
   // the Tokens tab, where the token now shows, and the identities page, where its identity does
   const tokensView = 2;
   const identitiesView = 19;
@@ -388,11 +393,11 @@
         </div>
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
-          <span>{{ t('createTokens.step', { current: 2, total: 3 }) }}: {{ t('createTokens.stepTitles.shape') }}</span>
+          <span>{{ stepLabel(2, 'shape') }}</span>
         </div>
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
-          <span>{{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}</span>
+          <span>{{ stepLabel(3, 'metadata') }}</span>
         </div>
 
         <div class="section created-title">{{ t('createTokens.created.title') }}</div>
@@ -530,7 +535,7 @@
       <!-- Which UTXO the genesis spends decides the token's permanent id, which is the whole of
            what this section is, so it leads with that rather than with a heading repeating it -->
       <div v-if="utxoStepOpen" class="section">
-        <div class="step-label open">{{ t('createTokens.step', { current: 1, total: 3 }) }}</div>
+        <div class="step-label open">{{ stepLabel(1, 'utxo') }}</div>
         <div>{{ t('createTokens.genesisInput.explainer') }}</div>
         <!-- an empty wallet is a condition, not a mistake: the wallet's caution, not its error -->
         <div v-if="store.spendableBalance === 0n" class="warning-box" style="margin-top: 8px;">
@@ -599,14 +604,14 @@
       </div>
       <!-- the shape of the flow shows before its fields do, since the first step costs a fee -->
       <template v-if="utxoStepOpen">
-        <div class="section step-label">{{ t('createTokens.step', { current: 2, total: 3 }) }}: {{ t('createTokens.stepTitles.shape') }}</div>
-        <div class="step-label" style="margin-top: 8px;">{{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}</div>
+        <div class="section step-label">{{ stepLabel(2, 'shape') }}</div>
+        <div class="step-label" style="margin-top: 8px;">{{ stepLabel(3, 'metadata') }}</div>
       </template>
 
       <!-- Deciding what to make does not depend on which UTXO makes it, but it reads better one
            thing at a time, so this opens once the UTXO is settled -->
       <div v-if="!utxoStepOpen" class="section">
-        <div class="step-label open">{{ t('createTokens.step', { current: 2, total: 3 }) }}</div>
+        <div class="step-label open">{{ stepLabel(2, 'shape') }}</div>
         <label for="tokenShape">
           {{ t('createTokens.shapeLabel') }}
           <InfoPopup>
@@ -683,7 +688,7 @@
       <!-- Optional. The location is the field that delivers what the page promises, so it is in
            the open; how to write and host the file is the collapsible part. -->
       <div v-if="!utxoStepOpen && supplySettled" class="section">
-        <div class="step-label open">{{ t('createTokens.step', { current: 3, total: 3 }) }}</div>
+        <div class="step-label open">{{ stepLabel(3, 'metadata') }}</div>
         <div style="margin-top: 6px;">
           {{ t('createTokens.metadataNote') }}
           <InfoPopup>
@@ -774,7 +779,7 @@
         >
       </div>
       <div v-else-if="!utxoStepOpen" class="section step-label">
-        {{ t('createTokens.step', { current: 3, total: 3 }) }}: {{ t('createTokens.stepTitles.metadata') }}
+        {{ stepLabel(3, 'metadata') }}
       </div>
       </template>
       </template>

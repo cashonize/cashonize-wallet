@@ -697,8 +697,9 @@
     "change": "ändern",
     "step": "Schritt {current} von {total}",
     "stepTitles": {
-      "shape": "Form und Vorrat",
-      "metadata": "Metadaten"
+      "utxo": "den UTXO vorbereiten, der zur Token-ID wird",
+      "shape": "Typ, Dezimalstellen und Vorrat wählen",
+      "metadata": "die gehostete Metadaten-Datei verknüpfen (optional)"
     },
     "genesisInput": {
       "explainer": "Die txid des UTXO, den die Genesis ausgibt, wird zur Token-ID; der UTXO muss an Output 0 liegen.",
