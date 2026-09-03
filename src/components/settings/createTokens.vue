@@ -793,16 +793,17 @@
   flex: none;
 }
 /* side by side where the width allows, stacked on a phone; a card line is cut to the column of a
-   half-width card so it stays one line. The selected card is marked the way a picked UTXO is,
-   and stops reading as clickable. */
+   half-width card so it stays one line, and the pair borrows most of the fieldset's 2rem inset,
+   the only columns on the page and the only thing that gains from it. The selected card is
+   marked the way a picked UTXO is, and stops reading as clickable. */
 .home-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 10px;
-  margin-top: 20px;
+  margin: 20px -1.25rem 0;
 }
 .home-card {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   cursor: pointer;
