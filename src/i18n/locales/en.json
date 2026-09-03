@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Create a token",
     "home": {
-      "intro": "Create a new token here, in three steps, or on Studio's site. Its name and icon come from a hosted metadata file that the token's identity, a UTXO, points to. Choose where that identity should live.",
+      "intro": "Create a new token here, in three steps, or on CashTokens Studio's site. Its name and icon come from a hosted metadata file that the token's identity, a UTXO, points to. Choose where that identity should live.",
       "moveLater": "You can move it from this wallet to Studio later, and back.",
       "moveLaterHelp": "Into Studio: create a key there, then transfer the identity from the identities page to the guard address Studio shows for that key. Back: Studio's Release UTXO returns it to a plain address, and the identities page finds it again with the identity check.",
       "wallet": "In this wallet",
@@ -655,7 +655,7 @@
         "risk": "Risk:"
       },
       "walletLines": {
-        "holds": "your wallet, as a UTXO you manage here.",
+        "holds": "your wallet, as a UTXO.",
         "hosts": "hosted by you, on a website or IPFS.",
         "risk": "another app on this seed could spend it."
       },
@@ -673,7 +673,7 @@
         "protection": "held out of coin selection by Cashonize; other apps don't know it is special.",
         "protectionHelp": "An ordinary send from another wallet app spends the UTXO and hands the identity to whoever receives that send. If this seed is also used in other apps, stop spending from them while this wallet holds an identity, or choose Studio. A restore of this seed in Cashonize finds the identity again.",
         "metadata": "a file you host, linked now or from the identities page later.",
-        "operations": "here, on the identities page; each one moves the identity to a new UTXO."
+        "operations": "on the identities page in Tools; each one moves the identity to a new UTXO."
       },
       "studioRows": {
         "protection": "spendable only with the key NFT, whichever app holds the seed.",
@@ -684,7 +684,7 @@
       },
       "openStudio": "Open CashTokens Studio",
       "chosen": "Identity: in this wallet",
-      "noHosting": "Nowhere to host a file? Choose Studio, which hosts it for the identities it holds.",
+      "noHosting": "Nowhere to host a file? Choose CashTokens Studio, which hosts it for the identities it holds.",
       "studioNote": "CashTokens Studio is a web tool by Paytaca with viewable source. It keeps the identity in a contract it calls an AuthGuard, opened by a key it calls an AuthKey.",
       "studioSteps": {
         "connect": "Connect this wallet to Studio over WalletConnect.",

@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Criar um token",
     "home": {
-      "intro": "Crie aqui um token novo, em três passos, ou no site do Studio. O seu nome e ícone vêm de um ficheiro de metadados hospedado para o qual a identidade do token, um UTXO, aponta. Escolha onde essa identidade deve viver.",
+      "intro": "Crie aqui um token novo, em três passos, ou no site do CashTokens Studio. O seu nome e ícone vêm de um ficheiro de metadados hospedado para o qual a identidade do token, um UTXO, aponta. Escolha onde essa identidade deve viver.",
       "moveLater": "Você pode movê-la desta carteira para o Studio mais tarde, e de volta.",
       "moveLaterHelp": "Para o Studio: crie lá uma chave e depois transfira a identidade da página de identidades para o endereço de guarda que o Studio mostra para essa chave. De volta: o \"Release UTXO\" do Studio devolve-a a um endereço comum, e a página de identidades volta a encontrá-la com a verificação de identidades.",
       "wallet": "Nesta carteira",
@@ -655,7 +655,7 @@
         "risk": "Risco:"
       },
       "walletLines": {
-        "holds": "a sua carteira, como UTXO gerido aqui.",
+        "holds": "a sua carteira, como UTXO.",
         "hosts": "hospedados por si, num site ou IPFS.",
         "risk": "outra app com esta seed poderia gastá-lo."
       },
@@ -673,7 +673,7 @@
         "protection": "mantido fora da seleção de moedas pelo Cashonize; outras apps não sabem que é especial.",
         "protectionHelp": "Um envio comum a partir de outra app de carteira gasta o UTXO e entrega a identidade a quem recebe esse envio. Se esta seed também for usada noutras apps, deixe de gastar a partir delas enquanto esta carteira tiver uma identidade, ou escolha o Studio. Uma restauração desta seed no Cashonize volta a encontrar a identidade.",
         "metadata": "um ficheiro que você hospeda, ligado agora ou a partir da página de identidades depois.",
-        "operations": "aqui, na página de identidades; cada uma move a identidade para um UTXO novo."
+        "operations": "na página de identidades, em Ferramentas; cada uma move a identidade para um UTXO novo."
       },
       "studioRows": {
         "protection": "só se gasta com o NFT chave, seja qual for a app que tem a seed.",
@@ -684,7 +684,7 @@
       },
       "openStudio": "Abrir o CashTokens Studio",
       "chosen": "Identidade: nesta carteira",
-      "noHosting": "Sem sítio onde hospedar um ficheiro? Escolha o Studio, que o hospeda para as identidades que guarda.",
+      "noHosting": "Sem sítio onde hospedar um ficheiro? Escolha o CashTokens Studio, que o hospeda para as identidades que guarda.",
       "studioNote": "O CashTokens Studio é uma ferramenta web da Paytaca com código fonte consultável. Guarda a identidade num contrato a que chama AuthGuard, aberto por uma chave a que chama AuthKey.",
       "studioSteps": {
         "connect": "Ligue esta carteira ao Studio via WalletConnect.",

@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Token erstellen",
     "home": {
-      "intro": "Erstelle hier einen neuen Token, in drei Schritten, oder auf Studios Seite. Name und Icon kommen aus einer gehosteten Metadaten-Datei, auf die die Identität des Tokens, ein UTXO, zeigt. Wähle, wo diese Identität liegen soll.",
+      "intro": "Erstelle hier einen neuen Token, in drei Schritten, oder auf der Seite von CashTokens Studio. Name und Icon kommen aus einer gehosteten Metadaten-Datei, auf die die Identität des Tokens, ein UTXO, zeigt. Wähle, wo diese Identität liegen soll.",
       "moveLater": "Du kannst sie später von diesem Wallet zu Studio verschieben, und zurück.",
       "moveLaterHelp": "Zu Studio: Erstelle dort einen Schlüssel und übertrage die Identität dann von der Identitäten-Seite an die Guard-Adresse, die Studio für diesen Schlüssel anzeigt. Zurück: Studios „Release UTXO“ bringt sie an eine gewöhnliche Adresse zurück, und die Identitäten-Seite findet sie mit der Identitätsprüfung wieder.",
       "wallet": "In diesem Wallet",
@@ -655,7 +655,7 @@
         "risk": "Risiko:"
       },
       "walletLines": {
-        "holds": "dein Wallet, als UTXO, verwaltet hier.",
+        "holds": "dein Wallet, als UTXO.",
         "hosts": "gehostet von dir, auf Website oder IPFS.",
         "risk": "andere Apps auf dem Seed können ihn ausgeben."
       },
@@ -673,7 +673,7 @@
         "protection": "von Cashonize aus der Münzauswahl herausgehalten; andere Apps wissen nicht, dass er besonders ist.",
         "protectionHelp": "Ein gewöhnlicher Versand aus einer anderen Wallet-App gibt den UTXO aus und übergibt die Identität an den Empfänger dieses Versands. Wird dieser Seed auch in anderen Apps genutzt, gib dort nichts mehr aus, solange dieses Wallet eine Identität hält, oder wähle Studio. Eine Wiederherstellung dieses Seeds in Cashonize findet die Identität wieder.",
         "metadata": "eine Datei, die du hostest, jetzt verknüpft oder später von der Identitäten-Seite.",
-        "operations": "hier, auf der Identitäten-Seite; jede bewegt die Identität auf einen neuen UTXO."
+        "operations": "auf der Identitäten-Seite unter Werkzeuge; jede bewegt die Identität auf einen neuen UTXO."
       },
       "studioRows": {
         "protection": "nur mit dem Schlüssel-NFT ausgebbar, egal welche App den Seed hält.",
@@ -684,7 +684,7 @@
       },
       "openStudio": "CashTokens Studio öffnen",
       "chosen": "Identität: in diesem Wallet",
-      "noHosting": "Nirgends eine Datei zu hosten? Wähle Studio, das sie für die Identitäten hostet, die es hält.",
+      "noHosting": "Nirgends eine Datei zu hosten? Wähle CashTokens Studio, das sie für die Identitäten hostet, die es hält.",
       "studioNote": "CashTokens Studio ist ein Web-Werkzeug von Paytaca mit einsehbarem Quellcode. Es hält die Identität in einem Contract, den es AuthGuard nennt, geöffnet durch einen Schlüssel, den es AuthKey nennt.",
       "studioSteps": {
         "connect": "Verbinde dieses Wallet per WalletConnect mit Studio.",
