@@ -515,11 +515,12 @@
           </li>
         </ol>
         <div class="section description">{{ t('createTokens.home.studioNote') }}</div>
-        <!-- an external link, marked the way the wallet marks every other one -->
+        <!-- this side's one action, so it takes the primary button, marked external like every
+             other link out of the wallet -->
         <div class="section">
-          <a :href="studioUrl" target="_blank" class="action-link">
+          <a :href="studioUrl" target="_blank" class="button primaryButton studio-button">
             {{ t('createTokens.home.openStudio') }}
-            <img :src="settingsStore.darkMode ? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;">
+            <img src="images/external-link-white.svg">
           </a>
         </div>
       </template>
@@ -877,6 +878,12 @@
 }
 .action-link:hover {
   text-decoration: underline;
+}
+.studio-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
 }
 label {
   display: block;
