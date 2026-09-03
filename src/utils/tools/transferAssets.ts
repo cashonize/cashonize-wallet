@@ -74,6 +74,9 @@ export async function transferAllAssets(
   }
 
   onProgress?.({ phase: "bch", completed: 0, total: 1 });
-  await sourceWallet.sendMax(destinationAddress, { utxoIds: await spendablePool() });
+  // mainnet-js already leaves token UTXOs out of a plain-BCH selection, named pool or not; this
+  // wallet drops them itself as well, since a token UTXO swept as plain BCH would burn its tokens
+  const bchPool = (await spendablePool()).filter(utxo => !utxo.token);
+  await sourceWallet.sendMax(destinationAddress, { utxoIds: bchPool });
   onProgress?.({ phase: "bch", completed: 1, total: 1 });
 }

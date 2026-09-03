@@ -143,4 +143,15 @@ describe('test transferAllAssets', () => {
       expect(pool?.some(utxo => utxo.vout === frozenNft.vout)).toBe(false);
     }
   })
+
+  // a token coin swept as plain bch would burn its tokens; mainnet-js leaves them out on its own,
+  // and the pool handed to it leaves them out as well
+  it('should keep token coins out of the final bch sweep', async () => {
+    const frozenToken = fungibleTokenUtxo("cat1", 500n);
+    const { wallet, pools } = createFakeWallet([bchUtxo(100_000n), frozenToken]);
+
+    await transferAllAssets(wallet, destinationAddress, held(frozenToken));
+
+    expect(pools.at(-1)).toEqual([expect.objectContaining({ txid: "00".repeat(32) })]);
+  })
 })
