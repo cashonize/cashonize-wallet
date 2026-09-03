@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Créer un token",
     "home": {
-      "intro": "Créez ici un nouveau token ; le nom, l'icône et d'autres métadonnées peuvent être liés maintenant ou ajoutés plus tard. Les portefeuilles les lisent dans un fichier de métadonnées vers lequel pointe l'identité du token. Choisissez où cette identité doit vivre.",
+      "intro": "Créez ici un nouveau token ; le nom, l'icône et d'autres métadonnées peuvent être liés maintenant ou ajoutés plus tard, et dans les deux cas le fichier doit être hébergé. Les portefeuilles les lisent dans un fichier de métadonnées vers lequel pointe l'identité du token, un UTXO ; qui détient cet UTXO contrôle les métadonnées. Choisissez où cette identité doit vivre : ici, en trois étapes, ou sur le site de Studio.",
       "moveLater": "Vous pourrez la déplacer de ce portefeuille vers Studio plus tard, et inversement.",
       "moveLaterHelp": "Vers Studio : créez-y une clé, puis transférez l'identité depuis la page des identités vers l'adresse de garde que Studio affiche pour cette clé. Retour : le « Release UTXO » de Studio la ramène à une adresse ordinaire, et la page des identités la retrouve avec la vérification des identités.",
       "wallet": "Dans ce portefeuille",
@@ -662,7 +662,7 @@
       "studioLines": {
         "holds": "un contrat ; vous détenez le NFT clé.",
         "hosts": "rédigées et hébergées par Studio.",
-        "risk": "NFT clé sans nom ; facile à perdre."
+        "risk": "les autres portefeuilles affichent le NFT clé sans nom."
       },
       "leads": {
         "protection": "Protection :",
@@ -677,15 +677,15 @@
       },
       "studioRows": {
         "protection": "ne s'ouvre qu'au NFT clé, quelle que soit l'application qui détient la graine.",
-        "protectionHelp": "Les autres portefeuilles affichent la clé comme un NFT sans nom, et c'est ainsi qu'on en envoie un ou qu'on le brûle comme du spam. Cashonize la nomme d'après ce qu'elle garde.",
-        "metadata": "rédigées et épinglées sur IPFS par Studio, ou une URL que vous hébergez.",
-        "operations": "sur le site de Studio, par WalletConnect, sa libération comprise.",
+        "protectionHelp": "Les autres portefeuilles affichent la clé comme un NFT sans nom, et c'est ainsi qu'on en envoie un ou qu'on le brûle comme du spam, et la réserve suit qui détient la clé ; ne touchez pas aux NFT sans nom dans votre autre application. Cashonize la nomme d'après ce qu'elle garde.",
+        "metadata": "rédigées et épinglées sur IPFS par Studio, ou une URL que vous hébergez ; gardez une copie.",
+        "operations": "modifier les métadonnées, émettre l'offre et libérer l'identité, sur le site de Studio par WalletConnect.",
         "operationsHelp": "Libérer l'identité de la garde, vers une adresse ordinaire, se fait aussi par Studio."
       },
-      "glossary": "Studio appelle le contrat AuthGuard et la clé AuthKey.",
       "openStudio": "Ouvrir CashTokens Studio",
       "chosen": "Identité : dans ce portefeuille",
-      "noHosting": "Nulle part où héberger un fichier ? Choisissez Studio, qui l'héberge pour les identités qu'il détient."
+      "noHosting": "Nulle part où héberger un fichier ? Choisissez Studio, qui l'héberge pour les identités qu'il détient.",
+      "studioExplained": "Studio, un outil web de Paytaca au code source consultable, crée le token, rédige ses métadonnées et les épingle sur IPFS. L'offre reste avec l'identité comme réserve ; émettre des tokens vers un portefeuille est une étape à part sur le site de Studio, ce portefeuille n'en détient donc aucun d'ici là. Le NFT clé va au portefeuille que vous connectez par WalletConnect. Connectez ce portefeuille, pour que la clé soit nommée ici. Une fois terminé, l'identité apparaît sur la page des identités, dans Outils. Sur le site de Studio le contrat s'appelle AuthGuard et la clé AuthKey."
     },
     "change": "modifier",
     "step": "Étape {current} sur {total}",

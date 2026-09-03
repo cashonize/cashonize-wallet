@@ -499,7 +499,9 @@
       </div>
 
       <template v-if="identityHome === 'studio'">
-        <div class="section">{{ t('createTokens.home.glossary') }}</div>
+        <!-- what happens, to whom, and what done looks like: the paragraph this side has room for,
+             having no form -->
+        <div class="section">{{ t('createTokens.home.studioExplained') }}</div>
         <!-- an external link, marked the way the wallet marks every other one -->
         <div class="section">
           <a :href="studioUrl" target="_blank" class="action-link">

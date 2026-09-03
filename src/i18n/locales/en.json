@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Create a token",
     "home": {
-      "intro": "Create a new token here; name, icon and other metadata can be linked now or added later. Wallets read them from a metadata file the token's identity points to. Choose where that identity should live.",
+      "intro": "Create a new token here; name, icon and other metadata can be linked now or added later, and either way the file needs hosting. Wallets read them from a metadata file that the token's identity, a UTXO, points to; whoever holds that UTXO controls the metadata. Choose where that identity should live: here, in three steps, or on Studio's site.",
       "moveLater": "You can move it from this wallet to Studio later, and back.",
       "moveLaterHelp": "Into Studio: create a key there, then transfer the identity from the identities page to the guard address Studio shows for that key. Back: Studio's Release UTXO returns it to a plain address, and the identities page finds it again with the identity check.",
       "wallet": "In this wallet",
@@ -662,7 +662,7 @@
       "studioLines": {
         "holds": "a contract on chain; you hold a key NFT.",
         "hosts": "written and hosted by Studio.",
-        "risk": "the key NFT has no name; easy to lose."
+        "risk": "other wallets show the key NFT unnamed."
       },
       "leads": {
         "protection": "Protection:",
@@ -677,15 +677,15 @@
       },
       "studioRows": {
         "protection": "opens only to the key NFT, whichever app holds the seed.",
-        "protectionHelp": "Other wallets show the key as an unnamed NFT, which is how one gets sent away or burned as spam. Cashonize names it by what it guards.",
-        "metadata": "written and pinned to IPFS by Studio, or a URL you host.",
-        "operations": "on Studio's site, over WalletConnect, releasing it included.",
+        "protectionHelp": "Other wallets show the key as an unnamed NFT, which is how one gets sent away or burned as spam, and the reserve goes with whoever holds the key; leave unnamed NFTs alone in your other app. Cashonize names it by what it guards.",
+        "metadata": "written and pinned to IPFS by Studio, or a URL you host; keep a copy.",
+        "operations": "changing the metadata, issuing supply and releasing the identity, on Studio's site over WalletConnect.",
         "operationsHelp": "Releasing the identity from the guard, back to a plain address, is also done through Studio."
       },
-      "glossary": "Studio calls the contract an AuthGuard and the key an AuthKey.",
       "openStudio": "Open CashTokens Studio",
       "chosen": "Identity: in this wallet",
-      "noHosting": "Nowhere to host a file? Choose Studio, which hosts it for the identities it holds."
+      "noHosting": "Nowhere to host a file? Choose Studio, which hosts it for the identities it holds.",
+      "studioExplained": "Studio, a web tool by Paytaca with viewable source, creates the token, writes its metadata and pins it to IPFS. The supply stays with the identity as its reserve; issuing tokens to a wallet is a separate step on Studio's site, so this wallet holds none until then. The key NFT goes to the wallet you connect over WalletConnect. Connect this wallet, so the key is named here. When it is done, the identity appears on the identities page in Tools. On Studio's site the contract is called an AuthGuard and the key an AuthKey."
     },
     "change": "change",
     "step": "Step {current} of {total}",

@@ -644,7 +644,7 @@
   "createTokens": {
     "title": "Token erstellen",
     "home": {
-      "intro": "Erstelle hier einen neuen Token; Name, Icon und weitere Metadaten können jetzt verknüpft oder später hinzugefügt werden. Wallets lesen sie aus einer Metadaten-Datei, auf die die Identität des Tokens zeigt. Wähle, wo diese Identität liegen soll.",
+      "intro": "Erstelle hier einen neuen Token; Name, Icon und weitere Metadaten können jetzt verknüpft oder später hinzugefügt werden, und so oder so braucht die Datei ein Hosting. Wallets lesen sie aus einer Metadaten-Datei, auf die die Identität des Tokens, ein UTXO, zeigt; wer diesen UTXO hält, bestimmt über die Metadaten. Wähle, wo diese Identität liegen soll: hier, in drei Schritten, oder auf Studios Seite.",
       "moveLater": "Du kannst sie später von diesem Wallet zu Studio verschieben, und zurück.",
       "moveLaterHelp": "Zu Studio: Erstelle dort einen Schlüssel und übertrage die Identität dann von der Identitäten-Seite an die Guard-Adresse, die Studio für diesen Schlüssel anzeigt. Zurück: Studios „Release UTXO“ bringt sie an eine gewöhnliche Adresse zurück, und die Identitäten-Seite findet sie mit der Identitätsprüfung wieder.",
       "wallet": "In diesem Wallet",
@@ -662,7 +662,7 @@
       "studioLines": {
         "holds": "ein Contract; du hältst das Schlüssel-NFT.",
         "hosts": "von Studio geschrieben und gehostet.",
-        "risk": "namenloses Schlüssel-NFT, leicht verloren."
+        "risk": "andere Wallets zeigen das Schlüssel-NFT namenlos."
       },
       "leads": {
         "protection": "Schutz:",
@@ -677,15 +677,15 @@
       },
       "studioRows": {
         "protection": "öffnet sich nur dem Schlüssel-NFT, egal welche App den Seed hält.",
-        "protectionHelp": "Andere Wallets zeigen den Schlüssel als namenloses NFT, und so wird eines weggeschickt oder als Spam verbrannt. Cashonize benennt ihn nach dem, was er schützt.",
-        "metadata": "von Studio geschrieben und auf IPFS gepinnt, oder eine URL, die du hostest.",
-        "operations": "auf Studios Seite, per WalletConnect, das Freigeben eingeschlossen.",
+        "protectionHelp": "Andere Wallets zeigen den Schlüssel als namenloses NFT, und so wird eines weggeschickt oder als Spam verbrannt, und die Reserve geht mit dem, der den Schlüssel hält; lass namenlose NFTs in deiner anderen App in Ruhe. Cashonize benennt ihn nach dem, was er schützt.",
+        "metadata": "von Studio geschrieben und auf IPFS gepinnt, oder eine URL, die du hostest; behalte eine Kopie.",
+        "operations": "Metadaten ändern, Vorrat ausgeben und die Identität freigeben, auf Studios Seite per WalletConnect.",
         "operationsHelp": "Auch das Freigeben der Identität aus dem Guard, zurück an eine gewöhnliche Adresse, geschieht über Studio."
       },
-      "glossary": "Studio nennt den Contract AuthGuard und den Schlüssel AuthKey.",
       "openStudio": "CashTokens Studio öffnen",
       "chosen": "Identität: in diesem Wallet",
-      "noHosting": "Nirgends eine Datei zu hosten? Wähle Studio, das sie für die Identitäten hostet, die es hält."
+      "noHosting": "Nirgends eine Datei zu hosten? Wähle Studio, das sie für die Identitäten hostet, die es hält.",
+      "studioExplained": "Studio, ein Web-Werkzeug von Paytaca mit einsehbarem Quellcode, erstellt den Token, schreibt seine Metadaten und pinnt sie auf IPFS. Der Vorrat bleibt als Reserve bei der Identität; Tokens an ein Wallet auszugeben ist ein eigener Schritt auf Studios Seite, dieses Wallet hält also bis dahin keine. Das Schlüssel-NFT geht an das Wallet, das du per WalletConnect verbindest. Verbinde dieses Wallet, damit der Schlüssel hier benannt wird. Danach erscheint die Identität auf der Identitäten-Seite unter Werkzeuge. Auf Studios Seite heißt der Contract AuthGuard und der Schlüssel AuthKey."
     },
     "change": "ändern",
     "step": "Schritt {current} von {total}",
