@@ -344,8 +344,7 @@
       "commitmentPlaceholder": "Commitment (Hex)",
       "destinationPlaceholder": "Optionale Zieladresse",
       "mintButton": "NFTs minten",
-      "mintingButton": "Minten...",
-      "identityUtxo": "Dieses NFT ist der Identitäts-UTXO des Tokens, und davon zu prägen ist noch nicht möglich."
+      "mintingButton": "Minten..."
     },
     "loading": {
       "nftMetadata": "Lade NFT-Metadaten...",
@@ -1591,8 +1590,7 @@
       "errors": {
         "invalidAmount": "Gib einen gültigen Betrag ein.",
         "overReserve": "Das ist mehr, als die Reserve enthält.",
-        "overBalance": "Das ist mehr, als dieses Wallet von diesem Token ausgeben kann.",
-        "nothingToEmpty": "Diese Identität trägt keine Reserve zum Leeren."
+        "overBalance": "Das ist mehr, als dieses Wallet von diesem Token ausgeben kann."
       },
       "issue": {
         "action": "aus der Reserve ausgeben",

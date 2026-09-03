@@ -344,8 +344,7 @@
       "commitmentPlaceholder": "commitment (hex)",
       "destinationPlaceholder": "Adresse de destination optionnelle",
       "mintButton": "Créer NFTs",
-      "mintingButton": "Création en cours...",
-      "identityUtxo": "Ce NFT est l'UTXO d'identité du token, et frapper à partir de lui n'est pas encore possible."
+      "mintingButton": "Création en cours..."
     },
     "loading": {
       "nftMetadata": "chargement des métadonnées du NFT...",
@@ -1591,8 +1590,7 @@
       "errors": {
         "invalidAmount": "Saisissez un montant valide.",
         "overReserve": "C'est plus que ce que contient la réserve.",
-        "overBalance": "C'est plus que ce que ce portefeuille peut dépenser de ce jeton.",
-        "nothingToEmpty": "Cette identité ne porte aucune réserve à vider."
+        "overBalance": "C'est plus que ce que ce portefeuille peut dépenser de ce jeton."
       },
       "issue": {
         "action": "émettre depuis la réserve",

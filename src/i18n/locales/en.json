@@ -344,8 +344,7 @@
       "commitmentPlaceholder": "commitment (hex)",
       "destinationPlaceholder": "Optional destination address",
       "mintButton": "Mint NFTs",
-      "mintingButton": "Minting...",
-      "identityUtxo": "This NFT is the identity UTXO of the token, and minting from it is not available yet."
+      "mintingButton": "Minting..."
     },
     "loading": {
       "nftMetadata": "loading NFT metadata...",
@@ -1591,8 +1590,7 @@
       "errors": {
         "invalidAmount": "Enter a valid amount.",
         "overReserve": "That is more than the reserve holds.",
-        "overBalance": "That is more than this wallet can spend of this token.",
-        "nothingToEmpty": "This identity carries no reserve to empty."
+        "overBalance": "That is more than this wallet can spend of this token."
       },
       "issue": {
         "action": "issue from reserve",

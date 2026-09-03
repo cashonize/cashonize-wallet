@@ -344,8 +344,7 @@
       "commitmentPlaceholder": "commitment (hex)",
       "destinationPlaceholder": "Endereço de destino opcional",
       "mintButton": "Mint NFTs",
-      "mintingButton": "Mintando...",
-      "identityUtxo": "Este NFT é o UTXO de identidade do token, e cunhar a partir dele ainda não está disponível."
+      "mintingButton": "Mintando..."
     },
     "loading": {
       "nftMetadata": "carregando metadados do NFT...",
@@ -1591,8 +1590,7 @@
       "errors": {
         "invalidAmount": "Informe um valor válido.",
         "overReserve": "Isso é mais do que a reserva tem.",
-        "overBalance": "Isso é mais do que esta carteira pode gastar deste token.",
-        "nothingToEmpty": "Esta identidade não carrega nenhuma reserva para esvaziar."
+        "overBalance": "Isso é mais do que esta carteira pode gastar deste token."
       },
       "issue": {
         "action": "emitir da reserva",
