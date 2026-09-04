@@ -53,6 +53,10 @@ export interface IdentityState {
   recentLinks?: string[];
 }
 
+// where a registry is written: the form for a token's, the schema for one written by hand
+export const BCMR_GENERATOR_URL = "https://bcmr-generator.app/";
+export const BCMR_SCHEMA_URL = "https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json";
+
 // The metadata pointer an authhead transaction carries: OP_RETURN "BCMR" <hash> [<uri>...]. The
 // hash commits to the registry file, which is why the hosting itself does not have to be trusted.
 export interface MetadataPublication {
@@ -219,6 +223,16 @@ export function publicationOutputSize(uris: string[]): number {
       return total + maxPublicationOutputSize;
     }
   }, withoutLocations);
+}
+
+// The rows of a locations form, down to the locations actually typed
+export function filledLocations(rows: string[]): string[] {
+  return rows.map(row => row.trim()).filter(row => row.length);
+}
+
+// What the form may still add: the hash and the locations share the one output
+export function locationBudgetLeft(uris: string[]): number {
+  return maxPublicationOutputSize - publicationOutputSize(uris);
 }
 
 // What the wallet reads out of a registry to say what an update changes. Undefined when the file

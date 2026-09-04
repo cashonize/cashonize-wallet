@@ -1,9 +1,10 @@
 <script setup lang="ts">
   import { computed, nextTick, ref, watch } from 'vue';
-  import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, formatTokenAmountFromBigInt, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateHash } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
   import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue';
+  import tokenUtxoRow from 'src/components/settings/tokenUtxoRow.vue';
   import TokenIcon from 'src/components/general/TokenIcon.vue';
   import { HDWallet, TokenSendRequest } from 'mainnet-js';
   import type { Utxo } from 'mainnet-js';
@@ -86,16 +87,18 @@
   }
 
   // A row's label line only exists while it has a label or its editor is open, so the menu
-  // action first brings the line into the DOM and then opens its editor by ref
+  // action first brings the line into the DOM and then opens its editor by ref: the editor
+  // itself on a grid row, the token row on the two-line lists, which forwards to its editor
   const labelEditingOutpoint = ref<string | null>(null);
-  const labelEditRefs: Record<string, InstanceType<typeof InlineTextEdit> | null> = {};
+  interface LabelEditor { startEdit: () => Promise<void> }
+  const labelEditRefs: Record<string, LabelEditor | null> = {};
 
   function utxoLabel(utxo: Utxo): string | undefined {
     return store.utxoLabels[outpointOf(utxo)];
   }
 
   function setLabelEditRef(outpoint: string, componentInstance: unknown) {
-    labelEditRefs[outpoint] = componentInstance as InstanceType<typeof InlineTextEdit> | null;
+    labelEditRefs[outpoint] = componentInstance as LabelEditor | null;
   }
 
   async function openLabelEditor(utxo: Utxo) {
@@ -253,30 +256,6 @@
   function tokenUtxoType(utxo: Utxo) {
     if (utxo.token?.amount && utxo.token.nft?.capability) return 'FT+NFT';
     return utxo.token?.amount ? 'FT' : 'NFT';
-  }
-
-  function tokenSymbol(category: string) {
-    return store.bcmrRegistries?.[category]?.token?.symbol ?? '';
-  }
-
-  function fungibleAmount(utxo: Utxo) {
-    const token = utxo.token;
-    if (!token) return ''; // should never happen
-    const decimals = store.bcmrRegistries?.[token.category]?.token?.decimals ?? 0;
-    return formatTokenAmountFromBigInt(token.amount, decimals);
-  }
-
-  function nftCapability(utxo: Utxo) {
-    const capability = utxo.token?.nft?.capability;
-    if (!capability) return ''; // should never happen
-    return capability === 'none' ? t('tokenItem.info.immutable') : capability;
-  }
-
-  // Commitments are up to 40 bytes and most are far shorter, so the column shows what fits and
-  // its own ellipsis takes the rest. Unlike a hash there is no tail worth keeping, and leaving
-  // the shortening to css is what lets the column be narrow without cutting a value twice.
-  function nftCommitment(utxo: Utxo) {
-    return utxo.token?.nft?.commitment || t('tokenItem.empty');
   }
 
   async function consolidateBchUtxos() {
@@ -690,62 +669,20 @@
         <template v-if="!collapsedLists.fungible">
           <div v-if="utxoLists?.fungible.length === 0" class="description">{{ t('utxoManagement.fungibleList.empty') }}</div>
           <div v-else class="utxo-lines">
-            <div
+            <tokenUtxoRow
               v-for="utxo in pageOf('fungible')"
               :key="utxo.txid + ':' + utxo.vout"
-              class="utxo-line-row"
-            >
-              <div class="utxo-line">
-                <TokenIcon
-                  :token-id="utxo.token!.category"
-                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
-                  :size="24"
-                />
-                <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
-                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
-                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
-              </div>
-              <div class="utxo-line utxo-line-meta">
-                <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
-                <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-                  <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}</span>
-                  <img class="copyIcon" src="images/copyGrey.svg">
-                </span>
-                <utxoRowStatus :utxo="utxo" compact />
-                <q-icon v-if="!heldByFeature(utxo)" name="more_vert" size="18px" class="row-menu-trigger">
-                  <q-menu anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
-                    <q-list dense>
-                      <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
-                        <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
-                        <q-item-section>{{
-                          reservationReason(utxo) === 'manual'
-                            ? t('utxoManagement.markers.unfreeze')
-                            : t('utxoManagement.freeze.button')
-                        }}</q-item-section>
-                      </q-item>
-                      <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
-                        <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
-                        <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </q-icon>
-              </div>
-              <div
-                v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
-                class="utxo-line utxo-label-line"
-              >
-                <InlineTextEdit
-                  :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
-                  class="utxo-label-edit"
-                  :value="utxoLabel(utxo)"
-                  :hint="t('utxoManagement.label.placeholder')"
-                  :max-length="maxUtxoLabelLength"
-                  @save="(label) => saveLabel(utxo, label)"
-                  @cancel="labelEditingOutpoint = null"
-                />
-              </div>
-            </div>
+              :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+              :utxo="utxo"
+              kind="fungible"
+              :holds-significant-bch="utxo.satoshis > significantBchOnTokenUtxo"
+              :editing-label="labelEditingOutpoint === outpointOf(utxo)"
+              @toggle-freeze="toggleFreeze(utxo)"
+              @edit-label="queueLabelEdit(utxo)"
+              @menu-hidden="onMenuHidden"
+              @save-label="(label) => saveLabel(utxo, label)"
+              @cancel-label="labelEditingOutpoint = null"
+            />
           </div>
           <q-pagination
             v-if="pageCount('fungible') > 1"
@@ -769,63 +706,20 @@
         <template v-if="!collapsedLists.nft">
           <div v-if="utxoLists?.nft.length === 0" class="description">{{ t('utxoManagement.nftList.empty') }}</div>
           <div v-else class="utxo-lines">
-            <div
+            <tokenUtxoRow
               v-for="utxo in pageOf('nft')"
               :key="utxo.txid + ':' + utxo.vout"
-              class="utxo-line-row"
-            >
-              <div class="utxo-line">
-                <TokenIcon
-                  :token-id="utxo.token!.category"
-                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
-                  :size="24"
-                />
-                <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
-                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
-                <span class="description">{{ nftCapability(utxo) }}</span>
-                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
-              </div>
-              <div class="utxo-line utxo-line-meta">
-                <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
-                <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-                  <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}</span>
-                  <img class="copyIcon" src="images/copyGrey.svg">
-                </span>
-                <utxoRowStatus :utxo="utxo" compact />
-                <q-icon v-if="!heldByFeature(utxo)" name="more_vert" size="18px" class="row-menu-trigger">
-                  <q-menu anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
-                    <q-list dense>
-                      <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
-                        <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
-                        <q-item-section>{{
-                          reservationReason(utxo) === 'manual'
-                            ? t('utxoManagement.markers.unfreeze')
-                            : t('utxoManagement.freeze.button')
-                        }}</q-item-section>
-                      </q-item>
-                      <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
-                        <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
-                        <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </q-icon>
-              </div>
-              <div
-                v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
-                class="utxo-line utxo-label-line"
-              >
-                <InlineTextEdit
-                  :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
-                  class="utxo-label-edit"
-                  :value="utxoLabel(utxo)"
-                  :hint="t('utxoManagement.label.placeholder')"
-                  :max-length="maxUtxoLabelLength"
-                  @save="(label) => saveLabel(utxo, label)"
-                  @cancel="labelEditingOutpoint = null"
-                />
-              </div>
-            </div>
+              :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+              :utxo="utxo"
+              kind="nft"
+              :holds-significant-bch="utxo.satoshis > significantBchOnTokenUtxo"
+              :editing-label="labelEditingOutpoint === outpointOf(utxo)"
+              @toggle-freeze="toggleFreeze(utxo)"
+              @edit-label="queueLabelEdit(utxo)"
+              @menu-hidden="onMenuHidden"
+              @save-label="(label) => saveLabel(utxo, label)"
+              @cancel-label="labelEditingOutpoint = null"
+            />
           </div>
           <q-pagination
             v-if="pageCount('nft') > 1"
@@ -849,64 +743,20 @@
         <template v-if="!collapsedLists.ftNft">
           <div v-if="utxoLists?.ftNft.length === 0" class="description">{{ t('utxoManagement.ftNftList.empty') }}</div>
           <div v-else class="utxo-lines">
-            <div
+            <tokenUtxoRow
               v-for="utxo in pageOf('ftNft')"
               :key="utxo.txid + ':' + utxo.vout"
-              class="utxo-line-row"
-            >
-              <div class="utxo-line">
-                <TokenIcon
-                  :token-id="utxo.token!.category"
-                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(utxo.token!.category) : undefined"
-                  :size="24"
-                />
-                <span class="token-name">{{ tokenName(utxo.token!.category) }}</span>
-                <span class="mono amount-value" :title="`${fungibleAmount(utxo)} ${tokenSymbol(utxo.token!.category)}`">{{ fungibleAmount(utxo) }}</span>
-                <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment(utxo) }}</span>
-                <span class="description">{{ nftCapability(utxo) }}</span>
-                <EmojiItem v-if="utxo.satoshis > significantBchOnTokenUtxo" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
-              </div>
-              <div class="utxo-line utxo-line-meta">
-                <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
-                <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-                  <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}</span>
-                  <img class="copyIcon" src="images/copyGrey.svg">
-                </span>
-                <utxoRowStatus :utxo="utxo" compact />
-                <q-icon v-if="!heldByFeature(utxo)" name="more_vert" size="18px" class="row-menu-trigger">
-                  <q-menu anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
-                    <q-list dense>
-                      <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
-                        <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
-                        <q-item-section>{{
-                          reservationReason(utxo) === 'manual'
-                            ? t('utxoManagement.markers.unfreeze')
-                            : t('utxoManagement.freeze.button')
-                        }}</q-item-section>
-                      </q-item>
-                      <q-item clickable v-close-popup @click="queueLabelEdit(utxo)">
-                        <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
-                        <q-item-section>{{ t('utxoManagement.label.title') }}</q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </q-icon>
-              </div>
-              <div
-                v-if="utxoLabel(utxo) || labelEditingOutpoint === outpointOf(utxo)"
-                class="utxo-line utxo-label-line"
-              >
-                <InlineTextEdit
-                  :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
-                  class="utxo-label-edit"
-                  :value="utxoLabel(utxo)"
-                  :hint="t('utxoManagement.label.placeholder')"
-                  :max-length="maxUtxoLabelLength"
-                  @save="(label) => saveLabel(utxo, label)"
-                  @cancel="labelEditingOutpoint = null"
-                />
-              </div>
-            </div>
+              :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+              :utxo="utxo"
+              kind="ftNft"
+              :holds-significant-bch="utxo.satoshis > significantBchOnTokenUtxo"
+              :editing-label="labelEditingOutpoint === outpointOf(utxo)"
+              @toggle-freeze="toggleFreeze(utxo)"
+              @edit-label="queueLabelEdit(utxo)"
+              @menu-hidden="onMenuHidden"
+              @save-label="(label) => saveLabel(utxo, label)"
+              @cancel-label="labelEditingOutpoint = null"
+            />
           </div>
           <q-pagination
             v-if="pageCount('ftNft') > 1"
@@ -977,11 +827,11 @@
   transform: rotate(-90deg);
 }
 
-.description {
+:deep(.description) {
   color: #888;
   margin: 5px 0 10px 0;
 }
-.dark .description {
+.dark :deep(.description) {
   color: #aaa;
 }
 
@@ -1127,7 +977,8 @@ $col-name: 7em;
   grid-template-columns: $col-number minmax($col-name, 1fr) $col-type $col-bch $col-txid $col-vout;
 }
 /* A token coin on two lines: what it is, then where it is and what can be done with it. Table
-   density with card readability, and it stacks on a phone where the table could not. */
+   density with card readability, and it stacks on a phone where the table could not. The row is
+   a child component, so the rules for its insides are :deep, as the status cell's are. */
 .utxo-lines {
   margin-top: 8px;
 }
@@ -1135,32 +986,32 @@ $col-name: 7em;
   padding: 6px 0;
   border-bottom: 1px solid var(--color-lightGrey);
 }
-.utxo-line {
+:deep(.utxo-line) {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
 }
 /* the second line reads as detail under the first, indented past the icon */
-.utxo-line-meta {
+:deep(.utxo-line-meta) {
   margin-left: 32px;
   color: grey;
   font-size: 0.9em;
   flex-wrap: wrap;
 }
-.utxo-line-meta .copy-target {
+:deep(.utxo-line-meta .copy-target) {
   display: inline-flex;
   align-items: center;
 }
-.utxo-line-row .utxo-label-line {
+.utxo-line-row :deep(.utxo-label-line) {
   margin-left: 32px;
 }
 /* the menu sits at the end of the row, where the eye leaves it */
-.row-menu-trigger {
+:deep(.row-menu-trigger) {
   margin-left: auto;
   cursor: pointer;
 }
-.held-state-compact {
+:deep(.held-state-compact) {
   display: inline-flex;
   align-items: center;
 }
@@ -1187,7 +1038,7 @@ $col-name: 7em;
 }
 
 /* the marker sits in the token column because that one is flexible, so the name shortens for it */
-.warn-marker {
+:deep(.warn-marker) {
   flex: none;
 }
 
@@ -1205,6 +1056,7 @@ $col-name: 7em;
 
 /* The status cell is its own component, so the rules for what is inside it reach through the
    scope with :deep. Its root element keeps this component's scope, so .held-cell does not.
+   Inside the token row it is nested a level deeper still, which :deep reaches all the same.
    The mark and the offer to freeze share one column, so the row keeps its width either way. */
 .held-cell {
   justify-content: center;
@@ -1251,18 +1103,18 @@ $card-label-width: 90px;
 
 /* spans every column of its row, so labels need no column of their own and only
    the rows that have one grow the extra line */
-.utxo-label-line {
+:deep(.utxo-label-line) {
   grid-column: 1 / -1;
   justify-content: center;
   padding-top: 2px;
 }
 /* a bounded centered box, for the shown label and its editor alike, so the
    editing underline does not stretch across the whole row */
-.utxo-label-line .inline-edit {
+:deep(.utxo-label-line .inline-edit) {
   flex: 0 1 30em;
 }
 
-.token-name {
+:deep(.token-name) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1270,20 +1122,20 @@ $card-label-width: 90px;
 
 /* a value that outgrows its column ends in an ellipsis rather than being cut mid character.
    The token amount leaves its symbol to its title, the token column already shows it */
-.bch-value,
-.amount-value,
-.commitment-value {
+:deep(.bch-value),
+:deep(.amount-value),
+:deep(.commitment-value) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.muted {
+:deep(.muted) {
   color: var(--color-grey);
 }
 
 /* the copy icon belongs to the txid it copies, never floating on its own */
-.copy-target {
+:deep(.copy-target) {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -1291,11 +1143,11 @@ $card-label-width: 90px;
   cursor: pointer;
 }
 
-.copy-target:active .copyIcon {
+:deep(.copy-target:active .copyIcon) {
   transform: scale(1.2);
 }
 
-.copy-target .mono {
+:deep(.copy-target .mono) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1316,7 +1168,7 @@ $card-label-width: 90px;
   justify-content: center;
 }
 
-.mono {
+:deep(.mono) {
   font-family: monospace;
 }
 

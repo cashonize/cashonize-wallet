@@ -2,9 +2,9 @@
   import { ref, computed, watch } from 'vue';
   import {
     fetchCandidateRegistry,
-    maxPublicationOutputSize,
+    filledLocations,
+    locationBudgetLeft,
     publicationOutput,
-    publicationOutputSize,
     summarizeRegistry,
     tokenOutputValue,
   } from 'src/utils/tools/authchainIdentity';
@@ -23,6 +23,7 @@
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
   import TokenIcon from '../general/TokenIcon.vue';
   import genesisInputPicker from './genesisInputPicker.vue';
+  import publicationLocations from './publicationLocations.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
   import { confirmDialog, notifySending } from 'src/utils/txHelpers';
@@ -161,20 +162,7 @@
     return genesisProblem.value === undefined && (totalSupply.value ?? 0n) > 0n;
   });
 
-  const filledUris = computed(() => metadataUris.value.map(uri => uri.trim()).filter(uri => uri.length));
-
-  const publicationBytesLeft = computed(() =>
-    maxPublicationOutputSize - publicationOutputSize(filledUris.value)
-  );
-
-  function addUriRow() {
-    metadataUris.value = [...metadataUris.value, ""];
-  }
-
-  function removeUriRow(index: number) {
-    metadataUris.value = metadataUris.value.filter((_, rowIndex) => rowIndex !== index);
-    if (!metadataUris.value.length) metadataUris.value = [""];
-  }
+  const filledUris = computed(() => filledLocations(metadataUris.value));
 
   // What the typed locations serve, fetched and verified on the user's word rather than on blur,
   // and shown before anything is signed: the creator confirms a genesis knowing the name, the
@@ -197,7 +185,7 @@
     if (activeAction.value || !category || !filledUris.value.length) return;
     activeAction.value = 'checking';
     try {
-      if (publicationBytesLeft.value < 0) throw new Error(t('identities.publish.errors.tooLarge'));
+      if (locationBudgetLeft(filledUris.value) < 0) throw new Error(t('identities.publish.errors.tooLarge'));
       const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
       const summary = summarizeRegistry(candidate.content, category);
       if (!summary) throw new Error(t('createTokens.notifications.bcmrWrongIdentity'));
@@ -643,23 +631,10 @@
         <div v-if="hasSupply" class="description" style="margin-top: 6px;">
           {{ t('createTokens.check.decimalsReminder', { decimals }) }}
         </div>
-        <div v-for="(uri, index) in metadataUris" :key="index" class="publish-uri-row">
-          <input v-model="metadataUris[index]" :placeholder="t('identities.publish.uriPlaceholder')">
-          <span
-            v-if="metadataUris.length > 1"
-            class="remove-uri"
-            @click="removeUriRow(index)"
-          >{{ t('identities.publish.removeLocation') }}</span>
-        </div>
         <div class="description" style="margin-top: 4px;">{{ t('createTokens.locationHint') }}</div>
-        <div class="publish-uri-actions">
-          <button @click="addUriRow()">{{ t('identities.publish.addLocation') }}</button>
+        <publicationLocations v-model="metadataUris">
           <span class="description">{{ t('createTokens.sameFile') }}</span>
-          <!-- a number about nothing until a location is typed -->
-          <span v-if="filledUris.length" class="description" :class="{ 'over-budget': publicationBytesLeft < 0 }">
-            {{ t('identities.publish.bytesLeft', { bytes: publicationBytesLeft }) }}
-          </span>
-        </div>
+        </publicationLocations>
         <!-- The check is the user's action, never a fetch on blur, and what it found is shown
              before anything is signed: the token as wallets will show it, and the hash Create
              would commit to. The one moment of colour on the page that is not the primary green,
@@ -732,28 +707,8 @@
 .mono {
   font-family: monospace;
 }
-/* the page's three questions are numbered the way the flipstarter tool numbers its steps,
-   rather than carrying a heading in bold over each of them; the open one is in the primary
-   colour, so done, doing and next read as a shape */
 .section {
   margin-top: 20px;
-}
-.step-label {
-  color: grey;
-}
-.step-label.open {
-  color: var(--color-primary);
-}
-.closed-line {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.step-check {
-  width: 18px;
-  height: 18px;
-  flex: none;
 }
 /* side by side where the width allows, stacked on a phone; a card line is cut to the column of a
    half-width card so it stays one line, and the pair borrows most of the fieldset's 2rem inset,
@@ -815,13 +770,6 @@
 .home-rows div {
   margin-top: 4px;
 }
-.action-link {
-  color: var(--color-primary);
-  cursor: pointer;
-}
-.action-link:hover {
-  text-decoration: underline;
-}
 /* the way back, in the text colour like the settings pages' own back line */
 .chosen-line {
   display: flex;
@@ -857,53 +805,6 @@ label {
   margin-top: 14px;
   margin-bottom: 4px;
 }
-.walkthrough {
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: walkthrough-step;
-}
-.walkthrough li {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 6px;
-}
-.walkthrough li::before {
-  counter-increment: walkthrough-step;
-  content: counter(walkthrough-step) ")";
-  flex: none;
-}
-.publish-uri-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 6px;
-}
-.publish-uri-row input {
-  flex: 1 1 260px;
-  margin: 0;
-}
-.publish-uri-actions {
-  display: flex;
-  align-items: baseline;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-top: 6px;
-}
-/* adding a row to a form is a small action, not one the full button size fits */
-.publish-uri-actions button {
-  padding: 8px 16px;
-  font-size: 0.9em;
-}
-.remove-uri {
-  cursor: pointer;
-  color: grey;
-}
-/* what will not relay reads as an error rather than as one more grey number */
-.over-budget {
-  color: var(--color-error);
-}
 .genesis-problem {
   color: var(--color-error);
 }
@@ -934,13 +835,6 @@ label {
   align-items: center;
   gap: 10px;
   margin-top: 12px;
-}
-.copy-target {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
 }
 /* the finish: the one glad line on the page, then the token in the shape the Tokens tab gives it */
 .created-title {
