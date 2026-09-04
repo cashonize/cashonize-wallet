@@ -1624,7 +1624,7 @@
         "doneTitle": "Emitido de la reserva"
       },
       "add": {
-        "action": "añadir a la reserva",
+        "action": "Añadir a la reserva",
         "hint": "Devuelve a la reserva tokens que tiene esta billetera, sacándolos de circulación.",
         "amountPlaceholder": "Cantidad a añadir",
         "button": "Añadir a la reserva",
@@ -1635,7 +1635,8 @@
         "done": "Añadido a la reserva",
         "doneTitle": "Añadido a la reserva"
       },
-      "mintingNftLink": "ver en la lista de tokens"
+      "mintingNftLink": "ver en la lista de tokens",
+      "supplyOpenEnded": "Suministro reservado: sin límite"
     },
     "key": {
       "action": "transferir la clave",
@@ -1670,8 +1671,7 @@
         "changed": "El archivo que se sirve aquí no es el publicado en la cadena. Revísalo y publícalo de nuevo, para que los holders vean lo que sirves.",
         "changedNote": "Si tú no editaste el archivo, revisa tu alojamiento: hay algo más respondiendo por él.",
         "unreachable": "Esta ubicación no respondió. Los holders que busquen los metadatos aquí no ven nada, así que comprueba si caducó el alojamiento o el pin de IPFS."
-      },
-      "noneAction": "publicar metadatos"
+      }
     },
     "history": {
       "title": "Historial de esta identidad",

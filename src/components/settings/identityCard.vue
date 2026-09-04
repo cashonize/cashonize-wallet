@@ -35,6 +35,7 @@
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { TokenSendRequest } from 'mainnet-js'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
+  import { maxTokenSupply } from 'src/utils/tools/tokenCreation'
 
   const props = defineProps<{
     identity: IdentityState,
@@ -89,7 +90,11 @@
     if (!token) return undefined;
     const metadata = store.bcmrRegistries?.[props.identity.category];
     const lines: string[] = [];
-    if (token.amount) {
+    // the largest amount a category can hold is the AuthGuard standard's mark for a supply with
+    // no ceiling, and reads as that rather than as the number
+    if (token.amount === maxTokenSupply) {
+      lines.push(t('identities.reserve.supplyOpenEnded'));
+    } else if (token.amount) {
       const amount = formatTokenAmountFromBigInt(token.amount, metadata?.token?.decimals ?? 0);
       lines.push(t('identities.reserve.supply', {
         amount: `${amount} ${metadata?.token?.symbol ?? ''}`.trim(),
@@ -508,12 +513,8 @@
       <div>{{ t('identities.publication.title') }}</div>
       <div v-if="!identity.publication" class="info-box" style="margin-top: 6px;">
         <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
-        <div>
-          {{ t('identities.publication.none') }}
-          <span v-if="identity.authUtxo" class="action-link" @click="toggleAction('publish')">
-            {{ t('identities.publication.noneAction') }}
-          </span>
-        </div>
+        <!-- the action is in the bar right under it, so the box only states the fact -->
+        <div>{{ t('identities.publication.none') }}</div>
       </div>
       <template v-else>
         <div v-for="row in publicationRows" :key="row.uri" class="publication-uri">
@@ -554,17 +555,11 @@
           {{ t('identities.publish.action') }}
         </span>
         <!-- a reserve is a fungible category's thing: its genesis decides that, not what the
-             wallet holds today, so an NFT-only identity never shows these -->
-        <template v-if="identity.fungibleSupply">
-          <span v-if="reserve > 0n" @click="toggleAction('issue')" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/minus-square-lightGrey.svg' : 'images/minus-square.svg'">
-            {{ t('identities.reserve.issue.action') }}
-          </span>
-          <span @click="toggleAction('addToReserve')" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/plus-square-lightGrey.svg' : 'images/plus-square.svg'">
-            {{ t('identities.reserve.add.action') }}
-          </span>
-        </template>
+             wallet holds today, so an NFT-only identity never shows this -->
+        <span v-if="identity.fungibleSupply && reserve > 0n" @click="toggleAction('issue')" style="white-space: nowrap;">
+          <img class="icon" :src="settingsStore.darkMode? 'images/minus-square-lightGrey.svg' : 'images/minus-square.svg'">
+          {{ t('identities.reserve.issue.action') }}
+        </span>
         <span @click="toggleAction('transfer')" style="white-space: nowrap;">
           <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
           {{ t('identities.transfer.action') }}
@@ -578,6 +573,17 @@
       <q-icon name="more_vert" size="22px" class="identity-menu-trigger">
         <q-menu anchor="bottom right" self="top right">
           <q-list dense>
+            <!-- the reverse of issuing, done rarely: the bar holds the four things a creator does,
+                 and the rest waits here -->
+            <q-item
+              v-if="identity.authUtxo && identity.fungibleSupply"
+              clickable
+              v-close-popup
+              @click="toggleAction('addToReserve')"
+            >
+              <q-item-section avatar><q-icon name="add_circle" size="18px" /></q-item-section>
+              <q-item-section>{{ t('identities.reserve.add.action') }}</q-item-section>
+            </q-item>
             <q-item clickable v-close-popup :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
               <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>
               <q-item-section>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</q-item-section>

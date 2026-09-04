@@ -1624,7 +1624,7 @@
         "doneTitle": "Issued from reserve"
       },
       "add": {
-        "action": "add to reserve",
+        "action": "Add to reserve",
         "hint": "Move tokens this wallet holds back into the reserve, out of circulation.",
         "amountPlaceholder": "Amount to add",
         "button": "Add to reserve",
@@ -1635,7 +1635,8 @@
         "done": "Added to the reserve",
         "doneTitle": "Added to reserve"
       },
-      "mintingNftLink": "view in the token list"
+      "mintingNftLink": "view in the token list",
+      "supplyOpenEnded": "Reserved supply: open-ended"
     },
     "key": {
       "action": "transfer the key",
@@ -1670,8 +1671,7 @@
         "changed": "The file served here is not the one published on chain. Review it and publish it again, so holders see what you are serving.",
         "changedNote": "If you did not edit the file, check your hosting: something else is answering for it.",
         "unreachable": "This location did not answer. Holders fetching the metadata from it see nothing, so check whether the hosting or the IPFS pin has lapsed."
-      },
-      "noneAction": "publish metadata"
+      }
     },
     "history": {
       "title": "This identity's history",

@@ -1624,7 +1624,7 @@
         "doneTitle": "Émis depuis la réserve"
       },
       "add": {
-        "action": "ajouter à la réserve",
+        "action": "Ajouter à la réserve",
         "hint": "Remettez en réserve des jetons que ce portefeuille détient, hors circulation.",
         "amountPlaceholder": "Montant à ajouter",
         "button": "Ajouter à la réserve",
@@ -1635,7 +1635,8 @@
         "done": "Ajouté à la réserve",
         "doneTitle": "Ajouté à la réserve"
       },
-      "mintingNftLink": "voir dans la liste des tokens"
+      "mintingNftLink": "voir dans la liste des tokens",
+      "supplyOpenEnded": "Offre réservée : illimitée"
     },
     "key": {
       "action": "transférer la clé",
@@ -1670,8 +1671,7 @@
         "changed": "Le fichier servi ici n'est pas celui publié sur la chaîne. Vérifiez-le et publiez-le de nouveau, pour que les détenteurs voient ce que vous servez.",
         "changedNote": "Si vous n'avez pas modifié le fichier, vérifiez votre hébergement : autre chose répond à sa place.",
         "unreachable": "Cet emplacement n'a pas répondu. Les détenteurs qui y cherchent les métadonnées ne voient rien : vérifiez si l'hébergement ou le pin IPFS a expiré."
-      },
-      "noneAction": "publier des métadonnées"
+      }
     },
     "history": {
       "title": "Historique de cette identité",

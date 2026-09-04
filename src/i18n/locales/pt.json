@@ -1624,7 +1624,7 @@
         "doneTitle": "Emitido da reserva"
       },
       "add": {
-        "action": "adicionar à reserva",
+        "action": "Adicionar à reserva",
         "hint": "Devolva à reserva tokens que esta carteira tem, tirando-os de circulação.",
         "amountPlaceholder": "Valor a adicionar",
         "button": "Adicionar à reserva",
@@ -1635,7 +1635,8 @@
         "done": "Adicionado à reserva",
         "doneTitle": "Adicionado à reserva"
       },
-      "mintingNftLink": "ver na lista de tokens"
+      "mintingNftLink": "ver na lista de tokens",
+      "supplyOpenEnded": "Fornecimento reservado: sem limite"
     },
     "key": {
       "action": "transferir a chave",
@@ -1670,8 +1671,7 @@
         "changed": "O arquivo servido aqui não é o publicado na cadeia. Revise-o e publique de novo, para que os holders vejam o que você serve.",
         "changedNote": "Se você não editou o arquivo, verifique sua hospedagem: outra coisa está respondendo por ela.",
         "unreachable": "Este local não respondeu. Holders que buscam os metadados por ele não veem nada, então verifique se a hospedagem ou o pin de IPFS expirou."
-      },
-      "noneAction": "publicar metadados"
+      }
     },
     "history": {
       "title": "Histórico desta identidade",
