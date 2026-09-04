@@ -80,8 +80,7 @@ covenant spends (Studio does).
 - **Followed as a held token's identity.** The identity of every token the wallet holds is
   followed passively, in batches of forward lookups at open and on the page's visit: not
   listed, not reserved, never news, until its identity output turns out to be here, when it
-  is promoted to the list, held back and announced. A toggle at the group's head turns the
-  following off.
+  is promoted to the list, held back and announced. A setting turns the following off.
 - **Added by id.** Any authbase, a token's or not; an AuthKey category is read as a key
   first. The confirm says where the identity is held before listing it: here, and held
   back, or elsewhere, and only watched.

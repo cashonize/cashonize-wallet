@@ -1377,7 +1377,9 @@
       "qrAnimation": "QR-Code Animation:",
       "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen",
       "enableAddressMarking": "Erweiterte Adressverwaltung aktivieren: Adressen als verwendet markieren",
-      "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets."
+      "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets.",
+      "followTokenIdentities": "Die Identitäten der gehaltenen Tokens verfolgen",
+      "followTokenIdentitiesHint": "Die Liste der gehaltenen Tokens geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Ausschalten beendet die Abfragen."
     },
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",
@@ -1574,12 +1576,10 @@
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
     "watchedHeader": "{count} Identität nur beobachtet, nicht von diesem Wallet gehalten | {count} Identitäten nur beobachtet, nicht von diesem Wallet gehalten",
     "follow": {
-      "header": "{count} Identität eines gehaltenen Tokens, verfolgt | {count} Identitäten gehaltener Tokens, verfolgt",
-      "toggle": "Die Identitäten der gehaltenen Tokens verfolgen",
-      "help": "Die Token-Liste geht als Ganzes an den Chaingraph-Server. Ausschalten beendet das; hier wird nichts zurückgehalten oder als neu gezählt.",
-      "show": "anzeigen",
-      "hide": "ausblenden",
-      "resolving": "Die Identitäten der gehaltenen Tokens werden nachgeschlagen..."
+      "header": "{count} verfolgte Identität eines gehaltenen Tokens | {count} verfolgte Identitäten gehaltener Tokens",
+      "help": "Verfolgt, damit die Identität eines Tokens, die dieses Wallet erreicht, gelistet und zurückgehalten wird. Sonst wird nichts zurückgehalten oder als neu gezählt.",
+      "resolving": "Die Identitäten der gehaltenen Tokens werden nachgeschlagen...",
+      "settingNote": "Das Verfolgen sendet die Liste der gehaltenen Tokens an den Chaingraph-Server. In den Einstellungen lässt es sich ausschalten."
     },
     "unnamedIdentity": "Identität ohne Namen",
     "categoryLabel": "Kategorie:",
