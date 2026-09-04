@@ -93,7 +93,9 @@
       "genesisInputUnavailable": "A moeda escolhida para criar este token não está mais disponível. Escolha outra.",
       "identityLeavesWallet": "Esta solicitação entregaria o controle de uma das suas identidades a outra carteira, por isso foi recusada. A transferência de uma identidade é feita na página de identidades.",
       "identityMerge": "Este pedido gastaria duas das suas identidades numa só transação, o que as funde numa. Esta carteira ainda não suporta fundir identidades, por isso foi recusado.",
-      "reservedInputs": "Este pedido gastaria um UTXO que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê."
+      "reservedInputs": "Este pedido gastaria um UTXO que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê.",
+      "identityHeld": "Este pedido gastaria o UTXO de identidade de {name}, o que as apps ligadas não podem fazer, por isso foi recusado. Para gerir identidades através de uma app ligada, ative \"Permitir que apps ligadas gastem UTXOs de identidade\" nas opções de utilizador.",
+      "dappRefusedTitle": "Pedido recusado"
     }
   },
   "onboarding": {
@@ -1229,7 +1231,10 @@
       "unverifiedTokenNoteSingular": "Token não presente na sua carteira. Novos metadados obtidos para pré-visualização.",
       "unverifiedTokenNotePlural": "Tokens não presentes na sua carteira. Novos metadados obtidos para pré-visualização.",
       "identityKeyReturns": "Isto usa a sua chave de identidade, que volta para a sua carteira.",
-      "identityReturns": "Isto gasta uma das suas identidades. O seu UTXO de identidade volta para esta carteira; as alterações de saldo abaixo dizem o que mais se move."
+      "identityStays": "Isto gasta o UTXO de identidade de {name}. A identidade fica nesta carteira.",
+      "identityReserve": "Reserva na identidade: {before} antes, {after} depois.",
+      "identityMintingStays": "O NFT de cunhagem fica na identidade.",
+      "identityMintingLeaves": "O NFT de cunhagem é retirado da identidade."
     },
     "sessionRequest": {
       "title": "Aprovar sessão?",
@@ -1377,7 +1382,9 @@
       "enableAddressMarking": "Ativar gestão avançada de endereços: marcar endereços como usados",
       "enableAddressMarkingHint": "Marcar um endereço como usado faz a carteira mostrar o próximo, assim você pode dar um endereço novo a cada pagador. Aplica-se a carteiras HD.",
       "followTokenIdentities": "Seguir as identidades dos tokens que tem",
-      "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligar isto pára as consultas."
+      "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligar isto pára as consultas.",
+      "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",
+      "allowDappIdentitySpendsHint": "Desligado: um pedido WalletConnect ou WizardConnect que gaste o UTXO de uma identidade desta carteira é recusado, como um UTXO comprometido. Ligado: o pedido chega ao diálogo de aprovação, que nomeia a identidade e diz o que o seu UTXO carrega antes e depois. Um pedido que tirasse uma identidade desta carteira é recusado em ambos os casos. As chaves de identidade não são afetadas: um pedido que use uma é assinado quando a chave volta, que é como o CashTokens Studio funciona."
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
@@ -1588,7 +1595,7 @@
       "burned": "Queimada"
     },
     "statusHelp": {
-      "held": "Esta carteira tem o UTXO desta identidade, portanto pode atualizar os seus metadados. O UTXO fica de fora da seleção de moedas, nenhum envio comum a partir desta app pode gastá-lo. Outro software com a mesma seed ainda pode.",
+      "held": "Esta carteira tem o UTXO desta identidade, portanto pode atualizar os seus metadados. O UTXO fica de fora da seleção de moedas, nenhum envio comum a partir desta app pode gastá-lo, nem uma app ligada, salvo se permitido nas opções de utilizador. Outro software com a mesma seed ainda pode.",
       "notHeld": "Esta identidade não é tida por esta carteira, que por isso só a observa: a sua publicação é mostrada, mas atualizá-la cabe a quem a tiver.",
       "unresolved": "Não foi possível consultar onde esta identidade está, então isso é desconhecido agora. O que está retido por ela continua retido até chegar uma resposta.",
       "heldViaKey": "O UTXO desta identidade está trancado em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem o UTXO, portanto é a chave que fica de fora da seleção de moedas.",

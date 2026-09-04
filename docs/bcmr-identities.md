@@ -56,8 +56,11 @@ accident it prevents fits in the gap a question would open. The reservation is l
 advisory: another app on the same seed spends the coin regardless, which the copy says
 wherever the fact matters. Its effects are visible: the coin leaves the spendable pool,
 its BCH leaves the balance, a reserve on it leaves the token list, and a dapp transaction
-spending it is refused at signing unless output 0 provably returns to this wallet. The
-only releases are the identity's own transfer and Remove on the identities page.
+spending it is refused at signing: outright for an identity UTXO, unless the user option
+lets connected apps spend them, and then only when output 0 provably returns to this
+wallet, with the approval dialog naming the identity and what its output carries before
+and after; a key is signed when the same NFT comes back, since the covenant needs it as an
+input. The only releases are the identity's own transfer and Remove on the identities page.
 
 ## What the wallet does and does not do
 
@@ -68,8 +71,8 @@ transfer transactions (all one shape: the old identity output in, the new one at
 the publication output beside it when there is one), mint from an identity UTXO as the
 authchain operation it is, and read the chain as the identity's history.
 
-Does not: author or host registries (the generator and the user's hosting do that), or build
-covenant spends (Studio does).
+Does not: author or host registries (the generator and the user's hosting do that), build
+covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 
 ## How an identity gets onto the page
 
@@ -140,6 +143,13 @@ naming what was held back and what that did to the balance.
 
 What the standard enables that the wallet does not do yet:
 
+- **Identity operations built by dapps.** The standard's point is that identity operations
+  are ordinary transactions anyone can build, and a wallet that signs only its own closes
+  that off. This release errs on the side of safety: a dapp may spend an identity UTXO only
+  with the user option on, and never to move the identity out of the wallet, which is
+  restrictive for an identity-management dapp. Only CashTokens Studio exists today and it
+  works through the key, which is signed regardless. Loosening this, per dapp or per
+  request, is a question for when such a dapp exists.
 - **Carrying the metadata pointer forward.** Every operation the wallet builds, a transfer,
   an issue, a reserve move, a mint, leaves the new authhead without a publication output,
   so a resolver that reads only the authhead, as the spec's text says to, finds no registry

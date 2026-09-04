@@ -57,6 +57,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // the identities of the tokens the wallet holds, followed passively; off for a wallet that would
   // rather not send its token list to the Chaingraph server as a set
   const followTokenIdentities = ref(true);
+  // whether a dapp transaction may spend an identity UTXO this wallet holds; off, it is refused
+  // the way a pledged coin is, since no dapp builds such a transaction yet and an accident is final
+  const allowDappIdentitySpends = ref(false);
   // developer settings
   const mintNfts = ref(false);
   const disableTokenIcons = ref(false);
@@ -231,6 +234,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readFollowTokenIdentities = localStorage.getItem("followTokenIdentities");
   if (readFollowTokenIdentities) followTokenIdentities.value = readFollowTokenIdentities == "true";
+  const readAllowDappIdentitySpends = localStorage.getItem("allowDappIdentitySpends");
+  if (readAllowDappIdentitySpends) allowDappIdentitySpends.value = readAllowDappIdentitySpends == "true";
   // the "authchains" toggle this one replaces
   localStorage.removeItem("authchains");
 
@@ -499,6 +504,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     clearWalletSettings,
     mintNfts,
     followTokenIdentities,
+    allowDappIdentitySpends,
     strictWcSchema,
     showPrivateKeyWif,
     dateFormat,

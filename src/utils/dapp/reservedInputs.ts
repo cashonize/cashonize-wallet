@@ -1,9 +1,11 @@
 // A dapp builds its own transaction and picks its own coins, so refusing to sign is the only way
-// this wallet keeps a held back coin unspent. Identity operations are the exception the AuthGuard
-// covenant forces: it requires the AuthKey at input 1, so every publish, mint or issue a dapp
-// builds for a guarded identity spends the very coin the identities page holds back.
-// The exemption is per input and only for what provably comes back: the key itself, or a raw
-// authhead's new output 0. Every other held coin in the same transaction still refuses.
+// this wallet keeps a held back coin unspent. A pledged or frozen coin is refused outright. An
+// identity's AuthKey is the exception the AuthGuard covenant forces: it requires the key at input
+// 1, so every publish, mint or issue a dapp builds for a guarded identity spends the very coin the
+// identities page holds back; the key is let through when the same NFT provably comes back. An
+// identity UTXO the wallet holds directly is refused unless the user option allows it, and even
+// then only when the authchain continues at an output of this wallet: moving an identity out is
+// the identities page's job. Every other held coin in the same transaction still refuses.
 
 import { binToHex } from "@bitauth/libauth";
 import type { Utxo } from "mainnet-js";
@@ -46,36 +48,54 @@ export interface ReservedInputContext {
   walletUtxos: Utxo[];
   identityKeys: Outpoint[]; // AuthKeys this wallet holds, which a covenant spend takes along
   authheads: Outpoint[]; // identity outputs this wallet holds directly, named or not
+  allowIdentitySpends: boolean; // the user option letting a dapp spend those
   ownsOutput: (output: SignedOutput) => boolean;
 }
 
-// 'identityLeaves' is the one that matters: control over an identity would end up elsewhere, which
-// is a transfer rather than an operation. 'identityMerge' is two authheads spent by one
-// transaction: output 0 continues both chains, so the identities become one. The spec allows
-// that (a merger is its example); this wallet refuses it because it cannot yet show the user
-// which identity survives or that there is no way back. 'held' is any other held coin: a pledge,
-// a frozen coin, or one this wallet cannot account for.
-export type RefusalReason = 'held' | 'identityLeaves' | 'identityMerge';
+// 'identityHeld' is an identity UTXO the user option keeps from dapps. 'identityLeaves' is control
+// over an identity ending up elsewhere, which is a transfer rather than an operation.
+// 'identityMerge' is two authheads spent by one transaction: output 0 continues both chains, so
+// the identities become one. The spec allows that (a merger is its example); this wallet refuses
+// it because it cannot yet show the user which identity survives or that there is no way back.
+// 'held' is any other held coin: a pledge, a frozen coin, or one this wallet cannot account for.
+export type RefusalReason = 'held' | 'identityHeld' | 'identityLeaves' | 'identityMerge';
 
 export interface ReservedInputRefusal {
   outpoint: Outpoint;
   reason: RefusalReason;
 }
 
-export interface ReturningIdentity {
-  outpoint: Outpoint;
-  kind: 'key' | 'authhead';
+// What rides on an identity output: the reserved supply and the minting NFT
+export interface IdentityCarry {
+  reserve: bigint;
+  mintingNft: boolean;
 }
+
+// An identity coin the transaction spends and this wallet keeps the authority of: the key itself,
+// or an identity UTXO whose chain continues at output 0, with what that output carried before
+// and carries after, which is what the approval dialog has to say
+export type ReturningIdentity =
+  | { outpoint: Outpoint; kind: 'key' }
+  | { outpoint: Outpoint; kind: 'authhead'; category?: string; before: IdentityCarry; after: IdentityCarry };
 
 export interface ReservedInputsCheck {
   refusals: ReservedInputRefusal[];
   returning: ReturningIdentity[];
 }
 
+const identityReasons: RefusalReason[] = ['identityHeld', 'identityLeaves', 'identityMerge'];
+
+// The refusal that is about an identity, when there is one: told in a dialog with the identity's name
+export function identityRefusal(check: ReservedInputsCheck): ReservedInputRefusal | undefined {
+  return check.refusals.find(refusal => identityReasons.includes(refusal.reason));
+}
+
 // What the user is told when a check refuses, in the identity's own words when that is the reason
-export function refusalMessage(check: ReservedInputsCheck): string {
-  if (check.refusals.some(refusal => refusal.reason === 'identityLeaves')) return t('store.errors.identityLeavesWallet');
-  if (check.refusals.some(refusal => refusal.reason === 'identityMerge')) return t('store.errors.identityMerge');
+export function refusalMessage(check: ReservedInputsCheck, identityName?: string): string {
+  const refusal = identityRefusal(check);
+  if (refusal?.reason === 'identityHeld') return t('store.errors.identityHeld', { name: identityName ?? '' });
+  if (refusal?.reason === 'identityLeaves') return t('store.errors.identityLeavesWallet');
+  if (refusal?.reason === 'identityMerge') return t('store.errors.identityMerge');
   return t('store.errors.reservedInputs');
 }
 
@@ -92,6 +112,17 @@ function isSameKey(output: SignedOutput, key: Utxo): boolean {
   if (!sameCategory(output.token, key.token?.category)) return false;
   if (outputNft.capability !== keyNft.capability) return false;
   return toHex(outputNft.commitment) === keyNft.commitment;
+}
+
+function carriedByCoin(coin: Utxo): IdentityCarry {
+  return { reserve: coin.token?.amount ?? 0n, mintingNft: coin.token?.nft?.capability === 'minting' };
+}
+
+// what output 0 carries of the identity's own category; a token of another category is not the reserve
+function carriedByOutput(output: SignedOutput, category: string | undefined): IdentityCarry {
+  const token = output.token;
+  if (!token || !sameCategory(token, category)) return { reserve: 0n, mintingNft: false };
+  return { reserve: BigInt(token.amount), mintingNft: token.nft?.capability === 'minting' };
 }
 
 // Held coins a signing request would spend, and which of them are identity operations this wallet
@@ -125,13 +156,24 @@ export function checkReservedInputs(
       continue;
     }
     if (context.authheads.includes(outpoint)) {
+      if (!context.allowIdentitySpends) {
+        refusals.push({ outpoint, reason: 'identityHeld' });
+        continue;
+      }
       // the authchain continues through output 0, so that is the output that has to be this wallet's
       const newAuthhead = outputs[0];
       if (!newAuthhead || !context.ownsOutput(newAuthhead)) {
         refusals.push({ outpoint, reason: 'identityLeaves' });
         continue;
       }
-      returning.push({ outpoint, kind: 'authhead' });
+      const category = coin.token?.category;
+      returning.push({
+        outpoint,
+        kind: 'authhead',
+        ...(category ? { category } : {}),
+        before: carriedByCoin(coin),
+        after: carriedByOutput(newAuthhead, category),
+      });
       continue;
     }
     // a held coin this wallet cannot account for: refused because it cannot be checked

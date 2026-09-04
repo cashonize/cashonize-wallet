@@ -93,7 +93,9 @@
       "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one.",
       "identityLeavesWallet": "This request would hand control of one of your identities to another wallet, so it was refused. Transferring an identity is done from the identities page.",
       "identityMerge": "This request would spend two of your identities in one transaction, which merges them into one. Merging identities is not supported by this wallet yet, so it was refused.",
-      "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why."
+      "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why.",
+      "identityHeld": "This request would spend the identity UTXO of {name}, which connected apps are not allowed to, so it was refused. To manage identities through a connected app, turn on \"Let connected apps spend identity UTXOs\" under user options.",
+      "dappRefusedTitle": "Request refused"
     }
   },
   "onboarding": {
@@ -1229,7 +1231,10 @@
       "unverifiedTokenNoteSingular": "Token not in your wallet. New metadata fetched for preview.",
       "unverifiedTokenNotePlural": "Tokens not in your wallet. New metadata fetched for preview.",
       "identityKeyReturns": "This uses your identity key, which returns to your wallet.",
-      "identityReturns": "This spends one of your identities. Its identity UTXO comes back to this wallet; the balance changes below say what else moves."
+      "identityStays": "This spends the identity UTXO of {name}. The identity stays with this wallet.",
+      "identityReserve": "Reserved supply on the identity: {before} before, {after} after.",
+      "identityMintingStays": "The minting NFT stays on the identity.",
+      "identityMintingLeaves": "The minting NFT is taken off the identity."
     },
     "sessionRequest": {
       "title": "Approve Session?",
@@ -1377,7 +1382,9 @@
       "enableAddressMarking": "Enable advanced address management: mark addresses as used",
       "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
       "followTokenIdentities": "Follow the identities of the tokens you hold",
-      "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Turning this off stops the lookups."
+      "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Turning this off stops the lookups.",
+      "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",
+      "allowDappIdentitySpendsHint": "Off: a WalletConnect or WizardConnect request that spends the UTXO of one of this wallet's identities is refused, the way a pledged UTXO is. On: the request reaches the approval dialog, which names the identity and says what its UTXO carries before and after. A request that would move an identity out of this wallet is refused either way. Identity keys are not affected: a request using one is signed when the key comes back, which is how CashTokens Studio works."
     },
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",
@@ -1588,7 +1595,7 @@
       "burned": "Burned"
     },
     "statusHelp": {
-      "held": "This wallet holds this identity's UTXO, so it can update the metadata. The UTXO is kept out of coin selection, so no ordinary send from this app can spend it. Other software on the same seed still can.",
+      "held": "This wallet holds this identity's UTXO, so it can update the metadata. The UTXO is kept out of coin selection, so no ordinary send from this app can spend it, and a connected app cannot spend it either unless allowed under user options. Other software on the same seed still can.",
       "notHeld": "This identity is not held by this wallet, so it only watches it: its publication is shown, but updating it takes whoever holds it.",
       "unresolved": "Where this identity is held could not be looked up, so it is unknown right now. Anything held for it stays held until an answer comes back.",
       "heldViaKey": "This identity's UTXO is locked in a covenant, and this wallet holds the key that opens it. That is authority over the identity without the UTXO, so the key is what is kept out of coin selection.",

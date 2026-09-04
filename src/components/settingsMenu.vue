@@ -48,6 +48,7 @@
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedShowCauldronFTValue = ref(settingsStore.showCauldronFTValue);
   const selectedFollowTokenIdentities = ref(settingsStore.followTokenIdentities);
+  const selectedAllowDappIdentitySpends = ref(settingsStore.allowDappIdentitySpends);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
@@ -359,6 +360,10 @@
     localStorage.setItem("followTokenIdentities", selectedFollowTokenIdentities.value ? "true" : "false");
     settingsStore.followTokenIdentities = selectedFollowTokenIdentities.value;
   }
+  function toggleAllowDappIdentitySpends(){
+    localStorage.setItem("allowDappIdentitySpends", selectedAllowDappIdentitySpends.value ? "true" : "false");
+    settingsStore.allowDappIdentitySpends = selectedAllowDappIdentitySpends.value;
+  }
 
   function toggleShowCauldronFTValue(){
     localStorage.setItem("showCauldronFTValue", selectedShowCauldronFTValue.value? "true" : "false");
@@ -543,6 +548,14 @@
           <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
         </InfoPopup>
         <q-toggle v-model="selectedFollowTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
+      </div>
+
+      <div style="margin-top:15px">
+        {{ t('settings.userOptions.allowDappIdentitySpends') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.allowDappIdentitySpendsHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedAllowDappIdentitySpends" @update:model-value="toggleAllowDappIdentitySpends" dense />
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">

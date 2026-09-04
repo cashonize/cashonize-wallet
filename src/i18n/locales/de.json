@@ -93,7 +93,9 @@
       "genesisInputUnavailable": "Die zur Erstellung gewählte Münze ist nicht mehr verfügbar. Wähle eine andere.",
       "identityLeavesWallet": "Diese Anfrage würde die Kontrolle über eine deiner Identitäten an ein anderes Wallet übergeben und wurde daher abgelehnt. Eine Identität wird über die Identitäten-Seite übertragen.",
       "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben, was sie zu einer verschmilzt. Identitäten zu verschmelzen unterstützt dieses Wallet noch nicht, deshalb wurde sie abgelehnt.",
-      "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum."
+      "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum.",
+      "identityHeld": "Diese Anfrage würde den Identitäts-UTXO von {name} ausgeben, was verbundene Apps nicht dürfen, und wurde daher abgelehnt. Um Identitäten über eine verbundene App zu verwalten, schalte \"Verbundene Apps dürfen Identitäts-UTXOs ausgeben\" in den Benutzeroptionen ein.",
+      "dappRefusedTitle": "Anfrage abgelehnt"
     }
   },
   "onboarding": {
@@ -1229,7 +1231,10 @@
       "unverifiedTokenNoteSingular": "Token nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen.",
       "unverifiedTokenNotePlural": "Tokens nicht in deinem Wallet. Neue Metadaten zur Vorschau abgerufen.",
       "identityKeyReturns": "Dies verwendet deinen Identitätsschlüssel, der in dein Wallet zurückkehrt.",
-      "identityReturns": "Dies gibt eine deiner Identitäten aus. Ihr Identitäts-UTXO kommt in dieses Wallet zurück; die Saldoänderungen unten sagen, was sonst noch bewegt wird."
+      "identityStays": "Dies gibt den Identitäts-UTXO von {name} aus. Die Identität bleibt in diesem Wallet.",
+      "identityReserve": "Reservierter Vorrat auf der Identität: {before} vorher, {after} nachher.",
+      "identityMintingStays": "Das Minting-NFT bleibt auf der Identität.",
+      "identityMintingLeaves": "Das Minting-NFT wird von der Identität genommen."
     },
     "sessionRequest": {
       "title": "Sitzung genehmigen?",
@@ -1377,7 +1382,9 @@
       "enableAddressMarking": "Erweiterte Adressverwaltung aktivieren: Adressen als verwendet markieren",
       "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets.",
       "followTokenIdentities": "Die Identitäten der gehaltenen Tokens verfolgen",
-      "followTokenIdentitiesHint": "Die Liste der gehaltenen Tokens geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Ausschalten beendet die Abfragen."
+      "followTokenIdentitiesHint": "Die Liste der gehaltenen Tokens geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Ausschalten beendet die Abfragen.",
+      "allowDappIdentitySpends": "Verbundene Apps dürfen Identitäts-UTXOs ausgeben",
+      "allowDappIdentitySpendsHint": "Aus: Eine WalletConnect- oder WizardConnect-Anfrage, die den UTXO einer Identität dieses Wallets ausgibt, wird abgelehnt, so wie ein zugesagter UTXO. An: Die Anfrage erreicht den Bestätigungsdialog, der die Identität nennt und sagt, was ihr UTXO vorher und nachher trägt. Eine Anfrage, die eine Identität aus diesem Wallet bewegen würde, wird in beiden Fällen abgelehnt. Identitätsschlüssel sind nicht betroffen: Eine Anfrage, die einen verwendet, wird signiert, wenn der Schlüssel zurückkommt, so arbeitet CashTokens Studio."
     },
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",
@@ -1588,7 +1595,7 @@
       "burned": "Verbrannt"
     },
     "statusHelp": {
-      "held": "Dieses Wallet hält den UTXO dieser Identität und kann die Metadaten also aktualisieren. Der UTXO ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand aus dieser App kann ihn ausgeben. Andere Software mit demselben Seed kann es weiterhin.",
+      "held": "Dieses Wallet hält den UTXO dieser Identität und kann die Metadaten also aktualisieren. Der UTXO ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand aus dieser App kann ihn ausgeben, und eine verbundene App auch nicht, sofern es nicht in den Benutzeroptionen erlaubt ist. Andere Software mit demselben Seed kann es weiterhin.",
       "notHeld": "Diese Identität wird nicht von diesem Wallet gehalten, das sie deshalb nur beobachtet: ihre Veröffentlichung wird gezeigt, aktualisieren kann sie nur, wer sie hält.",
       "unresolved": "Wo diese Identität liegt, konnte nicht abgefragt werden, es ist gerade unbekannt. Was für sie zurückgehalten wird, bleibt es, bis eine Antwort kommt.",
       "heldViaKey": "Der UTXO dieser Identität liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne den UTXO, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird.",

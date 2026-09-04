@@ -48,7 +48,7 @@ import {
   type SignedInput,
   type SignedOutput,
 } from "src/utils/dapp/reservedInputs"
-import { convertElectrumTokenData } from "src/utils/utils"
+import { convertElectrumTokenData, truncateHash } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useIdentitiesStore } from "./identitiesStore"
@@ -1483,8 +1483,20 @@ export const useStore = defineStore('store', () => {
       walletUtxos: walletUtxos.value ?? [],
       identityKeys,
       authheads: [...heldAuthheads, ...unnamed],
+      allowIdentitySpends: settingsStore.allowDappIdentitySpends,
       ownsOutput: output => ownsLockingBytecode(output.lockingBytecode),
     });
+  }
+
+  // What a dapp refusal or approval calls an identity coin: the identity's name, its category
+  // failing that, and the unnamed label for an authhead the wallet holds without either
+  function identityNameAt(outpoint: Outpoint): string {
+    const identitiesStore = useIdentitiesStore();
+    const identity = (identitiesStore.identities ?? []).find(
+      listed => listed.authUtxo && outpointOf(listed.authUtxo) === outpoint
+    );
+    if (!identity) return t('identities.unnamedIdentity');
+    return bcmrRegistries.value?.[identity.category]?.name ?? truncateHash(identity.category);
   }
 
   // A spend that falls short while UTXOs are held back may have fallen short for that reason, and
@@ -1637,6 +1649,7 @@ export const useStore = defineStore('store', () => {
     walletHasAddress,
     ownsAddress,
     checkDappReservedInputs,
+    identityNameAt,
     balance, // everything held, including reserved coins
     spendableBalance, // balance minus reservedBalance
     reservedBalance,

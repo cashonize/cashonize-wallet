@@ -93,7 +93,9 @@
       "genesisInputUnavailable": "La moneda elegida para crear este token ya no está disponible. Elige otra.",
       "identityLeavesWallet": "Esta solicitud entregaría el control de una de tus identidades a otra billetera, así que fue rechazada. La transferencia de una identidad se hace desde la página de identidades.",
       "identityMerge": "Esta solicitud gastaría dos de tus identidades en una sola transacción, lo que las fusiona en una. Esta billetera todavía no admite fusionar identidades, así que se rechazó.",
-      "reservedInputs": "Esta solicitud gastaría un UTXO que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué UTXOs están retenidos y por qué."
+      "reservedInputs": "Esta solicitud gastaría un UTXO que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué UTXOs están retenidos y por qué.",
+      "identityHeld": "Esta solicitud gastaría el UTXO de identidad de {name}, algo que las apps conectadas no tienen permitido, así que se rechazó. Para gestionar identidades mediante una app conectada, activa \"Permitir que las apps conectadas gasten UTXOs de identidad\" en las opciones de usuario.",
+      "dappRefusedTitle": "Solicitud rechazada"
     }
   },
   "onboarding": {
@@ -1229,7 +1231,10 @@
       "unverifiedTokenNoteSingular": "El token no está en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
       "unverifiedTokenNotePlural": "Los tokens no están en tu billetera. Se obtuvieron nuevos metadatos para vista previa.",
       "identityKeyReturns": "Esto usa tu clave de identidad, que vuelve a tu billetera.",
-      "identityReturns": "Esto gasta una de tus identidades. Su UTXO de identidad vuelve a esta billetera; los cambios de saldo de abajo dicen qué más se mueve."
+      "identityStays": "Esto gasta el UTXO de identidad de {name}. La identidad se queda en esta billetera.",
+      "identityReserve": "Suministro reservado en la identidad: {before} antes, {after} después.",
+      "identityMintingStays": "El NFT de acuñación se queda en la identidad.",
+      "identityMintingLeaves": "El NFT de acuñación se retira de la identidad."
     },
     "sessionRequest": {
       "title": "¿Aprobar sesión?",
@@ -1377,7 +1382,9 @@
       "enableAddressMarking": "Habilitar gestión avanzada de direcciones: marcar direcciones como usadas",
       "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD.",
       "followTokenIdentities": "Seguir las identidades de los tokens que tienes",
-      "followTokenIdentitiesHint": "La lista de tokens que tienes se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivarlo detiene las consultas."
+      "followTokenIdentitiesHint": "La lista de tokens que tienes se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivarlo detiene las consultas.",
+      "allowDappIdentitySpends": "Permitir que las apps conectadas gasten UTXOs de identidad",
+      "allowDappIdentitySpendsHint": "Apagado: una solicitud de WalletConnect o WizardConnect que gaste el UTXO de una identidad de esta billetera se rechaza, como un UTXO comprometido. Encendido: la solicitud llega al diálogo de aprobación, que nombra la identidad y dice qué lleva su UTXO antes y después. Una solicitud que sacara una identidad de esta billetera se rechaza en ambos casos. Las claves de identidad no se ven afectadas: una solicitud que usa una se firma cuando la clave vuelve, que es como funciona CashTokens Studio."
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
@@ -1588,7 +1595,7 @@
       "burned": "Quemada"
     },
     "statusHelp": {
-      "held": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal desde esta app puede gastarlo. Otro software con la misma semilla todavía puede.",
+      "held": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal desde esta app puede gastarlo, y una app conectada tampoco, salvo que se permita en las opciones de usuario. Otro software con la misma semilla todavía puede.",
       "notHeld": "Esta billetera no tiene esta identidad, así que solo la observa: se muestra su publicación, pero actualizarla depende de quien la tenga.",
       "unresolved": "No se pudo consultar dónde está esta identidad, así que ahora mismo se desconoce. Lo que se retiene por ella sigue retenido hasta que llegue una respuesta.",
       "heldViaKey": "El UTXO de esta identidad está bloqueado en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin el UTXO, así que lo que queda fuera de la selección de monedas es la clave.",

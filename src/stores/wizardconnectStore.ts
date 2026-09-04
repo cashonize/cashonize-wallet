@@ -35,7 +35,8 @@ import { walletConnectMetadata } from "./constants";
 import { createSignedWizTransaction, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
 import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
 import { displayAndLogError } from "src/utils/errorHandling";
-import { refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
+import { identityRefusal, refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
+import { reportDappRefusal } from "src/utils/txHelpers";
 import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRequest.vue";
 import WizPairingDialog from "src/components/wizardconnect/WizPairingDialog.vue";
 import alertDialog from "src/components/general/alertDialog.vue";
@@ -220,7 +221,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     // signWizTransaction for a coin reserved while a dialog is already open
     const arrivalCheck = reservedInputsCheck(validatedRequest);
     if (arrivalCheck.refusals.length) {
-      displayAndLogError(refusalMessage(arrivalCheck));
+      reportDappRefusal(arrivalCheck);
       respondWithError('Transaction signing request aborted with error: input reserved by the wallet');
       return;
     }
@@ -331,7 +332,10 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     // Checked again here rather than only on arrival: the sign dialog holds the request open for
     // as long as the user takes, and a coin can be reserved while it is up.
     const signingCheck = reservedInputsCheck(request);
-    if (signingCheck.refusals.length) throw new Error(refusalMessage(signingCheck));
+    if (signingCheck.refusals.length) {
+      const refusal = identityRefusal(signingCheck);
+      throw new Error(refusalMessage(signingCheck, refusal ? mainStore.identityNameAt(refusal.outpoint) : undefined));
+    }
     const inputKeys = deriveInputKeys(hdNodes, request.inputPaths);
     // the zod schema already validated and transformed this shape (see WizSignTransactionRequestSchema)
     const wizTransactionObj = request.transaction as WcSignTransactionRequest;

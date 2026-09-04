@@ -25,7 +25,8 @@ import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
-import { refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
+import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
+import { reportDappRefusal } from "src/utils/txHelpers"
 import { WcMessageObjSchema, LooseEncodedWcTransactionObjSchema, StrictEncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 import { i18n } from 'src/boot/i18n'
@@ -409,7 +410,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         // A refused dapp action can be retried; a coin spent out from under a pledge cannot.
         const arrivalCheck = reservedInputsCheck(wcTransactionObj);
         if (arrivalCheck.refusals.length) {
-          displayAndLogError(refusalMessage(arrivalCheck));
+          reportDappRefusal(arrivalCheck);
           void rejectRequest(event);
           return;
         }
@@ -531,7 +532,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     // for as long as the user takes, and a coin can be reserved while it is up.
     const signingCheck = reservedInputsCheck(wcTransactionObj);
     if (signingCheck.refusals.length) {
-      displayAndLogError(refusalMessage(signingCheck));
+      reportDappRefusal(signingCheck);
       const wcErrorMessage = 'Transaction signing request aborted with error: input reserved by the wallet';
       const response = { id, jsonrpc: '2.0', error: { message: wcErrorMessage, code: 7 } };
       await web3wallet.value?.respondSessionRequest({ topic, response });

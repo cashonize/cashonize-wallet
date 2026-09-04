@@ -181,8 +181,14 @@
   };
 
   // A request spending a held back coin only reaches this dialog when the authority it takes comes
-  // back to this wallet (utils/dapp/reservedInputs.ts), which the dialog says rather than assumes.
+  // back to this wallet (utils/dapp/reservedInputs.ts). The dapp built the transaction, so this
+  // is the one place the user learns what the identity output carried and carries after.
   const identityInputs = store.checkDappReservedInputs(txDetails.inputs, txDetails.outputs).returning;
+  function reserveDisplay(category: string | undefined, reserve: bigint) {
+    const metadata = category ? getTokenMetadata(category) : undefined;
+    const amount = formatNumber(Number(reserve) / (10 ** (metadata?.token?.decimals ?? 0)), metadata?.token?.decimals ?? 0);
+    return `${amount} ${metadata?.token?.symbol ?? ''}`.trim();
+  }
 
   const formatTokenDisplay = (tokenSpent: NonNullable<Output['token']>, displayFullName= true): string => {
     const categoryHex = binToHex(tokenSpent.category);
@@ -228,12 +234,27 @@
           </div>
         </div>
 
-        <div v-if="identityInputs.length" class="identity-context">
+        <div v-if="identityInputs.length" class="warning-box identity-context">
           <div v-for="identity in identityInputs" :key="identity.outpoint">
-            <q-icon name="lock" size="16px" />
-            {{ identity.kind === 'key'
-              ? t('walletConnect.transactionRequest.identityKeyReturns')
-              : t('walletConnect.transactionRequest.identityReturns') }}
+            <div>
+              <q-icon name="lock" size="16px" />
+              {{ identity.kind === 'key'
+                ? t('walletConnect.transactionRequest.identityKeyReturns')
+                : t('walletConnect.transactionRequest.identityStays', { name: store.identityNameAt(identity.outpoint) }) }}
+            </div>
+            <template v-if="identity.kind === 'authhead'">
+              <div v-if="identity.before.reserve || identity.after.reserve">
+                {{ t('walletConnect.transactionRequest.identityReserve', {
+                  before: reserveDisplay(identity.category, identity.before.reserve),
+                  after: reserveDisplay(identity.category, identity.after.reserve),
+                }) }}
+              </div>
+              <div v-if="identity.before.mintingNft">
+                {{ t(identity.after.mintingNft
+                  ? 'walletConnect.transactionRequest.identityMintingStays'
+                  : 'walletConnect.transactionRequest.identityMintingLeaves') }}
+              </div>
+            </template>
           </div>
         </div>
 
@@ -403,9 +424,11 @@
     font-size: smaller;
     margin: 0 5px;
   }
+  /* one block per identity, its lines stacked rather than in the box's usual row */
   .identity-context {
     margin-top: 1.5rem;
-    color: grey;
+    flex-direction: column;
+    align-items: flex-start;
   }
   .wc-modal-heading {
     font-weight: 700;

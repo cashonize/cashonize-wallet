@@ -93,7 +93,9 @@
       "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
       "identityLeavesWallet": "Cette requête confierait le contrôle d'une de vos identités à un autre portefeuille, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
       "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, ce qui les fusionne en une. Ce portefeuille ne prend pas encore en charge la fusion d'identités, elle a donc été refusée.",
-      "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi."
+      "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi.",
+      "identityHeld": "Cette requête dépenserait l'UTXO d'identité de {name}, ce que les applications connectées ne sont pas autorisées à faire ; elle a donc été refusée. Pour gérer des identités via une application connectée, activez « Laisser les applications connectées dépenser les UTXO d'identité » dans les options utilisateur.",
+      "dappRefusedTitle": "Requête refusée"
     }
   },
   "onboarding": {
@@ -1229,7 +1231,10 @@
       "unverifiedTokenNoteSingular": "Le token ne figure pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "identityKeyReturns": "Ceci utilise votre clé d'identité, qui revient dans votre portefeuille.",
-      "identityReturns": "Ceci dépense une de vos identités. Son UTXO d'identité revient dans ce portefeuille ; les variations de solde ci-dessous disent ce qui bouge d'autre."
+      "identityStays": "Ceci dépense l'UTXO d'identité de {name}. L'identité reste dans ce portefeuille.",
+      "identityReserve": "Réserve sur l'identité : {before} avant, {after} après.",
+      "identityMintingStays": "Le NFT de frappe reste sur l'identité.",
+      "identityMintingLeaves": "Le NFT de frappe est retiré de l'identité."
     },
     "sessionRequest": {
       "title": "Approuver la session ?",
@@ -1377,7 +1382,9 @@
       "enableAddressMarking": "Activer la gestion avancée des adresses : marquer les adresses comme utilisées",
       "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD.",
       "followTokenIdentities": "Suivre les identités des tokens que vous détenez",
-      "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactiver arrête les recherches."
+      "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactiver arrête les recherches.",
+      "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
+      "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les clés d'identité ne sont pas concernées : une requête qui en utilise une est signée quand la clé revient, ce qui est le fonctionnement de CashTokens Studio."
     },
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",
@@ -1588,7 +1595,7 @@
       "burned": "Brûlée"
     },
     "statusHelp": {
-      "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire depuis cette application ne peut le dépenser. Un autre logiciel sur la même graine le peut toujours.",
+      "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire depuis cette application ne peut le dépenser, ni une application connectée sauf autorisation dans les options utilisateur. Un autre logiciel sur la même graine le peut toujours.",
       "notHeld": "Cette identité n'est pas détenue par ce portefeuille, qui ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour revient à qui la détient.",
       "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
       "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces.",
