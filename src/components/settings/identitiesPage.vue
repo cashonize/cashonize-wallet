@@ -34,6 +34,7 @@
     type RegistrySummary,
   } from 'src/utils/tools/authchainIdentity'
   import { TokenSendRequest } from 'mainnet-js'
+  import { Notify } from 'quasar'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
 
   const store = useStore()
@@ -41,6 +42,10 @@
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
+
+  // where a registry is written: the form for a token's, the schema for one written by hand
+  const bcmrGeneratorUrl = 'https://bcmr-generator.app/';
+  const bcmrSchemaUrl = 'https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json';
 
   // Two things happen on this page: looking after the identities that are here, and getting one
   // onto it. Only the first is why anyone opens it, so the acquisition paths wait behind a pill.
@@ -333,7 +338,10 @@
       await identitiesStore.listCreatedIdentity(picked.txid, picked.txid);
       pickedOutpoint.value = undefined;
       editingPick.value = true;
-      return { txId: undefined, message: t('identities.create.done'), title: t('identities.create.doneTitle') };
+      // The add ends where the naming begins: on the new card with its publish form open, since
+      // the steps that give the identity a name are acted on there, not on a step that closes
+      Notify.create({ type: 'positive', message: t('identities.create.doneTitle') });
+      openCard(picked.txid, 'publish');
     });
   }
 
@@ -373,6 +381,16 @@
     const published = await fetchPublishedRegistry(identity.publication.uris, settingsStore.ipfsGateway);
     if (!published || !isOpen(identity, 'publish')) return;
     currentRegistry.value = summarizeRegistry(published, identity.category);
+  }
+
+  // Lands on one card with one of its forms open, for a hand-over to what comes next; a card that
+  // did not resolve has no form to open and is shown as it is
+  function openCard(category: string, action: IdentityAction) {
+    mode.value = 'identities';
+    expandedIdentity.value = category;
+    openHistory.value = undefined;
+    const identity = identities.value.find(listed => listed.category === category);
+    if (identity?.authUtxo) void toggleAction(identity, action);
   }
 
   const tokenDecimals = (category: string) => store.bcmrRegistries?.[category]?.token?.decimals ?? 0;
@@ -655,7 +673,10 @@
         <!-- the lead and the sentence share a line: a line break between elements is dropped, a space is kept -->
         <b>{{ t('identities.learn.metadataLead') }}</b> <i18n-t keypath="identities.learn.metadata" tag="span">
           <template #generator>
-            <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+            <a :href="bcmrGeneratorUrl" target="_blank">BCMR generator</a>
+          </template>
+          <template #schema>
+            <a :href="bcmrSchemaUrl" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
           </template>
         </i18n-t>
       </div>
@@ -773,16 +794,33 @@
     </div>
     <div v-if="!pickStepOpen" class="section">
       <div class="step-label open">{{ addStepLabel(2, 'add') }}</div>
-      <!-- the caution sits on the button it is about -->
-      <div style="margin-top: 6px; font-style: italic;">{{ t('identities.create.advanced') }}</div>
+      <!-- what the add does and hands over to: the registry is the one thing the button cannot
+           make, so the step asks about it first and defines it as help under the button -->
+      <div style="margin-top: 6px;"><b>{{ t('identities.create.lead') }}</b> {{ t('identities.create.outcome') }}</div>
       <input
         @click="addIdentityFromUtxo()"
         type="button"
         class="primaryButton"
         :value="runningAction === 'addUtxo' ? t('identities.create.creatingButton') : t('identities.create.button')"
         :disabled="runningAction !== undefined || identitiesStore.identitiesResolving"
-        style="margin-top: 8px;"
+        style="margin-top: 12px;"
       >
+      <div class="description" style="margin-top: 6px;">
+        <b>{{ t('identities.create.registryLead') }}</b> <i18n-t keypath="identities.create.registry" tag="span">
+          <template #schema>
+            <a :href="bcmrSchemaUrl" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+          </template>
+        </i18n-t>
+        <InfoPopup>
+          <div style="max-width: 300px;">
+            <i18n-t keypath="identities.create.registryNote" tag="span">
+              <template #generator>
+                <a :href="bcmrGeneratorUrl" target="_blank">BCMR generator</a>
+              </template>
+            </i18n-t>
+          </div>
+        </InfoPopup>
+      </div>
     </div>
     </template>
 
@@ -1063,21 +1101,30 @@
           <ol class="walkthrough">
             <li>
               <q-icon name="edit" size="18px" />
-              <i18n-t keypath="identities.publish.steps.author" tag="span">
-                <template #generator>
-                  <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+              <!-- the generator writes a token section, which an identity that is not a token
+                   must not have, so that one is sent to the schema instead -->
+              <i18n-t v-if="identity.isToken === false" keypath="identities.publish.steps.authorByHand" tag="span">
+                <template #schema>
+                  <a :href="bcmrSchemaUrl" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
                 </template>
               </i18n-t>
-              <!-- the line names a tool and cannot say what it is -->
-              <InfoPopup>
-                <div style="max-width: 300px;">
-                  <i18n-t keypath="identities.publish.generatorHelp" tag="span">
-                    <template #schema>
-                      <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
-                    </template>
-                  </i18n-t>
-                </div>
-              </InfoPopup>
+              <template v-else>
+                <i18n-t keypath="identities.publish.steps.author" tag="span">
+                  <template #generator>
+                    <a :href="bcmrGeneratorUrl" target="_blank">BCMR generator</a>
+                  </template>
+                </i18n-t>
+                <!-- the line names a tool and cannot say what it is -->
+                <InfoPopup>
+                  <div style="max-width: 300px;">
+                    <i18n-t keypath="identities.publish.generatorHelp" tag="span">
+                      <template #schema>
+                        <a :href="bcmrSchemaUrl" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+                      </template>
+                    </i18n-t>
+                  </div>
+                </InfoPopup>
+              </template>
             </li>
             <li>
               <q-icon name="archive" size="18px" />

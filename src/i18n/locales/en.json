@@ -1548,7 +1548,7 @@
       "tokensLead": "Every token is an identity.",
       "tokens": "Its token id is the identity's id, which is how an issuer can update a token's name and icon after the tokens are out. Identities that are not tokens exist too: a person, an organization or a contract can publish information the same way.",
       "metadataLead": "The metadata is a hosted file.",
-      "metadata": "A registry in the BCMR format is hosted off-chain, and a publication output on the chain commits to its hash, so anyone can fetch the file and check it against the chain. Registries are written with tools like the {generator}.",
+      "metadata": "A registry in the BCMR format is hosted off-chain, and a publication output on the chain commits to its hash, so anyone can fetch the file and check it against the chain. A token's registry is written with the {generator}; any registry can be written by hand against the {schema}.",
       "keysLead": "AuthKeys are a CashTokens Studio convention.",
       "keys": "{studio} keeps an identity's UTXO in a covenant, the AuthGuard, and turns the right to move it into an NFT, the AuthKey. This wallet recognises such keys, lists what they control and protects them like an identity UTXO.",
       "furtherLead": "Further reading.",
@@ -1727,7 +1727,8 @@
       "steps": {
         "author": "Write the registry JSON with the {generator}.",
         "host": "Host it on your own domain or on IPFS.",
-        "publish": "Enter where it is hosted below, and this wallet verifies it and publishes the pointer."
+        "publish": "Enter where it is hosted below, and this wallet verifies it and publishes the pointer.",
+        "authorByHand": "Write the registry JSON in a code editor against the {schema}: this identity is not a token, so its snapshot carries a name, a description and links, and no token section."
       },
       "generatorHelp": "The generator is a form that writes the metadata file for you; the spec calls it a registry. You can also write it yourself against the {schema}. Either way this wallet fetches the file, hashing it exactly as served, and checks that it names this token.",
       "generatorHelpSchema": "BCMR schema"
@@ -1763,24 +1764,27 @@
       "help": "The standard's identities are not only tokens: the same chain of UTXOs can stand for a dapp, a contract system or an organization, and prove who controls it.",
       "helpNaming": "One transaction makes it, and naming comes after, with a publication that names its id.",
       "hint": "A name, icon and links for a dapp, a contract system or an organization, published and updated from one UTXO with no token on it.",
-      "advanced": "Feature meant for advanced users only.",
       "pick": "Any UTXO at output 0 without a token can be an identity: its transaction id becomes the identity's permanent id. Its BCH stays held back with the identity for as long as it is held, so a small UTXO is best.",
       "prepareMessage": "This sends {amount} to yourself now, so the identity has a fresh UTXO at output 0. The amount stays yours; only the fee is spent.",
       "pickedId": "Identity id:",
       "steps": {
         "pick": "pick the UTXO that becomes the identity's id",
-        "add": "add it to the identities list"
+        "add": "add it to your identities"
       },
       "button": "Add identity",
       "creatingButton": "Adding...",
       "confirmTitle": "Add this UTXO as an identity?",
       "confirmMessage": "{outpoint} becomes the identity's UTXO, held back from coin selection with its {amount}. Its transaction id becomes the identity's permanent id.",
       "confirmButton": "Add",
-      "done": "The identity is listed and its UTXO is held back from coin selection. Publish a registry naming it to give it a name.",
       "doneTitle": "Identity added",
       "tokenPointer": "Nearly every identity currently belongs to a token. To create a token identity, {link}: the transaction that creates the token creates its identity at the same time.",
       "tokenPointerLink": "create the token",
-      "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it."
+      "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it.",
+      "lead": "Will you write and host its registry yourself?",
+      "outcome": "Adding lists the identity under the ones this wallet owns and keeps its UTXO out of ordinary sends. It has no name until a registry naming it is published, which its card walks you through.",
+      "registryLead": "Registry:",
+      "registry": "the JSON file that names the identity, written in a code editor against the {schema} and hosted on a domain you control or on IPFS.",
+      "registryNote": "The {generator} writes registries for tokens: it asks for a symbol and writes a token section, which an identity that is not a token must not have. Its snapshot carries a name, a description and links."
     },
     "transfer": {
       "hint": "The identity's UTXO is sent to the destination, handing over the authority to update this token's metadata. To move it to CashTokens Studio, create a key there and transfer to the guard address it shows for that key.",

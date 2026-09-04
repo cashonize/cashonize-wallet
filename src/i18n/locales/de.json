@@ -1548,7 +1548,7 @@
       "tokensLead": "Jeder Token ist eine Identität.",
       "tokens": "Seine Token-Id ist die Id der Identität, und so kann ein Herausgeber Namen und Symbol eines Tokens noch ändern, wenn die Tokens schon im Umlauf sind. Es gibt auch Identitäten, die keine Tokens sind: eine Person, eine Organisation oder ein Vertrag kann Informationen auf dieselbe Weise veröffentlichen.",
       "metadataLead": "Die Metadaten sind eine gehostete Datei.",
-      "metadata": "Eine Registry im BCMR-Format wird außerhalb der Chain gehostet, und ein Veröffentlichungsausgang auf der Kette legt ihren Hash fest, sodass jeder die Datei laden und gegen die Kette prüfen kann. Registries werden mit Werkzeugen wie dem {generator} geschrieben.",
+      "metadata": "Eine Registry im BCMR-Format wird außerhalb der Chain gehostet, und ein Veröffentlichungsausgang auf der Kette legt ihren Hash fest, sodass jeder die Datei laden und gegen die Kette prüfen kann. Die Registry eines Tokens wird mit dem {generator} geschrieben; jede Registry lässt sich von Hand nach dem {schema} schreiben.",
       "keysLead": "AuthKeys sind eine Konvention von CashTokens Studio.",
       "keys": "{studio} legt den UTXO einer Identität in einen Covenant, den AuthGuard, und macht das Recht, ihn zu bewegen, zu einem NFT, dem AuthKey. Dieses Wallet erkennt solche Schlüssel, listet, was sie kontrollieren, und schützt sie wie einen Identitäts-UTXO.",
       "furtherLead": "Weiterführend.",
@@ -1727,7 +1727,8 @@
       "steps": {
         "author": "Schreibe das Registry-JSON mit dem {generator}.",
         "host": "Hoste es auf deiner eigenen Domain oder auf IPFS.",
-        "publish": "Gib unten an, wo es liegt, und dieses Wallet prüft es und veröffentlicht den Zeiger."
+        "publish": "Gib unten an, wo es liegt, und dieses Wallet prüft es und veröffentlicht den Zeiger.",
+        "authorByHand": "Schreibe das Registry-JSON in einem Code-Editor nach dem {schema}: diese Identität ist kein Token, ihr Snapshot trägt also einen Namen, eine Beschreibung und Links, und keinen Token-Abschnitt."
       },
       "generatorHelp": "Der Generator ist ein Formular, das die Metadaten-Datei für dich schreibt; die Spezifikation nennt sie Registry. Du kannst sie auch selbst nach dem {schema} schreiben. So oder so holt dieses Wallet die Datei, hasht sie genau so, wie sie ausgeliefert wird, und prüft, dass sie diesen Token nennt.",
       "generatorHelpSchema": "BCMR-Schema"
@@ -1763,24 +1764,27 @@
       "help": "Die Identitäten des Standards sind nicht nur Tokens: dieselbe Kette von UTXOs kann für eine Dapp, ein Contract-System oder eine Organisation stehen und belegen, wer sie kontrolliert.",
       "helpNaming": "Eine Transaktion genügt, benannt wird danach, mit einer Veröffentlichung, die ihre Id nennt.",
       "hint": "Name, Icon und Links für eine Dapp, ein Contract-System oder eine Organisation, veröffentlicht und aktualisiert aus einem UTXO ohne Token darauf.",
-      "advanced": "Funktion nur für fortgeschrittene Nutzer gedacht.",
       "pick": "Jeder UTXO an Ausgang 0 ohne Token kann eine Identität sein: die Id seiner Transaktion wird zur dauerhaften Id der Identität. Sein BCH bleibt mit der Identität zurückgehalten, solange du sie hältst, also ist ein kleiner UTXO am besten.",
       "prepareMessage": "Das sendet jetzt {amount} an dich selbst, damit die Identität einen frischen UTXO an Ausgang 0 hat. Der Betrag bleibt deiner; nur die Gebühr wird ausgegeben.",
       "pickedId": "Id der Identität:",
       "steps": {
         "pick": "wähle den UTXO, der zur Id der Identität wird",
-        "add": "füge sie der Identitäten-Liste hinzu"
+        "add": "füge sie zu deinen Identitäten hinzu"
       },
       "button": "Identität hinzufügen",
       "creatingButton": "Wird hinzugefügt...",
       "confirmTitle": "Diesen UTXO als Identität hinzufügen?",
       "confirmMessage": "{outpoint} wird zum UTXO der Identität, mit seinen {amount} von der Münzauswahl ausgenommen. Die Id seiner Transaktion wird zur dauerhaften Id der Identität.",
       "confirmButton": "Hinzufügen",
-      "done": "Die Identität ist gelistet und ihr UTXO von der Münzauswahl ausgenommen. Veröffentliche eine Registry, die sie nennt, um ihr einen Namen zu geben.",
       "doneTitle": "Identität hinzugefügt",
       "tokenPointer": "Derzeit gehört fast jede Identität zu einem Token. Um eine Token-Identität zu erstellen, {link}: die Transaktion, die den Token erstellt, erstellt zugleich seine Identität.",
       "tokenPointerLink": "erstelle den Token",
-      "novelHelp": "Eine Dapp könnte sagen, welche Version ihrer Contracts aktuell ist und wo ihre Seite liegt; eine Organisation könnte für das einstehen, was sie veröffentlicht. Fast keine gibt es bisher und kaum etwas liest sie, also wisse, was du von einer willst, bevor du sie machst."
+      "novelHelp": "Eine Dapp könnte sagen, welche Version ihrer Contracts aktuell ist und wo ihre Seite liegt; eine Organisation könnte für das einstehen, was sie veröffentlicht. Fast keine gibt es bisher und kaum etwas liest sie, also wisse, was du von einer willst, bevor du sie machst.",
+      "lead": "Wirst du ihre Registry selbst schreiben und hosten?",
+      "outcome": "Das Hinzufügen listet die Identität unter denen, die dieses Wallet besitzt, und hält ihr UTXO aus gewöhnlichen Sendungen heraus. Einen Namen hat sie erst, wenn eine Registry veröffentlicht ist, die sie nennt; ihre Karte führt dich hindurch.",
+      "registryLead": "Registry:",
+      "registry": "die JSON-Datei, die die Identität nennt, in einem Code-Editor nach dem {schema} geschrieben und auf einer eigenen Domain oder auf IPFS gehostet.",
+      "registryNote": "Der {generator} schreibt Registries für Tokens: er fragt nach einem Symbol und schreibt einen Token-Abschnitt, den eine Identität, die kein Token ist, nicht haben darf. Ihr Snapshot trägt einen Namen, eine Beschreibung und Links."
     },
     "transfer": {
       "hint": "Der UTXO der Identität wird an das Ziel gesendet und übergibt damit die Befugnis, die Metadaten dieses Tokens zu aktualisieren. Um sie zu CashTokens Studio zu verschieben, erstelle dort einen Schlüssel und übertrage an die Guard-Adresse, die es für diesen Schlüssel anzeigt.",

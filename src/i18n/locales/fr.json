@@ -1548,7 +1548,7 @@
       "tokensLead": "Chaque token est une identité.",
       "tokens": "Son identifiant de token est l'identifiant de l'identité, et c'est ainsi qu'un émetteur peut mettre à jour le nom et l'icône d'un token une fois les tokens en circulation. Il existe aussi des identités qui ne sont pas des tokens : une personne, une organisation ou un contrat peut publier des informations de la même façon.",
       "metadataLead": "Les métadonnées sont un fichier hébergé.",
-      "metadata": "Un registre au format BCMR est hébergé hors chaîne, et une sortie de publication sur la chaîne fixe son hash, de sorte que chacun peut télécharger le fichier et le vérifier contre la chaîne. Les registres se rédigent avec des outils comme le {generator}.",
+      "metadata": "Un registre au format BCMR est hébergé hors chaîne, et une sortie de publication sur la chaîne fixe son hash, de sorte que chacun peut télécharger le fichier et le vérifier contre la chaîne. Le registre d'un token se rédige avec le {generator} ; tout registre peut s'écrire à la main selon le {schema}.",
       "keysLead": "Les AuthKeys sont une convention de CashTokens Studio.",
       "keys": "{studio} place l'UTXO d'une identité dans un covenant, l'AuthGuard, et fait du droit de le déplacer un NFT, l'AuthKey. Ce portefeuille reconnaît ces clés, liste ce qu'elles contrôlent et les protège comme un UTXO d'identité.",
       "furtherLead": "Pour aller plus loin.",
@@ -1727,7 +1727,8 @@
       "steps": {
         "author": "Rédigez le JSON du registre avec le {generator}.",
         "host": "Hébergez-le sur votre domaine ou sur IPFS.",
-        "publish": "Indiquez ci-dessous où il est hébergé, ce portefeuille le vérifie et publie le pointeur."
+        "publish": "Indiquez ci-dessous où il est hébergé, ce portefeuille le vérifie et publie le pointeur.",
+        "authorByHand": "Rédigez le JSON du registre dans un éditeur de code selon le {schema} : cette identité n'est pas un token, son instantané porte donc un nom, une description et des liens, et aucune section token."
       },
       "generatorHelp": "Le générateur est un formulaire qui rédige pour vous le fichier de métadonnées ; la spécification l'appelle un registre. Vous pouvez aussi l'écrire vous-même selon le {schema}. Dans les deux cas ce portefeuille récupère le fichier, le hache exactement tel qu'il est servi, et vérifie qu'il nomme ce token.",
       "generatorHelpSchema": "schéma BCMR"
@@ -1763,24 +1764,27 @@
       "help": "Les identités du standard ne sont pas seulement des tokens : la même chaîne d'UTXOs peut représenter une dapp, un système de contrats ou une organisation, et prouver qui la contrôle.",
       "helpNaming": "Une seule transaction suffit, et le nom vient ensuite, avec une publication qui nomme son identifiant.",
       "hint": "Un nom, une icône et des liens pour une dapp, un système de contrats ou une organisation, publiés et mis à jour depuis un UTXO sans token dessus.",
-      "advanced": "Fonction réservée aux utilisateurs avancés.",
       "pick": "Tout UTXO à la sortie 0 sans token peut être une identité : l'identifiant de sa transaction devient l'identifiant permanent de l'identité. Ses BCH restent écartés avec l'identité tant que vous la détenez, un petit UTXO est donc préférable.",
       "prepareMessage": "Ceci vous envoie {amount} maintenant, pour que l'identité ait un UTXO neuf à la sortie 0. Le montant reste le vôtre ; seuls les frais sont dépensés.",
       "pickedId": "Identifiant de l'identité :",
       "steps": {
         "pick": "choisissez l'UTXO qui devient l'identifiant de l'identité",
-        "add": "ajoutez-la à la liste des identités"
+        "add": "ajoutez-la à vos identités"
       },
       "button": "Ajouter l'identité",
       "creatingButton": "Ajout...",
       "confirmTitle": "Ajouter cet UTXO comme identité ?",
       "confirmMessage": "{outpoint} devient l'UTXO de l'identité, écarté de la sélection des pièces avec ses {amount}. L'identifiant de sa transaction devient l'identifiant permanent de l'identité.",
       "confirmButton": "Ajouter",
-      "done": "L'identité figure dans la liste et son UTXO est écarté de la sélection des pièces. Publiez un registre qui la nomme pour lui donner un nom.",
       "doneTitle": "Identité ajoutée",
       "tokenPointer": "Actuellement, presque toutes les identités appartiennent à un token. Pour créer l'identité d'un token, {link} : la transaction qui crée le token crée en même temps son identité.",
       "tokenPointerLink": "créez le token",
-      "novelHelp": "Une dapp pourrait dire quelle version de ses contrats est en vigueur et où se trouve son site ; une organisation pourrait répondre de ce qu'elle publie. Il n'en existe presque aucune encore et presque rien ne les lit, alors sachez ce que vous en attendez avant d'en créer une."
+      "novelHelp": "Une dapp pourrait dire quelle version de ses contrats est en vigueur et où se trouve son site ; une organisation pourrait répondre de ce qu'elle publie. Il n'en existe presque aucune encore et presque rien ne les lit, alors sachez ce que vous en attendez avant d'en créer une.",
+      "lead": "Rédigerez-vous et hébergerez-vous son registre vous-même ?",
+      "outcome": "L'ajout liste l'identité parmi celles que ce portefeuille possède et écarte son UTXO des envois ordinaires. Elle n'a pas de nom tant qu'un registre qui la nomme n'est pas publié ; sa carte vous y guide.",
+      "registryLead": "Registre :",
+      "registry": "le fichier JSON qui nomme l'identité, rédigé dans un éditeur de code selon le {schema} et hébergé sur un domaine que vous contrôlez ou sur IPFS.",
+      "registryNote": "Le {generator} rédige des registres pour les tokens : il demande un symbole et écrit une section token, qu'une identité qui n'est pas un token ne doit pas avoir. Son instantané porte un nom, une description et des liens."
     },
     "transfer": {
       "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",
