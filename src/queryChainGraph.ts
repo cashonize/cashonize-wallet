@@ -199,6 +199,7 @@ const authHeadsQuery = graphql(`query AuthHeads(
           limit: 1
         ) {
           transaction {
+            block_inclusions { block { timestamp } }
             outputs(where: { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } }, order_by: { output_index: asc }) {
               locking_bytecode
             }
@@ -225,6 +226,7 @@ export interface AuthHeadResult {
   txid: string;
   identityOutput?: IdentityOutput;
   publicationOutputs: string[]; // the BCMR-prefixed outputs of the last link carrying one, in output order
+  publicationTimestamp?: number; // when that link was mined; absent while it waits in the mempool
   chainLength: number; // every link of the chain, the authbase counted
   recentLinks: string[]; // the chain's latest links, oldest first, up to RECENT_LINKS_LIMIT
   isToken: boolean; // whether the genesis made tokens of this category at all
@@ -270,6 +272,8 @@ function readAuthHead(
   // module's call.
   const publicationOutputs = (authchain.lastPublication[0]?.transaction ?? [])
     .flatMap(transaction => transaction.outputs.map(output => byteaToHex(output.locking_bytecode)));
+  const publicationBlock = authchain.lastPublication[0]?.transaction?.[0]?.block_inclusions[0]?.block.timestamp;
+  const publicationTimestamp = publicationBlock ? Number(publicationBlock) : undefined;
   const recentLinks = authchain.recent
     .flatMap(migration => (migration.transaction ?? []).map(transaction => byteaToHex(transaction.hash)))
     .reverse();
@@ -307,6 +311,7 @@ function readAuthHead(
     txid: byteaToHex(authhead.hash),
     ...(identityOutput ? { identityOutput } : {}),
     publicationOutputs,
+    ...(publicationTimestamp !== undefined ? { publicationTimestamp } : {}),
     chainLength: authchain.authchain_length ?? 0,
     recentLinks,
     isToken,

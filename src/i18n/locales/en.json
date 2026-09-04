@@ -1673,7 +1673,8 @@
         "changed": "The file served here is not the one published on chain. Review it and publish it again, so holders see what you are serving.",
         "changedNote": "If you did not edit the file, check your hosting: something else is answering for it.",
         "unreachable": "This location did not answer. Holders fetching the metadata from it see nothing, so check whether the hosting or the IPFS pin has lapsed."
-      }
+      },
+      "unconfirmed": "unconfirmed"
     },
     "history": {
       "title": "This identity's history",

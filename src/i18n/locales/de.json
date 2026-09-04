@@ -1673,7 +1673,8 @@
         "changed": "Die hier ausgelieferte Datei ist nicht die on chain veröffentlichte. Sieh sie durch und veröffentliche sie erneut, damit Holder sehen, was du ausbleiferst.",
         "changedNote": "Wenn du die Datei nicht geändert hast, prüfe dein Hosting: etwas anderes antwortet für sie.",
         "unreachable": "Dieser Ort hat nicht geantwortet. Holder, die die Metadaten dort holen, sehen nichts, prüfe also, ob Hosting oder IPFS-Pin abgelaufen ist."
-      }
+      },
+      "unconfirmed": "unbestätigt"
     },
     "history": {
       "title": "Historie dieser Identität",

@@ -29,6 +29,9 @@ const utxo = (txid: string, vout: number, token?: Utxo["token"]): Utxo =>
 
 const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
 
+// when the stub says the last publication was mined
+const publicationTime = 1700000000;
+
 // the identity output as the stub reports it: at a P2PKH address, or burned in an OP_RETURN
 const p2pkhOutput = `76a914${"ab".repeat(20)}88ac`;
 const burnOutput = "6a04deadbeef";
@@ -49,7 +52,10 @@ function stubAuthheadQueries(
     const links = chains[category] ?? [];
     const lastPublished = [...links].reverse().find(link => link.publication);
     const lastPublication = lastPublished
-      ? [{ transaction: [{ outputs: [{ locking_bytecode: `\\x${lastPublished.publication}` }] }] }]
+      ? [{ transaction: [{
+          block_inclusions: [{ block: { timestamp: String(publicationTime) } }],
+          outputs: [{ locking_bytecode: `\\x${lastPublished.publication}` }],
+        }] }]
       : [];
     const recent = [...links].reverse().map(link => ({ transaction: [{ hash: `\\x${link.hash}` }] }));
     // the chain's second link is the genesis, the one transaction that can make the category, so
@@ -126,6 +132,17 @@ describe('the publication a resolve reports', () => {
     const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
 
     expect(resolved?.publication?.uris).toEqual(['new.example']);
+  });
+
+  // the chain's date for the publication, which is the one the card shows
+  it('carries the date the last publication was mined', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, {
+      [categoryA]: [{ hash: authheadA, publication: publicationOutput(registryHash, ['example.com']) }],
+    });
+
+    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+
+    expect(resolved?.publication?.timestamp).toBe(publicationTime);
   });
 
   it('reports none when no link ever carried one', async () => {

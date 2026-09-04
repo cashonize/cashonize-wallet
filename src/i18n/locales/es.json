@@ -1673,7 +1673,8 @@
         "changed": "El archivo que se sirve aquí no es el publicado en la cadena. Revísalo y publícalo de nuevo, para que los holders vean lo que sirves.",
         "changedNote": "Si tú no editaste el archivo, revisa tu alojamiento: hay algo más respondiendo por él.",
         "unreachable": "Esta ubicación no respondió. Los holders que busquen los metadatos aquí no ven nada, así que comprueba si caducó el alojamiento o el pin de IPFS."
-      }
+      },
+      "unconfirmed": "sin confirmar"
     },
     "history": {
       "title": "Historial de esta identidad",

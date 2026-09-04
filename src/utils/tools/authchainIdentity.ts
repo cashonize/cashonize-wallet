@@ -63,6 +63,7 @@ export const BCMR_SCHEMA_URL = "https://github.com/bitjson/chip-bcmr/blob/master
 export interface MetadataPublication {
   hash: string; // hex
   uris: string[]; // as published, which per spec is the https:// prefix stripped
+  timestamp?: number; // when the chain mined it, which is the verified date; absent while unconfirmed
 }
 
 // What a fetch of one published location found. 'changed' means the location answered with
@@ -560,10 +561,11 @@ export async function resolveIdentities(
       return { category, status: 'unresolved', ...(answer ? { unresolvedReason: answer.reason } : {}) };
     }
     const {
-      txid: authheadTxid, identityOutput, publicationOutputs, chainLength, recentLinks,
+      txid: authheadTxid, identityOutput, publicationOutputs, publicationTimestamp, chainLength, recentLinks,
       isToken, fungibleSupply, genesisSupply, keyCommitment,
     } = answer.value;
-    const publication = findPublication(publicationOutputs);
+    const found = findPublication(publicationOutputs);
+    const publication = found && publicationTimestamp !== undefined ? { ...found, timestamp: publicationTimestamp } : found;
     const resolved = {
       category,
       authheadTxid,

@@ -12,7 +12,14 @@
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import publicationLocations from './publicationLocations.vue'
-  import { copyToClipboard, formatBch, truncateHash, formatTokenAmountFromBigInt, parseTokenAmountToBigInt } from 'src/utils/utils'
+  import {
+    copyToClipboard,
+    formatBch,
+    formatRelativeTime,
+    truncateHash,
+    formatTokenAmountFromBigInt,
+    parseTokenAmountToBigInt,
+  } from 'src/utils/utils'
   import { confirmDialog, notifySending } from 'src/utils/txHelpers'
   import { validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import {
@@ -105,6 +112,17 @@
     return lines;
   });
   const carriesLine = computed(() => carries.value?.join(' · '));
+
+  // When the latest publication was mined: the chain's date, unlike the registry's own timestamp,
+  // absolute like the history's dates, with the relative time on hover for freshness at a glance
+  const publicationDate = computed(() => {
+    const timestamp = props.identity.publication?.timestamp;
+    return timestamp ? linkDate(timestamp) : t('identities.publication.unconfirmed');
+  });
+  const publicationTimeAgo = computed(() => {
+    const timestamp = props.identity.publication?.timestamp;
+    return timestamp ? formatRelativeTime(timestamp) : undefined;
+  });
 
   // The fungible supply the genesis made, which the reserve is read against and which never
   // changes: a fact about the token rather than the output, so it shows once the card is open
@@ -522,7 +540,11 @@
     <!-- The latest metadata publication of this identity, and what its locations serve now.
          Shown for a watched identity as much as a held one: reading it needs no custody. -->
     <div class="section">
-      <div>{{ t('identities.publication.title') }}</div>
+      <!-- the title names the thing, the date says which one -->
+      <div>
+        {{ t('identities.publication.title') }}
+        <span v-if="identity.publication" class="description" :title="publicationTimeAgo">· {{ publicationDate }}</span>
+      </div>
       <div v-if="!identity.publication" class="info-box" style="margin-top: 6px;">
         <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
         <!-- the action is in the bar right under it, so the box only states the fact -->

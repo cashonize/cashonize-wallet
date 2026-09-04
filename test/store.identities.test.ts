@@ -85,7 +85,7 @@ function stubIdentityServers(
     const chain = chains[hash]
     if (!chain) return Promise.reject(new TypeError('Failed to fetch'))
     const lastPublication = chain.publication
-      ? [{ transaction: [{ outputs: [{ locking_bytecode: `\\x${chain.publication}` }] }] }]
+      ? [{ transaction: [{ block_inclusions: [], outputs: [{ locking_bytecode: `\\x${chain.publication}` }] }] }]
       : []
     return Promise.resolve({
       ok: true,
