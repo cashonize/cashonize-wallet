@@ -18,15 +18,15 @@ import {
   type IdentityOutput,
 } from "src/queryChainGraph";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
+import { isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
 type Network = 'mainnet' | 'chipnet';
 
-// 'held' is an authhead this wallet holds directly and keeps out of coin selection; what it carries,
-// a reserve or a minting NFT, is on the UTXO itself. 'heldViaKey' is an authhead locked in an
-// AuthGuard covenant whose key NFT this wallet holds, which is authority over the identity without
-// the UTXO. 'burned' is an identity output that is an OP_RETURN, which nothing can spend: whoever
+// 'held' is an authhead this wallet holds directly and keeps out of coin selection. 'heldViaKey'
+// is an authhead locked in an AuthGuard covenant whose key NFT this wallet holds, which is
+// authority over the identity without the UTXO. 'burned' is an identity output that is an OP_RETURN, which nothing can spend: whoever
 // held the identity ended it, and its last publication is final. 'unresolved' is a failed
 // Chaingraph query, which says nothing about where the authhead is.
 export type IdentityStatus = 'held' | 'heldViaKey' | 'notHeld' | 'burned' | 'unresolved';
@@ -34,11 +34,10 @@ export type IdentityStatus = 'held' | 'heldViaKey' | 'notHeld' | 'burned' | 'unr
 export interface IdentityState {
   category: string;
   authheadTxid?: string;
-  identityOutput?: IdentityOutput; // output 0 of the authhead as the chain has it: where the identity lives
+  identityOutput?: IdentityOutput; // output 0 of the authhead as the chain has it: where the identity lives, and what it carries
   authUtxo?: Utxo; // the identity output itself, when this wallet holds it directly
-  keyUtxo?: Utxo; // the AuthKey NFT, when a covenant holds the identity output instead
-  guardedOutput?: Utxo; // the identity output inside that covenant
-  guardAddress?: string; // where that covenant sits, which is not an address of this wallet
+  guardedBy?: string; // the key category, when an AuthGuard covenant holds the identity output instead
+  keyUtxo?: Utxo; // that key, when this wallet holds it
   status: IdentityStatus;
   unresolvedReason?: string; // what the lookup said went wrong, for an 'unresolved' one
   // What the genesis made, which never changes: whether the chain is a token's at all, and whether
@@ -52,16 +51,6 @@ export interface IdentityState {
   // transaction history reads them to recognise its own identity operations, which otherwise
   // show as inscrutable self-sends.
   recentLinks?: string[];
-}
-
-// An identity output found in an AuthGuard covenant this wallet has the key to, waiting for the
-// authchain lookup to confirm it really is that category's authhead.
-export interface GuardedIdentity {
-  category: string;
-  authheadTxid: string; // the txid of the identity output sitting in the guard
-  identityOutput: Utxo; // that output, which carries the identity's reserve if it has one
-  keyUtxo?: Utxo; // absent when the key is watched rather than held, which makes it a watched identity
-  guardAddress: string;
 }
 
 // The metadata pointer an authhead transaction carries: OP_RETURN "BCMR" <hash> [<uri>...]. The
@@ -348,8 +337,6 @@ export async function checkPublicationUri(
 const identityListKeys = {
   // identities the wallet follows, which is what gets resolved and reserved
   categories: 'identities',
-  // AuthKey categories it watches without holding the key, whose guards it follows anyway
-  authKeys: 'authKeys',
   // what the user took off the list: a decision, so it is stored rather than re-derived, or the
   // automatic detection would put back on every open what the user just removed
   dismissed: 'dismissedIdentities',
@@ -510,12 +497,15 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
 // rate. A batch that fails marks only its own categories 'unresolved' and does not stop the next;
 // a category the server does not know is unresolved on its own. Shared by the identities list
 // and the followed token identities.
+// An identity output in an AuthGuard covenant is recognised by its locking bytecode, derived
+// from the key's category: the identity's own, which is the standard's genesis setup, or what
+// the caller adds for it, which is where a registry's `extensions.authNft` comes in.
 export const authheadBatchSize = 25;
 export async function resolveIdentities(
   categories: string[],
   chaingraphUrl: string,
   walletUtxos: Utxo[],
-  guarded: Record<string, GuardedIdentity> = {},
+  extraKeyCategories: (category: string) => string[] = () => [],
 ): Promise<IdentityState[]> {
   const answers = new Map<string, { value?: AuthHeadResult; reason: string }>();
   for (let start = 0; start < categories.length; start += authheadBatchSize) {
@@ -555,15 +545,15 @@ export async function resolveIdentities(
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
     if (authUtxo) return { ...resolved, authUtxo, status: 'held' };
-    // Held through a covenant instead: the guard holds an identity output, and this says it is
-    // the one the authchain ends at rather than an older link somebody left there.
-    const guardedIdentity = guarded[category];
-    if (guardedIdentity?.authheadTxid === authheadTxid) {
-      const { keyUtxo, guardAddress, identityOutput } = guardedIdentity;
-      const inGuard = { ...resolved, guardedOutput: identityOutput, guardAddress };
+    // Held through a covenant instead: authority over the identity without the output
+    const guardedBy = identityOutput
+      ? [category, ...extraKeyCategories(category)].find(key => isAuthGuardOf(key, identityOutput.lockingBytecode))
+      : undefined;
+    if (guardedBy) {
+      const keyUtxo = walletUtxos.find(utxo => isAuthKey(utxo, guardedBy));
       // without the key this is somebody else's identity, watched from here like any other
-      if (!keyUtxo) return { ...inGuard, status: 'notHeld' };
-      return { ...inGuard, keyUtxo, status: 'heldViaKey' };
+      if (!keyUtxo) return { ...resolved, guardedBy, status: 'notHeld' };
+      return { ...resolved, guardedBy, keyUtxo, status: 'heldViaKey' };
     }
     return { ...resolved, status: 'notHeld' };
   });

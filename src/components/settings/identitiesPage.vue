@@ -147,12 +147,15 @@
 
   // Where the identity output sits, as the chain has it: an address when the locking bytecode has
   // one, the raw script otherwise. A guarded identity's is its covenant address, in the token-aware
-  // form the guard is derived in. A burned one sits nowhere, which its status says.
+  // form since the output carries a token. A burned one sits nowhere, which its status says.
   function identityLocation(identity: IdentityState): { kind: 'address' | 'script'; text: string } | undefined {
-    if (identity.guardAddress) return { kind: 'address', text: identity.guardAddress };
     const lockingBytecode = identity.identityOutput?.lockingBytecode;
     if (!lockingBytecode || identity.status === 'burned') return undefined;
-    const decoded = lockingBytecodeToCashAddress({ bytecode: hexToBin(lockingBytecode), prefix: store.wallet.networkPrefix });
+    const decoded = lockingBytecodeToCashAddress({
+      bytecode: hexToBin(lockingBytecode),
+      prefix: store.wallet.networkPrefix,
+      tokenSupport: identity.guardedBy !== undefined,
+    });
     if (typeof decoded === 'string') return { kind: 'script', text: lockingBytecode };
     return { kind: 'address', text: decoded.address };
   }
@@ -182,15 +185,6 @@
     { key: 'watched' as const, identities: identities.value.filter(identity => notOwnedStatuses.includes(identity.status)) },
     { key: 'tokens' as const, identities: identitiesStore.tokenIdentities ?? [] },
   ].filter(group => group.key === 'tokens' ? tokenGroupShown.value : group.identities.length > 0));
-
-  // Guarded identities a watched key covers that this version cannot name, since that needs a
-  // lookup back from an output to the authchain it ends. Counted rather than dropped, so a key
-  // guarding only them is not reported as guarding nothing.
-  const unnameableGuards = computed(() =>
-    Object.entries(identitiesStore.unidentifiedGuarded)
-      .filter(([, count]) => count > 0)
-      .map(([category, count]) => ({ category, count }))
-  );
 
   // An IPFS CID cannot serve content other than its own, so a mismatch there says something
   // different from an edited file at an HTTPS location
@@ -228,10 +222,10 @@
   const identityName = (category: string) => store.bcmrRegistries?.[category]?.name;
 
   // What an authhead carries alongside the authority to update the metadata: a token supply held
-  // back from circulation, an NFT that mints the category's tokens, or both at once. Managing any
-  // of it is not here yet, so the card only says what is there.
+  // back from circulation, an NFT that mints the category's tokens, or both at once. The coin's
+  // own word when it is here, the chain's otherwise.
   function reserveDescription(identity: IdentityState) {
-    const token = (identity.authUtxo ?? identity.guardedOutput)?.token;
+    const token = identity.authUtxo?.token ?? identity.identityOutput?.token;
     if (!token) return undefined;
     const metadata = store.bcmrRegistries?.[identity.category];
     const lines: string[] = [];
@@ -293,33 +287,25 @@
       const category = categoryInput.value.trim().toLowerCase();
       if (!/^[0-9a-f]{64}$/i.test(category)) throw new Error(t('identities.errors.invalidCategory'));
       if (identitiesStore.identityCategories.includes(category)) throw new Error(t('identities.errors.alreadyListed'));
-      // A token category and an AuthKey category look alike, so both readings are tried and what
-      // was found is put to the user rather than asked about beforehand.
-      const found = await identitiesStore.inspectCategory(category);
-      const guardedCount = found.guardedCategories.length + found.unidentifiedGuarded;
-      if (found.authheadTxid === undefined && !guardedCount) throw new Error(t('identities.add.errors.nothingFound'));
-      // The confirm says what was found and where it is, so the names come first: a fetch that
-      // fails leaves the id standing in for the name. A key is read as a key: Studio mints key and
-      // token in one genesis, so the key's own category resolves to the guarded authhead too.
-      const unnamed = [category, ...found.guardedCategories].filter(named => !store.bcmrRegistries?.[named]);
-      if (unnamed.length) {
+      // The confirm says what was found and where it is, so the name comes first: a fetch that
+      // fails leaves the id standing in for the name. The metadata also names the key of an
+      // identity that adopted a guard, which the lookup reads.
+      if (!store.bcmrRegistries?.[category]) {
         try {
-          await store.fetchTokenMetadata(unnamed.map(named => ({ category: named, amount: 0n })), false);
+          await store.fetchTokenMetadata([{ category, amount: 0n }], false);
         } catch (error) {
           console.error("Failed to fetch metadata before adding:", error);
         }
       }
-      const nameOf = (named: string) => identityName(named) ?? truncateHash(named);
-      const utxos = store.walletUtxos ?? [];
+      const found = await identitiesStore.inspectCategory(category);
+      if (found.status === 'unresolved') throw new Error(t('identities.add.errors.nothingFound'));
+      const name = identityName(category) ?? truncateHash(category);
       const summary: string[] = [];
-      if (guardedCount) {
-        const names = found.guardedCategories.map(nameOf).join(', ');
-        summary.push(t('identities.add.found.key', guardedCount) + (names ? ` ${names}` : ''));
-        const keyHeld = utxos.some(utxo => utxo.token?.category === category);
-        summary.push(t(keyHeld ? 'identities.add.found.keyHeld' : 'identities.add.found.keyWatched'));
+      if (found.guardedBy) {
+        summary.push(t('identities.add.found.guarded', { name }));
+        summary.push(t(found.status === 'heldViaKey' ? 'identities.add.found.keyHeld' : 'identities.add.found.keyWatched'));
       } else {
-        const held = utxos.some(utxo => utxo.txid === found.authheadTxid && utxo.vout === 0);
-        summary.push(t(held ? 'identities.add.found.held' : 'identities.add.found.watched', { name: nameOf(category) }));
+        summary.push(t(found.status === 'held' ? 'identities.add.found.held' : 'identities.add.found.watched', { name }));
       }
       const confirmed = await confirmDialog(
         t('identities.add.found.title'),
@@ -327,8 +313,7 @@
         t('identities.add.found.button')
       );
       if (!confirmed) return;
-      if (guardedCount) await identitiesStore.addAuthKey(category);
-      else await identitiesStore.addIdentity(category);
+      await identitiesStore.addIdentity(category);
       await fetchMissingMetadata();
       categoryInput.value = "";
     });
@@ -415,8 +400,7 @@
 
   const tokenDecimals = (category: string) => store.bcmrRegistries?.[category]?.token?.decimals ?? 0;
   function reserveOf(identity: IdentityState) {
-    const identityOutput = identity.authUtxo ?? identity.guardedOutput;
-    return identityOutput?.token?.amount ?? 0n;
+    return (identity.authUtxo?.token ?? identity.identityOutput?.token)?.amount ?? 0n;
   }
 
   function reserveDisplay(identity: IdentityState) {
@@ -884,16 +868,6 @@
         </div>
       </div>
 
-      <div v-for="guard in unnameableGuards" :key="guard.category" class="section identity-card">
-        <div>{{ t('identities.key.unnameableTitle') }}</div>
-        <div class="description">{{ t('identities.key.unnameable', guard.count) }}</div>
-        <div class="copy-target" :title="guard.category" @click="copyToClipboard(guard.category)">
-          <span class="description">{{ t('identities.key.categoryLabel') }}</span>
-          <span class="mono">{{ truncateHash(guard.category) }}</span>
-          <img class="copyIcon" src="images/copyGrey.svg">
-        </div>
-      </div>
-
       <!-- each list opens with the answer to what is in it, which is the first thing read here;
            the third is folded, its head the same kind of toggle as a card's header -->
       <template v-for="group in identityGroups" :key="group.key">
@@ -1002,7 +976,7 @@
         >
           <span class="description">
             {{ t(location.kind === 'script' ? 'identities.locationScriptLabel' : 'identities.locationLabel') }}
-            <InfoPopup v-if="identity.guardAddress">
+            <InfoPopup v-if="identity.guardedBy">
               <div style="max-width: 300px;">{{ t('identities.key.guardHelp') }}</div>
             </InfoPopup>
           </span>

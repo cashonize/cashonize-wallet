@@ -11,7 +11,6 @@
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
-  import { isAuthKeyCandidate } from 'src/utils/tools/authGuard'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
@@ -114,16 +113,7 @@
     if (!nft || !authUtxo) return undefined;
     return authUtxo.txid === nft.txid && authUtxo.vout === nft.vout ? authUtxo : undefined;
   });
-  const isIdentityKey = computed(() =>
-    guardedIdentities.value.length > 0 || (identitiesStore.unidentifiedGuarded[tokenData.value.category] ?? 0) > 0
-  );
-  // The local shape alone, which is a guess: no lookup runs from the token list, so an unconfirmed
-  // candidate only gets a nudge towards the page that can settle it.
-  const looksLikeIdentityKey = computed(() => {
-    if (isIdentityKey.value || tokenMetaData.value) return false;
-    const onlyNft = isSingleNft.value ? tokenData.value.nfts[0] : undefined;
-    return !!onlyNft && isAuthKeyCandidate(onlyNft);
-  });
+  const isIdentityKey = computed(() => guardedIdentities.value.length > 0);
 
   const tokenDescription = computed(() => {
     if(parseResult.value?.success && parseResult.value.nftTypeDescription) return parseResult.value.nftTypeDescription;
@@ -388,15 +378,6 @@
               <span class="identity-key-link" @click="store.changeView(19)">
                 {{ t('tokenItem.authKey.manage') }}
               </span>
-            </div>
-            <div v-else-if="looksLikeIdentityKey" class="identity-key-line">
-              <i18n-t keypath="tokenItem.authKey.maybe" tag="span">
-                <template #link>
-                  <span class="identity-key-link" @click="store.changeView(19)">
-                    {{ t('tokenItem.authKey.maybeLink') }}
-                  </span>
-                </template>
-              </i18n-t>
             </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">

@@ -10,7 +10,7 @@ import {
 
 import { useStore } from '../src/stores/store'
 import { useIdentitiesStore } from '../src/stores/identitiesStore'
-import { authGuardAddresses } from '../src/utils/tools/authGuard'
+import { authGuardLockingBytecodes } from '../src/utils/tools/authGuard'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
 
 function createMockWallet() {
@@ -31,15 +31,22 @@ const movedAuthheadA = 'aabb'.repeat(16)
 const utxo = (txid: string, vout: number, token?: Utxo['token']): Utxo =>
   ({ txid, vout, satoshis: 1000n, address: 'bitcoincash:qtest', ...(token ? { token } : {}) })
 
-// Answers the authhead queries, single or batched, for every mapped category. A batch none of
-// whose categories is mapped rejects, the way an unreachable server would; a mapped batch answers
-// for the categories it knows and leaves the rest out, which is that category unresolved on its own
-function stubAuthheadQueries(authheads: Record<string, string>) {
-  const answer = (category: string) => ({
-    hash: `\\x${category}`,
-    // chaingraph returns bytea as \x-prefixed hex
-    authchains: [{ authhead: { hash: `\\x${authheads[category]}`, outputs: [] }, genesis: [], lastPublication: [], recent: [] }],
-  })
+// Answers the authhead queries, single or batched, for every mapped category, with the identity
+// output the chain reports when one is given. A batch none of whose categories is mapped
+// rejects, the way an unreachable server would; a mapped batch answers for the categories it
+// knows and leaves the rest out, which is that category unresolved on its own
+function stubAuthheadQueries(authheads: Record<string, string>, identityOutputs: Record<string, object> = {}) {
+  const answer = (category: string) => {
+    const output = identityOutputs[category]
+    return {
+      hash: `\\x${category}`,
+      // chaingraph returns bytea as \x-prefixed hex
+      authchains: [{
+        authhead: { hash: `\\x${authheads[category]}`, outputs: output ? [output] : [] },
+        genesis: [], lastPublication: [], recent: [],
+      }],
+    }
+  }
   vi.stubGlobal('fetch', vi.fn((_url: string, options: RequestInit) => {
     const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string, hashes?: string[] } }
     const asked = variables.hashes ?? (variables.hash ? [variables.hash] : [])
@@ -111,26 +118,30 @@ function listIdentities(categories: string[]) {
   localStorageMock.setItem('identities-mainnet-testWallet', JSON.stringify(categories))
 }
 
-function startStore(walletUtxos: Utxo[], guardUtxos: Record<string, Utxo[]> = {}) {
+function startStore(walletUtxos: Utxo[]) {
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   store.setWallet(createMockWallet() as never)
-  // setWallet gives the wallet its own network provider, so the covenant responder goes on after
-  // it: these lookups ask the wallet's electrum about an address that is not the wallet's
-  const provider = store.wallet.provider as unknown as { getUtxos: unknown }
-  provider.getUtxos = vi.fn((address: string) => Promise.resolve(guardUtxos[address] ?? []))
   store.walletUtxos = walletUtxos
   return { store, identitiesStore }
 }
 
-// An AuthKey is an NFT with nothing on it: no name, no value, commitment 00. What makes it a key
-// is the covenant its category derives, which is why it is only confirmed by looking there.
-const authKeyCategory = '1122334455667788'.repeat(4)
-const authKeyUtxo: Utxo = {
+// An AuthKey is an NFT with nothing on it: no name, no value, no capability. What makes it a key
+// is the covenant its category derives, which the identity output's locking bytecode is compared
+// with. In the standard's genesis setup the key shares the identity's category.
+const authKeyUtxo = (category: string): Utxo => ({
   txid: 'ee'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
-  token: { category: authKeyCategory, amount: 0n, nft: { commitment: '00', capability: 'none' } },
-}
-const guardTokenAddress = authGuardAddresses(authKeyCategory, 'bitcoincash').p2sh20
+  token: { category, amount: 0n, nft: { commitment: '00', capability: 'none' } },
+})
+// the identity output as the chain reports it, sitting in the covenant a key category opens
+const guardedOutput = (keyCategory: string, identityCategory: string, reserve: string) => ({
+  locking_bytecode: `\\x${authGuardLockingBytecodes(keyCategory).p2sh20}`,
+  value_satoshis: '1000',
+  token_category: `\\x${identityCategory}`,
+  fungible_token_amount: reserve,
+  nonfungible_token_capability: null,
+  nonfungible_token_commitment: null,
+})
 
 // The notification trail leads to this page for two reasons, and both have to stop asking once
 // the page has been opened: the shape of an identity key is a shape ordinary NFTs can have, so a
@@ -143,21 +154,17 @@ describe('the identities notification', () => {
     localStorageMock.setItem('network', 'mainnet')
   })
 
-  // a key candidate is a shape guess about an NFT: the token item nudges, the menus do not
-  it('counts nothing for a key candidate', () => {
-    const { identitiesStore } = startStore([authKeyUtxo])
-    expect(identitiesStore.unseenCount).toBe(0)
-  })
-
-  // a Studio user's keys list their identities without being asked; that is worth telling them
+  // a Studio user's key is a held token like any other, so following the tokens' identities finds
+  // what it guards and lists it without being asked; that is worth telling them
   it('reports an identity found through a key the way the walk reports one', async () => {
-    stubAuthheadQueries({ [categoryA]: authheadA })
-    const guardedOutput = utxo(authheadA, 0, { category: categoryA, amount: 0n })
-    const { identitiesStore } = startStore([authKeyUtxo], { [guardTokenAddress]: [guardedOutput] })
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '0') })
+    const { store, identitiesStore } = startStore([authKeyUtxo(categoryA)])
+    store.tokenList = [{ category: categoryA, amount: 0n }]
 
-    await identitiesStore.refreshIdentities()
+    await identitiesStore.followTokenIdentities('new')
 
     expect(identitiesStore.identityCategories).toContain(categoryA)
+    expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
     expect(identitiesStore.unseenIdentities).toContain(categoryA)
     expect(identitiesStore.unseenCount).toBe(1)
 
@@ -403,19 +410,16 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.unseenCount).toBe(0)
   })
 
-  // a key candidate's guard is looked up over electrum at open; the server refusing must land on
-  // the identities page, not flag a wallet that did load
+  // the wallet's history is walked at open; the server refusing must land on the identities
+  // page, not flag a wallet that did load
   it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {
-    const keyCategory = 'ab'.repeat(32)
-    const candidate = utxo('cd'.repeat(32), 1, { category: keyCategory, amount: 0n, nft: { commitment: '00', capability: 'none' } })
-    const { store, identitiesStore } = startStore([candidate])
-    const provider = store.wallet.provider as unknown as { getUtxos: unknown }
-    provider.getUtxos = vi.fn(() => Promise.reject(new Error('electrum refused')))
+    const { store, identitiesStore } = startStore([utxo('cd'.repeat(32), 0)])
+    vi.spyOn(store, 'walkSpentOutputs').mockRejectedValue(new Error('chaingraph refused'))
 
     await identitiesStore.runChecksOnOpen()
 
-    expect(identitiesStore.openCheckError).toBe('electrum refused')
-    expect(identitiesStore.identities).toBeUndefined()
+    expect(identitiesStore.openCheckError).toBe('chaingraph refused')
+    expect(identitiesStore.identityCategories).toEqual([])
     expect(store.walletInitFailed).toBe(false)
   })
 
@@ -458,48 +462,70 @@ describe('auth reservations follow the authchain', () => {
   // the AuthGuard standard: the identity output lives in a covenant, and the wallet holds the key
   // that opens it. Authority over the identity without the coin.
   it('finds an identity its AuthKey guards, and reserves the key', async () => {
-    stubAuthheadQueries({ [categoryA]: authheadA })
-    const guardedOutput: Utxo = {
-      txid: authheadA, vout: 0, satoshis: 1000n, address: guardTokenAddress,
-      token: { category: categoryA, amount: 500n },
-    }
-    const { store, identitiesStore } = startStore([authKeyUtxo], { [guardTokenAddress]: [guardedOutput] })
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })
+    listIdentities([categoryA])
+    const key = authKeyUtxo(categoryA)
+    const { store, identitiesStore } = startStore([key])
 
     await identitiesStore.refreshIdentities()
 
     expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
-    expect(identitiesStore.identities?.[0]?.category).toBe(categoryA)
+    expect(identitiesStore.identities?.[0]?.guardedBy).toBe(categoryA)
+    // what the guard holds is read off the chain, since the coin is not here
+    expect(identitiesStore.identities?.[0]?.identityOutput?.token?.amount).toBe(500n)
     // the key carries the authority, so the key is what gets held back
-    expect(store.reservedUtxos[outpointOf(authKeyUtxo)]).toBe('auth')
+    expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
   })
 
-  // an older identity output left in the guard is not the authhead, and does not make the wallet
-  // the identity's keeper
-  it('does not claim a guarded output that is not the authhead', async () => {
-    stubAuthheadQueries({ [categoryA]: movedAuthheadA })
+  // an identity that adopted a guard after its genesis has a key of another category, which the
+  // registry names; the wallet reads the name off the indexer's copy
+  it('finds the key an adopted guard is named with in the registry', async () => {
+    const keyCategory = '1122334455667788'.repeat(4)
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(keyCategory, categoryA, '500') })
     listIdentities([categoryA])
-    const staleOutput: Utxo = {
-      txid: authheadA, vout: 0, satoshis: 1000n, address: guardTokenAddress,
-      token: { category: categoryA, amount: 500n },
+    const key = authKeyUtxo(keyCategory)
+    const { store, identitiesStore } = startStore([key])
+    store.bcmrRegistries = {
+      [categoryA]: { name: 'Named', description: '', token: { category: categoryA, symbol: 'NMD' }, extensions: { authNft: keyCategory } },
     }
-    const { store, identitiesStore } = startStore([authKeyUtxo], { [guardTokenAddress]: [staleOutput] })
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
+    expect(identitiesStore.identities?.[0]?.guardedBy).toBe(keyCategory)
+    expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
+  })
+
+  // the guard is somebody else's to open: the identity is watched, and the NFT of the identity's
+  // category this wallet holds is an ordinary NFT
+  it('does not take an NFT for a key when the identity sits in another key\'s guard', async () => {
+    const otherKey = '1122334455667788'.repeat(4)
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(otherKey, categoryA, '500') })
+    listIdentities([categoryA])
+    const lookalike = authKeyUtxo(categoryA)
+    const { store, identitiesStore } = startStore([lookalike])
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
+    expect(identitiesStore.identities?.[0]?.guardedBy).toBeUndefined()
+    expect(store.reservedUtxos).toEqual({})
+    expect(store.spendableUtxos).toEqual([lookalike])
+  })
+
+  // an identity output at an ordinary address is not guarded, whatever NFTs of its category sit here
+  it('leaves an NFT of an unguarded identity\'s category alone', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const nft = authKeyUtxo(categoryA)
+    const { store, identitiesStore } = startStore([nft])
 
     await identitiesStore.refreshIdentities()
 
     expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
     expect(store.reservedUtxos).toEqual({})
-  })
-
-  // a commitment-00 NFT is a cheap local guess, and freezing on a guess would lock an innocent
-  // NFT with no way back
-  it('leaves an NFT that only looks like a key alone', async () => {
-    const { store, identitiesStore } = startStore([authKeyUtxo])
-
-    await identitiesStore.refreshIdentities()
-
-    expect(store.reservedUtxos).toEqual({})
-    expect(store.spendableUtxos).toEqual([authKeyUtxo])
+    expect(store.spendableUtxos).toEqual([nft])
   })
 
   // The wallet lists this one itself: these keys made it, and its authhead is sitting here as an

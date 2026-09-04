@@ -274,9 +274,7 @@
     "authKey": {
       "name": "Clé d'identité",
       "nameFor": "Clé d'identité de {names}",
-      "manage": "gérer",
-      "maybe": "Ceci ressemble à une clé d'identité. {link}",
-      "maybeLink": "Vérifiez sur la page Identités"
+      "manage": "gérer"
     },
     "visibility": {
       "hideToken": "Masquer le token",
@@ -1645,10 +1643,7 @@
       "confirmMessage": "Le contrôle de {count} identité gardée par cette clé passe à {address}. C'est irréversible. | Le contrôle des {count} identités gardées par cette clé passe à {address}. C'est irréversible.",
       "confirmButton": "Transférer la clé",
       "done": "Clé d'identité transférée à {address}",
-      "doneTitle": "Clé d'identité transférée",
-      "categoryLabel": "Catégorie de la clé :",
-      "unnameableTitle": "Une clé d'identité au contenu que cette version ne sait pas nommer",
-      "unnameable": "Cette clé garde {count} sortie d'identité sans jeton, et la nommer demande une requête que cette version n'a pas encore. Gérez-la sur CashTokens Studio. | Cette clé garde {count} sorties d'identité sans jeton, et les nommer demande une requête que cette version n'a pas encore. Gérez-les sur CashTokens Studio."
+      "doneTitle": "Clé d'identité transférée"
     },
     "publication": {
       "title": "Dernière publication de métadonnées",
@@ -1735,7 +1730,7 @@
       "held": "ce portefeuille contrôle l'identité et peut publier ses métadonnées ou la transférer. L'UTXO qui la contrôle est tenu à l'écart des envois ordinaires, afin qu'un paiement depuis cette application ne le déplace pas par accident. Un autre logiciel sur la même graine le peut toujours.",
       "watchedLead": "Surveillée :",
       "watched": "un autre portefeuille la détient, donc ce portefeuille peut afficher ses métadonnées et son historique, mais pas la mettre à jour.",
-      "keyNote": "L'identifiant de token d'un AuthKey CashTokens Studio fonctionne aussi. La clé contrôle une ou plusieurs identités, et le portefeuille liste chacune d'elles.",
+      "keyNote": "Une identité conservée dans un covenant AuthGuard s'ajoute aussi par son propre id. Le portefeuille détermine quelle clé l'ouvre, et si cette clé est ici.",
       "authbaseLead": "Authbase :",
       "authbase": "la transaction qui a créé l'identité. Pour un token, c'est son identifiant de token.",
       "lead": "Une identité vous a été transférée, ou vous voulez en suivre une ?",
@@ -1744,7 +1739,7 @@
       "addingButton": "Ajout...",
       "found": {
         "title": "Identité trouvée",
-        "key": "Une clé d'identité gardant {count} identité : | Une clé d'identité gardant {count} identités :",
+        "guarded": "{name} : conservée dans un covenant AuthGuard.",
         "held": "{name} : détenue par ce portefeuille. Son UTXO sera écarté des envois.",
         "watched": "{name} : non détenue par ce portefeuille. Elle sera surveillée ; rien n'est retenu.",
         "keyHeld": "La clé est dans ce portefeuille et sera retenue ; qui la détient contrôle ce qu'elle garde.",

@@ -274,9 +274,7 @@
     "authKey": {
       "name": "Identitätsschlüssel",
       "nameFor": "Identitätsschlüssel für {names}",
-      "manage": "verwalten",
-      "maybe": "Das sieht nach einem Identitätsschlüssel aus. {link}",
-      "maybeLink": "Auf der Identitäten-Seite prüfen"
+      "manage": "verwalten"
     },
     "visibility": {
       "hideToken": "Token ausblenden",
@@ -1645,10 +1643,7 @@
       "confirmMessage": "Die Kontrolle über {count} von diesem Schlüssel bewachte Identität geht an {address}. Das lässt sich nicht rückgängig machen. | Die Kontrolle über die {count} von diesem Schlüssel bewachten Identitäten geht an {address}. Das lässt sich nicht rückgängig machen.",
       "confirmButton": "Schlüssel übertragen",
       "done": "Identitätsschlüssel an {address} übertragen",
-      "doneTitle": "Identitätsschlüssel übertragen",
-      "categoryLabel": "Schlüssel-Kategorie:",
-      "unnameableTitle": "Ein Identitätsschlüssel mit Inhalt, den diese Version nicht benennen kann",
-      "unnameable": "Dieser Schlüssel bewacht {count} Identitäts-Ausgabe ohne Token, und sie zu benennen braucht eine Abfrage, die diese Version noch nicht hat. Verwalte sie in CashTokens Studio. | Dieser Schlüssel bewacht {count} Identitäts-Ausgaben ohne Token, und sie zu benennen braucht eine Abfrage, die diese Version noch nicht hat. Verwalte sie in CashTokens Studio."
+      "doneTitle": "Identitätsschlüssel übertragen"
     },
     "publication": {
       "title": "Letzte Metadaten-Veröffentlichung",
@@ -1735,7 +1730,7 @@
       "held": "dieses Wallet kontrolliert die Identität und kann ihre Metadaten veröffentlichen oder sie übertragen. Der UTXO, der sie kontrolliert, wird aus gewöhnlichen Sendungen herausgehalten, damit eine Zahlung aus dieser App ihn nicht versehentlich bewegt. Andere Software mit demselben Seed kann es weiterhin.",
       "watchedLead": "Beobachtet:",
       "watched": "ein anderes Wallet hält sie, daher kann dieses Wallet ihre Metadaten und ihren Verlauf zeigen, sie aber nicht aktualisieren.",
-      "keyNote": "Die Token-Id eines CashTokens Studio AuthKeys geht ebenfalls. Der Schlüssel kontrolliert eine oder mehrere Identitäten, und das Wallet listet jede davon.",
+      "keyNote": "Eine Identität in einem AuthGuard-Covenant wird ebenfalls über ihre eigene ID hinzugefügt. Das Wallet ermittelt, welcher Schlüssel sie öffnet und ob dieser Schlüssel hier ist.",
       "authbaseLead": "Authbase:",
       "authbase": "die Transaktion, die die Identität erzeugt hat. Bei einem Token ist das seine Token-Id.",
       "lead": "Wurde eine Identität an Sie übertragen, oder möchten Sie eine verfolgen?",
@@ -1744,7 +1739,7 @@
       "addingButton": "Wird hinzugefügt...",
       "found": {
         "title": "Identität gefunden",
-        "key": "Ein Identitätsschlüssel, der {count} Identität bewacht: | Ein Identitätsschlüssel, der {count} Identitäten bewacht:",
+        "guarded": "{name}: in einem AuthGuard-Covenant gehalten.",
         "held": "{name}: von diesem Wallet gehalten. Sein UTXO wird von Sendungen zurückgehalten.",
         "watched": "{name}: nicht von diesem Wallet gehalten. Sie wird beobachtet; nichts wird zurückgehalten.",
         "keyHeld": "Der Schlüssel ist in diesem Wallet und wird zurückgehalten; wer ihn hält, kontrolliert, was er bewacht.",

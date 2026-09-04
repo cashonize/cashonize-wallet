@@ -274,9 +274,7 @@
     "authKey": {
       "name": "Chave de identidade",
       "nameFor": "Chave de identidade de {names}",
-      "manage": "gerenciar",
-      "maybe": "Isto parece uma chave de identidade. {link}",
-      "maybeLink": "Verifique na página de identidades"
+      "manage": "gerenciar"
     },
     "visibility": {
       "hideToken": "Ocultar token",
@@ -1645,10 +1643,7 @@
       "confirmMessage": "O controle de {count} identidade guardada por esta chave passa para {address}. Isso não pode ser desfeito. | O controle das {count} identidades guardadas por esta chave passa para {address}. Isso não pode ser desfeito.",
       "confirmButton": "Transferir chave",
       "done": "Chave de identidade transferida para {address}",
-      "doneTitle": "Chave de identidade transferida",
-      "categoryLabel": "Categoria da chave:",
-      "unnameableTitle": "Uma chave de identidade com conteúdo que esta versão não consegue nomear",
-      "unnameable": "Esta chave guarda {count} saída de identidade sem token, e nomeá-la exige uma consulta que esta versão ainda não tem. Gerencie-a no CashTokens Studio. | Esta chave guarda {count} saídas de identidade sem token, e nomeá-las exige uma consulta que esta versão ainda não tem. Gerencie-as no CashTokens Studio."
+      "doneTitle": "Chave de identidade transferida"
     },
     "publication": {
       "title": "Última publicação de metadados",
@@ -1735,7 +1730,7 @@
       "held": "esta carteira controla a identidade e pode publicar os seus metadados ou transferi-la. O UTXO que a controla fica fora dos envios comuns, para que um pagamento a partir desta app não o mova por acidente. Outro software com a mesma seed ainda pode.",
       "watchedLead": "Vigiada:",
       "watched": "outra carteira a tem, por isso esta carteira pode mostrar os seus metadados e histórico, mas não a pode atualizar.",
-      "keyNote": "O id de token de um AuthKey do CashTokens Studio também serve. A chave controla uma ou mais identidades, e a carteira lista cada uma delas.",
+      "keyNote": "Uma identidade guardada num covenant AuthGuard também se adiciona pelo seu próprio id. A carteira determina que chave a abre e se essa chave está aqui.",
       "authbaseLead": "Authbase:",
       "authbase": "a transação que criou a identidade. Num token, é o seu id de token.",
       "lead": "Foi-lhe transferida uma identidade, ou quer seguir uma?",
@@ -1744,7 +1739,7 @@
       "addingButton": "Adicionando...",
       "found": {
         "title": "Identidade encontrada",
-        "key": "Uma chave de identidade guardando {count} identidade: | Uma chave de identidade guardando {count} identidades:",
+        "guarded": "{name}: guardada num covenant AuthGuard.",
         "held": "{name}: tida por esta carteira. O seu UTXO ficará retido dos envios.",
         "watched": "{name}: não tida por esta carteira. Será vigiada; nada fica retido.",
         "keyHeld": "A chave está nesta carteira e ficará retida; quem a tiver controla o que ela guarda.",

@@ -274,9 +274,7 @@
     "authKey": {
       "name": "Identity key",
       "nameFor": "Identity key for {names}",
-      "manage": "manage",
-      "maybe": "This looks like an identity key. {link}",
-      "maybeLink": "Check on the identities page"
+      "manage": "manage"
     },
     "visibility": {
       "hideToken": "Hide token",
@@ -1645,10 +1643,7 @@
       "confirmMessage": "Control of {count} identity this key guards moves to {address}. This cannot be undone. | Control of the {count} identities this key guards moves to {address}. This cannot be undone.",
       "confirmButton": "Transfer key",
       "done": "Transferred the identity key to {address}",
-      "doneTitle": "Identity key transferred",
-      "categoryLabel": "Key category:",
-      "unnameableTitle": "An identity key with contents this version cannot name",
-      "unnameable": "This key guards {count} identity output that carries no token, and naming it needs a lookup this version does not have yet. Manage it on CashTokens Studio. | This key guards {count} identity outputs that carry no token, and naming them needs a lookup this version does not have yet. Manage them on CashTokens Studio."
+      "doneTitle": "Identity key transferred"
     },
     "publication": {
       "title": "Latest metadata publication",
@@ -1735,7 +1730,7 @@
       "held": "this wallet controls the identity and can publish its metadata or transfer it. The UTXO that controls it is kept out of ordinary sends, so a payment from this app cannot move it by accident. Other software on the same seed still can.",
       "watchedLead": "Watched:",
       "watched": "another wallet holds it, so this wallet can show its metadata and history but cannot update it.",
-      "keyNote": "The token id of a CashTokens Studio AuthKey works as well. The key controls one or more identities, and the wallet lists each of them.",
+      "keyNote": "An identity kept in an AuthGuard covenant is added by its own id too. The wallet works out which key opens it, and whether that key is here.",
       "authbaseLead": "Authbase:",
       "authbase": "the transaction that created the identity. For a token, that is its token id.",
       "lead": "Had an identity transferred to you, or want to follow one?",
@@ -1744,7 +1739,7 @@
       "addingButton": "Adding...",
       "found": {
         "title": "Identity found",
-        "key": "An identity key guarding {count} identity: | An identity key guarding {count} identities:",
+        "guarded": "{name}: kept in an AuthGuard covenant.",
         "held": "{name}: held by this wallet. Its UTXO will be held back from sends.",
         "watched": "{name}: not held by this wallet. It will be watched; nothing is held back.",
         "keyHeld": "The key is in this wallet and will be held back; whoever holds it controls what it guards.",

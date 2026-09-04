@@ -4,9 +4,10 @@ import { binToHex, encodeCashAddress, hash256 } from '@bitauth/libauth'
 
 import {
   authGuardAddresses,
+  authGuardLockingBytecodes,
   authGuardRedeemScript,
-  guardContentsFromUtxos,
-  isAuthKeyCandidate,
+  isAuthGuardOf,
+  isAuthKey,
 } from '../src/utils/tools/authGuard'
 
 // Verified against mainnet: a real AuthGuard covenant and the key that opens it. Its spends carry
@@ -14,16 +15,17 @@ import {
 const vector = {
   category: 'bcc5157eb69f0fcf80593c69ac08a3f28a1e726d55d0be6330ccaba4ed94c307',
   redeemScript: '2007c394eda4abcc3063bed0556d721e8af2a308ac693c5980cf0f9fb67e15c5bc51ce8851d0009d6300cdc0c7886851',
+  lockingBytecode: 'a9146a59d6c4546b759fe4e67258bae954f03335f7a187', // the covenant's P2SH20 output
   address: 'bitcoincash:pp49n4ky234ht8lyuee93whf2ncrxd0h5y8k8sw3t3',
   tokenAddress: 'bitcoincash:rp49n4ky234ht8lyuee93whf2ncrxd0h5yqu5wqh5z',
 }
 
-const nftUtxo = (commitment: string, capability: string): Utxo => ({
+const nftUtxo = (category: string, commitment: string, capability: string, amount = 0n): Utxo => ({
   txid: 'aa'.repeat(32),
   vout: 0,
   satoshis: 1000n,
   address: 'bitcoincash:qtest',
-  token: { category: 'bb'.repeat(32), amount: 0n, nft: { commitment, capability } },
+  token: { category, amount, nft: { commitment, capability } },
 } as Utxo)
 
 describe('authGuardRedeemScript', () => {
@@ -35,6 +37,28 @@ describe('authGuardRedeemScript', () => {
   it('is the length the standard describes', () => {
     // one push opcode, the 32 byte category, the 15 byte body
     expect(authGuardRedeemScript(vector.category).length).toBe(48)
+  })
+})
+
+// The standard's own verification: derive the covenant's locking bytecode from the category and
+// compare it with the identity output's
+describe('authGuardLockingBytecodes', () => {
+  it('derives the verified mainnet covenant output', () => {
+    expect(authGuardLockingBytecodes(vector.category).p2sh20).toBe(vector.lockingBytecode)
+  })
+
+  it('recognises an identity output at either hash length', () => {
+    const forms = authGuardLockingBytecodes(vector.category)
+    expect(isAuthGuardOf(vector.category, forms.p2sh20)).toBe(true)
+    expect(isAuthGuardOf(vector.category, forms.p2sh32)).toBe(true)
+    expect(forms.p2sh32).not.toBe(forms.p2sh20)
+  })
+
+  // another key's covenant, or a plain address, is not this identity's guard
+  it('rejects any other output', () => {
+    const otherGuard = authGuardLockingBytecodes('ab'.repeat(32)).p2sh20
+    expect(isAuthGuardOf(vector.category, otherGuard)).toBe(false)
+    expect(isAuthGuardOf(vector.category, `76a914${'ab'.repeat(20)}88ac`)).toBe(false)
   })
 })
 
@@ -54,7 +78,6 @@ describe('authGuardAddresses', () => {
     }).address
 
     expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh32).toBe(expected)
-    expect(authGuardAddresses(vector.category, 'bitcoincash').p2sh32).not.toBe(vector.tokenAddress)
   })
 
   it('derives on the network it is asked for', () => {
@@ -62,59 +85,30 @@ describe('authGuardAddresses', () => {
   })
 })
 
-describe('isAuthKeyCandidate', () => {
-  it('recognises the shape of an AuthKey', () => {
-    expect(isAuthKeyCandidate(nftUtxo('00', 'none'))).toBe(true)
+// What the covenant asks for at input 1: a token of the key's category carrying no amount, which
+// with a 32 byte category on the covenant's side means an NFT without capability
+describe('isAuthKey', () => {
+  const key = 'bb'.repeat(32)
+
+  it('takes an NFT of the key category with no amount and no capability, whatever its commitment', () => {
+    expect(isAuthKey(nftUtxo(key, '00', 'none'), key)).toBe(true)
+    expect(isAuthKey(nftUtxo(key, '', 'none'), key)).toBe(true)
+    expect(isAuthKey(nftUtxo(key, 'deadbeef', 'none'), key)).toBe(true)
   })
 
-  // the fingerprint is local and cheap, so it is deliberately narrow: anything else is not a
-  // candidate, and a candidate is only confirmed once its covenant is found to hold something
-  it('rejects an NFT that is not shaped like one', () => {
-    expect(isAuthKeyCandidate(nftUtxo('', 'none'))).toBe(false)
-    expect(isAuthKeyCandidate(nftUtxo('00', 'minting'))).toBe(false)
+  it('rejects an NFT of another category', () => {
+    expect(isAuthKey(nftUtxo('cc'.repeat(32), '00', 'none'), key)).toBe(false)
   })
 
-  it('rejects an NFT carrying a fungible amount', () => {
-    const withAmount = nftUtxo('00', 'none')
-    withAmount.token!.amount = 5n
-
-    expect(isAuthKeyCandidate(withAmount)).toBe(false)
+  it('rejects an NFT with a capability, or one carrying an amount', () => {
+    expect(isAuthKey(nftUtxo(key, '00', 'minting'), key)).toBe(false)
+    expect(isAuthKey(nftUtxo(key, '00', 'mutable'), key)).toBe(false)
+    expect(isAuthKey(nftUtxo(key, '00', 'none', 5n), key)).toBe(false)
   })
 
   it('rejects a coin that is not a token at all', () => {
-    expect(isAuthKeyCandidate({
+    expect(isAuthKey({
       txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
-    })).toBe(false)
-  })
-})
-
-describe('guardContentsFromUtxos', () => {
-  const guarded = (vout: number, category?: string): Utxo => ({
-    txid: 'cc'.repeat(32),
-    vout,
-    satoshis: 1000n,
-    address: 'bitcoincash:qguard',
-    ...(category ? { token: { category, amount: 100n } } : {}),
-  })
-
-  it('names the identity a guarded output belongs to', () => {
-    const output = guarded(0, 'dd'.repeat(32))
-
-    expect(guardContentsFromUtxos([output])).toEqual({
-      identified: [{ utxo: output, category: 'dd'.repeat(32) }],
-      unidentified: 0,
-    })
-  })
-
-  // the identity output is output 0; anyone can pay the covenant address, and those coins are not
-  it('ignores coins at the address that are not the identity output', () => {
-    expect(guardContentsFromUtxos([guarded(1, 'dd'.repeat(32))]))
-      .toEqual({ identified: [], unidentified: 0 })
-  })
-
-  // naming this one needs a lookup back from its txid, which this version cannot do; a key that
-  // guards only such an output still guards something, so it is counted rather than dropped
-  it('counts a guarded output it cannot name yet', () => {
-    expect(guardContentsFromUtxos([guarded(0)])).toEqual({ identified: [], unidentified: 1 })
+    }, key)).toBe(false)
   })
 })

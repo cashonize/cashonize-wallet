@@ -102,10 +102,14 @@ naming what was held back and what that did to the balance.
   that follows the spec to the letter sees exactly that; carrying the current publication
   forward on every operation would close the gap at the cost of an output per operation,
   and is not done yet.
-- **AuthGuard and AuthKey** are CashTokens Studio's: a covenant holding the identity
-  output, opened by an NFT. The covenant address follows from the key's category, so the
-  wallet derives it rather than being told. A key is recognised by its shape (commitment
-  `00`, no capability, no amount) and confirmed by what its covenant holds. The wallet
+- **AuthGuard and AuthKey** are the AuthGuard standard's, which CashTokens Studio
+  implements: a covenant holding the identity output, opened by an NFT. The covenant's
+  script follows from the key's category, so a guarded identity is recognised the way the
+  standard verifies one, by deriving the covenant's locking bytecode and comparing it with
+  the identity output's; the resolve already carries that output. The key is the identity's
+  own category in the standard's genesis setup, or the one the registry names in
+  `extensions.authNft` for an identity that adopted a guard later, read off the indexer's
+  copy. A key is any NFT of that category with no amount and no capability. The wallet
   protects a key the way it protects an identity output; the covenant's own spends belong
   to the tools that build them.
 - **The token metadata indexer** indexes token identities only, keyed by category. That is
@@ -124,7 +128,7 @@ naming what was held back and what that did to the balance.
 - `src/utils/tools/authchainIdentity.ts`: publication parsing and building, registry
   fetching and verification, the operations' outputs, the chain's history, registry naming.
 - `src/utils/tools/identityDetection.ts`: the two markers read off the spent-outputs walk.
-- `src/utils/tools/authGuard.ts`: the covenant address and the key's shape.
+- `src/utils/tools/authGuard.ts`: the covenant's script, its locking bytecode and addresses, and what a key is.
 - `src/utils/wallet/reservedUtxos.ts`, `src/utils/dapp/reservedInputs.ts`: what a
   reservation is, and how a dapp transaction is judged against it.
 - `src/components/settings/identitiesPage.vue`, `createTokens.vue`,

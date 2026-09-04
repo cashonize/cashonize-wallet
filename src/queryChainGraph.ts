@@ -1,4 +1,5 @@
 import { hexToBin, binToHex, encodeLockingBytecodeP2pkh } from "@bitauth/libauth";
+import type { Utxo } from "mainnet-js";
 import { print } from "@0no-co/graphql.web";
 import { graphql, type ResultOf, type TadaDocumentNode } from "src/chainGraphSchema";
 import { i18n } from 'src/boot/i18n'
@@ -175,6 +176,10 @@ const authHeadsQuery = graphql(`query AuthHeads(
           outputs(where: { output_index: { _eq: "0" } }) {
             locking_bytecode
             value_satoshis
+            token_category
+            fungible_token_amount
+            nonfungible_token_capability
+            nonfungible_token_commitment
           }
         }
         genesis: migrations(where: { migration_index: { _eq: "1" } }) {
@@ -210,6 +215,7 @@ const authHeadsQuery = graphql(`query AuthHeads(
 export interface IdentityOutput {
   lockingBytecode: string; // hex
   satoshis: bigint;
+  token?: NonNullable<Utxo['token']>; // the reserve and the NFT riding on the identity, in the wallet's own shape
 }
 
 export interface AuthHeadResult {
@@ -272,9 +278,20 @@ function readAuthHead(
   const isToken = categoryOutputs.length > 0;
   const fungibleSupply = categoryOutputs.some(output => BigInt(output.fungible_token_amount ?? 0) > 0n);
   const output = authhead.outputs[0];
-  const identityOutput = output
-    ? { lockingBytecode: byteaToHex(output.locking_bytecode), satoshis: BigInt(output.value_satoshis) }
-    : undefined;
+  let identityOutput: IdentityOutput | undefined;
+  if (output) {
+    identityOutput = { lockingBytecode: byteaToHex(output.locking_bytecode), satoshis: BigInt(output.value_satoshis) };
+    if (output.token_category) {
+      const capability = output.nonfungible_token_capability;
+      identityOutput.token = {
+        category: byteaToHex(output.token_category),
+        amount: BigInt(output.fungible_token_amount ?? 0),
+        ...(capability
+          ? { nft: { capability, commitment: byteaToHex(output.nonfungible_token_commitment ?? "") } }
+          : {}),
+      };
+    }
+  }
   return {
     txid: byteaToHex(authhead.hash),
     ...(identityOutput ? { identityOutput } : {}),

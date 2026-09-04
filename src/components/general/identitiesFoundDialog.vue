@@ -29,7 +29,7 @@
   // the id stands in for it rather than waiting
   const entries = computed(() => props.ids.map(id => {
     const identity = identitiesStore.identities?.find(identity => identity.category === id)
-    const output = identity?.authUtxo ?? identity?.guardedOutput
+    const output = identity?.authUtxo ?? identity?.identityOutput
     const metadata = store.bcmrRegistries?.[id]
     const reserve = output?.token?.amount
       ? `${formatTokenAmountFromBigInt(output.token.amount, metadata?.token?.decimals ?? 0)} ${metadata?.token?.symbol ?? ''}`.trim()
