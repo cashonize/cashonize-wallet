@@ -175,7 +175,7 @@ describe('the identities notification', () => {
     const { store, identitiesStore } = startStore([authKeyUtxo(categoryA)])
     store.tokenList = [{ category: categoryA, amount: 0n }]
 
-    await identitiesStore.followTokenIdentities('new')
+    await identitiesStore.followTokenIdentities('open')
 
     expect(identitiesStore.identityCategories).toContain(categoryA)
     expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
@@ -303,7 +303,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryB, amount: 100n }]
 
-    await identitiesStore.followTokenIdentities('new')
+    await identitiesStore.followTokenIdentities('open')
 
     expect(identitiesStore.openCheckError).toEqual(expect.any(String))
     expect(identitiesStore.identityCategories).toEqual([])
@@ -331,26 +331,27 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos).toEqual({})
   })
 
-  // the open pass asks only for categories never looked up, up to its cap; a token sent away
-  // leaves the group on the next pass
-  it('asks at open only about categories it has not followed, and drops a token sent away', async () => {
+  // the open pass asks about every held category, the remembered ones included, since the states
+  // are not persisted and a group filled from memory alone would be half empty until the visit;
+  // a token sent away leaves the group on the next pass
+  it('asks at open about every held category, and drops a token sent away', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     const { store, identitiesStore } = startStore([])
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryA, amount: 5n }]
-    await identitiesStore.followTokenIdentities('new')
+    await identitiesStore.followTokenIdentities('open')
     expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryA])
 
     const asked: string[] = []
     const answering = fetch as unknown as { mock: { calls: unknown[][] } }
     const before = answering.mock.calls.length
     store.tokenList = [{ category: categoryA, amount: 5n }, { category: categoryB, amount: 1n }]
-    await identitiesStore.followTokenIdentities('new')
+    await identitiesStore.followTokenIdentities('open')
     for (const call of answering.mock.calls.slice(before)) {
       const { variables } = JSON.parse((call[1] as RequestInit).body as string) as { variables: { hashes?: string[] } }
       asked.push(...(variables.hashes ?? []))
     }
-    expect(asked).toEqual([`\\x${categoryB}`])
+    expect(asked).toEqual([`\\x${categoryA}`, `\\x${categoryB}`])
     expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryA, categoryB])
 
     store.tokenList = [{ category: categoryB, amount: 1n }]

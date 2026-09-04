@@ -357,30 +357,26 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return resolved[0]?.unresolvedReason;
   }
 
-  // The identities of the tokens this wallet holds, followed: 'new' at open, categories never
-  // looked up, up to the cap; 'all' on the page's visit. Nothing is listed or reserved here except
-  // an identity whose authhead turns out to be in this wallet, which is promoted and announced.
-  async function followTokenIdentities(scope: 'new' | 'all') {
+  // The identities of the tokens this wallet holds, followed: every held category at open, up to
+  // the cap, and all of them on the page's visit. Resolving only what was never looked up would
+  // leave the group half filled until the visit, since the states themselves are not persisted.
+  // Nothing is listed or reserved here except an identity whose authhead, or whose key, turns
+  // out to be in this wallet, which is promoted and announced.
+  async function followTokenIdentities(scope: 'open' | 'all') {
     await withResolveLock(async () => {
       const currentUtxos = mainStore.walletUtxos;
       if (!currentUtxos) return;
       const held = (mainStore.tokenList ?? [])
         .map(token => token.category)
         .filter(category => !identityCategories.value.includes(category) && !dismissedIdentities.value.includes(category));
-      // at open, what was never looked up, and what may have arrived since: a held vout-0 coin of
-      // a followed category that is not the authhead remembered for it, which costs nothing to see
-      const arrived = (category: string) => currentUtxos.some(utxo =>
-        utxo.vout === 0 && utxo.token?.category === category && utxo.txid !== followed[category]?.authheadTxid
-      );
-      let categories = scope === 'new' ? held.filter(category => !followed[category] || arrived(category)) : held;
-      if (scope === 'new') categories = categories.slice(0, followedPerOpenCap);
+      const categories = scope === 'open' ? held.slice(0, followedPerOpenCap) : held;
       const started = mainStore.currentInitializationToken();
       const resolved = categories.length
         ? await resolveIdentities(categories, settingsStore.chaingraph, currentUtxos, extraKeyCategories)
         : [];
       if (mainStore.walletSwitchedSince(started)) return;
       const outage = outageReason(resolved);
-      if (outage && scope === 'new') openCheckError.value = outage;
+      if (outage && scope === 'open') openCheckError.value = outage;
       // what was not asked this time keeps its last answer, as long as the token is still held
       const next = (tokenIdentities.value ?? []).filter(
         identity => held.includes(identity.category) && !categories.includes(identity.category)
@@ -440,7 +436,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
         await detectWalletIdentities(spentOutputs);
       }
       if (mainStore.walletSwitchedSince(started)) return;
-      if (settingsStore.followTokenIdentities) await followTokenIdentities('new');
+      if (settingsStore.followTokenIdentities) await followTokenIdentities('open');
     } catch (error) {
       console.error("Failed to look up the wallet's identities:", error);
       if (mainStore.walletSwitchedSince(started)) return;

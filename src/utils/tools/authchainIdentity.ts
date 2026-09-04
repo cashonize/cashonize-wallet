@@ -349,8 +349,8 @@ const identityListKeys = {
 } as const;
 
 // What the wallet last saw of each followed token identity, per wallet per network: the authhead
-// and the publication, which is what a later diff reads and what says a category was looked up.
-// Written whole, merged over what another tab stored since, and only ever from a fulfilled lookup.
+// and the publication, which is what a later change notice reads. Written whole, merged over
+// what another tab stored since, and only ever from a fulfilled lookup.
 export interface FollowedIdentity {
   authheadTxid: string;
   publicationHash?: string;
