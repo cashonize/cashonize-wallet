@@ -817,7 +817,7 @@
       "empty": "This wallet has no BCH-only UTXOs."
     },
     "tokenList": {
-      "title": "Token UTXOs per category",
+      "title": "Overview: token UTXOs per category",
       "empty": "This wallet has no token UTXOs."
     },
     "fungibleList": {

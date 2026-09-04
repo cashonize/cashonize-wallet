@@ -817,7 +817,7 @@
       "empty": "Ce portefeuille n'a pas d'UTXOs BCH uniquement."
     },
     "tokenList": {
-      "title": "UTXOs de tokens par catégorie",
+      "title": "Aperçu : UTXOs de tokens par catégorie",
       "empty": "Ce portefeuille n'a pas d'UTXOs de tokens."
     },
     "fungibleList": {

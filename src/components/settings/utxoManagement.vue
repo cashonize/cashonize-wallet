@@ -155,7 +155,8 @@
   // fetched after the utxos, and it carries the decimals a fungible amount is shown in
   const loadingTokenData = computed(() => store.bcmrRegistries === undefined);
 
-  const collapsedLists = ref({ bch: false, tokens: false, fungible: true, nft: true, ftNft: true });
+  // the per-category overview has nothing to act on, so it opens closed like the token lists
+  const collapsedLists = ref({ bch: false, tokens: true, fungible: true, nft: true, ftNft: true });
   const listPages = ref<Record<UtxoList, number>>({ bch: 1, fungible: 1, nft: 1, ftNft: 1 });
 
   function toggleList(key: keyof typeof collapsedLists.value) {
@@ -621,11 +622,19 @@
         </div>
       </div>
 
-      <!-- Token UTXOs per category -->
+      <!-- Token UTXOs per category: an overview, so the one thing worth opening it for, a category
+           holding a lot of BCH, is marked on the closed header too -->
       <div class="section divided">
         <div class="list-header" @click="toggleList('tokens')">
           <strong>{{ t('utxoManagement.tokenList.title') }}</strong>
           <span v-if="tokenCategoryGroups">({{ tokenCategoryGroups.length.toLocaleString('en-US') }})</span>
+          <EmojiItem
+            v-if="collapsedLists.tokens && tokenCategoryGroups?.some(group => group.holdsSignificantBch)"
+            class="warn-marker"
+            emoji="⚠️"
+            :sizePx="16"
+            :title="t('utxoManagement.markers.bchOnToken')"
+          />
           <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.tokens }" />
         </div>
         <template v-if="!collapsedLists.tokens">
