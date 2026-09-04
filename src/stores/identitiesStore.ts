@@ -195,7 +195,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const named: { coin: Utxo; category: string }[] = [];
     const started = mainStore.currentInitializationToken();
     for (const coin of coins) {
-      const category = await nameChainFromRegistry(coin.txid, settingsStore.chaingraph, settingsStore.ipfsGateway);
+      const category = await nameChainFromRegistry(coin.txid, mainStore.chaingraph, settingsStore.ipfsGateway);
       if (mainStore.walletSwitchedSince(started)) return [];
       if (!category) continue;
       if (identityCategories.value.includes(category)) continue;
@@ -231,7 +231,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   async function fetchIdentityHistory(identity: IdentityState) {
     const authhead = identity.authheadTxid;
     if (!authhead || identityHistories.value[authhead]) return;
-    const links = await queryAuthchainLinks(identity.category, settingsStore.chaingraph);
+    const links = await queryAuthchainLinks(identity.category, mainStore.chaingraph);
     identityHistories.value = {
       ...identityHistories.value,
       [authhead]: describeChainLinks(links),
@@ -276,7 +276,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     }
     const started = mainStore.currentInitializationToken();
     const resolved = await resolveIdentities(
-      identityCategories.value, settingsStore.chaingraph, currentUtxos, extraKeyCategories
+      identityCategories.value, mainStore.chaingraph, currentUtxos, extraKeyCategories
     );
     if (mainStore.walletSwitchedSince(started)) return news;
     // a watched identity whose authhead arrived is held from here on, which the user is told
@@ -374,7 +374,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const categories = scope === 'open' ? held.slice(0, followedPerOpenCap) : held;
       const started = mainStore.currentInitializationToken();
       const resolved = categories.length
-        ? await resolveIdentities(categories, settingsStore.chaingraph, currentUtxos, extraKeyCategories)
+        ? await resolveIdentities(categories, mainStore.chaingraph, currentUtxos, extraKeyCategories)
         : [];
       if (mainStore.walletSwitchedSince(started)) return;
       const outage = outageReason(resolved);
@@ -421,23 +421,21 @@ export const useIdentitiesStore = defineStore('identities', () => {
   const openCheckError = ref<string | undefined>(undefined);
 
   // The passes the wallet runs on its own once a wallet is up: the walk of its history for the
-  // identities these keys made, mainnet only like the walk itself, and the followed token
-  // identities, on both networks since those lookups are keyed by category.
+  // identities these keys made, and the followed token identities. Nothing runs on a network
+  // without a Chaingraph instance configured, which the page says.
   // Outside the wallet's own failure path: a lookup failing here, an electrum server refusing a
   // guard address say, must not flag a wallet that did load, so it is reported where the
   // identities are. The resolve of what the wallet follows comes first, since the walk lists
   // against it.
   async function runChecksOnOpen() {
+    if (!mainStore.chaingraph) return;
     const started = mainStore.currentInitializationToken();
     openCheckError.value = undefined;
     try {
       await refreshIdentities();
-      if (mainStore.network === 'mainnet') {
-        const spentOutputs = await mainStore.walkSpentOutputs();
-        if (mainStore.walletSwitchedSince(started)) return;
-        await detectWalletIdentities(spentOutputs);
-      }
+      const spentOutputs = await mainStore.walkSpentOutputs();
       if (mainStore.walletSwitchedSince(started)) return;
+      await detectWalletIdentities(spentOutputs);
       if (settingsStore.followTokenIdentities) await followTokenIdentities('open');
     } catch (error) {
       console.error("Failed to look up the wallet's identities:", error);
@@ -501,7 +499,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // it is held here, guarded, or somebody else's, and lists it on the user's word
   async function inspectCategory(category: string): Promise<IdentityState> {
     const [found] = await resolveIdentities(
-      [category], settingsStore.chaingraph, mainStore.walletUtxos ?? [], extraKeyCategories
+      [category], mainStore.chaingraph, mainStore.walletUtxos ?? [], extraKeyCategories
     );
     return found ?? { category, status: 'unresolved' };
   }

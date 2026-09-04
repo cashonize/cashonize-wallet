@@ -141,6 +141,8 @@ vi.mock('src/stores/settingsStore', () => ({
     electrumServerChipnet: 'chipnet.bch.ninja',
     tokenMetadataIndexerMainnet: 'https://bcmr.paytaca.com/api',
     tokenMetadataIndexerChipnet: 'https://bcmr-chipnet.paytaca.com/api',
+    chaingraphMainnet: 'https://chaingraph.example.com/v1/graphql',
+    chaingraphChipnet: '',
     ipfsGateway: 'https://ipfs.io/ipfs/',
     followTokenIdentities: true,
     featuredTokens: [],

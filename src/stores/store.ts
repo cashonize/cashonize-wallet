@@ -251,6 +251,8 @@ export const useStore = defineStore('store', () => {
 
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
   const tokenMetadataIndexer = computed(() => network.value == 'mainnet' ? settingsStore.tokenMetadataIndexerMainnet : settingsStore.tokenMetadataIndexerChipnet)
+  // empty when no Chaingraph instance is configured for the network
+  const chaingraph = computed(() => network.value == 'mainnet' ? settingsStore.chaingraphMainnet : settingsStore.chaingraphChipnet)
 
   // Index of the receive address shown on the wallet page. For HD wallets this skips addresses
   // the user marked as used; undefined for single-address wallets and when every address in the
@@ -1228,9 +1230,9 @@ export const useStore = defineStore('store', () => {
   }
 
   // The walk of the wallet's spent outputs, run at open for identity detection and again from the
-  // portfolio view. Mainnet only: the query is address-keyed and one endpoint serves both chains.
+  // portfolio view
   async function walkSpentOutputs() {
-    return querySpentOutputs(walletPublicKeyHashes(), settingsStore.chaingraph);
+    return querySpentOutputs(walletPublicKeyHashes(), chaingraph.value);
   }
 
   // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the
@@ -1690,6 +1692,7 @@ export const useStore = defineStore('store', () => {
     latestGithubRelease,
     network,
     explorerUrl,
+    chaingraph,
     bcmrRegistries,
     cauldronPrices,
     cauldronPools,

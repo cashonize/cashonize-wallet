@@ -84,7 +84,7 @@ Chaingraph is a secondary blockchain indexer next to electrum, a GraphQL (Hasura
 The queries live in `src/queryChainGraph.ts`, typed from the schema with gql.tada (`src/chainGraphSchema.ts`, over a committed introspection in `src/generated/`). Two limits shape them: the introspection carries no field arguments, so `where`, `order_by` and `limit` are not type-checked; and the default instance caps any selection at 1,000 rows, nested ones included, silently, so anything that grows with a chain or a wallet's history is paged or narrowed on the server.
 
 ### Configurable Backends
-Every backend the app talks to is one user-swappable server: electrum (per network), the Chaingraph instance, the BCMR and Cauldron indexers, the IPFS gateway and the exchange rate provider all live in settingsStore, selectable in the advanced settings from predefined choices plus, for most, a custom URL.
+Every backend the app talks to is one user-swappable server: electrum and the Chaingraph instance (both per network), the BCMR and Cauldron indexers, the IPFS gateway and the exchange rate provider all live in settingsStore, selectable in the advanced settings from predefined choices plus, for most, a custom URL.
 
 ### CashConnect Transport
 CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). The relay is store-and-forward with per-message TTLs, so dApp and wallet don't need to be online at the same time — a session survives either side going offline (short-lived messages like balance pushes simply expire rather than being replayed). Sessions persist in localStorage, namespaced per wallet identity key, and are restored by the library's `start()`; the app's `cashconnectStore.stop()` stops the service without un-pairing.

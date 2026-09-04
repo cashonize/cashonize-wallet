@@ -60,7 +60,8 @@
       "rejected": "Der Chaingraph-Server hat die Anfrage abgelehnt: {reason}",
       "invalidResponse": "Der Server hat keine gültige Chaingraph-Antwort zurückgegeben.",
       "tokenNotFound": "Token nicht gefunden",
-      "authchainNotFound": "Der Chaingraph-Server hat keine Identitätshistorie zu dieser Id gefunden. Prüfe die Id; stimmt sie, indexiert der Server diese Chain womöglich nicht."
+      "authchainNotFound": "Der Chaingraph-Server hat keine Identitätshistorie zu dieser Id gefunden. Prüfe die Id; stimmt sie, indexiert der Server diese Chain womöglich nicht.",
+      "notConfigured": "Für dieses Netzwerk ist kein Chaingraph-Server konfiguriert. Lege einen in den erweiterten Einstellungen fest."
     }
   },
   "exchangeRate": {
@@ -1406,6 +1407,7 @@
       "chaingraphCustomHint": "/v1/graphql wird automatisch ergänzt, wenn nur ein Host angegeben wird.",
       "chaingraphInvalidUrl": "Ungültige Chaingraph-Server-URL",
       "chaingraphChecking": "Chaingraph-Server wird überprüft",
+      "chaingraphNone": "Keiner",
       "cauldronIndexer": "Cauldron-Indexer:",
       "cauldronIndexerHint": "Wird verwendet, um Token-Preise von der Cauldron-DEX für das Portfolio und die Token-Liste abzurufen.",
       "exchangeRate": "Wechselkursanbieter:",
@@ -1818,6 +1820,7 @@
       "since": "Seit {year}"
     },
     "openCheckFailed": "Die Identitäten dieses Wallets konnten nicht nachgeschlagen werden: {reason} Eine Identität, die es hält, ist womöglich noch nicht zurückgehalten. Lade neu, oder prüfe den Chaingraph-Server in den Einstellungen.",
+    "chaingraphNotConfigured": "Für Chipnet ist kein Chaingraph-Server festgelegt, daher können Identitäten hier nicht nachgeschlagen werden. Lege einen in den erweiterten Einstellungen fest.",
     "unresolvedHint": "Lade neu oder prüfe den Chaingraph-Server in den Einstellungen.",
     "found": {
       "title": "Dieses Wallet hält Identitäten",

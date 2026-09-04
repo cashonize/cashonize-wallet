@@ -60,7 +60,8 @@
       "rejected": "El servidor Chaingraph rechazó la solicitud: {reason}",
       "invalidResponse": "El servidor no devolvió una respuesta válida de Chaingraph.",
       "tokenNotFound": "Token no encontrado",
-      "authchainNotFound": "El servidor de Chaingraph no encontró historial de identidad para ese id. Comprueba el id; si es correcto, puede que el servidor no indexe esta cadena."
+      "authchainNotFound": "El servidor de Chaingraph no encontró historial de identidad para ese id. Comprueba el id; si es correcto, puede que el servidor no indexe esta cadena.",
+      "notConfigured": "No hay ningún servidor Chaingraph configurado para esta red. Configura uno en los ajustes avanzados."
     }
   },
   "exchangeRate": {
@@ -1406,6 +1407,7 @@
       "chaingraphCustomHint": "/v1/graphql se añade automáticamente cuando solo se proporciona un host.",
       "chaingraphInvalidUrl": "URL del servidor Chaingraph no válida",
       "chaingraphChecking": "Comprobando el servidor Chaingraph",
+      "chaingraphNone": "Ninguno",
       "cauldronIndexer": "Indexador de Cauldron:",
       "cauldronIndexerHint": "Se usa para obtener precios de tokens del DEX Cauldron para el portafolio y la lista de tokens.",
       "exchangeRate": "Proveedor de tasa de cambio:",
@@ -1818,6 +1820,7 @@
       "since": "Desde {year}"
     },
     "openCheckFailed": "No se pudieron consultar las identidades de esta billetera: {reason} Una identidad que tiene puede no estar retenida todavía. Recarga, o revisa el servidor Chaingraph en los ajustes.",
+    "chaingraphNotConfigured": "No hay ningún servidor Chaingraph configurado para chipnet, así que las identidades no se pueden consultar aquí. Configura uno en los ajustes avanzados.",
     "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes.",
     "found": {
       "title": "Esta billetera tiene identidades",

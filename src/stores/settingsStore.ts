@@ -13,7 +13,11 @@ const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction"
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultElectrumChipnet = "chipnet.bch.ninja"
-const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
+// One Chaingraph instance per network: some instances index several chains behind one endpoint
+// and some serve one chain each, so the setting names an endpoint per network. No public
+// instance serves chipnet reliably yet.
+const defaultChaingraphMainnet = "https://gql.chaingraph.pat.mn/v1/graphql";
+const defaultChaingraphChipnet = "";
 const defaultCauldronIndexer = "https://indexer.riften.net";
 // The token metadata endpoints: a BCMR indexer that indexes token identities only, keyed by
 // category. Not a way to name a non-token identity, which the identities page reads from its own
@@ -38,7 +42,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const explorerChipnet = ref(defaultExplorerChipnet);
   const electrumServerMainnet = ref(defaultElectrumMainnet);
   const electrumServerChipnet = ref(defaultElectrumChipnet);
-  const chaingraph = ref(defaultChaingraph);
+  const chaingraphMainnet = ref(defaultChaingraphMainnet);
+  const chaingraphChipnet = ref(defaultChaingraphChipnet);
   const cauldronIndexer = ref(defaultCauldronIndexer);
   const tokenMetadataIndexerMainnet = ref(defaultTokenMetadataIndexerMainnet);
   const tokenMetadataIndexerChipnet = ref(defaultTokenMetadataIndexerChipnet);
@@ -212,8 +217,12 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readElectrumChipnet = localStorage.getItem("electrum-chipnet") ?? "";
   if(readElectrumChipnet) electrumServerChipnet.value = readElectrumChipnet
 
-  const readChaingraph = localStorage.getItem("chaingraph") ?? "";
-  if(readChaingraph) chaingraph.value = readChaingraph
+  // the setting was one URL for both networks; that key becomes the mainnet one
+  const readChaingraphMainnet = localStorage.getItem("chaingraph-mainnet") ?? localStorage.getItem("chaingraph") ?? "";
+  if (readChaingraphMainnet) chaingraphMainnet.value = readChaingraphMainnet;
+  localStorage.removeItem("chaingraph");
+  const readChaingraphChipnet = localStorage.getItem("chaingraph-chipnet");
+  if (readChaingraphChipnet !== null) chaingraphChipnet.value = readChaingraphChipnet;
 
   const readCauldronIndexer = localStorage.getItem("cauldronIndexer") ?? "";
   if(readCauldronIndexer) cauldronIndexer.value = readCauldronIndexer
@@ -472,7 +481,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     explorerChipnet,
     electrumServerMainnet,
     electrumServerChipnet,
-    chaingraph,
+    chaingraphMainnet,
+    chaingraphChipnet,
     cauldronIndexer,
     tokenMetadataIndexerMainnet,
     tokenMetadataIndexerChipnet,

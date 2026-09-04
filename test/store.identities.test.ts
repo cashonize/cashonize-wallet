@@ -75,7 +75,6 @@ function stubIdentityServers(
   onQuery?: (hash: string) => void,
 ) {
   vi.stubGlobal('fetch', vi.fn((url: string, options?: RequestInit) => {
-    // the Chaingraph setting is empty in tests, so the url is matched as a string, not assumed one
     const registry = Object.entries(registries).find(([prefix]) => String(url ?? '').startsWith(prefix))
     if (registry) return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(utf8ToBin(registry[1]).buffer) })
     // one category asked at a time here, through the batch query

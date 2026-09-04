@@ -94,14 +94,15 @@
   const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);
   const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
-  const predefinedChaingraphs = [
-    "https://gql.chaingraph.pat.mn/v1/graphql",
-    "https://demo.chaingraph.cash/v1/graphql"
-  ];
-  const storedChaingraph = settingsStore.chaingraph;
-  const isCustomChaingraph = !predefinedChaingraphs.includes(storedChaingraph);
-  const selectedChaingraph = ref(isCustomChaingraph ? "custom" : storedChaingraph);
-  const customChaingraph = ref(isCustomChaingraph ? storedChaingraph : "");
+  // per network like electrum; chipnet has no predefined instance, only "none" or a custom one
+  const predefinedChaingraphsMainnet = ["https://gql.chaingraph.pat.mn/v1/graphql"];
+  const storedChaingraphMainnet = settingsStore.chaingraphMainnet;
+  const isCustomChaingraphMainnet = !predefinedChaingraphsMainnet.includes(storedChaingraphMainnet);
+  const selectedChaingraphMainnet = ref(isCustomChaingraphMainnet ? "custom" : storedChaingraphMainnet);
+  const customChaingraphMainnet = ref(isCustomChaingraphMainnet ? storedChaingraphMainnet : "");
+  const storedChaingraphChipnet = settingsStore.chaingraphChipnet;
+  const selectedChaingraphChipnet = ref(storedChaingraphChipnet ? "custom" : "");
+  const customChaingraphChipnet = ref(storedChaingraphChipnet);
   const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
   const predefinedTokenMetadataIndexersMainnet = ["https://bcmr.paytaca.com/api"];
   const predefinedTokenMetadataIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
@@ -262,12 +263,14 @@
     settingsStore.ipfsGateway = trimmedGateway;
     localStorage.setItem("ipfsGateway", trimmedGateway);
   }
-  function changeChaingraph(){
-    if (selectedChaingraph.value === "custom") return;
-    applyChaingraph(selectedChaingraph.value);
+  function changeChaingraph(network: 'mainnet' | 'chipnet'){
+    const selected = network === 'mainnet' ? selectedChaingraphMainnet.value : selectedChaingraphChipnet.value;
+    if (selected === "custom") return;
+    applyChaingraph(network, selected);
   }
   const verifyingCustomChaingraph = ref(false);
-  async function saveCustomChaingraph(){
+  async function saveCustomChaingraph(network: 'mainnet' | 'chipnet'){
+    const customChaingraph = network === 'mainnet' ? customChaingraphMainnet : customChaingraphChipnet;
     const trimmedChaingraph = customChaingraph.value.trim();
     if (!trimmedChaingraph || verifyingCustomChaingraph.value) return;
     let normalizedChaingraph: string;
@@ -288,11 +291,12 @@
     } finally {
       verifyingCustomChaingraph.value = false;
     }
-    applyChaingraph(normalizedChaingraph);
+    applyChaingraph(network, normalizedChaingraph);
   }
-  function applyChaingraph(chaingraphUrl: string){
-    settingsStore.chaingraph = chaingraphUrl;
-    localStorage.setItem("chaingraph", chaingraphUrl);
+  function applyChaingraph(network: 'mainnet' | 'chipnet', chaingraphUrl: string){
+    if (network === 'mainnet') settingsStore.chaingraphMainnet = chaingraphUrl;
+    else settingsStore.chaingraphChipnet = chaingraphUrl;
+    localStorage.setItem(`chaingraph-${network}`, chaingraphUrl);
   }
   function changeCauldronIndexer(){
     settingsStore.cauldronIndexer = selectedCauldronIndexer.value;
@@ -739,16 +743,29 @@
           </template>
           <div style="max-width: 300px;">{{ t('settings.advanced.chaingraphHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedChaingraph" @change="changeChaingraph()">
+        <select v-if="store.network == 'mainnet'" v-model="selectedChaingraphMainnet" @change="changeChaingraph('mainnet')">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
-          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
           <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="selectedChaingraph === 'custom'" style="margin-top: 8px;">
+        <select v-else v-model="selectedChaingraphChipnet" @change="changeChaingraph('chipnet')">
+          <option value="">{{ t('settings.advanced.chaingraphNone') }} {{ t('settings.advanced.default') }}</option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
+        </select>
+        <div v-if="(store.network == 'mainnet' ? selectedChaingraphMainnet : selectedChaingraphChipnet) === 'custom'" style="margin-top: 8px;">
           <input
-            v-model="customChaingraph"
-            @blur="saveCustomChaingraph()"
-            @keyup.enter="saveCustomChaingraph()"
+            v-if="store.network == 'mainnet'"
+            v-model="customChaingraphMainnet"
+            @blur="saveCustomChaingraph('mainnet')"
+            @keyup.enter="saveCustomChaingraph('mainnet')"
+            type="text"
+            :placeholder="t('settings.advanced.chaingraphCustomPlaceholder')"
+            style="width: 100%;"
+          >
+          <input
+            v-else
+            v-model="customChaingraphChipnet"
+            @blur="saveCustomChaingraph('chipnet')"
+            @keyup.enter="saveCustomChaingraph('chipnet')"
             type="text"
             :placeholder="t('settings.advanced.chaingraphCustomPlaceholder')"
             style="width: 100%;"

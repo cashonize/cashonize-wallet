@@ -8,14 +8,12 @@ const CHAINGRAPH_REQUEST_TIMEOUT_MS = 10_000;
 
 export class ChaingraphRequestError extends Error {}
 
-// One endpoint serves both networks: the instances in use index mainnet and chipnet together,
-// and the identity queries are keyed by transaction hash, which is unambiguous across chains. An
-// address-keyed query would mix chains and needs gating, as the spent-outputs walk is.
 async function queryChainGraph<Result, Variables>(
     document: TadaDocumentNode<Result, Variables>,
     chaingraphUrl: string,
     variables: Variables,
 ) {
+    if (!chaingraphUrl) throw new ChaingraphRequestError(t('chaingraph.errors.notConfigured'));
     const jsonObj = {
         "operationName": null,
         "variables": variables,

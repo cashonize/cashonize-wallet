@@ -60,7 +60,8 @@
       "rejected": "Le serveur Chaingraph a rejeté la requête : {reason}",
       "invalidResponse": "Le serveur n'a pas renvoyé de réponse Chaingraph valide.",
       "tokenNotFound": "Token non trouvé",
-      "authchainNotFound": "Le serveur Chaingraph n'a trouvé aucun historique d'identité pour cet identifiant. Vérifiez l'identifiant ; s'il est correct, le serveur n'indexe peut-être pas cette chaîne."
+      "authchainNotFound": "Le serveur Chaingraph n'a trouvé aucun historique d'identité pour cet identifiant. Vérifiez l'identifiant ; s'il est correct, le serveur n'indexe peut-être pas cette chaîne.",
+      "notConfigured": "Aucun serveur Chaingraph n'est configuré pour ce réseau. Définissez-en un dans les réglages avancés."
     }
   },
   "exchangeRate": {
@@ -1406,6 +1407,7 @@
       "chaingraphCustomHint": "/v1/graphql est ajouté automatiquement lorsque seul un hôte est indiqué.",
       "chaingraphInvalidUrl": "URL du serveur Chaingraph invalide",
       "chaingraphChecking": "Vérification du serveur Chaingraph",
+      "chaingraphNone": "Aucun",
       "cauldronIndexer": "Indexeur Cauldron :",
       "cauldronIndexerHint": "Utilisé pour obtenir les prix des tokens depuis le DEX Cauldron pour le portfolio et la liste des tokens.",
       "exchangeRate": "Fournisseur de taux de change :",
@@ -1818,6 +1820,7 @@
       "since": "Depuis {year}"
     },
     "openCheckFailed": "Impossible de consulter les identités de ce portefeuille : {reason} Une identité qu'il détient n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les réglages.",
+    "chaingraphNotConfigured": "Aucun serveur Chaingraph n'est défini pour chipnet, les identités ne peuvent donc pas être consultées ici. Définissez-en un dans les réglages avancés.",
     "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
     "found": {
       "title": "Ce portefeuille détient des identités",

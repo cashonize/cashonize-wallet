@@ -60,7 +60,8 @@
       "rejected": "The Chaingraph server rejected the request: {reason}",
       "invalidResponse": "The server did not return a valid Chaingraph response.",
       "tokenNotFound": "Token not found",
-      "authchainNotFound": "The Chaingraph server found no identity history for that id. Check the id; if it is right, the server may not index this chain."
+      "authchainNotFound": "The Chaingraph server found no identity history for that id. Check the id; if it is right, the server may not index this chain.",
+      "notConfigured": "No Chaingraph server is configured for this network. Set one in the advanced settings."
     }
   },
   "exchangeRate": {
@@ -1406,6 +1407,7 @@
       "chaingraphCustomHint": "/v1/graphql is added automatically when only a host is provided.",
       "chaingraphInvalidUrl": "Invalid Chaingraph server URL",
       "chaingraphChecking": "Checking the Chaingraph server",
+      "chaingraphNone": "None",
       "cauldronIndexer": "Cauldron indexer:",
       "cauldronIndexerHint": "Used to get token prices from the Cauldron DEX for the portfolio and the token list.",
       "exchangeRate": "Exchange rate provider:",
@@ -1818,6 +1820,7 @@
       "since": "Established {year}"
     },
     "openCheckFailed": "Could not look up this wallet's identities: {reason} An identity it holds may not be held back yet. Reload, or check the Chaingraph server in the settings.",
+    "chaingraphNotConfigured": "No Chaingraph server is set for chipnet, so identities cannot be looked up here. Set one in the advanced settings.",
     "unresolvedHint": "Reload, or check the Chaingraph server in the settings.",
     "found": {
       "title": "This wallet holds identities",
