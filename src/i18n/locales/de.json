@@ -1537,17 +1537,25 @@
       "existing": "Hinzufügen",
       "create": "Erstellen"
     },
-    "whatIsAnIdentityNote": "Studio und der Explorer nennen diesen UTXO den AuthHead; die Spezifikation nennt die Transaktion den authhead und ihren Ausgang 0 den Identitätsausgang. Ihn zu halten ist es, was dieses Wallet zu dem macht, das neue Metadaten veröffentlichen kann.",
-    "authchain": {
-      "leads": {
-        "chain": "Authchain:",
-        "base": "Authbase:",
-        "head": "die letzte Transaktion; ihr Ausgang 0 ist der UTXO der Identität, dessen Halter die Identität kontrolliert."
-      },
-      "chain": "Transaktionen, von denen jede den Ausgang 0 der vorigen ausgibt.",
-      "base": "die erste davon und die Id der Identität; bei einem Token die Token-Id.",
-      "head": "das letzte Glied: der UTXO, dessen Halter die Identität und ihre Metadaten kontrolliert."
+    "learn": {
+      "link": "Lernen",
+      "back": "Zurück zu den Identitäten",
+      "title": "Identitäten auf Bitcoin Cash",
+      "purposeLead": "Eine Identität veröffentlicht überprüfbare Informationen.",
+      "purpose": "Sie ist ein Weg, Informationen über etwas auf Bitcoin Cash zu veröffentlichen, seine Metadaten, etwa Namen und Symbol eines Tokens. Jeder kann prüfen, dass die Informationen von dem stammen, der die Identität kontrolliert, und der Kontrollierende kann sie mit der Zeit ändern oder die Kontrolle weitergeben.",
+      "whatLead": "Technisch ist eine Identität eine Kette von Transaktionen.",
+      "what": "Sie beginnt bei der Authbase, bei einem Token die Token-Id, und setzt sich über jede Transaktion fort, die den Ausgang 0 der vorigen ausgibt. Der letzte unausgegebene Ausgang 0 ist der UTXO der Identität: wer ihn hält, kontrolliert die Identität, und ihn an eine neue Adresse zu bewegen ist die Übertragung.",
+      "tokensLead": "Jeder Token ist eine Identität.",
+      "tokens": "Seine Token-Id ist die Id der Identität, und so kann ein Herausgeber Namen und Symbol eines Tokens noch ändern, wenn die Tokens schon im Umlauf sind. Es gibt auch Identitäten, die keine Tokens sind: eine Person, eine Organisation oder ein Vertrag kann Informationen auf dieselbe Weise veröffentlichen.",
+      "metadataLead": "Die Metadaten sind eine gehostete Datei.",
+      "metadata": "Eine Registry im BCMR-Format wird außerhalb der Chain gehostet, und ein Veröffentlichungsausgang auf der Kette legt ihren Hash fest, sodass jeder die Datei laden und gegen die Kette prüfen kann. Registries werden mit Werkzeugen wie dem {generator} geschrieben.",
+      "keysLead": "AuthKeys sind eine Konvention von CashTokens Studio.",
+      "keys": "{studio} legt den UTXO einer Identität in einen Covenant, den AuthGuard, und macht das Recht, ihn zu bewegen, zu einem NFT, dem AuthKey. Dieses Wallet erkennt solche Schlüssel, listet, was sie kontrollieren, und schützt sie wie einen Identitäts-UTXO.",
+      "furtherLead": "Weiterführend.",
+      "further": "Der {spec} beschreibt Identitäten, Registries und Veröffentlichung vollständig.",
+      "specLink": "CHIP-BCMR-Standard"
     },
+    "whatIsAnIdentity": "Eine Identität ist eine Kette von Transaktionen, von denen jede den Ausgang 0 der vorigen ausgibt. Wer den letzten Ausgang hält, den UTXO der Identität, kontrolliert die Identität und kann ihre Metadaten veröffentlichen.",
     "authbaseLabel": "Authbase / Token-Id:",
     "resolving": "Suche, wo diese Identitäten liegen...",
     "empty": "Noch keine Identitäten gelistet. Eine, die dieses Wallet gemacht hat, wird von selbst gefunden; eine, die du hältst oder verfolgen willst, fügst du unter {link} über ihre Authbase hinzu. Die Identitäten der Tokens, die du hältst, werden unten verfolgt.",
@@ -1725,14 +1733,18 @@
       "generatorHelpSchema": "BCMR-Schema"
     },
     "add": {
-      "label": "Füge die Id eines Tokens ein, die Kategorie eines Identitätsschlüssels oder die Authbase einer Identität, die kein Token ist.",
-      "outcome": "Hier gehalten, wird sie als gehalten gelistet und ihr UTXO von Sendungen zurückgehalten. Woanders gehalten, wird sie beobachtet: Metadaten und Verlauf werden gezeigt, nichts wird zurückgehalten.",
-      "lead": "Füge eine Identität über ihre Authbase hinzu.",
+      "label": "Fügen Sie die Identität über ihre Authbase hinzu. Eine Identität, die dieses Wallet kontrolliert, wird von hier aus verwaltet; jede andere wird nur beobachtet.",
+      "heldLead": "Gehalten:",
+      "held": "dieses Wallet kontrolliert die Identität und kann ihre Metadaten veröffentlichen oder sie übertragen. Der UTXO, der sie kontrolliert, wird aus gewöhnlichen Sendungen herausgehalten, damit eine Zahlung ihn nicht versehentlich bewegt.",
+      "watchedLead": "Beobachtet:",
+      "watched": "ein anderes Wallet hält sie, daher kann dieses Wallet ihre Metadaten und ihren Verlauf zeigen, sie aber nicht aktualisieren.",
+      "keyNote": "Die Token-Id eines CashTokens Studio AuthKeys geht ebenfalls. Der Schlüssel kontrolliert eine oder mehrere Identitäten, und das Wallet listet jede davon.",
+      "authbaseLead": "Authbase:",
+      "authbase": "die Transaktion, die die Identität erzeugt hat. Bei einem Token ist das seine Token-Id.",
+      "lead": "Wurde eine Identität an Sie übertragen, oder möchten Sie eine verfolgen?",
       "placeholder": "Authbase oder Token-Id",
       "button": "Identität hinzufügen",
       "addingButton": "Wird hinzugefügt...",
-      "categoryHelpWhere": "Die Id eines Tokens steht in seinen Infos im Tab Tokens. Wer eine Identität gemacht oder veröffentlicht hat, die kein Token ist, kann dir ihre Authbase nennen; eine Registry benennt sie auch danach.",
-      "categoryHelpKey": "Die Kategorie eines Identitätsschlüssels geht hier auch: das Wallet leitet ab, was er bewacht, und beobachtet diese Identitäten.",
       "found": {
         "title": "Dieses Wallet hält Identitäten",
         "key": "Ein Identitätsschlüssel, der {count} Identität bewacht: | Ein Identitätsschlüssel, der {count} Identitäten bewacht:",

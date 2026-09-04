@@ -39,16 +39,16 @@
       → {{ t('settings.menu.transferAllAssets') }}
     </div>
 
-    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(18)">
-      → {{ t('settings.menu.flipstarter') }}
-    </div>
-
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
       → {{ t('settings.menu.createTokens') }}
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(19)">
       → {{ t('settings.menu.identities') }} <span v-if="identitiesStore.unseenCount" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenCount) }}</span>
+    </div>
+
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(18)">
+      → {{ t('settings.menu.flipstarter') }}
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(13)">

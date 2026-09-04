@@ -44,7 +44,7 @@
 
   // Two things happen on this page: looking after the identities that are here, and getting one
   // onto it. Only the first is why anyone opens it, so the acquisition paths wait behind a pill.
-  const mode = ref<'identities' | 'existing' | 'create'>('identities');
+  const mode = ref<'identities' | 'existing' | 'create' | 'learn'>('identities');
 
   const categoryInput = ref("");
   // What the wallet listed on its own and the user has not seen. Taken on opening the page and
@@ -633,17 +633,50 @@
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('identities.title') }}</legend>
 
-    <div>
-      {{ t('identities.description') }}
-      <InfoPopup>
-        <div v-for="term in ['chain', 'base', 'head']" :key="term" style="max-width: 300px;">
-          <b>{{ t(`identities.authchain.leads.${term}`) }}</b> {{ t(`identities.authchain.${term}`) }}
-        </div>
-        <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.whatIsAnIdentityNote') }}</div>
-      </InfoPopup>
+    <div class="page-head">
+      <div>
+        {{ t('identities.description') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('identities.whatIsAnIdentity') }}</div>
+        </InfoPopup>
+      </div>
+      <!-- the concept explained in the wallet, for whoever wants more than the one sentence -->
+      <span v-if="mode !== 'learn'" class="page-nav" @click="mode = 'learn'">{{ t('identities.learn.link') }}</span>
+      <span v-else class="page-nav" @click="mode = 'identities'">← {{ t('identities.learn.back') }}</span>
     </div>
 
-    <div class="type-filter" style="margin-top: 12px;">
+    <template v-if="mode === 'learn'">
+    <div class="section">
+      <b>{{ t('identities.learn.title') }}</b>
+      <div v-for="topic in ['purpose', 'tokens', 'what']" :key="topic" style="margin-top: 12px;">
+        <b>{{ t(`identities.learn.${topic}Lead`) }}</b> {{ t(`identities.learn.${topic}`) }}
+      </div>
+      <div style="margin-top: 12px;">
+        <!-- the lead and the sentence share a line: a line break between elements is dropped, a space is kept -->
+        <b>{{ t('identities.learn.metadataLead') }}</b> <i18n-t keypath="identities.learn.metadata" tag="span">
+          <template #generator>
+            <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+          </template>
+        </i18n-t>
+      </div>
+      <div style="margin-top: 12px;">
+        <b>{{ t('identities.learn.keysLead') }}</b> <i18n-t keypath="identities.learn.keys" tag="span">
+          <template #studio>
+            <a href="https://cashtokens.studio" target="_blank">CashTokens Studio</a>
+          </template>
+        </i18n-t>
+      </div>
+      <div style="margin-top: 12px;">
+        <b>{{ t('identities.learn.furtherLead') }}</b> <i18n-t keypath="identities.learn.further" tag="span">
+          <template #spec>
+            <a href="https://github.com/bitjson/chip-bcmr" target="_blank">{{ t('identities.learn.specLink') }}</a>
+          </template>
+        </i18n-t>
+      </div>
+    </div>
+    </template>
+
+    <div v-if="mode !== 'learn'" class="type-filter" style="margin-top: 12px;">
       <button :class="{ active: mode === 'identities' }" @click="mode = 'identities'">
         {{ t('identities.modes.identities') }}
       </button>
@@ -662,12 +695,12 @@
       <div>
         <b>{{ t('identities.add.lead') }}</b> {{ t('identities.add.label') }}
         <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.add.categoryHelpWhere') }}</div>
-          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.add.categoryHelpKey') }}</div>
+          <div v-for="state in ['held', 'watched']" :key="state" style="max-width: 300px;">
+            <b>{{ t(`identities.add.${state}Lead`) }}</b> {{ t(`identities.add.${state}`) }}
+          </div>
         </InfoPopup>
       </div>
-      <div style="margin-top: 4px;">{{ t('identities.add.outcome') }}</div>
-      <div class="add-identity">
+      <div class="add-identity" style="margin-top: 12px;">
         <input v-model="categoryInput" :placeholder="t('identities.add.placeholder')" @keyup.enter="addIdentity()">
         <input
           @click="addIdentity()"
@@ -676,6 +709,13 @@
           :value="runningAction === 'add' ? t('identities.add.addingButton') : t('identities.add.button')"
           :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !categoryInput"
         >
+      </div>
+      <!-- the one word the lead uses, defined as help under the field that takes it -->
+      <div class="description" style="margin-top: 6px;">
+        <b>{{ t('identities.add.authbaseLead') }}</b> {{ t('identities.add.authbase') }}
+        <InfoPopup>
+          <div style="max-width: 300px;">{{ t('identities.add.keyNote') }}</div>
+        </InfoPopup>
       </div>
     </div>
     </template>
@@ -1196,6 +1236,21 @@
 <style scoped>
 .description {
   color: grey;
+}
+/* the description on the left, the way into and out of the explanation on the right */
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+/* navigation in the page's own text colour, not the green of an action */
+.page-nav {
+  cursor: pointer;
+}
+.page-nav:hover {
+  text-decoration: underline;
 }
 .mono {
   font-family: monospace;
