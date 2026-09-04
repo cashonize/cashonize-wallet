@@ -102,10 +102,8 @@ naming what was held back and what that did to the balance.
   the authhead transaction's outputs and says nothing about earlier links. The wallet, like
   the token metadata indexer, takes the last publication anywhere on the chain: transfers
   and reserve moves carry none, and those are the operations this wallet makes, so the
-  strict reading would leave an identity without a registry after each of them. A resolver
-  that follows the spec to the letter sees exactly that; carrying the current publication
-  forward on every operation would close the gap at the cost of an output per operation,
-  and is not done yet.
+  strict reading would leave an identity without a registry after each of them. See the
+  future item on carrying the pointer forward.
 - **AuthGuard and AuthKey** are the AuthGuard standard's, which CashTokens Studio
   implements: a covenant holding the identity output, opened by an NFT. The covenant's
   script follows from the key's category, so a guarded identity is recognised the way the
@@ -142,6 +140,14 @@ naming what was held back and what that did to the balance.
 
 What the standard enables that the wallet does not do yet:
 
+- **Carrying the metadata pointer forward.** Every operation the wallet builds, a transfer,
+  an issue, a reserve move, a mint, leaves the new authhead without a publication output,
+  so a resolver that reads only the authhead, as the spec's text says to, finds no registry
+  after one. Nothing that exists today reads that way; the wallet and the indexer both walk
+  back to the last publication. Two ways to close the gap if it ever matters: re-emit the
+  current publication output on every operation, one more output of 40 to 110 bytes each
+  time, or have the spec say that the last publication on the chain is the current one,
+  which is what every implementation already does.
 - **Token metadata from the authchain, without the indexer.** The wallet already follows
   every held token's authchain and reads the last publication on it; fetching that
   registry and hashing it against the chain gives a held token's name, symbol, decimals
