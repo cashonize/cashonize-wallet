@@ -3,8 +3,9 @@
 How the wallet models, finds, protects and updates authchain identities, and which of it
 is the standard and which is the wallet's own rule. Read this before touching the
 identities page, the create page, the identities store or the reservation code. The
-standard is [CHIP-BCMR](https://github.com/bitjson/chip-bcmr); the covenant conventions
-are [CashTokens Studio](https://cashtokens.studio)'s.
+standard is [CHIP-BCMR](https://github.com/bitjson/chip-bcmr); the covenant is the
+[AuthGuard standard](https://github.com/mr-zwets/AuthGuard)'s, which
+[CashTokens Studio](https://cashtokens.studio) implements.
 
 ## The model, in the spec's words
 
@@ -128,16 +129,19 @@ naming what was held back and what that did to the balance.
 
 ## Where the code is
 
-- `src/stores/identitiesStore.ts`: the lists, the resolves, the reservations' sync, the
-  finds and the announcement.
-- `src/utils/tools/authchainIdentity.ts`: publication parsing and building, registry
-  fetching and verification, the operations' outputs, the chain's history, registry naming.
+- `src/stores/identitiesStore.ts`: the lists, the resolves, the reservations, the finds
+  and the following.
+- `src/utils/tools/authchainIdentity.ts`: the publication format, registry fetching and
+  verification, the operations' outputs, the resolve, the chain's history.
+- `src/queryChainGraph.ts`: the authhead and history queries.
 - `src/utils/tools/identityDetection.ts`: the two markers read off the spent-outputs walk.
-- `src/utils/tools/authGuard.ts`: the covenant's script, its locking bytecode and addresses, and what a key is.
+- `src/utils/tools/authGuard.ts`: the covenant's script, and what a key is.
+- `src/utils/tools/tokenCreation.ts`: the genesis amounts and the coins a genesis can spend.
 - `src/utils/wallet/reservedUtxos.ts`, `src/utils/dapp/reservedInputs.ts`: what a
   reservation is, and how a dapp transaction is judged against it.
-- `src/components/settings/identitiesPage.vue`, `createTokens.vue`,
-  `genesisInputPicker.vue`, `src/components/general/identitiesFoundDialog.vue`.
+- `src/components/settings/identitiesPage.vue`, `identityCard.vue`, `identityActions.ts`,
+  `publicationLocations.vue`, `createTokens.vue`, `genesisInputPicker.vue`,
+  `src/components/general/identitiesFoundDialog.vue`.
 
 ## Future items
 
