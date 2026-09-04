@@ -37,7 +37,8 @@ const utxo = (txid: string, vout: number, token?: Utxo['token']): Utxo =>
 function stubAuthheadQueries(authheads: Record<string, string>) {
   const answer = (category: string) => ({
     hash: `\\x${category}`,
-    authchains: [{ authhead: { hash: `\\x${authheads[category]}` }, genesis: [], migrations: [] }], // chaingraph returns bytea as \x-prefixed hex
+    // chaingraph returns bytea as \x-prefixed hex
+    authchains: [{ authhead: { hash: `\\x${authheads[category]}`, outputs: [] }, genesis: [], lastPublication: [], recent: [] }],
   })
   vi.stubGlobal('fetch', vi.fn((_url: string, options: RequestInit) => {
     const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string, hashes?: string[] } }
@@ -62,20 +63,24 @@ function stubIdentityServers(
   vi.stubGlobal('fetch', vi.fn((url: string, options?: RequestInit) => {
     // the Chaingraph setting is empty in tests, so the url is matched as a string, not assumed one
     const registry = Object.entries(registries).find(([prefix]) => String(url ?? '').startsWith(prefix))
-    if (registry) return Promise.resolve({ ok: true, text: () => Promise.resolve(registry[1]) })
-    const { variables } = JSON.parse(options?.body as string) as { variables: { hash?: string } }
-    const hash = variables.hash?.slice(2) ?? ''
+    if (registry) return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(utf8ToBin(registry[1]).buffer) })
+    // one category asked at a time here, through the batch query
+    const { variables } = JSON.parse(options?.body as string) as { variables: { hashes?: string[] } }
+    const hash = variables.hashes?.[0]?.slice(2) ?? ''
     onQuery?.(hash)
     const chain = chains[hash]
     if (!chain) return Promise.reject(new TypeError('Failed to fetch'))
-    const outputs = chain.publication ? [{ locking_bytecode: `\\x${chain.publication}` }] : []
+    const lastPublication = chain.publication
+      ? [{ transaction: [{ outputs: [{ locking_bytecode: `\\x${chain.publication}` }] }] }]
+      : []
     return Promise.resolve({
       ok: true,
       json: () => Promise.resolve({
-        data: { transaction: [{ authchains: [{
-          authhead: { hash: `\\x${chain.authhead}` },
+        data: { transaction: [{ hash: `\\x${hash}`, authchains: [{
+          authhead: { hash: `\\x${chain.authhead}`, outputs: [] },
           genesis: [],
-          migrations: [{ transaction: [{ hash: `\\x${chain.authhead}`, outputs }] }],
+          lastPublication,
+          recent: [{ transaction: [{ hash: `\\x${chain.authhead}` }] }],
         }] }] },
       }),
     })
@@ -711,6 +716,24 @@ describe('auth reservations follow the authchain', () => {
       [authheadA]: { authhead: authheadA, publication: publicationOf(content) },
       [categoryA]: { authhead: authheadB },
     }, { 'https://example.com': content })
+    const { identitiesStore } = startStore([utxo(authheadA, 0)])
+    await identitiesStore.detectWalletIdentities([publicationRow(authheadA)])
+
+    expect(await identitiesStore.nameUnnamedAuthheads()).toBe(0)
+
+    expect(identitiesStore.identityCategories).toEqual([])
+    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA])
+  })
+
+  // the host is bound by the hash on chain: a file it serves that the publication did not commit
+  // to names nothing, however plausible its contents
+  it('does not take a name from a registry the publication did not commit to', async () => {
+    const published = registryNaming(categoryA)
+    const served = registryNaming(categoryA).replace('Named', 'Renamed')
+    stubIdentityServers({
+      [authheadA]: { authhead: authheadA, publication: publicationOf(published) },
+      [categoryA]: { authhead: authheadA },
+    }, { 'https://example.com': served })
     const { identitiesStore } = startStore([utxo(authheadA, 0)])
     await identitiesStore.detectWalletIdentities([publicationRow(authheadA)])
 

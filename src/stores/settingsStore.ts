@@ -54,11 +54,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false); // consider changing default to true
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
-  // developer settings
-  const mintNfts = ref(false);
   // the identities of the tokens the wallet holds, followed passively; off for a wallet that would
   // rather not send its token list to the Chaingraph server as a set
   const followTokenIdentities = ref(true);
+  // developer settings
+  const mintNfts = ref(false);
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
   const showPrivateKeyWif = ref(false);
@@ -231,9 +231,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readFollowTokenIdentities = localStorage.getItem("followTokenIdentities");
   if (readFollowTokenIdentities) followTokenIdentities.value = readFollowTokenIdentities == "true";
-  // the two options this one replaces: the old "authchains" toggle and the developer option that
-  // checked every held token's authhead on open
-  localStorage.removeItem("checkHeldTokensForIdentities");
+  // the "authchains" toggle this one replaces
   localStorage.removeItem("authchains");
 
   const readDateFormat = localStorage.getItem("dateFormat");

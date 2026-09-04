@@ -86,7 +86,7 @@
   }
   // the label carries the chain's length when the resolve already holds it
   function historyLabel(identity: IdentityState) {
-    const length = identity.links?.length;
+    const length = identity.chainLength;
     return length ? t('identities.history.actionCount', { count: length }) : t('identities.history.action');
   }
 
@@ -343,7 +343,8 @@
     store.spendableUtxos && genesisCandidates(store.spendableUtxos).find(utxo => outpointOf(utxo) === pickedOutpoint.value)
   );
   const editingPick = ref(true);
-  watch(pickedUtxo, picked => {
+  // watched by outpoint: every utxo refresh hands out fresh objects for the same coin
+  watch(() => pickedUtxo.value && outpointOf(pickedUtxo.value), picked => {
     if (picked) editingPick.value = false;
   });
   const pickStepOpen = computed(() => editingPick.value || !pickedUtxo.value);
@@ -521,8 +522,9 @@
       const decimals = tokenDecimals(identity.category);
       const amount = parseTokenAmountToBigInt(addToReserveAmount.value, decimals);
       if (amount <= 0n) throw new Error(t('identities.reserve.errors.invalidAmount'));
+      // fungible coins only: one carrying an NFT beside its amount is not what the reserve takes in
       const categoryUtxos = (store.spendableUtxos ?? []).filter(
-        utxo => utxo.token?.category === identity.category && utxo.token.amount
+        utxo => utxo.token?.category === identity.category && utxo.token.amount && !utxo.token.nft
       );
       const available = categoryUtxos.reduce((total, utxo) => total + (utxo.token?.amount ?? 0n), 0n);
       if (amount > available) throw new Error(t('identities.reserve.errors.overBalance'));
@@ -653,13 +655,12 @@
         ? await store.spend.spendAuthUtxo(authUtxo, transferOutputs(authUtxo, address, walletAddresses(), tokensGoAlong))
         : await store.spend.sendUtxo(authUtxo, address);
       // A transfer to one of this wallet's own addresses is a key rotation: the identity stays
-      // listed and its new UTXO held back. To anyone else, it is now theirs to update.
-      await store.updateWalletUtxos();
-      const rotated = txId !== undefined && (store.walletUtxos ?? []).some(utxo => outpointOf(utxo) === `${txId}:0`);
-      if (rotated) {
+      // listed and its new UTXO held back. To anyone else, it is now theirs to update. Decided by
+      // the destination rather than by the wallet's view, which can trail its own broadcast.
+      if (txId !== undefined && store.ownsAddress(address)) {
         await identitiesStore.listCreatedIdentity(identity.category, txId);
       } else {
-        await identitiesStore.removeIdentity(identity.category);
+        await identitiesStore.removeIdentity(identity.category, 'transferred');
       }
       return { txId, message: t('identities.transfer.done', { address }), title: t('identities.transfer.doneTitle') };
     });
@@ -1168,7 +1169,7 @@
             type="button"
             class="primaryButton"
             :value="runningAction === 'publish' ? t('identities.publish.publishingButton') : t('identities.publish.button')"
-            :disabled="runningAction !== undefined || !filledUris.length || publicationBytesLeft < 0"
+            :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !filledUris.length || publicationBytesLeft < 0"
             style="margin-top: 10px;"
           >
         </div>
@@ -1187,7 +1188,7 @@
             type="button"
             class="primaryButton"
             :value="runningAction === 'issue' ? t('identities.reserve.issue.issuingButton') : t('identities.reserve.issue.button')"
-            :disabled="runningAction !== undefined || !issueAmount || !issueDestination"
+            :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !issueAmount || !issueDestination"
             style="margin-top: 10px;"
           >
         </div>
@@ -1202,7 +1203,7 @@
             type="button"
             class="primaryButton"
             :value="runningAction === 'addToReserve' ? t('identities.reserve.add.addingButton') : t('identities.reserve.add.button')"
-            :disabled="runningAction !== undefined || !addToReserveAmount"
+            :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !addToReserveAmount"
             style="margin-top: 10px;"
           >
         </div>
@@ -1225,7 +1226,7 @@
               @click="transferIdentity(identity)"
               type="button"
               :value="runningAction === 'transfer' ? t('identities.transfer.transferringButton') : t('identities.transfer.button')"
-              :disabled="runningAction !== undefined || !destination"
+              :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !destination"
             >
           </div>
         </div>
@@ -1248,7 +1249,7 @@
                 @click="transferKey(identity)"
                 type="button"
                 :value="runningAction === 'transferKey' ? t('identities.key.transferringButton') : t('identities.key.button')"
-                :disabled="runningAction !== undefined || !keyDestination"
+                :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !keyDestination"
               >
             </div>
           </div>

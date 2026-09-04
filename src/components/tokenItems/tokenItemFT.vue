@@ -339,6 +339,3 @@
     <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
   </div>
 </template>
-
-<style scoped>
-</style>

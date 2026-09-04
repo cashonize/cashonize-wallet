@@ -3,7 +3,7 @@ import type { Utxo } from "mainnet-js";
 import {
   loadReservedUtxos,
   saveReservedOutpoint,
-  deleteReservedUtxo,
+  deleteReservedOutpoint,
   removeReservedUtxos,
   spendableFromUtxos,
   reservedFromUtxos,
@@ -83,7 +83,7 @@ describe('reservedUtxos', () => {
   it('deletes only the outpoint given', () => {
     saveReservedOutpoint('mainnet', 'mywallet', outpointOf(coinA), 'pledge');
     saveReservedOutpoint('mainnet', 'mywallet', outpointOf(coinB), 'pledge');
-    deleteReservedUtxo('mainnet', 'mywallet', `${txidA}:0`);
+    deleteReservedOutpoint('mainnet', 'mywallet', `${txidA}:0`);
     expect(Object.keys(loadReservedUtxos('mainnet', 'mywallet'))).toEqual([`${txidB}:1`]);
   });
 

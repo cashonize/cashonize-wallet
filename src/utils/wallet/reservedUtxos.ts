@@ -67,7 +67,7 @@ export function saveReservedOutpoint(
 }
 
 // Same fresh read-modify-write approach as saveReservedOutpoint.
-export function deleteReservedUtxo(
+export function deleteReservedOutpoint(
   network: Network,
   walletName: string,
   outpoint: Outpoint,

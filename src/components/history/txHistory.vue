@@ -83,7 +83,7 @@
   function identityOperation(transaction: TransactionHistoryItem) {
     // a transaction on a listed identity's chain is an operation on it; whether it published
     // metadata is told by the walk, which read the BCMR output a history item cannot see
-    const identity = (identitiesStore.identities ?? []).find(listed => listed.links?.includes(transaction.hash));
+    const identity = (identitiesStore.identities ?? []).find(listed => listed.recentLinks?.includes(transaction.hash));
     if (!identity) return undefined;
     const kind = identitiesStore.identityPublicationTxids.includes(transaction.hash) ? 'metadataUpdate' : 'identityOperation';
     const name = store.bcmrRegistries?.[identity.category]?.name;

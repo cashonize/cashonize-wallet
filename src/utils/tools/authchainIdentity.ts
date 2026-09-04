@@ -7,8 +7,16 @@
 
 import type { Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
-import { binToHex, binToUtf8, hexToBin, sha256, utf8ToBin } from "@bitauth/libauth";
-import { queryAuthHeadWithOutputs, queryAuthHeadsWithOutputs, type AuthchainLink, type AuthHeadResult, type IdentityOutput } from "src/queryChainGraph";
+import { binToHex, binToUtf8, hexToBin, sha256 } from "@bitauth/libauth";
+import {
+  queryAuthHeadWithOutputs,
+  queryAuthHeadsWithOutputs,
+  byteaToHex,
+  BCMR_OUTPUT_PREFIX,
+  type AuthchainLink,
+  type AuthHeadResult,
+  type IdentityOutput,
+} from "src/queryChainGraph";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
@@ -39,10 +47,11 @@ export interface IdentityState {
   isToken?: boolean;
   fungibleSupply?: boolean;
   publication?: MetadataPublication; // absent when the authchain has never carried one
-  // Every transaction of this identity's authchain, oldest first. Carried because the ordinary
-  // transaction history reads it to recognise its own identity operations, which otherwise show
-  // as inscrutable self-sends.
-  links?: string[];
+  chainLength?: number; // every link of the authchain, the authbase counted
+  // The latest links of this identity's authchain, oldest first. Carried because the ordinary
+  // transaction history reads them to recognise its own identity operations, which otherwise
+  // show as inscrutable self-sends.
+  recentLinks?: string[];
 }
 
 // An identity output found in an AuthGuard covenant this wallet has the key to, waiting for the
@@ -68,7 +77,6 @@ export interface MetadataPublication {
 // different content, that its content never matched the hash it was published with.
 export type PublicationUriStatus = 'verified' | 'changed' | 'unreachable';
 
-const BCMR_OUTPUT_PREFIX = "6a0442434d52";
 const isOpReturn = (lockingBytecode: string) => lockingBytecode.startsWith("6a");
 // a publication location that hangs must not hang the page; the same bound the Chaingraph requests have
 const REGISTRY_FETCH_TIMEOUT_MS = 10_000;
@@ -110,8 +118,8 @@ export function registryUrlOf(uri: string, ipfsGateway: string): string {
 
 // The hash the wallet publishes for a registry file, and so also the one it verifies against:
 // sha256 over the file's bytes exactly as served.
-export function registryContentHash(content: string): string {
-  return binToHex(sha256.hash(utf8ToBin(content)));
+export function registryContentHash(content: Uint8Array): string {
+  return binToHex(sha256.hash(content));
 }
 
 // Output 0 of every identity operation: the new authhead, carrying whatever the operation leaves
@@ -139,8 +147,8 @@ export function identityOutput(
   });
 }
 
-// What a token output kept behind by a transfer carries in BCH, the same as a genesis gives one
-const keptTokenOutputValue = 1000n;
+// What a token output the wallet makes carries in BCH: a genesis's, and one kept behind by a transfer
+export const tokenOutputValue = 1000n;
 
 // A mint from an identity UTXO is an authchain operation like the rest: the identity output
 // first, keeping the minting NFT and any reserve here, then the minted NFTs. mainnet-js's
@@ -177,7 +185,7 @@ export function transferOutputs(
   if (tokensGoAlong) return [identityOutput(authUtxo, { bch: destination, token: destination })];
   return [
     { cashaddr: destination, value: authUtxo.satoshis },
-    identityOutput(authUtxo, addresses, undefined, keptTokenOutputValue),
+    identityOutput(authUtxo, addresses, undefined, tokenOutputValue),
   ];
 }
 
@@ -293,9 +301,9 @@ export async function fetchCandidateRegistry(
 ): Promise<CandidateRegistry> {
   if (!uris.length) throw new Error(t('identities.publish.errors.noUris'));
   const fetched = await Promise.all(uris.map(async uri => {
-    const content = await fetchRegistryText(uri, ipfsGateway);
-    if (content === undefined) throw new Error(t('identities.publish.errors.unreachable', { uri }));
-    return { uri, content, hash: registryContentHash(content) };
+    const served = await fetchRegistryBytes(uri, ipfsGateway);
+    if (served === undefined) throw new Error(t('identities.publish.errors.unreachable', { uri }));
+    return { uri, content: binToUtf8(served), hash: registryContentHash(served) };
   }));
   const first = fetched[0]!;
   const mismatch = fetched.find(entry => entry.hash !== first.hash);
@@ -305,17 +313,24 @@ export async function fetchCandidateRegistry(
 
 // Always a fresh fetch, never the metadata cache: every caller here is asking what a location
 // serves right now, which a cached copy cannot answer. Undefined when it does not answer at all.
-async function fetchRegistryText(uri: string, ipfsGateway: string): Promise<string | undefined> {
+// The bytes as served, since that is what the hash covers: decoding to text first would drop a
+// byte order mark and mend invalid sequences, and hash a file nothing else would recognise.
+async function fetchRegistryBytes(uri: string, ipfsGateway: string): Promise<Uint8Array | undefined> {
   try {
     const response = await fetch(registryUrlOf(uri, ipfsGateway), {
       cache: "no-store",
       signal: AbortSignal.timeout(REGISTRY_FETCH_TIMEOUT_MS),
     });
     if (!response.ok) return undefined;
-    return await response.text();
+    return new Uint8Array(await response.arrayBuffer());
   } catch {
     return undefined;
   }
+}
+
+async function fetchRegistryText(uri: string, ipfsGateway: string): Promise<string | undefined> {
+  const served = await fetchRegistryBytes(uri, ipfsGateway);
+  return served === undefined ? undefined : binToUtf8(served);
 }
 
 export async function checkPublicationUri(
@@ -323,9 +338,9 @@ export async function checkPublicationUri(
   expectedHash: string,
   ipfsGateway: string,
 ): Promise<PublicationUriStatus> {
-  const content = await fetchRegistryText(uri, ipfsGateway);
-  if (content === undefined) return 'unreachable';
-  return registryContentHash(content) === expectedHash ? 'verified' : 'changed';
+  const served = await fetchRegistryBytes(uri, ipfsGateway);
+  if (served === undefined) return 'unreachable';
+  return registryContentHash(served) === expectedHash ? 'verified' : 'changed';
 }
 
 // The lists this feature persists, all of them per wallet per network and all of them ids,
@@ -432,8 +447,6 @@ export function removeIdentityCategories(walletName: string) {
       clearIdentityList(list, network, walletName);
     }
     localStorage.removeItem(followedKey(network, walletName));
-    // the once-per-wallet dialog gate an earlier version kept
-    localStorage.removeItem(`identitiesAnnounced-${network}-${walletName}`);
   }
 }
 
@@ -463,9 +476,7 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
     const identityOutput = identityOutputOf(link);
     const reserve = BigInt(identityOutput?.fungible_token_amount ?? 0);
     const reserveDelta = reserve - previousReserve;
-    const publication = findPublication(
-      link.outputs.map(output => output.locking_bytecode.replace(/^\\x/, ""))
-    );
+    const publication = findPublication(link.outputs.map(output => byteaToHex(output.locking_bytecode)));
     const movedAddress = previousLock !== undefined && identityOutput?.locking_bytecode !== previousLock;
 
     // outputs of the category beside the identity output, with the reserve unchanged, are minted
@@ -496,9 +507,9 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
 
 // Resolves where each category's authhead sits now and whether this wallet holds it. The lookups
 // go in batches, one request after another: a public Chaingraph instance limits request size and
-// rate, and each answer carries the chain's history. A batch that fails marks only its own
-// categories 'unresolved' and does not stop the next; a category the server does not know is
-// unresolved on its own. Shared by the identities list and the followed token identities.
+// rate. A batch that fails marks only its own categories 'unresolved' and does not stop the next;
+// a category the server does not know is unresolved on its own. Shared by the identities list
+// and the followed token identities.
 export const authheadBatchSize = 25;
 export async function resolveIdentities(
   categories: string[],
@@ -527,13 +538,14 @@ export async function resolveIdentities(
     if (!answer?.value) {
       return { category, status: 'unresolved', ...(answer ? { unresolvedReason: answer.reason } : {}) };
     }
-    const { txid: authheadTxid, identityOutput, publicationOutputs, links, isToken, fungibleSupply } = answer.value;
+    const { txid: authheadTxid, identityOutput, publicationOutputs, chainLength, recentLinks, isToken, fungibleSupply } = answer.value;
     const publication = findPublication(publicationOutputs);
     const resolved = {
       category,
       authheadTxid,
       ...(identityOutput ? { identityOutput } : {}),
-      links,
+      chainLength,
+      recentLinks,
       isToken,
       fungibleSupply,
       ...(publication ? { publication } : {}),
@@ -548,10 +560,10 @@ export async function resolveIdentities(
     const guardedIdentity = guarded[category];
     if (guardedIdentity?.authheadTxid === authheadTxid) {
       const { keyUtxo, guardAddress, identityOutput } = guardedIdentity;
-      const guarded = { ...resolved, guardedOutput: identityOutput, guardAddress };
+      const inGuard = { ...resolved, guardedOutput: identityOutput, guardAddress };
       // without the key this is somebody else's identity, watched from here like any other
-      if (!keyUtxo) return { ...guarded, status: 'notHeld' };
-      return { ...guarded, keyUtxo, status: 'heldViaKey' };
+      if (!keyUtxo) return { ...inGuard, status: 'notHeld' };
+      return { ...inGuard, keyUtxo, status: 'heldViaKey' };
     }
     return { ...resolved, status: 'notHeld' };
   });

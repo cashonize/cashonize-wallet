@@ -1,7 +1,7 @@
 // A dapp builds its own transaction and picks its own coins, so refusing to sign is the only way
 // this wallet keeps a held back coin unspent. Identity operations are the exception the AuthGuard
 // covenant forces: it requires the AuthKey at input 1, so every publish, mint or issue a dapp
-// builds for a guarded identity spends the very coin phase 5 holds back.
+// builds for a guarded identity spends the very coin the identities page holds back.
 // The exemption is per input and only for what provably comes back: the key itself, or a raw
 // authhead's new output 0. Every other held coin in the same transaction still refuses.
 

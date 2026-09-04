@@ -63,9 +63,12 @@ async function queryChainGraph<Result, Variables>(
     return jsonResponse as { data: Result };
 }
 
-// Chaingraph returns bytea values as \x-prefixed hex strings
+// Chaingraph returns bytea values as \x-prefixed hex strings, and takes them the same way
 export function byteaToHex(bytea: string) {
   return bytea.replace(/^\\x/, "");
+}
+function toBytea(hex: string) {
+  return `\\x${hex}`;
 }
 
 // The smallest meaningful query, used to check that a server is a working Chaingraph instance
@@ -84,16 +87,20 @@ export async function queryBlockHeight(chaingraphUrl: string) {
   return Number(height);
 }
 
+// Chaingraph instances cap the rows a selection returns (1,000 on the default instance, nested
+// selections included) and truncate silently, so paged queries fetch until a page comes back short
+const CHAINGRAPH_PAGE_SIZE = 1000;
+
 // One identity's whole authchain, with the outputs of every link. Asked for only when a card's
 // history is opened: it is the one query here that grows with a chain's length.
-const authchainLinksQuery = graphql(`query AuthchainLinks($hash: bytea!) {
+const authchainLinksQuery = graphql(`query AuthchainLinks($hash: bytea!, $limit: Int!, $offset: Int!) {
     transaction(where: { hash: { _eq: $hash } }) {
       authchains {
-        migrations {
+        migrations(order_by: { migration_index: asc }, limit: $limit, offset: $offset) {
           transaction {
             hash
             block_inclusions { block { timestamp } }
-            outputs {
+            outputs(order_by: { output_index: asc }) {
               output_index
               locking_bytecode
               token_category
@@ -112,81 +119,57 @@ type MigrationTransaction = NonNullable<AuthchainMigration['transaction']>[numbe
 export interface AuthchainLink {
   hash: string;
   timestamp?: number;
-  outputs: NonNullable<MigrationTransaction['outputs']>;
+  outputs: MigrationTransaction['outputs'];
 }
 
 export async function queryAuthchainLinks(tokenId: string, chaingraphUrl: string): Promise<AuthchainLink[]> {
-  const response = await queryChainGraph(authchainLinksQuery, chaingraphUrl, {
-    hash: `\\x${tokenId}`,
-  });
-  const authchain = response.data.transaction[0]?.authchains[0];
-  if (!authchain) throw new Error(t('chaingraph.errors.authchainNotFound'));
-  // migrations come back oldest first, from the authbase to the authhead
-  return authchain.migrations.flatMap(migration => (migration.transaction ?? []).map(transaction => {
-    const timestamp = transaction.block_inclusions?.[0]?.block?.timestamp;
-    return {
-      hash: byteaToHex(transaction.hash),
-      ...(timestamp ? { timestamp: Number(timestamp) } : {}),
-      outputs: transaction.outputs ?? [],
-    };
-  }));
+  const links: AuthchainLink[] = [];
+  for (let offset = 0; ; offset += CHAINGRAPH_PAGE_SIZE) {
+    const response = await queryChainGraph(authchainLinksQuery, chaingraphUrl, {
+      hash: toBytea(tokenId),
+      limit: CHAINGRAPH_PAGE_SIZE,
+      offset,
+    });
+    const authchain = response.data.transaction[0]?.authchains[0];
+    if (!authchain) throw new Error(t('chaingraph.errors.authchainNotFound'));
+    const page = authchain.migrations.flatMap(migration => (migration.transaction ?? []).map(transaction => {
+      const timestamp = transaction.block_inclusions[0]?.block.timestamp;
+      return {
+        hash: byteaToHex(transaction.hash),
+        ...(timestamp ? { timestamp: Number(timestamp) } : {}),
+        outputs: transaction.outputs,
+      };
+    }));
+    links.push(...page);
+    if (authchain.migrations.length < CHAINGRAPH_PAGE_SIZE) break;
+  }
+  return links;
 }
 
-// OP_RETURN followed by a push of "BCMR". bytea has no prefix operator, but it is ordered, so a
-// prefix is the range from it up to the next value at the same length. Verified against a live
-// publication; the alternative, fetching every output and filtering here, would carry far more.
-const bcmrPrefixRange = { from: "6a0442434d52", to: "6a0442434d53" };
+// OP_RETURN then a push of "BCMR". bytea has no prefix operator, but it is ordered, so a prefix
+// is the range from it up to the next value at the same length.
+export const BCMR_OUTPUT_PREFIX = "6a0442434d52";
+const bcmrPrefixRange = { from: BCMR_OUTPUT_PREFIX, to: "6a0442434d53" };
 
-// Where an identity's authchain ends now, and the identity output itself, which says where the
-// identity lives. The chain's transactions come along, oldest first, with the BCMR publications
-// among their outputs, which the last publication and the history are read from; the second
-// link, the genesis, comes whole, since its outputs say what the category is.
-const authHeadQuery = graphql(`query AuthHead(
-    $hash: bytea!
-    $bcmrFrom: bytea!
-    $bcmrTo: bytea!
-  ) {
-    transaction(where: { hash: { _eq: $hash } }) {
-      authchains {
-        authhead {
-          hash
-          outputs(where: { output_index: { _eq: "0" } }) {
-            locking_bytecode
-            value_satoshis
-          }
-        }
-        genesis: migrations(where: { migration_index: { _eq: "1" } }) {
-          transaction {
-            outputs {
-              token_category
-              fungible_token_amount
-            }
-          }
-        }
-        migrations {
-          transaction {
-            hash
-            outputs(where: { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } }) {
-              locking_bytecode
-            }
-          }
-        }
-      }
-    }
-  }`);
+// The transaction history recognises the wallet's own identity operations among these; a chain
+// longer than this only loses the badge on its oldest operations
+const RECENT_LINKS_LIMIT = 200;
 
-// The same answer for a batch of categories, which is how the identities of every token a wallet
-// holds are followed: one request per batch rather than one per category, since a public instance
-// limits both request size and rate. A category the server has no transaction for is absent from
-// the map, which the caller reads as that one category unresolved rather than the batch failing.
+// One request per batch of categories, since a public instance limits request size and rate. The
+// selections that would grow with the chain are narrowed on the server, a nested selection being
+// capped like a top-level one: the last link carrying a publication, the latest links. A category
+// the server has no transaction for is absent from the map, which the caller reads as that one
+// category unresolved rather than the batch failing.
 const authHeadsQuery = graphql(`query AuthHeads(
     $hashes: [bytea!]!
     $bcmrFrom: bytea!
     $bcmrTo: bytea!
+    $linksLimit: Int!
   ) {
     transaction(where: { hash: { _in: $hashes } }) {
       hash
       authchains {
+        authchain_length
         authhead {
           hash
           outputs(where: { output_index: { _eq: "0" } }) {
@@ -202,12 +185,20 @@ const authHeadsQuery = graphql(`query AuthHeads(
             }
           }
         }
-        migrations {
+        lastPublication: migrations(
+          where: { transaction: { outputs: { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } } } }
+          order_by: { migration_index: desc }
+          limit: 1
+        ) {
           transaction {
-            hash
-            outputs(where: { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } }) {
+            outputs(where: { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } }, order_by: { output_index: asc }) {
               locking_bytecode
             }
+          }
+        }
+        recent: migrations(order_by: { migration_index: desc }, limit: $linksLimit) {
+          transaction {
+            hash
           }
         }
       }
@@ -224,60 +215,53 @@ export interface IdentityOutput {
 export interface AuthHeadResult {
   txid: string;
   identityOutput?: IdentityOutput;
-  publicationOutputs: string[];
-  links: string[];
+  publicationOutputs: string[]; // the BCMR-prefixed outputs of the last link carrying one, in output order
+  chainLength: number; // every link of the chain, the authbase counted
+  recentLinks: string[]; // the chain's latest links, oldest first, up to RECENT_LINKS_LIMIT
   isToken: boolean; // whether the genesis made tokens of this category at all
   fungibleSupply: boolean; // and fungible ones among them
 }
 
-type AuthHeadTransaction = ResultOf<typeof authHeadQuery>['transaction'][number];
+type AuthchainAnswer = ResultOf<typeof authHeadsQuery>['transaction'][number]['authchains'][number];
 
 export async function queryAuthHeadsWithOutputs(tokenIds: string[], chaingraphUrl: string): Promise<Map<string, AuthHeadResult>> {
   const response = await queryChainGraph(authHeadsQuery, chaingraphUrl, {
-    hashes: tokenIds.map(tokenId => `\\x${tokenId}`),
-    bcmrFrom: `\\x${bcmrPrefixRange.from}`,
-    bcmrTo: `\\x${bcmrPrefixRange.to}`,
+    hashes: tokenIds.map(toBytea),
+    bcmrFrom: toBytea(bcmrPrefixRange.from),
+    bcmrTo: toBytea(bcmrPrefixRange.to),
+    linksLimit: RECENT_LINKS_LIMIT,
   });
   const results = new Map<string, AuthHeadResult>();
   for (const transaction of response.data.transaction) {
     const tokenId = byteaToHex(transaction.hash);
     const authchain = transaction.authchains[0];
     if (!authchain?.authhead) continue;
-    results.set(tokenId, readAuthHead(tokenId, transaction));
+    results.set(tokenId, readAuthHead(tokenId, authchain, authchain.authhead));
   }
   return results;
 }
 
-// The authhead's txid and the locking bytecodes of its transaction's outputs, in output order.
-// Both come out of the one query: a metadata publication is an output of that same transaction,
-// and recognising it among these belongs to the module that owns the publication format.
-export async function queryAuthHeadWithOutputs(tokenId:string, chaingraphUrl:string): Promise<AuthHeadResult> {
-  const response = await queryChainGraph(authHeadQuery, chaingraphUrl, {
-    hash: `\\x${tokenId}`,
-    bcmrFrom: `\\x${bcmrPrefixRange.from}`,
-    bcmrTo: `\\x${bcmrPrefixRange.to}`,
-  });
-  const authHeadObj = response.data.transaction[0];
-  if (!authHeadObj) throw new Error(t('chaingraph.errors.tokenNotFound'));
-  const authchain = authHeadObj.authchains[0];
-  if (!authchain?.authhead) throw new Error(t('chaingraph.errors.authchainNotFound'));
-  return readAuthHead(tokenId, authHeadObj);
+// The same answer for one category: a batch of one, so there is one query to keep right
+export async function queryAuthHeadWithOutputs(tokenId: string, chaingraphUrl: string): Promise<AuthHeadResult> {
+  const result = (await queryAuthHeadsWithOutputs([tokenId], chaingraphUrl)).get(tokenId);
+  if (!result) throw new Error(t('chaingraph.errors.tokenNotFound'));
+  return result;
 }
 
-function readAuthHead(tokenId: string, authHeadObj: AuthHeadTransaction): AuthHeadResult {
-  const authchain = authHeadObj.authchains[0]!;
+function readAuthHead(
+  tokenId: string,
+  authchain: AuthchainAnswer,
+  authhead: NonNullable<AuthchainAnswer['authhead']>,
+): AuthHeadResult {
   // The identity's registry is the last publication its chain carries, which is not the authhead
   // whenever the operations since were transfers or reserve moves: those carry none, and they are
-  // the ones this wallet makes. Migrations come oldest first, so the last match wins.
-  const links: string[] = [];
-  let publicationOutputs: string[] = [];
-  for (const migration of authchain.migrations ?? []) {
-    for (const transaction of migration.transaction ?? []) {
-      links.push(byteaToHex(transaction.hash));
-      const published = (transaction.outputs ?? []).map(output => byteaToHex(output.locking_bytecode));
-      if (published.length) publicationOutputs = published;
-    }
-  }
+  // the ones this wallet makes. Which of the prefixed outputs is a publication is the format
+  // module's call.
+  const publicationOutputs = (authchain.lastPublication[0]?.transaction ?? [])
+    .flatMap(transaction => transaction.outputs.map(output => byteaToHex(output.locking_bytecode)));
+  const recentLinks = authchain.recent
+    .flatMap(migration => (migration.transaction ?? []).map(transaction => byteaToHex(transaction.hash)))
+    .reverse();
   // The queried transaction is the authbase, whose hash the category is, so it cannot carry the
   // category: only the genesis can, the link that spends its output 0. What that link made never
   // changes, so it decides whether the identity is a token's and whether the token has supply.
@@ -287,15 +271,16 @@ function readAuthHead(tokenId: string, authHeadObj: AuthHeadTransaction): AuthHe
   );
   const isToken = categoryOutputs.length > 0;
   const fungibleSupply = categoryOutputs.some(output => BigInt(output.fungible_token_amount ?? 0) > 0n);
-  const output = authchain.authhead!.outputs?.[0];
+  const output = authhead.outputs[0];
   const identityOutput = output
-    ? { lockingBytecode: byteaToHex(output.locking_bytecode), satoshis: BigInt(output.value_satoshis ?? 0) }
+    ? { lockingBytecode: byteaToHex(output.locking_bytecode), satoshis: BigInt(output.value_satoshis) }
     : undefined;
   return {
-    txid: byteaToHex(authchain.authhead!.hash),
+    txid: byteaToHex(authhead.hash),
     ...(identityOutput ? { identityOutput } : {}),
     publicationOutputs,
-    links,
+    chainLength: authchain.authchain_length ?? 0,
+    recentLinks,
     isToken,
     fungibleSupply,
   };
@@ -340,10 +325,6 @@ const spentOutputsQuery = graphql(`query WalletSpentOutputs(
 // against it: a category equal to the txid of a spent vout-0 outpoint is a token these keys made.
 export type ChaingraphSpentOutput = ResultOf<typeof spentOutputsQuery>['search_output'][number];
 
-// Chaingraph instances cap the rows a single query returns (5,000 on the default instance),
-// truncating silently, so paged queries fetch until a page comes back short
-const CHAINGRAPH_PAGE_SIZE = 1000;
-
 // The spent outputs at the given pkhs' addresses, with the transactions that spent them. One walk
 // feeds three readings: TapSwap and hodl announcements sit at outputs 1 and 0, and the metadata
 // publications and token genesises these keys made are found by the publication prefix.
@@ -358,8 +339,8 @@ export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: stri
       lockingBytecodes,
       limit: CHAINGRAPH_PAGE_SIZE,
       offset,
-      bcmrFrom: `\\x${bcmrPrefixRange.from}`,
-      bcmrTo: `\\x${bcmrPrefixRange.to}`,
+      bcmrFrom: toBytea(bcmrPrefixRange.from),
+      bcmrTo: toBytea(bcmrPrefixRange.to),
     });
     const page = response.data.search_output;
     spentOutputs.push(...page);

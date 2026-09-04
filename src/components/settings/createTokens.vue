@@ -6,6 +6,7 @@
     publicationOutput,
     publicationOutputSize,
     summarizeRegistry,
+    tokenOutputValue,
   } from 'src/utils/tools/authchainIdentity';
   import {
     formatTokens,
@@ -39,10 +40,6 @@
   const inputFungibleSupply = ref("");
   const inputCirculating = ref("");
   const inputDecimals = ref("0");
-  // Where the token's identity lives afterwards: here, held back, or in an AuthGuard covenant made
-  // by CashTokens Studio. This page only makes the first; the second is a link out. Nothing is
-  // chosen until the user chooses, and nothing remembers the choice: it is one click.
-  const identityHome = ref<'wallet' | 'studio' | undefined>(undefined);
   const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
   // A card says who its side is for and where the token is managed afterwards; the rows, the
   // risk among them, wait behind the closed line's popup once the choice is made
@@ -72,9 +69,6 @@
   const metadataUris = ref<string[]>([""]);
   const activeAction = ref<'checking' | 'creating' | null>(null);
 
-  // The satoshis each token output of the genesis carries, the AuthHead included
-  const tokenOutputValue = 1000n;
-
   const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
 
   // A new token's category is the txid of the UTXO its genesis spends, so which UTXO that is
@@ -92,18 +86,18 @@
   // once step 2 is settled. The choice block closes with step 1, the form under it being
   // committed to; "change" there gives the pick up, since the pick belongs to this path.
   const editingUtxo = ref(true);
-  watch(genesisInput, picked => {
+  // watched by outpoint: every utxo refresh hands out fresh objects for the same coin
+  watch(() => genesisInput.value && outpointOf(genesisInput.value), picked => {
     if (picked) editingUtxo.value = false;
   });
   const utxoStepOpen = computed(() => editingUtxo.value || !genesisInput.value);
-  // The choice is one screen. A card marks a selection and shows its rows underneath, to be read
-  // before anything is committed to. Studio's side ends there, one fact and one link; the wallet
-  // side has three steps, so Continue locks the choice in and replaces the screen with one line
-  // and the steps, and "go back" returns here with nothing selected.
+  // Where the token's identity lives afterwards: here, or in an AuthGuard covenant made by
+  // CashTokens Studio. This page only makes the first; the second is a link out.
   const selectedHome = ref<'wallet' | 'studio' | undefined>(undefined);
-  const choiceOpen = computed(() => identityHome.value === undefined);
+  const homeConfirmed = ref(false);
+  const choiceOpen = computed(() => !homeConfirmed.value);
   function confirmHome() {
-    identityHome.value = 'wallet';
+    homeConfirmed.value = true;
   }
   // the shape step is titled by what it asks, which for a collection alone is only the type
   const shapeTitle = computed(() => hasSupply.value ? 'shape' : 'type');
@@ -116,7 +110,7 @@
     return `${shape}, ${t('createTokens.closedSupply', { supply: tokensOf(totalSupply.value), decimals: decimals.value })}`;
   });
   function changeHome() {
-    identityHome.value = undefined;
+    homeConfirmed.value = false;
     selectedHome.value = undefined;
     pickedOutpoint.value = undefined;
     editingUtxo.value = true;
@@ -146,7 +140,8 @@
     if (!hasSupply.value) return undefined;
     if (typeof amounts.value === 'string') {
       if (amounts.value === 'overMaxSupply') {
-        return t('createTokens.errors.overMaxSupply', { max: baseUnitsOf(maxTokenSupply) });
+        // the cap in the unit the field is typed in: the on-chain number is not one the user can type here
+        return t('createTokens.errors.overMaxSupply', { max: formatTokens(maxTokenSupply, decimals.value) });
       }
       return t(`createTokens.errors.${amounts.value}`);
     }
@@ -166,9 +161,6 @@
     return genesisProblem.value === undefined && (totalSupply.value ?? 0n) > 0n;
   });
 
-
-  // A UTXO a genesis can spend is an ordinary one sitting at output 0, which a send to self makes.
-  // Confirmed first like the flipstarter's preparation, since it is a broadcast on one tap.
   const filledUris = computed(() => metadataUris.value.map(uri => uri.trim()).filter(uri => uri.length));
 
   const publicationBytesLeft = computed(() =>
@@ -192,7 +184,13 @@
   watch(filledUris, (uris, before) => {
     if (uris.join('\n') !== before.join('\n')) checkedRegistry.value = undefined;
   });
-  const readiness = computed(() => metadataReadiness(filledUris.value, checkedRegistry.value, decimals.value));
+  // the decimals field is only shown for a shape with a supply, so only then can it disagree
+  // with the registry; a leftover value must not block a minting NFT alone
+  const readiness = computed(() => metadataReadiness(
+    filledUris.value,
+    checkedRegistry.value,
+    hasSupply.value ? decimals.value : (checkedRegistry.value?.summary.decimals ?? 0),
+  ));
 
   async function checkRegistry() {
     const category = plannedCategory.value;
@@ -307,12 +305,11 @@
         extraOutputs
       );
       const { txId } = genesisResponse;
-      const category = genesisResponse?.categories?.[0] ?? pickedCoin.txid;
       // creation ends where management begins: the identity is listed and its AuthHead held back
       if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
       const linked = opreturnData ? checkedRegistry.value?.summary : undefined;
       created.value = {
-        category,
+        category: pickedCoin.txid,
         txId,
         ...(linked ? { name: linked.name } : {}),
         ...(linked?.symbol ? { symbol: linked.symbol } : {}),
@@ -324,7 +321,6 @@
         decimals: decimals.value,
       };
       $q.notify({ type: 'positive', message: t('createTokens.notifications.transactionSent') });
-      console.log(`${store.explorerUrl}/${txId}`);
       await store.updateWalletUtxos();
       void store.updateWalletHistory();
     } catch(error){
@@ -509,7 +505,7 @@
         <span class="go-back" @click="changeHome()">← {{ t('createTokens.goBack') }}</span>
       </div>
 
-      <template v-if="identityHome === 'wallet'">
+      <template v-if="homeConfirmed">
 
       <!-- Which UTXO the genesis spends decides the token's permanent id, which is the whole of
            what this section is, so it leads with that rather than with a heading repeating it -->

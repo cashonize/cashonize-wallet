@@ -413,8 +413,10 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           void rejectRequest(event);
           return;
         }
-        // Auto-approve early return
-        if (settingsStore.isAutoApproveValid(topic)) {
+        // Auto-approve early return. Not for an identity operation: auto-approve was granted for
+        // ordinary spends, and a held back coin is spent only in front of the user.
+        const touchesIdentity = arrivalCheck.returning.length > 0;
+        if (!touchesIdentity && settingsStore.isAutoApproveValid(topic)) {
           await signTransactionWC(event)
           // Decrement request count if applicable
           if (settingsStore.getAutoApproveState(topic)?.mode === "count") {

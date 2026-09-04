@@ -44,13 +44,14 @@ function stubAuthheadQueries(
   burned: string[] = [], // categories whose identity output is an OP_RETURN
 ) {
   const answer = (category: string) => {
-    // the query asks for each link's BCMR-prefixed outputs only, so a link without one answers empty
-    const migrations = (chains[category] ?? []).map(link => ({
-      transaction: [{
-        hash: `\\x${link.hash}`,
-        outputs: link.publication ? [{ locking_bytecode: `\\x${link.publication}` }] : [],
-      }],
-    }));
+    // the server picks the last link carrying a BCMR-prefixed output, and answers the chain's
+    // latest links newest first
+    const links = chains[category] ?? [];
+    const lastPublished = [...links].reverse().find(link => link.publication);
+    const lastPublication = lastPublished
+      ? [{ transaction: [{ outputs: [{ locking_bytecode: `\\x${lastPublished.publication}` }] }] }]
+      : [];
+    const recent = [...links].reverse().map(link => ({ transaction: [{ hash: `\\x${link.hash}` }] }));
     // the chain's second link is the genesis, the one transaction that can make the category, so
     // its outputs say whether the chain is a token's at all and whether that token has supply
     const made = genesis[category] ?? 'nft';
@@ -60,12 +61,14 @@ function stubAuthheadQueries(
     }];
     const lockingBytecode = burned.includes(category) ? burnOutput : p2pkhOutput;
     return { hash: `\\x${category}`, authchains: [{
+      authchain_length: links.length,
       authhead: { // chaingraph returns bytea as \x-prefixed hex
         hash: `\\x${authheads[category]}`,
         outputs: [{ locking_bytecode: `\\x${lockingBytecode}`, value_satoshis: "1000" }],
       },
       genesis: [{ transaction: [{ outputs: genesisOutputs }] }],
-      migrations,
+      lastPublication,
+      recent,
     }] };
   };
   vi.stubGlobal("fetch", vi.fn((_url: string, options: RequestInit) => {
@@ -132,6 +135,18 @@ describe('the publication a resolve reports', () => {
 
     expect(resolved?.publication).toBeUndefined();
   });
+
+  // the server answers the latest links newest first; the wallet keeps them in chain order
+  it('hands the chain length and its latest links on in chain order', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, {
+      [categoryA]: [{ hash: 'aa'.repeat(32) }, { hash: 'bb'.repeat(32) }, { hash: authheadA }],
+    });
+
+    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+
+    expect(resolved?.chainLength).toBe(3);
+    expect(resolved?.recentLinks).toEqual(['aa'.repeat(32), 'bb'.repeat(32), authheadA]);
+  });
 });
 
 describe('identity categories', () => {
@@ -197,7 +212,8 @@ describe('resolveIdentities', () => {
         authheadTxid: authheadA,
         identityOutput: { lockingBytecode: p2pkhOutput, satoshis: 1000n },
         authUtxo,
-        links: [],
+        chainLength: 0,
+        recentLinks: [],
         status: 'held',
         isToken: true,
         fungibleSupply: false,

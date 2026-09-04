@@ -10,10 +10,7 @@
 // BCMR output, which catches identities received from elsewhere and first updated here.
 
 import type { ChaingraphSpentOutput } from "src/queryChainGraph";
-import { byteaToHex } from "src/queryChainGraph";
-
-// OP_RETURN then a push of "BCMR"; the walk asks for these outputs by this prefix
-const BCMR_OUTPUT_PREFIX = "6a0442434d52";
+import { byteaToHex, BCMR_OUTPUT_PREFIX } from "src/queryChainGraph";
 
 export type IdentityMarker = 'genesis' | 'publication';
 

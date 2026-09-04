@@ -227,8 +227,7 @@
     if (!ids || announcementTimer) return;
     announcementTimer = setTimeout(() => {
       announcementTimer = undefined;
-      const pending = identitiesStore.announcement;
-      identitiesStore.announcement = undefined;
+      const pending = identitiesStore.takeAnnouncement();
       if (!pending?.length) return;
       Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids: pending } })
         .onOk(() => store.changeView(19));

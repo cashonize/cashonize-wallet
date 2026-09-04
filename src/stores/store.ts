@@ -41,7 +41,7 @@ import {
   tokenListFromUtxos,
   parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
-import { hexToBin, lockingBytecodeToCashAddress } from "@bitauth/libauth"
+import { hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode } from "@bitauth/libauth"
 import {
   checkReservedInputs,
   type Bytes,
@@ -83,7 +83,7 @@ import {
 import {
   loadReservedUtxos,
   saveReservedOutpoint,
-  deleteReservedUtxo,
+  deleteReservedOutpoint,
   removeReservedUtxos,
   spendableFromUtxos,
   reservedFromUtxos,
@@ -568,7 +568,7 @@ export const useStore = defineStore('store', () => {
       // fire-and-forget getLatestGithubRelease promise for desktop platform
       if(isDesktop) void getLatestGithubRelease()
       console.time('fetch token metadata');
-      await fetchTokenMetadata(tokenList.value, false);
+      await fetchTokenMetadata(allTokenList.value ?? [], false);
       console.timeEnd('fetch token metadata');
       // fetch Cauldron prices as fire-and-forget (non-critical)
       void fetchCauldronPricesForTokens();
@@ -1081,6 +1081,10 @@ export const useStore = defineStore('store', () => {
     sortTokenList(newTokenList);
   }
 
+  // The tokens the wallet holds, held back coins included, the way balance counts BCH: what the
+  // portfolio values and the metadata fetch covers, where tokenList counts only what can be spent
+  const allTokenList = computed(() => walletUtxos.value ? tokenListFromUtxos(walletUtxos.value) : null);
+
   function sortTokenList(unsortedTokenList: TokenList) {
     // order the featuredTokenList according to the order in the settingStore
     const featuredTokenList: TokenList = []
@@ -1422,7 +1426,7 @@ export const useStore = defineStore('store', () => {
   // Drops a reservation without spending; cancelling a pledge goes through spend.releaseReservedCoin
   async function dropReservation(outpoint: string) {
     const releasedToken = walletUtxos.value?.find(utxo => outpointOf(utxo) === outpoint)?.token;
-    reservedUtxos.value = deleteReservedUtxo(network.value, wallet.value.name, outpoint);
+    reservedUtxos.value = deleteReservedOutpoint(network.value, wallet.value.name, outpoint);
     if (releasedToken) updateTokenList();
     await refreshMaxAmountToSend();
   }
@@ -1458,6 +1462,14 @@ export const useStore = defineStore('store', () => {
     return walletHasAddress(address.address);
   }
 
+  // The same question of an address in either of its forms: a token-aware address is not the
+  // string hasAddress knows, so it is compared through the locking bytecode both encode
+  function ownsAddress(address: string) {
+    const decoded = cashAddressToLockingBytecode(address);
+    if (typeof decoded === 'string') return false;
+    return ownsLockingBytecode(decoded.bytecode);
+  }
+
   // What the dapp signing paths ask before refusing a request that spends a held back coin: the
   // identity coins are named here, and the rule itself lives in utils/dapp/reservedInputs.ts.
   function checkDappReservedInputs(inputs: readonly SignedInput[], outputs: readonly SignedOutput[]) {
@@ -1484,12 +1496,15 @@ export const useStore = defineStore('store', () => {
     "Not enough token amount to send",
     "You do not have any token UTXOs with minting capability for specified category",
     "You do not have suitable token UTXOs to perform burn",
+    "There were no Unspent Outputs",
+    "The available inputs couldn't satisfy the request with fees",
   ];
   async function spendExplained<T>(makeTransaction: () => Promise<T>): Promise<T> {
     try {
       return await makeTransaction();
     } catch (error) {
-      if (!(error instanceof Error) || !Object.keys(reservedUtxos.value).length) throw error;
+      // a reservation outliving its coin holds nothing back, so it explains nothing
+      if (!(error instanceof Error) || !reservedWalletUtxos.value?.length) throw error;
       if (!shortfallMessages.some(message => error.message.startsWith(message))) throw error;
       throw new Error(`${error.message} ${t('store.errors.utxosHeldBack')}`, { cause: error });
     }
@@ -1583,13 +1598,15 @@ export const useStore = defineStore('store', () => {
         utxoIds: pool,
         ensureUtxos: [authUtxo],
       }));
-      await updateWalletUtxos();
       // The authhead has moved to output 0 of this transaction. When that is ours, it is held back
-      // now rather than when Chaingraph sees the transaction, which can be a while; a transfer's
-      // output 0 is not ours and the resolve settles it.
+      // now, before the wallet's own view or Chaingraph has seen the transaction: the first request
+      // says where it went, which no utxo snapshot can yet. A transfer's output 0 is not ours.
+      const first = Array.isArray(requests) ? requests[0] : requests;
       const newAuthhead = `${response.txId}:0`;
-      const heldNew = (walletUtxos.value ?? []).some(utxo => outpointOf(utxo) === newAuthhead);
-      if (heldNew && !reservedUtxos.value[newAuthhead]) await reserveOutpoint(newAuthhead, 'auth');
+      if (first && 'cashaddr' in first && ownsAddress(first.cashaddr) && !reservedUtxos.value[newAuthhead]) {
+        await reserveOutpoint(newAuthhead, 'auth');
+      }
+      await updateWalletUtxos();
       await identitiesStore.refreshIdentities();
       return response;
     },
@@ -1618,6 +1635,7 @@ export const useStore = defineStore('store', () => {
     _wallet, // the _wallet is the actual wallet object but this can be null
     wallet, // computed property to access the wallet, always non-null
     walletHasAddress,
+    ownsAddress,
     checkDappReservedInputs,
     balance, // everything held, including reserved coins
     spendableBalance, // balance minus reservedBalance
@@ -1636,6 +1654,7 @@ export const useStore = defineStore('store', () => {
     setUtxoLabel,
     spend, // the only route to the wallet's spending methods
     tokenList,
+    allTokenList,
     filteredTokenList,
     walletHistory,
     isHistoryPartial,

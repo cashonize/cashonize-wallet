@@ -7,6 +7,7 @@ import {
   registryUrlOf,
   registryContentHash,
   checkPublicationUri,
+  fetchCandidateRegistry,
 } from '../src/utils/tools/authchainIdentity'
 
 const ipfsGateway = 'https://ipfs.example.com/ipfs/'
@@ -79,7 +80,7 @@ describe('checkPublicationUri', () => {
   function stubServedContent(content: string) {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
-      text: () => Promise.resolve(content),
+      arrayBuffer: () => Promise.resolve(utf8ToBin(content).buffer),
     }))
   }
 
@@ -105,7 +106,7 @@ describe('checkPublicationUri', () => {
   })
 
   it('reports an error response as unreachable', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, text: () => Promise.resolve('') }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) }))
 
     expect(await checkPublicationUri('example.com', registryHash, ipfsGateway))
       .toBe('unreachable')
@@ -125,6 +126,59 @@ describe('checkPublicationUri', () => {
 describe('registryContentHash', () => {
   // the wallet publishes this same hash, so verifying and publishing can never drift apart
   it('hashes the file bytes as served', () => {
-    expect(registryContentHash(registry)).toBe(registryHash)
+    expect(registryContentHash(utf8ToBin(registry))).toBe(registryHash)
+  })
+
+  // a file saved with a byte order mark hashes as served, since that is what other verifiers see;
+  // decoding it to text first would drop the mark and hash a file nobody else can reproduce
+  it('keeps a byte order mark in the hash', () => {
+    const withBom = new Uint8Array([0xef, 0xbb, 0xbf, ...utf8ToBin(registry)])
+    expect(registryContentHash(withBom)).not.toBe(registryHash)
+    expect(registryContentHash(withBom)).toBe(binToHex(sha256.hash(withBom)))
+  })
+})
+
+// The hash that goes on chain commits to every location at once, so the candidate is fetched from
+// all of them and they have to agree byte for byte
+describe('fetchCandidateRegistry', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  // what each location serves, by the url it is fetched from
+  function stubHosts(served: Record<string, string | undefined>) {
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      const content = served[url]
+      if (content === undefined) return Promise.reject(new TypeError('Failed to fetch'))
+      return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(utf8ToBin(content).buffer) })
+    }))
+  }
+
+  it('returns the file and its hash when every mirror agrees', async () => {
+    stubHosts({
+      'https://example.com/.well-known/bitcoin-cash-metadata-registry.json': registry,
+      'https://ipfs.example.com/ipfs/bafyexamplecid': registry,
+    })
+
+    const candidate = await fetchCandidateRegistry(['example.com', 'ipfs://bafyexamplecid'], ipfsGateway)
+
+    expect(candidate).toEqual({ hash: registryHash, content: registry })
+  })
+
+  it('refuses a mirror serving something else, naming it', async () => {
+    stubHosts({
+      'https://example.com/.well-known/bitcoin-cash-metadata-registry.json': registry,
+      'https://ipfs.example.com/ipfs/bafyexamplecid': '{"version":{"major":2,"minor":0,"patch":0}}',
+    })
+
+    await expect(fetchCandidateRegistry(['example.com', 'ipfs://bafyexamplecid'], ipfsGateway))
+      .rejects.toThrow('ipfs://bafyexamplecid')
+  })
+
+  it('refuses when a location does not answer', async () => {
+    stubHosts({ 'https://example.com/.well-known/bitcoin-cash-metadata-registry.json': registry })
+
+    await expect(fetchCandidateRegistry(['example.com', 'ipfs://bafyexamplecid'], ipfsGateway))
+      .rejects.toThrow('ipfs://bafyexamplecid')
   })
 })

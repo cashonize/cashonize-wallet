@@ -94,6 +94,14 @@ naming what was held back and what that did to the balance.
 
 ## Spec versus convention
 
+- **The last publication on the chain.** The spec's resolution reads the publication off
+  the authhead transaction's outputs and says nothing about earlier links. The wallet, like
+  the token metadata indexer, takes the last publication anywhere on the chain: transfers
+  and reserve moves carry none, and those are the operations this wallet makes, so the
+  strict reading would leave an identity without a registry after each of them. A resolver
+  that follows the spec to the letter sees exactly that; carrying the current publication
+  forward on every operation would close the gap at the cost of an output per operation,
+  and is not done yet.
 - **AuthGuard and AuthKey** are CashTokens Studio's: a covenant holding the identity
   output, opened by an NFT. The covenant address follows from the key's category, so the
   wallet derives it rather than being told. A key is recognised by its shape (commitment

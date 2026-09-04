@@ -155,6 +155,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const pending = announcement.value ?? [];
     announcement.value = [...pending, ...ids.filter(id => !pending.includes(id))];
   }
+  // what the dialog says, taken and cleared in one step
+  function takeAnnouncement() {
+    const pending = announcement.value;
+    announcement.value = undefined;
+    return pending;
+  }
 
   // The registries of what is about to be shown, fetched so a dialog or the page can name it. A
   // fetch that fails leaves the id standing in for the name, which is honest, so it never throws.
@@ -172,6 +178,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // Protection first, so it never waits on naming; the announcement last, so it has names to say
   async function detectWalletIdentities(spentOutputs: ChaingraphSpentOutput[]) {
+    const started = mainStore.currentInitializationToken();
     const detected = detectIdentities(spentOutputs);
     identityPublicationTxids.value = detected.publicationTxids;
     const unseenBefore = unseenIdentities.value;
@@ -181,6 +188,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     // named on the page's visit, since naming reaches hosting
     const toAnnounce = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
     await fetchMetadataFor(toAnnounce);
+    if (mainStore.walletSwitchedSince(started)) return;
     announceFound(toAnnounce);
   }
 
@@ -247,12 +255,16 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return unseen;
   }
 
+  // Every candidate costs two electrum lookups, and any NFT of the right shape is one, so what an
+  // airdrop of them can cost a resolve is bounded; genuine keys are rare
+  const keyCandidatesCap = 25;
+
   // What the AuthKeys this wallet holds are guarding. The fingerprint is local and free, the guard
   // listing is not, so it runs only where resolution runs. A key is confirmed by its covenant
   // holding something, never by shape alone:
   // freezing an innocent NFT on a lucky commitment would be protection nobody asked for.
   async function resolveAuthKeys() {
-    const heldCandidates = (mainStore.walletUtxos ?? []).filter(isAuthKeyCandidate);
+    const heldCandidates = (mainStore.walletUtxos ?? []).filter(isAuthKeyCandidate).slice(0, keyCandidatesCap);
     // A watched key has no coin here; its guard is derived and listed the same way, and what it
     // holds reads as watched rather than held.
     const candidates: { category: string, keyUtxo?: Utxo }[] = [
@@ -293,8 +305,10 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const news: string[] = [];
     const currentUtxos = mainStore.walletUtxos;
     if (!currentUtxos) return news;
+    const started = mainStore.currentInitializationToken();
     // before the listing is read, since a guarded identity found here joins it
     const guarded = await resolveAuthKeys();
+    if (mainStore.walletSwitchedSince(started)) return news;
     const foundByKey: string[] = [];
     for (const category of Object.keys(guarded)) {
       if (identityCategories.value.includes(category)) continue;
@@ -312,7 +326,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
       await syncAuthReservations([]);
       return news;
     }
-    const started = mainStore.currentInitializationToken();
     const resolved = await resolveIdentities(
       identityCategories.value, settingsStore.chaingraph, currentUtxos, guarded
     );
@@ -455,6 +468,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), promoted);
       await resolveListedIdentities();
       await fetchMetadataFor(promoted);
+      if (mainStore.walletSwitchedSince(started)) return;
       announceFound(promoted);
     });
   }
@@ -480,14 +494,13 @@ export const useIdentitiesStore = defineStore('identities', () => {
         if (mainStore.walletSwitchedSince(started)) return;
         await detectWalletIdentities(spentOutputs);
       }
+      if (mainStore.walletSwitchedSince(started)) return;
+      if (settingsStore.followTokenIdentities) await followTokenIdentities('new');
     } catch (error) {
       console.error("Failed to look up the wallet's identities:", error);
       if (mainStore.walletSwitchedSince(started)) return;
       openCheckError.value = error instanceof Error ? error.message : String(error);
-      return;
     }
-    if (mainStore.walletSwitchedSince(started)) return;
-    if (settingsStore.followTokenIdentities) await followTokenIdentities('new');
   }
 
   // Fetches every listed identity's published locations and compares what they serve against the
@@ -589,13 +602,18 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // An identity this wallet just created, token or not: its authhead is output 0 of the
   // transaction, so the coin is held back straight away rather than when Chaingraph or this
-  // wallet's own view catches up.
+  // wallet's own view catches up. The resolve after it is a lookup that can fail, and the
+  // identity is listed and held back whether or not it does: a failure is not the caller's.
   async function listCreatedIdentity(category: string, authheadTxId: string) {
     dismissedIdentities.value = removeFromIdentityList('dismissed', ...walletKey(), category);
     listCategory(category);
     const outpoint = `${authheadTxId}:0`;
     if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoint(outpoint, 'auth');
-    await refreshIdentities();
+    try {
+      await refreshIdentities();
+    } catch (error) {
+      console.error("Failed to resolve the created identity:", error);
+    }
   }
 
   // The wallet's only way to stop holding an authhead back, for when the user wants to spend that
@@ -610,9 +628,13 @@ export const useIdentitiesStore = defineStore('identities', () => {
     }
   }
 
-  async function removeIdentity(category: string) {
-    // remembered, so the automatic detection does not put it back on the next wallet open
-    dismissedIdentities.value = addToIdentityList('dismissed', ...walletKey(), category);
+  // A removal is remembered, so the automatic detection does not put the identity back on the
+  // next wallet open. Not after a transfer: the user gave the identity away rather than took it
+  // off the list, and should it ever come back here, it is to be held back again like any find.
+  async function removeIdentity(category: string, reason: 'dismissed' | 'transferred' = 'dismissed') {
+    if (reason === 'dismissed') {
+      dismissedIdentities.value = addToIdentityList('dismissed', ...walletKey(), category);
+    }
     const removed = identities.value?.find(identity => identity.category === category);
     identityCategories.value = removeFromIdentityList('categories', ...walletKey(), category);
     identities.value = identities.value?.filter(identity => identity.category !== category);
@@ -637,6 +659,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     unseenIdentities,
     unseenCount,
     announcement,
+    takeAnnouncement,
     unnamedAuthheads,
     identityPublicationTxids,
     identities,

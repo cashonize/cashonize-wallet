@@ -646,7 +646,7 @@
       "intro": "Créez un nouveau token ici ou sur le site de CashTokens Studio. Qui détient l'identité du token, un UTXO, contrôle son nom, son icône et toute offre non émise ; choisissez où la garder.",
       "wallet": "Dans ce portefeuille",
       "studio": "Avec CashTokens Studio",
-      "chosen": "Méthode de création du token : ce portefeuille",
+      "chosen": "Identité du token conservée : dans ce portefeuille",
       "cardLeads": {
         "for": "Pour :",
         "managed": "Géré :"
@@ -686,7 +686,7 @@
     "change": "modifier",
     "step": "Étape {current} sur {total}",
     "stepTitles": {
-      "utxo": "réserver l'id du token",
+      "utxo": "choisir l'id du token",
       "shape": "choisir le type, les décimales et l'offre",
       "metadata": "lier le fichier de métadonnées hébergé (facultatif)",
       "type": "choisir le type"
@@ -1231,7 +1231,7 @@
       "unverifiedTokenNoteSingular": "Le token ne figure pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "identityKeyReturns": "Ceci utilise votre clé d'identité, qui revient dans votre portefeuille.",
-      "identityReturns": "Ceci utilise une de vos identités, qui revient dans votre portefeuille."
+      "identityReturns": "Ceci dépense une de vos identités. Son UTXO d'identité revient dans ce portefeuille ; les variations de solde ci-dessous disent ce qui bouge d'autre."
     },
     "sessionRequest": {
       "title": "Approuver la session ?",
@@ -1560,7 +1560,7 @@
     "whatIsAnIdentity": "Une identité est une chaîne de transactions, chacune dépensant la sortie 0 de la précédente. Qui détient la dernière sortie, l'UTXO de l'identité, contrôle l'identité et peut publier ses métadonnées.",
     "authbaseLabel": "Authbase / identifiant du token :",
     "resolving": "Recherche de l'endroit où sont ces identités...",
-    "empty": "Aucune identité listée pour l'instant. Une identité créée par ce portefeuille est trouvée d'elle-même ; une que vous détenez ou voulez suivre s'ajoute par son authbase sous {link}. Les identités des tokens que vous détenez sont suivies ci-dessous.",
+    "empty": "Aucune identité listée pour l'instant. Une identité créée par ce portefeuille est trouvée d'elle-même ; une que vous détenez ou voulez suivre s'ajoute par son authbase sous {link}.",
     "emptyLink": "Ajouter",
     "detected": {
       "foundAutomatically": "Trouvée automatiquement",
@@ -1580,7 +1580,6 @@
       "resolving": "Recherche des identités des tokens que vous détenez..."
     },
     "unnamedIdentity": "Identité sans nom",
-    "categoryLabel": "Catégorie :",
     "authheadLabel": "UTXO de l'identité :",
     "authheadAmount": "Contient {amount}",
     "status": {
@@ -1591,14 +1590,13 @@
       "burned": "Brûlée"
     },
     "statusHelp": {
-      "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire ne peut le dépenser.",
+      "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire depuis cette application ne peut le dépenser. Un autre logiciel sur la même graine le peut toujours.",
       "notHeld": "Cette identité n'est pas détenue par ce portefeuille, qui ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour revient à qui la détient.",
       "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
       "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces.",
       "burned": "La sortie 0 de cette identité est un OP_RETURN, que rien ne peut dépenser : qui la détenait y a mis fin. Sa dernière publication reste, et aucune mise à jour ne peut suivre."
     },
     "reserve": {
-      "title": "Cette identité porte :",
       "supply": "Offre réservée : {amount}",
       "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
       "nft": "Un NFT de cette catégorie",
@@ -1632,7 +1630,6 @@
         "done": "Ajouté à la réserve",
         "doneTitle": "Ajouté à la réserve"
       },
-      "help": "Les tokens portés par l'UTXO d'une identité sont la réserve de la catégorie : émis mais pas en circulation, et non comptés dans l'offre en circulation. Tout le reste de cette catégorie détenu par le portefeuille est de l'offre ordinaire.",
       "mintingNftLink": "voir dans la liste des tokens"
     },
     "key": {
@@ -1721,7 +1718,7 @@
         "tooLarge": "Ces emplacements ne tiennent pas dans une sortie de publication. Retirez-en un ou utilisez des emplacements plus courts.",
         "unreachable": "Impossible de récupérer le registre à {uri}.",
         "mirrorMismatch": "{uri} sert un contenu différent du premier emplacement. Tous doivent servir le même fichier.",
-        "noIdentity": "Ce registre ne décrit pas cette identité. Vérifiez que le fichier nomme cette catégorie de jeton."
+        "noIdentity": "Ce registre ne décrit pas cette identité. Vérifiez que le fichier nomme l'authbase de cette identité."
       },
       "steps": {
         "author": "Rédigez le JSON du registre avec le {generator}.",
@@ -1735,7 +1732,7 @@
     "add": {
       "label": "Ajoutez l'identité par son authbase. Une identité que ce portefeuille contrôle est gérée d'ici ; toute autre est seulement surveillée.",
       "heldLead": "Détenue :",
-      "held": "ce portefeuille contrôle l'identité et peut publier ses métadonnées ou la transférer. L'UTXO qui la contrôle est tenu à l'écart des envois ordinaires, afin qu'un paiement ne le déplace pas par accident.",
+      "held": "ce portefeuille contrôle l'identité et peut publier ses métadonnées ou la transférer. L'UTXO qui la contrôle est tenu à l'écart des envois ordinaires, afin qu'un paiement depuis cette application ne le déplace pas par accident. Un autre logiciel sur la même graine le peut toujours.",
       "watchedLead": "Surveillée :",
       "watched": "un autre portefeuille la détient, donc ce portefeuille peut afficher ses métadonnées et son historique, mais pas la mettre à jour.",
       "keyNote": "L'identifiant de token d'un AuthKey CashTokens Studio fonctionne aussi. La clé contrôle une ou plusieurs identités, et le portefeuille liste chacune d'elles.",
@@ -1746,7 +1743,7 @@
       "button": "Ajouter l'identité",
       "addingButton": "Ajout...",
       "found": {
-        "title": "Ce portefeuille détient des identités",
+        "title": "Identité trouvée",
         "key": "Une clé d'identité gardant {count} identité : | Une clé d'identité gardant {count} identités :",
         "held": "{name} : détenue par ce portefeuille. Son UTXO sera écarté des envois.",
         "watched": "{name} : non détenue par ce portefeuille. Elle sera surveillée ; rien n'est retenu.",
@@ -1786,12 +1783,12 @@
       "registryNote": "Le {generator} rédige des registres pour les tokens : il demande un symbole et écrit une section token, qu'une identité qui n'est pas un token ne doit pas avoir. Son instantané porte un nom, une description et des liens."
     },
     "transfer": {
-      "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",
+      "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de cette identité. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",
       "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
       "button": "Transférer l'identité",
       "transferringButton": "Transfert...",
       "confirmTitle": "Transférer cette identité ?",
-      "confirmMessage": "L'UTXO de l'identité ({amount}) est envoyé à {address}, ce qui remet l'autorité de mettre à jour les métadonnées de ce token. C'est irréversible.",
+      "confirmMessage": "L'UTXO de l'identité ({amount}) est envoyé à {address}, ce qui remet l'autorité de mettre à jour les métadonnées de cette identité. C'est irréversible.",
       "confirmButton": "Transférer",
       "done": "Identité transférée à {address}",
       "doneTitle": "Identité transférée",
@@ -1799,8 +1796,8 @@
       "carriedLabel": "Ce qu'elle porte ({carries})",
       "carriedStays": "Reste dans ce portefeuille",
       "carriedGoes": "Part avec l'identité",
-      "confirmMessageKeep": "L'UTXO de l'identité ({amount}) est envoyé à {address}, cédant l'autorité de mettre à jour les métadonnées de ce token. Ce qu'il porte ({carries}) reste dans ce portefeuille. Cette action est irréversible.",
-      "confirmMessageAlong": "L'UTXO de l'identité ({amount}) est envoyé à {address} avec ce qu'il porte ({carries}), cédant l'autorité de mettre à jour les métadonnées de ce token. Cette action est irréversible."
+      "confirmMessageKeep": "L'UTXO de l'identité ({amount}) est envoyé à {address}, cédant l'autorité de mettre à jour les métadonnées de cette identité. Ce qu'il porte ({carries}) reste dans ce portefeuille. Cette action est irréversible.",
+      "confirmMessageAlong": "L'UTXO de l'identité ({amount}) est envoyé à {address} avec ce qu'il porte ({carries}), cédant l'autorité de mettre à jour les métadonnées de cette identité. Cette action est irréversible."
     },
     "remove": {
       "title": "Retirer de cette liste ?",
@@ -1818,7 +1815,7 @@
     "openCheckFailed": "Impossible de consulter les identités de ce portefeuille : {reason} Une identité qu'il détient n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les réglages.",
     "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
     "found": {
-      "title": "Ce portefeuille détient des identités de tokens",
+      "title": "Ce portefeuille détient des identités",
       "intro": "Ce portefeuille détient ces identités, ou la clé qui les contrôle, il peut donc mettre à jour leurs métadonnées :",
       "reserve": "réserve de {amount}",
       "heldBack": "Leurs UTXOs d'identité, ou le NFT clé qui les contrôle, sont maintenant écartés de la sélection des pièces par cette app seulement : un envoi ordinaire d'ici ne peut pas les dépenser par accident, la même seed dans un autre logiciel le peut encore. Le BCH qu'ils portent n'est pas compté dans le solde disponible, et une réserve est affichée sur la page des identités plutôt que dans la liste des tokens.",

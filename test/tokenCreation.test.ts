@@ -26,6 +26,17 @@ describe('genesisAmounts', () => {
     expect(genesisAmounts('9223372036854775808', '0', '0')).toBe('overMaxSupply')
     expect(genesisAmounts('100', '101', '0')).toBe('overSupply')
   })
+
+  // the cap is on the base units, so the decimals count against it: what fits at 0 does not at 18
+  it('holds the cap exactly, in base units', () => {
+    expect(genesisAmounts('9223372036854775807', '0', '0')).toEqual({
+      supply: 9223372036854775807n, circulating: 0n, reserve: 9223372036854775807n,
+    })
+    expect(genesisAmounts('10000000000', '0', '18')).toBe('overMaxSupply')
+    expect(genesisAmounts('9.223372036854775807', '0', '18')).toEqual({
+      supply: 9223372036854775807n, circulating: 0n, reserve: 9223372036854775807n,
+    })
+  })
 })
 
 describe('formatTokens', () => {
