@@ -185,8 +185,11 @@ const authHeadsQuery = graphql(`query AuthHeads(
         genesis: migrations(where: { migration_index: { _eq: "1" } }) {
           transaction {
             outputs {
+              output_index
               token_category
               fungible_token_amount
+              nonfungible_token_capability
+              nonfungible_token_commitment
             }
           }
         }
@@ -226,6 +229,7 @@ export interface AuthHeadResult {
   recentLinks: string[]; // the chain's latest links, oldest first, up to RECENT_LINKS_LIMIT
   isToken: boolean; // whether the genesis made tokens of this category at all
   fungibleSupply: boolean; // and fungible ones among them
+  keyCommitment?: string; // the commitment of the AuthKey the genesis minted at output 1, when it did
 }
 
 type AuthchainAnswer = ResultOf<typeof authHeadsQuery>['transaction'][number]['authchains'][number];
@@ -277,6 +281,11 @@ function readAuthHead(
   );
   const isToken = categoryOutputs.length > 0;
   const fungibleSupply = categoryOutputs.some(output => BigInt(output.fungible_token_amount ?? 0) > 0n);
+  // The AuthGuard genesis setup mints the key at output 1, of the identity's own category, which
+  // pins the key's commitment: without it every NFT of a collection guarded that way is a key
+  const keyOutput = categoryOutputs.find(output => output.output_index === "1");
+  const mintedKey = keyOutput?.nonfungible_token_capability === "none" && BigInt(keyOutput.fungible_token_amount ?? 0) === 0n;
+  const keyCommitment = mintedKey ? byteaToHex(keyOutput.nonfungible_token_commitment ?? "") : undefined;
   const output = authhead.outputs[0];
   let identityOutput: IdentityOutput | undefined;
   if (output) {
@@ -300,6 +309,7 @@ function readAuthHead(
     recentLinks,
     isToken,
     fungibleSupply,
+    ...(keyCommitment !== undefined ? { keyCommitment } : {}),
   };
 }
 

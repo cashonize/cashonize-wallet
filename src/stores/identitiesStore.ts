@@ -553,8 +553,13 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const removed = identities.value?.find(identity => identity.category === category);
     identityCategories.value = removeFromIdentityList('categories', ...walletKey(), category);
     identities.value = identities.value?.filter(identity => identity.category !== category);
-    if (!removed?.authUtxo) return;
-    const outpoint = outpointOf(removed.authUtxo);
+    // the coin the authority rode on is released with the identity: the output, or a key that no
+    // other listed identity is still opened by
+    const keyCoin = removed?.authUtxo ?? removed?.keyUtxo;
+    if (!keyCoin) return;
+    const outpoint = outpointOf(keyCoin);
+    const stillOpens = (identities.value ?? []).some(listed => listed.keyUtxo && outpointOf(listed.keyUtxo) === outpoint);
+    if (stillOpens) return;
     if (mainStore.reservedUtxos[outpoint] === 'auth') await mainStore.dropReservation(outpoint);
   }
 

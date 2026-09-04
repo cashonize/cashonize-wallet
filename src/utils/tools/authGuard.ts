@@ -8,7 +8,6 @@
 import type { Utxo } from "mainnet-js";
 import {
   binToHex,
-  encodeCashAddress,
   encodeLockingBytecodeP2sh20,
   encodeLockingBytecodeP2sh32,
   hash160,
@@ -49,22 +48,12 @@ export function isAuthGuardOf(keyCategory: string, lockingBytecode: string): boo
   return lockingBytecode === forms.p2sh20 || lockingBytecode === forms.p2sh32;
 }
 
-type NetworkPrefix = "bitcoincash" | "bchtest" | "bchreg";
-
-// The covenant's addresses in the token-aware form, since a guarded identity output carries a token
-export function authGuardAddresses(category: string, networkPrefix: NetworkPrefix): AuthGuardForms<string> {
-  const redeemScript = authGuardRedeemScript(category);
-  // the payload's length is what makes an address p2sh20 or p2sh32, the type only says p2sh
-  const encode = (payload: Uint8Array) =>
-    encodeCashAddress({ prefix: networkPrefix, type: "p2shWithTokens", payload, throwErrors: true }).address;
-  return { p2sh20: encode(hash160(redeemScript)), p2sh32: encode(hash256(redeemScript)) };
-}
-
 // The key the covenant asks for at input 1: a token of its category carrying no amount, which
 // with a category of 32 bytes on the covenant's side means an NFT without capability. The
-// commitment is the key's own business, so any commitment is one.
-export function isAuthKey(utxo: Utxo, keyCategory: string): boolean {
+// contract reads no commitment, so any is a key unless the caller knows which one was minted.
+export function isAuthKey(utxo: Utxo, keyCategory: string, commitment?: string): boolean {
   const token = utxo.token;
   if (!token || token.category !== keyCategory) return false;
-  return token.amount === 0n && token.nft?.capability === "none";
+  if (token.amount !== 0n || token.nft?.capability !== "none") return false;
+  return commitment === undefined || token.nft.commitment === commitment;
 }

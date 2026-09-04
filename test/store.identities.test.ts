@@ -35,15 +35,22 @@ const utxo = (txid: string, vout: number, token?: Utxo['token']): Utxo =>
 // output the chain reports when one is given. A batch none of whose categories is mapped
 // rejects, the way an unreachable server would; a mapped batch answers for the categories it
 // knows and leaves the rest out, which is that category unresolved on its own
-function stubAuthheadQueries(authheads: Record<string, string>, identityOutputs: Record<string, object> = {}) {
+function stubAuthheadQueries(
+  authheads: Record<string, string>,
+  identityOutputs: Record<string, object> = {},
+  genesisOutputs: Record<string, object[]> = {},
+) {
   const answer = (category: string) => {
     const output = identityOutputs[category]
+    const genesis = genesisOutputs[category]
     return {
       hash: `\\x${category}`,
       // chaingraph returns bytea as \x-prefixed hex
       authchains: [{
         authhead: { hash: `\\x${authheads[category]}`, outputs: output ? [output] : [] },
-        genesis: [], lastPublication: [], recent: [],
+        genesis: genesis ? [{ transaction: [{ outputs: genesis }] }] : [],
+        lastPublication: [],
+        recent: [],
       }],
     }
   }
@@ -142,6 +149,13 @@ const guardedOutput = (keyCategory: string, identityCategory: string, reserve: s
   nonfungible_token_capability: null,
   nonfungible_token_commitment: null,
 })
+// the standard's genesis setup as the chain reports it: the guard at output 0, the key at output 1
+const guardGenesis = (category: string, keyCommitment: string) => [
+  { output_index: '0', token_category: `\\x${category}`, fungible_token_amount: '1000',
+    nonfungible_token_capability: null, nonfungible_token_commitment: null },
+  { output_index: '1', token_category: `\\x${category}`, fungible_token_amount: '0',
+    nonfungible_token_capability: 'none', nonfungible_token_commitment: `\\x${keyCommitment}` },
+]
 
 // The notification trail leads to this page for two reasons, and both have to stop asking once
 // the page has been opened: the shape of an identity key is a shape ordinary NFTs can have, so a
@@ -512,6 +526,75 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identities?.[0]?.guardedBy).toBeUndefined()
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([lookalike])
+  })
+
+  // a collection guarded by its own category shares that category with every NFT in it; the
+  // genesis says which commitment the key was minted with, and only that one is the key
+  it('takes only the NFT the genesis minted as the key of an identity guarded by its own category', async () => {
+    const stub = () => stubAuthheadQueries(
+      { [categoryA]: authheadA },
+      { [categoryA]: guardedOutput(categoryA, categoryA, '500') },
+      { [categoryA]: guardGenesis(categoryA, '00') },
+    )
+    listIdentities([categoryA])
+    const collectionNft: Utxo = { ...authKeyUtxo(categoryA), token: { category: categoryA, amount: 0n, nft: { commitment: 'ab', capability: 'none' } } }
+
+    stub()
+    const { store, identitiesStore } = startStore([collectionNft])
+    await identitiesStore.refreshIdentities()
+    expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
+    expect(store.reservedUtxos).toEqual({})
+
+    stub()
+    const key = authKeyUtxo(categoryA)
+    store.walletUtxos = [collectionNft, key]
+    await identitiesStore.refreshIdentities()
+    expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
+    expect(identitiesStore.identities?.[0]?.keyUtxo).toEqual(key)
+    expect(store.reservedUtxos).toEqual({ [outpointOf(key)]: 'auth' })
+  })
+
+  // an NFT with a capability is not what the covenant takes at input 1, whatever its category
+  it('does not take a capability-bearing NFT of the key category for the key', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })
+    listIdentities([categoryA])
+    const minting: Utxo = { ...authKeyUtxo(categoryA), token: { category: categoryA, amount: 0n, nft: { commitment: '00', capability: 'minting' } } }
+    const { store, identitiesStore } = startStore([minting])
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
+    expect(store.reservedUtxos).toEqual({})
+  })
+
+  // the registry is trusted for the key's name only as far as a category goes: anything else there is ignored
+  it('ignores an authNft that is not a category', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput('1122334455667788'.repeat(4), categoryA, '500') })
+    listIdentities([categoryA])
+    const { store, identitiesStore } = startStore([authKeyUtxo('1122334455667788'.repeat(4))])
+    store.bcmrRegistries = {
+      [categoryA]: { name: 'Named', description: '', token: { category: categoryA, symbol: 'NMD' }, extensions: { authNft: 'not a category' } },
+    }
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
+    expect(store.reservedUtxos).toEqual({})
+  })
+
+  // the card that could transfer the key goes with the identity, so the key cannot stay frozen
+  it('releases the key when the identity it opens is removed', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })
+    listIdentities([categoryA])
+    const key = authKeyUtxo(categoryA)
+    const { store, identitiesStore } = startStore([key])
+    await identitiesStore.refreshIdentities()
+    expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
+
+    await identitiesStore.removeIdentity(categoryA)
+
+    expect(store.reservedUtxos).toEqual({})
+    expect(store.spendableUtxos).toEqual([key])
   })
 
   // an identity output at an ordinary address is not guarded, whatever NFTs of its category sit here

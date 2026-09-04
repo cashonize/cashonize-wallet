@@ -45,7 +45,10 @@ authenticates a file, so every registry the wallet acts on is fetched fresh and 
 against the chain, and what a publisher is shown before signing comes from that file
 parsed, never cast. A name from a registry is accepted only when the hash matches the
 publication on this coin's chain and the forward resolution of that authbase ends at this
-coin.
+coin. What a guarded identity's output carries is Chaingraph's claim, since the coin is
+not here, and the key an adopted guard is named with comes from the indexer's copy of the
+registry; both can only make the wallet compare against a covenant the chain then has to
+match, so the worst either can do is hold a coin back.
 
 **Reserve first, tell every time.** An identity output or an AuthKey the wallet holds is
 held back from coin selection the moment the wallet knows, without asking, because the
@@ -81,11 +84,12 @@ covenant spends (Studio does).
   followed passively, in batches of forward lookups at open and on the page's visit: not
   listed, not reserved, never news, until its identity output turns out to be here, when it
   is promoted to the list, held back and announced. A setting turns the following off.
-- **Added by id.** Any authbase, a token's or not; an AuthKey category is read as a key
-  first. The confirm says where the identity is held before listing it: here, and held
-  back, or elsewhere, and only watched.
-- **Held through a key.** AuthKeys the wallet holds are recognised at every open, their
-  guard addresses derived and listed, and the key reserved.
+- **Added by id.** Any authbase, a token's or not, an identity kept in a guard included.
+  The confirm says where the identity is held before listing it: here, and held back, or
+  in a covenant this wallet has the key to, or elsewhere, and only watched.
+- **Held through a key.** A guarded identity is recognised in the resolve that finds its
+  output, by the covenant's bytecode, and the key the wallet holds for it is reserved; a
+  key's identity reaches the list the way any held token's does, through the following.
 
 Watched identities reserve nothing and are listed apart from owned ones; the followed token
 identities are a third, collapsed group. Whenever the wallet holds something back the user

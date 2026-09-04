@@ -528,7 +528,7 @@ export async function resolveIdentities(
     if (!answer?.value) {
       return { category, status: 'unresolved', ...(answer ? { unresolvedReason: answer.reason } : {}) };
     }
-    const { txid: authheadTxid, identityOutput, publicationOutputs, chainLength, recentLinks, isToken, fungibleSupply } = answer.value;
+    const { txid: authheadTxid, identityOutput, publicationOutputs, chainLength, recentLinks, isToken, fungibleSupply, keyCommitment } = answer.value;
     const publication = findPublication(publicationOutputs);
     const resolved = {
       category,
@@ -550,7 +550,9 @@ export async function resolveIdentities(
       ? [category, ...extraKeyCategories(category)].find(key => isAuthGuardOf(key, identityOutput.lockingBytecode))
       : undefined;
     if (guardedBy) {
-      const keyUtxo = walletUtxos.find(utxo => isAuthKey(utxo, guardedBy));
+      // a key of the identity's own category is the one its genesis minted, when it minted one
+      const commitment = guardedBy === category ? keyCommitment : undefined;
+      const keyUtxo = walletUtxos.find(utxo => isAuthKey(utxo, guardedBy, commitment));
       // without the key this is somebody else's identity, watched from here like any other
       if (!keyUtxo) return { ...resolved, guardedBy, status: 'notHeld' };
       return { ...resolved, guardedBy, keyUtxo, status: 'heldViaKey' };
