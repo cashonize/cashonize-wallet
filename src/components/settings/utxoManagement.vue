@@ -296,7 +296,8 @@
     if(!utxosWithBchAndTokens.value || !store.walletUtxos) return
     activeAction.value = 'splitting';
     try{
-      const tokenUtxos = getTokenUtxos(store.walletUtxos);
+      // the amounts a send can reach: a held back coin of the category stays where it is
+      const tokenUtxos = getTokenUtxos(store.spendableUtxos ?? []);
       const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
       const uniqueTokenIdsToSplit: Set<string> = new Set()
       utxosWithBchAndTokens.value.forEach(utxo => {

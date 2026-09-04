@@ -1131,7 +1131,8 @@ export const useStore = defineStore('store', () => {
     // there is nothing to fetch chipnet prices for
     if (!force && network.value !== 'mainnet') return;
 
-    const fungibleTokens = tokenList.value?.filter(token => 'amount' in token) ?? [];
+    // priced for the portfolio, which values held back coins too
+    const fungibleTokens = allTokenList.value?.filter(token => 'amount' in token) ?? [];
     const ftTokenIds = fungibleTokens.map(token => token.category);
     // a pool holds a token the wallet does not have to hold itself, so it needs a price too
     for (const pool of cauldronPools.value ?? []) {
@@ -1226,13 +1227,8 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // The identities these keys made are found from the wallet's own history at every open, so
-  // holding them back does not wait on the portfolio being visited. Mainnet only, like the walk
-  // below: the query is address-keyed and one endpoint serves both chains. A failure shows on
-  // the identities page rather than as a toast on every open.
-
-  // The walk of the wallet's spent outputs, run at open for detection and again from the portfolio
-  // view; one request each time
+  // The walk of the wallet's spent outputs, run at open for identity detection and again from the
+  // portfolio view. Mainnet only: the query is address-keyed and one endpoint serves both chains.
   async function walkSpentOutputs() {
     return querySpentOutputs(walletPublicKeyHashes(), settingsStore.chaingraph);
   }
@@ -1629,7 +1625,7 @@ export const useStore = defineStore('store', () => {
       return response;
     },
 
-  // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
+    // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
     // makes the signed pledge the campaign holds unusable
     async releaseReservedCoin(utxo: Utxo) {
       return sendSingleCoin(utxo, wallet.value.getDepositAddress());

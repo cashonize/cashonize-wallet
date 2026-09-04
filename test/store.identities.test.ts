@@ -595,6 +595,19 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos).toEqual({})
   })
 
+  // The wallet's own view can trail the transaction it just made: the created identity's coin is
+  // reserved before any coin list shows it, and the resolve that follows must not take it back
+  it('keeps a created identity\'s reservation while the wallet has not seen the coin yet', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    const { store, identitiesStore } = startStore([])
+
+    await identitiesStore.listCreatedIdentity(categoryA, authheadA)
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
+    expect(store.reservedUtxos[`${authheadA}:0`]).toBe('auth')
+  })
+
   // the card that could transfer the key goes with the identity, so the key cannot stay frozen
   it('releases the key when the identity it opens is removed', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })

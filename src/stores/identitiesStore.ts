@@ -104,6 +104,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
     openCheckError.value = undefined;
     publicationChecks.value = {};
     identityHistories.value = {};
+    // a pass still running belongs to the last wallet and writes nothing more; it must not hold
+    // this wallet's first resolve back
+    identitiesResolving.value = false;
   }
 
   // Identities these keys made, found in the walk rather than asked for. This is the one place
@@ -333,11 +336,17 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (mainStore.walletSwitchedSince(started)) return;
     if (toReserve.length) await mainStore.reserveOutpoints(toReserve, 'auth');
     if (resolved.some(identity => identity.status === 'unresolved')) return;
-    const heldOutpoints = (mainStore.walletUtxos ?? []).map(outpointOf);
+    // Never dropped: the coins above, the coins the wallet holds, and every resolved identity's
+    // output, whether the wallet's coins show it yet or not: its own view can trail the
+    // transaction it just made
+    const kept = [
+      ...authOutpoints,
+      ...(mainStore.walletUtxos ?? []).map(outpointOf),
+      ...resolved.flatMap(identity => identity.authheadTxid ? [`${identity.authheadTxid}:0`] : []),
+    ];
     for (const [outpoint, reason] of Object.entries(mainStore.reservedUtxos)) {
       if (reason !== 'auth') continue;
-      if (authOutpoints.includes(outpoint)) continue;
-      if (heldOutpoints.includes(outpoint)) continue;
+      if (kept.includes(outpoint)) continue;
       if (mainStore.walletSwitchedSince(started)) return;
       await mainStore.dropReservation(outpoint);
     }
@@ -514,6 +523,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const outpoint = `${authheadTxId}:0`;
     if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoint(outpoint, 'auth');
     try {
+      // the resolve reads the wallet's coins, which must include the one just made
+      await mainStore.updateWalletUtxos();
       await refreshIdentities();
     } catch (error) {
       console.error("Failed to resolve the created identity:", error);
