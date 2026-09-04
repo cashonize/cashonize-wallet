@@ -91,7 +91,7 @@
       "utxosHeldBack": "Einige UTXOs sind von der Münzauswahl ausgenommen und zählen hier nicht mit. Die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben.",
       "genesisInputUnavailable": "Die zur Erstellung gewählte Münze ist nicht mehr verfügbar. Wähle eine andere.",
-      "identityLeavesWallet": "Diese Anfrage würde die Kontrolle über eine deiner Identitäten an ein anderes Wallet übergeben und wurde daher abgelehnt. Eine Identität wird über die Identitäten-Seite übertragen.",
+      "identityLeavesWallet": "Diese Anfrage würde eine deiner Identitäten an eine Adresse bewegen, die dieses Wallet nicht als seine eigene erkennt, und wurde daher abgelehnt. Eine Identität wird über die Identitäten-Seite übertragen.",
       "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben, was sie zu einer verschmilzt. Identitäten zu verschmelzen unterstützt dieses Wallet noch nicht, deshalb wurde sie abgelehnt.",
       "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum.",
       "identityHeld": "Diese Anfrage würde den Identitäts-UTXO von {name} ausgeben, was verbundene Apps nicht dürfen, und wurde daher abgelehnt. Um Identitäten über eine verbundene App zu verwalten, schalte \"Verbundene Apps dürfen Identitäts-UTXOs ausgeben\" in den Benutzeroptionen ein.",

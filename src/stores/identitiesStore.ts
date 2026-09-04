@@ -320,25 +320,18 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // unresolved either. Every write checks for a wallet switch first.
   async function syncAuthReservations(resolved: IdentityState[]) {
     const started = mainStore.currentInitializationToken();
-    const authOutpoints: string[] = [];
-    for (const coin of unnamedAuthheadCoins.value) {
-      const outpoint = outpointOf(coin);
-      authOutpoints.push(outpoint);
-      if (mainStore.walletSwitchedSince(started)) return;
-      if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveUtxo(coin, 'auth');
-    }
+    const authOutpoints = unnamedAuthheadCoins.value.map(outpointOf);
     for (const identity of resolved) {
       // the identity output when this wallet holds it, the AuthKey when a covenant does: either
       // way it is the coin the authority rides on, and one key can carry several identities
       const keyCoin = identity.authUtxo ?? identity.keyUtxo;
-      if (!keyCoin) continue;
-      const outpoint = outpointOf(keyCoin);
-      authOutpoints.push(outpoint);
-      // A reservation already made for another reason is left alone: the coin is held back either
-      // way, and rewriting the reason would take it away from whatever made it
-      if (mainStore.walletSwitchedSince(started)) return;
-      if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveUtxo(keyCoin, 'auth');
+      if (keyCoin) authOutpoints.push(outpointOf(keyCoin));
     }
+    // A reservation already made for another reason is left alone: the coin is held back either
+    // way, and rewriting the reason would take it away from whatever made it
+    const toReserve = authOutpoints.filter(outpoint => !mainStore.reservedUtxos[outpoint]);
+    if (mainStore.walletSwitchedSince(started)) return;
+    if (toReserve.length) await mainStore.reserveOutpoints(toReserve, 'auth');
     if (resolved.some(identity => identity.status === 'unresolved')) return;
     const heldOutpoints = (mainStore.walletUtxos ?? []).map(outpointOf);
     for (const [outpoint, reason] of Object.entries(mainStore.reservedUtxos)) {

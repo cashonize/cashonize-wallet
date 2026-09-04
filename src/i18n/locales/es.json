@@ -91,7 +91,7 @@
       "utxosHeldBack": "Algunos UTXOs están retenidos fuera de la selección de monedas y no cuentan aquí. La página de gestión de UTXOs muestra cuáles están retenidos y por qué.",
       "cannotSendPledgedUtxo": "Este UTXO está retenido por una promesa abierta. Cancela la promesa para liberarlo.",
       "genesisInputUnavailable": "La moneda elegida para crear este token ya no está disponible. Elige otra.",
-      "identityLeavesWallet": "Esta solicitud entregaría el control de una de tus identidades a otra billetera, así que fue rechazada. La transferencia de una identidad se hace desde la página de identidades.",
+      "identityLeavesWallet": "Esta solicitud movería una de tus identidades a una dirección que esta billetera no reconoce como propia, así que fue rechazada. La transferencia de una identidad se hace desde la página de identidades.",
       "identityMerge": "Esta solicitud gastaría dos de tus identidades en una sola transacción, lo que las fusiona en una. Esta billetera todavía no admite fusionar identidades, así que se rechazó.",
       "reservedInputs": "Esta solicitud gastaría un UTXO que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué UTXOs están retenidos y por qué.",
       "identityHeld": "Esta solicitud gastaría el UTXO de identidad de {name}, algo que las apps conectadas no tienen permitido, así que se rechazó. Para gestionar identidades mediante una app conectada, activa \"Permitir que las apps conectadas gasten UTXOs de identidad\" en las opciones de usuario.",

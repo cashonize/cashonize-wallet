@@ -91,7 +91,7 @@
       "utxosHeldBack": "Some UTXOs are held back from coin selection and do not count here. The UTXO Management page shows which are held and why.",
       "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it.",
       "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one.",
-      "identityLeavesWallet": "This request would hand control of one of your identities to another wallet, so it was refused. Transferring an identity is done from the identities page.",
+      "identityLeavesWallet": "This request would move one of your identities to an address this wallet does not recognise as its own, so it was refused. Transferring an identity is done from the identities page.",
       "identityMerge": "This request would spend two of your identities in one transaction, which merges them into one. Merging identities is not supported by this wallet yet, so it was refused.",
       "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why.",
       "identityHeld": "This request would spend the identity UTXO of {name}, which connected apps are not allowed to, so it was refused. To manage identities through a connected app, turn on \"Let connected apps spend identity UTXOs\" under user options.",

@@ -1412,15 +1412,21 @@ export const useStore = defineStore('store', () => {
   // Token coins are held back the same way BCH coins are. That took the pool narrowing to reach
   // every spend path, mainnet-js's token methods included (see the pnpm patch), and the shortfall
   // messages below to say why a send that used to fit no longer does.
-  // Keyed by outpoint, so a coin this wallet made but has not seen yet can be held back too
-  async function reserveOutpoint(outpoint: Outpoint, reason: ReservationReason) {
-    reservedUtxos.value = saveReservedOutpoint(network.value, wallet.value.name, outpoint, reason);
+  // Keyed by outpoint, so a coin this wallet made but has not seen yet can be held back too. A
+  // resolve reserves what it found in one go, since the refresh at the end costs an electrum call.
+  async function reserveOutpoints(outpoints: Outpoint[], reason: ReservationReason) {
+    for (const outpoint of outpoints) {
+      reservedUtxos.value = saveReservedOutpoint(network.value, wallet.value.name, outpoint, reason);
+    }
     // the fungible balances count what can be spent, and nothing else re-reads them on their own
     updateTokenList();
     await refreshMaxAmountToSend();
   }
+  function reserveOutpoint(outpoint: Outpoint, reason: ReservationReason) {
+    return reserveOutpoints([outpoint], reason);
+  }
   function reserveUtxo(utxo: Utxo, reason: ReservationReason) {
-    return reserveOutpoint(outpointOf(utxo), reason);
+    return reserveOutpoints([outpointOf(utxo)], reason);
   }
 
   // Drops a reservation without spending; cancelling a pledge goes through spend.releaseReservedCoin
@@ -1660,6 +1666,7 @@ export const useStore = defineStore('store', () => {
     reservedWalletUtxos,
     reserveUtxo,
     reserveOutpoint,
+    reserveOutpoints,
     currentInitializationToken,
     walletSwitchedSince,
     dropReservation,

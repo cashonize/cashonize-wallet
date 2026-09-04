@@ -116,6 +116,25 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
       .rejects.toThrow(/held back/)
   })
 
+  // The one path that spends past its own reservation: the pool is the wallet's BCH coins plus
+  // the identity output, and only the token coins the operation asked for, so a supply operation
+  // cannot sweep the circulating balance into itself as change
+  it('spends an identity output from a pool of BCH coins, the output, and the coins asked for', async () => {
+    const wallet = createMockWallet()
+    const store = useStore()
+    store.setWallet(wallet as never)
+    store.walletUtxos = walletCoins
+    await store.reserveUtxo(tokenCoin, 'auth')
+    const request = [{ cashaddr: 'bitcoincash:qdest', value: 1000n }]
+
+    await store.spend.spendAuthUtxo(tokenCoin, request)
+    expect(poolOf(wallet.send.mock.calls[0] as unknown[])).toEqual([bchCoin, tokenCoin])
+    expect((wallet.send.mock.calls[0] as unknown[]).at(-1)).toMatchObject({ ensureUtxos: [tokenCoin] })
+
+    await store.spend.spendAuthUtxo(tokenCoin, request, [otherTokenCoin])
+    expect(poolOf(wallet.send.mock.calls[1] as unknown[])).toEqual([bchCoin, tokenCoin, otherTokenCoin])
+  })
+
   it('passes an unrelated failure through untouched', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
     wallet.send.mockRejectedValue(new Error('broadcast failed'))

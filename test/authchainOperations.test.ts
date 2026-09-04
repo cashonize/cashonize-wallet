@@ -144,6 +144,17 @@ describe('publicationOutput', () => {
 
     expect(publicationOutputSize(tooMany)).toBeGreaterThan(maxPublicationOutputSize)
   })
+
+  // a push of 76 bytes or more takes a length byte after the opcode, so a long location costs
+  // two bytes over its length where a short one costs one
+  it('measures the push encoding a long location takes', () => {
+    const short = 'example.com'
+    const long = `${'a'.repeat(70)}.example.com`
+    const withoutLocations = publicationOutputSize([])
+
+    expect(publicationOutputSize([short]) - withoutLocations).toBe(short.length + 1)
+    expect(publicationOutputSize([long]) - withoutLocations).toBe(long.length + 2)
+  })
 })
 
 const registryWith = (snapshots: Record<string, unknown>) => JSON.stringify({

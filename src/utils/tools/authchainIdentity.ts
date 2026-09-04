@@ -540,6 +540,21 @@ export async function resolveIdentities(
   return categories.map(category => {
     const answer = answers.get(category);
     if (!answer?.value) {
+      // An identity still at its authbase, the coin unspent here: what a just-added one is until
+      // Chaingraph has seen the transaction, and held either way
+      const atAuthbase = walletUtxos.find(utxo => utxo.txid === category && utxo.vout === 0);
+      if (atAuthbase) {
+        return {
+          category,
+          authheadTxid: category,
+          authUtxo: atAuthbase,
+          chainLength: 1,
+          recentLinks: [category],
+          isToken: false,
+          fungibleSupply: false,
+          status: 'held',
+        };
+      }
       return { category, status: 'unresolved', ...(answer ? { unresolvedReason: answer.reason } : {}) };
     }
     const { txid: authheadTxid, identityOutput, publicationOutputs, chainLength, recentLinks, isToken, fungibleSupply, keyCommitment } = answer.value;

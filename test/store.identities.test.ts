@@ -359,26 +359,38 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryB])
   })
 
-  // the reservation writes go under whichever wallet is active when they run, so a switch landing
-  // between two of them must stop the rest rather than write them under the next wallet's key
-  it('stops writing reservations when the wallet changes between two of them', async () => {
+  // the reservation writes go under whichever wallet is active when they run, so a pass writes
+  // nothing once the wallet switched during its lookup, and writes all of them in one go otherwise,
+  // ahead of the refresh a switch could land in
+  it('writes a pass\'s reservations together, or not at all once the wallet switched', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     listIdentities([categoryA, categoryB])
     const authUtxoA = utxo(authheadA, 0)
     const authUtxoB = utxo(authheadB, 0)
     const { store, identitiesStore } = startStore([authUtxoA, authUtxoB])
-    // the first reservation's refresh is where the switch lands
-    store.wallet.getMaxAmountToSend = vi.fn()
+    const reservedKey = 'reservedUtxos-mainnet-testWallet'
+    const written = () => Object.keys(JSON.parse(localStorageMock.getItem(reservedKey) ?? '{}') as Record<string, unknown>)
+
+    // the switch lands during the lookup: nothing is written
+    const answering = fetch as unknown as { getMockImplementation: () => (...args: unknown[]) => unknown, mockImplementationOnce: (fn: (...args: unknown[]) => unknown) => void }
+    const answer = answering.getMockImplementation()
+    answering.mockImplementationOnce(async (...args: unknown[]) => {
+      await store.resetWalletState({ resetDappConnections: false })
+      return answer(...args)
+    })
+    await identitiesStore.refreshIdentities()
+    expect(written()).toEqual([])
+
+    // the switch lands during the refresh after the writes: both are already under this wallet's key
+    const again = startStore([authUtxoA, authUtxoB])
+    again.store.wallet.getMaxAmountToSend = vi.fn()
       .mockImplementationOnce(async () => {
-        await store.resetWalletState({ resetDappConnections: false })
+        await again.store.resetWalletState({ resetDappConnections: false })
         return 0n
       })
       .mockResolvedValue(0n)
-
-    await identitiesStore.refreshIdentities()
-
-    const written = JSON.parse(localStorageMock.getItem('reservedUtxos-mainnet-testWallet') ?? '{}') as Record<string, unknown>
-    expect(Object.keys(written)).toEqual([outpointOf(authUtxoA)])
+    await again.identitiesStore.refreshIdentities()
+    expect(written()).toEqual([outpointOf(authUtxoA), outpointOf(authUtxoB)])
   })
 
   // unnamed is a derived view: a naming entry may stay in the map, but a UTXO the resolved list

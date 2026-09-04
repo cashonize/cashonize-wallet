@@ -91,7 +91,7 @@
       "utxosHeldBack": "Certains UTXO sont écartés de la sélection et ne comptent pas ici. La page de gestion des UTXO montre lesquels sont retenus et pourquoi.",
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
       "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
-      "identityLeavesWallet": "Cette requête confierait le contrôle d'une de vos identités à un autre portefeuille, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
+      "identityLeavesWallet": "Cette requête déplacerait une de vos identités vers une adresse que ce portefeuille ne reconnaît pas comme la sienne, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
       "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, ce qui les fusionne en une. Ce portefeuille ne prend pas encore en charge la fusion d'identités, elle a donc été refusée.",
       "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi.",
       "identityHeld": "Cette requête dépenserait l'UTXO d'identité de {name}, ce que les applications connectées ne sont pas autorisées à faire ; elle a donc été refusée. Pour gérer des identités via une application connectée, activez « Laisser les applications connectées dépenser les UTXO d'identité » dans les options utilisateur.",

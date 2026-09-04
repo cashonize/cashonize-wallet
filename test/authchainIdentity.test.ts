@@ -247,6 +247,15 @@ describe('resolveIdentities', () => {
     expect(resolved[0]?.authUtxo).toEqual(tokenAuthUtxo);
   });
 
+  // a just-added identity sits at its authbase, which Chaingraph may not have seen yet; the coin
+  // is here, so the card says held rather than sending the user to check the server
+  it('holds an identity still at its authbase before the server knows it', async () => {
+    stubAuthheadQueries({});
+    const authbaseCoin = utxo(categoryA, 0);
+    const resolved = await resolveIdentities([categoryA], chaingraphUrl, [authbaseCoin]);
+    expect(resolved[0]).toMatchObject({ status: 'held', authheadTxid: categoryA, authUtxo: authbaseCoin, isToken: false });
+  });
+
   it('marks only the identity whose query failed as unresolved', async () => {
     // only categoryB answers, so categoryA's query is the one that fails
     stubAuthheadQueries({ [categoryB]: authheadB });
