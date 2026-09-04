@@ -35,7 +35,8 @@ const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
 function stubAuthheadQueries(
   authheads: Record<string, string>,
   chains: Record<string, { hash: string; publication?: string }[]> = {},
-  fungibleGenesis: string[] = [], // categories whose genesis created fungible supply
+  // what each category's genesis made; a token without fungible supply unless said otherwise
+  genesis: Record<string, 'fungible' | 'nft' | 'none'> = {},
 ) {
   const answer = (category: string) => {
     // the query asks for each link's BCMR-prefixed outputs only, so a link without one answers empty
@@ -45,12 +46,16 @@ function stubAuthheadQueries(
         outputs: link.publication ? [{ locking_bytecode: `\\x${link.publication}` }] : [],
       }],
     }));
-    // the queried transaction is the genesis, and its outputs say whether the category has supply
-    const outputs = fungibleGenesis.includes(category)
-      ? [{ token_category: `\\x${category}`, fungible_token_amount: "1000" }]
-      : [{ token_category: `\\x${category}`, fungible_token_amount: null }];
-    return { hash: `\\x${category}`, outputs, authchains: [{
+    // the chain's second link is the genesis, the one transaction that can make the category, so
+    // its outputs say whether the chain is a token's at all and whether that token has supply
+    const made = genesis[category] ?? 'nft';
+    const genesisOutputs = made === 'none' ? [] : [{
+      token_category: `\\x${category}`,
+      fungible_token_amount: made === 'fungible' ? "1000" : null,
+    }];
+    return { hash: `\\x${category}`, authchains: [{
       authhead: { hash: `\\x${authheads[category]}` }, // chaingraph returns bytea as \x-prefixed hex
+      genesis: [{ transaction: [{ outputs: genesisOutputs }] }],
       migrations,
     }] };
   };
@@ -178,7 +183,7 @@ describe('resolveIdentities', () => {
     const authUtxo = utxo(authheadA, 0);
     const resolved = await resolveIdentities([categoryA], chaingraphUrl, [authUtxo]);
     expect(resolved).toEqual([
-      { category: categoryA, authheadTxid: authheadA, authUtxo, links: [], status: 'held', fungibleSupply: false },
+      { category: categoryA, authheadTxid: authheadA, authUtxo, links: [], status: 'held', isToken: true, fungibleSupply: false },
     ]);
   });
 
@@ -213,9 +218,18 @@ describe('resolveIdentities', () => {
   // a reserve is only possible for a category whose genesis created fungible supply, whatever the
   // wallet holds of it now; an NFT-only category never gets the reserve actions
   it('reads off the genesis whether the category has fungible supply', async () => {
-    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB }, {}, [categoryA]);
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB }, {}, { [categoryA]: 'fungible' });
     const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, []);
     expect(resolved[0]?.fungibleSupply).toBe(true);
+    expect(resolved[1]?.fungibleSupply).toBe(false);
+  });
+
+  // an identity that is not a token is a chain like any other, with no token made at its second link
+  it("reads off the genesis whether the chain is a token's at all", async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB }, {}, { [categoryB]: 'none' });
+    const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, []);
+    expect(resolved[0]?.isToken).toBe(true);
+    expect(resolved[1]?.isToken).toBe(false);
     expect(resolved[1]?.fungibleSupply).toBe(false);
   });
 });

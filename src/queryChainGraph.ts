@@ -137,22 +137,26 @@ export async function queryAuthchainLinks(tokenId: string, chaingraphUrl: string
 // publication; the alternative, fetching every output and filtering here, would carry far more.
 const bcmrPrefixRange = { from: "6a0442434d52", to: "6a0442434d53" };
 
-// Where an identity's authchain ends now. The authhead transaction's outputs come along, so the
-// BCMR publication among them can be recognised by its locking bytecode, and so do the chain's
-// transactions, oldest first, which the history reads to name the wallet's own identity operations.
+// Where an identity's authchain ends now. The chain's transactions come along, oldest first, with
+// the BCMR publications among their outputs, which the last publication and the history are read
+// from; the second link, the genesis, comes whole, since its outputs say what the category is.
 const authHeadQuery = graphql(`query AuthHead(
     $hash: bytea!
     $bcmrFrom: bytea!
     $bcmrTo: bytea!
   ) {
     transaction(where: { hash: { _eq: $hash } }) {
-      outputs {
-        token_category
-        fungible_token_amount
-      }
       authchains {
         authhead {
           hash
+        }
+        genesis: migrations(where: { migration_index: { _eq: "1" } }) {
+          transaction {
+            outputs {
+              token_category
+              fungible_token_amount
+            }
+          }
         }
         migrations {
           transaction {
@@ -177,13 +181,17 @@ const authHeadsQuery = graphql(`query AuthHeads(
   ) {
     transaction(where: { hash: { _in: $hashes } }) {
       hash
-      outputs {
-        token_category
-        fungible_token_amount
-      }
       authchains {
         authhead {
           hash
+        }
+        genesis: migrations(where: { migration_index: { _eq: "1" } }) {
+          transaction {
+            outputs {
+              token_category
+              fungible_token_amount
+            }
+          }
         }
         migrations {
           transaction {
@@ -201,7 +209,8 @@ export interface AuthHeadResult {
   txid: string;
   publicationOutputs: string[];
   links: string[];
-  fungibleSupply: boolean;
+  isToken: boolean; // whether the genesis made tokens of this category at all
+  fungibleSupply: boolean; // and fungible ones among them
 }
 
 type AuthHeadTransaction = ResultOf<typeof authHeadQuery>['transaction'][number];
@@ -252,12 +261,16 @@ function readAuthHead(tokenId: string, authHeadObj: AuthHeadTransaction): AuthHe
       if (published.length) publicationOutputs = published;
     }
   }
-  // The queried transaction is the genesis, and whether a category has fungible tokens at all is
-  // decided there and never changes: supply can only be created in the genesis
-  const fungibleSupply = (authHeadObj.outputs ?? []).some(output =>
-    output.token_category && byteaToHex(output.token_category) === tokenId && BigInt(output.fungible_token_amount ?? 0) > 0n
+  // The queried transaction is the authbase, whose hash the category is, so it cannot carry the
+  // category: only the genesis can, the link that spends its output 0. What that link made never
+  // changes, so it decides whether the identity is a token's and whether the token has supply.
+  const genesisOutputs = authchain.genesis[0]?.transaction?.[0]?.outputs ?? [];
+  const categoryOutputs = genesisOutputs.filter(output =>
+    output.token_category && byteaToHex(output.token_category) === tokenId
   );
-  return { txid: byteaToHex(authchain.authhead!.hash), publicationOutputs, links, fungibleSupply };
+  const isToken = categoryOutputs.length > 0;
+  const fungibleSupply = categoryOutputs.some(output => BigInt(output.fungible_token_amount ?? 0) > 0n);
+  return { txid: byteaToHex(authchain.authhead!.hash), publicationOutputs, links, isToken, fungibleSupply };
 }
 
 const spentOutputsQuery = graphql(`query WalletSpentOutputs(

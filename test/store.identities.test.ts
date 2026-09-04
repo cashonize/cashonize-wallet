@@ -37,8 +37,7 @@ const utxo = (txid: string, vout: number, token?: Utxo['token']): Utxo =>
 function stubAuthheadQueries(authheads: Record<string, string>) {
   const answer = (category: string) => ({
     hash: `\\x${category}`,
-    authchains: [{ authhead: { hash: `\\x${authheads[category]}` }, migrations: [] }], // chaingraph returns bytea as \x-prefixed hex
-    outputs: [],
+    authchains: [{ authhead: { hash: `\\x${authheads[category]}` }, genesis: [], migrations: [] }], // chaingraph returns bytea as \x-prefixed hex
   })
   vi.stubGlobal('fetch', vi.fn((_url: string, options: RequestInit) => {
     const { variables } = JSON.parse(options.body as string) as { variables: { hash?: string, hashes?: string[] } }
@@ -74,7 +73,8 @@ function stubIdentityServers(
       ok: true,
       json: () => Promise.resolve({
         data: { transaction: [{ authchains: [{
-          authhead: { hash: `\\x${chain.authhead}`, identity_output: [{ fungible_token_amount: '0' }], outputs: [] },
+          authhead: { hash: `\\x${chain.authhead}` },
+          genesis: [],
           migrations: [{ transaction: [{ hash: `\\x${chain.authhead}`, outputs }] }],
         }] }] },
       }),

@@ -30,8 +30,10 @@ export interface IdentityState {
   guardAddress?: string; // where that covenant sits, which is not an address of this wallet
   status: IdentityStatus;
   unresolvedReason?: string; // what the lookup said went wrong, for an 'unresolved' one
-  // whether the category has fungible tokens at all, read off its genesis: a reserve is only
-  // possible for one that does, whatever the wallet holds of it right now
+  // What the genesis made, which never changes: whether the chain is a token's at all, and whether
+  // that token has fungible supply. A reserve is only possible for one that does, whatever the
+  // wallet holds of it right now, and an identity that is not a token is named differently.
+  isToken?: boolean;
   fungibleSupply?: boolean;
   publication?: MetadataPublication; // absent when the authchain has never carried one
   // Every transaction of this identity's authchain, oldest first. Carried because the ordinary
@@ -521,9 +523,9 @@ export async function resolveIdentities(
     if (!answer?.value) {
       return { category, status: 'unresolved', ...(answer ? { unresolvedReason: answer.reason } : {}) };
     }
-    const { txid: authheadTxid, publicationOutputs, links, fungibleSupply } = answer.value;
+    const { txid: authheadTxid, publicationOutputs, links, isToken, fungibleSupply } = answer.value;
     const publication = findPublication(publicationOutputs);
-    const resolved = { category, authheadTxid, links, fungibleSupply, ...(publication ? { publication } : {}) };
+    const resolved = { category, authheadTxid, links, isToken, fungibleSupply, ...(publication ? { publication } : {}) };
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
     if (authUtxo) return { ...resolved, authUtxo, status: 'held' };
