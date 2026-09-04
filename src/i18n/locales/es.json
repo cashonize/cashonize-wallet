@@ -1377,7 +1377,9 @@
       "qrAnimation": "Animación de código QR:",
       "tokenAddressQrDefault": "Mostrar el código QR de la dirección de token por defecto",
       "enableAddressMarking": "Habilitar gestión avanzada de direcciones: marcar direcciones como usadas",
-      "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD."
+      "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD.",
+      "followTokenIdentities": "Seguir las identidades de los tokens que tienes",
+      "followTokenIdentitiesHint": "La lista de tokens que tienes se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivarlo detiene las consultas."
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
@@ -1574,11 +1576,7 @@
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
     "watchedHeader": "{count} identidad solo observada, no la tiene esta billetera | {count} identidades solo observadas, no las tiene esta billetera",
     "follow": {
-      "header": "{count} identidad de un token que tienes, seguida | {count} identidades de tokens que tienes, seguidas",
-      "toggle": "Seguir las identidades de los tokens que tienes",
-      "help": "La lista de tokens se envía al servidor Chaingraph como conjunto. Desactivarlo lo detiene; aquí nada queda retenido ni cuenta como nuevo.",
-      "show": "mostrar",
-      "hide": "ocultar",
+      "header": "{count} identidad seguida de un token que tienes | {count} identidades seguidas de tokens que tienes",
       "resolving": "Consultando las identidades de los tokens que tienes..."
     },
     "unnamedIdentity": "Identidad sin nombre",

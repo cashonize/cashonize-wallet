@@ -1377,7 +1377,9 @@
       "qrAnimation": "QR code animation:",
       "tokenAddressQrDefault": "Show token address QR code by default",
       "enableAddressMarking": "Enable advanced address management: mark addresses as used",
-      "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets."
+      "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
+      "followTokenIdentities": "Follow the identities of the tokens you hold",
+      "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Turning this off stops the lookups."
     },
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",
@@ -1574,11 +1576,7 @@
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
     "watchedHeader": "{count} identity watched only, not held by this wallet | {count} identities watched only, not held by this wallet",
     "follow": {
-      "header": "{count} identity of a token you hold, followed | {count} identities of tokens you hold, followed",
-      "toggle": "Follow the identities of the tokens you hold",
-      "help": "The token list goes to the Chaingraph server as a set. Turning this off stops that; nothing here is held back or counted as new.",
-      "show": "show",
-      "hide": "hide",
+      "header": "{count} followed identity of a token you hold | {count} followed identities of tokens you hold",
       "resolving": "Looking up the identities of the tokens you hold..."
     },
     "unnamedIdentity": "Unnamed identity",

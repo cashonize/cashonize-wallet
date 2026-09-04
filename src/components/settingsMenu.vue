@@ -47,6 +47,7 @@
   const confirmBeforeSending = ref(settingsStore.confirmBeforeSending);
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedShowCauldronFTValue = ref(settingsStore.showCauldronFTValue);
+  const selectedFollowTokenIdentities = ref(settingsStore.followTokenIdentities);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
@@ -353,6 +354,12 @@
     localStorage.setItem("showCauldronSwap", selectedShowSwap.value? "true" : "false");
     settingsStore.showCauldronSwap = selectedShowSwap.value;
   }
+  // the identities page runs the lookups on its next visit, which is where their result shows
+  function toggleFollowTokenIdentities(){
+    localStorage.setItem("followTokenIdentities", selectedFollowTokenIdentities.value ? "true" : "false");
+    settingsStore.followTokenIdentities = selectedFollowTokenIdentities.value;
+  }
+
   function toggleShowCauldronFTValue(){
     localStorage.setItem("showCauldronFTValue", selectedShowCauldronFTValue.value? "true" : "false");
     settingsStore.showCauldronFTValue = selectedShowCauldronFTValue.value;
@@ -528,6 +535,14 @@
           <div class="info-popup-note">{{ t('settings.userOptions.showCauldronFTValuePortfolioNote') }}</div>
         </InfoPopup>
         <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
+      </div>
+
+      <div style="margin-top:15px">
+        {{ t('settings.userOptions.followTokenIdentities') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedFollowTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">

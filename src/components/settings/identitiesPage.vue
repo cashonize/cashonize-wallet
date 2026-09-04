@@ -149,13 +149,18 @@
   }
   // Three lists: what this wallet holds, what the user chose to watch for somebody else, and the
   // identities of the tokens it holds, followed passively. A watched identity is another wallet's,
-  // so it is never counted among this one's; the followed ones are neither, and their group is
-  // always there, since its head carries the toggle that turns the following on and off.
+  // so it is never counted among this one's; the followed ones are neither. Each group is there
+  // when it has something in it; the third also while its lookups run, and never once the
+  // following is turned off, whatever it last found.
+  const tokenGroupShown = computed(() => {
+    if (!settingsStore.followTokenIdentities) return false;
+    return identitiesStore.tokenIdentities === undefined || identitiesStore.tokenIdentities.length > 0;
+  });
   const identityGroups = computed(() => [
     { key: 'held' as const, identities: identities.value.filter(identity => identity.status !== 'notHeld') },
     { key: 'watched' as const, identities: identities.value.filter(identity => identity.status === 'notHeld') },
     { key: 'tokens' as const, identities: identitiesStore.tokenIdentities ?? [] },
-  ].filter(group => group.key === 'tokens' || group.identities.length));
+  ].filter(group => group.key === 'tokens' ? tokenGroupShown.value : group.identities.length > 0));
 
   // Guarded identities a watched key covers that this version cannot name, since that needs a
   // lookup back from an output to the authchain it ends. Counted rather than dropped, so a key
@@ -345,16 +350,9 @@
     });
   }
 
-  // The third tier follows the identities of the tokens this wallet holds, passively: collapsed,
-  // since nobody is actively watching them, and on unless turned off here, since the toggle is
-  // where the group is rather than in the settings, where nobody would find it
+  // The third tier follows the identities of the tokens this wallet holds, passively: folded,
+  // since nobody is actively watching them, and on unless turned off in the settings
   const showTokenIdentities = ref(false);
-  const followTokenIdentities = ref(settingsStore.followTokenIdentities);
-  async function changeFollowTokenIdentities() {
-    localStorage.setItem("followTokenIdentities", followTokenIdentities.value ? "true" : "false");
-    settingsStore.followTokenIdentities = followTokenIdentities.value;
-    if (followTokenIdentities.value) await identitiesStore.followTokenIdentities('all');
-  }
 
   function isOpen(identity: IdentityState, action: IdentityAction) {
     if (openAction.value?.category !== identity.category) return false;
@@ -875,27 +873,17 @@
       </div>
 
       <!-- each list opens with the answer to what is in it, which is the first thing read here;
-           the third is collapsed, its head carrying the toggle -->
+           the third is folded, its head the same kind of toggle as a card's header -->
       <template v-for="group in identityGroups" :key="group.key">
       <div v-if="group.key !== 'tokens'" class="section">
         {{ group.key === 'held' ? t('identities.ownedCount', group.identities.length) : t('identities.watchedHeader', group.identities.length) }}
       </div>
       <div v-else class="section">
-        <div class="follow-head">
-          <q-toggle v-model="followTokenIdentities" @update:model-value="changeFollowTokenIdentities()" dense />
-          <!-- the count only once there is one: while the lookups run, and when no token is held,
-               the head is the toggle's own label -->
-          <span v-if="followTokenIdentities && identitiesStore.tokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }}</span>
-          <span v-else-if="followTokenIdentities && group.identities.length">{{ t('identities.follow.header', group.identities.length) }}</span>
-          <span v-else>{{ t('identities.follow.toggle') }}</span>
-          <InfoPopup>
-            <div style="max-width: 300px;">{{ t('identities.follow.help') }}</div>
-          </InfoPopup>
-          <span
-            v-if="followTokenIdentities && group.identities.length"
-            class="action-link"
-            @click="showTokenIdentities = !showTokenIdentities"
-          >{{ showTokenIdentities ? t('identities.follow.hide') : t('identities.follow.show') }}</span>
+        <div v-if="identitiesStore.tokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }}</div>
+        <div v-else class="follow-head" @click="showTokenIdentities = !showTokenIdentities">
+          <span>{{ t('identities.follow.header', group.identities.length) }}</span>
+          <!-- beside the words rather than at the far end: a bare line has no border to frame it -->
+          <q-icon name="expand_more" class="chevron" :class="{ open: showTokenIdentities }" />
         </div>
       </div>
       <div
@@ -1322,11 +1310,15 @@
 .transfer-identity input[type="button"] {
   margin: 0;
 }
+/* the whole head is the group's toggle; the chevron sits in the line the way the info icon does,
+   the same size and the same small drop below the middle, rather than centred on the line box */
 .follow-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  cursor: pointer;
+}
+.follow-head .chevron {
+  font-size: 1.1em;
+  vertical-align: -0.2em;
+  margin-left: 4px;
 }
 .identity-card {
   padding: 12px;
