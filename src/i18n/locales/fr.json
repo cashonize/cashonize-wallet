@@ -1587,13 +1587,15 @@
       "held": "Détenue par ce portefeuille",
       "notHeld": "Surveillance seule, non détenue par ce portefeuille",
       "unresolved": "Impossible de consulter cette identité",
-      "heldViaKey": "Détenue via une clé d'identité"
+      "heldViaKey": "Détenue via une clé d'identité",
+      "burned": "Brûlée"
     },
     "statusHelp": {
       "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire ne peut le dépenser.",
       "notHeld": "Cette identité n'est pas détenue par ce portefeuille, qui ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour revient à qui la détient.",
       "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
-      "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces."
+      "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces.",
+      "burned": "La sortie 0 de cette identité est un OP_RETURN, que rien ne peut dépenser : qui la détenait y a mis fin. Sa dernière publication reste, et aucune mise à jour ne peut suivre."
     },
     "reserve": {
       "title": "Cette identité porte :",
@@ -1635,7 +1637,6 @@
     },
     "key": {
       "action": "transférer la clé",
-      "guardLabel": "Gardien :",
       "guardHelp": "L'UTXO de l'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne le libère qu'à qui présente la clé d'identité (l'AuthKey), qui est le NFT détenu par ce portefeuille.",
       "manageHint": "Cette identité est gardée : mettre à jour ses métadonnées et déplacer son offre passent par l'outil qui construit les transactions du contrat. Cashonize les signe lorsqu'il s'y connecte.",
       "manageOnStudio": "Gérer sur CashTokens Studio",
@@ -1824,6 +1825,8 @@
       "remove": "Vous pouvez retirer une identité de la liste si vous préférez que son UTXO ne soit pas retenu.",
       "view": "Voir les identités",
       "close": "Fermer"
-    }
+    },
+    "locationLabel": "À l'adresse :",
+    "locationScriptLabel": "Verrouillé par script :"
   }
 }

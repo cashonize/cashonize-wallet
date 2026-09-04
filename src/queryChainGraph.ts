@@ -137,9 +137,10 @@ export async function queryAuthchainLinks(tokenId: string, chaingraphUrl: string
 // publication; the alternative, fetching every output and filtering here, would carry far more.
 const bcmrPrefixRange = { from: "6a0442434d52", to: "6a0442434d53" };
 
-// Where an identity's authchain ends now. The chain's transactions come along, oldest first, with
-// the BCMR publications among their outputs, which the last publication and the history are read
-// from; the second link, the genesis, comes whole, since its outputs say what the category is.
+// Where an identity's authchain ends now, and the identity output itself, which says where the
+// identity lives. The chain's transactions come along, oldest first, with the BCMR publications
+// among their outputs, which the last publication and the history are read from; the second
+// link, the genesis, comes whole, since its outputs say what the category is.
 const authHeadQuery = graphql(`query AuthHead(
     $hash: bytea!
     $bcmrFrom: bytea!
@@ -149,6 +150,10 @@ const authHeadQuery = graphql(`query AuthHead(
       authchains {
         authhead {
           hash
+          outputs(where: { output_index: { _eq: "0" } }) {
+            locking_bytecode
+            value_satoshis
+          }
         }
         genesis: migrations(where: { migration_index: { _eq: "1" } }) {
           transaction {
@@ -184,6 +189,10 @@ const authHeadsQuery = graphql(`query AuthHeads(
       authchains {
         authhead {
           hash
+          outputs(where: { output_index: { _eq: "0" } }) {
+            locking_bytecode
+            value_satoshis
+          }
         }
         genesis: migrations(where: { migration_index: { _eq: "1" } }) {
           transaction {
@@ -205,8 +214,16 @@ const authHeadsQuery = graphql(`query AuthHeads(
     }
   }`);
 
+// Output 0 of the authhead as the chain has it: whose address the identity sits at, or what
+// script, and what it holds. Absent when the server does not report it.
+export interface IdentityOutput {
+  lockingBytecode: string; // hex
+  satoshis: bigint;
+}
+
 export interface AuthHeadResult {
   txid: string;
+  identityOutput?: IdentityOutput;
   publicationOutputs: string[];
   links: string[];
   isToken: boolean; // whether the genesis made tokens of this category at all
@@ -270,7 +287,18 @@ function readAuthHead(tokenId: string, authHeadObj: AuthHeadTransaction): AuthHe
   );
   const isToken = categoryOutputs.length > 0;
   const fungibleSupply = categoryOutputs.some(output => BigInt(output.fungible_token_amount ?? 0) > 0n);
-  return { txid: byteaToHex(authchain.authhead!.hash), publicationOutputs, links, isToken, fungibleSupply };
+  const output = authchain.authhead!.outputs?.[0];
+  const identityOutput = output
+    ? { lockingBytecode: byteaToHex(output.locking_bytecode), satoshis: BigInt(output.value_satoshis ?? 0) }
+    : undefined;
+  return {
+    txid: byteaToHex(authchain.authhead!.hash),
+    ...(identityOutput ? { identityOutput } : {}),
+    publicationOutputs,
+    links,
+    isToken,
+    fungibleSupply,
+  };
 }
 
 const spentOutputsQuery = graphql(`query WalletSpentOutputs(

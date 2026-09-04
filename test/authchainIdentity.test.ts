@@ -29,6 +29,10 @@ const utxo = (txid: string, vout: number, token?: Utxo["token"]): Utxo =>
 
 const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
 
+// the identity output as the stub reports it: at a P2PKH address, or burned in an OP_RETURN
+const p2pkhOutput = `76a914${"ab".repeat(20)}88ac`;
+const burnOutput = "6a04deadbeef";
+
 // Answers the authhead queries, single or batched, with the txid mapped to each category asked
 // about. A batch none of whose categories is mapped rejects, the way an unreachable server would;
 // otherwise the unmapped ones are left out of the answer, which is that category unresolved alone
@@ -37,6 +41,7 @@ function stubAuthheadQueries(
   chains: Record<string, { hash: string; publication?: string }[]> = {},
   // what each category's genesis made; a token without fungible supply unless said otherwise
   genesis: Record<string, 'fungible' | 'nft' | 'none'> = {},
+  burned: string[] = [], // categories whose identity output is an OP_RETURN
 ) {
   const answer = (category: string) => {
     // the query asks for each link's BCMR-prefixed outputs only, so a link without one answers empty
@@ -53,8 +58,12 @@ function stubAuthheadQueries(
       token_category: `\\x${category}`,
       fungible_token_amount: made === 'fungible' ? "1000" : null,
     }];
+    const lockingBytecode = burned.includes(category) ? burnOutput : p2pkhOutput;
     return { hash: `\\x${category}`, authchains: [{
-      authhead: { hash: `\\x${authheads[category]}` }, // chaingraph returns bytea as \x-prefixed hex
+      authhead: { // chaingraph returns bytea as \x-prefixed hex
+        hash: `\\x${authheads[category]}`,
+        outputs: [{ locking_bytecode: `\\x${lockingBytecode}`, value_satoshis: "1000" }],
+      },
       genesis: [{ transaction: [{ outputs: genesisOutputs }] }],
       migrations,
     }] };
@@ -183,8 +192,25 @@ describe('resolveIdentities', () => {
     const authUtxo = utxo(authheadA, 0);
     const resolved = await resolveIdentities([categoryA], chaingraphUrl, [authUtxo]);
     expect(resolved).toEqual([
-      { category: categoryA, authheadTxid: authheadA, authUtxo, links: [], status: 'held', isToken: true, fungibleSupply: false },
+      {
+        category: categoryA,
+        authheadTxid: authheadA,
+        identityOutput: { lockingBytecode: p2pkhOutput, satoshis: 1000n },
+        authUtxo,
+        links: [],
+        status: 'held',
+        isToken: true,
+        fungibleSupply: false,
+      },
     ]);
+  });
+
+  // an OP_RETURN at output 0 can never be spent, so the identity ended there
+  it('reads a burned identity off an OP_RETURN identity output', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, {}, {}, [categoryA]);
+    const resolved = await resolveIdentities([categoryA], chaingraphUrl, []);
+    expect(resolved[0]?.status).toBe('burned');
+    expect(resolved[0]?.identityOutput?.lockingBytecode).toBe(burnOutput);
   });
 
   // the authhead is output 0 of the authchain's latest transaction, another output of the same

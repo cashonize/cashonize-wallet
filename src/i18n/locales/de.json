@@ -1587,13 +1587,15 @@
       "held": "In diesem Wallet gehalten",
       "notHeld": "Nur beobachtet, nicht von diesem Wallet gehalten",
       "unresolved": "Konnte nicht abgefragt werden",
-      "heldViaKey": "Über einen Identitätsschlüssel gehalten"
+      "heldViaKey": "Über einen Identitätsschlüssel gehalten",
+      "burned": "Verbrannt"
     },
     "statusHelp": {
       "held": "Dieses Wallet hält den UTXO dieser Identität und kann die Metadaten also aktualisieren. Der UTXO ist von der Münzauswahl ausgenommen, kein gewöhnlicher Versand kann ihn ausgeben.",
       "notHeld": "Diese Identität wird nicht von diesem Wallet gehalten, das sie deshalb nur beobachtet: ihre Veröffentlichung wird gezeigt, aktualisieren kann sie nur, wer sie hält.",
       "unresolved": "Wo diese Identität liegt, konnte nicht abgefragt werden, es ist gerade unbekannt. Was für sie zurückgehalten wird, bleibt es, bis eine Antwort kommt.",
-      "heldViaKey": "Der UTXO dieser Identität liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne den UTXO, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird."
+      "heldViaKey": "Der UTXO dieser Identität liegt in einem Contract, und dieses Wallet hält den Schlüssel dazu. Das ist Hoheit über die Identität ohne den UTXO, also ist der Schlüssel das, was von der Münzauswahl ausgenommen wird.",
+      "burned": "Der Ausgang 0 dieser Identität ist ein OP_RETURN, den nichts ausgeben kann: wer die Identität hielt, hat sie beendet. Ihre letzte Veröffentlichung bleibt, eine Aktualisierung kann nicht mehr folgen."
     },
     "reserve": {
       "title": "Diese Identität trägt:",
@@ -1635,7 +1637,6 @@
     },
     "key": {
       "action": "Schlüssel übertragen",
-      "guardLabel": "Guard:",
       "guardHelp": "Der UTXO der Identität liegt an dieser Contract-Adresse, nicht in deinem Wallet. Der Contract gibt ihn nur an den heraus, der den Identitätsschlüssel (den AuthKey) vorlegt, also das NFT in diesem Wallet.",
       "manageHint": "Diese Identität ist bewacht, ihre Metadaten zu aktualisieren und ihren Bestand zu bewegen läuft daher über das Werkzeug, das die Transaktionen des Contracts baut. Cashonize signiert sie, wenn es sich verbindet.",
       "manageOnStudio": "In CashTokens Studio verwalten",
@@ -1824,6 +1825,8 @@
       "remove": "Du kannst eine Identität von der Liste nehmen, wenn ihr UTXO lieber nicht zurückgehalten werden soll.",
       "view": "Identitäten ansehen",
       "close": "Schließen"
-    }
+    },
+    "locationLabel": "An Adresse:",
+    "locationScriptLabel": "Durch Skript gesperrt:"
   }
 }

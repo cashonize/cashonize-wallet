@@ -1587,13 +1587,15 @@
       "held": "En esta billetera",
       "notHeld": "Solo observada, no la tiene esta billetera",
       "unresolved": "No se pudo consultar esta identidad",
-      "heldViaKey": "A través de una clave de identidad"
+      "heldViaKey": "A través de una clave de identidad",
+      "burned": "Quemada"
     },
     "statusHelp": {
       "held": "Esta billetera tiene el UTXO de esta identidad, así que puede actualizar sus metadatos. El UTXO queda fuera de la selección de monedas, ningún envío normal puede gastarlo.",
       "notHeld": "Esta billetera no tiene esta identidad, así que solo la observa: se muestra su publicación, pero actualizarla depende de quien la tenga.",
       "unresolved": "No se pudo consultar dónde está esta identidad, así que ahora mismo se desconoce. Lo que se retiene por ella sigue retenido hasta que llegue una respuesta.",
-      "heldViaKey": "El UTXO de esta identidad está bloqueado en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin el UTXO, así que lo que queda fuera de la selección de monedas es la clave."
+      "heldViaKey": "El UTXO de esta identidad está bloqueado en un contrato, y esta billetera tiene la clave que lo abre. Eso es autoridad sobre la identidad sin el UTXO, así que lo que queda fuera de la selección de monedas es la clave.",
+      "burned": "La salida 0 de esta identidad es un OP_RETURN, que nada puede gastar: quien la tenía la dio por terminada. Su última publicación queda, y ninguna actualización puede seguirla."
     },
     "reserve": {
       "title": "Esta identidad lleva:",
@@ -1635,7 +1637,6 @@
     },
     "key": {
       "action": "transferir la clave",
-      "guardLabel": "Guardián:",
       "guardHelp": "El UTXO de la identidad está en esta dirección de contrato, no en tu billetera. El contrato solo lo libera a quien presente la clave de identidad (el AuthKey), que es el NFT que tiene esta billetera.",
       "manageHint": "Esta identidad está guardada, así que actualizar sus metadatos y mover su suministro se hacen con la herramienta que construye las transacciones del contrato. Cashonize las firma cuando se conecta.",
       "manageOnStudio": "Gestionar en CashTokens Studio",
@@ -1824,6 +1825,8 @@
       "remove": "Puedes quitar una identidad de la lista si prefieres que su UTXO no quede retenido.",
       "view": "Ver identidades",
       "close": "Cerrar"
-    }
+    },
+    "locationLabel": "En la dirección:",
+    "locationScriptLabel": "Bloqueado por script:"
   }
 }

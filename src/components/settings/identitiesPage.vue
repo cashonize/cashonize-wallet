@@ -30,9 +30,11 @@
     registryUrlOf,
     summarizeRegistry,
     type IdentityState,
+    type IdentityStatus,
     type PublicationUriStatus,
     type RegistrySummary,
   } from 'src/utils/tools/authchainIdentity'
+  import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { TokenSendRequest } from 'mainnet-js'
   import { Notify } from 'quasar'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
@@ -143,6 +145,23 @@
     return since ? new Date(since * 1000).getFullYear() : undefined;
   }
 
+  // Where the identity output sits, as the chain has it: an address when the locking bytecode has
+  // one, the raw script otherwise. A guarded identity's is its covenant address, in the token-aware
+  // form the guard is derived in. A burned one sits nowhere, which its status says.
+  function identityLocation(identity: IdentityState): { kind: 'address' | 'script'; text: string } | undefined {
+    if (identity.guardAddress) return { kind: 'address', text: identity.guardAddress };
+    const lockingBytecode = identity.identityOutput?.lockingBytecode;
+    if (!lockingBytecode || identity.status === 'burned') return undefined;
+    const decoded = lockingBytecodeToCashAddress({ bytecode: hexToBin(lockingBytecode), prefix: store.wallet.networkPrefix });
+    if (typeof decoded === 'string') return { kind: 'script', text: lockingBytecode };
+    return { kind: 'address', text: decoded.address };
+  }
+
+  // what the identity output holds in BCH: the coin's own word when it is here, the chain's otherwise
+  function identityValue(identity: IdentityState): bigint | undefined {
+    return identity.authUtxo?.satoshis ?? identity.identityOutput?.satoshis;
+  }
+
   // What the identity output carries, in one line for a closed card
   function carriesLine(identity: IdentityState): string | undefined {
     return reserveDescription(identity)?.join(' · ');
@@ -156,9 +175,11 @@
     if (!settingsStore.followTokenIdentities) return false;
     return identitiesStore.tokenIdentities === undefined || identitiesStore.tokenIdentities.length > 0;
   });
+  // a burned identity is nobody's now, so it is listed with the watched ones
+  const notOwnedStatuses: IdentityStatus[] = ['notHeld', 'burned'];
   const identityGroups = computed(() => [
-    { key: 'held' as const, identities: identities.value.filter(identity => identity.status !== 'notHeld') },
-    { key: 'watched' as const, identities: identities.value.filter(identity => identity.status === 'notHeld') },
+    { key: 'held' as const, identities: identities.value.filter(identity => !notOwnedStatuses.includes(identity.status)) },
+    { key: 'watched' as const, identities: identities.value.filter(identity => notOwnedStatuses.includes(identity.status)) },
     { key: 'tokens' as const, identities: identitiesStore.tokenIdentities ?? [] },
   ].filter(group => group.key === 'tokens' ? tokenGroupShown.value : group.identities.length > 0));
 
@@ -966,24 +987,28 @@
           <span class="mono">{{ truncateHash(identity.authheadTxid) }}:0</span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
-        <div v-if="identity.authUtxo">
-          {{ t('identities.authheadAmount', { amount: bchOf(identity.authUtxo.satoshis) }) }}
+        <div v-if="identityValue(identity) !== undefined">
+          {{ t('identities.authheadAmount', { amount: bchOf(identityValue(identity)!) }) }}
         </div>
+        <!-- where the identity lives, for a watched one as much as a held one: somebody's wallet,
+             a covenant, or a script with no address form. The one-item loop names the result once. -->
+        <template v-for="location in [identityLocation(identity)]" :key="location?.text ?? 'none'">
         <div
-          v-if="identity.guardAddress"
+          v-if="location"
           class="copy-target"
-          :title="identity.guardAddress"
-          @click="copyToClipboard(identity.guardAddress)"
+          :title="location.text"
+          @click="copyToClipboard(location.text)"
         >
           <span class="description">
-            {{ t('identities.key.guardLabel') }}
-            <InfoPopup>
+            {{ t(location.kind === 'script' ? 'identities.locationScriptLabel' : 'identities.locationLabel') }}
+            <InfoPopup v-if="identity.guardAddress">
               <div style="max-width: 300px;">{{ t('identities.key.guardHelp') }}</div>
             </InfoPopup>
           </span>
-          <span class="mono">{{ truncateHash(identity.guardAddress) }}</span>
+          <span class="mono">{{ truncateHash(location.text) }}</span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
+        </template>
 
         <!-- The latest metadata publication of this identity, and what its locations serve now.
              Shown for a watched identity as much as a held one: reading it needs no custody. -->
@@ -1406,8 +1431,10 @@
 .identity-status.heldViaKey {
   color: var(--font-color);
 }
-/* an identity whose authhead lives elsewhere is watched, not broken, so it reads as neither */
-.identity-status.notHeld {
+/* an identity whose authhead lives elsewhere is watched, not broken, so it reads as neither; one
+   that was burned is over rather than wrong, and reads the same */
+.identity-status.notHeld,
+.identity-status.burned {
   color: grey;
 }
 .identity-status.unresolved {

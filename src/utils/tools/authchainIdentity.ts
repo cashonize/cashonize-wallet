@@ -8,7 +8,7 @@
 import type { Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
 import { binToHex, binToUtf8, hexToBin, sha256, utf8ToBin } from "@bitauth/libauth";
-import { queryAuthHeadWithOutputs, queryAuthHeadsWithOutputs, type AuthchainLink, type AuthHeadResult } from "src/queryChainGraph";
+import { queryAuthHeadWithOutputs, queryAuthHeadsWithOutputs, type AuthchainLink, type AuthHeadResult, type IdentityOutput } from "src/queryChainGraph";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
@@ -18,12 +18,15 @@ type Network = 'mainnet' | 'chipnet';
 // 'held' is an authhead this wallet holds directly and keeps out of coin selection; what it carries,
 // a reserve or a minting NFT, is on the UTXO itself. 'heldViaKey' is an authhead locked in an
 // AuthGuard covenant whose key NFT this wallet holds, which is authority over the identity without
-// the UTXO. 'unresolved' is a failed Chaingraph query, which says nothing about where the authhead is.
-export type IdentityStatus = 'held' | 'heldViaKey' | 'notHeld' | 'unresolved';
+// the UTXO. 'burned' is an identity output that is an OP_RETURN, which nothing can spend: whoever
+// held the identity ended it, and its last publication is final. 'unresolved' is a failed
+// Chaingraph query, which says nothing about where the authhead is.
+export type IdentityStatus = 'held' | 'heldViaKey' | 'notHeld' | 'burned' | 'unresolved';
 
 export interface IdentityState {
   category: string;
   authheadTxid?: string;
+  identityOutput?: IdentityOutput; // output 0 of the authhead as the chain has it: where the identity lives
   authUtxo?: Utxo; // the identity output itself, when this wallet holds it directly
   keyUtxo?: Utxo; // the AuthKey NFT, when a covenant holds the identity output instead
   guardedOutput?: Utxo; // the identity output inside that covenant
@@ -66,6 +69,7 @@ export interface MetadataPublication {
 export type PublicationUriStatus = 'verified' | 'changed' | 'unreachable';
 
 const BCMR_OUTPUT_PREFIX = "6a0442434d52";
+const isOpReturn = (lockingBytecode: string) => lockingBytecode.startsWith("6a");
 // a publication location that hangs must not hang the page; the same bound the Chaingraph requests have
 const REGISTRY_FETCH_TIMEOUT_MS = 10_000;
 // per spec, a bare domain names the registry at this well-known path
@@ -523,9 +527,19 @@ export async function resolveIdentities(
     if (!answer?.value) {
       return { category, status: 'unresolved', ...(answer ? { unresolvedReason: answer.reason } : {}) };
     }
-    const { txid: authheadTxid, publicationOutputs, links, isToken, fungibleSupply } = answer.value;
+    const { txid: authheadTxid, identityOutput, publicationOutputs, links, isToken, fungibleSupply } = answer.value;
     const publication = findPublication(publicationOutputs);
-    const resolved = { category, authheadTxid, links, isToken, fungibleSupply, ...(publication ? { publication } : {}) };
+    const resolved = {
+      category,
+      authheadTxid,
+      ...(identityOutput ? { identityOutput } : {}),
+      links,
+      isToken,
+      fungibleSupply,
+      ...(publication ? { publication } : {}),
+    };
+    // an OP_RETURN at output 0 stays unspent forever, so the chain ends there for good
+    if (identityOutput && isOpReturn(identityOutput.lockingBytecode)) return { ...resolved, status: 'burned' };
     // The authhead is always output 0 of the authchain's latest transaction
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
     if (authUtxo) return { ...resolved, authUtxo, status: 'held' };

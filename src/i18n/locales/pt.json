@@ -1587,13 +1587,15 @@
       "held": "Nesta carteira",
       "notHeld": "Só observada, não tida por esta carteira",
       "unresolved": "Não foi possível consultar esta identidade",
-      "heldViaKey": "Através de uma chave de identidade"
+      "heldViaKey": "Através de uma chave de identidade",
+      "burned": "Queimada"
     },
     "statusHelp": {
       "held": "Esta carteira tem o UTXO desta identidade, portanto pode atualizar os seus metadados. O UTXO fica de fora da seleção de moedas, nenhum envio comum pode gastá-lo.",
       "notHeld": "Esta identidade não é tida por esta carteira, que por isso só a observa: a sua publicação é mostrada, mas atualizá-la cabe a quem a tiver.",
       "unresolved": "Não foi possível consultar onde esta identidade está, então isso é desconhecido agora. O que está retido por ela continua retido até chegar uma resposta.",
-      "heldViaKey": "O UTXO desta identidade está trancado em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem o UTXO, portanto é a chave que fica de fora da seleção de moedas."
+      "heldViaKey": "O UTXO desta identidade está trancado em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem o UTXO, portanto é a chave que fica de fora da seleção de moedas.",
+      "burned": "A saída 0 desta identidade é um OP_RETURN, que nada pode gastar: quem a tinha pôs-lhe fim. A sua última publicação fica, e nenhuma atualização pode seguir-se."
     },
     "reserve": {
       "title": "Esta identidade carrega:",
@@ -1635,7 +1637,6 @@
     },
     "key": {
       "action": "transferir a chave",
-      "guardLabel": "Guarda:",
       "guardHelp": "O UTXO da identidade está neste endereço de contrato, não na sua carteira. O contrato só o libera para quem apresentar a chave de identidade (o AuthKey), que é o NFT que esta carteira tem.",
       "manageHint": "Esta identidade é guardada, então atualizar os metadados dela e mover a oferta acontecem pela ferramenta que constrói as transações do contrato. O Cashonize as assina quando se conecta.",
       "manageOnStudio": "Gerenciar no CashTokens Studio",
@@ -1824,6 +1825,8 @@
       "remove": "Você pode remover uma identidade da lista se preferir que o seu UTXO não fique retido.",
       "view": "Ver identidades",
       "close": "Fechar"
-    }
+    },
+    "locationLabel": "No endereço:",
+    "locationScriptLabel": "Bloqueado por script:"
   }
 }
