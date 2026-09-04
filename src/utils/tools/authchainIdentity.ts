@@ -45,6 +45,7 @@ export interface IdentityState {
   // wallet holds of it right now, and an identity that is not a token is named differently.
   isToken?: boolean;
   fungibleSupply?: boolean;
+  genesisSupply?: bigint; // how much of it, which the reserve is read against
   publication?: MetadataPublication; // absent when the authchain has never carried one
   chainLength?: number; // every link of the authchain, the authbase counted
   // The latest links of this identity's authchain, oldest first. Carried because the ordinary
@@ -552,12 +553,16 @@ export async function resolveIdentities(
           recentLinks: [category],
           isToken: false,
           fungibleSupply: false,
+          genesisSupply: 0n,
           status: 'held',
         };
       }
       return { category, status: 'unresolved', ...(answer ? { unresolvedReason: answer.reason } : {}) };
     }
-    const { txid: authheadTxid, identityOutput, publicationOutputs, chainLength, recentLinks, isToken, fungibleSupply, keyCommitment } = answer.value;
+    const {
+      txid: authheadTxid, identityOutput, publicationOutputs, chainLength, recentLinks,
+      isToken, fungibleSupply, genesisSupply, keyCommitment,
+    } = answer.value;
     const publication = findPublication(publicationOutputs);
     const resolved = {
       category,
@@ -567,6 +572,7 @@ export async function resolveIdentities(
       recentLinks,
       isToken,
       fungibleSupply,
+      genesisSupply,
       ...(publication ? { publication } : {}),
     };
     // an OP_RETURN at output 0 stays unspent forever, so the chain ends there for good

@@ -1636,7 +1636,9 @@
         "doneTitle": "Added to reserve"
       },
       "mintingNftLink": "view in the token list",
-      "supplyOpenEnded": "Reserved supply: open-ended"
+      "supplyOpenEnded": "Reserved supply: open-ended",
+      "genesisSupply": "Genesis supply: {amount}",
+      "genesisSupplyOpenEnded": "Genesis supply: open-ended"
     },
     "key": {
       "action": "transfer the key",

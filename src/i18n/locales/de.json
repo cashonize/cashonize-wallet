@@ -1636,7 +1636,9 @@
         "doneTitle": "Zur Reserve hinzugefügt"
       },
       "mintingNftLink": "in der Token-Liste ansehen",
-      "supplyOpenEnded": "Reservierte Menge: unbegrenzt"
+      "supplyOpenEnded": "Reservierte Menge: unbegrenzt",
+      "genesisSupply": "Genesis-Menge: {amount}",
+      "genesisSupplyOpenEnded": "Genesis-Menge: unbegrenzt"
     },
     "key": {
       "action": "Schlüssel übertragen",

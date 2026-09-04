@@ -1636,7 +1636,9 @@
         "doneTitle": "Adicionado à reserva"
       },
       "mintingNftLink": "ver na lista de tokens",
-      "supplyOpenEnded": "Fornecimento reservado: sem limite"
+      "supplyOpenEnded": "Fornecimento reservado: sem limite",
+      "genesisSupply": "Fornecimento de génese: {amount}",
+      "genesisSupplyOpenEnded": "Fornecimento de génese: sem limite"
     },
     "key": {
       "action": "transferir a chave",

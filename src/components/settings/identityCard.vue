@@ -106,6 +106,17 @@
   });
   const carriesLine = computed(() => carries.value?.join(' · '));
 
+  // The fungible supply the genesis made, which the reserve is read against and which never
+  // changes: a fact about the token rather than the output, so it shows once the card is open
+  const genesisSupplyLine = computed(() => {
+    const supply = props.identity.genesisSupply;
+    if (!supply) return undefined;
+    if (supply === maxTokenSupply) return t('identities.reserve.genesisSupplyOpenEnded');
+    const metadata = store.bcmrRegistries?.[props.identity.category];
+    const amount = formatTokenAmountFromBigInt(supply, metadata?.token?.decimals ?? 0);
+    return t('identities.reserve.genesisSupply', { amount: `${amount} ${metadata?.token?.symbol ?? ''}`.trim() });
+  });
+
   const tokenDecimals = computed(() => store.bcmrRegistries?.[props.identity.category]?.token?.decimals ?? 0);
   const reserve = computed(() => (props.identity.authUtxo?.token ?? props.identity.identityOutput?.token)?.amount ?? 0n);
   const reserveDisplay = computed(() => formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value));
@@ -481,6 +492,7 @@
     </div>
 
     <template v-if="expanded">
+    <div v-if="genesisSupplyLine">{{ genesisSupplyLine }}</div>
     <div
       v-if="identity.authheadTxid"
       class="copy-target"

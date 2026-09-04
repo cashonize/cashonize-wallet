@@ -229,6 +229,7 @@ export interface AuthHeadResult {
   recentLinks: string[]; // the chain's latest links, oldest first, up to RECENT_LINKS_LIMIT
   isToken: boolean; // whether the genesis made tokens of this category at all
   fungibleSupply: boolean; // and fungible ones among them
+  genesisSupply: bigint; // how many, the AuthGuard standard's genesis supply; fixed for the category's life
   keyCommitment?: string; // the commitment of the AuthKey the genesis minted at output 1, when it did
 }
 
@@ -280,7 +281,8 @@ function readAuthHead(
     output.token_category && byteaToHex(output.token_category) === tokenId
   );
   const isToken = categoryOutputs.length > 0;
-  const fungibleSupply = categoryOutputs.some(output => BigInt(output.fungible_token_amount ?? 0) > 0n);
+  const genesisSupply = categoryOutputs.reduce((total, output) => total + BigInt(output.fungible_token_amount ?? 0), 0n);
+  const fungibleSupply = genesisSupply > 0n;
   // The AuthGuard genesis setup mints the key at output 1, of the identity's own category, which
   // pins the key's commitment: without it every NFT of a collection guarded that way is a key
   const keyOutput = categoryOutputs.find(output => output.output_index === "1");
@@ -309,6 +311,7 @@ function readAuthHead(
     recentLinks,
     isToken,
     fungibleSupply,
+    genesisSupply,
     ...(keyCommitment !== undefined ? { keyCommitment } : {}),
   };
 }

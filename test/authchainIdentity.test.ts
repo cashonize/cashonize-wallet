@@ -217,6 +217,7 @@ describe('resolveIdentities', () => {
         status: 'held',
         isToken: true,
         fungibleSupply: false,
+        genesisSupply: 0n,
       },
     ]);
   });
@@ -272,7 +273,9 @@ describe('resolveIdentities', () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB }, {}, { [categoryA]: 'fungible' });
     const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, []);
     expect(resolved[0]?.fungibleSupply).toBe(true);
+    expect(resolved[0]?.genesisSupply).toBe(1000n);
     expect(resolved[1]?.fungibleSupply).toBe(false);
+    expect(resolved[1]?.genesisSupply).toBe(0n);
   });
 
   // an identity that is not a token is a chain like any other, with no token made at its second link
