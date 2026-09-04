@@ -1541,8 +1541,8 @@
     "description": "Die Identitäten, die dieses Wallet hält oder beobachtet.",
     "modes": {
       "identities": "Identitäten",
-      "existing": "Hinzufügen",
-      "create": "Erstellen"
+      "existing": "Bestehende hinzufügen",
+      "create": "Neue hinzufügen"
     },
     "learn": {
       "link": "Lernen",
@@ -1553,7 +1553,7 @@
       "whatLead": "Technisch ist eine Identität eine Kette von Transaktionen.",
       "what": "Sie beginnt bei der Authbase, bei einem Token die Token-Id, und setzt sich über jede Transaktion fort, die den Ausgang 0 der vorigen ausgibt. Der letzte unausgegebene Ausgang 0 ist der UTXO der Identität: wer ihn hält, kontrolliert die Identität, und ihn an eine neue Adresse zu bewegen ist die Übertragung.",
       "tokensLead": "Jeder Token ist eine Identität.",
-      "tokens": "Seine Token-Id ist die Id der Identität, und so kann ein Herausgeber Namen und Symbol eines Tokens noch ändern, wenn die Tokens schon im Umlauf sind. Es gibt auch Identitäten, die keine Tokens sind: eine Person, eine Organisation oder ein Vertrag kann Informationen auf dieselbe Weise veröffentlichen.",
+      "tokens": "Seine Token-Id ist die Id der Identität, und so kann ein Herausgeber Namen und Symbol eines Tokens noch ändern, wenn die Tokens schon im Umlauf sind. Es gibt auch Identitäten, die keine Tokens sind: eine Person, eine Organisation oder ein Vertrag kann Informationen auf dieselbe Weise veröffentlichen. Eine Dapp könnte sagen, welche Version ihrer Verträge aktuell ist und wo ihre Website liegt; eine Organisation könnte hinter dem stehen, was sie veröffentlicht.",
       "metadataLead": "Die Metadaten sind eine gehostete Datei.",
       "metadata": "Eine Registry im BCMR-Format wird außerhalb der Chain gehostet, und ein Veröffentlichungsausgang auf der Kette legt ihren Hash fest, sodass jeder die Datei laden und gegen die Kette prüfen kann. Die Registry eines Tokens wird mit dem {generator} geschrieben; jede Registry lässt sich von Hand nach dem {schema} schreiben.",
       "keysLead": "AuthKeys sind eine Konvention von CashTokens Studio.",
@@ -1566,7 +1566,7 @@
     "authbaseLabel": "Authbase / Token-Id:",
     "resolving": "Suche, wo diese Identitäten liegen...",
     "empty": "Noch keine Identitäten gelistet. Eine, die dieses Wallet gemacht hat, wird von selbst gefunden; eine, die du hältst oder verfolgen willst, fügst du unter {link} über ihre Authbase hinzu.",
-    "emptyLink": "Hinzufügen",
+    "emptyLink": "Bestehende hinzufügen",
     "detected": {
       "foundAutomatically": "Automatisch gefunden",
       "foundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identität erstellt oder ihre Metadaten veröffentlicht, sie wurde also in der eigenen Historie gefunden und ihr UTXO ist jetzt von der Münzauswahl ausgenommen. Nimm sie von der Liste, wenn dir das lieber ist."
@@ -1758,11 +1758,7 @@
       }
     },
     "create": {
-      "label": "Eine neue Identität hinzufügen, die kein Token ist",
-      "help": "Die Identitäten des Standards sind nicht nur Tokens: dieselbe Kette von UTXOs kann für eine Dapp, ein Contract-System oder eine Organisation stehen und belegen, wer sie kontrolliert.",
-      "helpNaming": "Eine Transaktion genügt, benannt wird danach, mit einer Veröffentlichung, die ihre Id nennt.",
-      "hint": "Name, Icon und Links für eine Dapp, ein Contract-System oder eine Organisation, veröffentlicht und aktualisiert aus einem UTXO ohne Token darauf.",
-      "pick": "Jeder UTXO an Ausgang 0 ohne Token kann eine Identität sein: die Id seiner Transaktion wird zur dauerhaften Id der Identität. Sein BCH bleibt mit der Identität zurückgehalten, solange du sie hältst, also ist ein kleiner UTXO am besten.",
+      "pick": "Die Id der Transaktion des UTXO wird zur dauerhaften Id der Identität, und sein BCH bleibt bei der Identität, solange du sie hältst, also ist ein kleiner am besten.",
       "prepareMessage": "Das sendet jetzt {amount} an dich selbst, damit die Identität einen frischen UTXO an Ausgang 0 hat. Der Betrag bleibt deiner; nur die Gebühr wird ausgegeben.",
       "pickedId": "Id der Identität:",
       "steps": {
@@ -1775,14 +1771,18 @@
       "confirmMessage": "{outpoint} wird zum UTXO der Identität, mit seinen {amount} von der Münzauswahl ausgenommen. Die Id seiner Transaktion wird zur dauerhaften Id der Identität.",
       "confirmButton": "Hinzufügen",
       "doneTitle": "Identität hinzugefügt",
-      "tokenPointer": "Derzeit gehört fast jede Identität zu einem Token. Um eine Token-Identität zu erstellen, {link}: die Transaktion, die den Token erstellt, erstellt zugleich seine Identität.",
-      "tokenPointerLink": "erstelle den Token",
-      "novelHelp": "Eine Dapp könnte sagen, welche Version ihrer Contracts aktuell ist und wo ihre Seite liegt; eine Organisation könnte für das einstehen, was sie veröffentlicht. Fast keine gibt es bisher und kaum etwas liest sie, also wisse, was du von einer willst, bevor du sie machst.",
+      "tokenPointer": "{link}: die Transaktion, die ihn erstellt, erstellt zugleich seine Identität.",
+      "tokenPointerLink": "Nutze das Werkzeug Token erstellen",
       "lead": "Wirst du ihre Registry selbst schreiben und hosten?",
       "outcome": "Das Hinzufügen listet die Identität unter denen, die dieses Wallet besitzt, und hält ihr UTXO aus gewöhnlichen Sendungen heraus. Einen Namen hat sie erst, wenn eine Registry veröffentlicht ist, die sie nennt; ihre Karte führt dich hindurch.",
       "registryLead": "Registry:",
       "registry": "die JSON-Datei, die die Identität nennt, in einem Code-Editor nach dem {schema} geschrieben und auf einer eigenen Domain oder auf IPFS gehostet.",
-      "registryNote": "Der {generator} schreibt Registries für Tokens: er fragt nach einem Symbol und schreibt einen Token-Abschnitt, den eine Identität, die kein Token ist, nicht haben darf. Ihr Snapshot trägt einen Namen, eine Beschreibung und Links."
+      "registryNote": "Der {generator} schreibt Registries für Tokens: er fragt nach einem Symbol und schreibt einen Token-Abschnitt, den eine Identität, die kein Token ist, nicht haben darf. Ihr Snapshot trägt einen Namen, eine Beschreibung und Links.",
+      "newLead": "Eine neue Identität für eine Dapp, ein Vertragssystem oder eine Organisation hinzufügen?",
+      "newWhat": "Das fügt eine hinzu: eine Kette von UTXOs ohne Token, von der aus Name, Symbol und Links veröffentlicht und aktualisiert werden.",
+      "caution": "Fast keine solchen Identitäten gibt es bisher, und kaum etwas liest sie; wisse also, was du von deiner willst, bevor du sie machst.",
+      "tokenLead": "Einen Token machen?",
+      "cautionLead": "Erweiterte Funktion:"
     },
     "transfer": {
       "hint": "Der UTXO der Identität wird an das Ziel gesendet und übergibt damit die Befugnis, die Metadaten dieser Identität zu aktualisieren. Um sie zu CashTokens Studio zu verschieben, erstelle dort einen Schlüssel und übertrage an die Guard-Adresse, die es für diesen Schlüssel anzeigt.",

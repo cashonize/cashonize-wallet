@@ -1541,8 +1541,8 @@
     "description": "Las identidades que esta billetera tiene o vigila.",
     "modes": {
       "identities": "Identidades",
-      "existing": "Añadir",
-      "create": "Crear"
+      "existing": "Añadir existente",
+      "create": "Añadir nueva"
     },
     "learn": {
       "link": "Aprender",
@@ -1553,7 +1553,7 @@
       "whatLead": "Por debajo, una identidad es una cadena de transacciones.",
       "what": "Empieza en la authbase, que en un token es el id del token, y continúa por cada transacción que gasta la salida 0 de la anterior. La última salida 0 sin gastar es el UTXO de la identidad: quien lo tiene controla la identidad, y moverlo a una nueva dirección es la transferencia.",
       "tokensLead": "Cada token es una identidad.",
-      "tokens": "Su id de token es el id de la identidad, y así es como un emisor puede actualizar el nombre y el icono de un token cuando los tokens ya circulan. También existen identidades que no son tokens: una persona, una organización o un contrato puede publicar información de la misma manera.",
+      "tokens": "Su id de token es el id de la identidad, y así es como un emisor puede actualizar el nombre y el icono de un token cuando los tokens ya circulan. También existen identidades que no son tokens: una persona, una organización o un contrato puede publicar información de la misma manera. Una dapp podría decir qué versión de sus contratos es la actual y dónde está su sitio; una organización podría respaldar lo que publica.",
       "metadataLead": "Los metadatos son un archivo alojado.",
       "metadata": "Un registro en formato BCMR se aloja fuera de la cadena, y una salida de publicación en la cadena fija su hash, para que cualquiera pueda descargar el archivo y comprobarlo contra la cadena. El registro de un token se redacta con el {generator}; cualquier registro puede escribirse a mano según el {schema}.",
       "keysLead": "Las AuthKeys son una convención de CashTokens Studio.",
@@ -1566,7 +1566,7 @@
     "authbaseLabel": "Authbase / id del token:",
     "resolving": "Buscando dónde están estas identidades...",
     "empty": "Todavía no hay identidades en la lista. Una que esta billetera hizo se encuentra sola; una que tienes o quieres seguir se añade por su authbase en {link}.",
-    "emptyLink": "Añadir",
+    "emptyLink": "Añadir existente",
     "detected": {
       "foundAutomatically": "Encontrada automáticamente",
       "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su UTXO ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así."
@@ -1758,11 +1758,7 @@
       }
     },
     "create": {
-      "label": "Añadir una identidad nueva que no es un token",
-      "help": "Las identidades del estándar no son solo tokens: la misma cadena de UTXOs puede representar una dapp, un sistema de contratos o una organización, y demostrar quién la controla.",
-      "helpNaming": "Basta una transacción, y el nombre viene después, con una publicación que nombre su id.",
-      "hint": "Un nombre, icono y enlaces para una dapp, un sistema de contratos o una organización, publicados y actualizados desde un UTXO sin ningún token encima.",
-      "pick": "Cualquier UTXO en la salida 0 sin token puede ser una identidad: el id de su transacción pasa a ser el id permanente de la identidad. Su BCH queda retenido con la identidad mientras la tengas, así que lo mejor es un UTXO pequeño.",
+      "pick": "El id de la transacción del UTXO pasa a ser el id permanente de la identidad, y su BCH se queda con la identidad mientras la tengas, así que lo mejor es uno pequeño.",
       "prepareMessage": "Esto te envía {amount} ahora, para que la identidad tenga un UTXO nuevo en la salida 0. El importe sigue siendo tuyo; solo se gasta la comisión.",
       "pickedId": "Id de la identidad:",
       "steps": {
@@ -1775,14 +1771,18 @@
       "confirmMessage": "{outpoint} pasa a ser el UTXO de la identidad, fuera de la selección de monedas con sus {amount}. El id de su transacción pasa a ser el id permanente de la identidad.",
       "confirmButton": "Añadir",
       "doneTitle": "Identidad añadida",
-      "tokenPointer": "Actualmente casi todas las identidades pertenecen a un token. Para crear la identidad de un token, {link}: la transacción que crea el token crea al mismo tiempo su identidad.",
-      "tokenPointerLink": "crea el token",
-      "novelHelp": "Una dapp podría decir qué versión de sus contratos está vigente y dónde está su sitio; una organización podría responder por lo que publica. Casi no existe ninguna todavía y casi nada las lee, así que ten claro qué quieres de una antes de hacerla.",
+      "tokenPointer": "{link}: la transacción que lo crea crea al mismo tiempo su identidad.",
+      "tokenPointerLink": "Usa la herramienta Crear token",
       "lead": "¿Escribirás y alojarás su registro tú mismo?",
       "outcome": "Añadirla la lista entre las identidades que esta billetera posee y mantiene su UTXO fuera de los envíos ordinarios. No tiene nombre hasta que se publique un registro que la nombre; su tarjeta te guía en ello.",
       "registryLead": "Registro:",
       "registry": "el archivo JSON que nombra la identidad, escrito en un editor de código según el {schema} y alojado en un dominio que controles o en IPFS.",
-      "registryNote": "El {generator} escribe registros para tokens: pide un símbolo y escribe una sección token, que una identidad que no es un token no debe tener. Su instantánea lleva un nombre, una descripción y enlaces."
+      "registryNote": "El {generator} escribe registros para tokens: pide un símbolo y escribe una sección token, que una identidad que no es un token no debe tener. Su instantánea lleva un nombre, una descripción y enlaces.",
+      "newLead": "¿Añadir una identidad nueva para una dapp, un sistema de contratos o una organización?",
+      "newWhat": "Esto añade una: una cadena de UTXOs sin token, desde la que se publican y actualizan un nombre, un icono y enlaces.",
+      "caution": "Casi no existen identidades así todavía y poco las lee, así que ten claro qué quieres de la tuya antes de hacerla.",
+      "tokenLead": "¿Vas a hacer un token?",
+      "cautionLead": "Función avanzada:"
     },
     "transfer": {
       "hint": "El UTXO de la identidad se envía al destino, entregando la autoridad para actualizar los metadatos de esta identidad. Para moverla a CashTokens Studio, crea una clave allí y transfiere a la dirección de guarda que muestra para esa clave.",

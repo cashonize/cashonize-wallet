@@ -1541,8 +1541,8 @@
     "description": "Les identités que ce portefeuille détient ou surveille.",
     "modes": {
       "identities": "Identités",
-      "existing": "Ajouter",
-      "create": "Créer"
+      "existing": "Ajouter existante",
+      "create": "Ajouter nouvelle"
     },
     "learn": {
       "link": "Apprendre",
@@ -1553,7 +1553,7 @@
       "whatLead": "Techniquement, une identité est une chaîne de transactions.",
       "what": "Elle commence à l'authbase, qui pour un token est l'identifiant du token, et se poursuit par chaque transaction qui dépense la sortie 0 de la précédente. La dernière sortie 0 non dépensée est l'UTXO de l'identité : qui le détient contrôle l'identité, et le déplacer vers une nouvelle adresse est le transfert.",
       "tokensLead": "Chaque token est une identité.",
-      "tokens": "Son identifiant de token est l'identifiant de l'identité, et c'est ainsi qu'un émetteur peut mettre à jour le nom et l'icône d'un token une fois les tokens en circulation. Il existe aussi des identités qui ne sont pas des tokens : une personne, une organisation ou un contrat peut publier des informations de la même façon.",
+      "tokens": "Son identifiant de token est l'identifiant de l'identité, et c'est ainsi qu'un émetteur peut mettre à jour le nom et l'icône d'un token une fois les tokens en circulation. Il existe aussi des identités qui ne sont pas des tokens : une personne, une organisation ou un contrat peut publier des informations de la même façon. Une dapp pourrait dire quelle version de ses contrats est en vigueur et où se trouve son site ; une organisation pourrait se porter garante de ce qu'elle publie.",
       "metadataLead": "Les métadonnées sont un fichier hébergé.",
       "metadata": "Un registre au format BCMR est hébergé hors chaîne, et une sortie de publication sur la chaîne fixe son hash, de sorte que chacun peut télécharger le fichier et le vérifier contre la chaîne. Le registre d'un token se rédige avec le {generator} ; tout registre peut s'écrire à la main selon le {schema}.",
       "keysLead": "Les AuthKeys sont une convention de CashTokens Studio.",
@@ -1566,7 +1566,7 @@
     "authbaseLabel": "Authbase / identifiant du token :",
     "resolving": "Recherche de l'endroit où sont ces identités...",
     "empty": "Aucune identité listée pour l'instant. Une identité créée par ce portefeuille est trouvée d'elle-même ; une que vous détenez ou voulez suivre s'ajoute par son authbase sous {link}.",
-    "emptyLink": "Ajouter",
+    "emptyLink": "Ajouter existante",
     "detected": {
       "foundAutomatically": "Trouvée automatiquement",
       "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
@@ -1758,11 +1758,7 @@
       }
     },
     "create": {
-      "label": "Ajouter une nouvelle identité qui n'est pas un token",
-      "help": "Les identités du standard ne sont pas seulement des tokens : la même chaîne d'UTXOs peut représenter une dapp, un système de contrats ou une organisation, et prouver qui la contrôle.",
-      "helpNaming": "Une seule transaction suffit, et le nom vient ensuite, avec une publication qui nomme son identifiant.",
-      "hint": "Un nom, une icône et des liens pour une dapp, un système de contrats ou une organisation, publiés et mis à jour depuis un UTXO sans token dessus.",
-      "pick": "Tout UTXO à la sortie 0 sans token peut être une identité : l'identifiant de sa transaction devient l'identifiant permanent de l'identité. Ses BCH restent écartés avec l'identité tant que vous la détenez, un petit UTXO est donc préférable.",
+      "pick": "L'identifiant de la transaction de l'UTXO devient l'identifiant permanent de l'identité, et ses BCH restent avec l'identité tant que vous la détenez, un petit UTXO est donc préférable.",
       "prepareMessage": "Ceci vous envoie {amount} maintenant, pour que l'identité ait un UTXO neuf à la sortie 0. Le montant reste le vôtre ; seuls les frais sont dépensés.",
       "pickedId": "Identifiant de l'identité :",
       "steps": {
@@ -1775,14 +1771,18 @@
       "confirmMessage": "{outpoint} devient l'UTXO de l'identité, écarté de la sélection des pièces avec ses {amount}. L'identifiant de sa transaction devient l'identifiant permanent de l'identité.",
       "confirmButton": "Ajouter",
       "doneTitle": "Identité ajoutée",
-      "tokenPointer": "Actuellement, presque toutes les identités appartiennent à un token. Pour créer l'identité d'un token, {link} : la transaction qui crée le token crée en même temps son identité.",
-      "tokenPointerLink": "créez le token",
-      "novelHelp": "Une dapp pourrait dire quelle version de ses contrats est en vigueur et où se trouve son site ; une organisation pourrait répondre de ce qu'elle publie. Il n'en existe presque aucune encore et presque rien ne les lit, alors sachez ce que vous en attendez avant d'en créer une.",
+      "tokenPointer": "{link} : la transaction qui le crée crée en même temps son identité.",
+      "tokenPointerLink": "Utilisez l'outil Créer un token",
       "lead": "Rédigerez-vous et hébergerez-vous son registre vous-même ?",
       "outcome": "L'ajout liste l'identité parmi celles que ce portefeuille possède et écarte son UTXO des envois ordinaires. Elle n'a pas de nom tant qu'un registre qui la nomme n'est pas publié ; sa carte vous y guide.",
       "registryLead": "Registre :",
       "registry": "le fichier JSON qui nomme l'identité, rédigé dans un éditeur de code selon le {schema} et hébergé sur un domaine que vous contrôlez ou sur IPFS.",
-      "registryNote": "Le {generator} rédige des registres pour les tokens : il demande un symbole et écrit une section token, qu'une identité qui n'est pas un token ne doit pas avoir. Son instantané porte un nom, une description et des liens."
+      "registryNote": "Le {generator} rédige des registres pour les tokens : il demande un symbole et écrit une section token, qu'une identité qui n'est pas un token ne doit pas avoir. Son instantané porte un nom, une description et des liens.",
+      "newLead": "Ajouter une nouvelle identité pour une dapp, un système de contrats ou une organisation ?",
+      "newWhat": "Ceci en ajoute une : une chaîne d'UTXO sans token, depuis laquelle un nom, une icône et des liens sont publiés et mis à jour.",
+      "caution": "Il n'existe presque aucune identité de ce genre pour l'instant et peu de choses les lisent ; sachez donc ce que vous attendez de la vôtre avant de la faire.",
+      "tokenLead": "Vous créez un token ?",
+      "cautionLead": "Fonction avancée :"
     },
     "transfer": {
       "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de cette identité. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",

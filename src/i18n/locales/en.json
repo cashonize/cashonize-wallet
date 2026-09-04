@@ -1541,8 +1541,8 @@
     "description": "The identities this wallet holds or watches.",
     "modes": {
       "identities": "Identities",
-      "existing": "Add",
-      "create": "Create"
+      "existing": "Add existing",
+      "create": "Add new"
     },
     "learn": {
       "link": "Learn",
@@ -1553,7 +1553,7 @@
       "whatLead": "Under the hood, an identity is a chain of transactions.",
       "what": "It starts at the authbase, which for a token is the token id, and continues through each transaction that spends the previous one's output 0. The latest unspent output 0 is the identity UTXO: whoever holds it controls the identity, and moving it to a new address is the transfer.",
       "tokensLead": "Every token is an identity.",
-      "tokens": "Its token id is the identity's id, which is how an issuer can update a token's name and icon after the tokens are out. Identities that are not tokens exist too: a person, an organization or a contract can publish information the same way.",
+      "tokens": "Its token id is the identity's id, which is how an issuer can update a token's name and icon after the tokens are out. Identities that are not tokens exist too: a person, an organization or a contract can publish information the same way. A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes.",
       "metadataLead": "The metadata is a hosted file.",
       "metadata": "A registry in the BCMR format is hosted off-chain, and a publication output on the chain commits to its hash, so anyone can fetch the file and check it against the chain. A token's registry is written with the {generator}; any registry can be written by hand against the {schema}.",
       "keysLead": "AuthKeys are a CashTokens Studio convention.",
@@ -1566,7 +1566,7 @@
     "authbaseLabel": "Authbase / token id:",
     "resolving": "Looking up where these identities are held...",
     "empty": "No identities listed yet. One this wallet made is found on its own; one you hold or want to follow is added by its authbase under {link}.",
-    "emptyLink": "Add",
+    "emptyLink": "Add existing",
     "detected": {
       "foundAutomatically": "Found automatically",
       "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its UTXO is now held back from coin selection. Remove it from the list if you would rather it were not."
@@ -1758,11 +1758,7 @@
       }
     },
     "create": {
-      "label": "Add a new identity that is not a token",
-      "help": "The standard's identities are not only tokens: the same chain of UTXOs can stand for a dapp, a contract system or an organization, and prove who controls it.",
-      "helpNaming": "One transaction makes it, and naming comes after, with a publication that names its id.",
-      "hint": "A name, icon and links for a dapp, a contract system or an organization, published and updated from one UTXO with no token on it.",
-      "pick": "Any UTXO at output 0 without a token can be an identity: its transaction id becomes the identity's permanent id. Its BCH stays held back with the identity for as long as it is held, so a small UTXO is best.",
+      "pick": "The UTXO's transaction id becomes the identity's permanent id, and its BCH stays with the identity for as long as it is held, so a small one is best.",
       "prepareMessage": "This sends {amount} to yourself now, so the identity has a fresh UTXO at output 0. The amount stays yours; only the fee is spent.",
       "pickedId": "Identity id:",
       "steps": {
@@ -1775,14 +1771,18 @@
       "confirmMessage": "{outpoint} becomes the identity's UTXO, held back from coin selection with its {amount}. Its transaction id becomes the identity's permanent id.",
       "confirmButton": "Add",
       "doneTitle": "Identity added",
-      "tokenPointer": "Nearly every identity currently belongs to a token. To create a token identity, {link}: the transaction that creates the token creates its identity at the same time.",
-      "tokenPointerLink": "create the token",
-      "novelHelp": "A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes. Almost none exist yet and little reads them, so know what you want from one before making it.",
+      "tokenPointer": "{link}: the transaction that creates it creates its identity at the same time.",
+      "tokenPointerLink": "Use the Create token tool",
       "lead": "Will you write and host its registry yourself?",
       "outcome": "Adding lists the identity under the ones this wallet owns and keeps its UTXO out of ordinary sends. It has no name until a registry naming it is published, which its card walks you through.",
       "registryLead": "Registry:",
       "registry": "the JSON file that names the identity, written in a code editor against the {schema} and hosted on a domain you control or on IPFS.",
-      "registryNote": "The {generator} writes registries for tokens: it asks for a symbol and writes a token section, which an identity that is not a token must not have. Its snapshot carries a name, a description and links."
+      "registryNote": "The {generator} writes registries for tokens: it asks for a symbol and writes a token section, which an identity that is not a token must not have. Its snapshot carries a name, a description and links.",
+      "newLead": "Adding a new identity for a dapp, a contract system or an organization?",
+      "newWhat": "This adds one: a chain of UTXOs with no token on it, from which a name, an icon and links are published and updated.",
+      "caution": "Almost no such identities exist yet and little reads them, so know what you want from yours before making it.",
+      "tokenLead": "Making a token?",
+      "cautionLead": "Advanced feature:"
     },
     "transfer": {
       "hint": "The identity's UTXO is sent to the destination, handing over the authority to update this identity's metadata. To move it to CashTokens Studio, create a key there and transfer to the guard address it shows for that key.",

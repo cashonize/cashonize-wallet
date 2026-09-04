@@ -298,29 +298,23 @@
     </template>
 
     <template v-if="mode === 'create'">
-    <!-- What this makes, then the common path in a box: a token identity is made by the genesis
-         that makes the token, and what is made here is the same primitive with no token on it -->
+    <!-- The fork as two questions, in the Add tab's shape: what this tab adds, with the one caution
+         that matters in the open, and the common case pointed at the page that makes it. The
+         concept and the examples are on Learn. -->
     <div class="section">
-      <div>
-        {{ t('identities.create.label') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.create.help') }}</div>
-          <div class="info-popup-note" style="max-width: 300px;">{{ t('identities.create.helpNaming') }}</div>
-        </InfoPopup>
-      </div>
+      <div><b>{{ t('identities.create.newLead') }}</b> {{ t('identities.create.newWhat') }}</div>
       <div class="description" style="margin-top: 6px;">
-        {{ t('identities.create.hint') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.create.novelHelp') }}</div>
-        </InfoPopup>
+        <b>{{ t('identities.create.cautionLead') }}</b> {{ t('identities.create.caution') }}
       </div>
-      <div class="info-box" style="margin-top: 10px;">
+      <div class="info-box" style="margin-top: 12px;">
         <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
-        <i18n-t keypath="identities.create.tokenPointer" tag="div">
-          <template #link>
-            <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.create.tokenPointerLink') }}</span>
-          </template>
-        </i18n-t>
+        <div>
+          <b>{{ t('identities.create.tokenLead') }}</b> <i18n-t keypath="identities.create.tokenPointer" tag="span">
+            <template #link>
+              <span class="action-link" @click="() => store.changeView(6)">{{ t('identities.create.tokenPointerLink') }}</span>
+            </template>
+          </i18n-t>
+        </div>
       </div>
     </div>
 
