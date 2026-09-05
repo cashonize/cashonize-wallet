@@ -12,6 +12,7 @@ import { useSettingsStore } from "./settingsStore"
 import {
   resolveIdentities,
   describeChainLinks,
+  identityCoin,
   nameChainFromRegistry,
   type IdentityState,
   type IdentityStatus,
@@ -366,7 +367,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const started = mainStore.currentInitializationToken();
       let resolved: IdentityState[] = [];
       if (categories.length) {
-        resolved = await resolveIdentities(categories, mainStore.chaingraph, currentUtxos, extraKeyCategories);
+        resolved = await resolveIdentities(categories, mainStore.chaingraph, currentUtxos, extraKeyCategories, false);
       }
       if (mainStore.walletSwitchedSince(started)) return;
       const outage = outageReason(resolved);
@@ -473,7 +474,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   function heldIdentityLine(category: string): string | undefined {
     const identity = heldIdentityOf(category);
     if (!identity) return undefined;
-    const reserve = (identity.authUtxo?.token ?? identity.identityOutput?.token)?.amount;
+    const reserve = identityCoin(identity)?.token?.amount;
     if (!reserve) return t('tokenItem.identity.held');
     const amount = formatTokenAmountWithSymbol(reserve, mainStore.bcmrRegistries?.[category]);
     return t('tokenItem.identity.heldWithReserve', { amount });
@@ -510,7 +511,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // it is held here, guarded, or somebody else's, and lists it on the user's word
   async function inspectCategory(category: string): Promise<IdentityState> {
     const [found] = await resolveIdentities(
-      [category], mainStore.chaingraph, mainStore.walletUtxos ?? [], extraKeyCategories
+      [category], mainStore.chaingraph, mainStore.walletUtxos ?? [], extraKeyCategories, false
     );
     return found ?? { category, status: 'unresolved' };
   }

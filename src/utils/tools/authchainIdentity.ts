@@ -53,6 +53,12 @@ export interface IdentityState {
   recentLinks?: string[];
 }
 
+// The identity output as the wallet knows it best: its own coin when it holds it, the chain's
+// report of it otherwise, and nothing for an identity that did not resolve
+export function identityCoin(identity: IdentityState): Utxo | IdentityOutput | undefined {
+  return identity.authUtxo ?? identity.identityOutput;
+}
+
 // where a guarded identity is managed, one instance per network
 export const CASHTOKENS_STUDIO_URL: Record<Network, string> = {
   mainnet: "https://cashtokens.studio/",
@@ -266,12 +272,14 @@ export async function resolveIdentities(
   chaingraphUrl: string,
   walletUtxos: Utxo[],
   extraKeyCategories: (category: string) => string[] = () => [],
+  // the recent links serve the transaction history, which reads them for listed identities only
+  withRecentLinks = true,
 ): Promise<IdentityState[]> {
   const answers = new Map<string, { value?: AuthHeadResult; reason: string }>();
   for (let start = 0; start < categories.length; start += authheadBatchSize) {
     const batch = categories.slice(start, start + authheadBatchSize);
     try {
-      const answered = await queryAuthHeadsWithOutputs(batch, chaingraphUrl);
+      const answered = await queryAuthHeadsWithOutputs(batch, chaingraphUrl, withRecentLinks ? undefined : 0);
       for (const category of batch) {
         const value = answered.get(category);
         answers.set(category, value ? { value, reason: '' } : { reason: t('chaingraph.errors.tokenNotFound') });

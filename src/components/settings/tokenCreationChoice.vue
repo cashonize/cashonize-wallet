@@ -17,8 +17,6 @@
   const selectedHome = ref<'wallet' | 'studio' | undefined>(undefined);
   const cardLines = ['for', 'managed'] as const;
   const homeRows = ['protection', 'metadata', 'operations'] as const;
-  // the Connect tab, where Studio's WalletConnect session is made
-  const connectView = 4;
 </script>
 
 <template>
@@ -71,7 +69,7 @@
           {{ t('createTokens.home.openStudio') }}
           <img src="images/external-link-white.svg">
         </a>
-        <input type="button" :value="t('createTokens.home.connectButton')" @click="store.changeView(connectView)">
+        <input type="button" :value="t('createTokens.home.connectButton')" @click="store.changeView(4)">
       </div>
     </template>
   </div>

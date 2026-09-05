@@ -1468,25 +1468,15 @@ export const useStore = defineStore('store', () => {
     return { bch: wallet.value.getDepositAddress(), token: wallet.value.getTokenDepositAddress() };
   }
 
-  // A spend that falls short while UTXOs are held back may have fallen short for that reason, and
-  // mainnet-js cannot say so: it counted only the pool it was handed. So the reason is said after
-  // its message, on the messages that report a shortfall and no other (the pin test on the
-  // installed build asserts these are still its words).
-  const shortfallMessages = [
-    "Amount required was not met",
-    "Not enough token amount to send",
-    "You do not have any token UTXOs with minting capability for specified category",
-    "You do not have suitable token UTXOs to perform burn",
-    "There were no Unspent Outputs",
-    "The available inputs couldn't satisfy the request with fees",
-  ];
+  // A spend that fails while UTXOs are held back may have failed for that reason, and mainnet-js
+  // cannot say so: it counted only the pool it was handed. So the reason is said after its
+  // message, whatever the message: a failure that had nothing to do with it loses nothing by it.
   async function spendExplained<T>(makeTransaction: () => Promise<T>): Promise<T> {
     try {
       return await makeTransaction();
     } catch (error) {
       // a reservation outliving its coin holds nothing back, so it explains nothing
       if (!(error instanceof Error) || !reservedWalletUtxos.value?.length) throw error;
-      if (!shortfallMessages.some(message => error.message.startsWith(message))) throw error;
       throw new Error(`${error.message} ${t('store.errors.utxosHeldBack')}`, { cause: error });
     }
   }

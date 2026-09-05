@@ -7,6 +7,7 @@
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { formatBch, formatTokenAmountWithSymbol, truncateHash } from 'src/utils/utils'
+  import { identityCoin } from 'src/utils/tools/authchainIdentity'
 
   // Shown whenever the wallet held back identities the user never listed: that is the moment the
   // spendable balance and the token list change, so it is told directly, with names, every time.
@@ -29,7 +30,7 @@
   // the id stands in for it rather than waiting
   const entries = computed(() => props.ids.map(id => {
     const identity = identitiesStore.identities?.find(identity => identity.category === id)
-    const output = identity?.authUtxo ?? identity?.identityOutput
+    const output = identity ? identityCoin(identity) : undefined
     const metadata = store.bcmrRegistries?.[id]
     const reserve = output?.token?.amount ? formatTokenAmountWithSymbol(output.token.amount, metadata) : undefined
     return {

@@ -235,12 +235,18 @@ export interface AuthHeadResult {
 
 type AuthchainAnswer = ResultOf<typeof authHeadsQuery>['transaction'][number]['authchains'][number];
 
-export async function queryAuthHeadsWithOutputs(tokenIds: string[], chaingraphUrl: string): Promise<Map<string, AuthHeadResult>> {
+// The recent links are only read for the listed identities, so a caller resolving anything else
+// asks for none of them
+export async function queryAuthHeadsWithOutputs(
+  tokenIds: string[],
+  chaingraphUrl: string,
+  linksLimit = RECENT_LINKS_LIMIT,
+): Promise<Map<string, AuthHeadResult>> {
   const response = await queryChainGraph(authHeadsQuery, chaingraphUrl, {
     hashes: tokenIds.map(toBytea),
     bcmrFrom: toBytea(bcmrPrefixRange.from),
     bcmrTo: toBytea(bcmrPrefixRange.to),
-    linksLimit: RECENT_LINKS_LIMIT,
+    linksLimit,
   });
   const results = new Map<string, AuthHeadResult>();
   for (const transaction of response.data.transaction) {
@@ -254,7 +260,7 @@ export async function queryAuthHeadsWithOutputs(tokenIds: string[], chaingraphUr
 
 // The same answer for one category: a batch of one, so there is one query to keep right
 export async function queryAuthHeadWithOutputs(tokenId: string, chaingraphUrl: string): Promise<AuthHeadResult> {
-  const result = (await queryAuthHeadsWithOutputs([tokenId], chaingraphUrl)).get(tokenId);
+  const result = (await queryAuthHeadsWithOutputs([tokenId], chaingraphUrl, 0)).get(tokenId);
   if (!result) throw new Error(t('chaingraph.errors.tokenNotFound'));
   return result;
 }

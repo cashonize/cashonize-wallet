@@ -26,6 +26,7 @@
   import {
     CASHTOKENS_STUDIO_URL,
     filledLocations,
+    identityCoin,
     identityOutput,
     locationBudgetLeft,
     transferOutputs,
@@ -92,12 +93,12 @@
   });
 
   // what the identity output holds in BCH: the coin's own word when it is here, the chain's otherwise
-  const identityValue = computed(() => props.identity.authUtxo?.satoshis ?? props.identity.identityOutput?.satoshis);
+  const identityValue = computed(() => identityCoin(props.identity)?.satoshis);
 
   // What the identity output carries alongside the authority to update the metadata: a token
   // supply held back from circulation, an NFT that mints the category's tokens, or both at once
   const carries = computed(() => {
-    const token = props.identity.authUtxo?.token ?? props.identity.identityOutput?.token;
+    const token = identityCoin(props.identity)?.token;
     if (!token) return undefined;
     const lines: string[] = [];
     // the largest amount a category can hold is the AuthGuard standard's mark for a supply with
@@ -136,7 +137,7 @@
   });
 
   const tokenDecimals = computed(() => store.bcmrRegistries?.[props.identity.category]?.token?.decimals ?? 0);
-  const reserve = computed(() => (props.identity.authUtxo?.token ?? props.identity.identityOutput?.token)?.amount ?? 0n);
+  const reserve = computed(() => identityCoin(props.identity)?.token?.amount ?? 0n);
   const reserveDisplay = computed(() => formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value));
 
   // An IPFS CID cannot serve content other than its own, so a mismatch there says something

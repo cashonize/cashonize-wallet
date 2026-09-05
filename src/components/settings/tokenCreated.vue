@@ -14,13 +14,10 @@
   const settingsStore = useSettingsStore();
   const { t } = useI18n();
 
-  // the Tokens tab, where the token now shows, and the identities page, where its identity does
-  const tokensView = 2;
-  const identitiesView = 19;
   // the token list narrows itself to a pending search on arrival, so the new token is the one shown
   function openInTokenList() {
     store.pendingTokenSearch = props.created.category;
-    store.changeView(tokensView);
+    store.changeView(2);
   }
 
   function createdAmount(baseUnits: bigint) {
@@ -73,13 +70,13 @@
   <div v-if="!created.name" style="margin-top: 10px;">
     <i18n-t keypath="createTokens.created.untilPublished" tag="span">
       <template #link>
-        <span class="action-link" @click="store.changeView(identitiesView)">{{ t('createTokens.created.untilPublishedLink') }}</span>
+        <span class="action-link" @click="store.changeView(19)">{{ t('createTokens.created.untilPublishedLink') }}</span>
       </template>
     </i18n-t>
   </div>
   <div class="created-actions">
     <input type="button" :value="t('createTokens.created.seeToken')" @click="openInTokenList()">
-    <input type="button" :value="t('createTokens.created.seeIdentity')" @click="store.changeView(identitiesView)">
+    <input type="button" :value="t('createTokens.created.seeIdentity')" @click="store.changeView(19)">
   </div>
   <div class="created-links">
     <a v-if="created.txId" :href="`${store.explorerUrl}/${created.txId}`" target="_blank" class="action-link">
