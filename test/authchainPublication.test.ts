@@ -2,13 +2,13 @@ import { describe, expect, it, vi, afterEach } from 'vitest'
 import { OpReturnData, sha256, utf8ToBin } from 'mainnet-js'
 import { binToHex } from '@bitauth/libauth'
 
+import { parsePublicationOutput } from '../src/utils/tools/authchainIdentity'
 import {
-  parsePublicationOutput,
   registryUrlOf,
   registryContentHash,
   checkPublicationUri,
   fetchCandidateRegistry,
-} from '../src/utils/tools/authchainIdentity'
+} from '../src/utils/tools/registryFile'
 
 const ipfsGateway = 'https://ipfs.example.com/ipfs/'
 const registry = '{"version":{"major":1,"minor":0,"patch":0}}'

@@ -3,6 +3,8 @@
   import { binToHex, decodeTransactionUnsafe, encodeTransaction, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
+  import type { IdentityCarry, ReturningIdentity } from 'src/utils/dapp/reservedInputs'
   import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type DappMetadata } from "src/interfaces/interfaces"
@@ -183,7 +185,16 @@
   // A request spending a held back coin only reaches this dialog when the authority it takes comes
   // back to this wallet (utils/dapp/reservedInputs.ts). The dapp built the transaction, so this
   // is the one place the user learns what the identity output carried and carries after.
-  const identityInputs = store.checkDappReservedInputs(txDetails.inputs, txDetails.outputs).returning;
+  const identitiesStore = useIdentitiesStore()
+  const identityInputs = identitiesStore.checkDappReservedInputs(txDetails.inputs, txDetails.outputs).returning;
+  function identityLine(identity: ReturningIdentity) {
+    if (identity.kind === 'key') return t('walletConnect.transactionRequest.identityKeyReturns');
+    return t('walletConnect.transactionRequest.identityStays', { name: identitiesStore.identityNameAt(identity.outpoint) });
+  }
+  function mintingLine(after: IdentityCarry) {
+    if (after.mintingNft) return t('walletConnect.transactionRequest.identityMintingStays');
+    return t('walletConnect.transactionRequest.identityMintingLeaves');
+  }
   function reserveDisplay(category: string | undefined, reserve: bigint) {
     return formatTokenAmountWithSymbol(reserve, category ? getTokenMetadata(category) : undefined);
   }
@@ -236,9 +247,7 @@
           <div v-for="identity in identityInputs" :key="identity.outpoint">
             <div>
               <q-icon name="lock" size="16px" />
-              {{ identity.kind === 'key'
-                ? t('walletConnect.transactionRequest.identityKeyReturns')
-                : t('walletConnect.transactionRequest.identityStays', { name: store.identityNameAt(identity.outpoint) }) }}
+              {{ identityLine(identity) }}
             </div>
             <template v-if="identity.kind === 'authhead'">
               <div v-if="identity.before.reserve || identity.after.reserve">
@@ -247,11 +256,7 @@
                   after: reserveDisplay(identity.category, identity.after.reserve),
                 }) }}
               </div>
-              <div v-if="identity.before.mintingNft">
-                {{ t(identity.after.mintingNft
-                  ? 'walletConnect.transactionRequest.identityMintingStays'
-                  : 'walletConnect.transactionRequest.identityMintingLeaves') }}
-              </div>
+              <div v-if="identity.before.mintingNft">{{ mintingLine(identity.after) }}</div>
             </template>
           </div>
         </div>

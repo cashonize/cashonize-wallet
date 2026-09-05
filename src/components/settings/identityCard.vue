@@ -4,7 +4,7 @@
   // actions. Which form is open and what is running are the page's, handed to every card.
   import { computed, ref, watch } from 'vue'
   import { runIdentityAction, type CardAction, type OpenAction, type Outcome } from './identityActions'
-  import { displayAndLogError } from 'src/utils/errorHandling'
+  import identityHistory from './identityHistory.vue'
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -24,23 +24,25 @@
   import { confirmDialog, notifySending } from 'src/utils/txHelpers'
   import { validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import {
-    BCMR_GENERATOR_URL,
-    BCMR_SCHEMA_URL,
     CASHTOKENS_STUDIO_URL,
-    diffRegistries,
-    fetchCandidateRegistry,
-    fetchPublishedRegistry,
     filledLocations,
     identityOutput,
     locationBudgetLeft,
     transferOutputs,
     publicationOutput,
+    type IdentityState,
+  } from 'src/utils/tools/authchainIdentity'
+  import {
+    BCMR_GENERATOR_URL,
+    BCMR_SCHEMA_URL,
+    diffRegistries,
+    fetchCandidateRegistry,
+    fetchPublishedRegistry,
     registryUrlOf,
     summarizeRegistry,
-    type IdentityState,
     type PublicationUriStatus,
     type RegistrySummary,
-  } from 'src/utils/tools/authchainIdentity'
+  } from 'src/utils/tools/registryFile'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { TokenSendRequest } from 'mainnet-js'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
@@ -116,7 +118,7 @@
   // absolute like the history's dates, with the relative time on hover for freshness at a glance
   const publicationDate = computed(() => {
     const timestamp = props.identity.publication?.timestamp;
-    return timestamp ? linkDate(timestamp) : t('identities.publication.unconfirmed');
+    return timestamp ? new Date(timestamp * 1000).toLocaleDateString() : t('identities.publication.unconfirmed');
   });
   const publicationTimeAgo = computed(() => {
     const timestamp = props.identity.publication?.timestamp;
@@ -208,14 +210,10 @@
   const filledUris = computed(() => filledLocations(publishUris.value));
   const publicationBytesLeft = computed(() => locationBudgetLeft(filledUris.value));
 
+  const busy = computed(() => runningAction.value !== undefined || identitiesStore.identitiesResolving);
   async function runAction(action: CardAction, operate: () => Promise<Outcome | void>) {
     await runIdentityAction(runningAction, action, operate, () => { openAction.value = undefined; });
   }
-
-  const walletAddresses = () => ({
-    bch: store.wallet.getDepositAddress(),
-    token: store.wallet.getTokenDepositAddress(),
-  });
 
   // Everything the publisher should see before signing: the wallet fetched what the locations
   // serve now, hashed it, and reads out of it what holders will be told changed.
@@ -257,7 +255,7 @@
 
       notifySending();
       const { txId } = await store.spend.spendAuthUtxo(authUtxo, [
-        identityOutput(authUtxo, walletAddresses()),
+        identityOutput(authUtxo, store.walletAddresses()),
         publicationOutput(candidate.hash, filledUris.value),
       ]);
       return { txId, message: t('identities.publish.done'), title: t('identities.publish.doneTitle') };
@@ -283,7 +281,7 @@
       // issuing the whole reserve leaves nothing for a token output to carry, which the identity
       // output turns into the emptied layout on its own
       const { txId } = await store.spend.spendAuthUtxo(authUtxo, [
-        identityOutput(authUtxo, walletAddresses(), reserve.value - amount),
+        identityOutput(authUtxo, store.walletAddresses(), reserve.value - amount),
         new TokenSendRequest({ cashaddr: address, category: props.identity.category, amount }),
       ]);
       return { txId, message: t('identities.reserve.issue.done', { address }), title: t('identities.reserve.issue.doneTitle') };
@@ -312,7 +310,7 @@
       notifySending();
       const { txId } = await store.spend.spendAuthUtxo(
         authUtxo,
-        [identityOutput(authUtxo, walletAddresses(), reserve.value + amount)],
+        [identityOutput(authUtxo, store.walletAddresses(), reserve.value + amount)],
         categoryUtxos,
       );
       return { txId, message: t('identities.reserve.add.done'), title: t('identities.reserve.add.doneTitle') };
@@ -342,7 +340,7 @@
       if (!confirmed) return;
       notifySending();
       const { txId } = authUtxo.token
-        ? await store.spend.spendAuthUtxo(authUtxo, transferOutputs(authUtxo, address, walletAddresses(), tokensGoAlong))
+        ? await store.spend.spendAuthUtxo(authUtxo, transferOutputs(authUtxo, address, store.walletAddresses(), tokensGoAlong))
         : await store.spend.sendUtxo(authUtxo, address);
       // A transfer to one of this wallet's own addresses is a key rotation: the identity stays
       // listed and its new UTXO held back. To anyone else, it is now theirs to update. Decided by
@@ -400,53 +398,16 @@
   }
 
   // The history is a view among the card's actions, opened and closed the way the token item's
-  // info panel is: it is the one identity query that grows with the chain's length, so it is
-  // fetched when asked for, not when the card opens. Closing the card closes it.
+  // info panel is. Closing the card closes it.
   const historyOpen = ref(false);
-  const loadingHistory = ref(false);
   watch(() => props.expanded, expanded => {
     if (!expanded) historyOpen.value = false;
-  });
-  // The chain as fetched at this authhead; nothing to show until it is resolved
-  const history = computed(() => {
-    const authhead = props.identity.authheadTxid;
-    return authhead ? identitiesStore.identityHistories[authhead] : undefined;
   });
   // the label carries the chain's length when the resolve already holds it
   const historyLabel = computed(() => {
     const length = props.identity.chainLength;
     return length ? t('identities.history.actionCount', { count: length }) : t('identities.history.action');
   });
-  // How long an identity has stood, once its history says
-  const establishedYear = computed(() => {
-    const since = history.value?.[0]?.timestamp;
-    return since ? new Date(since * 1000).getFullYear() : undefined;
-  });
-  async function toggleHistory() {
-    historyOpen.value = !historyOpen.value;
-    if (!historyOpen.value || history.value) return;
-    loadingHistory.value = true;
-    try {
-      await identitiesStore.fetchIdentityHistory(props.identity);
-    } catch (error) {
-      displayAndLogError(error);
-    } finally {
-      loadingHistory.value = false;
-    }
-  }
-  // Told by the wallet's own history: the links made here, and the ones made elsewhere with the
-  // same keys, which is the half an explorer cannot show
-  function madeByThisWallet(hash: string) {
-    return (store.walletHistory ?? []).some(transaction => transaction.hash === hash);
-  }
-  function linkAmount(amount: bigint) {
-    const size = amount < 0n ? -amount : amount;
-    return formatTokenAmountFromBigInt(size, tokenDecimals.value);
-  }
-  function linkDate(timestamp?: number) {
-    if (!timestamp) return undefined;
-    return new Date(timestamp * 1000).toLocaleDateString();
-  }
 </script>
 
 <template>
@@ -583,7 +544,7 @@
           {{ t('identities.transfer.action') }}
         </span>
       </template>
-      <span @click="toggleHistory()" style="white-space: nowrap;">
+      <span @click="historyOpen = !historyOpen" style="white-space: nowrap;">
         <q-icon name="history" size="18px" />
         {{ historyLabel }}
       </span>
@@ -661,7 +622,7 @@
         type="button"
         class="primaryButton"
         :value="runningAction === 'publish' ? t('identities.publish.publishingButton') : t('identities.publish.button')"
-        :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !filledUris.length || publicationBytesLeft < 0"
+        :disabled="busy || !filledUris.length || publicationBytesLeft < 0"
         style="margin-top: 10px;"
       >
     </div>
@@ -680,7 +641,7 @@
         type="button"
         class="primaryButton"
         :value="runningAction === 'issue' ? t('identities.reserve.issue.issuingButton') : t('identities.reserve.issue.button')"
-        :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !issueAmount || !issueDestination"
+        :disabled="busy || !issueAmount || !issueDestination"
         style="margin-top: 10px;"
       >
     </div>
@@ -695,7 +656,7 @@
         type="button"
         class="primaryButton"
         :value="runningAction === 'addToReserve' ? t('identities.reserve.add.addingButton') : t('identities.reserve.add.button')"
-        :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !addToReserveAmount"
+        :disabled="busy || !addToReserveAmount"
         style="margin-top: 10px;"
       >
     </div>
@@ -717,7 +678,7 @@
           @click="transferIdentity()"
           type="button"
           :value="runningAction === 'transfer' ? t('identities.transfer.transferringButton') : t('identities.transfer.button')"
-          :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !destination"
+          :disabled="busy || !destination"
         >
       </div>
     </div>
@@ -740,47 +701,18 @@
             @click="transferKey()"
             type="button"
             :value="runningAction === 'transferKey' ? t('identities.key.transferringButton') : t('identities.key.button')"
-            :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !keyDestination"
+            :disabled="busy || !keyDestination"
           >
         </div>
       </div>
     </div>
 
-    <div v-if="historyOpen" class="section">
-      <div>
-        {{ t('identities.history.title') }}
-        <span v-if="establishedYear" class="description">
-          · {{ t('identities.established.since', { year: establishedYear }) }}
-        </span>
-      </div>
-      <div v-if="loadingHistory" class="description">{{ t('identities.history.loading') }}</div>
-      <div v-for="link in history ?? []" :key="link.hash" class="chain-link">
-        <span v-if="link.kind === 'mint'">{{ t('identities.history.minted', link.minted ?? 0) }}</span>
-        <span v-else>{{ t('identities.history.kind.' + link.kind) }}</span>
-        <span v-if="link.reserveDelta">
-          {{ link.reserveDelta > 0n
-            ? t('identities.history.reserveUp', { amount: linkAmount(link.reserveDelta) })
-            : t('identities.history.reserveDown', { amount: linkAmount(link.reserveDelta) }) }}
-        </span>
-        <span v-if="linkDate(link.timestamp)">{{ linkDate(link.timestamp) }}</span>
-        <span v-if="madeByThisWallet(link.hash)" class="identity-badge">{{ t('identities.history.madeHere') }}</span>
-        <a :href="`${store.explorerUrl}/${link.hash}`" target="_blank" class="mono">{{ link.hash.slice(0, 10) }}</a>
-      </div>
-    </div>
+    <identityHistory v-if="historyOpen" :identity="identity" />
     </template>
   </div>
 </template>
 
 <style scoped>
-.description {
-  color: grey;
-}
-.mono {
-  font-family: monospace;
-}
-.section {
-  margin-top: 20px;
-}
 .identity-header {
   display: flex;
   align-items: center;
@@ -878,12 +810,5 @@
 .walkthrough li .q-icon {
   flex: none;
   align-self: center;
-}
-.chain-link {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 6px;
 }
 </style>

@@ -1,12 +1,12 @@
 import { OpReturnData, type Utxo } from "mainnet-js";
 import { binToHex, hexToBin } from "@bitauth/libauth";
+import { resolveIdentities } from "../src/utils/tools/authchainIdentity";
 import {
   loadIdentityList,
   addToIdentityList,
   removeFromIdentityList,
   removeIdentityData,
-  resolveIdentities,
-} from "../src/utils/tools/authchainIdentity";
+} from "../src/utils/tools/identityLists";
 
 // The global setup stubs localStorage as a no-op; these tests need a working store
 function makeLocalStorage() {

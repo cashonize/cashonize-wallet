@@ -5,6 +5,7 @@ import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletki
 import type { SessionTypes } from '@walletconnect/types'
 import { convert, NetworkType, HDWallet } from "mainnet-js";
 import { useStore } from "./store"
+import { useIdentitiesStore } from "./identitiesStore"
 import {
   hexToBin,
   binToHex,
@@ -517,7 +518,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   function reservedInputsCheck(wcTransactionObj: WcSignTransactionRequest): ReservedInputsCheck {
     const { transaction } = wcTransactionObj;
     const decodedTransaction = typeof transaction === "string" ? decodeTransactionUnsafe(hexToBin(transaction)) : transaction;
-    return mainStore.checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
+    return useIdentitiesStore().checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
   }
 
   async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {

@@ -131,16 +131,19 @@ naming what was held back and what that did to the balance.
 
 - `src/stores/identitiesStore.ts`: the lists, the resolves, the reservations, the finds
   and the following.
-- `src/utils/tools/authchainIdentity.ts`: the publication format, registry fetching and
-  verification, the operations' outputs, the resolve, the chain's history.
+- `src/utils/tools/authchainIdentity.ts`: the publication format, the operations' outputs,
+  the resolve, the chain's history, naming a chain from its registry.
+- `src/utils/tools/registryFile.ts`: fetching, hashing and reading the hosted registry file.
+- `src/utils/tools/identityLists.ts`: the persisted lists.
 - `src/queryChainGraph.ts`: the authhead and history queries.
 - `src/utils/tools/identityDetection.ts`: the two markers read off the spent-outputs walk.
 - `src/utils/tools/authGuard.ts`: the covenant's script, and what a key is.
 - `src/utils/tools/tokenCreation.ts`: the genesis amounts and the coins a genesis can spend.
 - `src/utils/wallet/reservedUtxos.ts`, `src/utils/dapp/reservedInputs.ts`: what a
   reservation is, and how a dapp transaction is judged against it.
-- `src/components/settings/identitiesPage.vue`, `identityCard.vue`, `identityActions.ts`,
-  `publicationLocations.vue`, `createTokens.vue`, `genesisInputPicker.vue`,
+- `src/components/settings/identitiesPage.vue`, `identityCard.vue`, `identityHistory.vue`,
+  `identityActions.ts`, `publicationLocations.vue`, `createTokens.vue`,
+  `tokenCreationChoice.vue`, `tokenCreated.vue`, `genesisInputPicker.vue`,
   `src/components/general/identitiesFoundDialog.vue`.
 
 ## Future items

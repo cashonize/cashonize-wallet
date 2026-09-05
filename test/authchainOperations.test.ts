@@ -4,16 +4,15 @@ import type { Utxo } from 'mainnet-js'
 import { binToHex } from '@bitauth/libauth'
 
 import {
-  diffRegistries,
   identityOutput,
   maxPublicationOutputSize,
   mintOutputs,
   parsePublicationOutput,
   publicationOutput,
   publicationOutputSize,
-  summarizeRegistry,
   transferOutputs,
 } from '../src/utils/tools/authchainIdentity'
+import { diffRegistries, summarizeRegistry } from '../src/utils/tools/registryFile'
 
 const category = '0123456789abcdef'.repeat(4)
 const hash = 'ab'.repeat(32)

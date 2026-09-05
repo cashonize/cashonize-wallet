@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { computed, onActivated, ref, watch } from 'vue'
+  import type { Utxo } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -8,13 +9,13 @@
   import genesisInputPicker from './genesisInputPicker.vue'
   import identityCard from './identityCard.vue'
   import { runIdentityAction, type CardAction, type OpenAction, type Outcome } from './identityActions'
-  import { genesisCandidates, preparedUtxoValue } from 'src/utils/tools/tokenCreation'
+  import { preparedUtxoValue, stepLabel } from 'src/utils/tools/tokenCreation'
   import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
-  import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, CASHTOKENS_STUDIO_URL, type IdentityStatus } from 'src/utils/tools/authchainIdentity'
+  import { CASHTOKENS_STUDIO_URL, type IdentityStatus } from 'src/utils/tools/authchainIdentity'
+  import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL } from 'src/utils/tools/registryFile'
   import { Notify } from 'quasar'
-  import { outpointOf } from 'src/utils/wallet/reservedUtxos'
 
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
@@ -40,6 +41,7 @@
   // the page's own actions included; the cards read and write both
   const openAction = ref<OpenAction | undefined>(undefined);
   const runningAction = ref<string | undefined>(undefined);
+  const busy = computed(() => runningAction.value !== undefined || identitiesStore.identitiesResolving);
   async function runAction(action: 'add' | 'addUtxo' | 'remove', operate: () => Promise<Outcome | void>) {
     await runIdentityAction(runningAction, action, operate);
   }
@@ -102,8 +104,7 @@
     categoryInput.value = "";
     openAction.value = undefined;
     showTokenIdentities.value = false;
-    pickedOutpoint.value = undefined;
-    editingPick.value = true;
+    pickedUtxo.value = undefined;
   });
 
   async function addIdentity() {
@@ -147,19 +148,9 @@
   // way the create page picks a genesis input: its txid is the id and the UTXO its authhead, held
   // back from here on. Naming waits for a publication that names it. Two steps, the pick closing
   // to one line before the add, so what is about to be listed is read before it is.
-  const pickedOutpoint = ref<string | undefined>(undefined);
-  const pickedUtxo = computed(() =>
-    store.spendableUtxos && genesisCandidates(store.spendableUtxos).find(utxo => outpointOf(utxo) === pickedOutpoint.value)
-  );
-  const editingPick = ref(true);
-  // watched by outpoint: every utxo refresh hands out fresh objects for the same coin
-  watch(() => pickedUtxo.value && outpointOf(pickedUtxo.value), picked => {
-    if (picked) editingPick.value = false;
-  });
-  const pickStepOpen = computed(() => editingPick.value || !pickedUtxo.value);
-  function addStepLabel(current: number, title: 'pick' | 'add') {
-    return `${t('createTokens.step', { current, total: 2 })}: ${t(`identities.create.steps.${title}`)}`;
-  }
+  const pickedUtxo = ref<Utxo | undefined>(undefined);
+  const pickStepOpen = ref(true);
+  const addStepTitle = (title: 'pick' | 'add') => t(`identities.create.steps.${title}`);
   async function addIdentityFromUtxo() {
     await runAction('addUtxo', async () => {
       const picked = pickedUtxo.value;
@@ -172,8 +163,7 @@
       );
       if (!confirmed) return;
       await identitiesStore.listCreatedIdentity(picked.txid, picked.txid);
-      pickedOutpoint.value = undefined;
-      editingPick.value = true;
+      pickedUtxo.value = undefined;
       // The add ends where the naming begins: on the new card with its publish form open, since
       // the steps that give the identity a name are acted on there, not on a step that closes
       Notify.create({ type: 'positive', message: t('identities.create.doneTitle') });
@@ -281,7 +271,7 @@
           type="button"
           class="primaryButton"
           :value="runningAction === 'add' ? t('identities.add.addingButton') : t('identities.add.button')"
-          :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !categoryInput"
+          :disabled="busy || !categoryInput"
         >
       </div>
       <div class="description" style="margin-top: 6px;">
@@ -311,37 +301,26 @@
       </div>
     </div>
 
-    <div v-if="pickStepOpen" class="section">
-      <div class="step-label open">{{ addStepLabel(1, 'pick') }}</div>
-      <div style="margin-top: 6px;">
-        <genesisInputPicker
-          v-model="pickedOutpoint"
-          :explainer="t('identities.create.pick')"
-          :prepare-message="t('identities.create.prepareMessage', { amount: bchOf(preparedUtxoValue) })"
-          smallest-first
-        />
-      </div>
-      <div class="step-label" style="margin-top: 12px;">{{ addStepLabel(2, 'add') }}</div>
-    </div>
-    <div v-else class="section closed-line description">
-      <img src="images/check-circle.svg" class="step-check">
-      <span>{{ t('identities.create.pickedId') }}</span>
-      <span class="copy-target" @click="copyToClipboard(pickedUtxo!.txid)">
-        <span class="mono">{{ truncateHash(pickedUtxo!.txid) }}</span>
-        <img class="copyIcon" src="images/copyGrey.svg">
-      </span>
-      <span>·</span>
-      <span class="action-link" @click="editingPick = true">{{ t('createTokens.change') }}</span>
-    </div>
+    <genesisInputPicker
+      v-model="pickedUtxo"
+      v-model:open="pickStepOpen"
+      :step-label="stepLabel(1, 2, addStepTitle('pick'))"
+      :picked-label="t('identities.create.pickedId')"
+      :explainer="t('identities.create.pick')"
+      :prepare-message="t('identities.create.prepareMessage', { amount: bchOf(preparedUtxoValue) })"
+      smallest-first
+    >
+      <div class="step-label" style="margin-top: 12px;">{{ stepLabel(2, 2, addStepTitle('add')) }}</div>
+    </genesisInputPicker>
     <div v-if="!pickStepOpen" class="section">
-      <div class="step-label open">{{ addStepLabel(2, 'add') }}</div>
+      <div class="step-label open">{{ stepLabel(2, 2, addStepTitle('add')) }}</div>
       <div style="margin-top: 6px;"><b>{{ t('identities.create.lead') }}</b> {{ t('identities.create.outcome') }}</div>
       <input
         @click="addIdentityFromUtxo()"
         type="button"
         class="primaryButton"
         :value="runningAction === 'addUtxo' ? t('identities.create.creatingButton') : t('identities.create.button')"
-        :disabled="runningAction !== undefined || identitiesStore.identitiesResolving"
+        :disabled="busy"
         style="margin-top: 12px;"
       >
       <div class="description" style="margin-top: 6px;">
@@ -431,9 +410,6 @@
 </template>
 
 <style scoped>
-.description {
-  color: grey;
-}
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -446,12 +422,6 @@
 }
 .page-nav:hover {
   text-decoration: underline;
-}
-.mono {
-  font-family: monospace;
-}
-.section {
-  margin-top: 20px;
 }
 .follow-head {
   cursor: pointer;

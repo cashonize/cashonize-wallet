@@ -114,6 +114,10 @@
     return authUtxo.txid === nft.txid && authUtxo.vout === nft.vout ? authUtxo : undefined;
   });
   const isIdentityKey = computed(() => guardedIdentities.value.length > 0);
+  const keyNameLine = computed(() => {
+    if (guardedNames.value) return t('tokenItem.authKey.nameFor', { names: guardedNames.value });
+    return t('tokenItem.authKey.name');
+  });
 
   const tokenDescription = computed(() => {
     if(parseResult.value?.success && parseResult.value.nftTypeDescription) return parseResult.value.nftTypeDescription;
@@ -372,9 +376,7 @@
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
             <div v-if="isIdentityKey" class="identity-key-line">
-              {{ guardedNames
-                ? t('tokenItem.authKey.nameFor', { names: guardedNames })
-                : t('tokenItem.authKey.name') }}
+              {{ keyNameLine }}
               <span class="identity-key-link" @click="store.changeView(19)">
                 {{ t('tokenItem.authKey.manage') }}
               </span>

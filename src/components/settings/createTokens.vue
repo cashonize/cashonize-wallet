@@ -1,32 +1,26 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue';
-  import {
-    BCMR_GENERATOR_URL,
-    BCMR_SCHEMA_URL,
-    CASHTOKENS_STUDIO_URL,
-    fetchCandidateRegistry,
-    filledLocations,
-    locationBudgetLeft,
-    publicationOutput,
-    summarizeRegistry,
-    tokenOutputValue,
-  } from 'src/utils/tools/authchainIdentity';
+  import type { Utxo } from 'mainnet-js';
+  import { filledLocations, locationBudgetLeft, publicationOutput, tokenOutputValue } from 'src/utils/tools/authchainIdentity';
+  import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, fetchCandidateRegistry, summarizeRegistry } from 'src/utils/tools/registryFile';
   import {
     formatTokens,
     genesisAmounts,
     metadataReadiness,
     parseDecimals,
     maxTokenSupply,
-    genesisCandidates,
     preparedUtxoValue,
+    stepLabel,
     type CheckedRegistry,
+    type CreatedToken,
   } from 'src/utils/tools/tokenCreation';
   import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils';
   import { NFTCapability, TokenSendRequest } from 'mainnet-js';
-  import { outpointOf } from 'src/utils/wallet/reservedUtxos';
   import TokenIcon from '../general/TokenIcon.vue';
   import genesisInputPicker from './genesisInputPicker.vue';
   import publicationLocations from './publicationLocations.vue';
+  import tokenCreationChoice from './tokenCreationChoice.vue';
+  import tokenCreated from './tokenCreated.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
   import { confirmDialog, notifySending } from 'src/utils/txHelpers';
@@ -44,25 +38,8 @@
   const inputFungibleSupply = ref("");
   const inputCirculating = ref("");
   const inputDecimals = ref("0");
-  // A card says who its side is for and where the token is managed afterwards; the rows, the
-  // risk among them, wait behind the closed line's popup once the choice is made
-  const cardLines = ['for', 'managed'] as const;
-  const homeRows = ['protection', 'metadata', 'operations'] as const;
-  // A step's title is what the user does in it, the same whether the step is open or closed, so
-  // the greyed list under the open step and the label above it read as one sequence
-  function stepLabel(current: number, title: 'utxo' | 'shape' | 'type' | 'metadata') {
-    return `${t('createTokens.step', { current, total: 3 })}: ${t(`createTokens.stepTitles.${title}`)}`;
-  }
-  // the Tokens tab, where the token now shows, the identities page, where its identity does, and
-  // the Connect tab, where Studio's WalletConnect session is made
-  const tokensView = 2;
-  // the token list narrows itself to a pending search on arrival, so the new token is the one shown
-  function openInTokenList(category: string) {
-    store.pendingTokenSearch = category;
-    store.changeView(tokensView);
-  }
-  const identitiesView = 19;
-  const connectView = 4;
+  const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
+  const stepTitle = (title: 'utxo' | 'shape' | 'type' | 'metadata') => t(`createTokens.stepTitles.${title}`);
   watch(() => store._wallet, startOver);
 
   // What the token is, rather than a supply field and a toggle the user has to combine into one
@@ -72,36 +49,14 @@
   const metadataUris = ref<string[]>([""]);
   const activeAction = ref<'checking' | 'creating' | null>(null);
 
-  const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
-
   // A new token's category is the txid of the UTXO its genesis spends, so which UTXO that is
-  // decides the identity's id and its icon before anything exists. Held as an outpoint and
-  // resolved against the current UTXOs, so one spent from somewhere else leaves the list and
-  // takes the selection with it
-  const pickedOutpoint = ref<string | undefined>(undefined);
-  const genesisInput = computed(() =>
-    store.spendableUtxos && genesisCandidates(store.spendableUtxos).find(utxo => outpointOf(utxo) === pickedOutpoint.value)
-  );
+  // decides the identity's id and its icon before anything exists. The picker owns the pick and
+  // whether its step is open; the steps after it open one at a time, the way the flipstarter
+  // page's do, and the choice block closes with step 1, the form under it being committed to.
+  const genesisInput = ref<Utxo | undefined>(undefined);
+  const utxoStepOpen = ref(true);
   const plannedCategory = computed(() => genesisInput.value?.txid);
-
-  // The steps open one at a time, the way the flipstarter page's do: step 1 closes to one line
-  // once a genesis input is set and can be reopened, step 2 opens then, and step 3 with Create
-  // once step 2 is settled. The choice block closes with step 1, the form under it being
-  // committed to; "change" there gives the pick up, since the pick belongs to this path.
-  const editingUtxo = ref(true);
-  // watched by outpoint: every utxo refresh hands out fresh objects for the same coin
-  watch(() => genesisInput.value && outpointOf(genesisInput.value), picked => {
-    if (picked) editingUtxo.value = false;
-  });
-  const utxoStepOpen = computed(() => editingUtxo.value || !genesisInput.value);
-  // Where the token's identity lives afterwards: here, or in an AuthGuard covenant made by
-  // CashTokens Studio. This page only makes the first; the second is a link out.
-  const selectedHome = ref<'wallet' | 'studio' | undefined>(undefined);
   const homeConfirmed = ref(false);
-  const choiceOpen = computed(() => !homeConfirmed.value);
-  function confirmHome() {
-    homeConfirmed.value = true;
-  }
   // the shape step is titled by what it asks, which for a collection alone is only the type
   const shapeTitle = computed(() => hasSupply.value ? 'shape' : 'type');
   // Step 2 closes on its own Continue, so step 3 opens one step at a time for every shape, a
@@ -114,9 +69,7 @@
   });
   function changeHome() {
     homeConfirmed.value = false;
-    selectedHome.value = undefined;
-    pickedOutpoint.value = undefined;
-    editingUtxo.value = true;
+    genesisInput.value = undefined;
     shapeStepOpen.value = true;
   }
 
@@ -220,27 +173,7 @@
     return publicationOutput(checked.hash, checked.uris);
   }
 
-  // What the page made, shown in its place as the last step rather than as a dialog over it, the
-  // way the flipstarter page shows its signed pledge. Stays until the user starts over.
-  interface CreatedToken {
-    category: string;
-    txId: string | undefined;
-    name?: string;
-    symbol?: string;
-    iconUrl?: string;
-    hasSupply: boolean;
-    supply: bigint;
-    reserve: bigint;
-    circulating: bigint;
-    decimals: number;
-  }
   const created = ref<CreatedToken | undefined>(undefined);
-  function createdAmount(baseUnits: bigint) {
-    const token = created.value;
-    if (!token) return '';
-    const amount = formatTokens(baseUnits, token.decimals);
-    return token.symbol ? `${amount} ${token.symbol}` : amount;
-  }
 
   function startOver() {
     created.value = undefined;
@@ -253,8 +186,31 @@
     changeHome();
   }
 
-  // One genesis builds the whole issuer kit: output 0 is the AuthHead, carrying the reserve and
-  // the minting NFT if there is one, and a second output carries what is issued to circulation.
+  // The genesis request and the outputs beside it: output 0 is the AuthHead, carrying the reserve
+  // and the minting NFT if there is one, then what is issued to circulation and the publication
+  function genesisOutputs(category: string, reserveAmount: bigint, circulatingAmount: bigint) {
+    const tokenAddress = store.wallet.getTokenDepositAddress();
+    const genesisRequest = {
+      cashaddr: tokenAddress,
+      amount: reserveAmount,
+      value: tokenOutputValue,
+      ...(createMintingNft.value ? { nft: { commitment: "", capability: NFTCapability.minting } } : {}),
+    };
+    const opreturnData = metadataOutput();
+    const circulationOutput = new TokenSendRequest({
+      cashaddr: tokenAddress,
+      category,
+      amount: circulatingAmount,
+      value: tokenOutputValue,
+    });
+    const extraOutputs = [
+      ...(circulatingAmount > 0n ? [circulationOutput] : []),
+      ...(opreturnData ? [opreturnData] : []),
+    ];
+    return { genesisRequest, extraOutputs, linkedMetadata: opreturnData !== undefined };
+  }
+
+  // One genesis builds the whole issuer kit, confirmed first since it cannot be corrected afterwards
   async function createToken(){
     if (activeAction.value) return;
     const pickedCoin = genesisInput.value;
@@ -262,7 +218,6 @@
     const circulatingAmount = hasSupply.value ? circulating.value : 0n;
     if (!pickedCoin || genesisProblem.value) return;
     if (reserveAmount === undefined || circulatingAmount === undefined) return;
-    // a genesis cannot be corrected afterwards, so what it makes is confirmed first, always
     const confirmed = await confirmDialog(
       t('createTokens.confirm.title'),
       confirmMessage(reserveAmount, circulatingAmount),
@@ -271,33 +226,12 @@
     if (!confirmed) return;
     activeAction.value = 'creating';
     try{
-      const opreturnData = metadataOutput();
-      const tokenAddress = store.wallet.getTokenDepositAddress();
-      const circulationOutput = new TokenSendRequest({
-        cashaddr: tokenAddress,
-        category: pickedCoin.txid,
-        amount: circulatingAmount,
-        value: tokenOutputValue,
-      });
-      const extraOutputs = [
-        ...(circulatingAmount > 0n ? [circulationOutput] : []),
-        ...(opreturnData ? [opreturnData] : []),
-      ];
+      const { genesisRequest, extraOutputs, linkedMetadata } = genesisOutputs(pickedCoin.txid, reserveAmount, circulatingAmount);
       notifySending(t('createTokens.notifications.creatingTokens'));
-      const genesisResponse = await store.spend.tokenGenesis(
-        pickedCoin,
-        {
-          cashaddr: tokenAddress,
-          amount: reserveAmount,
-          value: tokenOutputValue,
-          ...(createMintingNft.value ? { nft: { commitment: "", capability: NFTCapability.minting } } : {}),
-        },
-        extraOutputs
-      );
-      const { txId } = genesisResponse;
+      const { txId } = await store.spend.tokenGenesis(pickedCoin, genesisRequest, extraOutputs);
       // creation ends where management begins: the identity is listed and its AuthHead held back
       if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
-      const linked = opreturnData ? checkedRegistry.value?.summary : undefined;
+      const linked = linkedMetadata ? checkedRegistry.value?.summary : undefined;
       created.value = {
         category: pickedCoin.txid,
         txId,
@@ -351,138 +285,24 @@
     <fieldset class="item" style="padding-bottom: 20px;">
       <legend>{{ t('createTokens.title') }}</legend>
 
-      <template v-if="created">
-        <div class="closed-line description">
-          <img src="images/check-circle.svg" class="step-check">
-          <span>{{ t('createTokens.home.chosen') }}</span>
-        </div>
-        <div class="closed-line description">
-          <img src="images/check-circle.svg" class="step-check">
-          <span>{{ t('createTokens.plannedTokenId') }}</span>
-          <span class="copy-target" @click="copyToClipboard(created.category)">
-            <span class="mono">{{ truncateHash(created.category) }}</span>
-            <img class="copyIcon" src="images/copyGrey.svg">
-          </span>
-        </div>
-        <div class="closed-line description">
-          <img src="images/check-circle.svg" class="step-check">
-          <span>{{ stepLabel(2, created.hasSupply ? 'shape' : 'type') }}</span>
-        </div>
-        <div class="closed-line description">
-          <img src="images/check-circle.svg" class="step-check">
-          <span>{{ stepLabel(3, 'metadata') }}</span>
-        </div>
-
-        <div class="section created-title">{{ t('createTokens.created.title') }}</div>
-        <div class="created-card">
-          <!-- keyed on the category because the generated icon is only drawn when the component mounts -->
-          <TokenIcon :key="created.category" :token-id="created.category" :icon-url="created.iconUrl" :size="48" class="pop" />
-          <div>
-            <div v-if="created.name"><b>{{ created.symbol ? `${created.name} (${created.symbol})` : created.name }}</b></div>
-            <div v-else class="copy-target" @click="copyToClipboard(created.category)">
-              <span class="mono">{{ truncateHash(created.category) }}</span>
-              <img class="copyIcon" src="images/copyGrey.svg">
-            </div>
-            <div v-if="created.hasSupply">{{ t('createTokens.created.supply', { amount: createdAmount(created.supply) }) }}</div>
-            <div v-else>{{ t('createTokens.created.mintingNft') }}</div>
-            <div v-if="created.hasSupply">
-              {{ t('createTokens.created.split', { reserve: createdAmount(created.reserve), circulating: createdAmount(created.circulating) }) }}
-            </div>
-            <div v-if="created.hasSupply && !created.name">{{ t('createTokens.created.decimals', { decimals: created.decimals }) }}</div>
-            <div class="description">{{ t('createTokens.created.listed') }}</div>
-          </div>
-        </div>
-        <div v-if="!created.name" style="margin-top: 10px;">
-          <i18n-t keypath="createTokens.created.untilPublished" tag="span">
-            <template #link>
-              <span class="action-link" @click="store.changeView(identitiesView)">{{ t('createTokens.created.untilPublishedLink') }}</span>
-            </template>
-          </i18n-t>
-        </div>
-        <div class="created-actions">
-          <input type="button" :value="t('createTokens.created.seeToken')" @click="openInTokenList(created.category)">
-          <input type="button" :value="t('createTokens.created.seeIdentity')" @click="store.changeView(identitiesView)">
-        </div>
-        <div class="created-links">
-          <a v-if="created.txId" :href="`${store.explorerUrl}/${created.txId}`" target="_blank" class="action-link">
-            {{ t('createTokens.created.viewTransaction') }}
-            <img :src="settingsStore.darkMode ? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;">
-          </a>
-          <span class="action-link" @click="startOver()">{{ t('createTokens.created.createAnother') }}</span>
-        </div>
-      </template>
+      <tokenCreated v-if="created" :created="created" @start-over="startOver()" />
 
       <template v-else>
-      <template v-if="choiceOpen">
-      <div>{{ t('createTokens.home.intro') }}</div>
-      <div class="home-cards">
-        <div class="home-card" :class="{ selected: selectedHome === 'wallet' }" @click="selectedHome = 'wallet'">
-          <div class="home-card-title">
-            <span class="home-radio"></span>
-            <b>{{ t('createTokens.home.wallet') }}</b>
-            <img src="images/cashonize-icon.png" class="home-mark">
-          </div>
-          <div v-for="line in cardLines" :key="line">
-            <b>{{ t(`createTokens.home.cardLeads.${line}`) }}</b> {{ t(`createTokens.home.walletLines.${line}`) }}
-          </div>
-        </div>
-        <div class="home-card" :class="{ selected: selectedHome === 'studio' }" @click="selectedHome = 'studio'">
-          <div class="home-card-title">
-            <span class="home-radio"></span>
-            <b>{{ t('createTokens.home.studio') }}</b>
-            <img src="images/studio.png" class="home-mark">
-          </div>
-          <div v-for="line in cardLines" :key="line">
-            <b>{{ t(`createTokens.home.cardLeads.${line}`) }}</b> {{ t(`createTokens.home.studioLines.${line}`) }}
-          </div>
-        </div>
-      </div>
-      <div v-if="selectedHome" class="section home-rows">
-        <div v-for="row in homeRows" :key="row">
-          <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${selectedHome}Rows.${row}`) }}
-          <InfoPopup v-if="selectedHome === 'studio' && (row === 'protection' || row === 'metadata')">
-            <div style="max-width: 300px;">{{ t(`createTokens.home.studioRows.${row}Help`) }}</div>
-          </InfoPopup>
-        </div>
-        <div class="description">{{ t(`createTokens.home.${selectedHome}Rows.moveLater`) }}</div>
-        <input
-          v-if="selectedHome === 'wallet'"
-          @click="confirmHome()"
-          type="button"
-          class="primaryButton"
-          :value="t('createTokens.home.continueButton')"
-          style="margin-top: 10px;"
-        >
-        <template v-else>
-          <div class="info-box" style="margin: 10px 0 16px;">
-            <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
-            <div>{{ t('createTokens.home.studioBox') }}</div>
-          </div>
-          <div class="studio-actions">
-            <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="button primaryButton studio-button">
-              {{ t('createTokens.home.openStudio') }}
-              <img src="images/external-link-white.svg">
-            </a>
-            <input type="button" :value="t('createTokens.home.connectButton')" @click="store.changeView(connectView)">
-          </div>
-        </template>
-      </div>
-      </template>
+      <tokenCreationChoice v-if="!homeConfirmed" @continue="homeConfirmed = true" />
       <div v-else class="chosen-line">
         <span>{{ t('createTokens.home.chosen') }}</span>
         <span class="go-back" @click="changeHome()">← {{ t('createTokens.goBack') }}</span>
       </div>
 
       <template v-if="homeConfirmed">
-
-      <div v-if="utxoStepOpen" class="section">
-        <div class="step-label open">{{ stepLabel(1, 'utxo') }}</div>
-        <genesisInputPicker
-          v-model="pickedOutpoint"
-          :explainer="t('createTokens.genesisInput.explainer')"
-          :prepare-message="t('createTokens.prepare.message', { amount: bchOf(preparedUtxoValue) })"
-        />
-
+      <genesisInputPicker
+        v-model="genesisInput"
+        v-model:open="utxoStepOpen"
+        :step-label="stepLabel(1, 3, stepTitle('utxo'))"
+        :picked-label="t('createTokens.plannedTokenId')"
+        :explainer="t('createTokens.genesisInput.explainer')"
+        :prepare-message="t('createTokens.prepare.message', { amount: bchOf(preparedUtxoValue) })"
+      >
         <div v-if="plannedCategory" class="planned-category">
           <TokenIcon :key="plannedCategory" :token-id="plannedCategory" :size="40" />
           <div class="copy-target" @click="copyToClipboard(plannedCategory)">
@@ -491,24 +311,14 @@
             <img class="copyIcon" src="images/copyGrey.svg">
           </div>
         </div>
-      </div>
-      <div v-else-if="plannedCategory" class="section closed-line description">
-        <img src="images/check-circle.svg" class="step-check pop">
-        <span>{{ t('createTokens.plannedTokenId') }}</span>
-        <span class="copy-target" @click="copyToClipboard(plannedCategory)">
-          <span class="mono">{{ truncateHash(plannedCategory) }}</span>
-          <img class="copyIcon" src="images/copyGrey.svg">
-        </span>
-        <span>·</span>
-        <span class="action-link" @click="editingUtxo = true">{{ t('createTokens.change') }}</span>
-      </div>
+      </genesisInputPicker>
       <template v-if="utxoStepOpen">
-        <div class="section step-label">{{ stepLabel(2, shapeTitle) }}</div>
-        <div class="step-label" style="margin-top: 8px;">{{ stepLabel(3, 'metadata') }}</div>
+        <div class="section step-label">{{ stepLabel(2, 3, stepTitle(shapeTitle)) }}</div>
+        <div class="step-label" style="margin-top: 8px;">{{ stepLabel(3, 3, stepTitle('metadata')) }}</div>
       </template>
 
       <div v-if="!utxoStepOpen && shapeStepOpen" class="section">
-        <div class="step-label open">{{ stepLabel(2, shapeTitle) }}</div>
+        <div class="step-label open">{{ stepLabel(2, 3, stepTitle(shapeTitle)) }}</div>
         <label for="tokenShape">{{ t('createTokens.shapeLabel') }}</label>
         <select id="tokenShape" v-model="tokenShape">
           <option value="fungible">{{ t('createTokens.shapes.fungible') }}</option>
@@ -574,7 +384,7 @@
       </div>
 
       <div v-if="!utxoStepOpen && !shapeStepOpen" class="section">
-        <div class="step-label open">{{ stepLabel(3, 'metadata') }}</div>
+        <div class="step-label open">{{ stepLabel(3, 3, stepTitle('metadata')) }}</div>
         <div style="margin-top: 6px;">
           <i18n-t keypath="createTokens.metadataNote" tag="span">
             <template #generator>
@@ -649,7 +459,7 @@
         >
       </div>
       <div v-else-if="!utxoStepOpen" class="section step-label">
-        {{ stepLabel(3, 'metadata') }}
+        {{ stepLabel(3, 3, stepTitle('metadata')) }}
       </div>
       </template>
       </template>
@@ -658,69 +468,6 @@
 </template>
 
 <style scoped>
-.description {
-  color: grey;
-}
-.mono {
-  font-family: monospace;
-}
-.section {
-  margin-top: 20px;
-}
-/* the negative margin lets the pair borrow most of the fieldset's 2rem inset */
-.home-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 10px;
-  margin: 20px -1.25rem 0;
-}
-.home-card {
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.dark .home-card {
-  border-color: #333;
-}
-.home-card:hover {
-  border-color: rgba(128, 128, 128, 0.4);
-}
-.home-card.selected {
-  border-color: var(--color-primary);
-  cursor: default;
-}
-.home-card > div {
-  margin-top: 3px;
-}
-.home-card > .home-card-title + div {
-  margin-top: 6px;
-}
-.home-card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 0;
-}
-.home-radio {
-  flex: none;
-  width: 16px;
-  height: 16px;
-  border: 2px solid grey;
-  border-radius: 50%;
-}
-.home-card.selected .home-radio {
-  border-color: var(--color-primary);
-  background: radial-gradient(circle, var(--color-primary) 45%, transparent 50%);
-}
-.home-mark {
-  width: 20px;
-  height: 20px;
-  flex: none;
-}
-.home-rows div {
-  margin-top: 4px;
-}
 .chosen-line {
   display: flex;
   gap: 16px;
@@ -728,27 +475,6 @@
 }
 .go-back {
   cursor: pointer;
-}
-.studio-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-top: 10px;
-}
-.studio-actions input {
-  margin: 0;
-}
-.studio-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  text-decoration: none;
-}
-/* an anchor styled as a button: hover by fading like the buttons, not by the anchor tint */
-.studio-button:hover {
-  background-color: var(--color-primary);
-  opacity: 0.8;
 }
 label {
   display: block;
@@ -784,39 +510,5 @@ label {
   align-items: center;
   gap: 10px;
   margin-top: 12px;
-}
-.created-title {
-  font-size: 1.2em;
-  font-weight: bold;
-}
-.created-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 10px;
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-}
-.dark .created-card {
-  border-color: #333;
-}
-.created-card > div > div {
-  margin-top: 2px;
-}
-.created-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 15px;
-}
-.created-actions input {
-  margin: 0;
-}
-.created-links {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-top: 10px;
 }
 </style>

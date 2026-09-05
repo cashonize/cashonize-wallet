@@ -19,10 +19,25 @@
 
   const reason = computed(() => store.reservedUtxos[outpointOf(props.utxo)])
   const heldByFeature = computed(() => isFeatureReservation(reason.value))
+  const frozen = computed(() => reason.value === 'manual')
+
+  const heldText = computed(() => {
+    if (reason.value === 'auth') return t('utxoManagement.markers.reservedAuth')
+    return t('utxoManagement.markers.reserved')
+  })
+  const releaseText = computed(() => {
+    if (reason.value === 'auth') return t('utxoManagement.markers.reservedAuthRelease')
+    return t('utxoManagement.markers.reservedRelease')
+  })
+  const stateLabel = computed(() => {
+    if (frozen.value) return t('utxoManagement.markers.frozenShort')
+    return t('utxoManagement.markers.availableShort')
+  })
 </script>
 
 <template>
-  <span v-if="compact" class="held-state-compact">
+  <component :is="compact ? 'span' : 'div'" :class="compact ? 'held-state-compact' : 'cell held-cell'">
+    <span v-if="!compact" class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
     <InfoPopup v-if="heldByFeature">
       <template #trigger>
         <span class="held-state">
@@ -30,61 +45,18 @@
           <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
         </span>
       </template>
-      <div style="max-width: 300px;">{{
-        reason === 'auth'
-          ? t('utxoManagement.markers.reservedAuth')
-          : t('utxoManagement.markers.reserved')
-      }}</div>
-      <div class="info-popup-note" style="max-width: 300px;">{{
-        reason === 'auth'
-          ? t('utxoManagement.markers.reservedAuthRelease')
-          : t('utxoManagement.markers.reservedRelease')
-      }}</div>
+      <div style="max-width: 300px;">{{ heldText }}</div>
+      <div class="info-popup-note" style="max-width: 300px;">{{ releaseText }}</div>
     </InfoPopup>
-    <span v-else-if="reason === 'manual'" class="held-state">
-      <q-icon name="ac_unit" size="15px" class="held-marker frozen" :title="t('utxoManagement.markers.frozen')" />
-      <span class="held-label">{{ t('utxoManagement.markers.frozenShort') }}</span>
-    </span>
-  </span>
-  <div v-else class="cell held-cell">
-    <span class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
-    <InfoPopup v-if="heldByFeature">
-      <template #trigger>
-        <span class="held-state">
-          <q-icon name="lock" size="15px" class="held-marker" />
-          <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
-        </span>
-      </template>
-      <div style="max-width: 300px;">{{
-        reason === 'auth'
-          ? t('utxoManagement.markers.reservedAuth')
-          : t('utxoManagement.markers.reserved')
-      }}</div>
-      <div class="info-popup-note" style="max-width: 300px;">{{
-        reason === 'auth'
-          ? t('utxoManagement.markers.reservedAuthRelease')
-          : t('utxoManagement.markers.reservedRelease')
-      }}</div>
-    </InfoPopup>
-    <template v-else>
+    <template v-else-if="!compact || frozen">
       <span class="held-state">
-        <q-icon
-          v-if="reason === 'manual'"
-          name="ac_unit"
-          size="15px"
-          class="held-marker frozen"
-          :title="t('utxoManagement.markers.frozen')"
-        />
-        <span class="held-label">{{
-          reason === 'manual'
-            ? t('utxoManagement.markers.frozenShort')
-            : t('utxoManagement.markers.availableShort')
-        }}</span>
+        <q-icon v-if="frozen" name="ac_unit" size="15px" class="held-marker frozen" :title="t('utxoManagement.markers.frozen')" />
+        <span class="held-label">{{ stateLabel }}</span>
       </span>
-      <span class="held-action actions-trigger">
+      <span v-if="!compact" class="held-action actions-trigger">
         <span class="cell-label">{{ t('utxoManagement.tableHeaders.action') }}</span>
         <q-icon name="more_vert" size="18px" />
       </span>
     </template>
-  </div>
+  </component>
 </template>

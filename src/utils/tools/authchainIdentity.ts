@@ -1,13 +1,11 @@
-// The identities this wallet keeps custody of, stored in localStorage per wallet per network
-// as a list of categories. Everything else about an identity - which output currently is the
-// authhead, the name, the icon - is resolved at runtime, because the authhead moves every time the
-// identity's metadata is updated and those updates happen outside this wallet.
-// Every mention of the BCMR publication format lives here, so reading a publication off the chain
-// and writing one cannot drift apart.
+// The authchain side of an identity: the publication output, the operations that continue the
+// chain, the resolve of where each authhead sits and whether this wallet holds it, what each
+// link of a chain did, and naming a chain from the registry it published. The hosted file
+// itself is registryFile's; the persisted lists are identityLists'.
 
 import type { Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
-import { binToHex, binToUtf8, hexToBin, sha256 } from "@bitauth/libauth";
+import { binToHex, binToUtf8, hexToBin } from "@bitauth/libauth";
 import {
   queryAuthHeadWithOutputs,
   queryAuthHeadsWithOutputs,
@@ -19,6 +17,7 @@ import {
 } from "src/queryChainGraph";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
+import { fetchCandidateRegistry, type CandidateRegistry } from "src/utils/tools/registryFile";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -54,9 +53,6 @@ export interface IdentityState {
   recentLinks?: string[];
 }
 
-// where a registry is written: the form for a token's, the schema for one written by hand
-export const BCMR_GENERATOR_URL = "https://bcmr-generator.app/";
-export const BCMR_SCHEMA_URL = "https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json";
 // where a guarded identity is managed, one instance per network
 export const CASHTOKENS_STUDIO_URL: Record<Network, string> = {
   mainnet: "https://cashtokens.studio/",
@@ -71,17 +67,7 @@ export interface MetadataPublication {
   timestamp?: number; // when the chain mined it, which is the verified date; absent while unconfirmed
 }
 
-// What a fetch of one published location found. 'changed' means the location answered with
-// something other than what the on-chain hash commits to: for an HTTPS location that is the
-// hosted file having been edited since publication, and for an IPFS CID, which cannot serve
-// different content, that its content never matched the hash it was published with.
-export type PublicationUriStatus = 'verified' | 'changed' | 'unreachable';
-
 const isOpReturn = (lockingBytecode: string) => lockingBytecode.startsWith("6a");
-// a publication location that hangs must not hang the page; the same bound the Chaingraph requests have
-const REGISTRY_FETCH_TIMEOUT_MS = 10_000;
-// per spec, a bare domain names the registry at this well-known path
-const WELL_KNOWN_REGISTRY_PATH = "/.well-known/bitcoin-cash-metadata-registry.json";
 
 // The first output of the transaction that is a publication, which is the one the spec takes.
 export function findPublication(outputs: string[]): MetadataPublication | undefined {
@@ -103,23 +89,6 @@ export function parsePublicationOutput(lockingBytecode: string): MetadataPublica
     hash: binToHex(hashChunk),
     uris: uriChunks.map(chunk => binToUtf8(chunk)).filter(uri => uri.length > 0),
   };
-}
-
-// Where a published location is actually fetched from. The published form is the compact one the
-// spec asks for, so an https:// prefix is stripped and a bare domain names the well-known path.
-export function registryUrlOf(uri: string, ipfsGateway: string): string {
-  if (uri.startsWith("ipfs://")) return ipfsGateway + uri.slice("ipfs://".length);
-  // Per spec a bare domain means the well-known file on it, while anything naming a path is taken
-  // as published. A trailing slash is such a path, the root itself, so the two forms differ.
-  const location = uri.replace(/^https:\/\//, "");
-  const namesAPath = location.includes("/");
-  return `https://${location}${namesAPath ? "" : WELL_KNOWN_REGISTRY_PATH}`;
-}
-
-// The hash the wallet publishes for a registry file, and so also the one it verifies against:
-// sha256 over the file's bytes exactly as served.
-export function registryContentHash(content: Uint8Array): string {
-  return binToHex(sha256.hash(content));
 }
 
 // Output 0 of every identity operation: the new authhead, carrying whatever the operation leaves
@@ -194,20 +163,6 @@ export function publicationOutput(hash: string, uris: string[]) {
   return OpReturnData.fromArray(["BCMR", hexToBin(hash), ...uris]);
 }
 
-// The registry as currently published, for saying what an update changes. The first location that
-// answers is enough: the hash check that has to hold happens against the candidate, not this.
-export async function fetchPublishedRegistry(
-  uris: string[],
-  ipfsGateway: string,
-): Promise<string | undefined> {
-  for (const uri of uris) {
-    const content = await fetchRegistryText(uri, ipfsGateway);
-    // a location that does not answer is not the one to read the current file from
-    if (content !== undefined) return content;
-  }
-  return undefined;
-}
-
 // What one publication output may take up. The hash and the locations share it, so the number of
 // locations is capped by their length rather than by the form. Standardness allows 223 bytes of
 // data carrier; the ceiling that actually applies is mainnet-js's own builder, which refuses more
@@ -240,197 +195,6 @@ export function filledLocations(rows: string[]): string[] {
 // What the form may still add: the hash and the locations share the one output
 export function locationBudgetLeft(uris: string[]): number {
   return maxPublicationOutputSize - publicationOutputSize(uris);
-}
-
-// What the wallet reads out of a registry to say what an update changes. Undefined when the file
-// is not a registry, or names no identity for this authbase, which is the wrong-file mistake.
-export interface RegistrySummary {
-  name: string;
-  symbol?: string;
-  decimals?: number;
-  iconUri?: string;
-  snapshots: string[]; // the identity history timestamps, oldest first
-}
-
-export function summarizeRegistry(content: string, authbase: string): RegistrySummary | undefined {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(content);
-  } catch {
-    return undefined;
-  }
-  const registry = MetadataRegistrySchema.safeParse(parsed);
-  if (!registry.success) return undefined;
-  const history = registry.data.identities?.[authbase];
-  if (!history) return undefined;
-  const snapshots = Object.keys(history).sort();
-  const latest = snapshots.length ? history[snapshots[snapshots.length - 1]!] : undefined;
-  if (!latest) return undefined;
-  return {
-    name: latest.name,
-    ...(latest.token?.symbol !== undefined ? { symbol: latest.token.symbol } : {}),
-    ...(latest.token?.decimals !== undefined ? { decimals: latest.token.decimals } : {}),
-    ...(latest.uris?.icon !== undefined ? { iconUri: latest.uris.icon } : {}),
-    snapshots,
-  };
-}
-
-// The differences an update makes that holders will see, and the ones the wallet warns about.
-export interface RegistryDiff {
-  changed: { field: 'name' | 'symbol' | 'decimals' | 'icon'; from: string; to: string }[];
-  droppedSnapshots: string[]; // history the current publication has and the new file does not
-}
-
-export function diffRegistries(current: RegistrySummary, candidate: RegistrySummary): RegistryDiff {
-  const fields = [
-    { field: 'name' as const, from: current.name, to: candidate.name },
-    { field: 'symbol' as const, from: current.symbol, to: candidate.symbol },
-    { field: 'decimals' as const, from: current.decimals, to: candidate.decimals },
-    { field: 'icon' as const, from: current.iconUri, to: candidate.iconUri },
-  ];
-  return {
-    changed: fields
-      .filter(entry => entry.from !== entry.to)
-      .map(entry => ({ field: entry.field, from: String(entry.from ?? ''), to: String(entry.to ?? '') })),
-    // the common generator writes a fresh single-snapshot registry, which silently drops the
-    // identity's history rather than appending to it
-    droppedSnapshots: current.snapshots.filter(snapshot => !candidate.snapshots.includes(snapshot)),
-  };
-}
-
-// One registry, however many mirrors: every location has to serve byte-identical content, so the
-// hash published commits to all of them at once. Fetched fresh, like the badge checks.
-export interface CandidateRegistry {
-  hash: string;
-  content: string;
-}
-
-export async function fetchCandidateRegistry(
-  uris: string[],
-  ipfsGateway: string,
-): Promise<CandidateRegistry> {
-  if (!uris.length) throw new Error(t('identities.publish.errors.noUris'));
-  const fetched = await Promise.all(uris.map(async uri => {
-    const served = await fetchRegistryBytes(uri, ipfsGateway);
-    if (served === undefined) throw new Error(t('identities.publish.errors.unreachable', { uri }));
-    return { uri, content: binToUtf8(served), hash: registryContentHash(served) };
-  }));
-  const first = fetched[0]!;
-  const mismatch = fetched.find(entry => entry.hash !== first.hash);
-  if (mismatch) throw new Error(t('identities.publish.errors.mirrorMismatch', { uri: mismatch.uri }));
-  return { hash: first.hash, content: first.content };
-}
-
-// Always a fresh fetch, never the metadata cache: every caller here is asking what a location
-// serves right now, which a cached copy cannot answer. Undefined when it does not answer at all.
-// The bytes as served, since that is what the hash covers: decoding to text first would drop a
-// byte order mark and mend invalid sequences, and hash a file nothing else would recognise.
-async function fetchRegistryBytes(uri: string, ipfsGateway: string): Promise<Uint8Array | undefined> {
-  try {
-    const response = await fetch(registryUrlOf(uri, ipfsGateway), {
-      cache: "no-store",
-      signal: AbortSignal.timeout(REGISTRY_FETCH_TIMEOUT_MS),
-    });
-    if (!response.ok) return undefined;
-    return new Uint8Array(await response.arrayBuffer());
-  } catch {
-    return undefined;
-  }
-}
-
-async function fetchRegistryText(uri: string, ipfsGateway: string): Promise<string | undefined> {
-  const served = await fetchRegistryBytes(uri, ipfsGateway);
-  return served === undefined ? undefined : binToUtf8(served);
-}
-
-export async function checkPublicationUri(
-  uri: string,
-  expectedHash: string,
-  ipfsGateway: string,
-): Promise<PublicationUriStatus> {
-  const served = await fetchRegistryBytes(uri, ipfsGateway);
-  if (served === undefined) return 'unreachable';
-  return registryContentHash(served) === expectedHash ? 'verified' : 'changed';
-}
-
-// The lists this feature persists, all of them per wallet per network and all of them ids,
-// categories or txids, in one storage shape
-const identityListKeys = {
-  // identities the wallet follows, which is what gets resolved and reserved
-  categories: 'identities',
-  // what the user took off the list: a decision, so it is stored rather than re-derived, or the
-  // automatic detection would put back on every open what the user just removed
-  dismissed: 'dismissedIdentities',
-  // listed by the wallet itself and not yet seen by the user, so a coin quietly becoming
-  // unspendable is not the first they hear of it
-  unseen: 'unseenIdentities',
-  // authheads held and protected without a name: a BCH-only chain carries nothing on its identity
-  // output to say which identity it is. Keyed by txid, so an authhead that moves earns a fresh walk.
-  unnamed: 'unnamedAuthheads',
-} as const;
-
-export type IdentityList = keyof typeof identityListKeys;
-
-function listKey(list: IdentityList, network: Network, walletName: string): string {
-  return `${identityListKeys[list]}-${network}-${walletName}`;
-}
-
-function readList(key: string): string[] {
-  const stored = localStorage.getItem(key);
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored) as string[];
-  } catch {
-    return [];
-  }
-}
-
-export function loadIdentityList(list: IdentityList, network: Network, walletName: string): string[] {
-  return readList(listKey(list, network, walletName));
-}
-
-// Fresh read-modify-write throughout: another tab may have written since this one loaded, so every
-// change re-reads and touches only the entries in hand. Returns the list for the caller's state.
-export function addToIdentityList(
-  list: IdentityList,
-  network: Network,
-  walletName: string,
-  entries: string | string[],
-): string[] {
-  const key = listKey(list, network, walletName);
-  const stored = readList(key);
-  for (const entry of Array.isArray(entries) ? entries : [entries]) {
-    if (!stored.includes(entry)) stored.push(entry);
-  }
-  localStorage.setItem(key, JSON.stringify(stored));
-  return stored;
-}
-
-export function removeFromIdentityList(
-  list: IdentityList,
-  network: Network,
-  walletName: string,
-  entry: string,
-): string[] {
-  const key = listKey(list, network, walletName);
-  const remaining = readList(key).filter(stored => stored !== entry);
-  localStorage.setItem(key, JSON.stringify(remaining));
-  return remaining;
-}
-
-export function clearIdentityList(list: IdentityList, network: Network, walletName: string) {
-  localStorage.removeItem(listKey(list, network, walletName));
-}
-
-
-// Every identity list on both networks: a future wallet created under the same name must not
-// inherit the old wallet's identities
-export function removeIdentityData(walletName: string) {
-  for (const network of ['mainnet', 'chipnet'] as const) {
-    for (const list of Object.keys(identityListKeys) as IdentityList[]) {
-      clearIdentityList(list, network, walletName);
-    }
-  }
 }
 
 // What one link of an authchain did, read off its outputs. The chain is the identity's whole
@@ -563,9 +327,11 @@ export async function resolveIdentities(
     const authUtxo = walletUtxos.find(utxo => utxo.txid === authheadTxid && utxo.vout === 0);
     if (authUtxo) return { ...resolved, authUtxo, status: 'held' };
     // Held through a covenant instead: authority over the identity without the output
-    const guardedBy = identityOutput
-      ? [category, ...extraKeyCategories(category)].find(key => isAuthGuardOf(key, identityOutput.lockingBytecode))
-      : undefined;
+    let guardedBy: string | undefined;
+    if (identityOutput) {
+      const keyCategories = [category, ...extraKeyCategories(category)];
+      guardedBy = keyCategories.find(key => isAuthGuardOf(key, identityOutput.lockingBytecode));
+    }
     if (guardedBy) {
       // a key of the identity's own category is the one its genesis minted, when it minted one
       const commitment = guardedBy === category ? keyCommitment : undefined;

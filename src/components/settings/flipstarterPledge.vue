@@ -450,14 +450,8 @@
 </template>
 
 <style scoped>
-.description {
-  color: grey;
-}
 .muted {
   color: grey;
-}
-.mono {
-  font-family: monospace;
 }
 .recipient {
   margin-top: 10px;

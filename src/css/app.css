@@ -323,6 +323,16 @@ input[type='number'] {
 .action-link:hover {
   text-decoration: underline;
 }
+/* the three the settings pages all reach for: a grey aside, a hash, a block below the one before */
+.description {
+  color: grey;
+}
+.mono {
+  font-family: monospace;
+}
+.section {
+  margin-top: 20px;
+}
 /* a value shown with its copy icon, copied by clicking anywhere on the line */
 .copy-target {
   cursor: pointer;

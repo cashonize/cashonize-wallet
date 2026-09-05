@@ -4,7 +4,9 @@
 
 import type { Utxo } from 'mainnet-js';
 import { formatTokenAmountFromBigInt } from '../utils';
-import type { RegistrySummary } from './authchainIdentity';
+import type { RegistrySummary } from './registryFile';
+import { i18n } from 'src/boot/i18n';
+const { t } = i18n.global;
 
 // A category's fungible supply is capped at the largest signed 64-bit integer
 export const maxTokenSupply = 9223372036854775807n;
@@ -87,3 +89,22 @@ export function genesisCandidates(utxos: Utxo[], order: 'largest' | 'smallest' =
 
 // What a prepared UTXO carries, which stays the user's: the genesis or the identity spends it to self
 export const preparedUtxoValue = 10_000n;
+
+// "Step 1 of 3: title", the same on the open step and on the greyed list under it
+export function stepLabel(current: number, total: number, title: string): string {
+  return `${t('createTokens.step', { current, total })}: ${title}`;
+}
+
+// What the create page made, shown in its place as the last step until the user starts over
+export interface CreatedToken {
+  category: string;
+  txId: string | undefined;
+  name?: string;
+  symbol?: string;
+  iconUrl?: string;
+  hasSupply: boolean;
+  supply: bigint;
+  reserve: bigint;
+  circulating: bigint;
+  decimals: number;
+}

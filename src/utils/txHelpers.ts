@@ -4,6 +4,7 @@
 import { Dialog, Notify } from "quasar";
 import alertDialog from 'src/components/general/alertDialog.vue'
 import { useStore } from 'src/stores/store'
+import { useIdentitiesStore } from 'src/stores/identitiesStore'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { displayAndLogError } from 'src/utils/errorHandling'
 import { identityRefusal, refusalMessage, type ReservedInputsCheck } from 'src/utils/dapp/reservedInputs'
@@ -19,8 +20,8 @@ export function reportDappRefusal(check: ReservedInputsCheck) {
     displayAndLogError(refusalMessage(check))
     return
   }
-  const store = useStore()
-  const message = refusalMessage(check, store.identityNameAt(refusal.outpoint))
+  const identitiesStore = useIdentitiesStore()
+  const message = refusalMessage(check, identitiesStore.identityNameAt(refusal.outpoint))
   console.error(message)
   Dialog.create({
     title: t('store.errors.dappRefusedTitle'),

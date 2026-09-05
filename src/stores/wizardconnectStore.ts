@@ -30,6 +30,7 @@ import {
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
 import type { DappMetadata } from "src/interfaces/interfaces";
 import { useStore } from "./store";
+import { useIdentitiesStore } from "./identitiesStore";
 import { useSettingsStore } from "./settingsStore";
 import { walletConnectMetadata } from "./constants";
 import { createSignedWizTransaction, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
@@ -256,7 +257,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   function reservedInputsCheck(request: WizSignTransactionRequest): ReservedInputsCheck {
     const { transaction } = request.transaction;
     const decodedTransaction = typeof transaction === "string" ? decodeTransactionUnsafe(hexToBin(transaction)) : transaction;
-    return mainStore.checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
+    return useIdentitiesStore().checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
   }
 
   async function showNextSignRequest() {
@@ -332,7 +333,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     const signingCheck = reservedInputsCheck(request);
     if (signingCheck.refusals.length) {
       const refusal = identityRefusal(signingCheck);
-      throw new Error(refusalMessage(signingCheck, refusal ? mainStore.identityNameAt(refusal.outpoint) : undefined));
+      throw new Error(refusalMessage(signingCheck, refusal ? useIdentitiesStore().identityNameAt(refusal.outpoint) : undefined));
     }
     const inputKeys = deriveInputKeys(hdNodes, request.inputPaths);
     // the zod schema already validated and transformed this shape (see WizSignTransactionRequestSchema)

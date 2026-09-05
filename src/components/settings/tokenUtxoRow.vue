@@ -39,6 +39,10 @@
 
   const reservation = computed(() => store.reservedUtxos[outpointOf(props.utxo)])
   const heldByFeature = computed(() => isFeatureReservation(reservation.value))
+  const freezeLabel = computed(() => {
+    if (reservation.value === 'manual') return t('utxoManagement.markers.unfreeze')
+    return t('utxoManagement.freeze.button')
+  })
   const label = computed(() => store.utxoLabels[outpointOf(props.utxo)])
 
   const category = computed(() => props.utxo.token?.category ?? '')
@@ -105,11 +109,7 @@
           <q-list dense>
             <q-item clickable v-close-popup @click="emit('toggleFreeze')">
               <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
-              <q-item-section>{{
-                reservation === 'manual'
-                  ? t('utxoManagement.markers.unfreeze')
-                  : t('utxoManagement.freeze.button')
-              }}</q-item-section>
+              <q-item-section>{{ freezeLabel }}</q-item-section>
             </q-item>
             <q-item clickable v-close-popup @click="emit('editLabel')">
               <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>

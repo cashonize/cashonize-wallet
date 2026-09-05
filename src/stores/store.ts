@@ -42,13 +42,8 @@ import {
   parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
 import { hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode } from "@bitauth/libauth"
-import {
-  checkReservedInputs,
-  type Bytes,
-  type SignedInput,
-  type SignedOutput,
-} from "src/utils/dapp/reservedInputs"
-import { convertElectrumTokenData, truncateHash } from "src/utils/utils"
+import type { Bytes } from "src/utils/dapp/reservedInputs"
+import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useIdentitiesStore } from "./identitiesStore"
@@ -99,7 +94,7 @@ import {
   type UtxoLabels,
 } from "src/utils/wallet/utxoLabels"
 import { removePledges } from "src/utils/tools/flipstarterPledges"
-import { removeIdentityData } from "src/utils/tools/authchainIdentity"
+import { removeIdentityData } from "src/utils/tools/identityLists"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -1474,33 +1469,9 @@ export const useStore = defineStore('store', () => {
     return ownsLockingBytecode(decoded.bytecode);
   }
 
-  // What the dapp signing paths ask before refusing a request that spends a held back coin: the
-  // identity coins are named here, and the rule itself lives in utils/dapp/reservedInputs.ts.
-  function checkDappReservedInputs(inputs: readonly SignedInput[], outputs: readonly SignedOutput[]) {
-    const identitiesStore = useIdentitiesStore();
-    const listed = identitiesStore.identities ?? [];
-    const identityKeys = listed.flatMap(identity => identity.keyUtxo ? [outpointOf(identity.keyUtxo)] : []);
-    const heldAuthheads = listed.flatMap(identity => identity.authUtxo ? [outpointOf(identity.authUtxo)] : []);
-    const unnamed = identitiesStore.unnamedAuthheadCoins.map(outpointOf);
-    return checkReservedInputs(inputs, outputs, {
-      reservedUtxos: reservedUtxos.value,
-      walletUtxos: walletUtxos.value ?? [],
-      identityKeys,
-      authheads: [...heldAuthheads, ...unnamed],
-      allowIdentitySpends: settingsStore.allowDappIdentitySpends,
-      ownsOutput: output => ownsLockingBytecode(output.lockingBytecode),
-    });
-  }
-
-  // What a dapp refusal or approval calls an identity coin: the identity's name, its category
-  // failing that, and the unnamed label for an authhead the wallet holds without either
-  function identityNameAt(outpoint: Outpoint): string {
-    const identitiesStore = useIdentitiesStore();
-    const identity = (identitiesStore.identities ?? []).find(
-      listed => listed.authUtxo && outpointOf(listed.authUtxo) === outpoint
-    );
-    if (!identity) return t('identities.unnamedIdentity');
-    return bcmrRegistries.value?.[identity.category]?.name ?? truncateHash(identity.category);
+  // The wallet's own addresses in both forms, for the outputs an identity operation keeps here
+  function walletAddresses() {
+    return { bch: wallet.value.getDepositAddress(), token: wallet.value.getTokenDepositAddress() };
   }
 
   // A spend that falls short while UTXOs are held back may have fallen short for that reason, and
@@ -1652,8 +1623,8 @@ export const useStore = defineStore('store', () => {
     wallet, // computed property to access the wallet, always non-null
     walletHasAddress,
     ownsAddress,
-    checkDappReservedInputs,
-    identityNameAt,
+    ownsLockingBytecode,
+    walletAddresses,
     balance, // everything held, including reserved coins
     spendableBalance, // balance minus reservedBalance
     reservedBalance,

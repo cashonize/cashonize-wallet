@@ -44,9 +44,6 @@
 </template>
 
 <style scoped>
-.description {
-  color: grey;
-}
 .publish-uri-row {
   display: flex;
   align-items: center;

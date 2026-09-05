@@ -10,23 +10,25 @@ import type { Utxo } from "mainnet-js"
 import { useStore } from "./store"
 import { useSettingsStore } from "./settingsStore"
 import {
+  resolveIdentities,
+  describeChainLinks,
+  nameChainFromRegistry,
+  type IdentityState,
+  type IdentityStatus,
+  type DescribedLink,
+} from "src/utils/tools/authchainIdentity"
+import {
   loadIdentityList,
   addToIdentityList,
   removeFromIdentityList,
   clearIdentityList,
-  resolveIdentities,
-  describeChainLinks,
-  checkPublicationUri,
-  type IdentityState,
-  type IdentityStatus,
-  type DescribedLink,
-  type PublicationUriStatus,
-  nameChainFromRegistry,
-} from "src/utils/tools/authchainIdentity"
+} from "src/utils/tools/identityLists"
+import { checkPublicationUri, type PublicationUriStatus } from "src/utils/tools/registryFile"
 import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
+import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
 import { queryAuthchainLinks, type ChaingraphSpentOutput } from "src/queryChainGraph"
-import { outpointOf } from "src/utils/wallet/reservedUtxos"
-import { formatTokenAmountWithSymbol } from "src/utils/utils"
+import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
+import { formatTokenAmountWithSymbol, truncateHash } from "src/utils/utils"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -362,9 +364,10 @@ export const useIdentitiesStore = defineStore('identities', () => {
         .filter(category => !identityCategories.value.includes(category) && !dismissedIdentities.value.includes(category));
       const categories = scope === 'open' ? held.slice(0, followedPerOpenCap) : held;
       const started = mainStore.currentInitializationToken();
-      const resolved = categories.length
-        ? await resolveIdentities(categories, mainStore.chaingraph, currentUtxos, extraKeyCategories)
-        : [];
+      let resolved: IdentityState[] = [];
+      if (categories.length) {
+        resolved = await resolveIdentities(categories, mainStore.chaingraph, currentUtxos, extraKeyCategories);
+      }
       if (mainStore.walletSwitchedSince(started)) return;
       const outage = outageReason(resolved);
       if (outage && scope === 'open') openCheckError.value = outage;
@@ -476,6 +479,33 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return t('tokenItem.identity.heldWithReserve', { amount });
   }
 
+  // What the dapp signing paths ask before refusing a request that spends a held back coin: the
+  // identity coins are named here, and the rule itself lives in utils/dapp/reservedInputs.ts.
+  function checkDappReservedInputs(inputs: readonly SignedInput[], outputs: readonly SignedOutput[]) {
+    const listed = identities.value ?? [];
+    const identityKeys = listed.flatMap(identity => identity.keyUtxo ? [outpointOf(identity.keyUtxo)] : []);
+    const heldAuthheads = listed.flatMap(identity => identity.authUtxo ? [outpointOf(identity.authUtxo)] : []);
+    const unnamed = unnamedAuthheadCoins.value.map(outpointOf);
+    return checkReservedInputs(inputs, outputs, {
+      reservedUtxos: mainStore.reservedUtxos,
+      walletUtxos: mainStore.walletUtxos ?? [],
+      identityKeys,
+      authheads: [...heldAuthheads, ...unnamed],
+      allowIdentitySpends: settingsStore.allowDappIdentitySpends,
+      ownsOutput: output => mainStore.ownsLockingBytecode(output.lockingBytecode),
+    });
+  }
+
+  // What a dapp refusal or approval calls an identity coin: the identity's name, its category
+  // failing that, and the unnamed label for an authhead the wallet holds without either
+  function identityNameAt(outpoint: Outpoint): string {
+    const identity = (identities.value ?? []).find(
+      listed => listed.authUtxo && outpointOf(listed.authUtxo) === outpoint
+    );
+    if (!identity) return t('identities.unnamedIdentity');
+    return mainStore.bcmrRegistries?.[identity.category]?.name ?? truncateHash(identity.category);
+  }
+
   // Where an identity the user is about to add sits, before it is listed: the page says whether
   // it is held here, guarded, or somebody else's, and lists it on the user's word
   async function inspectCategory(category: string): Promise<IdentityState> {
@@ -569,6 +599,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     identitiesGuardedByKey,
     heldIdentityOf,
     heldIdentityLine,
+    checkDappReservedInputs,
+    identityNameAt,
     inspectCategory,
     checkPublications,
     fetchIdentityHistory,

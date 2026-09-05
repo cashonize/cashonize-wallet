@@ -17,10 +17,6 @@
     category: string,
     identityUtxo?: Utxo | undefined, // set when the minting NFT is the token's identity UTXO
   }>()
-  const walletAddresses = () => ({
-    bch: store.wallet.getDepositAddress(),
-    token: store.wallet.getTokenDepositAddress(),
-  });
   const emit = defineEmits<{
     minted: []
   }>();
@@ -84,7 +80,7 @@
       // every identity operation uses. Any other minting NFT goes through tokenMint as before.
       let txId: string | undefined;
       if (props.identityUtxo) {
-        const outputs = mintOutputs(props.identityUtxo, walletAddresses(), mints);
+        const outputs = mintOutputs(props.identityUtxo, store.walletAddresses(), mints);
         const mintOptions = { tokenOperation: 'mint' as const, checkTokenQuantities: false };
         ({ txId } = await store.spend.spendAuthUtxo(props.identityUtxo, outputs, [], mintOptions));
       } else {
