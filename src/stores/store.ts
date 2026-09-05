@@ -64,7 +64,7 @@ import {
 import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromSpentOutputs, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromSpentOutputs, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
-import { ChaingraphRequestError, querySpentOutputs } from "src/queryChainGraph"
+import { ChaingraphRequestError, querySpentOutputs, type ChaingraphSpentOutput } from "src/queryChainGraph"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -1224,10 +1224,24 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // The walk of the wallet's spent outputs, run at open for identity detection and again from the
-  // portfolio view
-  async function walkSpentOutputs() {
-    return querySpentOutputs(walletPublicKeyHashes(), chaingraph.value);
+  // The walk of the wallet's spent outputs, kept with the coins it was made for. In practice the
+  // portfolio's first visit reads the walk made at open for identity detection; sharing one
+  // still in flight only matters when that visit comes before the walk has settled. A reader
+  // that already shows the last answer asks for a fresh one: the wallet's own spend reaches
+  // electrum seconds before Chaingraph has indexed it.
+  let spentOutputsWalk: { key: string; promise: Promise<ChaingraphSpentOutput[]>; settled: boolean } | undefined;
+  function walkSpentOutputs(fresh = false) {
+    const coins = (walletUtxos.value ?? []).map(outpointOf).sort().join(',');
+    const key = `${currentInitialization}:${chaingraph.value}:${coins}`;
+    const kept = spentOutputsWalk;
+    if (kept?.key === key && !(fresh && kept.settled)) return kept.promise;
+    const promise = querySpentOutputs(walletPublicKeyHashes(), chaingraph.value);
+    const walk = { key, promise, settled: false };
+    spentOutputsWalk = walk;
+    promise.then(() => { walk.settled = true; }, () => {
+      if (spentOutputsWalk === walk) spentOutputsWalk = undefined;
+    });
+    return promise;
   }
 
   // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the
@@ -1245,7 +1259,8 @@ export const useStore = defineStore('store', () => {
     try {
       const initialization = currentInitialization;
       const ownerPkhs = walletPublicKeyHashes();
-      const spentOutputs = await walkSpentOutputs();
+      // the first visit reads the walk made at open; a re-entry with rows on screen refreshes
+      const spentOutputs = await walkSpentOutputs(tapswapListings.value !== null);
       if (initialization !== currentInitialization) return;
       const listings = listingsFromSpentOutputs(spentOutputs, ownerPkhs);
       tapswapListings.value = listings;

@@ -226,7 +226,7 @@ export interface AuthHeadResult {
   publicationOutputs: string[]; // the BCMR-prefixed outputs of the last link carrying one, in output order
   publicationTimestamp?: number; // when that link was mined; absent while it waits in the mempool
   chainLength: number; // every link of the chain, the authbase counted
-  recentLinks: string[]; // the chain's latest links, oldest first, up to RECENT_LINKS_LIMIT
+  recentLinks: string[]; // the chain's latest links, oldest first, as many as the caller asked for
   isToken: boolean; // whether the genesis made tokens of this category at all
   fungibleSupply: boolean; // and fungible ones among them
   genesisSupply: bigint; // how many, the AuthGuard standard's genesis supply; fixed for the category's life

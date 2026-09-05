@@ -1,8 +1,8 @@
-// Identities these keys made, read off the spent-outputs walk the portfolio already runs. The
+// Identities these keys made, read off the spent-outputs walk the portfolio also reads. The
 // point is the creator who never opens the identities page: a token genesised with the token
 // creation page before that page existed, or an authchain updated with the AuthUpdate CLI on the
 // same seed. Their authhead sits in the wallet as an anonymous coin, and an ordinary send spends
-// it. Nothing here reaches the network: it is a second reading of a walk already made.
+// it. Nothing here reaches the network: it is a second reading of the one walk the store keeps.
 //
 // Two markers, which do not overlap. A genesis is a transaction that spent one of this wallet's
 // vout-0 outpoints and carries token outputs of the category that outpoint's txid becomes: a

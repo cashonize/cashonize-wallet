@@ -156,6 +156,79 @@ const guardGenesis = (category: string, keyCommitment: string) => [
     nonfungible_token_capability: 'none', nonfungible_token_commitment: `\\x${keyCommitment}` },
 ]
 
+// The walk is the most expensive query the wallet sends, and two features read it, so the store
+// runs it once per state of the wallet and hands both the same result
+describe('the spent-outputs walk', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.clear()
+    setActivePinia(createPinia())
+    localStorageMock.setItem('network', 'mainnet')
+  })
+
+  function stubWalk(rows: unknown[] = []) {
+    const walk = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { search_output: rows } }) }))
+    vi.stubGlobal('fetch', walk)
+    return walk
+  }
+  // the walk is rooted at the wallet's addresses, so the mock has to hold one that decodes
+  function startWalkingStore(walletUtxos: Utxo[]) {
+    const store = useStore()
+    const walletWithAddress = {
+      ...createMockWallet(),
+      getDepositAddress: () => 'bitcoincash:qqg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zye3kwllue',
+    }
+    store.setWallet(walletWithAddress as never)
+    store.walletUtxos = walletUtxos
+    return store
+  }
+
+  it('shares one walk between callers while the coins stay the same', async () => {
+    const walk = stubWalk()
+    const store = startWalkingStore([utxo(authheadA, 0)])
+
+    const [first, second] = await Promise.all([store.walkSpentOutputs(), store.walkSpentOutputs()])
+    await store.walkSpentOutputs()
+
+    expect(first).toBe(second)
+    expect(walk).toHaveBeenCalledTimes(1)
+  })
+
+  it('walks again once a coin has moved', async () => {
+    const walk = stubWalk()
+    const store = startWalkingStore([utxo(authheadA, 0)])
+    await store.walkSpentOutputs()
+
+    store.walletUtxos = [utxo(authheadB, 0)]
+    await store.walkSpentOutputs()
+
+    expect(walk).toHaveBeenCalledTimes(2)
+  })
+
+  // a reader with rows on screen is back for what the indexer caught up on; one still in flight
+  // is fresh enough to share
+  it('walks again when asked for a fresh one, unless one is still running', async () => {
+    const walk = stubWalk()
+    const store = startWalkingStore([utxo(authheadA, 0)])
+    await Promise.all([store.walkSpentOutputs(), store.walkSpentOutputs(true)])
+    expect(walk).toHaveBeenCalledTimes(1)
+
+    await store.walkSpentOutputs(true)
+    expect(walk).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not keep a walk that failed', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))))
+    const store = startWalkingStore([utxo(authheadA, 0)])
+    await expect(store.walkSpentOutputs()).rejects.toThrow()
+
+    const walk = stubWalk()
+    await store.walkSpentOutputs()
+
+    expect(walk).toHaveBeenCalledTimes(1)
+  })
+})
+
 // The notification trail leads to this page for two reasons, and both have to stop asking once
 // the page has been opened: the shape of an identity key is a shape ordinary NFTs can have, so a
 // standing lamp on a guess would train people to ignore the one the backup warning shares.
