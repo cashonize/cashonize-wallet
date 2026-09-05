@@ -163,7 +163,7 @@
       const pledgeUtxo = { txid: txId, vout: 0, satoshis: donationAmount, address: pledgeAddress };
 
       // Reserved before signing, so nothing can spend the coin from the moment it exists
-      await store.reserveUtxo(pledgeUtxo, 'pledge');
+      await store.reserveOutpoints([outpointOf(pledgeUtxo)], 'pledge');
       await store.updateWalletUtxos();
 
       signedPledge.value = signPledge(pledgeTemplate, pledgeUtxo);
@@ -450,14 +450,8 @@
 </template>
 
 <style scoped>
-.description {
-  color: grey;
-}
 .muted {
   color: grey;
-}
-.mono {
-  font-family: monospace;
 }
 .recipient {
   margin-top: 10px;

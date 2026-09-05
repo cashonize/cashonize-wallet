@@ -7,5 +7,9 @@
     "typescript",
     "vue"
   ],
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "[typescript]": {
+    "editor.quickSuggestions": { "strings": "on" }
+  }
 }

@@ -5,6 +5,8 @@
  * Note: vi.mock() calls are hoisted, so mock functions must be defined at
  * module level to be available in both mock factories and test assertions.
  */
+import type * as MainnetJs from 'mainnet-js'
+import type * as ZodValidation from 'src/utils/zodValidation'
 import { vi } from 'vitest'
 
 // Mock wallet instances
@@ -14,6 +16,8 @@ export const mockMainnetWallet = {
   cashaddr: 'bitcoincash:qtest',
   tokenaddr: 'bitcoincash:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
+  // deliberately not a decodable address: the Chaingraph walk roots at the wallet's public key
+  // hashes, and an address that decodes would make every wallet initialization in the tests fetch
   getDepositAddress: () => 'bitcoincash:qtest',
   getTokenDepositAddress: () => 'bitcoincash:ztest',
   stop: vi.fn().mockResolvedValue(undefined),
@@ -67,8 +71,10 @@ class MockTestNetWallet { static named = mockTestNetWalletNamed; static fromId =
 class MockHDWallet { static named = mockHDWalletNamed; static fromId = mockHDWalletFromId }
 class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static fromId = mockTestNetHDWalletFromId }
 
-// Mock mainnet-js
-vi.mock('mainnet-js', () => ({
+// Mock mainnet-js. The publication output parser is the real one: a publication is bytes on the
+// chain, and the tests that name an identity from one hand the store real bytecode.
+vi.mock('mainnet-js', async (importOriginal) => ({
+  OpReturnData: (await importOriginal<typeof MainnetJs>()).OpReturnData,
   Wallet: MockWallet,
   TestNetWallet: MockTestNetWallet,
   HDWallet: MockHDWallet,
@@ -135,9 +141,12 @@ vi.mock('src/stores/settingsStore', () => ({
     explorerChipnet: 'https://chipnet.chaingraph.cash',
     electrumServerMainnet: 'electrum.imaginary.cash',
     electrumServerChipnet: 'chipnet.bch.ninja',
-    bcmrIndexerMainnet: 'https://bcmr.paytaca.com/api',
-    bcmrIndexerChipnet: 'https://bcmr-chipnet.paytaca.com/api',
+    tokenMetadataIndexerMainnet: 'https://bcmr.paytaca.com/api',
+    tokenMetadataIndexerChipnet: 'https://bcmr-chipnet.paytaca.com/api',
+    chaingraphMainnet: 'https://chaingraph.example.com/v1/graphql',
+    chaingraphChipnet: '',
     ipfsGateway: 'https://ipfs.io/ipfs/',
+    followTokenIdentities: true,
     featuredTokens: [],
     getWalletType: vi.fn().mockReturnValue('single'),
     getWalletMetadata: vi.fn().mockReturnValue({ walletType: 'single' }),
@@ -188,19 +197,22 @@ vi.mock('src/utils/cacheUtils', () => ({
 }))
 
 // Mock zodValidation
-vi.mock('src/utils/zodValidation', () => ({
+// the registry schema is the real one: naming an identity from a registry parses what a host served
+vi.mock('src/utils/zodValidation', async (importOriginal) => ({
   BcmrIndexerResponseSchema: { safeParse: vi.fn() },
+  MetadataRegistrySchema: (await importOriginal<typeof ZodValidation>()).MetadataRegistrySchema,
 }))
 
 // Mock storeUtils
 vi.mock('src/stores/storeUtils', () => ({
   fetchTokenMetadata: vi.fn().mockResolvedValue({}),
   tokenListFromUtxos: vi.fn().mockReturnValue([]),
-  updateTokenListWithAuthUtxos: vi.fn().mockReturnValue([]),
 }))
 
 // Mock utils
 vi.mock('src/utils/utils', () => ({
+  formatBchAmount: vi.fn((satoshis: number) => (satoshis / 100_000_000).toString()),
+  formatBch: vi.fn((satoshis: bigint, network: string) => `${Number(satoshis) / 100_000_000} ${network === 'mainnet' ? 'BCH' : 'tBCH'}`),
   getBalanceFromUtxos: vi.fn().mockReturnValue(0),
   getTokenUtxos: vi.fn().mockReturnValue([]),
   walletTypeFromWalletId: vi.fn((walletId: string) => walletId.startsWith('hd:') ? 'hd' : 'single'),

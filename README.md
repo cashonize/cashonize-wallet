@@ -40,7 +40,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Transaction history** - Filterable, searchable history with private transaction notes
 - **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
 - **HD address management** - Address overview with balances, labels and marking addresses as used
-- **Wallet tools** - Sign and verify messages, freeze coins, and transfer all assets to another wallet
+- **Wallet tools** - Sign and verify messages, freeze and label coins, and transfer all assets to another wallet
 - **Sweep functionality** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
 
 
@@ -59,6 +59,10 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Flipstarter pledges** - Make and cancel pledges to Flipstarter campaigns from the wallet
 - **TapSwap listings** - Shows the assets you have listed for sale on TapSwap in the portfolio
 - **Hodl contracts** - Shows BCH locked in hodl timelock contracts in the portfolio
+- **Create tokens** - Pick the token id coin and keep part of the supply as a protected reserve
+- **Identities** - Finds, adds, protects and deliberately transfers the identities your keys hold
+- **Metadata publishing** - Verifies your BCMR registry against its on-chain hash and publishes it
+- **AuthKey support** - Recognizes and protects AuthKey NFTs and shows the identities they control
 
 ## Platforms
 
@@ -91,7 +95,7 @@ For more details see the [security considerations](./security-considerations.md)
 Cashonize supports three connection methods for dapps: [WalletConnect](https://github.com/mainnet-pat/wc2-bch-bcr) (following the WC2-BCH spec), [CashConnect](https://cashconnect.developers.cash/) and [WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect).
 
 - The [example WalletConnect dApp](./test/e2e/test-dapp) is a minimal reference for connecting to Cashonize, sending requests and handling responses.
-- The [`docs`](./docs) folder contains protocol documentation, such as the [`bch_cancelPendingRequests`](./docs/walletconnect-cancellation.md) WalletConnect method for dismissing stale signing dialogs.
+- The [`docs`](./docs) folder contains protocol documentation, such as the [`bch_cancelPendingRequests`](./docs/walletconnect-cancellation.md) WalletConnect method for dismissing stale signing dialogs and how the wallet handles [BCMR identities](./docs/bcmr-identities.md).
 
 ## License & Disclaimer
 

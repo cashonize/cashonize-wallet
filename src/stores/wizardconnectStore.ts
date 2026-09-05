@@ -30,12 +30,14 @@ import {
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
 import type { DappMetadata } from "src/interfaces/interfaces";
 import { useStore } from "./store";
+import { useIdentitiesStore } from "./identitiesStore";
 import { useSettingsStore } from "./settingsStore";
 import { walletConnectMetadata } from "./constants";
 import { createSignedWizTransaction, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
 import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
 import { displayAndLogError } from "src/utils/errorHandling";
-import { reservedTransactionInputs } from "src/utils/wallet/reservedUtxos";
+import { identityRefusal, refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
+import { reportDappRefusal } from "src/utils/txHelpers";
 import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRequest.vue";
 import WizPairingDialog from "src/components/wizardconnect/WizPairingDialog.vue";
 import alertDialog from "src/components/general/alertDialog.vue";
@@ -218,8 +220,9 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     }
     // Refused before the request is queued, so it never reaches a sign dialog; repeated in
     // signWizTransaction for a coin reserved while a dialog is already open
-    if (hasReservedInputs(validatedRequest)) {
-      displayAndLogError(t('wizardConnect.errors.reservedInputs'));
+    const arrivalCheck = reservedInputsCheck(validatedRequest);
+    if (arrivalCheck.refusals.length) {
+      reportDappRefusal(arrivalCheck);
       respondWithError('Transaction signing request aborted with error: input reserved by the wallet');
       return;
     }
@@ -251,10 +254,10 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   // Wizardconnect dapps derive addresses from the shared xpubs and select coins themselves, so a
   // reserved coin cannot be withheld from them and refusing to sign is the only enforcement.
   // Only called once validateWizTransaction has confirmed the transaction decodes.
-  function hasReservedInputs(request: WizSignTransactionRequest): boolean {
+  function reservedInputsCheck(request: WizSignTransactionRequest): ReservedInputsCheck {
     const { transaction } = request.transaction;
     const decodedTransaction = typeof transaction === "string" ? decodeTransactionUnsafe(hexToBin(transaction)) : transaction;
-    return reservedTransactionInputs(decodedTransaction.inputs, mainStore.reservedUtxos).length > 0;
+    return useIdentitiesStore().checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
   }
 
   async function showNextSignRequest() {
@@ -327,7 +330,11 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     if (!manager || !hdNodes) throw new Error(t('wizardConnect.errors.notInitialized'));
     // Checked again here rather than only on arrival: the sign dialog holds the request open for
     // as long as the user takes, and a coin can be reserved while it is up.
-    if (hasReservedInputs(request)) throw new Error(t('wizardConnect.errors.reservedInputs'));
+    const signingCheck = reservedInputsCheck(request);
+    if (signingCheck.refusals.length) {
+      const refusal = identityRefusal(signingCheck);
+      throw new Error(refusalMessage(signingCheck, refusal ? useIdentitiesStore().identityNameAt(refusal.outpoint) : undefined));
+    }
     const inputKeys = deriveInputKeys(hdNodes, request.inputPaths);
     // the zod schema already validated and transformed this shape (see WizSignTransactionRequestSchema)
     const wizTransactionObj = request.transaction as WcSignTransactionRequest;

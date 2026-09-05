@@ -60,7 +60,8 @@
       "rejected": "Le serveur Chaingraph a rejeté la requête : {reason}",
       "invalidResponse": "Le serveur n'a pas renvoyé de réponse Chaingraph valide.",
       "tokenNotFound": "Token non trouvé",
-      "authchainNotFound": "Authchain non trouvée"
+      "authchainNotFound": "Le serveur Chaingraph n'a trouvé aucun historique d'identité pour cet identifiant. Vérifiez l'identifiant ; s'il est correct, le serveur n'indexe peut-être pas cette chaîne.",
+      "notConfigured": "Aucun serveur Chaingraph n'est configuré pour ce réseau. Définissez-en un dans les réglages avancés."
     }
   },
   "exchangeRate": {
@@ -86,10 +87,16 @@
       "unableToConnectElectrum": "Impossible de se connecter au serveur Electrum '{server}'",
       "deviceOffline": "Votre appareil semble être hors ligne, veuillez vérifier votre connexion internet",
       "bcmrIndexerValidationError": "Erreur de validation de la réponse de l'indexeur BCMR",
-      "utxoNotReserved": "Cet UTXO n'est pas réservé",
-      "cannotReserveTokenUtxo": "Un UTXO portant un jeton ne peut pas être retenu",
-      "reservedEnsureUtxos": "Cette action a besoin d'un UTXO que le portefeuille retient",
-      "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer."
+      "tokenUtxoHeldBack": "Cet UTXO est écarté de la sélection des pièces. La page de gestion des UTXO montre lesquels sont retenus et pourquoi, et c'est là qu'un UTXO gelé se dégèle.",
+      "identityUtxoHeldBack": "Ce NFT est l'UTXO d'identité de son token, écarté de la sélection des pièces. Il se gère depuis la page des identités.",
+      "utxosHeldBack": "Certains UTXO sont écartés de la sélection et ne comptent pas ici. La page de gestion des UTXO montre lesquels sont retenus et pourquoi.",
+      "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
+      "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
+      "identityLeavesWallet": "Cette requête déplacerait une de vos identités vers une adresse que ce portefeuille ne reconnaît pas comme la sienne, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
+      "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, ce qui les fusionne en une. Ce portefeuille ne prend pas encore en charge la fusion d'identités, elle a donc été refusée.",
+      "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi.",
+      "identityHeld": "Cette requête dépenserait l'UTXO d'identité de {name}, ce que les applications connectées ne sont pas autorisées à faire ; elle a donc été refusée. Pour gérer des identités via une application connectée, activez « Laisser les applications connectées dépenser les UTXO d'identité » dans les options utilisateur.",
+      "dappRefusedTitle": "Requête refusée"
     }
   },
   "onboarding": {
@@ -259,7 +266,6 @@
       "swap": "swap",
       "burnTokens": "burn tokens",
       "burnNft": "brûler NFT",
-      "authTransfer": "transférer Auth",
       "mintNfts": "créer NFTs",
       "batchTransfer": "transfert groupé",
       "all": "tous",
@@ -267,6 +273,11 @@
       "select": "sélectionner",
       "selected": "sélectionnés",
       "max": "max"
+    },
+    "authKey": {
+      "name": "Clé d'identité",
+      "nameFor": "Clé d'identité de {names}",
+      "manage": "gérer"
     },
     "visibility": {
       "hideToken": "Masquer le token",
@@ -280,7 +291,7 @@
       "tokenSymbol": "Symbole du token :",
       "numberOfDecimals": "Nombre de décimales :",
       "tokenWebLink": "Lien web du token :",
-      "seeDetailsOnExplorer": "Voir toutes les infos du token sur TokenExplorer",
+      "seeDetailsOnExplorer": "Voir sur TokenExplorer",
       "nftType": "Type de NFT :",
       "immutable": "immuable",
       "nftCommitment": "Commitment du NFT :",
@@ -316,16 +327,6 @@
       "burnMintingDescription": "Brûlez ce NFT pour qu'aucun nouveau NFT ne puisse être créé dans cette catégorie",
       "burnNftDescription": "Brûlez ce NFT pour le supprimer définitivement de votre portefeuille"
     },
-    "authTransfer": {
-      "description": "Transférer l'autorité pour modifier les métadonnées du token",
-      "descriptionNft": "Transférer l'autorité pour modifier les métadonnées du token vers un autre portefeuille",
-      "dedicatedWalletNote": "Vous pouvez transférer l'Auth vers un portefeuille dédié ou vers le {link}.",
-      "reservedSupplyNote": "L'offre de tokens conservée dans l'Auth UTXO sera marquée comme offre réservée, pas encore en circulation.",
-      "destinationPlaceholder": "adresse de destination",
-      "reservedSupplyPlaceholder": "offre réservée",
-      "transferButton": "Transférer Auth",
-      "transferringButton": "Transfert de l'Auth..."
-    },
     "mint": {
       "modeLabel": "Mode :",
       "modeSingle": "Type unique",
@@ -351,11 +352,6 @@
       "nftMetadataShort": "chargement..."
     },
     "dialogs": {
-      "authWarning": {
-        "title": "Avertissement Auth",
-        "message": "Vous risquez d'envoyer involontairement l'autorité pour mettre à jour les métadonnées de ce token ailleurs.\nÊtes-vous sûr de vouloir envoyer la transaction quand même ?",
-        "continueButton": "Continuer"
-      },
       "confirmTokenSend": {
         "title": "Confirmer l'envoi de tokens",
         "message": "Envoyer {amount} {symbol} à\n{address}"
@@ -385,8 +381,7 @@
     "success": {
       "transactionSent": "Transaction envoyée avec succès !",
       "burnSuccessful": "Destruction réussie",
-      "mintSuccessful": "Création réussie",
-      "authTransferSuccessful": "Transfert Auth réussi"
+      "mintSuccessful": "Création réussie"
     },
     "alerts": {
       "sentTokens": "Envoyé {amount} {symbol} à {address}",
@@ -401,8 +396,7 @@
       "burnedTokensNoSymbol": "Brûlé {amount} tokens de catégorie {tokenId}",
       "burnedNft": "Brûlé {nftType} de catégorie {tokenId}",
       "mintedNft": "Créé NFT immuable de catégorie {tokenId} {commitmentText}",
-      "mintedNfts": "Créé {amount} NFTs de catégorie {tokenId}",
-      "transferredAuth": "Transféré l'Auth de l'utxo {tokenId} à {address}"
+      "mintedNfts": "Créé {amount} NFTs de catégorie {tokenId}"
     },
     "errors": {
       "needBchForFee": "Un peu de BCH est nécessaire pour couvrir les frais de transaction",
@@ -420,9 +414,13 @@
       "invalidAmountNfts": "quantité de NFTs à créer invalide",
       "invalidStartingNumber": "numéro de départ invalide",
       "commitmentMustBeHex": "le commitment du NFT '{commitment}' doit être en hexadécimal",
-      "reservedSupplyInvalid": "La quantité de tokens pour l'offre réservée doit être un nombre entier valide",
       "noNftsSelected": "Aucun NFT sélectionné",
       "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel"
+    },
+    "identity": {
+      "held": "Ce portefeuille détient l'identité de ce token.",
+      "heldWithReserve": "Ce portefeuille détient l'identité de ce token, avec {amount} en réserve.",
+      "manage": "gérer l'identité"
     }
   },
   "dapp": {
@@ -472,6 +470,12 @@
     "received": "Reçu",
     "combined": "Combiné",
     "dapp": "dapp",
+    "identity": {
+      "metadataUpdate": "mise à jour des métadonnées",
+      "metadataUpdateNamed": "métadonnées de {name}",
+      "identityOperation": "identité",
+      "identityOperationNamed": "identité de {name}"
+    },
     "today": "Aujourd'hui",
     "yesterday": "Hier",
     "balanceLabel": "Solde :",
@@ -638,47 +642,153 @@
     "switchFailed": "Échec du changement de portefeuille : {error}"
   },
   "createTokens": {
-    "title": "Créer de nouveaux tokens",
-    "intro": "Vous pouvez utiliser le {link} pour une création de tokens plus facile, ou utiliser le processus intégré ci-dessous pour un contrôle plus fin.",
-    "cashTokensStudio": "CashTokens Studio",
-    "needBch": "BCH requis dans le portefeuille pour créer des tokens",
-    "noUtxos": "Le portefeuille n'a actuellement aucun UTXO capable de créer des tokens.",
-    "prepareUtxo": "Préparer un UTXO pour la création de tokens :",
+    "title": "Créer un token",
+    "home": {
+      "intro": "Créez un nouveau token ici ou sur le site de CashTokens Studio. Qui détient l'identité du token, un UTXO, contrôle son nom, son icône et toute offre non émise ; choisissez où la garder.",
+      "wallet": "Dans ce portefeuille",
+      "studio": "Avec CashTokens Studio",
+      "chosen": "Identité du token conservée : dans ce portefeuille",
+      "cardLeads": {
+        "for": "Pour :",
+        "managed": "Géré :"
+      },
+      "walletLines": {
+        "for": "les utilisateurs techniques qui veulent tout contrôler.",
+        "managed": "sur la page des identités, dans Outils."
+      },
+      "studioLines": {
+        "for": "la voie la plus simple, et les collections de NFT.",
+        "managed": "sur le site de Studio, par WalletConnect."
+      },
+      "leads": {
+        "protection": "Protection :",
+        "metadata": "Métadonnées :",
+        "operations": "Opérations :"
+      },
+      "walletRows": {
+        "protection": "retenu des envois par ce portefeuille seulement ; une autre application sur cette graine pourrait le dépenser.",
+        "metadata": "un fichier que vous hébergez, lié à l'étape 3 ou plus tard depuis la page des identités.",
+        "operations": "sur la page des identités, dans Outils.",
+        "moveLater": "Vous pourrez déplacer l'identité du token de ce portefeuille vers Studio plus tard, et inversement."
+      },
+      "studioRows": {
+        "protection": "dépensable seulement avec le NFT clé ; dans d'autres portefeuilles un NFT sans nom, gardez-le.",
+        "protectionHelp": "Le NFT clé est ce que Studio appelle un AuthKey. Il ouvre un AuthGuard, le contrat dans lequel Studio garde l'identité, de sorte que l'identité ne se dépense qu'avec la clé, quelle que soit l'app qui détient la seed. D'autres portefeuilles montrent la clé comme un NFT sans nom, et c'est ainsi qu'elle se retrouve envoyée ou brûlée ; ce portefeuille la nomme d'après ce qu'elle protège.",
+        "metadata": "rédigées et épinglées sur IPFS par Studio ; il est recommandé d'en garder une copie.",
+        "metadataHelp": "Le pin IPFS est celui de Studio. S'il expire un jour, le fichier peut être hébergé n'importe où et le hash publié correspond toujours, mais seulement au fichier exact : gardez-en une copie.",
+        "operations": "métadonnées, émission et libération, sur le site de Studio par WalletConnect.",
+        "moveLater": "Vous pourrez déplacer l'identité du token de Studio vers ce portefeuille plus tard, et inversement."
+      },
+      "studioBox": "Après la création d'un token dans l'application CashTokens Studio, le NFT clé apparaît dans l'onglet Tokens et l'identité sur la page des identités, dans Outils.",
+      "openStudio": "Ouvrir CashTokens Studio",
+      "continueButton": "Continuer",
+      "connectButton": "Ouvrir l'onglet Connexion"
+    },
+    "change": "modifier",
+    "step": "Étape {current} sur {total}",
+    "stepTitles": {
+      "utxo": "choisir l'id du token",
+      "shape": "choisir le type, les décimales et l'offre",
+      "metadata": "lier le fichier de métadonnées hébergé (facultatif)",
+      "type": "choisir le type"
+    },
+    "genesisInput": {
+      "explainer": "Le txid de l'UTXO que la genèse dépense devient l'id du token ; l'UTXO doit être à la sortie 0.",
+      "needBch": "Ce portefeuille a besoin d'un peu de BCH pour créer un token : l'UTXO qu'il prépare et les frais en proviennent.",
+      "prepareButton": "Préparer un UTXO",
+      "chooseExisting": "Ou choisissez un UTXO que ce portefeuille a déjà | Ou choisissez le seul UTXO que ce portefeuille a déjà | Ou choisissez un des {count} UTXO que ce portefeuille a déjà",
+      "rule": "Seuls les UTXO à la sortie 0 sans tokens sont listés ; les non confirmés conviennent aussi.",
+      "none": "Ce portefeuille n'a pas encore d'UTXO pouvant créer un token.",
+      "unconfirmed": "non confirmé",
+      "loading": "chargement..."
+    },
+    "prepare": {
+      "title": "Préparer un UTXO ?",
+      "message": "Ceci vous envoie {amount} à vous-même maintenant, pour que la genèse ait un UTXO neuf à la sortie 0 à dépenser. Le montant reste le vôtre ; seuls les frais sont dépensés."
+    },
     "preparingButton": "Préparation...",
-    "prepareButton": "Préparer l'UTXO",
-    "plannedTokenId": "TokenId prévu :",
-    "loading": "chargement...",
-    "selectTokenType": "Sélectionnez le type de token :",
-    "selectOption": "-sélectionner-",
-    "fungibleTokens": "Tokens fongibles",
-    "mintingNFT": "NFT de création",
-    "fungibleDescription": "Les tokens fongibles sont utilisés pour créer des tokens interchangeables. L'offre totale de tokens fongibles doit être déterminée à la création.",
-    "mintingDescription": "Le NFT de création est utilisé pour créer une collection de NFTs. Le NFT de création a la capacité de créer de nouveaux NFTs avec le même tokenId.",
-    "mintingNote": "Remarque : pour utiliser un NFT de création, activez l'option « Activer la création de NFTs » dans les paramètres développeur.",
-    "supplyLabel": "Choisissez l'offre totale de tokens fongibles",
+    "plannedTokenId": "Id du token :",
+    "shapeLabel": "Type de token",
+    "closedSupply": "{supply} tokens, {decimals} décimales",
+    "nextButton": "Continuer",
+    "shapes": {
+      "fungible": "Tokens fongibles",
+      "mintingNft": "Un NFT de frappe",
+      "both": "Tokens fongibles et un NFT de frappe"
+    },
+    "mintingDescription": "Un NFT de frappe crée les NFT de la collection, et seule la transaction de création peut l'accorder.",
+    "mintingNote": "Les NFT sont frappés depuis la liste des tokens, avec « Activer la frappe de NFT » activé dans les paramètres développeur.",
+    "decimalsLabel": "Décimales",
+    "supplyLabel": "Offre totale de tokens fongibles",
+    "supplyNote": "L'offre est créée une fois et ne peut jamais être augmentée ; gardez-en une partie en réserve pour la libérer plus tard.",
     "supplyPlaceholder": "offre totale",
-    "supplyNote": "Remarque : ajoutez des zéros supplémentaires selon le nombre de décimales défini dans les métadonnées BCMR",
-    "linkMetadata": "Lier les métadonnées du token",
-    "metadataIntro": "Pour ajouter des métadonnées à votre token, vous devez télécharger la ou les images du token, créer un fichier JSON selon le {link}, le télécharger quelque part, puis publier ce lien sur la blockchain.",
-    "bcmrStandard": "standard BCMR",
-    "selectUploadLocation": "Sélectionnez où télécharger vos métadonnées (IPFS recommandé) :",
-    "selectPlaceholder": "- sélectionner -",
-    "ipfs": "IPFS",
-    "httpsWebsite": "HTTPS : site web personnel",
-    "httpsGithub": "HTTPS : gist GitHub",
-    "validityCheck": "Vérification de la validité des métadonnées :",
-    "metadataNote": "Remarque : Les métadonnées du token peuvent encore être ajoutées/mises à jour après la création avec l'AuthUTXO du token. Pour utiliser cette fonctionnalité, activez « Activer la résolution d'authchain » dans les paramètres développeur. Transférez l'AuthUTXO vers un portefeuille dédié juste après la création.",
-    "creatingTokensButton": "Création des tokens...",
-    "creatingNftButton": "Création du NFT...",
+    "supplyOnChain": "{tokens} tokens, {base} unités de base sur la chaîne",
+    "circulation": {
+      "label": "Émettre en circulation maintenant",
+      "placeholder": "Montant à émettre",
+      "split": "{reserve} reste avec l'identité en réserve, {circulating} entre en circulation.",
+      "note": "La réserve reste sur l'UTXO de l'identité ; émettez-la plus tard depuis la page des identités."
+    },
+    "errors": {
+      "invalidAmount": "Saisissez des montants en tokens, sans plus de décimales que le token n'en a.",
+      "overMaxSupply": "C'est plus qu'un token ne peut contenir. Le maximum est {max}.",
+      "overSupply": "C'est plus que l'offre totale.",
+      "invalidDecimals": "Les décimales doivent être un nombre entier de 0 à 18.",
+      "emptyReserve": "Laissez au moins {minimum} en réserve : l'UTXO de l'identité est un UTXO de token et doit porter une partie de l'offre."
+    },
+    "metadataNote": "Ce portefeuille ne téléverse rien : le nom et l'icône sont un fichier que vous rédigez avec le {generator}, hébergez avec l'icône sur un site web ou IPFS, et liez ici ou plus tard depuis la page des identités.",
+    "locationHint": "Un domaine, une URL HTTPS complète ou un CID IPFS ; un domaine seul désigne son chemin de métadonnées well-known.",
+    "sameFile": "Chaque emplacement doit servir le même fichier.",
+    "check": {
+      "decimalsReminder": "Le fichier de métadonnées doit indiquer décimales : {decimals}.",
+      "button": "Vérifier",
+      "checking": "Vérification...",
+      "needed": "Vérifiez l'emplacement avant de créer.",
+      "howShown": "Comment les portefeuilles l'afficheront",
+      "summary": "{name}, décimales : {decimals}",
+      "hash": "Hash : {hash}",
+      "decimalsMismatch": "Le fichier de métadonnées indique décimales : {registry} ; ce token serait créé avec {chosen}. Changez l'un des deux."
+    },
+    "howTo": "Comment rédiger et héberger le fichier",
+    "steps": {
+      "author": "Rédigez le fichier de métadonnées avec le {generator}, en y nommant l'id du token ci-dessus.",
+      "host": "Hébergez-le, avec l'icône qu'il nomme, sur votre propre site web ou sur IPFS.",
+      "verify": "Indiquez ci-dessus où il est hébergé. Ce portefeuille le récupère et vérifie qu'il nomme ce token.",
+      "create": "Créez le token : la même transaction publie le hash du fichier et où le trouver."
+    },
+    "noHosting": "Nulle part où héberger un fichier ? Choisissez Studio, qui l'héberge pour les identités qu'il détient.",
     "createButton": "Créer",
+    "creatingTokensButton": "Création des tokens...",
+    "confirm": {
+      "title": "Créer ce token ?",
+      "button": "Créer",
+      "supply": "Offre totale : {supply}",
+      "decimals": "Décimales : {decimals}",
+      "metadataLinked": "Métadonnées : {name}, depuis {location}",
+      "metadataNone": "Métadonnées : aucune liée pour l'instant. Tant qu'elles ne sont pas publiées, les portefeuilles affichent le token par son id, avec des montants bruts."
+    },
     "notifications": {
-      "preparingPreGenesis": "Préparation du pré-genesis...",
+      "preparingPreGenesis": "Préparation d'un UTXO...",
       "transactionSent": "Transaction envoyée avec succès !",
       "creatingTokens": "Création des tokens...",
-      "creatingMintingNft": "Création du NFT de création...",
-      "urlPrefixError": "Les URLs ne doivent pas avoir de préfixe !",
-      "ipfsCidError": "L'emplacement IPFS doit être un CID v1"
-    }
+      "bcmrWrongIdentity": "Ce fichier de métadonnées ne décrit pas le token en cours de création. Vérifiez que le fichier nomme cet id de token."
+    },
+    "created": {
+      "title": "Réussi !",
+      "supply": "{amount} créés",
+      "mintingNft": "Un NFT de frappe créé, sur l'UTXO de l'identité : frappez-en les NFT de la collection dans la liste des tokens.",
+      "split": "{reserve} avec l'identité en réserve, {circulating} dans ce portefeuille",
+      "listed": "Listé sur la page des identités, qui tient son UTXO hors des envois de ce portefeuille seulement.",
+      "untilPublished": "Les portefeuilles l'affichent ainsi jusqu'à ce que vous {link}.",
+      "untilPublishedLink": "publiiez des métadonnées",
+      "seeToken": "Voir le token dans le portefeuille",
+      "seeIdentity": "Voir l'identité dans le portefeuille",
+      "viewTransaction": "Voir la transaction",
+      "createAnother": "Créer un autre token",
+      "decimals": "Décimales : {decimals}, le fichier de métadonnées doit l'indiquer"
+    },
+    "decimalsNote": "Les décimales sont lues dans le fichier de métadonnées, pas sur la chaîne, il doit donc indiquer ce nombre.",
+    "goBack": "Retour"
   },
   "utxoManagement": {
     "title": "Gestion des UTXO",
@@ -691,6 +801,8 @@
       "largeBch": "Contient une grande quantité de BCH",
       "reserved": "Retenue pour un engagement Flipstarter en cours, une dépense depuis ce portefeuille ne la prendra donc pas.",
       "reservedRelease": "Annulez l'engagement sur la page Flipstarter pour libérer l'UTXO.",
+      "reservedAuth": "Retenu parce qu'il est l'UTXO d'une identité (son AuthHead), une dépense depuis ce portefeuille n'ira donc pas le chercher.",
+      "reservedAuthRelease": "Transférez l'identité ou retirez-la sur la page Identités pour libérer l'UTXO.",
       "frozen": "Gelée par vous, cliquez pour dégeler",
       "unfreeze": "Dégeler",
       "availableShort": "Disponible",
@@ -706,7 +818,7 @@
       "empty": "Ce portefeuille n'a pas d'UTXOs BCH uniquement."
     },
     "tokenList": {
-      "title": "UTXOs de tokens par catégorie",
+      "title": "Aperçu : UTXOs de tokens par catégorie",
       "empty": "Ce portefeuille n'a pas d'UTXOs de tokens."
     },
     "fungibleList": {
@@ -722,10 +834,12 @@
       "empty": "Ce portefeuille n'a pas d'UTXOs contenant à la fois un montant fongible et un NFT."
     },
     "reservedSummary": "{count} UTXO retenu, hors de votre solde disponible | {count} UTXOs retenus, hors de votre solde disponible",
+    "reservedTokenSummary": "{count} UTXO de jeton retenu, écarté de chaque transfert que fait cette application | {count} UTXO de jetons retenus, écartés de chaque transfert que fait cette application",
     "freeze": {
       "title": "Geler cet UTXO",
       "message": "Un UTXO gelé reste dans votre portefeuille mais est écarté de chaque paiement fait par cette application, votre solde disponible baisse donc de {amount}. Vous pouvez le dégeler depuis cette liste à tout moment.\n\nLe gel ne vaut qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y aussi le même UTXO.",
-      "button": "Geler"
+      "button": "Geler",
+      "messageToken": "Un UTXO gelé reste dans votre portefeuille mais est écarté de chaque paiement et de chaque transfert de jetons que fait cette application : les jetons qu'il porte et les {amount} qu'il contient ne peuvent donc pas être dépensés d'ici. Vous pouvez le dégeler depuis cette liste à tout moment.\n\nLe gel ne vaut qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y le même UTXO."
     },
     "send": {
       "title": "Envoyer cet UTXO",
@@ -783,10 +897,7 @@
       "label": "Étiquette",
       "address": "Adresse",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH retenu",
-      "amount": "Montant",
-      "capability": "Capacité",
-      "commitment": "Commitment"
+      "bchHeld": "BCH retenu"
     },
     "notifications": {
       "consolidating": "Consolidation des UTXOs BCH...",
@@ -898,6 +1009,7 @@
     "bchBalance": "BCH",
     "transactionCount": "Transactions nécessaires : {count}.",
     "transactionCountNote": "Elles sont envoyées une par une et prennent quelques secondes chacune, gardez donc Cashonize ouvert jusqu'à la fin.",
+    "heldBack": "{count} UTXO reste : il est écarté de la sélection des pièces, ce transfert ne le prend donc pas. Le déplacer plus tard demandera du BCH dans ce portefeuille pour les frais. | {count} UTXOs restent : ils sont écartés de la sélection des pièces, ce transfert ne les prend donc pas. Les déplacer plus tard demandera du BCH dans ce portefeuille pour les frais.",
     "destinationLabel": "Adresse de destination :",
     "destinationTokenLabel": "Adresse de token de destination :",
     "destinationPlaceholder": "Adresse vers laquelle tout transférer",
@@ -923,8 +1035,7 @@
       "success": "Tous les actifs ont été transférés avec succès"
     },
     "errors": {
-      "ownAddress": "La destination est une adresse de ce même portefeuille",
-      "reservedCoins": "Ce portefeuille retient des UTXOs, il ne peut donc pas tout transférer. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi."
+      "ownAddress": "La destination est une adresse de ce même portefeuille"
     }
   },
   "requestPayment": {
@@ -1119,7 +1230,12 @@
       "highFeeWarning": "Cette transaction paie {rate} sat/octet, bien plus que le 1 sat/octet que paient normalement les transactions.",
       "unverifiedTokenNote": "{count, plural, one {Le token} other {Les tokens}} ne {count, plural, one {figure} other {figurent}} pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
       "unverifiedTokenNoteSingular": "Le token ne figure pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
-      "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu."
+      "unverifiedTokenNotePlural": "Les tokens ne figurent pas dans votre portefeuille. De nouvelles métadonnées ont été obtenues pour l'aperçu.",
+      "identityKeyReturns": "Ceci utilise votre clé d'identité, qui revient dans votre portefeuille.",
+      "identityStays": "Ceci dépense l'UTXO d'identité de {name}. L'identité reste dans ce portefeuille.",
+      "identityReserve": "Réserve sur l'identité : {before} avant, {after} après.",
+      "identityMintingStays": "Le NFT de frappe reste sur l'identité.",
+      "identityMintingLeaves": "Le NFT de frappe est retiré de l'identité."
     },
     "sessionRequest": {
       "title": "Approuver la session ?",
@@ -1160,8 +1276,7 @@
       "noAddressForSession": "Aucune adresse trouvée pour la session",
       "addressNotInHdCache": "Adresse non trouvée dans le cache du portefeuille HD : {address}",
       "noPrivateKeyForAddress": "Aucune clé privée disponible pour l'adresse (portefeuille en lecture seule)",
-      "failedToCompressPublicKey": "Échec de la compression de la clé publique",
-      "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi."
+      "failedToCompressPublicKey": "Échec de la compression de la clé publique"
     },
     "notifications": {
       "successfullySignedMessage": "Message signé avec succès",
@@ -1202,8 +1317,7 @@
       "invalidUri": "Ce n'est pas une URI WizardConnect valide",
       "invalidTransactionSchema": "Erreur lors de la validation du schéma de la demande de transaction WizardConnect",
       "failedToSignTransaction": "Échec de la signature de la transaction",
-      "errorSendingTransaction": "Erreur lors de l'envoi de la transaction",
-      "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi."
+      "errorSendingTransaction": "Erreur lors de l'envoi de la transaction"
     },
     "notifications": {
       "sendingTransaction": "Envoi de la transaction...",
@@ -1235,13 +1349,15 @@
       "hdAddresses": "Adresses HD",
       "requestPayment": "Créer une demande de paiement",
       "utxoManagement": "Gestion des UTXO",
+      "createTokens": "Créer un token",
       "sweepPrivateKey": "Balayer une clé privée",
       "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
-      "tokenCreationPage": "Page de création de tokens",
       "aboutCashonize": "À propos de Cashonize",
-      "flipstarter": "Flipstarter"
+      "flipstarter": "Flipstarter",
+      "identities": "Identités",
+      "newCount": "({count} nouvelle) | ({count} nouvelles)"
     },
     "localization": {
       "language": "Langue :",
@@ -1265,15 +1381,19 @@
       "qrAnimation": "Animation du code QR :",
       "tokenAddressQrDefault": "Afficher le code QR de l'adresse de token par défaut",
       "enableAddressMarking": "Activer la gestion avancée des adresses : marquer les adresses comme utilisées",
-      "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD."
+      "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD.",
+      "followTokenIdentities": "Suivre les identités des tokens que vous détenez",
+      "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactiver arrête les recherches.",
+      "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
+      "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les clés d'identité ne sont pas concernées : une requête qui en utilise une est signée quand la clé revient, ce qui est le fonctionnement de CashTokens Studio."
     },
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",
       "electrumChipnet": "Serveur Electrum chipnet :",
       "electrumHint": "La connexion du portefeuille au réseau BCH. Les soldes, l'historique des transactions et les envois passent par ce serveur.",
-      "bcmrIndexer": "Indexeur BCMR :",
-      "bcmrIndexerHint": "Utilisé pour récupérer les métadonnées des tokens comme les noms, les icônes et les décimales.",
-      "bcmrIndexerCustomPlaceholder": "ex. https://bcmr.example.com/api",
+      "tokenMetadataIndexer": "Indexeur de métadonnées de tokens :",
+      "tokenMetadataIndexerHint": "Un indexeur BCMR servant les métadonnées des tokens par catégorie : noms, icônes, décimales, types de NFT. Identités de tokens uniquement ; les autres identités sont lues depuis leurs propres registres par la page des identités.",
+      "tokenMetadataIndexerCustomPlaceholder": "ex. https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "ex. 127.0.0.1 ou fulcrum.example.com:443",
       "electrumCustomHint": "Nécessite WSS, le port 50004 est utilisé sauf si un autre est indiqué.",
       "electrumSelfSignedBrowser": "Vous utilisez des certificats auto-signés ? {link} pour accepter le certificat d'abord.",
@@ -1282,11 +1402,12 @@
       "ipfsGateway": "Passerelle IPFS :",
       "ipfsGatewayHint": "Utilisée pour charger les icônes de tokens et les autres médias de tokens hébergés sur IPFS.",
       "chaingraph": "Serveur Chaingraph :",
-      "chaingraphHint": "Un indexeur de la blockchain BCH. Utilisé pour trouver les annonces TapSwap et les contrats hodl du portefeuille pour la vue portfolio, et pour détecter la possession de l'authchain des tokens.",
+      "chaingraphHint": "Un indexeur de la blockchain BCH. Utilisé pour trouver les annonces TapSwap et les contrats hodl du portefeuille pour la vue portefeuille, et pour détecter quelles identités ce portefeuille détient.",
       "chaingraphCustomPlaceholder": "ex. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql est ajouté automatiquement lorsque seul un hôte est indiqué.",
       "chaingraphInvalidUrl": "URL du serveur Chaingraph invalide",
       "chaingraphChecking": "Vérification du serveur Chaingraph",
+      "chaingraphNone": "Aucun",
       "cauldronIndexer": "Indexeur Cauldron :",
       "cauldronIndexerHint": "Utilisé pour obtenir les prix des tokens depuis le DEX Cauldron pour le portfolio et la liste des tokens.",
       "exchangeRate": "Fournisseur de taux de change :",
@@ -1314,11 +1435,8 @@
       "changeNetwork": "Changer de réseau :",
       "mainnet": "mainnet",
       "chipnet": "chipnet",
-      "tokenCreation": "Fonctionnalité de création de tokens :",
       "enableMintNfts": "Activer la création de NFTs",
       "enableMintNftsHint": "Ajoute une action de création aux NFTs de création, vous permettant de créer plus de NFTs dans la même catégorie",
-      "enableAuthchains": "Activer la résolution d'authchain",
-      "enableAuthchainsHint": "Vérifie si vous avez l'AuthHead (autorité pour mettre à jour les métadonnées du token) et permet de le transférer",
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
       "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
       "strictWcSchema": "Validation stricte du schéma WalletConnect",
@@ -1419,5 +1537,295 @@
     },
     "whatIsAPledge": "Le portefeuille se verse à lui-même le montant de la promesse dans sa propre transaction, retient cet UTXO et le signe au profit des destinataires de la campagne. La signature reste valide quand la campagne ajoute d'autres participants, donc l'UTXO ne bouge que lorsque assez de promesses ont été faites.",
     "whatIsAPledgeNote": "Cette transaction de préparation est une vraie transaction avec ses propres frais, payés que la campagne aboutisse ou non."
+  },
+  "identities": {
+    "title": "Identités",
+    "description": "Les identités que ce portefeuille détient ou surveille.",
+    "modes": {
+      "identities": "Identités",
+      "existing": "Ajouter existante",
+      "create": "Ajouter nouvelle"
+    },
+    "learn": {
+      "link": "Apprendre",
+      "back": "Retour aux identités",
+      "title": "Les identités sur Bitcoin Cash",
+      "whatLead": "Ce qu'est une identité.",
+      "what": "Un moyen de publier des informations sur quelque chose sur Bitcoin Cash, comme le nom et l'icône d'un token, dont chacun peut vérifier qu'elles viennent de qui contrôle l'identité. Chaque token est une identité ; une personne, une organisation ou un contrat peuvent aussi être une identité.",
+      "holdingLead": "Ce que signifie détenir une identité dans ce portefeuille.",
+      "holding": "Le contrôle tient en une seule pièce, l'UTXO d'identité. Chaque transaction de la chaîne de l'identité dépense l'output 0 de la précédente, donc le dernier output 0 est cette pièce. Studio et l'explorateur appellent cette pièce l'AuthHead. La première transaction de la chaîne est l'authbase, l'id d'un token. Ce portefeuille garde cette pièce, et toute réserve de tokens qu'elle porte, hors des envois ordinaires et de la liste des tokens ; la déplacer volontairement est la façon de transférer l'identité ou de mettre à jour ses métadonnées.",
+      "readMoreLead": "Pour aller plus loin.",
+      "readMore": "Les métadonnées sont un fichier hébergé vers lequel la chaîne pointe par son hash : {registries}. Les identités gardées derrière une AuthKey suivent le standard AuthGuard, que {studio} implémente.",
+      "registriesLink": "les registres de métadonnées sur cashtokens.org"
+    },
+    "authbaseLabel": "Authbase / identifiant du token :",
+    "resolving": "Recherche de l'endroit où sont ces identités...",
+    "empty": "Aucune identité listée pour l'instant. Une identité créée par ce portefeuille est trouvée d'elle-même ; une que vous détenez ou voulez suivre s'ajoute par son authbase sous {link}.",
+    "emptyLink": "Ajouter existante",
+    "detected": {
+      "foundAutomatically": "Trouvée automatiquement",
+      "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
+    },
+    "unnamed": {
+      "title": "Une identité détenue par ce portefeuille",
+      "status": "Retenu, identité pas encore nommée",
+      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont l'UTXO ne porte aucun token, l'UTXO ne dit donc pas de quelle identité il s'agit. Il reste écarté de la sélection des pièces malgré tout : le protéger n'attend pas de pouvoir le nommer.",
+      "removeTitle": "Cesser de retenir cet UTXO ?",
+      "removeMessage": "L'UTXO revient dans la sélection des pièces, et un envoi ordinaire remet l'identité qu'il porte à qui reçoit cet envoi. Il ne sera plus listé."
+    },
+    "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
+    "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
+    "follow": {
+      "header": "{count} identité suivie d'un token détenu | {count} identités suivies de tokens détenus",
+      "resolving": "Recherche des identités des tokens que vous détenez..."
+    },
+    "unnamedIdentity": "Identité sans nom",
+    "authheadLabel": "UTXO de l'identité :",
+    "authheadAmount": "Contient {amount}",
+    "status": {
+      "held": "Détenue par ce portefeuille",
+      "notHeld": "Surveillance seule, non détenue par ce portefeuille",
+      "unresolved": "Impossible de consulter cette identité",
+      "heldViaKey": "Détenue via une clé d'identité",
+      "burned": "Brûlée"
+    },
+    "statusHelp": {
+      "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire depuis cette application ne peut le dépenser, ni une application connectée sauf autorisation dans les options utilisateur. Un autre logiciel sur la même graine le peut toujours.",
+      "notHeld": "Cette identité n'est pas détenue par ce portefeuille, qui ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour revient à qui la détient.",
+      "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
+      "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces.",
+      "burned": "La sortie 0 de cette identité est un OP_RETURN, que rien ne peut dépenser : qui la détenait y a mis fin. Sa dernière publication reste, et aucune mise à jour ne peut suivre."
+    },
+    "reserve": {
+      "supply": "Offre réservée : {amount}",
+      "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
+      "nft": "Un NFT de cette catégorie",
+      "errors": {
+        "invalidAmount": "Saisissez un montant valide.",
+        "overReserve": "C'est plus que ce que contient la réserve.",
+        "overBalance": "C'est plus que ce que ce portefeuille peut dépenser de ce jeton."
+      },
+      "issue": {
+        "action": "émettre depuis la réserve",
+        "hint": "Sortez des jetons de la réserve vers la circulation. La réserve contient {amount}.",
+        "amountPlaceholder": "Montant à émettre",
+        "destinationPlaceholder": "Adresse de jetons destinataire",
+        "button": "Émettre",
+        "issuingButton": "Émission...",
+        "confirmTitle": "Émettre depuis la réserve ?",
+        "confirmMessage": "{amount} quitte la réserve et va à {address}, entrant en circulation.",
+        "confirmButton": "Émettre",
+        "done": "Émis depuis la réserve vers {address}",
+        "doneTitle": "Émis depuis la réserve"
+      },
+      "add": {
+        "action": "Ajouter à la réserve",
+        "hint": "Remettez en réserve des jetons que ce portefeuille détient, hors circulation.",
+        "amountPlaceholder": "Montant à ajouter",
+        "button": "Ajouter à la réserve",
+        "addingButton": "Ajout...",
+        "confirmTitle": "Ajouter à la réserve ?",
+        "confirmMessage": "{amount} rejoint la réserve de l'identité et quitte la circulation.",
+        "confirmButton": "Ajouter",
+        "done": "Ajouté à la réserve",
+        "doneTitle": "Ajouté à la réserve"
+      },
+      "mintingNftLink": "voir dans la liste des tokens",
+      "supplyOpenEnded": "Offre réservée : illimitée",
+      "genesisSupply": "Offre à la genèse : {amount}",
+      "genesisSupplyOpenEnded": "Offre à la genèse : illimitée"
+    },
+    "key": {
+      "action": "transférer la clé",
+      "guardHelp": "L'UTXO de l'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne le libère qu'à qui présente la clé d'identité (l'AuthKey), qui est le NFT détenu par ce portefeuille.",
+      "manageHint": "Cette identité est gardée : mettre à jour ses métadonnées et déplacer son offre passent par l'outil qui construit les transactions du contrat. Cashonize les signe lorsqu'il s'y connecte.",
+      "manageOnStudio": "Gérer sur CashTokens Studio",
+      "hint": "La clé est un NFT ordinaire et se déplace comme tel. Qui la détient contrôle toutes les identités qu'elle garde.",
+      "destinationPlaceholder": "Adresse de jetons à laquelle transférer la clé",
+      "button": "Transférer la clé",
+      "transferringButton": "Transfert...",
+      "confirmTitle": "Transférer cette clé d'identité ?",
+      "confirmMessage": "Le contrôle de {count} identité gardée par cette clé passe à {address}. C'est irréversible. | Le contrôle des {count} identités gardées par cette clé passe à {address}. C'est irréversible.",
+      "confirmButton": "Transférer la clé",
+      "done": "Clé d'identité transférée à {address}",
+      "doneTitle": "Clé d'identité transférée"
+    },
+    "publication": {
+      "title": "Dernière publication de métadonnées",
+      "none": "Cette identité n'a jamais publié de métadonnées.",
+      "checking": "vérification...",
+      "hash": "Hash publié : {hash}",
+      "driftedPrompt": "Le registre à l'un de ces emplacements ne correspond plus à ce qui a été publié. {link}",
+      "driftedLink": "Publier le contenu actuel",
+      "status": {
+        "verified": "métadonnées à jour",
+        "changed": "modifié depuis la publication",
+        "changedIpfs": "ne correspond pas au hash publié",
+        "unreachable": "injoignable"
+      },
+      "statusHelp": {
+        "verified": "Le fichier servi ici correspond exactement à ce que cette identité a publié sur la chaîne.",
+        "changed": "Le fichier servi ici n'est pas celui publié sur la chaîne. Vérifiez-le et publiez-le de nouveau, pour que les détenteurs voient ce que vous servez.",
+        "changedNote": "Si vous n'avez pas modifié le fichier, vérifiez votre hébergement : autre chose répond à sa place.",
+        "unreachable": "Cet emplacement n'a pas répondu. Les détenteurs qui y cherchent les métadonnées ne voient rien : vérifiez si l'hébergement ou le pin IPFS a expiré."
+      },
+      "unconfirmed": "non confirmée"
+    },
+    "history": {
+      "title": "Historique de cette identité",
+      "loading": "Lecture de l'historique de l'identité...",
+      "madeHere": "fait par ce portefeuille",
+      "reserveUp": "{amount} vers la réserve",
+      "reserveDown": "{amount} hors de la réserve",
+      "kind": {
+        "genesis": "Créée",
+        "publication": "Métadonnées publiées",
+        "transfer": "Transférée",
+        "operation": "Mise à jour",
+        "mint": "Frappé"
+      },
+      "minted": "{count} NFT frappé | {count} NFTs frappés",
+      "action": "historique",
+      "actionCount": "historique ({count})"
+    },
+    "publish": {
+      "action": "publier des métadonnées",
+      "locationsHint": "Un domaine, une URL HTTPS complète ou un CID IPFS. Tous les emplacements doivent servir le même fichier.",
+      "uriPlaceholder": "example.com ou ipfs://baf...",
+      "addLocation": "ajouter un emplacement",
+      "removeLocation": "retirer",
+      "bytesLeft": "{bytes} octets restants dans le pointeur sur la chaîne",
+      "button": "Vérifier et publier",
+      "publishingButton": "Publication...",
+      "done": "Mise à jour des métadonnées publiée",
+      "doneTitle": "Métadonnées publiées",
+      "fields": {
+        "name": "Nom",
+        "symbol": "Symbole",
+        "decimals": "Décimales",
+        "icon": "Icône"
+      },
+      "confirm": {
+        "title": "Publier cette mise à jour des métadonnées ?",
+        "message": "Publication du hash {hash} sur :",
+        "changed": "{field} : {from} devient {to}",
+        "empty": "(aucun)",
+        "droppedSnapshots": "Attention : le nouveau fichier abandonne {count} instantané de l'historique de cette identité. | Attention : le nouveau fichier abandonne {count} instantanés de l'historique de cette identité.",
+        "button": "Publier"
+      },
+      "errors": {
+        "noUris": "Indiquez au moins un emplacement pour le registre.",
+        "tooLarge": "Ces emplacements ne tiennent pas dans une sortie de publication. Retirez-en un ou utilisez des emplacements plus courts.",
+        "unreachable": "Impossible de récupérer le registre à {uri}.",
+        "mirrorMismatch": "{uri} sert un contenu différent du premier emplacement. Tous doivent servir le même fichier.",
+        "noIdentity": "Ce registre ne décrit pas cette identité. Vérifiez que le fichier nomme l'authbase de cette identité."
+      },
+      "steps": {
+        "author": "Rédigez le JSON du registre avec le {generator}.",
+        "host": "Hébergez-le sur votre domaine ou sur IPFS.",
+        "publish": "Indiquez ci-dessous où il est hébergé, ce portefeuille le vérifie et publie le pointeur.",
+        "authorByHand": "Rédigez le JSON du registre dans un éditeur de code selon le {schema}, en partant des {examples} : cette identité n'est pas un token, son instantané porte donc un nom, une description et des liens, et aucune section token."
+      },
+      "generatorHelp": "Le générateur est un formulaire qui rédige pour vous le fichier de métadonnées ; la spécification l'appelle un registre. Vous pouvez aussi l'écrire vous-même selon le {schema}. Dans les deux cas ce portefeuille récupère le fichier, le hache exactement tel qu'il est servi, et vérifie qu'il nomme ce token.",
+      "generatorHelpSchema": "schéma BCMR",
+      "examplesLink": "registres d'exemple"
+    },
+    "add": {
+      "label": "Ajoutez l'identité par son authbase. Une identité que ce portefeuille contrôle est gérée d'ici ; toute autre est seulement surveillée.",
+      "heldLead": "Détenue :",
+      "held": "ce portefeuille contrôle l'identité et peut publier ses métadonnées ou la transférer. L'UTXO qui la contrôle est tenu à l'écart des envois ordinaires, afin qu'un paiement depuis cette application ne le déplace pas par accident. Un autre logiciel sur la même graine le peut toujours.",
+      "watchedLead": "Surveillée :",
+      "watched": "un autre portefeuille la détient, donc ce portefeuille peut afficher ses métadonnées et son historique, mais pas la mettre à jour.",
+      "keyNote": "Une identité conservée dans un covenant AuthGuard s'ajoute aussi par son propre id. Le portefeuille détermine quelle clé l'ouvre, et si cette clé est ici.",
+      "authbaseLead": "Authbase :",
+      "authbase": "la transaction qui a créé l'identité. Pour un token, c'est son identifiant de token.",
+      "lead": "Une identité vous a été transférée, ou vous voulez en suivre une ?",
+      "placeholder": "Authbase ou identifiant du token",
+      "button": "Ajouter l'identité",
+      "addingButton": "Ajout...",
+      "found": {
+        "title": "Identité trouvée",
+        "guarded": "{name} : conservée dans un covenant AuthGuard.",
+        "held": "{name} : détenue par ce portefeuille. Son UTXO sera écarté des envois.",
+        "watched": "{name} : non détenue par ce portefeuille. Elle sera surveillée ; rien n'est retenu.",
+        "keyHeld": "La clé est dans ce portefeuille et sera retenue ; qui la détient contrôle ce qu'elle garde.",
+        "keyWatched": "La clé n'est pas dans ce portefeuille : surveillance seule.",
+        "button": "Ajouter"
+      },
+      "errors": {
+        "nothingFound": "Rien trouvé pour cette authbase : le serveur Chaingraph ne connaît aucune transaction avec cet identifiant, et aucune clé d'identité ne garde quoi que ce soit. Vérifiez l'identifiant, ou le serveur dans les réglages."
+      }
+    },
+    "create": {
+      "pick": "L'identifiant de la transaction de l'UTXO devient l'identifiant permanent de l'identité, et ses BCH restent avec l'identité tant que vous la détenez, un petit UTXO est donc préférable.",
+      "prepareMessage": "Ceci vous envoie {amount} maintenant, pour que l'identité ait un UTXO neuf à la sortie 0. Le montant reste le vôtre ; seuls les frais sont dépensés.",
+      "pickedId": "Identifiant de l'identité :",
+      "steps": {
+        "pick": "choisissez l'UTXO qui devient l'identifiant de l'identité",
+        "add": "ajoutez-la à vos identités"
+      },
+      "button": "Ajouter l'identité",
+      "creatingButton": "Ajout...",
+      "confirmTitle": "Ajouter cet UTXO comme identité ?",
+      "confirmMessage": "{outpoint} devient l'UTXO de l'identité, écarté de la sélection des pièces avec ses {amount}. L'identifiant de sa transaction devient l'identifiant permanent de l'identité.",
+      "confirmButton": "Ajouter",
+      "doneTitle": "Identité ajoutée",
+      "tokenPointer": "{link} : la transaction qui le crée crée en même temps son identité.",
+      "tokenPointerLink": "Utilisez l'outil Créer un token",
+      "lead": "Rédigerez-vous et hébergerez-vous son registre vous-même ?",
+      "outcome": "L'ajout liste l'identité parmi celles que ce portefeuille possède et écarte son UTXO des envois ordinaires. Elle n'a pas de nom tant qu'un registre qui la nomme n'est pas publié ; sa carte vous y guide.",
+      "registryLead": "Registre :",
+      "registry": "le fichier JSON qui nomme l'identité, rédigé dans un éditeur de code selon le {schema}, en partant des {examples}, et hébergé sur un domaine que vous contrôlez ou sur IPFS.",
+      "registryNote": "Le {generator} rédige des registres pour les tokens : il demande un symbole et écrit une section token, qu'une identité qui n'est pas un token ne doit pas avoir. Son instantané porte un nom, une description et des liens.",
+      "newLead": "Ajouter une nouvelle identité pour une dapp, un système de contrats ou une organisation ?",
+      "newWhat": "Ceci en ajoute une : une chaîne d'UTXO sans token, depuis laquelle un nom, une icône et des liens sont publiés et mis à jour.",
+      "caution": "Il n'existe presque aucune identité de ce genre pour l'instant et peu de choses les lisent ; sachez donc ce que vous attendez de la vôtre avant de la faire.",
+      "tokenLead": "Vous créez un token ?",
+      "cautionLead": "Fonction avancée :"
+    },
+    "transfer": {
+      "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de cette identité. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",
+      "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
+      "button": "Transférer l'identité",
+      "transferringButton": "Transfert...",
+      "confirmTitle": "Transférer cette identité ?",
+      "confirmMessage": "L'UTXO de l'identité ({amount}) est envoyé à {address}, ce qui remet l'autorité de mettre à jour les métadonnées de cette identité. C'est irréversible.",
+      "confirmButton": "Transférer",
+      "done": "Identité transférée à {address}",
+      "doneTitle": "Identité transférée",
+      "action": "transférer",
+      "carriedLabel": "Ce qu'elle porte ({carries})",
+      "carriedStays": "Reste dans ce portefeuille",
+      "carriedGoes": "Part avec l'identité",
+      "confirmMessageKeep": "L'UTXO de l'identité ({amount}) est envoyé à {address}, cédant l'autorité de mettre à jour les métadonnées de cette identité. Ce qu'il porte ({carries}) reste dans ce portefeuille. Cette action est irréversible.",
+      "confirmMessageAlong": "L'UTXO de l'identité ({amount}) est envoyé à {address} avec ce qu'il porte ({carries}), cédant l'autorité de mettre à jour les métadonnées de cette identité. Cette action est irréversible."
+    },
+    "remove": {
+      "title": "Retirer de cette liste ?",
+      "message": "L'identité est retirée de cette liste. Rajoutez-la par son authbase.",
+      "messageHeld": "L'identité est retirée de cette liste et son UTXO n'est plus écarté de la sélection des pièces : le prochain envoi ordinaire peut le dépenser et remettre l'identité à qui reçoit cet envoi. Ce portefeuille ne le retiendra plus de lui-même ; rajoutez-la par son authbase.",
+      "button": "Retirer"
+    },
+    "errors": {
+      "invalidCategory": "Ce n'est pas un identifiant de transaction. Collez l'authbase de 64 caractères, un identifiant de token ou la catégorie d'une clé.",
+      "alreadyListed": "Cette identité est déjà dans la liste."
+    },
+    "established": {
+      "since": "Depuis {year}"
+    },
+    "openCheckFailed": "Impossible de consulter les identités de ce portefeuille : {reason} Une identité qu'il détient n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les réglages.",
+    "chaingraphNotConfigured": "Aucun serveur Chaingraph n'est défini pour chipnet, les identités ne peuvent donc pas être consultées ici. Définissez-en un dans les réglages avancés.",
+    "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
+    "found": {
+      "title": "Ce portefeuille détient des identités",
+      "intro": "Ce portefeuille détient ces identités, ou la clé qui les contrôle, il peut donc mettre à jour leurs métadonnées :",
+      "reserve": "réserve de {amount}",
+      "heldBack": "Leurs UTXOs d'identité, ou le NFT clé qui les contrôle, sont maintenant écartés de la sélection des pièces par cette app seulement : un envoi ordinaire d'ici ne peut pas les dépenser par accident, la même seed dans un autre logiciel le peut encore. Le BCH qu'ils portent n'est pas compté dans le solde disponible, et une réserve est affichée sur la page des identités plutôt que dans la liste des tokens.",
+      "remove": "Vous pouvez retirer une identité de la liste si vous préférez que son UTXO ne soit pas retenu.",
+      "view": "Voir les identités",
+      "close": "Fermer"
+    },
+    "locationLabel": "À l'adresse :",
+    "locationScriptLabel": "Verrouillé par script :"
   }
 }

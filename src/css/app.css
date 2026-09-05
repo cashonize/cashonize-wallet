@@ -268,6 +268,115 @@ input[type='number'] {
 .warning-box-icon {
   flex: none;
 }
+/* the same shape for something worth reading that is not a caution */
+.info-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-lightGrey);
+  background-color: rgba(128, 128, 128, 0.08);
+  border-radius: 8px;
+}
+/* The step form the creator tools share: a step's title is grey until it is the open one, and a
+   done step folds to one line with its tick, so done, doing and next read as a shape */
+.step-label {
+  color: grey;
+}
+.step-label.open {
+  color: var(--color-primary);
+}
+.closed-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.step-check {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+/* a process as numbered steps, each with the one icon that says what kind of step it is */
+.walkthrough {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: walkthrough-step;
+}
+.walkthrough li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+.walkthrough li::before {
+  counter-increment: walkthrough-step;
+  content: counter(walkthrough-step) ")";
+  flex: none;
+}
+/* the one action in a line of prompt-grey text, in the link colour */
+.action-link {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.action-link:hover {
+  text-decoration: underline;
+}
+/* the three the settings pages all reach for: a grey aside, a hash, a block below the one before */
+.description {
+  color: grey;
+}
+.mono {
+  font-family: monospace;
+}
+.section {
+  margin-top: 20px;
+}
+/* a value shown with its copy icon, copied by clicking anywhere on the line */
+.copy-target {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+/* the input takes the room the button does not, on one line where the screen allows it */
+.input-with-button {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.input-with-button input:not([type="button"]) {
+  flex: 1 1 260px;
+  margin: 0;
+}
+.input-with-button input[type="button"] {
+  margin: 0;
+}
+/* the frame of an identity card and of the unnamed authhead's */
+.identity-card {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+body.dark .identity-card {
+  border-color: #333;
+}
+/* the chip marking a transaction as an operation on one of the wallet's own identities; the
+   history recolours it */
+.identity-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 0.7em;
+  font-weight: 600;
+  vertical-align: middle;
+  background-color: rgba(128, 128, 128, 0.18);
+  color: var(--font-color);
+}
 .tokenInfo {
   display: flex;
   align-items: center;
@@ -301,10 +410,13 @@ input[type='number'] {
     transform: scale(1.15);
   }
 }
-.star-pop {
-  animation: star-pop 0.35s ease;
+/* one small pop for a thing that appears because the user earned it: a favourite, a checked
+   registry, a step's tick, a created token */
+.star-pop,
+.pop {
+  animation: pop 0.35s ease;
 }
-@keyframes star-pop {
+@keyframes pop {
   0% {
     transform: scale(1);
   }

@@ -1,0 +1,233 @@
+import { describe, expect, it } from 'vitest'
+import { TokenSendRequest } from 'mainnet-js'
+import type { Utxo } from 'mainnet-js'
+import { binToHex } from '@bitauth/libauth'
+
+import {
+  identityOutput,
+  maxPublicationOutputSize,
+  mintOutputs,
+  parsePublicationOutput,
+  publicationOutput,
+  publicationOutputSize,
+  transferOutputs,
+} from '../src/utils/tools/authchainIdentity'
+import { diffRegistries, summarizeRegistry } from '../src/utils/tools/registryFile'
+
+const category = '0123456789abcdef'.repeat(4)
+const hash = 'ab'.repeat(32)
+const addresses = { bch: 'bitcoincash:qtest', token: 'bitcoincash:ztest' }
+
+const authUtxo = (token?: Utxo['token']): Utxo =>
+  ({ txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n, address: addresses.bch, ...(token ? { token } : {}) })
+
+describe('identityOutput', () => {
+  // spending the old authhead as input 0 and recreating it here is what continues the authchain
+  it('recreates a BCH-only authhead with the value it had', () => {
+    expect(identityOutput(authUtxo(), addresses)).toEqual({ cashaddr: addresses.bch, value: 1000n })
+  })
+
+  it('carries the reserve and the NFT of a token authhead over untouched', () => {
+    const output = identityOutput(
+      authUtxo({ category, amount: 500n, nft: { commitment: 'aa', capability: 'minting' } }),
+      addresses,
+    ) as TokenSendRequest
+
+    expect(output).toBeInstanceOf(TokenSendRequest)
+    expect(output.amount).toBe(500n)
+    expect(output.nft).toEqual({ commitment: 'aa', capability: 'minting' })
+    expect(output.value).toBe(1000n)
+  })
+
+  it('takes the reserve an operation leaves behind', () => {
+    const output = identityOutput(authUtxo({ category, amount: 500n }), addresses, 300n) as TokenSendRequest
+
+    expect(output.amount).toBe(300n)
+  })
+
+  // a token output of amount zero is only valid while it carries an NFT
+  it('becomes a plain BCH output once the reserve is emptied', () => {
+    expect(identityOutput(authUtxo({ category, amount: 500n }), addresses, 0n))
+      .toEqual({ cashaddr: addresses.bch, value: 1000n })
+  })
+
+  it('stays a token output for an emptied reserve that still carries an NFT', () => {
+    const output = identityOutput(
+      authUtxo({ category, amount: 500n, nft: { commitment: '', capability: 'minting' } }),
+      addresses,
+      0n,
+    ) as TokenSendRequest
+
+    expect(output).toBeInstanceOf(TokenSendRequest)
+    expect(output.amount).toBe(0n)
+  })
+})
+
+describe('transferOutputs', () => {
+  const destination = 'bitcoincash:qdestination'
+  const minting = { commitment: '', capability: 'minting' as const }
+
+  it('sends a BCH-only authhead as one plain output', () => {
+    expect(transferOutputs(authUtxo(), destination, addresses, false))
+      .toEqual([{ cashaddr: destination, value: 1000n }])
+  })
+
+  // the authority moves, the reserve and the minting NFT come back here as a second output
+  it('keeps what the authhead carries in this wallet by default', () => {
+    const outputs = transferOutputs(authUtxo({ category, amount: 500n, nft: minting }), destination, addresses, false)
+
+    expect(outputs[0]).toEqual({ cashaddr: destination, value: 1000n })
+    const kept = outputs[1] as TokenSendRequest
+    expect(kept).toBeInstanceOf(TokenSendRequest)
+    expect(kept.cashaddr).toBe(addresses.token)
+    expect(kept.amount).toBe(500n)
+    expect(kept.nft).toEqual(minting)
+  })
+
+  it('sends what the authhead carries along with it when asked', () => {
+    const outputs = transferOutputs(authUtxo({ category, amount: 500n, nft: minting }), destination, addresses, true)
+
+    expect(outputs).toHaveLength(1)
+    const moved = outputs[0] as TokenSendRequest
+    expect(moved).toBeInstanceOf(TokenSendRequest)
+    expect(moved.cashaddr).toBe(destination)
+    expect(moved.amount).toBe(500n)
+    expect(moved.nft).toEqual(minting)
+    expect(moved.value).toBe(1000n)
+  })
+})
+
+describe('mintOutputs', () => {
+  const minting = { commitment: '', capability: 'minting' as const }
+  const mints = [
+    { cashaddr: addresses.token, commitment: '01', capability: 'none', value: 1000n },
+    { cashaddr: 'bitcoincash:qsomeone', commitment: '02', capability: 'mutable', value: 1000n },
+  ]
+
+  // the identity output leads, unchanged, so the authchain continues here with the minting NFT
+  it('puts the identity output first and the minted NFTs after it', () => {
+    const outputs = mintOutputs(authUtxo({ category, amount: 500n, nft: minting }), addresses, mints)
+
+    const identity = outputs[0] as TokenSendRequest
+    expect(identity).toBeInstanceOf(TokenSendRequest)
+    expect(identity.cashaddr).toBe(addresses.token)
+    expect(identity.amount).toBe(500n)
+    expect(identity.nft).toEqual(minting)
+    expect(outputs).toHaveLength(3)
+    const [first, second] = outputs.slice(1) as TokenSendRequest[]
+    expect(first?.category).toBe(category)
+    expect(first?.nft).toEqual({ commitment: '01', capability: 'none' })
+    expect(second?.cashaddr).toBe('bitcoincash:qsomeone')
+    expect(second?.nft).toEqual({ commitment: '02', capability: 'mutable' })
+  })
+})
+
+describe('publicationOutput', () => {
+  // what the wallet writes is what it reads back off the chain
+  it('round-trips through the parser', () => {
+    const uris = ['ipfs://bafyexamplecid', 'example.com']
+    const encoded = binToHex(publicationOutput(hash, uris).buffer)
+
+    expect(parsePublicationOutput(encoded)).toEqual({ hash, uris })
+  })
+
+  it('accounts for its own size', () => {
+    const uris = ['ipfs://bafyexamplecid', 'example.com']
+
+    expect(publicationOutputSize(uris)).toBe(publicationOutput(hash, uris).buffer.length)
+  })
+
+  // the locations are capped by the data carrier limit rather than by the form
+  it('counts a long location out of the budget', () => {
+    const tooMany = Array.from({ length: 6 }, (_, index) => `mirror${index}.example.com/registry.json`)
+
+    expect(publicationOutputSize(tooMany)).toBeGreaterThan(maxPublicationOutputSize)
+  })
+
+  // a push of 76 bytes or more takes a length byte after the opcode, so a long location costs
+  // two bytes over its length where a short one costs one
+  it('measures the push encoding a long location takes', () => {
+    const short = 'example.com'
+    const long = `${'a'.repeat(70)}.example.com`
+    const withoutLocations = publicationOutputSize([])
+
+    expect(publicationOutputSize([short]) - withoutLocations).toBe(short.length + 1)
+    expect(publicationOutputSize([long]) - withoutLocations).toBe(long.length + 2)
+  })
+})
+
+const registryWith = (snapshots: Record<string, unknown>) => JSON.stringify({
+  version: { major: 1, minor: 0, patch: 0 },
+  latestRevision: '2024-01-01T00:00:00.000Z',
+  registryIdentity: { name: 'Test registry' },
+  identities: { [category]: snapshots },
+})
+
+const snapshot = (name: string, extra: Record<string, unknown> = {}) =>
+  ({ name, token: { category, symbol: 'TEST', decimals: 2 }, ...extra })
+
+describe('summarizeRegistry', () => {
+  it('reads the latest snapshot of this identity', () => {
+    const summary = summarizeRegistry(registryWith({
+      '2024-01-01T00:00:00.000Z': snapshot('Old name'),
+      '2025-01-01T00:00:00.000Z': snapshot('New name', { uris: { icon: 'ipfs://icon' } }),
+    }), category)
+
+    expect(summary).toEqual({
+      name: 'New name',
+      symbol: 'TEST',
+      decimals: 2,
+      iconUri: 'ipfs://icon',
+      snapshots: ['2024-01-01T00:00:00.000Z', '2025-01-01T00:00:00.000Z'],
+    })
+  })
+
+  // the wrong-file mistake, which is cheapest to catch before signing anything
+  it('reports a registry that names no identity for this authbase', () => {
+    const otherRegistry = registryWith({}).replace(category, 'ff'.repeat(32))
+
+    expect(summarizeRegistry(otherRegistry, category)).toBeUndefined()
+  })
+
+  it('reports a file that is not a registry', () => {
+    expect(summarizeRegistry('not json at all', category)).toBeUndefined()
+  })
+
+  // hosting is untrusted by design, and what comes out of this file is shown to the signer, so a
+  // file of the wrong shape is refused rather than rendered as nonsense in the review dialog
+  it('refuses a registry whose snapshot is not shaped like one', () => {
+    const malformed = JSON.stringify({
+      version: { major: 1, minor: 0, patch: 0 },
+      latestRevision: '2024-01-01T00:00:00.000Z',
+      registryIdentity: { name: 'Test registry' },
+      identities: { [category]: { '2024-01-01T00:00:00.000Z': { name: { first: 'not a string' } } } },
+    })
+
+    expect(summarizeRegistry(malformed, category)).toBeUndefined()
+  })
+})
+
+describe('diffRegistries', () => {
+  it('names what holders will see change', () => {
+    const current = summarizeRegistry(registryWith({ '2024-01-01T00:00:00.000Z': snapshot('Old name') }), category)!
+    const candidate = summarizeRegistry(registryWith({
+      '2024-01-01T00:00:00.000Z': snapshot('Old name'),
+      '2025-01-01T00:00:00.000Z': snapshot('New name'),
+    }), category)!
+
+    expect(diffRegistries(current, candidate).changed)
+      .toEqual([{ field: 'name', from: 'Old name', to: 'New name' }])
+  })
+
+  // the common generator writes a fresh single-snapshot registry rather than appending to one
+  it('warns about history the new file drops', () => {
+    const current = summarizeRegistry(registryWith({
+      '2024-01-01T00:00:00.000Z': snapshot('Name'),
+      '2025-01-01T00:00:00.000Z': snapshot('Name'),
+    }), category)!
+    const candidate = summarizeRegistry(registryWith({ '2025-01-01T00:00:00.000Z': snapshot('Name') }), category)!
+
+    expect(diffRegistries(current, candidate).droppedSnapshots).toEqual(['2024-01-01T00:00:00.000Z'])
+    expect(diffRegistries(current, candidate).changed).toEqual([])
+  })
+})

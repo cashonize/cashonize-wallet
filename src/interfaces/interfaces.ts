@@ -38,20 +38,18 @@ export type QRCodeAnimationName =
   | 'RadialRipple'
   | 'RadialRippleIn';
 
-export type TokenActionType = 'sending' | 'minting' | 'burning' | 'transferAuth';
+export type TokenActionType = 'sending' | 'minting' | 'burning';
 
 export type TokenList = (TokenDataNFT | TokenDataFT)[]
 
 export interface TokenDataNFT {
   category: string,
-  nfts: Utxo[],
-  authUtxo?: Utxo
+  nfts: Utxo[]
 }
 
 export interface TokenDataFT {
   category: string,
-  amount: bigint,
-  authUtxo?: Utxo
+  amount: bigint
 }
 
 export type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;

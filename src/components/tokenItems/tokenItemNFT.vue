@@ -3,20 +3,22 @@
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
   import nftMintForm from './nftMintForm.vue'
-  import { TokenSendRequest, type SendRequest, type TokenI } from "mainnet-js"
+  import { TokenSendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
-  import { getCashAddressScanError, validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
+  import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
   import { useWindowSize } from 'src/utils/composables'
@@ -40,7 +42,6 @@
   const displayBatchTransfer = ref(false);
   const displayMintNfts = ref(false);
   const displayBurnNft = ref(false);
-  const displayAuthTransfer = ref(false);
   const displayTokenInfo = ref(false);
   const displayChildNfts = ref(false);
   const loadingChildNftMetadata = ref(false);
@@ -96,6 +97,28 @@
     if(isSingleNft.value) tokenName = nftMetadata.value?.name;
     return tokenName;
   })
+  // An AuthKey carries no metadata of its own: it is the NFT itself that is the authority. Once
+  // confirmed, the wallet says what it opens instead of showing an unnamed NFT.
+  const guardedIdentities = computed(() => identitiesStore.identitiesGuardedByKey(tokenData.value.category));
+  const guardedNames = computed(() => guardedIdentities.value
+    .map(identity => store.bcmrRegistries?.[identity.category]?.name)
+    .filter((name): name is string => !!name)
+    .join(', '));
+  const heldIdentityLine = computed(() => identitiesStore.heldIdentityLine(tokenData.value.category));
+  // The minting NFT of a category made on the create page is its identity UTXO, held back from
+  // coin selection: minting from it has to continue the authchain rather than go through tokenMint
+  const identityUtxo = computed(() => {
+    const nft = tokenData.value.nfts?.[0];
+    const authUtxo = identitiesStore.heldIdentityOf(tokenData.value.category)?.authUtxo;
+    if (!nft || !authUtxo) return undefined;
+    return authUtxo.txid === nft.txid && authUtxo.vout === nft.vout ? authUtxo : undefined;
+  });
+  const isIdentityKey = computed(() => guardedIdentities.value.length > 0);
+  const keyNameLine = computed(() => {
+    if (guardedNames.value) return t('tokenItem.authKey.nameFor', { names: guardedNames.value });
+    return t('tokenItem.authKey.name');
+  });
+
   const tokenDescription = computed(() => {
     if(parseResult.value?.success && parseResult.value.nftTypeDescription) return parseResult.value.nftTypeDescription;
     return tokenMetaData.value?.description;
@@ -199,6 +222,7 @@
       const selectedNftsList = tokenData.value.nfts?.filter(nft =>
         selectedNfts.value.has(getNftKey(nft.txid, nft.vout))
       ) ?? [];
+      store.checkTokenUtxosSpendable(selectedNftsList);
 
       const outputArray:TokenSendRequest[] = [];
       selectedNftsList.forEach(nftItem => {
@@ -240,6 +264,7 @@
     try{
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      store.checkTokenUtxosSpendable(tokenData.value.nfts.slice(0, 1));
 
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending) {
@@ -287,6 +312,7 @@
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
 
       const category = tokenData.value.category;
+      store.checkTokenUtxosSpendable(tokenData.value.nfts.slice(0, 1));
       const nftInfo = tokenData.value.nfts[0]?.token as TokenI;
       const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
       const confirmed = await confirmDialog(
@@ -311,40 +337,6 @@
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
       const alertMessage = t('tokenItem.alerts.burnedNft', { nftType: nftTypeString, tokenId: displayId });
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.burnSuccessful'));
-    } catch (error) {
-      displayAndLogError(error)
-    } finally {
-      activeAction.value = null;
-    }
-  }
-  async function transferAuth() {
-    if (activeAction.value) return;
-    if(!tokenData.value?.authUtxo) return;
-    const category = tokenData.value.category;
-    const authNft = tokenData.value.authUtxo?.token;
-    activeAction.value = 'transferAuth';
-    try {
-      // the auth NFT stays behind as change, the recipient only gets a plain BCH output
-      destinationAddr.value = validateRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-      const authTransfer: SendRequest = {
-        cashaddr: destinationAddr.value,
-        value: 1000n,
-      };
-      const changeOutputNft = new TokenSendRequest({
-        cashaddr: store.wallet.getTokenDepositAddress(),
-        category: tokenData.value.category,
-        nft: {
-          commitment: authNft!.nft!.commitment,
-          capability: authNft!.nft!.capability
-        },
-      });
-      notifySending();
-      const { txId } = await store.spend.send([authTransfer,changeOutputNft], { ensureUtxos: [tokenData.value.authUtxo] });
-      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      const alertMessage = t('tokenItem.alerts.transferredAuth', { category: displayId, address: destinationAddr.value });
-      displayAuthTransfer.value = false;
-      destinationAddr.value = "";
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.authTransferSuccessful'));
     } catch (error) {
       displayAndLogError(error)
     } finally {
@@ -383,6 +375,12 @@
 
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
+            <div v-if="isIdentityKey" class="identity-key-line">
+              {{ keyNameLine }}
+              <span class="identity-key-link" @click="store.changeView(19)">
+                {{ t('tokenItem.authKey.manage') }}
+              </span>
+            </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
@@ -403,6 +401,7 @@
               {{ t('tokenItem.seeParsedData') }}
             </div>
             <div v-else style="word-break: break-all;" class="hide"></div>
+            <div v-if="heldIdentityLine">{{ heldIdentityLine }}</div>
           </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" class="showChildNfts">
             <div @click="showChildNfts()" class="showChildNftsToggle">
@@ -436,6 +435,9 @@
           <span @click="displayTokenInfo = !displayTokenInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
           </span>
+          <span v-if="heldIdentityLine" @click="store.changeView(19)" style="white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'"> {{ t('tokenItem.identity.manage') }}
+          </span>
           <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayBatchTransfer = !displayBatchTransfer" style="margin-left: 10px;">
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.batchTransfer') }}{{ selectedNftCount > 0 ? ` (${selectedNftCount === tokenData.nfts?.length ? t('tokenItem.actions.all') : selectedNftCount})` : '' }}
           </span>
@@ -451,10 +453,6 @@
           <span v-if="isSingleNft && settingsStore.tokenBurn" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             <span>{{ t('tokenItem.actions.burnNft') }}</span>
-          </span>
-          <span v-if="settingsStore.authchains && tokenData?.authUtxo" @click="displayAuthTransfer = !displayAuthTransfer" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/shieldLightGrey.svg' : 'images/shield.svg'">
-            <span>{{ t('tokenItem.actions.authTransfer') }}</span>
           </span>
         </div>
         <div v-if="displayTokenInfo" class="tokenAction">
@@ -514,24 +512,12 @@
             <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.batchTransfer.transferringButton') : t('tokenItem.batchTransfer.transferButton')" :disabled="activeAction !== null">
           </div>
         </div>
-        <nftMintForm v-if="displayMintNfts" :category="tokenData.category" v-model:active-action="activeAction" @minted="displayMintNfts = false"/>
+        <nftMintForm v-if="displayMintNfts" :category="tokenData.category" :identity-utxo="identityUtxo" v-model:active-action="activeAction" @minted="displayMintNfts = false"/>
         <div v-if="displayBurnNft" class="tokenAction">
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
           <span v-else>{{ t('tokenItem.burn.burnNftDescription') }}</span>
           <br>
           <input @click="burnNft()" type="button" :value="activeAction === 'burning' ? t('tokenItem.burn.burningButton') : t('tokenItem.burn.burnNftButton')" class="button error" :disabled="activeAction !== null">
-        </div>
-        <div v-if="displayAuthTransfer" class="tokenAction">
-          {{ t('tokenItem.authTransfer.descriptionNft') }} <br>
-          <i18n-t keypath="tokenItem.authTransfer.dedicatedWalletNote" tag="span">
-            <template #link>
-              <a href="https://cashtokens.studio/" target="_blank">CashTokens Studio</a>
-            </template>
-          </i18n-t><br>
-          <span class="grouped" style="margin-top: 10px;">
-            <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('tokenItem.mint.destinationPlaceholder')">
-            <input @click="transferAuth()" type="button" :value="activeAction === 'transferAuth' ? t('tokenItem.authTransfer.transferringButton') : t('tokenItem.authTransfer.transferButton')" class="primaryButton" :disabled="activeAction !== null">
-          </span>
         </div>
       </div>
     </fieldset>
@@ -597,5 +583,18 @@
   .show-mobile {
     display: inline;
   }
+}
+
+/* An identity key has no metadata to show, so this line is what names it. Grey like every other
+   description, with only the way to act on it coloured. */
+.identity-key-line {
+  color: grey;
+}
+.identity-key-link {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.identity-key-link:hover {
+  text-decoration: underline;
 }
 </style>

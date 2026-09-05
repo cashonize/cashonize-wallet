@@ -38,7 +38,7 @@ describe('spend.sendUtxo', () => {
     const wallet = createMockWallet()
     const store = useStore()
     store.setWallet(wallet as never)
-    await store.reserveUtxo(coin, 'pledge')
+    await store.reserveOutpoints([outpointOf(coin)], 'pledge')
 
     await expect(store.spend.sendUtxo(coin, 'bitcoincash:qdest')).rejects.toThrow()
     expect(wallet.sendMax).not.toHaveBeenCalled()
@@ -49,7 +49,7 @@ describe('spend.sendUtxo', () => {
     const wallet = createMockWallet()
     const store = useStore()
     store.setWallet(wallet as never)
-    await store.reserveUtxo(coin, 'manual')
+    await store.reserveOutpoints([outpointOf(coin)], 'manual')
 
     const response = await store.spend.sendUtxo(coin, 'bitcoincash:qdest')
 
@@ -62,7 +62,7 @@ describe('spend.sendUtxo', () => {
     const wallet = createMockWallet()
     const store = useStore()
     store.setWallet(wallet as never)
-    await store.reserveUtxo(coin, 'manual')
+    await store.reserveOutpoints([outpointOf(coin)], 'manual')
     wallet.sendMax.mockRejectedValue(new Error('broadcast failed'))
 
     await expect(store.spend.sendUtxo(coin, 'bitcoincash:qdest')).rejects.toThrow('broadcast failed')

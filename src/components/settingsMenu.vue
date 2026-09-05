@@ -8,6 +8,7 @@
   import { useI18n } from 'vue-i18n'
   import { Connection, type ElectrumNetworkProvider } from "mainnet-js"
   import { useStore } from '../stores/store'
+  import { useIdentitiesStore } from '../stores/identitiesStore'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
@@ -17,6 +18,7 @@
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
   const cashconnectStore = useCashconnectStore()
@@ -45,6 +47,8 @@
   const confirmBeforeSending = ref(settingsStore.confirmBeforeSending);
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedShowCauldronFTValue = ref(settingsStore.showCauldronFTValue);
+  const selectedFollowTokenIdentities = ref(settingsStore.followTokenIdentities);
+  const selectedAllowDappIdentitySpends = ref(settingsStore.allowDappIdentitySpends);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
   const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
@@ -90,30 +94,30 @@
   const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);
   const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
-  const predefinedChaingraphs = [
-    "https://gql.chaingraph.pat.mn/v1/graphql",
-    "https://demo.chaingraph.cash/v1/graphql"
-  ];
-  const storedChaingraph = settingsStore.chaingraph;
-  const isCustomChaingraph = !predefinedChaingraphs.includes(storedChaingraph);
-  const selectedChaingraph = ref(isCustomChaingraph ? "custom" : storedChaingraph);
-  const customChaingraph = ref(isCustomChaingraph ? storedChaingraph : "");
+  // per network like electrum; chipnet has no predefined instance, only "none" or a custom one
+  const predefinedChaingraphsMainnet = ["https://gql.chaingraph.pat.mn/v1/graphql"];
+  const storedChaingraphMainnet = settingsStore.chaingraphMainnet;
+  const isCustomChaingraphMainnet = !predefinedChaingraphsMainnet.includes(storedChaingraphMainnet);
+  const selectedChaingraphMainnet = ref(isCustomChaingraphMainnet ? "custom" : storedChaingraphMainnet);
+  const customChaingraphMainnet = ref(isCustomChaingraphMainnet ? storedChaingraphMainnet : "");
+  const storedChaingraphChipnet = settingsStore.chaingraphChipnet;
+  const selectedChaingraphChipnet = ref(storedChaingraphChipnet ? "custom" : "");
+  const customChaingraphChipnet = ref(storedChaingraphChipnet);
   const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
-  const predefinedBcmrIndexersMainnet = ["https://bcmr.paytaca.com/api"];
-  const predefinedBcmrIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
-  const storedBcmrIndexer = settingsStore.bcmrIndexerMainnet;
-  const isCustomBcmrIndexer = !predefinedBcmrIndexersMainnet.includes(storedBcmrIndexer);
-  const selectedBcmrIndexer = ref(isCustomBcmrIndexer ? "custom" : storedBcmrIndexer);
-  const customBcmrIndexer = ref(isCustomBcmrIndexer ? storedBcmrIndexer : "");
-  const storedBcmrIndexerChipnet = settingsStore.bcmrIndexerChipnet;
-  const isCustomBcmrIndexerChipnet = !predefinedBcmrIndexersChipnet.includes(storedBcmrIndexerChipnet);
-  const selectedBcmrIndexerChipnet = ref(isCustomBcmrIndexerChipnet ? "custom" : storedBcmrIndexerChipnet);
-  const customBcmrIndexerChipnet = ref(isCustomBcmrIndexerChipnet ? storedBcmrIndexerChipnet : "");
+  const predefinedTokenMetadataIndexersMainnet = ["https://bcmr.paytaca.com/api"];
+  const predefinedTokenMetadataIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
+  const storedTokenMetadataIndexer = settingsStore.tokenMetadataIndexerMainnet;
+  const isCustomTokenMetadataIndexer = !predefinedTokenMetadataIndexersMainnet.includes(storedTokenMetadataIndexer);
+  const selectedTokenMetadataIndexer = ref(isCustomTokenMetadataIndexer ? "custom" : storedTokenMetadataIndexer);
+  const customTokenMetadataIndexer = ref(isCustomTokenMetadataIndexer ? storedTokenMetadataIndexer : "");
+  const storedTokenMetadataIndexerChipnet = settingsStore.tokenMetadataIndexerChipnet;
+  const isCustomTokenMetadataIndexerChipnet = !predefinedTokenMetadataIndexersChipnet.includes(storedTokenMetadataIndexerChipnet);
+  const selectedTokenMetadataIndexerChipnet = ref(isCustomTokenMetadataIndexerChipnet ? "custom" : storedTokenMetadataIndexerChipnet);
+  const customTokenMetadataIndexerChipnet = ref(isCustomTokenMetadataIndexerChipnet ? storedTokenMetadataIndexerChipnet : "");
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
-  const enableAuthchains = ref(settingsStore.authchains);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
   const strictWcSchema = ref(settingsStore.strictWcSchema);
   const showPrivateKeyWif = ref(settingsStore.showPrivateKeyWif);
@@ -259,12 +263,14 @@
     settingsStore.ipfsGateway = trimmedGateway;
     localStorage.setItem("ipfsGateway", trimmedGateway);
   }
-  function changeChaingraph(){
-    if (selectedChaingraph.value === "custom") return;
-    applyChaingraph(selectedChaingraph.value);
+  function changeChaingraph(network: 'mainnet' | 'chipnet'){
+    const selected = network === 'mainnet' ? selectedChaingraphMainnet.value : selectedChaingraphChipnet.value;
+    if (selected === "custom") return;
+    applyChaingraph(network, selected);
   }
   const verifyingCustomChaingraph = ref(false);
-  async function saveCustomChaingraph(){
+  async function saveCustomChaingraph(network: 'mainnet' | 'chipnet'){
+    const customChaingraph = network === 'mainnet' ? customChaingraphMainnet : customChaingraphChipnet;
     const trimmedChaingraph = customChaingraph.value.trim();
     if (!trimmedChaingraph || verifyingCustomChaingraph.value) return;
     let normalizedChaingraph: string;
@@ -285,11 +291,12 @@
     } finally {
       verifyingCustomChaingraph.value = false;
     }
-    applyChaingraph(normalizedChaingraph);
+    applyChaingraph(network, normalizedChaingraph);
   }
-  function applyChaingraph(chaingraphUrl: string){
-    settingsStore.chaingraph = chaingraphUrl;
-    localStorage.setItem("chaingraph", chaingraphUrl);
+  function applyChaingraph(network: 'mainnet' | 'chipnet', chaingraphUrl: string){
+    if (network === 'mainnet') settingsStore.chaingraphMainnet = chaingraphUrl;
+    else settingsStore.chaingraphChipnet = chaingraphUrl;
+    localStorage.setItem(`chaingraph-${network}`, chaingraphUrl);
   }
   function changeCauldronIndexer(){
     settingsStore.cauldronIndexer = selectedCauldronIndexer.value;
@@ -297,29 +304,29 @@
     // refetch token prices from the newly selected indexer
     void store.fetchCauldronPricesForTokens();
   }
-  function changeBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
-    const selected = targetNetwork == "mainnet" ? selectedBcmrIndexer.value : selectedBcmrIndexerChipnet.value;
+  function changeTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet"){
+    const selected = targetNetwork == "mainnet" ? selectedTokenMetadataIndexer.value : selectedTokenMetadataIndexerChipnet.value;
     if (selected === "custom") return;
-    applyBcmrIndexer(targetNetwork, selected);
+    applyTokenMetadataIndexer(targetNetwork, selected);
   }
-  function saveCustomBcmrIndexer(targetNetwork: "mainnet" | "chipnet"){
-    const customIndexer = targetNetwork == "mainnet" ? customBcmrIndexer.value : customBcmrIndexerChipnet.value;
+  function saveCustomTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet"){
+    const customIndexer = targetNetwork == "mainnet" ? customTokenMetadataIndexer.value : customTokenMetadataIndexerChipnet.value;
     // the store appends /tokens/... paths, so strip any trailing slash
     let trimmedIndexer = customIndexer.trim().replace(/\/+$/, "");
     if (!trimmedIndexer) return;
     // without a scheme the value would be used as a path on the app's own origin
     if (!/^https?:\/\//i.test(trimmedIndexer)) trimmedIndexer = `https://${trimmedIndexer}`;
-    if (targetNetwork == "mainnet") customBcmrIndexer.value = trimmedIndexer;
-    if (targetNetwork == "chipnet") customBcmrIndexerChipnet.value = trimmedIndexer;
-    applyBcmrIndexer(targetNetwork, trimmedIndexer);
+    if (targetNetwork == "mainnet") customTokenMetadataIndexer.value = trimmedIndexer;
+    if (targetNetwork == "chipnet") customTokenMetadataIndexerChipnet.value = trimmedIndexer;
+    applyTokenMetadataIndexer(targetNetwork, trimmedIndexer);
   }
-  function applyBcmrIndexer(targetNetwork: "mainnet" | "chipnet", indexerUrl: string){
+  function applyTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet", indexerUrl: string){
     if(targetNetwork == "mainnet"){
-      settingsStore.bcmrIndexerMainnet = indexerUrl;
+      settingsStore.tokenMetadataIndexerMainnet = indexerUrl;
       localStorage.setItem("bcmrIndexerMainnet", indexerUrl);
     }
     if(targetNetwork == "chipnet"){
-      settingsStore.bcmrIndexerChipnet = indexerUrl;
+      settingsStore.tokenMetadataIndexerChipnet = indexerUrl;
       localStorage.setItem("bcmrIndexerChipnet", indexerUrl);
     }
     // refetch token metadata from the newly selected indexer
@@ -352,6 +359,16 @@
     localStorage.setItem("showCauldronSwap", selectedShowSwap.value? "true" : "false");
     settingsStore.showCauldronSwap = selectedShowSwap.value;
   }
+  // the identities page runs the lookups on its next visit, which is where their result shows
+  function toggleFollowTokenIdentities(){
+    localStorage.setItem("followTokenIdentities", selectedFollowTokenIdentities.value ? "true" : "false");
+    settingsStore.followTokenIdentities = selectedFollowTokenIdentities.value;
+  }
+  function toggleAllowDappIdentitySpends(){
+    localStorage.setItem("allowDappIdentitySpends", selectedAllowDappIdentitySpends.value ? "true" : "false");
+    settingsStore.allowDappIdentitySpends = selectedAllowDappIdentitySpends.value;
+  }
+
   function toggleShowCauldronFTValue(){
     localStorage.setItem("showCauldronFTValue", selectedShowCauldronFTValue.value? "true" : "false");
     settingsStore.showCauldronFTValue = selectedShowCauldronFTValue.value;
@@ -467,17 +484,6 @@
     localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
     settingsStore.mintNfts = enableMintNfts.value;
   }
-  async function changeAuthchains(){
-    localStorage.setItem("authchains", enableAuthchains.value? "true" : "false");
-    settingsStore.authchains = enableAuthchains.value;
-    if(enableAuthchains.value) {
-      try{
-        await store.fetchAuthUtxos()
-      } catch (error) {
-        console.error("Error fetching auth UTXOs:", error)
-      }
-    }
-  }
   function changeDisableTokenIcons(){
     localStorage.setItem("disableTokenIcons", disableTokenIcons.value ? "true" : "false");
     settingsStore.disableTokenIcons = disableTokenIcons.value;
@@ -538,6 +544,22 @@
           <div class="info-popup-note">{{ t('settings.userOptions.showCauldronFTValuePortfolioNote') }}</div>
         </InfoPopup>
         <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
+      </div>
+
+      <div style="margin-top:15px">
+        {{ t('settings.userOptions.followTokenIdentities') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedFollowTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
+      </div>
+
+      <div style="margin-top:15px">
+        {{ t('settings.userOptions.allowDappIdentitySpends') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.allowDappIdentitySpendsHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedAllowDappIdentitySpends" @update:model-value="toggleAllowDappIdentitySpends" dense />
       </div>
 
       <div style="margin-top: 15px; margin-bottom: 15px;">
@@ -721,16 +743,29 @@
           </template>
           <div style="max-width: 300px;">{{ t('settings.advanced.chaingraphHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedChaingraph" @change="changeChaingraph()">
+        <select v-if="store.network == 'mainnet'" v-model="selectedChaingraphMainnet" @change="changeChaingraph('mainnet')">
           <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
-          <option value="https://demo.chaingraph.cash/v1/graphql">Demo Chaingraph</option>
           <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="selectedChaingraph === 'custom'" style="margin-top: 8px;">
+        <select v-else v-model="selectedChaingraphChipnet" @change="changeChaingraph('chipnet')">
+          <option value="">{{ t('settings.advanced.chaingraphNone') }} {{ t('settings.advanced.default') }}</option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
+        </select>
+        <div v-if="(store.network == 'mainnet' ? selectedChaingraphMainnet : selectedChaingraphChipnet) === 'custom'" style="margin-top: 8px;">
           <input
-            v-model="customChaingraph"
-            @blur="saveCustomChaingraph()"
-            @keyup.enter="saveCustomChaingraph()"
+            v-if="store.network == 'mainnet'"
+            v-model="customChaingraphMainnet"
+            @blur="saveCustomChaingraph('mainnet')"
+            @keyup.enter="saveCustomChaingraph('mainnet')"
+            type="text"
+            :placeholder="t('settings.advanced.chaingraphCustomPlaceholder')"
+            style="width: 100%;"
+          >
+          <input
+            v-else
+            v-model="customChaingraphChipnet"
+            @blur="saveCustomChaingraph('chipnet')"
+            @keyup.enter="saveCustomChaingraph('chipnet')"
             type="text"
             :placeholder="t('settings.advanced.chaingraphCustomPlaceholder')"
             style="width: 100%;"
@@ -762,23 +797,23 @@
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <InfoPopup>
           <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.bcmrIndexer') }}</label>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.tokenMetadataIndexer') }}</label>
           </template>
-          <div style="max-width: 300px;">{{ t('settings.advanced.bcmrIndexerHint') }}</div>
+          <div style="max-width: 300px;">{{ t('settings.advanced.tokenMetadataIndexerHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedBcmrIndexer" @change="changeBcmrIndexer('mainnet')">
-          <option v-for="(indexer, index) in predefinedBcmrIndexersMainnet" :key="indexer" :value="indexer">
+        <select v-model="selectedTokenMetadataIndexer" @change="changeTokenMetadataIndexer('mainnet')">
+          <option v-for="(indexer, index) in predefinedTokenMetadataIndexersMainnet" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
           </option>
           <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="selectedBcmrIndexer === 'custom'" style="margin-top: 8px;">
+        <div v-if="selectedTokenMetadataIndexer === 'custom'" style="margin-top: 8px;">
           <input
-            v-model="customBcmrIndexer"
-            @blur="saveCustomBcmrIndexer('mainnet')"
-            @keyup.enter="saveCustomBcmrIndexer('mainnet')"
+            v-model="customTokenMetadataIndexer"
+            @blur="saveCustomTokenMetadataIndexer('mainnet')"
+            @keyup.enter="saveCustomTokenMetadataIndexer('mainnet')"
             type="text"
-            :placeholder="t('settings.advanced.bcmrIndexerCustomPlaceholder')"
+            :placeholder="t('settings.advanced.tokenMetadataIndexerCustomPlaceholder')"
             style="width: 100%;"
           >
         </div>
@@ -787,23 +822,23 @@
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
         <InfoPopup>
           <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.bcmrIndexer') }}</label>
+            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.tokenMetadataIndexer') }}</label>
           </template>
-          <div style="max-width: 300px;">{{ t('settings.advanced.bcmrIndexerHint') }}</div>
+          <div style="max-width: 300px;">{{ t('settings.advanced.tokenMetadataIndexerHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedBcmrIndexerChipnet" @change="changeBcmrIndexer('chipnet')">
-          <option v-for="(indexer, index) in predefinedBcmrIndexersChipnet" :key="indexer" :value="indexer">
+        <select v-model="selectedTokenMetadataIndexerChipnet" @change="changeTokenMetadataIndexer('chipnet')">
+          <option v-for="(indexer, index) in predefinedTokenMetadataIndexersChipnet" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
           </option>
           <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="selectedBcmrIndexerChipnet === 'custom'" style="margin-top: 8px;">
+        <div v-if="selectedTokenMetadataIndexerChipnet === 'custom'" style="margin-top: 8px;">
           <input
-            v-model="customBcmrIndexerChipnet"
-            @blur="saveCustomBcmrIndexer('chipnet')"
-            @keyup.enter="saveCustomBcmrIndexer('chipnet')"
+            v-model="customTokenMetadataIndexerChipnet"
+            @blur="saveCustomTokenMetadataIndexer('chipnet')"
+            @keyup.enter="saveCustomTokenMetadataIndexer('chipnet')"
             type="text"
-            :placeholder="t('settings.advanced.bcmrIndexerCustomPlaceholder')"
+            :placeholder="t('settings.advanced.tokenMetadataIndexerCustomPlaceholder')"
             style="width: 100%;"
           >
         </div>
@@ -845,25 +880,10 @@
         </select>
       </div>
 
-      <div style="margin-top:15px">{{ t('settings.developer.tokenCreation') }}</div>
-      <div style="margin: 0px 10px;">
-
-        <div style="margin-top:15px">
-          {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
-          <div style="font-size: smaller; color: grey;">
-            {{ t('settings.developer.enableMintNftsHint') }}
-          </div>
-        </div>
-
-        <div style="margin-top:15px; margin-bottom: 15px">
-          {{ t('settings.developer.enableAuthchains') }} <q-toggle v-model="enableAuthchains" @update:model-value="changeAuthchains()" dense />
-          <div style="font-size: smaller; color: grey;">
-            {{ t('settings.developer.enableAuthchainsHint') }}
-          </div>
-        </div>
-
-        <div v-if="!isMobile" style="margin-top:15px; margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
-          → {{ t('settings.menu.tokenCreationPage') }}
+      <div style="margin-top:15px">
+        {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.developer.enableMintNftsHint') }}
         </div>
       </div>
 
@@ -957,7 +977,9 @@
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(14)">
-        → {{ t('settings.menu.tools') }} <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
+        → {{ t('settings.menu.tools') }}
+        <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
+        <span v-else-if="identitiesStore.unseenIdentities.length" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(11)">

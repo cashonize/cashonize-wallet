@@ -29,7 +29,8 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - **settingsStore.ts**: User preferences persisted to localStorage - currency, dark mode, electrum servers, per-wallet backup status, auto-approve settings for WalletConnect.
 - **walletconnectStore.ts** / **cashconnectStore.ts**: dApp connection protocol handlers. Access the wallet via Pinia cross-store ref (`useStore()` inside `defineStore` setup).
 - `_wallet` is a `shallowRef`: mainnet-js owns the wallet's internal state, so only swapping wallets is reactive, not changes inside the wallet object. Reactive code reading wallet internals depends on `walletUtxos` instead, which is why `store.walletHasAddress()` exists next to `store.wallet.hasAddress()`.
-- Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to `spendableUtxos`: the wallet's utxos minus the reserved outpoints (user-frozen coins and flipstarter pledges, `utils/wallet/reservedUtxos.ts`). A reservation is local to this app; another wallet on the same keys can still spend the coin.
+- Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to `spendableUtxos`: the wallet's utxos minus the reserved outpoints, BCH and token coins alike (`utils/wallet/reservedUtxos.ts`). A reservation is local to this app; another wallet on the same keys can still spend the coin. A dapp-built transaction is judged against the reservations at signing (`utils/dapp/reservedInputs.ts`): a pledged or frozen coin refuses, an AuthKey is signed when the same NFT comes back, and an identity UTXO refuses unless the `allowDappIdentitySpends` user option is on, and even then only when the authchain continues at an output of this wallet.
+- **identitiesStore.ts**: the identities the wallet follows and everything resolved about them; reads the wallet and its coins from store.ts, which keeps the reservations that hold an authhead back.
 
 ### Multi-Wallet Support
 - Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet); by default each wallet is stored in both databases
@@ -64,7 +65,7 @@ The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libau
 
 ### Persistent Storage
 - **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
-- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
+- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, unnamed authheads), WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
 The app reaches into mainnet-js's databases itself, in `utils/wallet/dbUtils.ts` and the settings menu's cache-size/clear and delete flows. Some of that goes through mainnet-js's own storage provider, the rest is raw IndexedDB where not even that reaches. There we have to keep matching its versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and mainnet-js finding it already there never runs its own setup.
@@ -78,10 +79,12 @@ mainnet-js configures `@electrum-cash/web-socket` to keep connections alive acro
 Blockchain data comes from one electrum server at a time and is not verified. `@electrum-cash/network` is a single-server client with no cluster or SPV support, so balance, history, confirmations and block height are that server's claims rather than anything the wallet checks, and they are cached to IndexedDB.
 
 ### Chaingraph
-Chaingraph is a secondary blockchain indexer next to electrum, a GraphQL (Hasura) service that allows arbitrary queries. Everything core to the wallet runs on electrum; Chaingraph only serves some novel data displays: the walk of the wallet's spent outputs behind the portfolio's TapSwap and hodl discovery, and detecting whether the wallet holds a token's authhead. The few queries live in `src/queryChainGraph.ts`, sent with plain fetch.
+Chaingraph is a secondary blockchain indexer next to electrum, a GraphQL (Hasura) service that allows arbitrary queries. Electrum answers about addresses the wallet knows; it cannot walk the wallet's spent outputs for protocol markers or follow an authchain to its head, so the portfolio's TapSwap and hodl discovery, the automatic detection of identities these keys made, and identity resolution run on Chaingraph. Spending and balances stay on electrum alone. Chaingraph is new in production use, with few public instances that may not be stable or scale, so its lookups are batched and capped per wallet open, and a failure lands on the page that wanted the answer rather than failing the wallet.
+
+The queries live in `src/queryChainGraph.ts`, typed from the schema with gql.tada (`src/chainGraphSchema.ts`, over a committed introspection in `src/generated/`). Two limits shape them: the introspection carries no field arguments, so `where`, `order_by` and `limit` are not type-checked; and the default instance caps any selection at 1,000 rows, nested ones included, silently, so anything that grows with a chain or a wallet's history is paged or narrowed on the server.
 
 ### Configurable Backends
-Every backend the app talks to is one user-swappable server: electrum (per network), the Chaingraph instance, the BCMR and Cauldron indexers, the IPFS gateway and the exchange rate provider all live in settingsStore, selectable in the advanced settings from predefined choices plus, for most, a custom URL.
+Every backend the app talks to is one user-swappable server: electrum and the Chaingraph instance (both per network), the BCMR and Cauldron indexers, the IPFS gateway and the exchange rate provider all live in settingsStore, selectable in the advanced settings from predefined choices plus, for most, a custom URL.
 
 ### CashConnect Transport
 CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). The relay is store-and-forward with per-message TTLs, so dApp and wallet don't need to be online at the same time — a session survives either side going offline (short-lived messages like balance pushes simply expire rather than being replayed). Sessions persist in localStorage, namespaced per wallet identity key, and are restored by the library's `start()`; the app's `cashconnectStore.stop()` stops the service without un-pairing.
@@ -90,9 +93,9 @@ CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). 
 WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the transport is fully encapsulated in @wizardconnect/core, so no separate nostr dependencies are needed. The wallet shares chain-level xpubs (receive/change/defi) so dapps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). HD wallets only; single-address wallets get a clear error on pairing.
 
 ### Token Metadata (BCMR)
-BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for CashTokens on BCH. Spec: https://github.com/bitjson/chip-bcmr
+BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for authchain identities on BCH, tokens being the common case; the rest is under Authchain Identities. Spec: https://github.com/bitjson/chip-bcmr
 
-Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.com/paytaca/bcmr-indexer) rather than importing full BCMR registry files. The `fetchTokenMetadata` function in `storeUtils.ts` handles this, and the codebase operates on the indexer's response types (`BcmrTokenMetadata`) directly, not full BCMR `Registry` objects. Like blockchain data (see Electrum Trust Model), token metadata is trusted as served: the wallet does not resolve or verify on-chain registries itself.
+Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.com/paytaca/bcmr-indexer) rather than importing full BCMR registry files. The `fetchTokenMetadata` function in `storeUtils.ts` handles this, and the codebase operates on the indexer's response types (`BcmrTokenMetadata`) directly, not full BCMR `Registry` objects. Like blockchain data (see Electrum Trust Model), token metadata is trusted as served: the token displays do not resolve or verify on-chain registries themselves. The indexer indexes token identities only (its identity records root at a token genesis and every route is keyed by category), so a BCH-only identity never enters it; the identities page resolves and verifies any identity's registry from its own publication instead, see Authchain Identities. The setting is therefore the "token metadata indexer" (`tokenMetadataIndexer` in code, with the old `bcmrIndexer*` localStorage keys kept as they are).
 
 ### Parsable NFTs
 When the indexer returns `nft_type: "parsable"` with `token.nfts` parse info (bytecode, types, fields), the wallet runs the parsing bytecode locally in a libauth VM to extract and display structured data from NFT commitments.
@@ -104,6 +107,15 @@ Key files:
 ### BCMR Extensions
 BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method. The main extension is ParyonUSD (`paryonusd.ts`), which fetches the live on-chain loan state for loan-key NFTs.
 
+### Authchain Identities
+A BCMR identity is an authchain: the lineage of output 0 starting at the authbase, whose latest transaction is the authhead. The authhead's unspent output 0 is the identity's UTXO, so holding that coin is holding the identity, and moving it is the whole of transfer and key rotation. Metadata binds to the identity through `BCMR` publication outputs on the chain, each committing to a hash of a registry file hosted off-chain; the wallet reads the last publication on the chain, since transfers and reserve moves carry none. The spec's identities are not only tokens - they also cover people, organizations and contract systems - and the token-specific parts of the wallet's handling are the reserve and the naming through the token metadata indexer.
+
+The wallet's role is creation, custody, verification and publishing the pointer: making the identity (a token genesis, or any UTXO at output 0 for one that is not a token, prepared with a self-send if none suits), holding identity UTXOs and AuthKeys back from coin selection, fetching what the published locations serve and hashing it against the chain, and building the publication, reserve, mint and transfer transactions (all one shape, the old identity UTXO in and the new one at output 0). Authoring and hosting stay external (`utils/tools/authchainIdentity.ts` for the chain, `registryFile.ts` for the hosted file, `identityLists.ts` for what persists).
+
+Resolution is forward only: authbase to authhead, one Chaingraph query. The wallet never derives an authbase from a coin, since every transaction is an authbase and backward has no answer; a coin is named by a token on its chain, by a registry its chain published (verified by hash, each named authbase resolved forward), or by the user, and is held back unnamed until then. How identities reach the page, what is trusted and what is verified, and what is spec versus Studio convention: `docs/bcmr-identities.md`.
+
+An identity can instead keep its authhead in an AuthGuard covenant, with the authority to spend it tokenized as an "AuthKey" NFT (the AuthGuard standard, which CashTokens Studio implements). The covenant's script follows from the key's category, so a guarded identity is recognised at resolve by comparing the authhead's locking bytecode with the covenant derived from the identity's own category, the standard's genesis setup, or from the key the registry names in `extensions.authNft` (`utils/tools/authGuard.ts`); the key is any NFT of that category with no amount and no capability, protected the way an identity UTXO is. The covenant's own spends belong to the tools that build them.
+
 ### Cauldron DEX
 Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one per network). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
 
@@ -111,7 +123,7 @@ Fungible token values come from the indexer of Cauldron, the main AMM DEX in the
 The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. For now every dapp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups, data on held NFTs, or a Chaingraph walk of the wallet's spent outputs for OP_RETURN protocol markers) and is documented in each module's header comment.
 
 ### Wallet Tools
-The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin.
+The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the key that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. Automatic detection is one of two paths that reserve what the user never listed, reading the wallet's own chain history for identities these keys made; the other follows the identities of the tokens the wallet holds and lists one whose UTXO or key turns out to be here. Removing an identity is remembered so neither lists it again; transferring one away is not.
 
 ### Component Organization
 ```
@@ -157,6 +169,8 @@ Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). IndexedDB-
 ## Dependency Pinning
 
 Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
+
+A pinned dep may carry a pnpm patch, declared with its reason in `pnpm-workspace.yaml` and dropped once the fix lands upstream. mainnet-js has one: `tokenMint` and `tokenBurn` ignored the `utxoIds` option when picking their token inputs, which the wallet needs them to honor.
 
 ## Code Style Preferences
 

@@ -7,21 +7,24 @@ import { binToHex } from "@bitauth/libauth";
 
 type Network = 'mainnet' | 'chipnet';
 
-// 'manual' is the user freezing a coin themselves and is theirs to undo; 'pledge' is held by a
-// feature, and is released by cancelling that pledge rather than by unfreezing it here
-export type ReservationReason = 'pledge' | 'manual';
+// 'manual' is the user freezing a coin themselves and is theirs to undo; 'pledge' and 'auth' are
+// held by a feature, and are released through that feature rather than by unfreezing them here:
+// a pledge by cancelling it, an authhead by transferring the identity or removing it from the
+// identities page
+export type ReservationReason = 'pledge' | 'manual' | 'auth';
 
-export interface ReservedUtxo {
-  reason: ReservationReason;
-  // stored as a string because utxo.satoshis is a bigint, which JSON.stringify throws on
-  satoshis: string;
-  reservedAt: number; // unix seconds
+// Held by the feature that made the reservation rather than by the user, so the coin is only
+// released through that feature. Written as "everything but 'manual'" so a reason added later is
+// treated as feature-held until it says otherwise, rather than silently becoming the user's to undo.
+export function isFeatureReservation(reason: ReservationReason | undefined): boolean {
+  return reason !== undefined && reason !== 'manual';
 }
 
 // "txid:vout", the same outpoint form mainnet-js accepts for utxoIds
 export type Outpoint = string;
 
-export type ReservedUtxos = Record<Outpoint, ReservedUtxo>;
+// The reason is the whole of a reservation: what holds the coin back is what releases it
+export type ReservedUtxos = Record<Outpoint, ReservationReason>;
 
 function reservedUtxosKey(network: Network, walletName: string): string {
   return `reservedUtxos-${network}-${walletName}`;
@@ -35,7 +38,14 @@ export function loadReservedUtxos(network: Network, walletName: string): Reserve
   const readReserved = localStorage.getItem(reservedUtxosKey(network, walletName));
   if (!readReserved) return {};
   try {
-    return JSON.parse(readReserved) as ReservedUtxos;
+    const stored = JSON.parse(readReserved) as Record<string, unknown>;
+    const reservedUtxos: ReservedUtxos = {};
+    for (const [outpoint, value] of Object.entries(stored)) {
+      // released builds stored an object carrying the reason, with fields nothing read
+      const reason = typeof value === 'string' ? value : (value as { reason?: unknown } | null)?.reason;
+      if (typeof reason === 'string') reservedUtxos[outpoint] = reason as ReservationReason;
+    }
+    return reservedUtxos;
   } catch {
     return {};
   }
@@ -44,25 +54,20 @@ export function loadReservedUtxos(network: Network, walletName: string): Reserve
 // Fresh read-modify-write: another tab may have written reservations since this tab loaded them,
 // so re-read before writing to only ever change the single outpoint in hand.
 // Returns the updated map for the caller's reactive state.
-export function saveReservedUtxo(
+export function saveReservedOutpoint(
   network: Network,
   walletName: string,
-  utxo: Utxo,
+  outpoint: Outpoint,
   reason: ReservationReason,
-  reservedAt: number,
 ): ReservedUtxos {
   const reservedUtxos = loadReservedUtxos(network, walletName);
-  reservedUtxos[outpointOf(utxo)] = {
-    reason,
-    satoshis: utxo.satoshis.toString(),
-    reservedAt,
-  };
+  reservedUtxos[outpoint] = reason;
   localStorage.setItem(reservedUtxosKey(network, walletName), JSON.stringify(reservedUtxos));
   return reservedUtxos;
 }
 
-// Same fresh read-modify-write approach as saveReservedUtxo.
-export function deleteReservedUtxo(
+// Same fresh read-modify-write approach as saveReservedOutpoint.
+export function deleteReservedOutpoint(
   network: Network,
   walletName: string,
   outpoint: Outpoint,

@@ -68,6 +68,14 @@ Unit testing is done with [Vitest](https://vitest.dev/). Vitest is configured in
 pnpm test
 ```
 
+### Refresh the Chaingraph schema
+
+The Chaingraph queries are typed from a committed introspection (`src/generated/graphql-env.d.ts`). When the instance's schema changes, regenerate it from the URL in `tsconfig.json`:
+
+```bash
+pnpm generate:chaingraph
+```
+
 ### Run E2E tests
 
 E2E testing is done with [Playwright](https://playwright.dev/). Playwright is configured in `test/e2e/playwright.config.ts`.

@@ -139,9 +139,10 @@
     return amountFormatter.format(Number(amount) / (10 ** decimals))
   }
 
-  // undefined while the wallet balance or the token list has not loaded yet
+  // undefined while the wallet balance or the token list has not loaded yet. Valued the way the
+  // BCH balance is: everything held, a coin held back from spending included
   const assets = computed(() => {
-    if (store.balance === undefined || store.tokenList === null) return undefined
+    if (store.balance === undefined || store.allTokenList === null) return undefined
 
     const bchBalance = Number(store.balance) / 100_000_000
     const bchEntry: PricedAsset = {
@@ -153,7 +154,7 @@
 
     const pricedTokens: PricedAsset[] = []
     const unpriced: UnpricedAsset[] = []
-    for (const token of store.tokenList ?? []) {
+    for (const token of store.allTokenList ?? []) {
       if (!('amount' in token)) continue
       const metadata = store.bcmrRegistries?.[token.category]
       const name = metadata?.name ?? token.category.slice(0, 8) + '...'

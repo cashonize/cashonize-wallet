@@ -14,6 +14,7 @@
   import exportXpubView from 'src/components/settings/exportXpub.vue'
   import transferAllAssetsView from 'src/components/settings/transferAllAssets.vue'
   import flipstarterView from 'src/components/settings/flipstarterPledge.vue'
+  import identitiesView from 'src/components/settings/identitiesPage.vue'
   import requestPaymentView from 'src/components/settings/requestPayment.vue'
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
@@ -25,8 +26,12 @@
   import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { Dialog } from 'quasar'
+  import IdentitiesFoundDialog from 'src/components/general/identitiesFoundDialog.vue'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
@@ -77,6 +82,7 @@
       case 16: return transferAllAssetsView;
       case 17: return requestPaymentView;
       case 18: return flipstarterView;
+      case 19: return identitiesView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });
@@ -210,7 +216,22 @@
   const showNotificationIcon = computed(() => {
     if (!store._wallet || !store.walletUtxos) return undefined;
     const needsBackup = settingsStore.getBackupStatus(store.activeWalletName) === 'none';
-    return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value;
+    return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value
+      || identitiesStore.unseenIdentities.length > 0;
+  });
+
+  // The store says what to announce; the dialog is opened here and the request cleared. The
+  // passes at open announce one after another, so the dialog waits a moment and says them all.
+  let announcementTimer: ReturnType<typeof setTimeout> | undefined;
+  watch(() => identitiesStore.announcement, (ids) => {
+    if (!ids || announcementTimer) return;
+    announcementTimer = setTimeout(() => {
+      announcementTimer = undefined;
+      const pending = identitiesStore.takeAnnouncement();
+      if (!pending?.length) return;
+      Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids: pending } })
+        .onOk(() => store.changeView(19));
+    }, 500);
   });
 </script>
 

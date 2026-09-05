@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref } from 'vue';
-  import { TokenMintRequest } from "mainnet-js"
+  import { TokenMintRequest, type NFTCapability, type Utxo } from "mainnet-js"
+  import { mintOutputs } from 'src/utils/tools/authchainIdentity'
   import { bigIntToVmNumber, binToHex } from "@bitauth/libauth"
   import type { TokenActionType } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
@@ -14,6 +15,7 @@
 
   const props = defineProps<{
     category: string,
+    identityUtxo?: Utxo | undefined, // set when the minting NFT is the token's identity UTXO
   }>()
   const emit = defineEmits<{
     minted: []
@@ -57,8 +59,7 @@
       if(!validCommitment) throw new Error(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
 
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
-      // construct array of TokenMintRequest
-      const arraySendrequests = [];
+      const mints: { cashaddr: string; commitment: string; capability: string; value: bigint }[] = [];
       for (let i = 0; i < mintAmount; i++){
         if(mintMode.value === "collection" && startingNumberNFTs.value){
           const startingNumber = parseInt(startingNumberNFTs.value);
@@ -71,18 +72,25 @@
             if(nftCommitment.length % 2 != 0) nftCommitment = `0${nftCommitment}`;
           }
         }
-        const mintRequest = new TokenMintRequest({
-          cashaddr: recipientAddr,
-          nft: {
-            commitment: nftCommitment,
-            capability: mintCapability.value,
-          },
-          value: 1000n,
-        })
-        arraySendrequests.push(mintRequest);
+        mints.push({ cashaddr: recipientAddr, commitment: nftCommitment, capability: mintCapability.value, value: 1000n });
       }
       notifySending();
-      const { txId } = await store.spend.tokenMint(props.category, arraySendrequests);
+      // A minting NFT that is the token's identity UTXO is held back, so minting from it is an
+      // authchain operation: the identity output first, then the minted NFTs, through the spend
+      // every identity operation uses. Any other minting NFT goes through tokenMint as before.
+      let txId: string | undefined;
+      if (props.identityUtxo) {
+        const outputs = mintOutputs(props.identityUtxo, store.walletAddresses(), mints);
+        const mintOptions = { tokenOperation: 'mint' as const, checkTokenQuantities: false };
+        ({ txId } = await store.spend.spendAuthUtxo(props.identityUtxo, outputs, [], mintOptions));
+      } else {
+        const mintRequests = mints.map(mint => new TokenMintRequest({
+          cashaddr: mint.cashaddr,
+          nft: { commitment: mint.commitment, capability: mint.capability as NFTCapability },
+          value: mint.value,
+        }));
+        ({ txId } = await store.spend.tokenMint(props.category, mintRequests));
+      }
       const displayId = `${props.category.slice(0, 20)}...${props.category.slice(-8)}`;
       const commitmentText = nftCommitment ? `with commitment ${nftCommitment}` : "";
       let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });

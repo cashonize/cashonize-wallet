@@ -210,6 +210,15 @@ export function formatTokenAmountFromBigInt(baseUnits: bigint, decimals: number)
   return fractionalPart ? `${wholePart}.${fractionalPart}` : `${wholePart}`;
 }
 
+// The amount in the token's own decimals with its symbol after it, as far as the metadata says
+export function formatTokenAmountWithSymbol(
+  baseUnits: bigint,
+  metadata: { token?: { decimals?: number | undefined; symbol?: string | undefined } | undefined } | undefined,
+): string {
+  const amount = formatTokenAmountFromBigInt(baseUnits, metadata?.token?.decimals ?? 0);
+  return `${amount} ${metadata?.token?.symbol ?? ''}`.trim();
+}
+
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
   const newFiatValue =  Number(satAmount) * exchangeRate / 100_000_000
   return Number(newFiatValue.toFixed(2));
@@ -227,6 +236,15 @@ export function formatNumber(value: number, maxDecimals: number): string {
 export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };
+
+// An amount with its unit, for a network's own name for the coin
+export function formatBch(satoshis: bigint, network: string): string {
+  return `${formatBchAmount(Number(satoshis), false, 8)} ${network === 'mainnet' ? 'BCH' : 'tBCH'}`;
+}
+
+export function truncateHash(hash: string, head = 16, tail = 8): string {
+  return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
+}
 
 export function formatBchAmount(satoshis: number, signed = false, maxDecimals = 5): string {
   const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: maxDecimals });
@@ -330,12 +348,13 @@ export function parseExtendedJson(jsonString: string){
 export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | undefined){
   if(!electrumTokenData) return
   if(electrumTokenData.amount && BigInt(electrumTokenData.amount)){
-    return {
+    const tokenDataFT: TokenDataFT = {
       amount: BigInt(electrumTokenData.amount),
       category: electrumTokenData.category,
-    } as TokenDataFT
+    }
+    return tokenDataFT
   }
-  return {
+  const tokenDataNFT = {
     category: electrumTokenData.category,
     nfts: [
       {
@@ -348,6 +367,7 @@ export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | 
       }
     ]
   } as TokenDataNFT
+  return tokenDataNFT
 }
 
 export const waitForInitialized = async function(property: Ref<boolean>): Promise<void> {

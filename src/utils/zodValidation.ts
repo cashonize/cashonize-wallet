@@ -351,21 +351,26 @@ export const CoinbaseRatesSchema = z.object({
 });
 
 
-/* Chaingraph response schemas */
+/* MetadataRegistrySchema */
 
-export const ChaingraphAuthHeadSchema = z.object({
-  data: z.object({
-    transaction: z.array(z.object({
-      authchains: z.array(z.object({
-        authhead: z.object({
-          hash: z.string(),
-          identity_output: z.array(z.object({
-            fungible_token_amount: z.string().nullable()
-          }))
-        })
-      }))
-    }))
-  })
+// The part of a BCMR registry the identities page reads. Registry hosting is untrusted by design,
+// the on-chain hash is what authenticates the file, and what a publisher is shown before signing
+// comes out of this file, so it is parsed rather than cast. Unknown keys are kept, since a
+// registry carries far more than this reads.
+const RegistryIdentitySnapshotSchema = z.looseObject({
+  name: z.string(),
+  token: z.looseObject({
+    symbol: z.string().optional(),
+    decimals: z.number().optional(),
+  }).optional(),
+  uris: z.looseObject({ icon: z.string().optional() }).optional(),
+});
+
+export const MetadataRegistrySchema = z.looseObject({
+  identities: z.record(
+    z.string(),
+    z.record(z.string(), RegistryIdentitySnapshotSchema),
+  ).optional(),
 });
 
 
