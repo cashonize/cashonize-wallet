@@ -12,7 +12,7 @@
   import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
-  import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, type IdentityStatus } from 'src/utils/tools/authchainIdentity'
+  import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, CASHTOKENS_STUDIO_URL, type IdentityStatus } from 'src/utils/tools/authchainIdentity'
   import { Notify } from 'quasar'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
 
@@ -239,7 +239,7 @@
       <div style="margin-top: 12px;">
         <b>{{ t('identities.learn.keysLead') }}</b> <i18n-t keypath="identities.learn.keys" tag="span">
           <template #studio>
-            <a href="https://cashtokens.studio" target="_blank">CashTokens Studio</a>
+            <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank">CashTokens Studio</a>
           </template>
         </i18n-t>
       </div>
@@ -277,7 +277,7 @@
           </div>
         </InfoPopup>
       </div>
-      <div class="add-identity" style="margin-top: 12px;">
+      <div class="input-with-button" style="margin-top: 12px;">
         <input v-model="categoryInput" :placeholder="t('identities.add.placeholder')" @keyup.enter="addIdentity()">
         <input
           @click="addIdentity()"
@@ -473,20 +473,6 @@
 .section {
   margin-top: 20px;
 }
-/* the input takes the room the button does not, on one line where the screen allows it */
-.add-identity {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 6px;
-}
-.add-identity input:not([type="button"]) {
-  flex: 1 1 260px;
-  margin: 0;
-}
-.add-identity input[type="button"] {
-  margin: 0;
-}
 /* the whole head is the group's toggle; the chevron sits in the line the way the info icon does,
    the same size and the same small drop below the middle, rather than centred on the line box */
 .follow-head {
@@ -502,15 +488,6 @@
 }
 .chevron.open {
   transform: rotate(180deg);
-}
-/* the unnamed authhead's card, the same frame the identity cards draw */
-.identity-card {
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-}
-.dark .identity-card {
-  border-color: #333;
 }
 .identity-status {
   color: grey;

@@ -29,7 +29,7 @@ import {
 import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { queryAuthchainLinks, type ChaingraphSpentOutput } from "src/queryChainGraph"
 import { outpointOf } from "src/utils/wallet/reservedUtxos"
-import { formatTokenAmountFromBigInt } from "src/utils/utils"
+import { formatTokenAmountWithSymbol } from "src/utils/utils"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -237,11 +237,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
       [authhead]: describeChainLinks(links),
     };
   }
-
-  // What the notification trail counts: identities listed without being asked for, answered by
-  // opening the page. A key candidate is a shape guess about an NFT and gets no wallet-level
-  // marker; the token item carries that nudge.
-  const unseenCount = computed(() => unseenIdentities.value.length);
 
   // The page has been opened, so what it found on its own is no longer news
   function markIdentitiesSeen() {
@@ -490,8 +485,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (!identity) return undefined;
     const reserve = (identity.authUtxo?.token ?? identity.identityOutput?.token)?.amount;
     if (!reserve) return t('tokenItem.identity.held');
-    const metadata = mainStore.bcmrRegistries?.[category];
-    const amount = `${formatTokenAmountFromBigInt(reserve, metadata?.token?.decimals ?? 0)} ${metadata?.token?.symbol ?? ''}`.trim();
+    const amount = formatTokenAmountWithSymbol(reserve, mainStore.bcmrRegistries?.[category]);
     return t('tokenItem.identity.heldWithReserve', { amount });
   }
 
@@ -565,7 +559,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     identityCategories,
     dismissedIdentities,
     unseenIdentities,
-    unseenCount,
     announcement,
     takeAnnouncement,
     unnamedAuthheads,

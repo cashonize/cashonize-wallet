@@ -217,7 +217,7 @@
     if (!store._wallet || !store.walletUtxos) return undefined;
     const needsBackup = settingsStore.getBackupStatus(store.activeWalletName) === 'none';
     return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value
-      || identitiesStore.unseenCount > 0;
+      || identitiesStore.unseenIdentities.length > 0;
   });
 
   // The store says what to announce; the dialog is opened here and the request cleared. The

@@ -44,7 +44,7 @@
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(19)">
-      → {{ t('settings.menu.identities') }} <span v-if="identitiesStore.unseenCount" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenCount) }}</span>
+      → {{ t('settings.menu.identities') }} <span v-if="identitiesStore.unseenIdentities.length" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(18)">

@@ -29,12 +29,7 @@ export function authGuardRedeemScript(category: string): Uint8Array {
 // Both hash lengths a P2SH output can commit to, since deployments exist in both. A match at
 // either is self-proving: spending the output means presenting this very redeem script, with
 // this key's category already inside it.
-export interface AuthGuardForms<T> {
-  p2sh20: T;
-  p2sh32: T;
-}
-
-export function authGuardLockingBytecodes(category: string): AuthGuardForms<string> {
+export function authGuardLockingBytecodes(category: string): { p2sh20: string; p2sh32: string } {
   const redeemScript = authGuardRedeemScript(category);
   return {
     p2sh20: binToHex(encodeLockingBytecodeP2sh20(hash160(redeemScript))),

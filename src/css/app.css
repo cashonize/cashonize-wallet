@@ -331,6 +331,42 @@ input[type='number'] {
   gap: 6px;
   flex-wrap: wrap;
 }
+/* the input takes the room the button does not, on one line where the screen allows it */
+.input-with-button {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.input-with-button input:not([type="button"]) {
+  flex: 1 1 260px;
+  margin: 0;
+}
+.input-with-button input[type="button"] {
+  margin: 0;
+}
+/* the frame of an identity card and of the unnamed authhead's */
+.identity-card {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+body.dark .identity-card {
+  border-color: #333;
+}
+/* the chip marking a transaction as an operation on one of the wallet's own identities; the
+   history recolours it */
+.identity-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 0.7em;
+  font-weight: 600;
+  vertical-align: middle;
+  background-color: rgba(128, 128, 128, 0.18);
+  color: var(--font-color);
+}
 .tokenInfo {
   display: flex;
   align-items: center;

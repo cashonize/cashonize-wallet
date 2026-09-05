@@ -3,7 +3,6 @@
 // For error display, use displayAndLogError from errorHandling.ts.
 import { Dialog, Notify } from "quasar";
 import alertDialog from 'src/components/general/alertDialog.vue'
-import type { DialogInfo } from 'src/interfaces/interfaces'
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { displayAndLogError } from 'src/utils/errorHandling'
@@ -59,14 +58,12 @@ export function notifySending(message?: string){
 
 // Handles a successful transaction broadcast: shows feedback, logs the tx and refreshes wallet state.
 // txId can be undefined because mainnet-js send() types its txId as optional
-export async function handleTransactionBroadcastSuccess(
-  alertMessage: string, txId: string | undefined, successMessage: string, action?: DialogInfo['action']
-){
+export async function handleTransactionBroadcastSuccess(alertMessage: string, txId: string | undefined, successMessage: string){
   const store = useStore()
   Dialog.create({
     component: alertDialog,
     componentProps: {
-      alertInfo: { message: alertMessage, txid: txId, ...(action ? { action } : {}) }
+      alertInfo: { message: alertMessage, txid: txId }
     }
   })
   Notify.create({

@@ -3,7 +3,7 @@
   import { binToHex, decodeTransactionUnsafe, encodeTransaction, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
-  import { convertToCurrency, formatFiatAmount, formatNumber, sanitizeUrl } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
@@ -185,9 +185,7 @@
   // is the one place the user learns what the identity output carried and carries after.
   const identityInputs = store.checkDappReservedInputs(txDetails.inputs, txDetails.outputs).returning;
   function reserveDisplay(category: string | undefined, reserve: bigint) {
-    const metadata = category ? getTokenMetadata(category) : undefined;
-    const amount = formatNumber(Number(reserve) / (10 ** (metadata?.token?.decimals ?? 0)), metadata?.token?.decimals ?? 0);
-    return `${amount} ${metadata?.token?.symbol ?? ''}`.trim();
+    return formatTokenAmountWithSymbol(reserve, category ? getTokenMetadata(category) : undefined);
   }
 
   const formatTokenDisplay = (tokenSpent: NonNullable<Output['token']>, displayFullName= true): string => {

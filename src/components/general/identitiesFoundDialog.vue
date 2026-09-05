@@ -6,7 +6,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { formatBch, formatTokenAmountFromBigInt, truncateHash } from 'src/utils/utils'
+  import { formatBch, formatTokenAmountWithSymbol, truncateHash } from 'src/utils/utils'
 
   // Shown whenever the wallet held back identities the user never listed: that is the moment the
   // spendable balance and the token list change, so it is told directly, with names, every time.
@@ -31,9 +31,7 @@
     const identity = identitiesStore.identities?.find(identity => identity.category === id)
     const output = identity?.authUtxo ?? identity?.identityOutput
     const metadata = store.bcmrRegistries?.[id]
-    const reserve = output?.token?.amount
-      ? `${formatTokenAmountFromBigInt(output.token.amount, metadata?.token?.decimals ?? 0)} ${metadata?.token?.symbol ?? ''}`.trim()
-      : undefined
+    const reserve = output?.token?.amount ? formatTokenAmountWithSymbol(output.token.amount, metadata) : undefined
     return {
       id,
       name: metadata?.name,

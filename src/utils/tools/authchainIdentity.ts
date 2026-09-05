@@ -57,6 +57,11 @@ export interface IdentityState {
 // where a registry is written: the form for a token's, the schema for one written by hand
 export const BCMR_GENERATOR_URL = "https://bcmr-generator.app/";
 export const BCMR_SCHEMA_URL = "https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json";
+// where a guarded identity is managed, one instance per network
+export const CASHTOKENS_STUDIO_URL: Record<Network, string> = {
+  mainnet: "https://cashtokens.studio/",
+  chipnet: "https://chipnet.cashtokens.studio/",
+};
 
 // The metadata pointer an authhead transaction carries: OP_RETURN "BCMR" <hash> [<uri>...]. The
 // hash commits to the registry file, which is why the hosting itself does not have to be trusted.

@@ -179,10 +179,10 @@ describe('the identities notification', () => {
     expect(identitiesStore.identityCategories).toContain(categoryA)
     expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
     expect(identitiesStore.unseenIdentities).toContain(categoryA)
-    expect(identitiesStore.unseenCount).toBe(1)
+    expect(identitiesStore.unseenIdentities.length).toBe(1)
 
     identitiesStore.markIdentitiesSeen()
-    expect(identitiesStore.unseenCount).toBe(0)
+    expect(identitiesStore.unseenIdentities.length).toBe(0)
   })
 })
 
@@ -433,7 +433,7 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.unnamedAuthheads).toEqual([])
     expect(identitiesStore.unseenIdentities).toEqual([])
-    expect(identitiesStore.unseenCount).toBe(0)
+    expect(identitiesStore.unseenIdentities.length).toBe(0)
   })
 
   // the wallet's history is walked at open; the server refusing must land on the identities
@@ -675,7 +675,7 @@ describe('auth reservations follow the authchain', () => {
     }])
 
     expect(identitiesStore.unseenIdentities).toEqual([categoryA, categoryB])
-    expect(identitiesStore.unseenCount).toBe(2)
+    expect(identitiesStore.unseenIdentities.length).toBe(2)
     expect(identitiesStore.announcement).toEqual([categoryB])
   })
 
@@ -810,14 +810,14 @@ describe('auth reservations follow the authchain', () => {
       ] } }],
     }]
     await identitiesStore.detectWalletIdentities(walk)
-    expect(identitiesStore.unseenCount).toBe(1)
+    expect(identitiesStore.unseenIdentities.length).toBe(1)
     expect(identitiesStore.announcement).toEqual([authheadA])
 
     identitiesStore.markIdentitiesSeen()
-    expect(identitiesStore.unseenCount).toBe(0)
+    expect(identitiesStore.unseenIdentities.length).toBe(0)
 
     await identitiesStore.detectWalletIdentities(walk)
-    expect(identitiesStore.unseenCount).toBe(0)
+    expect(identitiesStore.unseenIdentities.length).toBe(0)
     expect(identitiesStore.unnamedAuthheadCoins).toEqual([authUtxo])
   })
 

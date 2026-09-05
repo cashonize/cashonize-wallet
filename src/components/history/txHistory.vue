@@ -562,8 +562,7 @@ fieldset.item {
 }
 
 /* transactions spending from a contract carry a small dapp tag next to the type */
-.dapp-badge,
-.identity-badge {
+.dapp-badge {
   display: inline-block;
   margin-left: 4px;
   padding: 0 7px;

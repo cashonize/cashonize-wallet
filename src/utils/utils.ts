@@ -210,6 +210,15 @@ export function formatTokenAmountFromBigInt(baseUnits: bigint, decimals: number)
   return fractionalPart ? `${wholePart}.${fractionalPart}` : `${wholePart}`;
 }
 
+// The amount in the token's own decimals with its symbol after it, as far as the metadata says
+export function formatTokenAmountWithSymbol(
+  baseUnits: bigint,
+  metadata: { token?: { decimals?: number | undefined; symbol?: string | undefined } | undefined } | undefined,
+): string {
+  const amount = formatTokenAmountFromBigInt(baseUnits, metadata?.token?.decimals ?? 0);
+  return `${amount} ${metadata?.token?.symbol ?? ''}`.trim();
+}
+
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
   const newFiatValue =  Number(satAmount) * exchangeRate / 100_000_000
   return Number(newFiatValue.toFixed(2));

@@ -18,6 +18,7 @@
     formatRelativeTime,
     truncateHash,
     formatTokenAmountFromBigInt,
+    formatTokenAmountWithSymbol,
     parseTokenAmountToBigInt,
   } from 'src/utils/utils'
   import { confirmDialog, notifySending } from 'src/utils/txHelpers'
@@ -25,6 +26,7 @@
   import {
     BCMR_GENERATOR_URL,
     BCMR_SCHEMA_URL,
+    CASHTOKENS_STUDIO_URL,
     diffRegistries,
     fetchCandidateRegistry,
     fetchPublishedRegistry,
@@ -95,17 +97,14 @@
   const carries = computed(() => {
     const token = props.identity.authUtxo?.token ?? props.identity.identityOutput?.token;
     if (!token) return undefined;
-    const metadata = store.bcmrRegistries?.[props.identity.category];
     const lines: string[] = [];
     // the largest amount a category can hold is the AuthGuard standard's mark for a supply with
     // no ceiling, and reads as that rather than as the number
     if (token.amount === maxTokenSupply) {
       lines.push(t('identities.reserve.supplyOpenEnded'));
     } else if (token.amount) {
-      const amount = formatTokenAmountFromBigInt(token.amount, metadata?.token?.decimals ?? 0);
-      lines.push(t('identities.reserve.supply', {
-        amount: `${amount} ${metadata?.token?.symbol ?? ''}`.trim(),
-      }));
+      const amount = formatTokenAmountWithSymbol(token.amount, store.bcmrRegistries?.[props.identity.category]);
+      lines.push(t('identities.reserve.supply', { amount }));
     }
     if (token.nft?.capability === 'minting') lines.push(t('identities.reserve.mintingNft'));
     else if (token.nft) lines.push(t('identities.reserve.nft'));
@@ -130,9 +129,8 @@
     const supply = props.identity.genesisSupply;
     if (!supply) return undefined;
     if (supply === maxTokenSupply) return t('identities.reserve.genesisSupplyOpenEnded');
-    const metadata = store.bcmrRegistries?.[props.identity.category];
-    const amount = formatTokenAmountFromBigInt(supply, metadata?.token?.decimals ?? 0);
-    return t('identities.reserve.genesisSupply', { amount: `${amount} ${metadata?.token?.symbol ?? ''}`.trim() });
+    const amount = formatTokenAmountWithSymbol(supply, store.bcmrRegistries?.[props.identity.category]);
+    return t('identities.reserve.genesisSupply', { amount });
   });
 
   const tokenDecimals = computed(() => store.bcmrRegistries?.[props.identity.category]?.token?.decimals ?? 0);
@@ -694,7 +692,7 @@
         <input v-model="issueAmount" :placeholder="t('identities.reserve.issue.amountPlaceholder')">
         <button @click="issueAmount = reserveDisplay">{{ t('tokenItem.actions.max') }}</button>
       </div>
-      <div class="transfer-identity">
+      <div class="input-with-button">
         <input v-model="issueDestination" :placeholder="t('identities.reserve.issue.destinationPlaceholder')">
       </div>
       <input
@@ -709,7 +707,7 @@
 
     <div v-if="isOpen('addToReserve')" class="section">
       <div class="description">{{ t('identities.reserve.add.hint') }}</div>
-      <div class="transfer-identity">
+      <div class="input-with-button">
         <input v-model="addToReserveAmount" :placeholder="t('identities.reserve.add.amountPlaceholder')">
       </div>
       <input
@@ -734,7 +732,7 @@
           <option :value="true">{{ t('identities.transfer.carriedGoes') }}</option>
         </select>
       </template>
-      <div class="transfer-identity">
+      <div class="input-with-button">
         <input v-model="destination" :placeholder="t('identities.transfer.destinationPlaceholder')">
         <input
           @click="transferIdentity()"
@@ -748,7 +746,7 @@
     <div v-if="identity.status === 'heldViaKey'" class="section">
       <div class="description">{{ t('identities.key.manageHint') }}</div>
       <div class="identity-actions">
-        <a href="https://cashtokens.studio/" target="_blank" class="action-link">
+        <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="action-link">
           {{ t('identities.key.manageOnStudio') }}
         </a>
         <span class="action-link" @click="toggleAction('transferKey')">
@@ -757,7 +755,7 @@
       </div>
       <div v-if="isOpen('transferKey')" style="margin-top: 10px;">
         <div class="description">{{ t('identities.key.hint') }}</div>
-        <div class="transfer-identity">
+        <div class="input-with-button">
           <input v-model="keyDestination" :placeholder="t('identities.key.destinationPlaceholder')">
           <input
             @click="transferKey()"
@@ -805,14 +803,6 @@
 }
 .section {
   margin-top: 20px;
-}
-.identity-card {
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-}
-.dark .identity-card {
-  border-color: #333;
 }
 /* the whole header is the card's toggle, so it takes the width and the pointer */
 .identity-header {
@@ -899,20 +889,6 @@
   /* pinned to the end of the action row rather than wrapping under it */
   margin-left: auto;
 }
-/* the input takes the room the button does not, on one line where the screen allows it */
-.transfer-identity {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 6px;
-}
-.transfer-identity input:not([type="button"]) {
-  flex: 1 1 260px;
-  margin: 0;
-}
-.transfer-identity input[type="button"] {
-  margin: 0;
-}
 .issue-amount {
   display: flex;
   gap: 10px;
@@ -943,18 +919,5 @@
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 6px;
-}
-/* the annotation an explorer cannot make: these keys signed this one. The same chip the
-   transaction history marks its own rows with. */
-.identity-badge {
-  display: inline-block;
-  margin-left: 4px;
-  padding: 0 7px;
-  border-radius: 9px;
-  font-size: 0.7em;
-  font-weight: 600;
-  vertical-align: middle;
-  background-color: rgba(128, 128, 128, 0.18);
-  color: var(--font-color);
 }
 </style>

@@ -46,10 +46,7 @@
           </span>
         </template>
       </q-card-section>
-      <q-card-actions v-if="alertInfo.action" align="right">
-        <q-btn flat color="primary" :label="alertInfo.action.label" v-close-popup @click="alertInfo.action.onClick()" />
-      </q-card-actions>
-      <br v-else>
+      <br>
     </q-card>
   </q-dialog>
 </template>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue';
   import {
+    BCMR_GENERATOR_URL,
+    BCMR_SCHEMA_URL,
+    CASHTOKENS_STUDIO_URL,
     fetchCandidateRegistry,
     filledLocations,
     locationBudgetLeft,
@@ -41,7 +44,6 @@
   const inputFungibleSupply = ref("");
   const inputCirculating = ref("");
   const inputDecimals = ref("0");
-  const studioUrl = computed(() => store.network === 'mainnet' ? 'https://cashtokens.studio/' : 'https://chipnet.cashtokens.studio/');
   // A card says who its side is for and where the token is managed afterwards; the rows, the
   // risk among them, wait behind the closed line's popup once the choice is made
   const cardLines = ['for', 'managed'] as const;
@@ -477,7 +479,7 @@
             <div>{{ t('createTokens.home.studioBox') }}</div>
           </div>
           <div class="studio-actions">
-            <a :href="studioUrl" target="_blank" class="button primaryButton studio-button">
+            <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="button primaryButton studio-button">
               {{ t('createTokens.home.openStudio') }}
               <img src="images/external-link-white.svg">
             </a>
@@ -614,14 +616,14 @@
         <div style="margin-top: 6px;">
           <i18n-t keypath="createTokens.metadataNote" tag="span">
             <template #generator>
-              <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+              <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
             </template>
           </i18n-t>
           <InfoPopup>
             <div style="max-width: 300px;">
               <i18n-t keypath="identities.publish.generatorHelp" tag="span">
                 <template #schema>
-                  <a href="https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+                  <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
                 </template>
               </i18n-t>
             </div>
@@ -671,7 +673,7 @@
             <li>
               <i18n-t keypath="createTokens.steps.author" tag="span">
                 <template #generator>
-                  <a href="https://bcmr-generator.app/" target="_blank">BCMR generator</a>
+                  <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
                 </template>
               </i18n-t>
             </li>

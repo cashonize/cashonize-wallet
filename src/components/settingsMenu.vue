@@ -979,7 +979,7 @@
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(14)">
         → {{ t('settings.menu.tools') }}
         <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
-        <span v-else-if="identitiesStore.unseenCount" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenCount) }}</span>
+        <span v-else-if="identitiesStore.unseenIdentities.length" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(11)">
