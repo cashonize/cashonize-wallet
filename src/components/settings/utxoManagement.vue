@@ -438,9 +438,7 @@
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.vout') }}</span>
                 <span class="mono">{{ utxo.vout }}</span>
               </div>
-              <!-- A coin held for a pledge or for an identity's authhead is marked but not
-                   actionable: the feature holding it is what releases it. Every other coin opens
-                   its actions on a click on the row. -->
+              <!-- a coin held by a feature has no actions here: that feature releases it -->
               <utxoRowStatus :utxo="utxo" />
               <!-- The label spans the whole row as a line of its own, so it needs no column and
                    rows without one keep their height. It edits in place: a click on the text
@@ -623,8 +621,6 @@
         </div>
       </div>
 
-      <!-- Token UTXOs per category: an overview, so the one thing worth opening it for, a category
-           holding a lot of BCH, is marked on the closed header too -->
       <div class="section divided">
         <div class="list-header" @click="toggleList('tokens')">
           <strong>{{ t('utxoManagement.tokenList.title') }}</strong>
@@ -778,8 +774,7 @@
             class="pager"
           />
         </template>
-        <!-- Counts every held token coin, not only this list's: the three lists split one kind of
-             asset, and what a spend will not reach for is the same fact across them -->
+        <!-- counts every held token coin across the three lists, not only this one's -->
         <div v-if="heldTokenCount" class="reserved-summary">
           <span>{{ t('utxoManagement.reservedTokenSummary', heldTokenCount) }}</span>
         </div>

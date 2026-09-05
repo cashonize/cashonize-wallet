@@ -399,7 +399,6 @@
               {{ t('tokenItem.seeParsedData') }}
             </div>
             <div v-else style="word-break: break-all;" class="hide"></div>
-            <!-- a fact about the token, under its metadata; acting on it is in the action bar -->
             <div v-if="heldIdentityLine">{{ heldIdentityLine }}</div>
           </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" class="showChildNfts">

@@ -451,11 +451,8 @@
 
 <template>
   <div class="section identity-card">
-    <!-- The header opens and closes the card. Both halves are used: what it is on the left,
-         which one it is on the right, where the category was an unused corner. -->
     <div class="identity-header" @click="emit('toggle')">
       <TokenIcon :token-id="identity.category" :icon-url="identityIconUrl" :size="40" />
-      <!-- name over identifier, the shape the token list uses for the same pair -->
       <div class="identity-title">
         <div>{{ identityName ?? t('identities.unnamedIdentity') }}</div>
         <div class="copy-target" :title="identity.category" @click.stop="copyToClipboard(identity.category)">
@@ -464,7 +461,7 @@
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
       </div>
-      <!-- asking what a status means is not asking to open the card -->
+      <!-- .stop so the status popup does not also toggle the card -->
       <span class="identity-state" @click.stop>
         <InfoPopup>
           <template #trigger>
@@ -482,7 +479,6 @@
       <q-icon name="expand_more" class="chevron" :class="{ open: expanded }" />
     </div>
 
-    <!-- States stay visible on a closed card; only the details and the actions fold away -->
     <div v-if="foundAutomatically" class="info-box" style="margin-top: 8px;">
       <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
       <div>
@@ -494,7 +490,6 @@
     </div>
     <div v-if="carriesLine">
       {{ carriesLine }}
-      <!-- minting lives in the token list, behind its own gate; this points there, narrowed to this token -->
       <span
         v-if="identity.authUtxo?.token?.nft?.capability === 'minting'"
         class="action-link"
@@ -522,8 +517,6 @@
     <div v-if="identityValue !== undefined">
       {{ t('identities.authheadAmount', { amount: bchOf(identityValue) }) }}
     </div>
-    <!-- where the identity lives, for a watched one as much as a held one: somebody's wallet,
-         a covenant, or a script with no address form -->
     <div v-if="location" class="copy-target" :title="location.text" @click="copyToClipboard(location.text)">
       <span class="description">
         {{ t(location.kind === 'script' ? 'identities.locationScriptLabel' : 'identities.locationLabel') }}
@@ -535,17 +528,13 @@
       <img class="copyIcon" src="images/copyGrey.svg">
     </div>
 
-    <!-- The latest metadata publication of this identity, and what its locations serve now.
-         Shown for a watched identity as much as a held one: reading it needs no custody. -->
     <div class="section">
-      <!-- the title names the thing, the date says which one -->
       <div>
         {{ t('identities.publication.title') }}
         <span v-if="identity.publication" class="description" :title="publicationTimeAgo">· {{ publicationDate }}</span>
       </div>
       <div v-if="!identity.publication" class="info-box" style="margin-top: 6px;">
         <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
-        <!-- the action is in the bar right under it, so the box only states the fact -->
         <div>{{ t('identities.publication.none') }}</div>
       </div>
       <template v-else>
@@ -578,16 +567,13 @@
       </template>
     </div>
 
-    <!-- The operations, all of them the same spend of the authhead, so they share one row of
-         actions and open one form at a time, the way a token item's actions do -->
     <div class="actionBar identity-action-row">
       <template v-if="identity.authUtxo">
         <span @click="toggleAction('publish')" style="white-space: nowrap;">
           <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'">
           {{ t('identities.publish.action') }}
         </span>
-        <!-- a reserve is a fungible category's thing: its genesis decides that, not what the
-             wallet holds today, so an NFT-only identity never shows this -->
+        <!-- a reserve needs fungible supply, which the genesis decides, not what the wallet holds today -->
         <span v-if="identity.fungibleSupply && reserve > 0n" @click="toggleAction('issue')" style="white-space: nowrap;">
           <img class="icon" :src="settingsStore.darkMode? 'images/minus-square-lightGrey.svg' : 'images/minus-square.svg'">
           {{ t('identities.reserve.issue.action') }}
@@ -597,7 +583,6 @@
           {{ t('identities.transfer.action') }}
         </span>
       </template>
-      <!-- a view among the actions, the way the token item's "info" sits beside its actions -->
       <span @click="toggleHistory()" style="white-space: nowrap;">
         <q-icon name="history" size="18px" />
         {{ historyLabel }}
@@ -605,8 +590,6 @@
       <q-icon name="more_vert" size="22px" class="identity-menu-trigger">
         <q-menu anchor="bottom right" self="top right">
           <q-list dense>
-            <!-- the reverse of issuing, done rarely: the bar holds the four things a creator does,
-                 and the rest waits here -->
             <q-item
               v-if="identity.authUtxo && identity.fungibleSupply"
               clickable
@@ -620,8 +603,7 @@
               <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>
               <q-item-section>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</q-item-section>
             </q-item>
-            <!-- a followed identity is not listed, and one held through a key comes back from
-                 the key on the next resolve: the key is transferred instead -->
+            <!-- an identity held through a key comes back from the key on the next resolve, so the key is transferred instead -->
             <q-item
               v-if="groupKey !== 'tokens' && identity.status !== 'heldViaKey'"
               clickable
@@ -640,8 +622,7 @@
       <ol class="walkthrough">
         <li>
           <q-icon name="edit" size="18px" />
-          <!-- the generator writes a token section, which an identity that is not a token
-               must not have, so that one is sent to the schema instead -->
+          <!-- the generator writes a token section, which a non-token identity must not have -->
           <i18n-t v-if="identity.isToken === false" keypath="identities.publish.steps.authorByHand" tag="span">
             <template #schema>
               <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
@@ -653,7 +634,6 @@
                 <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
               </template>
             </i18n-t>
-            <!-- the line names a tool and cannot say what it is -->
             <InfoPopup>
               <div style="max-width: 300px;">
                 <i18n-t keypath="identities.publish.generatorHelp" tag="span">
@@ -722,7 +702,6 @@
 
     <div v-if="isOpen('transfer')" class="section">
       <div class="description">{{ t('identities.transfer.hint') }}</div>
-      <!-- what rides on the authhead is asked about rather than moved quietly -->
       <template v-if="identity.authUtxo?.token">
         <label :for="`carried-${identity.category}`" style="display: block; margin-top: 8px;">
           {{ t('identities.transfer.carriedLabel', { carries: carriesLine }) }}
@@ -768,8 +747,6 @@
     </div>
 
     <div v-if="historyOpen" class="section">
-      <!-- the year comes from the history, so it lands here with the history rather than
-           growing the header after the card was drawn -->
       <div>
         {{ t('identities.history.title') }}
         <span v-if="establishedYear" class="description">

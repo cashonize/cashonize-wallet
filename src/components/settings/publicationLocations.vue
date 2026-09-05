@@ -37,7 +37,6 @@
   <div class="publish-uri-actions">
     <button @click="addRow()">{{ t('identities.publish.addLocation') }}</button>
     <slot />
-    <!-- a number about nothing until a location is typed -->
     <span v-if="filled.length" class="description" :class="{ 'over-budget': budgetLeft < 0 }">
       {{ t('identities.publish.bytesLeft', { bytes: budgetLeft }) }}
     </span>

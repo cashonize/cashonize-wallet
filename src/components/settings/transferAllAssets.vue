@@ -265,8 +265,6 @@
         <span v-if="transactionCount > 1">{{ t('transferAllAssets.transactionCountNote') }}</span>
       </div>
 
-      <!-- Said before the transfer rather than after: the wallet does not end up empty, and the
-           coins left in it are the ones a spend never reaches for -->
       <div v-if="heldBackCount" class="description" style="margin-top: 12px;">
         {{ t('transferAllAssets.heldBack', heldBackCount) }}
       </div>

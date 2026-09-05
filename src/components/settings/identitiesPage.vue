@@ -214,7 +214,6 @@
           <div style="max-width: 300px;">{{ t('identities.whatIsAnIdentity') }}</div>
         </InfoPopup>
       </div>
-      <!-- the concept explained in the wallet, for whoever wants more than the one sentence -->
       <span v-if="mode !== 'learn'" class="page-nav" @click="mode = 'learn'">{{ t('identities.learn.link') }}</span>
       <span v-else class="page-nav" @click="mode = 'identities'">← {{ t('identities.learn.back') }}</span>
     </div>
@@ -266,8 +265,6 @@
     </div>
 
     <template v-if="mode === 'existing'">
-    <!-- adding an identity is pasting its authbase: the wallet looks up where it is held and says
-         so before listing it; following the tokens' identities is a tier of the list, not an action -->
     <div class="section">
       <div>
         <b>{{ t('identities.add.lead') }}</b> {{ t('identities.add.label') }}
@@ -287,7 +284,6 @@
           :disabled="runningAction !== undefined || identitiesStore.identitiesResolving || !categoryInput"
         >
       </div>
-      <!-- the one word the lead uses, defined as help under the field that takes it -->
       <div class="description" style="margin-top: 6px;">
         <b>{{ t('identities.add.authbaseLead') }}</b> {{ t('identities.add.authbase') }}
         <InfoPopup>
@@ -298,7 +294,6 @@
     </template>
 
     <template v-if="mode === 'create'">
-    <!-- what this tab adds, its one caution, and the common case sent to the create page -->
     <div class="section">
       <div><b>{{ t('identities.create.newLead') }}</b> {{ t('identities.create.newWhat') }}</div>
       <div class="description" style="margin-top: 6px;">
@@ -316,8 +311,6 @@
       </div>
     </div>
 
-    <!-- the steps open one at a time, the way the create page's do: the pick closes to the id it
-         decided, and the add opens under it -->
     <div v-if="pickStepOpen" class="section">
       <div class="step-label open">{{ addStepLabel(1, 'pick') }}</div>
       <div style="margin-top: 6px;">
@@ -342,8 +335,6 @@
     </div>
     <div v-if="!pickStepOpen" class="section">
       <div class="step-label open">{{ addStepLabel(2, 'add') }}</div>
-      <!-- what the add does and hands over to: the registry is the one thing the button cannot
-           make, so the step asks about it first and defines it as help under the button -->
       <div style="margin-top: 6px;"><b>{{ t('identities.create.lead') }}</b> {{ t('identities.create.outcome') }}</div>
       <input
         @click="addIdentityFromUtxo()"
@@ -373,8 +364,6 @@
     </template>
 
     <div v-if="mode === 'identities'" class="section">
-      <!-- a pass the wallet ran on its own failed: an identity it should have held back may not
-           be, which is worth stopping at, so it stays here until the next open rather than toasting -->
       <div v-if="identitiesStore.openCheckError" class="warning-box" style="margin-bottom: 10px;">
         <q-icon name="warning" size="20px" class="warning-box-icon" />
         <div>{{ t('identities.openCheckFailed', { reason: identitiesStore.openCheckError }) }}</div>
@@ -392,8 +381,6 @@
         </i18n-t>
       </div>
 
-      <!-- Found in this wallet's own history and held back, with nothing on the UTXO to say which
-           identity it belongs to. Protected first, named if it can be. -->
       <div v-for="coin in identitiesStore.unnamedAuthheadCoins" :key="coin.txid" class="section identity-card">
         <div>
           {{ t('identities.unnamed.title') }}
@@ -416,8 +403,6 @@
         </div>
       </div>
 
-      <!-- each list opens with the answer to what is in it, which is the first thing read here;
-           the third is folded, its head the same kind of toggle as a card's header -->
       <template v-for="group in identityGroups" :key="group.key">
       <div v-if="group.key !== 'tokens'" class="section">
         {{ group.key === 'held' ? t('identities.ownedCount', group.identities.length) : t('identities.watchedHeader', group.identities.length) }}
@@ -426,7 +411,6 @@
         <div v-if="identitiesStore.tokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }}</div>
         <div v-else class="follow-head" @click="showTokenIdentities = !showTokenIdentities">
           <span>{{ t('identities.follow.header', group.identities.length) }}</span>
-          <!-- beside the words rather than at the far end: a bare line has no border to frame it -->
           <q-icon name="expand_more" class="chevron" :class="{ open: showTokenIdentities }" />
         </div>
       </div>

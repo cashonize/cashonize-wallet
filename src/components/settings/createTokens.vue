@@ -351,8 +351,6 @@
     <fieldset class="item" style="padding-bottom: 20px;">
       <legend>{{ t('createTokens.title') }}</legend>
 
-      <!-- The finish, in the page's own sequence: the closed steps with their ticks, then the
-           token as the Tokens tab will show it, with the next thing to do beside it -->
       <template v-if="created">
         <div class="closed-line description">
           <img src="images/check-circle.svg" class="step-check">
@@ -390,13 +388,10 @@
             <div v-if="created.hasSupply">
               {{ t('createTokens.created.split', { reserve: createdAmount(created.reserve), circulating: createdAmount(created.circulating) }) }}
             </div>
-            <!-- the number lives nowhere else until the file is written; this is where the user is
-                 looking at their numbers -->
             <div v-if="created.hasSupply && !created.name">{{ t('createTokens.created.decimals', { decimals: created.decimals }) }}</div>
             <div class="description">{{ t('createTokens.created.listed') }}</div>
           </div>
         </div>
-        <!-- the nameless token is the thing the user is looking at, with the fix one tap away -->
         <div v-if="!created.name" style="margin-top: 10px;">
           <i18n-t keypath="createTokens.created.untilPublished" tag="span">
             <template #link>
@@ -418,8 +413,6 @@
       </template>
 
       <template v-else>
-      <!-- the one choice whose consequences the form cannot show: where the identity lives
-           afterwards. Two cards of the same shape, so neither reads as the recommended one -->
       <template v-if="choiceOpen">
       <div>{{ t('createTokens.home.intro') }}</div>
       <div class="home-cards">
@@ -444,18 +437,14 @@
           </div>
         </div>
       </div>
-      <!-- the same three leads on both sides, so the two are compared like with like -->
       <div v-if="selectedHome" class="section home-rows">
         <div v-for="row in homeRows" :key="row">
           <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${selectedHome}Rows.${row}`) }}
-          <!-- Studio's rows rest on a covenant and a key, which the popups explain -->
           <InfoPopup v-if="selectedHome === 'studio' && (row === 'protection' || row === 'metadata')">
             <div style="max-width: 300px;">{{ t(`createTokens.home.studioRows.${row}Help`) }}</div>
           </InfoPopup>
         </div>
         <div class="description">{{ t(`createTokens.home.${selectedHome}Rows.moveLater`) }}</div>
-        <!-- the wallet path has three steps to go to, so Continue takes it there; Studio's side is
-             one fact and one link, which fit here -->
         <input
           v-if="selectedHome === 'wallet'"
           @click="confirmHome()"
@@ -465,8 +454,6 @@
           style="margin-top: 10px;"
         >
         <template v-else>
-          <!-- the one fact a user meets on coming back from Studio, a key NFT and no tokens, beside
-               the one action, marked external like every other link out of the wallet -->
           <div class="info-box" style="margin: 10px 0 16px;">
             <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
             <div>{{ t('createTokens.home.studioBox') }}</div>
@@ -476,13 +463,11 @@
               {{ t('createTokens.home.openStudio') }}
               <img src="images/external-link-white.svg">
             </a>
-            <!-- the wallet's side of the same flow: Studio asks for a wallet over WalletConnect -->
             <input type="button" :value="t('createTokens.home.connectButton')" @click="store.changeView(connectView)">
           </div>
         </template>
       </div>
       </template>
-      <!-- what was chosen, and the way back: from the user's side Continue went to a new page -->
       <div v-else class="chosen-line">
         <span>{{ t('createTokens.home.chosen') }}</span>
         <span class="go-back" @click="changeHome()">← {{ t('createTokens.goBack') }}</span>
@@ -490,12 +475,8 @@
 
       <template v-if="homeConfirmed">
 
-      <!-- Which UTXO the genesis spends decides the token's permanent id, which is the whole of
-           what this section is, so it leads with that rather than with a heading repeating it -->
       <div v-if="utxoStepOpen" class="section">
         <div class="step-label open">{{ stepLabel(1, 'utxo') }}</div>
-        <!-- the open step's one action, preparing, takes the primary style inside the picker;
-             Create is not on screen until this step has closed -->
         <genesisInputPicker
           v-model="pickedOutpoint"
           :explainer="t('createTokens.genesisInput.explainer')"
@@ -511,8 +492,6 @@
           </div>
         </div>
       </div>
-      <!-- closed to the one thing the step decided, in the form the metadata names it by, which
-           copies on tap since pasting it into the generator is the next thing a creator does -->
       <div v-else-if="plannedCategory" class="section closed-line description">
         <img src="images/check-circle.svg" class="step-check pop">
         <span>{{ t('createTokens.plannedTokenId') }}</span>
@@ -523,18 +502,13 @@
         <span>·</span>
         <span class="action-link" @click="editingUtxo = true">{{ t('createTokens.change') }}</span>
       </div>
-      <!-- the shape of the flow shows before its fields do, since the first step costs a fee -->
       <template v-if="utxoStepOpen">
         <div class="section step-label">{{ stepLabel(2, shapeTitle) }}</div>
         <div class="step-label" style="margin-top: 8px;">{{ stepLabel(3, 'metadata') }}</div>
       </template>
 
-      <!-- Deciding what to make does not depend on which UTXO makes it, but it reads better one
-           thing at a time, so this opens once the UTXO is settled -->
       <div v-if="!utxoStepOpen && shapeStepOpen" class="section">
         <div class="step-label open">{{ stepLabel(2, shapeTitle) }}</div>
-        <!-- the sentences that change what the user does are in the lines the fields have, not
-             behind icons: what a minting NFT is, that the supply is final, what decimals mean -->
         <label for="tokenShape">{{ t('createTokens.shapeLabel') }}</label>
         <select id="tokenShape" v-model="tokenShape">
           <option value="fungible">{{ t('createTokens.shapes.fungible') }}</option>
@@ -545,8 +519,6 @@
         <div v-if="createMintingNft" class="description" style="margin-top: 4px;">{{ t('createTokens.mintingNote') }}</div>
 
         <template v-if="hasSupply">
-        <!-- the supply in tokens beside the decimals that turn it into the permanent number on
-             chain, which is shown underneath rather than typed -->
         <div class="supply-row">
           <div class="supply-field">
             <label for="supply">{{ t('createTokens.supplyLabel') }}</label>
@@ -601,8 +573,6 @@
         <span class="action-link" @click="shapeStepOpen = true">{{ t('createTokens.change') }}</span>
       </div>
 
-      <!-- Optional. The location is the field that delivers what the page promises, so it is in
-           the open; how to write and host the file is the collapsible part. -->
       <div v-if="!utxoStepOpen && !shapeStepOpen" class="section">
         <div class="step-label open">{{ stepLabel(3, 'metadata') }}</div>
         <div style="margin-top: 6px;">
@@ -621,7 +591,6 @@
             </div>
           </InfoPopup>
         </div>
-        <!-- the number chosen in step 2, carried here where the file that has to agree is named -->
         <div v-if="hasSupply" class="description" style="margin-top: 6px;">
           {{ t('createTokens.check.decimalsReminder', { decimals }) }}
         </div>
@@ -629,8 +598,6 @@
         <publicationLocations v-model="metadataUris">
           <span class="description">{{ t('createTokens.sameFile') }}</span>
         </publicationLocations>
-        <!-- checked on the user's action, never on blur, and what it found is shown before
-             anything is signed -->
         <template v-if="filledUris.length">
           <input
             v-if="readiness === 'unchecked'"
@@ -657,8 +624,6 @@
         </template>
         <details style="margin-top: 10px;">
           <summary style="display: list-item">{{ t('createTokens.howTo') }}</summary>
-          <!-- These four are the reader's own actions, done on other sites, so they take the text
-               colour; the numbers already say they are steps in order -->
           <ol class="walkthrough">
             <li>
               <i18n-t keypath="createTokens.steps.author" tag="span">

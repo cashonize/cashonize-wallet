@@ -233,7 +233,6 @@
                 <img class="copyIcon" src="images/copyGrey.svg">
               </span>
             </div>
-            <!-- a fact about the token, under its metadata; acting on it is in the action bar -->
             <div v-if="heldIdentityLine">{{ heldIdentityLine }}</div>
             <div style="word-break: break-all;" class="hide"></div>
           </div>

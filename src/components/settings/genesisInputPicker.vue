@@ -60,7 +60,6 @@
 <template>
   <div>
     <div>{{ explainer }}</div>
-    <!-- an empty wallet is a condition, not a mistake: the wallet's caution, not its error -->
     <div v-if="store.spendableBalance === 0n" class="warning-box" style="margin-top: 8px;">
       <q-icon name="warning" size="20px" class="warning-box-icon" />
       <div>{{ t('createTokens.genesisInput.needBch') }}</div>
@@ -75,8 +74,6 @@
       style="margin-top: 10px;"
     >
 
-    <!-- Which of your UTXOs becomes an id is a question nearly nobody needs asked, so it waits
-         behind a disclosure for whoever wants a particular id or one fewer fee -->
     <details style="margin-top: 10px;">
       <summary style="display: list-item">{{ t('createTokens.genesisInput.chooseExisting', candidates?.length ?? 0) }}</summary>
       <div class="description" style="margin-top: 4px;">{{ t('createTokens.genesisInput.rule') }}</div>
