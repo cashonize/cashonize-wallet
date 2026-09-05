@@ -59,11 +59,10 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Flipstarter pledges** - Make and cancel pledges to Flipstarter campaigns from the wallet
 - **TapSwap listings** - Shows the assets you have listed for sale on TapSwap in the portfolio
 - **Hodl contracts** - Shows BCH locked in hodl timelock contracts in the portfolio
-- **Create tokens** - Choose the coin that becomes the token's id, issue part of the supply and keep the rest as a protected reserve, with a minting NFT if you want one
-- **Add identities** - Turn a UTXO you hold into an identity that is not a token, listed and its identity UTXO protected from the moment it is added
-- **Identities** - Finds the identities your keys made, keeps their identity UTXOs out of coin selection, transfers them deliberately, watches identities whose UTXO lives in another wallet, and follows the identities of the tokens you hold
-- **Metadata publishing** - Checks your hosted BCMR registry against its on-chain hash, publishes updates and manages the reserved supply
-- **Guarded identities** - Recognizes and protects AuthKey NFTs, and shows the identities they control, managed on CashTokens Studio
+- **Create tokens** - Pick the token id coin and keep part of the supply as a protected reserve
+- **Identities** - Finds, adds, protects and deliberately transfers the identities your keys hold
+- **Metadata publishing** - Verifies your BCMR registry against its on-chain hash and publishes it
+- **AuthKey support** - Recognizes and protects AuthKey NFTs and shows the identities they control
 
 ## Platforms
 
