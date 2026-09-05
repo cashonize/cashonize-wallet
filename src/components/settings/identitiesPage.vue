@@ -298,9 +298,7 @@
     </template>
 
     <template v-if="mode === 'create'">
-    <!-- The fork as two questions, in the Add tab's shape: what this tab adds, with the one caution
-         that matters in the open, and the common case pointed at the page that makes it. The
-         concept and the examples are on Learn. -->
+    <!-- what this tab adds, its one caution, and the common case sent to the create page -->
     <div class="section">
       <div><b>{{ t('identities.create.newLead') }}</b> {{ t('identities.create.newWhat') }}</div>
       <div class="description" style="margin-top: 6px;">
@@ -452,7 +450,6 @@
 .description {
   color: grey;
 }
-/* the description on the left, the way into and out of the explanation on the right */
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -460,7 +457,6 @@
   gap: 10px;
   flex-wrap: wrap;
 }
-/* navigation in the page's own text colour, not the green of an action */
 .page-nav {
   cursor: pointer;
 }
@@ -473,11 +469,10 @@
 .section {
   margin-top: 20px;
 }
-/* the whole head is the group's toggle; the chevron sits in the line the way the info icon does,
-   the same size and the same small drop below the middle, rather than centred on the line box */
 .follow-head {
   cursor: pointer;
 }
+/* sized and dropped like the info icon beside it, rather than centred on the line box */
 .follow-head .chevron {
   font-size: 1.1em;
   vertical-align: -0.2em;

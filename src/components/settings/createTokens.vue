@@ -418,11 +418,8 @@
       </template>
 
       <template v-else>
-      <!-- The one decision on this page a creator cannot see the consequences of from the form:
-           where the token's identity lives afterwards. One short intro, then two cards of the
-           same shape so neither reads as the recommended one: a radio marker, a title with the
-           mark of the thing it stands for, and two lines with the same leads, who the side is for
-           and where the token is managed. A pick replaces all of it with one closed line. -->
+      <!-- the one choice whose consequences the form cannot show: where the identity lives
+           afterwards. Two cards of the same shape, so neither reads as the recommended one -->
       <template v-if="choiceOpen">
       <div>{{ t('createTokens.home.intro') }}</div>
       <div class="home-cards">
@@ -447,15 +444,11 @@
           </div>
         </div>
       </div>
-      <!-- the selected side's detail, read before it is committed to: the same three leads on
-           both sides so the selection is compared like with like, the risk in the Protection row,
-           and the way back in the last line -->
+      <!-- the same three leads on both sides, so the two are compared like with like -->
       <div v-if="selectedHome" class="section home-rows">
         <div v-for="row in homeRows" :key="row">
           <b>{{ t(`createTokens.home.leads.${row}`) }}</b> {{ t(`createTokens.home.${selectedHome}Rows.${row}`) }}
-          <!-- Studio's side has two mechanisms behind its rows: the covenant and the key, by the
-               names Studio uses for them, and why the file wants a copy kept; the wallet side's
-               rows carry none -->
+          <!-- Studio's rows rest on a covenant and a key, which the popups explain -->
           <InfoPopup v-if="selectedHome === 'studio' && (row === 'protection' || row === 'metadata')">
             <div style="max-width: 300px;">{{ t(`createTokens.home.studioRows.${row}Help`) }}</div>
           </InfoPopup>
@@ -510,7 +503,6 @@
         />
 
         <div v-if="plannedCategory" class="planned-category">
-          <!-- keyed on the category because the icon is only drawn when the component mounts -->
           <TokenIcon :key="plannedCategory" :token-id="plannedCategory" :size="40" />
           <div class="copy-target" @click="copyToClipboard(plannedCategory)">
             <span class="description">{{ t('createTokens.plannedTokenId') }}</span>
@@ -637,10 +629,8 @@
         <publicationLocations v-model="metadataUris">
           <span class="description">{{ t('createTokens.sameFile') }}</span>
         </publicationLocations>
-        <!-- The check is the user's action, never a fetch on blur, and what it found is shown
-             before anything is signed: the token as wallets will show it, and the hash Create
-             would commit to. The one moment of colour on the page that is not the primary green,
-             and it is the user's own. -->
+        <!-- checked on the user's action, never on blur, and what it found is shown before
+             anything is signed -->
         <template v-if="filledUris.length">
           <input
             v-if="readiness === 'unchecked'"
@@ -712,10 +702,7 @@
 .section {
   margin-top: 20px;
 }
-/* side by side where the width allows, stacked on a phone; a card line is cut to the column of a
-   half-width card so it stays one line, and the pair borrows most of the fieldset's 2rem inset,
-   the only columns on the page and the only thing that gains from it. The selected card is
-   marked the way a picked UTXO is, and stops reading as clickable. */
+/* the negative margin lets the pair borrow most of the fieldset's 2rem inset */
 .home-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -738,15 +725,12 @@
   border-color: var(--color-primary);
   cursor: default;
 }
-/* set rather than crammed: air under the title, a little between the facts */
 .home-card > div {
   margin-top: 3px;
 }
 .home-card > .home-card-title + div {
   margin-top: 6px;
 }
-/* the one-of-two control the page's own inputs use, so a card reads as a choice on a phone too;
-   after the title, the mark of the thing the card stands for: home, or someone else's site */
 .home-card-title {
   display: flex;
   align-items: center;
@@ -772,7 +756,6 @@
 .home-rows div {
   margin-top: 4px;
 }
-/* the way back, in the text colour like the settings pages' own back line */
 .chosen-line {
   display: flex;
   gap: 16px;
@@ -797,7 +780,7 @@
   gap: 6px;
   text-decoration: none;
 }
-/* the anchor hover tints the background; a button hovers by fading, like every other button */
+/* an anchor styled as a button: hover by fading like the buttons, not by the anchor tint */
 .studio-button:hover {
   background-color: var(--color-primary);
   opacity: 0.8;
@@ -810,7 +793,6 @@ label {
 .genesis-problem {
   color: var(--color-error);
 }
-/* the supply and its decimals on one line where the width allows */
 .supply-row {
   display: flex;
   gap: 10px;
@@ -838,7 +820,6 @@ label {
   gap: 10px;
   margin-top: 12px;
 }
-/* the finish: the one glad line on the page, then the token in the shape the Tokens tab gives it */
 .created-title {
   font-size: 1.2em;
   font-weight: bold;

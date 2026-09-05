@@ -448,8 +448,9 @@ export function clearIdentityList(list: IdentityList, network: Network, walletNa
 }
 
 
-// A future wallet created under the same name must not inherit the old wallet's identities
-export function removeIdentityCategories(walletName: string) {
+// Every identity list and the followed map, on both networks: a future wallet created under the
+// same name must not inherit the old wallet's identities
+export function removeIdentityData(walletName: string) {
   for (const network of ['mainnet', 'chipnet'] as const) {
     for (const list of Object.keys(identityListKeys) as IdentityList[]) {
       clearIdentityList(list, network, walletName);

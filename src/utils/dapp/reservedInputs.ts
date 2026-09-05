@@ -90,7 +90,8 @@ export function identityRefusal(check: ReservedInputsCheck): ReservedInputRefusa
   return check.refusals.find(refusal => identityReasons.includes(refusal.reason));
 }
 
-// What the user is told when a check refuses, in the identity's own words when that is the reason
+// What the user is told when a check refuses. An identity that would leave the wallet is refused
+// as the transfer it is, naming the identity, rather than as one more held back coin.
 export function refusalMessage(check: ReservedInputsCheck, identityName?: string): string {
   const refusal = identityRefusal(check);
   if (refusal?.reason === 'identityHeld') return t('store.errors.identityHeld', { name: identityName ?? '' });

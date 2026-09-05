@@ -4,7 +4,7 @@ import {
   loadIdentityList,
   addToIdentityList,
   removeFromIdentityList,
-  removeIdentityCategories,
+  removeIdentityData,
   resolveIdentities,
 } from "../src/utils/tools/authchainIdentity";
 
@@ -208,7 +208,7 @@ describe('identity categories', () => {
   it('removes both networks when the wallet is deleted', () => {
     addToIdentityList('categories', 'mainnet', 'mywallet', categoryA);
     addToIdentityList('categories', 'chipnet', 'mywallet', categoryB);
-    removeIdentityCategories('mywallet');
+    removeIdentityData('mywallet');
     expect(loadIdentityList('categories', 'mainnet', 'mywallet')).toEqual([]);
     expect(loadIdentityList('categories', 'chipnet', 'mywallet')).toEqual([]);
   });

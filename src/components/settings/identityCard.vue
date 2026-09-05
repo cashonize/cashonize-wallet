@@ -804,7 +804,6 @@
 .section {
   margin-top: 20px;
 }
-/* the whole header is the card's toggle, so it takes the width and the pointer */
 .identity-header {
   display: flex;
   align-items: center;
@@ -815,7 +814,6 @@
 .identity-title {
   min-width: 0;
 }
-/* the state sits in the header's other half, where nothing was */
 .identity-state {
   margin-left: auto;
   flex: none;
@@ -830,14 +828,10 @@
 .identity-status {
   color: grey;
 }
-/* a held identity is simply how things should be, and a colour that reads as a link on something
-   that does not click is worse than plain text */
 .identity-status.held,
 .identity-status.heldViaKey {
   color: var(--font-color);
 }
-/* an identity whose authhead lives elsewhere is watched, not broken, so it reads as neither; one
-   that was burned is over rather than wrong, and reads the same */
 .identity-status.notHeld,
 .identity-status.burned {
   color: grey;
@@ -872,21 +866,18 @@
 .publication-badge.unreachable {
   color: var(--color-error);
 }
-/* the operations wrap as a group, the menu stays where it is */
 .identity-action-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 0;
 }
-/* one size for the operation icons, whatever each file happens to be drawn at */
 .actionBar .icon {
   width: 18px;
   height: 18px;
 }
 .identity-menu-trigger {
   cursor: pointer;
-  /* pinned to the end of the action row rather than wrapping under it */
   margin-left: auto;
 }
 .issue-amount {
@@ -904,7 +895,6 @@
   flex-wrap: wrap;
   margin-top: 12px;
 }
-/* grey like the descriptions around it: the steps explain, the actions below them act */
 .walkthrough {
   color: grey;
 }
@@ -912,7 +902,6 @@
   flex: none;
   align-self: center;
 }
-/* one line a link, wrapping on a narrow screen the way the rest of the card does */
 .chain-link {
   display: flex;
   align-items: baseline;

@@ -52,8 +52,8 @@ registry; both can only make the wallet compare against a covenant the chain the
 match, so the worst either can do is hold a coin back.
 
 **Reserve first, tell every time.** An identity output or an AuthKey the wallet holds is
-held back from coin selection the moment the wallet knows, without asking, because the
-accident it prevents fits in the gap a question would open. The reservation is local and
+held back from coin selection the moment the wallet knows, without asking: a question can be
+answered wrong or too late, and the spend it prevents is final. The reservation is local and
 advisory: another app on the same seed spends the coin regardless, which the copy says
 wherever the fact matters. Its effects are visible: the coin leaves the spendable pool,
 its BCH leaves the balance, a reserve on it leaves the token list, and a dapp transaction

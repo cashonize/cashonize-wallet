@@ -259,8 +259,6 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     return mainStore.checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
   }
 
-  // An identity whose authority would end up elsewhere is a transfer wearing an operation's
-  // clothes, so it is refused in its own words rather than as one more held back coin.
   async function showNextSignRequest() {
     if (pendingDialog) return;
     const queuedRequest = requestQueue.shift();

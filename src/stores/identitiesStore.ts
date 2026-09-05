@@ -38,9 +38,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
   const mainStore = useStore()
   const settingsStore = useSettingsStore()
 
-  // Token categories whose authhead this wallet keeps custody of, and where those authheads sit
-  // now. Only the categories persist, the resolved state is rebuilt from Chaingraph every time
-  // (see utils/tools/authchainIdentity.ts).
+  // The identities the wallet follows, by authbase: the ones it holds and the ones it only
+  // watches, tokens or not. Only the categories persist; where each authhead sits now is
+  // rebuilt from Chaingraph every time (see utils/tools/authchainIdentity.ts).
   const identityCategories = ref([] as string[]);
   // Categories the user took off the list, which the automatic detection must not put back
   const dismissedIdentities = ref([] as string[]);
@@ -48,7 +48,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // for, and what marks the cards as found automatically on the visit that clears it
   const unseenIdentities = ref([] as string[]);
   // Authheads held here that the detection could not name, by txid. Protected either way: naming
-  // is a convenience, an unspendable coin is the point. Each is asked its registry once per session, on the page's visit.
+  // is a convenience, an unspendable coin is the point. Each is asked its registry once per
+  // session, on the page's visit.
   const unnamedAuthheads = ref([] as string[]);
   let triedThisSession: string[] = [];
   // The wallet's own transactions that carried a metadata publication, read off the same walk, so
@@ -140,11 +141,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return listed;
   }
 
-  // The wallet held something back the user never asked it to, so it says so every time, with
-  // names, at the moment the balance changes: a coin found in the wallet's own history, a key, a
-  // followed identity whose authhead arrived. Set after the resolve so the dialog can say what
-  // each one carries; announcements made close together accumulate, and the wallet page opens one
-  // dialog for them and clears this.
+  // What the wallet held back without being asked, to be told in a dialog with names. Set after
+  // the resolve so the dialog can say what each carries; announcements close together accumulate,
+  // and the wallet page opens one dialog for them and clears this.
   const announcement = ref<string[] | undefined>(undefined);
   function announceFound(ids: string[]) {
     if (!ids.length) return;

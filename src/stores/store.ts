@@ -99,7 +99,7 @@ import {
   type UtxoLabels,
 } from "src/utils/wallet/utxoLabels"
 import { removePledges } from "src/utils/tools/flipstarterPledges"
-import { removeIdentityCategories } from "src/utils/tools/authchainIdentity"
+import { removeIdentityData } from "src/utils/tools/authchainIdentity"
 import { defaultWalletName } from './constants';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -894,7 +894,7 @@ export const useStore = defineStore('store', () => {
     removeReservedUtxos(walletName);
     removeUtxoLabels(walletName);
     removePledges(walletName);
-    removeIdentityCategories(walletName);
+    removeIdentityData(walletName);
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
