@@ -1550,21 +1550,14 @@
       "link": "Aprender",
       "back": "Voltar às identidades",
       "title": "Identidades na Bitcoin Cash",
-      "purposeLead": "Uma identidade publica informação verificável.",
-      "purpose": "É uma forma de publicar informação sobre algo na Bitcoin Cash, os seus metadados, como o nome e o ícone de um token. Qualquer pessoa pode verificar que a informação veio de quem controla a identidade, e quem a controla pode atualizá-la ao longo do tempo ou passar o controlo a outro.",
-      "whatLead": "Por baixo, uma identidade é uma cadeia de transações.",
-      "what": "Começa na authbase, que num token é o id do token, e continua por cada transação que gasta a saída 0 da anterior. A última saída 0 por gastar é o UTXO da identidade: quem o tem controla a identidade, e movê-lo para um novo endereço é a transferência.",
-      "tokensLead": "Cada token é uma identidade.",
-      "tokens": "O seu id de token é o id da identidade, e é assim que um emissor pode atualizar o nome e o ícone de um token depois de os tokens circularem. Também existem identidades que não são tokens: uma pessoa, uma organização ou um contrato pode publicar informação da mesma forma. Uma dapp poderia dizer qual a versão atual dos seus contratos e onde está o seu site; uma organização poderia responder pelo que publica.",
-      "metadataLead": "Os metadados são um ficheiro alojado.",
-      "metadata": "Um registo no formato BCMR é alojado fora da cadeia, e uma saída de publicação na cadeia fixa o seu hash, para que qualquer pessoa possa descarregar o ficheiro e verificá-lo contra a cadeia. O registo de um token escreve-se com o {generator}; qualquer registo pode escrever-se à mão segundo o {schema}.",
-      "keysLead": "As AuthKeys são uma convenção do CashTokens Studio.",
-      "keys": "O {studio} guarda o UTXO de uma identidade num covenant, o AuthGuard, e transforma o direito de o mover num NFT, a AuthKey. Esta carteira reconhece essas chaves, lista o que controlam e protege-as como um UTXO de identidade.",
-      "furtherLead": "Para ler mais.",
-      "further": "O {spec} descreve por completo as identidades, os registos e a publicação.",
-      "specLink": "padrão CHIP-BCMR"
+      "whatLead": "O que é uma identidade.",
+      "what": "Uma forma de publicar informação sobre algo na Bitcoin Cash, como o nome e o ícone de um token, que qualquer um pode verificar que veio de quem controla a identidade. Cada token é uma identidade; uma pessoa, uma organização ou um contrato também podem ser uma identidade.",
+      "holdingLead": "O que significa ter uma identidade nesta carteira.",
+      "holding": "O controlo é uma única moeda, o UTXO de identidade. Cada transação da cadeia da identidade gasta o output 0 da anterior, por isso o último output 0 é essa moeda; o Studio e o explorador chamam-lhe AuthHead. A primeira transação da cadeia é a authbase, o id de um token. Esta carteira mantém essa moeda, e qualquer reserva de tokens que ela carregue, fora dos envios comuns e da lista de tokens; movê-la de propósito é como a identidade é transferida ou os seus metadados atualizados.",
+      "readMoreLead": "Ler mais.",
+      "readMore": "Os metadados são um ficheiro alojado para o qual a cadeia aponta pelo hash: {registries}. As identidades guardadas atrás de uma AuthKey seguem o padrão AuthGuard, que o {studio} implementa.",
+      "registriesLink": "registos de metadados em cashtokens.org"
     },
-    "whatIsAnIdentity": "Uma identidade é uma cadeia de transações, cada uma gastando a saída 0 da anterior. Quem tem a última saída, o UTXO da identidade, controla a identidade e pode publicar os seus metadados.",
     "authbaseLabel": "Authbase / id do token:",
     "resolving": "Procurando onde estão estas identidades...",
     "empty": "Ainda não há identidades na lista. Uma que esta carteira fez encontra-se sozinha; uma que tem ou quer seguir adiciona-se pela sua authbase em {link}.",
@@ -1731,10 +1724,11 @@
         "author": "Escreva o JSON do registro com o {generator}.",
         "host": "Hospede-o no seu próprio domínio ou no IPFS.",
         "publish": "Informe abaixo onde está hospedado, e esta carteira verifica e publica o ponteiro.",
-        "authorByHand": "Escreva o JSON do registo num editor de código segundo o {schema}: esta identidade não é um token, por isso o seu instantâneo leva um nome, uma descrição e ligações, e nenhuma secção token."
+        "authorByHand": "Escreva o JSON do registo num editor de código segundo o {schema}, partindo dos {examples}: esta identidade não é um token, por isso o seu instantâneo leva um nome, uma descrição e ligações, e nenhuma secção token."
       },
       "generatorHelp": "O gerador é um formulário que escreve por si o ficheiro de metadados; a especificação chama-lhe registo. Também pode escrevê-lo você contra o {schema}. De qualquer forma esta carteira obtém o ficheiro, calcula o seu hash exatamente como é servido, e verifica que ele nomeia este token.",
-      "generatorHelpSchema": "esquema BCMR"
+      "generatorHelpSchema": "esquema BCMR",
+      "examplesLink": "registos de exemplo"
     },
     "add": {
       "label": "Adicione a identidade pela sua authbase. Uma identidade que esta carteira controla é gerida a partir daqui; qualquer outra é apenas vigiada.",
@@ -1781,7 +1775,7 @@
       "lead": "Vai escrever e alojar o seu registo você mesmo?",
       "outcome": "Adicioná-la lista a identidade entre as que esta carteira possui e mantém o seu UTXO fora dos envios comuns. Não tem nome até que se publique um registo que a nomeie; o seu cartão guia-o nisso.",
       "registryLead": "Registo:",
-      "registry": "o ficheiro JSON que nomeia a identidade, escrito num editor de código segundo o {schema} e alojado num domínio que controle ou no IPFS.",
+      "registry": "o ficheiro JSON que nomeia a identidade, escrito num editor de código segundo o {schema}, partindo dos {examples}, e alojado num domínio que controle ou no IPFS.",
       "registryNote": "O {generator} escreve registos para tokens: pede um símbolo e escreve uma secção token, que uma identidade que não é um token não deve ter. O seu instantâneo leva um nome, uma descrição e ligações.",
       "newLead": "Adicionar uma identidade nova para uma dapp, um sistema de contratos ou uma organização?",
       "newWhat": "Isto adiciona uma: uma cadeia de UTXOs sem token, a partir da qual um nome, um ícone e ligações são publicados e atualizados.",

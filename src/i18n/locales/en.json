@@ -1550,21 +1550,14 @@
       "link": "Learn",
       "back": "Back to identities",
       "title": "Identities on Bitcoin Cash",
-      "purposeLead": "An identity publishes verifiable information.",
-      "purpose": "It is a way to publish information about something on Bitcoin Cash, its metadata, such as a token's name and icon. Anyone can verify that the information came from whoever controls the identity, and the controller can update it over time or pass control on.",
-      "whatLead": "Under the hood, an identity is a chain of transactions.",
-      "what": "It starts at the authbase, which for a token is the token id, and continues through each transaction that spends the previous one's output 0. The latest unspent output 0 is the identity UTXO: whoever holds it controls the identity, and moving it to a new address is the transfer.",
-      "tokensLead": "Every token is an identity.",
-      "tokens": "Its token id is the identity's id, which is how an issuer can update a token's name and icon after the tokens are out. Identities that are not tokens exist too: a person, an organization or a contract can publish information the same way. A dapp could say which version of its contracts is current and where its site is; an organization could stand behind what it publishes.",
-      "metadataLead": "The metadata is a hosted file.",
-      "metadata": "A registry in the BCMR format is hosted off-chain, and a publication output on the chain commits to its hash, so anyone can fetch the file and check it against the chain. A token's registry is written with the {generator}; any registry can be written by hand against the {schema}.",
-      "keysLead": "AuthKeys are a CashTokens Studio convention.",
-      "keys": "{studio} keeps an identity's UTXO in a covenant, the AuthGuard, and turns the right to move it into an NFT, the AuthKey. This wallet recognises such keys, lists what they control and protects them like an identity UTXO.",
-      "furtherLead": "Further reading.",
-      "further": "The {spec} describes identities, registries and publication in full.",
-      "specLink": "CHIP-BCMR standard"
+      "whatLead": "What an identity is.",
+      "what": "A way to publish information about something on Bitcoin Cash, such as a token's name and icon, that anyone can check came from whoever controls the identity. Every token is an identity; a person, an organisation or a contract can be an identity too.",
+      "holdingLead": "What holding an identity means in this wallet.",
+      "holding": "Control is one coin, the identity UTXO. Each transaction on the identity's chain spends the previous one's output 0, so the latest output 0 is that coin; Studio and the explorer call it the AuthHead. The chain's first transaction is the authbase, a token's id. This wallet keeps that coin, and any reserve of tokens riding on it, out of ordinary sends and the token list; moving it on purpose is how the identity is transferred or its metadata updated.",
+      "readMoreLead": "Read more.",
+      "readMore": "The metadata is a hosted file the chain points at by hash: {registries}. Identities kept behind an AuthKey follow the AuthGuard standard, which {studio} implements.",
+      "registriesLink": "metadata registries on cashtokens.org"
     },
-    "whatIsAnIdentity": "An identity is a chain of transactions, each spending the previous one's output 0. Whoever holds the latest output, the identity UTXO, controls the identity and can publish its metadata.",
     "authbaseLabel": "Authbase / token id:",
     "resolving": "Looking up where these identities are held...",
     "empty": "No identities listed yet. One this wallet made is found on its own; one you hold or want to follow is added by its authbase under {link}.",
@@ -1731,10 +1724,11 @@
         "author": "Write the registry JSON with the {generator}.",
         "host": "Host it on your own domain or on IPFS.",
         "publish": "Enter where it is hosted below, and this wallet verifies it and publishes the pointer.",
-        "authorByHand": "Write the registry JSON in a code editor against the {schema}: this identity is not a token, so its snapshot carries a name, a description and links, and no token section."
+        "authorByHand": "Write the registry JSON in a code editor against the {schema}, with the {examples} to start from: this identity is not a token, so its snapshot carries a name, a description and links, and no token section."
       },
       "generatorHelp": "The generator is a form that writes the metadata file for you; the spec calls it a registry. You can also write it yourself against the {schema}. Either way this wallet fetches the file, hashing it exactly as served, and checks that it names this token.",
-      "generatorHelpSchema": "BCMR schema"
+      "generatorHelpSchema": "BCMR schema",
+      "examplesLink": "example registries"
     },
     "add": {
       "label": "Add the identity by its authbase. An identity this wallet controls is managed from here; any other is only watched.",
@@ -1781,7 +1775,7 @@
       "lead": "Will you write and host its registry yourself?",
       "outcome": "Adding lists the identity under the ones this wallet owns and keeps its UTXO out of ordinary sends. It has no name until a registry naming it is published, which its card walks you through.",
       "registryLead": "Registry:",
-      "registry": "the JSON file that names the identity, written in a code editor against the {schema} and hosted on a domain you control or on IPFS.",
+      "registry": "the JSON file that names the identity, written in a code editor against the {schema}, with the {examples} to start from, and hosted on a domain you control or on IPFS.",
       "registryNote": "The {generator} writes registries for tokens: it asks for a symbol and writes a token section, which an identity that is not a token must not have. Its snapshot carries a name, a description and links.",
       "newLead": "Adding a new identity for a dapp, a contract system or an organization?",
       "newWhat": "This adds one: a chain of UTXOs with no token on it, from which a name, an icon and links are published and updated.",

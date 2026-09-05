@@ -7,9 +7,12 @@ import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
-// where a registry is written: the form for a token's, the schema for one written by hand
+// Where a registry is written: the form for a token's; the schema and the example registries for
+// one written by hand. The docs are the standard rendered for reading, rather than the markdown.
 export const BCMR_GENERATOR_URL = "https://bcmr-generator.app/";
 export const BCMR_SCHEMA_URL = "https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json";
+export const BCMR_EXAMPLES_URL = "https://cashtokens.org/docs/bcmr/examples";
+export const BCMR_DOCS_URL = "https://cashtokens.org/docs/category/metadata-registries-chip";
 
 // What a fetch of one published location found. 'changed' means the location answered with
 // something other than what the on-chain hash commits to: for an HTTPS location that is the

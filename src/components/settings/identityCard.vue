@@ -43,6 +43,7 @@
     summarizeRegistry,
     type PublicationUriStatus,
     type RegistrySummary,
+    BCMR_EXAMPLES_URL,
   } from 'src/utils/tools/registryFile'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { TokenSendRequest } from 'mainnet-js'
@@ -588,6 +589,9 @@
           <i18n-t v-if="identity.isToken === false" keypath="identities.publish.steps.authorByHand" tag="span">
             <template #schema>
               <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+            </template>
+            <template #examples>
+              <a :href="BCMR_EXAMPLES_URL" target="_blank">{{ t('identities.publish.examplesLink') }}</a>
             </template>
           </i18n-t>
           <template v-else>

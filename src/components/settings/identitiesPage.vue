@@ -14,7 +14,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { CASHTOKENS_STUDIO_URL, type IdentityStatus } from 'src/utils/tools/authchainIdentity'
-  import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL } from 'src/utils/tools/registryFile'
+  import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, BCMR_EXAMPLES_URL, BCMR_DOCS_URL } from 'src/utils/tools/registryFile'
   import { Notify } from 'quasar'
 
   const store = useStore()
@@ -198,12 +198,7 @@
     <legend>{{ t('identities.title') }}</legend>
 
     <div class="page-head">
-      <div>
-        {{ t('identities.description') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.whatIsAnIdentity') }}</div>
-        </InfoPopup>
-      </div>
+      <div>{{ t('identities.description') }}</div>
       <span v-if="mode !== 'learn'" class="page-nav" @click="mode = 'learn'">{{ t('identities.learn.link') }}</span>
       <span v-else class="page-nav" @click="mode = 'identities'">← {{ t('identities.learn.back') }}</span>
     </div>
@@ -211,31 +206,17 @@
     <template v-if="mode === 'learn'">
     <div class="section">
       <b>{{ t('identities.learn.title') }}</b>
-      <div v-for="topic in ['purpose', 'tokens', 'what']" :key="topic" style="margin-top: 12px;">
+      <div v-for="topic in ['what', 'holding']" :key="topic" style="margin-top: 12px;">
         <b>{{ t(`identities.learn.${topic}Lead`) }}</b> {{ t(`identities.learn.${topic}`) }}
       </div>
       <div style="margin-top: 12px;">
         <!-- the lead and the sentence share a line: a line break between elements is dropped, a space is kept -->
-        <b>{{ t('identities.learn.metadataLead') }}</b> <i18n-t keypath="identities.learn.metadata" tag="span">
-          <template #generator>
-            <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
+        <b>{{ t('identities.learn.readMoreLead') }}</b> <i18n-t keypath="identities.learn.readMore" tag="span">
+          <template #registries>
+            <a :href="BCMR_DOCS_URL" target="_blank">{{ t('identities.learn.registriesLink') }}</a>
           </template>
-          <template #schema>
-            <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
-          </template>
-        </i18n-t>
-      </div>
-      <div style="margin-top: 12px;">
-        <b>{{ t('identities.learn.keysLead') }}</b> <i18n-t keypath="identities.learn.keys" tag="span">
           <template #studio>
             <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank">CashTokens Studio</a>
-          </template>
-        </i18n-t>
-      </div>
-      <div style="margin-top: 12px;">
-        <b>{{ t('identities.learn.furtherLead') }}</b> <i18n-t keypath="identities.learn.further" tag="span">
-          <template #spec>
-            <a href="https://github.com/bitjson/chip-bcmr" target="_blank">{{ t('identities.learn.specLink') }}</a>
           </template>
         </i18n-t>
       </div>
@@ -327,6 +308,9 @@
         <b>{{ t('identities.create.registryLead') }}</b> <i18n-t keypath="identities.create.registry" tag="span">
           <template #schema>
             <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+          </template>
+          <template #examples>
+            <a :href="BCMR_EXAMPLES_URL" target="_blank">{{ t('identities.publish.examplesLink') }}</a>
           </template>
         </i18n-t>
         <InfoPopup>

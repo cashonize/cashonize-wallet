@@ -1550,21 +1550,14 @@
       "link": "Lernen",
       "back": "Zurück zu den Identitäten",
       "title": "Identitäten auf Bitcoin Cash",
-      "purposeLead": "Eine Identität veröffentlicht überprüfbare Informationen.",
-      "purpose": "Sie ist ein Weg, Informationen über etwas auf Bitcoin Cash zu veröffentlichen, seine Metadaten, etwa Namen und Symbol eines Tokens. Jeder kann prüfen, dass die Informationen von dem stammen, der die Identität kontrolliert, und der Kontrollierende kann sie mit der Zeit ändern oder die Kontrolle weitergeben.",
-      "whatLead": "Technisch ist eine Identität eine Kette von Transaktionen.",
-      "what": "Sie beginnt bei der Authbase, bei einem Token die Token-Id, und setzt sich über jede Transaktion fort, die den Ausgang 0 der vorigen ausgibt. Der letzte unausgegebene Ausgang 0 ist der UTXO der Identität: wer ihn hält, kontrolliert die Identität, und ihn an eine neue Adresse zu bewegen ist die Übertragung.",
-      "tokensLead": "Jeder Token ist eine Identität.",
-      "tokens": "Seine Token-Id ist die Id der Identität, und so kann ein Herausgeber Namen und Symbol eines Tokens noch ändern, wenn die Tokens schon im Umlauf sind. Es gibt auch Identitäten, die keine Tokens sind: eine Person, eine Organisation oder ein Vertrag kann Informationen auf dieselbe Weise veröffentlichen. Eine Dapp könnte sagen, welche Version ihrer Verträge aktuell ist und wo ihre Website liegt; eine Organisation könnte hinter dem stehen, was sie veröffentlicht.",
-      "metadataLead": "Die Metadaten sind eine gehostete Datei.",
-      "metadata": "Eine Registry im BCMR-Format wird außerhalb der Chain gehostet, und ein Veröffentlichungsausgang auf der Kette legt ihren Hash fest, sodass jeder die Datei laden und gegen die Kette prüfen kann. Die Registry eines Tokens wird mit dem {generator} geschrieben; jede Registry lässt sich von Hand nach dem {schema} schreiben.",
-      "keysLead": "AuthKeys sind eine Konvention von CashTokens Studio.",
-      "keys": "{studio} legt den UTXO einer Identität in einen Covenant, den AuthGuard, und macht das Recht, ihn zu bewegen, zu einem NFT, dem AuthKey. Dieses Wallet erkennt solche Schlüssel, listet, was sie kontrollieren, und schützt sie wie einen Identitäts-UTXO.",
-      "furtherLead": "Weiterführend.",
-      "further": "Der {spec} beschreibt Identitäten, Registries und Veröffentlichung vollständig.",
-      "specLink": "CHIP-BCMR-Standard"
+      "whatLead": "Was eine Identität ist.",
+      "what": "Ein Weg, Informationen über etwas auf Bitcoin Cash zu veröffentlichen, etwa den Namen und das Icon eines Tokens, sodass jeder prüfen kann, dass sie von dem stammen, der die Identität kontrolliert. Jeder Token ist eine Identität; eine Person, eine Organisation oder ein Contract kann ebenfalls eine Identität sein.",
+      "holdingLead": "Was es bedeutet, eine Identität in dieser Wallet zu halten.",
+      "holding": "Die Kontrolle ist ein einzelner Coin, das Identitäts-UTXO. Jede Transaktion der Identitätskette gibt den Output 0 der vorherigen aus, also ist der letzte Output 0 dieser Coin; Studio und der Explorer nennen ihn AuthHead. Die erste Transaktion der Kette ist die Authbase, bei einem Token seine ID. Diese Wallet hält diesen Coin, und jede darauf liegende Token-Reserve, aus gewöhnlichen Sendungen und der Token-Liste heraus; ihn absichtlich zu bewegen ist, wie die Identität übertragen oder ihre Metadaten aktualisiert werden.",
+      "readMoreLead": "Mehr lesen.",
+      "readMore": "Die Metadaten sind eine gehostete Datei, auf die die Chain per Hash verweist: {registries}. Identitäten hinter einem AuthKey folgen dem AuthGuard-Standard, den {studio} umsetzt.",
+      "registriesLink": "Metadata Registries auf cashtokens.org"
     },
-    "whatIsAnIdentity": "Eine Identität ist eine Kette von Transaktionen, von denen jede den Ausgang 0 der vorigen ausgibt. Wer den letzten Ausgang hält, den UTXO der Identität, kontrolliert die Identität und kann ihre Metadaten veröffentlichen.",
     "authbaseLabel": "Authbase / Token-Id:",
     "resolving": "Suche, wo diese Identitäten liegen...",
     "empty": "Noch keine Identitäten gelistet. Eine, die dieses Wallet gemacht hat, wird von selbst gefunden; eine, die du hältst oder verfolgen willst, fügst du unter {link} über ihre Authbase hinzu.",
@@ -1731,10 +1724,11 @@
         "author": "Schreibe das Registry-JSON mit dem {generator}.",
         "host": "Hoste es auf deiner eigenen Domain oder auf IPFS.",
         "publish": "Gib unten an, wo es liegt, und dieses Wallet prüft es und veröffentlicht den Zeiger.",
-        "authorByHand": "Schreibe das Registry-JSON in einem Code-Editor nach dem {schema}: diese Identität ist kein Token, ihr Snapshot trägt also einen Namen, eine Beschreibung und Links, und keinen Token-Abschnitt."
+        "authorByHand": "Schreibe das Registry-JSON in einem Code-Editor nach dem {schema}, mit den {examples} als Vorlage: diese Identität ist kein Token, ihr Snapshot trägt also einen Namen, eine Beschreibung und Links, und keinen Token-Abschnitt."
       },
       "generatorHelp": "Der Generator ist ein Formular, das die Metadaten-Datei für dich schreibt; die Spezifikation nennt sie Registry. Du kannst sie auch selbst nach dem {schema} schreiben. So oder so holt dieses Wallet die Datei, hasht sie genau so, wie sie ausgeliefert wird, und prüft, dass sie diesen Token nennt.",
-      "generatorHelpSchema": "BCMR-Schema"
+      "generatorHelpSchema": "BCMR-Schema",
+      "examplesLink": "Beispiel-Registries"
     },
     "add": {
       "label": "Fügen Sie die Identität über ihre Authbase hinzu. Eine Identität, die dieses Wallet kontrolliert, wird von hier aus verwaltet; jede andere wird nur beobachtet.",
@@ -1781,7 +1775,7 @@
       "lead": "Wirst du ihre Registry selbst schreiben und hosten?",
       "outcome": "Das Hinzufügen listet die Identität unter denen, die dieses Wallet besitzt, und hält ihr UTXO aus gewöhnlichen Sendungen heraus. Einen Namen hat sie erst, wenn eine Registry veröffentlicht ist, die sie nennt; ihre Karte führt dich hindurch.",
       "registryLead": "Registry:",
-      "registry": "die JSON-Datei, die die Identität nennt, in einem Code-Editor nach dem {schema} geschrieben und auf einer eigenen Domain oder auf IPFS gehostet.",
+      "registry": "die JSON-Datei, die die Identität nennt, in einem Code-Editor nach dem {schema} geschrieben, mit den {examples} als Vorlage, und auf einer eigenen Domain oder auf IPFS gehostet.",
       "registryNote": "Der {generator} schreibt Registries für Tokens: er fragt nach einem Symbol und schreibt einen Token-Abschnitt, den eine Identität, die kein Token ist, nicht haben darf. Ihr Snapshot trägt einen Namen, eine Beschreibung und Links.",
       "newLead": "Eine neue Identität für eine Dapp, ein Vertragssystem oder eine Organisation hinzufügen?",
       "newWhat": "Das fügt eine hinzu: eine Kette von UTXOs ohne Token, von der aus Name, Symbol und Links veröffentlicht und aktualisiert werden.",
