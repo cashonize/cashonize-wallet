@@ -1553,7 +1553,7 @@
       "whatLead": "O que é uma identidade.",
       "what": "Uma forma de publicar informação sobre algo na Bitcoin Cash, como o nome e o ícone de um token, que qualquer um pode verificar que veio de quem controla a identidade. Cada token é uma identidade; uma pessoa, uma organização ou um contrato também podem ser uma identidade.",
       "holdingLead": "O que significa ter uma identidade nesta carteira.",
-      "holding": "O controlo é uma única moeda, o UTXO de identidade. Cada transação da cadeia da identidade gasta o output 0 da anterior, por isso o último output 0 é essa moeda; o Studio e o explorador chamam-lhe AuthHead. A primeira transação da cadeia é a authbase, o id de um token. Esta carteira mantém essa moeda, e qualquer reserva de tokens que ela carregue, fora dos envios comuns e da lista de tokens; movê-la de propósito é como a identidade é transferida ou os seus metadados atualizados.",
+      "holding": "O controlo é uma única moeda, o UTXO de identidade. Cada transação da cadeia da identidade gasta o output 0 da anterior, por isso o último output 0 é essa moeda. O Studio e o explorador chamam AuthHead a essa moeda. A primeira transação da cadeia é a authbase, o id de um token. Esta carteira mantém essa moeda, e qualquer reserva de tokens que ela carregue, fora dos envios comuns e da lista de tokens; movê-la de propósito é como a identidade é transferida ou os seus metadados atualizados.",
       "readMoreLead": "Ler mais.",
       "readMore": "Os metadados são um ficheiro alojado para o qual a cadeia aponta pelo hash: {registries}. As identidades guardadas atrás de uma AuthKey seguem o padrão AuthGuard, que o {studio} implementa.",
       "registriesLink": "registos de metadados em cashtokens.org"
