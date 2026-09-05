@@ -50,7 +50,7 @@
 
   const props = defineProps<{
     identity: IdentityState,
-    groupKey: 'held' | 'watched' | 'tokens',
+    removable: boolean, // a followed identity is not listed, so there is nothing to remove it from
     expanded: boolean,
     foundAutomatically: boolean,
   }>()
@@ -566,7 +566,7 @@
             </q-item>
             <!-- an identity held through a key comes back from the key on the next resolve, so the key is transferred instead -->
             <q-item
-              v-if="groupKey !== 'tokens' && identity.status !== 'heldViaKey'"
+              v-if="removable && identity.status !== 'heldViaKey'"
               clickable
               v-close-popup
               @click="removeIdentity()"

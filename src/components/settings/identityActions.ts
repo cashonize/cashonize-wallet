@@ -13,24 +13,22 @@ export interface Outcome { txId: string | undefined; message: string; title: str
 
 // The broadcast reported when a spend went through, an error shown rather than thrown. Each
 // handler keeps its own validation, confirmation and outputs, and returns nothing when the user
-// declined. True when it went through.
+// declined or when the action was not a spend.
 export async function runIdentityAction(
   runningAction: Ref<string | undefined>,
   action: string,
   operate: () => Promise<Outcome | void>,
   closeForm?: () => void,
-): Promise<boolean> {
-  if (runningAction.value) return false
+): Promise<void> {
+  if (runningAction.value) return
   runningAction.value = action
   try {
     const outcome = await operate()
-    if (!outcome) return false
+    if (!outcome) return
     closeForm?.()
     await handleTransactionBroadcastSuccess(outcome.message, outcome.txId, outcome.title)
-    return true
   } catch (error) {
     displayAndLogError(error)
-    return false
   } finally {
     runningAction.value = undefined
   }

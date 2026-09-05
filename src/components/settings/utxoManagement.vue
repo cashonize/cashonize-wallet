@@ -83,7 +83,7 @@
         : t('utxoManagement.freeze.message', { amount }),
       t('utxoManagement.freeze.button')
     );
-    if (confirmed) await store.reserveUtxo(utxo, 'manual');
+    if (confirmed) await store.reserveOutpoints([outpointOf(utxo)], 'manual');
   }
 
   // A row's label line only exists while it has a label or its editor is open, so the menu

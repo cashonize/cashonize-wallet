@@ -397,7 +397,7 @@
         v-for="identity in (group.key === 'tokens' && !showTokenIdentities ? [] : group.identities)"
         :key="identity.category"
         :identity="identity"
-        :group-key="group.key"
+        :removable="group.key !== 'tokens'"
         :expanded="expandedIdentity === identity.category"
         :found-automatically="foundAutomatically.includes(identity.category)"
         v-model:open-action="openAction"

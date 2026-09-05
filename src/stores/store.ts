@@ -1415,12 +1415,6 @@ export const useStore = defineStore('store', () => {
     updateTokenList();
     await refreshMaxAmountToSend();
   }
-  function reserveOutpoint(outpoint: Outpoint, reason: ReservationReason) {
-    return reserveOutpoints([outpoint], reason);
-  }
-  function reserveUtxo(utxo: Utxo, reason: ReservationReason) {
-    return reserveOutpoints([outpointOf(utxo)], reason);
-  }
 
   // Drops a reservation without spending; cancelling a pledge goes through spend.releaseReservedCoin
   async function dropReservation(outpoint: string) {
@@ -1591,7 +1585,7 @@ export const useStore = defineStore('store', () => {
       const first = Array.isArray(requests) ? requests[0] : requests;
       const newAuthhead = `${response.txId}:0`;
       if (first && 'cashaddr' in first && ownsAddress(first.cashaddr) && !reservedUtxos.value[newAuthhead]) {
-        await reserveOutpoint(newAuthhead, 'auth');
+        await reserveOutpoints([newAuthhead], 'auth');
       }
       await updateWalletUtxos();
       await identitiesStore.refreshIdentities();
@@ -1633,8 +1627,6 @@ export const useStore = defineStore('store', () => {
     spendableUtxos,
     reservedUtxos,
     reservedWalletUtxos,
-    reserveUtxo,
-    reserveOutpoint,
     reserveOutpoints,
     currentInitializationToken,
     walletSwitchedSince,

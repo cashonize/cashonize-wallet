@@ -8,6 +8,7 @@ import {
 } from './mocks/store.mocks'
 
 import { useStore } from '../src/stores/store'
+import { outpointOf } from '../src/utils/wallet/reservedUtxos'
 
 const category = '0123456789abcdef'.repeat(4)
 
@@ -45,7 +46,7 @@ async function storeHoldingTokenCoin() {
   const store = useStore()
   store.setWallet(wallet as never)
   store.walletUtxos = walletCoins
-  await store.reserveUtxo(tokenCoin, 'manual')
+  await store.reserveOutpoints([outpointOf(tokenCoin)], 'manual')
   return { wallet, store }
 }
 
@@ -124,7 +125,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     const store = useStore()
     store.setWallet(wallet as never)
     store.walletUtxos = walletCoins
-    await store.reserveUtxo(tokenCoin, 'auth')
+    await store.reserveOutpoints([outpointOf(tokenCoin)], 'auth')
     const request = [{ cashaddr: 'bitcoincash:qdest', value: 1000n }]
 
     await store.spend.spendAuthUtxo(tokenCoin, request)

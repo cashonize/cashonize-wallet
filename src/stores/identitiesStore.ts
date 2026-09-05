@@ -530,7 +530,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     dismissedIdentities.value = removeFromIdentityList('dismissed', ...walletKey(), category);
     listCategory(category);
     const outpoint = `${authheadTxId}:0`;
-    if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoint(outpoint, 'auth');
+    if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoints([outpoint], 'auth');
     try {
       // the resolve reads the wallet's coins, which must include the one just made
       await mainStore.updateWalletUtxos();
@@ -574,7 +574,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   return {
     identityCategories,
-    dismissedIdentities,
     unseenIdentities,
     announcement,
     takeAnnouncement,
@@ -588,12 +587,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     identityHistories,
     loadForWallet,
     refreshIdentities,
-    resolveListedIdentities,
     followTokenIdentities,
     openCheckError,
     runChecksOnOpen,
     fetchMetadataFor,
-    detectWalletIdentities,
+    detectWalletIdentities, // only runChecksOnOpen calls it; exposed so the tests can hand it a walk
+
     nameUnnamedAuthheads,
     unnamedAuthheadCoins,
     identitiesGuardedByKey,

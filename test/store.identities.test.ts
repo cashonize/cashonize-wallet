@@ -233,7 +233,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const newAuthUtxo = utxo(movedAuthheadA, 0)
     const { store, identitiesStore } = startStore([newAuthUtxo])
-    await store.reserveOutpoint(outpointOf(newAuthUtxo), 'auth')
+    await store.reserveOutpoints([outpointOf(newAuthUtxo)], 'auth')
 
     await identitiesStore.refreshIdentities()
 
@@ -264,7 +264,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
-    await store.reserveUtxo(authUtxo, 'pledge')
+    await store.reserveOutpoints([outpointOf(authUtxo)], 'pledge')
 
     await identitiesStore.refreshIdentities()
 
@@ -696,7 +696,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.detectWalletIdentities(walk)
 
     expect(identitiesStore.identityCategories).toEqual([])
-    expect(identitiesStore.dismissedIdentities).toEqual([categoryA])
+    expect(JSON.parse(localStorageMock.getItem('dismissedIdentities-mainnet-testWallet') ?? '[]')).toEqual([categoryA])
   })
 
   // A BCH-only chain carries nothing on its identity output to name it. Protection cannot wait
