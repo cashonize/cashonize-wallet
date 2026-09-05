@@ -22,9 +22,6 @@ import {
   type DescribedLink,
   type PublicationUriStatus,
   nameChainFromRegistry,
-  loadFollowed,
-  saveFollowed,
-  type FollowedIdentities,
 } from "src/utils/tools/authchainIdentity"
 import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { queryAuthchainLinks, type ChaingraphSpentOutput } from "src/queryChainGraph"
@@ -58,9 +55,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   const identities = ref(undefined as (IdentityState[] | undefined));
   // The identity of every token this wallet holds, followed passively: not listed, not reserved,
   // never news. What it is for is noticing an authhead arriving here, which promotes the identity
-  // to the list, and the memory the later change notices read.
+  // to the list.
   const tokenIdentities = ref(undefined as (IdentityState[] | undefined));
-  let followed: FollowedIdentities = {};
   // a first open on a wallet holding hundreds of categories does a bounded amount of work
   const followedPerOpenCap = 100;
   // What each listed identity's published registry locations actually serve, keyed by category.
@@ -96,7 +92,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     dismissedIdentities.value = loadIdentityList('dismissed', network, walletName);
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);
     unnamedAuthheads.value = loadIdentityList('unnamed', network, walletName);
-    followed = loadFollowed(network, walletName);
     triedThisSession = [];
     identities.value = undefined;
     tokenIdentities.value = undefined;
@@ -378,18 +373,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
         identity => held.includes(identity.category) && !categories.includes(identity.category)
       );
       const promoted: string[] = [];
-      let remembered = false;
       for (const identity of resolved) {
         if (identity.status === 'unresolved' || !identity.authheadTxid) {
           const previous = tokenIdentities.value?.find(known => known.category === identity.category);
           if (previous) next.push(previous);
           continue;
         }
-        remembered = true;
-        followed[identity.category] = {
-          authheadTxid: identity.authheadTxid,
-          ...(identity.publication ? { publicationHash: identity.publication.hash } : {}),
-        };
         // an identity whose output, or whose key, is here is this wallet's to look after
         if (heldStatuses.includes(identity.status)) {
           listCategory(identity.category);
@@ -399,7 +388,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
         next.push(identity);
       }
       if (mainStore.walletSwitchedSince(started)) return;
-      if (remembered) saveFollowed(...walletKey(), followed);
       tokenIdentities.value = next;
       if (!promoted.length) return;
       unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), promoted);

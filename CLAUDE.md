@@ -65,7 +65,7 @@ The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libau
 
 ### Persistent Storage
 - **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
-- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, unnamed authheads) and the followed tokens' last authheads, WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
+- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, unnamed authheads), WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
 The app reaches into mainnet-js's databases itself, in `utils/wallet/dbUtils.ts` and the settings menu's cache-size/clear and delete flows. Some of that goes through mainnet-js's own storage provider, the rest is raw IndexedDB where not even that reaches. There we have to keep matching its versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and mainnet-js finding it already there never runs its own setup.

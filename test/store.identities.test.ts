@@ -307,12 +307,11 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.openCheckError).toEqual(expect.any(String))
     expect(identitiesStore.identityCategories).toEqual([])
     expect(identitiesStore.tokenIdentities).toEqual([])
-    expect(localStorageMock.getItem('followedIdentities-mainnet-testWallet')).toBeNull()
   })
 
-  // a followed identity held elsewhere is neither listed nor news; the memory says it was looked
-  // up, and only a fulfilled lookup writes it
-  it('follows the identity of a held token without listing it, and remembers only what answered', async () => {
+  // a followed identity held elsewhere is neither listed nor news, and a category the server
+  // does not know is left out of the group rather than shown as an answer
+  it('follows the identity of a held token without listing it', async () => {
     stubAuthheadQueries({ [categoryB]: authheadB })
     const { store, identitiesStore } = startStore([utxo('cafe'.repeat(16), 0)])
     await identitiesStore.refreshIdentities()
@@ -325,14 +324,12 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.announcement).toBeUndefined()
     expect(identitiesStore.tokenIdentities?.map(identity => [identity.category, identity.status]))
       .toEqual([[categoryB, 'notHeld']])
-    const followed = JSON.parse(localStorageMock.getItem('followedIdentities-mainnet-testWallet') ?? '{}') as Record<string, unknown>
-    expect(Object.keys(followed)).toEqual([categoryB])
     expect(store.reservedUtxos).toEqual({})
   })
 
-  // the open pass asks about every held category, the remembered ones included, since the states
-  // are not persisted and a group filled from memory alone would be half empty until the visit;
-  // a token sent away leaves the group on the next pass
+  // the open pass asks about every held category, the ones already answered included, since the
+  // states are not persisted and a group filled from memory alone would be half empty until the
+  // visit; a token sent away leaves the group on the next pass
   it('asks at open about every held category, and drops a token sent away', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     const { store, identitiesStore } = startStore([])

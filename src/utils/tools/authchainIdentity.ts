@@ -369,31 +369,6 @@ const identityListKeys = {
   unnamed: 'unnamedAuthheads',
 } as const;
 
-// What the wallet last saw of each followed token identity, per wallet per network: the authhead
-// and the publication, which is what a later change notice reads. Written whole, merged over
-// what another tab stored since, and only ever from a fulfilled lookup.
-export interface FollowedIdentity {
-  authheadTxid: string;
-  publicationHash?: string;
-}
-export type FollowedIdentities = Record<string, FollowedIdentity>;
-function followedKey(network: Network, walletName: string): string {
-  return `followedIdentities-${network}-${walletName}`;
-}
-export function loadFollowed(network: Network, walletName: string): FollowedIdentities {
-  const stored = localStorage.getItem(followedKey(network, walletName));
-  if (!stored) return {};
-  try {
-    return JSON.parse(stored) as FollowedIdentities;
-  } catch {
-    return {};
-  }
-}
-export function saveFollowed(network: Network, walletName: string, followed: FollowedIdentities) {
-  const merged = { ...loadFollowed(network, walletName), ...followed };
-  localStorage.setItem(followedKey(network, walletName), JSON.stringify(merged));
-}
-
 export type IdentityList = keyof typeof identityListKeys;
 
 function listKey(list: IdentityList, network: Network, walletName: string): string {
@@ -448,14 +423,13 @@ export function clearIdentityList(list: IdentityList, network: Network, walletNa
 }
 
 
-// Every identity list and the followed map, on both networks: a future wallet created under the
-// same name must not inherit the old wallet's identities
+// Every identity list on both networks: a future wallet created under the same name must not
+// inherit the old wallet's identities
 export function removeIdentityData(walletName: string) {
   for (const network of ['mainnet', 'chipnet'] as const) {
     for (const list of Object.keys(identityListKeys) as IdentityList[]) {
       clearIdentityList(list, network, walletName);
     }
-    localStorage.removeItem(followedKey(network, walletName));
   }
 }
 

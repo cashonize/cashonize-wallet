@@ -169,8 +169,9 @@ What the standard enables that the wallet does not do yet:
   front of what the wallet can check itself, and removes the indexer's limit to token
   identities.
 - **Change notices for held tokens.** The spec asks clients to surface a change to a held
-  token's name, symbol, decimals or icon, and a burned identity. The followed tier keeps
-  each identity's last authhead and publication for this and shows no change yet.
+  token's name, symbol, decimals or icon, and a burned identity. The followed tier resolves
+  every held token's identity already; a notice needs the last seen publication hash and
+  the four shown fields persisted per category, and a comparison on the next resolve.
 - **Readers for identities that are not tokens.** The wallet makes, holds, watches and
   publishes for the spec's dapp, contract-system and organization identities already;
   nothing reads them yet.
