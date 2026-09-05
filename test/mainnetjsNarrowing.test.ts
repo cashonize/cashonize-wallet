@@ -27,6 +27,29 @@ describe('mainnet-js narrows its input selection to options.utxoIds', () => {
   }
 })
 
+// The store's spend explainer appends the held-back reason to mainnet-js's shortfall messages,
+// matched by their opening words, so a rewording upstream would silently drop the explanation
+const shortfallMessages = [
+  { method: 'encodeTransaction', message: 'Not enough token amount to send' },
+  { method: 'encodeTransaction', message: 'There were no Unspent Outputs' },
+  { method: 'encodeTransaction', message: "The available inputs couldn't satisfy the request with fees" },
+  { method: 'tokenMint', message: 'You do not have any token UTXOs with minting capability for specified category' },
+  { method: 'tokenBurn', message: 'You do not have suitable token UTXOs to perform burn' },
+] as const
+
+describe('mainnet-js still reports a shortfall in the words the explainer matches', () => {
+  for (const { method, message } of shortfallMessages) {
+    it(`${method} says "${message}"`, () => {
+      const source = (BaseWallet.prototype as unknown as Record<string, () => unknown>)[method]?.toString()
+      expect(source).toContain(message)
+    })
+  }
+
+  it('getSuitableUtxos says "Amount required was not met"', () => {
+    expect(getSuitableUtxos.toString()).toContain('Amount required was not met')
+  })
+})
+
 // The sweep at the end of transferring all assets hands sendMax a pool that still holds token
 // UTXOs, trusting that the plain-BCH selection never takes one: a token UTXO swept as plain BCH
 // would burn its tokens. sendMax picks its inputs here, so this is where that has to hold.

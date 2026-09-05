@@ -136,20 +136,8 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     expect(poolOf(wallet.send.mock.calls[1] as unknown[])).toEqual([bchCoin, tokenCoin, otherTokenCoin])
   })
 
-  // the store cannot tell a shortfall from any other failure, so it says so on all of them
-  it('says so on any failure while coins are held back', async () => {
+  it('passes an unrelated failure through untouched', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
-    wallet.send.mockRejectedValue(new Error('broadcast failed'))
-
-    await expect(store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }]))
-      .rejects.toThrow(/^broadcast failed .*held back/)
-  })
-
-  it('passes a failure through untouched while nothing is held back', async () => {
-    const wallet = createMockWallet()
-    const store = useStore()
-    store.setWallet(wallet as never)
-    store.walletUtxos = walletCoins
     wallet.send.mockRejectedValue(new Error('broadcast failed'))
 
     await expect(store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }]))
