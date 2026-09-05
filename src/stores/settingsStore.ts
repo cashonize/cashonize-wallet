@@ -217,9 +217,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readElectrumChipnet = localStorage.getItem("electrum-chipnet") ?? "";
   if(readElectrumChipnet) electrumServerChipnet.value = readElectrumChipnet
 
-  // the setting was one URL for both networks; that key becomes the mainnet one
+  // the setting was one URL for both networks; that key becomes the mainnet one. Written back
+  // under the new key before the old one goes: nothing else persists this setting on its own, so
+  // dropping the old key without it would lose a custom instance on the next load.
   const readChaingraphMainnet = localStorage.getItem("chaingraph-mainnet") ?? localStorage.getItem("chaingraph") ?? "";
-  if (readChaingraphMainnet) chaingraphMainnet.value = readChaingraphMainnet;
+  if (readChaingraphMainnet) {
+    chaingraphMainnet.value = readChaingraphMainnet;
+    localStorage.setItem("chaingraph-mainnet", readChaingraphMainnet);
+  }
   localStorage.removeItem("chaingraph");
   const readChaingraphChipnet = localStorage.getItem("chaingraph-chipnet");
   if (readChaingraphChipnet !== null) chaingraphChipnet.value = readChaingraphChipnet;
