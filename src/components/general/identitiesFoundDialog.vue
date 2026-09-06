@@ -11,8 +11,11 @@
 
   // Shown whenever the wallet held back identities the user never listed: that is the moment the
   // spendable balance and the token list change, so it is told directly, with names, every time.
+  // A watched identity that arrived is a different sentence from one found, when that is all
+  // there is to say.
   const props = defineProps<{
     ids: string[], // categories, or the authhead txid of one the wallet cannot name
+    arrived: string[], // those among them watched until now
   }>()
 
   defineEmits([
@@ -25,6 +28,9 @@
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
 
+  const allArrived = computed(() => props.ids.every(id => props.arrived.includes(id)))
+  const title = computed(() => allArrived.value ? t('identities.found.titleArrived', props.ids.length) : t('identities.found.title'))
+  const intro = computed(() => allArrived.value ? t('identities.found.introArrived', props.ids.length) : t('identities.found.intro'))
 
   // Registries may not have been fetched yet when the walk returns, so a name can be missing and
   // the id stands in for it rather than waiting
@@ -47,8 +53,8 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide" transition-show="scale" transition-hide="scale">
     <q-card class="dialogCard">
       <fieldset class="dialogFieldset">
-        <legend style="font-size: large;">{{ t('identities.found.title') }}</legend>
-        <div>{{ t('identities.found.intro') }}</div>
+        <legend style="font-size: large;">{{ title }}</legend>
+        <div>{{ intro }}</div>
         <div class="found-list">
           <div v-for="entry in entries" :key="entry.id" class="found-entry">
             <TokenIcon :token-id="entry.id" :icon-url="entry.iconUrl" :size="32" />

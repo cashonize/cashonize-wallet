@@ -20,6 +20,7 @@ import {
   loadIdentityList,
   addToIdentityList,
   removeFromIdentityList,
+  saveIdentityList,
   clearIdentityList,
 } from "src/utils/tools/identityLists"
 import { checkPublicationUri, type PublicationUriStatus } from "src/utils/tools/registryFile"
@@ -45,6 +46,10 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Listed by the wallet itself and not yet seen: what the marker on the wallet tools entry is
   // for, and what marks the cards as found automatically on the visit that clears it
   const unseenIdentities = ref([] as string[]);
+  // The listed identities held elsewhere at the last complete resolve. Kept so that a watched
+  // identity whose authhead, or whose key, arrives while the app is closed is told as the arrival
+  // it is; the resolve is the only writer and the only reader.
+  const watchedIdentities = ref([] as string[]);
   // The wallet's own transactions that carried a metadata publication, read off the same walk, so
   // the history can tell a metadata update from the wallet's other identity operations
   const identityPublicationTxids = ref([] as string[]);
@@ -87,6 +92,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     identityCategories.value = loadIdentityList('categories', network, walletName);
     dismissedIdentities.value = loadIdentityList('dismissed', network, walletName);
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);
+    watchedIdentities.value = loadIdentityList('watched', network, walletName);
     identities.value = undefined;
     tokenIdentities.value = undefined;
     identityPublicationTxids.value = [];
@@ -131,14 +137,18 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return listed;
   }
 
-  // What the wallet held back without being asked, to be told in a dialog with names. Set after
-  // the resolve so the dialog can say what each carries; announcements close together accumulate,
-  // and the wallet page opens one dialog for them and clears this.
-  const announcement = ref<string[] | undefined>(undefined);
-  function announceFound(ids: string[]) {
+  // What the wallet held back without being asked, to be told in a dialog with names, and which
+  // of those were watched until now, since arriving is a different sentence from being found. Set
+  // after the resolve so the dialog can say what each carries; announcements close together
+  // accumulate, and the wallet page opens one dialog for them and clears this.
+  const announcement = ref<{ ids: string[]; arrived: string[] } | undefined>(undefined);
+  function announceFound(ids: string[], arrived: string[] = []) {
     if (!ids.length) return;
-    const pending = announcement.value ?? [];
-    announcement.value = [...pending, ...ids.filter(id => !pending.includes(id))];
+    const pending = announcement.value ?? { ids: [], arrived: [] };
+    announcement.value = {
+      ids: [...pending.ids, ...ids.filter(id => !pending.ids.includes(id))],
+      arrived: [...pending.arrived, ...arrived.filter(id => !pending.arrived.includes(id))],
+    };
   }
   // what the dialog says, taken and cleared in one step
   function takeAnnouncement() {
@@ -212,14 +222,18 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Re-resolved rather than restored: an authhead moves to a new outpoint whenever the metadata is
   // updated elsewhere. One owner for both the list and the 'auth' reservations rewritten from it.
   // Returns what it held back that the user did not ask for: a watched identity whose authhead,
-  // or whose key, has arrived; the caller announces them.
+  // or whose key, has arrived; the caller announces them. Watched means held elsewhere at the
+  // last complete resolve, whichever session that was: the coin usually arrives while the app is
+  // closed. An incomplete resolve says nothing about where anything is, so it leaves the record.
   async function resolveListedIdentities(): Promise<string[]> {
     const news: string[] = [];
     const currentUtxos = mainStore.walletUtxos;
     if (!currentUtxos) return news;
     if (!identityCategories.value.length) {
       identities.value = [];
-      // still runs: it clears an 'auth' reservation left behind by an identity no longer listed
+      // a complete resolve of nothing: nothing is watched, and the sync still runs, clearing an
+      // 'auth' reservation left behind by an identity no longer listed
+      watchedIdentities.value = saveIdentityList('watched', ...walletKey(), []);
       await syncAuthReservations([]);
       return news;
     }
@@ -228,10 +242,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
       identityCategories.value, mainStore.chaingraph, currentUtxos, extraKeyCategories
     );
     if (mainStore.walletSwitchedSince(started)) return news;
-    // a watched identity whose authhead arrived is held from here on, which the user is told
-    for (const identity of resolved) {
-      const before = identities.value?.find(listed => listed.category === identity.category);
-      if (before?.status === 'notHeld' && heldStatuses.includes(identity.status)) news.push(identity.category);
+    if (!resolved.some(identity => identity.status === 'unresolved')) {
+      for (const identity of resolved) {
+        if (heldStatuses.includes(identity.status) && watchedIdentities.value.includes(identity.category)) news.push(identity.category);
+      }
+      const watched = resolved.filter(identity => identity.status === 'notHeld').map(identity => identity.category);
+      watchedIdentities.value = saveIdentityList('watched', ...walletKey(), watched);
     }
     // the checks answer for one publication, by position in its locations: once the publication
     // changed, they would land on the new locations, so they go until the next check runs
@@ -252,7 +268,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const news = await withResolveLock(resolveListedIdentities);
     if (news?.length) {
       await fetchMetadataFor(news);
-      announceFound(news);
+      announceFound(news, news);
     }
   }
 
@@ -360,10 +376,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
       tokenIdentities.value = next;
       if (!promoted.length) return;
       unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), promoted);
-      await resolveListedIdentities();
-      await fetchMetadataFor(promoted);
+      // the same resolve can find a watched identity arrived, which is told with the promotions
+      const arrived = await resolveListedIdentities();
+      await fetchMetadataFor([...promoted, ...arrived]);
       if (mainStore.walletSwitchedSince(started)) return;
-      announceFound(promoted);
+      announceFound([...promoted, ...arrived], arrived);
     });
   }
 

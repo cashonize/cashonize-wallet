@@ -223,13 +223,13 @@
   // The store says what to announce; the dialog is opened here and the request cleared. The
   // passes at open announce one after another, so the dialog waits a moment and says them all.
   let announcementTimer: ReturnType<typeof setTimeout> | undefined;
-  watch(() => identitiesStore.announcement, (ids) => {
-    if (!ids || announcementTimer) return;
+  watch(() => identitiesStore.announcement, (pending) => {
+    if (!pending || announcementTimer) return;
     announcementTimer = setTimeout(() => {
       announcementTimer = undefined;
-      const pending = identitiesStore.takeAnnouncement();
-      if (!pending?.length) return;
-      Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids: pending } })
+      const taken = identitiesStore.takeAnnouncement();
+      if (!taken?.ids.length) return;
+      Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids: taken.ids, arrived: taken.arrived } })
         .onOk(() => store.changeView(19));
     }, 500);
   });

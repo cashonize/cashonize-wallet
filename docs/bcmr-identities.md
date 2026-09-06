@@ -98,7 +98,9 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 Watched identities reserve nothing and are listed apart from owned ones; the followed token
 identities are a third, collapsed group. Whenever the wallet holds something back the user
 did not ask it to, a coin found in its history, a key, a promotion, it says so in a dialog
-naming what was held back and what that did to the balance.
+naming what was held back and what that did to the balance. A watched identity whose
+authhead arrives is told as an arrival, across restarts: the resolve keeps which listed
+identities were held elsewhere last time, and that is the one thing it keeps.
 
 ## Spec versus convention
 

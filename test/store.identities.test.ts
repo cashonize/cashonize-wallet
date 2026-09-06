@@ -310,7 +310,7 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos[outpointOf(authUtxoB)]).toBe('auth')
     expect(identitiesStore.identityCategories).toEqual([categoryA, categoryB])
     expect(identitiesStore.unseenIdentities).toEqual([categoryB])
-    expect(identitiesStore.announcement).toEqual([categoryB])
+    expect(identitiesStore.announcement?.ids).toEqual([categoryB])
     expect(identitiesStore.tokenIdentities).toEqual([])
   })
 
@@ -481,7 +481,7 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.identityCategories).toEqual([categoryB])
     expect(identitiesStore.unseenIdentities).toEqual([categoryB])
-    expect(identitiesStore.announcement).toEqual([categoryB])
+    expect(identitiesStore.announcement?.ids).toEqual([categoryB])
     expect(store.reservedUtxos[outpointOf(authUtxoB)]).toBe('auth')
     expect(identitiesStore.openCheckError).toBeUndefined()
   })
@@ -673,7 +673,7 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
     // and it says so, rather than the coin quietly becoming unspendable: a dialog the first time
     expect(identitiesStore.unseenIdentities).toEqual([categoryA])
-    expect(identitiesStore.announcement).toEqual([categoryA])
+    expect(identitiesStore.announcement?.ids).toEqual([categoryA])
     // the wallet page opens the dialog and clears the announcement
     identitiesStore.announcement = undefined
 
@@ -692,7 +692,49 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.unseenIdentities).toEqual([categoryA, categoryB])
     expect(identitiesStore.unseenIdentities.length).toBe(2)
-    expect(identitiesStore.announcement).toEqual([categoryB])
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryB], arrived: [] })
+  })
+
+  // The authhead of a watched identity usually arrives while the app is closed, so the resolve
+  // judges an arrival against what was watched at the last complete resolve, whichever session
+  // that was, and tells it as an arrival rather than a find
+  it('tells a watched identity that arrived while the app was closed as an arrival', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const { store, identitiesStore } = startStore([])
+    await identitiesStore.refreshIdentities()
+    expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
+    expect(JSON.parse(localStorageMock.getItem('watchedIdentities-mainnet-testWallet') ?? '[]')).toEqual([categoryA])
+    expect(identitiesStore.announcement).toBeUndefined()
+
+    // the app restarts with the authhead in the wallet
+    const authUtxo = utxo(authheadA, 0)
+    store.walletUtxos = [authUtxo]
+    identitiesStore.loadForWallet('mainnet', 'testWallet')
+    await identitiesStore.refreshIdentities()
+
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], arrived: [categoryA] })
+    expect(JSON.parse(localStorageMock.getItem('watchedIdentities-mainnet-testWallet') ?? '[]')).toEqual([])
+    // held now, so not an arrival again on the next resolve
+    identitiesStore.announcement = undefined
+    await identitiesStore.refreshIdentities()
+    expect(identitiesStore.announcement).toBeUndefined()
+  })
+
+  // an incomplete resolve says nothing about where anything is, so it must not turn a watched
+  // identity into an unwatched one that will never be told when it arrives
+  it('keeps what was watched through a resolve that could not reach the server', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const { identitiesStore } = startStore([])
+    await identitiesStore.refreshIdentities()
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))))
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.identities?.[0]?.status).toBe('unresolved')
+    expect(JSON.parse(localStorageMock.getItem('watchedIdentities-mainnet-testWallet') ?? '[]')).toEqual([categoryA])
   })
 
   // removing is a decision the automatic detection has to respect, or it is refought every open
@@ -783,7 +825,7 @@ describe('auth reservations follow the authchain', () => {
     }]
     await identitiesStore.detectWalletIdentities(walk)
     expect(identitiesStore.unseenIdentities.length).toBe(1)
-    expect(identitiesStore.announcement).toEqual([authheadA])
+    expect(identitiesStore.announcement?.ids).toEqual([authheadA])
 
     identitiesStore.markIdentitiesSeen()
     expect(identitiesStore.unseenIdentities.length).toBe(0)

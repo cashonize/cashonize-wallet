@@ -12,6 +12,9 @@ const identityListKeys = {
   // listed by the wallet itself and not yet seen by the user, so a coin quietly becoming
   // unspendable is not the first they hear of it
   unseen: 'unseenIdentities',
+  // the listed identities held elsewhere at the last complete resolve, so that one whose authhead
+  // arrives while the app is closed is told as the arrival it is on the next open
+  watched: 'watchedIdentities',
 } as const;
 
 export type IdentityList = keyof typeof identityListKeys;
@@ -61,6 +64,12 @@ export function removeFromIdentityList(
   const remaining = readList(key).filter(stored => stored !== entry);
   localStorage.setItem(key, JSON.stringify(remaining));
   return remaining;
+}
+
+// A list rewritten whole from one answer, rather than edited entry by entry
+export function saveIdentityList(list: IdentityList, network: Network, walletName: string, entries: string[]): string[] {
+  localStorage.setItem(listKey(list, network, walletName), JSON.stringify(entries));
+  return entries;
 }
 
 export function clearIdentityList(list: IdentityList, network: Network, walletName: string) {

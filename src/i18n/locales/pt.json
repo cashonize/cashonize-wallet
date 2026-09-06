@@ -1818,7 +1818,9 @@
     "unresolvedHint": "Recarregue, ou verifique o servidor Chaingraph nas configurações.",
     "found": {
       "title": "Esta carteira tem identidades",
+      "titleArrived": "Uma identidade vigiada está agora nesta carteira | As identidades vigiadas estão agora nesta carteira",
       "intro": "Esta carteira tem estas identidades, ou a chave que as controla, portanto pode atualizar os seus metadados:",
+      "introArrived": "Chegou uma identidade que vigiava: esta carteira tem-na agora, ou a chave que a controla, portanto pode atualizar os seus metadados: | Chegaram identidades que vigiava: esta carteira tem-nas agora, ou as chaves que as controlam, portanto pode atualizar os seus metadados:",
       "reserve": "reserva de {amount}",
       "heldBack": "Os seus UTXOs de identidade, ou o NFT chave que as controla, ficam agora de fora da seleção de moedas só nesta app, portanto um envio comum daqui não pode gastá-los por acidente; a mesma seed noutro software ainda pode. O BCH neles não é contado no saldo disponível, e uma reserva é mostrada na página de identidades em vez de na lista de tokens.",
       "remove": "Você pode remover uma identidade da lista se preferir que o seu UTXO não fique retido.",
