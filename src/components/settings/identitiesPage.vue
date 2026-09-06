@@ -10,17 +10,19 @@
   import identityCard from './identityCard.vue'
   import { runIdentityAction, type CardAction, type OpenAction, type Outcome } from './identityActions'
   import { preparedUtxoValue, stepLabel } from 'src/utils/tools/tokenCreation'
-  import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils'
+  import { copyToClipboard, formatBch, truncateHash, truncateHashForWidth } from 'src/utils/utils'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { CASHTOKENS_STUDIO_URL, type IdentityStatus } from 'src/utils/tools/authchainIdentity'
   import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, BCMR_EXAMPLES_URL, BCMR_DOCS_URL } from 'src/utils/tools/registryFile'
   import { Notify } from 'quasar'
+  import { useWindowSize } from 'src/utils/composables'
 
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
+  const { width } = useWindowSize()
 
   // Two things happen on this page: looking after the identities that are here, and getting one
   // onto it. Only the first is why anyone opens it, so the acquisition paths wait behind a pill.
@@ -357,7 +359,7 @@
         </div>
         <div class="copy-target" :title="`${coin.txid}:0`" @click="copyToClipboard(`${coin.txid}:0`)">
           <span class="description">{{ t('identities.authheadLabel') }}</span>
-          <span class="mono">{{ truncateHash(coin.txid) }}:0</span>
+          <span class="mono">{{ truncateHashForWidth(coin.txid, width) }}:0</span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
         <div>{{ t('identities.authheadAmount', { amount: bchOf(coin.satoshis) }) }}</div>
@@ -394,15 +396,24 @@
 </template>
 
 <style scoped>
+/* the description on the left and the way into Learn on the right; on a phone the link
+   takes its own line under the description instead */
 .page-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 10px;
-  flex-wrap: wrap;
+}
+@media only screen and (max-width: 600px) {
+  .page-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
 }
 .page-nav {
   cursor: pointer;
+  white-space: nowrap;
 }
 .page-nav:hover {
   text-decoration: underline;

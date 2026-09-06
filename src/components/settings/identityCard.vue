@@ -9,6 +9,7 @@
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
+  import { useWindowSize } from 'src/utils/composables'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import publicationLocations from './publicationLocations.vue'
@@ -16,7 +17,7 @@
     copyToClipboard,
     formatBch,
     formatRelativeTime,
-    truncateHash,
+    truncateHashForWidth,
     formatTokenAmountFromBigInt,
     formatTokenAmountWithSymbol,
     parseTokenAmountToBigInt,
@@ -66,6 +67,8 @@
   const { t } = useI18n()
 
   const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
+  const { width } = useWindowSize();
+  const shortHash = (hash: string) => truncateHashForWidth(hash, width.value);
   const identityName = computed(() => store.bcmrRegistries?.[props.identity.category]?.name);
   const identityIconUrl = computed(() => {
     if (settingsStore.disableTokenIcons) return undefined;
@@ -420,7 +423,7 @@
         <div>{{ identityName ?? t('identities.unnamedIdentity') }}</div>
         <div class="copy-target" :title="identity.category" @click.stop="copyToClipboard(identity.category)">
           <span class="description">{{ t('identities.authbaseLabel') }}</span>
-          <span class="mono">{{ truncateHash(identity.category) }}</span>
+          <span class="mono">{{ shortHash(identity.category) }}</span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
       </div>
@@ -474,7 +477,7 @@
       @click="copyToClipboard(`${identity.authheadTxid}:0`)"
     >
       <span class="description">{{ t('identities.authheadLabel') }}</span>
-      <span class="mono">{{ truncateHash(identity.authheadTxid) }}:0</span>
+      <span class="mono">{{ shortHash(identity.authheadTxid) }}:0</span>
       <img class="copyIcon" src="images/copyGrey.svg">
     </div>
     <div v-if="identityValue !== undefined">
@@ -487,7 +490,7 @@
           <div style="max-width: 300px;">{{ t('identities.key.guardHelp') }}</div>
         </InfoPopup>
       </span>
-      <span class="mono">{{ truncateHash(location.text) }}</span>
+      <span class="mono">{{ shortHash(location.text) }}</span>
       <img class="copyIcon" src="images/copyGrey.svg">
     </div>
 
@@ -516,7 +519,7 @@
         </div>
         <div class="copy-target" :title="identity.publication.hash" @click="copyToClipboard(identity.publication.hash)">
           <span class="mono">
-            {{ t('identities.publication.hash', { hash: truncateHash(identity.publication.hash) }) }}
+            {{ t('identities.publication.hash', { hash: shortHash(identity.publication.hash) }) }}
           </span>
           <img class="copyIcon" src="images/copyGrey.svg">
         </div>
@@ -736,6 +739,27 @@
   flex: none;
   transition: transform 0.2s;
 }
+/* a phone has no room for the state beside the title, so it goes under it, indented past
+   the icon, with the chevron staying on the title's line */
+@media only screen and (max-width: 600px) {
+  .identity-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    row-gap: 4px;
+  }
+  .identity-header > :first-child {
+    grid-row: 1 / span 2;
+  }
+  .identity-state {
+    grid-column: 2;
+    justify-self: start;
+    margin-left: 0;
+  }
+  .chevron {
+    grid-row: 1;
+    grid-column: 3;
+  }
+}
 .chevron.open {
   transform: rotate(180deg);
 }
@@ -764,6 +788,10 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+/* a published location can be one long word */
+.publication-uri a {
+  overflow-wrap: anywhere;
 }
 .publication-badge {
   font-size: 0.85em;

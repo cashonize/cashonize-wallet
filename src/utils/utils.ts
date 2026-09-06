@@ -246,6 +246,13 @@ export function truncateHash(hash: string, head = 16, tail = 8): string {
   return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
 }
 
+// The same hash shorter on a narrow screen, the way the token items shorten a category
+export function truncateHashForWidth(hash: string, windowWidth: number): string {
+  if (windowWidth < 390) return truncateHash(hash, 8, 4);
+  if (windowWidth < 600) return truncateHash(hash, 10, 8);
+  return truncateHash(hash);
+}
+
 export function formatBchAmount(satoshis: number, signed = false, maxDecimals = 5): string {
   const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: maxDecimals });
   return signed && satoshis > 0 ? `+${amount}` : amount;
