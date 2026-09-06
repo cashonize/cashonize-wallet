@@ -10,19 +10,17 @@
   import identityCard from './identityCard.vue'
   import { runIdentityAction, type CardAction, type OpenAction, type Outcome } from './identityActions'
   import { preparedUtxoValue, stepLabel } from 'src/utils/tools/tokenCreation'
-  import { copyToClipboard, formatBch, truncateHash, truncateHashForWidth } from 'src/utils/utils'
+  import { formatBch, truncateHash } from 'src/utils/utils'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { CASHTOKENS_STUDIO_URL, type IdentityStatus } from 'src/utils/tools/authchainIdentity'
   import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, BCMR_EXAMPLES_URL, BCMR_DOCS_URL } from 'src/utils/tools/registryFile'
   import { Notify } from 'quasar'
-  import { useWindowSize } from 'src/utils/composables'
 
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
-  const { width } = useWindowSize()
 
   // Two things happen on this page: looking after the identities that are here, and getting one
   // onto it. Only the first is why anyone opens it, so the acquisition paths wait behind a pill.
@@ -180,18 +178,6 @@
     if (identity?.authUtxo) openAction.value = { category, action };
   }
 
-  // These have no name to confirm against, so the dialog says what the UTXO is instead
-  async function removeUnnamed(txid: string) {
-    await runAction('remove', async () => {
-      const confirmed = await confirmDialog(
-        t('identities.unnamed.removeTitle'),
-        t('identities.unnamed.removeMessage'),
-        t('identities.remove.button'),
-        'red'
-      );
-      if (confirmed) await identitiesStore.removeUnnamedAuthhead(txid);
-    });
-  }
 </script>
 
 <template>
@@ -343,27 +329,6 @@
             <span class="action-link" @click="mode = 'existing'">{{ t('identities.emptyLink') }}</span>
           </template>
         </i18n-t>
-      </div>
-
-      <div v-for="coin in identitiesStore.unnamedAuthheadCoins" :key="coin.txid" class="section identity-card">
-        <div>
-          {{ t('identities.unnamed.title') }}
-          <InfoPopup>
-            <div style="max-width: 300px;">{{ t('identities.unnamed.help') }}</div>
-          </InfoPopup>
-        </div>
-        <div class="identity-status">
-          <q-icon name="lock" size="15px" />
-          {{ t('identities.unnamed.status') }}
-        </div>
-        <div class="copy-target" :title="`${coin.txid}:0`" @click="copyToClipboard(`${coin.txid}:0`)">
-          <span class="description">{{ t('identities.authheadLabel') }}</span>
-          <span class="mono">{{ truncateHashForWidth(coin.txid, width) }}:0<img class="copyIcon" src="images/copyGrey.svg"></span>
-        </div>
-        <div>{{ t('identities.authheadAmount', { amount: bchOf(coin.satoshis) }) }}</div>
-        <div class="identity-links">
-          <span class="remove-identity" @click="removeUnnamed(coin.txid)">{{ t('identities.remove.button') }}</span>
-        </div>
       </div>
 
       <template v-for="group in identityGroups" :key="group.key">

@@ -20,7 +20,7 @@ export interface DetectedIdentity {
   authheadTxid: string;
   // Named when the marker names it: a genesis names its authbase, and a token-carrying
   // publication names its category on its identity output. A BCH-only chain arrives unnamed and
-  // is protected as it is; only the user can name it, by its authbase.
+  // is not listed: a non-token identity is listed by the user adding its authbase.
   category?: string;
   marker: IdentityMarker;
 }

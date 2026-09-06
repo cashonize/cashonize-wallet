@@ -1566,13 +1566,6 @@
       "foundAutomatically": "Automatisch gefunden",
       "foundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identität erstellt oder ihre Metadaten veröffentlicht, sie wurde also in der eigenen Historie gefunden und ihr UTXO ist jetzt von der Münzauswahl ausgenommen. Nimm sie von der Liste, wenn dir das lieber ist."
     },
-    "unnamed": {
-      "title": "Eine Identität in diesem Wallet",
-      "status": "Zurückgehalten, Identität noch nicht benannt",
-      "help": "Die Schlüssel dieses Wallets haben Metadaten einer Identität veröffentlicht, deren UTXO keinen Token trägt, der UTXO sagt also nicht, um welche Identität es geht. Er bleibt trotzdem von der Münzauswahl ausgenommen: ihn zu schützen wartet nicht darauf, ihn zu benennen. Füge seine Authbase unter Bestehende hinzufügen hinzu, um ihn zu benennen.",
-      "removeTitle": "Diesen UTXO nicht mehr zurückhalten?",
-      "removeMessage": "Der UTXO kommt zurück in die Münzauswahl, und ein gewöhnlicher Versand übergibt die Identität, die er trägt, an den Empfänger dieses Versands. Er wird nicht wieder aufgelistet."
-    },
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
     "watchedHeader": "{count} Identität nur beobachtet, nicht von diesem Wallet gehalten | {count} Identitäten nur beobachtet, nicht von diesem Wallet gehalten",
     "follow": {
@@ -1767,7 +1760,7 @@
       "button": "Identität hinzufügen",
       "creatingButton": "Wird hinzugefügt...",
       "confirmTitle": "Diesen UTXO als Identität hinzufügen?",
-      "confirmMessage": "{outpoint} wird zum UTXO der Identität, mit seinen {amount} von der Münzauswahl ausgenommen. Die Id seiner Transaktion wird zur dauerhaften Id der Identität.",
+      "confirmMessage": "{outpoint} wird zum UTXO der Identität, mit seinen {amount} von der Münzauswahl ausgenommen. Die Id seiner Transaktion wird zur dauerhaften Id der Identität. Sie ist nur auf diesem Gerät gelistet: auf einem anderen Gerät oder nach einer Wiederherstellung füge sie erneut über ihre Id hinzu.",
       "confirmButton": "Hinzufügen",
       "doneTitle": "Identität hinzugefügt",
       "tokenPointer": "{link}: die Transaktion, die ihn erstellt, erstellt zugleich seine Identität.",

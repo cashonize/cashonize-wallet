@@ -81,9 +81,9 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
   indexer has seen it; the identities page's Add new does the same for a picked UTXO.
 - **Found in the wallet's own history.** The spent-outputs walk the portfolio already runs
   is read a second time at wallet open for two markers: a genesis these keys made, and a
-  publication these keys made. The first names its chain; the second may not, in which
-  case the coin is held back unnamed, its reservation the whole record of it, until the
-  user adds its authbase.
+  publication these keys made on a token's chain. A publication on a chain with no token
+  names nothing and lists nothing: a non-token identity is listed by the user adding its
+  authbase, on each device, which the Add new confirm says. See Future items.
 - **Followed as a held token's identity.** The identity of every token the wallet holds is
   followed passively, in batches of forward lookups at open and on the page's visit: not
   listed, not reserved, never news, until its identity output turns out to be here, when it
@@ -187,3 +187,10 @@ What the standard enables that the wallet does not do yet:
 - **The current snapshot.** The spec's current snapshot is the latest one not after now; the
   wallet's own previews and diffs take the last sorted timestamp, so a registry with a
   future-dated snapshot, the pre-announced migration, would show it early.
+- **Naming a non-token identity from its own publication.** The walk already sees a
+  publication these keys made on a chain with no token, and the registry it points at
+  names its authbases: resolving each forward would find the one whose chain ends at
+  this coin, and list the identity on every device without the user. Holding the coin
+  back needs only the marker, since the publication already says its output 0 is an
+  identity output; naming it needs the file. Until then a non-token identity is protected
+  only where the user added it, and a restore or a sweep leaves its coin in coin selection.

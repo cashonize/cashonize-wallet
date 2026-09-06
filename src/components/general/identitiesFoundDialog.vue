@@ -14,7 +14,7 @@
   // A watched identity that arrived is a different sentence from one found, when that is all
   // there is to say.
   const props = defineProps<{
-    ids: string[], // categories, or the authhead txid of one the wallet cannot name
+    ids: string[], // categories
     arrived: string[], // those among them watched until now
   }>()
 

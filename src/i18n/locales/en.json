@@ -1566,13 +1566,6 @@
       "foundAutomatically": "Found automatically",
       "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its UTXO is now held back from coin selection. Remove it from the list if you would rather it were not."
     },
-    "unnamed": {
-      "title": "An identity this wallet holds",
-      "status": "Held back, identity not named yet",
-      "help": "This wallet's keys published metadata for an identity whose UTXO carries no token, so the UTXO says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it. Add its authbase under Add existing to name it.",
-      "removeTitle": "Stop holding this UTXO back?",
-      "removeMessage": "The UTXO returns to coin selection, and an ordinary send hands the identity it carries to whoever receives that send. It will not be listed again."
-    },
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
     "watchedHeader": "{count} identity watched only, not held by this wallet | {count} identities watched only, not held by this wallet",
     "follow": {
@@ -1767,7 +1760,7 @@
       "button": "Add identity",
       "creatingButton": "Adding...",
       "confirmTitle": "Add this UTXO as an identity?",
-      "confirmMessage": "{outpoint} becomes the identity's UTXO, held back from coin selection with its {amount}. Its transaction id becomes the identity's permanent id.",
+      "confirmMessage": "{outpoint} becomes the identity's UTXO, held back from coin selection with its {amount}. Its transaction id becomes the identity's permanent id. It is listed on this device only: on another device, or after a restore, add it again by its id.",
       "confirmButton": "Add",
       "doneTitle": "Identity added",
       "tokenPointer": "{link}: the transaction that creates it creates its identity at the same time.",

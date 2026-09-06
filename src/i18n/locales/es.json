@@ -1566,13 +1566,6 @@
       "foundAutomatically": "Encontrada automáticamente",
       "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su UTXO ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así."
     },
-    "unnamed": {
-      "title": "Una identidad que tiene esta billetera",
-      "status": "Retenido, identidad aún sin nombrar",
-      "help": "Las claves de esta billetera publicaron metadatos de una identidad cuyo UTXO no lleva ningún token, así que el UTXO no dice de qué identidad se trata. Igualmente queda fuera de la selección de monedas: protegerlo no espera a poder nombrarlo. Añade su authbase en Añadir existente para nombrarlo.",
-      "removeTitle": "¿Dejar de retener este UTXO?",
-      "removeMessage": "El UTXO vuelve a la selección de monedas, y un envío normal entrega la identidad que lleva a quien reciba ese envío. No volverá a aparecer en la lista."
-    },
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
     "watchedHeader": "{count} identidad solo observada, no la tiene esta billetera | {count} identidades solo observadas, no las tiene esta billetera",
     "follow": {
@@ -1767,7 +1760,7 @@
       "button": "Añadir identidad",
       "creatingButton": "Añadiendo...",
       "confirmTitle": "¿Añadir este UTXO como identidad?",
-      "confirmMessage": "{outpoint} pasa a ser el UTXO de la identidad, fuera de la selección de monedas con sus {amount}. El id de su transacción pasa a ser el id permanente de la identidad.",
+      "confirmMessage": "{outpoint} pasa a ser el UTXO de la identidad, fuera de la selección de monedas con sus {amount}. El id de su transacción pasa a ser el id permanente de la identidad. Queda listada solo en este dispositivo: en otro dispositivo, o tras una restauración, añádela de nuevo por su id.",
       "confirmButton": "Añadir",
       "doneTitle": "Identidad añadida",
       "tokenPointer": "{link}: la transacción que lo crea crea al mismo tiempo su identidad.",

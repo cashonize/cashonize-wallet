@@ -409,49 +409,6 @@ describe('auth reservations follow the authchain', () => {
     expect(written()).toEqual([outpointOf(authUtxoA), outpointOf(authUtxoB)])
   })
 
-  // unnamed is derived from the reservations: a held-back coin the resolved list accounts for is
-  // never rendered as an unnamed card beside its named one
-  it('does not render an unnamed card for a UTXO a resolved identity accounts for', async () => {
-    stubAuthheadQueries({ [categoryA]: authheadA })
-    listIdentities([categoryA])
-    const authUtxo = utxo(authheadA, 0)
-    const { store, identitiesStore } = startStore([authUtxo])
-    await store.reserveOutpoints([outpointOf(authUtxo)], 'auth')
-
-    await identitiesStore.refreshIdentities()
-
-    expect(identitiesStore.unnamedAuthheadCoins).toEqual([])
-    expect(identitiesStore.identities?.[0]?.category).toBe(categoryA)
-    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
-  })
-
-  // detection runs after the resolve on every open; what the list already names must not come
-  // back as an unnamed entry and a "new" count each time
-  it('does not list again as unnamed what the resolve already names', async () => {
-    stubAuthheadQueries({ [categoryA]: authheadA })
-    listIdentities([categoryA])
-    const { identitiesStore } = startStore([utxo(authheadA, 0)])
-    await identitiesStore.refreshIdentities()
-    // a publication marker on the authhead, which names nothing on its own
-    const walk = [{
-      transaction_hash: `\\x${categoryA}`,
-      output_index: '1',
-      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
-        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
-          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
-          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-      ] } }],
-    }]
-
-    await identitiesStore.detectWalletIdentities(walk)
-    await identitiesStore.detectWalletIdentities(walk)
-
-    expect(identitiesStore.unnamedAuthheadCoins).toEqual([])
-    expect(identitiesStore.unseenIdentities).toEqual([])
-    expect(identitiesStore.unseenIdentities.length).toBe(0)
-  })
-
   // the wallet's history is walked at open; the server refusing must land on the identities
   // page, not flag a wallet that did load
   it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {
@@ -760,9 +717,10 @@ describe('auth reservations follow the authchain', () => {
     expect(JSON.parse(localStorageMock.getItem('dismissedIdentities-mainnet-testWallet') ?? '[]')).toEqual([categoryA])
   })
 
-  // A BCH-only chain carries nothing on its identity output to name it. Protection does not wait
-  // for that: the coin is held back, and the reservation is the whole record of it.
-  it('holds back an authhead it cannot name', async () => {
+  // A publication on a chain with no token names nothing, so nothing is listed, held back or
+  // announced for it: a non-token identity is listed by the user adding its authbase. The
+  // publication still counts for the history's label.
+  it('lists nothing for a publication on a chain it cannot name', async () => {
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
     const walk = [{
@@ -778,79 +736,12 @@ describe('auth reservations follow the authchain', () => {
 
     await identitiesStore.detectWalletIdentities(walk)
 
-    expect(identitiesStore.unnamedAuthheadCoins).toEqual([authUtxo])
-    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
-    expect(store.spendableUtxos).toEqual([])
-    // nothing was named, so nothing joined the identity list
     expect(identitiesStore.identityCategories).toEqual([])
-  })
-
-  it('releases an unnamed authhead the user drops, and does not list it again', async () => {
-    const authUtxo = utxo(authheadA, 0)
-    const { store, identitiesStore } = startStore([authUtxo])
-    const walk = [{
-      transaction_hash: `\\x${categoryA}`,
-      output_index: '1',
-      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
-        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
-          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
-          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-      ] } }],
-    }]
-    await identitiesStore.detectWalletIdentities(walk)
-
-    await identitiesStore.removeUnnamedAuthhead(authheadA)
-    await identitiesStore.detectWalletIdentities(walk)
-
-    expect(identitiesStore.unnamedAuthheadCoins).toEqual([])
+    expect(identitiesStore.unseenIdentities).toEqual([])
+    expect(identitiesStore.announcement).toBeUndefined()
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authUtxo])
-  })
-
-  // an unnamed authhead is news once, like a category: a chain the walk cannot name must not keep
-  // the menus saying "new" forever
-  it('counts an unnamed authhead as unseen until a visit, and not again after', async () => {
-    const authUtxo = utxo(authheadA, 0)
-    const { identitiesStore } = startStore([authUtxo])
-    const walk = [{
-      transaction_hash: `\\x${categoryA}`,
-      output_index: '1',
-      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
-        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
-          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
-          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-      ] } }],
-    }]
-    await identitiesStore.detectWalletIdentities(walk)
-    expect(identitiesStore.unseenIdentities.length).toBe(1)
-    expect(identitiesStore.announcement?.ids).toEqual([authheadA])
-
-    identitiesStore.markIdentitiesSeen()
-    expect(identitiesStore.unseenIdentities.length).toBe(0)
-
-    await identitiesStore.detectWalletIdentities(walk)
-    expect(identitiesStore.unseenIdentities.length).toBe(0)
-    expect(identitiesStore.unnamedAuthheadCoins).toEqual([authUtxo])
-  })
-
-  // an unresolved identity accounts for no coin, so while any is, no held-back coin is judged an
-  // orphan: the section would otherwise offer to release the coins of identities the page names
-  it('shows no unnamed coins while a listed identity is unresolved', async () => {
-    listIdentities([categoryA])
-    const authUtxo = utxo(authheadA, 0)
-    const stray = utxo(authheadB, 0)
-    const { store, identitiesStore } = startStore([authUtxo, stray])
-    await store.reserveOutpoints([outpointOf(authUtxo), outpointOf(stray)], 'auth')
-    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))))
-
-    await identitiesStore.refreshIdentities()
-
-    expect(identitiesStore.identities?.[0]?.status).toBe('unresolved')
-    expect(identitiesStore.unnamedAuthheadCoins).toEqual([])
-    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
-    expect(store.reservedUtxos[outpointOf(stray)]).toBe('auth')
+    expect(identitiesStore.identityPublicationTxids).toEqual([authheadA])
   })
 
   // the checks are read by position in the publication's locations, so they answer for that

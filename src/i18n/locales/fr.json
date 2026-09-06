@@ -1566,13 +1566,6 @@
       "foundAutomatically": "Trouvée automatiquement",
       "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
     },
-    "unnamed": {
-      "title": "Une identité détenue par ce portefeuille",
-      "status": "Retenu, identité pas encore nommée",
-      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont l'UTXO ne porte aucun token, l'UTXO ne dit donc pas de quelle identité il s'agit. Il reste écarté de la sélection des pièces malgré tout : le protéger n'attend pas de pouvoir le nommer. Ajoutez son authbase sous Ajouter existante pour le nommer.",
-      "removeTitle": "Cesser de retenir cet UTXO ?",
-      "removeMessage": "L'UTXO revient dans la sélection des pièces, et un envoi ordinaire remet l'identité qu'il porte à qui reçoit cet envoi. Il ne sera plus listé."
-    },
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
     "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
     "follow": {
@@ -1767,7 +1760,7 @@
       "button": "Ajouter l'identité",
       "creatingButton": "Ajout...",
       "confirmTitle": "Ajouter cet UTXO comme identité ?",
-      "confirmMessage": "{outpoint} devient l'UTXO de l'identité, écarté de la sélection des pièces avec ses {amount}. L'identifiant de sa transaction devient l'identifiant permanent de l'identité.",
+      "confirmMessage": "{outpoint} devient l'UTXO de l'identité, écarté de la sélection des pièces avec ses {amount}. L'identifiant de sa transaction devient l'identifiant permanent de l'identité. Elle n'est listée que sur cet appareil : sur un autre appareil, ou après une restauration, ajoutez-la à nouveau par son identifiant.",
       "confirmButton": "Ajouter",
       "doneTitle": "Identité ajoutée",
       "tokenPointer": "{link} : la transaction qui le crée crée en même temps son identité.",
