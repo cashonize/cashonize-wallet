@@ -410,6 +410,16 @@
     gap: 6px;
   }
 }
+/* the cards carry their own padding, so on a phone the page's fieldset gives up most of
+   its own, the way the history page does */
+@media only screen and (max-width: 500px) {
+  fieldset {
+    padding: 0.5rem 1rem;
+  }
+  legend {
+    margin-left: 0.5rem;
+  }
+}
 .page-nav {
   cursor: pointer;
   white-space: nowrap;
