@@ -41,7 +41,7 @@
   // the page's own actions included; the cards read and write both
   const openAction = ref<OpenAction | undefined>(undefined);
   const runningAction = ref<string | undefined>(undefined);
-  const busy = computed(() => runningAction.value !== undefined || identitiesStore.identitiesResolving);
+  const busy = computed(() => runningAction.value !== undefined);
   async function runAction(action: 'add' | 'addUtxo' | 'remove', operate: () => Promise<Outcome | void>) {
     await runIdentityAction(runningAction, action, operate);
   }
@@ -136,7 +136,7 @@
         t('identities.add.found.button')
       );
       if (!confirmed) return;
-      await identitiesStore.addIdentity(category);
+      await identitiesStore.addIdentity(category, found);
       await fetchMissingMetadata();
       categoryInput.value = "";
     });
@@ -221,7 +221,6 @@
         {{ t('identities.modes.create') }}
       </button>
     </div>
-
     <template v-if="mode === 'existing'">
     <div class="section">
       <div>
@@ -322,7 +321,7 @@
         <q-icon name="warning" size="20px" class="warning-box-icon" />
         <div>{{ t('identities.chaingraphNotConfigured') }}</div>
       </div>
-      <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }}</div>
+      <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }} <q-spinner-dots size="1.2em" /></div>
       <div v-else-if="!identities.length" class="description">
         <i18n-t keypath="identities.empty" tag="span">
           <template #link>
@@ -336,7 +335,7 @@
         {{ group.key === 'held' ? t('identities.ownedCount', group.identities.length) : t('identities.watchedHeader', group.identities.length) }}
       </div>
       <div v-else class="section">
-        <div v-if="identitiesStore.tokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }}</div>
+        <div v-if="identitiesStore.tokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }} <q-spinner-dots size="1.2em" /></div>
         <div v-else class="follow-head" @click="showTokenIdentities = !showTokenIdentities">
           <span>{{ t('identities.follow.header', group.identities.length) }}</span>
           <q-icon name="expand_more" class="chevron" :class="{ open: showTokenIdentities }" />

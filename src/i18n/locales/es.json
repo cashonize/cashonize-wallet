@@ -1559,7 +1559,7 @@
       "registriesLink": "registros de metadatos en cashtokens.org"
     },
     "authbaseLabel": "Authbase / id del token:",
-    "resolving": "Buscando dónde están estas identidades...",
+    "resolving": "Buscando dónde están estas identidades",
     "empty": "Todavía no hay identidades en la lista. Una que esta billetera hizo se encuentra sola; una que tienes o quieres seguir se añade por su authbase en {link}.",
     "emptyLink": "Añadir existente",
     "detected": {
@@ -1570,7 +1570,7 @@
     "watchedHeader": "{count} identidad solo observada, no la tiene esta billetera | {count} identidades solo observadas, no las tiene esta billetera",
     "follow": {
       "header": "{count} identidad seguida de un token que tienes | {count} identidades seguidas de tokens que tienes",
-      "resolving": "Consultando las identidades de los tokens que tienes..."
+      "resolving": "Consultando las identidades de los tokens que tienes"
     },
     "unnamedIdentity": "Identidad sin nombre",
     "authheadLabel": "UTXO de la identidad:",

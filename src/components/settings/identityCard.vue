@@ -215,7 +215,7 @@
   const filledUris = computed(() => filledLocations(publishUris.value));
   const publicationBytesLeft = computed(() => locationBudgetLeft(filledUris.value));
 
-  const busy = computed(() => runningAction.value !== undefined || identitiesStore.identitiesResolving);
+  const busy = computed(() => runningAction.value !== undefined);
   async function runAction(action: CardAction, operate: () => Promise<Outcome | void>) {
     await runIdentityAction(runningAction, action, operate, () => { openAction.value = undefined; });
   }

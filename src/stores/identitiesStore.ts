@@ -66,16 +66,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
   const publicationChecks = ref({} as Record<string, PublicationUriStatus[]>);
   const publicationChecksRunning = ref(false);
   // One resolve at a time: a pass writes the identities list and the 'auth' reservations derived
-  // from it whole, so two overlapping passes would undo each other's result
-  const identitiesResolving = ref(false);
-  async function withResolveLock<T>(pass: () => Promise<T>): Promise<T | undefined> {
-    if (identitiesResolving.value) return undefined;
-    identitiesResolving.value = true;
-    try {
-      return await pass();
-    } finally {
-      identitiesResolving.value = false;
-    }
+  // from it whole, so two overlapping passes would undo each other's result. A pass asked for
+  // while one runs waits its turn rather than being dropped: an add, or the resolve after the
+  // page's own operation, must happen however long the follow tier's lookups take.
+  let resolveQueue: Promise<unknown> = Promise.resolve();
+  function withResolveLock<T>(pass: () => Promise<T>): Promise<T> {
+    const run = resolveQueue.then(pass);
+    resolveQueue = run.catch(() => undefined);
+    return run;
   }
 
   // The persisted lists are per wallet per network, so every write names the pair
@@ -102,7 +100,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     identityHistories.value = {};
     // a pass still running belongs to the last wallet and writes nothing more; it must not hold
     // this wallet's first resolve back
-    identitiesResolving.value = false;
+    resolveQueue = Promise.resolve();
   }
 
   // Identities these keys made, found in the walk rather than asked for. This is the one place
@@ -247,7 +245,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (before?.publication?.hash !== identity.publication?.hash) delete checks[identity.category];
     }
     publicationChecks.value = checks;
-    identities.value = resolved;
+    // an identity added while this pass ran keeps the state it was added with until the next pass
+    const passed = resolved.map(identity => identity.category);
+    const addedMeanwhile = (identities.value ?? []).filter(
+      listed => identityCategories.value.includes(listed.category) && !passed.includes(listed.category)
+    );
+    identities.value = [...resolved, ...addedMeanwhile];
     await syncAuthReservations(resolved);
     return news;
   }
@@ -256,7 +259,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // same way; a caller inside a locked pass calls resolveListedIdentities itself
   async function refreshIdentities() {
     const news = await withResolveLock(resolveListedIdentities);
-    if (news?.length) {
+    if (news.length) {
       await fetchMetadataFor(news);
       announceFound(news, news);
     }
@@ -469,11 +472,17 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return found ?? { category, status: 'unresolved' };
   }
 
-  async function addIdentity(category: string) {
+  // Listed and shown from the resolve the confirm was read from, so the card is there when the
+  // dialog closes and its coin is held back from that answer; the pass this queues re-resolves
+  // everything in its turn, behind whatever lookups are running, without the add waiting on it.
+  async function addIdentity(category: string, found: IdentityState) {
     // adding by hand undoes a dismissal: the user changed their mind, which is the whole point
     dismissedIdentities.value = removeFromIdentityList('dismissed', ...walletKey(), category);
     listCategory(category);
-    await refreshIdentities();
+    identities.value = [...(identities.value ?? []).filter(listed => listed.category !== category), found];
+    const coin = found.authUtxo ?? found.keyUtxo;
+    if (coin && !mainStore.reservedUtxos[outpointOf(coin)]) await mainStore.reserveOutpoints([outpointOf(coin)], 'auth');
+    refreshIdentities().catch(error => console.error("Failed to resolve the added identity:", error));
   }
 
   // An identity this wallet just created, token or not: its authhead is output 0 of the
@@ -522,7 +531,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     identityPublicationTxids,
     identities,
     tokenIdentities,
-    identitiesResolving,
     publicationChecks,
     publicationChecksRunning,
     identityHistories,

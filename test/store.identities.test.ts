@@ -409,6 +409,61 @@ describe('auth reservations follow the authchain', () => {
     expect(written()).toEqual([outpointOf(authUtxoA), outpointOf(authUtxoB)])
   })
 
+  // a pass asked for while one runs waits its turn rather than being dropped: the add and the
+  // page's own operations resolve however long the follow tier's lookups take
+  it('runs a resolve asked for during a follow pass, after it', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
+    listIdentities([categoryA])
+    const { store, identitiesStore } = startStore([utxo(authheadA, 0)])
+    store.tokenList = [{ category: categoryB, amount: 100n }]
+    const answer = globalThis.fetch
+    let release: () => void = () => {}
+    const gate = new Promise<void>(resolve => { release = resolve })
+    let calls = 0
+    vi.stubGlobal('fetch', vi.fn(async (url: string, options: RequestInit) => {
+      calls += 1
+      if (calls === 1) await gate
+      return answer(url, options)
+    }))
+
+    const following = identitiesStore.followTokenIdentities('all')
+    const refreshing = identitiesStore.refreshIdentities()
+    expect(identitiesStore.identities).toBeUndefined()
+    release()
+    await Promise.all([following, refreshing])
+
+    expect(identitiesStore.identities?.map(identity => identity.category)).toEqual([categoryA])
+    expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryB])
+  })
+
+  // the confirm is read from a resolve of that one identity, so the add shows the card at once,
+  // holds its coin back, and keeps the card while a pass that started before it finishes without it
+  it('shows an added identity at once, through a pass that started before it', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
+    listIdentities([categoryA])
+    const authUtxoB = utxo(authheadB, 0)
+    const { store, identitiesStore } = startStore([utxo(authheadA, 0), authUtxoB])
+    const answer = globalThis.fetch
+    let release: () => void = () => {}
+    const gate = new Promise<void>(resolve => { release = resolve })
+    vi.stubGlobal('fetch', vi.fn(async (url: string, options: RequestInit) => {
+      // the pass for the listed identity hangs; the add's own lookup answers at once
+      if ((options.body as string).includes(categoryA)) await gate
+      return answer(url, options)
+    }))
+    const refreshing = identitiesStore.refreshIdentities()
+
+    const found = await identitiesStore.inspectCategory(categoryB)
+    await identitiesStore.addIdentity(categoryB, found)
+
+    expect(identitiesStore.identities?.map(identity => identity.category)).toEqual([categoryB])
+    expect(identitiesStore.identities?.[0]?.status).toBe('held')
+    expect(store.reservedUtxos[outpointOf(authUtxoB)]).toBe('auth')
+    release()
+    await refreshing
+    expect(identitiesStore.identities?.map(identity => identity.category)).toEqual([categoryA, categoryB])
+  })
+
   // the wallet's history is walked at open; the server refusing must land on the identities
   // page, not flag a wallet that did load
   it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {

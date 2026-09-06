@@ -1559,7 +1559,7 @@
       "registriesLink": "les registres de métadonnées sur cashtokens.org"
     },
     "authbaseLabel": "Authbase / identifiant du token :",
-    "resolving": "Recherche de l'endroit où sont ces identités...",
+    "resolving": "Recherche de l'endroit où sont ces identités",
     "empty": "Aucune identité listée pour l'instant. Une identité créée par ce portefeuille est trouvée d'elle-même ; une que vous détenez ou voulez suivre s'ajoute par son authbase sous {link}.",
     "emptyLink": "Ajouter existante",
     "detected": {
@@ -1570,7 +1570,7 @@
     "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
     "follow": {
       "header": "{count} identité suivie d'un token détenu | {count} identités suivies de tokens détenus",
-      "resolving": "Recherche des identités des tokens que vous détenez..."
+      "resolving": "Recherche des identités des tokens que vous détenez"
     },
     "unnamedIdentity": "Identité sans nom",
     "authheadLabel": "UTXO de l'identité :",

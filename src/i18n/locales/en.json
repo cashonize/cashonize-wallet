@@ -1559,7 +1559,7 @@
       "registriesLink": "metadata registries on cashtokens.org"
     },
     "authbaseLabel": "Authbase / token id:",
-    "resolving": "Looking up where these identities are held...",
+    "resolving": "Looking up where these identities are held",
     "empty": "No identities listed yet. One this wallet made is found on its own; one you hold or want to follow is added by its authbase under {link}.",
     "emptyLink": "Add existing",
     "detected": {
@@ -1570,7 +1570,7 @@
     "watchedHeader": "{count} identity watched only, not held by this wallet | {count} identities watched only, not held by this wallet",
     "follow": {
       "header": "{count} followed identity of a token you hold | {count} followed identities of tokens you hold",
-      "resolving": "Looking up the identities of the tokens you hold..."
+      "resolving": "Looking up the identities of the tokens you hold"
     },
     "unnamedIdentity": "Unnamed identity",
     "authheadLabel": "Identity UTXO:",
