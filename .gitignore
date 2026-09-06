@@ -37,3 +37,6 @@ pnpm-debug.log*
 
 # test results
 test-results/
+
+# local working notes: analyses, plans and PR drafts in markdown, kept out of the repo
+notes/
