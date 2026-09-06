@@ -334,12 +334,17 @@ input[type='number'] {
   margin-top: 20px;
 }
 /* a value shown with its copy icon, copied by clicking anywhere on the line */
+/* the label may wrap onto its own line, but the icon sits inside the hash's span so the
+   two never part */
 .copy-target {
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+.copy-target:active .copyIcon {
+  transform: scale(1.2);
 }
 /* the input takes the room the button does not, on one line where the screen allows it */
 .input-with-button {

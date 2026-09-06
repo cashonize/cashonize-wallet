@@ -423,8 +423,7 @@
         <div>{{ identityName ?? t('identities.unnamedIdentity') }}</div>
         <div class="copy-target" :title="identity.category" @click.stop="copyToClipboard(identity.category)">
           <span class="description">{{ t('identities.authbaseLabel') }}</span>
-          <span class="mono">{{ shortHash(identity.category) }}</span>
-          <img class="copyIcon" src="images/copyGrey.svg">
+          <span class="mono">{{ shortHash(identity.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
         </div>
       </div>
       <!-- .stop so the status popup does not also toggle the card -->
@@ -477,8 +476,7 @@
       @click="copyToClipboard(`${identity.authheadTxid}:0`)"
     >
       <span class="description">{{ t('identities.authheadLabel') }}</span>
-      <span class="mono">{{ shortHash(identity.authheadTxid) }}:0</span>
-      <img class="copyIcon" src="images/copyGrey.svg">
+      <span class="mono">{{ shortHash(identity.authheadTxid) }}:0<img class="copyIcon" src="images/copyGrey.svg"></span>
     </div>
     <div v-if="identityValue !== undefined">
       {{ t('identities.authheadAmount', { amount: bchOf(identityValue) }) }}
@@ -490,8 +488,7 @@
           <div style="max-width: 300px;">{{ t('identities.key.guardHelp') }}</div>
         </InfoPopup>
       </span>
-      <span class="mono">{{ shortHash(location.text) }}</span>
-      <img class="copyIcon" src="images/copyGrey.svg">
+      <span class="mono">{{ shortHash(location.text) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
     </div>
 
     <div class="section">
@@ -519,9 +516,8 @@
         </div>
         <div class="copy-target" :title="identity.publication.hash" @click="copyToClipboard(identity.publication.hash)">
           <span class="mono">
-            {{ t('identities.publication.hash', { hash: shortHash(identity.publication.hash) }) }}
+            {{ t('identities.publication.hash', { hash: shortHash(identity.publication.hash) }) }}<img class="copyIcon" src="images/copyGrey.svg">
           </span>
-          <img class="copyIcon" src="images/copyGrey.svg">
         </div>
         <div v-if="hasDrifted" class="description" style="margin-top: 6px;">
           <i18n-t keypath="identities.publication.driftedPrompt" tag="span">

@@ -127,8 +127,7 @@
       <img src="images/check-circle.svg" class="step-check pop">
       <span>{{ pickedLabel }}</span>
       <span class="copy-target" @click="copyToClipboard(pickedUtxo.txid)">
-        <span class="mono">{{ truncateHash(pickedUtxo.txid) }}</span>
-        <img class="copyIcon" src="images/copyGrey.svg">
+        <span class="mono">{{ truncateHash(pickedUtxo.txid) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
       </span>
       <span>·</span>
       <span class="action-link" @click="editing = true">{{ t('createTokens.change') }}</span>

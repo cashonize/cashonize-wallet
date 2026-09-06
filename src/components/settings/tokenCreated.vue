@@ -35,8 +35,7 @@
     <img src="images/check-circle.svg" class="step-check">
     <span>{{ t('createTokens.plannedTokenId') }}</span>
     <span class="copy-target" @click="copyToClipboard(created.category)">
-      <span class="mono">{{ truncateHash(created.category) }}</span>
-      <img class="copyIcon" src="images/copyGrey.svg">
+      <span class="mono">{{ truncateHash(created.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
     </span>
   </div>
   <div class="closed-line description">
@@ -55,8 +54,7 @@
     <div>
       <div v-if="created.name"><b>{{ created.symbol ? `${created.name} (${created.symbol})` : created.name }}</b></div>
       <div v-else class="copy-target" @click="copyToClipboard(created.category)">
-        <span class="mono">{{ truncateHash(created.category) }}</span>
-        <img class="copyIcon" src="images/copyGrey.svg">
+        <span class="mono">{{ truncateHash(created.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
       </div>
       <div v-if="created.hasSupply">{{ t('createTokens.created.supply', { amount: createdAmount(created.supply) }) }}</div>
       <div v-else>{{ t('createTokens.created.mintingNft') }}</div>

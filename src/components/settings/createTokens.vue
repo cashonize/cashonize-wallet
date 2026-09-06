@@ -307,8 +307,7 @@
           <TokenIcon :key="plannedCategory" :token-id="plannedCategory" :size="40" />
           <div class="copy-target" @click="copyToClipboard(plannedCategory)">
             <span class="description">{{ t('createTokens.plannedTokenId') }}</span>
-            <span class="mono">{{ truncateHash(plannedCategory) }}</span>
-            <img class="copyIcon" src="images/copyGrey.svg">
+            <span class="mono">{{ truncateHash(plannedCategory) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
           </div>
         </div>
       </genesisInputPicker>

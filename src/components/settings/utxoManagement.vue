@@ -1148,10 +1148,6 @@ $card-label-width: 90px;
   cursor: pointer;
 }
 
-:deep(.copy-target:active .copyIcon) {
-  transform: scale(1.2);
-}
-
 :deep(.copy-target .mono) {
   overflow: hidden;
   text-overflow: ellipsis;

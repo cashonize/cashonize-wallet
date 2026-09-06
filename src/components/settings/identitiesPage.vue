@@ -359,8 +359,7 @@
         </div>
         <div class="copy-target" :title="`${coin.txid}:0`" @click="copyToClipboard(`${coin.txid}:0`)">
           <span class="description">{{ t('identities.authheadLabel') }}</span>
-          <span class="mono">{{ truncateHashForWidth(coin.txid, width) }}:0</span>
-          <img class="copyIcon" src="images/copyGrey.svg">
+          <span class="mono">{{ truncateHashForWidth(coin.txid, width) }}:0<img class="copyIcon" src="images/copyGrey.svg"></span>
         </div>
         <div>{{ t('identities.authheadAmount', { amount: bchOf(coin.satoshis) }) }}</div>
         <div class="identity-links">

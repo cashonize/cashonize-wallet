@@ -100,8 +100,7 @@
     <div class="utxo-line utxo-line-meta">
       <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
       <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-        <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}</span>
-        <img class="copyIcon" src="images/copyGrey.svg">
+        <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}<img class="copyIcon" src="images/copyGrey.svg"></span>
       </span>
       <utxoRowStatus :utxo="utxo" compact />
       <q-icon v-if="!heldByFeature" name="more_vert" size="18px" class="row-menu-trigger">
