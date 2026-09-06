@@ -12,9 +12,6 @@ const identityListKeys = {
   // listed by the wallet itself and not yet seen by the user, so a coin quietly becoming
   // unspendable is not the first they hear of it
   unseen: 'unseenIdentities',
-  // authheads held and protected without a name: a BCH-only chain carries nothing on its identity
-  // output to say which identity it is. Keyed by txid, so an authhead that moves earns a fresh walk.
-  unnamed: 'unnamedAuthheads',
 } as const;
 
 export type IdentityList = keyof typeof identityListKeys;

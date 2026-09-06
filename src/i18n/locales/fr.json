@@ -1569,7 +1569,7 @@
     "unnamed": {
       "title": "Une identité détenue par ce portefeuille",
       "status": "Retenu, identité pas encore nommée",
-      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont l'UTXO ne porte aucun token, l'UTXO ne dit donc pas de quelle identité il s'agit. Il reste écarté de la sélection des pièces malgré tout : le protéger n'attend pas de pouvoir le nommer.",
+      "help": "Les clés de ce portefeuille ont publié les métadonnées d'une identité dont l'UTXO ne porte aucun token, l'UTXO ne dit donc pas de quelle identité il s'agit. Il reste écarté de la sélection des pièces malgré tout : le protéger n'attend pas de pouvoir le nommer. Ajoutez son authbase sous Ajouter existante pour le nommer.",
       "removeTitle": "Cesser de retenir cet UTXO ?",
       "removeMessage": "L'UTXO revient dans la sélection des pièces, et un envoi ordinaire remet l'identité qu'il porte à qui reçoit cet envoi. Il ne sera plus listé."
     },

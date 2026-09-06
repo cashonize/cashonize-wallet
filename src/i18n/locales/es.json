@@ -1569,7 +1569,7 @@
     "unnamed": {
       "title": "Una identidad que tiene esta billetera",
       "status": "Retenido, identidad aún sin nombrar",
-      "help": "Las claves de esta billetera publicaron metadatos de una identidad cuyo UTXO no lleva ningún token, así que el UTXO no dice de qué identidad se trata. Igualmente queda fuera de la selección de monedas: protegerlo no espera a poder nombrarlo.",
+      "help": "Las claves de esta billetera publicaron metadatos de una identidad cuyo UTXO no lleva ningún token, así que el UTXO no dice de qué identidad se trata. Igualmente queda fuera de la selección de monedas: protegerlo no espera a poder nombrarlo. Añade su authbase en Añadir existente para nombrarlo.",
       "removeTitle": "¿Dejar de retener este UTXO?",
       "removeMessage": "El UTXO vuelve a la selección de monedas, y un envío normal entrega la identidad que lleva a quien reciba ese envío. No volverá a aparecer en la lista."
     },

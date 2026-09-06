@@ -1,13 +1,12 @@
 // The authchain side of an identity: the publication output, the operations that continue the
-// chain, the resolve of where each authhead sits and whether this wallet holds it, what each
-// link of a chain did, and naming a chain from the registry it published. The hosted file
-// itself is registryFile's; the persisted lists are identityLists'.
+// chain, the resolve of where each authhead sits and whether this wallet holds it, and what each
+// link of a chain did. The hosted file itself is registryFile's; the persisted lists are
+// identityLists'.
 
 import type { Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
 import { binToHex, binToUtf8, hexToBin } from "@bitauth/libauth";
 import {
-  queryAuthHeadWithOutputs,
   queryAuthHeadsWithOutputs,
   byteaToHex,
   BCMR_OUTPUT_PREFIX,
@@ -15,9 +14,7 @@ import {
   type AuthHeadResult,
   type IdentityOutput,
 } from "src/queryChainGraph";
-import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
-import { fetchCandidateRegistry, type CandidateRegistry } from "src/utils/tools/registryFile";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -352,44 +349,3 @@ export async function resolveIdentities(
   });
 }
 
-// Naming a coin from the registry its own chain published, forward at every step: the authhead
-// query rooted at the coin's transaction returns the last publication on that chain, the file it
-// points at is fetched and hashed against it, and every identity the file names is resolved
-// forward; the one whose chain ends at this coin is the name. The registry is consulted, never
-// trusted: the hash binds the file to the chain, and the forward resolution binds the name to the
-// coin. It reaches hosting, so it is the caller's to run on a visit rather than at open.
-const maxNamedIdentities = 20;
-export async function nameChainFromRegistry(
-  authheadTxid: string,
-  chaingraphUrl: string,
-  ipfsGateway: string,
-): Promise<string | undefined> {
-  const { publicationOutputs } = await queryAuthHeadWithOutputs(authheadTxid, chaingraphUrl);
-  const publication = findPublication(publicationOutputs);
-  if (!publication) return undefined;
-  let registry: CandidateRegistry;
-  try {
-    registry = await fetchCandidateRegistry(publication.uris, ipfsGateway);
-  } catch {
-    return undefined;
-  }
-  if (registry.hash !== publication.hash) return undefined;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(registry.content);
-  } catch {
-    return undefined;
-  }
-  const result = MetadataRegistrySchema.safeParse(parsed);
-  if (!result.success) return undefined;
-  const candidates = Object.keys(result.data.identities ?? {})
-    .filter(candidate => /^[0-9a-f]{64}$/i.test(candidate))
-    .slice(0, maxNamedIdentities);
-  for (const candidate of candidates) {
-    const resolved = await queryAuthHeadWithOutputs(candidate, chaingraphUrl)
-      .then(chain => chain.txid)
-      .catch(() => undefined);
-    if (resolved === authheadTxid) return candidate;
-  }
-  return undefined;
-}

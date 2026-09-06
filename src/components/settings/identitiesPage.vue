@@ -83,8 +83,6 @@
   async function reloadIdentities() {
     try {
       await identitiesStore.refreshIdentities();
-      // naming what the open pass protected but could not name reaches hosting, so it is done here
-      if (await identitiesStore.nameUnnamedAuthheads()) await identitiesStore.refreshIdentities();
       // the identities of every held token, all of them on a visit rather than the new ones at open
       if (settingsStore.followTokenIdentities) await identitiesStore.followTokenIdentities('all');
       await fetchMissingMetadata();

@@ -1569,7 +1569,7 @@
     "unnamed": {
       "title": "An identity this wallet holds",
       "status": "Held back, identity not named yet",
-      "help": "This wallet's keys published metadata for an identity whose UTXO carries no token, so the UTXO says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it.",
+      "help": "This wallet's keys published metadata for an identity whose UTXO carries no token, so the UTXO says nothing about which identity it is. It is held back from coin selection all the same: protecting it does not wait on naming it. Add its authbase under Add existing to name it.",
       "removeTitle": "Stop holding this UTXO back?",
       "removeMessage": "The UTXO returns to coin selection, and an ordinary send hands the identity it carries to whoever receives that send. It will not be listed again."
     },

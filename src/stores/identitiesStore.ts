@@ -6,14 +6,12 @@
 
 import { defineStore } from "pinia"
 import { ref, computed } from 'vue'
-import type { Utxo } from "mainnet-js"
 import { useStore } from "./store"
 import { useSettingsStore } from "./settingsStore"
 import {
   resolveIdentities,
   describeChainLinks,
   identityCoin,
-  nameChainFromRegistry,
   type IdentityState,
   type IdentityStatus,
   type DescribedLink,
@@ -47,11 +45,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Listed by the wallet itself and not yet seen: what the marker on the wallet tools entry is
   // for, and what marks the cards as found automatically on the visit that clears it
   const unseenIdentities = ref([] as string[]);
-  // Authheads held here that the detection could not name, by txid. Protected either way: naming
-  // is a convenience, an unspendable coin is the point. Each is asked its registry once per
-  // session, on the page's visit.
-  const unnamedAuthheads = ref([] as string[]);
-  let triedThisSession: string[] = [];
   // The wallet's own transactions that carried a metadata publication, read off the same walk, so
   // the history can tell a metadata update from the wallet's other identity operations
   const identityPublicationTxids = ref([] as string[]);
@@ -94,8 +87,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     identityCategories.value = loadIdentityList('categories', network, walletName);
     dismissedIdentities.value = loadIdentityList('dismissed', network, walletName);
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);
-    unnamedAuthheads.value = loadIdentityList('unnamed', network, walletName);
-    triedThisSession = [];
     identities.value = undefined;
     tokenIdentities.value = undefined;
     identityPublicationTxids.value = [];
@@ -113,19 +104,20 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // anonymous coin is exactly the one who never opens the page, and an ordinary send spends it.
   // Deliberately amends the rule that only listed identities are reserved: the walk is evidence,
   // not a guess, and the coin is an authhead.
-  function listDetectedIdentities(detected: DetectedIdentity[]) {
+  async function listDetectedIdentities(detected: DetectedIdentity[]) {
     const heldAuthheads = (mainStore.walletUtxos ?? []).filter(utxo => utxo.vout === 0);
     const found = detected.filter(identity => heldAuthheads.some(utxo => utxo.txid === identity.authheadTxid));
     const listed: string[] = [];
     for (const identity of found) {
-      // a chain the markers cannot name is protected all the same, by outpoint: naming it comes
-      // after, and is never a condition of protecting it
+      // A chain the markers cannot name is protected all the same, by outpoint, and the
+      // reservation is the whole record of it: a coin already held back is not news, and one
+      // the list names is not unnamed. Naming it is the user's, by its authbase.
       if (!identity.category) {
         if (dismissedIdentities.value.includes(identity.authheadTxid)) continue;
-        if (unnamedAuthheads.value.includes(identity.authheadTxid)) continue;
-        // already named by the list, which resolved before this ran: not unnamed, not news
+        const outpoint = `${identity.authheadTxid}:0`;
+        if (mainStore.reservedUtxos[outpoint]) continue;
         if ((identities.value ?? []).some(listed => listed.authheadTxid === identity.authheadTxid)) continue;
-        unnamedAuthheads.value = addToIdentityList('unnamed', ...walletKey(), identity.authheadTxid);
+        await mainStore.reserveOutpoints([outpoint], 'auth');
         listed.push(identity.authheadTxid);
         continue;
       }
@@ -175,48 +167,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const detected = detectIdentities(spentOutputs);
     identityPublicationTxids.value = detected.publicationTxids;
     const unseenBefore = unseenIdentities.value;
-    if (!listDetectedIdentities(detected.identities).length) return;
+    const listed = await listDetectedIdentities(detected.identities);
+    if (mainStore.walletSwitchedSince(started) || !listed.length) return;
     await refreshIdentities();
-    // what this pass added to the unseen list; an unnamed authhead is announced by its txid and
-    // named on the page's visit, since naming reaches hosting
+    // what this pass added to the unseen list; an unnamed authhead is announced by its txid
     const toAnnounce = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
     await fetchMetadataFor(toAnnounce);
     if (mainStore.walletSwitchedSince(started)) return;
     announceFound(toAnnounce);
-  }
-
-  // Naming coins from the registry their own chain published, forward at every step and never
-  // at open, since it reaches hosting. Returns what it listed, or nothing once the wallet switched
-  // underneath it: the caller writes lists under the current wallet.
-  async function nameFromRegistries(coins: Utxo[]) {
-    const named: { coin: Utxo; category: string }[] = [];
-    const started = mainStore.currentInitializationToken();
-    for (const coin of coins) {
-      const category = await nameChainFromRegistry(coin.txid, mainStore.chaingraph, settingsStore.ipfsGateway);
-      if (mainStore.walletSwitchedSince(started)) return [];
-      if (!category) continue;
-      if (identityCategories.value.includes(category)) continue;
-      if (dismissedIdentities.value.includes(category)) continue;
-      listCategory(category);
-      named.push({ coin, category });
-    }
-    return named;
-  }
-
-  // Naming what is already protected, once per session: a chain that could not be named now is
-  // not asked again until the next open. A name found here is news, like any other find.
-  async function nameUnnamedAuthheads() {
-    const coins = unnamedAuthheadCoins.value.filter(coin => !triedThisSession.includes(coin.txid));
-    if (!coins.length) return 0;
-    triedThisSession.push(...coins.map(coin => coin.txid));
-    const named = await nameFromRegistries(coins);
-    for (const { coin, category } of named) {
-      unnamedAuthheads.value = removeFromIdentityList('unnamed', ...walletKey(), coin.txid);
-      // the news moves to the category with the name
-      unseenIdentities.value = removeFromIdentityList('unseen', ...walletKey(), coin.txid);
-      unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), category);
-    }
-    return named.length;
   }
 
   // An identity's own history, which is the chain itself: what each link did, and the reserve
@@ -261,8 +219,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (!currentUtxos) return news;
     if (!identityCategories.value.length) {
       identities.value = [];
-      // still runs: it reserves the unnamed authheads, and clears an 'auth' reservation left
-      // behind by an identity that is no longer listed
+      // still runs: it clears an 'auth' reservation left behind by an identity no longer listed
       await syncAuthReservations([]);
       return news;
     }
@@ -300,12 +257,20 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // Held authheads that carry no identity of their own on the list: same protection, no name.
-  // Derived, never stored: a UTXO the resolved list accounts for is not unnamed, whichever list
-  // found it first.
+  // Derived from the reservations, never stored: a coin held back as an authhead that no resolved
+  // identity accounts for, by its output or by its key. Judged only once every listed identity
+  // has resolved, since an unresolved one accounts for nothing and its coin would show here as
+  // an orphan. The wallet's own operation on an identity reserves the new authhead before
+  // Chaingraph has indexed it, so that coin can show here until the next resolve catches up.
   const unnamedAuthheadCoins = computed(() => {
-    const named = (identities.value ?? []).map(identity => identity.authheadTxid);
-    return (mainStore.walletUtxos ?? []).filter(
-      utxo => utxo.vout === 0 && unnamedAuthheads.value.includes(utxo.txid) && !named.includes(utxo.txid)
+    const resolved = identities.value;
+    if (!resolved || resolved.some(identity => identity.status === 'unresolved')) return [];
+    const accounted = resolved.flatMap(identity => {
+      const coin = identity.authUtxo ?? identity.keyUtxo;
+      return coin ? [outpointOf(coin)] : [];
+    });
+    return (mainStore.walletUtxos ?? []).filter(utxo =>
+      utxo.vout === 0 && mainStore.reservedUtxos[outpointOf(utxo)] === 'auth' && !accounted.includes(outpointOf(utxo))
     );
   });
 
@@ -315,7 +280,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // unresolved either. Every write checks for a wallet switch first.
   async function syncAuthReservations(resolved: IdentityState[]) {
     const started = mainStore.currentInitializationToken();
-    const authOutpoints = unnamedAuthheadCoins.value.map(outpointOf);
+    const authOutpoints: Outpoint[] = [];
     for (const identity of resolved) {
       // the identity output when this wallet holds it, the AuthKey when a covenant does: either
       // way it is the coin the authority rides on, and one key can carry several identities
@@ -328,9 +293,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (mainStore.walletSwitchedSince(started)) return;
     if (toReserve.length) await mainStore.reserveOutpoints(toReserve, 'auth');
     if (resolved.some(identity => identity.status === 'unresolved')) return;
-    // Never dropped: the coins above, the coins the wallet holds, and every resolved identity's
-    // output, whether the wallet's coins show it yet or not: its own view can trail the
-    // transaction it just made
+    // Never dropped: the coins above, the coins the wallet holds, which is where an unnamed
+    // authhead's reservation lives on, and every resolved identity's output, whether the wallet's
+    // coins show it yet or not: its own view can trail the transaction it just made
     const kept = [
       ...authOutpoints,
       ...(mainStore.walletUtxos ?? []).map(outpointOf),
@@ -542,11 +507,10 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // The wallet's only way to stop holding an authhead back, for when the user wants to spend that
-  // coin outside the identities page. Adding the identity again by its authbase reserves its
-  // authhead again.
+  // coin outside the identities page. The dismissal is by txid, so the detection leaves this coin
+  // alone; adding the identity by its authbase reserves it again.
   async function removeUnnamedAuthhead(txid: string) {
     dismissedIdentities.value = addToIdentityList('dismissed', ...walletKey(), txid);
-    unnamedAuthheads.value = removeFromIdentityList('unnamed', ...walletKey(), txid);
     const coin = (mainStore.walletUtxos ?? []).find(utxo => utxo.vout === 0 && utxo.txid === txid);
     if (coin && mainStore.reservedUtxos[outpointOf(coin)] === 'auth') {
       await mainStore.dropReservation(outpointOf(coin));
@@ -578,7 +542,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     unseenIdentities,
     announcement,
     takeAnnouncement,
-    unnamedAuthheads,
     identityPublicationTxids,
     identities,
     tokenIdentities,
@@ -594,7 +557,6 @@ export const useIdentitiesStore = defineStore('identities', () => {
     fetchMetadataFor,
     detectWalletIdentities, // only runChecksOnOpen calls it; exposed so the tests can hand it a walk
 
-    nameUnnamedAuthheads,
     unnamedAuthheadCoins,
     identitiesGuardedByKey,
     heldIdentityOf,

@@ -1569,7 +1569,7 @@
     "unnamed": {
       "title": "Uma identidade desta carteira",
       "status": "Retido, identidade ainda sem nome",
-      "help": "As chaves desta carteira publicaram metadados de uma identidade cujo UTXO não carrega nenhum token, portanto o UTXO não diz de que identidade se trata. Ainda assim fica de fora da seleção de moedas: protegê-lo não espera por conseguir nomeá-lo.",
+      "help": "As chaves desta carteira publicaram metadados de uma identidade cujo UTXO não carrega nenhum token, portanto o UTXO não diz de que identidade se trata. Ainda assim fica de fora da seleção de moedas: protegê-lo não espera por conseguir nomeá-lo. Adicione a sua authbase em Adicionar existente para nomeá-lo.",
       "removeTitle": "Parar de reter este UTXO?",
       "removeMessage": "O UTXO volta para a seleção de moedas, e um envio comum entrega a identidade que carrega a quem receber esse envio. Não voltará a ser listado."
     },

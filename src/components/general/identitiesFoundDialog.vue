@@ -12,7 +12,7 @@
   // Shown whenever the wallet held back identities the user never listed: that is the moment the
   // spendable balance and the token list change, so it is told directly, with names, every time.
   const props = defineProps<{
-    ids: string[], // categories, or the authhead txid of one the wallet could not name yet
+    ids: string[], // categories, or the authhead txid of one the wallet cannot name
   }>()
 
   defineEmits([

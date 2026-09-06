@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Utxo } from 'mainnet-js'
-import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
 
 import {
   localStorageMock,
@@ -65,58 +64,6 @@ function stubAuthheadQueries(
     })
   }))
 }
-
-// Chaingraph and a registry host in one stub: a chain's authhead, with the publication its authhead
-// carries when it has one, and the file a location serves. Naming is forward at every step, so the
-// test's chains say where each authbase ends and the registry says which authbases to try.
-function stubIdentityServers(
-  chains: Record<string, { authhead: string, publication?: string }>,
-  registries: Record<string, string> = {},
-  onQuery?: (hash: string) => void,
-) {
-  vi.stubGlobal('fetch', vi.fn((url: string, options?: RequestInit) => {
-    const registry = Object.entries(registries).find(([prefix]) => String(url ?? '').startsWith(prefix))
-    if (registry) return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(utf8ToBin(registry[1]).buffer) })
-    // one category asked at a time here, through the batch query
-    const { variables } = JSON.parse(options?.body as string) as { variables: { hashes?: string[] } }
-    const hash = variables.hashes?.[0]?.slice(2) ?? ''
-    onQuery?.(hash)
-    const chain = chains[hash]
-    if (!chain) return Promise.reject(new TypeError('Failed to fetch'))
-    const lastPublication = chain.publication
-      ? [{ transaction: [{ block_inclusions: [], outputs: [{ locking_bytecode: `\\x${chain.publication}` }] }] }]
-      : []
-    return Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({
-        data: { transaction: [{ hash: `\\x${hash}`, authchains: [{
-          authhead: { hash: `\\x${chain.authhead}`, outputs: [] },
-          genesis: [],
-          lastPublication,
-          recent: [{ transaction: [{ hash: `\\x${chain.authhead}` }] }],
-        }] }] },
-      }),
-    })
-  }))
-}
-
-// a registry naming one identity, and the publication output committing to it, hosted at example.com
-const registryNaming = (category: string) =>
-  JSON.stringify({ identities: { [category]: { '2024-01-01T00:00:00.000Z': { name: 'Named' } } } })
-const publicationOf = (content: string) =>
-  `6a0442434d5220${binToHex(sha256.hash(utf8ToBin(content)))}0b${binToHex(utf8ToBin('example.com'))}`
-
-// a spent-outputs row for a publication these keys made on a chain that carries no token
-const publicationRow = (authhead: string) => ({
-  transaction_hash: `\\x${'ff'.repeat(32)}`,
-  output_index: '1',
-  spent_by: [{ transaction: { hash: `\\x${authhead}`, outputs: [
-    { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
-      nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-    { output_index: '1', locking_bytecode: `\\x${'6a0442434d5220' + '11'.repeat(32)}`, token_category: null,
-      nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-  ] } }],
-})
 
 // The identities the store loads for a wallet come from storage, so they are written before the
 // wallet is set, the way a returning session has them
@@ -462,15 +409,14 @@ describe('auth reservations follow the authchain', () => {
     expect(written()).toEqual([outpointOf(authUtxoA), outpointOf(authUtxoB)])
   })
 
-  // unnamed is a derived view: a naming entry may stay in the map, but a UTXO the resolved list
-  // accounts for is never rendered as an unnamed card beside its named one
+  // unnamed is derived from the reservations: a held-back coin the resolved list accounts for is
+  // never rendered as an unnamed card beside its named one
   it('does not render an unnamed card for a UTXO a resolved identity accounts for', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
-    identitiesStore.unnamedAuthheads = [authheadA]
-    expect(identitiesStore.unnamedAuthheadCoins).toEqual([authUtxo])
+    await store.reserveOutpoints([outpointOf(authUtxo)], 'auth')
 
     await identitiesStore.refreshIdentities()
 
@@ -501,7 +447,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.detectWalletIdentities(walk)
     await identitiesStore.detectWalletIdentities(walk)
 
-    expect(identitiesStore.unnamedAuthheads).toEqual([])
+    expect(identitiesStore.unnamedAuthheadCoins).toEqual([])
     expect(identitiesStore.unseenIdentities).toEqual([])
     expect(identitiesStore.unseenIdentities.length).toBe(0)
   })
@@ -772,8 +718,8 @@ describe('auth reservations follow the authchain', () => {
     expect(JSON.parse(localStorageMock.getItem('dismissedIdentities-mainnet-testWallet') ?? '[]')).toEqual([categoryA])
   })
 
-  // A BCH-only chain carries nothing on its identity output to name it. Protection cannot wait
-  // for that: the coin is held back first, and naming it comes after.
+  // A BCH-only chain carries nothing on its identity output to name it. Protection does not wait
+  // for that: the coin is held back, and the reservation is the whole record of it.
   it('holds back an authhead it cannot name', async () => {
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
@@ -790,7 +736,7 @@ describe('auth reservations follow the authchain', () => {
 
     await identitiesStore.detectWalletIdentities(walk)
 
-    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA])
+    expect(identitiesStore.unnamedAuthheadCoins).toEqual([authUtxo])
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
     expect(store.spendableUtxos).toEqual([])
     // nothing was named, so nothing joined the identity list
@@ -815,53 +761,9 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.removeUnnamedAuthhead(authheadA)
     await identitiesStore.detectWalletIdentities(walk)
 
-    expect(identitiesStore.unnamedAuthheads).toEqual([])
+    expect(identitiesStore.unnamedAuthheadCoins).toEqual([])
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authUtxo])
-  })
-
-  // A chain that walked to a conclusion without a genesis must not be walked again on every wallet
-  // open: that is up to the hop limit in fetches, for an answer that cannot have changed while the
-  // authhead has not moved.
-  it('tries to name an unnamed authhead from its registry once per session', async () => {
-    const authUtxo = utxo(authheadA, 0)
-    const queried: string[] = []
-    // a chain whose authhead published nothing the wallet can read: the naming concludes
-    stubIdentityServers({ [authheadA]: { authhead: authheadA } }, {}, hash => queried.push(hash))
-    const { store, identitiesStore } = startStore([authUtxo])
-    await identitiesStore.detectWalletIdentities([publicationRow(authheadA)])
-    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA])
-
-    await identitiesStore.nameUnnamedAuthheads()
-    const afterFirst = queried.filter(hash => hash === authheadA).length
-    expect(afterFirst).toBeGreaterThan(0)
-    await identitiesStore.nameUnnamedAuthheads()
-
-    // still protected, and not asked a second time
-    expect(queried.filter(hash => hash === authheadA)).toHaveLength(afterFirst)
-    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
-  })
-
-  // a naming pass cut short by a wallet switch must not write what it had named under the next wallet
-  it('writes nothing from a naming pass the wallet switched away from', async () => {
-    const content = registryNaming(categoryA)
-    const { store, identitiesStore } = startStore([utxo(authheadA, 0), utxo(authheadB, 0)])
-    stubIdentityServers({
-      [authheadA]: { authhead: authheadA, publication: publicationOf(content) },
-      [categoryA]: { authhead: authheadA },
-      [authheadB]: { authhead: authheadB },
-    }, { 'https://example.com': content }, hash => {
-      // the first chain names, then the wallet switches while the second is being asked
-      if (hash === authheadB) store.walletSwitchedSince = () => true
-    })
-    await identitiesStore.detectWalletIdentities([publicationRow(authheadA), publicationRow(authheadB)])
-
-    await identitiesStore.nameUnnamedAuthheads()
-
-    // the first name was listed before the switch; the lists the caller rewrites were not touched
-    expect(identitiesStore.identityCategories).toEqual([categoryA])
-    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA, authheadB])
-    expect(identitiesStore.unseenIdentities).toEqual([authheadA, authheadB])
   })
 
   // an unnamed authhead is news once, like a category: a chain the walk cannot name must not keep
@@ -891,60 +793,22 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.unnamedAuthheadCoins).toEqual([authUtxo])
   })
 
-  // the dialog exists to say what was found by name, so it waits for the walk that names a
-  // publication-only identity and for its registry, and announces the category rather than the txid
-  // the registry the chain published names its authbase; resolved forward, it ends at this coin
-  it('names an unnamed authhead from its registry and moves the news to the category', async () => {
-    const content = registryNaming(categoryA)
+  // an unresolved identity accounts for no coin, so while any is, no held-back coin is judged an
+  // orphan: the section would otherwise offer to release the coins of identities the page names
+  it('shows no unnamed coins while a listed identity is unresolved', async () => {
+    listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    stubIdentityServers({
-      [authheadA]: { authhead: authheadA, publication: publicationOf(content) },
-      [categoryA]: { authhead: authheadA },
-    }, { 'https://example.com': content })
-    const { store, identitiesStore } = startStore([authUtxo])
-    await identitiesStore.detectWalletIdentities([publicationRow(authheadA)])
-    expect(identitiesStore.unseenIdentities).toEqual([authheadA])
+    const stray = utxo(authheadB, 0)
+    const { store, identitiesStore } = startStore([authUtxo, stray])
+    await store.reserveOutpoints([outpointOf(authUtxo), outpointOf(stray)], 'auth')
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))))
 
-    expect(await identitiesStore.nameUnnamedAuthheads()).toBe(1)
+    await identitiesStore.refreshIdentities()
 
-    expect(identitiesStore.identityCategories).toEqual([categoryA])
-    expect(identitiesStore.unnamedAuthheads).toEqual([])
-    expect(identitiesStore.unseenIdentities).toEqual([categoryA])
+    expect(identitiesStore.identities?.[0]?.status).toBe('unresolved')
+    expect(identitiesStore.unnamedAuthheadCoins).toEqual([])
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
-  })
-
-  // a registry that names a different chain does not name this coin, however its hash checks out
-  it('does not take a name whose chain ends elsewhere', async () => {
-    const content = registryNaming(categoryA)
-    stubIdentityServers({
-      [authheadA]: { authhead: authheadA, publication: publicationOf(content) },
-      [categoryA]: { authhead: authheadB },
-    }, { 'https://example.com': content })
-    const { identitiesStore } = startStore([utxo(authheadA, 0)])
-    await identitiesStore.detectWalletIdentities([publicationRow(authheadA)])
-
-    expect(await identitiesStore.nameUnnamedAuthheads()).toBe(0)
-
-    expect(identitiesStore.identityCategories).toEqual([])
-    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA])
-  })
-
-  // the host is bound by the hash on chain: a file it serves that the publication did not commit
-  // to names nothing, however plausible its contents
-  it('does not take a name from a registry the publication did not commit to', async () => {
-    const published = registryNaming(categoryA)
-    const served = registryNaming(categoryA).replace('Named', 'Renamed')
-    stubIdentityServers({
-      [authheadA]: { authhead: authheadA, publication: publicationOf(published) },
-      [categoryA]: { authhead: authheadA },
-    }, { 'https://example.com': served })
-    const { identitiesStore } = startStore([utxo(authheadA, 0)])
-    await identitiesStore.detectWalletIdentities([publicationRow(authheadA)])
-
-    expect(await identitiesStore.nameUnnamedAuthheads()).toBe(0)
-
-    expect(identitiesStore.identityCategories).toEqual([])
-    expect(identitiesStore.unnamedAuthheads).toEqual([authheadA])
+    expect(store.reservedUtxos[outpointOf(stray)]).toBe('auth')
   })
 
   // the checks are read by position in the publication's locations, so they answer for that

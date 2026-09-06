@@ -82,8 +82,8 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 - **Found in the wallet's own history.** The spent-outputs walk the portfolio already runs
   is read a second time at wallet open for two markers: a genesis these keys made, and a
   publication these keys made. The first names its chain; the second may not, in which
-  case the coin is held back unnamed and named on the page's next visit from its own
-  registry.
+  case the coin is held back unnamed, its reservation the whole record of it, until the
+  user adds its authbase.
 - **Followed as a held token's identity.** The identity of every token the wallet holds is
   followed passively, in batches of forward lookups at open and on the page's visit: not
   listed, not reserved, never news, until its identity output turns out to be here, when it
@@ -132,7 +132,7 @@ naming what was held back and what that did to the balance.
 - `src/stores/identitiesStore.ts`: the lists, the resolves, the reservations, the finds
   and the following.
 - `src/utils/tools/authchainIdentity.ts`: the publication format, the operations' outputs,
-  the resolve, the chain's history, naming a chain from its registry.
+  the resolve, the chain's history.
 - `src/utils/tools/registryFile.ts`: fetching, hashing and reading the hosted registry file.
 - `src/utils/tools/identityLists.ts`: the persisted lists.
 - `src/queryChainGraph.ts`: the authhead and history queries.
