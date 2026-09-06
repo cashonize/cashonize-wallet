@@ -188,7 +188,8 @@
       const confirmed = await confirmDialog(
         t('identities.unnamed.removeTitle'),
         t('identities.unnamed.removeMessage'),
-        t('identities.remove.button')
+        t('identities.remove.button'),
+        'red'
       );
       if (confirmed) await identitiesStore.removeUnnamedAuthhead(txid);
     });

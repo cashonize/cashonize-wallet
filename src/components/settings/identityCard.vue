@@ -391,12 +391,16 @@
     });
   }
 
+  // Removing a held identity releases its UTXO to coin selection, so the confirm is red the way
+  // the key transfer's is; removing a watched one only stops watching it
   async function removeIdentity() {
     await runAction('remove', async () => {
+      const held = props.identity.status === 'held';
       const confirmed = await confirmDialog(
         t('identities.remove.title'),
-        props.identity.status === 'held' ? t('identities.remove.messageHeld') : t('identities.remove.message'),
-        t('identities.remove.button')
+        held ? t('identities.remove.messageHeld') : t('identities.remove.message'),
+        t('identities.remove.button'),
+        held ? 'red' : 'primary'
       );
       if (confirmed) await identitiesStore.removeIdentity(props.identity.category);
     });

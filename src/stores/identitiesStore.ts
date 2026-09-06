@@ -542,8 +542,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // The wallet's only way to stop holding an authhead back, for when the user wants to spend that
-  // coin outside the identities page. Adding the identity again, by category or through the
-  // ownership check, reserves its authhead again.
+  // coin outside the identities page. Adding the identity again by its authbase reserves its
+  // authhead again.
   async function removeUnnamedAuthhead(txid: string) {
     dismissedIdentities.value = addToIdentityList('dismissed', ...walletKey(), txid);
     unnamedAuthheads.value = removeFromIdentityList('unnamed', ...walletKey(), txid);
