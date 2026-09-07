@@ -30,6 +30,7 @@
     identityCoin,
     identityOutput,
     locationBudgetLeft,
+    reserveAddOutputs,
     transferOutputs,
     publicationOutput,
     type IdentityState,
@@ -315,7 +316,7 @@
       notifySending();
       const { txId } = await store.spend.spendAuthUtxo(
         authUtxo,
-        [identityOutput(authUtxo, store.walletAddresses(), reserve.value + amount)],
+        reserveAddOutputs(authUtxo, store.walletAddresses(), amount, categoryUtxos),
         categoryUtxos,
       );
       return { txId, message: t('identities.reserve.add.done'), title: t('identities.reserve.add.doneTitle') };

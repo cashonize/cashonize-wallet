@@ -33,7 +33,7 @@ import { useStore } from "./store";
 import { useIdentitiesStore } from "./identitiesStore";
 import { useSettingsStore } from "./settingsStore";
 import { walletConnectMetadata } from "./constants";
-import { createSignedWizTransaction, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
+import { createSignedWizTransaction, chainLockingBytecodes, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
 import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
 import { displayAndLogError } from "src/utils/errorHandling";
 import { identityRefusal, refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
@@ -296,12 +296,14 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       url: '',
       icons: connection.dappIcon ? [connection.dappIcon] : [],
     };
+    const owned = hdNodes ? ownedLockingBytecodes(hdNodes, request.inputPaths) : [];
     const handle = Dialog.create({
       component: WC2TransactionRequest,
       componentProps: {
         dappMetadata,
         transactionRequest: request.transaction as WcSignTransactionRequest,
         exchangeRate,
+        walletOwns: (lockingBytecode: Uint8Array) => owned.includes(binToHex(lockingBytecode)),
       },
     })
       // Dialog listeners expect synchronous callbacks, this means the promise is fire-and-forget
@@ -470,6 +472,24 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       // never called by the library; signing runs through the pendingSignRequest flow
       signTransaction: () => Promise.reject(new Error("signTransaction is handled via the pendingSignRequest flow")),
     };
+  }
+
+  // The wallet's coins on the chains a request touches, for the sign dialog to mark: each chain
+  // the request signs from, derived past its highest index by the gap, which is where a dapp's
+  // change to the wallet lands
+  const OWNED_ADDRESS_GAP = 20;
+  function ownedLockingBytecodes(nodes: WizHdNodes, inputPaths: WizSignTransactionRequest['inputPaths']) {
+    const highestIndex = new Map<DerivationPath, number>();
+    for (const [, pathName, addressIndex] of inputPaths) {
+      const chain = PATH_NAME_TO_CHILD[pathName] as DerivationPath;
+      highestIndex.set(chain, Math.max(highestIndex.get(chain) ?? 0, addressIndex));
+    }
+    const owned: string[] = [];
+    for (const [chain, index] of highestIndex) {
+      const chainNode = nodes.privateChains.get(chain);
+      if (chainNode) owned.push(...chainLockingBytecodes(chainNode, index + 1 + OWNED_ADDRESS_GAP));
+    }
+    return owned;
   }
 
   function deriveInputKeys(nodes: WizHdNodes, inputPaths: WizSignTransactionRequest['inputPaths']) {

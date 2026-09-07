@@ -4,13 +4,15 @@ import {
   hash160,
   secp256k1,
   encodeLockingBytecodeP2pkh,
+  deriveHdPrivateNodeFromSeed,
+  deriveHdPrivateNodeChild,
   encodeTransaction,
   decodeTransaction,
   createVirtualMachineBch,
   type TransactionCommon,
 } from "@bitauth/libauth";
 import type { WcSignTransactionRequest, WcSourceOutput } from "@bch-wc2/interfaces";
-import { createSignedWizTransaction, type WizInputSigningKey } from "../src/utils/dapp/wizSigning";
+import { createSignedWizTransaction, chainLockingBytecodes, type WizInputSigningKey } from "../src/utils/dapp/wizSigning";
 
 // SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID, mandated by the WizardConnect spec
 const expectedHashType = 0x61;
@@ -167,3 +169,19 @@ describe('createSignedWizTransaction', () => {
     expect(() => createSignedWizTransaction(request, inputKeys)).toThrow(/length mismatch/);
   })
 })
+
+// The sign dialog marks the wallet's coins on a chain the address cache does not know by these
+describe("chainLockingBytecodes", () => {
+  it("derives the P2PKH locking bytecode of each of the chain's first addresses", () => {
+    const chain = deriveHdPrivateNodeFromSeed(new Uint8Array(32).fill(7));
+    if (typeof chain === "string") throw new Error(chain);
+
+    const bytecodes = chainLockingBytecodes(chain, 3);
+
+    expect(bytecodes).toHaveLength(3);
+    const first = deriveHdPrivateNodeChild(chain, 0);
+    const pubkey = secp256k1.derivePublicKeyCompressed(first.privateKey) as Uint8Array;
+    expect(bytecodes[0]).toBe(binToHex(encodeLockingBytecodeP2pkh(hash160(pubkey))));
+    expect(new Set(bytecodes).size).toBe(3);
+  });
+});
