@@ -1,5 +1,6 @@
-import { parseListingAnnouncement, listingsFromSpentOutputs } from "../src/utils/defi/tapswapListings";
-import type { ChaingraphSpentOutput } from "../src/queryChainGraph";
+import { describe, expect, it, vi } from "vitest";
+import { parseListingAnnouncement, listingsFromHistory, fetchActiveListings } from "../src/utils/defi/tapswapListings";
+import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput } from "./mocks/history.mocks";
 
 // Real mainnet listing announcements: an NFT listed for 0.04 BCH and a fungible token
 // listing, with different makers
@@ -31,76 +32,54 @@ describe('parseListingAnnouncement', () => {
   })
 })
 
-// A spent wallet output whose spending transaction is the Cash-Ninjas listing above
-function spentOutputFixture(contractSpentBy: { input_index: string }[]): ChaingraphSpentOutput {
-  return {
-    transaction_hash: "\\x" + "00".repeat(32),
-    output_index: "1",
-    spent_by: [{
-      transaction: {
-        hash: "\\xc02261eb029a2b960cd611df6544766668a9b01df0da7aaec9d81b4049f103bc",
-        outputs: [
-          {
-            output_index: "0",
-            locking_bytecode: "\\xa914a261e5872f511029097c048243c5cf7c102f379087",
-            token_category: "\\x77a95410a07c2392c340384aef323aea902ebfa698a35815c4ef100062c6d8ac",
-            nonfungible_token_commitment: "\\xd300",
-            fungible_token_amount: "0",
-            spent_by: contractSpentBy
-          },
-          {
-            output_index: "1",
-            locking_bytecode: "\\x" + nftAnnouncement,
-            token_category: null,
-            nonfungible_token_commitment: null,
-            fungible_token_amount: null,
-            spent_by: []
-          }
-        ]
-      }
-    }]
-  };
-}
+// The Cash-Ninjas listing above as the wallet's history carries it: the sale contract at
+// output 0 holding the NFT, the announcement at output 1
+const listingTxid = "c02261eb029a2b960cd611df6544766668a9b01df0da7aaec9d81b4049f103bc";
+const contractAddress = "bitcoincash:pz3xrev8942yg2gf0szgys79e7lqs9um7qlqq4xda2";
+const listedCategory = "77a95410a07c2392c340384aef323aea902ebfa698a35815c4ef100062c6d8ac";
+const listingItem = historyItem(listingTxid, [
+  tokenOutput(listedCategory, { commitment: "d300" }, contractAddress),
+  opReturnOutput(nftAnnouncement),
+]);
+const listing = {
+  txid: listingTxid,
+  contractAddress,
+  category: listedCategory,
+  commitment: "d300",
+  tokenAmount: 0n,
+  priceSats: 4_000_000n,
+};
 
-describe('listingsFromSpentOutputs', () => {
-  it('should extract an active listing', () => {
-    expect(listingsFromSpentOutputs([spentOutputFixture([])], [nftMakerPkh])).toEqual([{
-      txid: "c02261eb029a2b960cd611df6544766668a9b01df0da7aaec9d81b4049f103bc",
-      category: "77a95410a07c2392c340384aef323aea902ebfa698a35815c4ef100062c6d8ac",
-      commitment: "d300",
-      tokenAmount: 0n,
-      priceSats: 4_000_000n
-    }]);
-  })
-  it('should skip a listing whose contract utxo is spent', () => {
-    expect(listingsFromSpentOutputs([spentOutputFixture([{ input_index: "0" }])], [nftMakerPkh])).toEqual([]);
+describe('listingsFromHistory', () => {
+  it("should read a listing off the wallet's history", () => {
+    expect(listingsFromHistory([listingItem], [nftMakerPkh])).toEqual([listing]);
   })
   it('should skip a listing made by someone else', () => {
-    expect(listingsFromSpentOutputs([spentOutputFixture([])], [ftMakerPkh])).toEqual([]);
-    expect(listingsFromSpentOutputs([spentOutputFixture([])], [])).toEqual([]);
-  })
-  it('should report a listing spending several wallet outputs once', () => {
-    const listings = listingsFromSpentOutputs([spentOutputFixture([]), spentOutputFixture([])], [nftMakerPkh]);
-    expect(listings.length).toBe(1);
+    expect(listingsFromHistory([listingItem], [ftMakerPkh])).toEqual([]);
+    expect(listingsFromHistory([listingItem], [])).toEqual([]);
   })
   it('should skip transactions that are no listing at all', () => {
-    const ordinarySpend: ChaingraphSpentOutput = {
-      transaction_hash: "\\x" + "00".repeat(32),
-    output_index: "1",
-    spent_by: [{
-        transaction: {
-          hash: "\\x" + "ab".repeat(32),
-          outputs: [{
-            output_index: "0",
-            locking_bytecode: "\\x76a914" + nftMakerPkh + "88ac",
-            token_category: null,
-            nonfungible_token_commitment: null,
-            fungible_token_amount: null,
-            spent_by: []
-          }]
-        }
-      }]
-    };
-    expect(listingsFromSpentOutputs([ordinarySpend], [nftMakerPkh])).toEqual([]);
+    const ordinarySpend = historyItem("ab".repeat(32), [p2pkhOutput(), p2pkhOutput()]);
+    const tokenSend = historyItem("cd".repeat(32), [tokenOutput(listedCategory, { commitment: "d300" }), p2pkhOutput()]);
+    expect(listingsFromHistory([ordinarySpend, tokenSend], [nftMakerPkh])).toEqual([]);
+  })
+})
+
+// The listing is active while its contract UTXO is unspent, which is asked of electrum per
+// listing: the history holds the listing, not what became of it
+describe('fetchActiveListings', () => {
+  const contractUtxo = { txid: listingTxid, vout: 0, satoshis: 1000n, address: contractAddress };
+  it('should keep a listing whose contract utxo is unspent', async () => {
+    const provider = { getUtxos: vi.fn().mockResolvedValue([contractUtxo]) };
+    expect(await fetchActiveListings(provider as never, [listing])).toEqual([listing]);
+    expect(provider.getUtxos).toHaveBeenCalledWith(contractAddress);
+  })
+  it('should drop a listing whose contract utxo is spent', async () => {
+    const provider = { getUtxos: vi.fn().mockResolvedValue([]) };
+    expect(await fetchActiveListings(provider as never, [listing])).toEqual([]);
+  })
+  it('should not mistake another coin at the contract address for the listing', async () => {
+    const provider = { getUtxos: vi.fn().mockResolvedValue([{ ...contractUtxo, vout: 1 }]) };
+    expect(await fetchActiveListings(provider as never, [listing])).toEqual([]);
   })
 })

@@ -1,10 +1,10 @@
 # Contract asset discovery
 
 How the wallet finds what it owns without holding it: assets locked in contracts it funded,
-TapSwap listings and hodl locks today, and the identities its keys made. All three are found
-by one walk of the wallet's own spent outputs on Chaingraph, and this explains why that walk,
-rather than a search for the announcements, is the query. Read this before adding a protocol
-to the portfolio or changing what the walk asks for.
+TapSwap listings and hodl locks today, and the identities its keys made. All three are read
+off the wallet's own transaction history, and this explains why that history, rather than a
+search for the announcements, is the source. Read this before adding a protocol to the
+portfolio or changing what is read.
 
 ## The problem
 
@@ -21,36 +21,31 @@ They cannot be searched by key:
   and the announced locktime and comparing the result with the announced address.
 - **TapSwap names the maker where no index reaches.** The maker's pkh is the ninth of ten
   pushes, after the price and three want fields of varying length, so its byte position
-  differs per listing. Chaingraph filters script bytes by prefix only; "contains these 20
-  bytes somewhere" is not a query it can answer.
+  differs per listing. An indexer filters script bytes by prefix; "contains these 20 bytes
+  somewhere" is not a query one answers.
 - **An identity's authbase is a transaction hash**, not an address, and a metadata publication
   names no key at all.
 
-What Chaingraph does answer fast is "which outputs have this locking bytecode", and every one
-of these announcements shares one property: the user paid for the transaction from their own
-coins. The announcing transaction therefore spends an output of the wallet's, and the set of
-transactions that spent the wallet's outputs contains every announcement it ever made.
+## The wallet's history holds every announcement
 
-## The walk
+Every one of these announcements shares one property: the user paid for the transaction from
+their own coins. The announcing transaction therefore spends an output of the wallet's, which
+puts it in the electrum history of that output's address, and the wallet loads its full
+history at open. mainnet-js fetches the raw transaction of every history item and of every
+prevout, through its IndexedDB cache, and decodes them into history items carrying each
+output's address and token fields, with an OP_RETURN output's bytes in place of an address.
+The announcements are read off those items: `fullWalletHistory` in `src/stores/store.ts`
+hands the readers the history on hand when it is complete, and starts the full load itself
+when only the capped one is, so the identity check at open does not wait for the browser to
+go idle. Nothing is searched, and no server learns the wallet's address list beyond the
+electrum server that has it anyway.
 
-One paged query (`querySpentOutputs` in `src/queryChainGraph.ts`): the wallet's locking
-bytecodes, every address of an HD wallet, into `search_output`, spent outputs only, each with
-the transaction that spent it and that transaction's outputs 0 and 1 plus any BCMR output at
-another index, with whether each of those is spent in turn. The announcements are read on the
-client from those outputs. Nothing is searched globally, and the query's size follows the
-wallet's history, not the protocols' use: about half a second warm for an ordinary wallet on a
-healthy instance, paged in thousands of rows for a busy one. It is the wallet's one request
-that leans on `search_output`'s expression index, so an instance whose planner statistics have
-gone stale times it out at a handful of addresses while every other query still answers.
-
-The walk runs once per state of the wallet's coins (`walkSpentOutputs` in `store.ts`): at
-wallet open, for identity detection, and the portfolio's first visit reads the same answer.
-It sends the wallet's full address list to the configured Chaingraph server, which is the
-privacy cost of every lookup in this document. The query is keyed by address and carries no
-node filter, so an instance that indexes both chains answers it with rows from both; that is
-why the instance is a setting per network, and why chipnet ships with none configured. The
-portfolio's two protocols exist on mainnet only, so its lookup runs on mainnet only; identity
-detection runs wherever an instance is configured for the network.
+Measured on a wallet of about 1,500 transactions against the default servers, the full
+history load takes about two seconds served from the cache, a cost the history tab pays at
+every open regardless, and reading the announcements off it takes milliseconds. A first open
+fetches every transaction, about seven seconds for that wallet, after which the cache serves
+them; the identity check waits for that on a fresh restore, which is when a creator's
+identity coin is most exposed to an ordinary send.
 
 ## What each protocol announces, and what the wallet does with it
 
@@ -58,62 +53,80 @@ detection runs wherever an instance is configured for the network.
   contract holding the asset, output 1 the `MPSW` announcement: marker, version, a hash pinning
   the contract's constant bytecode, the platform pkh, the price, three want fields, the maker
   pkh and the fee. A listing is the wallet's when the maker pkh is one of its own, and active
-  while output 0 is unspent, which the same query reports. The format was decoded from settled
-  trades; the contract is not open source.
+  while output 0 is unspent, which the history cannot say and electrum is asked per listing.
+  The format was decoded from settled trades; the contract is not open source.
 - **hodl** (`utils/defi/hodlContracts.ts`). Output 0 of the funding transaction is the `hodl`
   announcement: the Lokad id, the contract's address with a version suffix, and the locktime.
   The wallet rebuilds the contract script, `<locktime> OP_CHECKLOCKTIMEVERIFY OP_DROP` around a
   P2PKH of each of its own pkhs, and owns the lock whose script hash matches the announced
   address. What the contract holds is then read from electrum by address, since anyone can add
   funds to it and a drained one holds nothing.
-- **Identities** (`utils/tools/identityDetection.ts`). Two markers on the same rows: a genesis,
-  a transaction that spent one of the wallet's output-0 outpoints and carries tokens of the
-  category that outpoint's txid becomes; and a `BCMR` publication output, which also labels
-  the transaction in the history. What follows from a find is in `bcmr-identities.md`.
+- **Identities** (`utils/tools/identityDetection.ts`). Two markers on the same items: a genesis,
+  a transaction carrying tokens of a category that is a transaction of this history, confirmed
+  to have spent that transaction's output 0 from its raw form, since a history item carries no
+  input outpoints; and a `BCMR` publication output, which also labels the transaction in the
+  history. What follows from a find is in `bcmr-identities.md`. The check runs only on a
+  network with a Chaingraph instance configured, since listing what it finds needs the resolve.
 
 ## The hodl plugin's own rule: a change output back to the owner
 
 The Electron Cash hodl plugin, the protocol's reference, finds contracts from the wallet's own
-transaction history and recovers the owner differently: it takes the funding transaction's
-other outputs, the non-P2SH ones, as candidate owner addresses and rebuilds the contract from
-each until one matches the announced address (`contract_finder.py`, `get_candidates`). That
-only works when the funding transaction pays an output back to the owner, so the plugin
-requires a change output to the owner's own address, and every hodl it made carries one.
-Cashonize does not depend on that output, since it rebuilds from its own pkhs, but a wallet
-that wants to be found by the plugin has to keep the rule when it creates a lock.
+transaction history too, and recovers the owner differently: it takes the funding
+transaction's other outputs, the non-P2SH ones, as candidate owner addresses and rebuilds the
+contract from each until one matches the announced address (`contract_finder.py`,
+`get_candidates`). That only works when the funding transaction pays an output back to the
+owner, so the plugin requires a change output to the owner's own address, and every hodl it
+made carries one. Cashonize does not depend on that output, since it rebuilds from its own
+pkhs, but a wallet that wants to be found by the plugin has to keep the rule when it creates a
+lock.
 
-## The electrum alternative, and why it is the intended source
+## Chaingraph, evaluated and set aside
 
-A transaction that spends an address's coin is in that address's electrum history, and the
-wallet already holds those transactions: mainnet-js's history load fetches the raw hex of
-every transaction in the history and every prevout, through the IndexedDB cache, and decodes
-them, with each output's OP_RETURN bytes and token fields exposed on the history item. So
-the walk asks a second server, with the wallet's address list, for what the first server has
-already delivered. The hodl plugin reads its history this way, and for TapSwap the two
-sources were verified to find the same listings.
+Chaingraph was the first source for these lookups, and the question of using it comes down to
+two facts.
 
-Reading the announcements from the history is the intended source, in a change of its own:
-it takes the address list away from Chaingraph, drops the one query a stale planner kills
-and the chain-mixing caveat, sees a transaction in the mempool at once, and finds on chipnet
-too, though resolving what it finds still needs a chipnet Chaingraph instance, which ships
-unconfigured. Chaingraph then keeps the one job history cannot do, following an authchain
-to its head. What it costs: the readers need the raw hex of the history's own transactions,
-which for an HD wallet is the raw history held in memory plus one batched fetch, cached
-forever after, so on a large wallet's first open detection, and with it the holding back of
-a creator's identity coin, waits on one electrum fetch per historical transaction, on the
-one open where that coin is most exposed; whether to fetch those eagerly for the readers
-rather than wait on the idle-scheduled history load is the question to settle, and the
-timing on a large wallet has not been measured. Genesis detection decodes candidate raw
-transactions itself, since a history item carries no input outpoints, and a TapSwap
-listing's unspent status becomes one electrum lookup per own listing, worth remembering once
-spent. Until then, a wallet with no Chaingraph instance configured finds none of these.
+**The electrum data is already paid for.** The history load fetches every transaction of the
+wallet's at the first open and serves it from the IndexedDB cache at every open after; the
+history tab needs that load regardless, so reading announcements off it costs nothing extra
+and needs no cache of its own. A Chaingraph lookup is a request on top of that, at every open
+and every portfolio visit, to a second server that then holds the wallet's full address list.
+
+**Chaingraph cannot ask for just the wallet's announcements.** Its one fast lookup is outputs
+by locking bytecode, through `search_output`'s expression index, and no announcement is
+reachable by it: hodl names no owner, TapSwap names the maker past any prefix, a genesis has
+no marker at all. What was left was the same walk the history gives for free: the wallet's
+spent outputs with the transaction that spent each, one paged query, the announcements
+filtered on the client. The shapes a lookup can take here, and what rules each out:
+
+- **By the wallet's addresses**, the walk: outputs by locking bytecode through the expression
+  index, then the transaction that spent each. The one fast shape; it grows with the wallet's
+  history, and can be narrowed on the server to spending transactions that carry an
+  announcement or a token output, since that filter reaches through the relationship without
+  touching the address index.
+- **By the protocol**, an OP_RETURN prefix search: finds every announcement anyone made, so it
+  grows with the protocol's use, and the owner still has to be matched on the client, which
+  for hodl means deriving the contract from every own pkh per announcement. Workable while a
+  protocol is small, wrong as it grows, and no help for a genesis, which has no marker.
+- **Both at once**, "this OP_RETURN and an output to me": a locking-bytecode equality nested
+  inside another filter cannot use the expression index, so Postgres scans the outputs table
+  and the statement timeout cancels it. The server can do either half, not the join.
+- **By the contract**: a hodl address hashes the locktime with the pkh, a TapSwap contract
+  hashes the whole offer, so neither is derivable from what the wallet knows.
+- **By the listed token's category**: needs categories the wallet no longer holds and grows
+  with the collection.
+
+That walk also had costs of its own. It was the one query in the wallet that leaned on the
+expression index, timing out on an instance with stale planner statistics while every other
+query still answered; it carried no node filter, so an instance indexing both chains
+answered with rows from both; it lagged electrum by the indexing delay, so a listing just
+made needed a second walk; and a wallet with no instance configured found nothing. Chaingraph
+keeps the one job history cannot do: following an authchain to its head.
 
 ## Where the code is
 
-- `src/queryChainGraph.ts`: the walk's query and its paging.
-- `src/stores/store.ts`: `walkSpentOutputs`, one walk per state of the wallet, and the
+- `src/stores/store.ts`: `fullWalletHistory`, the loaded history for its readers, and the
   portfolio's use of it.
 - `src/utils/defi/tapswapListings.ts`, `src/utils/defi/hodlContracts.ts`: the two announcement
   parsers and the ownership rule of each.
-- `src/utils/tools/identityDetection.ts`: the identity markers read off the same rows.
+- `src/utils/tools/identityDetection.ts`: the identity markers read off the same items.
 - `src/components/portfolio/`: where listings and locks are shown, valuation only.

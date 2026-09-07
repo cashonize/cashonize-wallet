@@ -98,8 +98,8 @@
   // setting since the user explicitly opened the portfolio (the price fetches are cached
   // for 5 minutes)
   async function loadPortfolioData() {
-    // unawaited: the slower Chaingraph walk should not hold up the view's loading gate.
-    // The spinner only accompanies the first walk and retries after a failure;
+    // unawaited: waiting on the full history should not hold up the view's loading gate.
+    // The spinner only accompanies the first lookup and retries after a failure;
     // re-entries with data on screen refresh silently behind the rows already shown.
     if (store.tapswapListings === null || store.hodlContracts === null || store.announcedAssetsError) {
       checkingAdditionalContractAssets.value = true

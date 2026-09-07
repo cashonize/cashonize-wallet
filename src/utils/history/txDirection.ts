@@ -1,4 +1,4 @@
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { InOutput, TransactionHistoryItem } from "mainnet-js";
 
 export type TxDirection = 'received' | 'sent' | 'combined';
 
@@ -45,4 +45,13 @@ export function isDappInteraction(
   });
   if (!hasP2shInput) return false;
   return transaction.inputs.some(input => hasWalletAddress(input.address));
+}
+
+// A history item's OP_RETURN outputs have no address; mainnet-js puts "OP_RETURN: " and the
+// locking bytecode in hex there instead, which is where the protocol announcements are read
+export const OP_RETURN_ADDRESS_PREFIX = "OP_RETURN: ";
+
+export function opReturnHex(output: InOutput | undefined) {
+  if (!output?.address.startsWith(OP_RETURN_ADDRESS_PREFIX)) return undefined;
+  return output.address.slice(OP_RETURN_ADDRESS_PREFIX.length);
 }

@@ -1404,7 +1404,7 @@
       "ipfsGateway": "Gateway IPFS:",
       "ipfsGatewayHint": "Se usa para cargar los iconos de tokens y otros medios de tokens alojados en IPFS.",
       "chaingraph": "Servidor Chaingraph:",
-      "chaingraphHint": "Un indexador de la blockchain de BCH. Se usa para encontrar los listados de TapSwap y los contratos hodl de la billetera para la vista de portafolio, y para detectar qué identidades tiene esta billetera.",
+      "chaingraphHint": "Un indexador de la blockchain de BCH, usado solo para identidades: para consultar las que esta billetera tiene y sigue.",
       "chaingraphCustomPlaceholder": "ej. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql se añade automáticamente cuando solo se proporciona un host.",
       "chaingraphInvalidUrl": "URL del servidor Chaingraph no válida",

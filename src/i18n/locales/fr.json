@@ -1404,7 +1404,7 @@
       "ipfsGateway": "Passerelle IPFS :",
       "ipfsGatewayHint": "Utilisée pour charger les icônes de tokens et les autres médias de tokens hébergés sur IPFS.",
       "chaingraph": "Serveur Chaingraph :",
-      "chaingraphHint": "Un indexeur de la blockchain BCH. Utilisé pour trouver les annonces TapSwap et les contrats hodl du portefeuille pour la vue portefeuille, et pour détecter quelles identités ce portefeuille détient.",
+      "chaingraphHint": "Un indexeur de la blockchain BCH, utilisé uniquement pour les identités : pour rechercher celles que ce portefeuille détient et suit.",
       "chaingraphCustomPlaceholder": "ex. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql est ajouté automatiquement lorsque seul un hôte est indiqué.",
       "chaingraphInvalidUrl": "URL du serveur Chaingraph invalide",

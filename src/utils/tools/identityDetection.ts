@@ -1,16 +1,17 @@
-// Identities these keys made, read off the spent-outputs walk the portfolio also reads. The
-// point is the creator who never opens the identities page: a token genesised with the token
-// creation page before that page existed, or an authchain updated with the AuthUpdate CLI on the
-// same seed. Their authhead sits in the wallet as an anonymous coin, and an ordinary send spends
-// it. Nothing here reaches the network: it is a second reading of the one walk the store keeps.
+// Identities these keys made, read off the wallet's own transaction history. The point is the
+// creator who never opens the identities page: a token genesised with the token creation page
+// before that page existed, or an authchain updated with the AuthUpdate CLI on the same seed.
+// Their authhead sits in the wallet as an anonymous coin, and an ordinary send spends it.
 //
-// Two markers, which do not overlap. A genesis is a transaction that spent one of this wallet's
-// vout-0 outpoints and carries token outputs of the category that outpoint's txid becomes: a
-// genesis names its own authbase by construction. A publication is a transaction carrying the
-// BCMR output, which catches identities received from elsewhere and first updated here.
+// Two markers, which do not overlap. A genesis is a transaction that spent a vout-0 outpoint of
+// this history and carries token outputs of the category that outpoint's txid becomes: a genesis
+// names its own authbase by construction. A publication is a transaction carrying the BCMR
+// output, which catches identities received from elsewhere and first updated here.
 
-import type { ChaingraphSpentOutput } from "src/queryChainGraph";
-import { byteaToHex, BCMR_OUTPUT_PREFIX } from "src/queryChainGraph";
+import { binToHex, decodeTransaction, hexToBin } from "@bitauth/libauth";
+import type { TransactionHistoryItem } from "mainnet-js";
+import { BCMR_OUTPUT_PREFIX } from "src/queryChainGraph";
+import { opReturnHex } from "src/utils/history/txDirection";
 
 export type IdentityMarker = 'genesis' | 'publication';
 
@@ -27,46 +28,67 @@ export interface DetectedIdentity {
 
 export interface DetectedIdentities {
   identities: DetectedIdentity[];
-  // The transactions in the walk that carried a publication. The history reads this to tell a
-  // metadata update from the wallet's other identity operations: a history item has addresses
-  // and values, so the OP_RETURN that says so is not visible in it.
+  // The transactions in the history that carried a publication. The history view reads this to
+  // tell a metadata update from the wallet's other identity operations: a history item has
+  // addresses and values, so the OP_RETURN that says so is not visible in it.
   publicationTxids: string[];
 }
 
-export function detectIdentities(spentOutputs: ChaingraphSpentOutput[]): DetectedIdentities {
+export type RawTransactionsFetcher = (hashes: string[]) => Promise<Map<string, string>>;
+
+// A history item carries no input outpoints, so a genesis is confirmed from the raw transaction,
+// which the history load left in the electrum provider's cache
+function spendsGenesisInput(rawHex: string, category: string) {
+  const transaction = decodeTransaction(hexToBin(rawHex));
+  if (typeof transaction === "string") return false;
+  return transaction.inputs.some(
+    input => input.outpointIndex === 0 && binToHex(input.outpointTransactionHash) === category
+  );
+}
+
+// The identity output of any authchain transaction is its output 0, and a token riding on it
+// names the identity; a BCH-only one is named later from the registry it published
+function publicationOf(transaction: TransactionHistoryItem): DetectedIdentity {
+  const category = transaction.outputs[0]?.token?.category;
+  return {
+    authheadTxid: transaction.hash,
+    ...(category ? { category } : {}),
+    marker: 'publication',
+  };
+}
+
+export async function detectIdentities(
+  history: TransactionHistoryItem[],
+  fetchRawTransactions: RawTransactionsFetcher,
+): Promise<DetectedIdentities> {
+  const historyTxids = history.map(transaction => transaction.hash);
   const detected = new Map<string, DetectedIdentity>();
   const publicationTxids: string[] = [];
-  for (const spentOutput of spentOutputs) {
-    const spentTxid = byteaToHex(spentOutput.transaction_hash);
-    // only a vout-0 outpoint can be a genesis input, which is what makes the marker cheap
-    const couldBeGenesisInput = spentOutput.output_index === "0";
-    for (const spender of spentOutput.spent_by) {
-      const authheadTxid = byteaToHex(spender.transaction.hash);
-      const outputs = spender.transaction.outputs;
-      const publishes = outputs.some(
-        output => byteaToHex(output.locking_bytecode).startsWith(BCMR_OUTPUT_PREFIX)
-      );
-      if (publishes && !publicationTxids.includes(authheadTxid)) publicationTxids.push(authheadTxid);
+  const genesisCandidates: { transaction: TransactionHistoryItem, category: string }[] = [];
+  for (const transaction of history) {
+    const publishes = transaction.outputs.some(output => opReturnHex(output)?.startsWith(BCMR_OUTPUT_PREFIX));
+    if (publishes) publicationTxids.push(transaction.hash);
 
-      // a token whose category is the outpoint this transaction spent is a token it created
-      const genesised = couldBeGenesisInput
-        && outputs.some(output => output.token_category && byteaToHex(output.token_category) === spentTxid);
-      if (genesised) {
-        detected.set(authheadTxid, { authheadTxid, category: spentTxid, marker: 'genesis' });
+    const createdCategory = transaction.outputs
+      .map(output => output.token?.category)
+      .find(category => category !== undefined && historyTxids.includes(category));
+    if (createdCategory) {
+      genesisCandidates.push({ transaction, category: createdCategory });
+      continue;
+    }
+    if (publishes) detected.set(transaction.hash, publicationOf(transaction));
+  }
+
+  if (genesisCandidates.length) {
+    const rawTransactions = await fetchRawTransactions(genesisCandidates.map(candidate => candidate.transaction.hash));
+    for (const { transaction, category } of genesisCandidates) {
+      const rawHex = rawTransactions.get(transaction.hash);
+      if (rawHex && spendsGenesisInput(rawHex, category)) {
+        detected.set(transaction.hash, { authheadTxid: transaction.hash, category, marker: 'genesis' });
         continue;
       }
-      if (!publishes || detected.has(authheadTxid)) continue;
-      // the identity output of any authchain transaction is its output 0, and a token riding on
-      // it names the identity; a BCH-only one is named later from the registry it published
-      const identityOutput = outputs.find(output => output.output_index === "0");
-      const category = identityOutput?.token_category
-        ? byteaToHex(identityOutput.token_category)
-        : undefined;
-      detected.set(authheadTxid, {
-        authheadTxid,
-        ...(category ? { category } : {}),
-        marker: 'publication',
-      });
+      // a token sent onward is not a token created, but a publication on the way still counts
+      if (publicationTxids.includes(transaction.hash)) detected.set(transaction.hash, publicationOf(transaction));
     }
   }
   return { identities: [...detected.values()], publicationTxids };

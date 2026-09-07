@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { BaseWallet, FeePaidByEnum, SendRequest } from 'mainnet-js'
+import { BaseWallet, FeePaidByEnum, SendRequest, getHistory } from 'mainnet-js'
 import type { Utxo } from 'mainnet-js'
 // not on the package's export surface, so reached by path
 import { getSuitableUtxos } from '../node_modules/mainnet-js/dist/module/transaction/Wif.js'
+import { OP_RETURN_ADDRESS_PREFIX } from '../src/utils/history/txDirection'
 
 // The wallet keeps frozen and reserved coins out of a spend by narrowing mainnet-js's pool with
 // the utxoIds option, so every method that selects inputs has to honor it. tokenMint and tokenBurn
@@ -63,5 +64,13 @@ describe('mainnet-js never funds a plain BCH send from a token UTXO', () => {
     const selected = await getSuitableUtxos([tokenCoin, bch], undefined, 0, FeePaidByEnum.change, [request])
 
     expect(selected).toEqual([bch])
+  })
+})
+
+// The TapSwap, hodl and identity readers find their announcements in the address mainnet-js
+// gives an OP_RETURN output on a history item, so a rewording upstream would silently find none
+describe('mainnet-js still names an OP_RETURN history output the way the readers expect', () => {
+  it(`getHistory builds the address as "${OP_RETURN_ADDRESS_PREFIX}<hex>"`, () => {
+    expect(getHistory.toString()).toContain('`' + OP_RETURN_ADDRESS_PREFIX + '${')
   })
 })
