@@ -360,10 +360,11 @@
     localStorage.setItem("showCauldronSwap", selectedShowSwap.value? "true" : "false");
     settingsStore.showCauldronSwap = selectedShowSwap.value;
   }
-  // the identities page runs the lookups on its next visit, which is where their result shows
+  // turning it on starts the lookups, whose result the identities page shows
   function toggleFollowTokenIdentities(){
     localStorage.setItem("followTokenIdentities", selectedFollowTokenIdentities.value ? "true" : "false");
     settingsStore.followTokenIdentities = selectedFollowTokenIdentities.value;
+    if (selectedFollowTokenIdentities.value) void identitiesStore.startFollowingTokenIdentities();
   }
   function toggleAllowDappIdentitySpends(){
     localStorage.setItem("allowDappIdentitySpends", selectedAllowDappIdentitySpends.value ? "true" : "false");

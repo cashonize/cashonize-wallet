@@ -399,6 +399,18 @@ export const useIdentitiesStore = defineStore('identities', () => {
     });
   }
 
+  // The setting turned on: the lookups start now rather than on the page's next visit, and the
+  // page says they are running until they are done rather than showing the keys-only answer
+  async function startFollowingTokenIdentities() {
+    tokenIdentities.value = undefined;
+    try {
+      await followTokenIdentities('all');
+    } catch (error) {
+      console.error("Failed to look up the identities of the held tokens:", error);
+      tokenIdentities.value ??= [];
+    }
+  }
+
   // What went wrong in a pass the wallet ran on its own at open, shown on the page where the
   // result would be rather than toasted on every open; cleared by the next pass that runs
   const openCheckError = ref<string | undefined>(undefined);
@@ -577,6 +589,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     loadForWallet,
     refreshIdentities,
     followTokenIdentities,
+    startFollowingTokenIdentities,
     openCheckError,
     runChecksOnOpen,
     fetchMetadataFor,
