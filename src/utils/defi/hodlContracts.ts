@@ -5,8 +5,8 @@
 // output 0 carrying the contract address and the locktime, but not the owner: ownership is
 // established by rebuilding the contract from the wallet's own pkhs and the announced locktime
 // and matching the announced address. The owner funds the contract from their own address, so
-// the announcements are found on the transactions that spent the wallet's outputs, in the same
-// Chaingraph walk the TapSwap lookup uses (its announcements sit at output 1, these at 0).
+// the funding transaction is in the wallet's own history, and the announcements are read off
+// that the way the TapSwap lookup reads its own (those sit at output 1, these at 0).
 // Contract: https://github.com/mainnet-pat/hodl_ec_plugin
 
 import {
@@ -21,8 +21,8 @@ import {
   decodeAuthenticationInstructions,
   authenticationInstructionsAreMalformed,
 } from "@bitauth/libauth";
-import type { ElectrumNetworkProvider } from "mainnet-js";
-import { byteaToHex, type ChaingraphSpentOutput } from "src/queryChainGraph";
+import type { ElectrumNetworkProvider, TransactionHistoryItem } from "mainnet-js";
+import { opReturnHex } from "src/utils/history/txDirection";
 
 // OP_RETURN + the "hodl" Lokad id
 const HODL_ANNOUNCEMENT_PREFIX = "6a04686f646c";
@@ -101,30 +101,23 @@ export function parseHodlAnnouncement(opReturnHex: string) {
   return { scriptHash, locktime };
 }
 
-// Pick the wallet's hodl contracts out of the transactions that spent its outputs
-export function hodlContractsFromSpentOutputs(spentOutputs: ChaingraphSpentOutput[], ownerPkhs: string[]) {
-  const seenTxids: string[] = [];
+// Pick the wallet's hodl contracts out of its transaction history
+export function hodlContractsFromHistory(history: TransactionHistoryItem[], ownerPkhs: string[]) {
   const candidates: { scriptHash: string, locktime: number }[] = [];
-  for (const spentOutput of spentOutputs) {
-    for (const spend of spentOutput.spent_by) {
-      const txid = byteaToHex(spend.transaction.hash);
-      if (seenTxids.includes(txid)) continue;
-      seenTxids.push(txid);
-
-      const announcementOutput = spend.transaction.outputs.find((output) => output.output_index === "0");
-      if (!announcementOutput) continue;
-      const announcement = parseHodlAnnouncement(byteaToHex(announcementOutput.locking_bytecode));
-      if (!announcement) continue;
-      // the same contract can be announced by more than one transaction
-      if (candidates.some((candidate) => candidate.scriptHash === announcement.scriptHash)) continue;
-      // The announcement does not name the owner, and funding a contract does not imply owning
-      // it: the wallet owns it only when one of its own pkhs rebuilds the announced script hash.
-      const ownedByWallet = ownerPkhs.some(
-        (pkh) => binToHex(hash160(hodlRedeemScript(announcement.locktime, pkh))) === announcement.scriptHash
-      );
-      if (!ownedByWallet) continue;
-      candidates.push(announcement);
-    }
+  for (const transaction of history) {
+    const announcementHex = opReturnHex(transaction.outputs[0]);
+    if (!announcementHex) continue;
+    const announcement = parseHodlAnnouncement(announcementHex);
+    if (!announcement) continue;
+    // the same contract can be announced by more than one transaction
+    if (candidates.some((candidate) => candidate.scriptHash === announcement.scriptHash)) continue;
+    // The announcement does not name the owner, and funding a contract does not imply owning
+    // it: the wallet owns it only when one of its own pkhs rebuilds the announced script hash.
+    const ownedByWallet = ownerPkhs.some(
+      (pkh) => binToHex(hash160(hodlRedeemScript(announcement.locktime, pkh))) === announcement.scriptHash
+    );
+    if (!ownedByWallet) continue;
+    candidates.push(announcement);
   }
   return candidates;
 }

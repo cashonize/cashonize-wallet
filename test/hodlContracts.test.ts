@@ -1,5 +1,6 @@
-import { parseHodlAnnouncement, hodlContractsFromSpentOutputs } from "../src/utils/defi/hodlContracts";
-import type { ChaingraphSpentOutput } from "../src/queryChainGraph";
+import { describe, expect, it } from "vitest";
+import { parseHodlAnnouncement, hodlContractsFromHistory } from "../src/utils/defi/hodlContracts";
+import { historyItem, opReturnOutput, p2pkhOutput } from "./mocks/history.mocks";
 
 // Real mainnet announcements: a plugin-era one with a legacy base58 address and version suffix,
 // and a newer one with a prefixed cashaddr and no version. The second contract's owner is the
@@ -38,51 +39,41 @@ describe('parseHodlAnnouncement', () => {
   })
 })
 
-// A spent wallet output whose spending transaction carries the given announcement at output 0
-function spentOutputFixture(announcementHex: string, txByte: string): ChaingraphSpentOutput {
-  return {
-    transaction_hash: "\\x" + "00".repeat(32),
-    output_index: "1",
-    spent_by: [{
-      transaction: {
-        hash: "\\x" + txByte.repeat(32),
-        outputs: [{
-          output_index: "0",
-          locking_bytecode: "\\x" + announcementHex,
-          token_category: null,
-          nonfungible_token_commitment: null,
-          fungible_token_amount: null,
-          spent_by: []
-        }]
-      }
-    }]
-  };
+// A funding transaction of the wallet's carrying the given announcement at output 0
+function fundingItem(announcementHex: string, txByte: string) {
+  return historyItem(txByte.repeat(32), [opReturnOutput(announcementHex), p2pkhOutput()]);
 }
 
-describe('hodlContractsFromSpentOutputs', () => {
+describe('hodlContractsFromHistory', () => {
   it('should find a contract whose announced address a wallet pkh rebuilds', () => {
-    const candidates = hodlContractsFromSpentOutputs(
-      [spentOutputFixture(cashaddrAnnouncement, "ab")], [cashaddrOwnerPkh]
+    const candidates = hodlContractsFromHistory(
+      [fundingItem(cashaddrAnnouncement, "ab")], [cashaddrOwnerPkh]
     );
     expect(candidates).toEqual([{ scriptHash: cashaddrScriptHash, locktime: 886662 }]);
   })
   it('should also rebuild legacy-announced contracts', () => {
-    const candidates = hodlContractsFromSpentOutputs(
-      [spentOutputFixture(legacyAnnouncement, "ab")], [legacyOwnerPkh]
+    const candidates = hodlContractsFromHistory(
+      [fundingItem(legacyAnnouncement, "ab")], [legacyOwnerPkh]
     );
     expect(candidates).toEqual([{ scriptHash: legacyScriptHash, locktime: 715557 }]);
   })
   it('should skip a contract the wallet only funded but does not own', () => {
-    const candidates = hodlContractsFromSpentOutputs(
-      [spentOutputFixture(cashaddrAnnouncement, "ab")], [legacyOwnerPkh]
+    const candidates = hodlContractsFromHistory(
+      [fundingItem(cashaddrAnnouncement, "ab")], [legacyOwnerPkh]
     );
     expect(candidates).toEqual([]);
   })
   it('should report a contract announced by several transactions once', () => {
-    const candidates = hodlContractsFromSpentOutputs(
-      [spentOutputFixture(cashaddrAnnouncement, "ab"), spentOutputFixture(cashaddrAnnouncement, "cd")],
+    const candidates = hodlContractsFromHistory(
+      [fundingItem(cashaddrAnnouncement, "ab"), fundingItem(cashaddrAnnouncement, "cd")],
       [cashaddrOwnerPkh]
     );
     expect(candidates.length).toBe(1);
+  })
+  it('should ignore an announcement anywhere but output 0', () => {
+    const candidates = hodlContractsFromHistory(
+      [historyItem("ab".repeat(32), [p2pkhOutput(), opReturnOutput(cashaddrAnnouncement)])], [cashaddrOwnerPkh]
+    );
+    expect(candidates).toEqual([]);
   })
 })

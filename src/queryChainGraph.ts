@@ -1,4 +1,3 @@
-import { hexToBin, binToHex, encodeLockingBytecodeP2pkh } from "@bitauth/libauth";
 import type { Utxo } from "mainnet-js";
 import { print } from "@0no-co/graphql.web";
 import { graphql, type ResultOf, type TadaDocumentNode } from "src/chainGraphSchema";
@@ -323,67 +322,4 @@ function readAuthHead(
     genesisSupply,
     ...(keyCommitment !== undefined ? { keyCommitment } : {}),
   };
-}
-
-const spentOutputsQuery = graphql(`query WalletSpentOutputs(
-    $lockingBytecodes: _text!
-    $limit: Int!
-    $offset: Int!
-    $bcmrFrom: bytea!
-    $bcmrTo: bytea!
-  ) {
-    search_output(
-      args: { locking_bytecode_hex: $lockingBytecodes }
-      where: { spent_by: {} }
-      limit: $limit
-      offset: $offset
-      order_by: [{ transaction_hash: asc }, { output_index: asc }]
-    ) {
-      transaction_hash
-      output_index
-      spent_by {
-        transaction {
-          hash
-          outputs(where: { _or: [
-            { output_index: { _in: ["0", "1"] } },
-            { locking_bytecode: { _gte: $bcmrFrom, _lt: $bcmrTo } }
-          ] }) {
-            output_index
-            locking_bytecode
-            token_category
-            nonfungible_token_commitment
-            fungible_token_amount
-            spent_by { input_index }
-          }
-        }
-      }
-    }
-  }`);
-
-// One spent output of the wallet's, with the transaction that spent it. A genesis marker is read
-// against it: a category equal to the txid of a spent vout-0 outpoint is a token these keys made.
-export type ChaingraphSpentOutput = ResultOf<typeof spentOutputsQuery>['search_output'][number];
-
-// The spent outputs at the given pkhs' addresses, with the transactions that spent them. One walk
-// feeds three readings: TapSwap and hodl announcements sit at outputs 1 and 0, and the metadata
-// publications and token genesises these keys made are found by the publication prefix.
-export async function querySpentOutputs(ownerPkhs: string[], chaingraphUrl: string) {
-  if (!ownerPkhs.length) return [];
-  // search_output takes its locking bytecodes as a postgres text-array literal
-  const lockingBytecodesHex = ownerPkhs.map((pkh) => binToHex(encodeLockingBytecodeP2pkh(hexToBin(pkh))));
-  const lockingBytecodes = `{${lockingBytecodesHex.join(",")}}`;
-  const spentOutputs: ChaingraphSpentOutput[] = [];
-  for (let offset = 0; ; offset += CHAINGRAPH_PAGE_SIZE) {
-    const response = await queryChainGraph(spentOutputsQuery, chaingraphUrl, {
-      lockingBytecodes,
-      limit: CHAINGRAPH_PAGE_SIZE,
-      offset,
-      bcmrFrom: toBytea(bcmrPrefixRange.from),
-      bcmrTo: toBytea(bcmrPrefixRange.to),
-    });
-    const page = response.data.search_output;
-    spentOutputs.push(...page);
-    if (page.length < CHAINGRAPH_PAGE_SIZE) break;
-  }
-  return spentOutputs;
 }

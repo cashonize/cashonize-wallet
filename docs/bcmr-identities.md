@@ -80,9 +80,9 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 - **Made here.** The create page lists a genesis and reserves its output 0 before any
   indexer has seen it; the identities page's Add new, behind a user option, does the same
   for a picked UTXO.
-- **Found in the wallet's own history.** The spent-outputs walk the portfolio already runs
-  is read a second time at wallet open for two markers: a genesis these keys made, and a
-  publication these keys made on a token's chain. A publication on a chain with no token
+- **Found in the wallet's own history.** The history the wallet loads in full at open is
+  read for two markers: a genesis these keys made, and a publication these keys made on a
+  token's chain. A publication on a chain with no token
   names nothing and lists nothing: a non-token identity is listed by the user adding its
   authbase, on each device, which the Add new confirm says. See Future items.
 - **Followed as a held token's identity.** The identity of every token the wallet holds is
@@ -147,7 +147,7 @@ identities were held elsewhere last time, and that is the one thing it keeps.
 - `src/utils/tools/registryFile.ts`: fetching, hashing and reading the hosted registry file.
 - `src/utils/tools/identityLists.ts`: the persisted lists.
 - `src/queryChainGraph.ts`: the authhead and history queries.
-- `src/utils/tools/identityDetection.ts`: the two markers read off the spent-outputs walk.
+- `src/utils/tools/identityDetection.ts`: the two markers read off the wallet's history.
 - `src/utils/tools/authGuard.ts`: the covenant's script, and what a key is.
 - `src/utils/tools/tokenCreation.ts`: the genesis amounts and the coins a genesis can spend.
 - `src/utils/wallet/reservedUtxos.ts`, `src/utils/dapp/reservedInputs.ts`: what a
@@ -204,8 +204,8 @@ What the standard enables that the wallet does not do yet:
 - **The current snapshot.** The spec's current snapshot is the latest one not after now; the
   wallet's own previews and diffs take the last sorted timestamp, so a registry with a
   future-dated snapshot, the pre-announced migration, would show it early.
-- **Naming a non-token identity from its own publication.** The walk already sees a
-  publication these keys made on a chain with no token, and the registry it points at
+- **Naming a non-token identity from its own publication.** The history reading already
+  sees a publication these keys made on a chain with no token, and the registry it points at
   names its authbases: resolving each forward would find the one whose chain ends at
   this coin, and list the identity on every device without the user. Holding the coin
   back needs only the marker, since the publication already says its output 0 is an

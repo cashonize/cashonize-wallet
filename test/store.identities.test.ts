@@ -11,6 +11,13 @@ import { useStore } from '../src/stores/store'
 import { useIdentitiesStore } from '../src/stores/identitiesStore'
 import { authGuardLockingBytecodes } from '../src/utils/tools/authGuard'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
+import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput, rawTransactionSpending, rawTransactionsFetcher } from './mocks/history.mocks'
+
+const categoryA = '0123456789abcdef'.repeat(4)
+const categoryB = 'fedcba9876543210'.repeat(4)
+const authheadA = '00112233445566778899aabbccddeeff'.repeat(2)
+const authheadB = 'ffeeddccbbaa99887766554433221100'.repeat(2)
+const movedAuthheadA = 'aabb'.repeat(16)
 
 function createMockWallet() {
   return {
@@ -20,12 +27,6 @@ function createMockWallet() {
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
   }
 }
-
-const categoryA = '0123456789abcdef'.repeat(4)
-const categoryB = 'fedcba9876543210'.repeat(4)
-const authheadA = '00112233445566778899aabbccddeeff'.repeat(2)
-const authheadB = 'ffeeddccbbaa99887766554433221100'.repeat(2)
-const movedAuthheadA = 'aabb'.repeat(16)
 
 const utxo = (txid: string, vout: number, token?: Utxo['token']): Utxo =>
   ({ txid, vout, satoshis: 1000n, address: 'bitcoincash:qtest', ...(token ? { token } : {}) })
@@ -75,9 +76,23 @@ function startStore(walletUtxos: Utxo[]) {
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   store.setWallet(createMockWallet() as never)
+  // the raw form of the genesis transactions below, spending the outpoint their category names
+  Object.assign(store.wallet.provider, {
+    getRawTransactions: rawTransactionsFetcher({
+      [authheadA]: rawTransactionSpending([{ txid: categoryA, vout: 0 }]),
+      [authheadB]: rawTransactionSpending([{ txid: categoryB, vout: 0 }]),
+    }),
+  })
   store.walletUtxos = walletUtxos
   return { store, identitiesStore }
 }
+
+// A genesis these keys made as the history carries it: the transaction whose vout-0 outpoint
+// became the category, and the genesis spending it, carrying the token
+const genesisHistory = (category: string, authhead: string) => [
+  historyItem(category, [p2pkhOutput()]),
+  historyItem(authhead, [tokenOutput(category, { amount: 1000n })]),
+]
 
 // An AuthKey is an NFT with nothing on it: no name, no value, no capability. What makes it a key
 // is the covenant its category derives, which the identity output's locking bytecode is compared
@@ -103,9 +118,9 @@ const guardGenesis = (category: string, keyCommitment: string) => [
     nonfungible_token_capability: 'none', nonfungible_token_commitment: `\\x${keyCommitment}` },
 ]
 
-// The walk is the most expensive query the wallet sends, and two features read it, so the store
-// runs it once per state of the wallet and hands both the same result
-describe('the spent-outputs walk', () => {
+// Three readers want the wallet's full history, and a first open is the one time that costs a
+// fetch per transaction, so the store loads it once and hands every reader the same result
+describe('the full history for its readers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock.clear()
@@ -113,66 +128,52 @@ describe('the spent-outputs walk', () => {
     localStorageMock.setItem('network', 'mainnet')
   })
 
-  function stubWalk(rows: unknown[] = []) {
-    const walk = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { search_output: rows } }) }))
-    vi.stubGlobal('fetch', walk)
-    return walk
-  }
-  // the walk is rooted at the wallet's addresses, so the mock has to hold one that decodes
-  function startWalkingStore(walletUtxos: Utxo[]) {
+  const item = historyItem(authheadA, [p2pkhOutput()])
+  function startHistoryStore(getHistory: ReturnType<typeof vi.fn>) {
     const store = useStore()
-    const walletWithAddress = {
-      ...createMockWallet(),
-      getDepositAddress: () => 'bitcoincash:qqg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zye3kwllue',
-    }
-    store.setWallet(walletWithAddress as never)
-    store.walletUtxos = walletUtxos
+    store.setWallet({ ...createMockWallet(), getHistory } as never)
     return store
   }
 
-  it('shares one walk between callers while the coins stay the same', async () => {
-    const walk = stubWalk()
-    const store = startWalkingStore([utxo(authheadA, 0)])
+  it('hands out the history on hand when it is complete', async () => {
+    const getHistory = vi.fn().mockResolvedValue([])
+    const store = startHistoryStore(getHistory)
+    store.walletHistory = [item]
+    store.isHistoryPartial = false
 
-    const [first, second] = await Promise.all([store.walkSpentOutputs(), store.walkSpentOutputs()])
-    await store.walkSpentOutputs()
-
-    expect(first).toBe(second)
-    expect(walk).toHaveBeenCalledTimes(1)
+    expect(await store.fullWalletHistory()).toEqual([item])
+    expect(getHistory).not.toHaveBeenCalled()
   })
 
-  it('walks again once a coin has moved', async () => {
-    const walk = stubWalk()
-    const store = startWalkingStore([utxo(authheadA, 0)])
-    await store.walkSpentOutputs()
+  it('loads the full history once for readers asking together', async () => {
+    const getHistory = vi.fn().mockResolvedValue([item])
+    const store = startHistoryStore(getHistory)
 
-    store.walletUtxos = [utxo(authheadB, 0)]
-    await store.walkSpentOutputs()
+    const [first, second] = await Promise.all([store.fullWalletHistory(), store.fullWalletHistory()])
 
-    expect(walk).toHaveBeenCalledTimes(2)
+    expect(first).toEqual([item])
+    expect(second).toEqual([item])
+    expect(getHistory).toHaveBeenCalledTimes(1)
+    expect(getHistory).toHaveBeenCalledWith({ count: -1 })
   })
 
-  // a reader with rows on screen is back for what the indexer caught up on; one still in flight
-  // is fresh enough to share
-  it('walks again when asked for a fresh one, unless one is still running', async () => {
-    const walk = stubWalk()
-    const store = startWalkingStore([utxo(authheadA, 0)])
-    await Promise.all([store.walkSpentOutputs(), store.walkSpentOutputs(true)])
-    expect(walk).toHaveBeenCalledTimes(1)
+  it('loads the rest when only the capped history is on hand', async () => {
+    const getHistory = vi.fn().mockResolvedValue([item])
+    const store = startHistoryStore(getHistory)
+    store.walletHistory = [item]
+    store.isHistoryPartial = true
 
-    await store.walkSpentOutputs(true)
-    expect(walk).toHaveBeenCalledTimes(2)
+    await store.fullWalletHistory()
+
+    expect(getHistory).toHaveBeenCalledTimes(1)
+    expect(store.isHistoryPartial).toBe(false)
   })
 
-  it('does not keep a walk that failed', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))))
-    const store = startWalkingStore([utxo(authheadA, 0)])
-    await expect(store.walkSpentOutputs()).rejects.toThrow()
+  it('fails a reader when the history cannot be loaded', async () => {
+    const getHistory = vi.fn().mockRejectedValue(new Error('electrum down'))
+    const store = startHistoryStore(getHistory)
 
-    const walk = stubWalk()
-    await store.walkSpentOutputs()
-
-    expect(walk).toHaveBeenCalledTimes(1)
+    await expect(store.fullWalletHistory()).rejects.toThrow()
   })
 })
 
@@ -189,7 +190,7 @@ describe('the identities notification', () => {
 
   // a Studio user's key is a held token like any other, so following the tokens' identities finds
   // what it guards and lists it without being asked; that is worth telling them
-  it('reports an identity found through a key the way the walk reports one', async () => {
+  it('reports an identity found through a key the way detection reports one', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '0') })
     const { store, identitiesStore } = startStore([authKeyUtxo(categoryA)])
     store.tokenList = [{ category: categoryA, amount: 0n }]
@@ -496,15 +497,15 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identities?.map(identity => identity.category)).toEqual([categoryA, categoryB])
   })
 
-  // the wallet's history is walked at open; the server refusing must land on the identities
+  // the wallet's history is read at open; it failing to load must land on the identities
   // page, not flag a wallet that did load
   it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {
     const { store, identitiesStore } = startStore([utxo('cd'.repeat(32), 0)])
-    vi.spyOn(store, 'walkSpentOutputs').mockRejectedValue(new Error('chaingraph refused'))
+    vi.spyOn(store, 'fullWalletHistory').mockRejectedValue(new Error('history refused'))
 
     await identitiesStore.runChecksOnOpen()
 
-    expect(identitiesStore.openCheckError).toBe('chaingraph refused')
+    expect(identitiesStore.openCheckError).toBe('history refused')
     expect(identitiesStore.identityCategories).toEqual([])
     expect(store.walletInitFailed).toBe(false)
   })
@@ -702,14 +703,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
-    const walk = [{
-      transaction_hash: `\\x${categoryA}`,
-      output_index: '0',
-      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
-        { output_index: '0', locking_bytecode: '\\x76a914', token_category: `\\x${categoryA}`,
-          nonfungible_token_commitment: null, fungible_token_amount: '1000', spent_by: [] },
-      ] } }],
-    }]
+    const walk = genesisHistory(categoryA, authheadA)
 
     await identitiesStore.detectWalletIdentities(walk)
 
@@ -725,14 +719,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     const authUtxoB = utxo(authheadB, 0)
     store.walletUtxos = [authUtxo, authUtxoB]
-    await identitiesStore.detectWalletIdentities([{
-      transaction_hash: `\\x${categoryB}`,
-      output_index: '0',
-      spent_by: [{ transaction: { hash: `\\x${authheadB}`, outputs: [
-        { output_index: '0', locking_bytecode: '\\x76a914', token_category: `\\x${categoryB}`,
-          nonfungible_token_commitment: null, fungible_token_amount: '1000', spent_by: [] },
-      ] } }],
-    }])
+    await identitiesStore.detectWalletIdentities(genesisHistory(categoryB, authheadB))
 
     expect(identitiesStore.unseenIdentities).toEqual([categoryA, categoryB])
     expect(identitiesStore.unseenIdentities.length).toBe(2)
@@ -789,14 +776,7 @@ describe('auth reservations follow the authchain', () => {
     const { identitiesStore } = startStore([authUtxo])
     await identitiesStore.refreshIdentities()
     await identitiesStore.removeIdentity(categoryA)
-    const walk = [{
-      transaction_hash: `\\x${categoryA}`,
-      output_index: '0',
-      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
-        { output_index: '0', locking_bytecode: '\\x76a914', token_category: `\\x${categoryA}`,
-          nonfungible_token_commitment: null, fungible_token_amount: '1000', spent_by: [] },
-      ] } }],
-    }]
+    const walk = genesisHistory(categoryA, authheadA)
 
     await identitiesStore.detectWalletIdentities(walk)
 
@@ -810,16 +790,10 @@ describe('auth reservations follow the authchain', () => {
   it('lists nothing for a publication on a chain it cannot name', async () => {
     const authUtxo = utxo(authheadA, 0)
     const { store, identitiesStore } = startStore([authUtxo])
-    const walk = [{
-      transaction_hash: `\\x${categoryA}`,
-      output_index: '1',
-      spent_by: [{ transaction: { hash: `\\x${authheadA}`, outputs: [
-        { output_index: '0', locking_bytecode: '\\x76a914', token_category: null,
-          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-        { output_index: '1', locking_bytecode: '\\x6a0442434d52201111111111111111111111111111111111111111111111111111111111111111', token_category: null,
-          nonfungible_token_commitment: null, fungible_token_amount: null, spent_by: [] },
-      ] } }],
-    }]
+    const walk = [historyItem(authheadA, [
+      p2pkhOutput(),
+      opReturnOutput('6a0442434d52201111111111111111111111111111111111111111111111111111111111111111'),
+    ])]
 
     await identitiesStore.detectWalletIdentities(walk)
 

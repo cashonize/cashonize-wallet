@@ -4,11 +4,10 @@
 // output 1 of the listing transaction, with the contract UTXO at output 0. A listing is active
 // while its contract UTXO is unspent; buying or cancelling spends it.
 //
-// The announcement names the maker only at a variable offset, out of reach of Chaingraph's
-// prefix search, so listings cannot be looked up by maker directly. Instead, since the maker
-// funds the listing from their own address, the wallet's listings are found by walking the
-// transactions that spent the wallet's outputs, in one Chaingraph query (which does share the
-// wallet's address list with the configured Chaingraph server).
+// The announcement names the maker only at a variable offset, so listings cannot be looked up
+// by maker on any indexer. Instead, since the maker funds the listing from their own address,
+// the listing transaction is in the wallet's own history, and the announcements are read off
+// that; whether a contract UTXO is still unspent is one electrum lookup per listing.
 //
 // The announcement format was verified against the deployed contract, revealed by settled
 // trades. The closest thing to a spec is the TapSwap developer's parsing example:
@@ -21,7 +20,8 @@ import {
   decodeAuthenticationInstructions,
   authenticationInstructionsAreMalformed,
 } from "@bitauth/libauth";
-import { byteaToHex, type ChaingraphSpentOutput } from "src/queryChainGraph";
+import type { ElectrumNetworkProvider, TransactionHistoryItem } from "mainnet-js";
+import { opReturnHex } from "src/utils/history/txDirection";
 
 // OP_RETURN, "MPSW", version 4, then the first 4 bytes of the sha256 of the contract's constant
 // bytecode, pinning the exact contract version the rest of the announcement describes
@@ -37,6 +37,8 @@ const ANNOUNCEMENT_CHUNKS = { count: 10, platformPkh: 3, price: 4, wantFields: [
 export interface TapswapListing {
   /** The listing transaction; the contract UTXO holding the asset is always its output 0 */
   txid: string;
+  /** The sale contract's address, where the asset sits while the listing is active */
+  contractAddress: string;
   category: string;
   /** NFT commitment, undefined when the listing holds only fungible tokens */
   commitment: string | undefined;
@@ -74,36 +76,33 @@ export function parseListingAnnouncement(opReturnHex: string) {
   };
 }
 
-// Pick the wallet's active listings out of the transactions that spent its outputs
-export function listingsFromSpentOutputs(spentOutputs: ChaingraphSpentOutput[], ownerPkhs: string[]) {
-  // a listing transaction spending several wallet outputs appears once per output
-  const seenTxids: string[] = [];
-  const listings: TapswapListing[] = [];
-  for (const spentOutput of spentOutputs) {
-    for (const spend of spentOutput.spent_by) {
-      const txid = byteaToHex(spend.transaction.hash);
-      if (seenTxids.includes(txid)) continue;
-      seenTxids.push(txid);
+// Pick the wallet's listings out of its transaction history, whether still active or not
+export function listingsFromHistory(history: TransactionHistoryItem[], ownerPkhs: string[]) {
+  const candidates: TapswapListing[] = [];
+  for (const transaction of history) {
+    const announcementHex = opReturnHex(transaction.outputs[1]);
+    const contractOutput = transaction.outputs[0];
+    if (!announcementHex || !contractOutput?.token) continue;
+    const offer = parseListingAnnouncement(announcementHex);
+    if (!offer) continue;
+    if (!ownerPkhs.includes(offer.makerPkh)) continue;
 
-      const announcement = spend.transaction.outputs.find((output) => output.output_index === "1");
-      const contractOutput = spend.transaction.outputs.find((output) => output.output_index === "0");
-      if (!announcement || !contractOutput) continue;
-      const offer = parseListingAnnouncement(byteaToHex(announcement.locking_bytecode));
-      if (!offer) continue;
-      if (!ownerPkhs.includes(offer.makerPkh)) continue;
-      if (contractOutput.spent_by.length > 0) continue;
-      if (contractOutput.token_category === null) continue;
-
-      const rawCommitment = contractOutput.nonfungible_token_commitment;
-      listings.push({
-        txid,
-        category: byteaToHex(contractOutput.token_category),
-        commitment: rawCommitment === null ? undefined : byteaToHex(rawCommitment),
-        tokenAmount: BigInt(contractOutput.fungible_token_amount ?? 0),
-        priceSats: offer.priceSats,
-      });
-    }
+    candidates.push({
+      txid: transaction.hash,
+      contractAddress: contractOutput.address,
+      category: contractOutput.token.category,
+      commitment: contractOutput.token.nft?.commitment,
+      tokenAmount: BigInt(contractOutput.token.amount),
+      priceSats: offer.priceSats,
+    });
   }
-  return listings;
+  return candidates;
 }
 
+// Keep the listings whose contract UTXO is still unspent, which the history cannot say
+export async function fetchActiveListings(provider: ElectrumNetworkProvider, candidates: TapswapListing[]) {
+  const contractUtxos = await Promise.all(candidates.map(candidate => provider.getUtxos(candidate.contractAddress)));
+  return candidates.filter((listing, index) =>
+    contractUtxos[index]!.some(utxo => utxo.txid === listing.txid && utxo.vout === 0)
+  );
+}

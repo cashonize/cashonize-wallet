@@ -16,7 +16,7 @@ export const mockMainnetWallet = {
   cashaddr: 'bitcoincash:qtest',
   tokenaddr: 'bitcoincash:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
-  // deliberately not a decodable address: the Chaingraph walk roots at the wallet's public key
+  // deliberately not a decodable address: the portfolio lookups root at the wallet's public key
   // hashes, and an address that decodes would make every wallet initialization in the tests fetch
   getDepositAddress: () => 'bitcoincash:qtest',
   getTokenDepositAddress: () => 'bitcoincash:ztest',

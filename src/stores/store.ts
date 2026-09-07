@@ -18,6 +18,7 @@ import {
   type TokenGenesisRequest,
   type TokenMintRequest,
   type TokenBurnRequest,
+  type TransactionHistoryItem,
   NetworkType
 } from "mainnet-js"
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
@@ -62,9 +63,8 @@ import {
   type CauldronPool
 } from "src/utils/defi/cauldronPools"
 import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
-import { listingsFromSpentOutputs, type TapswapListing } from "src/utils/defi/tapswapListings"
-import { hodlContractsFromSpentOutputs, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
-import { ChaingraphRequestError, querySpentOutputs, type ChaingraphSpentOutput } from "src/queryChainGraph"
+import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "src/utils/defi/tapswapListings"
+import { hodlContractsFromHistory, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -1027,20 +1027,24 @@ export const useStore = defineStore('store', () => {
   // Categories already queried for history metadata this session, so categories without
   // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
   let queriedHistoryCategories: string[] = [];
+  // Returns the history it fetched, applied or not: a load a newer request overtook is still a
+  // complete history of a moment ago, which is what a reader waiting on it needs
   async function updateWalletHistory({ count = -1 }: { count?: number } = {}) {
     const requestId = ++historyRequestId;
+    let history: TransactionHistoryItem[] | undefined;
     try {
       const initialization = currentInitialization;
-      const history = await wallet.value.getHistory({ count });
+      history = await wallet.value.getHistory({ count });
       if (initialization !== currentInitialization) return;
-      if (requestId !== historyRequestId) return; // newer request in-flight, discard stale result
+      if (requestId !== historyRequestId) return history; // newer request in-flight, discard stale result
       walletHistory.value = history;
       // Track whether this is a partial load (capped fetch that may have more)
       isHistoryPartial.value = count > 0 && history.length >= count;
       // Automatically schedule background full load when partial
       if (isHistoryPartial.value) {
-        // Schedule full history load when idle, fall back to setTimeout for unsupported environments
-        const loadFullHistoryCallback = () => void updateWalletHistory();
+        // Schedule full history load when idle, fall back to setTimeout for unsupported environments;
+        // a reader of the full history may have loaded it by then
+        const loadFullHistoryCallback = () => { if (isHistoryPartial.value) void loadFullHistory(); };
         'requestIdleCallback' in globalThis ? requestIdleCallback(loadFullHistoryCallback) : setTimeout(loadFullHistoryCallback, 1000);
       }
       // Fetch metadata for history tokens no longer in the wallet, so their names, icons
@@ -1068,6 +1072,28 @@ export const useStore = defineStore('store', () => {
         color: "red"
       })
     }
+    return history;
+  }
+
+  // One full load at a time, shared between the idle callback above and a reader that wants it
+  // sooner, so a first open fetches each transaction once
+  let fullHistoryLoad: Promise<TransactionHistoryItem[] | undefined> | undefined;
+  function loadFullHistory() {
+    if (!fullHistoryLoad) {
+      fullHistoryLoad = updateWalletHistory().finally(() => { fullHistoryLoad = undefined; });
+    }
+    return fullHistoryLoad;
+  }
+
+  // The wallet's full history for the readers of what it announced (TapSwap listings, hodl
+  // contracts, identities these keys made): the one on hand when complete, else the full load,
+  // started now rather than when the browser is idle
+  async function fullWalletHistory() {
+    if (walletHistory.value && !isHistoryPartial.value) return walletHistory.value;
+    const loaded = await loadFullHistory();
+    if (walletHistory.value && !isHistoryPartial.value) return walletHistory.value;
+    if (!loaded) throw new Error(t('store.errors.errorFetchingHistory'));
+    return loaded;
   }
 
   function updateTokenList() {
@@ -1224,31 +1250,10 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // The walk of the wallet's spent outputs, kept with the coins it was made for. In practice the
-  // portfolio's first visit reads the walk made at open for identity detection; sharing one
-  // still in flight only matters when that visit comes before the walk has settled. A reader
-  // that already shows the last answer asks for a fresh one: the wallet's own spend reaches
-  // electrum seconds before Chaingraph has indexed it.
-  let spentOutputsWalk: { key: string; promise: Promise<ChaingraphSpentOutput[]>; settled: boolean } | undefined;
-  function walkSpentOutputs(fresh = false) {
-    const coins = (walletUtxos.value ?? []).map(outpointOf).sort().join(',');
-    const key = `${currentInitialization}:${chaingraph.value}:${coins}`;
-    const kept = spentOutputsWalk;
-    if (kept?.key === key && !(fresh && kept.settled)) return kept.promise;
-    const promise = querySpentOutputs(walletPublicKeyHashes(), chaingraph.value);
-    const walk = { key, promise, settled: false };
-    spentOutputsWalk = walk;
-    promise.then(() => { walk.settled = true; }, () => {
-      if (spentOutputsWalk === walk) spentOutputsWalk = undefined;
-    });
-    return promise;
-  }
-
   // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the
   // wallet holds nothing that represents them, and both are announced by an OP_RETURN on a
-  // transaction the wallet funded, so one Chaingraph walk of the transactions that spent the
-  // wallet's outputs feeds both lookups. Only the portfolio view shows them, so it drives the
-  // fetch. Both protocols are mainnet only.
+  // transaction the wallet funded, so both are read off the wallet's own history. Only the
+  // portfolio view shows them, so it drives the fetch. Both protocols are mainnet only.
   async function fetchWalletAnnouncedAssets() {
     if (network.value !== 'mainnet') {
       tapswapListings.value = [];
@@ -1259,13 +1264,13 @@ export const useStore = defineStore('store', () => {
     try {
       const initialization = currentInitialization;
       const ownerPkhs = walletPublicKeyHashes();
-      // the first visit reads the walk made at open; a re-entry with rows on screen refreshes
-      const spentOutputs = await walkSpentOutputs(tapswapListings.value !== null);
+      const history = await fullWalletHistory();
       if (initialization !== currentInitialization) return;
-      const listings = listingsFromSpentOutputs(spentOutputs, ownerPkhs);
+      const listings = await fetchActiveListings(wallet.value.provider, listingsFromHistory(history, ownerPkhs));
+      if (initialization !== currentInitialization) return;
       tapswapListings.value = listings;
 
-      const hodlCandidates = hodlContractsFromSpentOutputs(spentOutputs, ownerPkhs);
+      const hodlCandidates = hodlContractsFromHistory(history, ownerPkhs);
       const contracts = await fetchHodlContractStates(wallet.value.provider, hodlCandidates);
       if (initialization !== currentInitialization) return;
       hodlContracts.value = contracts;
@@ -1289,9 +1294,7 @@ export const useStore = defineStore('store', () => {
       // shown inline in the portfolio view rather than toasted: this fetch re-runs on
       // every portfolio entry, so an unreachable server would toast on each visit
       console.error("Failed to look up TapSwap listings and hodl contracts:", error);
-      announcedAssetsError.value = error instanceof ChaingraphRequestError
-        ? error.message
-        : t('portfolio.announcedAssetsLoadingFailed');
+      announcedAssetsError.value = t('portfolio.announcedAssetsLoadingFailed');
       tapswapListings.value ??= [];
       hodlContracts.value ??= [];
     }
@@ -1703,7 +1706,7 @@ export const useStore = defineStore('store', () => {
     fetchWalletCauldronPools,
     fetchWalletBadgerLocks,
     fetchWalletAnnouncedAssets,
-    walkSpentOutputs,
+    fullWalletHistory,
     toggleFavorite,
     toggleHidden,
     tokenIconUrl,

@@ -26,7 +26,8 @@ import {
 import { checkPublicationUri, type PublicationUriStatus } from "src/utils/tools/registryFile"
 import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
-import { queryAuthchainLinks, type ChaingraphSpentOutput } from "src/queryChainGraph"
+import { queryAuthchainLinks } from "src/queryChainGraph"
+import type { TransactionHistoryItem } from "mainnet-js"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
 import { formatTokenAmountWithSymbol, truncateHash } from "src/utils/utils"
@@ -162,9 +163,10 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // Protection first, so it never waits on naming; the announcement last, so it has names to say
-  async function detectWalletIdentities(spentOutputs: ChaingraphSpentOutput[]) {
+  async function detectWalletIdentities(history: TransactionHistoryItem[]) {
     const started = mainStore.currentInitializationToken();
-    const detected = detectIdentities(spentOutputs);
+    const detected = await detectIdentities(history, hashes => mainStore.wallet.provider.getRawTransactions(hashes));
+    if (mainStore.walletSwitchedSince(started)) return;
     identityPublicationTxids.value = detected.publicationTxids;
     const unseenBefore = unseenIdentities.value;
     if (!listDetectedIdentities(detected.identities).length) return;
@@ -372,22 +374,23 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // result would be rather than toasted on every open; cleared by the next pass that runs
   const openCheckError = ref<string | undefined>(undefined);
 
-  // The passes the wallet runs on its own once a wallet is up: the walk of its history for the
-  // identities these keys made, and the followed token identities. Nothing runs on a network
-  // without a Chaingraph instance configured, which the page says.
+  // The passes the wallet runs on its own once a wallet is up: the reading of its history for
+  // the identities these keys made, and the followed token identities. Nothing runs on a network
+  // without a Chaingraph instance configured, which the page says: a found identity is listed
+  // against its resolve.
   // Outside the wallet's own failure path: a lookup failing here, an electrum server refusing a
   // guard address say, must not flag a wallet that did load, so it is reported where the
-  // identities are. The resolve of what the wallet follows comes first, since the walk lists
-  // against it.
+  // identities are. The resolve of what the wallet follows comes first, since the detection
+  // lists against it.
   async function runChecksOnOpen() {
     if (!mainStore.chaingraph) return;
     const started = mainStore.currentInitializationToken();
     openCheckError.value = undefined;
     try {
       await refreshIdentities();
-      const spentOutputs = await mainStore.walkSpentOutputs();
+      const history = await mainStore.fullWalletHistory();
       if (mainStore.walletSwitchedSince(started)) return;
-      await detectWalletIdentities(spentOutputs);
+      await detectWalletIdentities(history);
       await followTokenIdentities(settingsStore.followTokenIdentities ? 'open' : 'keys');
     } catch (error) {
       console.error("Failed to look up the wallet's identities:", error);
