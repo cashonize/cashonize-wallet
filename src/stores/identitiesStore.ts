@@ -186,11 +186,16 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // since the identity may have moved to another own address since. The hash proves the file and
   // the resolve proves the match, and only this wallet's own publications are fetched, so the
   // host is one the user published to. Each publication is tried once per session: a chain
-  // already listed is skipped, and one that could not be named waits for the next open.
+  // already listed is skipped, and one that could not be named waits for the next open. The
+  // resolve here is Chaingraph's alone, like the followed tokens': these are chains nobody asked
+  // for, so an outage is not walked around at open. A file naming several identities held here
+  // names one of them, see the docs' future items.
   const namedPerRegistryCap = 20;
   let publicationsTried: string[] = [];
   async function nameFromPublications(detected: DetectedIdentity[]): Promise<DetectedIdentity[]> {
     const heldAuthheads = (mainStore.walletUtxos ?? []).filter(utxo => utxo.vout === 0).map(utxo => utxo.txid);
+    // nothing to match against, so nothing to fetch
+    if (!heldAuthheads.length) return [];
     const listedChains = identities.value ?? [];
     const unnamed = detected.filter(identity =>
       !identity.category && identity.publicationOutputs?.length && !publicationsTried.includes(identity.authheadTxid)
@@ -207,7 +212,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
         .filter(authbase => !identityCategories.value.includes(authbase) && !dismissedIdentities.value.includes(authbase))
         .slice(0, namedPerRegistryCap);
       if (!authbases.length) continue;
-      const resolved = await resolveIdentities(authbases, authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories, false);
+      const resolved = await resolveIdentities(authbases, authchainBackends(false), mainStore.walletUtxos ?? [], extraKeyCategories, false);
       const match = resolved.find(candidate => candidate.authheadTxid !== undefined && heldAuthheads.includes(candidate.authheadTxid));
       if (match?.authheadTxid) named.push({ authheadTxid: match.authheadTxid, category: match.category, marker: 'publication' });
     }

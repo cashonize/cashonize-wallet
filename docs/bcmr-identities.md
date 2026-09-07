@@ -246,6 +246,13 @@ What the standard enables that the wallet does not do yet:
   resolve to an identity through its well-known registry, the domain as the trust root.
   [CHIP-PayPro](https://github.com/bitjson/chip-paypro) is the invoice layer that composes
   with it: BCMR says who, PayPro says what to pay.
+- **A registry naming several identities held here.** Naming from a publication's file
+  takes the first authbase whose chain ends at a held coin, one per file. A registry that
+  names an organization and its dapp, both held by this wallet with bare outputs, names one
+  of them and the other waits for the user's authbase; and the announcement reads the match
+  as the publication's own chain, which for a sibling named in the same file it is not.
+  Listing every held one the file names, and preferring the chain the publication sits on,
+  are small; nothing written by Studio or the generator names more than one today.
 - **The current snapshot.** The spec's current snapshot is the latest one not after now; the
   wallet's own previews and diffs take the last sorted timestamp, so a registry with a
   future-dated snapshot, the pre-announced migration, would show it early.

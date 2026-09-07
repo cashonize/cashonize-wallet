@@ -859,6 +859,19 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identityCategories).toEqual([categoryA])
   })
 
+  // with no coin at output 0 nothing can match, so hosting is not reached at all
+  it('fetches no registry when the wallet holds no coin at output 0', async () => {
+    const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    serveRegistry()
+    const { identitiesStore } = startStore([utxo(authheadA, 1)])
+
+    await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
+
+    const registryFetches = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(([url]) => String(url).includes('registry.example'))
+    expect(registryFetches).toHaveLength(0)
+  })
+
   // a registry can name many identities, each a forward resolve; only so many are asked per file
   it('resolves no more than twenty of the authbases a registry names', async () => {
     const others = Array.from({ length: 30 }, (_, index) => index.toString(16).padStart(64, '0'))
