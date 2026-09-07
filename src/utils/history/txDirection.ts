@@ -49,7 +49,7 @@ export function isDappInteraction(
 
 // A history item's OP_RETURN outputs have no address; mainnet-js puts "OP_RETURN: " and the
 // locking bytecode in hex there instead, which is where the protocol announcements are read
-const OP_RETURN_ADDRESS_PREFIX = "OP_RETURN: ";
+export const OP_RETURN_ADDRESS_PREFIX = "OP_RETURN: ";
 
 export function opReturnHex(output: InOutput | undefined) {
   if (!output?.address.startsWith(OP_RETURN_ADDRESS_PREFIX)) return undefined;
