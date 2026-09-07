@@ -551,22 +551,6 @@
         <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
       </div>
 
-      <div style="margin-top:15px">
-        {{ t('settings.userOptions.followTokenIdentities') }}
-        <InfoPopup style="margin-right: 6px;">
-          <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
-        </InfoPopup>
-        <q-toggle v-model="selectedFollowTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
-      </div>
-
-      <div style="margin-top:15px">
-        {{ t('settings.userOptions.allowDappIdentitySpends') }}
-        <InfoPopup style="margin-right: 6px;">
-          <div style="max-width: 300px;">{{ t('settings.userOptions.allowDappIdentitySpendsHint') }}</div>
-        </InfoPopup>
-        <q-toggle v-model="selectedAllowDappIdentitySpends" @update:model-value="toggleAllowDappIdentitySpends" dense />
-      </div>
-
       <div style="margin-top: 15px; margin-bottom: 15px;">
         {{ t('settings.userOptions.enableTokenBurn') }} <q-toggle v-model="selectedTokenBurn" @update:model-value="changeTokenBurn()" dense />
       </div>
@@ -627,6 +611,22 @@
           <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
         </InfoPopup>
         <q-toggle v-model="enableAddressMarking" @update:model-value="toggleEnableAddressMarking" dense />
+      </div>
+
+      <div style="margin-top:15px">
+        {{ t('settings.userOptions.followTokenIdentities') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedFollowTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
+      </div>
+
+      <div style="margin-top:15px; margin-bottom: 15px;">
+        {{ t('settings.userOptions.allowDappIdentitySpends') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.allowDappIdentitySpendsHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedAllowDappIdentitySpends" @update:model-value="toggleAllowDappIdentitySpends" dense />
       </div>
 
     </div>
