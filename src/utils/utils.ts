@@ -210,12 +210,15 @@ export function formatTokenAmountFromBigInt(baseUnits: bigint, decimals: number)
   return fractionalPart ? `${wholePart}.${fractionalPart}` : `${wholePart}`;
 }
 
-// The amount in the token's own decimals with its symbol after it, as far as the metadata says
+// The amount in the token's own decimals with its symbol after it, as far as the metadata says,
+// grouped for reading the way the token list formats its amounts: a reserve is often billions
 export function formatTokenAmountWithSymbol(
   baseUnits: bigint,
   metadata: { token?: { decimals?: number | undefined; symbol?: string | undefined } | undefined } | undefined,
 ): string {
-  const amount = formatTokenAmountFromBigInt(baseUnits, metadata?.token?.decimals ?? 0);
+  const [whole, fraction] = formatTokenAmountFromBigInt(baseUnits, metadata?.token?.decimals ?? 0).split('.');
+  const grouped = BigInt(whole ?? '0').toLocaleString('en-US');
+  const amount = fraction ? `${grouped}.${fraction}` : grouped;
   return `${amount} ${metadata?.token?.symbol ?? ''}`.trim();
 }
 
