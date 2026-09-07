@@ -1404,7 +1404,7 @@
       "ipfsGateway": "IPFS gateway:",
       "ipfsGatewayHint": "Used to load token icons and other token media hosted on IPFS.",
       "chaingraph": "Chaingraph server:",
-      "chaingraphHint": "A BCH blockchain indexer, used only for the identities page: to look up the identities this wallet holds and follows.",
+      "chaingraphHint": "A BCH blockchain indexer, used only for identities: to look up the ones this wallet holds and follows.",
       "chaingraphCustomPlaceholder": "e.g. https://chaingraph.example.com",
       "chaingraphCustomHint": "/v1/graphql is added automatically when only a host is provided.",
       "chaingraphInvalidUrl": "Invalid Chaingraph server URL",
