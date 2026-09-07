@@ -4,6 +4,7 @@ import type { Utxo } from 'mainnet-js'
 import { binToHex } from '@bitauth/libauth'
 
 import {
+  reserveAddOutputs,
   identityOutput,
   maxPublicationOutputSize,
   mintOutputs,
@@ -20,6 +21,30 @@ const addresses = { bch: 'bitcoincash:qtest', token: 'bitcoincash:ztest' }
 
 const authUtxo = (token?: Utxo['token']): Utxo =>
   ({ txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n, address: addresses.bch, ...(token ? { token } : {}) })
+
+// The reserve's change is the wallet's own output: left to mainnet-js it would copy the identity
+// output's minting NFT onto the change coin, a second minting NFT in an unreserved coin
+describe('reserveAddOutputs', () => {
+  const coin = (amount: bigint): Utxo => ({ txid: 'cc'.repeat(32), vout: 1, satoshis: 1000n, address: addresses.token, token: { category, amount } })
+  const mintingAuthhead = authUtxo({ category, amount: 100n, nft: { capability: 'minting', commitment: '' } })
+
+  it('adds the amount to the reserve and returns the rest as plain token change', () => {
+    const outputs = reserveAddOutputs(mintingAuthhead, addresses, 30n, [coin(50n)])
+
+    expect(outputs).toHaveLength(2)
+    expect(outputs[0]).toMatchObject({ cashaddr: addresses.token, category, amount: 130n, nft: { capability: 'minting', commitment: '' } })
+    expect(outputs[1]).toBeInstanceOf(TokenSendRequest)
+    expect(outputs[1]).toMatchObject({ cashaddr: addresses.token, category, amount: 20n })
+    expect((outputs[1] as TokenSendRequest).nft).toBeUndefined()
+  })
+
+  it('builds no change when the coins hold exactly the amount', () => {
+    const outputs = reserveAddOutputs(mintingAuthhead, addresses, 50n, [coin(20n), coin(30n)])
+
+    expect(outputs).toHaveLength(1)
+    expect(outputs[0]).toMatchObject({ amount: 150n })
+  })
+})
 
 describe('identityOutput', () => {
   // spending the old authhead as input 0 and recreating it here is what continues the authchain

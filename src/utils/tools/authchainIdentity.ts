@@ -127,6 +127,26 @@ export function identityOutput(
 // What a token output the wallet makes carries in BCH: a genesis's, and one kept behind by a transfer
 export const tokenOutputValue = 1000n;
 
+// Adding to the reserve spends the wallet's fungible coins of the category into the identity
+// output. mainnet-js would build the token change itself, but its change output copies the first
+// token output's NFT onto the change coin, here the minting NFT, so the change is built here.
+export function reserveAddOutputs(
+  authUtxo: Utxo,
+  addresses: { bch: string, token: string },
+  amount: bigint,
+  categoryUtxos: Utxo[],
+) {
+  const token = authUtxo.token;
+  if (!token) throw new Error("The identity output carries no token to add a reserve to");
+  const outputs = [identityOutput(authUtxo, addresses, token.amount + amount)];
+  const available = categoryUtxos.reduce((total, utxo) => total + (utxo.token?.amount ?? 0n), 0n);
+  const change = available - amount;
+  if (change > 0n) {
+    outputs.push(new TokenSendRequest({ cashaddr: addresses.token, category: token.category, amount: change, value: tokenOutputValue }));
+  }
+  return outputs;
+}
+
 // A mint from an identity UTXO is an authchain operation like the rest: the identity output
 // first, keeping the minting NFT and any reserve here, then the minted NFTs. mainnet-js's
 // tokenMint happens to order a mint this way; building it here makes that the rule rather than luck.

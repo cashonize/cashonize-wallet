@@ -74,3 +74,12 @@ describe('mainnet-js still names an OP_RETURN history output the way the readers
     expect(getHistory.toString()).toContain('`' + OP_RETURN_ADDRESS_PREFIX + '${')
   })
 })
+
+// The reserve's token change is built by the wallet because mainnet-js's own change copies the
+// first token output's NFT onto it; if that changes upstream, the wallet's change is only redundant
+describe('mainnet-js still copies the first token output\'s NFT onto its token change', () => {
+  it('encodeTransaction builds the change with nft: tokenOutputs[0].nft', () => {
+    const source = (BaseWallet.prototype as unknown as Record<string, () => unknown>)['encodeTransaction']?.toString()
+    expect(source).toContain('nft: tokenOutputs[0].nft')
+  })
+})
