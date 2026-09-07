@@ -85,10 +85,10 @@
   const isLocalElectrumServerChipnet = computed(() => isLocalServer(customElectrumServerChipnet.value));
   // the first entry is labeled as the default, keep it in sync with settingsStore
   const predefinedIpfsGateways = [
-    "https://ipfs.io/ipfs/",
-    "https://dweb.link/ipfs/",
     "https://ipfs.filebase.io/ipfs/",
-    "https://ipfs.pat.mn/ipfs/"
+    "https://ipfs.pat.mn/ipfs/",
+    "https://ipfs.io/ipfs/",
+    "https://dweb.link/ipfs/"
   ];
   const storedIpfsGateway = settingsStore.ipfsGateway;
   const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);

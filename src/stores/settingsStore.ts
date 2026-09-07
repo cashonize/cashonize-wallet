@@ -24,10 +24,9 @@ const defaultCauldronIndexer = "https://indexer.riften.net";
 // registry. Stored under the old "bcmrIndexer*" keys, which a user never sees.
 const defaultTokenMetadataIndexerMainnet = "https://bcmr.paytaca.com/api";
 const defaultTokenMetadataIndexerChipnet = "https://bcmr-chipnet.paytaca.com/api";
-// ipfs.io serves the content directly, other gateways redirect to a subdomain gateway.
-// A redirect hop without CORS headers breaks reads that need them, like the canvas
-// pixel read behind the portfolio chart's icon colors.
-const defaultIpfsGateway = "https://ipfs.io/ipfs/";
+// The default must serve the content directly with CORS headers: a redirect hop without them
+// breaks reads that need them, like the canvas pixel read behind the portfolio chart's icon colors.
+const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 
 const { width,height } = useWindowSize();
 const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
