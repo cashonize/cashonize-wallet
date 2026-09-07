@@ -372,6 +372,11 @@
         "message": "Enviar {count} NFTs {symbol} a\n{address}",
         "messageAll": "Enviar todos los {count} NFTs {symbol} a\n{address}"
       },
+      "confirmMint": {
+        "title": "Confirmar acuñación",
+        "message": "Acuñar {count} NFTs de categoría {tokenId} a\n{address}",
+        "messageSingle": "Acuñar 1 NFT de categoría {tokenId} a\n{address}"
+      },
       "burnTokens": {
         "title": "Quemar tokens",
         "message": "Estás a punto de quemar {amount} {symbol}, esto no se puede deshacer.\n¿Estás seguro de que quieres quemar los tokens?",
@@ -421,6 +426,7 @@
       "differentTokenRequest": "Esta solicitud de pago es para un token diferente",
       "amountMustBeInteger": "La cantidad de tokens a quemar debe ser un número entero válido",
       "invalidAmountNfts": "cantidad de NFTs a acuñar inválida",
+      "tooManyNfts": "No se pueden acuñar más de {max} NFTs en una transacción",
       "invalidStartingNumber": "número inicial inválido",
       "commitmentMustBeHex": "el commitment del NFT '{commitment}' debe ser hexadecimal",
       "noNftsSelected": "No se seleccionaron NFTs",

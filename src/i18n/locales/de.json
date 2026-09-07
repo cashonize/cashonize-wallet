@@ -372,6 +372,11 @@
         "message": "Sende {count} {symbol} NFTs an\n{address}",
         "messageAll": "Sende alle {count} {symbol} NFTs an\n{address}"
       },
+      "confirmMint": {
+        "title": "Minting bestätigen",
+        "message": "{count} NFTs der Kategorie {tokenId} an\n{address} minten",
+        "messageSingle": "1 NFT der Kategorie {tokenId} an\n{address} minten"
+      },
       "burnTokens": {
         "title": "Tokens verbrennen",
         "message": "Du bist dabei, {amount} {symbol} zu verbrennen. Das kann nicht rückgängig gemacht werden.\nBist du sicher, dass du die Tokens verbrennen willst?",
@@ -421,6 +426,7 @@
       "differentTokenRequest": "Diese Zahlungsanfrage ist für einen anderen Token",
       "amountMustBeInteger": "Anzahl zu verbrennender Tokens muss eine gültige Ganzzahl sein",
       "invalidAmountNfts": "Ungültige Anzahl NFTs zum Minten",
+      "tooManyNfts": "Es können nicht mehr als {max} NFTs in einer Transaktion gemintet werden",
       "invalidStartingNumber": "Ungültige Startnummer",
       "commitmentMustBeHex": "nftCommitment '{commitment}' muss hexadezimal sein",
       "noNftsSelected": "Keine NFTs ausgewählt",

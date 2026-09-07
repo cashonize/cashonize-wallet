@@ -5,12 +5,14 @@
   import { bigIntToVmNumber, binToHex } from "@bitauth/libauth"
   import type { TokenActionType } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
+  const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
   const props = defineProps<{
@@ -36,7 +38,12 @@
     if(!parsed) return;
     destinationAddr.value = parsed.address;
   }
-  const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
+  // Odd lengths are turned away rather than padded: libauth reads "abc" as ab0c, so a typo would
+  // mint a commitment other than the one typed
+  const isHex = (str:string) => /^([A-F0-9]{2})+$/i.test(str);
+
+  // One transaction carries the whole mint, and a few thousand outputs no longer fit in one
+  const maxNftsPerMint = 1000;
 
   async function mintNfts() {
     if (activeAction.value) return;
@@ -47,11 +54,18 @@
         recipientAddr = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
         destinationAddr.value = recipientAddr;
       }
-      if(mintQuantity.value == undefined) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
-      const mintAmount = parseInt(mintQuantity.value);
+      // mainnet-js mints whatever list it is given, empty included, so an amount below one would
+      // broadcast a transaction that only moves the minting NFT, and the authhead with it
+      const mintAmount = Number(mintQuantity.value);
+      if(!Number.isInteger(mintAmount) || mintAmount < 1) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
+      if(mintAmount > maxNftsPerMint) throw new Error(t('tokenItem.errors.tooManyNfts', { max: maxNftsPerMint }));
 
-      if(mintMode.value === "collection" && startingNumberNFTs.value == undefined) {
-        throw new Error(t('tokenItem.errors.invalidStartingNumber'));
+      let startingNumber = 0;
+      if(mintMode.value === "collection") {
+        startingNumber = Number(startingNumberNFTs.value);
+        if(!Number.isInteger(startingNumber) || startingNumber < 0) {
+          throw new Error(t('tokenItem.errors.invalidStartingNumber'));
+        }
       }
       // single mode: validate commitment is valid hex
       let nftCommitment = mintMode.value === "collection" ? "" : mintCommitment.value;
@@ -61,8 +75,7 @@
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
       const mints: { cashaddr: string; commitment: string; capability: string; value: bigint }[] = [];
       for (let i = 0; i < mintAmount; i++){
-        if(mintMode.value === "collection" && startingNumberNFTs.value){
-          const startingNumber = parseInt(startingNumberNFTs.value);
+        if(mintMode.value === "collection"){
           const nftNumber = startingNumber + i;
           if(numberingUniqueNfts.value == "vm-numbers"){
             const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
@@ -74,6 +87,22 @@
         }
         mints.push({ cashaddr: recipientAddr, commitment: nftCommitment, capability: mintCapability.value, value: 1000n });
       }
+      const displayId = `${props.category.slice(0, 20)}...${props.category.slice(-8)}`;
+      // Minting from an identity UTXO moves the authhead, which every identity operation confirms
+      // whatever the setting says; an ordinary mint follows the user's setting
+      if (props.identityUtxo || settingsStore.confirmBeforeSending) {
+        const truncatedAddr = `${recipientAddr.slice(0, 24)}...${recipientAddr.slice(-8)}`;
+        const messageKey = mintAmount == 1
+          ? 'tokenItem.dialogs.confirmMint.messageSingle'
+          : 'tokenItem.dialogs.confirmMint.message';
+        const confirmed = await confirmDialog(
+          t('tokenItem.dialogs.confirmMint.title'),
+          t(messageKey, { count: mintAmount, tokenId: displayId, address: truncatedAddr }),
+          t('tokenItem.dialogs.confirmButton')
+        );
+        if (!confirmed) return;
+      }
+
       notifySending();
       // A minting NFT that is the token's identity UTXO is held back, so minting from it is an
       // authchain operation: the identity output first, then the minted NFTs, through the spend
@@ -91,7 +120,6 @@
         }));
         ({ txId } = await store.spend.tokenMint(props.category, mintRequests));
       }
-      const displayId = `${props.category.slice(0, 20)}...${props.category.slice(-8)}`;
       let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
       if (mintAmount == 1) {
         alertMessage = nftCommitment

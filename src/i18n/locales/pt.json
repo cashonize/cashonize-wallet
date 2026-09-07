@@ -372,6 +372,11 @@
         "message": "Enviar {count} NFTs {symbol} para\n{address}",
         "messageAll": "Enviar todos os {count} NFTs {symbol} para\n{address}"
       },
+      "confirmMint": {
+        "title": "Confirmar mintagem",
+        "message": "Mintar {count} NFTs da categoria {tokenId} para\n{address}",
+        "messageSingle": "Mintar 1 NFT da categoria {tokenId} para\n{address}"
+      },
       "burnTokens": {
         "title": "Queimar Tokens",
         "message": "Você está prestes a queimar {amount} {symbol}, esta ação não pode ser desfeita.\nTem certeza que deseja queimar os tokens?",
@@ -421,6 +426,7 @@
       "differentTokenRequest": "Esta solicitação de pagamento é para um token diferente",
       "amountMustBeInteger": "A quantidade de tokens a queimar deve ser um número inteiro válido",
       "invalidAmountNfts": "quantidade inválida de NFTs para mintar",
+      "tooManyNfts": "Não é possível mintar mais de {max} NFTs em uma transação",
       "invalidStartingNumber": "número inicial inválido",
       "commitmentMustBeHex": "nftCommitment '{commitment}' deve ser hexadecimal",
       "noNftsSelected": "Nenhum NFT selecionado",

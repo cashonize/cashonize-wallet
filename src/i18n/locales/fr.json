@@ -372,6 +372,11 @@
         "message": "Envoyer {count} NFTs {symbol} à\n{address}",
         "messageAll": "Envoyer tous les {count} NFTs {symbol} à\n{address}"
       },
+      "confirmMint": {
+        "title": "Confirmer la création",
+        "message": "Créer {count} NFTs de catégorie {tokenId} à\n{address}",
+        "messageSingle": "Créer 1 NFT de catégorie {tokenId} à\n{address}"
+      },
       "burnTokens": {
         "title": "Brûler des tokens",
         "message": "Vous êtes sur le point de brûler {amount} {symbol}, cette action est irréversible.\nÊtes-vous sûr de vouloir brûler les tokens ?",
@@ -421,6 +426,7 @@
       "differentTokenRequest": "Cette demande de paiement concerne un token différent",
       "amountMustBeInteger": "La quantité de tokens à brûler doit être un nombre entier valide",
       "invalidAmountNfts": "quantité de NFTs à créer invalide",
+      "tooManyNfts": "Impossible de créer plus de {max} NFTs en une transaction",
       "invalidStartingNumber": "numéro de départ invalide",
       "commitmentMustBeHex": "le commitment du NFT '{commitment}' doit être en hexadécimal",
       "noNftsSelected": "Aucun NFT sélectionné",
