@@ -501,7 +501,7 @@
           </div>
           <details v-if="isSingleNft && nftMetadata?.extensions?.attributes" style="cursor:pointer;">
             <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
-            <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="((attributeValue as string) + (attributeValue as string))" style="white-space: pre-wrap; margin-left:15px">
+            <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="attributeKey" style="white-space: pre-wrap; margin-left:15px">
               {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.empty') }}
             </div>
           </details>
