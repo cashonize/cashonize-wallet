@@ -81,8 +81,9 @@
   async function reloadIdentities() {
     try {
       await identitiesStore.refreshIdentities();
-      // the identities of every held token, all of them on a visit rather than the new ones at open
-      if (settingsStore.followTokenIdentities) await identitiesStore.followTokenIdentities('all');
+      // the identities of every held token, all of them on a visit rather than the new ones at
+      // open; with following off, those of the held NFTs shaped like a key
+      await identitiesStore.followTokenIdentities(settingsStore.followTokenIdentities ? 'all' : 'keys');
       await fetchMissingMetadata();
       // after the resolving, which is what says where each publication is
       await identitiesStore.checkPublications();

@@ -329,6 +329,38 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.tokenIdentities).toEqual([])
   })
 
+  // With following off, a held NFT of a Studio key's shape still has its category resolved: in
+  // the standard's genesis setup the key shares its identity's category, which is how Studio
+  // makes one, so a key handed to this wallet is recognised and held back without the setting
+  it('resolves the categories of held key-shaped NFTs when following is off', async () => {
+    stubAuthheadQueries(
+      { [categoryA]: authheadA, [categoryB]: authheadB },
+      { [categoryA]: guardedOutput(categoryA, categoryA, '0') },
+    )
+    const key = authKeyUtxo(categoryA)
+    const collectible: Utxo = {
+      txid: 'dd'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
+      token: { category: categoryB, amount: 0n, nft: { commitment: 'ab', capability: 'none' } },
+    }
+    const { store, identitiesStore } = startStore([key, collectible])
+    store.tokenList = [{ category: categoryA, amount: 0n }, { category: categoryB, amount: 0n }]
+    const asked: string[] = []
+    const answer = globalThis.fetch
+    vi.stubGlobal('fetch', vi.fn((url: string, options: RequestInit) => {
+      asked.push(options.body as string)
+      return answer(url, options)
+    }))
+
+    await identitiesStore.followTokenIdentities('keys')
+
+    expect(asked.join()).toContain(categoryA)
+    expect(asked.join()).not.toContain(categoryB)
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
+    expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], arrived: [] })
+  })
+
   // a followed identity held elsewhere is neither listed nor news, and a category the server
   // does not know is left out of the group rather than shown as an answer
   it('follows the identity of a held token without listing it', async () => {

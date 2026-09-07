@@ -96,7 +96,9 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
   in a covenant this wallet has the key to, or elsewhere, and only watched.
 - **Held through a key.** A guarded identity is recognised in the resolve that finds its
   output, by the covenant's bytecode, and the key the wallet holds for it is reserved; a
-  key's identity reaches the list the way any held token's does, through the following.
+  key's identity reaches the list the way any held token's does, through the following,
+  which with the setting off still asks about the categories of held NFTs shaped like a
+  Studio key, so a key handed to this wallet is recognised whatever the setting says.
 
 Watched identities reserve nothing and are listed apart from owned ones; the followed token
 identities are a third, collapsed group. Whenever the wallet holds something back the user
@@ -120,7 +122,11 @@ identities were held elsewhere last time, and that is the one thing it keeps.
   the identity output's; the resolve already carries that output. The key is the identity's
   own category in the standard's genesis setup, or the one the registry names in
   `extensions.authNft` for an identity that adopted a guard later, read off the indexer's
-  copy. A key is any NFT of that category with no amount and no capability. The wallet
+  copy. A key is any NFT of that category with no amount and no capability; that much is
+  the standard's. Studio mints its keys with commitment `00`, which the covenant never
+  reads, so that is a convention, and the one thing that tells a Studio key from a
+  collectible before its identity is resolved: the wallet uses it to decide which held
+  categories to look up at open when following is off. The wallet
   protects a key the way it protects an identity output; the covenant's own spends belong
   to the tools that build them.
 - **The token metadata indexer** indexes token identities only, keyed by category. That is
@@ -177,8 +183,9 @@ What the standard enables that the wallet does not do yet:
   dependency, a cache in front of what the wallet can check, and removes the indexer's
   limit to token identities. The following is off by default for now, because resolving
   the held tokens' chains is a batched Chaingraph request that costs the instance two to
-  three seconds at every wallet open whatever the count, and what it buys today is the
-  arrival notice and the recognition of an AuthKey the wallet holds. It is a realistic
+  three seconds at every wallet open whatever the count, and what it buys today is
+  noticing an identity never listed here whose UTXO reaches this wallet; a key that reaches
+  it is recognised by its shape whatever the setting says. It is a realistic
   goal over time: a registry cached by the hash the chain committed to is fetched once per
   publication, not per open, so what remains is the resolve, which is what noticing a
   change costs.

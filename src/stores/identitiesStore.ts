@@ -28,6 +28,7 @@ import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identit
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
 import { queryAuthchainLinks, type ChaingraphSpentOutput } from "src/queryChainGraph"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
+import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
 import { formatTokenAmountWithSymbol, truncateHash } from "src/utils/utils"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -312,14 +313,22 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // leave the group half filled until the visit, since the states themselves are not persisted.
   // Nothing is listed or reserved here except an identity whose authhead, or whose key, turns
   // out to be in this wallet, which is promoted and announced.
-  async function followTokenIdentities(scope: 'open' | 'all') {
+  async function followTokenIdentities(scope: 'open' | 'all' | 'keys') {
     await withResolveLock(async () => {
       const currentUtxos = mainStore.walletUtxos;
       if (!currentUtxos) return;
       const held = (mainStore.tokenList ?? [])
         .map(token => token.category)
         .filter(category => !identityCategories.value.includes(category) && !dismissedIdentities.value.includes(category));
-      const categories = scope === 'open' ? held.slice(0, followedPerOpenCap) : held;
+      // Which of them to ask: every held category on a visit, up to the cap at open, and with
+      // following off only the categories a held NFT of a Studio key's shape belongs to. In the
+      // standard's genesis setup the key shares its identity's category, which is how Studio makes
+      // one, so a key handed to this wallet is recognised and held back whatever the setting says.
+      let categories = held;
+      if (scope === 'open') categories = held.slice(0, followedPerOpenCap);
+      if (scope === 'keys') {
+        categories = held.filter(category => currentUtxos.some(utxo => isAuthKey(utxo, category, STUDIO_KEY_COMMITMENT)));
+      }
       const started = mainStore.currentInitializationToken();
       let resolved: IdentityState[] = [];
       if (categories.length) {
@@ -379,7 +388,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const spentOutputs = await mainStore.walkSpentOutputs();
       if (mainStore.walletSwitchedSince(started)) return;
       await detectWalletIdentities(spentOutputs);
-      if (settingsStore.followTokenIdentities) await followTokenIdentities('open');
+      await followTokenIdentities(settingsStore.followTokenIdentities ? 'open' : 'keys');
     } catch (error) {
       console.error("Failed to look up the wallet's identities:", error);
       if (mainStore.walletSwitchedSince(started)) return;

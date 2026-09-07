@@ -1383,7 +1383,7 @@
       "enableAddressMarking": "Erweiterte Adressverwaltung aktivieren: Adressen als verwendet markieren",
       "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets.",
       "followTokenIdentities": "Die Identitäten der gehaltenen Tokens verfolgen",
-      "followTokenIdentitiesHint": "Die Liste der gehaltenen Tokens geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus; Einschalten startet die Abfragen bei jedem Öffnen des Wallets.",
+      "followTokenIdentitiesHint": "Die Liste der gehaltenen Tokens geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus: dann wird nur die Identität eines Tokens nachgeschlagen, dessen AuthKey dieses Wallet hält. Einschalten schlägt bei jedem Öffnen des Wallets jeden gehaltenen Token nach.",
       "allowDappIdentitySpends": "Verbundene Apps dürfen Identitäts-UTXOs ausgeben",
       "allowDappIdentitySpendsHint": "Aus: Eine WalletConnect- oder WizardConnect-Anfrage, die den UTXO einer Identität dieses Wallets ausgibt, wird abgelehnt, so wie ein zugesagter UTXO. An: Die Anfrage erreicht den Bestätigungsdialog, der die Identität nennt und sagt, was ihr UTXO vorher und nachher trägt. Eine Anfrage, die eine Identität aus diesem Wallet bewegen würde, wird in beiden Fällen abgelehnt. Identitätsschlüssel sind nicht betroffen: Eine Anfrage, die einen verwendet, wird signiert, wenn der Schlüssel zurückkommt, so arbeitet CashTokens Studio."
     },

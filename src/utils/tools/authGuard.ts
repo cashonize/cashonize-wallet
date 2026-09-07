@@ -43,6 +43,11 @@ export function isAuthGuardOf(keyCategory: string, lockingBytecode: string): boo
   return lockingBytecode === forms.p2sh20 || lockingBytecode === forms.p2sh32;
 }
 
+// The commitment CashTokens Studio mints its keys with. The covenant reads none, so this is a
+// convention, and the one thing that tells a Studio key from a collectible before its identity
+// is resolved.
+export const STUDIO_KEY_COMMITMENT = "00";
+
 // The key the covenant asks for at input 1: a token of its category carrying no amount, which
 // with a category of 32 bytes on the covenant's side means an NFT without capability. The
 // contract reads no commitment, so any is a key unless the caller knows which one was minted.
