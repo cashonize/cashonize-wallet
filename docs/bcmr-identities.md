@@ -170,16 +170,23 @@ What the standard enables that the wallet does not do yet:
   current publication output on every operation, one more output of 40 to 110 bytes each
   time, or have the spec say that the last publication on the chain is the current one,
   which is what every implementation already does.
-- **Token metadata from the authchain, without the indexer.** The wallet already follows
-  every held token's authchain and reads the last publication on it; fetching that
-  registry and hashing it against the chain gives a held token's name, symbol, decimals
-  and icon verified rather than served. That makes the token metadata indexer a cache in
-  front of what the wallet can check itself, and removes the indexer's limit to token
-  identities.
+- **Token metadata from the authchain, without the indexer.** The wallet can follow every
+  held token's authchain and read the last publication on it; fetching that registry and
+  hashing it against the chain gives a held token's name, symbol, decimals and icon
+  verified rather than served. That makes the token metadata indexer an optional trusted
+  dependency, a cache in front of what the wallet can check, and removes the indexer's
+  limit to token identities. The following is off by default for now, because resolving
+  the held tokens' chains is a batched Chaingraph request that costs the instance two to
+  three seconds at every wallet open whatever the count, and what it buys today is the
+  arrival notice and the recognition of an AuthKey the wallet holds. It is a realistic
+  goal over time: a registry cached by the hash the chain committed to is fetched once per
+  publication, not per open, so what remains is the resolve, which is what noticing a
+  change costs.
 - **Change notices for held tokens.** The spec asks clients to surface a change to a held
-  token's name, symbol, decimals or icon, and a burned identity. The followed tier resolves
-  every held token's identity already; a notice needs the last seen publication hash and
-  the four shown fields persisted per category, and a comparison on the next resolve.
+  token's name, symbol, decimals or icon, and a burned identity. The followed tier, when it
+  is on, resolves every held token's identity already; a notice needs the last seen
+  publication hash and the four shown fields persisted per category, and a comparison on
+  the next resolve.
 - **Readers for identities that are not tokens.** The wallet makes, holds, watches and
   publishes for the spec's dapp, contract-system and organization identities already;
   nothing reads them yet.
