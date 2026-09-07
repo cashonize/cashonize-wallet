@@ -37,9 +37,10 @@
   })
 
   // The words live here rather than in the phrase the parent holds, so clearing the phrase has to
-  // reach them: without this they stay on screen after the parent thinks it cleared them
+  // reach them. Only when it was cleared from outside: the child empties the phrase itself when the
+  // last word is deleted, and resetting on that would drop a 24 word layout to 12 while typing
   watch(() => props.modelValue, (value) => {
-    if (value) return
+    if (value || !constructedSeedPhrase.value) return
     seedWordCount.value = 12
     seedWords.value = Array(12).fill('')
   })
