@@ -14,14 +14,11 @@
 // https://github.com/mainnet-pat/tapswap-subsquid
 
 import {
-  hexToBin,
   binToHex,
   vmNumberToBigInt,
-  decodeAuthenticationInstructions,
-  authenticationInstructionsAreMalformed,
 } from "@bitauth/libauth";
 import type { ElectrumNetworkProvider, TransactionHistoryItem } from "mainnet-js";
-import { opReturnHex } from "src/utils/history/txDirection";
+import { opReturnChunks, opReturnHex } from "src/utils/history/txDirection";
 
 // OP_RETURN, "MPSW", version 4, then the first 4 bytes of the sha256 of the contract's constant
 // bytecode, pinning the exact contract version the rest of the announcement describes
@@ -51,16 +48,8 @@ export interface TapswapListing {
 // plain BCH
 export function parseListingAnnouncement(opReturnHex: string) {
   if (!opReturnHex.startsWith(LISTING_ANNOUNCEMENT_PREFIX)) return undefined;
-  const instructions = decodeAuthenticationInstructions(hexToBin(opReturnHex));
-  if (authenticationInstructionsAreMalformed(instructions)) return undefined;
-
-  // the first instruction is the OP_RETURN itself, the announcement fields are the pushes after it
-  const chunks: Uint8Array[] = [];
-  for (const instruction of instructions.slice(1)) {
-    if (!('data' in instruction)) return undefined;
-    chunks.push(instruction.data);
-  }
-  if (chunks.length !== ANNOUNCEMENT_CHUNKS.count) return undefined;
+  const chunks = opReturnChunks(opReturnHex);
+  if (chunks?.length !== ANNOUNCEMENT_CHUNKS.count) return undefined;
   if (binToHex(chunks[ANNOUNCEMENT_CHUNKS.platformPkh]!) !== TAPSWAP_PLATFORM_PKH) return undefined;
   // a listing asking tokens instead of plain BCH has no BCH asking price to show; the format
   // supports token asks but TapSwap itself currently only creates BCH asks

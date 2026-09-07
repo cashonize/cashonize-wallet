@@ -18,11 +18,9 @@ import {
   decodeBase58Address,
   decodeCashAddress,
   encodeCashAddress,
-  decodeAuthenticationInstructions,
-  authenticationInstructionsAreMalformed,
 } from "@bitauth/libauth";
 import type { ElectrumNetworkProvider, TransactionHistoryItem } from "mainnet-js";
-import { opReturnHex } from "src/utils/history/txDirection";
+import { opReturnChunks, opReturnHex } from "src/utils/history/txDirection";
 
 // OP_RETURN + the "hodl" Lokad id
 const HODL_ANNOUNCEMENT_PREFIX = "6a04686f646c";
@@ -77,16 +75,8 @@ function decodeAnnouncedAddress(address: string) {
 // well-formed
 export function parseHodlAnnouncement(opReturnHex: string) {
   if (!opReturnHex.startsWith(HODL_ANNOUNCEMENT_PREFIX)) return undefined;
-  const instructions = decodeAuthenticationInstructions(hexToBin(opReturnHex));
-  if (authenticationInstructionsAreMalformed(instructions)) return undefined;
-
-  // the first instruction is the OP_RETURN itself, the announcement fields are the pushes after it
-  const chunks: Uint8Array[] = [];
-  for (const instruction of instructions.slice(1)) {
-    if (!('data' in instruction)) return undefined;
-    chunks.push(instruction.data);
-  }
-  if (chunks.length !== ANNOUNCEMENT_CHUNK_COUNT) return undefined;
+  const chunks = opReturnChunks(opReturnHex);
+  if (chunks?.length !== ANNOUNCEMENT_CHUNK_COUNT) return undefined;
 
   // the address chunk is "<address>" or "<address> <version>"
   const address = binToUtf8(chunks[ADDRESS_CHUNK]!).split(" ")[0]!;
