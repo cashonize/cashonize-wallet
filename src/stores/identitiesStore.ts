@@ -11,6 +11,7 @@ import { useSettingsStore } from "./settingsStore"
 import {
   resolveIdentities,
   fetchAuthchainLinks,
+  findPublication,
   type AuthchainBackends,
   describeChainLinks,
   identityCoin,
@@ -25,7 +26,7 @@ import {
   saveIdentityList,
   clearIdentityList,
 } from "src/utils/tools/identityLists"
-import { checkPublicationUri, type PublicationUriStatus } from "src/utils/tools/registryFile"
+import { checkPublicationUri, fetchVerifiedRegistry, registryAuthbases, type PublicationUriStatus } from "src/utils/tools/registryFile"
 import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
 import type { TransactionHistoryItem } from "mainnet-js"
@@ -105,6 +106,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     announcement.value = undefined;
     openCheckError.value = undefined;
     publicationChecks.value = {};
+    publicationsTried = [];
     identityHistories.value = {};
     // a pass still running belongs to the last wallet and writes nothing more; it must not hold
     // this wallet's first resolve back
@@ -178,6 +180,40 @@ export const useIdentitiesStore = defineStore('identities', () => {
     }
   }
 
+  // A publication whose identity output carries no token, an identity received by transfer say,
+  // is named by the registry it commits to: of the authbases the file lists, resolved forward,
+  // the one ending at a coin this wallet holds, which need not be the publication's own output
+  // since the identity may have moved to another own address since. The hash proves the file and
+  // the resolve proves the match, and only this wallet's own publications are fetched, so the
+  // host is one the user published to. Each publication is tried once per session: a chain
+  // already listed is skipped, and one that could not be named waits for the next open.
+  const namedPerRegistryCap = 20;
+  let publicationsTried: string[] = [];
+  async function nameFromPublications(detected: DetectedIdentity[]): Promise<DetectedIdentity[]> {
+    const heldAuthheads = (mainStore.walletUtxos ?? []).filter(utxo => utxo.vout === 0).map(utxo => utxo.txid);
+    const listedChains = identities.value ?? [];
+    const unnamed = detected.filter(identity =>
+      !identity.category && identity.publicationOutputs?.length && !publicationsTried.includes(identity.authheadTxid)
+      && !listedChains.some(listed => listed.authheadTxid === identity.authheadTxid || listed.recentLinks?.includes(identity.authheadTxid))
+    );
+    const named: DetectedIdentity[] = [];
+    for (const identity of unnamed) {
+      publicationsTried.push(identity.authheadTxid);
+      const publication = findPublication(identity.publicationOutputs ?? []);
+      if (!publication) continue;
+      const content = await fetchVerifiedRegistry(publication.uris, publication.hash, settingsStore.ipfsGateway);
+      if (content === undefined) continue;
+      const authbases = registryAuthbases(content)
+        .filter(authbase => !identityCategories.value.includes(authbase) && !dismissedIdentities.value.includes(authbase))
+        .slice(0, namedPerRegistryCap);
+      if (!authbases.length) continue;
+      const resolved = await resolveIdentities(authbases, authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories, false);
+      const match = resolved.find(candidate => candidate.authheadTxid !== undefined && heldAuthheads.includes(candidate.authheadTxid));
+      if (match?.authheadTxid) named.push({ authheadTxid: match.authheadTxid, category: match.category, marker: 'publication' });
+    }
+    return named;
+  }
+
   // Protection first, so it never waits on naming; the announcement last, so it has names to say
   async function detectWalletIdentities(history: TransactionHistoryItem[]) {
     const started = mainStore.currentInitializationToken();
@@ -185,10 +221,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (mainStore.walletSwitchedSince(started)) return;
     identityPublicationTxids.value = detected.publicationTxids;
     const unseenBefore = unseenIdentities.value;
-    if (!listDetectedIdentities(detected.identities).length) return;
-    await refreshIdentities();
+    if (listDetectedIdentities(detected.identities).length) await refreshIdentities();
+    // the chains the markers could not name, named from their files after the rest is held back
+    const named = await nameFromPublications(detected.identities);
+    if (mainStore.walletSwitchedSince(started)) return;
+    if (listDetectedIdentities(named).length) await refreshIdentities();
     // what this pass added to the unseen list
     const toAnnounce = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
+    if (!toAnnounce.length) return;
     await fetchMetadataFor(toAnnounce);
     if (mainStore.walletSwitchedSince(started)) return;
     announceFound(Object.fromEntries(toAnnounce.map(id => [id, 'made' as const])));

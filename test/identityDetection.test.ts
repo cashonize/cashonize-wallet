@@ -63,7 +63,7 @@ describe('detectIdentities', () => {
     const detected = await detectIdentities(history, rawTransactionsFetcher({}))
 
     expect(detected.identities).toEqual([
-      { authheadTxid: spenderTxid, category: otherCategory, marker: 'publication' },
+      { authheadTxid: spenderTxid, category: otherCategory, marker: 'publication', publicationOutputs: [publicationHex] },
     ])
     expect(detected.publicationTxids).toEqual([spenderTxid])
   })
@@ -74,7 +74,7 @@ describe('detectIdentities', () => {
     const history = [historyItem(spenderTxid, [p2pkhOutput(), opReturnOutput(publicationHex)])]
 
     expect((await detectIdentities(history, rawTransactionsFetcher({}))).identities).toEqual([
-      { authheadTxid: spenderTxid, marker: 'publication' },
+      { authheadTxid: spenderTxid, marker: 'publication', publicationOutputs: [publicationHex] },
     ])
   })
 
@@ -107,7 +107,7 @@ describe('detectIdentities', () => {
     const fetcher = rawTransactionsFetcher({ [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 1 }]) })
 
     expect((await detectIdentities(history, fetcher)).identities).toEqual([
-      { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'publication' },
+      { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'publication', publicationOutputs: [publicationHex] },
     ])
   })
 })
