@@ -418,6 +418,7 @@
       "noNftsSelected": "Nenhum NFT selecionado",
       "notCashaddress": "Não é um cashaddress na rede atual"
     },
+    "heldBack": "Retido, fora da seleção de moedas",
     "identity": {
       "held": "Esta carteira tem a identidade deste token.",
       "heldWithReserve": "Esta carteira tem a identidade deste token, com {amount} em reserva.",

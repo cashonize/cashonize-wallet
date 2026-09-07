@@ -14,6 +14,7 @@
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
@@ -114,6 +115,14 @@
     return authUtxo.txid === nft.txid && authUtxo.vout === nft.vout ? authUtxo : undefined;
   });
   const isIdentityKey = computed(() => guardedIdentities.value.length > 0);
+  // A held back NFT stays listed and says so, where no other line already does: the identity's
+  // own NFT and a key have theirs, a frozen or pledged one had nothing. A collection's members
+  // say it on their own rows.
+  const heldBackNft = computed(() => {
+    if (!isSingleNft.value || identityUtxo.value || isIdentityKey.value) return false;
+    const nft = tokenData.value.nfts?.[0];
+    return !!nft && outpointOf(nft) in store.reservedUtxos;
+  });
   const keyNameLine = computed(() => {
     if (guardedNames.value) return t('tokenItem.authKey.nameFor', { names: guardedNames.value });
     return t('tokenItem.authKey.name');
@@ -402,6 +411,7 @@
             </div>
             <div v-else style="word-break: break-all;" class="hide"></div>
             <div v-if="heldIdentityLine">{{ heldIdentityLine }}</div>
+            <div v-if="heldBackNft" style="color: grey;">{{ t('tokenItem.heldBack') }}</div>
           </div>
           <div v-if="(tokenData.nfts?.length ?? 0) > 1" class="showChildNfts">
             <div @click="showChildNfts()" class="showChildNftsToggle">

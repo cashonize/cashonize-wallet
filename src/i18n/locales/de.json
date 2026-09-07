@@ -418,6 +418,7 @@
       "noNftsSelected": "Keine NFTs ausgewählt",
       "notCashaddress": "Keine cashaddress im aktuellen Netzwerk"
     },
+    "heldBack": "Zurückgehalten, von der Münzauswahl ausgenommen",
     "identity": {
       "held": "Dieses Wallet hält die Identität dieses Tokens.",
       "heldWithReserve": "Dieses Wallet hält die Identität dieses Tokens, mit {amount} in Reserve.",

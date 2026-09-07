@@ -13,6 +13,7 @@
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
@@ -36,6 +37,10 @@
     if (!authUtxo) return undefined;
     return authUtxo.txid === nftData.value.txid && authUtxo.vout === nftData.value.vout ? authUtxo : undefined;
   });
+
+  // a held back member of a collection says so on its row; the identity's own NFT is named by
+  // the collection's line instead
+  const heldBackNft = computed(() => !identityUtxo.value && outpointOf(nftData.value) in store.reservedUtxos);
 
   const emit = defineEmits<{
     'toggle-select': []
@@ -225,6 +230,7 @@
         <div class="tokenBaseInfo">
           <div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
+            <div v-if="heldBackNft" style="color: grey;">{{ t('tokenItem.heldBack') }}</div>
             <div v-if="parsingNft && hasParyonUsdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
             <div v-else-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 3">
               <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
