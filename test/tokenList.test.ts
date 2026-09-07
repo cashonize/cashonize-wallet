@@ -43,6 +43,17 @@ describe('tokenListFromUtxos', () => {
     expect(list).toEqual([{ category, amount: 0n, heldBack: 700n }])
   })
 
+  // what rides on an identity's UTXO is the reserve, supply never issued, told apart from a coin
+  // the user froze so the portfolio can leave the one out and count the other
+  it('tells an identity reserve apart from a frozen coin', () => {
+    const frozen = ftCoin(1, 300n)
+    const reserve = ftCoin(2, 700n)
+    const reservations = { ...held(frozen), [`${reserve.txid}:${reserve.vout}`]: 'auth' as const }
+    const list = tokenListFromUtxos([ftCoin(0, 500n), frozen, reserve], reservations)
+
+    expect(list).toEqual([{ category, amount: 500n, heldBack: 1000n, inReserve: 700n }])
+  })
+
   // an NFT is not a balance: it is still held, and a send that names it is refused instead
   it('still lists a held back NFT', () => {
     const reserved = nftCoin(0, 'aa')

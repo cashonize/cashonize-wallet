@@ -203,6 +203,7 @@
     "epoch": "Epoche",
     "stakedValue": "Gestakter Wert",
     "includeStaked": "ParyonUSD-Stakes im Gesamtwert einbeziehen",
+    "includeReserves": "Identitätsreserven im Gesamtwert einbeziehen",
     "cauldronPool": "Cauldron-Liquiditätspool",
     "poolValue": "Poolwert",
     "poolInfo": "Mittel in einem Liquiditätspool liegen im Pool-Vertrag und gehören damit nicht zum Wallet-Guthaben. Das Verhältnis von BCH zu Tokens verschiebt sich, während gegen den Pool gehandelt wird.",

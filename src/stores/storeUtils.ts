@@ -2,7 +2,7 @@ import { cachedFetch } from "src/utils/cacheUtils";
 import type { Utxo } from "mainnet-js";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
-import { spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";
+import { outpointOf, spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 import { parseNft, type NftParseInfo, type ParseResult } from "src/parsing/nftParsing"
 import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
@@ -12,13 +12,15 @@ import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
 
 // A fungible entry says what the wallet can spend of a category and, apart from it, what its held
 // back coins carry: the list shows the whole holding, the way the wallet page shows its balance
-// and its held back part, and a send is measured against the spendable part alone. A category
-// held back entirely is listed with nothing to spend. An NFT is not a balance, so a held back one
-// is still listed, and refused when a send names it.
+// and its held back part, and a send is measured against the spendable part alone. Of the held
+// back part, what rides on an identity's UTXO is the reserve, supply never issued, which the
+// portfolio leaves out of a total. A category held back entirely is listed with nothing to spend.
+// An NFT is not a balance, so a held back one is still listed, and refused when a send names it.
 export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedUtxos = {}) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
   const heldBalances = getFungibleTokenBalances(tokenUtxos);
   const spendableBalances = getFungibleTokenBalances(spendableFromUtxos(tokenUtxos, reservedUtxos));
+  const reserveBalances = getFungibleTokenBalances(tokenUtxos.filter(utxo => reservedUtxos[outpointOf(utxo)] === 'auth'));
   const nftsResult = getAllNftTokenBalances(tokenUtxos);
   const arrayTokens: TokenList = [];
   for (const category of Object.keys(heldBalances)) {
@@ -26,7 +28,13 @@ export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedU
     if (!held) continue; // should never happen
     const amount = spendableBalances[category] ?? 0n;
     const heldBack = held - amount;
-    arrayTokens.push(heldBack ? { category, amount, heldBack } : { category, amount });
+    const inReserve = reserveBalances[category] ?? 0n;
+    arrayTokens.push({
+      category,
+      amount,
+      ...(heldBack ? { heldBack } : {}),
+      ...(inReserve ? { inReserve } : {}),
+    });
   }
   for (const category of Object.keys(nftsResult)) {
     const utxosNftCategory = tokenUtxos.filter((val) =>val.token?.category === category);

@@ -203,6 +203,7 @@
     "epoch": "Époque",
     "stakedValue": "Valeur stakée",
     "includeStaked": "Inclure les stakes ParyonUSD dans le total",
+    "includeReserves": "Inclure les réserves d'identité dans le total",
     "cauldronPool": "Pool de liquidité Cauldron",
     "poolValue": "Valeur du pool",
     "poolInfo": "Les fonds d'un pool de liquidité sont détenus par le contrat du pool, ils ne font donc pas partie du solde du portefeuille. La répartition entre BCH et tokens évolue au fil des échanges avec le pool.",

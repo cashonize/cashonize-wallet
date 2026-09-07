@@ -79,6 +79,11 @@
   const showSmallBalances = ref(false)
   const showUnpriced = ref(false)
   const showTapswapListings = ref(false)
+  // Everything the wallet holds counts, except supply that was never issued: an identity's
+  // reserve priced at the pool is a fiction, and selling it would empty the pool. A frozen or
+  // pledged coin is an ordinary holding the user chose to protect, and counts.
+  const includeReserves = ref(false)
+  const hasReserves = computed(() => (store.tokenList ?? []).some(token => 'amount' in token && token.inReserve))
   const checkingAdditionalContractAssets = ref(false)
   // chipnet balances are shown in the mainnet BCH price here just like on the wallet
   // page, marked with the same 't' prefix on the unit and currency names
@@ -154,15 +159,18 @@
 
     const pricedTokens: PricedAsset[] = []
     const unpriced: UnpricedAsset[] = []
-    for (const token of store.allTokenList ?? []) {
+    for (const token of store.tokenList ?? []) {
       if (!('amount' in token)) continue
+      const holding = token.amount + (token.heldBack ?? 0n)
+      const amount = includeReserves.value ? holding : holding - (token.inReserve ?? 0n)
+      if (!amount) continue
       const metadata = store.bcmrRegistries?.[token.category]
       const name = metadata?.name ?? token.category.slice(0, 8) + '...'
       const symbol = metadata?.token?.symbol
-      const amountDisplay = formatTokenAmount(token.amount, metadata?.token?.decimals)
+      const amountDisplay = formatTokenAmount(amount, metadata?.token?.decimals)
 
       const poolInfo = store.cauldronPrices?.[token.category]
-      const bchValue = poolInfo ? calculateTokenFiatValue(token.amount, poolInfo, 1) : null
+      const bchValue = poolInfo ? calculateTokenFiatValue(amount, poolInfo, 1) : null
       if (bchValue !== null) {
         pricedTokens.push({ category: token.category, name, symbol, amountDisplay, bchValue })
       } else {
@@ -840,6 +848,9 @@
         </div>
       </div>
 
+      <div v-if="hasReserves" class="include-staking">
+        {{ t('portfolio.includeReserves') }} <q-toggle v-model="includeReserves" dense />
+      </div>
       <div v-if="stakingReceiptNfts.length" class="include-staking">
         {{ t('portfolio.includeStaked') }} <q-toggle v-model="includeStaking" dense />
       </div>
