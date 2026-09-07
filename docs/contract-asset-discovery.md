@@ -94,14 +94,19 @@ sources were verified to find the same listings.
 
 Reading the announcements from the history is the intended source, in a change of its own:
 it takes the address list away from Chaingraph, drops the one query a stale planner kills
-and the chain-mixing caveat, sees a transaction in the mempool at once, and works on chipnet.
-Chaingraph then keeps the one job history cannot do, following an authchain to its head.
-What it costs: the readers must wait for the full history load rather than the capped one
-that precedes them today, which on a large wallet's first open is many electrum fetches and
-afterwards cache hits; genesis detection decodes candidate raw transactions itself, since a
-history item carries no input outpoints; and a TapSwap listing's unspent status becomes one
-electrum lookup per own listing, worth remembering once spent. Until then, a wallet with no
-Chaingraph instance configured finds none of these.
+and the chain-mixing caveat, sees a transaction in the mempool at once, and finds on chipnet
+too, though resolving what it finds still needs a chipnet Chaingraph instance, which ships
+unconfigured. Chaingraph then keeps the one job history cannot do, following an authchain
+to its head. What it costs: the readers need the raw hex of the history's own transactions,
+which for an HD wallet is the raw history held in memory plus one batched fetch, cached
+forever after, so on a large wallet's first open detection, and with it the holding back of
+a creator's identity coin, waits on one electrum fetch per historical transaction, on the
+one open where that coin is most exposed; whether to fetch those eagerly for the readers
+rather than wait on the idle-scheduled history load is the question to settle, and the
+timing on a large wallet has not been measured. Genesis detection decodes candidate raw
+transactions itself, since a history item carries no input outpoints, and a TapSwap
+listing's unspent status becomes one electrum lookup per own listing, worth remembering once
+spent. Until then, a wallet with no Chaingraph instance configured finds none of these.
 
 ## Where the code is
 
