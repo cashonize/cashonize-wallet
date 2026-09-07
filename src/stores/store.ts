@@ -771,6 +771,7 @@ export const useStore = defineStore('store', () => {
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
+    currentBlockHeight.value = undefined;
 
     if (resetDappConnections) {
       // Reset WC/CC/Wiz init-done flags so re-initialization runs after reset
@@ -1255,6 +1256,7 @@ export const useStore = defineStore('store', () => {
   // transaction the wallet funded, so both are read off the wallet's own history. Only the
   // portfolio view shows them, so it drives the fetch. Both protocols are mainnet only.
   async function fetchWalletAnnouncedAssets() {
+    if (!_wallet.value) return;
     if (network.value !== 'mainnet') {
       tapswapListings.value = [];
       hodlContracts.value = [];
