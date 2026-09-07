@@ -80,25 +80,47 @@ made carries one. Cashonize does not depend on that output, since it rebuilds fr
 pkhs, but a wallet that wants to be found by the plugin has to keep the rule when it creates a
 lock.
 
-## The Chaingraph walk that came before
+## Chaingraph, evaluated and set aside
 
-These lookups used to run on Chaingraph: one paged `search_output` query over the wallet's
-locking bytecodes, spent outputs only, each with the transaction that spent it and that
-transaction's outputs 0 and 1 plus any BCMR output. It answered in about a second for an
-ordinary wallet, and asked a second server, with the wallet's full address list, for what the
-history load had already delivered. It was also the one query in the wallet that leaned on
-`search_output`'s expression index, timing out on an instance with stale planner statistics
-while every other query still answered; it carried no node filter, so an instance indexing
-both chains answered with rows from both; it lagged electrum by the indexing delay, so a
-listing just made needed a second walk; and a wallet with no instance configured found
-nothing.
+Chaingraph was the first source for these lookups, and the question of using it comes down to
+two facts.
 
-No cheaper Chaingraph shape exists for these lookups, should the question come back. The
-announcements name no key an index reaches, and a locking-bytecode equality nested inside
-another filter cannot use the address index, so "this OP_RETURN and an output to me" scans the
-outputs table and never finishes. Searching by protocol instead grows with the protocol's
-use, not the wallet's history. Chaingraph keeps the one job history cannot do: following an
-authchain to its head.
+**The electrum data is already paid for.** The history load fetches every transaction of the
+wallet's at the first open and serves it from the IndexedDB cache at every open after; the
+history tab needs that load regardless, so reading announcements off it costs nothing extra
+and needs no cache of its own. A Chaingraph lookup is a request on top of that, at every open
+and every portfolio visit, to a second server that then holds the wallet's full address list.
+
+**Chaingraph cannot ask for just the wallet's announcements.** Its one fast lookup is outputs
+by locking bytecode, through `search_output`'s expression index, and no announcement is
+reachable by it: hodl names no owner, TapSwap names the maker past any prefix, a genesis has
+no marker at all. What was left was the same walk the history gives for free: the wallet's
+spent outputs with the transaction that spent each, one paged query, the announcements
+filtered on the client. The shapes a lookup can take here, and what rules each out:
+
+- **By the wallet's addresses**, the walk: outputs by locking bytecode through the expression
+  index, then the transaction that spent each. The one fast shape; it grows with the wallet's
+  history, and can be narrowed on the server to spending transactions that carry an
+  announcement or a token output, since that filter reaches through the relationship without
+  touching the address index.
+- **By the protocol**, an OP_RETURN prefix search: finds every announcement anyone made, so it
+  grows with the protocol's use, and the owner still has to be matched on the client, which
+  for hodl means deriving the contract from every own pkh per announcement. Workable while a
+  protocol is small, wrong as it grows, and no help for a genesis, which has no marker.
+- **Both at once**, "this OP_RETURN and an output to me": a locking-bytecode equality nested
+  inside another filter cannot use the expression index, so Postgres scans the outputs table
+  and the statement timeout cancels it. The server can do either half, not the join.
+- **By the contract**: a hodl address hashes the locktime with the pkh, a TapSwap contract
+  hashes the whole offer, so neither is derivable from what the wallet knows.
+- **By the listed token's category**: needs categories the wallet no longer holds and grows
+  with the collection.
+
+That walk also had costs of its own. It was the one query in the wallet that leaned on the
+expression index, timing out on an instance with stale planner statistics while every other
+query still answered; it carried no node filter, so an instance indexing both chains
+answered with rows from both; it lagged electrum by the indexing delay, so a listing just
+made needed a second walk; and a wallet with no instance configured found nothing. Chaingraph
+keeps the one job history cannot do: following an authchain to its head.
 
 ## Where the code is
 
