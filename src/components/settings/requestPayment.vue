@@ -6,7 +6,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  import { copyToClipboard, formatNumber, parseTokenAmountToBigInt } from 'src/utils/utils'
+  import { copyToClipboard, formatNumber, formatTokenAmount, parseTokenAmountToBigInt } from 'src/utils/utils'
   import { buildPaymentRequestUri } from 'src/utils/payments/paymentRequest'
   import { toTokenAddress } from 'src/utils/addressValidation'
   import CharCounter from 'src/components/general/CharCounter.vue'
@@ -113,8 +113,7 @@
     if (mode.value === 'token') {
       const baseUnits = parsedTokenAmount.value.baseUnits;
       if (baseUnits === undefined) return undefined;
-      const amountInTokens = tokenDecimals.value ? Number(baseUnits) / (10 ** tokenDecimals.value) : Number(baseUnits);
-      return `${formatNumber(amountInTokens, tokenDecimals.value)} ${tokenSymbol.value || tokenName.value}`;
+      return `${formatTokenAmount(baseUnits, tokenDecimals.value)} ${tokenSymbol.value || tokenName.value}`;
     }
     if(requestSatoshis.value === undefined || requestAmount.value === undefined) return undefined;
     return formatNumber(requestAmount.value, 8) + displayUnitLong.value;

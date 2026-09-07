@@ -1,4 +1,4 @@
-import { chaingraphGraphqlUrl, electrumWssUrl, parseExtendedJson, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, electrumWssUrl, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -43,6 +43,15 @@ describe('test formatTokenAmountFromBigInt', () => {
   it('should keep amounts a number cannot hold exactly', () => {
     expect(formatTokenAmountFromBigInt(9_007_199_254_740_993n, 0)).toBe("9007199254740993");
     expect(formatTokenAmountFromBigInt(90_071_992_547_409_931n, 2)).toBe("900719925474099.31");
+  });
+
+  // history changes are signed, so the sign has to survive the string math and the grouping
+  it('keeps the sign of a negative amount', () => {
+    expect(formatTokenAmountFromBigInt(-150n, 2)).toBe("-1.5");
+    expect(formatTokenAmount(-123_456_789n, 4)).toBe("-12,345.6789");
+    // below one whole token the whole part is "-0", which BigInt would turn into 0
+    expect(formatTokenAmount(-50n, 2)).toBe("-0.5");
+    expect(formatTokenAmountFromBigInt(-50n, 2)).toBe("-0.5");
   })
   it('should round-trip with parseTokenAmountToBigInt', () => {
     const baseUnits = 123_456_789_012_345_678n;

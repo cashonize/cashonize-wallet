@@ -4,7 +4,7 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
@@ -50,7 +50,7 @@
   const holding = computed(() => tokenData.value.amount + heldBack.value);
   const heldBackLine = computed(() => {
     const symbol = tokenMetaData.value?.token?.symbol ?? '';
-    return t('wallet.reservedBalance', { amount: `${numberFormatter.format(toAmountDecimals(heldBack.value))} ${symbol}`.trim() });
+    return t('wallet.reservedBalance', { amount: `${formatTokenAmount(heldBack.value, tokenMetaData.value?.token?.decimals)} ${symbol}`.trim() });
   });
   const activeAction = ref<TokenActionType | null>(null);
   const starAnimating = ref(false);
@@ -61,8 +61,6 @@
   }
 
   tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category];
-
-  const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
 
   const tokenName = computed(() => {
     return tokenMetaData.value?.name;
@@ -98,18 +96,11 @@
   );
 
   // Fungible token specific functionality
-  function toAmountDecimals(amount:bigint){
-    let tokenAmountDecimals: bigint|number = amount;
-    const decimals = tokenMetaData.value?.token?.decimals;
-    if(decimals) tokenAmountDecimals = Number(tokenAmountDecimals) / (10 ** decimals);
-    return tokenAmountDecimals;
-  }
   function maxTokenAmount(tokenSend:boolean){
     if(!tokenData.value?.amount) return // should never happen
-    const decimals = tokenMetaData.value?.token?.decimals;
-    const amountTokens = decimals ? Number(tokenData.value.amount) / (10 ** decimals) : tokenData.value.amount;
+    const decimals = tokenMetaData.value?.token?.decimals ?? 0;
     const targetState = tokenSend? tokenSendAmount : burnAmountFTs;
-    targetState.value = numberFormatter.format(amountTokens);
+    targetState.value = formatTokenAmountFromBigInt(tokenData.value.amount, decimals);
   }
   function parseAddrParams(){
     const parsed = parseTokenPaymentRequest(destinationAddr.value, tokenData.value.category);
@@ -136,7 +127,7 @@
       if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
-      const amountSentFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
+      const amountSentFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
 
       // confirm payment if setting is enabled
@@ -186,7 +177,7 @@
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
 
-      const amountBurnFormatted = numberFormatter.format(toAmountDecimals(amountTokensInt))
+      const amountBurnFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
       const tokenSymbol = tokenMetaData.value?.token?.symbol ?? t('tokenItem.tokens')
       const confirmed = await confirmDialog(
         t('tokenItem.dialogs.burnTokens.title'),
@@ -246,7 +237,7 @@
           </div>
           <div v-if="holding" class="tokenAmount">
             <div>{{ t('tokenItem.amount') }}
-              {{ numberFormatter.format(toAmountDecimals(holding)) }} {{ tokenMetaData?.token?.symbol }}
+              {{ formatTokenAmount(holding, tokenMetaData?.token?.decimals) }} {{ tokenMetaData?.token?.symbol }}
               <span v-if="holdingsFiatValue !== null" style="font-size: smaller; color: grey; white-space: nowrap;">
                 ≈ {{ formatFiatAmount(holdingsFiatValue, settingsStore.currency) }}
               </span>

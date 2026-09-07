@@ -7,7 +7,7 @@
   import { useI18n } from 'vue-i18n'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
-  import { satsToBch, formatFiatAmount } from 'src/utils/utils'
+  import { satsToBch, formatFiatAmount, formatTokenAmount } from 'src/utils/utils'
   import { addressFromUri } from 'src/utils/payments/bip21'
   import { validateRecipientAddress, validateTokenRecipientAddress, getCashAddressScanError } from 'src/utils/payments/recipientAddress'
   import { toPlainAddress } from 'src/utils/addressValidation'
@@ -30,7 +30,6 @@
   // A phase gets its entry when it first reports, so the ones ahead of it read as pending
   const phaseProgress = ref(undefined as undefined | Partial<Record<TransferPhase, { completed: number, total: number }>>);
 
-  const numberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 });
   const transferPhases: TransferPhase[] = ["fungibleTokens", "nfts", "bch"];
   // Wallets can hold hundreds of categories, past this many the group starts out collapsed
   const groupCollapseThreshold = 5;
@@ -92,10 +91,8 @@
     const truncatedId = `${categoryHex.slice(0, 8)}...${categoryHex.slice(-4)}`;
     return store.bcmrRegistries?.[categoryHex]?.name ?? truncatedId;
   }
-  function toAmountDecimals(amount: bigint, category: string) {
-    const decimals = store.bcmrRegistries?.[category]?.token?.decimals;
-    if (decimals) return Number(amount) / (10 ** decimals);
-    return amount;
+  function tokenAmountDisplay(amount: bigint, category: string) {
+    return formatTokenAmount(amount, store.bcmrRegistries?.[category]?.token?.decimals);
   }
 
   // The view is kept alive across navigation, so without this a finished transfer keeps
@@ -228,7 +225,7 @@
               <span>{{ tokenName(token.category) }}</span>
               <span class="transfer-asset-amount">
                 <template v-if="'amount' in token">
-                  {{ numberFormatter.format(toAmountDecimals(token.amount, token.category)) }}
+                  {{ tokenAmountDisplay(token.amount, token.category) }}
                   {{ store.bcmrRegistries?.[token.category]?.token?.symbol ?? '' }}
                 </template>
                 <template v-else-if="'nfts' in token">

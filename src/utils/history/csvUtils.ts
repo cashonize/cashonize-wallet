@@ -1,6 +1,7 @@
 import type { TransactionHistoryItem } from "mainnet-js";
 import type { BcmrTokenMetadata } from "src/interfaces/interfaces";
 import { i18n } from "src/boot/i18n";
+import { formatTokenAmountFromBigInt } from "src/utils/utils";
 
 const { t } = i18n.global;
 
@@ -39,8 +40,8 @@ function formatTokenChange(
   // Show the fungible change for any nonzero amount. When there is no NFT change either,
   // still show it (as "0 SYMBOL") so an entry never renders as an empty cell.
   if (tokenChange.amount !== 0n || tokenChange.nftAmount === 0n) {
-    const amount = Number(tokenChange.amount) / 10 ** decimals;
-    parts.push(`${withSign(amount)} ${symbol}`);
+    const amount = formatTokenAmountFromBigInt(tokenChange.amount, decimals);
+    parts.push(`${tokenChange.amount > 0n ? '+' : ''}${amount} ${symbol}`);
   }
   if (tokenChange.nftAmount !== 0n) {
     parts.push(`${withSign(tokenChange.nftAmount)} ${symbol} NFT`);

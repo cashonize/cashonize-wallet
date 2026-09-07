@@ -7,7 +7,7 @@
   import { convert } from 'mainnet-js'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
-  import { formatFiatAmount, satsToBch, formatTimeUntil, formatReadableDate } from 'src/utils/utils'
+  import { formatFiatAmount, formatTokenAmount, satsToBch, formatTimeUntil, formatReadableDate } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
   import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
@@ -139,10 +139,6 @@
     amountDisplay: string
   }
 
-  function formatTokenAmount(amount: bigint, decimals: number | undefined) {
-    if (!decimals) return amountFormatter.format(amount)
-    return amountFormatter.format(Number(amount) / (10 ** decimals))
-  }
 
   // undefined while the wallet balance or the token list has not loaded yet. Valued the way the
   // BCH balance is: everything held, a coin held back from spending included

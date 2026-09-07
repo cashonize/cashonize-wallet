@@ -10,7 +10,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { useI18n } from 'vue-i18n'
-  import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatTokenAmount } from 'src/utils/utils'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import { transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
   import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/tools/bip38'
@@ -42,7 +42,6 @@
   const previewTokenList = ref<TokenList>([]);
   const unverifiedTokenMetadata = ref<Record<string, BcmrTokenResponse>>({});
 
-  const numberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 });
   const fiatBalance = ref<string | undefined>(undefined);
 
   const bchDisplayUnit = computed(() => {
@@ -199,10 +198,8 @@
     return !userOwnsToken && categoryHex in unverifiedTokenMetadata.value;
   }
 
-  function toAmountDecimals(amount: bigint, category: string) {
-    const decimals = getTokenMetadata(category)?.token?.decimals;
-    if (decimals) return Number(amount) / (10 ** decimals);
-    return amount;
+  function tokenAmountDisplay(amount: bigint, category: string) {
+    return formatTokenAmount(amount, getTokenMetadata(category)?.token?.decimals);
   }
 
   function tokenName(categoryHex: string): string {
@@ -455,7 +452,7 @@
             <span v-if="isUnverifiedToken(token.category)">*</span>
           </span>
           <span class="sweep-token-amount">
-            {{ 'amount' in token ? numberFormatter.format(toAmountDecimals(token.amount, token.category)) : '' }}
+            {{ 'amount' in token ? tokenAmountDisplay(token.amount, token.category) : '' }}
             {{ getTokenMetadata(token.category)?.token?.symbol ?? '' }}
           </span>
         </div>

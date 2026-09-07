@@ -4,7 +4,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
-  import { formatNumber } from 'src/utils/utils'
+  import { formatTokenAmount } from 'src/utils/utils'
   import type { TokenDataFT } from 'src/interfaces/interfaces'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
 
@@ -146,10 +146,9 @@
   }
 
   function heldAmount(option: TokenOption) {
-    const decimals = metadataFor(option.category)?.token?.decimals ?? 0;
-    const amountInTokens = decimals ? Number(option.amount) / (10 ** decimals) : Number(option.amount);
+    const decimals = metadataFor(option.category)?.token?.decimals;
     const symbol = metadataFor(option.category)?.token?.symbol ?? "";
-    return `${formatNumber(amountInTokens, decimals)} ${symbol}`.trim();
+    return `${formatTokenAmount(option.amount, decimals)} ${symbol}`.trim();
   }
 
   // A failed lookup belongs to the id that was tried, not to the next one

@@ -2,7 +2,7 @@
   import { computed } from 'vue';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
-  import { getTokenUtxos, getFungibleTokenBalances, getAllNftTokenBalances } from 'src/utils/utils';
+  import { getTokenUtxos, getFungibleTokenBalances, getAllNftTokenBalances, formatTokenAmount } from 'src/utils/utils';
   import type { Utxo } from 'mainnet-js';
   import TokenIcon from 'src/components/general/TokenIcon.vue'
 
@@ -29,12 +29,10 @@
     for (const [category, amount] of Object.entries(fungibleBalances)) {
       const tokenMetadata = store.bcmrRegistries?.[category]?.token;
       const symbol = tokenMetadata?.symbol ?? category.slice(0, 8);
-      const decimals = tokenMetadata?.decimals ?? 0;
-      const displayAmount = Number(amount) / 10 ** decimals;
       result.push({
         key: category + "-ft",
         category,
-        amountText: displayAmount.toLocaleString("en-US", { maximumFractionDigits: decimals }),
+        amountText: formatTokenAmount(amount, tokenMetadata?.decimals),
         symbol,
       });
     }

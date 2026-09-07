@@ -10,7 +10,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import CharCounter from '../general/CharCounter.vue';
-  import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, tokenChangeChips } from 'src/utils/utils';
+  import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, formatTokenAmount, tokenChangeChips } from 'src/utils/utils';
   import { maxTxNoteLength } from 'src/utils/history/txNotes';
   import { feeRate, isBelowRelayFee, minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import { useI18n } from 'vue-i18n'
@@ -76,10 +76,8 @@
     return rate < minRelayFeeRate ? rate.toFixed(2) : rate.toFixed(1);
   });
 
-  function formatTokenAmount(amount: bigint, category: string) {
-    const decimals = store.bcmrRegistries?.[category]?.token.decimals ?? 0;
-    const value = Number(amount) / 10 ** decimals;
-    return value.toLocaleString("en-US", { maximumFractionDigits: decimals });
+  function tokenAmountDisplay(amount: bigint, category: string) {
+    return formatTokenAmount(amount, store.bcmrRegistries?.[category]?.token.decimals);
   }
 
   // The fiat fee is cosmetic here (unlike the dapp signing dialogs), so a failed rate
@@ -249,7 +247,7 @@
             <div style="margin-left: 25px;">
               <div v-if="input.value > 10_000">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</div>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.category, input.token?.nft?.commitment)" style="cursor: pointer;">
-                <span v-if="input.token.amount > 0n"> {{ " " + formatTokenAmount(input.token.amount, input.token.category) }}</span>
+                <span v-if="input.token.amount > 0n"> {{ " " + tokenAmountDisplay(input.token.amount, input.token.category) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[input.token.category]?.token?.symbol ?? input.token.category.slice(0, 8)) }}</span>
                 <span v-if="input.token?.nft"> NFT</span>
                 <TokenIcon
@@ -271,7 +269,7 @@
             <div style="margin-left: 25px;">
               <div v-if="output.value > 10_000">{{ satsToBch(output.value) }} {{ bchDisplayUnit }}</div>
               <span v-if="output.token" @click="loadTokenMetadata(output.token!.category, output.token?.nft?.commitment)" style="cursor: pointer;">
-                <span v-if="output.token.amount > 0n"> {{ " " + formatTokenAmount(output.token.amount, output.token.category) }}</span>
+                <span v-if="output.token.amount > 0n"> {{ " " + tokenAmountDisplay(output.token.amount, output.token.category) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[output.token.category]?.token?.symbol ?? output.token.category.slice(0, 8)) }}</span>
                 <span v-if="output.token?.nft"> NFT</span>
                 <TokenIcon

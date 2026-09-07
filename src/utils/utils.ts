@@ -203,6 +203,7 @@ export function parseTokenAmountToBigInt(input: string, decimals: number): bigin
 // string, again with string math so large amounts keep every digit. Trailing zeros are
 // stripped, there is no need to show them.
 export function formatTokenAmountFromBigInt(baseUnits: bigint, decimals: number): string {
+  if (baseUnits < 0n) return `-${formatTokenAmountFromBigInt(-baseUnits, decimals)}`;
   if (!decimals) return baseUnits.toString();
   const divisor = 10n ** BigInt(decimals);
   const wholePart = baseUnits / divisor;
@@ -210,16 +211,21 @@ export function formatTokenAmountFromBigInt(baseUnits: bigint, decimals: number)
   return fractionalPart ? `${wholePart}.${fractionalPart}` : `${wholePart}`;
 }
 
-// The amount in the token's own decimals with its symbol after it, as far as the metadata says,
-// grouped for reading the way the token list formats its amounts: a reserve is often billions
+// The same grouped for reading, the way the token list shows its amounts: a reserve is often billions
+export function formatTokenAmount(baseUnits: bigint, decimals: number | undefined): string {
+  // the sign is put back here: grouping a whole part of "-0" through BigInt would lose it
+  if (baseUnits < 0n) return `-${formatTokenAmount(-baseUnits, decimals)}`;
+  const [whole, fraction] = formatTokenAmountFromBigInt(baseUnits, decimals ?? 0).split('.');
+  const grouped = BigInt(whole ?? '0').toLocaleString('en-US');
+  return fraction ? `${grouped}.${fraction}` : grouped;
+}
+
+// With the token's symbol after it, as far as the metadata says
 export function formatTokenAmountWithSymbol(
   baseUnits: bigint,
   metadata: { token?: { decimals?: number | undefined; symbol?: string | undefined } | undefined } | undefined,
 ): string {
-  const [whole, fraction] = formatTokenAmountFromBigInt(baseUnits, metadata?.token?.decimals ?? 0).split('.');
-  const grouped = BigInt(whole ?? '0').toLocaleString('en-US');
-  const amount = fraction ? `${grouped}.${fraction}` : grouped;
-  return `${amount} ${metadata?.token?.symbol ?? ''}`.trim();
+  return `${formatTokenAmount(baseUnits, metadata?.token?.decimals)} ${metadata?.token?.symbol ?? ''}`.trim();
 }
 
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
@@ -283,13 +289,12 @@ export function tokenChangeChips(
     // Show the fungible change for any nonzero amount. When there is no NFT change either,
     // still show it (as "0") so a token change never renders without a chip.
     if (tokenChange.amount !== 0n || tokenChange.nftAmount === 0n) {
-      const amount = Number(tokenChange.amount) / 10 ** decimals;
       chips.push({
         key: tokenChange.category + "-ft",
         category: tokenChange.category,
-        amountText: `${amount > 0 ? '+' : ''}${amount.toLocaleString("en-US", { maximumFractionDigits: decimals })}`,
+        amountText: `${tokenChange.amount > 0n ? '+' : ''}${formatTokenAmount(tokenChange.amount, decimals)}`,
         symbol,
-        negative: amount < 0,
+        negative: tokenChange.amount < 0n,
       });
     }
     if (tokenChange.nftAmount !== 0n) {

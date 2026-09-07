@@ -5,7 +5,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import type { IdentityCarry, ReturningIdentity } from 'src/utils/dapp/reservedInputs'
-  import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmount, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
@@ -173,19 +173,11 @@
   const calculateAmount = (tokenObject: NonNullable<Output['token']>): string => {
     if (!tokenObject.amount) return '';
     const categoryHex = binToHex(tokenObject.category);
-    return formatTokenAmount(tokenObject.amount, categoryHex);
+    return tokenAmountDisplay(tokenObject.amount, categoryHex);
   };
 
-  const formatTokenAmount = (amount: bigint, categoryHex: string): string => {
-    const decimals = Number(getTokenMetadata(categoryHex)?.token?.decimals ?? 0);
-    if (decimals === 0) {
-      // toLocaleString on the bigint keeps full precision while adding thousands separators
-      return amount.toLocaleString("en-US");
-    } else {
-      const numAmount = Number(amount);
-      return formatNumber(numAmount / (10 ** decimals), decimals);
-    }
-  };
+  const tokenAmountDisplay = (amount: bigint, categoryHex: string): string =>
+    formatTokenAmount(amount, getTokenMetadata(categoryHex)?.token?.decimals);
 
   // A request spending a held back coin only reaches this dialog when the authority it takes comes
   // back to this wallet (utils/dapp/reservedInputs.ts). The dapp built the transaction, so this
@@ -275,7 +267,7 @@
           </div>
           <!-- Net fungible token changes -->
           <div v-for="[categoryHex, amount] in Object.entries(ftNetChanges)" :key="categoryHex" class="token-change-row">
-            <span>{{ amount > 0n ? '+ ' : amount < 0n ? '- ' : '' }}{{ formatTokenAmount(abs(amount), categoryHex) }} {{ getTokenDisplayName(categoryHex) }}</span>
+            <span>{{ amount > 0n ? '+ ' : amount < 0n ? '- ' : '' }}{{ tokenAmountDisplay(abs(amount), categoryHex) }} {{ getTokenDisplayName(categoryHex) }}</span>
             <TokenIcon
               :token-id="categoryHex"
               :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(categoryHex) : undefined"
