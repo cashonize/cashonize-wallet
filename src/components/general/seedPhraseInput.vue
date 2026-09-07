@@ -10,7 +10,7 @@
     'update:isValid': [value: boolean]
   }>()
 
-  defineProps<{
+  const props = defineProps<{
     modelValue?: string
     isValid?: boolean
   }>()
@@ -34,6 +34,14 @@
   // Emit changes to parent
   watch(constructedSeedPhrase, (value) => {
     emit('update:modelValue', value)
+  })
+
+  // The words live here rather than in the phrase the parent holds, so clearing the phrase has to
+  // reach them: without this they stay on screen after the parent thinks it cleared them
+  watch(() => props.modelValue, (value) => {
+    if (value) return
+    seedWordCount.value = 12
+    seedWords.value = Array(12).fill('')
   })
 
   watch(seedPhraseValid, (value) => {

@@ -145,7 +145,10 @@
     return selectedHistory.value?.filter(tx => txMatchesSearch(tx, query));
   });
 
-  watch([selectedFilter, directionFilter, dateFrom, dateTo, searchQuery], () => { currentPage.value = 1 });
+  // The view is kept alive, so a wallet or network switch has to reset the page index too. Only
+  // the clearing marks a switch, the refetches that follow assign a fresh array of their own
+  const historyCleared = () => store.walletHistory === undefined;
+  watch([selectedFilter, directionFilter, dateFrom, dateTo, searchQuery, historyCleared], () => { currentPage.value = 1 });
 
   const transactionCount = computed(() => searchedHistory.value?.length);
 

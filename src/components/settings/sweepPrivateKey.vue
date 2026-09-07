@@ -103,6 +103,11 @@
   // unlocked key was encoded for it, which the wallet of the network switched to rejects
   watch(() => store.network, resetSweepState);
 
+  // The view is kept alive, so setup runs once: a later deep link only changes the prop
+  watch(props, () => {
+    if (props.wif) privateKeyToSweep.value = props.wif;
+  });
+
   function createTempWallet(wif: string) {
     const walletClass = (store.network == 'mainnet') ? Wallet : TestNetWallet;
     return walletClass.fromWIF(wif);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from "vue"
+  import { ref, computed, onMounted, onDeactivated } from "vue"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { namedWalletExistsInDb } from 'src/utils/wallet/dbUtils'
@@ -26,6 +26,14 @@
   onMounted(async () => {
     const suggestedName = await suggestNextWalletName();
     if (!walletName.value) walletName.value = suggestedName;
+  });
+
+  // This view is kept alive, so leaving it is what has to clear the seed phrase: reopening Add
+  // wallet later in the session comes back to the import step with it still on screen
+  onDeactivated(() => {
+    step.value = 1;
+    seedPhrase.value = '';
+    seedPhraseValid.value = false;
   });
 
   // Let users replace the prefilled name by just starting to type
