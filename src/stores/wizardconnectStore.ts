@@ -33,7 +33,7 @@ import { useStore } from "./store";
 import { useIdentitiesStore } from "./identitiesStore";
 import { useSettingsStore } from "./settingsStore";
 import { walletConnectMetadata } from "./constants";
-import { createSignedWizTransaction, chainLockingBytecodes, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
+import { createSignedWizTransaction, chainLockingBytecodes, childLockingBytecode, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
 import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
 import { displayAndLogError } from "src/utils/errorHandling";
 import { identityRefusal, refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
@@ -478,16 +478,23 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   // the request signs from, derived past its highest index by the gap, which is where a dapp's
   // change to the wallet lands
   const OWNED_ADDRESS_GAP = 20;
+  // The index is the dapp's to name, up to 2^31-1, so the window is capped rather than the request
+  // refused; an output past the cap goes unmarked and shows as an outflow
+  const MAX_OWNED_WINDOW = 1000;
   function ownedLockingBytecodes(nodes: WizHdNodes, inputPaths: WizSignTransactionRequest['inputPaths']) {
+    const owned: string[] = [];
     const highestIndex = new Map<DerivationPath, number>();
     for (const [, pathName, addressIndex] of inputPaths) {
       const chain = PATH_NAME_TO_CHILD[pathName] as DerivationPath;
       highestIndex.set(chain, Math.max(highestIndex.get(chain) ?? 0, addressIndex));
+      // an input names its address, so it is derived on its own and marked at any index; the
+      // window below is capped and would leave a far one looking like a third party's coin
+      const chainNode = nodes.privateChains.get(chain);
+      if (chainNode) owned.push(childLockingBytecode(chainNode, addressIndex));
     }
-    const owned: string[] = [];
     for (const [chain, index] of highestIndex) {
       const chainNode = nodes.privateChains.get(chain);
-      if (chainNode) owned.push(...chainLockingBytecodes(chainNode, index + 1 + OWNED_ADDRESS_GAP));
+      if (chainNode) owned.push(...chainLockingBytecodes(chainNode, Math.min(index + 1 + OWNED_ADDRESS_GAP, MAX_OWNED_WINDOW)));
     }
     return owned;
   }

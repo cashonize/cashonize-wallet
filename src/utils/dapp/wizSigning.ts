@@ -27,16 +27,19 @@ export interface WizInputSigningKey {
 // onto a different transaction and the dapp cannot misrepresent input amounts.
 const wizHashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
 
-// The P2PKH locking bytecodes of a chain's first addresses, in hex. The sign dialog marks the
+// The P2PKH locking bytecode of one of a chain's addresses, in hex. The sign dialog marks the
 // wallet's own inputs and outputs by these, since mainnet-js's address cache knows the receive
 // and change chains only and a WizardConnect dapp also spends the defi chain it was given.
+export function childLockingBytecode(chain: HdPrivateNodeValid, index: number): string {
+  const pubkey = secp256k1.derivePublicKeyCompressed(deriveHdPrivateNodeChild(chain, index).privateKey);
+  if (typeof pubkey === "string") throw new Error("Failed to derive public key: " + pubkey);
+  return binToHex(encodeLockingBytecodeP2pkh(hash160(pubkey)));
+}
+
+// The same for a chain's first addresses
 export function chainLockingBytecodes(chain: HdPrivateNodeValid, count: number): string[] {
   const bytecodes: string[] = [];
-  for (let index = 0; index < count; index++) {
-    const pubkey = secp256k1.derivePublicKeyCompressed(deriveHdPrivateNodeChild(chain, index).privateKey);
-    if (typeof pubkey === "string") throw new Error("Failed to derive public key: " + pubkey);
-    bytecodes.push(binToHex(encodeLockingBytecodeP2pkh(hash160(pubkey))));
-  }
+  for (let index = 0; index < count; index++) bytecodes.push(childLockingBytecode(chain, index));
   return bytecodes;
 }
 
