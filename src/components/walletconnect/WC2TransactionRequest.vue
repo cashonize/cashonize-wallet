@@ -27,6 +27,8 @@
     dappMetadata: DappMetadata,
     transactionRequest: WcSignTransactionRequest,
     exchangeRate: number,
+    // coins of the wallet's beyond what its address cache knows, the defi chain a WizardConnect dapp spends
+    walletOwns?: (lockingBytecode: Uint8Array) => boolean,
   }>()
   const { exchangeRate } = toRefs(props);
   const safeUrl = sanitizeUrl(props.dappMetadata.url);
@@ -55,6 +57,9 @@
     }
   };
 
+  const isWalletOutput = (lockingBytecode: Uint8Array) =>
+    props.walletOwns?.(lockingBytecode) || store.walletHasAddress(toCashaddr(lockingBytecode));
+
   const toCashaddr = (lockingBytecode:Uint8Array) => {
     const prefix = store.network == "mainnet" ? "bitcoincash" : "bchtest";
     // check for opreturn
@@ -65,10 +70,10 @@
   }
 
   const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput) =>
-    store.walletHasAddress(toCashaddr(sourceOutput.lockingBytecode)) ? total + sourceOutput.valueSatoshis : total, 0n
+    isWalletOutput(sourceOutput.lockingBytecode) ? total + sourceOutput.valueSatoshis : total, 0n
   );
   const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs) =>
-    store.walletHasAddress(toCashaddr(outputs.lockingBytecode)) ? total + outputs.valueSatoshis : total, 0n
+    isWalletOutput(outputs.lockingBytecode) ? total + outputs.valueSatoshis : total, 0n
   );
   const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
   const currencyBalanceChange = convertToCurrency(bchBalanceChange, exchangeRate.value);
@@ -83,7 +88,7 @@
   // schnorr signature and a 33 byte public key, each behind a single byte push opcode.
   const signedInputSize = 100;
   const inputsAwaitingSignature = sourceOutputs.filter(sourceOutput =>
-    !sourceOutput.unlockingBytecode?.length && store.walletHasAddress(toCashaddr(sourceOutput.lockingBytecode))
+    !sourceOutput.unlockingBytecode?.length && isWalletOutput(sourceOutput.lockingBytecode)
   ).length;
   const transactionSize = encodeTransaction(txDetails).length + (inputsAwaitingSignature * signedInputSize);
   const transactionFeeRate = Number(transactionFee) / transactionSize;
@@ -99,7 +104,7 @@
   const nftsReceived: NonNullable<Output['token']>[] = [];
 
   for (const input of sourceOutputs) {
-    const walletOrigin = store.walletHasAddress(toCashaddr(input.lockingBytecode));
+    const walletOrigin = isWalletOutput(input.lockingBytecode);
     if(input.token && walletOrigin){
       const tokenCategory = binToHex(input.token.category);
       if(input.token.nft){
@@ -111,7 +116,7 @@
     }
   }
   for (const output of txDetails.outputs) {
-    const walletDestination = store.walletHasAddress(toCashaddr(output.lockingBytecode));
+    const walletDestination = isWalletOutput(output.lockingBytecode);
     if(output.token && walletDestination) {
       const tokenCategory = binToHex(output.token.category);
       if(output.token.nft) {
@@ -321,7 +326,7 @@
                   <td>{{ inputIndex }}</td>
                   <td>
                     {{ toCashaddr(input.lockingBytecode).slice(0,25)  + '...' }}
-                    <span v-if="store.walletHasAddress(toCashaddr(input.lockingBytecode))" class="thisWalletTag">
+                    <span v-if="isWalletOutput(input.lockingBytecode)" class="thisWalletTag">
                       {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
@@ -367,7 +372,7 @@
                   <td>{{ outputIndex }}</td>
                   <td>
                     {{ toCashaddr(output.lockingBytecode).slice(0,25)  + '...' }}
-                    <span v-if="store.walletHasAddress(toCashaddr(output.lockingBytecode))" class="thisWalletTag">
+                    <span v-if="isWalletOutput(output.lockingBytecode)" class="thisWalletTag">
                       {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
                   </td>
