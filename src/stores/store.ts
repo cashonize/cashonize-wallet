@@ -521,11 +521,12 @@ export const useStore = defineStore('store', () => {
           console.error("Electrum connect error:", error)
         });
       })();
-      console.time('initialize dapp connection stores');
       // WizardConnect initialization is synchronous (key derivation only, connections are fire-and-forget)
       initializeWizardConnect();
-      await Promise.all([initializeWalletConnect(), initializeCashConnect()]);
-      console.timeEnd('initialize dapp connection stores');
+      // The relay inits are not awaited: wallet data does not depend on them and neither has a
+      // timeout. Code that needs the dapp stores waits on dappConnectionStoresInitDone instead
+      void initializeWalletConnect();
+      void initializeCashConnect();
       // wait until the electrumConnectionPromise is resolved
       await electrumConnectionPromise;
       if (initialization !== currentInitialization) return;
