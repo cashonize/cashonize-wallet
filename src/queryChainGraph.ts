@@ -151,7 +151,7 @@ const bcmrPrefixRange = { from: BCMR_OUTPUT_PREFIX, to: "6a0442434d53" };
 
 // The transaction history recognises the wallet's own identity operations among these; a chain
 // longer than this only loses the badge on its oldest operations
-const RECENT_LINKS_LIMIT = 200;
+export const RECENT_LINKS_LIMIT = 200;
 
 // One request per batch of categories, since a public instance limits request size and rate. The
 // selections that would grow with the chain are narrowed on the server, a nested selection being
