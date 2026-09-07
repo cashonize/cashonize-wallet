@@ -23,7 +23,8 @@
     "copied": "Copiado!",
     "unsafeUrl": "URL oculta (protocolo inseguro)",
     "wallet": "carteira",
-    "wallets": "carteiras"
+    "wallets": "carteiras",
+    "unconfirmed": "Não confirmada"
   },
   "nav": {
     "wallet": "Carteira",
@@ -295,11 +296,16 @@
       "seeDetailsOnExplorer": "Ver no TokenExplorer",
       "nftType": "Tipo de NFT:",
       "immutable": "imutável",
+      "mutable": "mutável",
+      "minting": "de minting",
+      "nftTypeValue": "NFT {capability}",
       "nftCommitment": "Commitment do NFT:",
       "nftAttributes": "Atributos do NFT",
       "extensionNote": "Dados do empréstimo obtidos da blockchain:",
       "parsedFields": "Dados do NFT interpretados:",
-      "numberNfts": "Número de NFTs:"
+      "numberNfts": "Número de NFTs:",
+      "field": "Campo {index}",
+      "blockHeight": "Bloco {height}"
     },
     "sendTokens": {
       "title": "Enviar estes tokens para",
@@ -363,7 +369,8 @@
       },
       "confirmNftTransfer": {
         "title": "Confirmar transferência de NFTs",
-        "message": "Enviar {prefix}{count} NFTs {symbol} para\n{address}"
+        "message": "Enviar {count} NFTs {symbol} para\n{address}",
+        "messageAll": "Enviar todos os {count} NFTs {symbol} para\n{address}"
       },
       "burnTokens": {
         "title": "Queimar Tokens",
@@ -396,7 +403,8 @@
       "burnedTokens": "Queimado {amount} {symbol}",
       "burnedTokensNoSymbol": "Queimado {amount} tokens da categoria {tokenId}",
       "burnedNft": "Queimado {nftType} da categoria {tokenId}",
-      "mintedNft": "Mintado NFT imutável da categoria {tokenId} {commitmentText}",
+      "mintedNft": "Mintado NFT imutável da categoria {tokenId}",
+      "mintedNftWithCommitment": "Mintado NFT imutável da categoria {tokenId} com commitment {commitment}",
       "mintedNfts": "Mintado {amount} NFTs da categoria {tokenId}"
     },
     "errors": {
@@ -518,6 +526,9 @@
     "sizeValue": "{bytes} bytes",
     "fee": "Taxa:",
     "feesCollected": "Taxas coletadas:",
+    "feeSats": "{sats} sat",
+    "feeSatsWithFiat": "{fiat} ou {sats} sat",
+    "feeRate": "{rate} sat/byte",
     "inputs": "Entradas",
     "outputs": "Saídas",
     "coinbase": "coinbase",
@@ -1177,7 +1188,11 @@
       "rejectButton": "Rejeitar"
     },
     "executeAction": {
+      "untitledAction": "Ação sem título",
+      "noDescription": "Nenhuma descrição disponível.",
       "balanceChange": "Alteração de saldo:",
+      "unknownToken": "Token desconhecido",
+      "advanced": "Avançado",
       "inputParameters": "Parâmetros de entrada",
       "inputParametersCaption": "Parâmetros fornecidos pela Dapp para executar esta ação",
       "returnedData": "Dados retornados",
@@ -1274,7 +1289,6 @@
       "invalidTransactionSchema": "Erro na validação do schema da requisição de transação WalletConnect",
       "invalidSignMessageSchema": "Erro na validação do schema da requisição de assinatura de mensagem WalletConnect",
       "errorSendingTransaction": "Erro ao enviar transação",
-      "transactionFailedToSend": "Transação falhou ao enviar com erro: {error}",
       "noAddressForSession": "Nenhum endereço encontrado para a sessão",
       "addressNotInHdCache": "Endereço não encontrado no cache da carteira HD: {address}",
       "noPrivateKeyForAddress": "Nenhuma chave privada disponível para este endereço (carteira somente leitura)",

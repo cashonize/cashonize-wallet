@@ -7,6 +7,9 @@ import {
   type TransactionCommon,
   type Output,
 } from "@bitauth/libauth";
+import { i18n } from "src/boot/i18n";
+
+const { t } = i18n.global;
 
 
 // Field encoding type compatible with both the strict BCMR schema and the
@@ -242,7 +245,7 @@ export function parseFieldValue(
         if (locktime < 500000000) {
           return {
             type: "locktime",
-            formatted: `Block ${locktime.toString()}`,
+            formatted: t('tokenItem.info.blockHeight', { height: locktime.toString() }),
             blockHeight: locktime,
           };
         } else {

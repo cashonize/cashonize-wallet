@@ -60,7 +60,9 @@
   const nftCapability = computed(() => {
     const capability = props.utxo.token?.nft?.capability
     if (!capability) return '' // should never happen
-    return capability === 'none' ? t('tokenItem.info.immutable') : capability
+    if (capability === 'none') return t('tokenItem.info.immutable')
+    if (capability === 'mutable') return t('tokenItem.info.mutable')
+    return t('tokenItem.info.minting')
   })
 
   // Commitments are up to 40 bytes and most are far shorter, so the column shows what fits and

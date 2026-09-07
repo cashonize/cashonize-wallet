@@ -49,7 +49,7 @@ function getTokenName(categoryId: string | number) {
       return categoryId;
     }
 
-    return tokenInfo.name || 'Unknown Token';
+    return tokenInfo.name || t('cashConnect.executeAction.unknownToken');
   } catch(error) {
     const errorMessage= caughtErrorToString(error)
     console.error(errorMessage);
@@ -116,7 +116,7 @@ function addSignPrefixToNumber(value: number | bigint): string {
           </template>
           <!-- Otherwise show "Untitled Action" -->
           <template v-else>
-            Untitled Action
+            {{ t('cashConnect.executeAction.untitledAction') }}
           </template>
         </legend>
 
@@ -146,7 +146,7 @@ function addSignPrefixToNumber(value: number | bigint): string {
           </template>
           <!-- Otherwise show "No description available" -->
           <template v-else>
-            No description available.
+            {{ t('cashConnect.executeAction.noDescription') }}
           </template>
         </div>
 
@@ -168,7 +168,7 @@ function addSignPrefixToNumber(value: number | bigint): string {
 
         <hr style="margin-top:1em; margin-bottom: 1em" />
 
-        <q-expansion-item label="Advanced">
+        <q-expansion-item :label="t('cashConnect.executeAction.advanced')">
           <!-- NOTE: The "content-inset-level" property pushes these too far in, so we pad manually. -->
           <div class="q-pl-md">
             <CCExpansionItem :title="t('cashConnect.executeAction.inputParameters')" :caption="t('cashConnect.executeAction.inputParametersCaption')">

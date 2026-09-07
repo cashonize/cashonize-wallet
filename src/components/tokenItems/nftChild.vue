@@ -234,7 +234,7 @@
             <div v-if="parsingNft && hasParyonUsdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
             <div v-else-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 3">
               <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
-                {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+                {{ field.name ?? field.fieldId ?? t('tokenItem.info.field', { index }) }}: {{ field.parsedValue?.formatted ?? field.value }}
               </div>
             </div>
             <div v-else-if="parseResult?.success && parseResult.namedFields?.length">
@@ -268,7 +268,7 @@
           <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 3">
             <div>{{ hasParyonUsdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
             <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
-              {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+              {{ field.name ?? field.fieldId ?? t('tokenItem.info.field', { index }) }}: {{ field.parsedValue?.formatted ?? field.value }}
             </div>
           </div>
           <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ commitmentDisplay }}</div>

@@ -23,7 +23,8 @@
     "copied": "Copied!",
     "unsafeUrl": "URL hidden (unsafe protocol)",
     "wallet": "wallet",
-    "wallets": "wallets"
+    "wallets": "wallets",
+    "unconfirmed": "Unconfirmed"
   },
   "nav": {
     "wallet": "Wallet",
@@ -295,11 +296,16 @@
       "seeDetailsOnExplorer": "View on TokenExplorer",
       "nftType": "NFT type:",
       "immutable": "immutable",
+      "mutable": "mutable",
+      "minting": "minting",
+      "nftTypeValue": "{capability} NFT",
       "nftCommitment": "NFT commitment:",
       "nftAttributes": "NFT attributes",
       "extensionNote": "Loan data fetched from blockchain:",
       "parsedFields": "Parsed NFT data:",
-      "numberNfts": "Number NFTs:"
+      "numberNfts": "Number NFTs:",
+      "field": "Field {index}",
+      "blockHeight": "Block {height}"
     },
     "sendTokens": {
       "title": "Send these tokens to",
@@ -363,7 +369,8 @@
       },
       "confirmNftTransfer": {
         "title": "Confirm NFT Transfer",
-        "message": "Send {prefix}{count} {symbol} NFTs to\n{address}"
+        "message": "Send {count} {symbol} NFTs to\n{address}",
+        "messageAll": "Send all {count} {symbol} NFTs to\n{address}"
       },
       "burnTokens": {
         "title": "Burn Tokens",
@@ -396,7 +403,8 @@
       "burnedTokens": "Burned {amount} {symbol}",
       "burnedTokensNoSymbol": "Burned {amount} tokens of category {tokenId}",
       "burnedNft": "Burned {nftType} of category {tokenId}",
-      "mintedNft": "Minted immutable NFT of category {tokenId} {commitmentText}",
+      "mintedNft": "Minted immutable NFT of category {tokenId}",
+      "mintedNftWithCommitment": "Minted immutable NFT of category {tokenId} with commitment {commitment}",
       "mintedNfts": "Minted {amount} NFTs of category {tokenId}"
     },
     "errors": {
@@ -518,6 +526,9 @@
     "sizeValue": "{bytes} bytes",
     "fee": "Fee:",
     "feesCollected": "Fees collected:",
+    "feeSats": "{sats} sat",
+    "feeSatsWithFiat": "{fiat} or {sats} sat",
+    "feeRate": "{rate} sat/byte",
     "inputs": "Inputs",
     "outputs": "Outputs",
     "coinbase": "coinbase",
@@ -1177,7 +1188,11 @@
       "rejectButton": "Reject"
     },
     "executeAction": {
+      "untitledAction": "Untitled Action",
+      "noDescription": "No description available.",
       "balanceChange": "Balance Change:",
+      "unknownToken": "Unknown token",
+      "advanced": "Advanced",
       "inputParameters": "Input Parameters",
       "inputParametersCaption": "Parameters provided by the Dapp to execute this action",
       "returnedData": "Returned Data",
@@ -1274,7 +1289,6 @@
       "invalidTransactionSchema": "Error in validating schema of WalletConnect transaction request",
       "invalidSignMessageSchema": "Error in validating schema of WalletConnect sign message request",
       "errorSendingTransaction": "Error in sending transaction",
-      "transactionFailedToSend": "Transaction failed to send with error: {error}",
       "noAddressForSession": "No address found for session",
       "addressNotInHdCache": "Address not found in HD wallet cache: {address}",
       "noPrivateKeyForAddress": "No private key available for address (watch-only wallet)",

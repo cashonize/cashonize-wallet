@@ -95,6 +95,11 @@
   }
   const currencySymbol = CurrencySymbols[settingsStore.currency];
 
+  const feeSats = props.historyItem.fee.toLocaleString("en-US");
+  const feeText = feeIncurrency === undefined
+    ? t('transactionDialog.feeSats', { sats: feeSats })
+    : t('transactionDialog.feeSatsWithFiat', { fiat: `${feeIncurrency}${currencySymbol}`, sats: feeSats });
+
   const loadTokenMetadata = async (category: string, commitment: string | undefined) => {
     if (!store.bcmrRegistries?.[category]) {
       $q.notify({
@@ -228,11 +233,11 @@
             </div>
             <div v-if="!isCoinbase">
               {{ t('transactionDialog.fee') }}
-                <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat (<span :class="{ 'low-fee-rate': isBelowRelayFee(historyItem) }">{{ feeRateText }} sat/byte</span>)</span>
+                <span>{{ feeText }} (<span :class="{ 'low-fee-rate': isBelowRelayFee(historyItem) }">{{ t('transactionDialog.feeRate', { rate: feeRateText }) }}</span>)</span>
             </div>
             <div v-else>
               {{ t('transactionDialog.feesCollected') }}
-                <span><template v-if="feeIncurrency !== undefined">{{ feeIncurrency }}{{ currencySymbol }} or </template>{{ historyItem.fee.toLocaleString("en-US") }} sat</span>
+                <span>{{ feeText }}</span>
             </div>
           </div>
 

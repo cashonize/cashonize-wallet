@@ -150,7 +150,7 @@ export function formatTimeUntil(timestamp: number, locale: string): string {
 }
 
 export function formatTimestamp(timestamp: number | undefined, dateFormat: DateFormat, short = false): string {
-  if (!timestamp) return "Unconfirmed";
+  if (!timestamp) return t('common.unconfirmed');
   const date = new Date(timestamp * 1000);
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');

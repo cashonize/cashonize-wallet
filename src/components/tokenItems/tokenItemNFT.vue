@@ -138,6 +138,14 @@
     if (commitment.length > 40) return commitment.slice(0, 20) + '...' + commitment.slice(-20);
     return commitment;
   })
+  // the capability comes off the chain as an English enum value, so it gets its own translation
+  const nftTypeText = computed(() => {
+    const capability = tokenData.value.nfts?.[0]?.token?.nft?.capability;
+    let capabilityText = t('tokenItem.info.minting');
+    if (capability == "none") capabilityText = t('tokenItem.info.immutable');
+    if (capability == "mutable") capabilityText = t('tokenItem.info.mutable');
+    return t('tokenItem.info.nftTypeValue', { capability: capabilityText });
+  })
   const selectedNftCount = computed(() => selectedNfts.value.size);
 
   function getNftKey(txid: string, vout: number) {
@@ -219,9 +227,10 @@
       if (settingsStore.confirmBeforeSending) {
         const tokenSymbol = tokenMetaData.value?.token?.symbol ?? category.slice(0, 8)
         const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
+        const messageKey = isAllSelected ? 'tokenItem.dialogs.confirmNftTransfer.messageAll' : 'tokenItem.dialogs.confirmNftTransfer.message'
         const confirmed = await confirmDialog(
           t('tokenItem.dialogs.confirmNftTransfer.title'),
-          t('tokenItem.dialogs.confirmNftTransfer.message', { prefix: isAllSelected ? 'all ' : '', count: nftCount, symbol: tokenSymbol, address: truncatedAddr }),
+          t(messageKey, { count: nftCount, symbol: tokenSymbol, address: truncatedAddr }),
           t('tokenItem.dialogs.confirmButton')
         )
         if (!confirmed) return
@@ -403,7 +412,7 @@
             <div v-if="isSingleNft && parsingNft && hasParyonUsdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
             <div v-else-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 2">
               <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
-                {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+                {{ field.name ?? field.fieldId ?? t('tokenItem.info.field', { index }) }}: {{ field.parsedValue?.formatted ?? field.value }}
               </div>
             </div>
             <div v-else-if="isSingleNft && parseResult?.success && parseResult.namedFields?.length" style="word-break: break-all;">
@@ -471,11 +480,11 @@
           <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 2">
             <div>{{ hasParyonUsdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
             <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
-              {{ field.name ?? field.fieldId ?? `Field ${index}` }}: {{ field.parsedValue?.formatted ?? field.value }}
+              {{ field.name ?? field.fieldId ?? t('tokenItem.info.field', { index }) }}: {{ field.parsedValue?.formatted ?? field.value }}
             </div>
           </div>
           <div v-if="isSingleNft">
-            {{ t('tokenItem.info.nftType') }} {{  tokenData?.nfts?.[0]?.token?.nft?.capability == "none" ? t('tokenItem.info.immutable') : tokenData?.nfts?.[0]?.token?.nft?.capability }} NFT
+            {{ t('tokenItem.info.nftType') }} {{ nftTypeText }}
           </div>
           <div v-if="isSingleNft">
             {{ t('tokenItem.info.nftCommitment') }} {{ commitmentDisplay }}

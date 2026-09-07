@@ -92,10 +92,11 @@
         ({ txId } = await store.spend.tokenMint(props.category, mintRequests));
       }
       const displayId = `${props.category.slice(0, 20)}...${props.category.slice(-8)}`;
-      const commitmentText = nftCommitment ? `with commitment ${nftCommitment}` : "";
       let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
       if (mintAmount == 1) {
-        alertMessage = t('tokenItem.alerts.mintedNft', { tokenId: displayId, commitmentText });
+        alertMessage = nftCommitment
+          ? t('tokenItem.alerts.mintedNftWithCommitment', { tokenId: displayId, commitment: nftCommitment })
+          : t('tokenItem.alerts.mintedNft', { tokenId: displayId });
       }
       // reset input fields
       mintCapability.value = "none";

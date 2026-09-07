@@ -23,7 +23,8 @@
     "copied": "¡Copiado!",
     "unsafeUrl": "URL oculta (protocolo no seguro)",
     "wallet": "billetera",
-    "wallets": "billeteras"
+    "wallets": "billeteras",
+    "unconfirmed": "Sin confirmar"
   },
   "nav": {
     "wallet": "Billetera",
@@ -295,11 +296,16 @@
       "seeDetailsOnExplorer": "Ver en TokenExplorer",
       "nftType": "Tipo de NFT:",
       "immutable": "inmutable",
+      "mutable": "mutable",
+      "minting": "de acuñación",
+      "nftTypeValue": "NFT {capability}",
       "nftCommitment": "Commitment del NFT:",
       "nftAttributes": "Atributos del NFT",
       "extensionNote": "Datos del préstamo obtenidos de la blockchain:",
       "parsedFields": "Datos NFT analizados:",
-      "numberNfts": "Número de NFTs:"
+      "numberNfts": "Número de NFTs:",
+      "field": "Campo {index}",
+      "blockHeight": "Bloque {height}"
     },
     "sendTokens": {
       "title": "Enviar estos tokens a",
@@ -363,7 +369,8 @@
       },
       "confirmNftTransfer": {
         "title": "Confirmar transferencia de NFT",
-        "message": "Enviar {prefix}{count} NFTs {symbol} a\n{address}"
+        "message": "Enviar {count} NFTs {symbol} a\n{address}",
+        "messageAll": "Enviar todos los {count} NFTs {symbol} a\n{address}"
       },
       "burnTokens": {
         "title": "Quemar tokens",
@@ -396,7 +403,8 @@
       "burnedTokens": "Quemado {amount} {symbol}",
       "burnedTokensNoSymbol": "Quemado {amount} tokens de categoría {tokenId}",
       "burnedNft": "Quemado {nftType} de categoría {tokenId}",
-      "mintedNft": "Acuñado NFT inmutable de categoría {tokenId} {commitmentText}",
+      "mintedNft": "Acuñado NFT inmutable de categoría {tokenId}",
+      "mintedNftWithCommitment": "Acuñado NFT inmutable de categoría {tokenId} con commitment {commitment}",
       "mintedNfts": "Acuñados {amount} NFTs de categoría {tokenId}"
     },
     "errors": {
@@ -518,6 +526,9 @@
     "sizeValue": "{bytes} bytes",
     "fee": "Comisión:",
     "feesCollected": "Comisiones recolectadas:",
+    "feeSats": "{sats} sat",
+    "feeSatsWithFiat": "{fiat} o {sats} sat",
+    "feeRate": "{rate} sat/byte",
     "inputs": "Entradas",
     "outputs": "Salidas",
     "coinbase": "coinbase",
@@ -1177,7 +1188,11 @@
       "rejectButton": "Rechazar"
     },
     "executeAction": {
+      "untitledAction": "Acción sin título",
+      "noDescription": "No hay descripción disponible.",
       "balanceChange": "Cambio de saldo:",
+      "unknownToken": "Token desconocido",
+      "advanced": "Avanzado",
       "inputParameters": "Parámetros de entrada",
       "inputParametersCaption": "Parámetros proporcionados por la Dapp para ejecutar esta acción",
       "returnedData": "Datos devueltos",
@@ -1274,7 +1289,6 @@
       "invalidTransactionSchema": "Error al validar el esquema de la solicitud de transacción de WalletConnect",
       "invalidSignMessageSchema": "Error al validar el esquema de la solicitud de firma de mensaje de WalletConnect",
       "errorSendingTransaction": "Error al enviar la transacción",
-      "transactionFailedToSend": "Error al enviar la transacción: {error}",
       "noAddressForSession": "No se encontró dirección para la sesión",
       "addressNotInHdCache": "Dirección no encontrada en la caché de la billetera HD: {address}",
       "noPrivateKeyForAddress": "No hay clave privada disponible para la dirección (billetera de solo lectura)",

@@ -566,7 +566,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         displayAndLogError(error);
         const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : t('walletConnect.errors.errorSendingTransaction'))
         // respond with error to dapp
-        const wcErrorMessage = t('walletConnect.errors.transactionFailedToSend', { error: errorMessage });
+        const wcErrorMessage = 'Transaction failed to send with error: ' + errorMessage;
         // There is no suitable code for failed broadcast, so we'll use 7 which is UNKNOWN_TYPE
         const response = { id, jsonrpc: '2.0', error: { message : wcErrorMessage, code: 7 } };
         await web3wallet.value?.respondSessionRequest({ topic, response });
