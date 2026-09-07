@@ -181,16 +181,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // A publication whose identity output carries no token, an identity received by transfer say,
-  // is named by the registry it commits to: of the authbases the file lists, resolved forward,
-  // the one ending at a coin this wallet holds, which need not be the publication's own output
-  // since the identity may have moved to another own address since. The hash proves the file and
-  // the resolve proves the match, and only this wallet's own publications are fetched, so the
-  // host is one the user published to. Each publication is tried once per session: a chain
-  // already listed is skipped, and one that could not be named waits for the next open. The
-  // resolve here is Chaingraph's alone, like the followed tokens': these are chains nobody asked
-  // for, so an outage is not walked around at open. A file naming several identities held here
-  // names one of them, see the docs' future items.
+  // is named by the registry it commits to. The file is trusted for nothing: the hash proves its
+  // bytes and the forward resolve proves the match. Only this wallet's own publications are
+  // fetched, so the host reached is one the user published to.
   const namedPerRegistryCap = 20;
+  // once per session, so a file no location serves is not asked for at every open
   let publicationsTried: string[] = [];
   async function nameFromPublications(detected: DetectedIdentity[]): Promise<DetectedIdentity[]> {
     const heldAuthheads = (mainStore.walletUtxos ?? []).filter(utxo => utxo.vout === 0).map(utxo => utxo.txid);
@@ -212,7 +207,10 @@ export const useIdentitiesStore = defineStore('identities', () => {
         .filter(authbase => !identityCategories.value.includes(authbase) && !dismissedIdentities.value.includes(authbase))
         .slice(0, namedPerRegistryCap);
       if (!authbases.length) continue;
+      // Chaingraph alone, like the followed tokens: chains nobody asked for are not walked at open
       const resolved = await resolveIdentities(authbases, authchainBackends(false), mainStore.walletUtxos ?? [], extraKeyCategories, false);
+      // any held coin, not the publication's own output: the identity may have moved since. A file
+      // naming several identities held here names one of them, see the docs' future items
       const match = resolved.find(candidate => candidate.authheadTxid !== undefined && heldAuthheads.includes(candidate.authheadTxid));
       if (match?.authheadTxid) named.push({ authheadTxid: match.authheadTxid, category: match.category, marker: 'publication' });
     }
