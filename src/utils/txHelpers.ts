@@ -4,9 +4,31 @@
 import { Dialog, Notify } from "quasar";
 import alertDialog from 'src/components/general/alertDialog.vue'
 import { useStore } from 'src/stores/store'
+import { useIdentitiesStore } from 'src/stores/identitiesStore'
 import { useSettingsStore } from 'src/stores/settingsStore'
+import { displayAndLogError } from 'src/utils/errorHandling'
+import { identityRefusal, refusalMessage, type ReservedInputsCheck } from 'src/utils/dapp/reservedInputs'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
+
+// A dapp request refused for an identity's sake is told in a dialog: there is something to know,
+// which identity, and something to do, the option under user options. A pledged or frozen coin's
+// refusal stays a toast like every other error.
+export function reportDappRefusal(check: ReservedInputsCheck) {
+  const refusal = identityRefusal(check)
+  if (!refusal) {
+    displayAndLogError(refusalMessage(check))
+    return
+  }
+  const identitiesStore = useIdentitiesStore()
+  const message = refusalMessage(check, identitiesStore.identityNameAt(refusal.outpoint))
+  console.error(message)
+  Dialog.create({
+    title: t('store.errors.dappRefusedTitle'),
+    message,
+    ok: { color: 'primary', textColor: 'white' },
+  })
+}
 
 // Promisified Quasar confirmation dialog, resolves to false on cancel
 export function confirmDialog(

@@ -5,6 +5,7 @@ import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletki
 import type { SessionTypes } from '@walletconnect/types'
 import { convert, NetworkType, HDWallet } from "mainnet-js";
 import { useStore } from "./store"
+import { useIdentitiesStore } from "./identitiesStore"
 import {
   hexToBin,
   binToHex,
@@ -25,7 +26,8 @@ import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
-import { reservedTransactionInputs } from "src/utils/wallet/reservedUtxos"
+import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
+import { reportDappRefusal } from "src/utils/txHelpers"
 import { WcMessageObjSchema, LooseEncodedWcTransactionObjSchema, StrictEncodedWcTransactionObjSchema } from "src/utils/zodValidation"
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 import { i18n } from 'src/boot/i18n'
@@ -407,13 +409,16 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         const wcTransactionObj = parseExtendedJson(JSON.stringify(request.params)) as WcSignTransactionRequest;
         // Checked before auto-approve, so a reserved coin can never be spent without being seen.
         // A refused dapp action can be retried; a coin spent out from under a pledge cannot.
-        if (hasReservedInputs(wcTransactionObj)) {
-          displayAndLogError(t('walletConnect.errors.reservedInputs'));
+        const arrivalCheck = reservedInputsCheck(wcTransactionObj);
+        if (arrivalCheck.refusals.length) {
+          reportDappRefusal(arrivalCheck);
           void rejectRequest(event);
           return;
         }
-        // Auto-approve early return
-        if (settingsStore.isAutoApproveValid(topic)) {
+        // Auto-approve early return. Not for an identity operation: auto-approve was granted for
+        // ordinary spends, and a held back coin is spent only in front of the user.
+        const touchesIdentity = arrivalCheck.returning.length > 0;
+        if (!touchesIdentity && settingsStore.isAutoApproveValid(topic)) {
           await signTransactionWC(event)
           // Decrement request count if applicable
           if (settingsStore.getAutoApproveState(topic)?.mode === "count") {
@@ -510,10 +515,10 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   }
   // Dapps build their own transactions and pick their own coins, so refusing to sign is the only
   // enforcement. Only called once isValidSignTransactionRequest has confirmed the hex decodes.
-  function hasReservedInputs(wcTransactionObj: WcSignTransactionRequest): boolean {
+  function reservedInputsCheck(wcTransactionObj: WcSignTransactionRequest): ReservedInputsCheck {
     const { transaction } = wcTransactionObj;
     const decodedTransaction = typeof transaction === "string" ? decodeTransactionUnsafe(hexToBin(transaction)) : transaction;
-    return reservedTransactionInputs(decodedTransaction.inputs, mainStore.reservedUtxos).length > 0;
+    return useIdentitiesStore().checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
   }
 
   async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {
@@ -524,8 +529,9 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const { id, topic } = transactionRequestWC;
     // Checked again here rather than only on arrival: the approval dialog holds the request open
     // for as long as the user takes, and a coin can be reserved while it is up.
-    if (hasReservedInputs(wcTransactionObj)) {
-      displayAndLogError(t('walletConnect.errors.reservedInputs'));
+    const signingCheck = reservedInputsCheck(wcTransactionObj);
+    if (signingCheck.refusals.length) {
+      reportDappRefusal(signingCheck);
       const wcErrorMessage = 'Transaction signing request aborted with error: input reserved by the wallet';
       const response = { id, jsonrpc: '2.0', error: { message: wcErrorMessage, code: 7 } };
       await web3wallet.value?.respondSessionRequest({ topic, response });

@@ -1,8 +1,8 @@
-import { queryAuthHeadTxid } from "src/queryChainGraph";
 import { cachedFetch } from "src/utils/cacheUtils";
 import type { Utxo } from "mainnet-js";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
+import { outpointOf, spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";
 import { BcmrIndexerResponseSchema } from "src/utils/zodValidation";
 import { parseNft, type NftParseInfo, type ParseResult } from "src/parsing/nftParsing"
 import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
@@ -10,15 +10,31 @@ import { invokeExtensions } from "src/parsing/extensions/index"
 import { createElectrumAdapter } from "src/parsing/electrumAdapter"
 import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
 
-export function tokenListFromUtxos(walletUtxos: Utxo[]) {
+// A fungible entry says what the wallet can spend of a category and, apart from it, what its held
+// back coins carry: the list shows the whole holding, the way the wallet page shows its balance
+// and its held back part, and a send is measured against the spendable part alone. Of the held
+// back part, what rides on an identity's UTXO is the reserve, supply never issued, which the
+// portfolio leaves out of a total. A category held back entirely is listed with nothing to spend.
+// An NFT is not a balance, so a held back one is still listed, and refused when a send names it.
+export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedUtxos = {}) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
-  const fungibleTokensResult = getFungibleTokenBalances(tokenUtxos);
+  const heldBalances = getFungibleTokenBalances(tokenUtxos);
+  const spendableBalances = getFungibleTokenBalances(spendableFromUtxos(tokenUtxos, reservedUtxos));
+  const reserveBalances = getFungibleTokenBalances(tokenUtxos.filter(utxo => reservedUtxos[outpointOf(utxo)] === 'auth'));
   const nftsResult = getAllNftTokenBalances(tokenUtxos);
   const arrayTokens: TokenList = [];
-  for (const category of Object.keys(fungibleTokensResult)) {
-    const fungibleTokenAmount = fungibleTokensResult[category]
-    if(!fungibleTokenAmount) continue // should never happen
-    arrayTokens.push({ category, amount: fungibleTokenAmount });
+  for (const category of Object.keys(heldBalances)) {
+    const held = heldBalances[category] ?? 0n;
+    if (!held) continue; // should never happen
+    const amount = spendableBalances[category] ?? 0n;
+    const heldBack = held - amount;
+    const inReserve = reserveBalances[category] ?? 0n;
+    arrayTokens.push({
+      category,
+      amount,
+      ...(heldBack ? { heldBack } : {}),
+      ...(inReserve ? { inReserve } : {}),
+    });
   }
   for (const category of Object.keys(nftsResult)) {
     const utxosNftCategory = tokenUtxos.filter((val) =>val.token?.category === category);
@@ -27,10 +43,13 @@ export function tokenListFromUtxos(walletUtxos: Utxo[]) {
   return arrayTokens
 }
 
+// The token metadata endpoints. The indexer indexes token identities only, keyed by category, so
+// this is not a way to name a non-token identity: the identities page reads those from their own
+// registries.
 export async function fetchTokenMetadata(
   tokenList: TokenList,
   fetchNftInfo: boolean,
-  bcmrIndexer: string,
+  tokenMetadataIndexer: string,
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
 ) {
   const metadataPromises = [];
@@ -40,11 +59,11 @@ export async function fetchTokenMetadata(
       const uniqueCommitments = new Set(listCommitments);
       for(const nftCommitment of uniqueCommitments) {
         const nftEndpoint = nftCommitment ? nftCommitment : "empty"
-        const metadataPromise = cachedFetch(`${bcmrIndexer}/tokens/${item.category}/${nftEndpoint}/`);
+        const metadataPromise = cachedFetch(`${tokenMetadataIndexer}/tokens/${item.category}/${nftEndpoint}/`);
         metadataPromises.push(metadataPromise);
       }
     } else {
-      const metadataPromise = cachedFetch(`${bcmrIndexer}/tokens/${item.category}/`);
+      const metadataPromise = cachedFetch(`${tokenMetadataIndexer}/tokens/${item.category}/`);
       metadataPromises.push(metadataPromise);
     }
   }
@@ -90,11 +109,11 @@ export async function fetchTokenMetadata(
 export async function fetchNftMetadata(
   category: string,
   commitment: string,
-  bcmrIndexer: string,
+  tokenMetadataIndexer: string,
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
 ) {
   const nftEndpoint = commitment || "empty";
-  const res = await cachedFetch(`${bcmrIndexer}/tokens/${category}/${nftEndpoint}/`);
+  const res = await cachedFetch(`${tokenMetadataIndexer}/tokens/${category}/${nftEndpoint}/`);
   if (res.status !== 200) return bcmrRegistries ?? {};
   const jsonResponse = await res.json();
   const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
@@ -158,32 +177,4 @@ export async function parseNftCommitment(
   }
 
   return parseNft(libauthOutput, parseInfo);
-}
-
-export async function updateTokenListWithAuthUtxos(
-  tokenList: TokenList, chaingraphUrl: string, tokenUtxos: Utxo[]
-) {
-  const copyTokenList = [...tokenList]
-  // get all authHeadTxIds in parallel
-  const authHeadTxIdPromises: Promise<string>[] = [];
-  for (const token of tokenList){
-    const fetchAuthHeadPromise = queryAuthHeadTxid(token.category, chaingraphUrl)
-    authHeadTxIdPromises.push(fetchAuthHeadPromise)
-  }
-  const authHeadTxIdSettled = await Promise.allSettled(authHeadTxIdPromises);
-  const authHeadTxIdResults = authHeadTxIdSettled.map(result => {
-    if (result.status === 'fulfilled') return result.value;
-    console.error("ChainGraph query failed:", result.reason);
-    return undefined;
-  });
-  // check if any tokenUtxo of category is the authUtxo for that category
-  copyTokenList.forEach((token, index) => {
-    const authHeadTxId = authHeadTxIdResults[index];
-    const filteredTokenUtxos = tokenUtxos.filter(
-      (tokenUtxo) => tokenUtxo.token?.category === token.category
-    );
-    const authUtxo = filteredTokenUtxos.find(utxo => utxo.txid == authHeadTxId && utxo.vout == 0);
-    if(authUtxo) token.authUtxo = authUtxo;
-  })
-  return copyTokenList
 }

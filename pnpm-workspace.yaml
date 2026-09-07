@@ -43,3 +43,11 @@ overrides:
 # (src-electron has its own allowBuilds for electron's binary download.)
 allowBuilds:
   '@parcel/watcher': true
+
+# Make tokenMint and tokenBurn honor the utxoIds option. The wallet keeps coins out of its own
+# coin selection by narrowing the pool with utxoIds, which send(), sendMax() and tokenGenesis()
+# already honor, but those two pick their token inputs from the unfiltered wallet, so a frozen or
+# reserved token coin could still be minted from or burned. The patch adds the narrowing the same
+# way the other methods do it, right after their getUtxos(). Remove once the fix lands upstream.
+patchedDependencies:
+  'mainnet-js@3.1.7': patches/mainnet-js@3.1.7.patch

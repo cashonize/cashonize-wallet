@@ -2,8 +2,8 @@ import { hexToBin } from "@bitauth/libauth";
 import type { Utxo } from "mainnet-js";
 import {
   loadReservedUtxos,
-  saveReservedUtxo,
-  deleteReservedUtxo,
+  saveReservedOutpoint,
+  deleteReservedOutpoint,
   removeReservedUtxos,
   spendableFromUtxos,
   reservedFromUtxos,
@@ -44,40 +44,53 @@ describe('reservedUtxos', () => {
   });
 
   it('saves and loads reservations per wallet per network', () => {
-    saveReservedUtxo('mainnet', 'mywallet', coinA, 'pledge', 1_700_000_000);
+    saveReservedOutpoint('mainnet', 'mywallet', outpointOf(coinA), 'pledge');
     expect(loadReservedUtxos('mainnet', 'mywallet')).toEqual({
-      [`${txidA}:0`]: { reason: 'pledge', satoshis: '100000', reservedAt: 1_700_000_000 },
+      [`${txidA}:0`]: 'pledge',
     });
     expect(loadReservedUtxos('chipnet', 'mywallet')).toEqual({});
     expect(loadReservedUtxos('mainnet', 'otherwallet')).toEqual({});
   });
 
-  // satoshis is a bigint, which JSON.stringify throws on, so it is stored as a string
-  it('round-trips a coin value through storage without throwing', () => {
-    expect(() => saveReservedUtxo('mainnet', 'mywallet', coinB, 'pledge', 1)).not.toThrow();
-    expect(loadReservedUtxos('mainnet', 'mywallet')[`${txidB}:1`]?.satoshis).toBe('250000');
+  // released builds stored an object carrying the reason and two fields nothing read
+  it('reads the reason out of the shape earlier builds stored', () => {
+    const oldShape = { reason: 'pledge', satoshis: '250000', reservedAt: 1 };
+    localStorage.setItem('reservedUtxos-mainnet-mywallet', JSON.stringify({ [`${txidB}:1`]: oldShape }));
+    expect(loadReservedUtxos('mainnet', 'mywallet')).toEqual({ [`${txidB}:1`]: 'pledge' });
   });
 
   it('re-reads before writing, so a reservation from another tab survives', () => {
-    saveReservedUtxo('mainnet', 'mywallet', coinA, 'pledge', 1);
+    saveReservedOutpoint('mainnet', 'mywallet', outpointOf(coinA), 'pledge');
     // simulates another tab reserving a second coin against the same key
     const otherTab = loadReservedUtxos('mainnet', 'mywallet');
-    saveReservedUtxo('mainnet', 'mywallet', coinB, 'pledge', 2);
+    saveReservedOutpoint('mainnet', 'mywallet', outpointOf(coinB), 'pledge');
     expect(Object.keys(otherTab)).toHaveLength(1);
     expect(Object.keys(loadReservedUtxos('mainnet', 'mywallet'))).toHaveLength(2);
   });
 
+  // Creating a token holds its authhead back the moment the genesis is broadcast, before the coin
+  // has reached the wallet's own view of its utxos, which reservations allow because they are kept
+  // by outpoint rather than against a coin in hand.
+  it('reserves an outpoint for a coin the wallet has not seen yet', () => {
+    saveReservedOutpoint('mainnet', 'mywallet', `${txidC}:0`, 'auth');
+    expect(loadReservedUtxos('mainnet', 'mywallet')).toEqual({
+      [`${txidC}:0`]: 'auth',
+    });
+    // and the coin is out of the spendable pool as soon as it does arrive
+    expect(spendableFromUtxos([coinA, coinC], loadReservedUtxos('mainnet', 'mywallet'))).toEqual([coinA]);
+  });
+
   it('deletes only the outpoint given', () => {
-    saveReservedUtxo('mainnet', 'mywallet', coinA, 'pledge', 1);
-    saveReservedUtxo('mainnet', 'mywallet', coinB, 'pledge', 2);
-    deleteReservedUtxo('mainnet', 'mywallet', `${txidA}:0`);
+    saveReservedOutpoint('mainnet', 'mywallet', outpointOf(coinA), 'pledge');
+    saveReservedOutpoint('mainnet', 'mywallet', outpointOf(coinB), 'pledge');
+    deleteReservedOutpoint('mainnet', 'mywallet', `${txidA}:0`);
     expect(Object.keys(loadReservedUtxos('mainnet', 'mywallet'))).toEqual([`${txidB}:1`]);
   });
 
   // a future wallet created under the same name must not inherit these
   it('removes both networks when the wallet is deleted', () => {
-    saveReservedUtxo('mainnet', 'mywallet', coinA, 'pledge', 1);
-    saveReservedUtxo('chipnet', 'mywallet', coinB, 'pledge', 2);
+    saveReservedOutpoint('mainnet', 'mywallet', outpointOf(coinA), 'pledge');
+    saveReservedOutpoint('chipnet', 'mywallet', outpointOf(coinB), 'pledge');
     removeReservedUtxos('mywallet');
     expect(loadReservedUtxos('mainnet', 'mywallet')).toEqual({});
     expect(loadReservedUtxos('chipnet', 'mywallet')).toEqual({});
@@ -93,13 +106,13 @@ describe('reservedUtxos', () => {
 // coin wrongly left in the pool is a reserved coin that gets spent.
 describe('spendableFromUtxos', () => {
   it('excludes reserved coins and keeps the rest', () => {
-    const reserved = { [`${txidB}:1`]: { reason: 'pledge' as const, satoshis: '250000', reservedAt: 1 } };
+    const reserved = { [`${txidB}:1`]: 'pledge' as const };
     expect(spendableFromUtxos([coinA, coinB, coinC], reserved)).toEqual([coinA, coinC]);
   });
 
   it('matches on vout, not on txid alone', () => {
     const sameTxOtherVout = utxo(txidA, 1, 70_000n);
-    const reserved = { [`${txidA}:0`]: { reason: 'pledge' as const, satoshis: '100000', reservedAt: 1 } };
+    const reserved = { [`${txidA}:0`]: 'pledge' as const };
     expect(spendableFromUtxos([coinA, sameTxOtherVout], reserved)).toEqual([sameTxOtherVout]);
   });
 
@@ -109,8 +122,8 @@ describe('spendableFromUtxos', () => {
 
   it('can exclude everything, rather than falling back to the full set', () => {
     const reserved = {
-      [`${txidA}:0`]: { reason: 'pledge' as const, satoshis: '100000', reservedAt: 1 },
-      [`${txidB}:1`]: { reason: 'pledge' as const, satoshis: '250000', reservedAt: 1 },
+      [`${txidA}:0`]: 'pledge' as const,
+      [`${txidB}:1`]: 'pledge' as const,
     };
     expect(spendableFromUtxos([coinA, coinB], reserved)).toEqual([]);
   });
@@ -118,13 +131,13 @@ describe('spendableFromUtxos', () => {
 
 describe('reservedFromUtxos', () => {
   it('returns the reserved coins the wallet still holds', () => {
-    const reserved = { [`${txidB}:1`]: { reason: 'pledge' as const, satoshis: '250000', reservedAt: 1 } };
+    const reserved = { [`${txidB}:1`]: 'pledge' as const };
     expect(reservedFromUtxos([coinA, coinB, coinC], reserved)).toEqual([coinB]);
   });
 
   // a reservation can outlive its coin, spent from another tab, device or wallet
   it('omits a reservation whose coin is gone', () => {
-    const reserved = { [`${txidB}:1`]: { reason: 'pledge' as const, satoshis: '250000', reservedAt: 1 } };
+    const reserved = { [`${txidB}:1`]: 'pledge' as const };
     expect(reservedFromUtxos([coinA, coinC], reserved)).toEqual([]);
   });
 });
@@ -132,7 +145,7 @@ describe('reservedFromUtxos', () => {
 // The only enforcement point for WalletConnect and WizardConnect, where the wallet cannot
 // withhold the coin and has to refuse to sign instead.
 describe('reservedTransactionInputs', () => {
-  const reserved = { [`${txidA}:2`]: { reason: 'pledge' as const, satoshis: '100000', reservedAt: 1 } };
+  const reserved = { [`${txidA}:2`]: 'pledge' as const };
 
   // libauth's decodeTransaction reverses outpointTransactionHash on read, so it hex-encodes to
   // the same txid form reservations are keyed by; the wrong order here would silently never match

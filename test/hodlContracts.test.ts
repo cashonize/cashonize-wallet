@@ -41,6 +41,8 @@ describe('parseHodlAnnouncement', () => {
 // A spent wallet output whose spending transaction carries the given announcement at output 0
 function spentOutputFixture(announcementHex: string, txByte: string): ChaingraphSpentOutput {
   return {
+    transaction_hash: "\\x" + "00".repeat(32),
+    output_index: "1",
     spent_by: [{
       transaction: {
         hash: "\\x" + txByte.repeat(32),

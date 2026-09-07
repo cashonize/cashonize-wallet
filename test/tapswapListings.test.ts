@@ -34,6 +34,8 @@ describe('parseListingAnnouncement', () => {
 // A spent wallet output whose spending transaction is the Cash-Ninjas listing above
 function spentOutputFixture(contractSpentBy: { input_index: string }[]): ChaingraphSpentOutput {
   return {
+    transaction_hash: "\\x" + "00".repeat(32),
+    output_index: "1",
     spent_by: [{
       transaction: {
         hash: "\\xc02261eb029a2b960cd611df6544766668a9b01df0da7aaec9d81b4049f103bc",
@@ -83,7 +85,9 @@ describe('listingsFromSpentOutputs', () => {
   })
   it('should skip transactions that are no listing at all', () => {
     const ordinarySpend: ChaingraphSpentOutput = {
-      spent_by: [{
+      transaction_hash: "\\x" + "00".repeat(32),
+    output_index: "1",
+    spent_by: [{
         transaction: {
           hash: "\\x" + "ab".repeat(32),
           outputs: [{

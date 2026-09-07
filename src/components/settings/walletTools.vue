@@ -1,9 +1,11 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
@@ -35,6 +37,14 @@
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(16)">
       → {{ t('settings.menu.transferAllAssets') }}
+    </div>
+
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(6)">
+      → {{ t('settings.menu.createTokens') }}
+    </div>
+
+    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(19)">
+      → {{ t('settings.menu.identities') }} <span v-if="identitiesStore.unseenIdentities.length" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
     </div>
 
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(18)">

@@ -38,20 +38,23 @@ export type QRCodeAnimationName =
   | 'RadialRipple'
   | 'RadialRippleIn';
 
-export type TokenActionType = 'sending' | 'minting' | 'burning' | 'transferAuth';
+export type TokenActionType = 'sending' | 'minting' | 'burning';
 
 export type TokenList = (TokenDataNFT | TokenDataFT)[]
 
 export interface TokenDataNFT {
   category: string,
-  nfts: Utxo[],
-  authUtxo?: Utxo
+  nfts: Utxo[]
 }
 
+// amount is what the wallet can spend of the category; heldBack is what its held-back coins carry,
+// and inReserve the part of that riding on an identity's UTXO, supply never issued. Both are set
+// by the token list builder when there is any. The holding is amount plus heldBack.
 export interface TokenDataFT {
   category: string,
   amount: bigint,
-  authUtxo?: Utxo
+  heldBack?: bigint,
+  inReserve?: bigint
 }
 
 export type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;

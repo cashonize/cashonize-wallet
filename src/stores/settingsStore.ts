@@ -13,10 +13,17 @@ const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction"
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
 const defaultElectrumChipnet = "chipnet.bch.ninja"
-const defaultChaingraph = "https://gql.chaingraph.pat.mn/v1/graphql";
+// One Chaingraph instance per network: some instances index several chains behind one endpoint
+// and some serve one chain each, so the setting names an endpoint per network. No public
+// instance serves chipnet reliably yet.
+const defaultChaingraphMainnet = "https://gql.chaingraph.pat.mn/v1/graphql";
+const defaultChaingraphChipnet = "";
 const defaultCauldronIndexer = "https://indexer.riften.net";
-const defaultBcmrIndexerMainnet = "https://bcmr.paytaca.com/api";
-const defaultBcmrIndexerChipnet = "https://bcmr-chipnet.paytaca.com/api";
+// The token metadata endpoints: a BCMR indexer that indexes token identities only, keyed by
+// category. Not a way to name a non-token identity, which the identities page reads from its own
+// registry. Stored under the old "bcmrIndexer*" keys, which a user never sees.
+const defaultTokenMetadataIndexerMainnet = "https://bcmr.paytaca.com/api";
+const defaultTokenMetadataIndexerChipnet = "https://bcmr-chipnet.paytaca.com/api";
 // ipfs.io serves the content directly, other gateways redirect to a subdomain gateway.
 // A redirect hop without CORS headers breaks reads that need them, like the canvas
 // pixel read behind the portfolio chart's icon colors.
@@ -35,10 +42,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const explorerChipnet = ref(defaultExplorerChipnet);
   const electrumServerMainnet = ref(defaultElectrumMainnet);
   const electrumServerChipnet = ref(defaultElectrumChipnet);
-  const chaingraph = ref(defaultChaingraph);
+  const chaingraphMainnet = ref(defaultChaingraphMainnet);
+  const chaingraphChipnet = ref(defaultChaingraphChipnet);
   const cauldronIndexer = ref(defaultCauldronIndexer);
-  const bcmrIndexerMainnet = ref(defaultBcmrIndexerMainnet);
-  const bcmrIndexerChipnet = ref(defaultBcmrIndexerChipnet);
+  const tokenMetadataIndexerMainnet = ref(defaultTokenMetadataIndexerMainnet);
+  const tokenMetadataIndexerChipnet = ref(defaultTokenMetadataIndexerChipnet);
   const ipfsGateway = ref(defaultIpfsGateway);
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
@@ -51,9 +59,18 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false); // consider changing default to true
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
+  // The identities of the tokens the wallet holds, followed passively. Off by default: the lookups
+  // cost the Chaingraph instance a request at every wallet open, and send the token list there as
+  // a set, for a notice only the holder of an identity ever receives.
+  const followTokenIdentities = ref(false);
+  // whether a dapp transaction may spend an identity UTXO this wallet holds; off, it is refused
+  // the way a pledged coin is, since no dapp builds such a transaction yet and an accident is final
+  const allowDappIdentitySpends = ref(false);
   // developer settings
   const mintNfts = ref(false);
-  const authchains = ref(false);
+  // whether the identities page offers to add an identity that is not a token; off, since the
+  // spec's non-token identities have no users yet and the entry is easily taken for token creation
+  const nonTokenIdentities = ref(false);
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
   const showPrivateKeyWif = ref(false);
@@ -204,17 +221,26 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readElectrumChipnet = localStorage.getItem("electrum-chipnet") ?? "";
   if(readElectrumChipnet) electrumServerChipnet.value = readElectrumChipnet
 
-  const readChaingraph = localStorage.getItem("chaingraph") ?? "";
-  if(readChaingraph) chaingraph.value = readChaingraph
+  // the setting was one URL for both networks; that key becomes the mainnet one. Written back
+  // under the new key before the old one goes: nothing else persists this setting on its own, so
+  // dropping the old key without it would lose a custom instance on the next load.
+  const readChaingraphMainnet = localStorage.getItem("chaingraph-mainnet") ?? localStorage.getItem("chaingraph") ?? "";
+  if (readChaingraphMainnet) {
+    chaingraphMainnet.value = readChaingraphMainnet;
+    localStorage.setItem("chaingraph-mainnet", readChaingraphMainnet);
+  }
+  localStorage.removeItem("chaingraph");
+  const readChaingraphChipnet = localStorage.getItem("chaingraph-chipnet");
+  if (readChaingraphChipnet !== null) chaingraphChipnet.value = readChaingraphChipnet;
 
   const readCauldronIndexer = localStorage.getItem("cauldronIndexer") ?? "";
   if(readCauldronIndexer) cauldronIndexer.value = readCauldronIndexer
 
-  const readBcmrIndexerMainnet = localStorage.getItem("bcmrIndexerMainnet") ?? "";
-  if(readBcmrIndexerMainnet) bcmrIndexerMainnet.value = readBcmrIndexerMainnet
+  const readTokenMetadataIndexerMainnet = localStorage.getItem("bcmrIndexerMainnet") ?? "";
+  if(readTokenMetadataIndexerMainnet) tokenMetadataIndexerMainnet.value = readTokenMetadataIndexerMainnet
 
-  const readBcmrIndexerChipnet = localStorage.getItem("bcmrIndexerChipnet") ?? "";
-  if(readBcmrIndexerChipnet) bcmrIndexerChipnet.value = readBcmrIndexerChipnet
+  const readTokenMetadataIndexerChipnet = localStorage.getItem("bcmrIndexerChipnet") ?? "";
+  if(readTokenMetadataIndexerChipnet) tokenMetadataIndexerChipnet.value = readTokenMetadataIndexerChipnet
   
   const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
   if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
@@ -224,8 +250,19 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  const readAuthchains = localStorage.getItem("authchains") ?? "";
-  if(readAuthchains) authchains.value = readAuthchains == "true";
+  // The "authchains" developer option this setting replaces resolved every held token's chain for
+  // the same people, so its value carries over, written under the new key before the old one goes,
+  // since nothing else persists this setting on its own. A choice already made under the new key wins.
+  const readFollowTokenIdentities = localStorage.getItem("followTokenIdentities") ?? localStorage.getItem("authchains");
+  if (readFollowTokenIdentities) {
+    followTokenIdentities.value = readFollowTokenIdentities == "true";
+    localStorage.setItem("followTokenIdentities", readFollowTokenIdentities);
+  }
+  localStorage.removeItem("authchains");
+  const readAllowDappIdentitySpends = localStorage.getItem("allowDappIdentitySpends");
+  if (readAllowDappIdentitySpends) allowDappIdentitySpends.value = readAllowDappIdentitySpends == "true";
+  const readNonTokenIdentities = localStorage.getItem("nonTokenIdentities");
+  if (readNonTokenIdentities) nonTokenIdentities.value = readNonTokenIdentities == "true";
 
   const readDateFormat = localStorage.getItem("dateFormat");
   if(readDateFormat && (readDateFormat=="DD/MM/YY" || readDateFormat=="MM/DD/YY" || readDateFormat=="YY-MM-DD")) {
@@ -460,10 +497,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     explorerChipnet,
     electrumServerMainnet,
     electrumServerChipnet,
-    chaingraph,
+    chaingraphMainnet,
+    chaingraphChipnet,
     cauldronIndexer,
-    bcmrIndexerMainnet,
-    bcmrIndexerChipnet,
+    tokenMetadataIndexerMainnet,
+    tokenMetadataIndexerChipnet,
     ipfsGateway,
     darkMode,
     showFiatValueHistory,
@@ -491,7 +529,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     clearWalletMetadata,
     clearWalletSettings,
     mintNfts,
-    authchains,
+    followTokenIdentities,
+    allowDappIdentitySpends,
+    nonTokenIdentities,
     strictWcSchema,
     showPrivateKeyWif,
     dateFormat,

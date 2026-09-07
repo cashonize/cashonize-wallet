@@ -3,7 +3,9 @@
   import { binToHex, decodeTransactionUnsafe, encodeTransaction, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
-  import { convertToCurrency, formatFiatAmount, formatNumber, sanitizeUrl } from 'src/utils/utils'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
+  import type { IdentityCarry, ReturningIdentity } from 'src/utils/dapp/reservedInputs'
+  import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
@@ -180,6 +182,23 @@
     }
   };
 
+  // A request spending a held back coin only reaches this dialog when the authority it takes comes
+  // back to this wallet (utils/dapp/reservedInputs.ts). The dapp built the transaction, so this
+  // is the one place the user learns what the identity output carried and carries after.
+  const identitiesStore = useIdentitiesStore()
+  const identityInputs = identitiesStore.checkDappReservedInputs(txDetails.inputs, txDetails.outputs).returning;
+  function identityLine(identity: ReturningIdentity) {
+    if (identity.kind === 'key') return t('walletConnect.transactionRequest.identityKeyReturns');
+    return t('walletConnect.transactionRequest.identityStays', { name: identitiesStore.identityNameAt(identity.outpoint) });
+  }
+  function mintingLine(after: IdentityCarry) {
+    if (after.mintingNft) return t('walletConnect.transactionRequest.identityMintingStays');
+    return t('walletConnect.transactionRequest.identityMintingLeaves');
+  }
+  function reserveDisplay(category: string | undefined, reserve: bigint) {
+    return formatTokenAmountWithSymbol(reserve, category ? getTokenMetadata(category) : undefined);
+  }
+
   const formatTokenDisplay = (tokenSpent: NonNullable<Output['token']>, displayFullName= true): string => {
     const categoryHex = binToHex(tokenSpent.category);
     const tokenMetadata = getTokenMetadata(categoryHex);
@@ -221,6 +240,24 @@
             <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
             <!-- WizardConnect sessions carry no dapp url, so only warn when a url is present but unsafe -->
             <span v-else-if="dappMetadata.url" style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
+          </div>
+        </div>
+
+        <div v-if="identityInputs.length" class="warning-box identity-context">
+          <div v-for="identity in identityInputs" :key="identity.outpoint">
+            <div>
+              <q-icon name="lock" size="16px" />
+              {{ identityLine(identity) }}
+            </div>
+            <template v-if="identity.kind === 'authhead'">
+              <div v-if="identity.before.reserve || identity.after.reserve">
+                {{ t('walletConnect.transactionRequest.identityReserve', {
+                  before: reserveDisplay(identity.category, identity.before.reserve),
+                  after: reserveDisplay(identity.category, identity.after.reserve),
+                }) }}
+              </div>
+              <div v-if="identity.before.mintingNft">{{ mintingLine(identity.after) }}</div>
+            </template>
           </div>
         </div>
 
@@ -389,6 +426,12 @@
   .wc-modal-details {
     font-size: smaller;
     margin: 0 5px;
+  }
+  /* one block per identity, its lines stacked rather than in the box's usual row */
+  .identity-context {
+    margin-top: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
   }
   .wc-modal-heading {
     font-weight: 700;

@@ -1,4 +1,4 @@
-import { chaingraphGraphqlUrl, electrumWssUrl, parseExtendedJson, formatTokenAmountFromBigInt, parseTokenAmountToBigInt } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, electrumWssUrl, parseExtendedJson, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -21,6 +21,15 @@ describe('test chaingraphGraphqlUrl', () => {
       .toBe("https://chaingraph.example.com/graphql");
   })
 })
+
+describe('formatTokenAmountWithSymbol', () => {
+  it('groups the whole part and keeps the fraction exact', () => {
+    expect(formatTokenAmountWithSymbol(130_900_000_000n, { token: { symbol: 'DOGECASH' } })).toBe('130,900,000,000 DOGECASH');
+    expect(formatTokenAmountWithSymbol(150n, { token: { decimals: 2, symbol: 'X' } })).toBe('1.5 X');
+    expect(formatTokenAmountWithSymbol(123_456_789n, { token: { decimals: 4 } })).toBe('12,345.6789');
+    expect(formatTokenAmountWithSymbol(5n, undefined)).toBe('5');
+  });
+});
 
 describe('test formatTokenAmountFromBigInt', () => {
   it('should return the base units unchanged for a token without decimals', () => {

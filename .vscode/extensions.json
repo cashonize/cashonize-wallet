@@ -3,7 +3,8 @@
     "dbaeumer.vscode-eslint",
     "editorconfig.editorconfig",
     "vue.volar",
-    "wayou.vscode-todo-highlight"
+    "wayou.vscode-todo-highlight",
+    "GraphQL.vscode-graphql-syntax"
   ],
   "unwantedRecommendations": [
     "octref.vetur",

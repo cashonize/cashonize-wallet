@@ -7,15 +7,18 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
+  const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
@@ -26,6 +29,18 @@
     isSelected?: boolean
   }>()
   const { nftData, tokenMetaData, id } = toRefs(props);
+
+  // A minting NFT that is the token's identity UTXO is held back from coin selection, so minting
+  // from it has to continue the authchain rather than go through tokenMint, as the token item does
+  const identityUtxo = computed(() => {
+    const authUtxo = identitiesStore.heldIdentityOf(nftData.value.token!.category)?.authUtxo;
+    if (!authUtxo) return undefined;
+    return authUtxo.txid === nftData.value.txid && authUtxo.vout === nftData.value.vout ? authUtxo : undefined;
+  });
+
+  // a held back member of a collection says so on its row; the identity's own NFT is named by
+  // the collection's line instead
+  const heldBackNft = computed(() => !identityUtxo.value && outpointOf(nftData.value) in store.reservedUtxos);
 
   const emit = defineEmits<{
     'toggle-select': []
@@ -111,6 +126,7 @@
     try{
       destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      store.checkTokenUtxosSpendable([nftData.value]);
 
       const nftInfo = nftData.value.token as TokenI;
       // confirm payment if setting is enabled
@@ -155,6 +171,7 @@
     activeAction.value = 'burning';
     try {
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
+      store.checkTokenUtxosSpendable([nftData.value]);
 
       const nftInfo = nftData.value.token as TokenI;
       const nftTypeString = nftInfo?.nft?.capability == 'minting' ? t('tokenItem.dialogs.burnNft.nftTypeMinting') : t('tokenItem.dialogs.burnNft.nftTypeRegular')
@@ -213,6 +230,7 @@
         <div class="tokenBaseInfo">
           <div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
+            <div v-if="heldBackNft" style="color: grey;">{{ t('tokenItem.heldBack') }}</div>
             <div v-if="parsingNft && hasParyonUsdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
             <div v-else-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 3">
               <div v-for="(field, index) in parseResult.namedFields" :key="'main-field-' + index">
@@ -273,7 +291,7 @@
             <input @click="sendNft()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendNft.sendingButton') : t('tokenItem.sendNft.sendButton')" :disabled="activeAction !== null">
           </div>
         </div>
-        <nftMintForm v-if="displayMintNfts" :category="category" v-model:active-action="activeAction" @minted="displayMintNfts = false"/>
+        <nftMintForm v-if="displayMintNfts" :category="category" :identity-utxo="identityUtxo" v-model:active-action="activeAction" @minted="displayMintNfts = false"/>
         <div v-if="displayBurnNft" class="tokenAction">
           <span v-if="nftData?.token?.nft?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>
           <span v-else>{{ t('tokenItem.burn.burnNftDescription') }}</span>
