@@ -102,6 +102,7 @@ describe('resolveAuthHeadsElectrum', () => {
       },
       publicationOutputs: [binToHex(publicationBytecode)],
       publicationTimestamp: 1_700_000_000,
+      genesisTimestamp: 1_700_000_000,
       chainLength: 3,
       recentLinks: [category, genesisTxid, transferTxid],
       isToken: true,

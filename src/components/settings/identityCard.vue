@@ -424,7 +424,16 @@
     <div class="identity-header" @click="emit('toggle')">
       <TokenIcon :token-id="identity.category" :icon-url="identityIconUrl" :size="40" />
       <div class="identity-title">
-        <div>{{ identityName ?? t('identities.unnamedIdentity') }}</div>
+        <div>
+          {{ identityName ?? t('identities.unnamedIdentity') }}
+          <!-- .stop so the badge's popup does not also toggle the card -->
+          <InfoPopup v-if="foundAutomatically" class="badge-popup" @click.stop>
+            <template #trigger>
+              <span class="identity-badge">{{ t('identities.detected.foundAutomatically') }}</span>
+            </template>
+            <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
+          </InfoPopup>
+        </div>
         <div class="copy-target" :title="identity.category" @click.stop="copyToClipboard(identity.category)">
           <span class="description">{{ t('identities.authbaseLabel') }}</span>
           <span class="mono">{{ shortHash(identity.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
@@ -448,15 +457,6 @@
       <q-icon name="expand_more" class="chevron" :class="{ open: expanded }" />
     </div>
 
-    <div v-if="foundAutomatically" class="info-box" style="margin-top: 8px;">
-      <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
-      <div>
-        {{ t('identities.detected.foundAutomatically') }}
-        <InfoPopup>
-          <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
-        </InfoPopup>
-      </div>
-    </div>
     <div v-if="carriesLine">
       {{ carriesLine }}
       <span

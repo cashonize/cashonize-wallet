@@ -359,7 +359,7 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identityCategories).toEqual([categoryA])
     expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
     expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
-    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], arrived: [] })
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], sources: { [categoryA]: 'key' } })
   })
 
   // a followed identity held elsewhere is neither listed nor news, and a category the server
@@ -723,7 +723,7 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.unseenIdentities).toEqual([categoryA, categoryB])
     expect(identitiesStore.unseenIdentities.length).toBe(2)
-    expect(identitiesStore.announcement).toEqual({ ids: [categoryB], arrived: [] })
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryB], sources: { [categoryB]: 'made' } })
   })
 
   // The authhead of a watched identity usually arrives while the app is closed, so the resolve
@@ -745,7 +745,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.refreshIdentities()
 
     expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
-    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], arrived: [categoryA] })
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], sources: { [categoryA]: 'arrived' } })
     expect(JSON.parse(localStorageMock.getItem('watchedIdentities-mainnet-testWallet') ?? '[]')).toEqual([])
     // held now, so not an arrival again on the next resolve
     identitiesStore.announcement = undefined

@@ -151,6 +151,7 @@ async function readAuthHead(provider: ElectrumNetworkProvider, tokenId: string, 
   const publicationTimestamp = lastPublication ? await blockTimestamp(provider, lastPublication.height) : undefined;
 
   // what the genesis made never changes, so it decides whether the identity is a token's
+  const genesisTimestamp = links[1] ? await blockTimestamp(provider, links[1].height) : undefined;
   const categoryOutputs = (links[1]?.transaction.outputs ?? [])
     .map((output, index) => ({ output, index }))
     .filter(({ output }) => output.token && binToHex(output.token.category) === tokenId);
@@ -169,6 +170,7 @@ async function readAuthHead(provider: ElectrumNetworkProvider, tokenId: string, 
     isToken: categoryOutputs.length > 0,
     fungibleSupply: genesisSupply > 0n,
     genesisSupply,
+    ...(genesisTimestamp !== undefined ? { genesisTimestamp } : {}),
     ...(keyCommitment !== undefined ? { keyCommitment } : {}),
   };
 }

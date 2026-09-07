@@ -1567,7 +1567,7 @@
     "empty": "No identities listed yet. One this wallet made is found on its own; one you hold or want to follow is added by its authbase under {link}.",
     "emptyLink": "Add existing",
     "detected": {
-      "foundAutomatically": "Found automatically",
+      "foundAutomatically": "found automatically",
       "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its UTXO is now held back from coin selection. Remove it from the list if you would rather it were not."
     },
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
@@ -1821,15 +1821,19 @@
     },
     "unresolvedHint": "Reload, or check the Chaingraph server in the settings.",
     "found": {
-      "title": "This wallet holds identities",
-      "titleArrived": "A watched identity is now held here | Watched identities are now held here",
-      "intro": "This wallet holds these identities, or the key that controls them, so it can update their metadata:",
-      "introArrived": "An identity you watched has arrived: this wallet now holds it, or the key that controls it, so it can update its metadata: | Identities you watched have arrived: this wallet now holds them, or the keys that control them, so it can update their metadata:",
-      "reserve": "reserve of {amount}",
-      "heldBack": "Their identity UTXOs, or the key NFT that controls them, are now held back from coin selection by this app only, so an ordinary send from here cannot spend them by accident; the same seed in other software still can. The BCH on them is not counted in the spendable balance, and a reserve shows in the token list as held back, and on the identities page.",
-      "remove": "You can remove an identity from the list if you would rather its UTXO were not held back.",
-      "view": "View identities",
-      "close": "Close"
+      "title": "Token identity found in this wallet | Token identities found in this wallet",
+      "titleArrived": "A token identity you watched has arrived | {count} token identities you watched have arrived",
+      "capability": "This wallet can update the token's name and icon. | This wallet can update their names and icons.",
+      "capabilityWithSupply": "This wallet can update the token's name, icon and unissued supply.",
+      "mintingNft": "a minting NFT",
+      "nft": "an NFT",
+      "reserve": "{amount} show as held back in the token list.",
+      "created": "created {date}",
+      "reserveOpenEnded": "Its reserved supply shows as held back in the token list.",
+      "heldBackCoin": "Its identity coin is kept out of normal sends from this app, so nothing here spends it by accident. Other wallets on the same seed can still spend it. | Their identity coins are kept out of normal sends from this app, so nothing here spends them by accident. Other wallets on the same seed can still spend them.",
+      "heldBackKey": "Its key is kept out of normal sends from this app, so nothing here spends it by accident. Other wallets on the same seed can still spend it. | Their keys are kept out of normal sends from this app, so nothing here spends them by accident. Other wallets on the same seed can still spend them.",
+      "heldBackMixed": "Their identity coins, or the keys that control them, are kept out of normal sends from this app, so nothing here spends them by accident. Other wallets on the same seed can still spend them.",
+      "view": "View token identities"
     },
     "locationLabel": "At address:",
     "locationScriptLabel": "Locked by script:"

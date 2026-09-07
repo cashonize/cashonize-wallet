@@ -181,6 +181,7 @@ const authHeadsQuery = graphql(`query AuthHeads(
         }
         genesis: migrations(where: { migration_index: { _eq: "1" } }) {
           transaction {
+            block_inclusions { block { timestamp } }
             outputs {
               output_index
               token_category
@@ -229,6 +230,7 @@ export interface AuthHeadResult {
   isToken: boolean; // whether the genesis made tokens of this category at all
   fungibleSupply: boolean; // and fungible ones among them
   genesisSupply: bigint; // how many, the AuthGuard standard's genesis supply; fixed for the category's life
+  genesisTimestamp?: number; // when the genesis was mined, the identity's creation date; absent while it waits in the mempool
   keyCommitment?: string; // the commitment of the AuthKey the genesis minted at output 1, when it did
 }
 
@@ -283,7 +285,10 @@ function readAuthHead(
   // The queried transaction is the authbase, whose hash the category is, so it cannot carry the
   // category: only the genesis can, the link that spends its output 0. What that link made never
   // changes, so it decides whether the identity is a token's and whether the token has supply.
-  const genesisOutputs = authchain.genesis[0]?.transaction?.[0]?.outputs ?? [];
+  const genesisTransaction = authchain.genesis[0]?.transaction?.[0];
+  const genesisOutputs = genesisTransaction?.outputs ?? [];
+  const genesisBlock = genesisTransaction?.block_inclusions?.[0]?.block.timestamp;
+  const genesisTimestamp = genesisBlock ? Number(genesisBlock) : undefined;
   const categoryOutputs = genesisOutputs.filter(output =>
     output.token_category && byteaToHex(output.token_category) === tokenId
   );
@@ -320,6 +325,7 @@ function readAuthHead(
     isToken,
     fungibleSupply,
     genesisSupply,
+    ...(genesisTimestamp !== undefined ? { genesisTimestamp } : {}),
     ...(keyCommitment !== undefined ? { keyCommitment } : {}),
   };
 }

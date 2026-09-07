@@ -229,8 +229,11 @@
       announcementTimer = undefined;
       const taken = identitiesStore.takeAnnouncement();
       if (!taken?.ids.length) return;
-      Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids: taken.ids, arrived: taken.arrived } })
-        .onOk(() => store.changeView(19));
+      Dialog.create({ component: IdentitiesFoundDialog, componentProps: { ids: taken.ids, sources: taken.sources } })
+        .onOk((payload: { learn: boolean }) => {
+          if (payload.learn) identitiesStore.requestLearn();
+          store.changeView(19);
+        });
     }, 500);
   });
 </script>

@@ -36,6 +36,11 @@ import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
 
+// How an identity the wallet holds back unasked came to be its own: made with these keys, held
+// through its key, its coin found here, or a watched one arrived. The dialog reads the arrival
+// for its title and the key for what it says is held back.
+export type FoundSource = 'made' | 'key' | 'held' | 'arrived';
+
 export const useIdentitiesStore = defineStore('identities', () => {
   const mainStore = useStore()
   const settingsStore = useSettingsStore()
@@ -129,17 +134,19 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return listed;
   }
 
-  // What the wallet held back without being asked, to be told in a dialog with names, and which
-  // of those were watched until now, since arriving is a different sentence from being found. Set
-  // after the resolve so the dialog can say what each carries; announcements close together
-  // accumulate, and the wallet page opens one dialog for them and clears this.
-  const announcement = ref<{ ids: string[]; arrived: string[] } | undefined>(undefined);
-  function announceFound(ids: string[], arrived: string[] = []) {
+  // What the wallet held back without being asked, to be told in a dialog with names, and how
+  // each came to be this wallet's, since the dialog says the true thing per row: made with these
+  // keys, held through its key, its coin here, or a watched one arrived. Set after the resolve so
+  // the dialog can say what each carries; announcements close together accumulate, and the wallet
+  // page opens one dialog for them and clears this.
+  const announcement = ref<{ ids: string[]; sources: Record<string, FoundSource> } | undefined>(undefined);
+  function announceFound(found: Record<string, FoundSource>) {
+    const ids = Object.keys(found);
     if (!ids.length) return;
-    const pending = announcement.value ?? { ids: [], arrived: [] };
+    const pending = announcement.value ?? { ids: [], sources: {} };
     announcement.value = {
       ids: [...pending.ids, ...ids.filter(id => !pending.ids.includes(id))],
-      arrived: [...pending.arrived, ...arrived.filter(id => !pending.arrived.includes(id))],
+      sources: { ...pending.sources, ...found },
     };
   }
   // what the dialog says, taken and cleared in one step
@@ -147,6 +154,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const pending = announcement.value;
     announcement.value = undefined;
     return pending;
+  }
+  // the dialog's Learn more opens the page on its learn text; the page takes the request on its visit
+  let learnRequested = false;
+  function requestLearn() { learnRequested = true; }
+  function takeLearnRequest() {
+    const requested = learnRequested;
+    learnRequested = false;
+    return requested;
   }
 
   // The registries of what is about to be shown, fetched so a dialog or the page can name it. A
@@ -176,7 +191,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const toAnnounce = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
     await fetchMetadataFor(toAnnounce);
     if (mainStore.walletSwitchedSince(started)) return;
-    announceFound(toAnnounce);
+    announceFound(Object.fromEntries(toAnnounce.map(id => [id, 'made' as const])));
   }
 
   // Where the chains are looked up, as the wallet is configured now. The electrum walk stands in
@@ -277,7 +292,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const news = await withResolveLock(resolveListedIdentities);
     if (news.length) {
       await fetchMetadataFor(news);
-      announceFound(news, news);
+      announceFound(Object.fromEntries(news.map(id => [id, 'arrived' as const])));
     }
   }
 
@@ -356,7 +371,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const next = (tokenIdentities.value ?? []).filter(
         identity => held.includes(identity.category) && !categories.includes(identity.category)
       );
-      const promoted: string[] = [];
+      const promoted: Record<string, FoundSource> = {};
       for (const identity of resolved) {
         if (identity.status === 'unresolved' || !identity.authheadTxid) {
           const previous = tokenIdentities.value?.find(known => known.category === identity.category);
@@ -366,20 +381,21 @@ export const useIdentitiesStore = defineStore('identities', () => {
         // an identity whose output, or whose key, is here is this wallet's to look after
         if (heldStatuses.includes(identity.status)) {
           listCategory(identity.category);
-          promoted.push(identity.category);
+          promoted[identity.category] = identity.status === 'heldViaKey' ? 'key' : 'held';
           continue;
         }
         next.push(identity);
       }
       if (mainStore.walletSwitchedSince(started)) return;
       tokenIdentities.value = next;
-      if (!promoted.length) return;
-      unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), promoted);
+      const promotedIds = Object.keys(promoted);
+      if (!promotedIds.length) return;
+      unseenIdentities.value = addToIdentityList('unseen', ...walletKey(), promotedIds);
       // the same resolve can find a watched identity arrived, which is told with the promotions
       const arrived = await resolveListedIdentities();
-      await fetchMetadataFor([...promoted, ...arrived]);
+      await fetchMetadataFor([...promotedIds, ...arrived]);
       if (mainStore.walletSwitchedSince(started)) return;
-      announceFound([...promoted, ...arrived], arrived);
+      announceFound({ ...promoted, ...Object.fromEntries(arrived.map(id => [id, 'arrived' as const])) });
     });
   }
 
@@ -550,6 +566,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     unseenIdentities,
     announcement,
     takeAnnouncement,
+    requestLearn,
+    takeLearnRequest,
     identityPublicationTxids,
     identities,
     tokenIdentities,

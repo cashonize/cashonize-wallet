@@ -1567,7 +1567,7 @@
     "empty": "Ainda não há identidades na lista. Uma que esta carteira fez encontra-se sozinha; uma que tem ou quer seguir adiciona-se pela sua authbase em {link}.",
     "emptyLink": "Adicionar existente",
     "detected": {
-      "foundAutomatically": "Encontrada automaticamente",
+      "foundAutomatically": "encontrada automaticamente",
       "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os seus metadados, portanto ela foi encontrada no próprio histórico da carteira e o seu UTXO agora fica de fora da seleção de moedas. Tire-a da lista se preferir que não seja assim."
     },
     "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
@@ -1821,15 +1821,19 @@
     },
     "unresolvedHint": "Recarregue, ou verifique o servidor Chaingraph nas configurações.",
     "found": {
-      "title": "Esta carteira tem identidades",
-      "titleArrived": "Uma identidade vigiada está agora nesta carteira | As identidades vigiadas estão agora nesta carteira",
-      "intro": "Esta carteira tem estas identidades, ou a chave que as controla, portanto pode atualizar os seus metadados:",
-      "introArrived": "Chegou uma identidade que vigiava: esta carteira tem-na agora, ou a chave que a controla, portanto pode atualizar os seus metadados: | Chegaram identidades que vigiava: esta carteira tem-nas agora, ou as chaves que as controlam, portanto pode atualizar os seus metadados:",
-      "reserve": "reserva de {amount}",
-      "heldBack": "Os seus UTXOs de identidade, ou o NFT chave que as controla, ficam agora de fora da seleção de moedas só nesta app, portanto um envio comum daqui não pode gastá-los por acidente; a mesma seed noutro software ainda pode. O BCH neles não é contado no saldo disponível, e uma reserva aparece na lista de tokens como retida, e na página de identidades.",
-      "remove": "Você pode remover uma identidade da lista se preferir que o seu UTXO não fique retido.",
-      "view": "Ver identidades",
-      "close": "Fechar"
+      "title": "Identidade de token encontrada nesta carteira | Identidades de token encontradas nesta carteira",
+      "titleArrived": "Chegou uma identidade de token que você seguia | Chegaram {count} identidades de token que você seguia",
+      "capability": "Esta carteira pode atualizar o nome e o ícone do token. | Esta carteira pode atualizar seus nomes e ícones.",
+      "capabilityWithSupply": "Esta carteira pode atualizar o nome, o ícone e o suprimento não emitido do token.",
+      "mintingNft": "um NFT de cunhagem",
+      "nft": "um NFT",
+      "reserve": "{amount} aparecem como retidos na lista de tokens.",
+      "created": "criada em {date}",
+      "reserveOpenEnded": "Seu suprimento reservado aparece como retido na lista de tokens.",
+      "heldBackCoin": "Sua moeda de identidade fica fora dos envios normais deste app, então nada aqui a gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-la. | Suas moedas de identidade ficam fora dos envios normais deste app, então nada aqui as gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-las.",
+      "heldBackKey": "Sua chave fica fora dos envios normais deste app, então nada aqui a gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-la. | Suas chaves ficam fora dos envios normais deste app, então nada aqui as gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-las.",
+      "heldBackMixed": "Suas moedas de identidade, ou as chaves que as controlam, ficam fora dos envios normais deste app, então nada aqui as gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-las.",
+      "view": "Ver identidades de token"
     },
     "locationLabel": "No endereço:",
     "locationScriptLabel": "Bloqueado por script:"

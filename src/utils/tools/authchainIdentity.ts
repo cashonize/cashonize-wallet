@@ -46,6 +46,7 @@ export interface IdentityState {
   isToken?: boolean;
   fungibleSupply?: boolean;
   genesisSupply?: bigint; // how much of it, which the reserve is read against
+  genesisTimestamp?: number; // when the genesis was mined, the identity's creation date
   publication?: MetadataPublication; // absent when the authchain has never carried one
   chainLength?: number; // every link of the authchain, the authbase counted
   // The latest links of this identity's authchain, oldest first. Carried because the ordinary
@@ -357,7 +358,7 @@ export async function resolveIdentities(
     }
     const {
       txid: authheadTxid, identityOutput, publicationOutputs, publicationTimestamp, chainLength, recentLinks,
-      isToken, fungibleSupply, genesisSupply, keyCommitment,
+      isToken, fungibleSupply, genesisSupply, genesisTimestamp, keyCommitment,
     } = answer.value;
     const found = findPublication(publicationOutputs);
     const publication = found && publicationTimestamp !== undefined ? { ...found, timestamp: publicationTimestamp } : found;
@@ -370,6 +371,7 @@ export async function resolveIdentities(
       isToken,
       fungibleSupply,
       genesisSupply,
+      ...(genesisTimestamp !== undefined ? { genesisTimestamp } : {}),
       ...(publication ? { publication } : {}),
     };
     // an OP_RETURN at output 0 stays unspent forever, so the chain ends there for good

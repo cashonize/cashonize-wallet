@@ -1567,7 +1567,7 @@
     "empty": "Todavía no hay identidades en la lista. Una que esta billetera hizo se encuentra sola; una que tienes o quieres seguir se añade por su authbase en {link}.",
     "emptyLink": "Añadir existente",
     "detected": {
-      "foundAutomatically": "Encontrada automáticamente",
+      "foundAutomatically": "encontrada automáticamente",
       "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su UTXO ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así."
     },
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
@@ -1821,15 +1821,19 @@
     },
     "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes.",
     "found": {
-      "title": "Esta billetera tiene identidades",
-      "titleArrived": "Una identidad vigilada ahora está en esta billetera | Las identidades vigiladas ahora están en esta billetera",
-      "intro": "Esta billetera tiene estas identidades, o la clave que las controla, así que puede actualizar sus metadatos:",
-      "introArrived": "Ha llegado una identidad que vigilabas: esta billetera ahora la tiene, o la clave que la controla, así que puede actualizar sus metadatos: | Han llegado identidades que vigilabas: esta billetera ahora las tiene, o las claves que las controlan, así que puede actualizar sus metadatos:",
-      "reserve": "reserva de {amount}",
-      "heldBack": "Sus UTXOs de identidad, o el NFT llave que las controla, quedan ahora fuera de la selección de monedas solo en esta app, así que un envío normal desde aquí no puede gastarlos por accidente; la misma semilla en otro software sí puede. El BCH que llevan no se cuenta en el saldo disponible, y una reserva aparece en la lista de tokens como retenida, y en la página de identidades.",
-      "remove": "Puedes quitar una identidad de la lista si prefieres que su UTXO no quede retenido.",
-      "view": "Ver identidades",
-      "close": "Cerrar"
+      "title": "Identidad de token encontrada en esta billetera | Identidades de token encontradas en esta billetera",
+      "titleArrived": "Ha llegado una identidad de token que seguías | Han llegado {count} identidades de token que seguías",
+      "capability": "Esta billetera puede actualizar el nombre y el icono del token. | Esta billetera puede actualizar sus nombres e iconos.",
+      "capabilityWithSupply": "Esta billetera puede actualizar el nombre, el icono y el suministro no emitido del token.",
+      "mintingNft": "un NFT de acuñación",
+      "nft": "un NFT",
+      "reserve": "{amount} aparecen como retenidos en la lista de tokens.",
+      "created": "creada el {date}",
+      "reserveOpenEnded": "Su suministro reservado aparece como retenido en la lista de tokens.",
+      "heldBackCoin": "Su moneda de identidad se mantiene fuera de los envíos normales desde esta app, así que nada aquí la gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarla. | Sus monedas de identidad se mantienen fuera de los envíos normales desde esta app, así que nada aquí las gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarlas.",
+      "heldBackKey": "Su llave se mantiene fuera de los envíos normales desde esta app, así que nada aquí la gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarla. | Sus llaves se mantienen fuera de los envíos normales desde esta app, así que nada aquí las gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarlas.",
+      "heldBackMixed": "Sus monedas de identidad, o las llaves que las controlan, se mantienen fuera de los envíos normales desde esta app, así que nada aquí las gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarlas.",
+      "view": "Ver identidades de token"
     },
     "locationLabel": "En la dirección:",
     "locationScriptLabel": "Bloqueado por script:"

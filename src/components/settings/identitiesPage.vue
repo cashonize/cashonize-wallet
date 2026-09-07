@@ -93,8 +93,9 @@
   }
 
   onActivated(() => {
-    // every way in leads here to look at an identity, including the notification trail
-    mode.value = 'identities';
+    // every way in leads here to look at an identity, including the notification trail; the
+    // found dialog's Learn more leads to the learn text
+    mode.value = identitiesStore.takeLearnRequest() ? 'learn' : 'identities';
     foundAutomatically.value = identitiesStore.markIdentitiesSeen();
     void reloadIdentities();
   });
