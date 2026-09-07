@@ -31,8 +31,16 @@ are identities too, differing only in having no token on their chain.
 
 ## Three rules the wallet holds to
 
-**Forward only.** Resolution goes authbase to authhead, one Chaingraph query. The other
-direction has no answer: every transaction is an authbase, so a coin at output 0 sits on
+**Forward only.** Resolution goes authbase to authhead: one Chaingraph query, or over
+electrum one link at a time when no instance is configured or it does not answer, each
+identity output asked whether it is unspent and, if not, its address's history read for the
+transaction that spent it. That walk is a few round trips per link, so it stops at ten links
+and reports a longer chain as unresolved rather than at a link that is not its head; a chain
+through an address busier than the server's history limit, an exchange's, is unresolved too,
+since the server answers with no history for it. It stands in only for the listed
+identities, keys, inspects and a card's history: the followed tokens report an outage
+instead of walking a hundred chains. The other direction has no
+answer: every transaction is an authbase, so a coin at output 0 sits on
 one chain per ancestor and "its" authbase is undefined. The wallet never derives an
 authbase from a coin. A coin gets a name from one of three sources only: a token on its
 chain (the category names the chain), a registry reached through a publication on its

@@ -1811,7 +1811,14 @@
       "since": "Desde {year}"
     },
     "openCheckFailed": "No se pudieron consultar las identidades de esta billetera: {reason} Una identidad que tiene puede no estar retenida todavía. Recarga, o revisa el servidor Chaingraph en los ajustes.",
-    "chaingraphNotConfigured": "No hay ningún servidor Chaingraph configurado para chipnet, así que las identidades no se pueden consultar aquí. Configura uno en los ajustes avanzados.",
+    "chaingraphNotConfigured": "No hay un servidor Chaingraph configurado para chipnet, así que las identidades se consultan por electrum, un paso por eslabón de la cadena, lo que tarda más en una cadena larga. Se puede configurar un servidor en los ajustes avanzados.",
+    "electrum": {
+      "transactionNotFound": "El servidor electrum no tiene ninguna transacción con ese id.",
+      "unsupportedScript": "El script de la salida de identidad no es una dirección, así que electrum no puede decir si fue gastada.",
+      "chainTooLong": "La cadena es más larga que los {links} eslabones que sigue la consulta por electrum.",
+      "spenderNotFound": "El servidor electrum indica que la salida de identidad está gastada pero no nombra ninguna transacción que la gaste.",
+      "unresolved": "La cadena no se siguió hasta su cabeza por electrum: es más larga que los {links} eslabones que sigue la consulta, o un paso falló. Configura un servidor Chaingraph en los ajustes avanzados."
+    },
     "unresolvedHint": "Recarga, o revisa el servidor de Chaingraph en los ajustes.",
     "found": {
       "title": "Esta billetera tiene identidades",

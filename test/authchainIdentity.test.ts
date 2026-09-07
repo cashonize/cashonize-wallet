@@ -1,5 +1,5 @@
 import { OpReturnData, type Utxo } from "mainnet-js";
-import { binToHex, hexToBin } from "@bitauth/libauth";
+import { binToHex, hexToBin, CashAddressNetworkPrefix } from "@bitauth/libauth";
 import { resolveIdentities } from "../src/utils/tools/authchainIdentity";
 import {
   loadIdentityList,
@@ -28,6 +28,8 @@ const utxo = (txid: string, vout: number, token?: Utxo["token"]): Utxo =>
   ({ txid, vout, satoshis: 1000n, address: "bitcoincash:qtest", ...(token ? { token } : {}) });
 
 const chaingraphUrl = "https://chaingraph.example.com/v1/graphql";
+// a provider that answers nothing, so a Chaingraph failure falls back to nothing resolved
+const backends = { chaingraphUrl, provider: {} as never, prefix: CashAddressNetworkPrefix.mainnet };
 
 // when the stub says the last publication was mined
 const publicationTime = 1700000000;
@@ -115,7 +117,7 @@ describe('the publication a resolve reports', () => {
       ],
     });
 
-    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+    const [resolved] = await resolveIdentities([categoryA], backends, []);
 
     expect(resolved?.publication?.uris).toEqual(['example.com']);
     expect(resolved?.publication?.hash).toBe(registryHash);
@@ -129,7 +131,7 @@ describe('the publication a resolve reports', () => {
       ],
     });
 
-    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+    const [resolved] = await resolveIdentities([categoryA], backends, []);
 
     expect(resolved?.publication?.uris).toEqual(['new.example']);
   });
@@ -140,7 +142,7 @@ describe('the publication a resolve reports', () => {
       [categoryA]: [{ hash: authheadA, publication: publicationOutput(registryHash, ['example.com']) }],
     });
 
-    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+    const [resolved] = await resolveIdentities([categoryA], backends, []);
 
     expect(resolved?.publication?.timestamp).toBe(publicationTime);
   });
@@ -148,7 +150,7 @@ describe('the publication a resolve reports', () => {
   it('reports none when no link ever carried one', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: [{ hash: authheadA }] });
 
-    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+    const [resolved] = await resolveIdentities([categoryA], backends, []);
 
     expect(resolved?.publication).toBeUndefined();
   });
@@ -159,7 +161,7 @@ describe('the publication a resolve reports', () => {
       [categoryA]: [{ hash: 'aa'.repeat(32) }, { hash: 'bb'.repeat(32) }, { hash: authheadA }],
     });
 
-    const [resolved] = await resolveIdentities([categoryA], chaingraphUrl, []);
+    const [resolved] = await resolveIdentities([categoryA], backends, []);
 
     expect(resolved?.chainLength).toBe(3);
     expect(resolved?.recentLinks).toEqual(['aa'.repeat(32), 'bb'.repeat(32), authheadA]);
@@ -222,7 +224,7 @@ describe('resolveIdentities', () => {
   it('holds an authhead the wallet has as a BCH-only coin at vout 0', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA });
     const authUtxo = utxo(authheadA, 0);
-    const resolved = await resolveIdentities([categoryA], chaingraphUrl, [authUtxo]);
+    const resolved = await resolveIdentities([categoryA], backends, [authUtxo]);
     expect(resolved).toEqual([
       {
         category: categoryA,
@@ -242,7 +244,7 @@ describe('resolveIdentities', () => {
   // an OP_RETURN at output 0 can never be spent, so the identity ended there
   it('reads a burned identity off an OP_RETURN identity output', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, {}, {}, [categoryA]);
-    const resolved = await resolveIdentities([categoryA], chaingraphUrl, []);
+    const resolved = await resolveIdentities([categoryA], backends, []);
     expect(resolved[0]?.status).toBe('burned');
     expect(resolved[0]?.identityOutput?.lockingBytecode).toBe(burnOutput);
   });
@@ -251,7 +253,7 @@ describe('resolveIdentities', () => {
   // transaction is an ordinary coin
   it('does not take another output of the authhead transaction for the authhead', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA });
-    const resolved = await resolveIdentities([categoryA], chaingraphUrl, [utxo(authheadA, 1)]);
+    const resolved = await resolveIdentities([categoryA], backends, [utxo(authheadA, 1)]);
     expect(resolved[0]?.status).toBe('notHeld');
     expect(resolved[0]?.authUtxo).toBeUndefined();
   });
@@ -260,7 +262,7 @@ describe('resolveIdentities', () => {
   it('holds back an authhead carrying a reserve like any other', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA });
     const tokenAuthUtxo = utxo(authheadA, 0, { category: categoryA, amount: 100n });
-    const resolved = await resolveIdentities([categoryA], chaingraphUrl, [tokenAuthUtxo]);
+    const resolved = await resolveIdentities([categoryA], backends, [tokenAuthUtxo]);
     expect(resolved[0]?.status).toBe('held');
     expect(resolved[0]?.authUtxo).toEqual(tokenAuthUtxo);
   });
@@ -270,7 +272,7 @@ describe('resolveIdentities', () => {
   it('holds an identity still at its authbase before the server knows it', async () => {
     stubAuthheadQueries({});
     const authbaseCoin = utxo(categoryA, 0);
-    const resolved = await resolveIdentities([categoryA], chaingraphUrl, [authbaseCoin]);
+    const resolved = await resolveIdentities([categoryA], backends, [authbaseCoin]);
     expect(resolved[0]).toMatchObject({ status: 'held', authheadTxid: categoryA, authUtxo: authbaseCoin, isToken: false });
   });
 
@@ -278,7 +280,7 @@ describe('resolveIdentities', () => {
     // only categoryB answers, so categoryA's query is the one that fails
     stubAuthheadQueries({ [categoryB]: authheadB });
     const authUtxo = utxo(authheadB, 0);
-    const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, [authUtxo]);
+    const resolved = await resolveIdentities([categoryA, categoryB], backends, [authUtxo]);
     // the reason travels with the status, so the page can say what went wrong
     expect(resolved[0]).toEqual({ category: categoryA, status: 'unresolved', unresolvedReason: expect.any(String) });
     expect(resolved[1]?.status).toBe('held');
@@ -288,7 +290,7 @@ describe('resolveIdentities', () => {
   // wallet holds of it now; an NFT-only category never gets the reserve actions
   it('reads off the genesis whether the category has fungible supply', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB }, {}, { [categoryA]: 'fungible' });
-    const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, []);
+    const resolved = await resolveIdentities([categoryA, categoryB], backends, []);
     expect(resolved[0]?.fungibleSupply).toBe(true);
     expect(resolved[0]?.genesisSupply).toBe(1000n);
     expect(resolved[1]?.fungibleSupply).toBe(false);
@@ -298,7 +300,7 @@ describe('resolveIdentities', () => {
   // an identity that is not a token is a chain like any other, with no token made at its second link
   it("reads off the genesis whether the chain is a token's at all", async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB }, {}, { [categoryB]: 'none' });
-    const resolved = await resolveIdentities([categoryA, categoryB], chaingraphUrl, []);
+    const resolved = await resolveIdentities([categoryA, categoryB], backends, []);
     expect(resolved[0]?.isToken).toBe(true);
     expect(resolved[1]?.isToken).toBe(false);
     expect(resolved[1]?.fungibleSupply).toBe(false);

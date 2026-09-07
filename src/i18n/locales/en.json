@@ -1811,7 +1811,14 @@
       "since": "Established {year}"
     },
     "openCheckFailed": "Could not look up this wallet's identities: {reason} An identity it holds may not be held back yet. Reload, or check the Chaingraph server in the settings.",
-    "chaingraphNotConfigured": "No Chaingraph server is set for chipnet, so identities cannot be looked up here. Set one in the advanced settings.",
+    "chaingraphNotConfigured": "No Chaingraph server is set for chipnet, so identities are looked up over electrum, one step per link of the chain, which takes longer for a long chain. A server can be set in the advanced settings.",
+    "electrum": {
+      "transactionNotFound": "The electrum server has no transaction with that id.",
+      "unsupportedScript": "The identity output's script is not an address, so electrum cannot say whether it was spent.",
+      "chainTooLong": "The chain is longer than the {links} links the electrum lookup follows.",
+      "spenderNotFound": "The electrum server reports the identity output as spent but names no transaction spending it.",
+      "unresolved": "The chain was not followed to its head over electrum: it is longer than the {links} links the lookup follows, or a step failed. Set a Chaingraph server in the advanced settings."
+    },
     "unresolvedHint": "Reload, or check the Chaingraph server in the settings.",
     "found": {
       "title": "This wallet holds identities",

@@ -1811,7 +1811,14 @@
       "since": "Seit {year}"
     },
     "openCheckFailed": "Die Identitäten dieses Wallets konnten nicht nachgeschlagen werden: {reason} Eine Identität, die es hält, ist womöglich noch nicht zurückgehalten. Lade neu, oder prüfe den Chaingraph-Server in den Einstellungen.",
-    "chaingraphNotConfigured": "Für Chipnet ist kein Chaingraph-Server festgelegt, daher können Identitäten hier nicht nachgeschlagen werden. Lege einen in den erweiterten Einstellungen fest.",
+    "chaingraphNotConfigured": "Für Chipnet ist kein Chaingraph-Server eingestellt, daher werden Identitäten über Electrum nachgeschlagen, ein Schritt pro Glied der Kette, was bei einer langen Kette länger dauert. Ein Server kann in den erweiterten Einstellungen gesetzt werden.",
+    "electrum": {
+      "transactionNotFound": "Der Electrum-Server hat keine Transaktion mit dieser ID.",
+      "unsupportedScript": "Das Skript des Identitäts-Outputs ist keine Adresse, daher kann Electrum nicht sagen, ob er ausgegeben wurde.",
+      "chainTooLong": "Die Kette ist länger als die {links} Glieder, denen die Electrum-Abfrage folgt.",
+      "spenderNotFound": "Der Electrum-Server meldet den Identitäts-Output als ausgegeben, nennt aber keine Transaktion, die ihn ausgibt.",
+      "unresolved": "Die Kette wurde über Electrum nicht bis zu ihrem Kopf verfolgt: sie ist länger als die {links} Glieder, denen die Abfrage folgt, oder ein Schritt ist fehlgeschlagen. Setze einen Chaingraph-Server in den erweiterten Einstellungen."
+    },
     "unresolvedHint": "Lade neu oder prüfe den Chaingraph-Server in den Einstellungen.",
     "found": {
       "title": "Dieses Wallet hält Identitäten",

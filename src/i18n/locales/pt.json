@@ -1811,7 +1811,14 @@
       "since": "Desde {year}"
     },
     "openCheckFailed": "Não foi possível consultar as identidades desta carteira: {reason} Uma identidade que tem pode ainda não estar retida. Recarregue, ou verifique o servidor Chaingraph nas definições.",
-    "chaingraphNotConfigured": "Nenhum servidor Chaingraph está definido para chipnet, por isso as identidades não podem ser consultadas aqui. Defina um nas definições avançadas.",
+    "chaingraphNotConfigured": "Nenhum servidor Chaingraph está definido para a chipnet, então as identidades são consultadas por electrum, um passo por elo da cadeia, o que demora mais numa cadeia longa. Um servidor pode ser definido nas configurações avançadas.",
+    "electrum": {
+      "transactionNotFound": "O servidor electrum não tem nenhuma transação com esse id.",
+      "unsupportedScript": "O script da saída de identidade não é um endereço, então o electrum não pode dizer se foi gasta.",
+      "chainTooLong": "A cadeia é mais longa que os {links} elos que a consulta por electrum segue.",
+      "spenderNotFound": "O servidor electrum indica a saída de identidade como gasta mas não nomeia nenhuma transação que a gaste.",
+      "unresolved": "A cadeia não foi seguida até a sua cabeça por electrum: é mais longa que os {links} elos que a consulta segue, ou um passo falhou. Defina um servidor Chaingraph nas configurações avançadas."
+    },
     "unresolvedHint": "Recarregue, ou verifique o servidor Chaingraph nas configurações.",
     "found": {
       "title": "Esta carteira tem identidades",

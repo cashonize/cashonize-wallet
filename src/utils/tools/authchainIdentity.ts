@@ -3,17 +3,21 @@
 // link of a chain did. The hosted file itself is registryFile's; the persisted lists are
 // identityLists'.
 
-import type { Utxo } from "mainnet-js";
+import type { ElectrumNetworkProvider, Utxo } from "mainnet-js";
 import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
-import { binToHex, binToUtf8, hexToBin } from "@bitauth/libauth";
+import { binToHex, binToUtf8, hexToBin, type CashAddressNetworkPrefix } from "@bitauth/libauth";
 import {
   queryAuthHeadsWithOutputs,
+  queryAuthchainLinks,
+  ChaingraphRequestError,
+  RECENT_LINKS_LIMIT,
   byteaToHex,
   BCMR_OUTPUT_PREFIX,
   type AuthchainLink,
   type AuthHeadResult,
   type IdentityOutput,
 } from "src/queryChainGraph";
+import { resolveAuthHeadsElectrum, queryAuthchainLinksElectrum, ELECTRUM_WALK_LIMIT } from "src/utils/tools/electrumAuthchain";
 import { isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
@@ -255,6 +259,45 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
   });
 }
 
+// Where a chain is looked up: Chaingraph when an instance is configured for the network, and
+// electrum, walking the chain link by link, when none is or the instance does not answer. The
+// electrum walk is given only where an answer is owed to custody or to the user, the listed
+// identities, a key's, an inspect, a card's history: a caller that resolves many chains nobody
+// asked for, the followed tokens at open, passes no provider and reports the outage instead.
+export interface AuthchainBackends {
+  chaingraphUrl: string;
+  provider?: ElectrumNetworkProvider;
+  prefix: CashAddressNetworkPrefix;
+}
+
+export async function resolveAuthHeads(tokenIds: string[], backends: AuthchainBackends, linksLimit = RECENT_LINKS_LIMIT) {
+  if (backends.chaingraphUrl) {
+    try {
+      const answered = await queryAuthHeadsWithOutputs(tokenIds, backends.chaingraphUrl, linksLimit);
+      return { answered, source: 'chaingraph' as const };
+    } catch (error) {
+      if (!(error instanceof ChaingraphRequestError) || !backends.provider) throw error;
+      console.warn("Chaingraph did not answer, resolving over electrum:", error.message);
+    }
+  }
+  if (!backends.provider) throw new ChaingraphRequestError(t('chaingraph.errors.notConfigured'));
+  const answered = await resolveAuthHeadsElectrum(tokenIds, backends.provider, backends.prefix, linksLimit);
+  return { answered, source: 'electrum' as const };
+}
+
+export async function fetchAuthchainLinks(tokenId: string, backends: AuthchainBackends) {
+  if (backends.chaingraphUrl) {
+    try {
+      return await queryAuthchainLinks(tokenId, backends.chaingraphUrl);
+    } catch (error) {
+      if (!(error instanceof ChaingraphRequestError) || !backends.provider) throw error;
+      console.warn("Chaingraph did not answer, walking the chain over electrum:", error.message);
+    }
+  }
+  if (!backends.provider) throw new ChaingraphRequestError(t('chaingraph.errors.notConfigured'));
+  return queryAuthchainLinksElectrum(tokenId, backends.provider, backends.prefix);
+}
+
 // Resolves where each category's authhead sits now and whether this wallet holds it. The lookups
 // go in batches, one request after another: a public Chaingraph instance limits request size and
 // rate. A batch that fails marks only its own categories 'unresolved' and does not stop the next;
@@ -266,7 +309,7 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
 export const authheadBatchSize = 25;
 export async function resolveIdentities(
   categories: string[],
-  chaingraphUrl: string,
+  backends: AuthchainBackends,
   walletUtxos: Utxo[],
   extraKeyCategories: (category: string) => string[] = () => [],
   // the recent links serve the transaction history, which reads them for listed identities only
@@ -276,10 +319,14 @@ export async function resolveIdentities(
   for (let start = 0; start < categories.length; start += authheadBatchSize) {
     const batch = categories.slice(start, start + authheadBatchSize);
     try {
-      const answered = await queryAuthHeadsWithOutputs(batch, chaingraphUrl, withRecentLinks ? undefined : 0);
+      const { answered, source } = await resolveAuthHeads(batch, backends, withRecentLinks ? undefined : 0);
+      // a chain electrum could not follow is most often one longer than the walk goes
+      const absentReason = source === 'chaingraph'
+        ? t('chaingraph.errors.tokenNotFound')
+        : t('identities.electrum.unresolved', { links: ELECTRUM_WALK_LIMIT });
       for (const category of batch) {
         const value = answered.get(category);
-        answers.set(category, value ? { value, reason: '' } : { reason: t('chaingraph.errors.tokenNotFound') });
+        answers.set(category, value ? { value, reason: '' } : { reason: absentReason });
       }
     } catch (error) {
       console.error("Failed to resolve authchain identities:", batch, error);

@@ -1811,7 +1811,14 @@
       "since": "Depuis {year}"
     },
     "openCheckFailed": "Impossible de consulter les identités de ce portefeuille : {reason} Une identité qu'il détient n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les réglages.",
-    "chaingraphNotConfigured": "Aucun serveur Chaingraph n'est défini pour chipnet, les identités ne peuvent donc pas être consultées ici. Définissez-en un dans les réglages avancés.",
+    "chaingraphNotConfigured": "Aucun serveur Chaingraph n'est défini pour chipnet, les identités sont donc recherchées via electrum, une étape par maillon de la chaîne, ce qui prend plus de temps pour une longue chaîne. Un serveur peut être défini dans les paramètres avancés.",
+    "electrum": {
+      "transactionNotFound": "Le serveur electrum n'a aucune transaction avec cet id.",
+      "unsupportedScript": "Le script de la sortie d'identité n'est pas une adresse, electrum ne peut donc pas dire si elle a été dépensée.",
+      "chainTooLong": "La chaîne est plus longue que les {links} maillons que la recherche electrum suit.",
+      "spenderNotFound": "Le serveur electrum signale la sortie d'identité comme dépensée mais ne nomme aucune transaction la dépensant.",
+      "unresolved": "La chaîne n'a pas été suivie jusqu'à sa tête via electrum : elle est plus longue que les {links} maillons que la recherche suit, ou une étape a échoué. Définissez un serveur Chaingraph dans les paramètres avancés."
+    },
     "unresolvedHint": "Rechargez, ou vérifiez le serveur Chaingraph dans les paramètres.",
     "found": {
       "title": "Ce portefeuille détient des identités",

@@ -10,6 +10,8 @@ import { useStore } from "./store"
 import { useSettingsStore } from "./settingsStore"
 import {
   resolveIdentities,
+  fetchAuthchainLinks,
+  type AuthchainBackends,
   describeChainLinks,
   identityCoin,
   type IdentityState,
@@ -26,7 +28,6 @@ import {
 import { checkPublicationUri, type PublicationUriStatus } from "src/utils/tools/registryFile"
 import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
-import { queryAuthchainLinks } from "src/queryChainGraph"
 import type { TransactionHistoryItem } from "mainnet-js"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
@@ -178,6 +179,17 @@ export const useIdentitiesStore = defineStore('identities', () => {
     announceFound(toAnnounce);
   }
 
+  // Where the chains are looked up, as the wallet is configured now. The electrum walk stands in
+  // for Chaingraph only where an answer is owed: not for the followed tokens, which are many and
+  // nobody asked for, and which report an outage instead.
+  function authchainBackends(withElectrum = true): AuthchainBackends {
+    return {
+      chaingraphUrl: mainStore.chaingraph,
+      ...(withElectrum ? { provider: mainStore.wallet.provider } : {}),
+      prefix: mainStore.wallet.networkPrefix,
+    };
+  }
+
   // An identity's own history, which is the chain itself: what each link did, and the reserve
   // read down the list, which is the issuance schedule. One query, and only when a card asks for
   // it: this is the one identity query that grows with a chain's length. Keyed by the authhead
@@ -187,7 +199,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   async function fetchIdentityHistory(identity: IdentityState) {
     const authhead = identity.authheadTxid;
     if (!authhead || identityHistories.value[authhead]) return;
-    const links = await queryAuthchainLinks(identity.category, mainStore.chaingraph);
+    const links = await fetchAuthchainLinks(identity.category, authchainBackends());
     identityHistories.value = {
       ...identityHistories.value,
       [authhead]: describeChainLinks(links),
@@ -230,7 +242,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     }
     const started = mainStore.currentInitializationToken();
     const resolved = await resolveIdentities(
-      identityCategories.value, mainStore.chaingraph, currentUtxos, extraKeyCategories
+      identityCategories.value, authchainBackends(), currentUtxos, extraKeyCategories
     );
     if (mainStore.walletSwitchedSince(started)) return news;
     if (!resolved.some(identity => identity.status === 'unresolved')) {
@@ -334,7 +346,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const started = mainStore.currentInitializationToken();
       let resolved: IdentityState[] = [];
       if (categories.length) {
-        resolved = await resolveIdentities(categories, mainStore.chaingraph, currentUtxos, extraKeyCategories, false);
+        resolved = await resolveIdentities(categories, authchainBackends(scope === 'keys'), currentUtxos, extraKeyCategories, false);
       }
       if (mainStore.walletSwitchedSince(started)) return;
       const outage = outageReason(resolved);
@@ -375,15 +387,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
   const openCheckError = ref<string | undefined>(undefined);
 
   // The passes the wallet runs on its own once a wallet is up: the reading of its history for
-  // the identities these keys made, and the followed token identities. Nothing runs on a network
-  // without a Chaingraph instance configured, which the page says: a found identity is listed
-  // against its resolve.
+  // the identities these keys made, and the followed token identities.
   // Outside the wallet's own failure path: a lookup failing here, an electrum server refusing a
   // guard address say, must not flag a wallet that did load, so it is reported where the
   // identities are. The resolve of what the wallet follows comes first, since the detection
   // lists against it.
   async function runChecksOnOpen() {
-    if (!mainStore.chaingraph) return;
     const started = mainStore.currentInitializationToken();
     openCheckError.value = undefined;
     try {
@@ -479,7 +488,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // it is held here, guarded, or somebody else's, and lists it on the user's word
   async function inspectCategory(category: string): Promise<IdentityState> {
     const [found] = await resolveIdentities(
-      [category], mainStore.chaingraph, mainStore.walletUtxos ?? [], extraKeyCategories, false
+      [category], authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories, false
     );
     return found ?? { category, status: 'unresolved' };
   }
