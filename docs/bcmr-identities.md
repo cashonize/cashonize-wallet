@@ -147,6 +147,31 @@ identities were held elsewhere last time, and that is the one thing it keeps.
   definitions have not been reconciled; that is tracked upstream in
   [chip-bcmr issue #19](https://github.com/bitjson/chip-bcmr/issues/19).
 
+## The mainnet-js bcmr package
+
+mainnet-js ships `@mainnet-cash/bcmr`, a resolver of the same authchains, evaluated at
+version 3.1.9 in September 2026 and not used. It answers a different question: it walks a
+chain for its publication outputs and returns the latest registry, where the wallet needs
+the authhead itself, its output, its holder and the genesis facts. Its electrum walk is the
+shape of the wallet's own without the safeguards, and it verifies less than the wallet
+does. Look again if the wallet ever wants a metadata-only resolve for tokens it does not
+hold, or if the package grows the identity answer, when the wallet's own walk could retire.
+
+## Electrum has no spender lookup
+
+What makes the electrum walk expensive is one missing primitive: the electrum protocol,
+and Fulcrum with it, cannot say which transaction spent a given output. The walk has to read
+an address's whole history from the link's height on and scan it for the spender, which is
+what costs a history call plus raw fetches per link, breaks on an address over the server's
+history limit, and is the reason for the cap. A `spent_by` field in Fulcrum's answers has
+been requested from its maintainer. Rostrum, the Rust electrum server, already indexes it:
+`blockchain.utxo.get` returns an outpoint's status and, when spent, the spending
+transaction, its input index and height
+([Rostrum protocol methods](https://nexa.gitlab.io/rostrum/protocol/methods/)). Against a
+server with that method the walk is one request per link and no history at all, the
+history limit stops mattering, and the cap could go; the walk in `electrumAuthchain.ts` is
+the place to use it once a configurable server offers it.
+
 ## Where the code is
 
 - `src/stores/identitiesStore.ts`: the lists, the resolves, the reservations, the finds
@@ -156,6 +181,7 @@ identities were held elsewhere last time, and that is the one thing it keeps.
 - `src/utils/tools/registryFile.ts`: fetching, hashing and reading the hosted registry file.
 - `src/utils/tools/identityLists.ts`: the persisted lists.
 - `src/queryChainGraph.ts`: the authhead and history queries.
+- `src/utils/tools/electrumAuthchain.ts`: the same answers walked over electrum, the fallback.
 - `src/utils/tools/identityDetection.ts`: the two markers read off the wallet's history.
 - `src/utils/tools/authGuard.ts`: the covenant's script, and what a key is.
 - `src/utils/tools/tokenCreation.ts`: the genesis amounts and the coins a genesis can spend.
