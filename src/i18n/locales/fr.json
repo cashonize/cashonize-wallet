@@ -1383,7 +1383,7 @@
       "enableAddressMarking": "Activer la gestion avancée des adresses : marquer les adresses comme utilisées",
       "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD.",
       "followTokenIdentities": "Suivre les identités des tokens que vous détenez",
-      "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactiver arrête les recherches.",
+      "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut ; l'activer lance les recherches à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
       "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les clés d'identité ne sont pas concernées : une requête qui en utilise une est signée quand la clé revient, ce qui est le fonctionnement de CashTokens Studio."
     },

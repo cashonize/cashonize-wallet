@@ -59,9 +59,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(false); // consider changing default to true
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
-  // the identities of the tokens the wallet holds, followed passively; off for a wallet that would
-  // rather not send its token list to the Chaingraph server as a set
-  const followTokenIdentities = ref(true);
+  // The identities of the tokens the wallet holds, followed passively. Off by default: the lookups
+  // cost the Chaingraph instance a request at every wallet open, and send the token list there as
+  // a set, for a notice only the holder of an identity ever receives.
+  const followTokenIdentities = ref(false);
   // whether a dapp transaction may spend an identity UTXO this wallet holds; off, it is refused
   // the way a pledged coin is, since no dapp builds such a transaction yet and an accident is final
   const allowDappIdentitySpends = ref(false);
@@ -249,14 +250,19 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
   if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
-  const readFollowTokenIdentities = localStorage.getItem("followTokenIdentities");
-  if (readFollowTokenIdentities) followTokenIdentities.value = readFollowTokenIdentities == "true";
+  // The "authchains" developer option this setting replaces resolved every held token's chain for
+  // the same people, so its value carries over, written under the new key before the old one goes,
+  // since nothing else persists this setting on its own. A choice already made under the new key wins.
+  const readFollowTokenIdentities = localStorage.getItem("followTokenIdentities") ?? localStorage.getItem("authchains");
+  if (readFollowTokenIdentities) {
+    followTokenIdentities.value = readFollowTokenIdentities == "true";
+    localStorage.setItem("followTokenIdentities", readFollowTokenIdentities);
+  }
+  localStorage.removeItem("authchains");
   const readAllowDappIdentitySpends = localStorage.getItem("allowDappIdentitySpends");
   if (readAllowDappIdentitySpends) allowDappIdentitySpends.value = readAllowDappIdentitySpends == "true";
   const readNonTokenIdentities = localStorage.getItem("nonTokenIdentities");
   if (readNonTokenIdentities) nonTokenIdentities.value = readNonTokenIdentities == "true";
-  // the "authchains" toggle this one replaces
-  localStorage.removeItem("authchains");
 
   const readDateFormat = localStorage.getItem("dateFormat");
   if(readDateFormat && (readDateFormat=="DD/MM/YY" || readDateFormat=="MM/DD/YY" || readDateFormat=="YY-MM-DD")) {

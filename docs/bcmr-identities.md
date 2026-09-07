@@ -88,7 +88,9 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 - **Followed as a held token's identity.** The identity of every token the wallet holds is
   followed passively, in batches of forward lookups at open and on the page's visit: not
   listed, not reserved, never news, until its identity output turns out to be here, when it
-  is promoted to the list, held back and announced. A setting turns the following off.
+  is promoted to the list, held back and announced. A setting turns the following on; it
+  is off by default, and the developer option that resolved authchains before this page
+  existed carries over, since the people who used it are the ones the following serves.
 - **Added by id.** Any authbase, a token's or not, an identity kept in a guard included.
   The confirm says where the identity is held before listing it: here, and held back, or
   in a covenant this wallet has the key to, or elsewhere, and only watched.

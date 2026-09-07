@@ -1383,7 +1383,7 @@
       "enableAddressMarking": "Ativar gestão avançada de endereços: marcar endereços como usados",
       "enableAddressMarkingHint": "Marcar um endereço como usado faz a carteira mostrar o próximo, assim você pode dar um endereço novo a cada pagador. Aplica-se a carteiras HD.",
       "followTokenIdentities": "Seguir as identidades dos tokens que tem",
-      "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligar isto pára as consultas.",
+      "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito; ligar inicia as consultas em cada abertura da carteira.",
       "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",
       "allowDappIdentitySpendsHint": "Desligado: um pedido WalletConnect ou WizardConnect que gaste o UTXO de uma identidade desta carteira é recusado, como um UTXO comprometido. Ligado: o pedido chega ao diálogo de aprovação, que nomeia a identidade e diz o que o seu UTXO carrega antes e depois. Um pedido que tirasse uma identidade desta carteira é recusado em ambos os casos. As chaves de identidade não são afetadas: um pedido que use uma é assinado quando a chave volta, que é como o CashTokens Studio funciona."
     },

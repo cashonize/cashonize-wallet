@@ -1383,7 +1383,7 @@
       "enableAddressMarking": "Habilitar gestión avanzada de direcciones: marcar direcciones como usadas",
       "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD.",
       "followTokenIdentities": "Seguir las identidades de los tokens que tienes",
-      "followTokenIdentitiesHint": "La lista de tokens que tienes se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivarlo detiene las consultas.",
+      "followTokenIdentitiesHint": "La lista de tokens que tienes se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto; activarlo inicia las consultas en cada apertura de la billetera.",
       "allowDappIdentitySpends": "Permitir que las apps conectadas gasten UTXOs de identidad",
       "allowDappIdentitySpendsHint": "Apagado: una solicitud de WalletConnect o WizardConnect que gaste el UTXO de una identidad de esta billetera se rechaza, como un UTXO comprometido. Encendido: la solicitud llega al diálogo de aprobación, que nombra la identidad y dice qué lleva su UTXO antes y después. Una solicitud que sacara una identidad de esta billetera se rechaza en ambos casos. Las claves de identidad no se ven afectadas: una solicitud que usa una se firma cuando la clave vuelve, que es como funciona CashTokens Studio."
     },

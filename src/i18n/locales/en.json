@@ -1383,7 +1383,7 @@
       "enableAddressMarking": "Enable advanced address management: mark addresses as used",
       "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
       "followTokenIdentities": "Follow the identities of the tokens you hold",
-      "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Turning this off stops the lookups.",
+      "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default; turning it on starts the lookups at every wallet open.",
       "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",
       "allowDappIdentitySpendsHint": "Off: a WalletConnect or WizardConnect request that spends the UTXO of one of this wallet's identities is refused, the way a pledged UTXO is. On: the request reaches the approval dialog, which names the identity and says what its UTXO carries before and after. A request that would move an identity out of this wallet is refused either way. Identity keys are not affected: a request using one is signed when the key comes back, which is how CashTokens Studio works."
     },
