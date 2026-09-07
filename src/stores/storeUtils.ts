@@ -43,6 +43,23 @@ export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedU
   return arrayTokens
 }
 
+// The indexer answers a lookup with either a token's metadata or an error field, both on an
+// otherwise successful response, so every reply is schema-checked and then checked for that
+// field. Returns undefined for a reply that is neither, having logged which of the two it was.
+export async function parseIndexerResponse(response: Response) {
+  const jsonResponse = await response.json();
+  const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
+  if (!parseResult.success) {
+    console.error(`BCMR indexer response validation error for URL ${response.url}: ${parseResult.error.message}`);
+    return undefined;
+  }
+  if ('error' in parseResult.data) {
+    console.error(`Indexer error for URL ${response.url}: ${parseResult.data.error}`);
+    return undefined;
+  }
+  return parseResult.data;
+}
+
 // The token metadata endpoints. The indexer indexes token identities only, keyed by category, so
 // this is not a way to name a non-token identity: the identities page reads those from their own
 // registries.
@@ -75,21 +92,11 @@ export async function fetchTokenMetadata(
   for(const settledResult of resultsMetadata) {
     const response = settledResult.status == "fulfilled" ? settledResult.value : undefined;
     if(response?.status == 200) {
-      const jsonResponse = await response.json();
-      // validate the response to match expected schema
       // Invalid metadata is skipped without a user-facing toast: metadata is cosmetic
       // enrichment fetched in the background, and the token displays with the
       // category-hex fallback either way
-      const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
-      if (!parseResult.success) {
-        console.error(`BCMR indexer response validation error for URL ${response.url}: ${parseResult.error.message}`);
-        continue;
-      }
-      const tokenInfoResult = parseResult.data;
-      if ('error' in tokenInfoResult) {
-        console.error(`Indexer error for URL ${response.url}: ${tokenInfoResult.error}`);
-        continue;
-      }
+      const tokenInfoResult = await parseIndexerResponse(response);
+      if (!tokenInfoResult) continue;
       const tokenId = tokenInfoResult.token?.category
       if(tokenInfoResult.type_metadata) {
         const nftEndpoint = response.url.split("/").at(-2) as string;
@@ -115,17 +122,8 @@ export async function fetchNftMetadata(
   const nftEndpoint = commitment || "empty";
   const res = await cachedFetch(`${tokenMetadataIndexer}/tokens/${category}/${nftEndpoint}/`);
   if (res.status !== 200) return bcmrRegistries ?? {};
-  const jsonResponse = await res.json();
-  const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
-  if (!parseResult.success) {
-    console.error(`BCMR indexer response validation error for URL ${res.url}: ${parseResult.error.message}`);
-    return bcmrRegistries ?? {};
-  }
-  const tokenInfoResult = parseResult.data;
-  if ('error' in tokenInfoResult) {
-    console.error(`Indexer error for URL ${res.url}: ${tokenInfoResult.error}`);
-    return bcmrRegistries ?? {};
-  }
+  const tokenInfoResult = await parseIndexerResponse(res);
+  if (!tokenInfoResult) return bcmrRegistries ?? {};
   const tokenId = tokenInfoResult.token?.category;
   const registries = bcmrRegistries ?? {};
   if (tokenInfoResult.type_metadata) {

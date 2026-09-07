@@ -40,6 +40,7 @@ import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
   tokenListFromUtxos,
+  parseIndexerResponse,
   parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
 import { hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode } from "@bitauth/libauth"
@@ -53,7 +54,6 @@ import { useCashconnectStore } from "./cashconnectStore"
 import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { cachedFetch } from "src/utils/cacheUtils"
-import { BcmrIndexerResponseSchema } from "src/utils/zodValidation"
 import { pruneHdWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
@@ -1331,18 +1331,9 @@ export const useStore = defineStore('store', () => {
   async function fetchTokenInfo(categoryId: string) {
     const res = await cachedFetch(`${tokenMetadataIndexer.value}/tokens/${categoryId}/`);
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
-    const jsonResponse = await res.json()
-    // validate the response to match expected schema
-    const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
-    if (!parseResult.success) {
-      console.error(`BCMR indexer response validation error for URL ${res.url}: ${parseResult.error.message}`);
-      throw new Error(t('store.errors.bcmrIndexerValidationError'))
-    }
-    const tokenMetadataIndexerResult = parseResult.data;
-    // check for error in tokenMetadataIndexerResult
-    if ('error' in tokenMetadataIndexerResult) {
-      throw new Error(`Indexer error: ${tokenMetadataIndexerResult.error}`);
-    }
+    // the helper logs why a reply was unusable, so the throw only has to say that it was
+    const tokenMetadataIndexerResult = await parseIndexerResponse(res);
+    if (!tokenMetadataIndexerResult) throw new Error(t('store.errors.bcmrIndexerValidationError'));
     return tokenMetadataIndexerResult;
   }
 
