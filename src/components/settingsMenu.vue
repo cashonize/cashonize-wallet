@@ -118,6 +118,7 @@
   // developer options
   const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
+  const enableNonTokenIdentities = ref(settingsStore.nonTokenIdentities);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
   const strictWcSchema = ref(settingsStore.strictWcSchema);
   const showPrivateKeyWif = ref(settingsStore.showPrivateKeyWif);
@@ -368,7 +369,6 @@
     localStorage.setItem("allowDappIdentitySpends", selectedAllowDappIdentitySpends.value ? "true" : "false");
     settingsStore.allowDappIdentitySpends = selectedAllowDappIdentitySpends.value;
   }
-
   function toggleShowCauldronFTValue(){
     localStorage.setItem("showCauldronFTValue", selectedShowCauldronFTValue.value? "true" : "false");
     settingsStore.showCauldronFTValue = selectedShowCauldronFTValue.value;
@@ -483,6 +483,10 @@
   function changeMintNfts(){
     localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
     settingsStore.mintNfts = enableMintNfts.value;
+  }
+  function changeNonTokenIdentities(){
+    localStorage.setItem("nonTokenIdentities", enableNonTokenIdentities.value ? "true" : "false");
+    settingsStore.nonTokenIdentities = enableNonTokenIdentities.value;
   }
   function changeDisableTokenIcons(){
     localStorage.setItem("disableTokenIcons", disableTokenIcons.value ? "true" : "false");
@@ -884,6 +888,13 @@
         {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.enableMintNftsHint') }}
+        </div>
+      </div>
+
+      <div style="margin-top:15px">
+        {{ t('settings.developer.nonTokenIdentities') }} <q-toggle v-model="enableNonTokenIdentities" @update:model-value="changeNonTokenIdentities()" dense />
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.developer.nonTokenIdentitiesHint') }}
         </div>
       </div>
 

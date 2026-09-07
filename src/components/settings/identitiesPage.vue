@@ -217,7 +217,8 @@
       <button :class="{ active: mode === 'existing' }" @click="mode = 'existing'">
         {{ t('identities.modes.existing') }}
       </button>
-      <button :class="{ active: mode === 'create' }" @click="mode = 'create'">
+      <!-- an identity that is not a token is new ground, so the way in is behind a user option -->
+      <button v-if="settingsStore.nonTokenIdentities" :class="{ active: mode === 'create' }" @click="mode = 'create'">
         {{ t('identities.modes.create') }}
       </button>
     </div>

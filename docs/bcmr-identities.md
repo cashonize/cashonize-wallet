@@ -78,7 +78,8 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 ## How an identity gets onto the page
 
 - **Made here.** The create page lists a genesis and reserves its output 0 before any
-  indexer has seen it; the identities page's Add new does the same for a picked UTXO.
+  indexer has seen it; the identities page's Add new, behind a user option, does the same
+  for a picked UTXO.
 - **Found in the wallet's own history.** The spent-outputs walk the portfolio already runs
   is read a second time at wallet open for two markers: a genesis these keys made, and a
   publication these keys made on a token's chain. A publication on a chain with no token

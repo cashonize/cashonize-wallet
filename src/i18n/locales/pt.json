@@ -1442,7 +1442,9 @@
       "strictWcSchema": "Validação estrita do schema WalletConnect",
       "strictWcSchemaHint": "Aplica a especificação WC2-BCH exatamente. Ative ao desenvolver um dapp para detectar payloads não conformes.",
       "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
-      "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único."
+      "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
+      "nonTokenIdentities": "Adicionar identidades que não são tokens",
+      "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda."
     },
     "madeWith": "Feito com {heart} por Mathieu G."
   },

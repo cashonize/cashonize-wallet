@@ -1442,7 +1442,9 @@
       "strictWcSchema": "Strikte WalletConnect-Schema-Validierung",
       "strictWcSchemaHint": "Erzwingt die WC2-BCH-Spezifikation exakt. Aktiviere diese Option bei der Dapp-Entwicklung, um nicht konforme Payloads sichtbar zu machen.",
       "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
-      "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu."
+      "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu.",
+      "nonTokenIdentities": "Identitäten hinzufügen, die keine Tokens sind",
+      "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher."
     },
     "madeWith": "Erstellt mit {heart} von Mathieu G."
   },

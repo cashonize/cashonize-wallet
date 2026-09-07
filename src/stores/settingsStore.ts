@@ -67,6 +67,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const allowDappIdentitySpends = ref(false);
   // developer settings
   const mintNfts = ref(false);
+  // whether the identities page offers to add an identity that is not a token; off, since the
+  // spec's non-token identities have no users yet and the entry is easily taken for token creation
+  const nonTokenIdentities = ref(false);
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
   const showPrivateKeyWif = ref(false);
@@ -250,6 +253,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if (readFollowTokenIdentities) followTokenIdentities.value = readFollowTokenIdentities == "true";
   const readAllowDappIdentitySpends = localStorage.getItem("allowDappIdentitySpends");
   if (readAllowDappIdentitySpends) allowDappIdentitySpends.value = readAllowDappIdentitySpends == "true";
+  const readNonTokenIdentities = localStorage.getItem("nonTokenIdentities");
+  if (readNonTokenIdentities) nonTokenIdentities.value = readNonTokenIdentities == "true";
   // the "authchains" toggle this one replaces
   localStorage.removeItem("authchains");
 
@@ -520,6 +525,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     mintNfts,
     followTokenIdentities,
     allowDappIdentitySpends,
+    nonTokenIdentities,
     strictWcSchema,
     showPrivateKeyWif,
     dateFormat,
