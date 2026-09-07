@@ -260,10 +260,9 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
 }
 
 // Where a chain is looked up: Chaingraph when an instance is configured for the network, and
-// electrum, walking the chain link by link, when none is or the instance does not answer. The
-// electrum walk is given only where an answer is owed to custody or to the user, the listed
-// identities, a key's, an inspect, a card's history: a caller that resolves many chains nobody
-// asked for, the followed tokens at open, passes no provider and reports the outage instead.
+// electrum, walking the chain link by link, when none is or the instance does not answer. A
+// caller that would rather report an outage than walk, the followed tokens when their instance
+// is down, passes no provider.
 export interface AuthchainBackends {
   chaingraphUrl: string;
   provider?: ElectrumNetworkProvider;

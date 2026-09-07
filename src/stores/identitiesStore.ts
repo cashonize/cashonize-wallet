@@ -180,8 +180,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // Where the chains are looked up, as the wallet is configured now. The electrum walk stands in
-  // for Chaingraph only where an answer is owed: not for the followed tokens, which are many and
-  // nobody asked for, and which report an outage instead.
+  // for Chaingraph where an answer is owed, and for the followed tokens only on a network with no
+  // instance configured: those are many and nobody asked for them, so an instance that is down
+  // is reported as an outage rather than walked around at every open until it is back.
   function authchainBackends(withElectrum = true): AuthchainBackends {
     return {
       chaingraphUrl: mainStore.chaingraph,
@@ -346,7 +347,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const started = mainStore.currentInitializationToken();
       let resolved: IdentityState[] = [];
       if (categories.length) {
-        resolved = await resolveIdentities(categories, authchainBackends(scope === 'keys'), currentUtxos, extraKeyCategories, false);
+        resolved = await resolveIdentities(categories, authchainBackends(scope === 'keys' || !mainStore.chaingraph), currentUtxos, extraKeyCategories, false);
       }
       if (mainStore.walletSwitchedSince(started)) return;
       const outage = outageReason(resolved);
