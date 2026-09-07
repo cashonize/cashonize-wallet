@@ -56,7 +56,7 @@ held back from coin selection the moment the wallet knows, without asking: a que
 answered wrong or too late, and the spend it prevents is final. The reservation is local and
 advisory: another app on the same seed spends the coin regardless, which the copy says
 wherever the fact matters. Its effects are visible: the coin leaves the spendable pool,
-its BCH leaves the balance, a reserve on it leaves the token list, and a dapp transaction
+its BCH leaves the balance, a reserve on it shows in the token list as held back, and a dapp transaction
 spending it is refused at signing: outright for an identity UTXO, unless the user option
 lets connected apps spend them, and then only when output 0 provably returns to this
 wallet, with the approval dialog naming the identity and what its output carries before

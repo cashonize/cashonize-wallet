@@ -44,6 +44,14 @@
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
 
   const heldIdentityLine = computed(() => identitiesStore.heldIdentityLine(tokenData.value.category));
+  // what the wallet holds of the category, shown whole; sends and burns measure against the
+  // spendable amount, which is what tokenData.amount is
+  const heldBack = computed(() => tokenData.value.heldBack ?? 0n);
+  const holding = computed(() => tokenData.value.amount + heldBack.value);
+  const heldBackLine = computed(() => {
+    const symbol = tokenMetaData.value?.token?.symbol ?? '';
+    return t('wallet.reservedBalance', { amount: `${numberFormatter.format(toAmountDecimals(heldBack.value))} ${symbol}`.trim() });
+  });
   const activeAction = ref<TokenActionType | null>(null);
   const starAnimating = ref(false);
 
@@ -66,7 +74,7 @@
   // Watch for changes in the relevant data and recalculate fiat value
   // Note: could be a computed if BCH exchange rate was available synchronously
   watch(
-    [() => settingsStore.showCauldronFTValue, () => store.cauldronPrices, () => tokenData.value.amount, () => settingsStore.currency],
+    [() => settingsStore.showCauldronFTValue, () => store.cauldronPrices, holding, () => settingsStore.currency],
     async () => {
       if (!settingsStore.showCauldronFTValue || store.network !== 'mainnet') {
         holdingsFiatValue.value = null;
@@ -81,7 +89,7 @@
 
       try {
         const bchRate = await convert(1, 'bch', settingsStore.currency);
-        holdingsFiatValue.value = calculateTokenFiatValue(tokenData.value.amount, poolPriceData, bchRate);
+        holdingsFiatValue.value = calculateTokenFiatValue(holding.value, poolPriceData, bchRate);
       } catch {
         holdingsFiatValue.value = null;
       }
@@ -236,11 +244,14 @@
             <div v-if="heldIdentityLine">{{ heldIdentityLine }}</div>
             <div style="word-break: break-all;" class="hide"></div>
           </div>
-          <div v-if="tokenData?.amount" class="tokenAmount">{{ t('tokenItem.amount') }}
-            {{ numberFormatter.format(toAmountDecimals(tokenData?.amount)) }} {{ tokenMetaData?.token?.symbol }}
-            <span v-if="holdingsFiatValue !== null" style="font-size: smaller; color: grey; white-space: nowrap;">
-              ≈ {{ formatFiatAmount(holdingsFiatValue, settingsStore.currency) }}
-            </span>
+          <div v-if="holding" class="tokenAmount">
+            <div>{{ t('tokenItem.amount') }}
+              {{ numberFormatter.format(toAmountDecimals(holding)) }} {{ tokenMetaData?.token?.symbol }}
+              <span v-if="holdingsFiatValue !== null" style="font-size: smaller; color: grey; white-space: nowrap;">
+                ≈ {{ formatFiatAmount(holdingsFiatValue, settingsStore.currency) }}
+              </span>
+            </div>
+            <div v-if="heldBack" style="color: grey;">{{ heldBackLine }}</div>
           </div>
         </div>
         <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.category)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.category) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">

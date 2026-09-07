@@ -1817,7 +1817,7 @@
       "intro": "Dieses Wallet hält diese Identitäten oder den Schlüssel, der sie kontrolliert, und kann damit ihre Metadaten ändern:",
       "introArrived": "Eine Identität, die du beobachtet hast, ist angekommen: dieses Wallet hält sie jetzt oder den Schlüssel, der sie kontrolliert, und kann damit ihre Metadaten ändern: | Identitäten, die du beobachtet hast, sind angekommen: dieses Wallet hält sie jetzt oder die Schlüssel, die sie kontrollieren, und kann damit ihre Metadaten ändern:",
       "reserve": "Reserve von {amount}",
-      "heldBack": "Ihre Identitäts-UTXOs, oder das Schlüssel-NFT, das sie kontrolliert, sind jetzt nur in dieser App von der Münzauswahl ausgenommen: ein gewöhnlicher Versand von hier kann sie nicht aus Versehen ausgeben, derselbe Seed in anderer Software weiterhin schon. Das BCH darauf zählt nicht zum verfügbaren Guthaben, und eine Reserve wird auf der Identitäten-Seite gezeigt statt in der Token-Liste.",
+      "heldBack": "Ihre Identitäts-UTXOs, oder das Schlüssel-NFT, das sie kontrolliert, sind jetzt nur in dieser App von der Münzauswahl ausgenommen: ein gewöhnlicher Versand von hier kann sie nicht aus Versehen ausgeben, derselbe Seed in anderer Software weiterhin schon. Das BCH darauf zählt nicht zum verfügbaren Guthaben, und eine Reserve erscheint in der Token-Liste als zurückgehalten, und auf der Identitäten-Seite.",
       "remove": "Du kannst eine Identität von der Liste nehmen, wenn ihr UTXO lieber nicht zurückgehalten werden soll.",
       "view": "Identitäten ansehen",
       "close": "Schließen"

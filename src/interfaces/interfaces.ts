@@ -47,9 +47,12 @@ export interface TokenDataNFT {
   nfts: Utxo[]
 }
 
+// amount is what the wallet can spend of the category; heldBack is what its held-back coins carry,
+// set by the token list builder when there is any. The holding is their sum.
 export interface TokenDataFT {
   category: string,
-  amount: bigint
+  amount: bigint,
+  heldBack?: bigint
 }
 
 export type WalletHistoryReturnType = Awaited<ReturnType<Wallet['getHistory']>>;

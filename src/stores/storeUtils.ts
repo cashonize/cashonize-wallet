@@ -10,18 +10,23 @@ import { invokeExtensions } from "src/parsing/extensions/index"
 import { createElectrumAdapter } from "src/parsing/electrumAdapter"
 import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
 
-// A fungible balance is what the wallet can spend of a category, so coins held back are left out
-// of it: they are still held, and the UTXO management page is where that is visible. An NFT is not
-// a balance, so a held back one is still listed, and refused when a send names it.
+// A fungible entry says what the wallet can spend of a category and, apart from it, what its held
+// back coins carry: the list shows the whole holding, the way the wallet page shows its balance
+// and its held back part, and a send is measured against the spendable part alone. A category
+// held back entirely is listed with nothing to spend. An NFT is not a balance, so a held back one
+// is still listed, and refused when a send names it.
 export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedUtxos = {}) {
   const tokenUtxos = getTokenUtxos(walletUtxos);
-  const fungibleTokensResult = getFungibleTokenBalances(spendableFromUtxos(tokenUtxos, reservedUtxos));
+  const heldBalances = getFungibleTokenBalances(tokenUtxos);
+  const spendableBalances = getFungibleTokenBalances(spendableFromUtxos(tokenUtxos, reservedUtxos));
   const nftsResult = getAllNftTokenBalances(tokenUtxos);
   const arrayTokens: TokenList = [];
-  for (const category of Object.keys(fungibleTokensResult)) {
-    const fungibleTokenAmount = fungibleTokensResult[category]
-    if(!fungibleTokenAmount) continue // should never happen
-    arrayTokens.push({ category, amount: fungibleTokenAmount });
+  for (const category of Object.keys(heldBalances)) {
+    const held = heldBalances[category] ?? 0n;
+    if (!held) continue; // should never happen
+    const amount = spendableBalances[category] ?? 0n;
+    const heldBack = held - amount;
+    arrayTokens.push(heldBack ? { category, amount, heldBack } : { category, amount });
   }
   for (const category of Object.keys(nftsResult)) {
     const utxosNftCategory = tokenUtxos.filter((val) =>val.token?.category === category);

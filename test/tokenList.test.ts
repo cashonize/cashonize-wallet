@@ -25,12 +25,22 @@ describe('tokenListFromUtxos', () => {
     expect(list).toEqual([{ category, amount: 1200n }])
   })
 
-  // the balance says what the wallet can spend of a category, and a held back coin is not that
-  it('leaves a held back coin out of the fungible balance', () => {
+  // the amount says what the wallet can spend of a category; what its held back coins carry is
+  // listed beside it, so the list shows the whole holding without letting a send count on it
+  it('lists a held back coin apart from the spendable amount', () => {
     const reserved = ftCoin(1, 700n)
     const list = tokenListFromUtxos([ftCoin(0, 500n), reserved], held(reserved))
 
-    expect(list).toEqual([{ category, amount: 500n }])
+    expect(list).toEqual([{ category, amount: 500n, heldBack: 700n }])
+  })
+
+  // a token whose every coin is held back, the reserve of an identity this wallet holds say, is
+  // still a holding: shown, with nothing to spend
+  it('lists a category held back entirely, with nothing to spend', () => {
+    const reserved = ftCoin(0, 700n)
+    const list = tokenListFromUtxos([reserved], held(reserved))
+
+    expect(list).toEqual([{ category, amount: 0n, heldBack: 700n }])
   })
 
   // an NFT is not a balance: it is still held, and a send that names it is refused instead

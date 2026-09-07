@@ -1817,7 +1817,7 @@
       "intro": "This wallet holds these identities, or the key that controls them, so it can update their metadata:",
       "introArrived": "An identity you watched has arrived: this wallet now holds it, or the key that controls it, so it can update its metadata: | Identities you watched have arrived: this wallet now holds them, or the keys that control them, so it can update their metadata:",
       "reserve": "reserve of {amount}",
-      "heldBack": "Their identity UTXOs, or the key NFT that controls them, are now held back from coin selection by this app only, so an ordinary send from here cannot spend them by accident; the same seed in other software still can. The BCH on them is not counted in the spendable balance, and a reserve is shown on the identities page rather than in the token list.",
+      "heldBack": "Their identity UTXOs, or the key NFT that controls them, are now held back from coin selection by this app only, so an ordinary send from here cannot spend them by accident; the same seed in other software still can. The BCH on them is not counted in the spendable balance, and a reserve shows in the token list as held back, and on the identities page.",
       "remove": "You can remove an identity from the list if you would rather its UTXO were not held back.",
       "view": "View identities",
       "close": "Close"
