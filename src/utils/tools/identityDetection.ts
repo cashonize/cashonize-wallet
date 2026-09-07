@@ -24,6 +24,9 @@ export interface DetectedIdentity {
   // is not listed: a non-token identity is listed by the user adding its authbase.
   category?: string;
   marker: IdentityMarker;
+  // The BCMR outputs of a publication, for naming a chain whose identity output carries no
+  // token from the registry they commit to
+  publicationOutputs?: string[];
 }
 
 export interface DetectedIdentities {
@@ -50,10 +53,14 @@ function spendsGenesisInput(rawHex: string, category: string) {
 // names the identity; a BCH-only one is named later from the registry it published
 function publicationOf(transaction: TransactionHistoryItem): DetectedIdentity {
   const category = transaction.outputs[0]?.token?.category;
+  const publicationOutputs = transaction.outputs
+    .map(output => opReturnHex(output))
+    .filter((hex): hex is string => hex !== undefined && hex.startsWith(BCMR_OUTPUT_PREFIX));
   return {
     authheadTxid: transaction.hash,
     ...(category ? { category } : {}),
     marker: 'publication',
+    publicationOutputs,
   };
 }
 

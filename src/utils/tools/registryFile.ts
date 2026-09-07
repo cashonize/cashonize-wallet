@@ -111,6 +111,35 @@ export async function fetchCandidateRegistry(
   return { hash: first.hash, content: first.content };
 }
 
+// The registry a publication commits to, from the first location serving the bytes the chain's
+// hash names; a location serving anything else is passed over, since the hash is the whole of
+// the trust. Undefined when no location serves it.
+export async function fetchVerifiedRegistry(
+  uris: string[],
+  hash: string,
+  ipfsGateway: string,
+): Promise<string | undefined> {
+  for (const uri of uris) {
+    const served = await fetchRegistryBytes(uri, ipfsGateway);
+    if (served !== undefined && registryContentHash(served) === hash) return binToUtf8(served);
+  }
+  return undefined;
+}
+
+// The authbases a registry names its identities by, which is how a chain that carries no token
+// is named: each resolved forward, the one ending at the coin in question is the identity
+export function registryAuthbases(content: string): string[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    return [];
+  }
+  const registry = MetadataRegistrySchema.safeParse(parsed);
+  if (!registry.success) return [];
+  return Object.keys(registry.data.identities ?? {}).filter(authbase => /^[0-9a-f]{64}$/.test(authbase));
+}
+
 // What the wallet reads out of a registry to say what an update changes. Undefined when the file
 // is not a registry, or names no identity for this authbase, which is the wrong-file mistake.
 export interface RegistrySummary {

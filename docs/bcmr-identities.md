@@ -90,10 +90,20 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
   indexer has seen it; the identities page's Add new, behind a user option, does the same
   for a picked UTXO.
 - **Found in the wallet's own history.** The history the wallet loads in full at open is
-  read for two markers: a genesis these keys made, and a publication these keys made on a
-  token's chain. A publication on a chain with no token
-  names nothing and lists nothing: a non-token identity is listed by the user adding its
-  authbase, on each device, which the Add new confirm says. See Future items.
+  read for two markers: a genesis these keys made, and a publication these keys made. A
+  publication names its chain by the token on the identity output; when that output carries
+  none, an identity received by transfer say, or one that is not a token's, the chain is
+  named from the registry the publication commits to: the file is fetched from the first
+  location serving the bytes the chain's hash names, the authbases it lists are resolved
+  forward, and the one whose chain ends at a coin this wallet holds is the identity, which
+  need not be the publication's own output, since the identity may have moved to another own
+  address since. The file is trusted for nothing, since the hash proves the bytes and the
+  resolve proves the match. This is the one hosting fetch the open pass makes, every other
+  waits for a page visit, and it is allowed because only a publication this wallet made is
+  fetched for, so the host reached is one the user chose when publishing, or the configured
+  IPFS gateway; each publication is tried once per session, twenty authbases at most. A chain
+  that never published, or whose file no location serves, is listed by the user adding its
+  authbase.
 - **Followed as a held token's identity.** The identity of every token the wallet holds is
   followed passively, in batches of forward lookups at open and on the page's visit: not
   listed, not reserved, never news, until its identity output turns out to be here, when it
@@ -236,13 +246,13 @@ What the standard enables that the wallet does not do yet:
   resolve to an identity through its well-known registry, the domain as the trust root.
   [CHIP-PayPro](https://github.com/bitjson/chip-paypro) is the invoice layer that composes
   with it: BCMR says who, PayPro says what to pay.
+- **A registry naming several identities held here.** Naming from a publication's file
+  takes the first authbase whose chain ends at a held coin, one per file. A registry that
+  names an organization and its dapp, both held by this wallet with bare outputs, names one
+  of them and the other waits for the user's authbase; and the announcement reads the match
+  as the publication's own chain, which for a sibling named in the same file it is not.
+  Listing every held one the file names, and preferring the chain the publication sits on,
+  are small; nothing written by Studio or the generator names more than one today.
 - **The current snapshot.** The spec's current snapshot is the latest one not after now; the
   wallet's own previews and diffs take the last sorted timestamp, so a registry with a
   future-dated snapshot, the pre-announced migration, would show it early.
-- **Naming a non-token identity from its own publication.** The history reading already
-  sees a publication these keys made on a chain with no token, and the registry it points at
-  names its authbases: resolving each forward would find the one whose chain ends at
-  this coin, and list the identity on every device without the user. Holding the coin
-  back needs only the marker, since the publication already says its output 0 is an
-  identity output; naming it needs the file. Until then a non-token identity is protected
-  only where the user added it, and a restore or a sweep leaves its coin in coin selection.

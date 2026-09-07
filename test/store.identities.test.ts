@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Utxo } from 'mainnet-js'
+import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
 
 import {
   localStorageMock,
@@ -64,6 +65,25 @@ function stubAuthheadQueries(
       json: () => Promise.resolve({ data: { transaction: known.map(answer) } }),
     })
   }))
+}
+
+// A registry naming the given authbases, hosted at one HTTPS location: the BCMR output that
+// commits to it by hash, and a fetch serving the file, or other bytes, at that location while
+// every other request keeps going to the Chaingraph stub in place
+function publishedRegistry(identities: Record<string, object>) {
+  const content = JSON.stringify({ identities })
+  const hash = binToHex(sha256.hash(utf8ToBin(content)))
+  const uri = 'registry.example'
+  const uriHex = binToHex(utf8ToBin(uri))
+  const registryHex = `6a0442434d5220${hash}${(uriHex.length / 2).toString(16).padStart(2, '0')}${uriHex}`
+  const serveRegistry = (served = content) => {
+    const chaingraphFetch = globalThis.fetch
+    vi.stubGlobal('fetch', vi.fn((url: string, options: RequestInit) => {
+      if (!url.includes(uri)) return chaingraphFetch(url, options)
+      return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(utf8ToBin(served).buffer) })
+    }))
+  }
+  return { registryHex, serveRegistry }
 }
 
 // The identities the store loads for a wallet come from storage, so they are written before the
@@ -784,24 +804,114 @@ describe('auth reservations follow the authchain', () => {
     expect(JSON.parse(localStorageMock.getItem('dismissedIdentities-mainnet-testWallet') ?? '[]')).toEqual([categoryA])
   })
 
-  // A publication on a chain with no token names nothing, so nothing is listed, held back or
-  // announced for it: a non-token identity is listed by the user adding its authbase. The
-  // publication still counts for the history's label.
-  it('lists nothing for a publication on a chain it cannot name', async () => {
+  // A publication on a chain whose identity output carries no token, an identity received by
+  // transfer say, names nothing by itself. The registry it commits to names its authbases, and
+  // the one resolving to the held coin is the identity: listed, held back and announced.
+  it('names a publication on a chain it cannot name by the registry it commits to', async () => {
     const authUtxo = utxo(authheadA, 0)
+    const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    serveRegistry()
     const { store, identitiesStore } = startStore([authUtxo])
-    const walk = [historyItem(authheadA, [
-      p2pkhOutput(),
-      opReturnOutput('6a0442434d52201111111111111111111111111111111111111111111111111111111111111111'),
-    ])]
+    const walk = [historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])]
 
     await identitiesStore.detectWalletIdentities(walk)
 
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(store.reservedUtxos[outpointOf(authUtxo)]).toBe('auth')
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], sources: { [categoryA]: 'made' } })
+    expect(identitiesStore.identityPublicationTxids).toEqual([authheadA])
+  })
+
+  // the file is trusted for nothing: an authbase it names whose chain ends elsewhere is not
+  // this identity, and a location serving other bytes than the hash names is passed over
+  // an identity published here and then moved to another own address, a transfer carrying no
+  // publication: the publication's output is spent, the later coin is what the resolve ends at
+  it('names a publication whose identity has since moved to another coin this wallet holds', async () => {
+    const movedUtxo = utxo(movedAuthheadA, 0)
+    const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
+    stubAuthheadQueries({ [categoryA]: movedAuthheadA })
+    serveRegistry()
+    const { store, identitiesStore } = startStore([movedUtxo])
+
+    await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(store.reservedUtxos[outpointOf(movedUtxo)]).toBe('auth')
+  })
+
+  // once named, the chain is listed and the file is not fetched again: the next open would
+  // otherwise reach hosting for every bare publication ever made here
+  it('fetches the registry once for a chain it has named', async () => {
+    const authUtxo = utxo(authheadA, 0)
+    const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    serveRegistry()
+    const { identitiesStore } = startStore([authUtxo])
+    const walk = [historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])]
+    await identitiesStore.detectWalletIdentities(walk)
+    const registryFetches = () => (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(([url]) => String(url).includes('registry.example')).length
+    expect(registryFetches()).toBe(1)
+
+    await identitiesStore.detectWalletIdentities(walk)
+
+    expect(registryFetches()).toBe(1)
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+  })
+
+  // with no coin at output 0 nothing can match, so hosting is not reached at all
+  it('fetches no registry when the wallet holds no coin at output 0', async () => {
+    const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    serveRegistry()
+    const { identitiesStore } = startStore([utxo(authheadA, 1)])
+
+    await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
+
+    const registryFetches = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(([url]) => String(url).includes('registry.example'))
+    expect(registryFetches).toHaveLength(0)
+  })
+
+  // a registry can name many identities, each a forward resolve; only so many are asked per file
+  it('resolves no more than twenty of the authbases a registry names', async () => {
+    const others = Array.from({ length: 30 }, (_, index) => index.toString(16).padStart(64, '0'))
+    const { registryHex, serveRegistry } = publishedRegistry(Object.fromEntries(others.map(authbase => [authbase, {}])))
+    stubAuthheadQueries({ [others[0]!]: authheadB })
+    serveRegistry()
+    const { identitiesStore } = startStore([utxo(authheadA, 0)])
+
+    await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
+
+    const askedChaingraph = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([url]) => !String(url).includes('registry.example'))
+      .map(([, options]) => (JSON.parse((options as RequestInit).body as string) as { variables: { hashes?: string[] } }).variables.hashes ?? [])
+    expect(askedChaingraph.flat()).toHaveLength(20)
+  })
+
+  it('lists nothing when the registry names no chain ending at this coin', async () => {
+    const authUtxo = utxo(authheadA, 0)
+    const { registryHex, serveRegistry } = publishedRegistry({ [categoryB]: {} })
+    stubAuthheadQueries({ [categoryB]: authheadB })
+    serveRegistry()
+    const { store, identitiesStore } = startStore([authUtxo])
+
+    await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
+
     expect(identitiesStore.identityCategories).toEqual([])
-    expect(identitiesStore.unseenIdentities).toEqual([])
     expect(identitiesStore.announcement).toBeUndefined()
-    expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authUtxo])
+  })
+
+  it('lists nothing when no location serves the bytes the publication names', async () => {
+    const authUtxo = utxo(authheadA, 0)
+    const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    serveRegistry('{"identities":{}}')
+    const { identitiesStore } = startStore([authUtxo])
+
+    await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
+
+    expect(identitiesStore.identityCategories).toEqual([])
     expect(identitiesStore.identityPublicationTxids).toEqual([authheadA])
   })
 
