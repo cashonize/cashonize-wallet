@@ -32,6 +32,11 @@ const t = i18n.global.t;
 const SPENDER_SEARCH_BATCH = 50;
 // Links followed before a chain is given up on, the authbase counted
 export const ELECTRUM_WALK_LIMIT = 10;
+// Chains walked at once, so the wait is the longest chain's rather than the sum. Ten is well
+// within what the connection already carries: the history load sends every raw transaction
+// fetch at once, over a thousand on a first open, and nothing in the client or the servers has
+// limited that.
+const CONCURRENT_WALKS = 10;
 
 interface Link {
   hash: string;
@@ -168,8 +173,10 @@ async function readAuthHead(provider: ElectrumNetworkProvider, tokenId: string, 
   };
 }
 
-// The authheads of the given categories, one chain walked after another. A category whose chain
-// cannot be walked is absent from the map, as a category Chaingraph does not know is.
+// The authheads of the given categories, a few chains walked at a time. A category whose chain
+// cannot be walked is absent from the map, as a category Chaingraph does not know is: a chain
+// longer than the walk goes, or through an address the server serves no history for, is the
+// expected case, so it is noted without a stack.
 export async function resolveAuthHeadsElectrum(
   tokenIds: string[],
   provider: ElectrumNetworkProvider,
@@ -177,14 +184,19 @@ export async function resolveAuthHeadsElectrum(
   linksLimit: number,
 ): Promise<Map<string, AuthHeadResult>> {
   const results = new Map<string, AuthHeadResult>();
-  for (const tokenId of tokenIds) {
-    try {
-      const links = await walkAuthchain(provider, tokenId, prefix);
-      results.set(tokenId, await readAuthHead(provider, tokenId, links, linksLimit));
-    } catch (error) {
-      console.error("Failed to walk the authchain over electrum:", tokenId, error);
+  const queue = [...tokenIds];
+  async function walkNext() {
+    for (let tokenId = queue.shift(); tokenId !== undefined; tokenId = queue.shift()) {
+      try {
+        const links = await walkAuthchain(provider, tokenId, prefix);
+        results.set(tokenId, await readAuthHead(provider, tokenId, links, linksLimit));
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        console.warn(`Authchain not resolved over electrum for ${tokenId}: ${reason}`);
+      }
     }
   }
+  await Promise.all(Array.from({ length: CONCURRENT_WALKS }, walkNext));
   return results;
 }
 

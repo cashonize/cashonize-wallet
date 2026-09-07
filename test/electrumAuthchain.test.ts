@@ -194,10 +194,33 @@ describe('resolveAuthHeadsElectrum', () => {
 
   it('leaves out a category whose chain cannot be walked, keeping the rest', async () => {
     const provider = fakeProvider(chain, chainHistories)
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     const results = await resolveAuthHeadsElectrum(['00'.repeat(32), category], provider as never, CashAddressNetworkPrefix.mainnet, 0)
 
     expect([...results.keys()]).toEqual([category])
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
+  })
+
+  // the wait is the longest chain's rather than the sum, but never more than a few at once
+  it('walks a few chains at a time', async () => {
+    let inFlight = 0
+    let mostInFlight = 0
+    const provider = fakeProvider(chain, chainHistories)
+    provider.getUtxos.mockImplementation(async (address: string) => {
+      inFlight++
+      mostInFlight = Math.max(mostInFlight, inFlight)
+      await new Promise(resolve => setTimeout(resolve, 5))
+      inFlight--
+      return address === addressOf(p2pkh('03')) ? [{ txid: transferTxid, vout: 0, satoshis: 1_000n, address, height: 800_020 }] : []
+    })
+
+    const results = await resolveAuthHeadsElectrum(Array(16).fill(category), provider as never, CashAddressNetworkPrefix.mainnet, 0)
+
+    expect(results.get(category)?.txid).toBe(transferTxid)
+    expect(mostInFlight).toBeGreaterThan(1)
+    expect(mostInFlight).toBeLessThanOrEqual(10)
   })
 })
 
