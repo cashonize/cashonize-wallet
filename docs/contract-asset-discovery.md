@@ -82,15 +82,26 @@ requires a change output to the owner's own address, and every hodl it made carr
 Cashonize does not depend on that output, since it rebuilds from its own pkhs, but a wallet
 that wants to be found by the plugin has to keep the rule when it creates a lock.
 
-## The electrum alternative
+## The electrum alternative, and why it is the intended source
 
-A transaction that spends an address's coin is in that address's electrum history, so the same
-walk can be done without Chaingraph: the history of every address, then each transaction
-fetched and its outputs read. The hodl plugin does exactly this, and for TapSwap it was
-verified to find the same listings as the Chaingraph walk. It is one round trip per
-transaction rather than one paged query, which is why the wallet uses Chaingraph. It is not
-built today: a wallet with no Chaingraph instance configured finds none of these. It would be
-the way to find them without any server knowing the wallet's address list as a set.
+A transaction that spends an address's coin is in that address's electrum history, and the
+wallet already holds those transactions: mainnet-js's history load fetches the raw hex of
+every transaction in the history and every prevout, through the IndexedDB cache, and decodes
+them, with each output's OP_RETURN bytes and token fields exposed on the history item. So
+the walk asks a second server, with the wallet's address list, for what the first server has
+already delivered. The hodl plugin reads its history this way, and for TapSwap the two
+sources were verified to find the same listings.
+
+Reading the announcements from the history is the intended source, in a change of its own:
+it takes the address list away from Chaingraph, drops the one query a stale planner kills
+and the chain-mixing caveat, sees a transaction in the mempool at once, and works on chipnet.
+Chaingraph then keeps the one job history cannot do, following an authchain to its head.
+What it costs: the readers must wait for the full history load rather than the capped one
+that precedes them today, which on a large wallet's first open is many electrum fetches and
+afterwards cache hits; genesis detection decodes candidate raw transactions itself, since a
+history item carries no input outpoints; and a TapSwap listing's unspent status becomes one
+electrum lookup per own listing, worth remembering once spent. Until then, a wallet with no
+Chaingraph instance configured finds none of these.
 
 ## Where the code is
 
