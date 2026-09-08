@@ -339,6 +339,7 @@ export function parseNft(
       transaction: parsingTransaction,
     };
 
+    // a VM is very cheap to create, so one per parse is simpler than sharing one
     const vm = createVirtualMachineBch();
     let result;
 
