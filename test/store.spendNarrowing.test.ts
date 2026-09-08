@@ -79,7 +79,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
   it('keeps a held back token coin out of a mint', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
 
-    await store.spend.tokenMint(category, [])
+    await store.spend.tokenMint([{ category }] as never)
 
     expect(poolOf(wallet.tokenMint.mock.calls[0] as unknown[])).toEqual([bchCoin, otherTokenCoin])
   })
