@@ -33,7 +33,7 @@ overrides:
   '@reown/walletkit': 1.5.6
   '@walletconnect/core': 2.23.10
   '@wizardconnect/core': 0.2.4
-  mainnet-js: 3.1.7
+  mainnet-js: 4.0.0-next.13
 
 # Packages explicitly allowed to run install/build lifecycle scripts. Everything else is
 # blocked by pnpm; a future dep that adds an install script fails the install until
@@ -50,4 +50,4 @@ allowBuilds:
 # reserved token coin could still be minted from or burned. The patch adds the narrowing the same
 # way the other methods do it, right after their getUtxos(). Remove once the fix lands upstream.
 patchedDependencies:
-  'mainnet-js@3.1.7': patches/mainnet-js@3.1.7.patch
+  mainnet-js@4.0.0-next.13: patches/mainnet-js@4.0.0-next.13.patch

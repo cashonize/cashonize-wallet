@@ -1,0 +1,28 @@
+diff --git a/dist/module/wallet/Base.js b/dist/module/wallet/Base.js
+index 2341e3372ef8fda0c23aca420b8cb53c8b306fc4..58d9eff078520ad25c1c7a75710cd66944fb27fa 100644
+--- a/dist/module/wallet/Base.js
++++ b/dist/module/wallet/Base.js
+@@ -905,7 +905,10 @@ export class BaseWallet {
+             bucket.push(request);
+             requestsByCategory.set(request.category, bucket);
+         }
+-        const utxos = await this.getUtxos();
++        let utxos = await this.getUtxos();
++        if (options?.utxoIds) {
++            utxos = checkUtxos(options.utxoIds.map((utxoId) => typeof utxoId === "string" ? fromUtxoId(utxoId) : utxoId), utxos);
++        }
+         const ensureUtxos = [];
+         const outputs = [];
+         for (const [category, requests] of requestsByCategory) {
+@@ -970,7 +973,10 @@ export class BaseWallet {
+         if (burnRequests.length === 0) {
+             throw new Error("tokenBurn requires at least one request");
+         }
+-        const utxos = await this.getUtxos();
++        let utxos = await this.getUtxos();
++        if (options?.utxoIds) {
++            utxos = checkUtxos(options.utxoIds.map((utxoId) => typeof utxoId === "string" ? fromUtxoId(utxoId) : utxoId), utxos);
++        }
+         const ensureUtxos = [];
+         const changeSendRequests = [];
+         for (const burnRequest of burnRequests) {

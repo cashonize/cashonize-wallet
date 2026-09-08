@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { OpReturnData, sha256, utf8ToBin } from 'mainnet-js'
-import { binToHex } from '@bitauth/libauth'
+import { OpReturnData } from 'mainnet-js'
+import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
 
 import { parsePublicationOutput } from '../src/utils/tools/authchainIdentity'
 import {
