@@ -28,6 +28,7 @@
   const fileInput = ref<HTMLInputElement | null>(null);
   const cameras = ref<QrScanner.Camera[]>([]);
   const activeCameraId = ref("");
+  const switchingCamera = ref(false);
 
   let scanner: QrScanner | null = null;
   let didDecode = false;
@@ -123,7 +124,13 @@
       await handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
       return;
     }
-    await loadCameras();
+    // listing cameras is for the picker only; a browser that refuses to enumerate them must
+    // not take down a scanner that is already running
+    try {
+      await loadCameras();
+    } catch (err) {
+      console.error('Could not list the available cameras', err);
+    }
   }
 
   function runningCameraId() {
@@ -178,18 +185,30 @@
   const hasCameraChoice = computed(() => cameras.value.filter((camera) => !isFrontLabel(camera.label)).length > 1);
 
   async function selectCamera(cameraId: string) {
-    if (!scanner || cameraId === activeCameraId.value) return;
+    // switching tears down the running stream before opening the next camera, so a second tap
+    // arriving mid-switch would race the first one and can leave the video stopped
+    if (!scanner || switchingCamera.value || cameraId === activeCameraId.value) return;
+    switchingCamera.value = true;
     try {
       await scanner.setCamera(cameraId);
+      activeCameraId.value = runningCameraId() || cameraId;
+      // Remembering a front camera would make it the default for every later scan, and a
+      // browser that reports no facing mode would not trip the check above either, so the
+      // mistake would stick with no way back. A mirrored picture makes a mistap plain enough.
+      if (!isFrontCamera(activeCameraId.value)) storeCameraId(activeCameraId.value);
     } catch (err) {
-      await handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
-      return;
+      // The old stream is already gone by now, so a camera that will not open leaves no
+      // picture at all. Fall back to the rear camera rather than replacing the whole scanner
+      // with an error the user can do nothing about but close.
+      try {
+        await scanner.setCamera('environment');
+        activeCameraId.value = runningCameraId();
+      } catch {
+        await handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
+      }
+    } finally {
+      switchingCamera.value = false;
     }
-    activeCameraId.value = runningCameraId() || cameraId;
-    // Remembering a front camera would make it the default for every later scan, and a browser
-    // that reports no facing mode would not trip the check above either, so the mistake would
-    // stick with no obvious way back. The mirrored picture makes a mistap plain enough to undo.
-    if (!isFrontCamera(activeCameraId.value)) storeCameraId(activeCameraId.value);
   }
 
   function openImagePicker() {
@@ -268,6 +287,7 @@
           :label="String(index + 1)"
           :aria-label="t('qrScanner.switchCamera') + ' ' + (index + 1)"
           :class="{ 'camera-active': camera.id === activeCameraId }"
+          :disable="switchingCamera"
           flat round dense
           @click="selectCamera(camera.id)"
         />
