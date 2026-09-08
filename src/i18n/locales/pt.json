@@ -1159,6 +1159,7 @@
   "qrScanner": {
     "scanQrCode": "Escanear QR Code",
     "chooseImage": "Escolher imagem",
+    "switchCamera": "Trocar câmera",
     "noQrCodeInImage": "Nenhum QR Code encontrado na imagem",
     "errors": {
       "permissionRequired": "Permissão necessária para acessar a câmera",

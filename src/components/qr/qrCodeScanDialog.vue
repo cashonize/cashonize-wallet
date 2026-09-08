@@ -1,14 +1,20 @@
 <script setup lang="ts">
+  // Camera scanning is qr-scanner's. No constraint names a lens: facingMode does not tell a
+  // phone's several rear cameras apart, so 'environment' resolves to whichever one the browser
+  // lists first, which can be a telephoto or a macro, magnified and unable to focus on a code
+  // held at arm's length. Only the user can tell which is which, hence the picker.
   import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
   import QrScanner from 'qr-scanner';
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useI18n } from 'vue-i18n'
+  import { useSettingsStore } from 'src/stores/settingsStore'
 
   import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
   const { t } = useI18n()
+  const settingsStore = useSettingsStore()
 
   const props = defineProps<{
     filter?: (decoded: string) => string | true
@@ -20,6 +26,9 @@
   const videoElement = ref<HTMLVideoElement | null>(null);
   const videoPlaying = ref(false);
   const fileInput = ref<HTMLInputElement | null>(null);
+  const cameras = ref<QrScanner.Camera[]>([]);
+  const activeCameraId = ref("");
+  const switchingCamera = ref(false);
 
   let scanner: QrScanner | null = null;
   let didDecode = false;
@@ -47,11 +56,13 @@
     }
   }
 
-  function handleError(err: Error | string) {
+  async function handleError(err: Error | string) {
     const errorObj = typeof err === 'string' ? new Error(err) : err;
     // qr-scanner emits "No QR code found" on every non-detecting frame; ignore it
     if (errorObj.message === 'No QR code found') return;
 
+    // These names reach us from the video element itself, never from opening the camera:
+    // qr-scanner replaces every getUserMedia rejection with the single string handled below.
     if (errorObj.name === 'NotAllowedError') {
       error.value = t('qrScanner.errors.permissionRequired');
     } else if (errorObj.name === 'NotFoundError') {
@@ -62,6 +73,12 @@
       error.value = t('qrScanner.errors.unableToAccess');
     } else if (errorObj.name === 'OverconstrainedError') {
       error.value = t('qrScanner.errors.constraintsMismatch');
+    } else if (errorObj.message === 'Camera not found.') {
+      // qr-scanner catches every getUserMedia rejection and throws this one string instead,
+      // so the reason has to be recovered here. A camera the browser still lists but will not
+      // open is a refused permission in all but the rarest cases.
+      const hasCamera = await QrScanner.hasCamera();
+      error.value = hasCamera ? t('qrScanner.errors.permissionRequired') : t('qrScanner.errors.noCamera');
     } else {
       error.value = t('qrScanner.errors.unknownError') + ': ' + errorObj.message;
     }
@@ -75,12 +92,18 @@
       handleDecode,
       {
         returnDetailedScanResult: true,
-        maxScansPerSecond: 4,
+        // the library's own default is 25 and it never exceeds the camera's frame rate; this is
+        // the throttle a handheld scan can afford while still catching a frame that is in focus
+        maxScansPerSecond: 10,
         highlightScanRegion: false,
         highlightCodeOutline: false,
-        preferredCamera: 'environment',
+        preferredCamera: settingsStore.qrScannerCameraId || 'environment',
         calculateScanRegion: (video) => {
-          // Crop to center region and downscale for performance (from Selene MR #241)
+          // A centred square of the frame rather than the whole of it, downscaled for speed.
+          // A share of the frame and not of the dialog on purpose: qr-scanner recalculates
+          // this only on metadata and play, never on a resize or a rotation
+          // (nimiq/qr-scanner#240). The preview is object-fit: cover, so the square can reach
+          // past the edges of what is on screen, and the viewfinder must stay inside it.
           const smallestDimension = Math.min(video.videoWidth, video.videoHeight);
           const scanSize = Math.round(smallestDimension * 0.8);
           const downScaled = Math.min(scanSize, 480);
@@ -100,7 +123,93 @@
     try {
       await scanner.start();
     } catch (err) {
-      handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
+      await handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
+      return;
+    }
+    // listing cameras is for the picker only; a browser that refuses to enumerate them must
+    // not take down a scanner that is already running
+    try {
+      await loadCameras();
+    } catch (err) {
+      console.error('Could not list the available cameras', err);
+    }
+  }
+
+  function runningCameraId() {
+    const stream = videoElement.value?.srcObject;
+    if (!(stream instanceof MediaStream)) return "";
+    return stream.getVideoTracks()[0]?.getSettings().deviceId ?? "";
+  }
+
+  async function loadCameras() {
+    // camera labels are only served once permission is granted, so this runs after start()
+    cameras.value = await QrScanner.listCameras(true);
+    const runningId = runningCameraId();
+    activeCameraId.value = runningId;
+
+    // A stored device id goes stale when the browser reissues them, and qr-scanner answers an
+    // unavailable one by retrying without any camera preference at all, which hands back the
+    // default camera: on a phone the front one. Ask for the rear camera again instead.
+    const storedId = settingsStore.qrScannerCameraId;
+    if (storedId && runningId && runningId !== storedId) {
+      storeCameraId("");
+      await scanner?.setCamera('environment');
+      activeCameraId.value = runningCameraId();
+    }
+  }
+
+  function storeCameraId(cameraId: string) {
+    if (cameraId) localStorage.setItem("qrScannerCameraId", cameraId);
+    else localStorage.removeItem("qrScannerCameraId");
+    settingsStore.qrScannerCameraId = cameraId;
+  }
+
+  // No API tells us which way a camera points: getSettings().facingMode is absent on desktop
+  // and on some Android browsers, and nothing else marks it. Reading the label is the same
+  // fallback qr-scanner itself uses, rear winning over front when a label says both.
+  function isFrontLabel(label: string) {
+    if (/rear|back|environment/i.test(label)) return false;
+    return /front|user|face/i.test(label);
+  }
+
+  function isFrontCamera(cameraId: string) {
+    const stream = videoElement.value?.srcObject;
+    const facingMode = stream instanceof MediaStream
+      ? stream.getVideoTracks()[0]?.getSettings().facingMode
+      : undefined;
+    if (facingMode) return facingMode === 'user';
+    return isFrontLabel(cameras.value.find((camera) => camera.id === cameraId)?.label ?? "");
+  }
+
+  // Most phones offer one rear camera and a selfie camera, and a QR scanner has no use for the
+  // selfie one, so there is nothing to choose between and the picker stays out of the way. A
+  // camera we cannot place counts as a real option, so unlabelled ones still get offered.
+  const hasCameraChoice = computed(() => cameras.value.filter((camera) => !isFrontLabel(camera.label)).length > 1);
+
+  async function selectCamera(cameraId: string) {
+    // switching tears down the running stream before opening the next camera, so a second tap
+    // arriving mid-switch would race the first one and can leave the video stopped
+    if (!scanner || switchingCamera.value || cameraId === activeCameraId.value) return;
+    switchingCamera.value = true;
+    try {
+      await scanner.setCamera(cameraId);
+      activeCameraId.value = runningCameraId() || cameraId;
+      // Remembering a front camera would make it the default for every later scan, and a
+      // browser that reports no facing mode would not trip the check above either, so the
+      // mistake would stick with no way back. A mirrored picture makes a mistap plain enough.
+      if (!isFrontCamera(activeCameraId.value)) storeCameraId(activeCameraId.value);
+    } catch (err) {
+      // The old stream is already gone by now, so a camera that will not open leaves no
+      // picture at all. Fall back to the rear camera rather than replacing the whole scanner
+      // with an error the user can do nothing about but close.
+      try {
+        await scanner.setCamera('environment');
+        activeCameraId.value = runningCameraId();
+      } catch {
+        await handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
+      }
+    } finally {
+      switchingCamera.value = false;
     }
   }
 
@@ -173,6 +282,18 @@
       <div style="display: flex; height: 100%;">
         <ScannerUI :filter-hint="filterHint" />
       </div>
+      <div v-if="hasCameraChoice" class="scanner-camera-picker">
+        <q-btn
+          v-for="(camera, index) in cameras"
+          :key="camera.id"
+          :label="String(index + 1)"
+          :aria-label="t('qrScanner.switchCamera') + ' ' + (index + 1)"
+          :class="{ 'camera-active': camera.id === activeCameraId }"
+          :disable="switchingCamera"
+          flat round dense
+          @click="selectCamera(camera.id)"
+        />
+      </div>
       <q-btn class="scanner-close-btn" icon="close" color="white" flat round dense v-close-popup />
       <q-btn class="scanner-upload-btn" icon="image" :label="t('qrScanner.chooseImage')" no-caps flat rounded dense @click="openImagePicker" />
       <input ref="fileInput" type="file" accept="image/*" style="display: none;" @change="handleImageSelected">
@@ -207,6 +328,27 @@
   z-index: 2001;
   font-size: 14px;
   background: rgba(0, 0, 0, 0.45);
+}
+.scanner-camera-picker {
+  position: absolute;
+  bottom: 64px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  display: flex;
+  gap: 8px;
+  z-index: 2001;
+}
+.scanner-camera-picker .q-btn {
+  color: white;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.scanner-camera-picker .camera-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 .scanner-upload-btn {
   position: absolute;
