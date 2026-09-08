@@ -34,7 +34,7 @@ const shortfallMessages = [
   { method: 'encodeTransaction', message: 'Not enough token amount to send' },
   { method: 'encodeTransaction', message: 'There were no Unspent Outputs' },
   { method: 'encodeTransaction', message: "The available inputs couldn't satisfy the request with fees" },
-  { method: 'tokenMint', message: 'You do not have any token UTXOs with minting capability for specified category' },
+  { method: 'tokenMint', message: 'You do not have any token UTXOs with minting capability for category' },
   { method: 'tokenBurn', message: 'You do not have suitable token UTXOs to perform burn' },
 ] as const
 

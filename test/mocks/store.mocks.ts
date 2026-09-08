@@ -9,6 +9,14 @@ import type * as MainnetJs from 'mainnet-js'
 import type * as ZodValidation from 'src/utils/zodValidation'
 import { vi } from 'vitest'
 
+// Mock network provider. In mainnet-js v4 a wallet takes the per-network global provider at
+// construction rather than being handed one, so the mock wallets below carry it.
+export const mockProvider = {
+  connect: vi.fn().mockResolvedValue(undefined),
+  disconnect: vi.fn().mockResolvedValue(true),
+  getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
+}
+
 // Mock wallet instances
 export const mockMainnetWallet = {
   name: 'testWallet',
@@ -20,6 +28,7 @@ export const mockMainnetWallet = {
   // hashes, and an address that decodes would make every wallet initialization in the tests fetch
   getDepositAddress: () => 'bitcoincash:qtest',
   getTokenDepositAddress: () => 'bitcoincash:ztest',
+  provider: mockProvider,
   stop: vi.fn().mockResolvedValue(undefined),
 }
 
@@ -31,6 +40,7 @@ export const mockChipnetWallet = {
   publicKeyHash: new Uint8Array([1, 2, 3]),
   getDepositAddress: () => 'bchtest:qtest',
   getTokenDepositAddress: () => 'bchtest:ztest',
+  provider: mockProvider,
   stop: vi.fn().mockResolvedValue(undefined),
 }
 
@@ -53,13 +63,6 @@ export const localStorageMock = {
   clear: vi.fn(() => { localStorageMock.store = {} }),
 }
 vi.stubGlobal('localStorage', localStorageMock)
-
-// Mock network provider (global-provider api of mainnet-js v4)
-export const mockProvider = {
-  connect: vi.fn().mockResolvedValue(undefined),
-  disconnect: vi.fn().mockResolvedValue(true),
-  getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
-}
 
 // Mock wallet classes (must be real classes so instanceof checks work)
 class MockWallet { static named = mockWalletNamed; static fromId = mockWalletFromId }

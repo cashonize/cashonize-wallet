@@ -1515,7 +1515,7 @@ export const useStore = defineStore('store', () => {
   const shortfallMessages = [
     "Amount required was not met",
     "Not enough token amount to send",
-    "You do not have any token UTXOs with minting capability for specified category",
+    "You do not have any token UTXOs with minting capability for category",
     "You do not have suitable token UTXOs to perform burn",
     "There were no Unspent Outputs",
     "The available inputs couldn't satisfy the request with fees",

@@ -87,6 +87,27 @@ export default defineConfig((ctx) => {
             ? 'export class WalletConnectPay { static isAvailable () { return false } }'
             : undefined,
         })
+        // mainnet-js reaches its in-memory test provider (network/MockNetworkProvider.js) from
+        // the package entry through createMockProvider(), and the two @mem-cash packages that
+        // file imports are devDependencies over there, so nothing installs them and the bundler
+        // cannot resolve them. The wallet never builds a mock provider, so both are stubbed with
+        // the names mainnet-js imports, throwing if anything ever reaches them.
+        const memCashStubs: Record<string, string[]> = {
+          '@mem-cash/electrum': ['asTransport', 'createIndexer'],
+          '@mem-cash/validation': ['createTxVerifier']
+        }
+        const memCashPrefix = '\0mem-cash-stub:'
+        viteConf.plugins.push({
+          name: 'stub-mem-cash',
+          resolveId: (id) => id in memCashStubs ? memCashPrefix + id : undefined,
+          load: (id) => {
+            if (!id.startsWith(memCashPrefix)) return undefined
+            const packageName = id.slice(memCashPrefix.length)
+            return memCashStubs[packageName]!
+              .map(name => `export function ${name} () { throw new Error('${packageName} is not bundled') }`)
+              .join('\n')
+          }
+        })
       },
       vitePlugins: [
         ['rollup-plugin-visualizer', {
