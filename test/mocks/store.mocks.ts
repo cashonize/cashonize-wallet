@@ -90,6 +90,7 @@ vi.mock('mainnet-js', async (importOriginal) => ({
     Testnet: 'testnet',
   },
   convert: vi.fn().mockResolvedValue(0),
+  ExchangeRate: { get: vi.fn().mockResolvedValue(0) },
   balanceResponseFromSatoshi: vi.fn().mockReturnValue({ sat: 0, bch: 0 }),
   binToHex: vi.fn((arr: Uint8Array) => Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')),
   DefaultProvider: {

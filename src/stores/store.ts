@@ -8,6 +8,7 @@ import {
   DefaultProvider,
   disconnectProviders,
   convert,
+  ExchangeRate,
   createProvider,
   getGlobalProvider,
   removeGlobalProvider,
@@ -1163,7 +1164,7 @@ export const useStore = defineStore('store', () => {
     try {
       const initialization = currentInitialization;
       const currency = settingsStore.currency;
-      const rate = await convert(1, 'bch', currency);
+      const rate = await ExchangeRate.get(currency, true);
       // discard a rate that no longer belongs: the state may have been reset, or the user may
       // have switched currency, which starts a second fetch that can resolve before this one
       if (initialization !== currentInitialization || currency !== settingsStore.currency) return;
