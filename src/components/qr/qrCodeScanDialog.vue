@@ -1,4 +1,8 @@
 <script setup lang="ts">
+  // Camera scanning is qr-scanner's. Nothing in the media APIs asks for a phone's ordinary
+  // wide lens: 'environment' resolves to whichever rear camera the browser lists first, which
+  // on a multi-lens phone can be a telephoto or a macro, magnified and unable to focus on a
+  // code held at arm's length. Only the user can tell which is which, hence the picker.
   import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
   import QrScanner from 'qr-scanner';
   import ScannerUI from 'components/qr/qrScannerUi.vue'
@@ -85,12 +89,18 @@
       handleDecode,
       {
         returnDetailedScanResult: true,
+        // the library's own default is 25 and it never exceeds the camera's frame rate; this is
+        // the throttle a handheld scan can afford while still catching a frame that is in focus
         maxScansPerSecond: 10,
         highlightScanRegion: false,
         highlightCodeOutline: false,
         preferredCamera: settingsStore.qrScannerCameraId || 'environment',
         calculateScanRegion: (video) => {
-          // decode a centred square rather than the whole frame, downscaled for performance
+          // A centred square of the frame rather than the whole of it, downscaled for speed.
+          // A share of the frame and not of the dialog on purpose: qr-scanner recalculates
+          // this only on metadata and play, never on a resize or a rotation
+          // (nimiq/qr-scanner#240). The preview is object-fit: cover, so the square can reach
+          // past the edges of what is on screen, and the viewfinder must stay inside it.
           const smallestDimension = Math.min(video.videoWidth, video.videoHeight);
           const scanSize = Math.round(smallestDimension * 0.8);
           const downScaled = Math.min(scanSize, 480);
@@ -145,13 +155,27 @@
     else localStorage.removeItem("qrScannerCameraId");
   }
 
-  function isFrontCamera(cameraId: string) {
-    const stream = videoElement.value?.srcObject;
-    const track = stream instanceof MediaStream ? stream.getVideoTracks()[0] : undefined;
-    if (track?.getSettings().facingMode === 'user') return true;
-    const label = cameras.value.find((camera) => camera.id === cameraId)?.label ?? "";
+  // No API tells us which way a camera points: getSettings().facingMode is absent on desktop
+  // and on some Android browsers, and nothing else marks it. Reading the label is the same
+  // fallback qr-scanner itself uses, rear winning over front when a label says both.
+  function isFrontLabel(label: string) {
+    if (/rear|back|environment/i.test(label)) return false;
     return /front|user|face/i.test(label);
   }
+
+  function isFrontCamera(cameraId: string) {
+    const stream = videoElement.value?.srcObject;
+    const facingMode = stream instanceof MediaStream
+      ? stream.getVideoTracks()[0]?.getSettings().facingMode
+      : undefined;
+    if (facingMode) return facingMode === 'user';
+    return isFrontLabel(cameras.value.find((camera) => camera.id === cameraId)?.label ?? "");
+  }
+
+  // Most phones offer one rear camera and a selfie camera, and a QR scanner has no use for the
+  // selfie one, so there is nothing to choose between and the picker stays out of the way. A
+  // camera we cannot place counts as a real option, so unlabelled ones still get offered.
+  const hasCameraChoice = computed(() => cameras.value.filter((camera) => !isFrontLabel(camera.label)).length > 1);
 
   async function selectCamera(cameraId: string) {
     if (!scanner || cameraId === activeCameraId.value) return;
@@ -237,7 +261,7 @@
       <div style="display: flex; height: 100%;">
         <ScannerUI :filter-hint="filterHint" />
       </div>
-      <div v-if="cameras.length > 1" class="scanner-camera-picker">
+      <div v-if="hasCameraChoice" class="scanner-camera-picker">
         <q-btn
           v-for="(camera, index) in cameras"
           :key="camera.id"
