@@ -1,8 +1,8 @@
 <script setup lang="ts">
-  // Camera scanning is qr-scanner's. Nothing in the media APIs asks for a phone's ordinary
-  // wide lens: 'environment' resolves to whichever rear camera the browser lists first, which
-  // on a multi-lens phone can be a telephoto or a macro, magnified and unable to focus on a
-  // code held at arm's length. Only the user can tell which is which, hence the picker.
+  // Camera scanning is qr-scanner's. No constraint names a lens: facingMode does not tell a
+  // phone's several rear cameras apart, so 'environment' resolves to whichever one the browser
+  // lists first, which can be a telephoto or a macro, magnified and unable to focus on a code
+  // held at arm's length. Only the user can tell which is which, hence the picker.
   import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
   import QrScanner from 'qr-scanner';
   import ScannerUI from 'components/qr/qrScannerUi.vue'
@@ -61,6 +61,8 @@
     // qr-scanner emits "No QR code found" on every non-detecting frame; ignore it
     if (errorObj.message === 'No QR code found') return;
 
+    // These names reach us from the video element itself, never from opening the camera:
+    // qr-scanner replaces every getUserMedia rejection with the single string handled below.
     if (errorObj.name === 'NotAllowedError') {
       error.value = t('qrScanner.errors.permissionRequired');
     } else if (errorObj.name === 'NotFoundError') {
@@ -157,9 +159,9 @@
   }
 
   function storeCameraId(cameraId: string) {
-    settingsStore.qrScannerCameraId = cameraId;
     if (cameraId) localStorage.setItem("qrScannerCameraId", cameraId);
     else localStorage.removeItem("qrScannerCameraId");
+    settingsStore.qrScannerCameraId = cameraId;
   }
 
   // No API tells us which way a camera points: getSettings().facingMode is absent on desktop
