@@ -45,10 +45,11 @@ Regardless of app instances, the same wallet can be live elsewhere (other device
 
 ### mainnet-js (Core Wallet Library)
 
-The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers.
+The wallet functionality is powered by `mainnet-js` v4, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `rpckit` for blockchain data fetching from Electrum servers.
 
 - Single-address wallets: `Wallet` for mainnet, `TestNetWallet` for chipnet
-- HD wallets: `HDWallet` for mainnet, `TestNetHDWallet` for chipnet; address/key management goes through a `walletCache`
+- HD wallets: `HDWallet` for mainnet, `TestNetHDWallet` for chipnet
+- Address and key management goes through a `walletCache`, which holds a derived private key per address for HD wallets and one entry for a single-address wallet
 - The wallet type (`WalletType`) is a union of all four classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB (see Multi-Wallet Support)
@@ -58,25 +59,23 @@ The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libau
 
 ### Other Key Dependencies
 - **@bitauth/libauth**: Cryptographic primitives, transaction encoding (https://libauth.org/)
-- **@electrum-cash/network**: Electrum client used under mainnet-js (https://gitlab.com/electrum-cash/network)
+- **@rpckit/core**, **@rpckit/websocket**, **@rpckit/fallback**: the JSON-RPC transport mainnet-js speaks Electrum over (https://rpckit.dev)
 - **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages). Uses BCH-specific payloads per the WC2-BCH spec: https://github.com/mainnet-pat/wc2-bch-bcr
 - **@cashconnect-js/core** & **@cashconnect-js/nostr**: CashConnect protocol for BCH-native dApp connections. Docs: https://cashconnect.developers.cash/ — Repo: https://gitlab.com/cashconnect-js/cashconnect-js
 - **@wizardconnect/core** & **@wizardconnect/wallet**: WizardConnect protocol for BCH HD-wallet dApp connections. Repo: https://gitlab.com/riftenlabs/lib/wizardconnect
 
 ### Persistent Storage
-- **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
+- **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and wallet caches, and WalletConnect keeps its session state there.
 - **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, address marks and labels, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, watched at the last complete resolve), WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
 The app reaches into mainnet-js's databases itself, in `utils/wallet/dbUtils.ts` and the settings menu's cache-size/clear and delete flows. Some of that goes through mainnet-js's own storage provider, the rest is raw IndexedDB where not even that reaches. There we have to keep matching its versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and mainnet-js finding it already there never runs its own setup.
 
 ### Electrum Connections
-mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
-
-***Note:*** some environments (e.g. Safari, iOS) aggressively kill idle WebSocket connections in backgrounded tabs, which may cause stale connections when returning — mainnet-js handles reconnection on actual connection failures separately.
+mainnet-js speaks Electrum over rpckit, configured through the server string itself: a plain `wss://host:port` here, with `fallback(url1,url2)` and a `?keepAlive=&reconnect=&timeout=` query string available and unused. So there is no ping, no timer-driven reconnect and no request timeout: a closed socket is re-established only by the next request (which re-subscribes), and a half-open one wedges, since nothing notices and no request on it ever settles. Wallet subscriptions are fire-and-forget callbacks via `runAsyncVoid`, so requests rejected on a dead socket surface as uncaught promise errors.
 
 ### Electrum Trust Model
-Blockchain data comes from one electrum server at a time and is not verified. `@electrum-cash/network` is a single-server client with no cluster or SPV support, so balance, history, confirmations and block height are that server's claims rather than anything the wallet checks, and they are cached to IndexedDB.
+Blockchain data comes from one electrum server at a time and is not verified. rpckit's `fallback` moves to the next server when one fails, and mainnet-js wires up nothing beyond it (no quorum across servers, no SPV), so balance, history, confirmations and block height are that server's claims rather than anything the wallet checks, and they are cached to IndexedDB.
 
 ### Chaingraph
 Chaingraph is a secondary blockchain indexer next to electrum, a GraphQL (Hasura) service that allows arbitrary queries. Electrum answers about addresses the wallet knows and cannot follow an authchain to its head in one request, so identity resolution runs on Chaingraph when an instance is configured for the network, with a link-by-link walk over electrum as the fallback (`utils/tools/electrumAuthchain.ts`, its limits in `docs/bcmr-identities.md`). Everything else, spending, balances and the reading of the wallet's own history, stays on electrum alone. Chaingraph is new in production use, with few public instances that may not be stable or scale, so its lookups are batched and capped per wallet open, and a failure lands on the page that wanted the answer rather than failing the wallet.
