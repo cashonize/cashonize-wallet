@@ -4,11 +4,13 @@
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useI18n } from 'vue-i18n'
+  import { useSettingsStore } from 'src/stores/settingsStore'
 
   import { useWindowSize } from 'src/utils/composables'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
   const { t } = useI18n()
+  const settingsStore = useSettingsStore()
 
   const props = defineProps<{
     filter?: (decoded: string) => string | true
@@ -20,6 +22,8 @@
   const videoElement = ref<HTMLVideoElement | null>(null);
   const videoPlaying = ref(false);
   const fileInput = ref<HTMLInputElement | null>(null);
+  const cameras = ref<QrScanner.Camera[]>([]);
+  const activeCameraId = ref("");
 
   let scanner: QrScanner | null = null;
   let didDecode = false;
@@ -47,7 +51,7 @@
     }
   }
 
-  function handleError(err: Error | string) {
+  async function handleError(err: Error | string) {
     const errorObj = typeof err === 'string' ? new Error(err) : err;
     // qr-scanner emits "No QR code found" on every non-detecting frame; ignore it
     if (errorObj.message === 'No QR code found') return;
@@ -62,6 +66,12 @@
       error.value = t('qrScanner.errors.unableToAccess');
     } else if (errorObj.name === 'OverconstrainedError') {
       error.value = t('qrScanner.errors.constraintsMismatch');
+    } else if (errorObj.message === 'Camera not found.') {
+      // qr-scanner catches every getUserMedia rejection and throws this one string instead,
+      // so the reason has to be recovered here. A camera the browser still lists but will not
+      // open is a refused permission in all but the rarest cases.
+      const hasCamera = await QrScanner.hasCamera();
+      error.value = hasCamera ? t('qrScanner.errors.permissionRequired') : t('qrScanner.errors.noCamera');
     } else {
       error.value = t('qrScanner.errors.unknownError') + ': ' + errorObj.message;
     }
@@ -75,12 +85,12 @@
       handleDecode,
       {
         returnDetailedScanResult: true,
-        maxScansPerSecond: 4,
+        maxScansPerSecond: 10,
         highlightScanRegion: false,
         highlightCodeOutline: false,
-        preferredCamera: 'environment',
+        preferredCamera: settingsStore.qrScannerCameraId || 'environment',
         calculateScanRegion: (video) => {
-          // Crop to center region and downscale for performance (from Selene MR #241)
+          // decode a centred square rather than the whole frame, downscaled for performance
           const smallestDimension = Math.min(video.videoWidth, video.videoHeight);
           const scanSize = Math.round(smallestDimension * 0.8);
           const downScaled = Math.min(scanSize, 480);
@@ -100,8 +110,62 @@
     try {
       await scanner.start();
     } catch (err) {
-      handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
+      await handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
+      return;
     }
+    await loadCameras();
+  }
+
+  function runningCameraId() {
+    const stream = videoElement.value?.srcObject;
+    if (!(stream instanceof MediaStream)) return "";
+    return stream.getVideoTracks()[0]?.getSettings().deviceId ?? "";
+  }
+
+  async function loadCameras() {
+    // camera labels are only served once permission is granted, so this runs after start()
+    cameras.value = await QrScanner.listCameras(true);
+    const runningId = runningCameraId();
+    activeCameraId.value = runningId;
+
+    // A stored device id goes stale when the browser reissues them, and qr-scanner answers an
+    // unavailable one by retrying without any camera preference at all, which hands back the
+    // default camera: on a phone the front one. Ask for the rear camera again instead.
+    const storedId = settingsStore.qrScannerCameraId;
+    if (storedId && runningId && runningId !== storedId) {
+      storeCameraId("");
+      await scanner?.setCamera('environment');
+      activeCameraId.value = runningCameraId();
+    }
+  }
+
+  function storeCameraId(cameraId: string) {
+    settingsStore.qrScannerCameraId = cameraId;
+    if (cameraId) localStorage.setItem("qrScannerCameraId", cameraId);
+    else localStorage.removeItem("qrScannerCameraId");
+  }
+
+  function isFrontCamera(cameraId: string) {
+    const stream = videoElement.value?.srcObject;
+    const track = stream instanceof MediaStream ? stream.getVideoTracks()[0] : undefined;
+    if (track?.getSettings().facingMode === 'user') return true;
+    const label = cameras.value.find((camera) => camera.id === cameraId)?.label ?? "";
+    return /front|user|face/i.test(label);
+  }
+
+  async function selectCamera(cameraId: string) {
+    if (!scanner || cameraId === activeCameraId.value) return;
+    try {
+      await scanner.setCamera(cameraId);
+    } catch (err) {
+      await handleError(err instanceof Error ? err : new Error(caughtErrorToString(err)));
+      return;
+    }
+    activeCameraId.value = runningCameraId() || cameraId;
+    // Remembering a front camera would make it the default for every later scan, and a browser
+    // that reports no facing mode would not trip the check above either, so the mistake would
+    // stick with no obvious way back. The mirrored picture makes a mistap plain enough to undo.
+    if (!isFrontCamera(activeCameraId.value)) storeCameraId(activeCameraId.value);
   }
 
   function openImagePicker() {
@@ -173,6 +237,17 @@
       <div style="display: flex; height: 100%;">
         <ScannerUI :filter-hint="filterHint" />
       </div>
+      <div v-if="cameras.length > 1" class="scanner-camera-picker">
+        <q-btn
+          v-for="(camera, index) in cameras"
+          :key="camera.id"
+          :label="String(index + 1)"
+          :aria-label="t('qrScanner.switchCamera') + ' ' + (index + 1)"
+          :class="{ 'camera-active': camera.id === activeCameraId }"
+          flat round dense
+          @click="selectCamera(camera.id)"
+        />
+      </div>
       <q-btn class="scanner-close-btn" icon="close" color="white" flat round dense v-close-popup />
       <q-btn class="scanner-upload-btn" icon="image" :label="t('qrScanner.chooseImage')" no-caps flat rounded dense @click="openImagePicker" />
       <input ref="fileInput" type="file" accept="image/*" style="display: none;" @change="handleImageSelected">
@@ -207,6 +282,27 @@
   z-index: 2001;
   font-size: 14px;
   background: rgba(0, 0, 0, 0.45);
+}
+.scanner-camera-picker {
+  position: absolute;
+  bottom: 64px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  display: flex;
+  gap: 8px;
+  z-index: 2001;
+}
+.scanner-camera-picker .q-btn {
+  color: white;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.scanner-camera-picker .camera-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 .scanner-upload-btn {
   position: absolute;

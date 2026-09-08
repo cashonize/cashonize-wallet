@@ -52,6 +52,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const showCauldronSwap = ref(false);
   const showCauldronFTValue = ref(true);
   const qrScan = ref(true);
+  // the rear camera the user picked in the scanner. Phones with several rear lenses give
+  // 'environment' to whichever one the browser lists first, which can be a telephoto or a
+  // macro that cannot focus on a QR code held at arm's length, so the choice has to stick.
+  const qrScannerCameraId = ref("");
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
   const tokenAddressQrDefault = ref(false);
   const enableAddressMarking = ref(false);
@@ -155,6 +159,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readQrScan = localStorage.getItem("qrScan");
   if(!readQrScan && (isDesktop || !isMobileDevice)) qrScan.value = false;
   if(readQrScan) qrScan.value = readQrScan == "true";
+
+  const readQrScannerCameraId = localStorage.getItem("qrScannerCameraId");
+  if(readQrScannerCameraId) qrScannerCameraId.value = readQrScannerCameraId;
 
   const readMintNfts = localStorage.getItem("mintNfts");
   if(readMintNfts) mintNfts.value = readMintNfts == "true";
@@ -509,6 +516,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     showCauldronSwap,
     showCauldronFTValue,
     qrScan,
+    qrScannerCameraId,
     qrAnimation,
     tokenAddressQrDefault,
     enableAddressMarking,
