@@ -10,6 +10,7 @@
 // whole of what it can say.
 
 import { z } from "zod";
+import { opReturnChunks } from "src/utils/history/txDirection";
 import { binToHex, decodeBase58Address, decodeCashAddress, hexToBin, vmNumberToBigInt } from "@bitauth/libauth";
 
 const identifier = z.string().min(1).max(64);
@@ -30,7 +31,10 @@ const pushFieldSchema = z.object({
   // utf8word takes the first space-separated word, since creating software appends a version
   // addressHash reads a p2sh address as the hash it commits to, so which encoding the
   // announcing software wrote it in stops mattering
-  as: z.enum(['hex', 'utf8', 'utf8word', 'utf8int', 'addressHash']),
+  as: z.enum(['hex', 'utf8', 'utf8word', 'utf8int', 'vmnumber', 'addressHash']),
+  // a push the announcement pins to one value: the platform key an escrow enforces, or a field
+  // left empty because this manifest describes only the offer that leaves it so
+  equals: z.string().max(200).optional(),
   min: z.number().int().optional(),
   max: z.number().int().optional(),
 });
@@ -62,6 +66,10 @@ const findByAnnouncementSchema = z.object({
   prefix: hexString,
   pushes: z.number().int().min(1).max(16),
   fields: z.record(identifier, pushFieldSchema),
+  // Where the position sits. Absent, it is the address a field names and the contract is looked
+  // up there; given, it is an output of the announcing transaction itself, which is live for as
+  // long as that one output stays unspent.
+  position: z.object({ output: z.number().int().min(0).max(15) }).optional(),
 });
 
 const scriptSchema = z.object({
@@ -142,28 +150,6 @@ function addressToHash(address: string) {
   return binToHex(decoded.payload);
 }
 
-// Read one length-prefixed push, as OP_PUSHBYTES_1 through OP_PUSHBYTES_75 write it
-function readPush(script: Uint8Array, offset: number) {
-  const length = script[offset];
-  if (length === undefined || length < 1 || length > 75) return undefined;
-  const end = offset + 1 + length;
-  if (end > script.length) return undefined;
-  return { data: script.slice(offset + 1, end), end };
-}
-
-function splitPushes(opReturnHex: string, prefixLength: number) {
-  const bytes = hexToBin(opReturnHex);
-  const chunks: Uint8Array[] = [];
-  let offset = prefixLength;
-  while (offset < bytes.length) {
-    const push = readPush(bytes, offset);
-    if (!push) return undefined;
-    chunks.push(push.data);
-    offset = push.end;
-  }
-  return chunks;
-}
-
 // The parameters an announcement carries, when it is this contract's announcement at all
 export function readAnnouncement(
   opReturnHex: string,
@@ -171,18 +157,23 @@ export function readAnnouncement(
 ): Fields | undefined {
   if (!/^([0-9a-fA-F]{2})+$/.test(opReturnHex)) return undefined;
   if (!opReturnHex.toLowerCase().startsWith(find.prefix.toLowerCase())) return undefined;
-  // the prefix covers the OP_RETURN and the marker push, so the remaining pushes follow it
-  const chunks = splitPushes(opReturnHex, find.prefix.length / 2);
-  if (!chunks || chunks.length + 1 !== find.pushes) return undefined;
+  // The wallet's own reader rather than a length walk of the bytes, because a push can be empty:
+  // a TapSwap listing asking plain BCH leaves three of its want fields so, and a reader that
+  // stops at the first of them reads the offer wrong rather than not at all.
+  const chunks = opReturnChunks(opReturnHex);
+  if (!chunks || chunks.length !== find.pushes) return undefined;
 
   const fields: Fields = {};
   for (const [name, field] of Object.entries(find.fields)) {
-    // push 0 is the marker the prefix already matched, so the pushes read here start at 1
-    const chunk = chunks[field.push - 1];
+    // push 0 is the marker the prefix matched, which is how the protocols number their own
+    const chunk = chunks[field.push];
     if (!chunk) return undefined;
     let value: FieldValue | undefined;
     if (field.as === 'hex') value = binToHex(chunk);
-    else {
+    else if (field.as === 'vmnumber') {
+      const number = vmNumberToBigInt(chunk);
+      value = typeof number === 'string' ? undefined : Number(number);
+    } else {
       const text = new TextDecoder().decode(chunk);
       if (field.as === 'utf8') value = text;
       else if (field.as === 'utf8word') value = text.split(" ")[0]!;
@@ -190,6 +181,7 @@ export function readAnnouncement(
       else value = /^\d+$/.test(text) ? Number(text) : undefined;
     }
     if (value === undefined || !bounded(value, field)) return undefined;
+    if (field.equals !== undefined && String(value) !== field.equals) return undefined;
     fields[name] = value;
   }
   return fields;

@@ -49,6 +49,29 @@
         }
       },
       "owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedScriptHash" }
+    },
+    {
+      "id": "tapswap-listing",
+      "name": "TapSwap listing",
+      "description": "An asset listed for sale, held by a per-listing contract at output 0 of the listing transaction and live for as long as that output stays unspent. The announcement names the maker, so no contract has to be rebuilt to know whose it is. Cancelling returns the asset at any time, so it is owned rather than locked.",
+      "ownership": "owned",
+      "find": {
+        "kind": "announcement",
+        "output": 1,
+        "prefix": "6a044d5053570104043d400caf",
+        "pushes": 10,
+        "fields": {
+          "platformPkh": { "push": 3, "as": "hex", "equals": "e4da17ddbe40533c2a8638fdedf2c0997d46e953" },
+          "priceSats": { "push": 4, "as": "vmnumber", "min": 0 },
+          "wantCategory": { "push": 5, "as": "hex", "equals": "" },
+          "wantAmount": { "push": 6, "as": "hex", "equals": "" },
+          "wantCommitment": { "push": 7, "as": "hex", "equals": "" },
+          "makerPkh": { "push": 8, "as": "hex" },
+          "feeSats": { "push": 9, "as": "vmnumber", "min": 0 }
+        },
+        "position": { "output": 0 }
+      },
+      "owner": { "kind": "field", "field": "makerPkh" }
     }
   ]
 }

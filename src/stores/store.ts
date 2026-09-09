@@ -64,7 +64,6 @@ import {
 } from "src/utils/defi/cauldronPools"
 import { runManifest, type ContractPosition } from "src/utils/contracts/runManifest"
 import { builtinManifest } from "src/utils/contracts/builtins"
-import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "src/utils/defi/tapswapListings"
 
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
@@ -179,7 +178,7 @@ export const useStore = defineStore('store', () => {
   // BCH locked in the Badgers.cash contract, null until the portfolio view looks it up
   const badgerLocks = ref<ContractPosition[] | null>(null);
   // Assets listed for sale on TapSwap, null until the portfolio view looks them up
-  const tapswapListings = ref<TapswapListing[] | null>(null);
+  const tapswapListings = ref<ContractPosition[] | null>(null);
   // Metadata of the listed assets. They are not held by the wallet, so like the dapp dialogs'
   // unverified metadata this lives in its own object rather than in bcmrRegistries.
   const tapswapRegistries = ref<Record<string, BcmrTokenMetadata>>({});
@@ -1276,7 +1275,12 @@ export const useStore = defineStore('store', () => {
       const ownerPkhs = walletPublicKeyHashes();
       const history = await fullWalletHistory();
       if (initialization !== currentInitialization) return;
-      const listings = await fetchActiveListings(wallet.value.provider, listingsFromHistory(history, ownerPkhs));
+      const listings = await runManifest(builtinManifest("tapswap-listing"), {
+        provider: wallet.value.provider,
+        ownerPkhs,
+        history,
+        networkPrefix: wallet.value.networkPrefix,
+      });
       if (initialization !== currentInitialization) return;
       tapswapListings.value = listings;
 
@@ -1294,14 +1298,17 @@ export const useStore = defineStore('store', () => {
       // fetches merge into tapswapRegistries in place.
       for (const listing of listings) {
         if (initialization !== currentInitialization) return;
-        if (listing.commitment !== undefined) {
-          if (tapswapRegistries.value[listing.category]?.nfts?.[listing.commitment]) continue;
-          await fetchNftMetadataFromIndexer(listing.category, listing.commitment, tokenMetadataIndexer.value, tapswapRegistries.value);
+        const token = listing.token;
+        if (!token) continue;
+        const commitment = token.nft?.commitment;
+        if (commitment !== undefined) {
+          if (tapswapRegistries.value[token.category]?.nfts?.[commitment]) continue;
+          await fetchNftMetadataFromIndexer(token.category, commitment, tokenMetadataIndexer.value, tapswapRegistries.value);
           continue;
         }
-        if (tapswapRegistries.value[listing.category]) continue;
+        if (tapswapRegistries.value[token.category]) continue;
         await fetchTokenMetadataFromIndexer(
-          [{ category: listing.category, amount: listing.tokenAmount }], false, tokenMetadataIndexer.value, tapswapRegistries.value
+          [{ category: token.category, amount: token.amount }], false, tokenMetadataIndexer.value, tapswapRegistries.value
         );
       }
     } catch (error) {

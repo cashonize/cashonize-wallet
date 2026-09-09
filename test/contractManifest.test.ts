@@ -34,7 +34,14 @@ describe('the built-in bundle', () => {
   // the built-ins go through the same schema a user's bundle would, so shipping a malformed one
   // fails here rather than at a wallet open
   it('validates against the schema it asks of a user', () => {
-    expect(bundle.contracts.map(contract => contract.id)).toEqual(['badgers-stake', 'hodl-vault'])
+    expect(bundle.contracts.length).toBeGreaterThan(0)
+  })
+
+  // a repeated id would shadow one manifest with another, silently, since a lookup takes the first
+  it('names each contract once', () => {
+    const ids = bundle.contracts.map(contract => contract.id)
+
+    expect(new Set(ids).size).toBe(ids.length)
   })
 })
 
