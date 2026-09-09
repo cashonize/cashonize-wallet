@@ -24,7 +24,8 @@
     "unsafeUrl": "URL masquée (protocole non sécurisé)",
     "wallet": "portefeuille",
     "wallets": "portefeuilles",
-    "unconfirmed": "Non confirmée"
+    "unconfirmed": "Non confirmée",
+    "tokenUnit": "jeton | jetons"
   },
   "nav": {
     "wallet": "Portefeuille",
@@ -277,9 +278,15 @@
       "max": "max"
     },
     "authKey": {
-      "name": "Clé d'identité",
-      "nameFor": "Clé d'identité de {names}",
-      "manage": "gérer"
+      "name": "AuthKey",
+      "manage": "gérer",
+      "controls": "Contrôle {names}",
+      "transfer": "transférer l'AuthKey",
+      "infoAction": "Infos sur l'AuthKey",
+      "info": "Cette AuthKey contrôle {count} identité. La détenir est ce qui la contrôle : son UTXO est dans un contrat qui ne le libère qu'à qui présente ce NFT. | Cette AuthKey contrôle {count} identités. La détenir est ce qui les contrôle : leurs UTXO sont dans un contrat qui ne les libère qu'à qui présente ce NFT.",
+      "guardAddress": "Adresse du contrat :",
+      "heldBack": "Tenue à l'écart des envois ordinaires depuis cette application. D'autres portefeuilles sur la même phrase de récupération peuvent toujours la dépenser.",
+      "andMore": "et {count} de plus"
     },
     "visibility": {
       "hideToken": "Masquer le token",
@@ -434,8 +441,7 @@
     },
     "heldBack": "Retenu, écarté de la sélection des pièces",
     "identity": {
-      "held": "Ce portefeuille détient l'identité de ce token.",
-      "heldWithReserve": "Ce portefeuille détient l'identité de ce token, avec {amount} en réserve.",
+      "held": "Ce portefeuille contrôle l'identité de ce token.",
       "manage": "gérer l'identité"
     }
   },
@@ -677,7 +683,7 @@
       },
       "studioLines": {
         "for": "la voie la plus simple, et les collections de NFT.",
-        "managed": "sur le site de Studio, par WalletConnect."
+        "managed": "sur le site de CashTokens Studio, par WalletConnect."
       },
       "leads": {
         "protection": "Protection :",
@@ -688,17 +694,17 @@
         "protection": "retenu des envois par ce portefeuille seulement ; une autre application sur cette graine pourrait le dépenser.",
         "metadata": "un fichier que vous hébergez, lié à l'étape 3 ou plus tard depuis la page des identités.",
         "operations": "sur la page des identités, dans Outils.",
-        "moveLater": "Vous pourrez déplacer l'identité du token de ce portefeuille vers Studio plus tard, et inversement."
+        "moveLater": "Vous pourrez déplacer l'identité du token de ce portefeuille vers CashTokens Studio plus tard, et inversement."
       },
       "studioRows": {
-        "protection": "dépensable seulement avec le NFT clé ; dans d'autres portefeuilles un NFT sans nom, gardez-le.",
-        "protectionHelp": "Le NFT clé est ce que Studio appelle un AuthKey. Il ouvre un AuthGuard, le contrat dans lequel Studio garde l'identité, de sorte que l'identité ne se dépense qu'avec la clé, quelle que soit l'app qui détient la seed. D'autres portefeuilles montrent la clé comme un NFT sans nom, et c'est ainsi qu'elle se retrouve envoyée ou brûlée ; ce portefeuille la nomme d'après ce qu'elle protège.",
-        "metadata": "rédigées et épinglées sur IPFS par Studio ; il est recommandé d'en garder une copie.",
-        "metadataHelp": "Le pin IPFS est celui de Studio. S'il expire un jour, le fichier peut être hébergé n'importe où et le hash publié correspond toujours, mais seulement au fichier exact : gardez-en une copie.",
-        "operations": "métadonnées, émission et libération, sur le site de Studio par WalletConnect.",
-        "moveLater": "Vous pourrez déplacer l'identité du token de Studio vers ce portefeuille plus tard, et inversement."
+        "protection": "dépensable seulement avec l'AuthKey ; dans d'autres portefeuilles un NFT sans nom, gardez-la.",
+        "protectionHelp": "L'AuthKey est un NFT qui ouvre un AuthGuard, le contrat dans lequel CashTokens Studio garde l'identité, de sorte que l'identité ne se dépense qu'avec l'AuthKey, quelle que soit l'app qui détient la seed. D'autres portefeuilles montrent l'AuthKey comme un NFT sans nom, et c'est ainsi qu'elle se retrouve envoyée ou brûlée ; ce portefeuille la nomme d'après ce qu'elle protège.",
+        "metadata": "rédigées et épinglées sur IPFS par CashTokens Studio ; il est recommandé d'en garder une copie.",
+        "metadataHelp": "Le pin IPFS est celui de CashTokens Studio. S'il expire un jour, le fichier peut être hébergé n'importe où et le hash publié correspond toujours, mais seulement au fichier exact : gardez-en une copie.",
+        "operations": "métadonnées, émission et libération, sur le site de CashTokens Studio par WalletConnect.",
+        "moveLater": "Vous pourrez déplacer l'identité du token de CashTokens Studio vers ce portefeuille plus tard, et inversement."
       },
-      "studioBox": "Après la création d'un token dans l'application CashTokens Studio, le NFT clé apparaît dans l'onglet Tokens et l'identité sur la page des identités, dans Outils.",
+      "studioBox": "Après la création d'un token dans l'application CashTokens Studio, l'AuthKey apparaît dans l'onglet Tokens et l'identité sur la page des identités, dans Outils.",
       "openStudio": "Ouvrir CashTokens Studio",
       "continueButton": "Continuer",
       "connectButton": "Ouvrir l'onglet Connexion"
@@ -775,7 +781,7 @@
       "verify": "Indiquez ci-dessus où il est hébergé. Ce portefeuille le récupère et vérifie qu'il nomme ce token.",
       "create": "Créez le token : la même transaction publie le hash du fichier et où le trouver."
     },
-    "noHosting": "Nulle part où héberger un fichier ? Choisissez Studio, qui l'héberge pour les identités qu'il détient.",
+    "noHosting": "Nulle part où héberger un fichier ? Choisissez CashTokens Studio, qui l'héberge pour les identités qu'il détient.",
     "createButton": "Créer",
     "creatingTokensButton": "Création des tokens...",
     "confirm": {
@@ -1408,7 +1414,7 @@
       "followTokenIdentities": "Suivre les identités des tokens que vous détenez",
       "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens détenus à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
-      "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les clés d'identité ne sont pas concernées : une requête qui en utilise une est signée quand la clé revient, ce qui est le fonctionnement de CashTokens Studio."
+      "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les AuthKeys ne sont pas concernées : une requête qui en utilise une est signée quand l'AuthKey revient, ce qui est le fonctionnement de CashTokens Studio."
     },
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",
@@ -1576,12 +1582,15 @@
       "back": "Retour aux identités",
       "title": "Les identités sur Bitcoin Cash",
       "whatLead": "Ce qu'est une identité.",
-      "what": "Un moyen de publier des informations sur quelque chose sur Bitcoin Cash, comme le nom et l'icône d'un token, dont chacun peut vérifier qu'elles viennent de qui contrôle l'identité. Chaque token est une identité ; une personne, une organisation ou un contrat peuvent aussi être une identité.",
+      "what": "Un moyen de publier des informations sur quelque chose sur Bitcoin Cash, comme son nom et son icône, dont chacun peut vérifier qu'elles viennent de qui contrôle l'identité. Le standard s'appelle Bitcoin Cash Metadata Registries (BCMR). Il y a une identité par catégorie de token, et des choses qui ne sont pas des tokens peuvent aussi avoir des identités.",
       "holdingLead": "Ce que signifie détenir une identité dans ce portefeuille.",
-      "holding": "Le contrôle tient en une seule pièce, l'UTXO d'identité. Chaque transaction de la chaîne de l'identité dépense l'output 0 de la précédente, donc le dernier output 0 est cette pièce. Studio et l'explorateur appellent cette pièce l'AuthHead. La première transaction de la chaîne est l'authbase, l'id d'un token. Ce portefeuille garde cette pièce, et toute réserve de tokens qu'elle porte, hors des envois ordinaires et de la liste des tokens ; la déplacer volontairement est la façon de transférer l'identité ou de mettre à jour ses métadonnées.",
+      "holding": "Le contrôle d'une identité tient en un seul UTXO, pas en un compte : l'output 0 de la dernière transaction de l'identité, l'authhead. La chaîne de transactions avance depuis l'authbase, et l'id de transaction de l'authbase est l'id permanent de l'identité ; pour un token, c'est l'id de catégorie. Ce portefeuille garde cet UTXO hors des envois ordinaires et de la liste des tokens, avec toute réserve de tokens fongibles qu'il porte. Le dépenser volontairement est la façon de transférer l'identité ou de mettre à jour ses métadonnées.",
       "readMoreLead": "Pour aller plus loin.",
       "readMore": "Les métadonnées sont un fichier hébergé vers lequel la chaîne pointe par son hash : {registries}. Les identités gardées derrière une AuthKey suivent le standard AuthGuard, que {studio} implémente.",
-      "registriesLink": "les registres de métadonnées sur cashtokens.org"
+      "registriesLink": "les registres de métadonnées sur cashtokens.org",
+      "chainUtxo": "UTXO d'identité",
+      "chainCaption": "Chaque transaction dépense l'output 0 de la précédente, et le dernier non dépensé est l'UTXO d'identité.",
+      "chainToggle": "Comment la chaîne fonctionne"
     },
     "authbaseLabel": "Authbase / identifiant du token :",
     "resolving": "Recherche de l'endroit où sont ces identités",
@@ -1589,7 +1598,10 @@
     "emptyLink": "Ajouter existante",
     "detected": {
       "foundAutomatically": "trouvée automatiquement",
-      "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi."
+      "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi.",
+      "foundViaKeyHelp": "Trouvée parce que ce portefeuille détient l'AuthKey de cette identité. L'AuthKey est tenue à l'écart de la sélection de pièces, donc aucun envoi ordinaire depuis cette application ne peut la dépenser.",
+      "allFoundAutomatically": "toutes trouvées automatiquement",
+      "allFoundAutomaticallyHelp": "Les clés de ce portefeuille ont créé ces identités ou publié leurs métadonnées, ou ce portefeuille détient l'AuthKey qui les contrôle. Leurs UTXO d'identité, ou les AuthKeys qui les contrôlent, sont tenus à l'écart des envois ordinaires ; retirez-en une de la liste si vous préférez qu'il en soit autrement."
     },
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
     "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
@@ -1604,14 +1616,14 @@
       "held": "Détenue par ce portefeuille",
       "notHeld": "Surveillance seule, non détenue par ce portefeuille",
       "unresolved": "Impossible de consulter cette identité",
-      "heldViaKey": "Détenue via une clé d'identité",
+      "heldViaKey": "Détenue via une AuthKey",
       "burned": "Brûlée"
     },
     "statusHelp": {
       "held": "Ce portefeuille détient l'UTXO de cette identité, il peut donc en mettre à jour les métadonnées. L'UTXO est écarté de la sélection des pièces, aucun envoi ordinaire depuis cette application ne peut le dépenser, ni une application connectée sauf autorisation dans les options utilisateur. Un autre logiciel sur la même graine le peut toujours.",
       "notHeld": "Cette identité n'est pas détenue par ce portefeuille, qui ne fait donc que la surveiller : sa publication est affichée, mais la mettre à jour revient à qui la détient.",
       "unresolved": "Impossible de consulter où se trouve cette identité, c'est donc inconnu pour le moment. Ce qui est retenu pour elle le reste jusqu'à ce qu'une réponse arrive.",
-      "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient la clé qui l'ouvre. C'est l'autorité sur l'identité sans l'UTXO, c'est donc la clé qui est écartée de la sélection des pièces.",
+      "heldViaKey": "L'UTXO de cette identité est verrouillé dans un contrat, et ce portefeuille détient l'AuthKey qui l'ouvre. C'est le contrôle de l'identité sans l'UTXO, donc c'est l'AuthKey qui est tenue à l'écart de la sélection de pièces.",
       "burned": "La sortie 0 de cette identité est un OP_RETURN, que rien ne peut dépenser : qui la détenait y a mis fin. Sa dernière publication reste, et aucune mise à jour ne peut suivre."
     },
     "reserve": {
@@ -1651,22 +1663,27 @@
       "mintingNftLink": "voir dans la liste des tokens",
       "supplyOpenEnded": "Offre réservée : illimitée",
       "genesisSupply": "Offre à la genèse : {amount}",
-      "genesisSupplyOpenEnded": "Offre à la genèse : illimitée"
+      "genesisSupplyOpenEnded": "Offre à la genèse : illimitée",
+      "supplyOpenEndedIssued": "Réserve : illimitée · {amount} émis"
     },
     "key": {
-      "action": "transférer la clé",
-      "guardHelp": "L'UTXO de l'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne le libère qu'à qui présente la clé d'identité (l'AuthKey), qui est le NFT détenu par ce portefeuille.",
+      "action": "transférer l'AuthKey",
+      "guardHelp": "L'UTXO de l'identité se trouve à cette adresse de contrat, pas dans votre portefeuille. Le contrat ne le libère qu'à qui présente l'AuthKey, c'est-à-dire le NFT que ce portefeuille détient.",
       "manageHint": "Cette identité est gardée : mettre à jour ses métadonnées et déplacer son offre passent par l'outil qui construit les transactions du contrat. Cashonize les signe lorsqu'il s'y connecte.",
       "manageOnStudio": "Gérer sur CashTokens Studio",
-      "hint": "La clé est un NFT ordinaire et se déplace comme tel. Qui la détient contrôle toutes les identités qu'elle garde.",
-      "destinationPlaceholder": "Adresse de jetons à laquelle transférer la clé",
-      "button": "Transférer la clé",
+      "hint": "L'AuthKey est un NFT ordinaire et se déplace comme tel. Qui la détient contrôle toutes les identités qu'elle garde.",
+      "destinationPlaceholder": "Adresse token vers laquelle transférer l'AuthKey",
+      "button": "Transférer l'AuthKey",
       "transferringButton": "Transfert...",
-      "confirmTitle": "Transférer cette clé d'identité ?",
-      "confirmMessage": "Le contrôle de {count} identité gardée par cette clé passe à {address}. C'est irréversible. | Le contrôle des {count} identités gardées par cette clé passe à {address}. C'est irréversible.",
-      "confirmButton": "Transférer la clé",
-      "done": "Clé d'identité transférée à {address}",
-      "doneTitle": "Clé d'identité transférée"
+      "confirmTitle": "Transférer cette AuthKey ?",
+      "confirmMessage": "Le contrôle de {count} identité gardée par cette AuthKey passe à {address}. C'est irréversible. | Le contrôle des {count} identités gardées par cette AuthKey passe à {address}. C'est irréversible.",
+      "confirmButton": "Transférer l'AuthKey",
+      "done": "AuthKey transférée à {address}",
+      "doneTitle": "AuthKey transférée",
+      "label": "AuthKey",
+      "what": "L'AuthKey est un NFT ordinaire de ce portefeuille, et la détenir est ce qui contrôle cette identité : le contrat ne libère l'UTXO de l'identité qu'à qui présente l'AuthKey.",
+      "viewInTokenList": "voir l'AuthKey dans la liste des tokens",
+      "categoryLabel": "AuthKey :"
     },
     "publication": {
       "title": "Dernière publication de métadonnées",
@@ -1679,15 +1696,23 @@
         "verified": "métadonnées à jour",
         "changed": "modifié depuis la publication",
         "changedIpfs": "ne correspond pas au hash publié",
-        "unreachable": "injoignable"
+        "unreachable": "n'a pas répondu",
+        "restricted": "passerelle restreinte"
       },
       "statusHelp": {
         "verified": "Le fichier servi ici correspond exactement à ce que cette identité a publié sur la chaîne.",
         "changed": "Le fichier servi ici n'est pas celui publié sur la chaîne. Vérifiez-le et publiez-le de nouveau, pour que les détenteurs voient ce que vous servez.",
         "changedNote": "Si vous n'avez pas modifié le fichier, vérifiez votre hébergement : autre chose répond à sa place.",
-        "unreachable": "Cet emplacement n'a pas répondu. Les détenteurs qui y cherchent les métadonnées ne voient rien : vérifiez si l'hébergement ou le pin IPFS a expiré."
+        "unreachable": "Cet emplacement n'a pas répondu. Les détenteurs qui y cherchent les métadonnées ne voient rien : vérifiez si l'hébergement ou le pin IPFS a expiré.",
+        "restricted": "Cette passerelle ne sert que ses propres applications et répond aux autres par une erreur, donc aucun détenteur ne peut y récupérer les métadonnées. Le fichier lui-même n'est pas en cause ; un autre emplacement peut le servir."
       },
-      "unconfirmed": "non confirmée"
+      "unconfirmed": "non confirmée",
+      "summary": {
+        "verified": "métadonnées à jour",
+        "changed": "modifié depuis la publication",
+        "unreachable": "les métadonnées n'ont pas pu être récupérées",
+        "restricted": "aucun emplacement public"
+      }
     },
     "history": {
       "title": "Historique de cette identité",
@@ -1754,7 +1779,7 @@
       "held": "ce portefeuille contrôle l'identité et peut publier ses métadonnées ou la transférer. L'UTXO qui la contrôle est tenu à l'écart des envois ordinaires, afin qu'un paiement depuis cette application ne le déplace pas par accident. Un autre logiciel sur la même graine le peut toujours.",
       "watchedLead": "Surveillée :",
       "watched": "un autre portefeuille la détient, donc ce portefeuille peut afficher ses métadonnées et son historique, mais pas la mettre à jour.",
-      "keyNote": "Une identité conservée dans un covenant AuthGuard s'ajoute aussi par son propre id. Le portefeuille détermine quelle clé l'ouvre, et si cette clé est ici.",
+      "keyNote": "Une identité gardée dans un contrat AuthGuard s'ajoute aussi par son propre id. Le portefeuille détermine quelle AuthKey l'ouvre, et si cette AuthKey est ici.",
       "authbaseLead": "Authbase :",
       "authbase": "la transaction qui a créé l'identité. Pour un token, c'est son identifiant de token.",
       "lead": "Une identité vous a été transférée, ou vous voulez en suivre une ?",
@@ -1766,12 +1791,12 @@
         "guarded": "{name} : conservée dans un covenant AuthGuard.",
         "held": "{name} : détenue par ce portefeuille. Son UTXO sera écarté des envois.",
         "watched": "{name} : non détenue par ce portefeuille. Elle sera surveillée ; rien n'est retenu.",
-        "keyHeld": "La clé est dans ce portefeuille et sera retenue ; qui la détient contrôle ce qu'elle garde.",
-        "keyWatched": "La clé n'est pas dans ce portefeuille : surveillance seule.",
+        "keyHeld": "L'AuthKey est dans ce portefeuille et sera retenue ; qui la détient contrôle ce qu'elle garde.",
+        "keyWatched": "L'AuthKey n'est pas dans ce portefeuille : suivie seulement.",
         "button": "Ajouter"
       },
       "errors": {
-        "nothingFound": "Rien trouvé pour cette authbase : le serveur Chaingraph ne connaît aucune transaction avec cet identifiant, et aucune clé d'identité ne garde quoi que ce soit. Vérifiez l'identifiant, ou le serveur dans les réglages."
+        "nothingFound": "Rien trouvé pour cette authbase : le serveur Chaingraph ne connaît aucune transaction avec cet identifiant, et aucune AuthKey ne garde quoi que ce soit. Vérifiez l'identifiant, ou le serveur dans les réglages."
       }
     },
     "create": {
@@ -1802,7 +1827,7 @@
       "cautionLead": "Fonction avancée :"
     },
     "transfer": {
-      "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de cette identité. Pour la déplacer vers CashTokens Studio, créez-y une clé et transférez vers l'adresse de garde qu'il affiche pour cette clé.",
+      "hint": "L'UTXO de l'identité est envoyé à la destination, ce qui remet l'autorité de mettre à jour les métadonnées de cette identité. Pour la déplacer vers CashTokens Studio, créez-y une AuthKey et transférez vers l'adresse de garde qu'il affiche pour cette AuthKey.",
       "destinationPlaceholder": "Adresse à laquelle transférer l'identité",
       "button": "Transférer l'identité",
       "transferringButton": "Transfert...",
@@ -1825,7 +1850,7 @@
       "button": "Retirer"
     },
     "errors": {
-      "invalidCategory": "Ce n'est pas un identifiant de transaction. Collez l'authbase de 64 caractères, un identifiant de token ou la catégorie d'une clé.",
+      "invalidCategory": "Ce n'est pas un id de transaction. Collez l'authbase de 64 caractères, un id de token, ou la catégorie d'une AuthKey.",
       "alreadyListed": "Cette identité est déjà dans la liste."
     },
     "established": {
@@ -1848,12 +1873,12 @@
       "capabilityWithSupply": "Ce portefeuille peut mettre à jour le nom, l'icône et l'offre non émise du jeton.",
       "mintingNft": "un NFT de frappe",
       "nft": "un NFT",
-      "reserve": "{amount} apparaissent comme retenus dans la liste des jetons.",
+      "reserve": "Sa réserve de {amount} apparaît comme retenue dans la liste des jetons.",
       "created": "créée le {date}",
       "reserveOpenEnded": "Son offre réservée apparaît comme retenue dans la liste des jetons.",
-      "heldBackCoin": "Sa pièce d'identité est tenue à l'écart des envois normaux depuis cette application, donc rien ici ne la dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours la dépenser. | Leurs pièces d'identité sont tenues à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
-      "heldBackKey": "Sa clé est tenue à l'écart des envois normaux depuis cette application, donc rien ici ne la dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours la dépenser. | Leurs clés sont tenues à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
-      "heldBackMixed": "Leurs pièces d'identité, ou les clés qui les contrôlent, sont tenues à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
+      "heldBackCoin": "Son UTXO d'identité est tenu à l'écart des envois normaux depuis cette application, donc rien ici ne le dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours le dépenser. | Leurs UTXO d'identité sont tenus à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
+      "heldBackKey": "Son AuthKey est tenue à l'écart des envois normaux depuis cette application, donc rien ici ne la dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours la dépenser. | Leurs AuthKeys sont tenues à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
+      "heldBackMixed": "Leurs UTXO d'identité, ou les AuthKeys qui les contrôlent, sont tenus à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
       "view": "Voir les identités de jeton"
     },
     "locationLabel": "À l'adresse :",

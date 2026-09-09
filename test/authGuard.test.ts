@@ -5,6 +5,7 @@ import { binToHex } from '@bitauth/libauth'
 import {
   authGuardLockingBytecodes,
   authGuardRedeemScript,
+  guardsOpenedByHeldAuthKeys,
   isAuthGuardOf,
   isAuthKey,
 } from '../src/utils/tools/authGuard'
@@ -91,5 +92,34 @@ describe('isAuthKey', () => {
     expect(isAuthKey({
       txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
     }, key)).toBe(false)
+  })
+})
+
+// The standard's genesis gives the AuthKey its own category, which nothing on the identity's
+// chain names: what says the wallet can open the covenant is the AuthKey it holds deriving it.
+describe('guardsOpenedByHeldAuthKeys', () => {
+  const key = 'bb'.repeat(32)
+  const otherKey = 'cc'.repeat(32)
+
+  it('names both covenant forms of every key the wallet holds', () => {
+    const guards = guardsOpenedByHeldAuthKeys([nftUtxo(key, '00', 'none'), nftUtxo(otherKey, 'ab', 'none')])
+    const forms = authGuardLockingBytecodes(key)
+    expect(guards.get(forms.p2sh20)).toBe(key)
+    expect(guards.get(forms.p2sh32)).toBe(key)
+    expect(guards.get(authGuardLockingBytecodes(otherKey).p2sh20)).toBe(otherKey)
+  })
+
+  it('leaves out what the covenant would not take at input 1', () => {
+    const guards = guardsOpenedByHeldAuthKeys([
+      nftUtxo(key, '00', 'minting'),
+      nftUtxo(otherKey, '00', 'none', 5n),
+      { txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest' },
+    ])
+    expect(guards.size).toBe(0)
+  })
+
+  it('derives a category once however many of its NFTs are held', () => {
+    const guards = guardsOpenedByHeldAuthKeys([nftUtxo(key, '00', 'none'), nftUtxo(key, 'ab', 'none')])
+    expect(guards.size).toBe(2) // the two hash lengths of the one covenant
   })
 })

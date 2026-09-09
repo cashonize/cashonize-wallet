@@ -1,5 +1,5 @@
 // Everything the wallet knows about the identities it follows: which ones are listed, where each
-// one's authhead sits now, what its published metadata serves, and the keys and guards around it.
+// one's authhead sits now, what its published metadata serves, and the AuthKeys and guards around it.
 // Split out of the main store the way the dapp-connection stores are, reaching back to it for the
 // wallet, its coins and the reservations - because holding a coin back is the main store's job,
 // and deciding which coin that is, is this one's.
@@ -14,7 +14,7 @@ import {
   findPublication,
   type AuthchainBackends,
   describeChainLinks,
-  identityCoin,
+  identityBehindAuthKey,
   type IdentityState,
   type IdentityStatus,
   type DescribedLink,
@@ -32,14 +32,14 @@ import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/ut
 import type { TransactionHistoryItem } from "mainnet-js"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
-import { formatTokenAmountWithSymbol, truncateHash } from "src/utils/utils"
+import { truncateHash } from "src/utils/utils"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
 
 // How an identity the wallet holds back unasked came to be its own: made with these keys, held
-// through its key, its coin found here, or a watched one arrived. The dialog reads the arrival
-// for its title and the key for what it says is held back.
+// through its AuthKey, its coin found here, or a watched one arrived. The dialog reads the arrival
+// for its title and the AuthKey for what it says is held back.
 export type FoundSource = 'made' | 'key' | 'held' | 'arrived';
 
 export const useIdentitiesStore = defineStore('identities', () => {
@@ -56,7 +56,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // for, and what marks the cards as found automatically on the visit that clears it
   const unseenIdentities = ref([] as string[]);
   // The listed identities held elsewhere at the last complete resolve. Kept so that a watched
-  // identity whose authhead, or whose key, arrives while the app is closed is told as the arrival
+  // identity whose authhead, or whose AuthKey, arrives while the app is closed is told as the arrival
   // it is; the resolve is the only writer and the only reader.
   const watchedIdentities = ref([] as string[]);
   // The wallet's own transactions that carried a metadata publication, read off the same walk, so
@@ -87,7 +87,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // The persisted lists are per wallet per network, so every write names the pair
   const walletKey = () => [mainStore.network, mainStore.wallet.name] as const;
-  // authority over the identity, directly or through its key
+  // authority over the identity, directly or through its AuthKey
   const heldStatuses: IdentityStatus[] = ['held', 'heldViaKey'];
   const listCategory = (category: string) => {
     identityCategories.value = addToIdentityList('categories', ...walletKey(), category);
@@ -138,7 +138,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // What the wallet held back without being asked, to be told in a dialog with names, and how
   // each came to be this wallet's, since the dialog says the true thing per row: made with these
-  // keys, held through its key, its coin here, or a watched one arrived. Set after the resolve so
+  // keys, held through its AuthKey, its coin here, or a watched one arrived. Set after the resolve so
   // the dialog can say what each carries; announcements close together accumulate, and the wallet
   // page opens one dialog for them and clears this.
   const announcement = ref<{ ids: string[]; sources: Record<string, FoundSource> } | undefined>(undefined);
@@ -163,6 +163,15 @@ export const useIdentitiesStore = defineStore('identities', () => {
   function takeLearnRequest() {
     const requested = learnRequested;
     learnRequested = false;
+    return requested;
+  }
+  // The token list points at one identity's card rather than at the page: an AuthKey row is a
+  // pointer to what the identities page already does, so it lands where the work happens.
+  let cardRequested: { category: string; action?: string } | undefined;
+  function requestIdentityCard(category: string, action?: string) { cardRequested = { category, ...(action ? { action } : {}) }; }
+  function takeCardRequest() {
+    const requested = cardRequested;
+    cardRequested = undefined;
     return requested;
   }
 
@@ -273,18 +282,42 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return unseen;
   }
 
-  // Which key opens an identity's covenant, beyond its own category: an identity that adopted a
-  // guard after its genesis names its key in the registry, and the indexer's copy carries that
+  // Which AuthKey opens an identity's covenant, beyond its own category: an identity that adopted a
+  // guard after its genesis names its AuthKey in the registry, and the indexer's copy carries that
   function extraKeyCategories(category: string): string[] {
     const authNft = mainStore.bcmrRegistries?.[category]?.extensions?.authNft;
     if (typeof authNft !== 'string' || !/^[0-9a-f]{64}$/i.test(authNft)) return [];
     return [authNft.toLowerCase()];
   }
 
+  // Earlier versions listed an AuthKey's own category, which names nothing and publishes nothing.
+  // The listing is corrected to the identity that AuthKey guards, quietly: what is on the list does
+  // not change, only which of the two categories names it.
+  async function relistAuthKeysAsIdentities(resolved: IdentityState[]): Promise<IdentityState[]> {
+    const swaps = resolved.flatMap(identity => {
+      const guarded = identityBehindAuthKey(identity);
+      return guarded ? [{ key: identity.category, guarded }] : [];
+    });
+    if (!swaps.length) return resolved;
+    const toResolve: string[] = [];
+    for (const swap of swaps) {
+      identityCategories.value = removeFromIdentityList('categories', ...walletKey(), swap.key);
+      unseenIdentities.value = removeFromIdentityList('unseen', ...walletKey(), swap.key);
+      if (dismissedIdentities.value.includes(swap.guarded)) continue;
+      if (!identityCategories.value.includes(swap.guarded)) listCategory(swap.guarded);
+      if (!toResolve.includes(swap.guarded)) toResolve.push(swap.guarded);
+    }
+    const corrected = toResolve.length
+      ? await resolveIdentities(toResolve, authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories)
+      : [];
+    const replaced = swaps.map(swap => swap.key);
+    return [...resolved.filter(identity => !replaced.includes(identity.category)), ...corrected];
+  }
+
   // Re-resolved rather than restored: an authhead moves to a new outpoint whenever the metadata is
   // updated elsewhere. One owner for both the list and the 'auth' reservations rewritten from it.
   // Returns what it held back that the user did not ask for: a watched identity whose authhead,
-  // or whose key, has arrived; the caller announces them. Watched means held elsewhere at the
+  // or whose AuthKey, has arrived; the caller announces them. Watched means held elsewhere at the
   // last complete resolve, whichever session that was: the coin usually arrives while the app is
   // closed. An incomplete resolve says nothing about where anything is, so it leaves the record.
   async function resolveListedIdentities(): Promise<string[]> {
@@ -300,9 +333,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
       return news;
     }
     const started = mainStore.currentInitializationToken();
-    const resolved = await resolveIdentities(
+    let resolved = await resolveIdentities(
       identityCategories.value, authchainBackends(), currentUtxos, extraKeyCategories
     );
+    if (mainStore.walletSwitchedSince(started)) return news;
+    resolved = await relistAuthKeysAsIdentities(resolved);
     if (mainStore.walletSwitchedSince(started)) return news;
     if (!resolved.some(identity => identity.status === 'unresolved')) {
       for (const identity of resolved) {
@@ -348,7 +383,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const authOutpoints: Outpoint[] = [];
     for (const identity of resolved) {
       // the identity output when this wallet holds it, the AuthKey when a covenant does: either
-      // way it is the coin the authority rides on, and one key can carry several identities
+      // way it is the coin the authority rides on, and one AuthKey can carry several identities
       const keyCoin = identity.authUtxo ?? identity.keyUtxo;
       if (keyCoin) authOutpoints.push(outpointOf(keyCoin));
     }
@@ -381,10 +416,33 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return resolved[0]?.unresolvedReason;
   }
 
+  // The identities the resolved AuthKeys guard, resolved in their turn; the covenant is recognised
+  // from the AuthKey this wallet holds. A chain that names itself is kept as it resolved.
+  async function resolveBehindAuthKeys(resolvedKeys: IdentityState[], withElectrum: boolean): Promise<IdentityState[]> {
+    const kept: IdentityState[] = [];
+    const behind: string[] = [];
+    for (const resolved of resolvedKeys) {
+      const guarded = identityBehindAuthKey(resolved);
+      if (!guarded) {
+        kept.push(resolved);
+        continue;
+      }
+      if (dismissedIdentities.value.includes(guarded) || identityCategories.value.includes(guarded)) continue;
+      if (!behind.includes(guarded)) behind.push(guarded);
+    }
+    // a batch carrying both an AuthKey and its identity's own token resolved that identity already
+    const missing = behind.filter(category => !kept.some(identity => identity.category === category));
+    if (!missing.length) return kept;
+    const resolved = await resolveIdentities(
+      missing, authchainBackends(withElectrum), mainStore.walletUtxos ?? [], extraKeyCategories, false
+    );
+    return [...kept, ...resolved];
+  }
+
   // The identities of the tokens this wallet holds, followed: every held category at open, up to
   // the cap, and all of them on the page's visit. Resolving only what was never looked up would
   // leave the group half filled until the visit, since the states themselves are not persisted.
-  // Nothing is listed or reserved here except an identity whose authhead, or whose key, turns
+  // Nothing is listed or reserved here except an identity whose authhead, or whose AuthKey, turns
   // out to be in this wallet, which is promoted and announced.
   async function followTokenIdentities(scope: 'open' | 'all' | 'keys') {
     await withResolveLock(async () => {
@@ -394,18 +452,23 @@ export const useIdentitiesStore = defineStore('identities', () => {
         .map(token => token.category)
         .filter(category => !identityCategories.value.includes(category) && !dismissedIdentities.value.includes(category));
       // Which of them to ask: every held category on a visit, up to the cap at open, and with
-      // following off only the categories a held NFT of a Studio key's shape belongs to. In the
-      // standard's genesis setup the key shares its identity's category, which is how Studio makes
-      // one, so a key handed to this wallet is recognised and held back whatever the setting says.
+      // following off only the categories a held NFT of a Studio AuthKey's shape belongs to, so an
+      // AuthKey handed to this wallet is recognised and held back whatever the setting says.
       let categories = held;
       if (scope === 'open') categories = held.slice(0, followedPerOpenCap);
       if (scope === 'keys') {
         categories = held.filter(category => currentUtxos.some(utxo => isAuthKey(utxo, category, STUDIO_KEY_COMMITMENT)));
       }
       const started = mainStore.currentInitializationToken();
+      const withElectrum = scope === 'keys' || !mainStore.chaingraph;
       let resolved: IdentityState[] = [];
       if (categories.length) {
-        resolved = await resolveIdentities(categories, authchainBackends(scope === 'keys' || !mainStore.chaingraph), currentUtxos, extraKeyCategories, false);
+        resolved = await resolveIdentities(categories, authchainBackends(withElectrum), currentUtxos, extraKeyCategories, false);
+        // An AuthKey's chain ends at the authhead of the identity it guards, so what was asked
+        // about was the AuthKey and what comes back names the identity: it is that identity, with
+        // its own metadata, that belongs on the list. In every scope, since a held AuthKey is a
+        // held token category like any other and reaches the ordinary batch when following is on.
+        resolved = await resolveBehindAuthKeys(resolved, withElectrum);
       }
       if (mainStore.walletSwitchedSince(started)) return;
       const outage = outageReason(resolved);
@@ -421,7 +484,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
           if (previous) next.push(previous);
           continue;
         }
-        // an identity whose output, or whose key, is here is this wallet's to look after
+        // an identity whose output, or whose AuthKey, is here is this wallet's to look after
         if (heldStatuses.includes(identity.status)) {
           listCategory(identity.category);
           promoted[identity.category] = identity.status === 'heldViaKey' ? 'key' : 'held';
@@ -504,14 +567,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // The identities an AuthKey of this category guards, so the token list can render a key as what
-  // it is rather than as an NFT with no metadata. Empty for anything that is not a confirmed key.
+  // it is rather than as an NFT with no metadata. Empty for anything that is not a confirmed AuthKey.
   function identitiesGuardedByKey(keyCategory: string) {
     return identities.value?.filter(
       identity => identity.keyUtxo?.token?.category === keyCategory
     ) ?? [];
   }
 
-  // The identity of a token this wallet holds the authority over, directly or through a key, so
+  // The identity of a token this wallet holds the authority over, directly or through an AuthKey, so
   // the token list can say so beside the token and point here. Nothing for a watched identity.
   function heldIdentityOf(category: string) {
     const identity = identities.value?.find(identity => identity.category === category);
@@ -519,15 +582,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return heldStatuses.includes(identity.status) ? identity : undefined;
   }
 
-  // What the token list says beside such a token: the balance shown leaves the reserve out, and
-  // the identities page is where the identity is managed
+  // What the token list says beside such a token. Holding the identity's UTXO and holding its
+  // AuthKey are both control, and which one it is belongs on the card rather than in a row; so
+  // does the reserve, which the row's balance already leaves out.
   function heldIdentityLine(category: string): string | undefined {
-    const identity = heldIdentityOf(category);
-    if (!identity) return undefined;
-    const reserve = identityCoin(identity)?.token?.amount;
-    if (!reserve) return t('tokenItem.identity.held');
-    const amount = formatTokenAmountWithSymbol(reserve, mainStore.bcmrRegistries?.[category]);
-    return t('tokenItem.identity.heldWithReserve', { amount });
+    return heldIdentityOf(category) ? t('tokenItem.identity.held') : undefined;
   }
 
   // What the dapp signing paths ask before refusing a request that spends a held back coin: the
@@ -557,12 +616,19 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // Where an identity the user is about to add sits, before it is listed: the page says whether
-  // it is held here, guarded, or somebody else's, and lists it on the user's word
+  // it is held here, guarded, or somebody else's, and lists it on the user's word. An AuthKey's
+  // category pasted here names the identity it guards, which is what gets listed.
   async function inspectCategory(category: string): Promise<IdentityState> {
     const [found] = await resolveIdentities(
       [category], authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories, false
     );
-    return found ?? { category, status: 'unresolved' };
+    if (!found) return { category, status: 'unresolved' };
+    const guarded = identityBehindAuthKey(found);
+    if (!guarded) return found;
+    const [identity] = await resolveIdentities(
+      [guarded], authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories, false
+    );
+    return identity ?? found;
   }
 
   // Listed and shown from the resolve the confirm was read from, so the card is there when the
@@ -606,7 +672,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const removed = identities.value?.find(identity => identity.category === category);
     identityCategories.value = removeFromIdentityList('categories', ...walletKey(), category);
     identities.value = identities.value?.filter(identity => identity.category !== category);
-    // the coin the authority rode on is released with the identity: the output, or a key that no
+    // the coin the authority rode on is released with the identity: the output, or an AuthKey that no
     // other listed identity is still opened by
     const keyCoin = removed?.authUtxo ?? removed?.keyUtxo;
     if (!keyCoin) return;
@@ -623,6 +689,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     takeAnnouncement,
     requestLearn,
     takeLearnRequest,
+    requestIdentityCard,
+    takeCardRequest,
     identityPublicationTxids,
     identities,
     tokenIdentities,

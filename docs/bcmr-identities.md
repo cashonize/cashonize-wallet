@@ -123,10 +123,21 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
   The confirm says where the identity is held before listing it: here, and held back, or
   in a covenant this wallet has the key to, or elsewhere, and only watched.
 - **Held through a key.** A guarded identity is recognised in the resolve that finds its
-  output, by the covenant's bytecode, and the key the wallet holds for it is reserved; a
-  key's identity reaches the list the way any held token's does, through the following,
-  which with the setting off still asks about the categories of held NFTs shaped like a
-  Studio key, so a key handed to this wallet is recognised whatever the setting says.
+  output, by the covenant's bytecode, and the key the wallet holds for it is reserved. The
+  following is what brings one onto the list, and with the setting off it still asks about
+  the categories of held NFTs shaped like a Studio key, so a key handed to this wallet is
+  recognised whatever the setting says. Asking about a key's category resolves the key's
+  own chain, which ends at the identity's authhead: the token on that output is the
+  identity, and it is that category, named and with its own metadata, that gets listed and
+  resolved in a second pass. A list still naming a key's category, which is what the wallet
+  wrote before it read the chain this way, is corrected to the guarded identity by the same
+  rule on the next resolve, and pasting a key's category into Add existing lists the
+  identity it guards. One AuthKey can guard several identities, and this path finds only the
+  one whose genesis merged with the key's: an identity that adopted the same key later has no
+  link to it that a forward resolve of the key's chain reaches, so it arrives through the
+  following or by its id like any other. Once listed, the card and the token list both count
+  every identity the key opens, since that is read off the resolved states rather than off
+  the key's chain.
 
 Watched identities reserve nothing and are listed apart from owned ones; the followed token
 identities are a third, collapsed group. Whenever the wallet holds something back the user
@@ -147,16 +158,39 @@ identities were held elsewhere last time, and that is the one thing it keeps.
   implements: a covenant holding the identity output, opened by an NFT. The covenant's
   script follows from the key's category, so a guarded identity is recognised the way the
   standard verifies one, by deriving the covenant's locking bytecode and comparing it with
-  the identity output's; the resolve already carries that output. The key is the identity's
-  own category in the standard's genesis setup, or the one the registry names in
-  `extensions.authNft` for an identity that adopted a guard later, read off the indexer's
-  copy. A key is any NFT of that category with no amount and no capability; that much is
-  the standard's. Studio mints its keys with commitment `00`, which the covenant never
+  the identity output's; the resolve already carries that output. **The key's category is
+  its own.** The standard's genesis spends two authbases in one transaction, the identity's
+  at input 0 and the key's at input 1, so the two chains merge there and share every link
+  after, and neither category can be read off the other. Three things name a candidate key,
+  and the derivation decides between them: the identity's own category, for a chain guarded
+  by a key minted in it; the one the registry names in `extensions.authNft`, read off the
+  indexer's copy, for an identity that adopted a guard later; and every key this wallet
+  holds, since a covenant derived from one of those that matches is one this wallet can
+  open. The third is what recognises the ordinary Studio identity, whose key nothing on the
+  chain names. That third source runs over every held NFT with no amount and no capability, so
+  any such category derives a candidate covenant: two hashes each, and a match is
+  self-proving, since spending the output means presenting that very redeem script. What it
+  does not do is make a collectible into a key. A griefer can still send a commitment-`00` NFT
+  of a category the wallet follows and have it read as key-shaped, which costs a resolve and
+  nothing else: the NFT stays an ordinary transferable NFT unless a real covenant matches, and
+  where one does the wallet holding the NFT back is the right answer, which is the worst either
+  source can do.
+  A key is any NFT of that category with no amount and no capability; that much
+  is the standard's. Studio mints its keys with commitment `00`, which the covenant never
   reads, so that is a convention, and the one thing that tells a Studio key from a
   collectible before its identity is resolved: the wallet uses it to decide which held
   categories to look up at open when following is off. The wallet
   protects a key the way it protects an identity output; the covenant's own spends belong
   to the tools that build them.
+- **A restricted gateway is not a failed publication.** Studio writes two locations into every
+  publication it makes, the `ipfs://` URI and the same CID on `ipfs.paytaca.com`, and that
+  gateway answers everyone but Paytaca's own apps with an authorization error. The check names
+  that case rather than calling the location unreachable, and does not count it towards the
+  publication's status: it can never verify, and the file is not what is wrong. The list of
+  such hosts is one entry today (`registryFile.ts`) and grows the day another app does the
+  same. Only a location's own host counts, since an `ipfs://` location is fetched through
+  whichever gateway the user configured, which is a setting rather than something the
+  publisher chose.
 - **The token metadata indexer** indexes token identities only, keyed by category. That is
   why the identities page resolves and verifies registries itself, and why a non-token
   identity's name comes from its registry, not the indexer.

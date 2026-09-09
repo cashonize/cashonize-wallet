@@ -27,7 +27,7 @@
   import {
     CASHTOKENS_STUDIO_URL,
     filledLocations,
-    identityCoin,
+    identityUtxoOf,
     identityOutput,
     locationBudgetLeft,
     reserveAddOutputs,
@@ -69,15 +69,16 @@
   const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
   const { width } = useWindowSize();
   const shortHash = (hash: string) => truncateHashForWidth(hash, width.value);
-  const identityName = computed(() => store.bcmrRegistries?.[props.identity.category]?.name);
+  const identityMetadata = computed(() => store.bcmrRegistries?.[props.identity.category]);
+  const identityName = computed(() => identityMetadata.value?.name);
   const identityIconUrl = computed(() => {
     if (settingsStore.disableTokenIcons) return undefined;
     return store.tokenIconUrl(props.identity.category);
   });
 
   // the token list narrows itself to a pending search on arrival, the way a token request opens it
-  function openInTokenList() {
-    store.pendingTokenSearch = props.identity.category;
+  function openInTokenList(category: string) {
+    store.pendingTokenSearch = category;
     store.changeView(2);
   }
 
@@ -97,24 +98,30 @@
   });
 
   // what the identity output holds in BCH: the coin's own word when it is here, the chain's otherwise
-  const identityValue = computed(() => identityCoin(props.identity)?.satoshis);
+  const identityValue = computed(() => identityUtxoOf(props.identity)?.satoshis);
 
   // What the identity output carries alongside the authority to update the metadata: a token
   // supply held back from circulation, an NFT that mints the category's tokens, or both at once
   const carries = computed(() => {
-    const token = identityCoin(props.identity)?.token;
+    const token = identityUtxoOf(props.identity)?.token;
     if (!token) return undefined;
     const lines: string[] = [];
-    // the largest amount a category can hold is the AuthGuard standard's mark for a supply with
-    // no ceiling, and reads as that rather than as the number
-    if (token.amount === maxTokenSupply) {
-      lines.push(t('identities.reserve.supplyOpenEnded'));
+    // A genesis of the largest amount a category can hold is the AuthGuard standard's mark for a
+    // supply with no ceiling, which Studio mints for every token: the reserve is then nineteen
+    // digits on every card and what the creator can read is what has left it.
+    if (props.identity.genesisSupply === maxTokenSupply) {
+      const issued = maxTokenSupply - token.amount;
+      lines.push(issued > 0n
+        ? t('identities.reserve.supplyOpenEndedIssued', { amount: formatTokenAmountWithSymbol(issued, identityMetadata.value) })
+        : t('identities.reserve.supplyOpenEnded'));
     } else if (token.amount) {
-      const amount = formatTokenAmountWithSymbol(token.amount, store.bcmrRegistries?.[props.identity.category]);
+      const amount = formatTokenAmountWithSymbol(token.amount, identityMetadata.value);
       lines.push(t('identities.reserve.supply', { amount }));
     }
     if (token.nft?.capability === 'minting') lines.push(t('identities.reserve.mintingNft'));
-    else if (token.nft) lines.push(t('identities.reserve.nft'));
+    // a guarded identity's plain NFT is the reserve marker riding on the covenant output, which
+    // is nothing the holder acts on; the AuthKey line above names the NFT that matters
+    else if (token.nft && !props.identity.guardedBy) lines.push(t('identities.reserve.nft'));
     return lines;
   });
   const carriesLine = computed(() => carries.value?.join(' · '));
@@ -136,13 +143,16 @@
     const supply = props.identity.genesisSupply;
     if (!supply) return undefined;
     if (supply === maxTokenSupply) return t('identities.reserve.genesisSupplyOpenEnded');
-    const amount = formatTokenAmountWithSymbol(supply, store.bcmrRegistries?.[props.identity.category]);
+    const amount = formatTokenAmountWithSymbol(supply, identityMetadata.value);
     return t('identities.reserve.genesisSupply', { amount });
   });
 
-  const tokenDecimals = computed(() => store.bcmrRegistries?.[props.identity.category]?.token?.decimals ?? 0);
-  const reserve = computed(() => identityCoin(props.identity)?.token?.amount ?? 0n);
-  const reserveDisplay = computed(() => formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value));
+  const tokenDecimals = computed(() => identityMetadata.value?.token?.decimals ?? 0);
+  const reserve = computed(() => identityUtxoOf(props.identity)?.token?.amount ?? 0n);
+  // the raw form for the Max button, since an amount field takes no grouping; every amount the
+  // card only shows is grouped and carries its symbol
+  const reserveInput = computed(() => formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value));
+  const reserveDisplay = computed(() => formatTokenAmountWithSymbol(reserve.value, identityMetadata.value));
 
   // An IPFS CID cannot serve content other than its own, so a mismatch there says something
   // different from an edited file at an HTTPS location
@@ -167,6 +177,25 @@
       };
     });
   });
+
+  // One publication is one file at several locations, so the closed card says one thing about it
+  // rather than a badge each: what the publisher has to act on outranks what only reports. A
+  // restricted gateway sits on every Studio publication and can never verify, so it is not
+  // counted at all, and is the answer only when there is nothing else to say.
+  const summaryOrder: PublicationUriStatus[] = ['changed', 'verified', 'unreachable'];
+  const publicationSummary = computed(() => {
+    const rows = publicationRows.value.filter(row => row.status);
+    if (!rows.length) return undefined;
+    const reachable = rows.filter(row => row.status !== 'restricted');
+    const status = summaryOrder.find(candidate => reachable.some(row => row.status === candidate)) ?? 'restricted';
+    return { status, text: t(`identities.publication.summary.${status}`) };
+  });
+
+  // A location that did not answer may answer next time, and a restricted gateway is not the
+  // publication's problem: neither is the publisher's to act on, so neither reads as a fault.
+  function badgeTone(status: PublicationUriStatus) {
+    return status === 'verified' || status === 'changed' ? status : 'muted';
+  }
 
   // A location serving something other than what was published is not just a warning on an
   // identity this wallet can act on: it is the state the publish flow exists to resolve
@@ -278,7 +307,7 @@
       const address = validateTokenRecipientAddress(issueDestination.value, store.wallet.networkPrefix);
       const confirmed = await confirmDialog(
         t('identities.reserve.issue.confirmTitle'),
-        t('identities.reserve.issue.confirmMessage', { amount: formatTokenAmountFromBigInt(amount, decimals), address }),
+        t('identities.reserve.issue.confirmMessage', { amount: formatTokenAmountWithSymbol(amount, identityMetadata.value), address }),
         t('identities.reserve.issue.confirmButton')
       );
       if (!confirmed) return;
@@ -308,7 +337,7 @@
       if (amount > available) throw new Error(t('identities.reserve.errors.overBalance'));
       const confirmed = await confirmDialog(
         t('identities.reserve.add.confirmTitle'),
-        t('identities.reserve.add.confirmMessage', { amount: formatTokenAmountFromBigInt(amount, decimals) }),
+        t('identities.reserve.add.confirmMessage', { amount: formatTokenAmountWithSymbol(amount, identityMetadata.value) }),
         t('identities.reserve.add.confirmButton')
       );
       if (!confirmed) return;
@@ -359,7 +388,7 @@
     });
   }
 
-  // The key is an ordinary NFT and moves as one; what makes this different is what goes with it.
+  // The AuthKey is an ordinary NFT and moves as one; what makes this different is what goes with it.
   // It is spent through the deliberate path because it is reserved, exactly as an authhead is.
   async function transferKey() {
     const keyUtxo = props.identity.keyUtxo;
@@ -392,7 +421,7 @@
   }
 
   // Removing a held identity releases its UTXO to coin selection, so the confirm is red the way
-  // the key transfer's is; removing a watched one only stops watching it
+  // the AuthKey transfer's is; removing a watched one only stops watching it
   async function removeIdentity() {
     await runAction('remove', async () => {
       const held = props.identity.status === 'held';
@@ -405,6 +434,12 @@
       if (confirmed) await identitiesStore.removeIdentity(props.identity.category);
     });
   }
+
+  // Why the wallet listed this without being asked. An identity in a covenant reached the list
+  // through the AuthKey this wallet holds, which is the whole of what is here of it.
+  const foundHelp = computed(() => props.identity.status === 'heldViaKey'
+    ? t('identities.detected.foundViaKeyHelp')
+    : t('identities.detected.foundAutomaticallyHelp'));
 
   // The history is a view among the card's actions, opened and closed the way the token item's
   // info panel is. Closing the card closes it.
@@ -422,7 +457,11 @@
 <template>
   <div class="section identity-card">
     <div class="identity-header" @click="emit('toggle')">
-      <TokenIcon :token-id="identity.category" :icon-url="identityIconUrl" :size="40" />
+      <div class="iconWithBadge">
+        <TokenIcon :token-id="identity.category" :icon-url="identityIconUrl" :size="40" />
+        <!-- which cards are guarded, without reading the status on each -->
+        <img v-if="identity.guardedBy" class="authKeyBadge" src="images/keyWhite.svg">
+      </div>
       <div class="identity-title">
         <div>
           {{ identityName ?? t('identities.unnamedIdentity') }}
@@ -431,7 +470,7 @@
             <template #trigger>
               <span class="identity-badge">{{ t('identities.detected.foundAutomatically') }}</span>
             </template>
-            <div style="max-width: 300px;">{{ t('identities.detected.foundAutomaticallyHelp') }}</div>
+            <div style="max-width: 300px;">{{ foundHelp }}</div>
           </InfoPopup>
         </div>
         <div class="copy-target" :title="identity.category" @click.stop="copyToClipboard(identity.category)">
@@ -462,13 +501,16 @@
       <span
         v-if="identity.authUtxo?.token?.nft?.capability === 'minting'"
         class="action-link"
-        @click.stop="openInTokenList()"
+        @click.stop="openInTokenList(identity.category)"
       >{{ t('identities.reserve.mintingNftLink') }}</span>
     </div>
-    <div v-if="!expanded && identity.publication" class="publication-badge-row">
-      <template v-for="row in publicationRows" :key="row.uri">
-        <span v-if="row.status" class="publication-badge" :class="row.status">{{ row.statusText }}</span>
-      </template>
+    <div v-if="!expanded && publicationSummary" class="publication-badge-row">
+      <InfoPopup>
+        <template #trigger>
+          <span class="publication-badge" :class="badgeTone(publicationSummary.status)">{{ publicationSummary.text }}</span>
+        </template>
+        <div style="max-width: 300px;">{{ t('identities.publication.statusHelp.' + publicationSummary.status) }}</div>
+      </InfoPopup>
     </div>
 
     <template v-if="expanded">
@@ -494,6 +536,16 @@
       </span>
       <span class="mono">{{ shortHash(location.text) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
     </div>
+    <!-- shown whether or not the AuthKey is here: a watched identity's says which NFT would give control -->
+    <div
+      v-if="identity.guardedBy"
+      class="copy-target"
+      :title="identity.guardedBy"
+      @click="copyToClipboard(identity.guardedBy)"
+    >
+      <span class="description">{{ t('identities.key.categoryLabel') }}</span>
+      <span class="mono">{{ shortHash(identity.guardedBy) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+    </div>
 
     <div class="section">
       <div>
@@ -505,18 +557,20 @@
         <div>{{ t('identities.publication.none') }}</div>
       </div>
       <template v-else>
-        <div v-for="row in publicationRows" :key="row.uri" class="publication-uri">
-          <a :href="row.url" target="_blank" class="mono">{{ row.uri }}</a>
-          <InfoPopup v-if="row.status">
-            <template #trigger>
-              <span class="publication-badge" :class="row.status">{{ row.statusText }}</span>
-            </template>
-            <div style="max-width: 300px;">{{ t('identities.publication.statusHelp.' + row.status) }}</div>
-            <div v-if="row.status === 'changed'" class="info-popup-note" style="max-width: 300px;">
-              {{ t('identities.publication.statusHelp.changedNote') }}
-            </div>
-          </InfoPopup>
-          <span v-else-if="identitiesStore.publicationChecksRunning" class="description">{{ t('identities.publication.checking') }}</span>
+        <div class="publication-locations">
+          <div v-for="row in publicationRows" :key="row.uri" class="publication-uri">
+            <a :href="row.url" target="_blank" class="mono">{{ row.uri }}</a>
+            <InfoPopup v-if="row.status">
+              <template #trigger>
+                <span class="publication-badge" :class="badgeTone(row.status!)">{{ row.statusText }}</span>
+              </template>
+              <div style="max-width: 300px;">{{ t('identities.publication.statusHelp.' + row.status) }}</div>
+              <div v-if="row.status === 'changed'" class="info-popup-note" style="max-width: 300px;">
+                {{ t('identities.publication.statusHelp.changedNote') }}
+              </div>
+            </InfoPopup>
+            <span v-else-if="identitiesStore.publicationChecksRunning" class="description">{{ t('identities.publication.checking') }}</span>
+          </div>
         </div>
         <div class="copy-target" :title="identity.publication.hash" @click="copyToClipboard(identity.publication.hash)">
           <span class="mono">
@@ -549,8 +603,20 @@
           {{ t('identities.transfer.action') }}
         </span>
       </template>
+      <template v-if="identity.status === 'heldViaKey'">
+        <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" style="white-space: nowrap;">
+          <!-- a material glyph is padded inside its 24 unit box, so it needs the larger size to
+               draw level with the Feather icons beside it -->
+          <q-icon name="open_in_new" size="20px" />
+          {{ t('identities.key.manageOnStudio') }}
+        </a>
+        <span @click="toggleAction('transferKey')" style="white-space: nowrap;">
+          <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
+          {{ t('identities.key.action') }}
+        </span>
+      </template>
       <span @click="historyOpen = !historyOpen" style="white-space: nowrap;">
-        <q-icon name="history" size="18px" />
+        <q-icon name="history" size="20px" />
         {{ historyLabel }}
       </span>
       <q-icon name="more_vert" size="22px" class="identity-menu-trigger">
@@ -569,7 +635,7 @@
               <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>
               <q-item-section>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</q-item-section>
             </q-item>
-            <!-- an identity held through a key comes back from the key on the next resolve, so the key is transferred instead -->
+            <!-- an identity held through an AuthKey comes back from it on the next resolve, so the AuthKey is transferred instead -->
             <q-item
               v-if="removable && identity.status !== 'heldViaKey'"
               clickable
@@ -633,7 +699,7 @@
       <div class="description">{{ t('identities.reserve.issue.hint', { amount: reserveDisplay }) }}</div>
       <div class="issue-amount">
         <input v-model="issueAmount" :placeholder="t('identities.reserve.issue.amountPlaceholder')">
-        <button @click="issueAmount = reserveDisplay">{{ t('tokenItem.actions.max') }}</button>
+        <button @click="issueAmount = reserveInput">{{ t('tokenItem.actions.max') }}</button>
       </div>
       <div class="input-with-button">
         <input v-model="issueDestination" :placeholder="t('identities.reserve.issue.destinationPlaceholder')">
@@ -686,15 +752,13 @@
     </div>
 
     <div v-if="identity.status === 'heldViaKey'" class="section">
-      <div class="description">{{ t('identities.key.manageHint') }}</div>
-      <div class="identity-actions">
-        <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="action-link">
-          {{ t('identities.key.manageOnStudio') }}
-        </a>
-        <span class="action-link" @click="toggleAction('transferKey')">
-          {{ t('identities.key.action') }}
+      <div>
+        {{ t('identities.key.what') }}
+        <span v-if="identity.guardedBy" class="action-link" @click="openInTokenList(identity.guardedBy)">
+          {{ t('identities.key.viewInTokenList') }}
         </span>
       </div>
+      <div class="description" style="margin-top: 6px;">{{ t('identities.key.manageHint') }}</div>
       <div v-if="isOpen('transferKey')" style="margin-top: 10px;">
         <div class="description">{{ t('identities.key.hint') }}</div>
         <div class="input-with-button">
@@ -777,10 +841,18 @@
   flex-wrap: wrap;
   margin-top: 6px;
 }
+/* A long location wraps its badge onto its own line, so the space between two locations has to
+   be larger than the space a wrap leaves inside one, or the badge reads as the next one's. */
+.publication-locations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
 .publication-uri {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 2px 8px;
   flex-wrap: wrap;
 }
 /* a published location can be one long word */
@@ -802,6 +874,11 @@
 .publication-badge.unreachable {
   color: var(--color-error);
 }
+/* a location that did not answer while another serves the file, and a restricted gateway: a note
+   about that location rather than something wrong with the publication */
+.publication-badge.muted {
+  color: grey;
+}
 .identity-action-row {
   display: flex;
   align-items: center;
@@ -811,6 +888,13 @@
 .actionBar .icon {
   width: 18px;
   height: 18px;
+}
+/* the guarded identity's Studio link is one of the card's actions, so it sits in the bar like
+   the ones beside it rather than as a link in running text */
+.identity-action-row a {
+  margin-right: 20px;
+  color: inherit;
+  text-decoration: none;
 }
 .identity-menu-trigger {
   cursor: pointer;
@@ -824,12 +908,6 @@
 .issue-amount input {
   flex: 1 1 auto;
   margin: 0;
-}
-.identity-actions {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-top: 12px;
 }
 .walkthrough {
   color: grey;
