@@ -212,16 +212,14 @@
   margin-bottom: 5px;
 }
 
+/* the shared toggle styles are in app.css; this row takes its trailing space, and centers rather
+   than aligning to the baseline, so its icon does not take the baseline nudge the others need */
 .options-toggle {
-  cursor: pointer;
-  user-select: none;
-  opacity: 0.8;
   margin-left: auto;
 }
 
-.options-toggle.active {
-  color: var(--color-primary);
-  opacity: 1;
+.options-toggle .q-icon {
+  vertical-align: middle;
 }
 
 .options-panel {
