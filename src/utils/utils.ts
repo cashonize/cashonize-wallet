@@ -220,7 +220,6 @@ export function formatTokenAmount(baseUnits: bigint, decimals: number | undefine
   return fraction ? `${grouped}.${fraction}` : grouped;
 }
 
-// With the token's symbol after it, as far as the metadata says
 // An amount always says what it counts, since a bare number reads as satoshis or as NFTs just as
 // easily: the token's symbol where its metadata names one, the generic unit where it does not.
 export function formatTokenAmountWithSymbol(
