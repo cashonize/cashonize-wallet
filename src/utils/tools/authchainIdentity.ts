@@ -258,18 +258,18 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
   let previousReserve = 0n;
   let previousLock: string | undefined;
   return links.map((link, index) => {
-    const identityOutput = identityOutputOf(link);
-    const reserve = BigInt(identityOutput?.fungible_token_amount ?? 0);
+    const linkOutput = identityOutputOf(link);
+    const reserve = BigInt(linkOutput?.fungible_token_amount ?? 0);
     const reserveDelta = reserve - previousReserve;
     const publication = findPublication(link.outputs.map(output => byteaToHex(output.locking_bytecode)));
-    const movedAddress = previousLock !== undefined && identityOutput?.locking_bytecode !== previousLock;
+    const movedAddress = previousLock !== undefined && linkOutput?.locking_bytecode !== previousLock;
 
     // outputs of the category beside the identity output, with the reserve unchanged, are minted
     // NFTs; a reserve move also has them, and is told apart by the reserve changing. A transfer
     // that keeps a minting NFT behind looks the same and reads as a mint: telling those apart
     // needs the wallet's addresses, which this does not have.
     const minted = link.outputs.filter(output =>
-      output.output_index !== "0" && output.token_category && output.token_category === identityOutput?.token_category
+      output.output_index !== "0" && output.token_category && output.token_category === linkOutput?.token_category
     ).length;
     let kind: ChainLinkKind = 'operation';
     if (index === 0) kind = 'genesis';
@@ -278,7 +278,7 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
     else if (reserveDelta === 0n && movedAddress) kind = 'transfer';
 
     previousReserve = reserve;
-    previousLock = identityOutput?.locking_bytecode;
+    previousLock = linkOutput?.locking_bytecode;
     return {
       hash: link.hash,
       ...(link.timestamp ? { timestamp: link.timestamp } : {}),

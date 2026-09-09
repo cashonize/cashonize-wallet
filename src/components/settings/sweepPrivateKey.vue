@@ -194,7 +194,7 @@
   }
 
   function isUnverifiedToken(categoryHex: string): boolean {
-    const userOwnsToken = store.tokenList?.some(t => t.category === categoryHex);
+    const userOwnsToken = store.tokenList?.some(token => token.category === categoryHex);
     return !userOwnsToken && categoryHex in unverifiedTokenMetadata.value;
   }
 

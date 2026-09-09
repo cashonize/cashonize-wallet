@@ -46,9 +46,9 @@ export interface TapswapListing {
 
 // Parse a listing announcement into its offer terms, only when it is well-formed and asks
 // plain BCH
-export function parseListingAnnouncement(opReturnHex: string) {
-  if (!opReturnHex.startsWith(LISTING_ANNOUNCEMENT_PREFIX)) return undefined;
-  const chunks = opReturnChunks(opReturnHex);
+export function parseListingAnnouncement(announcementHex: string) {
+  if (!announcementHex.startsWith(LISTING_ANNOUNCEMENT_PREFIX)) return undefined;
+  const chunks = opReturnChunks(announcementHex);
   if (chunks?.length !== ANNOUNCEMENT_CHUNKS.count) return undefined;
   if (binToHex(chunks[ANNOUNCEMENT_CHUNKS.platformPkh]!) !== TAPSWAP_PLATFORM_PKH) return undefined;
   // a listing asking tokens instead of plain BCH has no BCH asking price to show; the format

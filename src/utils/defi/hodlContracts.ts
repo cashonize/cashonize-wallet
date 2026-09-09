@@ -73,9 +73,9 @@ function decodeAnnouncedAddress(address: string) {
 
 // Parse a hodl announcement into the announced contract script hash and locktime, when it is
 // well-formed
-export function parseHodlAnnouncement(opReturnHex: string) {
-  if (!opReturnHex.startsWith(HODL_ANNOUNCEMENT_PREFIX)) return undefined;
-  const chunks = opReturnChunks(opReturnHex);
+export function parseHodlAnnouncement(announcementHex: string) {
+  if (!announcementHex.startsWith(HODL_ANNOUNCEMENT_PREFIX)) return undefined;
+  const chunks = opReturnChunks(announcementHex);
   if (chunks?.length !== ANNOUNCEMENT_CHUNK_COUNT) return undefined;
 
   // the address chunk is "<address>" or "<address> <version>"

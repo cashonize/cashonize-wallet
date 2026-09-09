@@ -298,13 +298,13 @@ export const useStore = defineStore('store', () => {
       return tokenList.value;
     }
     if (filter === 'default') {
-      return tokenList.value.filter(t => !settingsStore.hiddenTokens.includes(t.category));
+      return tokenList.value.filter(token => !settingsStore.hiddenTokens.includes(token.category));
     }
     if (filter === 'favoritesOnly') {
-      return tokenList.value.filter(t => settingsStore.featuredTokens.includes(t.category));
+      return tokenList.value.filter(token => settingsStore.featuredTokens.includes(token.category));
     }
     if (filter === 'hiddenOnly') {
-      return tokenList.value.filter(t => settingsStore.hiddenTokens.includes(t.category));
+      return tokenList.value.filter(token => settingsStore.hiddenTokens.includes(token.category));
     }
     return tokenList.value;
   })

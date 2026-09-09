@@ -61,8 +61,8 @@ export function opReturnHex(output: InOutput | undefined) {
 // script is decoded into those data chunks. Returns undefined for anything else, which for
 // an announcement is a malformed one. mainnet-js has OpReturnData.parseBinary for this, but
 // it stops at the first empty push, of which a TapSwap listing announcement has three
-export function opReturnChunks(opReturnHex: string) {
-  const instructions = decodeAuthenticationInstructions(hexToBin(opReturnHex));
+export function opReturnChunks(announcementHex: string) {
+  const instructions = decodeAuthenticationInstructions(hexToBin(announcementHex));
   if (authenticationInstructionsAreMalformed(instructions)) return undefined;
   const chunks: Uint8Array[] = [];
   // the first instruction is the OP_RETURN itself

@@ -157,7 +157,7 @@
 
   // Token is "unverified" if user doesn't already own it (not in their tokenList)
   const isUnverifiedToken = (categoryHex: string): boolean => {
-    const userOwnsToken = store.tokenList?.some(t => t.category === categoryHex);
+    const userOwnsToken = store.tokenList?.some(token => token.category === categoryHex);
     return !userOwnsToken && categoryHex in unverifiedTokenMetadata.value;
   };
 
