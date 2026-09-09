@@ -4,6 +4,7 @@
 
 import { binToHex, binToUtf8, sha256 } from "@bitauth/libauth";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
+import { gatewayUrl } from "src/utils/utils";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -43,7 +44,7 @@ const WELL_KNOWN_REGISTRY_PATH = "/.well-known/bitcoin-cash-metadata-registry.js
 // Where a published location is actually fetched from. The published form is the compact one the
 // spec asks for, so an https:// prefix is stripped and a bare domain names the well-known path.
 export function registryUrlOf(uri: string, ipfsGateway: string): string {
-  if (uri.startsWith("ipfs://")) return ipfsGateway + uri.slice("ipfs://".length);
+  if (uri.startsWith("ipfs://")) return gatewayUrl(uri, ipfsGateway);
   // Per spec a bare domain means the well-known file on it, while anything naming a path is taken
   // as published. A trailing slash is such a path, the root itself, so the two forms differ.
   const location = uri.replace(/^https:\/\//, "");

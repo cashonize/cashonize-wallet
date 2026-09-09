@@ -9,6 +9,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { gatewayUrl } from 'src/utils/utils'
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
@@ -71,10 +72,8 @@
     let tokenIconUri = tokenMetaData.value?.uris?.icon;
     const nftIconUri = nftMetadata.value?.uris?.icon;
     if(nftIconUri) tokenIconUri = nftIconUri;
-    if(tokenIconUri?.startsWith('ipfs://')){
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    }
-    return tokenIconUri;
+    if (!tokenIconUri) return tokenIconUri;
+    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   })
   const tokenName = computed(() => {
     // Prefer parsed type name when available (e.g. extension-resolved loan keys)

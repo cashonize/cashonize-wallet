@@ -5,7 +5,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import type { IdentityCarry, ReturningIdentity } from 'src/utils/dapp/reservedInputs'
-  import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmount, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmount, formatTokenAmountWithSymbol, gatewayUrl, sanitizeUrl } from 'src/utils/utils'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
@@ -164,10 +164,7 @@
   const getTokenIconUrl = (categoryHex: string): string | undefined => {
     const tokenIconUri = getTokenMetadata(categoryHex)?.uris?.icon;
     if (!tokenIconUri) return undefined;
-    if (tokenIconUri.startsWith('ipfs://')) {
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    }
-    return tokenIconUri;
+    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   };
 
   const calculateAmount = (tokenObject: NonNullable<Output['token']>): string => {

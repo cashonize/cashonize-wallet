@@ -6,7 +6,7 @@
   import { TokenSendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, sanitizeUrl, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, gatewayUrl, sanitizeUrl, truncateHash } from 'src/utils/utils';
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { useStore } from 'src/stores/store'
@@ -113,10 +113,8 @@
       const nftIconUri = nftMetadata.value?.uris?.icon;
       if(nftIconUri) tokenIconUri = nftIconUri;
     }
-    if(tokenIconUri?.startsWith('ipfs://')){
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    }
-    return tokenIconUri;
+    if (!tokenIconUri) return tokenIconUri;
+    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   })
   const tokenName = computed(() => {
     // Prefer parsed type name when available (e.g. extension-resolved loan keys)

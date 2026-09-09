@@ -13,7 +13,7 @@
     type CheckedRegistry,
     type CreatedToken,
   } from 'src/utils/tools/tokenCreation';
-  import { copyToClipboard, formatBch, formatTokenAmount, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, formatTokenAmount, gatewayUrl, truncateHash } from 'src/utils/utils';
   import { NFTCapability, TokenSendRequest } from 'mainnet-js';
   import TokenIcon from '../general/TokenIcon.vue';
   import genesisInputPicker from './genesisInputPicker.vue';
@@ -155,7 +155,7 @@
   const checkedIconUrl = computed(() => {
     const uri = checkedRegistry.value?.summary.iconUri;
     if (!uri) return undefined;
-    return uri.startsWith('ipfs://') ? settingsStore.ipfsGateway + uri.slice('ipfs://'.length) : uri;
+    return gatewayUrl(uri, settingsStore.ipfsGateway);
   });
 
   const checkedName = computed(() => {

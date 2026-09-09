@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, watch, toRefs, computed } from 'vue';
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { gatewayUrl } from 'src/utils/utils'
   const settingsStore = useSettingsStore()
 
   const props = defineProps<{
@@ -14,10 +15,8 @@
 
   const httpsUrlTokenImage = computed(() => {
     const nftImageUri = srcNftImage.value;
-    if(nftImageUri?.startsWith('ipfs://')){
-      return settingsStore.ipfsGateway + nftImageUri.slice(7);
-    }
-    return nftImageUri;
+    if (!nftImageUri) return nftImageUri;
+    return gatewayUrl(nftImageUri, settingsStore.ipfsGateway);
   })
 </script>
 

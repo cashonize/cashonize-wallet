@@ -29,13 +29,7 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import {
-  electrumWssUrl,
-  getBalanceFromUtxos,
-  loadWalletFromId,
-  runAsyncVoid,
-  walletTypeFromWalletId
-} from "src/utils/utils"
+import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, runAsyncVoid, walletTypeFromWalletId } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -1392,12 +1386,7 @@ export const useStore = defineStore('store', () => {
   function tokenIconUrl(tokenId: string) {
     const tokenIconUri = bcmrRegistries.value?.[tokenId]?.uris?.icon;
     if (!tokenIconUri) return undefined;
-
-    if (tokenIconUri.startsWith('ipfs://')) {
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    } else {
-      return tokenIconUri;
-    }
+    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   }
 
   async function getLatestGithubRelease(){

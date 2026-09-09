@@ -254,6 +254,13 @@ export function formatBch(satoshis: bigint, network: string): string {
   return `${formatBchAmount(Number(satoshis), false, 8)} ${network === 'mainnet' ? 'BCH' : 'tBCH'}`;
 }
 
+// A metadata location as it is actually fetched: an ipfs:// one through whichever gateway the user
+// configured, anything else as published. The gateway is passed in rather than read from the
+// settings here, so this stays a plain function.
+export function gatewayUrl(uri: string, ipfsGateway: string): string {
+  return uri.startsWith('ipfs://') ? ipfsGateway + uri.slice('ipfs://'.length) : uri;
+}
+
 export function truncateHash(hash: string, head = 16, tail = 8): string {
   return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
 }

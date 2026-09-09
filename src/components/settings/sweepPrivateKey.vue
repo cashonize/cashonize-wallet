@@ -10,7 +10,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { useI18n } from 'vue-i18n'
-  import { convertToCurrency, formatFiatAmount, formatTokenAmount } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatTokenAmount, gatewayUrl } from 'src/utils/utils'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import { transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
   import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/tools/bip38'
@@ -210,10 +210,7 @@
   function getTokenIconUrl(tokenId: string): string | undefined {
     const tokenIconUri = getTokenMetadata(tokenId)?.uris?.icon;
     if (!tokenIconUri) return undefined;
-    if (tokenIconUri.startsWith('ipfs://')) {
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    }
-    return tokenIconUri;
+    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   }
 
   async function preview() {
