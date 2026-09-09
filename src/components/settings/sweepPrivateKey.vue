@@ -12,7 +12,7 @@
   import InfoPopup from '../general/InfoPopup.vue';
   import { useI18n } from 'vue-i18n'
   import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
-  import { useUnverifiedTokenMetadata } from 'src/utils/composables'
+  import { useUnverifiedTokenMetadata } from 'src/utils/unverifiedTokenMetadata'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import { transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
   import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/tools/bip38'

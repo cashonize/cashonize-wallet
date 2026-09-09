@@ -6,7 +6,7 @@
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import type { IdentityCarry, ReturningIdentity } from 'src/utils/dapp/reservedInputs'
   import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
-  import { useUnverifiedTokenMetadata } from 'src/utils/composables'
+  import { useUnverifiedTokenMetadata } from 'src/utils/unverifiedTokenMetadata'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
