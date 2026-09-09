@@ -251,8 +251,9 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     // Get the UTXOs from the wallet.
     // NOTE: For Mainnet, we need to marry them up with their Private Key later using the wallet's "walletCache".
     // Reserved coins are withheld, so a dApp selecting from this list never sees them.
-    const utxos = spendableFromUtxos(await mainStore.wallet.getUtxos(), mainStore.reservedUtxos);
-    const transformed = utxos.map((utxo) => {
+    const allUtxos = await mainStore.wallet.getUtxos();
+    const spendableUtxos = spendableFromUtxos(allUtxos, mainStore.reservedUtxos);
+    const transformed = spendableUtxos.map((utxo) => {
       // Get the Wallet's Internal Information about this address (we need the Private Key for signing).
       const addressKeyPair = mainStore.wallet.walletCache.get(utxo.address);
       // If the Private Key cannot be retrieved, throw an error.

@@ -28,7 +28,10 @@ export async function transferAllAssets(
 ) {
   // Read fresh before each transaction rather than once up front: every transaction here spends
   // coins the next must no longer name, and a summary shown to the user can be minutes old anyway
-  const spendablePool = async () => spendableFromUtxos(await sourceWallet.getUtxos(), reservedUtxos);
+  const spendablePool = async () => {
+    const allUtxos = await sourceWallet.getUtxos();
+    return spendableFromUtxos(allUtxos, reservedUtxos);
+  };
 
   const utxos = await spendablePool();
   if (!utxos.length) throw new Error(t('common.errors.nothingToTransfer'));

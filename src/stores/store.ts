@@ -1454,7 +1454,8 @@ export const useStore = defineStore('store', () => {
   async function spendConfig() {
     const hasReservedUtxos = Object.keys(reservedUtxos.value).length > 0;
     if (!hasReservedUtxos) return undefined;
-    return { utxoIds: spendableFromUtxos(await wallet.value.getUtxos(), reservedUtxos.value) };
+    const allUtxos = await wallet.value.getUtxos();
+    return { utxoIds: spendableFromUtxos(allUtxos, reservedUtxos.value) };
   }
 
   // An output is this wallet's when its locking bytecode reads as an address this wallet has;
@@ -1549,7 +1550,8 @@ export const useStore = defineStore('store', () => {
       sendRequests?: SendRequestType | SendRequestType[]
     ) {
       const outpoint = outpointOf(genesisInput);
-      const spendable = spendableFromUtxos(await wallet.value.getUtxos(), reservedUtxos.value);
+      const allUtxos = await wallet.value.getUtxos();
+      const spendable = spendableFromUtxos(allUtxos, reservedUtxos.value);
       const picked = spendable.find(utxo => outpointOf(utxo) === outpoint);
       // a coin spent elsewhere since it was picked would otherwise create a category nobody chose
       if (!picked || picked.vout !== 0 || picked.token) throw new Error(t('store.errors.genesisInputUnavailable'));
@@ -1571,14 +1573,9 @@ export const useStore = defineStore('store', () => {
       return wallet.value.getMaxAmountToSend({ options: await spendConfig() ?? {} });
     },
 
-    // Every identity operation is this one spend: the old authhead in and the new authhead at
-    // output 0, which is what continues the authchain. The coin is held back exactly so nothing
-    // else reaches it, so this is the one path that spends past its own reservation.
-    // The pool is the wallet's BCH coins plus the authhead, and only the token coins the operation
-    // asked for: leaving the category's other coins out keeps a supply operation from sweeping the
-    // circulating balance into itself as change.
-    // The options a mint needs and nothing wider: a pool or an ensureUtxos passed here would undo
-    // what this function exists to guarantee.
+    // The one path that spends past a reservation: every identity operation is this spend, the old
+    // authhead in and the new one at output 0. The options are what a mint needs and no wider,
+    // since a pool or an ensureUtxos passed here would undo that.
     async spendAuthUtxo(
       authUtxo: Utxo,
       requests: SendRequestType,
@@ -1586,7 +1583,10 @@ export const useStore = defineStore('store', () => {
       options: { tokenOperation?: 'send' | 'mint'; checkTokenQuantities?: boolean } = {},
     ) {
       const identitiesStore = useIdentitiesStore();
-      const spendable = spendableFromUtxos(await wallet.value.getUtxos(), reservedUtxos.value);
+      const allUtxos = await wallet.value.getUtxos();
+      const spendable = spendableFromUtxos(allUtxos, reservedUtxos.value);
+      // only the token coins the operation asked for, so a supply operation cannot sweep the
+      // circulating balance into its own change
       const pool = [...spendable.filter(utxo => !utxo.token), authUtxo, ...categoryUtxos];
       const response = await spendExplained(() => wallet.value.send(requests, {
         ...options,
