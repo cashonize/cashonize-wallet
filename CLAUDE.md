@@ -29,18 +29,16 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 - **settingsStore.ts**: User preferences persisted to localStorage - currency, dark mode, electrum servers, per-wallet backup status, auto-approve settings for WalletConnect.
 - **walletconnectStore.ts** / **cashconnectStore.ts**: dApp connection protocol handlers. Access the wallet via Pinia cross-store ref (`useStore()` inside `defineStore` setup).
 - `_wallet` is a `shallowRef`: mainnet-js owns the wallet's internal state, so only swapping wallets is reactive, not changes inside the wallet object. Reactive code reading wallet internals depends on `walletUtxos` instead, which is why `store.walletHasAddress()` exists next to `store.wallet.hasAddress()`.
-- Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to `spendableUtxos`: the wallet's utxos minus the reserved outpoints, BCH and token coins alike (`utils/wallet/reservedUtxos.ts`). A reservation is local to this app; another wallet on the same keys can still spend the coin. A dapp-built transaction is judged against the reservations at signing (`utils/dapp/reservedInputs.ts`): a pledged or frozen coin refuses, an AuthKey is signed when the same NFT comes back, and an identity UTXO refuses unless the `allowDappIdentitySpends` user option is on, and even then only when the authchain continues at an output of this wallet.
+- Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to `spendableUtxos`: the wallet's utxos minus the reserved outpoints, BCH and token coins alike (`utils/wallet/reservedUtxos.ts`). A reservation is local to this app; another wallet on the same keys can still spend the coin. A dApp-built transaction is judged against the reservations at signing (`utils/dapp/reservedInputs.ts`): a pledged or frozen coin refuses, an AuthKey is signed when the same NFT comes back, and an identity UTXO refuses unless the `allowDappIdentitySpends` user option is on, and even then only when the authchain continues at an output of this wallet.
 - **identitiesStore.ts**: the identities the wallet follows and everything resolved about them; reads the wallet and its coins from store.ts, which keeps the reservations that hold an authhead back.
 
 ### Multi-Wallet Support
 - Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet); by default each wallet is stored in both databases
 - `activeWalletName` persisted in localStorage
-- `utils/wallet/dbUtils.ts`: Direct IndexedDB operations for checking wallet existence, listing wallets, deletion
 
-### Platform Concurrency
+### Concurrency
 Only the web (SPA) target can run several live instances at once: browser tabs share localStorage and IndexedDB but nothing in memory (so a dApp request can raise dialogs in every open tab). There is no cross-tab sync: writes to a shared key re-read it first and change only their own entry, and reads trust the copy loaded at wallet activation, so another tab's writes stay invisible until reload. Electron and Android are single-instance by construction.
 
-### Wallet Concurrency
 Regardless of app instances, the same wallet can be live elsewhere (other devices, other wallet software), so on-chain state can change at any moment: in-memory UTXOs, balance and history are a cache, not a source of truth, and flows holding utxo state across user interaction must tolerate it going stale.
 
 ### mainnet-js (Core Wallet Library)
@@ -52,7 +50,7 @@ The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libau
 - The wallet type (`WalletType`) is a union of all four classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB (see Multi-Wallet Support)
-- mainnet-js builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. Dapp-supplied transactions are the exception: a shortcoming of the WalletConnect/WizardConnect protocols is that the dapp builds the transaction and the wallet only signs it, against libauth directly in `utils/dapp/wcSigning.ts` / `wizSigning.ts`.
+- mainnet-js builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. dApp-supplied transactions are the exception: a shortcoming of the WalletConnect/WizardConnect protocols is that the dApp builds the transaction and the wallet only signs it, against libauth directly in `utils/dapp/wcSigning.ts` / `wizSigning.ts`.
 - The app overrides several mainnet-js defaults. Those in `store.ts` must be applied before the first wallet is constructed, since HD wallets start address discovery during construction; the rest follow a user action instead.
 - Docs: https://mainnet.cash/tutorial/
 
@@ -73,24 +71,21 @@ The app reaches into mainnet-js's databases itself, in `utils/wallet/dbUtils.ts`
 ### Electrum Connections
 mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors.
 
-***Note:*** some environments (e.g. Safari, iOS) aggressively kill idle WebSocket connections in backgrounded tabs, which may cause stale connections when returning — mainnet-js handles reconnection on actual connection failures separately.
-
 ### Electrum Trust Model
 Blockchain data comes from one electrum server at a time and is not verified. `@electrum-cash/network` is a single-server client with no cluster or SPV support, so balance, history, confirmations and block height are that server's claims rather than anything the wallet checks, and they are cached to IndexedDB.
 
 ### Chaingraph
 Chaingraph is a secondary blockchain indexer next to electrum, a GraphQL (Hasura) service that allows arbitrary queries. Electrum answers about addresses the wallet knows and cannot follow an authchain to its head in one request, so identity resolution runs on Chaingraph when an instance is configured for the network, with a link-by-link walk over electrum as the fallback (`utils/tools/electrumAuthchain.ts`, its limits in `docs/bcmr-identities.md`). Everything else, spending, balances and the reading of the wallet's own history, stays on electrum alone. Chaingraph is new in production use, with few public instances that may not be stable or scale, so its lookups are batched and capped per wallet open, and a failure lands on the page that wanted the answer rather than failing the wallet.
 
-The queries live in `src/queryChainGraph.ts`, typed from the schema with gql.tada (`src/chainGraphSchema.ts`, over a committed introspection in `src/generated/`). Two limits shape them: the introspection carries no field arguments, so `where`, `order_by` and `limit` are not type-checked; and the default instance caps any selection at 1,000 rows, nested ones included, silently, so anything that grows with a chain or a wallet's history is paged or narrowed on the server.
-
-### Configurable Backends
 Every backend the app talks to is one user-swappable server: electrum and the Chaingraph instance (both per network), the BCMR and Cauldron indexers, the IPFS gateway and the exchange rate provider all live in settingsStore, selectable in the advanced settings from predefined choices plus, for most, a custom URL.
+
+The Chaingraph queries live in `src/queryChainGraph.ts`, typed from the schema with gql.tada (`src/chainGraphSchema.ts`, over a committed introspection in `src/generated/`). Two limits shape them: the introspection carries no field arguments, so `where`, `order_by` and `limit` are not type-checked; and the default instance caps any selection at 1,000 rows, nested ones included, silently, so anything that grows with a chain or a wallet's history is paged or narrowed on the server.
 
 ### CashConnect Transport
 CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). The relay is store-and-forward with per-message TTLs, so dApp and wallet don't need to be online at the same time — a session survives either side going offline (short-lived messages like balance pushes simply expire rather than being replayed). Sessions persist in localStorage, namespaced per wallet identity key, and are restored by the library's `start()`; the app's `cashconnectStore.stop()` stops the service without un-pairing.
 
 ### WizardConnect
-WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the transport is fully encapsulated in @wizardconnect/core, so no separate nostr dependencies are needed. The wallet shares chain-level xpubs (receive/change/defi) so dapps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). The sign dialog marks the wallet's own inputs and outputs through the request's paths, since mainnet-js's address cache knows the receive and change chains only. HD wallets only; single-address wallets get a clear error on pairing.
+WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the transport is fully encapsulated in @wizardconnect/core, so no separate nostr dependencies are needed. The wallet shares chain-level xpubs (receive/change/defi) so dApps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). The sign dialog marks the wallet's own inputs and outputs through the request's paths, since mainnet-js's address cache knows the receive and change chains only. HD wallets only; single-address wallets get a clear error on pairing.
 
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for authchain identities on BCH, tokens being the common case; the rest is under Authchain Identities. Spec: https://github.com/bitjson/chip-bcmr
@@ -100,9 +95,7 @@ Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.c
 ### Parsable NFTs
 When the indexer returns `nft_type: "parsable"` with `token.nfts` parse info (bytecode, types, fields), the wallet runs the parsing bytecode locally in a libauth VM to extract and display structured data from NFT commitments.
 
-Key files:
-- `src/parsing/nftParsing.ts`: VM-based commitment parsing engine (`NftParseInfo` interface, `parseNft` function)
-- `src/parsing/bcmr-v2.schema.ts`: TypeScript types for the BCMR v2 spec
+The parsing engine is `src/parsing/nftParsing.ts` (`NftParseInfo`, `parseNft`), over the spec types in `src/parsing/bcmr-v2.schema.ts`.
 
 ### BCMR Extensions
 BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method. The main extension is ParyonUSD (`paryonusd.ts`), which fetches the live on-chain loan state for loan-key NFTs.
@@ -123,28 +116,15 @@ An AuthKey's category is its own: the standard's genesis spends the identity's a
 Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one per network). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
 
 ### Portfolio Integrations
-The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. For now every dapp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups, data on held NFTs, or OP_RETURN protocol markers read off the wallet's electrum history) and is documented in each module's header comment; why the history is the source, and what each protocol announces: `docs/contract-asset-discovery.md`.
+The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. For now every dApp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups, data on held NFTs, or OP_RETURN protocol markers read off the wallet's electrum history) and is documented in each module's header comment; why the history is the source, and what each protocol announces: `docs/contract-asset-discovery.md`.
 
 ### Wallet Tools
 The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the AuthKey that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. The identities page also holds back what the user never listed; its detection and following paths are described in `docs/bcmr-identities.md`.
 
 ### Component Organization
-```
-src/components/
-├── bchWallet.vue, myTokens.vue, connectDapp.vue, settingsMenu.vue  # Main tab views
-├── walletOnboarding.vue                                             # Initial setup
-├── settings/          # Components accessed from settings menu
-├── walletconnect/     # WC2 session and dialog components (WC2TransactionRequest is shared with wizardconnect)
-├── cashconnect/       # CC session and dialog components
-├── wizardconnect/     # WizardConnect session components (sign dialogs are opened from wizardconnectStore)
-├── history/           # Transaction history components
-├── portfolio/         # Portfolio view (chart of total wallet value)
-├── tokenItems/        # Token display components (FT, NFT)
-├── qr/                # QR scanning components
-└── general/           # Reusable components (alertDialog, seedPhraseInput, TokenIcon, ...)
-```
+`src/components/` holds the four main tab views (`bchWallet`, `myTokens`, `connectDapp`, `settingsMenu`) plus `walletOnboarding` at the root, with a folder per area below: `settings/`, `walletconnect/`, `cashconnect/`, `wizardconnect/`, `history/`, `portfolio/`, `tokenItems/`, `qr/` and `general/` for what several views reuse. `src/utils/` is grouped the same way (`dapp/`, `defi/`, `wallet/`, ...).
 
-`src/utils/` is grouped into subfolders the same way (`dapp/`, `defi/`, `wallet/`, ...).
+Two components sit outside their folder's protocol: `WC2TransactionRequest` is shared with wizardconnect, and the WizardConnect sign dialogs are opened from `wizardconnectStore` rather than from a session component.
 
 ### Validation
 Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect params, API responses, BCMR data).
@@ -152,7 +132,7 @@ Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect pa
 ### Quasar Framework
 Docs: https://quasar.dev/docs
 
-- **Boot files** (`src/boot/`): Run at app startup - `icons.ts`, `i18n.ts`, `qrCodeComponent.ts`, `deepLinking.ts` (Capacitor only), `plausible.ts` (SPA production only)
+- **Boot files** (`src/boot/`): Run at app startup - `icons.ts`, `i18n.ts`, `deepLinking.ts` (Capacitor only), `plausible.ts` (SPA production only)
 - **Plugins**: `Notify` for toasts, `Dialog` for confirmations and custom dialogs (configured in quasar.config.ts)
 - **Mode/env detection**: In app code, use Quasar v3 `import.meta.env.QUASAR_*` constants, e.g. `import.meta.env.QUASAR_SPA_MODE`.
 - **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking; the runtime copies live in `src-capacitor/`
@@ -173,7 +153,7 @@ Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). IndexedDB-
 
 Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
 
-A pinned dep may carry a pnpm patch, declared with its reason in `pnpm-workspace.yaml` and dropped once the fix lands upstream. mainnet-js has one: `tokenMint` and `tokenBurn` ignored the `utxoIds` option when picking their token inputs, which the wallet needs them to honor.
+A pinned dep may carry a pnpm patch, declared with its reason in `pnpm-workspace.yaml` and dropped once the fix lands upstream. mainnet-js currently carries one, covering two fixes the wallet depends on.
 
 ## Code Style Preferences
 
