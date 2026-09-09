@@ -108,11 +108,53 @@ function announcedContracts(
   return found;
 }
 
+// A listing whose contract is an output of the announcing transaction. Its owner is named in the
+// announcement, so nothing has to be rebuilt, and it is live only while that one output is
+// unspent, which the history cannot say and the announcement never could.
+async function runListedPositions(
+  manifest: ContractManifest,
+  find: Extract<ContractManifest['find'], { kind: 'announcement' }>,
+  at: { output: number },
+  context: WalletContext,
+): Promise<ContractPosition[]> {
+  const owner = manifest.owner;
+  if (owner.kind !== 'field') return [];
+  const candidates: { transaction: TransactionHistoryItem, output: NonNullable<TransactionHistoryItem['outputs'][number]>, fields: Fields }[] = [];
+  for (const transaction of context.history) {
+    const announcement = opReturnHex(transaction.outputs[find.output]);
+    const held = transaction.outputs[at.output];
+    if (!announcement || !held) continue;
+    const fields = readAnnouncement(announcement, find);
+    if (!fields) continue;
+    if (!context.ownerPkhs.includes(String(fields[owner.field]))) continue;
+    candidates.push({ transaction, output: held, fields });
+  }
+
+  const positions: ContractPosition[] = [];
+  for (const candidate of candidates.slice(0, MAX_CONTRACT_LOOKUPS)) {
+    const utxos = await context.provider.getUtxos(candidate.output.address);
+    const live = utxos.some(utxo => utxo.txid === candidate.transaction.hash && utxo.vout === at.output);
+    if (!live) continue;
+    positions.push({
+      manifestId: manifest.id,
+      ownership: manifest.ownership,
+      address: candidate.output.address,
+      satoshis: BigInt(candidate.output.value),
+      txid: candidate.transaction.hash,
+      vout: at.output,
+      ...(candidate.output.token ? { token: candidate.output.token } : {}),
+      fields: candidate.fields,
+    });
+  }
+  return positions;
+}
+
 async function runAnnouncementManifest(
   manifest: ContractManifest,
   find: Extract<ContractManifest['find'], { kind: 'announcement' }>,
   context: WalletContext,
 ): Promise<ContractPosition[]> {
+  if (find.position) return runListedPositions(manifest, find, find.position, context);
   const positions: ContractPosition[] = [];
   for (const contract of announcedContracts(manifest, find, context).slice(0, MAX_CONTRACT_LOOKUPS)) {
     // anyone can add funds to the address and a drained one holds nothing, so what it holds now

@@ -22,7 +22,7 @@ Sorted by what the wallet needs in hand before it can look, which is also what e
 | **Badgers.cash** | one fixed address, owner in the NFT commitment | **manifest** | `badgers-stake` |
 | **hodl** | announcement, owner by rebuilding the contract | **manifest** | `hodl-vault` |
 | **Cauldron** | address derived from your public key hash | code | needs a `derived` locator |
-| **TapSwap** | announcement, owner named in it | code | needs two additions, below |
+| **TapSwap** | announcement, owner named in it | **manifest** | `tapswap-listing` |
 | **Emerald DAO** | a keycard you hold, backing in its commitment | code | belongs to BCMR |
 | **ParyonUSD** | a loan key you hold, position at an address its registry names | **BCMR extension** | already data |
 
@@ -40,12 +40,13 @@ so what is missing is only the locator and a way to name which key chains to sea
 searches its `defi` chain as well, because pools created through WizardConnect belong to keys
 the wallet never hands out.
 
-**TapSwap** needs two things. Its owner is named *in the announcement* rather than proved by
-rebuilding, so the announcement path needs the `field` ownership rule the address path already
-has. And its contract is output 0 of the announcing transaction rather than an address the
-announcement names, so `find` needs to be able to say "the position is output N of the
-transaction that announced it". Liveness is then whether that one output is unspent, rather
-than what an address holds.
+**TapSwap** is a manifest, and adding it is what the format grew for. Its owner is named in the
+announcement rather than proved by rebuilding, so the announcement path takes the same field
+ownership rule the address path had. Its contract is output 0 of the announcing transaction
+rather than an address the announcement names, so a find may say the position is an output of
+its own transaction, and liveness is then whether that one output is unspent. Its want fields are
+empty pushes when the offer asks plain BCH, which is why announcements are read with the
+wallet's own chunk reader rather than a length walk of the bytes.
 
 **Emerald DAO** and **ParyonUSD** are not manifest work at all. Both are the "I hold an asset,
 what does it hold underneath?" question, and that is BCMR's job: parsable NFT info already
@@ -72,13 +73,19 @@ and not the other.
 A position's manifest says what its balance means for the holder, because that decides whether
 the portfolio may add it to a total:
 
-- `owned` — spendable now.
+- `owned` — yours to take at will. A TapSwap listing is this: the contract holds the asset, but
+  cancelling returns it at any moment, with nothing to wait for.
 - `encumbered` — yours, temporarily locked. Badgers and hodl are both this, and both count
   today.
 - `shared` — you hold part and the wallet cannot know which part. A multisig, and AnyHedge.
   Shown, not counted.
 - `claim` — contingent or future. Being the payee of a recurring payment, or the inheritor of a
   dead man's switch. Shown, not counted.
+
+Ownership is not the same axis as whether a position counts. A listed NFT is fully owned and
+still stays out of the total, because no price is known for it — the portfolio keeps listings out
+"like other NFTs". Ownership says whether a balance may be counted; valuation says whether it can
+be.
 
 The precedent is `includeReserves` in `portfolioView.vue`, off by default because "an identity's
 reserve priced at the pool is a fiction". The same care applies here: a total that sums a
@@ -104,5 +111,5 @@ otherwise decide how long a wallet open takes.
 - `src/utils/contracts/runManifest.ts` — running one against a wallet.
 - `src/utils/contracts/builtinContracts.json` — the bundle the wallet ships, in the same shape a
   user's bundle has.
-- `src/utils/defi/` — the integrations still written as modules: Cauldron, TapSwap, Emerald.
+- `src/utils/defi/` — the integrations still written as modules: Cauldron and Emerald.
 - `src/parsing/extensions/` — the ones carried by BCMR instead.
