@@ -12,7 +12,7 @@ import { useStore } from '../src/stores/store'
 import { useIdentitiesStore } from '../src/stores/identitiesStore'
 import { authGuardLockingBytecodes } from '../src/utils/tools/authGuard'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
-import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput, rawTransactionSpending, rawTransactionsFetcher } from './mocks/history.mocks'
+import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput, spendOf } from './mocks/history.mocks'
 
 const categoryA = '0123456789abcdef'.repeat(4)
 const categoryB = 'fedcba9876543210'.repeat(4)
@@ -96,13 +96,6 @@ function startStore(walletUtxos: Utxo[]) {
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   store.setWallet(createMockWallet() as never)
-  // the raw form of the genesis transactions below, spending the outpoint their category names
-  Object.assign(store.wallet.provider, {
-    getRawTransactions: rawTransactionsFetcher({
-      [authheadA]: rawTransactionSpending([{ txid: categoryA, vout: 0 }]),
-      [authheadB]: rawTransactionSpending([{ txid: categoryB, vout: 0 }]),
-    }),
-  })
   store.walletUtxos = walletUtxos
   return { store, identitiesStore }
 }
@@ -111,7 +104,7 @@ function startStore(walletUtxos: Utxo[]) {
 // became the category, and the genesis spending it, carrying the token
 const genesisHistory = (category: string, authhead: string) => [
   historyItem(category, [p2pkhOutput()]),
-  historyItem(authhead, [tokenOutput(category, { amount: 1000n })]),
+  historyItem(authhead, [tokenOutput(category, { amount: 1000n })], [spendOf(category, 0)]),
 ]
 
 // An AuthKey is an NFT with nothing on it: no name, no value, no capability. What makes it a key

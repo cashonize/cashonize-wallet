@@ -220,7 +220,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Protection first, so it never waits on naming; the announcement last, so it has names to say
   async function detectWalletIdentities(history: TransactionHistoryItem[]) {
     const started = mainStore.currentInitializationToken();
-    const detected = await detectIdentities(history, hashes => mainStore.wallet.provider.getRawTransactions(hashes));
+    const detected = detectIdentities(history);
     if (mainStore.walletSwitchedSince(started)) return;
     identityPublicationTxids.value = detected.publicationTxids;
     const unseenBefore = unseenIdentities.value;

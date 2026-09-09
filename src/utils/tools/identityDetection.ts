@@ -9,7 +9,6 @@
 // output, which catches identities received from elsewhere and first updated here. Each is then
 // followed forward to the link the chain has got to.
 
-import { binToHex, decodeTransaction, hexToBin } from "@bitauth/libauth";
 import type { TransactionHistoryItem } from "mainnet-js";
 import { BCMR_OUTPUT_PREFIX } from "src/queryChainGraph";
 import { opReturnHex } from "src/utils/history/txDirection";
@@ -39,18 +38,16 @@ export interface DetectedIdentities {
   publicationTxids: string[];
 }
 
-export type RawTransactionsFetcher = (hashes: string[]) => Promise<Map<string, string>>;
-
-// Which transaction spent each output 0. A history item carries no input outpoints, so this is
-// read from the raw transactions the history load left in the electrum cache; one index answers
-// both what makes a candidate a genesis and where a chain went next.
-function indexOutput0Spends(rawTransactions: Map<string, string>) {
+// Which transaction spent each output 0, read off the history's own inputs. One index answers both
+// what makes a candidate a genesis and where a chain went next. The outpoints come from mainnet-js
+// through a patch, which is what keeps this pass off the network and out of libauth.
+function indexOutput0Spends(history: TransactionHistoryItem[]) {
   const spenders = new Map<string, string>();
-  for (const [txid, rawHex] of rawTransactions) {
-    const transaction = decodeTransaction(hexToBin(rawHex));
-    if (typeof transaction === "string") continue;
+  for (const transaction of history) {
     for (const input of transaction.inputs) {
-      if (input.outpointIndex === 0) spenders.set(binToHex(input.outpointTransactionHash), txid);
+      if (input.outpointIndex === 0 && input.outpointTransactionHash) {
+        spenders.set(input.outpointTransactionHash, transaction.hash);
+      }
     }
   }
   return spenders;
@@ -84,11 +81,9 @@ function publicationOf(transaction: TransactionHistoryItem): DetectedIdentity {
   };
 }
 
-export async function detectIdentities(
-  history: TransactionHistoryItem[],
-  fetchRawTransactions: RawTransactionsFetcher,
-): Promise<DetectedIdentities> {
+export function detectIdentities(history: TransactionHistoryItem[]): DetectedIdentities {
   const historyTxids = history.map(transaction => transaction.hash);
+  const spenders = indexOutput0Spends(history);
   const detected = new Map<string, DetectedIdentity>();
   const publicationTxids: string[] = [];
   const genesisCandidates: { transaction: TransactionHistoryItem, category: string }[] = [];
@@ -105,17 +100,6 @@ export async function detectIdentities(
     }
     if (publishes) detected.set(transaction.hash, publicationOf(transaction));
   }
-  // nothing marked is nothing to follow, and most wallets decode nothing at all
-  if (!detected.size && !genesisCandidates.length) return { identities: [], publicationTxids };
-
-  // The whole history, since a link can be told from an ordinary transaction only by its inputs:
-  // splitting the tokens off an identity, or emptying its reserve, leaves the chain continuing on
-  // a plain BCH output that nothing marks.
-  const rawTransactions = await fetchRawTransactions(historyTxids);
-  // one batch read of the cache the history load filled, whose transactions mainnet-js decoded in
-  // full to build that history
-  const spenders = indexOutput0Spends(rawTransactions);
-
   for (const { transaction, category } of genesisCandidates) {
     if (spenders.get(category) === transaction.hash) {
       detected.set(transaction.hash, { authheadTxid: transaction.hash, category, marker: 'genesis' });

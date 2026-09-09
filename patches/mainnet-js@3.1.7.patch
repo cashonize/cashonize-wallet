@@ -1,3 +1,29 @@
+diff --git a/dist/module/history/getHistory.js b/dist/module/history/getHistory.js
+index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..449a81bd62f0fd1abf3eecc2e72a5e69e335eb30 100644
+--- a/dist/module/history/getHistory.js
++++ b/dist/module/history/getHistory.js
+@@ -160,6 +160,8 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+                             : undefined,
+                     }
+                     : undefined,
++                outpointTransactionHash: getOutpointHash(input.outpointTransactionHash),
++                outpointIndex: input.outpointIndex,
+             };
+         });
+         result.outputs = tx.outputs.map((output) => {
+diff --git a/dist/module/history/interface.d.ts b/dist/module/history/interface.d.ts
+index 2eebf72de8847028c08edceacfc0d9b4ad4618b6..797408ceb91fdefac4eb581d39c2e3149cc81a82 100644
+--- a/dist/module/history/interface.d.ts
++++ b/dist/module/history/interface.d.ts
+@@ -3,6 +3,8 @@ export interface InOutput {
+     address: string;
+     value: number;
+     token?: TokenI;
++    outpointTransactionHash?: string;
++    outpointIndex?: number;
+ }
+ export interface TransactionHistoryItem {
+     inputs: InOutput[];
 diff --git a/dist/module/wallet/Base.js b/dist/module/wallet/Base.js
 index 9baa2496b379fc0dd2efb8229d93be9caefdc97f..ca38609c3c9b04195df7f6ed81edde6f03d34ef6 100644
 --- a/dist/module/wallet/Base.js

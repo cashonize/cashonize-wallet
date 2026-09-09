@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { detectIdentities } from '../src/utils/tools/identityDetection'
-import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput, rawTransactionSpending, rawTransactionsFetcher } from './mocks/history.mocks'
+import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput, spendOf } from './mocks/history.mocks'
 
 const genesisInputTxid = 'aa'.repeat(32)
 const spenderTxid = 'bb'.repeat(32)
@@ -13,55 +13,46 @@ const fundingItem = historyItem(genesisInputTxid, [p2pkhOutput(), p2pkhOutput()]
 
 describe('detectIdentities', () => {
   // a genesis names its own authbase: the category is the outpoint it consumed
-  it('finds a token these keys genesised', async () => {
+  it('finds a token these keys genesised', () => {
     const history = [
       fundingItem,
-      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })], [spendOf(genesisInputTxid, 0)]),
     ]
-    const fetcher = rawTransactionsFetcher({ [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]) })
 
-    const detected = await detectIdentities(history, fetcher)
-
-    expect(detected.identities).toEqual([
+    expect(detectIdentities(history).identities).toEqual([
       { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'genesis' },
     ])
-    // the whole history, in one batch the electrum cache already holds
-    expect(fetcher).toHaveBeenCalledWith([genesisInputTxid, spenderTxid])
   })
 
   // only a vout-0 outpoint can be a genesis input; a token whose category is a transaction of
   // this history but that spent a later output of it is a token sent onward
-  it('does not read a genesis off a spend of a later output', async () => {
+  it('does not read a genesis off a spend of a later output', () => {
     const history = [
       fundingItem,
-      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })], [spendOf(genesisInputTxid, 1)]),
     ]
-    const fetcher = rawTransactionsFetcher({ [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 1 }]) })
 
-    expect((await detectIdentities(history, fetcher)).identities).toEqual([])
+    expect(detectIdentities(history).identities).toEqual([])
   })
 
   // a token sent onward is not a token created: the category is somebody else's outpoint
-  it('does not read a genesis off an ordinary token send', async () => {
+  it('does not read a genesis off an ordinary token send', () => {
     const history = [
       fundingItem,
       historyItem(spenderTxid, [tokenOutput(otherCategory, { amount: 1000n })]),
     ]
-    const fetcher = rawTransactionsFetcher({})
 
-    expect((await detectIdentities(history, fetcher)).identities).toEqual([])
-    // no marker, so the history is not decoded at all
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(detectIdentities(history).identities).toEqual([])
   })
 
-  it('finds a metadata publication these keys made, named by its identity output', async () => {
+  it('finds a metadata publication these keys made, named by its identity output', () => {
     const history = [historyItem(spenderTxid, [
       tokenOutput(otherCategory, { amount: 500n }),
       p2pkhOutput(),
       opReturnOutput(publicationHex),
     ])]
 
-    const detected = await detectIdentities(history, rawTransactionsFetcher({}))
+    const detected = detectIdentities(history)
 
     expect(detected.identities).toEqual([
       { authheadTxid: spenderTxid, category: otherCategory, marker: 'publication', publicationOutputs: [publicationHex] },
@@ -71,99 +62,101 @@ describe('detectIdentities', () => {
 
   // a BCH-only chain has nothing on its identity output to name it; it is protected first and
   // named afterwards from the registry its publication points at
-  it('finds a publication on a BCH-only chain, unnamed', async () => {
+  it('finds a publication on a BCH-only chain, unnamed', () => {
     const history = [historyItem(spenderTxid, [p2pkhOutput(), opReturnOutput(publicationHex)])]
 
-    expect((await detectIdentities(history, rawTransactionsFetcher({}))).identities).toEqual([
+    expect(detectIdentities(history).identities).toEqual([
       { authheadTxid: spenderTxid, marker: 'publication', publicationOutputs: [publicationHex] },
     ])
   })
 
-  it('ignores a transaction that is neither', async () => {
+  it('ignores a transaction that is neither', () => {
     const history = [historyItem(spenderTxid, [p2pkhOutput(), p2pkhOutput()])]
 
-    expect((await detectIdentities(history, rawTransactionsFetcher({}))).identities).toEqual([])
+    expect(detectIdentities(history).identities).toEqual([])
   })
 
   // the genesis marker is the more informative one, so it is not overwritten by the other
-  it('prefers the genesis reading when a transaction is both', async () => {
+  it('prefers the genesis reading when a transaction is both', () => {
     const history = [
       fundingItem,
-      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n }), opReturnOutput(publicationHex)]),
+      historyItem(
+        spenderTxid,
+        [tokenOutput(genesisInputTxid, { amount: 1000n }), opReturnOutput(publicationHex)],
+        [spendOf(genesisInputTxid, 0)],
+      ),
     ]
-    const fetcher = rawTransactionsFetcher({ [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]) })
 
-    const detected = await detectIdentities(history, fetcher)
+    const detected = detectIdentities(history)
 
     expect(detected.identities[0]?.marker).toBe('genesis')
     expect(detected.publicationTxids).toEqual([spenderTxid])
   })
 
   // a candidate that turns out to be a token sent onward keeps its publication reading
-  it('keeps the publication reading of a candidate that was no genesis', async () => {
+  it('keeps the publication reading of a candidate that was no genesis', () => {
     const history = [
       fundingItem,
-      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n }), opReturnOutput(publicationHex)]),
+      historyItem(
+        spenderTxid,
+        [tokenOutput(genesisInputTxid, { amount: 1000n }), opReturnOutput(publicationHex)],
+        [spendOf(genesisInputTxid, 1)],
+      ),
     ]
-    const fetcher = rawTransactionsFetcher({ [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 1 }]) })
 
-    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+    expect(detectIdentities(history).identities).toEqual([
       { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'publication', publicationOutputs: [publicationHex] },
     ])
   })
 
   // The marker fires on the link that carries it, and a chain moves on: the wallet holds the
   // authhead, not the genesis, so the walk down the output-0 spends is what makes it a match.
-  it('walks a genesis forward to the authhead this history ends at', async () => {
+  it('walks a genesis forward to the authhead this history ends at', () => {
     const mintTxid = 'dd'.repeat(32)
     const transferTxid = 'ee'.repeat(32)
     const history = [
       fundingItem,
-      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { commitment: '' })]),
-      historyItem(mintTxid, [tokenOutput(genesisInputTxid, { commitment: '' }), tokenOutput(genesisInputTxid, { commitment: '00' })]),
-      historyItem(transferTxid, [tokenOutput(genesisInputTxid, { commitment: '' })]),
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { commitment: '' })], [spendOf(genesisInputTxid, 0)]),
+      historyItem(
+        mintTxid,
+        [tokenOutput(genesisInputTxid, { commitment: '' }), tokenOutput(genesisInputTxid, { commitment: '00' })],
+        [spendOf(spenderTxid, 0), spendOf(otherCategory, 1)],
+      ),
+      historyItem(transferTxid, [tokenOutput(genesisInputTxid, { commitment: '' })], [spendOf(mintTxid, 0)]),
     ]
-    const fetcher = rawTransactionsFetcher({
-      [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]),
-      [mintTxid]: rawTransactionSpending([{ txid: spenderTxid, vout: 0 }, { txid: otherCategory, vout: 1 }]),
-      [transferTxid]: rawTransactionSpending([{ txid: mintTxid, vout: 0 }]),
-    })
 
-    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+    expect(detectIdentities(history).identities).toEqual([
       { authheadTxid: transferTxid, category: genesisInputTxid, marker: 'genesis' },
     ])
   })
 
   // an identity received from elsewhere and published here, then moved on without publishing
-  it('walks a publication forward to the authhead this history ends at', async () => {
+  it('walks a publication forward to the authhead this history ends at', () => {
     const transferTxid = 'ee'.repeat(32)
     const history = [
       historyItem(spenderTxid, [tokenOutput(otherCategory, { amount: 500n }), opReturnOutput(publicationHex)]),
-      historyItem(transferTxid, [tokenOutput(otherCategory, { amount: 500n })]),
+      historyItem(transferTxid, [tokenOutput(otherCategory, { amount: 500n })], [spendOf(spenderTxid, 0)]),
     ]
-    const fetcher = rawTransactionsFetcher({
-      [transferTxid]: rawTransactionSpending([{ txid: spenderTxid, vout: 0 }]),
-    })
 
-    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+    expect(detectIdentities(history).identities).toEqual([
       { authheadTxid: transferTxid, category: otherCategory, marker: 'publication', publicationOutputs: [publicationHex] },
     ])
   })
 
   // the genesis and the publication after it are two markers on one chain, which walk to one coin
-  it('collapses the markers of one chain onto its authhead', async () => {
+  it('collapses the markers of one chain onto its authhead', () => {
     const publishTxid = 'dd'.repeat(32)
     const history = [
       fundingItem,
-      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
-      historyItem(publishTxid, [tokenOutput(genesisInputTxid, { amount: 1000n }), opReturnOutput(publicationHex)]),
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })], [spendOf(genesisInputTxid, 0)]),
+      historyItem(
+        publishTxid,
+        [tokenOutput(genesisInputTxid, { amount: 1000n }), opReturnOutput(publicationHex)],
+        [spendOf(spenderTxid, 0)],
+      ),
     ]
-    const fetcher = rawTransactionsFetcher({
-      [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]),
-      [publishTxid]: rawTransactionSpending([{ txid: spenderTxid, vout: 0 }]),
-    })
 
-    const detected = await detectIdentities(history, fetcher)
+    const detected = detectIdentities(history)
 
     expect(detected.identities).toEqual([
       { authheadTxid: publishTxid, category: genesisInputTxid, marker: 'genesis' },
@@ -174,39 +167,36 @@ describe('detectIdentities', () => {
   // Splitting the tokens off an identity, or emptying its reserve, leaves the chain continuing on
   // a plain BCH output. The identity is no less the identity for it, so the walk must not stop at
   // the last link that happened to carry a token.
-  it('follows a chain through links that carry no token', async () => {
+  it('follows a chain through links that carry no token', () => {
     const emptyReserveTxid = 'dd'.repeat(32)
     const moveTxid = 'ee'.repeat(32)
     const history = [
       fundingItem,
-      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
-      historyItem(emptyReserveTxid, [p2pkhOutput(), tokenOutput(genesisInputTxid, { amount: 1000n })]),
-      historyItem(moveTxid, [p2pkhOutput()]),
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })], [spendOf(genesisInputTxid, 0)]),
+      historyItem(
+        emptyReserveTxid,
+        [p2pkhOutput(), tokenOutput(genesisInputTxid, { amount: 1000n })],
+        [spendOf(spenderTxid, 0)],
+      ),
+      historyItem(moveTxid, [p2pkhOutput()], [spendOf(emptyReserveTxid, 0)]),
     ]
-    const fetcher = rawTransactionsFetcher({
-      [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]),
-      [emptyReserveTxid]: rawTransactionSpending([{ txid: spenderTxid, vout: 0 }]),
-      [moveTxid]: rawTransactionSpending([{ txid: emptyReserveTxid, vout: 0 }]),
-    })
 
-    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+    expect(detectIdentities(history).identities).toEqual([
       { authheadTxid: moveTxid, category: genesisInputTxid, marker: 'genesis' },
     ])
   })
 
-  // a link whose raw transaction the cache does not hold stops the walk where the evidence stops
-  it('stops the walk at the last link it can read', async () => {
+  // The outpoints come from a patched mainnet-js. Were the patch ever dropped they would simply be
+  // absent, and the detection degrades to the marker's own transaction rather than throwing.
+  it('stops the walk at the last link whose outpoints it can read', () => {
     const mintTxid = 'dd'.repeat(32)
     const history = [
       fundingItem,
-      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
-      historyItem(mintTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })], [spendOf(genesisInputTxid, 0)]),
+      historyItem(mintTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })], [p2pkhOutput()]),
     ]
-    const fetcher = rawTransactionsFetcher({
-      [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]),
-    })
 
-    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+    expect(detectIdentities(history).identities).toEqual([
       { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'genesis' },
     ])
   })

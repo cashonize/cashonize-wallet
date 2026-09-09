@@ -1,5 +1,3 @@
-import { vi } from 'vitest'
-import { binToHex, encodeTransaction, hexToBin } from '@bitauth/libauth'
 import type { InOutput, TransactionHistoryItem } from 'mainnet-js'
 
 // History items the way mainnet-js builds them: every output decoded, an OP_RETURN output's
@@ -23,6 +21,15 @@ export const tokenOutput = (
   },
 })
 
+// An input as mainnet-js reports it: the outpoint it spends alongside the coin it spent, which is
+// what identity detection reads to follow an authchain through the history
+export const spendOf = (txid: string, vout: number, address = 'bitcoincash:qtest'): InOutput => ({
+  address,
+  value: 1000,
+  outpointTransactionHash: txid,
+  outpointIndex: vout,
+})
+
 export const historyItem = (hash: string, outputs: InOutput[], inputs: InOutput[] = [p2pkhOutput()]): TransactionHistoryItem => ({
   hash,
   inputs,
@@ -34,26 +41,3 @@ export const historyItem = (hash: string, outputs: InOutput[], inputs: InOutput[
   valueChange: 0,
   tokenAmountChanges: [],
 })
-
-// The raw hex of a transaction spending the given outpoints, which is all identity detection
-// reads off it: a history item carries no input outpoints, so a genesis is confirmed from its raw form
-export function rawTransactionSpending(outpoints: { txid: string, vout: number }[]) {
-  return binToHex(encodeTransaction({
-    version: 2,
-    locktime: 0,
-    inputs: outpoints.map(({ txid, vout }) => ({
-      outpointTransactionHash: hexToBin(txid),
-      outpointIndex: vout,
-      sequenceNumber: 0,
-      unlockingBytecode: new Uint8Array(),
-    })),
-    outputs: [{ lockingBytecode: hexToBin('76a914' + '00'.repeat(20) + '88ac'), valueSatoshis: 1000n }],
-  }))
-}
-
-// A fetcher of raw transactions by hash holding only the given ones, as the electrum cache would
-export function rawTransactionsFetcher(known: Record<string, string>) {
-  return vi.fn((hashes: string[]) => Promise.resolve(
-    new Map(hashes.filter(hash => known[hash]).map(hash => [hash, known[hash]!]))
-  ))
-}

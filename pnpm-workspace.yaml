@@ -44,10 +44,19 @@ overrides:
 allowBuilds:
   '@parcel/watcher': true
 
+# Two fixes, both to be removed once they land upstream.
+#
 # Make tokenMint and tokenBurn honor the utxoIds option. The wallet keeps coins out of its own
 # coin selection by narrowing the pool with utxoIds, which send(), sendMax() and tokenGenesis()
 # already honor, but those two pick their token inputs from the unfiltered wallet, so a frozen or
 # reserved token coin could still be minted from or burned. The patch adds the narrowing the same
-# way the other methods do it, right after their getUtxos(). Remove once the fix lands upstream.
+# way the other methods do it, right after their getUtxos().
+#
+# Report each history input's outpoint. getHistory decodes every transaction and every prevout to
+# build its items, then drops the outpoint it already computed for the prevout lookup, so a reader
+# that needs to know which transaction spent which output has to fetch and decode the whole history
+# a second time. Identity detection follows an authchain that way, and with the fields present it
+# does so as a pure function over the history. Removing this patch is a type error, not a silent
+# change: the fields are declared in the same patch that populates them.
 patchedDependencies:
   'mainnet-js@3.1.7': patches/mainnet-js@3.1.7.patch
