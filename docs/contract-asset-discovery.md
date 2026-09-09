@@ -6,6 +6,11 @@ off the wallet's own transaction history, and this explains why that history, ra
 search for the announcements, is the source. Read this before adding a protocol to the
 portfolio or changing what is read.
 
+A protocol is described by a manifest rather than implemented as a module, so what follows is
+the reasoning a manifest encodes rather than a design any one integration is free to redo.
+The inventory of which protocols are described that way today, and what the format still lacks
+for the rest, is in `contract-integrations.md`.
+
 ## The problem
 
 A listed NFT sits in a per-listing sale contract; a hodl lock is BCH in a timelock contract; a
@@ -47,26 +52,38 @@ fetches every transaction, about seven seconds for that wallet, after which the 
 them; the identity check waits for that on a fresh restore, which is when a creator's
 identity coin is most exposed to an ordinary send.
 
-## What each protocol announces, and what the wallet does with it
+## How an announcement is described
 
-- **TapSwap** (`utils/defi/tapswapListings.ts`). Output 0 of the listing transaction is the sale
-  contract holding the asset, output 1 the `MPSW` announcement: marker, version, a hash pinning
-  the contract's constant bytecode, the platform pkh, the price, three want fields, the maker
-  pkh and the fee. A listing is the wallet's when the maker pkh is one of its own, and active
-  while output 0 is unspent, which the history cannot say and electrum is asked per listing.
-  The format was decoded from settled trades; the contract is not open source.
-- **hodl** (`utils/defi/hodlContracts.ts`). Output 0 of the funding transaction is the `hodl`
-  announcement: the Lokad id, the contract's address with a version suffix, and the locktime.
-  The wallet rebuilds the contract script, `<locktime> OP_CHECKLOCKTIMEVERIFY OP_DROP` around a
-  P2PKH of each of its own pkhs, and owns the lock whose script hash matches the announced
-  address. What the contract holds is then read from electrum by address, since anyone can add
-  funds to it and a drained one holds nothing.
-- **Identities** (`utils/tools/identityDetection.ts`). Two markers on the same items: a genesis,
-  a transaction carrying tokens of a category that is a transaction of this history, confirmed
-  to have spent that transaction's output 0 from its raw form, since a history item carries no
-  input outpoints; and a `BCMR` publication output, which also labels the transaction in the
-  history. What follows from a find is in `bcmr-identities.md`. The check runs only on a
-  network with a Chaingraph instance configured, since listing what it finds needs the resolve.
+What a protocol announces is data, not code. A manifest names the output the announcement sits
+at, the bytes it starts with, how many pushes it has and what each carries, and — where the
+announcement names no owner — the contract to rebuild from the wallet's own keys and compare
+against. The hodl announcement in full:
+
+```json
+"find": {
+  "kind": "announcement",
+  "output": 0,
+  "prefix": "6a04686f646c",
+  "pushes": 3,
+  "fields": {
+    "announcedAddress": { "push": 1, "as": "utf8word" },
+    "locktime": { "push": 2, "as": "utf8int", "min": 1, "max": 4294967295 }
+  }
+},
+"script": { "template": "{locktime}b17576a914{ownerPkh}88ac", "addressType": "p2sh20" },
+"owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedAddress" }
+```
+
+The script is written the way the contract is built rather than as a list of opcodes, because a
+real contract is hundreds of bytes and because written that way it runs both directions: the
+same template generates a script from parameters and reads parameters back out of one. That is
+also why the format is not CashAssembly, which only compiles.
+
+A manifest describes a shape rather than an instance, so a bundle can be added before any of its
+contracts exist. Nothing in one is evaluated.
+
+Which protocols this covers today, which are still modules, and what the format is missing for
+each: `contract-integrations.md`.
 
 ## The hodl plugin's own rule: a change output back to the owner
 
@@ -126,7 +143,8 @@ keeps the one job history cannot do: following an authchain to its head.
 
 - `src/stores/store.ts`: `fullWalletHistory`, the loaded history for its readers, and the
   portfolio's use of it.
+- `src/utils/contracts/`: the manifest format, and running one against a wallet.
 - `src/utils/defi/tapswapListings.ts`, `src/utils/defi/hodlContracts.ts`: the two announcement
-  parsers and the ownership rule of each.
+  parsers still written by hand, and the ownership rule of each.
 - `src/utils/tools/identityDetection.ts`: the identity markers read off the same items.
 - `src/components/portfolio/`: where listings and locks are shown, valuation only.
