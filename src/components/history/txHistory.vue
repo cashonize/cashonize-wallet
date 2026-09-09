@@ -394,26 +394,6 @@ fieldset.item {
   margin: 10px 0;
 }
 
-.options-toggle,
-.search-toggle {
-  cursor: pointer;
-  user-select: none;
-  opacity: 0.8;
-}
-
-/* icons are taller than the lowercase text, drop them slightly below the
-   baseline so they read as vertically centered next to it */
-.options-toggle .q-icon,
-.search-toggle .q-icon {
-  vertical-align: -0.2em;
-}
-
-.options-toggle.active,
-.search-toggle.active {
-  color: var(--color-primary);
-  opacity: 1;
-}
-
 .search-input {
   width: 180px;
   padding: 4px 10px;
@@ -497,14 +477,13 @@ fieldset.item {
   margin: 14px 2px 6px;
 }
 
-/* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
 .tx-item {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 12px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 12px;
   padding: 10px 14px;
   margin-bottom: 8px;
@@ -513,7 +492,7 @@ fieldset.item {
 }
 
 .tx-item:hover {
-  background-color: rgba(128, 128, 128, 0.14);
+  background-color: var(--surface-strong);
 }
 
 .tx-direction {
@@ -532,7 +511,7 @@ fieldset.item {
 }
 
 .tx-direction.sent {
-  background-color: rgba(128, 128, 128, 0.15);
+  background-color: var(--surface-strong);
   color: var(--color-grey);
 }
 
@@ -709,8 +688,8 @@ body.dark .negative {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid rgba(128, 128, 128, 0.25);
-  background-color: rgba(128, 128, 128, 0.08);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-hover);
   border-radius: 14px;
   padding: 2px 10px 2px 4px;
   font-size: 0.85em;

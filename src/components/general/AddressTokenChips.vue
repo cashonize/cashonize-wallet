@@ -69,7 +69,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
+  border: 1px solid var(--surface-line);
   border-top: none;
   border-radius: 0 0 12px 12px;
   background-color: rgba(128, 128, 128, 0.03);
@@ -82,8 +82,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid rgba(128, 128, 128, 0.25);
-  background-color: rgba(128, 128, 128, 0.08);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-hover);
   border-radius: 14px;
   padding: 2px 10px 2px 4px;
   font-size: 0.85em;

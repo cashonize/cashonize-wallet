@@ -64,8 +64,8 @@
 
 <style scoped>
 .xpub-result {
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 6px;
   padding: 8px 10px;
   font-family: monospace;

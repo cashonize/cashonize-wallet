@@ -274,15 +274,14 @@
   transform: rotate(-90deg);
 }
 
-/* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
 .address-item {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   /* the row gap only applies to the label line, which sits closer than the column spacing */
   gap: 6px 12px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 12px;
   padding: 8px 14px;
   margin-bottom: 6px;
@@ -292,7 +291,7 @@
 }
 
 .address-item:hover {
-  background-color: rgba(128, 128, 128, 0.14);
+  background-color: var(--surface-strong);
 }
 
 .address-item.selected {
@@ -343,7 +342,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(128, 128, 128, 0.15);
+  background-color: var(--surface-strong);
 }
 
 .address-info {

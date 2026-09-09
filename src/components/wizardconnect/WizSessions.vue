@@ -119,7 +119,7 @@
   margin-top: 3px;
   border-radius: 999px;
   color: grey;
-  background: rgba(128, 128, 128, 0.14);
+  background: var(--surface-strong);
 }
 
 /* Status dot, colored along with the label text */

@@ -223,26 +223,6 @@
   margin: 10px;
 }
 
-.options-toggle,
-.search-toggle {
-  cursor: pointer;
-  user-select: none;
-  opacity: 0.8;
-}
-
-/* icons are taller than the lowercase text, drop them slightly below the
-   baseline so they read as vertically centered next to it */
-.options-toggle .q-icon,
-.search-toggle .q-icon {
-  vertical-align: -0.2em;
-}
-
-.options-toggle.active,
-.search-toggle.active {
-  color: var(--color-primary);
-  opacity: 1;
-}
-
 .options-panel {
   display: flex;
   flex-wrap: wrap;

@@ -403,8 +403,6 @@ body.dark .portfolioLink {
   margin: 5px auto 0 auto;
 }
 .switchAddressButton {
-  font-size: 20px;
-  font-weight: 700;
   width: fit-content;
   margin: auto;
   margin-top: -10px;
@@ -412,12 +410,6 @@ body.dark .portfolioLink {
   cursor: pointer;
   user-select: none;
   transition: transform 0.3s;
-}
-/* flip around the vertical axis: the glyph's ink is horizontally centered in its box
-   but sits below the vertical center (text baseline), so an in-plane rotate(180deg)
-   would visibly displace it */
-.switchAddressButton.flipped {
-  transform: rotateY(180deg);
 }
 .markUsedRow {
   margin-top: 5px;

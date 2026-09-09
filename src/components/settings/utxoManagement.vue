@@ -944,11 +944,11 @@ $col-name: 7em;
   align-items: center;
   column-gap: $gap;
   padding: 7px $row-padding-x;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  border-bottom: 1px solid var(--surface-line);
 }
 
 .utxo-row:not(.heading):hover {
-  background-color: rgba(128, 128, 128, 0.08);
+  background-color: var(--surface-hover);
 }
 
 .utxo-row.heading {
@@ -1173,8 +1173,8 @@ $card-label-width: 90px;
   .utxo-grid .utxo-row {
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1px;
-    border: 1px solid rgba(128, 128, 128, 0.2);
-    background-color: rgba(128, 128, 128, 0.06);
+    border: 1px solid var(--surface-line);
+    background-color: var(--surface-subtle);
     border-radius: 12px;
     padding: 8px 12px;
     margin-bottom: 6px;

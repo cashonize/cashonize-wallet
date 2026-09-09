@@ -3,6 +3,12 @@
 :root {
   --color-primary: #0ac18f;
   --q-primary: #0ac18f;
+  /* The surfaces the cards, boxes and list rows are built from. Neutral grey alphas rather than
+     named colours, so they read on both themes and need no dark mode rules of their own. */
+  --surface-subtle: rgba(128, 128, 128, 0.06);
+  --surface-hover: rgba(128, 128, 128, 0.08);
+  --surface-strong: rgba(128, 128, 128, 0.14);
+  --surface-line: rgba(128, 128, 128, 0.2);
 }
 
 #app {
@@ -232,6 +238,37 @@ input[type='number'] {
 .item {
   margin: 10px;
 }
+/* the arrow that switches between the wallet's addresses, on the wallet page and the address list.
+   Flipped around the vertical axis rather than in-plane: the glyph's ink is horizontally centered
+   in its box but sits below the vertical center (text baseline), so rotate(180deg) would visibly
+   displace it. */
+.switchAddressButton {
+  font-size: 20px;
+  font-weight: 700;
+}
+.switchAddressButton.flipped {
+  transform: rotateY(180deg);
+}
+
+/* the options/search toggles on the list views (history, tokens, addresses): a grey glyph that
+   lights up in the brand colour while its panel is open. Icons are taller than the lowercase text
+   beside them, so they drop below the baseline to read as vertically centered. */
+.options-toggle,
+.search-toggle {
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.8;
+}
+.options-toggle .q-icon,
+.search-toggle .q-icon {
+  vertical-align: -0.2em;
+}
+.options-toggle.active,
+.search-toggle.active {
+  color: var(--color-primary);
+  opacity: 1;
+}
+
 /* segmented pill bar used as a type filter in several views */
 .type-filter {
   display: inline-flex;
@@ -275,7 +312,7 @@ input[type='number'] {
   gap: 10px;
   padding: 10px 12px;
   border: 1px solid var(--color-lightGrey);
-  background-color: rgba(128, 128, 128, 0.08);
+  background-color: var(--surface-hover);
   border-radius: 8px;
 }
 /* The step form the creator tools share: a step's title is grey until it is the open one, and a
@@ -493,7 +530,7 @@ select, summary {
   vertical-align: top;
 }
 
-/* Input validation styles - for seed phrase and backup verification inputs */
+/* worn by the seed phrase and backup verification inputs */
 input.valid-word {
   border-color: #4caf50;
   outline-color: #4caf50;
@@ -513,7 +550,6 @@ body.dark input.invalid-word {
   color: #ef9a9a;
 }
 
-/* Success text color - for affirmative checks and confirmations */
 .text-verified {
   color: #2e7d32;
 }
@@ -521,7 +557,6 @@ body.dark .text-verified {
   color: #a5d6a7;
 }
 
-/* Styled wallet name display - used across multiple components */
 .wallet-name-styled {
   font-family: monospace;
   background-color: #f0f0f0;
@@ -586,8 +621,6 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
 
 @media (min-width: 1024px) {
   #app {
-    /* display: grid;
-    grid-template-columns: 1fr 1fr; */
     padding: 0 2rem;
   }
 }

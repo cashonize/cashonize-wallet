@@ -328,8 +328,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    border: 1px solid rgba(128, 128, 128, 0.25);
-    background-color: rgba(128, 128, 128, 0.08);
+    border: 1px solid var(--surface-line);
+    background-color: var(--surface-hover);
     border-radius: 14px;
     padding: 2px 10px 2px 4px;
     font-size: 0.85em;
@@ -362,9 +362,9 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    border: 1px solid rgba(128, 128, 128, 0.25);
+    border: 1px solid var(--surface-line);
     border-radius: 8px;
-    background-color: rgba(128, 128, 128, 0.06);
+    background-color: var(--surface-subtle);
     transition: border-color 0.2s;
     cursor: text;
   }

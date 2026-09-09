@@ -264,13 +264,12 @@
   overflow-x: hidden;
   margin-top: 10px;
 }
-/* neutral grey alphas keep the cards theme-agnostic, same as the address list */
 .token-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 12px;
   padding: 8px 14px;
   margin-bottom: 6px;
@@ -278,7 +277,7 @@
   transition: background-color 0.2s;
 }
 .token-item:hover {
-  background-color: rgba(128, 128, 128, 0.14);
+  background-color: var(--surface-strong);
 }
 .token-info {
   min-width: 0;

@@ -373,8 +373,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 6px;
   padding: 8px 10px;
   word-break: break-all;
@@ -396,7 +396,7 @@
   transition: background-color 0.2s;
 }
 .selected-item.selectable:hover {
-  background-color: rgba(128, 128, 128, 0.14);
+  background-color: var(--surface-strong);
 }
 .select-chevron {
   flex: none;
@@ -420,8 +420,8 @@
 .requestUri {
   margin-top: 12px;
   padding: 8px 10px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 6px;
   font-family: monospace;
   font-size: smaller;

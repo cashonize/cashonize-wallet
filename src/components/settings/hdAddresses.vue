@@ -347,24 +347,10 @@
   margin: 10px 0;
 }
 
+/* the shared toggle styles are in app.css; here it also takes the row's trailing space */
 .options-toggle {
-  cursor: pointer;
-  user-select: none;
-  opacity: 0.8;
   margin-left: auto;
 }
-
-/* icons are taller than the lowercase text, drop them slightly below the
-   baseline so they read as vertically centered next to it */
-.options-toggle .q-icon {
-  vertical-align: -0.2em;
-}
-
-.options-toggle.active {
-  color: var(--color-primary);
-  opacity: 1;
-}
-
 
 .options-panel {
   display: flex;
@@ -412,13 +398,12 @@
   transform: rotate(-90deg);
 }
 
-/* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
 .address-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 12px;
   padding: 8px 14px;
   margin-bottom: 6px;
@@ -428,7 +413,7 @@
 }
 
 .address-item:hover {
-  background-color: rgba(128, 128, 128, 0.14);
+  background-color: var(--surface-strong);
 }
 
 /* the whole card is the copy target, so pressing it anywhere plays the copy effect */
@@ -449,7 +434,7 @@
 }
 
 .marked-tag {
-  background-color: rgba(128, 128, 128, 0.15);
+  background-color: var(--surface-strong);
   opacity: 0.8;
   border-radius: 10px;
   padding: 0 8px;
@@ -476,7 +461,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(128, 128, 128, 0.15);
+  background-color: var(--surface-strong);
 }
 
 .card-buttons {
@@ -581,17 +566,9 @@ body.dark .qr-card {
 }
 
 .switchAddressButton {
-  font-size: 20px;
-  font-weight: 700;
   transition: transform 0.3s;
 }
 
-/* flip around the vertical axis: the glyph's ink is horizontally centered in its box
-   but sits below the vertical center (text baseline), so an in-plane rotate(180deg)
-   would visibly displace it */
-.switchAddressButton.flipped {
-  transform: rotateY(180deg);
-}
 
 /* wide enough that the last line of the address still has room for the copy icon,
    which otherwise drops onto a line of its own */
@@ -629,9 +606,9 @@ body.dark .label-card {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid rgba(128, 128, 128, 0.25);
+  border: 1px solid var(--surface-line);
   border-radius: 8px;
-  background-color: rgba(128, 128, 128, 0.06);
+  background-color: var(--surface-subtle);
   transition: border-color 0.2s;
   cursor: text;
 }
