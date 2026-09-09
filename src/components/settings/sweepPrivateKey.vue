@@ -414,14 +414,11 @@
       >
     </div>
 
-    <!-- Empty state -->
     <div v-if="previewReady && isEmpty" style="margin-top: 12px; color: grey;">
       {{ t('sweepPrivateKey.emptyWallet') }}
     </div>
 
-    <!-- Preview section -->
     <div v-if="previewReady && !isEmpty" style="margin-top: 12px;">
-      <!-- BCH balance -->
       <div style="margin-bottom: 8px;">
         <b>{{ t('sweepPrivateKey.preview.bchBalance') }}</b>
         {{ balanceInBchUnit.toLocaleString('en-US', { maximumFractionDigits: balanceMaxFractionDigits }) }}
@@ -429,12 +426,10 @@
         <span v-if="fiatBalance" style="color: grey;"> ({{ fiatBalance }})</span>
       </div>
 
-      <!-- Warning: tokens but no free BCH for fees -->
       <div v-if="insufficientFeeBch" style="margin-bottom: 8px; color: orange;">
         {{ t('sweepPrivateKey.preview.noFreeBchWarning') }}
       </div>
 
-      <!-- Fungible tokens -->
       <div v-if="fungibleTokens.length > 0">
         <b>{{ t('sweepPrivateKey.preview.tokens') }}</b>
         <div
@@ -458,7 +453,6 @@
         </div>
       </div>
 
-      <!-- NFTs -->
       <div v-if="nftTokens.length > 0">
         <b>{{ t('sweepPrivateKey.preview.nfts') }}</b>
         <div
@@ -481,7 +475,6 @@
         </div>
       </div>
 
-      <!-- No tokens message -->
       <div v-if="previewTokenList.length === 0" style="color: grey;">
         {{ t('sweepPrivateKey.preview.noTokens') }}
       </div>

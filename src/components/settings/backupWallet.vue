@@ -200,7 +200,6 @@
       {{ t('backupWallet.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
     </div>
 
-    <!-- Show/Hide Seed Phrase -->
     <div style="margin-top: 15px;">
       <div style="margin-bottom: 8px;">{{ t('backupWallet.seedPhrase.title') }}</div>
       <div class="seedphrase-actions">
@@ -219,7 +218,6 @@
       {{ t('backupWallet.seedPhrase.copyButton') }}
     </button>
 
-    <!-- Private key (WIF) — developer option -->
     <div v-if="settingsStore.showPrivateKeyWif" class="wif-section">
       <div style="margin-bottom: 8px;">{{ t('backupWallet.privateKey.title') }}</div>
       <template v-if="singleAddressWallet">
@@ -239,7 +237,6 @@
       </div>
     </div>
 
-    <!-- Backup Status -->
     <div v-if="!showBackupVerification" class="backup-status-section">
       <div v-if="backupStatus === 'verified'" class="backup-status text-verified">
         <span class="status-icon">✓</span>
@@ -257,7 +254,6 @@
       </div>
     </div>
 
-    <!-- Backup Verification UI -->
     <div v-if="showBackupVerification" class="verification-container">
       <div class="verification-title">{{ t('backupWallet.verification.title') }}</div>
       <div class="verification-subtitle">{{ t('backupWallet.verification.subtitle') }}</div>
@@ -289,7 +285,6 @@
       </div>
     </div>
 
-    <!-- Persistent Storage (browser only) -->
     <div v-if="isBrowser && persistentStorageSupported" class="persistent-storage-section">
       <div class="persistent-storage-info">
         <span v-if="persistentStorageStatus === 'granted'" class="storage-status text-verified">

@@ -145,7 +145,6 @@
   </div>
 
   <div v-else>
-    <!-- Options toggle row -->
     <div v-if="store.tokenList?.length" class="control-row">
       <div class="type-filter">
         <button
@@ -164,7 +163,6 @@
       </span>
     </div>
 
-    <!-- Options panel (collapsed by default) -->
     <div v-if="store.tokenList?.length && showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
       <div class="option-item">
         <label for="filterTokens">{{ t('tokens.filter.label') }}</label>
@@ -185,7 +183,6 @@
       </div>
     </div>
 
-    <!-- Token list -->
     <div v-if="store.tokenList?.length == 0" style="text-align: center;">
       {{ t('tokens.noTokens') }}
     </div>

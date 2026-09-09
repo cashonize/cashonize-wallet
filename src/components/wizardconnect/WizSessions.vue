@@ -56,7 +56,6 @@
     <div v-if="Object.keys(wizardconnectStore.connections).length">
       <div class="sessions-section-heading">{{ t('wizardConnect.sessions.title') }}</div>
       <div class="wiz-session-items-container">
-        <!-- Iterate over active connections -->
         <template v-for="(connection, connectionId) of wizardconnectStore.connections" :key="connectionId">
           <div class="wiz-session-item">
             <div class="wiz-session-item-app-icon">

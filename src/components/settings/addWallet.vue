@@ -121,7 +121,6 @@
   <fieldset class="item">
     <legend>{{ t('addWallet.title') }}</legend>
 
-    <!-- Step 1: Enter wallet name -->
     <div v-if="step === 1">
       <div style="margin-bottom: 20px;">
         <label for="walletName" style="display: block; margin-bottom: 8px;">{{ t('addWallet.walletName.label') }}</label>
@@ -146,7 +145,6 @@
       >
     </div>
 
-    <!-- Step 2: Choose wallet type -->
     <div v-else-if="step === 2">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 1">
         {{ t('addWallet.backButton') }}
@@ -188,7 +186,6 @@
       </div>
     </div>
 
-    <!-- Step 3: Import wallet details (only reached when importing) -->
     <div v-else-if="step === 3">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 2">
         {{ t('addWallet.backButton') }}

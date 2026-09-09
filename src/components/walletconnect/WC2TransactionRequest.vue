@@ -265,7 +265,6 @@
             {{ bchBalanceChange > 0 ? '+ ': '- '}} {{ satoshiToBCHString(abs(bchBalanceChange)) }}
             ({{ formatFiatAmount(currencyBalanceChange, settingsStore.currency) }})
           </div>
-          <!-- Net fungible token changes -->
           <div v-for="[categoryHex, amount] in Object.entries(ftNetChanges)" :key="categoryHex" class="token-change-row">
             <span>{{ amount > 0n ? '+ ' : amount < 0n ? '- ' : '' }}{{ tokenAmountDisplay(abs(amount), categoryHex) }} {{ getTokenDisplayName(categoryHex) }}</span>
             <TokenIcon
@@ -275,7 +274,6 @@
             />
             <span v-if="isUnverifiedToken(categoryHex)">*</span>
           </div>
-          <!-- NFTs spent -->
           <div v-for="(nft, index) in nftsSpent" :key="'spent-' + binToHex(nft.category) + index" class="token-change-row">
             <span>{{ `- ${formatTokenDisplay(nft)}` }}</span>
             <TokenIcon
@@ -285,7 +283,6 @@
             />
             <span v-if="isUnverifiedToken(binToHex(nft.category))">*</span>
           </div>
-          <!-- NFTs received -->
           <div v-for="(nft, index) in nftsReceived" :key="'received-' + binToHex(nft.category) + index" class="token-change-row">
             <span>{{ `+ ${formatTokenDisplay(nft)}` }}</span>
             <TokenIcon
