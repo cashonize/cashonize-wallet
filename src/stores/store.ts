@@ -43,7 +43,7 @@ import {
   parseIndexerResponse,
   parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
-import { hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode } from "@bitauth/libauth"
+import { binToHex, hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode } from "@bitauth/libauth"
 import type { Bytes } from "src/utils/dapp/reservedInputs"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
@@ -1188,8 +1188,8 @@ export const useStore = defineStore('store', () => {
       const lastIndex = (change ? activeWallet.changeIndex : activeWallet.depositIndex) + GAP_SIZE;
       for (let i = 0; i <= lastIndex; i++) {
         if (!rawHistory[i]?.length) continue;
-        const publicKeyHash = publicKeyHashFromAddress(activeWallet.walletCache.getByIndex(i, change).address);
-        if (publicKeyHash) publicKeyHashes.push(publicKeyHash);
+        const publicKeyHash = binToHex(activeWallet.walletCache.getByIndex(i, change).publicKeyHash);
+        publicKeyHashes.push(publicKeyHash);
       }
     }
     publicKeyHashes.push(
