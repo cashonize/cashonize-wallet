@@ -4,9 +4,12 @@
   import { useI18n } from 'vue-i18n'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
-  import { BADGERCOIN_CATEGORY } from 'src/utils/defi/badgersStake'
+  import { builtinManifest, manifestTokenCategory } from 'src/utils/contracts/builtins'
   const store = useStore()
   const settingsStore = useSettingsStore()
+
+  // the icon is the protocol token's, which the manifest already names
+  const badgersCategory = manifestTokenCategory(builtinManifest('badgers-stake')) ?? ''
   const { t } = useI18n()
 
   defineProps<{
@@ -24,8 +27,8 @@
   <div class="asset-row">
     <span class="dot" :style="{ color: dotColor }"></span>
     <TokenIcon
-      :token-id="BADGERCOIN_CATEGORY"
-      :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(BADGERCOIN_CATEGORY) : undefined"
+      :token-id="badgersCategory"
+      :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(badgersCategory) : undefined"
       :size="32"
     />
     <div class="asset-name">

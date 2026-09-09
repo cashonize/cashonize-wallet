@@ -9,8 +9,7 @@
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { formatFiatAmount, formatTokenAmount, satsToBch, formatTimeUntil, formatReadableDate } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
-  import type { TapswapListing } from 'src/utils/defi/tapswapListings'
-  import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
+  import type { ContractPosition } from 'src/utils/contracts/runManifest'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
@@ -67,6 +66,8 @@
   const HODL_COLOR = '#20c5f8'
   // blocks BCH aims for per day, for turning a wait in blocks into a rough number of days
   const BLOCKS_PER_DAY = 144
+  // nLockTime values below this are block heights, above it unix timestamps
+  const LOCKTIME_TIMESTAMP_THRESHOLD = 500_000_000
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
 
   const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
@@ -250,7 +251,7 @@
       id: `${lock.txid}:${lock.vout}`,
       bchValue: satsToBch(lock.satoshis),
       confirmedAtHeight: lock.confirmedAtHeight,
-      stakeBlocks: lock.stakeBlocks
+      stakeBlocks: Number(lock.fields.stakeBlocks)
     }))
   })
 
@@ -259,9 +260,9 @@
   // counts towards the total
   const hodlLocks = computed(() => {
     return (store.hodlContracts ?? []).map(contract => ({
-      id: contract.scriptHash,
+      id: contract.address,
       bchValue: satsToBch(contract.satoshis),
-      locktime: contract.locktime
+      locktime: Number(contract.fields.locktime)
     }))
   })
 
@@ -533,22 +534,24 @@
   // Row data for one TapSwap listing. An NFT row shows the NFT's own name and icon, with the
   // collection name and commitment filling in when it has no metadata of its own; a fungible
   // row shows its amount.
-  function tapswapListingRow(listing: TapswapListing) {
-    const metadata = store.tapswapRegistries[listing.category]
-    const collectionName = metadata?.name ?? listing.category.slice(0, 8) + '...'
-    const nftMetadata = listing.commitment !== undefined ? metadata?.nfts?.[listing.commitment] : undefined
+  function tapswapListingRow(listing: ContractPosition) {
+    const category = listing.token?.category ?? ''
+    const commitment = listing.token?.nft?.commitment
+    const metadata = store.tapswapRegistries[category]
+    const collectionName = metadata?.name ?? category.slice(0, 8) + '...'
+    const nftMetadata = commitment !== undefined ? metadata?.nfts?.[commitment] : undefined
 
     let name = collectionName
     let detailDisplay
-    if (listing.commitment !== undefined) {
-      detailDisplay = '#' + listing.commitment
+    if (commitment !== undefined) {
+      detailDisplay = '#' + commitment
       const nftName = nftMetadata?.name
       if (nftName && nftName !== collectionName) {
         name = nftName
         detailDisplay = undefined
       }
     } else {
-      detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
+      detailDisplay = formatTokenAmount(listing.token?.amount ?? 0n, metadata?.token?.decimals)
       const symbol = metadata?.token?.symbol
       if (symbol) detailDisplay += ' ' + symbol
     }
@@ -561,15 +564,15 @@
 
     // the asking price is a term of the listing, so it always shows in BCH, with the
     // fiat value alongside
-    const priceBch = satsToBch(listing.priceSats)
+    const priceBch = satsToBch(BigInt(listing.fields.priceSats ?? 0))
     let priceDisplay = bchValueFormatter.format(priceBch) + ' ' + bchUnitName.value
     if (store.exchangeRate !== undefined) {
       priceDisplay += ` (${formatFiatAmount(priceBch * store.exchangeRate, settingsStore.currency)})`
     }
 
     return {
-      id: `${listing.txid}:0`,
-      category: listing.category,
+      id: `${listing.txid}:${listing.vout}`,
+      category,
       collectionName,
       name,
       detailDisplay,
