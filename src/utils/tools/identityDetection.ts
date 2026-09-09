@@ -41,11 +41,9 @@ export interface DetectedIdentities {
 
 export type RawTransactionsFetcher = (hashes: string[]) => Promise<Map<string, string>>;
 
-// Which transaction spent each output 0, over the transactions that can be authchain links. A
-// history item carries no input outpoints, so this is read from the raw transactions, which the
-// history load left in the electrum provider's cache. One index answers both questions: whether a
-// candidate spent the outpoint its category is named after, which is what makes it a genesis, and
-// where a chain went next.
+// Which transaction spent each output 0. A history item carries no input outpoints, so this is
+// read from the raw transactions the history load left in the electrum cache; one index answers
+// both what makes a candidate a genesis and where a chain went next.
 function indexOutput0Spends(rawTransactions: Map<string, string>) {
   const spenders = new Map<string, string>();
   for (const [txid, rawHex] of rawTransactions) {
@@ -58,11 +56,9 @@ function indexOutput0Spends(rawTransactions: Map<string, string>) {
   return spenders;
 }
 
-// A marker fires on the link that carries it, which is rarely the chain's last one: a mint, a
-// transfer or a move into the reserve continues the chain at output 0 and publishes nothing.
-// Whatever spends an identity output continues the chain, deliberately or not, so the spends are
-// the authchain and the walk needs no evidence beyond the marker it starts from; and a
-// transaction cannot spend an output it creates, so it terminates.
+// A marker fires on the link that carries it, which is rarely the chain's last: a mint, a transfer
+// or a reserve move continues the chain at output 0 and publishes nothing. Whatever spends an
+// identity output continues the chain, and nothing spends an output it creates, so this terminates.
 function advanceToAuthhead(marked: string, spenders: Map<string, string>) {
   let authhead = marked;
   let next = spenders.get(authhead);
@@ -96,37 +92,29 @@ export async function detectIdentities(
   const detected = new Map<string, DetectedIdentity>();
   const publicationTxids: string[] = [];
   const genesisCandidates: { transaction: TransactionHistoryItem, category: string }[] = [];
-  // The categories the markers name, which is what makes another transaction of this history
-  // worth decoding: the links of those chains carry one of them on their identity output.
-  const markedCategories: string[] = [];
   for (const transaction of history) {
     const publishes = transaction.outputs.some(output => opReturnHex(output)?.startsWith(BCMR_OUTPUT_PREFIX));
     if (publishes) publicationTxids.push(transaction.hash);
-    const identityCategory = transaction.outputs[0]?.token?.category;
-    if (publishes && identityCategory) markedCategories.push(identityCategory);
 
     const createdCategory = transaction.outputs
       .map(output => output.token?.category)
       .find(category => category !== undefined && historyTxids.includes(category));
     if (createdCategory) {
       genesisCandidates.push({ transaction, category: createdCategory });
-      markedCategories.push(createdCategory);
       continue;
     }
     if (publishes) detected.set(transaction.hash, publicationOf(transaction));
   }
+  // nothing marked is nothing to follow, and most wallets decode nothing at all
+  if (!detected.size && !genesisCandidates.length) return { identities: [], publicationTxids };
 
-  // The genesis candidates, whose inputs decide the marker, and every link this history holds of
-  // a marked chain, whose inputs are what the walk follows. The history at large is not decoded:
-  // a chain no marker names has nothing here to walk.
-  const toDecode = genesisCandidates.map(candidate => candidate.transaction.hash);
-  for (const transaction of history) {
-    const identityCategory = transaction.outputs[0]?.token?.category;
-    if (!identityCategory || !markedCategories.includes(identityCategory)) continue;
-    if (!toDecode.includes(transaction.hash)) toDecode.push(transaction.hash);
-  }
-  let spenders = new Map<string, string>();
-  if (toDecode.length) spenders = indexOutput0Spends(await fetchRawTransactions(toDecode));
+  // The whole history, since a link can be told from an ordinary transaction only by its inputs:
+  // splitting the tokens off an identity, or emptying its reserve, leaves the chain continuing on
+  // a plain BCH output that nothing marks.
+  const rawTransactions = await fetchRawTransactions(historyTxids);
+  // one batch read of the cache the history load filled, whose transactions mainnet-js decoded in
+  // full to build that history
+  const spenders = indexOutput0Spends(rawTransactions);
 
   for (const { transaction, category } of genesisCandidates) {
     if (spenders.get(category) === transaction.hash) {

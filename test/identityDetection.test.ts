@@ -25,8 +25,8 @@ describe('detectIdentities', () => {
     expect(detected.identities).toEqual([
       { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'genesis' },
     ])
-    // only the candidate is decoded, never the history at large
-    expect(fetcher).toHaveBeenCalledWith([spenderTxid])
+    // the whole history, in one batch the electrum cache already holds
+    expect(fetcher).toHaveBeenCalledWith([genesisInputTxid, spenderTxid])
   })
 
   // only a vout-0 outpoint can be a genesis input; a token whose category is a transaction of
@@ -50,6 +50,7 @@ describe('detectIdentities', () => {
     const fetcher = rawTransactionsFetcher({})
 
     expect((await detectIdentities(history, fetcher)).identities).toEqual([])
+    // no marker, so the history is not decoded at all
     expect(fetcher).not.toHaveBeenCalled()
   })
 
@@ -168,6 +169,29 @@ describe('detectIdentities', () => {
       { authheadTxid: publishTxid, category: genesisInputTxid, marker: 'genesis' },
     ])
     expect(detected.publicationTxids).toEqual([publishTxid])
+  })
+
+  // Splitting the tokens off an identity, or emptying its reserve, leaves the chain continuing on
+  // a plain BCH output. The identity is no less the identity for it, so the walk must not stop at
+  // the last link that happened to carry a token.
+  it('follows a chain through links that carry no token', async () => {
+    const emptyReserveTxid = 'dd'.repeat(32)
+    const moveTxid = 'ee'.repeat(32)
+    const history = [
+      fundingItem,
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
+      historyItem(emptyReserveTxid, [p2pkhOutput(), tokenOutput(genesisInputTxid, { amount: 1000n })]),
+      historyItem(moveTxid, [p2pkhOutput()]),
+    ]
+    const fetcher = rawTransactionsFetcher({
+      [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]),
+      [emptyReserveTxid]: rawTransactionSpending([{ txid: spenderTxid, vout: 0 }]),
+      [moveTxid]: rawTransactionSpending([{ txid: emptyReserveTxid, vout: 0 }]),
+    })
+
+    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+      { authheadTxid: moveTxid, category: genesisInputTxid, marker: 'genesis' },
+    ])
   })
 
   // a link whose raw transaction the cache does not hold stops the walk where the evidence stops

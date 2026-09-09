@@ -95,8 +95,11 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
   transfer or a move into the reserve continues the chain at output 0 and publishes
   nothing. So each is followed forward along the output-0 spends the history holds, which
   is the authchain itself, and it is the link that walk ends at that is matched against the
-  wallet's coins. Only the links of a marked chain are decoded, never the history at large,
-  so a chain that leaves this history mid-way is followed as far as it reaches. A
+  wallet's coins. A marker is what triggers any of this, but the walk then reads the whole
+  history, since a link is told from an ordinary transaction only by its inputs: splitting
+  the tokens off an identity, or emptying its reserve, leaves the chain continuing on a
+  plain BCH output that nothing marks. A chain that leaves this history is followed as far
+  as it reaches, and a wallet with no marker decodes nothing. A
   publication names its chain by the token on the identity output; when that output carries
   none, an identity received by transfer say, or one that is not a token's, the chain is
   named from the registry the publication commits to: the file is fetched from the first

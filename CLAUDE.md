@@ -181,5 +181,6 @@ This is a crypto wallet - a security-sensitive environment where being overly ca
 - **Practical security focus**: Address real security concerns, don't get lost in theoretical edge cases
 - **Meaningful tests**: Write tests that actually catch issues, not testing theatre
 - **Readable over clever**: Prefer simple variable assignment + conditional override over ternaries for complex logic
+- **Await on its own line**: Assign the awaited value to a variable rather than nesting the call inside another expression, so the async step is visible and can carry its own comment
 - **Question necessity**: If something seems unnecessary, it probably is - ask before adding
 - **Comments earn their place**: A comment adds context that is not local to the code, documents a low-level detail or documents a high-level design; it does not repeat the code. Medium-sized comments are fine; no paragraphs or big comment blocks
