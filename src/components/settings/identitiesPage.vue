@@ -66,6 +66,18 @@
     { key: 'watched' as const, identities: identities.value.filter(identity => notOwnedStatuses.includes(identity.status)) },
     { key: 'tokens' as const, identities: identitiesStore.tokenIdentities ?? [] },
   ].filter(group => group.key === 'tokens' ? tokenGroupShown.value : group.identities.length > 0));
+  // A wallet opening on a dozen identities it found for itself would carry the same pill a dozen
+  // times, so the group says it once instead. The pills stay for a mixed group, where they are
+  // the only thing saying which ones are new.
+  const heldAllFound = computed(() => {
+    const held = identityGroups.value.find(group => group.key === 'held')?.identities ?? [];
+    return held.length > 1 && held.every(identity => foundAutomatically.value.includes(identity.category));
+  });
+  function showsFoundPill(groupKey: string, category: string) {
+    if (groupKey === 'held' && heldAllFound.value) return false;
+    return foundAutomatically.value.includes(category);
+  }
+
   // The third tier follows the identities of the tokens this wallet holds, passively: folded,
   // since nobody is actively watching them, and on unless turned off in the settings
   const showTokenIdentities = ref(false);
@@ -96,9 +108,11 @@
 
   onActivated(() => {
     // every way in leads here to look at an identity, including the notification trail; the
-    // found dialog's Learn more leads to the learn text
+    // found dialog's Learn more leads to the learn text, and the token list to one card
     mode.value = identitiesStore.takeLearnRequest() ? 'learn' : 'identities';
     foundAutomatically.value = identitiesStore.markIdentitiesSeen();
+    const requested = identitiesStore.takeCardRequest();
+    if (requested) openCard(requested.category, requested.action as CardAction | undefined);
     void reloadIdentities();
   });
   // The view is kept alive across navigation, so a different wallet's form input must not linger
@@ -181,11 +195,13 @@
 
   // Lands on one card with one of its forms open, for a hand-over to what comes next; a card that
   // did not resolve has no form to open and is shown as it is
-  function openCard(category: string, action: CardAction) {
+  function openCard(category: string, action?: CardAction) {
     mode.value = 'identities';
     expandedIdentity.value = category;
+    if (!action) return;
     const identity = identities.value.find(listed => listed.category === category);
-    if (identity?.authUtxo) openAction.value = { category, action };
+    const opens = action === 'transferKey' ? identity?.keyUtxo : identity?.authUtxo;
+    if (opens) openAction.value = { category, action };
   }
 
 </script>
@@ -392,6 +408,12 @@
       <template v-for="group in identityGroups" :key="group.key">
       <div v-if="group.key !== 'tokens'" class="section">
         {{ group.key === 'held' ? t('identities.ownedCount', group.identities.length) : t('identities.watchedHeader', group.identities.length) }}
+        <InfoPopup v-if="group.key === 'held' && heldAllFound">
+          <template #trigger>
+            <span class="identity-badge">{{ t('identities.detected.allFoundAutomatically') }}</span>
+          </template>
+          <div style="max-width: 300px;">{{ t('identities.detected.allFoundAutomaticallyHelp') }}</div>
+        </InfoPopup>
       </div>
       <div v-else class="section">
         <div v-if="identitiesStore.tokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }} <q-spinner-dots size="1.2em" /></div>
@@ -406,7 +428,7 @@
         :identity="identity"
         :removable="group.key !== 'tokens'"
         :expanded="expandedIdentity === identity.category"
-        :found-automatically="foundAutomatically.includes(identity.category)"
+        :found-automatically="showsFoundPill(group.key, identity.category)"
         v-model:open-action="openAction"
         v-model:running-action="runningAction"
         @toggle="toggleCard(identity.category)"

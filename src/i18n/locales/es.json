@@ -279,8 +279,14 @@
     },
     "authKey": {
       "name": "AuthKey",
-      "nameFor": "AuthKey de {names}",
-      "manage": "gestionar"
+      "manage": "gestionar",
+      "controls": "Controla {names}",
+      "transfer": "transferir AuthKey",
+      "infoAction": "Info de la AuthKey",
+      "info": "Esta AuthKey controla {count} identidad. Tenerla es lo que la controla: su UTXO está en un contrato que solo lo libera a quien presente este NFT. | Esta AuthKey controla {count} identidades. Tenerla es lo que las controla: sus UTXO están en un contrato que solo los libera a quien presente este NFT.",
+      "guardAddress": "Dirección del contrato:",
+      "heldBack": "Se mantiene fuera de los envíos ordinarios desde esta app. Otras billeteras con la misma semilla aún pueden gastarla.",
+      "andMore": "y {count} más"
     },
     "visibility": {
       "hideToken": "Ocultar token",
@@ -435,8 +441,7 @@
     },
     "heldBack": "Retenido, fuera de la selección de monedas",
     "identity": {
-      "held": "Esta billetera tiene la identidad de este token.",
-      "heldWithReserve": "Esta billetera tiene la identidad de este token, con {amount} en reserva.",
+      "held": "Esta billetera controla la identidad de este token.",
       "manage": "gestionar identidad"
     }
   },
@@ -1594,7 +1599,9 @@
     "detected": {
       "foundAutomatically": "encontrada automáticamente",
       "foundAutomaticallyHelp": "Las claves de esta billetera crearon esta identidad o publicaron sus metadatos, así que se encontró en el propio historial de la billetera y su UTXO ahora queda fuera de la selección de monedas. Quítala de la lista si prefieres que no sea así.",
-      "foundViaKeyHelp": "Encontrada porque esta billetera tiene la AuthKey de esta identidad. La AuthKey queda fuera de la selección de monedas, así que ningún envío ordinario desde esta app puede gastarla."
+      "foundViaKeyHelp": "Encontrada porque esta billetera tiene la AuthKey de esta identidad. La AuthKey queda fuera de la selección de monedas, así que ningún envío ordinario desde esta app puede gastarla.",
+      "allFoundAutomatically": "todas encontradas automáticamente",
+      "allFoundAutomaticallyHelp": "Las claves de esta billetera crearon estas identidades o publicaron sus metadatos, o esta billetera tiene la AuthKey que las controla. Sus UTXO de identidad, o las AuthKeys que los controlan, quedan fuera de los envíos ordinarios; quita una de la lista si prefieres que no sea así."
     },
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
     "watchedHeader": "{count} identidad solo observada, no la tiene esta billetera | {count} identidades solo observadas, no las tiene esta billetera",
@@ -1656,7 +1663,8 @@
       "mintingNftLink": "ver en la lista de tokens",
       "supplyOpenEnded": "Suministro reservado: sin límite",
       "genesisSupply": "Suministro de génesis: {amount}",
-      "genesisSupplyOpenEnded": "Suministro de génesis: sin límite"
+      "genesisSupplyOpenEnded": "Suministro de génesis: sin límite",
+      "supplyOpenEndedIssued": "Suministro reservado: abierto · {amount} emitidos"
     },
     "key": {
       "action": "transferir la AuthKey",
@@ -1699,7 +1707,12 @@
         "restricted": "Este gateway solo sirve a sus propias apps y responde a los demás con un error, así que ningún holder puede obtener aquí los metadatos. El archivo en sí no es el problema; otra ubicación puede servirlo."
       },
       "unconfirmed": "sin confirmar",
-      "ofLocations": "{status} ({matching} de {total} ubicaciones)"
+      "summary": {
+        "verified": "metadatos al día",
+        "changed": "cambiado desde la publicación",
+        "unreachable": "no se pudieron obtener los metadatos",
+        "restricted": "sin ubicación pública"
+      }
     },
     "history": {
       "title": "Historial de esta identidad",

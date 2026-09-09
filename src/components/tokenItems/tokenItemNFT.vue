@@ -6,7 +6,9 @@
   import { TokenSendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, sanitizeUrl } from 'src/utils/utils';
+  import { copyToClipboard, sanitizeUrl, truncateHash } from 'src/utils/utils';
+  import TokenIcon from 'src/components/general/TokenIcon.vue'
+  import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -44,6 +46,7 @@
   const displayMintNfts = ref(false);
   const displayBurnNft = ref(false);
   const displayTokenInfo = ref(false);
+  const displayAuthKeyInfo = ref(false);
   const displayChildNfts = ref(false);
   const loadingChildNftMetadata = ref(false);
   const destinationAddr = ref("");
@@ -83,14 +86,26 @@
   // An AuthKey carries no metadata of its own: it is the NFT itself that is the authority. Once
   // confirmed, the wallet shows it as the identity it opens rather than as an unnamed NFT.
   const guardedIdentities = computed(() => identitiesStore.identitiesGuardedByKey(tokenData.value.category));
+  // One AuthKey can open many identities, and a row is for recognising a thing rather than
+  // listing what it controls: one name and a count fit the row, and the panel has the rest.
+  const guardedNamesShown = 1;
   const guardedMetadata = computed(() => {
     const guarded = guardedIdentities.value[0];
     return guarded ? store.bcmrRegistries?.[guarded.category] : undefined;
   });
-  const guardedNames = computed(() => guardedIdentities.value
-    .map(identity => store.bcmrRegistries?.[identity.category]?.name)
-    .filter((name): name is string => !!name)
-    .join(', '));
+  // The count is the only part that leads anywhere, so it is the only part coloured: it opens the
+  // panel that lists them all rather than a second popup of its own.
+  const keyControls = computed(() => {
+    const names = guardedIdentities.value
+      .map(identity => store.bcmrRegistries?.[identity.category]?.name)
+      .filter((name): name is string => !!name);
+    if (!names.length) return undefined;
+    const rest = names.length - guardedNamesShown;
+    return {
+      text: t('tokenItem.authKey.controls', { names: names.slice(0, guardedNamesShown).join(', ') }),
+      ...(rest > 0 ? { more: t('tokenItem.authKey.andMore', { count: rest }) } : {}),
+    };
+  });
 
   const httpsUrlTokenIcon = computed(() => {
     let tokenIconUri = tokenMetaData.value?.uris?.icon ?? guardedMetadata.value?.uris?.icon;
@@ -120,6 +135,27 @@
     return authUtxo.txid === nft.txid && authUtxo.vout === nft.vout ? authUtxo : undefined;
   });
   const isIdentityKey = computed(() => guardedIdentities.value.length > 0);
+  const guardedRows = computed(() => guardedIdentities.value.map(identity => ({
+    category: identity.category,
+    name: store.bcmrRegistries?.[identity.category]?.name ?? truncateHash(identity.category),
+    iconUrl: settingsStore.disableTokenIcons ? undefined : store.tokenIconUrl(identity.category),
+  })));
+  // every identity this AuthKey opens sits in the one covenant its category derives, so the
+  // address is read off the first of them rather than derived a second time here
+  const guardAddress = computed(() => {
+    const lockingBytecode = guardedIdentities.value[0]?.identityOutput?.lockingBytecode;
+    if (!lockingBytecode) return undefined;
+    const decoded = lockingBytecodeToCashAddress({
+      bytecode: hexToBin(lockingBytecode),
+      prefix: store.wallet.networkPrefix,
+      tokenSupport: true,
+    });
+    return typeof decoded === 'string' ? undefined : decoded.address;
+  });
+  function openIdentityCard(category: string, action?: string) {
+    identitiesStore.requestIdentityCard(category, action);
+    store.changeView(19);
+  }
   // A held back NFT stays listed and says so, where no other line already does: the identity's
   // own NFT and an AuthKey have theirs, a frozen or pledged one had nothing. A collection's members
   // say it on their own rows.
@@ -127,10 +163,6 @@
     if (!isSingleNft.value || identityUtxo.value || isIdentityKey.value) return false;
     const nft = tokenData.value.nfts?.[0];
     return !!nft && outpointOf(nft) in store.reservedUtxos;
-  });
-  const keyNameLine = computed(() => {
-    if (guardedNames.value) return t('tokenItem.authKey.nameFor', { names: guardedNames.value });
-    return t('tokenItem.authKey.name');
   });
 
   const tokenDescription = computed(() => {
@@ -398,11 +430,12 @@
 
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
-            <div v-if="isIdentityKey" class="identity-key-line">
-              {{ keyNameLine }}
-              <span class="identity-key-link" @click="store.changeView(19)">
-                {{ t('tokenItem.authKey.manage') }}
-              </span>
+            <div v-if="isIdentityKey">
+              {{ t('tokenItem.authKey.name') }}
+              <!-- the two share a line: a line break between elements is dropped, a space is kept -->
+              <template v-if="keyControls">
+                <span class="identity-key-line">· {{ keyControls.text }}</span> <span v-if="keyControls.more" class="identity-key-link" @click="displayAuthKeyInfo = true">{{ keyControls.more }}</span>
+              </template>
             </div>
             <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
             <div style="word-break: break-all;">
@@ -454,10 +487,16 @@
 
       <div class="tokenActions">
         <div class="actionBar">
-          <span v-if="tokenData?.nfts?.length == 1" @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
+          <span v-if="tokenData?.nfts?.length == 1 && !isIdentityKey" @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
-          <span @click="displayTokenInfo = !displayTokenInfo">
+          <span v-if="isIdentityKey" @click="openIdentityCard(guardedRows[0]!.category, 'transferKey')" style="margin-left: 10px; white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.authKey.transfer') }}
+          </span>
+          <span v-if="!isIdentityKey" @click="displayTokenInfo = !displayTokenInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
+          </span>
+          <span v-else @click="displayAuthKeyInfo = !displayAuthKeyInfo" style="white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.authKey.infoAction') }}
           </span>
           <span v-if="heldIdentityLine" @click="store.changeView(19)" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'"> {{ t('tokenItem.identity.manage') }}
@@ -478,6 +517,22 @@
             <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
             <span>{{ t('tokenItem.actions.burnNft') }}</span>
           </span>
+        </div>
+        <div v-if="displayAuthKeyInfo" class="tokenAction">
+          <div></div>
+          <div class="indentText">{{ t('tokenItem.authKey.info', guardedRows.length) }}</div>
+          <div v-for="row in guardedRows" :key="row.category" class="authKeyIdentity">
+            <TokenIcon :token-id="row.category" :icon-url="row.iconUrl" :size="24" />
+            <span>{{ row.name }}</span>
+            <span class="identity-key-link" @click="openIdentityCard(row.category)">{{ t('tokenItem.authKey.manage') }}</span>
+          </div>
+          <div v-if="guardAddress" style="word-break: break-all;">
+            {{ t('tokenItem.authKey.guardAddress') }}
+            <span @click="copyToClipboard(guardAddress)" style="cursor: pointer;">
+              {{ guardAddress }}<img class="copyIcon" src="images/copyGrey.svg">
+            </span>
+          </div>
+          <div class="indentText">{{ t('tokenItem.authKey.heldBack') }}</div>
         </div>
         <div v-if="displayTokenInfo" class="tokenAction">
           <div></div>
@@ -609,14 +664,22 @@
   }
 }
 
-/* An AuthKey has no metadata to show, so this line is what names it. Grey like every other
-   description, with only the way to act on it coloured. */
+/* what the AuthKey opens is context for the name above it, so it reads like every other
+   description, with only the way to act on it coloured */
 .identity-key-line {
   color: grey;
+}
+.authKeyIdentity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
 }
 .identity-key-link {
   color: var(--color-primary);
   cursor: pointer;
+  /* the count reads as one phrase, so it wraps as one rather than splitting after "and" */
+  white-space: nowrap;
 }
 .identity-key-link:hover {
   text-decoration: underline;

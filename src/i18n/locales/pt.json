@@ -279,8 +279,14 @@
     },
     "authKey": {
       "name": "AuthKey",
-      "nameFor": "AuthKey de {names}",
-      "manage": "gerenciar"
+      "manage": "gerenciar",
+      "controls": "Controla {names}",
+      "transfer": "transferir AuthKey",
+      "infoAction": "Info da AuthKey",
+      "info": "Esta AuthKey controla {count} identidade. Tê-la é o que a controla: o UTXO dela está num contrato que só o libera para quem apresentar este NFT. | Esta AuthKey controla {count} identidades. Tê-la é o que as controla: os UTXOs delas estão num contrato que só os libera para quem apresentar este NFT.",
+      "guardAddress": "Endereço do contrato:",
+      "heldBack": "Fica de fora dos envios comuns deste app. Outras carteiras com a mesma seed ainda podem gastá-la.",
+      "andMore": "e mais {count}"
     },
     "visibility": {
       "hideToken": "Ocultar token",
@@ -435,8 +441,7 @@
     },
     "heldBack": "Retido, fora da seleção de moedas",
     "identity": {
-      "held": "Esta carteira tem a identidade deste token.",
-      "heldWithReserve": "Esta carteira tem a identidade deste token, com {amount} em reserva.",
+      "held": "Esta carteira controla a identidade deste token.",
       "manage": "gerir identidade"
     }
   },
@@ -1594,7 +1599,9 @@
     "detected": {
       "foundAutomatically": "encontrada automaticamente",
       "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os seus metadados, portanto ela foi encontrada no próprio histórico da carteira e o seu UTXO agora fica de fora da seleção de moedas. Tire-a da lista se preferir que não seja assim.",
-      "foundViaKeyHelp": "Encontrada porque esta carteira tem a AuthKey desta identidade. A AuthKey fica de fora da seleção de moedas, então nenhum envio comum deste app pode gastá-la."
+      "foundViaKeyHelp": "Encontrada porque esta carteira tem a AuthKey desta identidade. A AuthKey fica de fora da seleção de moedas, então nenhum envio comum deste app pode gastá-la.",
+      "allFoundAutomatically": "todas encontradas automaticamente",
+      "allFoundAutomaticallyHelp": "As chaves desta carteira criaram estas identidades ou publicaram os seus metadados, ou esta carteira tem a AuthKey que as controla. Os seus UTXOs de identidade, ou as AuthKeys que os controlam, ficam de fora dos envios comuns; tire uma da lista se preferir que não seja assim."
     },
     "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
     "watchedHeader": "{count} identidade só observada, não tida por esta carteira | {count} identidades só observadas, não tidas por esta carteira",
@@ -1656,7 +1663,8 @@
       "mintingNftLink": "ver na lista de tokens",
       "supplyOpenEnded": "Fornecimento reservado: sem limite",
       "genesisSupply": "Fornecimento de génese: {amount}",
-      "genesisSupplyOpenEnded": "Fornecimento de génese: sem limite"
+      "genesisSupplyOpenEnded": "Fornecimento de génese: sem limite",
+      "supplyOpenEndedIssued": "Oferta reservada: ilimitada · {amount} emitidos"
     },
     "key": {
       "action": "transferir a AuthKey",
@@ -1699,7 +1707,12 @@
         "restricted": "Este gateway só serve os próprios apps e responde aos demais com um erro, então nenhum holder consegue buscar aqui os metadados. O arquivo em si não é o problema; outro local pode servi-lo."
       },
       "unconfirmed": "não confirmada",
-      "ofLocations": "{status} ({matching} de {total} locais)"
+      "summary": {
+        "verified": "metadados em dia",
+        "changed": "alterado desde a publicação",
+        "unreachable": "não foi possível obter os metadados",
+        "restricted": "sem local público"
+      }
     },
     "history": {
       "title": "Histórico desta identidade",

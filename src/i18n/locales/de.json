@@ -279,8 +279,14 @@
     },
     "authKey": {
       "name": "AuthKey",
-      "nameFor": "AuthKey für {names}",
-      "manage": "verwalten"
+      "manage": "verwalten",
+      "controls": "Kontrolliert {names}",
+      "transfer": "AuthKey übertragen",
+      "infoAction": "AuthKey-Infos",
+      "info": "Dieser AuthKey kontrolliert {count} Identität. Ihn zu halten ist, was sie kontrolliert: ihr UTXO liegt in einem Contract, der ihn nur an den herausgibt, der dieses NFT vorlegt. | Dieser AuthKey kontrolliert {count} Identitäten. Ihn zu halten ist, was sie kontrolliert: ihre UTXOs liegen in einem Contract, der sie nur an den herausgibt, der dieses NFT vorlegt.",
+      "guardAddress": "Contract-Adresse:",
+      "heldBack": "Von gewöhnlichen Sendungen aus dieser App ausgenommen. Andere Wallets mit derselben Seed-Phrase können ihn weiterhin ausgeben.",
+      "andMore": "und {count} weitere"
     },
     "visibility": {
       "hideToken": "Token ausblenden",
@@ -435,8 +441,7 @@
     },
     "heldBack": "Zurückgehalten, von der Münzauswahl ausgenommen",
     "identity": {
-      "held": "Dieses Wallet hält die Identität dieses Tokens.",
-      "heldWithReserve": "Dieses Wallet hält die Identität dieses Tokens, mit {amount} in Reserve.",
+      "held": "Dieses Wallet kontrolliert die Identität dieses Tokens.",
       "manage": "Identität verwalten"
     }
   },
@@ -1594,7 +1599,9 @@
     "detected": {
       "foundAutomatically": "automatisch gefunden",
       "foundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identität erstellt oder ihre Metadaten veröffentlicht, sie wurde also in der eigenen Historie gefunden und ihr UTXO ist jetzt von der Münzauswahl ausgenommen. Nimm sie von der Liste, wenn dir das lieber ist.",
-      "foundViaKeyHelp": "Gefunden, weil dieses Wallet den AuthKey dieser Identität hält. Der AuthKey ist von der Münzauswahl ausgenommen, sodass keine gewöhnliche Sendung aus dieser App ihn ausgeben kann."
+      "foundViaKeyHelp": "Gefunden, weil dieses Wallet den AuthKey dieser Identität hält. Der AuthKey ist von der Münzauswahl ausgenommen, sodass keine gewöhnliche Sendung aus dieser App ihn ausgeben kann.",
+      "allFoundAutomatically": "alle automatisch gefunden",
+      "allFoundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identitäten erstellt oder ihre Metadaten veröffentlicht, oder dieses Wallet hält den AuthKey, der sie kontrolliert. Ihre Identitäts-UTXOs, oder die AuthKeys, die sie kontrollieren, sind von gewöhnlichen Sendungen ausgenommen; nimm eine von der Liste, wenn dir das lieber ist."
     },
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
     "watchedHeader": "{count} Identität nur beobachtet, nicht von diesem Wallet gehalten | {count} Identitäten nur beobachtet, nicht von diesem Wallet gehalten",
@@ -1656,7 +1663,8 @@
       "mintingNftLink": "in der Token-Liste ansehen",
       "supplyOpenEnded": "Reservierte Menge: unbegrenzt",
       "genesisSupply": "Genesis-Menge: {amount}",
-      "genesisSupplyOpenEnded": "Genesis-Menge: unbegrenzt"
+      "genesisSupplyOpenEnded": "Genesis-Menge: unbegrenzt",
+      "supplyOpenEndedIssued": "Reservierte Menge: unbegrenzt · {amount} ausgegeben"
     },
     "key": {
       "action": "AuthKey übertragen",
@@ -1699,7 +1707,12 @@
         "restricted": "Dieses Gateway bedient nur seine eigenen Apps und antwortet allen anderen mit einem Fehler, hier kann also kein Holder die Metadaten holen. Die Datei selbst ist nicht das Problem; ein anderer Ort kann sie ausliefern."
       },
       "unconfirmed": "unbestätigt",
-      "ofLocations": "{status} ({matching} von {total} Orten)"
+      "summary": {
+        "verified": "Metadaten aktuell",
+        "changed": "seit der Veröffentlichung geändert",
+        "unreachable": "Metadaten konnten nicht geholt werden",
+        "restricted": "kein öffentlicher Ort"
+      }
     },
     "history": {
       "title": "Historie dieser Identität",

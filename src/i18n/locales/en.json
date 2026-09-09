@@ -279,8 +279,14 @@
     },
     "authKey": {
       "name": "AuthKey",
-      "nameFor": "AuthKey for {names}",
-      "manage": "manage"
+      "manage": "manage",
+      "controls": "Controls {names}",
+      "transfer": "transfer AuthKey",
+      "infoAction": "AuthKey info",
+      "info": "This AuthKey controls {count} identity. Holding it is what controls it: its UTXO sits in a covenant that releases it only to whoever presents this NFT. | This AuthKey controls {count} identities. Holding it is what controls them: their UTXOs sit in a covenant that releases them only to whoever presents this NFT.",
+      "guardAddress": "Covenant address:",
+      "heldBack": "Kept out of ordinary sends from this app. Other wallets on the same seed can still spend it.",
+      "andMore": "and {count} more"
     },
     "visibility": {
       "hideToken": "Hide token",
@@ -435,8 +441,7 @@
     },
     "heldBack": "Held back from coin selection",
     "identity": {
-      "held": "This wallet holds this token's identity.",
-      "heldWithReserve": "This wallet holds this token's identity, with {amount} in reserve.",
+      "held": "This wallet controls this token's identity.",
       "manage": "manage identity"
     }
   },
@@ -1594,7 +1599,9 @@
     "detected": {
       "foundAutomatically": "found automatically",
       "foundAutomaticallyHelp": "This wallet's keys created this identity or published its metadata, so it was found in this wallet's own history and its UTXO is now held back from coin selection. Remove it from the list if you would rather it were not.",
-      "foundViaKeyHelp": "Found because this wallet holds this identity's AuthKey. The AuthKey is kept out of coin selection, so no ordinary send from this app can spend it."
+      "foundViaKeyHelp": "Found because this wallet holds this identity's AuthKey. The AuthKey is kept out of coin selection, so no ordinary send from this app can spend it.",
+      "allFoundAutomatically": "all found automatically",
+      "allFoundAutomaticallyHelp": "This wallet's keys made these identities or published their metadata, or this wallet holds the AuthKey that controls them. Their identity UTXOs, or the AuthKeys that control them, are held back from ordinary sends; remove one from the list if you would rather it were not."
     },
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
     "watchedHeader": "{count} identity watched only, not held by this wallet | {count} identities watched only, not held by this wallet",
@@ -1656,7 +1663,8 @@
       "mintingNftLink": "view in the token list",
       "supplyOpenEnded": "Reserved supply: open-ended",
       "genesisSupply": "Genesis supply: {amount}",
-      "genesisSupplyOpenEnded": "Genesis supply: open-ended"
+      "genesisSupplyOpenEnded": "Genesis supply: open-ended",
+      "supplyOpenEndedIssued": "Reserved supply: open-ended · {amount} issued"
     },
     "key": {
       "action": "transfer the AuthKey",
@@ -1699,7 +1707,12 @@
         "restricted": "This gateway serves only its own apps and answers everyone else with an error, so no holder can fetch the metadata here. The file itself is not the problem; another location can serve it."
       },
       "unconfirmed": "unconfirmed",
-      "ofLocations": "{status} ({matching} of {total} locations)"
+      "summary": {
+        "verified": "metadata in sync",
+        "changed": "changed since publication",
+        "unreachable": "could not fetch metadata",
+        "restricted": "no public location"
+      }
     },
     "history": {
       "title": "This identity's history",

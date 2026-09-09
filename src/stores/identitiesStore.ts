@@ -15,7 +15,6 @@ import {
   type AuthchainBackends,
   describeChainLinks,
   identityBehindAuthKey,
-  identityCoin,
   type IdentityState,
   type IdentityStatus,
   type DescribedLink,
@@ -33,7 +32,7 @@ import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/ut
 import type { TransactionHistoryItem } from "mainnet-js"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
-import { formatTokenAmountWithSymbol, truncateHash } from "src/utils/utils"
+import { truncateHash } from "src/utils/utils"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -164,6 +163,15 @@ export const useIdentitiesStore = defineStore('identities', () => {
   function takeLearnRequest() {
     const requested = learnRequested;
     learnRequested = false;
+    return requested;
+  }
+  // The token list points at one identity's card rather than at the page: an AuthKey row is a
+  // pointer to what the identities page already does, so it lands where the work happens.
+  let cardRequested: { category: string; action?: string } | undefined;
+  function requestIdentityCard(category: string, action?: string) { cardRequested = { category, ...(action ? { action } : {}) }; }
+  function takeCardRequest() {
+    const requested = cardRequested;
+    cardRequested = undefined;
     return requested;
   }
 
@@ -574,15 +582,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return heldStatuses.includes(identity.status) ? identity : undefined;
   }
 
-  // What the token list says beside such a token: the balance shown leaves the reserve out, and
-  // the identities page is where the identity is managed
+  // What the token list says beside such a token. Holding the identity's UTXO and holding its
+  // AuthKey are both control, and which one it is belongs on the card rather than in a row; so
+  // does the reserve, which the row's balance already leaves out.
   function heldIdentityLine(category: string): string | undefined {
-    const identity = heldIdentityOf(category);
-    if (!identity) return undefined;
-    const reserve = identityCoin(identity)?.token?.amount;
-    if (!reserve) return t('tokenItem.identity.held');
-    const amount = formatTokenAmountWithSymbol(reserve, mainStore.bcmrRegistries?.[category]);
-    return t('tokenItem.identity.heldWithReserve', { amount });
+    return heldIdentityOf(category) ? t('tokenItem.identity.held') : undefined;
   }
 
   // What the dapp signing paths ask before refusing a request that spends a held back coin: the
@@ -685,6 +689,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     takeAnnouncement,
     requestLearn,
     takeLearnRequest,
+    requestIdentityCard,
+    takeCardRequest,
     identityPublicationTxids,
     identities,
     tokenIdentities,

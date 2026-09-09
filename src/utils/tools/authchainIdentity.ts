@@ -55,9 +55,9 @@ export interface IdentityState {
   recentLinks?: string[];
 }
 
-// The identity output as the wallet knows it best: its own coin when it holds it, the chain's
+// The identity output as the wallet knows it best: its own UTXO when it holds it, the chain's
 // report of it otherwise, and nothing for an identity that did not resolve
-export function identityCoin(identity: IdentityState): Utxo | IdentityOutput | undefined {
+export function identityUtxoOf(identity: IdentityState): Utxo | IdentityOutput | undefined {
   return identity.authUtxo ?? identity.identityOutput;
 }
 

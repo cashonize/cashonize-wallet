@@ -27,7 +27,7 @@
   import {
     CASHTOKENS_STUDIO_URL,
     filledLocations,
-    identityCoin,
+    identityUtxoOf,
     identityOutput,
     locationBudgetLeft,
     reserveAddOutputs,
@@ -98,24 +98,30 @@
   });
 
   // what the identity output holds in BCH: the coin's own word when it is here, the chain's otherwise
-  const identityValue = computed(() => identityCoin(props.identity)?.satoshis);
+  const identityValue = computed(() => identityUtxoOf(props.identity)?.satoshis);
 
   // What the identity output carries alongside the authority to update the metadata: a token
   // supply held back from circulation, an NFT that mints the category's tokens, or both at once
   const carries = computed(() => {
-    const token = identityCoin(props.identity)?.token;
+    const token = identityUtxoOf(props.identity)?.token;
     if (!token) return undefined;
     const lines: string[] = [];
-    // the largest amount a category can hold is the AuthGuard standard's mark for a supply with
-    // no ceiling, and reads as that rather than as the number
-    if (token.amount === maxTokenSupply) {
-      lines.push(t('identities.reserve.supplyOpenEnded'));
+    // A genesis of the largest amount a category can hold is the AuthGuard standard's mark for a
+    // supply with no ceiling, which Studio mints for every token: the reserve is then nineteen
+    // digits on every card and what the creator can read is what has left it.
+    if (props.identity.genesisSupply === maxTokenSupply) {
+      const issued = maxTokenSupply - token.amount;
+      lines.push(issued > 0n
+        ? t('identities.reserve.supplyOpenEndedIssued', { amount: formatTokenAmountWithSymbol(issued, identityMetadata.value) })
+        : t('identities.reserve.supplyOpenEnded'));
     } else if (token.amount) {
       const amount = formatTokenAmountWithSymbol(token.amount, identityMetadata.value);
       lines.push(t('identities.reserve.supply', { amount }));
     }
     if (token.nft?.capability === 'minting') lines.push(t('identities.reserve.mintingNft'));
-    else if (token.nft) lines.push(t('identities.reserve.nft'));
+    // a guarded identity's plain NFT is the reserve marker riding on the covenant output, which
+    // is nothing the holder acts on; the AuthKey line above names the NFT that matters
+    else if (token.nft && !props.identity.guardedBy) lines.push(t('identities.reserve.nft'));
     return lines;
   });
   const carriesLine = computed(() => carries.value?.join(' · '));
@@ -142,7 +148,7 @@
   });
 
   const tokenDecimals = computed(() => identityMetadata.value?.token?.decimals ?? 0);
-  const reserve = computed(() => identityCoin(props.identity)?.token?.amount ?? 0n);
+  const reserve = computed(() => identityUtxoOf(props.identity)?.token?.amount ?? 0n);
   // the raw form for the Max button, since an amount field takes no grouping; every amount the
   // card only shows is grouped and carries its symbol
   const reserveInput = computed(() => formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value));
@@ -173,25 +179,22 @@
   });
 
   // One publication is one file at several locations, so the closed card says one thing about it
-  // rather than a badge each: what the publisher has to act on outranks what only reports.
-  const summaryOrder: PublicationUriStatus[] = ['changed', 'verified', 'restricted', 'unreachable'];
+  // rather than a badge each: what the publisher has to act on outranks what only reports. A
+  // restricted gateway sits on every Studio publication and can never verify, so it is not
+  // counted at all, and is the answer only when there is nothing else to say.
+  const summaryOrder: PublicationUriStatus[] = ['changed', 'verified', 'unreachable'];
   const publicationSummary = computed(() => {
     const rows = publicationRows.value.filter(row => row.status);
-    const status = summaryOrder.find(candidate => rows.some(row => row.status === candidate));
-    if (!status) return undefined;
-    const matching = rows.filter(row => row.status === status);
-    const text = matching.length === rows.length
-      ? matching[0]!.statusText
-      : t('identities.publication.ofLocations', { status: matching[0]!.statusText, matching: matching.length, total: rows.length });
-    return { status, text };
+    if (!rows.length) return undefined;
+    const reachable = rows.filter(row => row.status !== 'restricted');
+    const status = summaryOrder.find(candidate => reachable.some(row => row.status === candidate)) ?? 'restricted';
+    return { status, text: t(`identities.publication.summary.${status}`) };
   });
 
-  // A location that did not answer is not the identity's problem while another serves the file,
-  // and a restricted gateway never is: those read as a note rather than as a fault.
+  // A location that did not answer may answer next time, and a restricted gateway is not the
+  // publication's problem: neither is the publisher's to act on, so neither reads as a fault.
   function badgeTone(status: PublicationUriStatus) {
-    if (status === 'verified' || status === 'changed') return status;
-    if (status === 'restricted') return 'muted';
-    return publicationRows.value.some(row => row.status === 'verified') ? 'muted' : 'unreachable';
+    return status === 'verified' || status === 'changed' ? status : 'muted';
   }
 
   // A location serving something other than what was published is not just a warning on an
@@ -470,16 +473,6 @@
           <span class="description">{{ t('identities.authbaseLabel') }}</span>
           <span class="mono">{{ shortHash(identity.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
         </div>
-        <!-- shown whether or not the AuthKey is here: a watched identity's says which NFT would give control -->
-        <div
-          v-if="identity.guardedBy"
-          class="copy-target"
-          :title="identity.guardedBy"
-          @click.stop="copyToClipboard(identity.guardedBy)"
-        >
-          <span class="description">{{ t('identities.key.categoryLabel') }}</span>
-          <span class="mono">{{ shortHash(identity.guardedBy) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
-        </div>
       </div>
       <!-- .stop so the status popup does not also toggle the card -->
       <span class="identity-state" @click.stop>
@@ -538,6 +531,16 @@
         </InfoPopup>
       </span>
       <span class="mono">{{ shortHash(location.text) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+    </div>
+    <!-- shown whether or not the AuthKey is here: a watched identity's says which NFT would give control -->
+    <div
+      v-if="identity.guardedBy"
+      class="copy-target"
+      :title="identity.guardedBy"
+      @click="copyToClipboard(identity.guardedBy)"
+    >
+      <span class="description">{{ t('identities.key.categoryLabel') }}</span>
+      <span class="mono">{{ shortHash(identity.guardedBy) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
     </div>
 
     <div class="section">
@@ -598,7 +601,9 @@
       </template>
       <template v-if="identity.status === 'heldViaKey'">
         <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" style="white-space: nowrap;">
-          <q-icon name="open_in_new" size="18px" />
+          <!-- a material glyph is padded inside its 24 unit box, so it needs the larger size to
+               draw level with the Feather icons beside it -->
+          <q-icon name="open_in_new" size="20px" />
           {{ t('identities.key.manageOnStudio') }}
         </a>
         <span @click="toggleAction('transferKey')" style="white-space: nowrap;">
@@ -607,7 +612,7 @@
         </span>
       </template>
       <span @click="historyOpen = !historyOpen" style="white-space: nowrap;">
-        <q-icon name="history" size="18px" />
+        <q-icon name="history" size="20px" />
         {{ historyLabel }}
       </span>
       <q-icon name="more_vert" size="22px" class="identity-menu-trigger">

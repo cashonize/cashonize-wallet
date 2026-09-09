@@ -279,8 +279,14 @@
     },
     "authKey": {
       "name": "AuthKey",
-      "nameFor": "AuthKey de {names}",
-      "manage": "gérer"
+      "manage": "gérer",
+      "controls": "Contrôle {names}",
+      "transfer": "transférer l'AuthKey",
+      "infoAction": "Infos sur l'AuthKey",
+      "info": "Cette AuthKey contrôle {count} identité. La détenir est ce qui la contrôle : son UTXO est dans un contrat qui ne le libère qu'à qui présente ce NFT. | Cette AuthKey contrôle {count} identités. La détenir est ce qui les contrôle : leurs UTXO sont dans un contrat qui ne les libère qu'à qui présente ce NFT.",
+      "guardAddress": "Adresse du contrat :",
+      "heldBack": "Tenue à l'écart des envois ordinaires depuis cette application. D'autres portefeuilles sur la même phrase de récupération peuvent toujours la dépenser.",
+      "andMore": "et {count} de plus"
     },
     "visibility": {
       "hideToken": "Masquer le token",
@@ -435,8 +441,7 @@
     },
     "heldBack": "Retenu, écarté de la sélection des pièces",
     "identity": {
-      "held": "Ce portefeuille détient l'identité de ce token.",
-      "heldWithReserve": "Ce portefeuille détient l'identité de ce token, avec {amount} en réserve.",
+      "held": "Ce portefeuille contrôle l'identité de ce token.",
       "manage": "gérer l'identité"
     }
   },
@@ -1594,7 +1599,9 @@
     "detected": {
       "foundAutomatically": "trouvée automatiquement",
       "foundAutomaticallyHelp": "Les clés de ce portefeuille ont créé cette identité ou publié ses métadonnées, elle a donc été trouvée dans son propre historique et son UTXO est maintenant écarté de la sélection des pièces. Retirez-la de la liste si vous préférez qu'il n'en soit pas ainsi.",
-      "foundViaKeyHelp": "Trouvée parce que ce portefeuille détient l'AuthKey de cette identité. L'AuthKey est tenue à l'écart de la sélection de pièces, donc aucun envoi ordinaire depuis cette application ne peut la dépenser."
+      "foundViaKeyHelp": "Trouvée parce que ce portefeuille détient l'AuthKey de cette identité. L'AuthKey est tenue à l'écart de la sélection de pièces, donc aucun envoi ordinaire depuis cette application ne peut la dépenser.",
+      "allFoundAutomatically": "toutes trouvées automatiquement",
+      "allFoundAutomaticallyHelp": "Les clés de ce portefeuille ont créé ces identités ou publié leurs métadonnées, ou ce portefeuille détient l'AuthKey qui les contrôle. Leurs UTXO d'identité, ou les AuthKeys qui les contrôlent, sont tenus à l'écart des envois ordinaires ; retirez-en une de la liste si vous préférez qu'il en soit autrement."
     },
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
     "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
@@ -1656,7 +1663,8 @@
       "mintingNftLink": "voir dans la liste des tokens",
       "supplyOpenEnded": "Offre réservée : illimitée",
       "genesisSupply": "Offre à la genèse : {amount}",
-      "genesisSupplyOpenEnded": "Offre à la genèse : illimitée"
+      "genesisSupplyOpenEnded": "Offre à la genèse : illimitée",
+      "supplyOpenEndedIssued": "Réserve : illimitée · {amount} émis"
     },
     "key": {
       "action": "transférer l'AuthKey",
@@ -1699,7 +1707,12 @@
         "restricted": "Cette passerelle ne sert que ses propres applications et répond aux autres par une erreur, donc aucun détenteur ne peut y récupérer les métadonnées. Le fichier lui-même n'est pas en cause ; un autre emplacement peut le servir."
       },
       "unconfirmed": "non confirmée",
-      "ofLocations": "{status} ({matching} emplacements sur {total})"
+      "summary": {
+        "verified": "métadonnées à jour",
+        "changed": "modifié depuis la publication",
+        "unreachable": "les métadonnées n'ont pas pu être récupérées",
+        "restricted": "aucun emplacement public"
+      }
     },
     "history": {
       "title": "Historique de cette identité",
