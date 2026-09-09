@@ -1,6 +1,6 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, type Utxo, type TransactionHistoryItem } from "mainnet-js"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, type Utxo, type TransactionHistoryItem } from "mainnet-js"
 import type { BcmrTokenMetadata, ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
@@ -229,6 +229,20 @@ export function formatTokenAmountWithSymbol(
   const amount = formatTokenAmount(baseUnits, metadata?.token?.decimals);
   const symbol = metadata?.token?.symbol ?? t('common.tokenUnit', amount === '1' ? 1 : 2);
   return `${amount} ${symbol}`.trim();
+}
+
+// The rate a dapp's sign dialog shows the fiat impact with: freshly fetched, or the last one the
+// wallet saw when the provider does not answer. Undefined when there is neither, and a request the
+// user cannot see the fiat impact of is refused rather than shown without it.
+export async function currentExchangeRate(
+  currency: keyof typeof CurrencyShortNames,
+  lastKnown: number | undefined,
+): Promise<number | undefined> {
+  try {
+    return await convert(1, "bch", currency);
+  } catch {
+    return lastKnown;
+  }
 }
 
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
