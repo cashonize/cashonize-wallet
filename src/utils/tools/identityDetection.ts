@@ -6,7 +6,8 @@
 // Two markers, which do not overlap. A genesis is a transaction that spent a vout-0 outpoint of
 // this history and carries token outputs of the category that outpoint's txid becomes: a genesis
 // names its own authbase by construction. A publication is a transaction carrying the BCMR
-// output, which catches identities received from elsewhere and first updated here.
+// output, which catches identities received from elsewhere and first updated here. Each is then
+// followed forward to the link the chain has got to.
 
 import { binToHex, decodeTransaction, hexToBin } from "@bitauth/libauth";
 import type { TransactionHistoryItem } from "mainnet-js";
@@ -16,8 +17,9 @@ import { opReturnHex } from "src/utils/history/txDirection";
 export type IdentityMarker = 'genesis' | 'publication';
 
 export interface DetectedIdentity {
-  // The transaction whose output 0 is the identity output. Holding that coin is holding the
-  // identity, so it is what decides whether this concerns the wallet at all.
+  // The transaction whose output 0 is the identity output, as far down the chain as this history
+  // reaches. Holding that coin is holding the identity, so it is what decides whether this
+  // concerns the wallet at all.
   authheadTxid: string;
   // Named when the marker names it: a genesis names its authbase, and a token-carrying
   // publication names its category on its identity output. A BCH-only chain arrives unnamed and
@@ -39,14 +41,36 @@ export interface DetectedIdentities {
 
 export type RawTransactionsFetcher = (hashes: string[]) => Promise<Map<string, string>>;
 
-// A history item carries no input outpoints, so a genesis is confirmed from the raw transaction,
-// which the history load left in the electrum provider's cache
-function spendsGenesisInput(rawHex: string, category: string) {
-  const transaction = decodeTransaction(hexToBin(rawHex));
-  if (typeof transaction === "string") return false;
-  return transaction.inputs.some(
-    input => input.outpointIndex === 0 && binToHex(input.outpointTransactionHash) === category
-  );
+// Which transaction spent each output 0, over the transactions that can be authchain links. A
+// history item carries no input outpoints, so this is read from the raw transactions, which the
+// history load left in the electrum provider's cache. One index answers both questions: whether a
+// candidate spent the outpoint its category is named after, which is what makes it a genesis, and
+// where a chain went next.
+function indexOutput0Spends(rawTransactions: Map<string, string>) {
+  const spenders = new Map<string, string>();
+  for (const [txid, rawHex] of rawTransactions) {
+    const transaction = decodeTransaction(hexToBin(rawHex));
+    if (typeof transaction === "string") continue;
+    for (const input of transaction.inputs) {
+      if (input.outpointIndex === 0) spenders.set(binToHex(input.outpointTransactionHash), txid);
+    }
+  }
+  return spenders;
+}
+
+// A marker fires on the link that carries it, which is rarely the chain's last one: a mint, a
+// transfer or a move into the reserve continues the chain at output 0 and publishes nothing.
+// Whatever spends an identity output continues the chain, deliberately or not, so the spends are
+// the authchain and the walk needs no evidence beyond the marker it starts from; and a
+// transaction cannot spend an output it creates, so it terminates.
+function advanceToAuthhead(marked: string, spenders: Map<string, string>) {
+  let authhead = marked;
+  let next = spenders.get(authhead);
+  while (next !== undefined) {
+    authhead = next;
+    next = spenders.get(authhead);
+  }
+  return authhead;
 }
 
 // The identity output of any authchain transaction is its output 0, and a token riding on it
@@ -72,31 +96,54 @@ export async function detectIdentities(
   const detected = new Map<string, DetectedIdentity>();
   const publicationTxids: string[] = [];
   const genesisCandidates: { transaction: TransactionHistoryItem, category: string }[] = [];
+  // The categories the markers name, which is what makes another transaction of this history
+  // worth decoding: the links of those chains carry one of them on their identity output.
+  const markedCategories: string[] = [];
   for (const transaction of history) {
     const publishes = transaction.outputs.some(output => opReturnHex(output)?.startsWith(BCMR_OUTPUT_PREFIX));
     if (publishes) publicationTxids.push(transaction.hash);
+    const identityCategory = transaction.outputs[0]?.token?.category;
+    if (publishes && identityCategory) markedCategories.push(identityCategory);
 
     const createdCategory = transaction.outputs
       .map(output => output.token?.category)
       .find(category => category !== undefined && historyTxids.includes(category));
     if (createdCategory) {
       genesisCandidates.push({ transaction, category: createdCategory });
+      markedCategories.push(createdCategory);
       continue;
     }
     if (publishes) detected.set(transaction.hash, publicationOf(transaction));
   }
 
-  if (genesisCandidates.length) {
-    const rawTransactions = await fetchRawTransactions(genesisCandidates.map(candidate => candidate.transaction.hash));
-    for (const { transaction, category } of genesisCandidates) {
-      const rawHex = rawTransactions.get(transaction.hash);
-      if (rawHex && spendsGenesisInput(rawHex, category)) {
-        detected.set(transaction.hash, { authheadTxid: transaction.hash, category, marker: 'genesis' });
-        continue;
-      }
-      // a token sent onward is not a token created, but a publication on the way still counts
-      if (publicationTxids.includes(transaction.hash)) detected.set(transaction.hash, publicationOf(transaction));
-    }
+  // The genesis candidates, whose inputs decide the marker, and every link this history holds of
+  // a marked chain, whose inputs are what the walk follows. The history at large is not decoded:
+  // a chain no marker names has nothing here to walk.
+  const toDecode = genesisCandidates.map(candidate => candidate.transaction.hash);
+  for (const transaction of history) {
+    const identityCategory = transaction.outputs[0]?.token?.category;
+    if (!identityCategory || !markedCategories.includes(identityCategory)) continue;
+    if (!toDecode.includes(transaction.hash)) toDecode.push(transaction.hash);
   }
-  return { identities: [...detected.values()], publicationTxids };
+  let spenders = new Map<string, string>();
+  if (toDecode.length) spenders = indexOutput0Spends(await fetchRawTransactions(toDecode));
+
+  for (const { transaction, category } of genesisCandidates) {
+    if (spenders.get(category) === transaction.hash) {
+      detected.set(transaction.hash, { authheadTxid: transaction.hash, category, marker: 'genesis' });
+      continue;
+    }
+    // a token sent onward is not a token created, but a publication on the way still counts
+    if (publicationTxids.includes(transaction.hash)) detected.set(transaction.hash, publicationOf(transaction));
+  }
+
+  // A chain this history holds several markers for, a genesis and the publications after it,
+  // walks to one authhead; the genesis is the more informative marker, so it is the one kept.
+  const identities = new Map<string, DetectedIdentity>();
+  for (const identity of detected.values()) {
+    const authheadTxid = advanceToAuthhead(identity.authheadTxid, spenders);
+    if (identities.get(authheadTxid)?.marker === 'genesis') continue;
+    identities.set(authheadTxid, { ...identity, authheadTxid });
+  }
+  return { identities: [...identities.values()], publicationTxids };
 }

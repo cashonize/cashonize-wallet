@@ -90,7 +90,13 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
   indexer has seen it; the identities page's Add new, behind a user option, does the same
   for a picked UTXO.
 - **Found in the wallet's own history.** The history the wallet loads in full at open is
-  read for two markers: a genesis these keys made, and a publication these keys made. A
+  read for two markers: a genesis these keys made, and a publication these keys made. Each
+  marker fires on the link that carries it, which is rarely the chain's last: a mint, a
+  transfer or a move into the reserve continues the chain at output 0 and publishes
+  nothing. So each is followed forward along the output-0 spends the history holds, which
+  is the authchain itself, and it is the link that walk ends at that is matched against the
+  wallet's coins. Only the links of a marked chain are decoded, never the history at large,
+  so a chain that leaves this history mid-way is followed as far as it reaches. A
   publication names its chain by the token on the identity output; when that output carries
   none, an identity received by transfer say, or one that is not a token's, the chain is
   named from the registry the publication commits to: the file is fetched from the first
