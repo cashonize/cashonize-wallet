@@ -120,7 +120,7 @@ An identity can instead keep its authhead in an AuthGuard covenant, with the aut
 Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one per network). The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
 
 ### Portfolio Integrations
-The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. For now every dapp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups, data on held NFTs, or OP_RETURN protocol markers read off the wallet's electrum history) and is documented in each module's header comment; why the history is the source, and what each protocol announces: `docs/contract-asset-discovery.md`.
+The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. A protocol is described rather than implemented where it can be: `utils/contracts/` holds the manifest format and the runner, and `builtinContracts.json` the bundle the wallet ships, in the shape a user's own bundle has. A manifest names where positions sit, how one is read, and what proves one is the wallet's, and it is inert data throughout. What the format cannot say yet keeps its `utils/defi/` module, and a held asset's backing is BCMR's job rather than a manifest's. Which protocol is which and why: `docs/contract-integrations.md`; why the wallet's own history is the source for announcements: `docs/contract-asset-discovery.md`.
 
 ### Wallet Tools
 The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the key that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. Automatic detection is one of two paths that reserve what the user never listed, reading the wallet's own chain history for identities these keys made; the other follows the identities of the tokens the wallet holds, every one when its setting is on and those of held NFTs shaped like a Studio key regardless, and lists one whose UTXO or key turns out to be here. Removing an identity is remembered so neither lists it again; transferring one away is not.
@@ -141,7 +141,7 @@ src/components/
 └── general/           # Reusable components (alertDialog, seedPhraseInput, TokenIcon, ...)
 ```
 
-`src/utils/` is grouped into subfolders the same way (`dapp/`, `defi/`, `wallet/`, ...).
+`src/utils/` is grouped into subfolders the same way (`contracts/`, `dapp/`, `defi/`, `wallet/`, ...).
 
 ### Validation
 Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect params, API responses, BCMR data).
