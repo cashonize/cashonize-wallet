@@ -1,0 +1,54 @@
+{
+  "format": 1,
+  "name": "Cashonize built-in contracts",
+  "description": "Protocols the wallet finds out of the box. A bundle a user adds has this same shape, so these double as the worked examples to copy from.",
+  "contracts": [
+    {
+      "id": "badgers-stake",
+      "name": "Badgers.cash stake",
+      "description": "BCH locked to mint BadgerCoins, released once the lock has aged past its length. Every user's lock sits at one contract address with the owner written into its NFT.",
+      "ownership": "encumbered",
+      "find": {
+        "kind": "address",
+        "address": "bitcoincash:rvgcl3xk6nwqlngkk09e7g67x5vxs57jv6v2q4qm4ct5yv4d3ppfgdzhpuxn8",
+        "token": {
+          "category": "242f6ecedb404c743477e35b09733a56cacae34f3109d5cee1cbc1d5630affd7",
+          "capability": "mutable"
+        },
+        "commitment": {
+          "bytes": 40,
+          "fields": {
+            "payoutPkh": { "at": 0, "bytes": 20, "as": "hex" },
+            "stakeBlocks": { "at": 38, "bytes": 2, "as": "uint16le" }
+          }
+        }
+      },
+      "owner": { "kind": "field", "field": "payoutPkh" }
+    },
+    {
+      "id": "hodl-vault",
+      "name": "hodl lock",
+      "description": "BCH locked until a block height or timestamp. The funding transaction announces the contract's address and locktime but names no owner, so ownership is proved by rebuilding the contract from the wallet's own keys.",
+      "ownership": "encumbered",
+      "find": {
+        "kind": "announcement",
+        "output": 0,
+        "prefix": "6a04686f646c",
+        "pushes": 3,
+        "fields": {
+          "announcedAddress": { "push": 1, "as": "utf8word" },
+          "locktime": { "push": 2, "as": "utf8int", "min": 1, "max": 4294967295 }
+        }
+      },
+      "script": {
+        "template": "{locktime}b17576a914{ownerPkh}88ac",
+        "addressType": "p2sh20",
+        "fields": {
+          "locktime": { "push": true, "as": "vmnumber" },
+          "ownerPkh": { "bytes": 20, "as": "hex" }
+        }
+      },
+      "owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedAddress" }
+    }
+  ]
+}
