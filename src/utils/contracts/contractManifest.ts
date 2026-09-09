@@ -10,7 +10,7 @@
 // whole of what it can say.
 
 import { z } from "zod";
-import { binToHex, hexToBin, vmNumberToBigInt } from "@bitauth/libauth";
+import { binToHex, decodeBase58Address, decodeCashAddress, hexToBin, vmNumberToBigInt } from "@bitauth/libauth";
 
 const identifier = z.string().min(1).max(64);
 const hexString = z.string().regex(/^([0-9a-fA-F]{2})+$/);
@@ -28,7 +28,9 @@ const byteFieldSchema = z.object({
 const pushFieldSchema = z.object({
   push: z.number().int().min(0).max(15),
   // utf8word takes the first space-separated word, since creating software appends a version
-  as: z.enum(['hex', 'utf8', 'utf8word', 'utf8int']),
+  // addressHash reads a p2sh address as the hash it commits to, so which encoding the
+  // announcing software wrote it in stops mattering
+  as: z.enum(['hex', 'utf8', 'utf8word', 'utf8int', 'addressHash']),
   min: z.number().int().optional(),
   max: z.number().int().optional(),
 });
@@ -125,6 +127,21 @@ export function readCommitment(
   return fields;
 }
 
+// A p2sh address as its hash, written as a legacy base58 address, a cashaddr, or a cashaddr
+// without its prefix, which are the three forms creating software uses
+function addressToHash(address: string) {
+  const named = address.split(" ")[0]!;
+  if (named.startsWith("3")) {
+    const decoded = decodeBase58Address(named);
+    // 5 is the P2SH version byte of legacy mainnet addresses
+    if (typeof decoded === "string" || decoded.version !== 5) return undefined;
+    return binToHex(decoded.payload);
+  }
+  const decoded = decodeCashAddress(named.includes(":") ? named : "bitcoincash:" + named);
+  if (typeof decoded === "string" || decoded.type !== "p2sh" || decoded.payload.length !== 20) return undefined;
+  return binToHex(decoded.payload);
+}
+
 // Read one length-prefixed push, as OP_PUSHBYTES_1 through OP_PUSHBYTES_75 write it
 function readPush(script: Uint8Array, offset: number) {
   const length = script[offset];
@@ -169,6 +186,7 @@ export function readAnnouncement(
       const text = new TextDecoder().decode(chunk);
       if (field.as === 'utf8') value = text;
       else if (field.as === 'utf8word') value = text.split(" ")[0]!;
+      else if (field.as === 'addressHash') value = addressToHash(text);
       else value = /^\d+$/.test(text) ? Number(text) : undefined;
     }
     if (value === undefined || !bounded(value, field)) return undefined;

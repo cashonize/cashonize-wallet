@@ -10,7 +10,6 @@
   import { formatFiatAmount, formatTokenAmount, satsToBch, formatTimeUntil, formatReadableDate } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
-  import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
@@ -67,6 +66,8 @@
   const HODL_COLOR = '#20c5f8'
   // blocks BCH aims for per day, for turning a wait in blocks into a rough number of days
   const BLOCKS_PER_DAY = 144
+  // nLockTime values below this are block heights, above it unix timestamps
+  const LOCKTIME_TIMESTAMP_THRESHOLD = 500_000_000
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
 
   const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
@@ -250,7 +251,7 @@
       id: `${lock.txid}:${lock.vout}`,
       bchValue: satsToBch(lock.satoshis),
       confirmedAtHeight: lock.confirmedAtHeight,
-      stakeBlocks: lock.stakeBlocks
+      stakeBlocks: Number(lock.fields.stakeBlocks)
     }))
   })
 
@@ -259,9 +260,9 @@
   // counts towards the total
   const hodlLocks = computed(() => {
     return (store.hodlContracts ?? []).map(contract => ({
-      id: contract.scriptHash,
+      id: contract.address,
       bchValue: satsToBch(contract.satoshis),
-      locktime: contract.locktime
+      locktime: Number(contract.fields.locktime)
     }))
   })
 

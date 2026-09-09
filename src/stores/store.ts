@@ -62,9 +62,10 @@ import {
   publicKeyHashFromAddress,
   type CauldronPool
 } from "src/utils/defi/cauldronPools"
-import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
+import { runManifest, type ContractPosition } from "src/utils/contracts/runManifest"
+import { builtinManifest } from "src/utils/contracts/builtins"
 import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "src/utils/defi/tapswapListings"
-import { hodlContractsFromHistory, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
+
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import {
   loadAddressMarks,
@@ -176,14 +177,14 @@ export const useStore = defineStore('store', () => {
   // Cauldron liquidity pools owned by the wallet, null until the portfolio view looks them up
   const cauldronPools = ref<CauldronPool[] | null>(null);
   // BCH locked in the Badgers.cash contract, null until the portfolio view looks it up
-  const badgerLocks = ref<BadgerLock[] | null>(null);
+  const badgerLocks = ref<ContractPosition[] | null>(null);
   // Assets listed for sale on TapSwap, null until the portfolio view looks them up
   const tapswapListings = ref<TapswapListing[] | null>(null);
   // Metadata of the listed assets. They are not held by the wallet, so like the dapp dialogs'
   // unverified metadata this lives in its own object rather than in bcmrRegistries.
   const tapswapRegistries = ref<Record<string, BcmrTokenMetadata>>({});
   // BCH locked in hodl contracts, null until the portfolio view looks it up
-  const hodlContracts = ref<HodlContract[] | null>(null);
+  const hodlContracts = ref<ContractPosition[] | null>(null);
   // Why the last TapSwap and hodl lookup failed, shown inline in the portfolio view
   const announcedAssetsError = ref<string | undefined>(undefined);
   const exchangeRate = ref<number | undefined>(undefined);
@@ -1241,7 +1242,13 @@ export const useStore = defineStore('store', () => {
     }
     try {
       const initialization = currentInitialization;
-      const locks = await fetchBadgerLocks(wallet.value.provider, walletPublicKeyHashes());
+      const locks = await runManifest(builtinManifest("badgers-stake"), {
+        provider: wallet.value.provider,
+        ownerPkhs: walletPublicKeyHashes(),
+        // an address manifest names where to look, so it reads no history
+        history: [],
+        networkPrefix: wallet.value.networkPrefix,
+      });
       if (initialization !== currentInitialization) return;
       badgerLocks.value = locks;
     } catch (error) {
@@ -1273,8 +1280,12 @@ export const useStore = defineStore('store', () => {
       if (initialization !== currentInitialization) return;
       tapswapListings.value = listings;
 
-      const hodlCandidates = hodlContractsFromHistory(history, ownerPkhs);
-      const contracts = await fetchHodlContractStates(wallet.value.provider, hodlCandidates);
+      const contracts = await runManifest(builtinManifest("hodl-vault"), {
+        provider: wallet.value.provider,
+        ownerPkhs,
+        history,
+        networkPrefix: wallet.value.networkPrefix,
+      });
       if (initialization !== currentInitialization) return;
       hodlContracts.value = contracts;
 
@@ -1343,7 +1354,6 @@ export const useStore = defineStore('store', () => {
     const registries = await fetchNftMetadataFromIndexer(category, commitment, tokenMetadataIndexer.value, bcmrRegistries.value);
     bcmrRegistries.value = registries;
   }
-
 
   async function parseNftCommitment(categoryId: string, utxo: Utxo) {
     const metadata = bcmrRegistries.value?.[categoryId];

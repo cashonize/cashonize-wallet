@@ -104,5 +104,5 @@ otherwise decide how long a wallet open takes.
 - `src/utils/contracts/runManifest.ts` — running one against a wallet.
 - `src/utils/contracts/builtinContracts.json` — the bundle the wallet ships, in the same shape a
   user's bundle has.
-- `src/utils/defi/` — the integrations still written as modules.
+- `src/utils/defi/` — the integrations still written as modules: Cauldron, TapSwap, Emerald.
 - `src/parsing/extensions/` — the ones carried by BCMR instead.

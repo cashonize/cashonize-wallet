@@ -8,9 +8,7 @@ import {
   readAnnouncement,
   readCommitment,
 } from '../src/utils/contracts/contractManifest'
-import { contractAddress } from '../src/utils/contracts/redeemScript'
-import { parseHodlAnnouncement, hodlContractsFromHistory } from '../src/utils/defi/hodlContracts'
-import { historyItem, opReturnOutput, p2pkhOutput } from './mocks/history.mocks'
+import { contractAddress, scriptHash } from '../src/utils/contracts/redeemScript'
 
 const bundle = ContractBundleSchema.parse(builtinContracts)
 const manifest = (id: string) => {
@@ -41,7 +39,7 @@ describe('the built-in bundle', () => {
 })
 
 // The Badgers lock: one contract address for everyone, the owner written into the lock's NFT.
-// The layout is the one badgersStake.ts reads, expressed as data instead.
+// The layout the lock is read with, which is the whole of what the wallet needs to know.
 describe('badgers-stake', () => {
   const badgers = manifest('badgers-stake')
   const layout = badgers.find.kind === 'address' ? badgers.find.commitment! : undefined!
@@ -65,24 +63,63 @@ describe('hodl-vault', () => {
   const hodl = manifest('hodl-vault')
   const find = hodl.find.kind === 'announcement' ? hodl.find : undefined!
 
-  // the manifest and the module have to read the same announcement the same way, or the manifest
-  // is not a description of the contract the wallet already finds
-  it('reads an announcement exactly as hodlContracts.ts does', () => {
-    const { address, opReturn } = hodlAnnouncement(800_000, ownerPkh)
+  it('reads an announcement into the contract it names and its locktime', () => {
+    const { script, opReturn } = hodlAnnouncement(800_000, ownerPkh)
 
     const fromManifest = readAnnouncement(opReturn, find)
-    const fromModule = parseHodlAnnouncement(opReturn)
 
-    expect(fromManifest).toEqual({ announcedAddress: address, locktime: 800_000 })
-    expect(fromModule?.locktime).toBe(fromManifest?.locktime)
+    expect(fromManifest).toEqual({ announcedScriptHash: scriptHash(script, 'p2sh20'), locktime: 800_000 })
   })
 
   // the plugin's address chunk is "<address> <version>", so the reading takes the first word
   it('takes the address off a chunk carrying a version suffix', () => {
-    const { address } = hodlAnnouncement(800_000, ownerPkh)
+    const { address, script } = hodlAnnouncement(800_000, ownerPkh)
     const opReturn = '6a04686f646c' + push(utf8ToBin(`${address} 2`)) + push(utf8ToBin('800000'))
 
-    expect(readAnnouncement(opReturn, find)?.announcedAddress).toBe(address)
+    expect(readAnnouncement(opReturn, find)?.announcedScriptHash).toBe(scriptHash(script, 'p2sh20'))
+  })
+
+  // Real mainnet announcements, the fixtures the hodl module was tested against. The plugin writes
+  // the contract address in three encodings, so the manifest reads the hash it commits to rather
+  // than the string: comparing strings would only ever have matched the middle one.
+  describe('the three encodings creating software writes', () => {
+    const legacy = '6a04686f646c243332636757766b314b34326262333232695379784572514c43657453736f72637943203106373135353537'
+    const cashaddr = '6a04686f646c36626974636f696e636173683a707068307878357563386c7068756a6d73726a7965683565737963667a63337776356572737565766e3906383836363632'
+
+    it('reads a legacy base58 address with a version suffix', () => {
+      expect(readAnnouncement(legacy, find)).toEqual({
+        announcedScriptHash: '0a2642fad2942bc98c6e2c4999505c7d42a4fbf0', locktime: 715_557,
+      })
+    })
+
+    it('reads a prefixed cashaddr', () => {
+      expect(readAnnouncement(cashaddr, find)).toEqual({
+        announcedScriptHash: '6ef31a9cc1fe1bf25b80e44cde99813091622e65', locktime: 886_662,
+      })
+    })
+
+    it('reads a cashaddr with its prefix stripped', () => {
+      const prefixless = cashaddr.replace('36626974636f696e636173683a', '2a')
+
+      expect(readAnnouncement(prefixless, find)).toEqual({
+        announcedScriptHash: '6ef31a9cc1fe1bf25b80e44cde99813091622e65', locktime: 886_662,
+      })
+    })
+
+    // the locktime is a decimal string, so anything else in that push is not this announcement
+    it('refuses a malformed locktime', () => {
+      const bad = cashaddr.replace('06383836363632', '0631323334F536')
+
+      expect(readAnnouncement(bad, find)).toBeUndefined()
+    })
+
+    // the wallet that owns the second announcement, rebuilt from its key
+    it('rebuilds the real announced contract from its owner key', () => {
+      const fields = readAnnouncement(cashaddr, find)!
+      const built = buildScript(hodl.script!, { locktime: fields.locktime!, ownerPkh })!
+
+      expect(scriptHash(built, 'p2sh20')).toBe(fields.announcedScriptHash)
+    })
   })
 
   it('refuses an announcement of another protocol', () => {
@@ -91,16 +128,12 @@ describe('hodl-vault', () => {
 
   // the whole of the ownership rule: the script built from the wallet's own key reproduces the
   // address the announcement named
-  it('rebuilds the announced address from the owner key, as the module does', () => {
+  it('rebuilds the announced address from the owner key', () => {
     const { address, opReturn } = hodlAnnouncement(800_000, ownerPkh)
     const fields = readAnnouncement(opReturn, find)!
 
     const rebuilt = buildScript(hodl.script!, { locktime: fields.locktime!, ownerPkh })!
     expect(contractAddress(rebuilt, 'p2sh20', 'bitcoincash')).toBe(address)
-
-    // and the module agrees this history item is the wallet's contract
-    const history = [historyItem('aa'.repeat(32), [opReturnOutput(opReturn), p2pkhOutput()])]
-    expect(hodlContractsFromHistory(history, [ownerPkh])).toHaveLength(1)
   })
 
   it('does not rebuild the announced address from somebody else"s key', () => {
