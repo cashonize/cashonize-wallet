@@ -93,6 +93,10 @@ balance the wallet cannot spend, or can only partly claim, is a total that lies.
 
 ## What a manifest may not do
 
+The route from describing where a position is to describing how to spend it, and the one line
+the format must never gain, is under Future items in `contract-asset-discovery.md`.
+
+
 A manifest is inert. It names bytes, offsets, lengths and bounds, and nothing in it is ever
 evaluated. That is a deliberate limit rather than an accident of the format: a user-added bundle
 is untrusted input that makes the wallet derive addresses and query servers.
