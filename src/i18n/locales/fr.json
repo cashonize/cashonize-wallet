@@ -3,17 +3,15 @@
     "actions": {
       "back": "Retour",
       "send": "Envoyer",
-      "confirm": "Confirmer",
-      "connect": "Connecter"
+      "confirm": "Confirmer"
     },
     "status": {
-      "loading": "Chargement...",
       "sending": "Envoi en cours..."
     },
     "errors": {
       "somethingWentWrong": "Une erreur s'est produite",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
-      "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dapp",
+      "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dApp",
       "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer"
     },
     "attention": "Attention :",
@@ -473,7 +471,7 @@
       "all": "Toutes",
       "bchTxs": "Txs BCH",
       "tokenTxs": "Txs tokens",
-      "dappTxs": "Txs dapps",
+      "dappTxs": "Txs dApps",
       "dateRange": "Plage de dates :"
     },
     "directionFilter": {
@@ -488,10 +486,7 @@
     "exportFailed": "Échec de l'export CSV",
     "searchPlaceholder": "Rechercher token ou id de tx...",
     "noMatch": "Aucune transaction ne correspond au filtre",
-    "sent": "Envoyé",
-    "received": "Reçu",
-    "combined": "Combiné",
-    "dapp": "dapp",
+    "dapp": "dApp",
     "identity": {
       "metadataUpdate": "mise à jour des métadonnées",
       "metadataUpdateNamed": "métadonnées de {name}",
@@ -509,7 +504,7 @@
       "balance": "Solde ({unit})",
       "tokenChanges": "Variations de tokens",
       "direction": "Direction",
-      "dapp": "Dapp",
+      "dapp": "dApp",
       "note": "Note"
     },
     "pending": "en attente",
@@ -826,7 +821,7 @@
       "largeBch": "Contient une grande quantité de BCH",
       "reserved": "Retenue pour un engagement Flipstarter en cours, une dépense depuis ce portefeuille ne la prendra donc pas.",
       "reservedRelease": "Annulez l'engagement sur la page Flipstarter pour libérer l'UTXO.",
-      "reservedAuth": "Retenu parce qu'il est l'UTXO d'une identité (son AuthHead), une dépense depuis ce portefeuille n'ira donc pas le chercher.",
+      "reservedAuth": "Retenu parce qu'il est l'UTXO d'une identité (son authhead), une dépense depuis ce portefeuille n'ira donc pas le chercher.",
       "reservedAuthRelease": "Transférez l'identité ou retirez-la sur la page Identités pour libérer l'UTXO.",
       "frozen": "Gelée par vous, cliquez pour dégeler",
       "unfreeze": "Dégeler",
@@ -960,7 +955,7 @@
     "txCount": "{count} txs",
     "reservedAmount": "Réservé : {amount}",
     "available": "disponible",
-    "reservedDappWarning": "Une demande de dapp qui dépenserait un UTXO réservé est refusée, les actions de dapps avec cette adresse peuvent donc échouer.",
+    "reservedDappWarning": "Une demande de dApp qui dépenserait un UTXO réservé est refusée, les actions de dApps avec cette adresse peuvent donc échouer.",
     "reservedWhere": "La page Gestion des UTXO indique quels UTXOs sont réservés et pourquoi.",
     "tokenCount": "{count} token | {count} tokens"
   },
@@ -994,7 +989,6 @@
     "sweepButton": "Balayer",
     "previewButton": "Aperçu",
     "loadingButton": "Chargement...",
-    "sweepAllButton": "Tout balayer",
     "emptyWallet": "Aucun solde trouvé sur cette clé privée",
     "preview": {
       "bchBalance": "Solde BCH :",
@@ -1005,7 +999,6 @@
     },
     "notifications": {
       "noWifProvided": "Aucune clé privée fournie pour le balayage",
-      "sendingTransaction": "Envoi de la transaction...",
       "sweepingTokens": "Balayage des tokens...",
       "sweepingNfts": "Balayage des NFTs...",
       "sweepingBch": "Balayage des BCH...",
@@ -1207,9 +1200,9 @@
       "unknownToken": "Token inconnu",
       "advanced": "Avancé",
       "inputParameters": "Paramètres d'entrée",
-      "inputParametersCaption": "Paramètres fournis par la Dapp pour exécuter cette action",
+      "inputParametersCaption": "Paramètres fournis par la dApp pour exécuter cette action",
       "returnedData": "Données retournées",
-      "returnedDataCaption": "Informations qui seront retournées à la Dapp pour l'exécution",
+      "returnedDataCaption": "Informations qui seront retournées à la dApp pour l'exécution",
       "approveButton": "Approuver",
       "rejectButton": "Rejeter"
     },
@@ -1270,7 +1263,6 @@
     "sessionRequest": {
       "title": "Approuver la session ?",
       "approveButton": "Approuver",
-      "switchAndApprove": "Basculer vers {network} et approuver",
       "rejectButton": "Rejeter"
     },
     "addressSelect": {
@@ -1313,7 +1305,7 @@
       "failedToSignTransaction": "Échec de la signature de la transaction",
       "sendingTransaction": "Envoi de la transaction...",
       "sentTransaction": "Transaction WalletConnect envoyée '{userPrompt}'",
-      "signedTransaction": "Transaction WalletConnect '{userPrompt}' signée. Veuillez retourner à la dapp.",
+      "signedTransaction": "Transaction WalletConnect '{userPrompt}' signée. Veuillez retourner à la dApp.",
       "transactionSignedTitle": "Transaction signée",
       "transactionSent": "Transaction envoyée avec succès !",
       "transactionSigned": "Transaction signée et renvoyée à la dApp",
@@ -1351,7 +1343,7 @@
     "notifications": {
       "sendingTransaction": "Envoi de la transaction...",
       "sentTransaction": "Transaction WizardConnect envoyée pour {dappName}",
-      "signedTransaction": "Transaction WizardConnect pour {dappName} signée. Veuillez retourner à la dapp.",
+      "signedTransaction": "Transaction WizardConnect pour {dappName} signée. Veuillez retourner à la dApp.",
       "transactionSignedTitle": "Transaction signée",
       "transactionSent": "Transaction envoyée avec succès !",
       "transactionSigned": "Transaction signée et renvoyée à la dApp",
@@ -1469,7 +1461,7 @@
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
       "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
       "strictWcSchema": "Validation stricte du schéma WalletConnect",
-      "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dapp pour détecter les payloads non conformes.",
+      "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dApp pour détecter les payloads non conformes.",
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
       "nonTokenIdentities": "Ajouter des identités qui ne sont pas des tokens",
@@ -1510,7 +1502,6 @@
       "title": "Infos sur la promesse",
       "noCampaignIdentity": "La demande d'engagement ne contient ni nom, ni description, ni domaine de campagne.",
       "recipient": "Destinataire",
-      "amount": "Montant",
       "campaignTotal": "Objectif de la campagne : {amount}",
       "yourPledge": "Votre engagement : {amount} {fiat} ({share}% de l'objectif)",
       "alreadyExpired": "(déjà expirée)",
@@ -1820,7 +1811,7 @@
       "registryLead": "Registre :",
       "registry": "le fichier JSON qui nomme l'identité, rédigé avec le {generator} en mode avancé ou à la main selon le {schema}, en partant des {examples}, et hébergé sur un domaine que vous contrôlez ou sur IPFS.",
       "registryNote": "En mode avancé, l'interrupteur de token retire la section token, qu'une identité qui n'est pas un token ne doit pas avoir, laissant un nom, une description et des liens.",
-      "newLead": "Ajouter une nouvelle identité pour une dapp, un système de contrats ou une organisation ?",
+      "newLead": "Ajouter une nouvelle identité pour une dApp, un système de contrats ou une organisation ?",
       "newWhat": "Ceci en ajoute une : une chaîne d'UTXO sans token, depuis laquelle un nom, une icône et des liens sont publiés et mis à jour.",
       "caution": "Il n'existe presque aucune identité de ce genre pour l'instant et peu de choses les lisent ; sachez donc ce que vous attendez de la vôtre avant de la faire.",
       "tokenLead": "Vous créez un token ?",

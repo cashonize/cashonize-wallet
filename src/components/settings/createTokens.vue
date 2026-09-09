@@ -79,7 +79,7 @@
   const amounts = computed(() => genesisAmounts(inputFungibleSupply.value, inputCirculating.value, inputDecimals.value));
   const totalSupply = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.supply);
   const circulating = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.circulating);
-  // What the AuthHead keeps: supply the wallet holds out of circulation, alongside the authority
+  // What the authhead keeps: supply the wallet holds out of circulation, alongside the authority
   const reserve = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.reserve);
   const baseUnitsOf = (baseUnits: bigint) => formatTokens(baseUnits, 0);
   // Tokens, with the symbol once a checked metadata file has given the token one: the first time
@@ -186,7 +186,7 @@
     changeHome();
   }
 
-  // The genesis request and the outputs beside it: output 0 is the AuthHead, carrying the reserve
+  // The genesis request and the outputs beside it: output 0 is the authhead, carrying the reserve
   // and the minting NFT if there is one, then what is issued to circulation and the publication
   function genesisOutputs(category: string, reserveAmount: bigint, circulatingAmount: bigint) {
     const tokenAddress = store.wallet.getTokenDepositAddress();
@@ -229,7 +229,7 @@
       const { genesisRequest, extraOutputs, linkedMetadata } = genesisOutputs(pickedCoin.txid, reserveAmount, circulatingAmount);
       notifySending(t('createTokens.notifications.creatingTokens'));
       const { txId } = await store.spend.tokenGenesis(pickedCoin, genesisRequest, extraOutputs);
-      // creation ends where management begins: the identity is listed and its AuthHead held back
+      // creation ends where management begins: the identity is listed and its authhead held back
       if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
       const linked = linkedMetadata ? checkedRegistry.value?.summary : undefined;
       created.value = {

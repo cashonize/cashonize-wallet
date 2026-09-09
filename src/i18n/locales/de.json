@@ -3,17 +3,15 @@
     "actions": {
       "back": "Zurück",
       "send": "Senden",
-      "confirm": "Bestätigen",
-      "connect": "Verbinden"
+      "confirm": "Bestätigen"
     },
     "status": {
-      "loading": "Laden...",
       "sending": "Senden..."
     },
     "errors": {
       "somethingWentWrong": "Etwas ist schiefgelaufen",
       "needToInitializeWallet": "Zuerst muss ein Wallet initialisiert werden",
-      "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, Dapp-Anfrage wird abgelehnt",
+      "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, dApp-Anfrage wird abgelehnt",
       "nothingToTransfer": "Keine BCH oder Tokens mehr zum Übertragen"
     },
     "attention": "Achtung:",
@@ -446,7 +444,7 @@
     }
   },
   "dapp": {
-    "title": "Mit Dapp verbinden",
+    "title": "Mit dApp verbinden",
     "connectText": "Verbinde dich mit BCH-dApps über die unterstützten Verbindungsmethoden.",
     "supportedMethods": "WalletConnect, CashConnect und WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect und CashConnect",
@@ -473,7 +471,7 @@
       "all": "Alle",
       "bchTxs": "BCH-Txs",
       "tokenTxs": "Token-Txs",
-      "dappTxs": "Dapp-Txs",
+      "dappTxs": "dApp-Txs",
       "dateRange": "Zeitraum:"
     },
     "directionFilter": {
@@ -488,10 +486,7 @@
     "exportFailed": "CSV-Export fehlgeschlagen",
     "searchPlaceholder": "Token oder Tx-ID suchen...",
     "noMatch": "Keine Transaktionen passen zum Filter",
-    "sent": "Gesendet",
-    "received": "Empfangen",
-    "combined": "Kombiniert",
-    "dapp": "Dapp",
+    "dapp": "dApp",
     "identity": {
       "metadataUpdate": "Metadaten-Update",
       "metadataUpdateNamed": "Metadaten von {name}",
@@ -509,7 +504,7 @@
       "balance": "Guthaben ({unit})",
       "tokenChanges": "Token-Änderungen",
       "direction": "Richtung",
-      "dapp": "Dapp",
+      "dapp": "dApp",
       "note": "Notiz"
     },
     "pending": "ausstehend",
@@ -826,7 +821,7 @@
       "largeBch": "Enthält eine große Menge BCH",
       "reserved": "Zurückgehalten für ein offenes Flipstarter-Pledge, eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
       "reservedRelease": "Brich das Pledge auf der Flipstarter-Seite ab, um den UTXO freizugeben.",
-      "reservedAuth": "Zurückgehalten, weil es der UTXO einer Identität ist (ihr AuthHead), eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
+      "reservedAuth": "Zurückgehalten, weil es der UTXO einer Identität ist (ihr authhead), eine Ausgabe aus diesem Wallet greift also nicht darauf zu.",
       "reservedAuthRelease": "Übertrage die Identität oder entferne sie auf der Identitäten-Seite, um den UTXO freizugeben.",
       "frozen": "Von dir eingefroren, zum Auftauen klicken",
       "unfreeze": "Auftauen",
@@ -960,7 +955,7 @@
     "txCount": "{count} Txs",
     "reservedAmount": "Reserviert: {amount}",
     "available": "verfügbar",
-    "reservedDappWarning": "Eine Dapp-Anfrage, die einen reservierten UTXO ausgeben würde, wird abgelehnt, daher können Dapp-Aktionen mit dieser Adresse fehlschlagen.",
+    "reservedDappWarning": "Eine dApp-Anfrage, die einen reservierten UTXO ausgeben würde, wird abgelehnt, daher können dApp-Aktionen mit dieser Adresse fehlschlagen.",
     "reservedWhere": "Die Seite UTXO-Verwaltung zeigt, welche UTXOs reserviert sind und warum.",
     "tokenCount": "{count} Token | {count} Tokens"
   },
@@ -994,7 +989,6 @@
     "sweepButton": "Sweepen",
     "previewButton": "Vorschau",
     "loadingButton": "Laden...",
-    "sweepAllButton": "Alles sweepen",
     "emptyWallet": "Kein Guthaben auf diesem privaten Schlüssel gefunden",
     "preview": {
       "bchBalance": "BCH-Guthaben:",
@@ -1005,7 +999,6 @@
     },
     "notifications": {
       "noWifProvided": "Kein privater Schlüssel zum Sweepen angegeben",
-      "sendingTransaction": "Transaktion wird gesendet...",
       "sweepingTokens": "Tokens werden gesweept...",
       "sweepingNfts": "NFTs werden gesweept...",
       "sweepingBch": "BCH wird gesweept...",
@@ -1207,9 +1200,9 @@
       "unknownToken": "Unbekannter Token",
       "advanced": "Erweitert",
       "inputParameters": "Eingabeparameter",
-      "inputParametersCaption": "Von der Dapp bereitgestellte Parameter zur Ausführung dieser Aktion",
+      "inputParametersCaption": "Von der dApp bereitgestellte Parameter zur Ausführung dieser Aktion",
       "returnedData": "Zurückgegebene Daten",
-      "returnedDataCaption": "Informationen, die zur Ausführung an die Dapp zurückgegeben werden",
+      "returnedDataCaption": "Informationen, die zur Ausführung an die dApp zurückgegeben werden",
       "approveButton": "Genehmigen",
       "rejectButton": "Ablehnen"
     },
@@ -1225,7 +1218,7 @@
     "notifications": {
       "sessionApproved": "Sitzung genehmigt",
       "successfullySignedTransaction": "Transaktion erfolgreich signiert",
-      "networkMismatch": "Diese Dapp erfordert, dass das Wallet auf {network} ist. Bitte navigiere zu den Einstellungen und wechsle das Netzwerk, um diese Dapp zu verwenden.",
+      "networkMismatch": "Diese dApp erfordert, dass das Wallet auf {network} ist. Bitte navigiere zu den Einstellungen und wechsle das Netzwerk, um diese dApp zu verwenden.",
       "notStarted": "CashConnect ist nicht gestartet.",
       "privateKeyNotFound": "Privater Schlüssel konnte für Adresse nicht gefunden werden: {address}",
       "failedToConvertCashAddr": "CashAddr konnte nicht in Locking Bytecode umgewandelt werden",
@@ -1270,7 +1263,6 @@
     "sessionRequest": {
       "title": "Sitzung genehmigen?",
       "approveButton": "Genehmigen",
-      "switchAndApprove": "Zu {network} wechseln und genehmigen",
       "rejectButton": "Ablehnen"
     },
     "addressSelect": {
@@ -1313,30 +1305,30 @@
       "failedToSignTransaction": "Transaktion konnte nicht signiert werden",
       "sendingTransaction": "Transaktion wird gesendet...",
       "sentTransaction": "WalletConnect-Transaktion '{userPrompt}' gesendet",
-      "signedTransaction": "WalletConnect-Transaktion '{userPrompt}' signiert. Bitte kehren Sie zur Dapp zurück.",
+      "signedTransaction": "WalletConnect-Transaktion '{userPrompt}' signiert. Bitte kehren Sie zur dApp zurück.",
       "transactionSignedTitle": "Transaktion signiert",
       "transactionSent": "Transaktion erfolgreich gesendet!",
-      "transactionSigned": "Transaktion signiert und an die Dapp zurückgesendet",
+      "transactionSigned": "Transaktion signiert und an die dApp zurückgesendet",
       "requestExpired": "Anfrage abgelaufen, bitte kehren Sie zu {dappName} zurück, um es erneut zu versuchen"
     }
   },
   "wizardConnect": {
     "sessions": {
       "title": "WizardConnect",
-      "unknownDapp": "Unbekannte Dapp",
+      "unknownDapp": "Unbekannte dApp",
       "session": "Sitzung",
       "statusConnected": "Verbunden",
-      "statusWaitingForDapp": "Warten auf die Dapp...",
+      "statusWaitingForDapp": "Warten auf die dApp...",
       "statusReconnecting": "Wiederverbinden...",
       "statusDisconnected": "Getrennt"
     },
     "pairing": {
-      "title": "Wallet-Adressen mit dieser Dapp teilen?",
-      "intro": "Beim Verbinden wird die vollständige Liste aller aktuellen und zukünftigen Adressen deines Wallets (die xpub) mit der Dapp geteilt.",
-      "bulletHistory": "Die Dapp kann dein gesamtes Guthaben und deine Transaktionshistorie einsehen, auch nach dem Trennen.",
+      "title": "Wallet-Adressen mit dieser dApp teilen?",
+      "intro": "Beim Verbinden wird die vollständige Liste aller aktuellen und zukünftigen Adressen deines Wallets (die xpub) mit der dApp geteilt.",
+      "bulletHistory": "Die dApp kann dein gesamtes Guthaben und deine Transaktionshistorie einsehen, auch nach dem Trennen.",
       "bulletPrivacy": "Du verlierst die Privatsphäre frischer HD-Adressen.",
       "bulletSpending": "Zum Ausgeben deiner Gelder ist weiterhin für jede Transaktion deine Zustimmung erforderlich.",
-      "dappInfoNote": "Hinweis: Name und Symbol der Dapp werden erst nach dem Verbinden empfangen.",
+      "dappInfoNote": "Hinweis: Name und Symbol der dApp werden erst nach dem Verbinden empfangen.",
       "connectButton": "Verbinden",
       "cancelButton": "Abbrechen"
     },
@@ -1351,10 +1343,10 @@
     "notifications": {
       "sendingTransaction": "Transaktion wird gesendet...",
       "sentTransaction": "WizardConnect-Transaktion für {dappName} gesendet",
-      "signedTransaction": "WizardConnect-Transaktion für {dappName} signiert. Bitte kehren Sie zur Dapp zurück.",
+      "signedTransaction": "WizardConnect-Transaktion für {dappName} signiert. Bitte kehren Sie zur dApp zurück.",
       "transactionSignedTitle": "Transaktion signiert",
       "transactionSent": "Transaktion erfolgreich gesendet!",
-      "transactionSigned": "Transaktion signiert und an die Dapp zurückgesendet",
+      "transactionSigned": "Transaktion signiert und an die dApp zurückgesendet",
       "requestCancelled": "Signieranfrage wurde von {dappName} abgebrochen",
       "dappDisconnected": "WizardConnect-Sitzung wurde von {dappName} getrennt"
     }
@@ -1469,7 +1461,7 @@
       "disableTokenIcons": "Token-Bilder deaktivieren",
       "disableTokenIconsHint": "Verhindert das Laden von Token-Bildern von externen Servern",
       "strictWcSchema": "Strikte WalletConnect-Schema-Validierung",
-      "strictWcSchemaHint": "Erzwingt die WC2-BCH-Spezifikation exakt. Aktiviere diese Option bei der Dapp-Entwicklung, um nicht konforme Payloads sichtbar zu machen.",
+      "strictWcSchemaHint": "Erzwingt die WC2-BCH-Spezifikation exakt. Aktiviere diese Option bei der dApp-Entwicklung, um nicht konforme Payloads sichtbar zu machen.",
       "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu.",
       "nonTokenIdentities": "Identitäten hinzufügen, die keine Tokens sind",
@@ -1510,7 +1502,6 @@
       "title": "Zusage-Infos",
       "noCampaignIdentity": "Die Pledge-Anfrage enthält keinen Kampagnennamen, keine Beschreibung und keine Domain.",
       "recipient": "Empfänger",
-      "amount": "Betrag",
       "campaignTotal": "Kampagnenziel: {amount}",
       "yourPledge": "Dein Pledge: {amount} {fiat} ({share}% des Ziels)",
       "alreadyExpired": "(bereits abgelaufen)",
@@ -1820,7 +1811,7 @@
       "registryLead": "Registry:",
       "registry": "die JSON-Datei, die die Identität nennt, mit dem {generator} im erweiterten Modus oder von Hand nach dem {schema} geschrieben, mit den {examples} als Vorlage, und auf einer eigenen Domain oder auf IPFS gehostet.",
       "registryNote": "Im erweiterten Modus lässt der Token-Schalter den Token-Abschnitt weg, den eine Identität, die kein Token ist, nicht haben darf, und es bleiben Name, Beschreibung und Links.",
-      "newLead": "Eine neue Identität für eine Dapp, ein Vertragssystem oder eine Organisation hinzufügen?",
+      "newLead": "Eine neue Identität für eine dApp, ein Vertragssystem oder eine Organisation hinzufügen?",
       "newWhat": "Das fügt eine hinzu: eine Kette von UTXOs ohne Token, von der aus Name, Symbol und Links veröffentlicht und aktualisiert werden.",
       "caution": "Fast keine solchen Identitäten gibt es bisher, und kaum etwas liest sie; wisse also, was du von deiner willst, bevor du sie machst.",
       "tokenLead": "Einen Token machen?",

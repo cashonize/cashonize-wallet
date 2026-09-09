@@ -40,7 +40,7 @@ const sentTx = () => ({ direction: "Sent", dapp: false });
 describe('historyToCsv', () => {
   it('should write the header with the given BCH unit', () => {
     expect(historyToCsv([], undefined, "tBCH", {}, sentTx))
-      .toBe("Date (UTC),Transaction Id,Amount (tBCH),Balance (tBCH),Token Changes,Direction,Dapp,Note");
+      .toBe("Date (UTC),Transaction Id,Amount (tBCH),Balance (tBCH),Token Changes,Direction,dApp,Note");
   })
   it('should format the date as ISO UTC and amounts with 8 decimals', () => {
     const csv = historyToCsv([makeTx({})], undefined, "BCH", {}, sentTx);
@@ -71,7 +71,7 @@ describe('historyToCsv', () => {
   })
   it('should write the direction label and dapp marker columns', () => {
     const csv = historyToCsv([makeTx({})], undefined, "BCH", {}, () => ({ direction: "Combined", dapp: true }));
-    expect(csv.split("\r\n")[1]).toBe("2023-11-14T22:13:20.000Z,txhash123,-0.50000000,1.50000000,,Combined,dapp,");
+    expect(csv.split("\r\n")[1]).toBe("2023-11-14T22:13:20.000Z,txhash123,-0.50000000,1.50000000,,Combined,dApp,");
   })
   it('should include the note for a transaction and escape it', () => {
     const csv = historyToCsv([makeTx({})], undefined, "BCH", { txhash123: 'rent, "march"' }, sentTx);
