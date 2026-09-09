@@ -398,28 +398,6 @@ body.dark .identity-card {
   height: 48px;
   border-radius: 50%;
 }
-/* the icon inside gives up its own spacing, so the caller places the pair */
-.iconWithBadge {
-  position: relative;
-  display: flex;
-  flex: none;
-}
-.iconWithBadge .tokenIcon {
-  margin-right: 0;
-}
-/* built like the portfolio's Cauldron badge: a stamp in the icon's corner, with a ring of page
-   background lifting it off the icon it overlaps */
-.authKeyBadge {
-  position: absolute;
-  right: -6px;
-  bottom: -4px;
-  width: 22px;
-  height: 22px;
-  padding: 4px;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--bg-color);
-}
 .boxStarIcon {
   align-self: flex-start;
   cursor: pointer;
