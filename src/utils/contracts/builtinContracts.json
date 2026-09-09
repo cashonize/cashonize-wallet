@@ -41,11 +41,11 @@
         }
       },
       "script": {
-        "template": "{locktime}b17576a914{ownerPkh}88ac",
+        "template": "<locktime>b17576a9<ownerPkh>88ac",
         "addressType": "p2sh20",
         "fields": {
-          "locktime": { "push": true, "as": "vmnumber" },
-          "ownerPkh": { "bytes": 20, "as": "hex" }
+          "locktime": { "as": "vmnumber" },
+          "ownerPkh": { "as": "hex", "bytes": 20 }
         }
       },
       "owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedScriptHash" }

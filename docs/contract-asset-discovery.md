@@ -70,7 +70,7 @@ against. The hodl announcement in full:
     "locktime": { "push": 2, "as": "utf8int", "min": 1, "max": 4294967295 }
   }
 },
-"script": { "template": "{locktime}b17576a914{ownerPkh}88ac", "addressType": "p2sh20" },
+"script": { "template": "<locktime>b17576a9<ownerPkh>88ac", "addressType": "p2sh20" },
 "owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedScriptHash" }
 ```
 
@@ -83,7 +83,9 @@ other kinds is tried.
 The script is written the way the contract is built rather than as a list of opcodes, because a
 real contract is hundreds of bytes and because written that way it runs both directions: the
 same template generates a script from parameters and reads parameters back out of one. That is
-also why the format is not CashAssembly, which only compiles.
+also why the format is not CashAssembly, which only compiles, though a hole borrows its
+notation and its meaning: every parameter of a p2sh contract is pushed, so <name> is a push and
+its opcode follows from the value rather than being written into the literal beside it.
 
 A manifest describes a shape rather than an instance, so a bundle can be added before any of its
 contracts exist. Nothing in one is evaluated.
