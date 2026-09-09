@@ -259,13 +259,6 @@ export async function queryAuthHeadsWithOutputs(
   return results;
 }
 
-// The same answer for one category: a batch of one, so there is one query to keep right
-export async function queryAuthHeadWithOutputs(tokenId: string, chaingraphUrl: string): Promise<AuthHeadResult> {
-  const result = (await queryAuthHeadsWithOutputs([tokenId], chaingraphUrl, 0)).get(tokenId);
-  if (!result) throw new Error(t('chaingraph.errors.tokenNotFound'));
-  return result;
-}
-
 function readAuthHead(
   tokenId: string,
   authchain: AuthchainAnswer,

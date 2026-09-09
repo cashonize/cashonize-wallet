@@ -124,8 +124,6 @@ export const WcMessageObjSchema = z.object({
   account: z.optional(z.string()), // no longer used but kept in the interface as dapps might still send it
 });
 
-export type WcMessageObj = z.infer<typeof WcMessageObjSchema>;
-
 
 /* WizSignTransactionRequestSchema */
 
@@ -321,7 +319,6 @@ const ErrorSchema = z.object({
 
 export type BcmrTokenResponse = z.infer<typeof BcmrTokenResponseSchema>;
 export const BcmrIndexerResponseSchema = z.union([BcmrTokenResponseSchema, ErrorSchema]);
-export type BcmrIndexerResponse = z.infer<typeof BcmrIndexerResponseSchema>;
 
 
 /* BitpayRatesSchema */
@@ -381,7 +378,6 @@ export const CauldronValueLockedSchema = z.object({
   satoshis: z.number(),
   token_amount: z.number()
 });
-export type CauldronValueLocked = z.infer<typeof CauldronValueLockedSchema>;
 
 
 /* FlipstarterTemplateSchema */
