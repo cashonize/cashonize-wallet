@@ -1,5 +1,4 @@
-// Running a manifest against a wallet: the two discovery shapes badgersStake.ts and
-// hodlContracts.ts implement by hand, done once over whatever a manifest describes.
+// Running a manifest against a wallet, once for whatever shape a manifest describes.
 //
 // A manifest found at an address is one lookup for every user of the protocol, since the owner is
 // written into each position; one announced in the history is read off transactions the wallet
@@ -35,8 +34,19 @@ export interface WalletContext {
 }
 
 // A manifest naming an address the wallet never chose could otherwise ask for any number of
-// lookups; announced contracts are bounded by the history, and this bounds the rest.
+// lookups; announced contracts are bounded by the history, and this bounds the rest. Reaching it
+// drops positions from the portfolio, so it says so rather than truncating quietly.
 const MAX_CONTRACT_LOOKUPS = 50;
+
+// the batch cauldronPools.ts used, keeping the requests pipelined over the one electrum connection
+const LOOKUP_BATCH_SIZE = 10;
+
+function cappedCandidates<T>(manifestId: string, candidates: T[]) {
+  if (candidates.length > MAX_CONTRACT_LOOKUPS) {
+    console.warn(`${manifestId}: ${candidates.length - MAX_CONTRACT_LOOKUPS} positions past the lookup cap are not shown`);
+  }
+  return candidates.slice(0, MAX_CONTRACT_LOOKUPS);
+}
 
 // Positions at the one address the manifest names, whose owner each carries
 async function runAddressManifest(
@@ -131,20 +141,24 @@ async function runListedPositions(
   }
 
   const positions: ContractPosition[] = [];
-  for (const candidate of candidates.slice(0, MAX_CONTRACT_LOOKUPS)) {
-    const utxos = await context.provider.getUtxos(candidate.output.address);
-    const live = utxos.some(utxo => utxo.txid === candidate.transaction.hash && utxo.vout === at.output);
-    if (!live) continue;
-    positions.push({
-      manifestId: manifest.id,
-      ownership: manifest.ownership,
-      address: candidate.output.address,
-      satoshis: BigInt(candidate.output.value),
-      txid: candidate.transaction.hash,
-      vout: at.output,
-      ...(candidate.output.token ? { token: candidate.output.token } : {}),
-      fields: candidate.fields,
-    });
+  const wanted = cappedCandidates(manifest.id, candidates);
+  for (let index = 0; index < wanted.length; index += LOOKUP_BATCH_SIZE) {
+    const found = await Promise.all(wanted.slice(index, index + LOOKUP_BATCH_SIZE).map(async candidate => {
+      const utxos = await context.provider.getUtxos(candidate.output.address);
+      const live = utxos.some(utxo => utxo.txid === candidate.transaction.hash && utxo.vout === at.output);
+      if (!live) return undefined;
+      return {
+        manifestId: manifest.id,
+        ownership: manifest.ownership,
+        address: candidate.output.address,
+        satoshis: BigInt(candidate.output.value),
+        txid: candidate.transaction.hash,
+        vout: at.output,
+        ...(candidate.output.token ? { token: candidate.output.token } : {}),
+        fields: candidate.fields,
+      } satisfies ContractPosition;
+    }));
+    positions.push(...found.filter(position => position !== undefined));
   }
   return positions;
 }
@@ -156,7 +170,7 @@ async function runAnnouncementManifest(
 ): Promise<ContractPosition[]> {
   if (find.position) return runListedPositions(manifest, find, find.position, context);
   const positions: ContractPosition[] = [];
-  for (const contract of announcedContracts(manifest, find, context).slice(0, MAX_CONTRACT_LOOKUPS)) {
+  for (const contract of cappedCandidates(manifest.id, announcedContracts(manifest, find, context))) {
     // anyone can add funds to the address and a drained one holds nothing, so what it holds now
     // is a lookup rather than anything the announcement said
     const utxos = await context.provider.getUtxos(contract.address);

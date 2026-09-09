@@ -232,6 +232,5 @@ shipped here, or added by the user — is the thing the interface must never let
 - `src/stores/store.ts`: `fullWalletHistory`, the loaded history for its readers, and the
   portfolio's use of it.
 - `src/utils/contracts/`: the manifest format, and running one against a wallet.
-- `src/utils/defi/tapswapListings.ts`: the one announcement parser still written by hand.
 - `src/utils/tools/identityDetection.ts`: the identity markers read off the same items.
 - `src/components/portfolio/`: where listings and locks are shown, valuation only.

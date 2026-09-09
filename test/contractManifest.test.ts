@@ -129,6 +129,16 @@ describe('hodl-vault', () => {
     })
   })
 
+  // A compiler writes OP_1 for a one, not a length byte and a one. A hand-rolled push would
+  // derive a different address for any parameter of sixteen or less, and match nothing.
+  it('pushes a small parameter the way a compiler does', () => {
+    const small = { template: '<n>ac', addressType: 'p2sh20' as const, fields: { n: { as: 'vmnumber' as const } } }
+
+    expect(buildScript(small, { n: 1 })).toBe('51ac')
+    expect(buildScript(small, { n: 16 })).toBe('60ac')
+    expect(buildScript(small, { n: 17 })).toBe('0111ac')
+  })
+
   // every hole is a push, so its opcode follows from the value; bytes is what the value has to be
   it('refuses a parameter of the wrong length', () => {
     expect(buildScript(hodl.script!, { locktime: 800_000, ownerPkh: 'ab'.repeat(19) })).toBeUndefined()
