@@ -398,20 +398,17 @@ body.dark .identity-card {
   height: 48px;
   border-radius: 50%;
 }
-/* An icon and its badge move as one, so the row's spacing belongs to the pair rather than to the
-   icon inside it. */
+/* the icon inside gives up its own spacing, so the caller places the pair */
 .iconWithBadge {
   position: relative;
   display: flex;
   flex: none;
-  margin-right: 10px;
 }
 .iconWithBadge .tokenIcon {
   margin-right: 0;
 }
-/* The AuthKey stamp, built like the portfolio's Cauldron badge: the token icon says which token,
-   the badge says this is the key to it, and the ring of page background lifts it off the icon it
-   overlaps. */
+/* built like the portfolio's Cauldron badge: a stamp in the icon's corner, with a ring of page
+   background lifting it off the icon it overlaps */
 .authKeyBadge {
   position: absolute;
   right: -6px;

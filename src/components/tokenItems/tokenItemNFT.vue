@@ -667,8 +667,10 @@
   }
 }
 
-/* what the AuthKey opens is context for the name above it, so it reads like every other
-   description, with only the way to act on it coloured */
+/* this row spaces with a margin rather than a gap */
+.tokenInfo .iconWithBadge {
+  margin-right: 10px;
+}
 .identity-key-line {
   color: grey;
 }

@@ -344,9 +344,9 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.tokenIdentities).toEqual([])
   })
 
-  // With following off, a held NFT of a Studio key's shape still has its category resolved: in
-  // the standard's genesis setup the key shares its identity's category, which is how Studio
-  // makes one, so a key handed to this wallet is recognised and held back without the setting
+  // With following off, a held NFT of a Studio AuthKey's shape still has its category resolved,
+  // so an AuthKey handed to this wallet is recognised and held back whatever the setting says.
+  // This chain is guarded by its own category, so that category is the identity and stays listed.
   it('resolves the categories of held key-shaped NFTs when following is off', async () => {
     stubAuthheadQueries(
       { [categoryA]: authheadA, [categoryB]: authheadB },
