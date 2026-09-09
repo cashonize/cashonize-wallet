@@ -114,7 +114,7 @@
       const nftIconUri = nftMetadata.value?.uris?.icon;
       if(nftIconUri) tokenIconUri = nftIconUri;
     }
-    if (!tokenIconUri) return tokenIconUri;
+    if (!tokenIconUri) return undefined;
     return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   })
   const tokenName = computed(() => {
