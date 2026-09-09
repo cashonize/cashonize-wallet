@@ -4,7 +4,6 @@
   import { filledLocations, locationBudgetLeft, publicationOutput, tokenOutputValue } from 'src/utils/tools/authchainIdentity';
   import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, fetchCandidateRegistry, summarizeRegistry } from 'src/utils/tools/registryFile';
   import {
-    formatTokens,
     genesisAmounts,
     metadataReadiness,
     parseDecimals,
@@ -14,7 +13,7 @@
     type CheckedRegistry,
     type CreatedToken,
   } from 'src/utils/tools/tokenCreation';
-  import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, formatTokenAmount, truncateHash } from 'src/utils/utils';
   import { NFTCapability, TokenSendRequest } from 'mainnet-js';
   import TokenIcon from '../general/TokenIcon.vue';
   import genesisInputPicker from './genesisInputPicker.vue';
@@ -81,12 +80,12 @@
   const circulating = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.circulating);
   // What the authhead keeps: supply the wallet holds out of circulation, alongside the authority
   const reserve = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.reserve);
-  const baseUnitsOf = (baseUnits: bigint) => formatTokens(baseUnits, 0);
+  const baseUnitsOf = (baseUnits: bigint) => formatTokenAmount(baseUnits, 0);
   // Tokens, with the symbol once a checked metadata file has given the token one: the first time
   // the user's number looks like a token
   function tokensOf(baseUnits: bigint) {
     const symbol = readiness.value === 'ready' ? checkedRegistry.value?.summary.symbol : undefined;
-    const amount = formatTokens(baseUnits, decimals.value);
+    const amount = formatTokenAmount(baseUnits, decimals.value);
     return symbol ? `${amount} ${symbol}` : amount;
   }
 
@@ -97,14 +96,14 @@
     if (typeof amounts.value === 'string') {
       if (amounts.value === 'overMaxSupply') {
         // the cap in the unit the field is typed in: the on-chain number is not one the user can type here
-        return t('createTokens.errors.overMaxSupply', { max: formatTokens(maxTokenSupply, decimals.value) });
+        return t('createTokens.errors.overMaxSupply', { max: formatTokenAmount(maxTokenSupply, decimals.value) });
       }
       return t(`createTokens.errors.${amounts.value}`);
     }
     // a token output carrying neither an amount nor an NFT is invalid, so without a minting NFT
     // the identity output has to keep some of the supply: refused here, before the genesis can
     if (!createMintingNft.value && amounts.value.supply > 0n && amounts.value.reserve === 0n) {
-      return t('createTokens.errors.emptyReserve', { minimum: formatTokens(1n, decimals.value) });
+      return t('createTokens.errors.emptyReserve', { minimum: formatTokenAmount(1n, decimals.value) });
     }
     return undefined;
   });

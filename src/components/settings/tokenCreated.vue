@@ -1,8 +1,8 @@
 <script setup lang="ts">
   // The finish of the create page: the closed steps with their ticks, then the token as the
   // Tokens tab will show it, with the next thing to do beside it. Stays until the user starts over.
-  import { formatTokens, stepLabel, type CreatedToken } from 'src/utils/tools/tokenCreation';
-  import { copyToClipboard, truncateHash } from 'src/utils/utils';
+  import { stepLabel, type CreatedToken } from 'src/utils/tools/tokenCreation';
+  import { copyToClipboard, formatTokenAmount, truncateHash } from 'src/utils/utils';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useStore } from 'src/stores/store';
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -21,7 +21,7 @@
   }
 
   function createdAmount(baseUnits: bigint) {
-    const amount = formatTokens(baseUnits, props.created.decimals);
+    const amount = formatTokenAmount(baseUnits, props.created.decimals);
     return props.created.symbol ? `${amount} ${props.created.symbol}` : amount;
   }
 </script>
