@@ -317,9 +317,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (!identityCategories.value.includes(swap.guarded)) listCategory(swap.guarded);
       if (!toResolve.includes(swap.guarded)) toResolve.push(swap.guarded);
     }
-    const corrected = toResolve.length
-      ? await resolve(toResolve)
-      : [];
+    const corrected = toResolve.length ? await resolve(toResolve) : [];
     const replaced = swaps.map(swap => swap.key);
     return [...resolved.filter(identity => !replaced.includes(identity.category)), ...corrected];
   }
