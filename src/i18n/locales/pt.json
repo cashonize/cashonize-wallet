@@ -24,7 +24,8 @@
     "unsafeUrl": "URL oculta (protocolo inseguro)",
     "wallet": "carteira",
     "wallets": "carteiras",
-    "unconfirmed": "Não confirmada"
+    "unconfirmed": "Não confirmada",
+    "tokenUnit": "token | tokens"
   },
   "nav": {
     "wallet": "Carteira",
@@ -277,8 +278,8 @@
       "max": "máx"
     },
     "authKey": {
-      "name": "Chave de identidade",
-      "nameFor": "Chave de identidade de {names}",
+      "name": "AuthKey",
+      "nameFor": "AuthKey de {names}",
       "manage": "gerenciar"
     },
     "visibility": {
@@ -677,7 +678,7 @@
       },
       "studioLines": {
         "for": "a via mais fácil, e coleções de NFTs.",
-        "managed": "no site do Studio, via WalletConnect."
+        "managed": "no site do CashTokens Studio, via WalletConnect."
       },
       "leads": {
         "protection": "Proteção:",
@@ -688,17 +689,17 @@
         "protection": "retido dos envios só por esta carteira; outra app com esta seed poderia gastá-lo.",
         "metadata": "um ficheiro que você hospeda, ligado no passo 3 ou depois a partir da página de identidades.",
         "operations": "na página de identidades, em Ferramentas.",
-        "moveLater": "Você pode mover a identidade do token desta carteira para o Studio mais tarde, e de volta."
+        "moveLater": "Você pode mover a identidade do token desta carteira para o CashTokens Studio mais tarde, e de volta."
       },
       "studioRows": {
-        "protection": "só se gasta com o NFT chave; noutras carteiras um NFT sem nome, por isso guarde-o.",
-        "protectionHelp": "O NFT chave é o que o Studio chama AuthKey. Abre um AuthGuard, o contrato em que o Studio guarda a identidade, pelo que a identidade só se gasta com a chave, seja qual for a app que tem a seed. Outras carteiras mostram a chave como um NFT sem nome, e é assim que uma é enviada por engano ou queimada; esta carteira nomeia-a pelo que protege.",
-        "metadata": "redigidos e fixados no IPFS pelo Studio; recomenda-se guardar uma cópia.",
-        "metadataHelp": "O pin no IPFS é do Studio. Se um dia caducar, o ficheiro pode ser alojado em qualquer lado e o hash publicado continua a corresponder, mas só ao ficheiro exato: guarde uma cópia.",
-        "operations": "metadados, emissão e libertação, no site do Studio via WalletConnect.",
-        "moveLater": "Você pode mover a identidade do token do Studio para esta carteira mais tarde, e de volta."
+        "protection": "só se gasta com a AuthKey; noutras carteiras um NFT sem nome, por isso guarde-a.",
+        "protectionHelp": "A AuthKey é um NFT que abre um AuthGuard, o contrato em que o CashTokens Studio guarda a identidade, pelo que a identidade só se gasta com a AuthKey, seja qual for a app que tem a seed. Outras carteiras mostram a AuthKey como um NFT sem nome, e é assim que uma é enviada por engano ou queimada; esta carteira nomeia-a pelo que protege.",
+        "metadata": "redigidos e fixados no IPFS pelo CashTokens Studio; recomenda-se guardar uma cópia.",
+        "metadataHelp": "O pin no IPFS é do CashTokens Studio. Se um dia caducar, o ficheiro pode ser alojado em qualquer lado e o hash publicado continua a corresponder, mas só ao ficheiro exato: guarde uma cópia.",
+        "operations": "metadados, emissão e libertação, no site do CashTokens Studio via WalletConnect.",
+        "moveLater": "Você pode mover a identidade do token do CashTokens Studio para esta carteira mais tarde, e de volta."
       },
-      "studioBox": "Depois de criar um token na app CashTokens Studio, o NFT chave aparece no separador Tokens e a identidade na página de identidades, em Ferramentas.",
+      "studioBox": "Depois de criar um token na app CashTokens Studio, a AuthKey aparece no separador Tokens e a identidade na página de identidades, em Ferramentas.",
       "openStudio": "Abrir o CashTokens Studio",
       "continueButton": "Continuar",
       "connectButton": "Abrir o separador Ligar"
@@ -775,7 +776,7 @@
       "verify": "Indique acima onde está hospedado. Esta carteira obtém-no e verifica que ele nomeia este token.",
       "create": "Crie o token: a mesma transação publica o hash do ficheiro e onde o encontrar."
     },
-    "noHosting": "Sem sítio onde hospedar um ficheiro? Escolha o Studio, que o hospeda para as identidades que guarda.",
+    "noHosting": "Sem sítio onde hospedar um ficheiro? Escolha o CashTokens Studio, que o hospeda para as identidades que guarda.",
     "createButton": "Criar",
     "creatingTokensButton": "A criar tokens...",
     "confirm": {
@@ -1408,7 +1409,7 @@
       "followTokenIdentities": "Seguir as identidades dos tokens que tem",
       "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito: então só é consultada a identidade de um token cuja AuthKey esta carteira tem. Ligar consulta todos os tokens que tem em cada abertura da carteira.",
       "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",
-      "allowDappIdentitySpendsHint": "Desligado: um pedido WalletConnect ou WizardConnect que gaste o UTXO de uma identidade desta carteira é recusado, como um UTXO comprometido. Ligado: o pedido chega ao diálogo de aprovação, que nomeia a identidade e diz o que o seu UTXO carrega antes e depois. Um pedido que tirasse uma identidade desta carteira é recusado em ambos os casos. As chaves de identidade não são afetadas: um pedido que use uma é assinado quando a chave volta, que é como o CashTokens Studio funciona."
+      "allowDappIdentitySpendsHint": "Desligado: um pedido WalletConnect ou WizardConnect que gaste o UTXO de uma identidade desta carteira é recusado, como um UTXO comprometido. Ligado: o pedido chega ao diálogo de aprovação, que nomeia a identidade e diz o que o seu UTXO carrega antes e depois. Um pedido que tirasse uma identidade desta carteira é recusado em ambos os casos. As AuthKeys não são afetadas: um pedido que use uma é assinado quando a AuthKey volta, que é como o CashTokens Studio funciona."
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
@@ -1576,12 +1577,15 @@
       "back": "Voltar às identidades",
       "title": "Identidades na Bitcoin Cash",
       "whatLead": "O que é uma identidade.",
-      "what": "Uma forma de publicar informação sobre algo na Bitcoin Cash, como o nome e o ícone de um token, que qualquer um pode verificar que veio de quem controla a identidade. Cada token é uma identidade; uma pessoa, uma organização ou um contrato também podem ser uma identidade.",
+      "what": "Uma forma de publicar informação sobre algo na Bitcoin Cash, como o nome e o ícone, que qualquer um pode verificar que veio de quem controla a identidade. O padrão chama-se Bitcoin Cash Metadata Registries (BCMR). Há uma identidade por categoria de token, e coisas que não são tokens também podem ter identidades.",
       "holdingLead": "O que significa ter uma identidade nesta carteira.",
-      "holding": "O controlo é uma única moeda, o UTXO de identidade. Cada transação da cadeia da identidade gasta o output 0 da anterior, por isso o último output 0 é essa moeda. O Studio e o explorador chamam AuthHead a essa moeda. A primeira transação da cadeia é a authbase, o id de um token. Esta carteira mantém essa moeda, e qualquer reserva de tokens que ela carregue, fora dos envios comuns e da lista de tokens; movê-la de propósito é como a identidade é transferida ou os seus metadados atualizados.",
+      "holding": "O controlo de uma identidade é um único UTXO, não uma conta: o output 0 da última transação da identidade, a authhead. A cadeia de transações avança a partir da authbase, e o id de transação da authbase é o id permanente da identidade; para um token, esse é o id de categoria. Esta carteira mantém esse UTXO fora dos envios comuns e da lista de tokens, junto com qualquer reserva de tokens fungíveis que ele carregue. Gastá-lo de propósito é como a identidade é transferida ou os seus metadados atualizados.",
       "readMoreLead": "Ler mais.",
       "readMore": "Os metadados são um ficheiro alojado para o qual a cadeia aponta pelo hash: {registries}. As identidades guardadas atrás de uma AuthKey seguem o padrão AuthGuard, que o {studio} implementa.",
-      "registriesLink": "registos de metadados em cashtokens.org"
+      "registriesLink": "registos de metadados em cashtokens.org",
+      "chainUtxo": "UTXO de identidade",
+      "chainCaption": "Cada transação gasta o output 0 da anterior, e o último não gasto é o UTXO de identidade.",
+      "chainToggle": "Como a cadeia funciona"
     },
     "authbaseLabel": "Authbase / id do token:",
     "resolving": "Procurando onde estão estas identidades",
@@ -1589,7 +1593,8 @@
     "emptyLink": "Adicionar existente",
     "detected": {
       "foundAutomatically": "encontrada automaticamente",
-      "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os seus metadados, portanto ela foi encontrada no próprio histórico da carteira e o seu UTXO agora fica de fora da seleção de moedas. Tire-a da lista se preferir que não seja assim."
+      "foundAutomaticallyHelp": "As chaves desta carteira criaram esta identidade ou publicaram os seus metadados, portanto ela foi encontrada no próprio histórico da carteira e o seu UTXO agora fica de fora da seleção de moedas. Tire-a da lista se preferir que não seja assim.",
+      "foundViaKeyHelp": "Encontrada porque esta carteira tem a AuthKey desta identidade. A AuthKey fica de fora da seleção de moedas, então nenhum envio comum deste app pode gastá-la."
     },
     "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
     "watchedHeader": "{count} identidade só observada, não tida por esta carteira | {count} identidades só observadas, não tidas por esta carteira",
@@ -1604,14 +1609,14 @@
       "held": "Nesta carteira",
       "notHeld": "Só observada, não tida por esta carteira",
       "unresolved": "Não foi possível consultar esta identidade",
-      "heldViaKey": "Através de uma chave de identidade",
+      "heldViaKey": "Através de uma AuthKey",
       "burned": "Queimada"
     },
     "statusHelp": {
       "held": "Esta carteira tem o UTXO desta identidade, portanto pode atualizar os seus metadados. O UTXO fica de fora da seleção de moedas, nenhum envio comum a partir desta app pode gastá-lo, nem uma app ligada, salvo se permitido nas opções de utilizador. Outro software com a mesma seed ainda pode.",
       "notHeld": "Esta identidade não é tida por esta carteira, que por isso só a observa: a sua publicação é mostrada, mas atualizá-la cabe a quem a tiver.",
       "unresolved": "Não foi possível consultar onde esta identidade está, então isso é desconhecido agora. O que está retido por ela continua retido até chegar uma resposta.",
-      "heldViaKey": "O UTXO desta identidade está trancado em um contrato, e esta carteira tem a chave que o abre. Isso é autoridade sobre a identidade sem o UTXO, portanto é a chave que fica de fora da seleção de moedas.",
+      "heldViaKey": "O UTXO desta identidade está trancado em um contrato, e esta carteira tem a AuthKey que o abre. Isso é controle da identidade sem o UTXO, portanto é a AuthKey que fica de fora da seleção de moedas.",
       "burned": "A saída 0 desta identidade é um OP_RETURN, que nada pode gastar: quem a tinha pôs-lhe fim. A sua última publicação fica, e nenhuma atualização pode seguir-se."
     },
     "reserve": {
@@ -1654,19 +1659,23 @@
       "genesisSupplyOpenEnded": "Fornecimento de génese: sem limite"
     },
     "key": {
-      "action": "transferir a chave",
-      "guardHelp": "O UTXO da identidade está neste endereço de contrato, não na sua carteira. O contrato só o libera para quem apresentar a chave de identidade (o AuthKey), que é o NFT que esta carteira tem.",
+      "action": "transferir a AuthKey",
+      "guardHelp": "O UTXO da identidade está neste endereço de contrato, não na sua carteira. O contrato só o libera para quem apresentar a AuthKey, que é o NFT que esta carteira tem.",
       "manageHint": "Esta identidade é guardada, então atualizar os metadados dela e mover a oferta acontecem pela ferramenta que constrói as transações do contrato. O Cashonize as assina quando se conecta.",
       "manageOnStudio": "Gerenciar no CashTokens Studio",
-      "hint": "A chave é um NFT comum e se move como um. Quem a tiver controla todas as identidades que ela guarda.",
-      "destinationPlaceholder": "Endereço de token para onde transferir a chave",
-      "button": "Transferir chave",
+      "hint": "A AuthKey é um NFT comum e se move como um. Quem a tiver controla todas as identidades que ela guarda.",
+      "destinationPlaceholder": "Endereço de token para onde transferir a AuthKey",
+      "button": "Transferir AuthKey",
       "transferringButton": "Transferindo...",
-      "confirmTitle": "Transferir esta chave de identidade?",
-      "confirmMessage": "O controle de {count} identidade guardada por esta chave passa para {address}. Isso não pode ser desfeito. | O controle das {count} identidades guardadas por esta chave passa para {address}. Isso não pode ser desfeito.",
-      "confirmButton": "Transferir chave",
-      "done": "Chave de identidade transferida para {address}",
-      "doneTitle": "Chave de identidade transferida"
+      "confirmTitle": "Transferir esta AuthKey?",
+      "confirmMessage": "O controle de {count} identidade guardada por esta AuthKey passa para {address}. Isso não pode ser desfeito. | O controle das {count} identidades guardadas por esta AuthKey passa para {address}. Isso não pode ser desfeito.",
+      "confirmButton": "Transferir AuthKey",
+      "done": "AuthKey transferida para {address}",
+      "doneTitle": "AuthKey transferida",
+      "label": "AuthKey",
+      "what": "A AuthKey é um NFT comum nesta carteira, e tê-la é o que controla esta identidade: o contrato só libera o UTXO da identidade para quem apresentar a AuthKey.",
+      "viewInTokenList": "ver a AuthKey na lista de tokens",
+      "categoryLabel": "AuthKey:"
     },
     "publication": {
       "title": "Última publicação de metadados",
@@ -1679,15 +1688,18 @@
         "verified": "metadados em dia",
         "changed": "alterado desde a publicação",
         "changedIpfs": "não corresponde ao hash publicado",
-        "unreachable": "inacessível"
+        "unreachable": "não respondeu",
+        "restricted": "gateway restrito"
       },
       "statusHelp": {
         "verified": "O arquivo servido aqui bate exatamente com o que esta identidade publicou na cadeia.",
         "changed": "O arquivo servido aqui não é o publicado na cadeia. Revise-o e publique de novo, para que os holders vejam o que você serve.",
         "changedNote": "Se você não editou o arquivo, verifique sua hospedagem: outra coisa está respondendo por ela.",
-        "unreachable": "Este local não respondeu. Holders que buscam os metadados por ele não veem nada, então verifique se a hospedagem ou o pin de IPFS expirou."
+        "unreachable": "Este local não respondeu. Holders que buscam os metadados por ele não veem nada, então verifique se a hospedagem ou o pin de IPFS expirou.",
+        "restricted": "Este gateway só serve os próprios apps e responde aos demais com um erro, então nenhum holder consegue buscar aqui os metadados. O arquivo em si não é o problema; outro local pode servi-lo."
       },
-      "unconfirmed": "não confirmada"
+      "unconfirmed": "não confirmada",
+      "ofLocations": "{status} ({matching} de {total} locais)"
     },
     "history": {
       "title": "Histórico desta identidade",
@@ -1754,7 +1766,7 @@
       "held": "esta carteira controla a identidade e pode publicar os seus metadados ou transferi-la. O UTXO que a controla fica fora dos envios comuns, para que um pagamento a partir desta app não o mova por acidente. Outro software com a mesma seed ainda pode.",
       "watchedLead": "Vigiada:",
       "watched": "outra carteira a tem, por isso esta carteira pode mostrar os seus metadados e histórico, mas não a pode atualizar.",
-      "keyNote": "Uma identidade guardada num covenant AuthGuard também se adiciona pelo seu próprio id. A carteira determina que chave a abre e se essa chave está aqui.",
+      "keyNote": "Uma identidade guardada num covenant AuthGuard também se adiciona pelo seu próprio id. A carteira determina que AuthKey a abre e se essa AuthKey está aqui.",
       "authbaseLead": "Authbase:",
       "authbase": "a transação que criou a identidade. Num token, é o seu id de token.",
       "lead": "Foi-lhe transferida uma identidade, ou quer seguir uma?",
@@ -1766,12 +1778,12 @@
         "guarded": "{name}: guardada num covenant AuthGuard.",
         "held": "{name}: tida por esta carteira. O seu UTXO ficará retido dos envios.",
         "watched": "{name}: não tida por esta carteira. Será vigiada; nada fica retido.",
-        "keyHeld": "A chave está nesta carteira e ficará retida; quem a tiver controla o que ela guarda.",
-        "keyWatched": "A chave não está nesta carteira: só vigiada.",
+        "keyHeld": "A AuthKey está nesta carteira e ficará retida; quem a tiver controla o que ela guarda.",
+        "keyWatched": "A AuthKey não está nesta carteira: só vigiada.",
         "button": "Adicionar"
       },
       "errors": {
-        "nothingFound": "Nada encontrado para essa authbase: o servidor Chaingraph não conhece nenhuma transação com esse id, e nenhuma chave de identidade guarda nada. Verifique o id, ou o servidor nas definições."
+        "nothingFound": "Nada encontrado para essa authbase: o servidor Chaingraph não conhece nenhuma transação com esse id, e nenhuma AuthKey guarda nada. Verifique o id, ou o servidor nas definições."
       }
     },
     "create": {
@@ -1802,7 +1814,7 @@
       "cautionLead": "Funcionalidade avançada:"
     },
     "transfer": {
-      "hint": "O UTXO da identidade é enviado para o destino, entregando a autoridade para atualizar os metadados desta identidade. Para a mover para o CashTokens Studio, crie lá uma chave e transfira para o endereço de guarda que ele mostra para essa chave.",
+      "hint": "O UTXO da identidade é enviado para o destino, entregando a autoridade para atualizar os metadados desta identidade. Para a mover para o CashTokens Studio, crie lá uma AuthKey e transfira para o endereço de guarda que ele mostra para essa AuthKey.",
       "destinationPlaceholder": "Endereço para onde transferir a identidade",
       "button": "Transferir identidade",
       "transferringButton": "Transferindo...",
@@ -1825,7 +1837,7 @@
       "button": "Remover"
     },
     "errors": {
-      "invalidCategory": "Isso não é um id de transação. Cole a authbase de 64 caracteres, um id de token ou a categoria de uma chave.",
+      "invalidCategory": "Isso não é um id de transação. Cole a authbase de 64 caracteres, um id de token ou a categoria de uma AuthKey.",
       "alreadyListed": "Essa identidade já está na lista."
     },
     "established": {
@@ -1848,12 +1860,12 @@
       "capabilityWithSupply": "Esta carteira pode atualizar o nome, o ícone e o suprimento não emitido do token.",
       "mintingNft": "um NFT de cunhagem",
       "nft": "um NFT",
-      "reserve": "{amount} aparecem como retidos na lista de tokens.",
+      "reserve": "Seu suprimento reservado de {amount} aparece como retido na lista de tokens.",
       "created": "criada em {date}",
       "reserveOpenEnded": "Seu suprimento reservado aparece como retido na lista de tokens.",
-      "heldBackCoin": "Sua moeda de identidade fica fora dos envios normais deste app, então nada aqui a gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-la. | Suas moedas de identidade ficam fora dos envios normais deste app, então nada aqui as gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-las.",
-      "heldBackKey": "Sua chave fica fora dos envios normais deste app, então nada aqui a gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-la. | Suas chaves ficam fora dos envios normais deste app, então nada aqui as gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-las.",
-      "heldBackMixed": "Suas moedas de identidade, ou as chaves que as controlam, ficam fora dos envios normais deste app, então nada aqui as gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-las.",
+      "heldBackCoin": "Seu UTXO de identidade fica fora dos envios normais deste app, então nada aqui o gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-lo. | Seus UTXOs de identidade ficam fora dos envios normais deste app, então nada aqui os gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-los.",
+      "heldBackKey": "Sua AuthKey fica fora dos envios normais deste app, então nada aqui a gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-la. | Suas AuthKeys ficam fora dos envios normais deste app, então nada aqui as gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-las.",
+      "heldBackMixed": "Seus UTXOs de identidade, ou as AuthKeys que os controlam, ficam fora dos envios normais deste app, então nada aqui os gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-los.",
       "view": "Ver identidades de token"
     },
     "locationLabel": "No endereço:",

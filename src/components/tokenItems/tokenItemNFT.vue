@@ -80,8 +80,20 @@
     const matchedNftMetadata = tokenMetaData?.value?.nfts?.[commitment ?? ""]
     return matchedNftMetadata ?? tokenMetaData?.value
   })
+  // An AuthKey carries no metadata of its own: it is the NFT itself that is the authority. Once
+  // confirmed, the wallet shows it as the identity it opens rather than as an unnamed NFT.
+  const guardedIdentities = computed(() => identitiesStore.identitiesGuardedByKey(tokenData.value.category));
+  const guardedMetadata = computed(() => {
+    const guarded = guardedIdentities.value[0];
+    return guarded ? store.bcmrRegistries?.[guarded.category] : undefined;
+  });
+  const guardedNames = computed(() => guardedIdentities.value
+    .map(identity => store.bcmrRegistries?.[identity.category]?.name)
+    .filter((name): name is string => !!name)
+    .join(', '));
+
   const httpsUrlTokenIcon = computed(() => {
-    let tokenIconUri = tokenMetaData.value?.uris?.icon;
+    let tokenIconUri = tokenMetaData.value?.uris?.icon ?? guardedMetadata.value?.uris?.icon;
     if(isSingleNft.value){
       const nftIconUri = nftMetadata.value?.uris?.icon;
       if(nftIconUri) tokenIconUri = nftIconUri;
@@ -98,13 +110,6 @@
     if(isSingleNft.value) tokenName = nftMetadata.value?.name;
     return tokenName;
   })
-  // An AuthKey carries no metadata of its own: it is the NFT itself that is the authority. Once
-  // confirmed, the wallet says what it opens instead of showing an unnamed NFT.
-  const guardedIdentities = computed(() => identitiesStore.identitiesGuardedByKey(tokenData.value.category));
-  const guardedNames = computed(() => guardedIdentities.value
-    .map(identity => store.bcmrRegistries?.[identity.category]?.name)
-    .filter((name): name is string => !!name)
-    .join(', '));
   const heldIdentityLine = computed(() => identitiesStore.heldIdentityLine(tokenData.value.category));
   // The minting NFT of a category made on the create page is its identity UTXO, held back from
   // coin selection: minting from it has to continue the authchain rather than go through tokenMint
@@ -116,7 +121,7 @@
   });
   const isIdentityKey = computed(() => guardedIdentities.value.length > 0);
   // A held back NFT stays listed and says so, where no other line already does: the identity's
-  // own NFT and a key have theirs, a frozen or pledged one had nothing. A collection's members
+  // own NFT and an AuthKey have theirs, a frozen or pledged one had nothing. A collection's members
   // say it on their own rows.
   const heldBackNft = computed(() => {
     if (!isSingleNft.value || identityUtxo.value || isIdentityKey.value) return false;
@@ -604,7 +609,7 @@
   }
 }
 
-/* An identity key has no metadata to show, so this line is what names it. Grey like every other
+/* An AuthKey has no metadata to show, so this line is what names it. Grey like every other
    description, with only the way to act on it coloured. */
 .identity-key-line {
   color: grey;

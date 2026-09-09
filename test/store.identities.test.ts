@@ -109,7 +109,8 @@ const genesisHistory = (category: string, authhead: string) => [
 
 // An AuthKey is an NFT with nothing on it: no name, no value, no capability. What makes it a key
 // is the covenant its category derives, which the identity output's locking bytecode is compared
-// with. In the standard's genesis setup the key shares the identity's category.
+// with. Its category is its own: the standard's genesis setup spends two authbases, the
+// identity's and the key's, so the key never shares the identity's category.
 const authKeyUtxo = (category: string): Utxo => ({
   txid: 'ee'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
   token: { category, amount: 0n, nft: { commitment: '00', capability: 'none' } },
@@ -640,6 +641,95 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos).toEqual({ [outpointOf(key)]: 'auth' })
   })
 
+  // The bug a Studio AuthKey holder met: the key's own category was listed as the identity, so the
+  // card had no name and read the guarded token's reserve as its own. The key's chain ends at the
+  // identity's authhead, and the token on that output is the identity.
+  it("lists the identity an AuthKey guards, not the key's own category", async () => {
+    const keyCategory = '1122334455667788'.repeat(4)
+    stubAuthheadQueries(
+      { [keyCategory]: authheadA, [categoryA]: authheadA },
+      {
+        [keyCategory]: guardedOutput(keyCategory, categoryA, '500'),
+        [categoryA]: guardedOutput(keyCategory, categoryA, '500'),
+      },
+      { [keyCategory]: guardGenesis(keyCategory, '00') },
+    )
+    const key = authKeyUtxo(keyCategory)
+    const { store, identitiesStore } = startStore([key])
+    store.tokenList = [{ category: keyCategory, amount: 0n }]
+
+    await identitiesStore.followTokenIdentities('keys')
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.identities?.map(identity => [identity.category, identity.status, identity.guardedBy]))
+      .toEqual([[categoryA, 'heldViaKey', keyCategory]])
+    expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], sources: { [categoryA]: 'key' } })
+  })
+
+  // With following on, the same AuthKey arrives in the ordinary batch rather than the keys one and
+  // has to be read the same way, or the dialog announces the key's own category as the find.
+  it('reads an AuthKey the same way when following every held token', async () => {
+    const keyCategory = '1122334455667788'.repeat(4)
+    stubAuthheadQueries(
+      { [keyCategory]: authheadA, [categoryA]: authheadA },
+      {
+        [keyCategory]: guardedOutput(keyCategory, categoryA, '500'),
+        [categoryA]: guardedOutput(keyCategory, categoryA, '500'),
+      },
+      { [keyCategory]: guardGenesis(keyCategory, '00') },
+    )
+    const key = authKeyUtxo(keyCategory)
+    const { store, identitiesStore } = startStore([key])
+    store.tokenList = [{ category: keyCategory, amount: 0n }]
+
+    await identitiesStore.followTokenIdentities('open')
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.announcement).toEqual({ ids: [categoryA], sources: { [categoryA]: 'key' } })
+    expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
+  })
+
+  // A key this wallet holds derives the covenant its identity sits in, so a guarded identity is
+  // recognised whether or not anything names the key: the registry's authNft is a cross-check.
+  it('recognises a guard from a held key the registry does not name', async () => {
+    const keyCategory = '1122334455667788'.repeat(4)
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(keyCategory, categoryA, '500') })
+    listIdentities([categoryA])
+    const key = authKeyUtxo(keyCategory)
+    const { store, identitiesStore } = startStore([key])
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
+    expect(identitiesStore.identities?.[0]?.guardedBy).toBe(keyCategory)
+    expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
+  })
+
+  // What an earlier version wrote to the list: the key's category. The resolve corrects it in
+  // place, so the wallet that carries one is not left with an unnamed card for good.
+  it('corrects a listed AuthKey category to the identity it guards', async () => {
+    const keyCategory = '1122334455667788'.repeat(4)
+    stubAuthheadQueries(
+      { [keyCategory]: authheadA, [categoryA]: authheadA },
+      {
+        [keyCategory]: guardedOutput(keyCategory, categoryA, '500'),
+        [categoryA]: guardedOutput(keyCategory, categoryA, '500'),
+      },
+      { [keyCategory]: guardGenesis(keyCategory, '00') },
+    )
+    listIdentities([keyCategory])
+    const key = authKeyUtxo(keyCategory)
+    const { store, identitiesStore } = startStore([key])
+
+    await identitiesStore.refreshIdentities()
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.identities?.map(identity => identity.category)).toEqual([categoryA])
+    expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
+    expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
+  })
+
   // an NFT with a capability is not what the covenant takes at input 1, whatever its category
   it('does not take a capability-bearing NFT of the key category for the key', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })
@@ -653,11 +743,12 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos).toEqual({})
   })
 
-  // the registry is trusted for the key's name only as far as a category goes: anything else there is ignored
+  // the registry is trusted for the key's name only as far as a category goes: anything else there
+  // is ignored. Asked of a wallet holding no key, so the registry is the only thing that could name one.
   it('ignores an authNft that is not a category', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput('1122334455667788'.repeat(4), categoryA, '500') })
     listIdentities([categoryA])
-    const { store, identitiesStore } = startStore([authKeyUtxo('1122334455667788'.repeat(4))])
+    const { store, identitiesStore } = startStore([])
     store.bcmrRegistries = {
       [categoryA]: { name: 'Named', description: '', token: { category: categoryA, symbol: 'NMD' }, extensions: { authNft: 'not a category' } },
     }

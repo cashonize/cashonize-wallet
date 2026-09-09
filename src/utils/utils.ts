@@ -221,11 +221,15 @@ export function formatTokenAmount(baseUnits: bigint, decimals: number | undefine
 }
 
 // With the token's symbol after it, as far as the metadata says
+// An amount always says what it counts, since a bare number reads as satoshis or as NFTs just as
+// easily: the token's symbol where its metadata names one, the generic unit where it does not.
 export function formatTokenAmountWithSymbol(
   baseUnits: bigint,
   metadata: { token?: { decimals?: number | undefined; symbol?: string | undefined } | undefined } | undefined,
 ): string {
-  return `${formatTokenAmount(baseUnits, metadata?.token?.decimals)} ${metadata?.token?.symbol ?? ''}`.trim();
+  const amount = formatTokenAmount(baseUnits, metadata?.token?.decimals);
+  const symbol = metadata?.token?.symbol ?? t('common.tokenUnit', amount === '1' ? 1 : 2);
+  return `${amount} ${symbol}`.trim();
 }
 
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {

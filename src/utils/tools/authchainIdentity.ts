@@ -18,14 +18,14 @@ import {
   type IdentityOutput,
 } from "src/queryChainGraph";
 import { resolveAuthHeadsElectrum, queryAuthchainLinksElectrum, ELECTRUM_WALK_LIMIT } from "src/utils/tools/electrumAuthchain";
-import { isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
+import { guardsOpenedByHeldAuthKeys, isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
 type Network = 'mainnet' | 'chipnet';
 
 // 'held' is an authhead this wallet holds directly and keeps out of coin selection. 'heldViaKey'
-// is an authhead locked in an AuthGuard covenant whose key NFT this wallet holds, which is
+// is an authhead locked in an AuthGuard covenant whose AuthKey this wallet holds, which is
 // authority over the identity without the UTXO. 'burned' is an identity output that is an OP_RETURN, which nothing can spend: whoever
 // held the identity ended it, and its last publication is final. 'unresolved' is a failed
 // Chaingraph query, which says nothing about where the authhead is.
@@ -59,6 +59,16 @@ export interface IdentityState {
 // report of it otherwise, and nothing for an identity that did not resolve
 export function identityCoin(identity: IdentityState): Utxo | IdentityOutput | undefined {
   return identity.authUtxo ?? identity.identityOutput;
+}
+
+// The identity a chain resolved from an AuthKey's category names. The standard's genesis spends
+// both authbases at once, so the AuthKey's chain and the identity's merge there and end at the
+// same authhead: a category whose chain ends in the covenant it opens is an AuthKey's, and the token on
+// that output is the identity.
+export function identityBehindAuthKey(resolved: IdentityState): string | undefined {
+  if (resolved.guardedBy !== resolved.category) return undefined;
+  const carried = resolved.identityOutput?.token?.category;
+  return carried && carried !== resolved.category ? carried : undefined;
 }
 
 // where a guarded identity is managed, one instance per network
@@ -324,8 +334,9 @@ export async function fetchAuthchainLinks(tokenId: string, backends: AuthchainBa
 // a category the server does not know is unresolved on its own. Shared by the identities list
 // and the followed token identities.
 // An identity output in an AuthGuard covenant is recognised by its locking bytecode, derived
-// from the key's category: the identity's own, which is the standard's genesis setup, or what
-// the caller adds for it, which is where a registry's `extensions.authNft` comes in.
+// from the AuthKey's category: the identity's own, what the caller adds for it, which is where a
+// registry's `extensions.authNft` comes in, or an AuthKey this wallet holds, which derives to the
+// covenant without anything having to name it.
 export const authheadBatchSize = 25;
 export async function resolveIdentities(
   categories: string[],
@@ -335,6 +346,7 @@ export async function resolveIdentities(
   // the recent links serve the transaction history, which reads them for listed identities only
   withRecentLinks = true,
 ): Promise<IdentityState[]> {
+  const authKeyGuards = guardsOpenedByHeldAuthKeys(walletUtxos);
   const answers = new Map<string, { value?: AuthHeadResult; reason: string }>();
   for (let start = 0; start < categories.length; start += authheadBatchSize) {
     const batch = categories.slice(start, start + authheadBatchSize);
@@ -403,13 +415,14 @@ export async function resolveIdentities(
     let guardedBy: string | undefined;
     if (identityOutput) {
       const keyCategories = [category, ...extraKeyCategories(category)];
-      guardedBy = keyCategories.find(key => isAuthGuardOf(key, identityOutput.lockingBytecode));
+      guardedBy = keyCategories.find(key => isAuthGuardOf(key, identityOutput.lockingBytecode))
+        ?? authKeyGuards.get(identityOutput.lockingBytecode);
     }
     if (guardedBy) {
-      // a key of the identity's own category is the one its genesis minted, when it minted one
+      // an AuthKey of the identity's own category is the one its genesis minted, when it minted one
       const commitment = guardedBy === category ? keyCommitment : undefined;
       const keyUtxo = walletUtxos.find(utxo => isAuthKey(utxo, guardedBy, commitment));
-      // without the key this is somebody else's identity, watched from here like any other
+      // without the AuthKey this is somebody else's identity, watched from here like any other
       if (!keyUtxo) return { ...resolved, guardedBy, status: 'notHeld' };
       return { ...resolved, guardedBy, keyUtxo, status: 'heldViaKey' };
     }

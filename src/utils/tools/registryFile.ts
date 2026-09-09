@@ -19,7 +19,21 @@ export const BCMR_DOCS_URL = "https://cashtokens.org/docs/category/metadata-regi
 // something other than what the on-chain hash commits to: for an HTTPS location that is the
 // hosted file having been edited since publication, and for an IPFS CID, which cannot serve
 // different content, that its content never matched the hash it was published with.
-export type PublicationUriStatus = 'verified' | 'changed' | 'unreachable';
+// 'restricted' is a location on a gateway that serves nobody but its own apps, which is a fact
+// about that gateway rather than about the hosting or the file.
+export type PublicationUriStatus = 'verified' | 'changed' | 'unreachable' | 'restricted';
+
+// Gateways that answer everyone but their own apps with an authorization error, so the file is
+// not what is wrong. CashTokens Studio writes this one into every publication it makes.
+const restrictedGateways = ["ipfs.paytaca.com"];
+
+// Only a location's own host counts: an ipfs:// location is fetched through whichever gateway the
+// user configured, so what that one answers is a setting rather than something the publisher chose.
+function isRestrictedLocation(uri: string): boolean {
+  if (uri.startsWith("ipfs://")) return false;
+  const host = uri.replace(/^https:\/\//, "").split("/")[0];
+  return restrictedGateways.includes(host ?? "");
+}
 
 // a publication location that hangs must not hang the page; the same bound the Chaingraph requests have
 const REGISTRY_FETCH_TIMEOUT_MS = 10_000;
@@ -85,7 +99,7 @@ export async function checkPublicationUri(
   ipfsGateway: string,
 ): Promise<PublicationUriStatus> {
   const served = await fetchRegistryBytes(uri, ipfsGateway);
-  if (served === undefined) return 'unreachable';
+  if (served === undefined) return isRestrictedLocation(uri) ? 'restricted' : 'unreachable';
   return registryContentHash(served) === expectedHash ? 'verified' : 'changed';
 }
 

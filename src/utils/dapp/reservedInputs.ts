@@ -2,7 +2,7 @@
 // this wallet keeps a held back coin unspent. A pledged or frozen coin is refused outright. An
 // identity's AuthKey is the exception the AuthGuard covenant forces: it requires the key at input
 // 1, so every publish, mint or issue a dapp builds for a guarded identity spends the very coin the
-// identities page holds back; the key is let through when the same NFT provably comes back. An
+// identities page holds back; an AuthKey is let through when the same NFT provably comes back. An
 // identity UTXO the wallet holds directly is refused unless the user option allows it, and even
 // then only when the authchain continues at an output of this wallet: moving an identity out is
 // the identities page's job. Every other held coin in the same transaction still refuses.
@@ -71,7 +71,7 @@ export interface IdentityCarry {
   mintingNft: boolean;
 }
 
-// An identity coin the transaction spends and this wallet keeps the authority of: the key itself,
+// An identity coin the transaction spends and this wallet keeps the authority of: the AuthKey itself,
 // or an identity UTXO whose chain continues at output 0, with what that output carried before
 // and carries after, which is what the approval dialog has to say
 export type ReturningIdentity =
@@ -105,7 +105,7 @@ function sameCategory(token: SignedOutputToken | undefined, category: string | u
   return toHex(token.category) === category;
 }
 
-// The key is the NFT itself, so it is the same key only when every part of it matches
+// The AuthKey is the NFT itself, so it is the same one only when every part of it matches
 function isSameKey(output: SignedOutput, key: Utxo): boolean {
   const keyNft = key.token?.nft;
   const outputNft = output.token?.nft;

@@ -7,7 +7,6 @@
   import { useIdentitiesStore, type FoundSource } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { formatBch, formatTimestamp, formatTokenAmountWithSymbol, truncateHash } from 'src/utils/utils'
-  import { identityCoin } from 'src/utils/tools/authchainIdentity'
   import { maxTokenSupply } from 'src/utils/tools/tokenCreation'
 
   // Shown whenever the wallet held back identities the user never listed. It interrupts the
@@ -34,12 +33,13 @@
   const notableBchSats = 100_000n
 
   // Registries may not have been fetched yet when the walk returns, so a name can be missing and
-  // the id stands in for it rather than waiting
+  // the id stands in for it rather than waiting. Only what this wallet holds is described: a
+  // guarded identity's reserve and NFT sit in the covenant, so nothing of them is held back here.
   const entries = computed(() => props.ids.map(id => {
     const identity = identitiesStore.identities?.find(identity => identity.category === id)
-    const output = identity ? identityCoin(identity) : undefined
+    const heldHere = identity?.authUtxo
     const metadata = store.bcmrRegistries?.[id]
-    const token = output?.token
+    const token = heldHere?.token
     let carries: string | undefined
     if (token?.nft?.capability === 'minting') carries = t('identities.found.mintingNft')
     else if (token?.nft) carries = t('identities.found.nft')
@@ -54,27 +54,30 @@
       name: metadata?.name ?? truncateHash(id),
       iconUrl: settingsStore.disableTokenIcons ? undefined : store.tokenIconUrl(id),
       fungibleSupply: identity?.fungibleSupply ?? false,
+      viaKey: identity?.status === 'heldViaKey',
       carries,
       created,
       reserveLine,
-      bch: output && output.satoshis >= notableBchSats ? formatBch(output.satoshis, store.network) : undefined,
+      bch: heldHere && heldHere.satoshis >= notableBchSats ? formatBch(heldHere.satoshis, store.network) : undefined,
     }
   }))
 
   const allArrived = computed(() => props.ids.every(id => props.sources[id] === 'arrived'))
-  const allKeys = computed(() => props.ids.every(id => props.sources[id] === 'key'))
+  const heldHere = computed(() => entries.value.filter(entry => !entry.viaKey))
   const title = computed(() => allArrived.value
     ? t('identities.found.titleArrived', props.ids.length)
     : t('identities.found.title', props.ids.length))
-  // what holding the identity lets the wallet do: the supply only where the genesis made one
+  // What holding the identity lets the wallet do, and only for the ones held outright: what an
+  // AuthKey can do is the card's to explain, next to the covenant it opens.
   const capability = computed(() => {
-    if (props.ids.length === 1 && entries.value[0]!.fungibleSupply) return t('identities.found.capabilityWithSupply')
-    return t('identities.found.capability', props.ids.length)
+    if (!heldHere.value.length) return undefined
+    if (heldHere.value.length === 1 && heldHere.value[0]!.fungibleSupply) return t('identities.found.capabilityWithSupply')
+    return t('identities.found.capability', heldHere.value.length)
   })
-  // the coins are kept out of sends, or the keys; a mixed list says both
+  // the UTXOs are kept out of sends, or the AuthKeys; a mixed list says both
   const heldBack = computed(() => {
-    if (allKeys.value) return t('identities.found.heldBackKey', props.ids.length)
-    if (props.ids.some(id => props.sources[id] === 'key')) return t('identities.found.heldBackMixed')
+    if (!heldHere.value.length) return t('identities.found.heldBackKey', props.ids.length)
+    if (heldHere.value.length < props.ids.length) return t('identities.found.heldBackMixed')
     return t('identities.found.heldBackCoin', props.ids.length)
   })
   const reserveLines = computed(() => entries.value.flatMap(entry => entry.reserveLine ? [entry.reserveLine] : []))
@@ -89,7 +92,10 @@
           <div v-for="entry in entries" :key="entry.id" class="found-entry">
             <TokenIcon :token-id="entry.id" :icon-url="entry.iconUrl" :size="32" />
             <div>
-              <div>{{ entry.name }}</div>
+              <div>
+                {{ entry.name }}
+                <span v-if="entry.viaKey" class="identity-badge">{{ t('identities.key.label') }}</span>
+              </div>
               <div v-if="entry.carries || entry.created || entry.bch" class="found-facts">
                 <span v-if="entry.carries">{{ entry.carries }}</span>
                 <span v-if="entry.created">{{ entry.created }}</span>
@@ -98,7 +104,7 @@
             </div>
           </div>
         </div>
-        <div>{{ capability }} {{ heldBack }}</div>
+        <div><template v-if="capability">{{ capability }} </template>{{ heldBack }}</div>
         <div v-for="line in reserveLines" :key="line" style="margin-top: 8px;">{{ line }}</div>
         <div class="found-actions">
           <input type="button" class="primaryButton" :value="t('identities.found.view')" @click="onDialogOK({ learn: false })">

@@ -69,6 +69,8 @@
   // The third tier follows the identities of the tokens this wallet holds, passively: folded,
   // since nobody is actively watching them, and on unless turned off in the settings
   const showTokenIdentities = ref(false);
+  // the chain drawn out, folded the same way: the prose above says what it is without it
+  const showChain = ref(false);
 
   // The metadata of a manually added identity is not in the registries yet: the wallet holds its
   // authhead rather than its token, so nothing else fetched it
@@ -107,24 +109,30 @@
     pickedUtxo.value = undefined;
   });
 
+  // The confirm says what was found and where it is, so the name comes first: a fetch that fails
+  // leaves the id standing in for the name
+  async function fetchMetadata(category: string) {
+    if (store.bcmrRegistries?.[category]) return;
+    try {
+      await store.fetchTokenMetadata([{ category, amount: 0n }], false);
+    } catch (error) {
+      console.error("Failed to fetch metadata before adding:", error);
+    }
+  }
+
   async function addIdentity() {
     await runAction('add', async () => {
       const category = categoryInput.value.trim().toLowerCase();
       if (!/^[0-9a-f]{64}$/i.test(category)) throw new Error(t('identities.errors.invalidCategory'));
       if (identitiesStore.identityCategories.includes(category)) throw new Error(t('identities.errors.alreadyListed'));
-      // The confirm says what was found and where it is, so the name comes first: a fetch that
-      // fails leaves the id standing in for the name. The metadata also names the key of an
-      // identity that adopted a guard, which the lookup reads.
-      if (!store.bcmrRegistries?.[category]) {
-        try {
-          await store.fetchTokenMetadata([{ category, amount: 0n }], false);
-        } catch (error) {
-          console.error("Failed to fetch metadata before adding:", error);
-        }
-      }
+      // fetched before the lookup, which reads the key an identity that adopted a guard names there
+      await fetchMetadata(category);
       const found = await identitiesStore.inspectCategory(category);
       if (found.status === 'unresolved') throw new Error(t('identities.add.errors.nothingFound'));
-      const name = identityName(category) ?? truncateHash(category);
+      // an AuthKey's category resolves to the identity it guards, which is the one to name and list
+      if (identitiesStore.identityCategories.includes(found.category)) throw new Error(t('identities.errors.alreadyListed'));
+      if (found.category !== category) await fetchMetadata(found.category);
+      const name = identityName(found.category) ?? truncateHash(found.category);
       const summary: string[] = [];
       if (found.guardedBy) {
         summary.push(t('identities.add.found.guarded', { name }));
@@ -138,7 +146,7 @@
         t('identities.add.found.button')
       );
       if (!confirmed) return;
-      await identitiesStore.addIdentity(category, found);
+      await identitiesStore.addIdentity(found.category, found);
       await fetchMissingMetadata();
       categoryInput.value = "";
     });
@@ -198,6 +206,57 @@
       <div v-for="topic in ['what', 'holding']" :key="topic" style="margin-top: 12px;">
         <b>{{ t(`identities.learn.${topic}Lead`) }}</b> {{ t(`identities.learn.${topic}`) }}
       </div>
+      <!-- The chain itself, which the prose above used to spell out link by link. Its terms are
+           the spec's and stand untranslated, as they do in the rest of this page. -->
+      <div class="chain-head" @click="showChain = !showChain">
+        <span>{{ t('identities.learn.chainToggle') }}</span>
+        <q-icon name="expand_more" class="chevron" :class="{ open: showChain }" />
+      </div>
+      <figure v-if="showChain" class="chain-figure">
+        <svg viewBox="0 0 560 132" role="img" :aria-label="t('identities.learn.chainCaption')">
+          <!-- the transactions, and the outputs of each that are not the identity's -->
+          <g fill="none" stroke="currentColor" stroke-opacity="0.4">
+            <rect x="6" y="34" width="150" height="64" rx="8" />
+            <rect x="197" y="34" width="150" height="64" rx="8" />
+            <rect x="388" y="34" width="150" height="64" rx="8" />
+            <rect x="110" y="68" width="40" height="16" rx="8" />
+            <rect x="301" y="68" width="40" height="16" rx="8" />
+            <rect x="492" y="68" width="40" height="16" rx="8" />
+          </g>
+          <g fill="currentColor" fill-opacity="0.5" font-size="10" text-anchor="middle">
+            <text x="130" y="80">1</text>
+            <text x="321" y="80">1</text>
+            <text x="512" y="80">1</text>
+          </g>
+          <g fill="currentColor" font-size="12">
+            <text x="18" y="71">Authbase</text>
+            <text x="209" y="71">…</text>
+            <text x="400" y="71">Authhead</text>
+          </g>
+          <!-- output 0 of each, and the chain that runs through them -->
+          <g class="chain-live">
+            <g fill="none" stroke="currentColor">
+              <rect x="110" y="42" width="40" height="16" rx="8" />
+              <rect x="301" y="42" width="40" height="16" rx="8" />
+              <rect x="492" y="42" width="40" height="16" rx="8" />
+              <path d="M156 50h29" />
+              <path d="M347 50h29" />
+              <path d="M532 50h16v58" />
+            </g>
+            <g fill="currentColor" font-size="10" text-anchor="middle">
+              <polygon points="185,46 193,50 185,54" />
+              <polygon points="376,46 384,50 376,54" />
+              <text x="130" y="54">0</text>
+              <text x="321" y="54">0</text>
+              <text x="512" y="54">0</text>
+            </g>
+            <text x="548" y="122" fill="currentColor" font-size="11" text-anchor="end">
+              {{ t('identities.learn.chainUtxo') }}
+            </text>
+          </g>
+        </svg>
+        <figcaption class="description">{{ t('identities.learn.chainCaption') }}</figcaption>
+      </figure>
       <div style="margin-top: 12px;">
         <!-- the lead and the sentence share a line: a line break between elements is dropped, a space is kept -->
         <b>{{ t('identities.learn.readMoreLead') }}</b> <i18n-t keypath="identities.learn.readMore" tag="span">
@@ -382,6 +441,30 @@
   legend {
     margin-left: 0.5rem;
   }
+}
+.chain-head {
+  cursor: pointer;
+  margin-top: 12px;
+}
+/* the chain drawn at the width it has, up to the size at which its labels stop growing; the
+   caption is not held to that width, since it is prose */
+.chain-figure {
+  margin: 8px 0 0;
+}
+.chain-figure svg {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+}
+/* the identity's own output and the chain through it, told from the rest the way the standard's
+   own figure tells them apart */
+.chain-figure .chain-live {
+  color: var(--color-primary);
+}
+.chain-figure figcaption {
+  margin-top: 6px;
+  font-size: 0.9em;
 }
 .page-nav {
   cursor: pointer;

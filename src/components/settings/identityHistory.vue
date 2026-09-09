@@ -6,7 +6,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useI18n } from 'vue-i18n'
-  import { formatTokenAmountFromBigInt } from 'src/utils/utils'
+  import { formatTokenAmountWithSymbol } from 'src/utils/utils'
   import type { IdentityState, DescribedLink } from 'src/utils/tools/authchainIdentity'
 
   const props = defineProps<{ identity: IdentityState }>()
@@ -25,7 +25,6 @@
     const since = history.value?.[0]?.timestamp
     return since ? new Date(since * 1000).getFullYear() : undefined
   })
-  const tokenDecimals = computed(() => store.bcmrRegistries?.[props.identity.category]?.token?.decimals ?? 0)
 
   onMounted(async () => {
     if (history.value) return
@@ -46,7 +45,7 @@
   }
   function reserveDeltaText(link: DescribedLink) {
     const size = link.reserveDelta < 0n ? -link.reserveDelta : link.reserveDelta
-    const amount = formatTokenAmountFromBigInt(size, tokenDecimals.value)
+    const amount = formatTokenAmountWithSymbol(size, store.bcmrRegistries?.[props.identity.category])
     if (link.reserveDelta > 0n) return t('identities.history.reserveUp', { amount })
     return t('identities.history.reserveDown', { amount })
   }
