@@ -29,7 +29,7 @@ import {
 import { checkPublicationUri, fetchVerifiedRegistry, registryAuthbases, type PublicationUriStatus } from "src/utils/tools/registryFile"
 import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
-import type { TransactionHistoryItem } from "mainnet-js"
+import type { TransactionHistoryItem, Utxo } from "mainnet-js"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
 import { truncateHash } from "src/utils/utils"
@@ -217,7 +217,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
         .slice(0, namedPerRegistryCap);
       if (!authbases.length) continue;
       // Chaingraph alone, like the followed tokens: chains nobody asked for are not walked at open
-      const resolved = await resolveIdentities(authbases, authchainBackends(false), mainStore.walletUtxos ?? [], extraKeyCategories, false);
+      const resolved = await resolve(authbases, { electrum: false, recentLinks: false });
       // any held coin, not the publication's own output: the identity may have moved since. A file
       // naming several identities held here names one of them, see the docs' future items
       const match = resolved.find(candidate => candidate.authheadTxid !== undefined && heldAuthheads.includes(candidate.authheadTxid));
@@ -256,6 +256,18 @@ export const useIdentitiesStore = defineStore('identities', () => {
       ...(withElectrum ? { provider: mainStore.wallet.provider } : {}),
       prefix: mainStore.wallet.networkPrefix,
     };
+  }
+
+  // Every resolve in this store asks the same way, so only what varies is named: whether the
+  // electrum walk stands in when Chaingraph does not answer, whether the recent links come along,
+  // which only the listed identities need for the transaction history, and which view of the
+  // wallet's coins to read, where a caller already holds the one it guarded on.
+  function resolve(
+    categories: string[],
+    options: { electrum?: boolean; recentLinks?: boolean; utxos?: Utxo[] } = {},
+  ) {
+    const { electrum = true, recentLinks = true, utxos = mainStore.walletUtxos ?? [] } = options;
+    return resolveIdentities(categories, authchainBackends(electrum), utxos, extraKeyCategories, recentLinks);
   }
 
   // An identity's own history, which is the chain itself: what each link did, and the reserve
@@ -308,7 +320,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (!toResolve.includes(swap.guarded)) toResolve.push(swap.guarded);
     }
     const corrected = toResolve.length
-      ? await resolveIdentities(toResolve, authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories)
+      ? await resolve(toResolve)
       : [];
     const replaced = swaps.map(swap => swap.key);
     return [...resolved.filter(identity => !replaced.includes(identity.category)), ...corrected];
@@ -333,9 +345,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       return news;
     }
     const started = mainStore.currentInitializationToken();
-    let resolved = await resolveIdentities(
-      identityCategories.value, authchainBackends(), currentUtxos, extraKeyCategories
-    );
+    let resolved = await resolve(identityCategories.value, { utxos: currentUtxos });
     if (mainStore.walletSwitchedSince(started)) return news;
     resolved = await relistAuthKeysAsIdentities(resolved);
     if (mainStore.walletSwitchedSince(started)) return news;
@@ -433,9 +443,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     // a batch carrying both an AuthKey and its identity's own token resolved that identity already
     const missing = behind.filter(category => !kept.some(identity => identity.category === category));
     if (!missing.length) return kept;
-    const resolved = await resolveIdentities(
-      missing, authchainBackends(withElectrum), mainStore.walletUtxos ?? [], extraKeyCategories, false
-    );
+    const resolved = await resolve(missing, { electrum: withElectrum, recentLinks: false });
     return [...kept, ...resolved];
   }
 
@@ -463,7 +471,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       const withElectrum = scope === 'keys' || !mainStore.chaingraph;
       let resolved: IdentityState[] = [];
       if (categories.length) {
-        resolved = await resolveIdentities(categories, authchainBackends(withElectrum), currentUtxos, extraKeyCategories, false);
+        resolved = await resolve(categories, { electrum: withElectrum, recentLinks: false, utxos: currentUtxos });
         // An AuthKey's chain ends at the authhead of the identity it guards, so what was asked
         // about was the AuthKey and what comes back names the identity: it is that identity, with
         // its own metadata, that belongs on the list. In every scope, since a held AuthKey is a
@@ -619,15 +627,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // it is held here, guarded, or somebody else's, and lists it on the user's word. An AuthKey's
   // category pasted here names the identity it guards, which is what gets listed.
   async function inspectCategory(category: string): Promise<IdentityState> {
-    const [found] = await resolveIdentities(
-      [category], authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories, false
-    );
+    const [found] = await resolve([category], { recentLinks: false });
     if (!found) return { category, status: 'unresolved' };
     const guarded = identityBehindAuthKey(found);
     if (!guarded) return found;
-    const [identity] = await resolveIdentities(
-      [guarded], authchainBackends(), mainStore.walletUtxos ?? [], extraKeyCategories, false
-    );
+    const [identity] = await resolve([guarded], { recentLinks: false });
     return identity ?? found;
   }
 
