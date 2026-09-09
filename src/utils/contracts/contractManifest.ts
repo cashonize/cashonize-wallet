@@ -3,15 +3,23 @@
 // and a user can add another of the same shape, so a protocol is a file rather than a module.
 //
 // A manifest describes a shape, never an instance, because a bundle has to be addable before its
-// contracts exist. That is why a script is a template of bytecode with its variable parts named,
-// the way hodlContracts.ts and cauldronPools.ts already build theirs: written that way it runs
-// both directions, generating a script from parameters and reading parameters out of one.
+// contracts exist. That is why a script is a template of bytecode with its variable parts named:
+// written that way it runs both directions, generating a script from parameters and reading
+// parameters back out of one.
 // Nothing here is evaluated. A manifest names bytes, offsets, lengths and bounds, and that is the
 // whole of what it can say.
 
 import { z } from "zod";
 import { opReturnChunks } from "src/utils/history/txDirection";
-import { binToHex, decodeBase58Address, decodeCashAddress, hexToBin, vmNumberToBigInt } from "@bitauth/libauth";
+import {
+  bigIntToVmNumber,
+  binToHex,
+  decodeBase58Address,
+  decodeCashAddress,
+  encodeDataPush,
+  hexToBin,
+  vmNumberToBigInt,
+} from "@bitauth/libauth";
 
 const identifier = z.string().min(1).max(64);
 const hexString = z.string().regex(/^([0-9a-fA-F]{2})+$/);
@@ -148,7 +156,9 @@ function addressToHash(address: string) {
     return binToHex(decoded.payload);
   }
   const decoded = decodeCashAddress(named.includes(":") ? named : "bitcoincash:" + named);
-  if (typeof decoded === "string" || decoded.type !== "p2sh" || decoded.payload.length !== 20) return undefined;
+  // a p2sh20 hash and a p2sh32 one, since a manifest may name either and the address says which
+  if (typeof decoded === "string") return undefined;
+  if (decoded.payload.length !== 20 && decoded.payload.length !== 32) return undefined;
   return binToHex(decoded.payload);
 }
 
@@ -208,31 +218,18 @@ export function buildScript(script: z.infer<typeof scriptSchema>, fields: Fields
     let data: Uint8Array;
     if (field.as === 'vmnumber') {
       if (typeof value !== 'number') return undefined;
-      data = vmNumberFor(value);
+      data = bigIntToVmNumber(BigInt(value));
     } else {
       if (typeof value !== 'string' || !/^([0-9a-fA-F]{2})+$/.test(value)) return undefined;
       data = hexToBin(value);
     }
     if (field.bytes !== undefined && data.length !== field.bytes) return undefined;
-    // the push opcode follows from the value, which is the whole reason a hole is written <like
-    // this>: a template says what is pushed, never how many bytes the pushing takes
-    if (data.length < 1 || data.length > 75) return undefined;
-    built += binToHex(Uint8Array.from([data.length, ...data]));
+    // libauth's encoding rather than a length byte, because a compiler writes OP_1 for a one and
+    // OP_0 for nothing, so a hand-rolled push would derive a different address for any parameter
+    // of sixteen or less and match nothing
+    built += binToHex(encodeDataPush(data));
   }
   return built;
 }
 
-// The minimal encoding OP_CHECKLOCKTIMEVERIFY accepts, which is what creating software writes
-function vmNumberFor(value: number) {
-  const bytes: number[] = [];
-  let remaining = value;
-  while (remaining > 0) {
-    bytes.push(remaining & 0xff);
-    remaining = Math.floor(remaining / 256);
-  }
-  // a top bit set would read as negative, so the encoding grows by a zero byte
-  if (bytes.length && (bytes[bytes.length - 1]! & 0x80) !== 0) bytes.push(0);
-  return Uint8Array.from(bytes);
-}
 
-export { vmNumberFor, vmNumberToBigInt };

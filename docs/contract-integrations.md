@@ -40,14 +40,6 @@ so what is missing is only the locator and a way to name which key chains to sea
 searches its `defi` chain as well, because pools created through WizardConnect belong to keys
 the wallet never hands out.
 
-**TapSwap** is a manifest, and adding it is what the format grew for. Its owner is named in the
-announcement rather than proved by rebuilding, so the announcement path takes the same field
-ownership rule the address path had. Its contract is output 0 of the announcing transaction
-rather than an address the announcement names, so a find may say the position is an output of
-its own transaction, and liveness is then whether that one output is unspent. Its want fields are
-empty pushes when the offer asks plain BCH, which is why announcements are read with the
-wallet's own chunk reader rather than a length walk of the bytes.
-
 **Emerald DAO** and **ParyonUSD** are not manifest work at all. Both are the "I hold an asset,
 what does it hold underneath?" question, and that is BCMR's job: parsable NFT info already
 answers it where the backing is written in the commitment, and a registry extension answers it
@@ -55,6 +47,24 @@ where the backing sits elsewhere. ParyonUSD is already data on exactly that path
 (`extensions.paryonusd.fetchLoanState.lockingBytecode`); Emerald could be, and its keycard
 commitment is a plain two-field layout. Expressing them as contract manifests would duplicate a
 mechanism the wallet already has and that the token's own issuer already controls.
+
+## Where each byte layout came from
+
+A manifest is a transcription of somebody else's format, so what it was transcribed from is the
+thing to check it against when a protocol changes or a reading looks wrong.
+
+- **Badgers.cash** — the contract at
+  [SayoshiNakamario/BadgersStake](https://github.com/SayoshiNakamario/BadgersStake). The lock
+  commitment is the payout key hash, eighteen zero bytes, and the lock length in blocks.
+- **hodl** — the Electron Cash plugin at
+  [mainnet-pat/hodl_ec_plugin](https://github.com/mainnet-pat/hodl_ec_plugin), and the web dapp
+  built on it, which write the same three-push announcement. The plugin is also why the address
+  is read three ways.
+- **TapSwap** — the contract is **not open source**. The announcement format was decoded from
+  settled trades and checked against the developer's parsing example at
+  [mainnet-pat/tapswap-subsquid](https://github.com/mainnet-pat/tapswap-subsquid). The version
+  bytes in the prefix pin the exact contract the rest of the announcement describes, so a new
+  contract version stops matching rather than being read wrong.
 
 ## Why two carriers
 
