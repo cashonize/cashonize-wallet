@@ -5,8 +5,9 @@
   import nftMintForm from './nftMintForm.vue'
   import { TokenSendRequest, type TokenI } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
+  import QrScanButton from '../qr/qrScanButton.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, sanitizeUrl, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, gatewayUrl, sanitizeUrl, truncateHash } from 'src/utils/utils';
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { useStore } from 'src/stores/store'
@@ -113,10 +114,8 @@
       const nftIconUri = nftMetadata.value?.uris?.icon;
       if(nftIconUri) tokenIconUri = nftIconUri;
     }
-    if(tokenIconUri?.startsWith('ipfs://')){
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    }
-    return tokenIconUri;
+    if (!tokenIconUri) return undefined;
+    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   })
   const tokenName = computed(() => {
     // Prefer parsed type name when available (e.g. extension-resolved loan keys)
@@ -575,9 +574,7 @@
           <div class="inputGroup">
             <div class="addressInputNftSend">
               <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
-              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
-                <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-              </button>
+              <QrScanButton @click="showQrCodeDialog = true" />
             </div>
             <input @click="sendNft()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendNft.sendingButton') : t('tokenItem.sendNft.sendButton')" :disabled="activeAction !== null">
           </div>
@@ -587,9 +584,7 @@
           <div class="inputGroup">
             <div class="addressInputNftSend">
               <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
-              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
-                <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-              </button>
+              <QrScanButton @click="showQrCodeDialog = true" />
             </div>
             <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.batchTransfer.transferringButton') : t('tokenItem.batchTransfer.transferButton')" :disabled="activeAction !== null">
           </div>

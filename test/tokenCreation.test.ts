@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Utxo } from 'mainnet-js'
 
-import { formatTokens, genesisAmounts, genesisCandidates, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
+import { genesisAmounts, genesisCandidates, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
 
 describe('genesisAmounts', () => {
   // the supply is typed in tokens and the decimals do the zeroes, since the on-chain number is
@@ -36,14 +36,6 @@ describe('genesisAmounts', () => {
     expect(genesisAmounts('9.223372036854775807', '0', '18')).toEqual({
       supply: 9223372036854775807n, circulating: 0n, reserve: 9223372036854775807n,
     })
-  })
-})
-
-describe('formatTokens', () => {
-  it('shows amounts back as tokens with separators', () => {
-    expect(formatTokens(50_000_000n, 2)).toBe('500,000')
-    expect(formatTokens(1005n, 1)).toBe('100.5')
-    expect(formatTokens(1234567n, 0)).toBe('1,234,567')
   })
 })
 

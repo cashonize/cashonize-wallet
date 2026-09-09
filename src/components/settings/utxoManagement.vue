@@ -355,7 +355,6 @@
       </InfoPopup>
     </div>
 
-    <!-- Stats -->
     <div class="stats-row">
       <div>
         <span class="stat-value">{{ store.walletUtxos?.length?.toLocaleString('en-US')  ?? '...'}}</span> {{ t('utxoManagement.stats.totalUtxos') }}
@@ -393,7 +392,6 @@
     </div>
 
     <template v-else-if="activeFilter === 'bch'">
-      <!-- BCH-only UTXO list -->
       <div class="section">
         <div class="list-header" @click="toggleList('bch')">
           <strong>{{ t('utxoManagement.bchList.title') }}</strong>
@@ -498,7 +496,6 @@
         </template>
       </div>
 
-      <!-- Consolidate BCH Section -->
       <div class="section divided">
         <div><strong>{{ t('utxoManagement.consolidate.title') }}</strong></div>
         <div class="description">
@@ -530,7 +527,6 @@
     </template>
 
     <template v-else>
-      <!-- Combined BCH + Token UTXOs -->
       <div class="section">
         <div v-if="affectedUtxos?.length">
           <div class="status-line text-warning">
@@ -547,7 +543,6 @@
             {{ t('utxoManagement.combined.nftNote') }}
           </div>
 
-          <!-- Affected UTXOs List -->
           <details class="utxo-details">
             <summary>
               {{ t('utxoManagement.combined.viewAffected') }}
@@ -608,7 +603,6 @@
           >
         </div>
 
-        <!-- No issues (only show when loaded) -->
         <div v-else-if="store.walletUtxos">
           <div><strong>{{ t('utxoManagement.combined.title') }}</strong></div>
           <div class="description">
@@ -665,7 +659,6 @@
         </template>
       </div>
 
-      <!-- Fungible token UTXOs -->
       <div class="section divided">
         <div class="list-header" @click="toggleList('fungible')">
           <strong>{{ t('utxoManagement.fungibleList.title') }}</strong>
@@ -702,7 +695,6 @@
         </template>
       </div>
 
-      <!-- NFT UTXOs -->
       <div class="section divided">
         <div class="list-header" @click="toggleList('nft')">
           <strong>{{ t('utxoManagement.nftList.title') }}</strong>
@@ -739,7 +731,6 @@
         </template>
       </div>
 
-      <!-- UTXOs holding a fungible amount and an NFT at once -->
       <div class="section divided closing">
         <div class="list-header" @click="toggleList('ftNft')">
           <strong>{{ t('utxoManagement.ftNftList.title') }}</strong>
@@ -953,11 +944,11 @@ $col-name: 7em;
   align-items: center;
   column-gap: $gap;
   padding: 7px $row-padding-x;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  border-bottom: 1px solid var(--surface-line);
 }
 
 .utxo-row:not(.heading):hover {
-  background-color: rgba(128, 128, 128, 0.08);
+  background-color: var(--surface-hover);
 }
 
 .utxo-row.heading {
@@ -1182,8 +1173,8 @@ $card-label-width: 90px;
   .utxo-grid .utxo-row {
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1px;
-    border: 1px solid rgba(128, 128, 128, 0.2);
-    background-color: rgba(128, 128, 128, 0.06);
+    border: 1px solid var(--surface-line);
+    background-color: var(--surface-subtle);
     border-radius: 12px;
     padding: 8px 12px;
     margin-bottom: 6px;

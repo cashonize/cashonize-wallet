@@ -14,6 +14,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import QrScanButton from './qr/qrScanButton.vue';
   import QrCode from './general/qrCode.vue';
   import portfolioIcon from './portfolio/portfolioIcon.vue';
 
@@ -330,9 +331,7 @@
       {{ t('wallet.send', { network: bchDisplayNetwork }) }}
       <div style="display: flex; gap: 0.5rem;">
         <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('wallet.addressPlaceholder')" name="addressInput">
-        <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
-            <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-        </button>
+        <QrScanButton @click="showQrCodeDialog = true" />
       </div>
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
@@ -403,8 +402,6 @@ body.dark .portfolioLink {
   margin: 5px auto 0 auto;
 }
 .switchAddressButton {
-  font-size: 20px;
-  font-weight: 700;
   width: fit-content;
   margin: auto;
   margin-top: -10px;
@@ -412,12 +409,6 @@ body.dark .portfolioLink {
   cursor: pointer;
   user-select: none;
   transition: transform 0.3s;
-}
-/* flip around the vertical axis: the glyph's ink is horizontally centered in its box
-   but sits below the vertical center (text baseline), so an in-plane rotate(180deg)
-   would visibly displace it */
-.switchAddressButton.flipped {
-  transform: rotateY(180deg);
 }
 .markUsedRow {
   margin-top: 5px;

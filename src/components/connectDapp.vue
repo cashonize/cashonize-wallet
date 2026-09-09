@@ -10,6 +10,7 @@
   import { waitForInitialized } from 'src/utils/utils'
   import { isWalletConnectUri, isCashConnectUri, isWizardConnectUri } from 'src/utils/dapp/dappUri';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import QrScanButton from './qr/qrScanButton.vue';
 
   // Components.
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
@@ -151,9 +152,7 @@
       </div>
       <div style="display: flex; gap: 0.5rem; ">
         <input @keyup.enter="() => connectDappUriInput(dappUriInput)" v-model="dappUriInput" :placeholder="t('dapp.uriPlaceholder')" style="margin-bottom: 10px;">
-        <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px; height: 43px;">
-          <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-        </button>
+        <QrScanButton style="height: 43px;" @click="showQrCodeDialog = true" />
       </div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-bottom: 5px">
         <input @click="() => connectDappUriInput(dappUriInput)" type="button" class="primaryButton" :value="t('dapp.connectButton')">

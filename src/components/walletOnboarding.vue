@@ -131,7 +131,6 @@
 
 <template>
   <fieldset class="item">
-    <!-- Step 1: Welcome & Choose Create or Import -->
     <div v-if="step === 1">
       <div style="margin-bottom: 25px;">
         <div class="welcome-header">
@@ -179,13 +178,11 @@
       </div>
     </div>
 
-    <!-- Step 2: Enter details and create/import -->
     <div v-else-if="step === 2">
       <div style="margin-bottom: 15px; cursor: pointer;" @click="goBack()">
         ← {{ t('common.actions.back') }}
       </div>
 
-      <!-- Create mode -->
       <div v-if="mode === 'create'">
         <legend>{{ t('onboarding.create.title') }}</legend>
         <div style="margin: 20px 0;">
@@ -218,7 +215,6 @@
         <input @click="createNewWallet()" class="button primary" type="button" :value="t('onboarding.create.submitButton')" :disabled="isCreating" style="margin-bottom: 15px;">
       </div>
 
-      <!-- Import mode -->
       <div v-else>
         <legend>{{ t('onboarding.import.title') }}</legend>
         <div style="margin: 20px 0;">
@@ -258,7 +254,6 @@
       </div>
     </div>
 
-    <!-- Step 3: Preferences -->
     <div v-else-if="step === 3">
       <legend>{{ t('onboarding.preferences.title') }}</legend>
       <p style="margin-top: 15px; margin-bottom: 20px;">{{ t('onboarding.preferences.description') }}</p>

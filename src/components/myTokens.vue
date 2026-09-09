@@ -145,7 +145,6 @@
   </div>
 
   <div v-else>
-    <!-- Options toggle row -->
     <div v-if="store.tokenList?.length" class="control-row">
       <div class="type-filter">
         <button
@@ -164,7 +163,6 @@
       </span>
     </div>
 
-    <!-- Options panel (collapsed by default) -->
     <div v-if="store.tokenList?.length && showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
       <div class="option-item">
         <label for="filterTokens">{{ t('tokens.filter.label') }}</label>
@@ -185,7 +183,6 @@
       </div>
     </div>
 
-    <!-- Token list -->
     <div v-if="store.tokenList?.length == 0" style="text-align: center;">
       {{ t('tokens.noTokens') }}
     </div>
@@ -224,26 +221,6 @@
   flex-wrap: wrap;
   gap: 10px 12px;
   margin: 10px;
-}
-
-.options-toggle,
-.search-toggle {
-  cursor: pointer;
-  user-select: none;
-  opacity: 0.8;
-}
-
-/* icons are taller than the lowercase text, drop them slightly below the
-   baseline so they read as vertically centered next to it */
-.options-toggle .q-icon,
-.search-toggle .q-icon {
-  vertical-align: -0.2em;
-}
-
-.options-toggle.active,
-.search-toggle.active {
-  color: var(--color-primary);
-  opacity: 1;
 }
 
 .options-panel {

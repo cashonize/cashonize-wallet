@@ -56,7 +56,6 @@
     <div v-if="Object.keys(wizardconnectStore.connections).length">
       <div class="sessions-section-heading">{{ t('wizardConnect.sessions.title') }}</div>
       <div class="wiz-session-items-container">
-        <!-- Iterate over active connections -->
         <template v-for="(connection, connectionId) of wizardconnectStore.connections" :key="connectionId">
           <div class="wiz-session-item">
             <div class="wiz-session-item-app-icon">
@@ -120,7 +119,7 @@
   margin-top: 3px;
   border-radius: 999px;
   color: grey;
-  background: rgba(128, 128, 128, 0.14);
+  background: var(--surface-strong);
 }
 
 /* Status dot, colored along with the label text */

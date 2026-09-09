@@ -42,7 +42,7 @@ test.describe.serial('CashConnect E2E', () => {
     // Navigate to the Connect tab (hosts the shared URI input and the CashConnect sessions list)
     await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
     // exact: the intro text ("Connect to dApps with the...") is a case-insensitive substring match otherwise
-    await walletPage.getByText('Connect to Dapp', { exact: true }).waitFor({ timeout: 15_000 })
+    await walletPage.getByText('Connect to dApp', { exact: true }).waitFor({ timeout: 15_000 })
 
     // Open test dApp
     await dappPage.goto(DAPP_URL)

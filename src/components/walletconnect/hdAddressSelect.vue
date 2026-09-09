@@ -212,16 +212,14 @@
   margin-bottom: 5px;
 }
 
+/* the shared toggle styles are in app.css; this row takes its trailing space, and centers rather
+   than aligning to the baseline, so its icon does not take the baseline nudge the others need */
 .options-toggle {
-  cursor: pointer;
-  user-select: none;
-  opacity: 0.8;
   margin-left: auto;
 }
 
-.options-toggle.active {
-  color: var(--color-primary);
-  opacity: 1;
+.options-toggle .q-icon {
+  vertical-align: middle;
 }
 
 .options-panel {
@@ -274,15 +272,14 @@
   transform: rotate(-90deg);
 }
 
-/* neutral grey alphas keep the cards theme-agnostic: no separate dark mode rules needed */
 .address-item {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   /* the row gap only applies to the label line, which sits closer than the column spacing */
   gap: 6px 12px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 12px;
   padding: 8px 14px;
   margin-bottom: 6px;
@@ -292,7 +289,7 @@
 }
 
 .address-item:hover {
-  background-color: rgba(128, 128, 128, 0.14);
+  background-color: var(--surface-strong);
 }
 
 .address-item.selected {
@@ -343,7 +340,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(128, 128, 128, 0.15);
+  background-color: var(--surface-strong);
 }
 
 .address-info {

@@ -37,6 +37,21 @@ describe('formatTokenAmountWithSymbol', () => {
   });
 });
 
+describe('formatTokenAmount', () => {
+  it('groups the whole part and keeps the fraction', () => {
+    expect(formatTokenAmount(50_000_000n, 2)).toBe('500,000');
+    expect(formatTokenAmount(1005n, 1)).toBe('100.5');
+    expect(formatTokenAmount(1234567n, 0)).toBe('1,234,567');
+  })
+  it('keeps the sign of a negative amount', () => {
+    expect(formatTokenAmount(-1234567n, 0)).toBe('-1,234,567');
+    expect(formatTokenAmount(-50n, 2)).toBe('-0.5');
+  })
+  it('treats absent decimals as none', () => {
+    expect(formatTokenAmount(1234567n, undefined)).toBe('1,234,567');
+  })
+})
+
 describe('test formatTokenAmountFromBigInt', () => {
   it('should return the base units unchanged for a token without decimals', () => {
     expect(formatTokenAmountFromBigInt(1000n, 0)).toBe("1000");

@@ -1,5 +1,3 @@
-// Minimal useWindowSize composable, adapted from @vueuse/core
-// https://github.com/vueuse/vueuse/blob/main/packages/core/useWindowSize/index.ts
 import { ref, onMounted, onUnmounted, getCurrentInstance, type Ref } from 'vue'
 
 interface UseWindowSizeReturn {
@@ -7,6 +5,8 @@ interface UseWindowSizeReturn {
   height: Ref<number>
 }
 
+// Minimal useWindowSize, adapted from @vueuse/core
+// https://github.com/vueuse/vueuse/blob/main/packages/core/useWindowSize/index.ts
 export function useWindowSize(): UseWindowSizeReturn {
   const width = ref(window.innerWidth)
   const height = ref(window.innerHeight)

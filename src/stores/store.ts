@@ -29,13 +29,7 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import {
-  electrumWssUrl,
-  getBalanceFromUtxos,
-  loadWalletFromId,
-  runAsyncVoid,
-  walletTypeFromWalletId
-} from "src/utils/utils"
+import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, runAsyncVoid, walletTypeFromWalletId } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -298,13 +292,13 @@ export const useStore = defineStore('store', () => {
       return tokenList.value;
     }
     if (filter === 'default') {
-      return tokenList.value.filter(t => !settingsStore.hiddenTokens.includes(t.category));
+      return tokenList.value.filter(token => !settingsStore.hiddenTokens.includes(token.category));
     }
     if (filter === 'favoritesOnly') {
-      return tokenList.value.filter(t => settingsStore.featuredTokens.includes(t.category));
+      return tokenList.value.filter(token => settingsStore.featuredTokens.includes(token.category));
     }
     if (filter === 'hiddenOnly') {
-      return tokenList.value.filter(t => settingsStore.hiddenTokens.includes(t.category));
+      return tokenList.value.filter(token => settingsStore.hiddenTokens.includes(token.category));
     }
     return tokenList.value;
   })
@@ -1392,12 +1386,7 @@ export const useStore = defineStore('store', () => {
   function tokenIconUrl(tokenId: string) {
     const tokenIconUri = bcmrRegistries.value?.[tokenId]?.uris?.icon;
     if (!tokenIconUri) return undefined;
-
-    if (tokenIconUri.startsWith('ipfs://')) {
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    } else {
-      return tokenIconUri;
-    }
+    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   }
 
   async function getLatestGithubRelease(){

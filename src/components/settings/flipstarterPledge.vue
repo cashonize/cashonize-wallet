@@ -274,7 +274,6 @@
       </div>
     </div>
 
-    <!-- Template input -->
     <div style="margin-top: 15px;">
       <div class="description">{{ t('flipstarter.step', { current: 1, total: 3 }) }}</div>
       <label>{{ t('flipstarter.templateLabel') }}</label>

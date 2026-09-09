@@ -4,7 +4,6 @@
   import { filledLocations, locationBudgetLeft, publicationOutput, tokenOutputValue } from 'src/utils/tools/authchainIdentity';
   import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, fetchCandidateRegistry, summarizeRegistry } from 'src/utils/tools/registryFile';
   import {
-    formatTokens,
     genesisAmounts,
     metadataReadiness,
     parseDecimals,
@@ -14,7 +13,7 @@
     type CheckedRegistry,
     type CreatedToken,
   } from 'src/utils/tools/tokenCreation';
-  import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, formatTokenAmount, gatewayUrl, truncateHash } from 'src/utils/utils';
   import { NFTCapability, TokenSendRequest } from 'mainnet-js';
   import TokenIcon from '../general/TokenIcon.vue';
   import genesisInputPicker from './genesisInputPicker.vue';
@@ -79,14 +78,14 @@
   const amounts = computed(() => genesisAmounts(inputFungibleSupply.value, inputCirculating.value, inputDecimals.value));
   const totalSupply = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.supply);
   const circulating = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.circulating);
-  // What the AuthHead keeps: supply the wallet holds out of circulation, alongside the authority
+  // What the authhead keeps: supply the wallet holds out of circulation, alongside the authority
   const reserve = computed(() => typeof amounts.value === 'string' ? undefined : amounts.value.reserve);
-  const baseUnitsOf = (baseUnits: bigint) => formatTokens(baseUnits, 0);
+  const baseUnitsOf = (baseUnits: bigint) => formatTokenAmount(baseUnits, 0);
   // Tokens, with the symbol once a checked metadata file has given the token one: the first time
   // the user's number looks like a token
   function tokensOf(baseUnits: bigint) {
     const symbol = readiness.value === 'ready' ? checkedRegistry.value?.summary.symbol : undefined;
-    const amount = formatTokens(baseUnits, decimals.value);
+    const amount = formatTokenAmount(baseUnits, decimals.value);
     return symbol ? `${amount} ${symbol}` : amount;
   }
 
@@ -97,14 +96,14 @@
     if (typeof amounts.value === 'string') {
       if (amounts.value === 'overMaxSupply') {
         // the cap in the unit the field is typed in: the on-chain number is not one the user can type here
-        return t('createTokens.errors.overMaxSupply', { max: formatTokens(maxTokenSupply, decimals.value) });
+        return t('createTokens.errors.overMaxSupply', { max: formatTokenAmount(maxTokenSupply, decimals.value) });
       }
       return t(`createTokens.errors.${amounts.value}`);
     }
     // a token output carrying neither an amount nor an NFT is invalid, so without a minting NFT
     // the identity output has to keep some of the supply: refused here, before the genesis can
     if (!createMintingNft.value && amounts.value.supply > 0n && amounts.value.reserve === 0n) {
-      return t('createTokens.errors.emptyReserve', { minimum: formatTokens(1n, decimals.value) });
+      return t('createTokens.errors.emptyReserve', { minimum: formatTokenAmount(1n, decimals.value) });
     }
     return undefined;
   });
@@ -156,7 +155,7 @@
   const checkedIconUrl = computed(() => {
     const uri = checkedRegistry.value?.summary.iconUri;
     if (!uri) return undefined;
-    return uri.startsWith('ipfs://') ? settingsStore.ipfsGateway + uri.slice('ipfs://'.length) : uri;
+    return gatewayUrl(uri, settingsStore.ipfsGateway);
   });
 
   const checkedName = computed(() => {
@@ -186,7 +185,7 @@
     changeHome();
   }
 
-  // The genesis request and the outputs beside it: output 0 is the AuthHead, carrying the reserve
+  // The genesis request and the outputs beside it: output 0 is the authhead, carrying the reserve
   // and the minting NFT if there is one, then what is issued to circulation and the publication
   function genesisOutputs(category: string, reserveAmount: bigint, circulatingAmount: bigint) {
     const tokenAddress = store.wallet.getTokenDepositAddress();
@@ -229,7 +228,7 @@
       const { genesisRequest, extraOutputs, linkedMetadata } = genesisOutputs(pickedCoin.txid, reserveAmount, circulatingAmount);
       notifySending(t('createTokens.notifications.creatingTokens'));
       const { txId } = await store.spend.tokenGenesis(pickedCoin, genesisRequest, extraOutputs);
-      // creation ends where management begins: the identity is listed and its AuthHead held back
+      // creation ends where management begins: the identity is listed and its authhead held back
       if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
       const linked = linkedMetadata ? checkedRegistry.value?.summary : undefined;
       created.value = {

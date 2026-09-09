@@ -136,11 +136,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return listed;
   }
 
-  // What the wallet held back without being asked, to be told in a dialog with names, and how
-  // each came to be this wallet's, since the dialog says the true thing per row: made with these
-  // keys, held through its AuthKey, its coin here, or a watched one arrived. Set after the resolve so
-  // the dialog can say what each carries; announcements close together accumulate, and the wallet
-  // page opens one dialog for them and clears this.
+  // What the wallet held back without being asked, for the dialog that names each and says how it
+  // came to be this wallet's. Set after the resolve, so the dialog can say what each carries;
+  // announcements close together accumulate into the one dialog the wallet page opens.
   const announcement = ref<{ ids: string[]; sources: Record<string, FoundSource> } | undefined>(undefined);
   function announceFound(found: Record<string, FoundSource>) {
     const ids = Object.keys(found);
@@ -316,10 +314,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // Re-resolved rather than restored: an authhead moves to a new outpoint whenever the metadata is
   // updated elsewhere. One owner for both the list and the 'auth' reservations rewritten from it.
-  // Returns what it held back that the user did not ask for: a watched identity whose authhead,
-  // or whose AuthKey, has arrived; the caller announces them. Watched means held elsewhere at the
-  // last complete resolve, whichever session that was: the coin usually arrives while the app is
-  // closed. An incomplete resolve says nothing about where anything is, so it leaves the record.
+  // Returns the identities that were watched at the last complete resolve and are now held here,
+  // for the caller to announce; the coin usually arrives while the app is closed. An incomplete
+  // resolve says nothing about where anything is, so it leaves that record alone.
   async function resolveListedIdentities(): Promise<string[]> {
     const news: string[] = [];
     const currentUtxos = mainStore.walletUtxos;
@@ -439,9 +436,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return [...kept, ...resolved];
   }
 
-  // The identities of the tokens this wallet holds, followed: every held category at open, up to
-  // the cap, and all of them on the page's visit. Resolving only what was never looked up would
-  // leave the group half filled until the visit, since the states themselves are not persisted.
+  // The identities of the tokens this wallet holds, followed. Resolving only what was never looked
+  // up would leave the group half filled until the page's visit, since the states are not persisted.
   // Nothing is listed or reserved here except an identity whose authhead, or whose AuthKey, turns
   // out to be in this wallet, which is promoted and announced.
   async function followTokenIdentities(scope: 'open' | 'all' | 'keys') {
@@ -521,12 +517,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // result would be rather than toasted on every open; cleared by the next pass that runs
   const openCheckError = ref<string | undefined>(undefined);
 
-  // The passes the wallet runs on its own once a wallet is up: the reading of its history for
-  // the identities these keys made, and the followed token identities.
   // Outside the wallet's own failure path: a lookup failing here, an electrum server refusing a
   // guard address say, must not flag a wallet that did load, so it is reported where the
-  // identities are. The resolve of what the wallet follows comes first, since the detection
-  // lists against it.
+  // identities are. The resolve comes before the detection, which lists against it.
   async function runChecksOnOpen() {
     const started = mainStore.currentInitializationToken();
     openCheckError.value = undefined;

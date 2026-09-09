@@ -3,17 +3,15 @@
     "actions": {
       "back": "Back",
       "send": "Send",
-      "confirm": "Confirm",
-      "connect": "Connect"
+      "confirm": "Confirm"
     },
     "status": {
-      "loading": "Loading...",
       "sending": "Sending..."
     },
     "errors": {
       "somethingWentWrong": "Something went wrong",
       "needToInitializeWallet": "Need to initialize a wallet first",
-      "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dapp request",
+      "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dApp request",
       "nothingToTransfer": "No BCH or tokens left to transfer"
     },
     "attention": "Attention:",
@@ -446,7 +444,7 @@
     }
   },
   "dapp": {
-    "title": "Connect to Dapp",
+    "title": "Connect to dApp",
     "connectText": "Connect to BCH dApps with supported connection methods.",
     "supportedMethods": "WalletConnect, CashConnect and WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect and CashConnect",
@@ -473,7 +471,7 @@
       "all": "All",
       "bchTxs": "BCH txs",
       "tokenTxs": "Token txs",
-      "dappTxs": "Dapp txs",
+      "dappTxs": "dApp txs",
       "dateRange": "Filter range:"
     },
     "directionFilter": {
@@ -491,7 +489,7 @@
     "sent": "Sent",
     "received": "Received",
     "combined": "Combined",
-    "dapp": "dapp",
+    "dapp": "dApp",
     "identity": {
       "metadataUpdate": "metadata update",
       "metadataUpdateNamed": "{name} metadata update",
@@ -509,7 +507,7 @@
       "balance": "Balance ({unit})",
       "tokenChanges": "Token Changes",
       "direction": "Direction",
-      "dapp": "Dapp",
+      "dapp": "dApp",
       "note": "Note"
     },
     "pending": "pending",
@@ -826,7 +824,7 @@
       "largeBch": "Holds a large amount of BCH",
       "reserved": "Held back for an open Flipstarter pledge, so a spend from this wallet will not reach for it.",
       "reservedRelease": "Cancel the pledge on the Flipstarter page to release the UTXO.",
-      "reservedAuth": "Held back because it is an identity's UTXO (its AuthHead), so a spend from this wallet will not reach for it.",
+      "reservedAuth": "Held back because it is an identity's UTXO (its authhead), so a spend from this wallet will not reach for it.",
       "reservedAuthRelease": "Transfer the identity or remove it on the Identities page to release the UTXO.",
       "frozen": "Frozen by you, click to unfreeze",
       "unfreeze": "Unfreeze",
@@ -960,7 +958,7 @@
     "txCount": "{count} txs",
     "reservedAmount": "Reserved: {amount}",
     "available": "available",
-    "reservedDappWarning": "A dapp request that would spend a reserved UTXO is refused, so dapp actions using this address can fail.",
+    "reservedDappWarning": "A dApp request that would spend a reserved UTXO is refused, so dApp actions using this address can fail.",
     "reservedWhere": "The UTXO Management page shows which UTXOs are reserved and why.",
     "tokenCount": "{count} token | {count} tokens"
   },
@@ -994,7 +992,6 @@
     "sweepButton": "Sweep",
     "previewButton": "Preview",
     "loadingButton": "Loading...",
-    "sweepAllButton": "Sweep All",
     "emptyWallet": "No balance found on this private key",
     "preview": {
       "bchBalance": "BCH Balance:",
@@ -1005,7 +1002,6 @@
     },
     "notifications": {
       "noWifProvided": "No private key provided to sweep",
-      "sendingTransaction": "Sending transaction...",
       "sweepingTokens": "Sweeping tokens...",
       "sweepingNfts": "Sweeping NFTs...",
       "sweepingBch": "Sweeping BCH...",
@@ -1207,9 +1203,9 @@
       "unknownToken": "Unknown token",
       "advanced": "Advanced",
       "inputParameters": "Input Parameters",
-      "inputParametersCaption": "Parameters provided by the Dapp to execute this action",
+      "inputParametersCaption": "Parameters provided by the dApp to execute this action",
       "returnedData": "Returned Data",
-      "returnedDataCaption": "Information that will be returned to the Dapp for execution",
+      "returnedDataCaption": "Information that will be returned to the dApp for execution",
       "approveButton": "Approve",
       "rejectButton": "Reject"
     },
@@ -1225,7 +1221,7 @@
     "notifications": {
       "sessionApproved": "Session approved",
       "successfullySignedTransaction": "Successfully signed transaction",
-      "networkMismatch": "This Dapp requires wallet to be on {network}. Please navigate to settings and change network to use this Dapp.",
+      "networkMismatch": "This dApp requires wallet to be on {network}. Please navigate to settings and change network to use this dApp.",
       "notStarted": "CashConnect is not started.",
       "privateKeyNotFound": "Private key could not be found for address: {address}",
       "failedToConvertCashAddr": "Failed to convert CashAddr to Locking Bytecode",
@@ -1270,7 +1266,6 @@
     "sessionRequest": {
       "title": "Approve Session?",
       "approveButton": "Approve",
-      "switchAndApprove": "Switch to {network} and approve",
       "rejectButton": "Reject"
     },
     "addressSelect": {
@@ -1313,7 +1308,7 @@
       "failedToSignTransaction": "Failed to sign transaction",
       "sendingTransaction": "Sending transaction...",
       "sentTransaction": "Sent WalletConnect transaction '{userPrompt}'",
-      "signedTransaction": "Signed WalletConnect transaction '{userPrompt}'. Please return to the dapp.",
+      "signedTransaction": "Signed WalletConnect transaction '{userPrompt}'. Please return to the dApp.",
       "transactionSignedTitle": "Transaction Signed",
       "transactionSent": "Transaction successfully sent!",
       "transactionSigned": "Transaction signed and returned to the dApp",
@@ -1351,7 +1346,7 @@
     "notifications": {
       "sendingTransaction": "Sending transaction...",
       "sentTransaction": "Sent WizardConnect transaction for {dappName}",
-      "signedTransaction": "Signed WizardConnect transaction for {dappName}. Please return to the dapp.",
+      "signedTransaction": "Signed WizardConnect transaction for {dappName}. Please return to the dApp.",
       "transactionSignedTitle": "Transaction Signed",
       "transactionSent": "Transaction successfully sent!",
       "transactionSigned": "Transaction signed and returned to the dApp",
@@ -1469,7 +1464,7 @@
       "disableTokenIcons": "Disable token image loading",
       "disableTokenIconsHint": "Prevents loading token images from external servers",
       "strictWcSchema": "Strict WalletConnect schema validation",
-      "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dapp to surface non-compliant payloads.",
+      "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dApp to surface non-compliant payloads.",
       "showPrivateKeyWif": "Show WIF private key on backup page",
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets.",
       "nonTokenIdentities": "Add identities that are not tokens",
@@ -1510,7 +1505,6 @@
       "title": "Pledge info",
       "noCampaignIdentity": "The pledge request carries no campaign name, description or domain.",
       "recipient": "Recipient",
-      "amount": "Amount",
       "campaignTotal": "Campaign target: {amount}",
       "yourPledge": "Your pledge: {amount} {fiat} ({share}% of the target)",
       "alreadyExpired": "(already expired)",
@@ -1820,7 +1814,7 @@
       "registryLead": "Registry:",
       "registry": "the JSON file that names the identity, written with the {generator} in its advanced mode or by hand against the {schema}, with the {examples} to start from, and hosted on a domain you control or on IPFS.",
       "registryNote": "In advanced mode the token switch turns off the token section, which an identity that is not a token must not have, leaving a name, a description and links.",
-      "newLead": "Adding a new identity for a dapp, a contract system or an organization?",
+      "newLead": "Adding a new identity for a dApp, a contract system or an organization?",
       "newWhat": "This adds one: a chain of UTXOs with no token on it, from which a name, an icon and links are published and updated.",
       "caution": "Almost no such identities exist yet and little reads them, so know what you want from yours before making it.",
       "tokenLead": "Making a token?",

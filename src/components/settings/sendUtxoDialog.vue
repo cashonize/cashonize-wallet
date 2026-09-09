@@ -3,7 +3,6 @@
   import { useDialogPluginComponent } from 'quasar'
   import type { Utxo } from 'mainnet-js'
   import { useStore } from 'src/stores/store'
-  import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
   import { formatBchAmount } from 'src/utils/utils'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
@@ -11,6 +10,7 @@
   import { validateRecipientAddress, getCashAddressScanError } from 'src/utils/payments/recipientAddress'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue'
+  import QrScanButton from '../qr/qrScanButton.vue';
 
   const props = defineProps<{ utxo: Utxo }>()
 
@@ -21,7 +21,6 @@
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
   const store = useStore()
-  const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
   const destinationInput = ref("");
@@ -74,13 +73,7 @@
             type="text"
             :placeholder="t('utxoManagement.send.destinationPlaceholder')"
           >
-          <button
-            v-if="settingsStore.qrScan"
-            @click="() => showQrCodeDialog = true"
-            style="padding: 12px"
-          >
-            <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-          </button>
+          <QrScanButton @click="showQrCodeDialog = true" />
         </div>
         <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
           <input type="button" class="primaryButton" :value="t('common.actions.send')" :disabled="!destinationInput" @click="confirmSend">

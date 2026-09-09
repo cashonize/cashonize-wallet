@@ -26,7 +26,7 @@ import type { ElectrumNetworkProvider, TxI } from "mainnet-js";
 import { BCMR_OUTPUT_PREFIX, type AuthHeadResult, type AuthchainLink, type IdentityOutput } from "src/queryChainGraph";
 import { i18n } from "src/boot/i18n";
 
-const t = i18n.global.t;
+const { t } = i18n.global;
 
 // Raw transactions fetched per round while looking for the spender at a busy address
 const SPENDER_SEARCH_BATCH = 50;
@@ -137,11 +137,11 @@ async function blockTimestamp(provider: ElectrumNetworkProvider, height: number)
 // The same answer Chaingraph's authhead query gives, read off the walked chain
 async function readAuthHead(provider: ElectrumNetworkProvider, tokenId: string, links: Link[], linksLimit: number): Promise<AuthHeadResult> {
   const authhead = links[links.length - 1]!;
-  const output = authhead.transaction.outputs[0];
+  const authheadOutput = authhead.transaction.outputs[0];
   let identityOutput: IdentityOutput | undefined;
-  if (output) {
-    const token = tokenOf(output);
-    identityOutput = { lockingBytecode: binToHex(output.lockingBytecode), satoshis: output.valueSatoshis, ...(token ? { token } : {}) };
+  if (authheadOutput) {
+    const token = tokenOf(authheadOutput);
+    identityOutput = { lockingBytecode: binToHex(authheadOutput.lockingBytecode), satoshis: authheadOutput.valueSatoshis, ...(token ? { token } : {}) };
   }
 
   const lastPublication = [...links].reverse().find(link => link.transaction.outputs.some(isPublicationOutput));

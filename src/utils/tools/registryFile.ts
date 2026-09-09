@@ -4,6 +4,7 @@
 
 import { binToHex, binToUtf8, sha256 } from "@bitauth/libauth";
 import { MetadataRegistrySchema } from "src/utils/zodValidation";
+import { gatewayUrl } from "src/utils/utils";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -43,7 +44,7 @@ const WELL_KNOWN_REGISTRY_PATH = "/.well-known/bitcoin-cash-metadata-registry.js
 // Where a published location is actually fetched from. The published form is the compact one the
 // spec asks for, so an https:// prefix is stripped and a bare domain names the well-known path.
 export function registryUrlOf(uri: string, ipfsGateway: string): string {
-  if (uri.startsWith("ipfs://")) return ipfsGateway + uri.slice("ipfs://".length);
+  if (uri.startsWith("ipfs://")) return gatewayUrl(uri, ipfsGateway);
   // Per spec a bare domain means the well-known file on it, while anything naming a path is taken
   // as published. A trailing slash is such a path, the root itself, so the two forms differ.
   const location = uri.replace(/^https:\/\//, "");
@@ -141,18 +142,25 @@ export async function fetchVerifiedRegistry(
   return undefined;
 }
 
-// The authbases a registry names its identities by, which is how a chain that carries no token
-// is named: each resolved forward, the one ending at the coin in question is the identity
-export function registryAuthbases(content: string): string[] {
+// A served file read as a registry, or undefined when it is not one: anything the wallet fetched
+// from a published location is a stranger's bytes until the schema says otherwise.
+function parseRegistry(content: string) {
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);
   } catch {
-    return [];
+    return undefined;
   }
   const registry = MetadataRegistrySchema.safeParse(parsed);
-  if (!registry.success) return [];
-  return Object.keys(registry.data.identities ?? {}).filter(authbase => /^[0-9a-f]{64}$/.test(authbase));
+  return registry.success ? registry.data : undefined;
+}
+
+// The authbases a registry names its identities by, which is how a chain that carries no token
+// is named: each resolved forward, the one ending at the coin in question is the identity
+export function registryAuthbases(content: string): string[] {
+  const registry = parseRegistry(content);
+  if (!registry) return [];
+  return Object.keys(registry.identities ?? {}).filter(authbase => /^[0-9a-f]{64}$/.test(authbase));
 }
 
 // What the wallet reads out of a registry to say what an update changes. Undefined when the file
@@ -166,15 +174,8 @@ export interface RegistrySummary {
 }
 
 export function summarizeRegistry(content: string, authbase: string): RegistrySummary | undefined {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(content);
-  } catch {
-    return undefined;
-  }
-  const registry = MetadataRegistrySchema.safeParse(parsed);
-  if (!registry.success) return undefined;
-  const history = registry.data.identities?.[authbase];
+  const registry = parseRegistry(content);
+  const history = registry?.identities?.[authbase];
   if (!history) return undefined;
   const snapshots = Object.keys(history).sort();
   const latest = snapshots.length ? history[snapshots[snapshots.length - 1]!] : undefined;

@@ -1,7 +1,8 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
-import { convert, NetworkType, HDWallet } from "mainnet-js";
+import { NetworkType, HDWallet } from "mainnet-js";
+import { currentExchangeRate } from "src/utils/utils";
 import {
   WalletConnectionManager,
   DerivationPath,
@@ -271,14 +272,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       void showNextSignRequest();
       return;
     }
-    // Fetch the exchange rate before showing the dialog, falling back to the last known rate.
-    // Without any rate we can't display the fiat impact, so reject instead of showing the dialog.
-    let exchangeRate: number | undefined;
-    try {
-      exchangeRate = await convert(1, "bch", settingsStore.currency);
-    } catch {
-      exchangeRate = mainStore.exchangeRate;
-    }
+    const exchangeRate = await currentExchangeRate(settingsStore.currency, () => mainStore.exchangeRate);
     if (exchangeRate === undefined) {
       Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
       manager.sendSignError(connectionId, request.sequence, 'Transaction signing request aborted with error: exchange rate unavailable').catch(console.error);

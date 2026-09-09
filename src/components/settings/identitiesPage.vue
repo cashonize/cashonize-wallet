@@ -51,9 +51,8 @@
   const identityName = (category: string) => store.bcmrRegistries?.[category]?.name;
 
   // Three lists: what this wallet holds, what the user chose to watch for somebody else, and the
-  // identities of the tokens it holds, followed passively. A watched identity is another wallet's,
-  // so it is never counted among this one's; the followed ones are neither. Each group is there
-  // when it has something in it; the third also while its lookups run, and never once the
+  // identities of the tokens it holds, followed passively. Neither of the last two counts among
+  // this wallet's. The followed group also shows while its lookups run, and never once the
   // following is turned off, whatever it last found.
   const tokenGroupShown = computed(() => {
     if (!settingsStore.followTokenIdentities) return false;
@@ -167,9 +166,9 @@
   }
 
   // A new identity that is not a token starts from any UTXO at output 0, picked or prepared the
-  // way the create page picks a genesis input: its txid is the id and the UTXO its authhead, held
-  // back from here on. Naming waits for a publication that names it. Two steps, the pick closing
-  // to one line before the add, so what is about to be listed is read before it is.
+  // way the create page picks a genesis input: its txid is the id and the UTXO its authhead. Two
+  // steps, the pick closing to one line before the add, so what is about to be listed is read
+  // before it is.
   const pickedUtxo = ref<Utxo | undefined>(undefined);
   const pickStepOpen = ref(true);
   const addStepTitle = (title: 'pick' | 'add') => t(`identities.create.steps.${title}`);

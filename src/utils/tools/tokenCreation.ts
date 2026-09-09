@@ -3,7 +3,6 @@
 // location counts only once the wallet has fetched and verified what it serves.
 
 import type { Utxo } from 'mainnet-js';
-import { formatTokenAmountFromBigInt } from '../utils';
 import type { RegistrySummary } from './registryFile';
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
@@ -47,13 +46,6 @@ export function genesisAmounts(supplyText: string, circulatingText: string, deci
   if (supply > maxTokenSupply) return 'overMaxSupply';
   if (circulating > supply) return 'overSupply';
   return { supply, circulating, reserve: supply - circulating };
-}
-
-// Tokens with thousands separators, the way the amounts are shown back
-export function formatTokens(baseUnits: bigint, decimals: number): string {
-  const [whole = '', fraction] = formatTokenAmountFromBigInt(baseUnits, decimals).split('.');
-  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return fraction ? `${grouped}.${fraction}` : grouped;
 }
 
 // What the wallet fetched from the typed locations and verified names this category

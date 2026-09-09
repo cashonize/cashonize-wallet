@@ -215,8 +215,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 6px;
   padding: 8px 10px;
   font-family: monospace;
@@ -231,7 +231,7 @@
   transition: background-color 0.2s;
 }
 .selected-address.selectable:hover {
-  background-color: rgba(128, 128, 128, 0.14);
+  background-color: var(--surface-strong);
 }
 .select-chevron {
   flex: none;
@@ -244,8 +244,8 @@
   flex-wrap: wrap;
 }
 .signature-result {
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  background-color: rgba(128, 128, 128, 0.06);
+  border: 1px solid var(--surface-line);
+  background-color: var(--surface-subtle);
   border-radius: 6px;
   padding: 8px 10px;
   font-family: monospace;

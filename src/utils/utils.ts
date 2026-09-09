@@ -1,6 +1,6 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, type Utxo, type TransactionHistoryItem } from "mainnet-js"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, type Utxo, type TransactionHistoryItem } from "mainnet-js"
 import type { BcmrTokenMetadata, ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
@@ -220,7 +220,6 @@ export function formatTokenAmount(baseUnits: bigint, decimals: number | undefine
   return fraction ? `${grouped}.${fraction}` : grouped;
 }
 
-// With the token's symbol after it, as far as the metadata says
 // An amount always says what it counts, since a bare number reads as satoshis or as NFTs just as
 // easily: the token's symbol where its metadata names one, the generic unit where it does not.
 export function formatTokenAmountWithSymbol(
@@ -230,6 +229,22 @@ export function formatTokenAmountWithSymbol(
   const amount = formatTokenAmount(baseUnits, metadata?.token?.decimals);
   const symbol = metadata?.token?.symbol ?? t('common.tokenUnit', amount === '1' ? 1 : 2);
   return `${amount} ${symbol}`.trim();
+}
+
+// The rate a dapp's sign dialog shows the fiat impact with: freshly fetched, or the last one the
+// wallet saw when the provider does not answer. Undefined when there is neither, and a request the
+// user cannot see the fiat impact of is refused rather than shown without it.
+// The fallback is read after the fetch fails, not before it starts: the wallet's own rate can
+// arrive, or be cleared by a network switch, while a slow provider is still being waited on.
+export async function currentExchangeRate(
+  currency: keyof typeof CurrencyShortNames,
+  lastKnown: () => number | undefined,
+): Promise<number | undefined> {
+  try {
+    return await convert(1, "bch", currency);
+  } catch {
+    return lastKnown();
+  }
 }
 
 export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
@@ -253,6 +268,13 @@ export function satsToBch(satoshis: bigint | number) {
 // An amount with its unit, for a network's own name for the coin
 export function formatBch(satoshis: bigint, network: string): string {
   return `${formatBchAmount(Number(satoshis), false, 8)} ${network === 'mainnet' ? 'BCH' : 'tBCH'}`;
+}
+
+// A metadata location as it is actually fetched: an ipfs:// one through whichever gateway the user
+// configured, anything else as published. The gateway is passed in rather than read from the
+// settings here, so this stays a plain function.
+export function gatewayUrl(uri: string, ipfsGateway: string): string {
+  return uri.startsWith('ipfs://') ? ipfsGateway + uri.slice('ipfs://'.length) : uri;
 }
 
 export function truncateHash(hash: string, head = 16, tail = 8): string {

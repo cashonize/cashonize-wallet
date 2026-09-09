@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { convert, NetworkType, HDWallet } from "mainnet-js";
+import { NetworkType, HDWallet } from "mainnet-js";
 import { useStore } from "./store"
 import { useIdentitiesStore } from "./identitiesStore"
 import {
@@ -15,7 +15,7 @@ import {
   decodeTransaction,
   decodeTransactionUnsafe
 } from "@bitauth/libauth"
-import { parseExtendedJson } from 'src/utils/utils'
+import { currentExchangeRate, parseExtendedJson } from 'src/utils/utils'
 import alertDialog from 'src/components/general/alertDialog.vue'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
@@ -428,14 +428,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         }
         // Manually approve
         const dappMetadata = session.peer.metadata;
-        // Fetch the exchange rate before showing the dialog, falling back to the last known rate.
-        // Without any rate we can't display the fiat impact, so reject instead of showing the dialog.
-        let exchangeRate: number | undefined;
-        try {
-          exchangeRate = await convert(1, "bch", settingsStore.currency);
-        } catch {
-          exchangeRate = mainStore.exchangeRate;
-        }
+        const exchangeRate = await currentExchangeRate(settingsStore.currency, () => mainStore.exchangeRate);
         if (exchangeRate === undefined) {
           Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
           void rejectRequest(event);

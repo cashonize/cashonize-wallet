@@ -39,8 +39,8 @@ export interface DetectedIdentities {
 }
 
 // Which transaction spent each output 0, read off the history's own inputs. One index answers both
-// what makes a candidate a genesis and where a chain went next. The outpoints come from mainnet-js
-// through a patch, which is what keeps this pass off the network and out of libauth.
+// what makes a candidate a genesis and where a chain went next. The outpoints come from a patched
+// mainnet-js (see pnpm-workspace.yaml), which is what keeps this pass off the network and out of libauth.
 function indexOutput0Spends(history: TransactionHistoryItem[]) {
   const spenders = new Map<string, string>();
   for (const transaction of history) {

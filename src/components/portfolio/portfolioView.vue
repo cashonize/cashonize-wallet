@@ -7,7 +7,7 @@
   import { convert } from 'mainnet-js'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
-  import { formatFiatAmount, formatTokenAmount, satsToBch, formatTimeUntil, formatReadableDate } from 'src/utils/utils'
+  import { formatFiatAmount, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
   import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
@@ -556,8 +556,7 @@
     // listed assets are not in the wallet's registries, so the icon resolves from the
     // listing metadata directly instead of through store.tokenIconUrl
     const iconUri = nftMetadata?.uris?.icon ?? metadata?.uris?.icon
-    let iconUrl = iconUri
-    if (iconUri?.startsWith('ipfs://')) iconUrl = settingsStore.ipfsGateway + iconUri.slice(7)
+    const iconUrl = iconUri ? gatewayUrl(iconUri, settingsStore.ipfsGateway) : undefined
 
     // the asking price is a term of the listing, so it always shows in BCH, with the
     // fiat value alongside
@@ -1135,7 +1134,7 @@ body.dark .unit-toggle button:not(.active) {
   gap: 12px;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  border-bottom: 1px solid var(--surface-line);
 }
 .asset-list :deep(.asset-row:last-child) {
   border-bottom: none;
