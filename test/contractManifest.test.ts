@@ -129,6 +129,12 @@ describe('hodl-vault', () => {
     })
   })
 
+  // every hole is a push, so its opcode follows from the value; bytes is what the value has to be
+  it('refuses a parameter of the wrong length', () => {
+    expect(buildScript(hodl.script!, { locktime: 800_000, ownerPkh: 'ab'.repeat(19) })).toBeUndefined()
+    expect(buildScript(hodl.script!, { locktime: 800_000, ownerPkh: 'ab'.repeat(20) })).toBeDefined()
+  })
+
   it('refuses an announcement of another protocol', () => {
     expect(readAnnouncement('6a044d505357' + push(utf8ToBin('x')), find)).toBeUndefined()
   })

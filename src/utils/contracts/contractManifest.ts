@@ -39,11 +39,13 @@ const pushFieldSchema = z.object({
   max: z.number().int().optional(),
 });
 
-// A hole in a script template: either a fixed run of raw bytes, or one length-prefixed push
-const scriptFieldSchema = z.union([
-  z.object({ bytes: z.number().int().min(1).max(520), as: z.enum(['hex']) }),
-  z.object({ push: z.literal(true), as: z.enum(['hex', 'vmnumber']) }),
-]);
+// A hole in a script template. Every parameter of a p2sh contract is pushed, so a hole is always
+// one push and its opcode follows from the value; bytes is a length the value must have, not a
+// run to consume.
+const scriptFieldSchema = z.object({
+  as: z.enum(['hex', 'vmnumber']),
+  bytes: z.number().int().min(1).max(520).optional(),
+});
 
 // Positions sit at one address the manifest names, and an NFT there carries who they belong to
 const findAtAddressSchema = z.object({
@@ -73,7 +75,7 @@ const findByAnnouncementSchema = z.object({
 });
 
 const scriptSchema = z.object({
-  template: z.string().min(2).max(4000).regex(/^([0-9a-fA-F]|\{[A-Za-z][A-Za-z0-9]*\}|\s)+$/),
+  template: z.string().min(2).max(4000).regex(/^([0-9a-fA-F]|<[A-Za-z][A-Za-z0-9]*>|\s)+$/),
   addressType: z.enum(['p2sh20', 'p2sh32']),
   fields: z.record(identifier, scriptFieldSchema),
 });
@@ -191,9 +193,9 @@ export function readAnnouncement(
 // does not encode the way the template says, which is a manifest that does not fit its own inputs.
 export function buildScript(script: z.infer<typeof scriptSchema>, fields: Fields): string | undefined {
   let built = "";
-  for (const piece of script.template.replace(/\s+/g, '').split(/(\{[A-Za-z][A-Za-z0-9]*\})/)) {
+  for (const piece of script.template.replace(/\s+/g, '').split(/(<[A-Za-z][A-Za-z0-9]*>)/)) {
     if (piece === '') continue;
-    if (!piece.startsWith('{')) {
+    if (!piece.startsWith('<')) {
       if (piece.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(piece)) return undefined;
       built += piece.toLowerCase();
       continue;
@@ -203,11 +205,6 @@ export function buildScript(script: z.infer<typeof scriptSchema>, fields: Fields
     const value = fields[name];
     if (!field || value === undefined) return undefined;
 
-    if ('bytes' in field) {
-      if (typeof value !== 'string' || value.length !== field.bytes * 2) return undefined;
-      built += value.toLowerCase();
-      continue;
-    }
     let data: Uint8Array;
     if (field.as === 'vmnumber') {
       if (typeof value !== 'number') return undefined;
@@ -216,6 +213,9 @@ export function buildScript(script: z.infer<typeof scriptSchema>, fields: Fields
       if (typeof value !== 'string' || !/^([0-9a-fA-F]{2})+$/.test(value)) return undefined;
       data = hexToBin(value);
     }
+    if (field.bytes !== undefined && data.length !== field.bytes) return undefined;
+    // the push opcode follows from the value, which is the whole reason a hole is written <like
+    // this>: a template says what is pushed, never how many bytes the pushing takes
     if (data.length < 1 || data.length > 75) return undefined;
     built += binToHex(Uint8Array.from([data.length, ...data]));
   }
