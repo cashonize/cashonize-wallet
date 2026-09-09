@@ -14,9 +14,7 @@
   watch(showIcon, () => emit('closeDialog'))
 
   const httpsUrlTokenImage = computed(() => {
-    const nftImageUri = srcNftImage.value;
-    if (!nftImageUri) return nftImageUri;
-    return gatewayUrl(nftImageUri, settingsStore.ipfsGateway);
+    return gatewayUrl(srcNftImage.value, settingsStore.ipfsGateway);
   })
 </script>
 
