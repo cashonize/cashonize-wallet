@@ -234,14 +234,16 @@ export function formatTokenAmountWithSymbol(
 // The rate a dapp's sign dialog shows the fiat impact with: freshly fetched, or the last one the
 // wallet saw when the provider does not answer. Undefined when there is neither, and a request the
 // user cannot see the fiat impact of is refused rather than shown without it.
+// The fallback is read after the fetch fails, not before it starts: the wallet's own rate can
+// arrive, or be cleared by a network switch, while a slow provider is still being waited on.
 export async function currentExchangeRate(
   currency: keyof typeof CurrencyShortNames,
-  lastKnown: number | undefined,
+  lastKnown: () => number | undefined,
 ): Promise<number | undefined> {
   try {
     return await convert(1, "bch", currency);
   } catch {
-    return lastKnown;
+    return lastKnown();
   }
 }
 

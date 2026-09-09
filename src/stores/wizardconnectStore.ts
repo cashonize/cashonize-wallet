@@ -272,7 +272,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       void showNextSignRequest();
       return;
     }
-    const exchangeRate = await currentExchangeRate(settingsStore.currency, mainStore.exchangeRate);
+    const exchangeRate = await currentExchangeRate(settingsStore.currency, () => mainStore.exchangeRate);
     if (exchangeRate === undefined) {
       Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
       manager.sendSignError(connectionId, request.sequence, 'Transaction signing request aborted with error: exchange rate unavailable').catch(console.error);

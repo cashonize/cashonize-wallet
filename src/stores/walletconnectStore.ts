@@ -428,7 +428,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         }
         // Manually approve
         const dappMetadata = session.peer.metadata;
-        const exchangeRate = await currentExchangeRate(settingsStore.currency, mainStore.exchangeRate);
+        const exchangeRate = await currentExchangeRate(settingsStore.currency, () => mainStore.exchangeRate);
         if (exchangeRate === undefined) {
           Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
           void rejectRequest(event);
