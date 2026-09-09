@@ -85,7 +85,7 @@ test.describe.serial('WizardConnect E2E', () => {
     // Navigate to the connect view, wait for sessions section
     await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
     // exact: the intro text ("Connect to dApps with the...") is a case-insensitive substring match otherwise
-    await walletPage.getByText('Connect to Dapp', { exact: true }).waitFor({ timeout: 15_000 })
+    await walletPage.getByText('Connect to dApp', { exact: true }).waitFor({ timeout: 15_000 })
 
     // Open test dApp (the WizardConnect manager needs no async init)
     await dappPage.goto(DAPP_URL)

@@ -25,7 +25,7 @@ test.describe.serial('WalletConnect E2E', () => {
     // Navigate to the Connect tab, wait for sessions section
     await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
     // exact: the intro text ("Connect to dApps with the...") is a case-insensitive substring match otherwise
-    await walletPage.getByText('Connect to Dapp', { exact: true }).waitFor({ timeout: 15_000 })
+    await walletPage.getByText('Connect to dApp', { exact: true }).waitFor({ timeout: 15_000 })
 
     // Open test dApp, wait for SignClient to initialize (Connect button enabled)
     await dappPage.goto(DAPP_URL)

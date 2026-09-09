@@ -486,6 +486,9 @@
     "exportFailed": "Falha ao exportar CSV",
     "searchPlaceholder": "Buscar token ou id de tx...",
     "noMatch": "Nenhuma transação corresponde ao filtro",
+    "sent": "Enviado",
+    "received": "Recebido",
+    "combined": "Combinado",
     "dapp": "dApp",
     "identity": {
       "metadataUpdate": "atualização de metadados",
