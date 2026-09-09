@@ -45,7 +45,6 @@
     summarizeRegistry,
     type PublicationUriStatus,
     type RegistrySummary,
-    BCMR_EXAMPLES_URL,
   } from 'src/utils/tools/registryFile'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { TokenSendRequest } from 'mainnet-js'
@@ -589,31 +588,25 @@
       <ol class="walkthrough">
         <li>
           <q-icon name="edit" size="18px" />
-          <!-- the generator writes a token section, which a non-token identity must not have -->
-          <i18n-t v-if="identity.isToken === false" keypath="identities.publish.steps.authorByHand" tag="span">
-            <template #schema>
-              <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
-            </template>
-            <template #examples>
-              <a :href="BCMR_EXAMPLES_URL" target="_blank">{{ t('identities.publish.examplesLink') }}</a>
+          <i18n-t v-if="identity.isToken === false" keypath="identities.publish.steps.authorAdvanced" tag="span">
+            <template #generator>
+              <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
             </template>
           </i18n-t>
-          <template v-else>
-            <i18n-t keypath="identities.publish.steps.author" tag="span">
-              <template #generator>
-                <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
-              </template>
-            </i18n-t>
-            <InfoPopup>
-              <div style="max-width: 300px;">
-                <i18n-t keypath="identities.publish.generatorHelp" tag="span">
-                  <template #schema>
-                    <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
-                  </template>
-                </i18n-t>
-              </div>
-            </InfoPopup>
-          </template>
+          <i18n-t v-else keypath="identities.publish.steps.author" tag="span">
+            <template #generator>
+              <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
+            </template>
+          </i18n-t>
+          <InfoPopup>
+            <div style="max-width: 300px;">
+              <i18n-t keypath="identities.publish.generatorHelp" tag="span">
+                <template #schema>
+                  <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
+                </template>
+              </i18n-t>
+            </div>
+          </InfoPopup>
         </li>
         <li>
           <q-icon name="archive" size="18px" />

@@ -1742,9 +1742,9 @@
         "author": "Rédigez le JSON du registre avec le {generator}.",
         "host": "Hébergez-le sur votre domaine ou sur IPFS.",
         "publish": "Indiquez ci-dessous où il est hébergé, ce portefeuille le vérifie et publie le pointeur.",
-        "authorByHand": "Rédigez le JSON du registre dans un éditeur de code selon le {schema}, en partant des {examples} : cette identité n'est pas un token, son instantané porte donc un nom, une description et des liens, et aucune section token."
+        "authorAdvanced": "Rédigez le JSON du registre avec le {generator} : activez son mode avancé et désactivez l'interrupteur de token, pour que l'instantané porte un nom, une description et des liens, et aucune section token."
       },
-      "generatorHelp": "Le générateur est un formulaire qui rédige pour vous le fichier de métadonnées ; la spécification l'appelle un registre. Vous pouvez aussi l'écrire vous-même selon le {schema}. Dans les deux cas ce portefeuille récupère le fichier, le hache exactement tel qu'il est servi, et vérifie qu'il nomme ce token.",
+      "generatorHelp": "Le générateur est un outil de Cashonize qui rédige pour vous le fichier de métadonnées ; la spécification l'appelle un registre. Vous pouvez aussi l'écrire vous-même selon le {schema}. Dans les deux cas ce portefeuille récupère le fichier, le hache exactement tel qu'il est servi, et vérifie qu'il nomme cette identité.",
       "generatorHelpSchema": "schéma BCMR",
       "examplesLink": "registres d'exemple"
     },
@@ -1793,8 +1793,8 @@
       "lead": "Rédigerez-vous et hébergerez-vous son registre vous-même ?",
       "outcome": "L'ajout liste l'identité parmi celles que ce portefeuille possède et écarte son UTXO des envois ordinaires. Elle n'a pas de nom tant qu'un registre qui la nomme n'est pas publié ; sa carte vous y guide.",
       "registryLead": "Registre :",
-      "registry": "le fichier JSON qui nomme l'identité, rédigé dans un éditeur de code selon le {schema}, en partant des {examples}, et hébergé sur un domaine que vous contrôlez ou sur IPFS.",
-      "registryNote": "Le {generator} rédige des registres pour les tokens : il demande un symbole et écrit une section token, qu'une identité qui n'est pas un token ne doit pas avoir. Son instantané porte un nom, une description et des liens.",
+      "registry": "le fichier JSON qui nomme l'identité, rédigé avec le {generator} en mode avancé ou à la main selon le {schema}, en partant des {examples}, et hébergé sur un domaine que vous contrôlez ou sur IPFS.",
+      "registryNote": "En mode avancé, l'interrupteur de token retire la section token, qu'une identité qui n'est pas un token ne doit pas avoir, laissant un nom, une description et des liens.",
       "newLead": "Ajouter une nouvelle identité pour une dapp, un système de contrats ou une organisation ?",
       "newWhat": "Ceci en ajoute une : une chaîne d'UTXO sans token, depuis laquelle un nom, une icône et des liens sont publiés et mis à jour.",
       "caution": "Il n'existe presque aucune identité de ce genre pour l'instant et peu de choses les lisent ; sachez donc ce que vous attendez de la vôtre avant de la faire.",

@@ -295,6 +295,9 @@
       >
       <div class="description" style="margin-top: 6px;">
         <b>{{ t('identities.create.registryLead') }}</b> <i18n-t keypath="identities.create.registry" tag="span">
+          <template #generator>
+            <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
+          </template>
           <template #schema>
             <a :href="BCMR_SCHEMA_URL" target="_blank">{{ t('identities.publish.generatorHelpSchema') }}</a>
           </template>
@@ -303,13 +306,7 @@
           </template>
         </i18n-t>
         <InfoPopup>
-          <div style="max-width: 300px;">
-            <i18n-t keypath="identities.create.registryNote" tag="span">
-              <template #generator>
-                <a :href="BCMR_GENERATOR_URL" target="_blank">BCMR generator</a>
-              </template>
-            </i18n-t>
-          </div>
+          <div style="max-width: 300px;">{{ t('identities.create.registryNote') }}</div>
         </InfoPopup>
       </div>
     </div>

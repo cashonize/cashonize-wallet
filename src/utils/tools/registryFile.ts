@@ -7,8 +7,9 @@ import { MetadataRegistrySchema } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
-// Where a registry is written: the form for a token's; the schema and the example registries for
-// one written by hand. The docs are the standard rendered for reading, rather than the markdown.
+// Where a registry is written: the BCMR generator, an in-house tool whose advanced mode covers the
+// identities that are not tokens; the schema and the example registries are for one written by
+// hand. The docs are the standard rendered for reading, rather than the markdown.
 export const BCMR_GENERATOR_URL = "https://bcmr-generator.app/";
 export const BCMR_SCHEMA_URL = "https://github.com/bitjson/chip-bcmr/blob/master/bcmr-v2.schema.json";
 export const BCMR_EXAMPLES_URL = "https://cashtokens.org/docs/bcmr/examples";

@@ -1742,9 +1742,9 @@
         "author": "Schreibe das Registry-JSON mit dem {generator}.",
         "host": "Hoste es auf deiner eigenen Domain oder auf IPFS.",
         "publish": "Gib unten an, wo es liegt, und dieses Wallet prüft es und veröffentlicht den Zeiger.",
-        "authorByHand": "Schreibe das Registry-JSON in einem Code-Editor nach dem {schema}, mit den {examples} als Vorlage: diese Identität ist kein Token, ihr Snapshot trägt also einen Namen, eine Beschreibung und Links, und keinen Token-Abschnitt."
+        "authorAdvanced": "Schreibe das Registry-JSON mit dem {generator}: schalte den erweiterten Modus ein und den Token-Schalter aus, damit der Snapshot einen Namen, eine Beschreibung und Links trägt, und keinen Token-Abschnitt."
       },
-      "generatorHelp": "Der Generator ist ein Formular, das die Metadaten-Datei für dich schreibt; die Spezifikation nennt sie Registry. Du kannst sie auch selbst nach dem {schema} schreiben. So oder so holt dieses Wallet die Datei, hasht sie genau so, wie sie ausgeliefert wird, und prüft, dass sie diesen Token nennt.",
+      "generatorHelp": "Der Generator ist ein Cashonize-Tool, das die Metadaten-Datei für dich schreibt; die Spezifikation nennt sie Registry. Du kannst sie auch selbst nach dem {schema} schreiben. So oder so holt dieses Wallet die Datei, hasht sie genau so, wie sie ausgeliefert wird, und prüft, dass sie diese Identität nennt.",
       "generatorHelpSchema": "BCMR-Schema",
       "examplesLink": "Beispiel-Registries"
     },
@@ -1793,8 +1793,8 @@
       "lead": "Wirst du ihre Registry selbst schreiben und hosten?",
       "outcome": "Das Hinzufügen listet die Identität unter denen, die dieses Wallet besitzt, und hält ihr UTXO aus gewöhnlichen Sendungen heraus. Einen Namen hat sie erst, wenn eine Registry veröffentlicht ist, die sie nennt; ihre Karte führt dich hindurch.",
       "registryLead": "Registry:",
-      "registry": "die JSON-Datei, die die Identität nennt, in einem Code-Editor nach dem {schema} geschrieben, mit den {examples} als Vorlage, und auf einer eigenen Domain oder auf IPFS gehostet.",
-      "registryNote": "Der {generator} schreibt Registries für Tokens: er fragt nach einem Symbol und schreibt einen Token-Abschnitt, den eine Identität, die kein Token ist, nicht haben darf. Ihr Snapshot trägt einen Namen, eine Beschreibung und Links.",
+      "registry": "die JSON-Datei, die die Identität nennt, mit dem {generator} im erweiterten Modus oder von Hand nach dem {schema} geschrieben, mit den {examples} als Vorlage, und auf einer eigenen Domain oder auf IPFS gehostet.",
+      "registryNote": "Im erweiterten Modus lässt der Token-Schalter den Token-Abschnitt weg, den eine Identität, die kein Token ist, nicht haben darf, und es bleiben Name, Beschreibung und Links.",
       "newLead": "Eine neue Identität für eine Dapp, ein Vertragssystem oder eine Organisation hinzufügen?",
       "newWhat": "Das fügt eine hinzu: eine Kette von UTXOs ohne Token, von der aus Name, Symbol und Links veröffentlicht und aktualisiert werden.",
       "caution": "Fast keine solchen Identitäten gibt es bisher, und kaum etwas liest sie; wisse also, was du von deiner willst, bevor du sie machst.",
