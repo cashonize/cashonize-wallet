@@ -36,7 +36,7 @@
         "prefix": "6a04686f646c",
         "pushes": 3,
         "fields": {
-          "announcedAddress": { "push": 1, "as": "utf8word" },
+          "announcedScriptHash": { "push": 1, "as": "addressHash" },
           "locktime": { "push": 2, "as": "utf8int", "min": 1, "max": 4294967295 }
         }
       },
@@ -48,7 +48,7 @@
           "ownerPkh": { "bytes": 20, "as": "hex" }
         }
       },
-      "owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedAddress" }
+      "owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedScriptHash" }
     }
   ]
 }

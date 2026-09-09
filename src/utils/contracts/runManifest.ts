@@ -8,7 +8,7 @@
 
 import type { ElectrumNetworkProvider, TransactionHistoryItem, Utxo } from "mainnet-js";
 import { opReturnHex } from "src/utils/history/txDirection";
-import { contractAddress } from "./redeemScript";
+import { contractAddress, scriptHash } from "./redeemScript";
 import { buildScript, readAnnouncement, readCommitment, type ContractManifest, type Fields } from "./contractManifest";
 
 export interface ContractPosition {
@@ -87,7 +87,7 @@ function announcedContracts(
 ) {
   const owner = manifest.owner;
   if (owner.kind !== 'rebuild' || !manifest.script) return [];
-  const found: { address: string, fields: Fields }[] = [];
+  const found: { announced: string, address: string, fields: Fields }[] = [];
   for (const transaction of context.history) {
     const announcement = opReturnHex(transaction.outputs[find.output]);
     if (!announcement) continue;
@@ -95,13 +95,15 @@ function announcedContracts(
     if (!fields) continue;
     const announced = String(fields[owner.matches]);
     // the same contract can be announced by more than one transaction
-    if (found.some(entry => entry.address === announced)) continue;
-    const ours = context.ownerPkhs.some(pkh => {
-      const script = buildScript(manifest.script!, { ...fields, [owner.ownerField]: pkh });
-      return script !== undefined
-        && contractAddress(script, manifest.script!.addressType, context.networkPrefix) === announced;
-    });
-    if (ours) found.push({ address: announced, fields });
+    if (found.some(entry => entry.announced === announced)) continue;
+    // the announced address is compared as the hash it commits to, since creating software
+    // writes it as a legacy address, a cashaddr, or a cashaddr without its prefix
+    const ourScript = context.ownerPkhs
+      .map(pkh => buildScript(manifest.script!, { ...fields, [owner.ownerField]: pkh }))
+      .find(script => script !== undefined && scriptHash(script, manifest.script!.addressType) === announced);
+    if (!ourScript) continue;
+    const address = contractAddress(ourScript, manifest.script.addressType, context.networkPrefix);
+    if (address) found.push({ announced, address, fields });
   }
   return found;
 }

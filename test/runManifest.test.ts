@@ -6,8 +6,6 @@ import builtinContracts from '../src/utils/contracts/builtinContracts.json'
 import { ContractBundleSchema, buildScript } from '../src/utils/contracts/contractManifest'
 import { contractAddress } from '../src/utils/contracts/redeemScript'
 import { runManifest } from '../src/utils/contracts/runManifest'
-import { fetchBadgerLocks } from '../src/utils/defi/badgersStake'
-import { hodlContractsFromHistory, fetchHodlContractStates } from '../src/utils/defi/hodlContracts'
 import { historyItem, opReturnOutput, p2pkhOutput } from './mocks/history.mocks'
 
 const bundle = ContractBundleSchema.parse(builtinContracts)
@@ -48,25 +46,23 @@ function hodlSetup(locktime: number, pkh: string) {
 const context = (provider: ElectrumNetworkProvider, history: TransactionHistoryItem[] = []) =>
   ({ provider, ownerPkhs: [ownerPkh], history, networkPrefix: 'bitcoincash' })
 
-// The point of the manifest is that it finds what the hand-written module finds. These run both
-// over the same inputs and compare, which is the check that the description is faithful.
-describe('badgers-stake, against badgersStake.ts', () => {
-  it('finds the same locks the module finds', async () => {
+// These assert what badgersStake.ts and hodlContracts.ts asserted before the manifests replaced
+// them, against the same real announcements their own tests used.
+describe('badgers-stake', () => {
+  it('finds the lock this wallet owns and reads its stake length', async () => {
     const utxos = [lockUtxo(ownerPkh, 160, 500_000n, 800_000), lockUtxo(stranger, 20, 900_000n, 800_001)]
     const provider = providerFor({ [badgersAddress]: utxos })
 
     const positions = await runManifest(badgers, context(provider))
-    const fromModule = await fetchBadgerLocks(provider, [ownerPkh])
 
     expect(positions).toHaveLength(1)
-    expect(fromModule).toHaveLength(1)
-    expect(positions[0]?.satoshis).toBe(fromModule[0]?.satoshis)
-    expect(positions[0]?.confirmedAtHeight).toBe(fromModule[0]?.confirmedAtHeight)
-    expect(positions[0]?.fields.stakeBlocks).toBe(fromModule[0]?.stakeBlocks)
+    expect(positions[0]?.satoshis).toBe(500_000n)
+    expect(positions[0]?.confirmedAtHeight).toBe(800_000)
+    expect(positions[0]?.fields.stakeBlocks).toBe(160)
     expect(positions[0]?.ownership).toBe('encumbered')
   })
 
-  it('leaves a stranger"s lock alone', async () => {
+  it('leaves a lock belonging to another wallet alone', async () => {
     const provider = providerFor({ [badgersAddress]: [lockUtxo(stranger, 20, 900_000n, 800_001)] })
 
     expect(await runManifest(badgers, context(provider))).toEqual([])
@@ -82,18 +78,17 @@ describe('badgers-stake, against badgersStake.ts', () => {
   })
 })
 
-describe('hodl-vault, against hodlContracts.ts', () => {
-  it('finds the same contract the module finds', async () => {
+describe('hodl-vault', () => {
+  it('finds the announced contract and what it holds now', async () => {
     const { address, history } = hodlSetup(800_000, ownerPkh)
     const provider = providerFor({ [address]: [{ txid: 'ef'.repeat(32), vout: 0, satoshis: 1_000_000n, address }] })
 
     const positions = await runManifest(hodl, context(provider, history))
-    const fromModule = await fetchHodlContractStates(provider, hodlContractsFromHistory(history, [ownerPkh]))
 
     expect(positions).toHaveLength(1)
     expect(positions[0]?.address).toBe(address)
-    expect(positions[0]?.satoshis).toBe(fromModule[0]?.satoshis)
-    expect(positions[0]?.fields.locktime).toBe(fromModule[0]?.locktime)
+    expect(positions[0]?.satoshis).toBe(1_000_000n)
+    expect(positions[0]?.fields.locktime).toBe(800_000)
   })
 
   // funding a contract does not imply owning it, so the rebuild is the whole of the rule
@@ -102,16 +97,40 @@ describe('hodl-vault, against hodlContracts.ts', () => {
     const provider = providerFor({ [address]: [{ txid: 'ef'.repeat(32), vout: 0, satoshis: 1_000_000n, address }] })
 
     expect(await runManifest(hodl, context(provider, history))).toEqual([])
-    expect(hodlContractsFromHistory(history, [ownerPkh])).toEqual([])
   })
 
   // a drained contract holds nothing, which the announcement cannot say
-  it('drops a contract that has been emptied, as the module does', async () => {
+  it('drops a contract that has been emptied', async () => {
     const { address, history } = hodlSetup(800_000, ownerPkh)
     const provider = providerFor({ [address]: [] })
 
     expect(await runManifest(hodl, context(provider, history))).toEqual([])
-    expect(await fetchHodlContractStates(provider, hodlContractsFromHistory(history, [ownerPkh]))).toEqual([])
+  })
+
+  // A real mainnet announcement writing its address as a legacy base58 string. Comparing the
+  // rendered address would never match this; comparing the hash it commits to does.
+  it('finds a contract announced with a legacy address', async () => {
+    const legacy = '6a04686f646c243332636757766b314b34326262333232695379784572514c43657453736f72637943203106373135353537'
+    const legacyOwner = 'edaab961e6daaa47574fc875b67d9e5c88d4a9a6'
+    const address = 'bitcoincash:pq9zvsh6622zhjvvdckynx2st3759f8m7qt8yg06z9'
+    const history: TransactionHistoryItem[] = [historyItem('ba'.repeat(32), [opReturnOutput(legacy), p2pkhOutput()])]
+    const provider = providerFor({ [address]: [{ txid: 'ef'.repeat(32), vout: 0, satoshis: 750_000n, address }] })
+
+    const positions = await runManifest(hodl, { provider, ownerPkhs: [legacyOwner], history, networkPrefix: 'bitcoincash' })
+
+    expect(positions).toHaveLength(1)
+    expect(positions[0]?.satoshis).toBe(750_000n)
+    expect(positions[0]?.fields.locktime).toBe(715_557)
+  })
+
+  // the manifest names the output its announcement sits at, so one anywhere else is not it
+  it('ignores an announcement at an output the manifest does not name', async () => {
+    const { address, history } = hodlSetup(800_000, ownerPkh)
+    const announcement = history[0]!.outputs[0]!
+    const moved = [historyItem('ba'.repeat(32), [p2pkhOutput(), announcement])]
+    const provider = providerFor({ [address]: [{ txid: 'ef'.repeat(32), vout: 0, satoshis: 1n, address }] })
+
+    expect(await runManifest(hodl, context(provider, moved))).toEqual([])
   })
 
   it('announces the same contract twice without looking it up twice', async () => {

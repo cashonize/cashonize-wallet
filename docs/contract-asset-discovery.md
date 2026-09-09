@@ -66,13 +66,19 @@ against. The hodl announcement in full:
   "prefix": "6a04686f646c",
   "pushes": 3,
   "fields": {
-    "announcedAddress": { "push": 1, "as": "utf8word" },
+    "announcedScriptHash": { "push": 1, "as": "addressHash" },
     "locktime": { "push": 2, "as": "utf8int", "min": 1, "max": 4294967295 }
   }
 },
 "script": { "template": "{locktime}b17576a914{ownerPkh}88ac", "addressType": "p2sh20" },
-"owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedAddress" }
+"owner": { "kind": "rebuild", "ownerField": "ownerPkh", "matches": "announcedScriptHash" }
 ```
+
+The announced address is read as the hash it commits to rather than as the string it was written
+in, because creating software writes it three ways: a legacy base58 address, a cashaddr, and a
+cashaddr with its prefix stripped. Comparing the rendered address would match only the middle
+one, which is a mistake worth naming because it is invisible until a real announcement of the
+other kinds is tried.
 
 The script is written the way the contract is built rather than as a list of opcodes, because a
 real contract is hundreds of bytes and because written that way it runs both directions: the
@@ -144,7 +150,6 @@ keeps the one job history cannot do: following an authchain to its head.
 - `src/stores/store.ts`: `fullWalletHistory`, the loaded history for its readers, and the
   portfolio's use of it.
 - `src/utils/contracts/`: the manifest format, and running one against a wallet.
-- `src/utils/defi/tapswapListings.ts`, `src/utils/defi/hodlContracts.ts`: the two announcement
-  parsers still written by hand, and the ownership rule of each.
+- `src/utils/defi/tapswapListings.ts`: the one announcement parser still written by hand.
 - `src/utils/tools/identityDetection.ts`: the identity markers read off the same items.
 - `src/components/portfolio/`: where listings and locks are shown, valuation only.
