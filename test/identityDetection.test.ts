@@ -110,4 +110,80 @@ describe('detectIdentities', () => {
       { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'publication', publicationOutputs: [publicationHex] },
     ])
   })
+
+  // The marker fires on the link that carries it, and a chain moves on: the wallet holds the
+  // authhead, not the genesis, so the walk down the output-0 spends is what makes it a match.
+  it('walks a genesis forward to the authhead this history ends at', async () => {
+    const mintTxid = 'dd'.repeat(32)
+    const transferTxid = 'ee'.repeat(32)
+    const history = [
+      fundingItem,
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { commitment: '' })]),
+      historyItem(mintTxid, [tokenOutput(genesisInputTxid, { commitment: '' }), tokenOutput(genesisInputTxid, { commitment: '00' })]),
+      historyItem(transferTxid, [tokenOutput(genesisInputTxid, { commitment: '' })]),
+    ]
+    const fetcher = rawTransactionsFetcher({
+      [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]),
+      [mintTxid]: rawTransactionSpending([{ txid: spenderTxid, vout: 0 }, { txid: otherCategory, vout: 1 }]),
+      [transferTxid]: rawTransactionSpending([{ txid: mintTxid, vout: 0 }]),
+    })
+
+    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+      { authheadTxid: transferTxid, category: genesisInputTxid, marker: 'genesis' },
+    ])
+  })
+
+  // an identity received from elsewhere and published here, then moved on without publishing
+  it('walks a publication forward to the authhead this history ends at', async () => {
+    const transferTxid = 'ee'.repeat(32)
+    const history = [
+      historyItem(spenderTxid, [tokenOutput(otherCategory, { amount: 500n }), opReturnOutput(publicationHex)]),
+      historyItem(transferTxid, [tokenOutput(otherCategory, { amount: 500n })]),
+    ]
+    const fetcher = rawTransactionsFetcher({
+      [transferTxid]: rawTransactionSpending([{ txid: spenderTxid, vout: 0 }]),
+    })
+
+    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+      { authheadTxid: transferTxid, category: otherCategory, marker: 'publication', publicationOutputs: [publicationHex] },
+    ])
+  })
+
+  // the genesis and the publication after it are two markers on one chain, which walk to one coin
+  it('collapses the markers of one chain onto its authhead', async () => {
+    const publishTxid = 'dd'.repeat(32)
+    const history = [
+      fundingItem,
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
+      historyItem(publishTxid, [tokenOutput(genesisInputTxid, { amount: 1000n }), opReturnOutput(publicationHex)]),
+    ]
+    const fetcher = rawTransactionsFetcher({
+      [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]),
+      [publishTxid]: rawTransactionSpending([{ txid: spenderTxid, vout: 0 }]),
+    })
+
+    const detected = await detectIdentities(history, fetcher)
+
+    expect(detected.identities).toEqual([
+      { authheadTxid: publishTxid, category: genesisInputTxid, marker: 'genesis' },
+    ])
+    expect(detected.publicationTxids).toEqual([publishTxid])
+  })
+
+  // a link whose raw transaction the cache does not hold stops the walk where the evidence stops
+  it('stops the walk at the last link it can read', async () => {
+    const mintTxid = 'dd'.repeat(32)
+    const history = [
+      fundingItem,
+      historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
+      historyItem(mintTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })]),
+    ]
+    const fetcher = rawTransactionsFetcher({
+      [spenderTxid]: rawTransactionSpending([{ txid: genesisInputTxid, vout: 0 }]),
+    })
+
+    expect((await detectIdentities(history, fetcher)).identities).toEqual([
+      { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'genesis' },
+    ])
+  })
 })
