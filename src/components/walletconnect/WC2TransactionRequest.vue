@@ -1,15 +1,15 @@
 <script setup lang="ts">
-  import { toRefs, ref } from 'vue';
+  import { toRefs } from 'vue'
   import { binToHex, decodeTransactionUnsafe, encodeTransaction, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import type { IdentityCarry, ReturningIdentity } from 'src/utils/dapp/reservedInputs'
-  import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmount, formatTokenAmountWithSymbol, gatewayUrl, sanitizeUrl } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
+  import { useUnverifiedTokenMetadata } from 'src/utils/composables'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
-  import { type BcmrTokenResponse } from 'src/utils/zodValidation';
   import { excessiveFeeRate, minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
@@ -19,7 +19,7 @@
 
   // Local metadata for tokens not in wallet (kept separate from global store for security)
   // Same approach as CCSignTransactionDialog.vue
-  const unverifiedTokenMetadata = ref<Record<string, BcmrTokenResponse>>({});
+  const { unverifiedTokenMetadata, fetchUnverifiedTokenInfo, getTokenMetadata, isUnverifiedToken, tokenIconUrl, tokenAmountDisplay } = useUnverifiedTokenMetadata();
 
   // This dialog is shared by the WalletConnect and WizardConnect stores, which validate
   // the untrusted request params and pass the parsed transaction request object.
@@ -128,15 +128,6 @@
     }
   }
 
-  async function fetchUnverifiedTokenInfo(categoryHex: string) {
-    try {
-      const tokenInfo = await store.fetchTokenInfo(categoryHex);
-      unverifiedTokenMetadata.value = { ...unverifiedTokenMetadata.value, [categoryHex]: tokenInfo };
-    } catch (error) {
-      console.error(`Failed to fetch metadata for ${categoryHex}:`, error);
-    }
-  }
-
   // Fetch metadata for all tokens in the transaction (stored locally, not in global store),
   // including tokens on third-party inputs/outputs which only show in the full transaction details
   const tokenCategories: string[] = [];
@@ -151,30 +142,11 @@
     }
   }
 
-  const getTokenMetadata = (categoryHex: string): BcmrTokenResponse | undefined => {
-    return store.bcmrRegistries?.[categoryHex] ?? unverifiedTokenMetadata.value[categoryHex];
-  };
-
-  // Token is "unverified" if user doesn't already own it (not in their tokenList)
-  const isUnverifiedToken = (categoryHex: string): boolean => {
-    const userOwnsToken = store.tokenList?.some(token => token.category === categoryHex);
-    return !userOwnsToken && categoryHex in unverifiedTokenMetadata.value;
-  };
-
-  const getTokenIconUrl = (categoryHex: string): string | undefined => {
-    const tokenIconUri = getTokenMetadata(categoryHex)?.uris?.icon;
-    if (!tokenIconUri) return undefined;
-    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
-  };
-
   const calculateAmount = (tokenObject: NonNullable<Output['token']>): string => {
     if (!tokenObject.amount) return '';
     const categoryHex = binToHex(tokenObject.category);
     return tokenAmountDisplay(tokenObject.amount, categoryHex);
   };
-
-  const tokenAmountDisplay = (amount: bigint, categoryHex: string): string =>
-    formatTokenAmount(amount, getTokenMetadata(categoryHex)?.token?.decimals);
 
   // A request spending a held back coin only reaches this dialog when the authority it takes comes
   // back to this wallet (utils/dapp/reservedInputs.ts). The dapp built the transaction, so this
@@ -266,7 +238,7 @@
             <span>{{ amount > 0n ? '+ ' : amount < 0n ? '- ' : '' }}{{ tokenAmountDisplay(abs(amount), categoryHex) }} {{ getTokenDisplayName(categoryHex) }}</span>
             <TokenIcon
               :token-id="categoryHex"
-              :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(categoryHex) : undefined"
+              :icon-url="!settingsStore.disableTokenIcons ? tokenIconUrl(categoryHex) : undefined"
               :size="24"
             />
             <span v-if="isUnverifiedToken(categoryHex)">*</span>
@@ -275,7 +247,7 @@
             <span>{{ `- ${formatTokenDisplay(nft)}` }}</span>
             <TokenIcon
               :token-id="binToHex(nft.category)"
-              :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(nft.category)) : undefined"
+              :icon-url="!settingsStore.disableTokenIcons ? tokenIconUrl(binToHex(nft.category)) : undefined"
               :size="24"
             />
             <span v-if="isUnverifiedToken(binToHex(nft.category))">*</span>
@@ -284,7 +256,7 @@
             <span>{{ `+ ${formatTokenDisplay(nft)}` }}</span>
             <TokenIcon
               :token-id="binToHex(nft.category)"
-              :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(nft.category)) : undefined"
+              :icon-url="!settingsStore.disableTokenIcons ? tokenIconUrl(binToHex(nft.category)) : undefined"
               :size="24"
             />
             <span v-if="isUnverifiedToken(binToHex(nft.category))">*</span>
@@ -333,7 +305,7 @@
                     {{ formatTokenDisplay(input.token as NonNullable<Output['token']>) }}
                     <TokenIcon
                       :token-id="binToHex(input.token.category)"
-                      :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(input.token.category)) : undefined"
+                      :icon-url="!settingsStore.disableTokenIcons ? tokenIconUrl(binToHex(input.token.category)) : undefined"
                       :size="20"
                     />
                     <span v-if="isUnverifiedToken(binToHex(input.token.category))">*</span>
@@ -371,7 +343,7 @@
                     {{ formatTokenDisplay(output.token as NonNullable<Output['token']>) }}
                     <TokenIcon
                       :token-id="binToHex(output.token.category)"
-                      :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(binToHex(output.token.category)) : undefined"
+                      :icon-url="!settingsStore.disableTokenIcons ? tokenIconUrl(binToHex(output.token.category)) : undefined"
                       :size="20"
                     />
                     <span v-if="isUnverifiedToken(binToHex(output.token.category))">*</span>

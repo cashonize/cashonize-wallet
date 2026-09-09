@@ -10,12 +10,12 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { useI18n } from 'vue-i18n'
-  import { convertToCurrency, formatFiatAmount, formatTokenAmount, gatewayUrl } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
+  import { useUnverifiedTokenMetadata } from 'src/utils/composables'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import { transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
   import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/tools/bip38'
   import type { TokenList } from 'src/interfaces/interfaces'
-  import type { BcmrTokenResponse } from 'src/utils/zodValidation'
 
   const $q = useQuasar()
   const store = useStore()
@@ -40,7 +40,7 @@
   const insufficientFeeBch = ref(false);
   const bchBalanceSats = ref(0n);
   const previewTokenList = ref<TokenList>([]);
-  const unverifiedTokenMetadata = ref<Record<string, BcmrTokenResponse>>({});
+  const { fetchUnverifiedTokenInfo, getTokenMetadata, isUnverifiedToken, tokenIconUrl, tokenAmountDisplay, forget: forgetFetchedMetadata } = useUnverifiedTokenMetadata();
 
   const fiatBalance = ref<string | undefined>(undefined);
 
@@ -89,7 +89,7 @@
     bchBalanceSats.value = 0n;
     fiatBalance.value = undefined;
     previewTokenList.value = [];
-    unverifiedTokenMetadata.value = {};
+    forgetFetchedMetadata();
     unlockedKey.value = undefined;
     bip38Passphrase.value = "";
     showPassphrase.value = false;
@@ -180,37 +180,9 @@
     void preview();
   }
 
-  async function fetchUnverifiedTokenInfo(categoryHex: string) {
-    try {
-      const tokenInfo = await store.fetchTokenInfo(categoryHex);
-      unverifiedTokenMetadata.value = { ...unverifiedTokenMetadata.value, [categoryHex]: tokenInfo };
-    } catch (error) {
-      console.error(`Failed to fetch metadata for ${categoryHex}:`, error);
-    }
-  }
-
-  function getTokenMetadata(categoryHex: string): BcmrTokenResponse | undefined {
-    return store.bcmrRegistries?.[categoryHex] ?? unverifiedTokenMetadata.value[categoryHex];
-  }
-
-  function isUnverifiedToken(categoryHex: string): boolean {
-    const userOwnsToken = store.tokenList?.some(token => token.category === categoryHex);
-    return !userOwnsToken && categoryHex in unverifiedTokenMetadata.value;
-  }
-
-  function tokenAmountDisplay(amount: bigint, category: string) {
-    return formatTokenAmount(amount, getTokenMetadata(category)?.token?.decimals);
-  }
-
   function tokenName(categoryHex: string): string {
     const truncatedId = `${categoryHex.slice(0, 8)}...${categoryHex.slice(-4)}`;
     return getTokenMetadata(categoryHex)?.name ?? truncatedId;
-  }
-
-  function getTokenIconUrl(tokenId: string): string | undefined {
-    const tokenIconUri = getTokenMetadata(tokenId)?.uris?.icon;
-    if (!tokenIconUri) return undefined;
-    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   }
 
   async function preview() {
@@ -436,7 +408,7 @@
         >
           <TokenIcon
             :token-id="token.category"
-            :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(token.category) : undefined"
+            :icon-url="!settingsStore.disableTokenIcons ? tokenIconUrl(token.category) : undefined"
             :size="28"
           />
           <span>
@@ -459,7 +431,7 @@
         >
           <TokenIcon
             :token-id="token.category"
-            :icon-url="!settingsStore.disableTokenIcons ? getTokenIconUrl(token.category) : undefined"
+            :icon-url="!settingsStore.disableTokenIcons ? tokenIconUrl(token.category) : undefined"
             :size="28"
           />
           <span>
