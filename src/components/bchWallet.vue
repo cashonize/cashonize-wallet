@@ -14,6 +14,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
+  import QrScanButton from './qr/qrScanButton.vue';
   import QrCode from './general/qrCode.vue';
   import portfolioIcon from './portfolio/portfolioIcon.vue';
 
@@ -330,9 +331,7 @@
       {{ t('wallet.send', { network: bchDisplayNetwork }) }}
       <div style="display: flex; gap: 0.5rem;">
         <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('wallet.addressPlaceholder')" name="addressInput">
-        <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
-            <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-        </button>
+        <QrScanButton @click="showQrCodeDialog = true" />
       </div>
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">

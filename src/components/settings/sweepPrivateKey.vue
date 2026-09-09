@@ -7,6 +7,7 @@
   import { useQuasar } from 'quasar'
   import { displayAndLogError } from 'src/utils/errorHandling';
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
+  import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { useI18n } from 'vue-i18n'
@@ -319,13 +320,7 @@
         type="text"
         :placeholder="t('sweepPrivateKey.placeholder')"
       />
-      <button
-        v-if="settingsStore.qrScan"
-        @click="() => showQrCodeDialog = true"
-        style="padding: 12px"
-      >
-        <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-      </button>
+      <QrScanButton @click="showQrCodeDialog = true" />
     </div>
     <!-- Nothing can be swept from an uncompressed key, so say so before a passphrase is asked for -->
     <div v-if="isUncompressedKey" style="margin-top: 12px; color: orange;">

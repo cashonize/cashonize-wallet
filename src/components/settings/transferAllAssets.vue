@@ -14,6 +14,7 @@
   import { transferAllAssets, type TransferPhase, type TransferProgress } from 'src/utils/tools/transferAssets'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue'
+  import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
 
@@ -247,13 +248,7 @@
             :placeholder="hasTokens ? t('transferAllAssets.destinationTokenPlaceholder') : t('transferAllAssets.destinationPlaceholder')"
             :disabled="isTransferring"
           >
-          <button
-            v-if="settingsStore.qrScan"
-            @click="() => showQrCodeDialog = true"
-            style="padding: 12px"
-          >
-            <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-          </button>
+          <QrScanButton @click="showQrCodeDialog = true" />
         </div>
       </div>
 

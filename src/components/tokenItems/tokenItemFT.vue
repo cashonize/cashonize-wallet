@@ -2,6 +2,7 @@
   import { ref, toRefs, computed, watch } from 'vue';
   import { TokenSendRequest, convert } from "mainnet-js"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
+  import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
@@ -304,9 +305,7 @@
               <span style="width: 100%; position: relative;">
                 <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               </span>
-              <button v-if="settingsStore.qrScan" @click="() => showQrCodeDialog = true" style="padding: 12px">
-                <img :src="settingsStore.darkMode ? 'images/qrscanLightGrey.svg' : 'images/qrscan.svg'" />
-              </button>
+              <QrScanButton @click="showQrCodeDialog = true" />
             </div>
             <div class="sendTokenAmount">
               <span style="width: 100%; position: relative;">
