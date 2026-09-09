@@ -457,7 +457,11 @@
 <template>
   <div class="section identity-card">
     <div class="identity-header" @click="emit('toggle')">
-      <TokenIcon :token-id="identity.category" :icon-url="identityIconUrl" :size="40" />
+      <div class="iconWithBadge">
+        <TokenIcon :token-id="identity.category" :icon-url="identityIconUrl" :size="40" />
+        <!-- which cards are guarded, without reading the status on each -->
+        <img v-if="identity.guardedBy" class="authKeyBadge" src="images/keyWhite.svg">
+      </div>
       <div class="identity-title">
         <div>
           {{ identityName ?? t('identities.unnamedIdentity') }}
