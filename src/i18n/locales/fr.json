@@ -1655,10 +1655,11 @@
         "doneTitle": "Ajouté à la réserve"
       },
       "mintingNftLink": "voir dans la liste des tokens",
-      "supplyOpenEnded": "Offre réservée : illimitée",
+      "supplyOpenEnded": "Offre réservée : sans plafond",
       "genesisSupply": "Offre à la genèse : {amount}",
-      "genesisSupplyOpenEnded": "Offre à la genèse : illimitée",
-      "supplyOpenEndedIssued": "Réserve : illimitée · {amount} émis"
+      "genesisSupplyOpenEnded": "Offre à la genèse : sans plafond",
+      "openEndedHelp": "La genèse a frappé {max} unités de base, la plus grande quantité qu'une catégorie peut contenir, ce qui dans le standard AuthGuard signifie une offre sans plafond. Ce qui a quitté la réserve est ce qui a été émis jusqu'ici.",
+      "issued": "Offre émise : {amount}"
     },
     "key": {
       "action": "transférer l'AuthKey",
@@ -1711,16 +1712,23 @@
       "title": "Historique de cette identité",
       "loading": "Lecture de l'historique de l'identité...",
       "madeHere": "fait par ce portefeuille",
+      "openEndedSupply": "une offre sans plafond",
+      "publishedToo": "métadonnées publiées",
+      "viewTransaction": "Voir la transaction",
       "reserveUp": "{amount} vers la réserve",
       "reserveDown": "{amount} hors de la réserve",
       "kind": {
-        "genesis": "Créée",
-        "publication": "Métadonnées publiées",
+        "authbase": "Authbase / pré-genèse",
+        "genesis": "Genèse",
+        "publication": "Mise à jour des métadonnées",
         "transfer": "Transférée",
         "operation": "Mise à jour",
-        "mint": "Frappé"
+        "mint": "Frappé",
+        "issued": "Émis",
+        "reserved": "Réservé",
+        "burned": "Brûlée"
       },
-      "minted": "{count} NFT frappé | {count} NFTs frappés",
+      "minted": "{count} NFT | {count} NFTs",
       "action": "historique",
       "actionCount": "historique ({count})"
     },

@@ -240,12 +240,13 @@ export function locationBudgetLeft(uris: string[]): number {
 // history, and the explorer shows it raw; what the wallet can add is what each step meant, which
 // its outputs say: a link carrying a BCMR output published metadata, and the reserve riding on the
 // identity output before and after says how much supply moved.
-export type ChainLinkKind = 'genesis' | 'publication' | 'mint' | 'transfer' | 'operation';
+export type ChainLinkKind = 'authbase' | 'genesis' | 'publication' | 'mint' | 'transfer' | 'operation';
 
 export interface DescribedLink {
   hash: string;
   timestamp?: number;
   kind: ChainLinkKind;
+  burned: boolean; // on top of the kind: a genesis or a publication can burn the identity in the same transaction
   reserveDelta: bigint; // and how that changed, which is the issuance schedule read down the list
   minted?: number; // NFTs of the category this link created beside the identity output
   publication?: MetadataPublication;
@@ -256,6 +257,10 @@ function identityOutputOf(link: AuthchainLink) {
 }
 
 export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
+  // The first link is the authbase, the transaction the id is named by, which created nothing
+  // itself: a category is minted by the link spending its output 0, on any output, since some
+  // wallets put the change at output 0. A non-token identity has no such link.
+  const category = links[0]?.hash;
   let previousReserve = 0n;
   let previousLock: string | undefined;
   return links.map((link, index) => {
@@ -272,8 +277,14 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
     const minted = link.outputs.filter(output =>
       output.output_index !== "0" && output.token_category && output.token_category === linkOutput?.token_category
     ).length;
+    // an identity output nothing can spend ends the chain: the same test the resolve's status uses
+    const burned = linkOutput !== undefined && isOpReturn(byteaToHex(linkOutput.locking_bytecode));
+    const mintsCategory = category !== undefined && link.outputs.some(
+      output => output.token_category !== null && byteaToHex(output.token_category) === category
+    );
     let kind: ChainLinkKind = 'operation';
-    if (index === 0) kind = 'genesis';
+    if (index === 0) kind = 'authbase';
+    else if (index === 1 && mintsCategory) kind = 'genesis';
     else if (publication) kind = 'publication';
     else if (reserveDelta === 0n && minted) kind = 'mint';
     else if (reserveDelta === 0n && movedAddress) kind = 'transfer';
@@ -284,6 +295,7 @@ export function describeChainLinks(links: AuthchainLink[]): DescribedLink[] {
       hash: link.hash,
       ...(link.timestamp ? { timestamp: link.timestamp } : {}),
       kind,
+      burned,
       reserveDelta,
       ...(kind === 'mint' ? { minted } : {}),
       ...(publication ? { publication } : {}),

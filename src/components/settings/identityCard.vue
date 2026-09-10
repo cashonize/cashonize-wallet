@@ -108,12 +108,9 @@
     const lines: string[] = [];
     // A genesis of the largest amount a category can hold is the AuthGuard standard's mark for a
     // supply with no ceiling, which Studio mints for every token: the reserve is then nineteen
-    // digits on every card and what the creator can read is what has left it.
+    // digits on every card, so it is named rather than counted
     if (props.identity.genesisSupply === maxTokenSupply) {
-      const issued = maxTokenSupply - token.amount;
-      lines.push(issued > 0n
-        ? t('identities.reserve.supplyOpenEndedIssued', { amount: formatTokenAmountWithSymbol(issued, identityMetadata.value) })
-        : t('identities.reserve.supplyOpenEnded'));
+      lines.push(t('identities.reserve.supplyOpenEnded'));
     } else if (token.amount) {
       const amount = formatTokenAmountWithSymbol(token.amount, identityMetadata.value);
       lines.push(t('identities.reserve.supply', { amount }));
@@ -125,6 +122,15 @@
     return lines;
   });
   const carriesLine = computed(() => carries.value?.join(' · '));
+  // What has left an uncapped reserve, which is the issuance so far: a fact about the token
+  // rather than about the output, so it has its own line and stays out of the transfer's summary
+  const issuedLine = computed(() => {
+    const token = identityUtxoOf(props.identity)?.token;
+    if (!token || props.identity.genesisSupply !== maxTokenSupply) return undefined;
+    const issued = maxTokenSupply - token.amount;
+    if (issued <= 0n) return undefined;
+    return t('identities.reserve.issued', { amount: formatTokenAmountWithSymbol(issued, identityMetadata.value) });
+  });
 
   // When the latest publication was mined: the chain's date, unlike the registry's own timestamp,
   // absolute like the history's dates, with the relative time on hover for freshness at a glance
@@ -504,6 +510,7 @@
         @click.stop="openInTokenList(identity.category)"
       >{{ t('identities.reserve.mintingNftLink') }}</span>
     </div>
+    <div v-if="issuedLine">{{ issuedLine }}</div>
     <div v-if="!expanded && publicationSummary" class="publication-badge-row">
       <InfoPopup>
         <template #trigger>
@@ -514,7 +521,12 @@
     </div>
 
     <template v-if="expanded">
-    <div v-if="genesisSupplyLine">{{ genesisSupplyLine }}</div>
+    <div v-if="genesisSupplyLine">
+      {{ genesisSupplyLine }}
+      <InfoPopup v-if="identity.genesisSupply === maxTokenSupply">
+        <div style="max-width: 300px;">{{ t('identities.reserve.openEndedHelp', { max: maxTokenSupply.toLocaleString() }) }}</div>
+      </InfoPopup>
+    </div>
     <div
       v-if="identity.authheadTxid"
       class="copy-target"

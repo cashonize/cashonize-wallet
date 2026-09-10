@@ -1655,10 +1655,11 @@
         "doneTitle": "Added to reserve"
       },
       "mintingNftLink": "view in the token list",
-      "supplyOpenEnded": "Reserved supply: open-ended",
+      "supplyOpenEnded": "Reserved supply: uncapped",
       "genesisSupply": "Genesis supply: {amount}",
-      "genesisSupplyOpenEnded": "Genesis supply: open-ended",
-      "supplyOpenEndedIssued": "Reserved supply: open-ended · {amount} issued"
+      "genesisSupplyOpenEnded": "Genesis supply: uncapped",
+      "openEndedHelp": "The genesis minted {max} base units, the largest amount a category can hold, which the AuthGuard standard uses to mean a supply with no ceiling. What has left the reserve is what has been issued so far.",
+      "issued": "Issued supply: {amount}"
     },
     "key": {
       "action": "transfer the AuthKey",
@@ -1711,16 +1712,23 @@
       "title": "This identity's history",
       "loading": "Reading the identity's history...",
       "madeHere": "made by this wallet",
+      "openEndedSupply": "an uncapped supply",
+      "publishedToo": "metadata published",
+      "viewTransaction": "View transaction",
       "reserveUp": "{amount} into the reserve",
       "reserveDown": "{amount} out of the reserve",
       "kind": {
-        "genesis": "Created",
-        "publication": "Metadata published",
+        "authbase": "Authbase / pre-genesis",
+        "genesis": "Genesis",
+        "publication": "Metadata update",
         "transfer": "Transferred",
         "operation": "Updated",
-        "mint": "Minted"
+        "mint": "Minted",
+        "issued": "Issued",
+        "reserved": "Reserved",
+        "burned": "Burned"
       },
-      "minted": "Minted {count} NFT | Minted {count} NFTs",
+      "minted": "{count} NFT | {count} NFTs",
       "action": "history",
       "actionCount": "history ({count})"
     },

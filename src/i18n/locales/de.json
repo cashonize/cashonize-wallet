@@ -1655,10 +1655,11 @@
         "doneTitle": "Zur Reserve hinzugefügt"
       },
       "mintingNftLink": "in der Token-Liste ansehen",
-      "supplyOpenEnded": "Reservierte Menge: unbegrenzt",
+      "supplyOpenEnded": "Reservierte Menge: ohne Obergrenze",
       "genesisSupply": "Genesis-Menge: {amount}",
-      "genesisSupplyOpenEnded": "Genesis-Menge: unbegrenzt",
-      "supplyOpenEndedIssued": "Reservierte Menge: unbegrenzt · {amount} ausgegeben"
+      "genesisSupplyOpenEnded": "Genesis-Menge: ohne Obergrenze",
+      "openEndedHelp": "Der Genesis hat {max} Basiseinheiten geprägt, die größte Menge, die eine Kategorie halten kann; im AuthGuard-Standard steht das für einen Vorrat ohne Obergrenze. Was die Reserve verlassen hat, ist das bisher Ausgegebene.",
+      "issued": "Ausgegebene Menge: {amount}"
     },
     "key": {
       "action": "AuthKey übertragen",
@@ -1711,16 +1712,23 @@
       "title": "Historie dieser Identität",
       "loading": "Historie der Identität wird gelesen...",
       "madeHere": "von diesem Wallet gemacht",
+      "openEndedSupply": "ein Vorrat ohne Obergrenze",
+      "publishedToo": "Metadaten veröffentlicht",
+      "viewTransaction": "Transaktion ansehen",
       "reserveUp": "{amount} in die Reserve",
       "reserveDown": "{amount} aus der Reserve",
       "kind": {
-        "genesis": "Erstellt",
-        "publication": "Metadaten veröffentlicht",
+        "authbase": "Authbase / Pre-Genesis",
+        "genesis": "Genesis",
+        "publication": "Metadaten-Update",
         "transfer": "Übertragen",
         "operation": "Aktualisiert",
-        "mint": "Geprägt"
+        "mint": "Geprägt",
+        "issued": "Ausgegeben",
+        "reserved": "Reserviert",
+        "burned": "Verbrannt"
       },
-      "minted": "{count} NFT geprägt | {count} NFTs geprägt",
+      "minted": "{count} NFT | {count} NFTs",
       "action": "Verlauf",
       "actionCount": "Verlauf ({count})"
     },

@@ -1655,10 +1655,11 @@
         "doneTitle": "Añadido a la reserva"
       },
       "mintingNftLink": "ver en la lista de tokens",
-      "supplyOpenEnded": "Suministro reservado: sin límite",
+      "supplyOpenEnded": "Suministro reservado: sin tope",
       "genesisSupply": "Suministro de génesis: {amount}",
-      "genesisSupplyOpenEnded": "Suministro de génesis: sin límite",
-      "supplyOpenEndedIssued": "Suministro reservado: abierto · {amount} emitidos"
+      "genesisSupplyOpenEnded": "Suministro de génesis: sin tope",
+      "openEndedHelp": "El génesis acuñó {max} unidades base, la cantidad máxima que puede contener una categoría, lo que en el estándar AuthGuard significa un suministro sin tope. Lo que ha salido de la reserva es lo emitido hasta ahora.",
+      "issued": "Suministro emitido: {amount}"
     },
     "key": {
       "action": "transferir la AuthKey",
@@ -1711,16 +1712,23 @@
       "title": "Historial de esta identidad",
       "loading": "Leyendo el historial de la identidad...",
       "madeHere": "hecho por esta billetera",
+      "openEndedSupply": "un suministro sin tope",
+      "publishedToo": "metadatos publicados",
+      "viewTransaction": "Ver la transacción",
       "reserveUp": "{amount} a la reserva",
       "reserveDown": "{amount} fuera de la reserva",
       "kind": {
-        "genesis": "Creada",
-        "publication": "Metadatos publicados",
+        "authbase": "Authbase / pregénesis",
+        "genesis": "Génesis",
+        "publication": "Actualización de metadatos",
         "transfer": "Transferida",
         "operation": "Actualizada",
-        "mint": "Acuñado"
+        "mint": "Acuñado",
+        "issued": "Emitido",
+        "reserved": "Reservado",
+        "burned": "Quemada"
       },
-      "minted": "Acuñado {count} NFT | Acuñados {count} NFTs",
+      "minted": "{count} NFT | {count} NFTs",
       "action": "historial",
       "actionCount": "historial ({count})"
     },

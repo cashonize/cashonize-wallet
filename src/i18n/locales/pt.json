@@ -1655,10 +1655,11 @@
         "doneTitle": "Adicionado à reserva"
       },
       "mintingNftLink": "ver na lista de tokens",
-      "supplyOpenEnded": "Fornecimento reservado: sem limite",
+      "supplyOpenEnded": "Fornecimento reservado: sem teto",
       "genesisSupply": "Fornecimento de génese: {amount}",
-      "genesisSupplyOpenEnded": "Fornecimento de génese: sem limite",
-      "supplyOpenEndedIssued": "Oferta reservada: ilimitada · {amount} emitidos"
+      "genesisSupplyOpenEnded": "Fornecimento de génese: sem teto",
+      "openEndedHelp": "A gênese cunhou {max} unidades base, a maior quantidade que uma categoria pode conter, o que no padrão AuthGuard significa um suprimento sem teto. O que saiu da reserva é o que foi emitido até agora.",
+      "issued": "Fornecimento emitido: {amount}"
     },
     "key": {
       "action": "transferir a AuthKey",
@@ -1711,16 +1712,23 @@
       "title": "Histórico desta identidade",
       "loading": "Lendo o histórico da identidade...",
       "madeHere": "feito por esta carteira",
+      "openEndedSupply": "um suprimento sem teto",
+      "publishedToo": "metadados publicados",
+      "viewTransaction": "Ver a transação",
       "reserveUp": "{amount} para a reserva",
       "reserveDown": "{amount} fora da reserva",
       "kind": {
-        "genesis": "Criada",
-        "publication": "Metadados publicados",
+        "authbase": "Authbase / pré-gênese",
+        "genesis": "Gênese",
+        "publication": "Atualização de metadados",
         "transfer": "Transferida",
         "operation": "Atualizada",
-        "mint": "Cunhado"
+        "mint": "Cunhado",
+        "issued": "Emitido",
+        "reserved": "Reservado",
+        "burned": "Queimada"
       },
-      "minted": "{count} NFT cunhado | {count} NFTs cunhados",
+      "minted": "{count} NFT | {count} NFTs",
       "action": "histórico",
       "actionCount": "histórico ({count})"
     },
