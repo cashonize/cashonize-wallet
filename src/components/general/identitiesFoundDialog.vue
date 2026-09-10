@@ -6,8 +6,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore, type FoundSource } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
-  import { formatBch, formatTimestamp, formatTokenAmountWithSymbol, truncateHash } from 'src/utils/utils'
-  import { maxTokenSupply } from 'src/utils/tools/tokenCreation'
+  import { formatBch, formatTimestamp, truncateHash } from 'src/utils/utils'
 
   // Shown whenever the wallet held back identities the user never listed. It interrupts the
   // wallet at open with good news, so it says the least that is true: which token, why it is
@@ -33,37 +32,36 @@
   const notableBchSats = 100_000n
 
   // Registries may not have been fetched yet when the walk returns, so a name can be missing and
-  // the id stands in for it rather than waiting. Only what this wallet holds is described: a
-  // guarded identity's reserve and NFT sit in the covenant, so nothing of them is held back here.
+  // the id stands in for it rather than waiting. The facts line answers what the wallet holds
+  // for this identity, which for a guarded one is the AuthKey: its reserve and NFT sit in the
+  // covenant, where nothing is held back and nothing is the user's to act on.
   const entries = computed(() => props.ids.map(id => {
     const identity = identitiesStore.identities?.find(identity => identity.category === id)
-    const heldHere = identity?.authUtxo
+    const viaAuthKey = identity?.status === 'heldViaKey'
+    const heldUtxo = identity?.authUtxo
     const metadata = store.bcmrRegistries?.[id]
-    const token = heldHere?.token
+    const token = heldUtxo?.token
     let carries: string | undefined
-    if (token?.nft?.capability === 'minting') carries = t('identities.found.mintingNft')
+    if (viaAuthKey) carries = t('identities.found.authKey')
+    else if (token?.nft?.capability === 'minting') carries = t('identities.found.mintingNft')
     else if (token?.nft) carries = t('identities.found.nft')
     const created = identity?.genesisTimestamp
       ? t('identities.found.created', { date: formatTimestamp(identity.genesisTimestamp, settingsStore.dateFormat, true) })
       : undefined
-    let reserveLine: string | undefined
-    if (token?.amount === maxTokenSupply) reserveLine = t('identities.found.reserveOpenEnded')
-    else if (token?.amount) reserveLine = t('identities.found.reserve', { amount: formatTokenAmountWithSymbol(token.amount, metadata) })
     return {
       id,
       name: metadata?.name ?? truncateHash(id),
       iconUrl: settingsStore.disableTokenIcons ? undefined : store.tokenIconUrl(id),
       fungibleSupply: identity?.fungibleSupply ?? false,
-      viaKey: identity?.status === 'heldViaKey',
+      viaAuthKey,
       carries,
       created,
-      reserveLine,
-      bch: heldHere && heldHere.satoshis >= notableBchSats ? formatBch(heldHere.satoshis, store.network) : undefined,
+      bch: heldUtxo && heldUtxo.satoshis >= notableBchSats ? formatBch(heldUtxo.satoshis, store.network) : undefined,
     }
   }))
 
   const allArrived = computed(() => props.ids.every(id => props.sources[id] === 'arrived'))
-  const heldHere = computed(() => entries.value.filter(entry => !entry.viaKey))
+  const heldHere = computed(() => entries.value.filter(entry => !entry.viaAuthKey))
   const title = computed(() => allArrived.value
     ? t('identities.found.titleArrived', props.ids.length)
     : t('identities.found.title', props.ids.length))
@@ -80,7 +78,9 @@
     if (heldHere.value.length < props.ids.length) return t('identities.found.heldBackMixed')
     return t('identities.found.heldBackCoin', props.ids.length)
   })
-  const reserveLines = computed(() => entries.value.flatMap(entry => entry.reserveLine ? [entry.reserveLine] : []))
+  // Joined here rather than in the template: a space beside an interpolation is the last child
+  // of its element, which Vue's whitespace condensing drops, running the two sentences together.
+  const summary = computed(() => [capability.value, heldBack.value].filter(Boolean).join(' '))
 </script>
 
 <template>
@@ -90,12 +90,13 @@
         <legend style="font-size: large;">{{ title }}</legend>
         <div class="found-list">
           <div v-for="entry in entries" :key="entry.id" class="found-entry">
-            <TokenIcon :token-id="entry.id" :icon-url="entry.iconUrl" :size="32" />
+            <div class="iconWithBadge">
+              <TokenIcon :token-id="entry.id" :icon-url="entry.iconUrl" :size="32" />
+              <!-- the row depicts the AuthKey, which the token list shows with the same stamp -->
+              <img v-if="entry.viaAuthKey" class="authKeyBadge small" src="images/keyWhite.svg">
+            </div>
             <div>
-              <div>
-                {{ entry.name }}
-                <span v-if="entry.viaKey" class="identity-badge">{{ t('identities.key.label') }}</span>
-              </div>
+              <div>{{ entry.name }}</div>
               <div v-if="entry.carries || entry.created || entry.bch" class="found-facts">
                 <span v-if="entry.carries">{{ entry.carries }}</span>
                 <span v-if="entry.created">{{ entry.created }}</span>
@@ -104,8 +105,7 @@
             </div>
           </div>
         </div>
-        <div><template v-if="capability">{{ capability }} </template>{{ heldBack }}</div>
-        <div v-for="line in reserveLines" :key="line" style="margin-top: 8px;">{{ line }}</div>
+        <div>{{ summary }}</div>
         <div class="found-actions">
           <input type="button" class="primaryButton" :value="t('identities.found.view')" @click="onDialogOK({ learn: false })">
           <input type="button" :value="t('identities.learn.link')" @click="onDialogOK({ learn: true })">

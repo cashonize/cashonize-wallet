@@ -1674,7 +1674,6 @@
       "confirmButton": "Transferir AuthKey",
       "done": "AuthKey transferida para {address}",
       "doneTitle": "AuthKey transferida",
-      "label": "AuthKey",
       "what": "A AuthKey é um NFT comum nesta carteira, e tê-la é o que controla esta identidade: o contrato só libera o UTXO da identidade para quem apresentar a AuthKey.",
       "viewInTokenList": "ver a AuthKey na lista de tokens",
       "categoryLabel": "AuthKey:"
@@ -1867,13 +1866,12 @@
       "capabilityWithSupply": "Esta carteira pode atualizar o nome, o ícone e o suprimento não emitido do token.",
       "mintingNft": "um NFT de cunhagem",
       "nft": "um NFT",
-      "reserve": "Seu suprimento reservado de {amount} aparece como retido na lista de tokens.",
       "created": "criada em {date}",
-      "reserveOpenEnded": "Seu suprimento reservado aparece como retido na lista de tokens.",
-      "heldBackCoin": "Seu UTXO de identidade fica fora dos envios normais deste app, então nada aqui o gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-lo. | Seus UTXOs de identidade ficam fora dos envios normais deste app, então nada aqui os gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-los.",
+      "heldBackCoin": "Seu UTXO de identidade fica fora dos envios normais deste app, então nada aqui o gasta por acidente, e qualquer reserva de tokens nele aparece como retida na lista de tokens. Outras carteiras com a mesma seed ainda podem gastá-lo. | Seus UTXOs de identidade ficam fora dos envios normais deste app, então nada aqui os gasta por acidente, e qualquer reserva de tokens neles aparece como retida na lista de tokens. Outras carteiras com a mesma seed ainda podem gastá-los.",
       "heldBackKey": "Sua AuthKey fica fora dos envios normais deste app, então nada aqui a gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-la. | Suas AuthKeys ficam fora dos envios normais deste app, então nada aqui as gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-las.",
-      "heldBackMixed": "Seus UTXOs de identidade, ou as AuthKeys que os controlam, ficam fora dos envios normais deste app, então nada aqui os gasta por acidente. Outras carteiras com a mesma seed ainda podem gastá-los.",
-      "view": "Ver identidades de token"
+      "heldBackMixed": "Seus UTXOs de identidade, ou as AuthKeys que os controlam, ficam fora dos envios normais deste app, então nada aqui os gasta por acidente, e qualquer reserva de tokens neles aparece como retida na lista de tokens. Outras carteiras com a mesma seed ainda podem gastá-los.",
+      "view": "Ver identidades de token",
+      "authKey": "uma AuthKey"
     },
     "locationLabel": "No endereço:",
     "locationScriptLabel": "Bloqueado por script:"

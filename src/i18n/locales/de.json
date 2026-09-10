@@ -1674,7 +1674,6 @@
       "confirmButton": "AuthKey übertragen",
       "done": "AuthKey an {address} übertragen",
       "doneTitle": "AuthKey übertragen",
-      "label": "AuthKey",
       "what": "Der AuthKey ist ein gewöhnliches NFT in diesem Wallet, und ihn zu halten ist, was diese Identität kontrolliert: der Contract gibt den UTXO der Identität nur an den heraus, der den AuthKey vorlegt.",
       "viewInTokenList": "den AuthKey in der Token-Liste ansehen",
       "categoryLabel": "AuthKey:"
@@ -1867,13 +1866,12 @@
       "capabilityWithSupply": "Dieses Wallet kann Name, Icon und nicht ausgegebene Menge des Tokens ändern.",
       "mintingNft": "ein Minting-NFT",
       "nft": "ein NFT",
-      "reserve": "Ihre reservierte Menge von {amount} wird in der Token-Liste als zurückgehalten angezeigt.",
       "created": "erstellt am {date}",
-      "reserveOpenEnded": "Die reservierte Menge wird in der Token-Liste als zurückgehalten angezeigt.",
-      "heldBackCoin": "Ihr Identitäts-UTXO wird in dieser App aus normalen Sendungen herausgehalten, sodass nichts hier ihn versehentlich ausgibt. Andere Wallets mit derselben Seed-Phrase können ihn weiterhin ausgeben. | Ihre Identitäts-UTXOs werden in dieser App aus normalen Sendungen herausgehalten, sodass nichts hier sie versehentlich ausgibt. Andere Wallets mit derselben Seed-Phrase können sie weiterhin ausgeben.",
+      "heldBackCoin": "Ihr Identitäts-UTXO wird in dieser App aus normalen Sendungen herausgehalten, sodass nichts hier ihn versehentlich ausgibt, und jede Token-Reserve darauf wird in der Token-Liste als zurückgehalten angezeigt. Andere Wallets mit derselben Seed-Phrase können ihn weiterhin ausgeben. | Ihre Identitäts-UTXOs werden in dieser App aus normalen Sendungen herausgehalten, sodass nichts hier sie versehentlich ausgibt, und jede Token-Reserve darauf wird in der Token-Liste als zurückgehalten angezeigt. Andere Wallets mit derselben Seed-Phrase können sie weiterhin ausgeben.",
       "heldBackKey": "Ihr AuthKey wird in dieser App aus normalen Sendungen herausgehalten, sodass nichts hier ihn versehentlich ausgibt. Andere Wallets mit derselben Seed-Phrase können ihn weiterhin ausgeben. | Ihre AuthKeys werden in dieser App aus normalen Sendungen herausgehalten, sodass nichts hier sie versehentlich ausgibt. Andere Wallets mit derselben Seed-Phrase können sie weiterhin ausgeben.",
-      "heldBackMixed": "Ihre Identitäts-UTXOs oder die AuthKeys, die sie kontrollieren, werden in dieser App aus normalen Sendungen herausgehalten, sodass nichts hier sie versehentlich ausgibt. Andere Wallets mit derselben Seed-Phrase können sie weiterhin ausgeben.",
-      "view": "Token-Identitäten anzeigen"
+      "heldBackMixed": "Ihre Identitäts-UTXOs oder die AuthKeys, die sie kontrollieren, werden in dieser App aus normalen Sendungen herausgehalten, sodass nichts hier sie versehentlich ausgibt, und jede Token-Reserve darauf wird in der Token-Liste als zurückgehalten angezeigt. Andere Wallets mit derselben Seed-Phrase können sie weiterhin ausgeben.",
+      "view": "Token-Identitäten anzeigen",
+      "authKey": "ein AuthKey"
     },
     "locationLabel": "An Adresse:",
     "locationScriptLabel": "Durch Skript gesperrt:"

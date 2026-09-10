@@ -662,25 +662,12 @@
   }
 }
 
+/* this row spaces its icon with a margin rather than a gap */
 .iconWithBadge {
-  position: relative;
-  display: flex;
-  flex: none;
   margin-right: 10px;
 }
 .iconWithBadge .tokenIcon {
   margin-right: 0;
-}
-.authKeyBadge {
-  position: absolute;
-  right: -6px;
-  bottom: -4px;
-  width: 22px;
-  height: 22px;
-  padding: 4px;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--bg-color);
 }
 .identity-key-line {
   color: grey;

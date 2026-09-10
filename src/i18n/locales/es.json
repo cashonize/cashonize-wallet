@@ -1674,7 +1674,6 @@
       "confirmButton": "Transferir AuthKey",
       "done": "AuthKey transferida a {address}",
       "doneTitle": "AuthKey transferida",
-      "label": "AuthKey",
       "what": "La AuthKey es un NFT normal en esta billetera, y tenerla es lo que controla esta identidad: el contrato solo libera el UTXO de la identidad a quien presente la AuthKey.",
       "viewInTokenList": "ver la AuthKey en la lista de tokens",
       "categoryLabel": "AuthKey:"
@@ -1867,13 +1866,12 @@
       "capabilityWithSupply": "Esta billetera puede actualizar el nombre, el icono y el suministro no emitido del token.",
       "mintingNft": "un NFT de acuñación",
       "nft": "un NFT",
-      "reserve": "Su suministro reservado de {amount} aparece como retenido en la lista de tokens.",
       "created": "creada el {date}",
-      "reserveOpenEnded": "Su suministro reservado aparece como retenido en la lista de tokens.",
-      "heldBackCoin": "Su UTXO de identidad se mantiene fuera de los envíos normales desde esta app, así que nada aquí lo gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarlo. | Sus UTXO de identidad se mantienen fuera de los envíos normales desde esta app, así que nada aquí los gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarlos.",
+      "heldBackCoin": "Su UTXO de identidad se mantiene fuera de los envíos normales desde esta app, así que nada aquí lo gasta por accidente, y cualquier reserva de tokens que lleve aparece como retenida en la lista de tokens. Otras billeteras con la misma semilla aún pueden gastarlo. | Sus UTXO de identidad se mantienen fuera de los envíos normales desde esta app, así que nada aquí los gasta por accidente, y cualquier reserva de tokens que lleven aparece como retenida en la lista de tokens. Otras billeteras con la misma semilla aún pueden gastarlos.",
       "heldBackKey": "Su AuthKey se mantiene fuera de los envíos normales desde esta app, así que nada aquí la gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarla. | Sus AuthKeys se mantienen fuera de los envíos normales desde esta app, así que nada aquí las gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarlas.",
-      "heldBackMixed": "Sus UTXO de identidad, o las AuthKeys que los controlan, se mantienen fuera de los envíos normales desde esta app, así que nada aquí los gasta por accidente. Otras billeteras con la misma semilla aún pueden gastarlos.",
-      "view": "Ver identidades de token"
+      "heldBackMixed": "Sus UTXO de identidad, o las AuthKeys que los controlan, se mantienen fuera de los envíos normales desde esta app, así que nada aquí los gasta por accidente, y cualquier reserva de tokens que lleven aparece como retenida en la lista de tokens. Otras billeteras con la misma semilla aún pueden gastarlos.",
+      "view": "Ver identidades de token",
+      "authKey": "una AuthKey"
     },
     "locationLabel": "En la dirección:",
     "locationScriptLabel": "Bloqueado por script:"

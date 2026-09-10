@@ -1674,7 +1674,6 @@
       "confirmButton": "Transférer l'AuthKey",
       "done": "AuthKey transférée à {address}",
       "doneTitle": "AuthKey transférée",
-      "label": "AuthKey",
       "what": "L'AuthKey est un NFT ordinaire de ce portefeuille, et la détenir est ce qui contrôle cette identité : le contrat ne libère l'UTXO de l'identité qu'à qui présente l'AuthKey.",
       "viewInTokenList": "voir l'AuthKey dans la liste des tokens",
       "categoryLabel": "AuthKey :"
@@ -1867,13 +1866,12 @@
       "capabilityWithSupply": "Ce portefeuille peut mettre à jour le nom, l'icône et l'offre non émise du jeton.",
       "mintingNft": "un NFT de frappe",
       "nft": "un NFT",
-      "reserve": "Sa réserve de {amount} apparaît comme retenue dans la liste des jetons.",
       "created": "créée le {date}",
-      "reserveOpenEnded": "Son offre réservée apparaît comme retenue dans la liste des jetons.",
-      "heldBackCoin": "Son UTXO d'identité est tenu à l'écart des envois normaux depuis cette application, donc rien ici ne le dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours le dépenser. | Leurs UTXO d'identité sont tenus à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
+      "heldBackCoin": "Son UTXO d'identité est tenu à l'écart des envois normaux depuis cette application, donc rien ici ne le dépense par accident, et toute réserve de jetons qu'il porte apparaît comme retenue dans la liste des jetons. D'autres portefeuilles sur la même phrase de récupération peuvent toujours le dépenser. | Leurs UTXO d'identité sont tenus à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident, et toute réserve de jetons qu'ils portent apparaît comme retenue dans la liste des jetons. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
       "heldBackKey": "Son AuthKey est tenue à l'écart des envois normaux depuis cette application, donc rien ici ne la dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours la dépenser. | Leurs AuthKeys sont tenues à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
-      "heldBackMixed": "Leurs UTXO d'identité, ou les AuthKeys qui les contrôlent, sont tenus à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
-      "view": "Voir les identités de jeton"
+      "heldBackMixed": "Leurs UTXO d'identité, ou les AuthKeys qui les contrôlent, sont tenus à l'écart des envois normaux depuis cette application, donc rien ici ne les dépense par accident, et toute réserve de jetons qu'ils portent apparaît comme retenue dans la liste des jetons. D'autres portefeuilles sur la même phrase de récupération peuvent toujours les dépenser.",
+      "view": "Voir les identités de jeton",
+      "authKey": "une AuthKey"
     },
     "locationLabel": "À l'adresse :",
     "locationScriptLabel": "Verrouillé par script :"

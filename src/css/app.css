@@ -435,6 +435,30 @@ body.dark .identity-card {
   height: 48px;
   border-radius: 50%;
 }
+.iconWithBadge {
+  position: relative;
+  display: flex;
+  flex: none;
+}
+.authKeyBadge {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  width: 22px;
+  height: 22px;
+  padding: 4px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--bg-color);
+}
+/* beside a 32px icon, where the full size crowds the circle */
+.authKeyBadge.small {
+  right: -4px;
+  bottom: -2px;
+  width: 18px;
+  height: 18px;
+  padding: 3px;
+}
 .boxStarIcon {
   align-self: flex-start;
   cursor: pointer;

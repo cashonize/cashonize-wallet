@@ -1674,7 +1674,6 @@
       "confirmButton": "Transfer AuthKey",
       "done": "Transferred the AuthKey to {address}",
       "doneTitle": "AuthKey transferred",
-      "label": "AuthKey",
       "what": "The AuthKey is an ordinary NFT in this wallet, and holding it is what controls this identity: the covenant releases the identity's UTXO only to whoever presents the AuthKey.",
       "viewInTokenList": "view the AuthKey in the token list",
       "categoryLabel": "AuthKey:"
@@ -1867,13 +1866,12 @@
       "capabilityWithSupply": "This wallet can update the token's name, icon and unissued supply.",
       "mintingNft": "a minting NFT",
       "nft": "an NFT",
-      "reserve": "Its reserved supply of {amount} shows as held back in the token list.",
       "created": "created {date}",
-      "reserveOpenEnded": "Its reserved supply shows as held back in the token list.",
-      "heldBackCoin": "Its identity UTXO is kept out of normal sends from this app, so nothing here spends it by accident. Other wallets on the same seed can still spend it. | Their identity UTXOs are kept out of normal sends from this app, so nothing here spends them by accident. Other wallets on the same seed can still spend them.",
+      "heldBackCoin": "Its identity UTXO is kept out of normal sends from this app, so nothing here spends it by accident, and any token reserve on it shows as held back in the token list. Other wallets on the same seed can still spend it. | Their identity UTXOs are kept out of normal sends from this app, so nothing here spends them by accident, and any token reserve on them shows as held back in the token list. Other wallets on the same seed can still spend them.",
       "heldBackKey": "Its AuthKey is kept out of normal sends from this app, so nothing here spends it by accident. Other wallets on the same seed can still spend it. | Their AuthKeys are kept out of normal sends from this app, so nothing here spends them by accident. Other wallets on the same seed can still spend them.",
-      "heldBackMixed": "Their identity UTXOs, or the AuthKeys that control them, are kept out of normal sends from this app, so nothing here spends them by accident. Other wallets on the same seed can still spend them.",
-      "view": "View token identities"
+      "heldBackMixed": "Their identity UTXOs, or the AuthKeys that control them, are kept out of normal sends from this app, so nothing here spends them by accident, and any token reserve on them shows as held back in the token list. Other wallets on the same seed can still spend them.",
+      "view": "View token identities",
+      "authKey": "an AuthKey"
     },
     "locationLabel": "At address:",
     "locationScriptLabel": "Locked by script:"
