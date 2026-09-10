@@ -331,11 +331,11 @@
 
     <template v-if="mode === 'create'">
     <div class="section">
-      <div><b>{{ t('identities.create.newLead') }}</b> {{ t('identities.create.newWhat') }}</div>
-      <div class="description" style="margin-top: 6px;">
+      <div v-if="pickStepOpen"><b>{{ t('identities.create.newLead') }}</b> {{ t('identities.create.newWhat') }}</div>
+      <div class="description" :style="pickStepOpen ? 'margin-top: 6px;' : ''">
         <b>{{ t('identities.create.cautionLead') }}</b> {{ t('identities.create.caution') }}
       </div>
-      <div class="info-box" style="margin-top: 12px;">
+      <div v-if="pickStepOpen" class="info-box" style="margin-top: 12px;">
         <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
         <div>
           <b>{{ t('identities.create.tokenLead') }}</b> <i18n-t keypath="identities.create.tokenPointer" tag="span">

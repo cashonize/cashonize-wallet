@@ -1807,7 +1807,7 @@
     "create": {
       "pick": "L'identifiant de la transaction de l'UTXO devient l'identifiant permanent de l'identité, et ses BCH restent avec l'identité tant que vous la détenez, un petit UTXO est donc préférable.",
       "prepareMessage": "Ceci vous envoie {amount} maintenant, pour que l'identité ait un UTXO neuf à la sortie 0. Le montant reste le vôtre ; seuls les frais sont dépensés.",
-      "pickedId": "Identifiant de l'identité :",
+      "pickedId": "Id d'identité / authbase :",
       "steps": {
         "pick": "choisissez l'UTXO qui devient l'identifiant de l'identité",
         "add": "ajoutez-la à vos identités"
@@ -1825,8 +1825,8 @@
       "registryLead": "Registre :",
       "registry": "le fichier JSON qui nomme l'identité, rédigé avec le {generator} en mode avancé ou à la main selon le {schema}, en partant des {examples}, et hébergé sur un domaine que vous contrôlez ou sur IPFS.",
       "registryNote": "En mode avancé, l'interrupteur de token retire la section token, qu'une identité qui n'est pas un token ne doit pas avoir, laissant un nom, une description et des liens.",
-      "newLead": "Ajouter une nouvelle identité pour une dApp, un système de contrats ou une organisation ?",
-      "newWhat": "Ceci en ajoute une : une chaîne d'UTXO sans token, depuis laquelle un nom, une icône et des liens sont publiés et mis à jour.",
+      "newLead": "Créer une nouvelle identité pour une dApp, un système de contrats ou une organisation ?",
+      "newWhat": "Ceci ajoute une identité sans nom à votre liste d'identités. Vous publiez ensuite ses métadonnées depuis celle-ci.",
       "caution": "Il n'existe presque aucune identité de ce genre pour l'instant et peu de choses les lisent ; sachez donc ce que vous attendez de la vôtre avant de la faire.",
       "tokenLead": "Vous créez un token ?",
       "cautionLead": "Fonction avancée :"

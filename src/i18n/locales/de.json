@@ -1807,7 +1807,7 @@
     "create": {
       "pick": "Die Id der Transaktion des UTXO wird zur dauerhaften Id der Identität, und sein BCH bleibt bei der Identität, solange du sie hältst, also ist ein kleiner am besten.",
       "prepareMessage": "Das sendet jetzt {amount} an dich selbst, damit die Identität einen frischen UTXO an Ausgang 0 hat. Der Betrag bleibt deiner; nur die Gebühr wird ausgegeben.",
-      "pickedId": "Id der Identität:",
+      "pickedId": "Identitäts-ID / Authbase:",
       "steps": {
         "pick": "wähle den UTXO, der zur Id der Identität wird",
         "add": "füge sie zu deinen Identitäten hinzu"
@@ -1825,8 +1825,8 @@
       "registryLead": "Registry:",
       "registry": "die JSON-Datei, die die Identität nennt, mit dem {generator} im erweiterten Modus oder von Hand nach dem {schema} geschrieben, mit den {examples} als Vorlage, und auf einer eigenen Domain oder auf IPFS gehostet.",
       "registryNote": "Im erweiterten Modus lässt der Token-Schalter den Token-Abschnitt weg, den eine Identität, die kein Token ist, nicht haben darf, und es bleiben Name, Beschreibung und Links.",
-      "newLead": "Eine neue Identität für eine dApp, ein Vertragssystem oder eine Organisation hinzufügen?",
-      "newWhat": "Das fügt eine hinzu: eine Kette von UTXOs ohne Token, von der aus Name, Symbol und Links veröffentlicht und aktualisiert werden.",
+      "newLead": "Eine neue Identität für eine dApp, ein Vertragssystem oder eine Organisation erstellen?",
+      "newWhat": "Das fügt deiner Identitätenliste eine unbenannte Identität hinzu. Ihre Metadaten veröffentlichst du anschließend dort.",
       "caution": "Fast keine solchen Identitäten gibt es bisher, und kaum etwas liest sie; wisse also, was du von deiner willst, bevor du sie machst.",
       "tokenLead": "Einen Token machen?",
       "cautionLead": "Erweiterte Funktion:"
