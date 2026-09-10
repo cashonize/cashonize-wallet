@@ -3,12 +3,14 @@
 :root {
   --color-primary: #0ac18f;
   --q-primary: #0ac18f;
-  /* The surfaces the cards, boxes and list rows are built from. Neutral grey alphas rather than
-     named colours, so they read on both themes and need no dark mode rules of their own. */
-  --surface-subtle: rgba(128, 128, 128, 0.06);
-  --surface-hover: rgba(128, 128, 128, 0.08);
+  /* The surfaces the cards, boxes and list rows are built from, named by strength since one alpha
+     serves as a resting fill here and a hover there. Neutral grey alphas rather than named colours,
+     so they read on both themes and need no dark mode rules of their own. */
+  --surface-faint: rgba(128, 128, 128, 0.06);
+  --surface-subtle: rgba(128, 128, 128, 0.08);
   --surface-strong: rgba(128, 128, 128, 0.14);
   --surface-line: rgba(128, 128, 128, 0.2);
+  --surface-line-strong: rgba(128, 128, 128, 0.25); /* the firmer edge of a chip or a label box */
 }
 
 #app {
@@ -312,7 +314,7 @@ input[type='number'] {
   gap: 10px;
   padding: 10px 12px;
   border: 1px solid var(--color-lightGrey);
-  background-color: var(--surface-hover);
+  background-color: var(--surface-subtle);
   border-radius: 8px;
 }
 /* The step form the creator tools share: a step's title is grey until it is the open one, and a

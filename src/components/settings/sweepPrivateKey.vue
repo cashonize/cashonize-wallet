@@ -41,7 +41,7 @@
   const insufficientFeeBch = ref(false);
   const bchBalanceSats = ref(0n);
   const previewTokenList = ref<TokenList>([]);
-  const { fetchUnverifiedTokenInfo, getTokenMetadata, isUnverifiedToken, tokenIconUrl, tokenAmountDisplay, forget: forgetFetchedMetadata } = useUnverifiedTokenMetadata();
+  const { fetchUnverifiedTokenInfo, getTokenMetadata, isUnverifiedToken, tokenIconUrl, tokenAmountDisplay, forgetFetchedMetadata } = useUnverifiedTokenMetadata();
 
   const fiatBalance = ref<string | undefined>(undefined);
 

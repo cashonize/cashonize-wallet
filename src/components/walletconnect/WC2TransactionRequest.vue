@@ -17,8 +17,6 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
-  // Local metadata for tokens not in wallet (kept separate from global store for security)
-  // Same approach as CCSignTransactionDialog.vue
   const { unverifiedTokenMetadata, fetchUnverifiedTokenInfo, getTokenMetadata, isUnverifiedToken, tokenIconUrl, tokenAmountDisplay } = useUnverifiedTokenMetadata();
 
   // This dialog is shared by the WalletConnect and WizardConnect stores, which validate

@@ -948,7 +948,7 @@ $col-name: 7em;
 }
 
 .utxo-row:not(.heading):hover {
-  background-color: var(--surface-hover);
+  background-color: var(--surface-subtle);
 }
 
 .utxo-row.heading {
@@ -1174,7 +1174,7 @@ $card-label-width: 90px;
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1px;
     border: 1px solid var(--surface-line);
-    background-color: var(--surface-subtle);
+    background-color: var(--surface-faint);
     border-radius: 12px;
     padding: 8px 12px;
     margin-bottom: 6px;

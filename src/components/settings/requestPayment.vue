@@ -374,7 +374,7 @@
   align-items: center;
   gap: 8px;
   border: 1px solid var(--surface-line);
-  background-color: var(--surface-subtle);
+  background-color: var(--surface-faint);
   border-radius: 6px;
   padding: 8px 10px;
   word-break: break-all;
@@ -421,7 +421,7 @@
   margin-top: 12px;
   padding: 8px 10px;
   border: 1px solid var(--surface-line);
-  background-color: var(--surface-subtle);
+  background-color: var(--surface-faint);
   border-radius: 6px;
   font-family: monospace;
   font-size: smaller;

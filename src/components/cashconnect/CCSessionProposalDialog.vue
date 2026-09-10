@@ -5,7 +5,7 @@ import type { SessionProposalResponse } from '@cashconnect-js/nostr';
 
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
-import { sanitizeUrl } from 'src/utils/utils';
+import { gatewayUrl, sanitizeUrl } from 'src/utils/utils';
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
@@ -70,13 +70,7 @@ function getTokenIcon(categoryId: string) {
       return categoryId;
     }
 
-    const tokenIconUri = tokenInfo.uris.icon;
-
-    if(tokenIconUri?.startsWith('ipfs://')){
-      return settingsStore.ipfsGateway + tokenIconUri.slice(7);
-    }
-
-    return tokenIconUri;
+    return gatewayUrl(tokenInfo.uris.icon, settingsStore.ipfsGateway);
   } catch(error) {
     const errorMessage = caughtErrorToString(error)
     console.error(errorMessage)

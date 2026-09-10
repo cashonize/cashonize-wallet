@@ -403,7 +403,7 @@
   align-items: center;
   gap: 12px;
   border: 1px solid var(--surface-line);
-  background-color: var(--surface-subtle);
+  background-color: var(--surface-faint);
   border-radius: 12px;
   padding: 8px 14px;
   margin-bottom: 6px;
@@ -606,9 +606,9 @@ body.dark .label-card {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid var(--surface-line);
+  border: 1px solid var(--surface-line-strong);
   border-radius: 8px;
-  background-color: var(--surface-subtle);
+  background-color: var(--surface-faint);
   transition: border-color 0.2s;
   cursor: text;
 }

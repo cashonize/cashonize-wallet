@@ -82,8 +82,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--surface-line);
-  background-color: var(--surface-hover);
+  border: 1px solid var(--surface-line-strong);
+  background-color: var(--surface-subtle);
   border-radius: 14px;
   padding: 2px 10px 2px 4px;
   font-size: 0.85em;

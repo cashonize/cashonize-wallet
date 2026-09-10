@@ -483,7 +483,7 @@ fieldset.item {
   flex-wrap: wrap;
   gap: 8px 12px;
   border: 1px solid var(--surface-line);
-  background-color: var(--surface-subtle);
+  background-color: var(--surface-faint);
   border-radius: 12px;
   padding: 10px 14px;
   margin-bottom: 8px;
@@ -688,8 +688,8 @@ body.dark .negative {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--surface-line);
-  background-color: var(--surface-hover);
+  border: 1px solid var(--surface-line-strong);
+  background-color: var(--surface-subtle);
   border-radius: 14px;
   padding: 2px 10px 2px 4px;
   font-size: 0.85em;

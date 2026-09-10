@@ -47,7 +47,7 @@ export function useUnverifiedTokenMetadata() {
   }
 
   // a preview that is being rebuilt keeps nothing of the last one
-  function forget() {
+  function forgetFetchedMetadata() {
     unverifiedTokenMetadata.value = {}
   }
 
@@ -58,6 +58,6 @@ export function useUnverifiedTokenMetadata() {
     isUnverifiedToken,
     tokenIconUrl,
     tokenAmountDisplay,
-    forget,
+    forgetFetchedMetadata,
   }
 }

@@ -279,7 +279,7 @@
   /* the row gap only applies to the label line, which sits closer than the column spacing */
   gap: 6px 12px;
   border: 1px solid var(--surface-line);
-  background-color: var(--surface-subtle);
+  background-color: var(--surface-faint);
   border-radius: 12px;
   padding: 8px 14px;
   margin-bottom: 6px;

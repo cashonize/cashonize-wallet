@@ -1134,7 +1134,7 @@ body.dark .unit-toggle button:not(.active) {
   gap: 12px;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid var(--surface-line);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
 }
 .asset-list :deep(.asset-row:last-child) {
   border-bottom: none;

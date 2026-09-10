@@ -65,7 +65,7 @@
 <style scoped>
 .xpub-result {
   border: 1px solid var(--surface-line);
-  background-color: var(--surface-subtle);
+  background-color: var(--surface-faint);
   border-radius: 6px;
   padding: 8px 10px;
   font-family: monospace;
