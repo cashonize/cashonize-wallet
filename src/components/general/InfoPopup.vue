@@ -45,11 +45,14 @@
     vertical-align: -0.2em;
     cursor: pointer;
   }
-  /* Global (unscoped) on purpose: the popup is teleported outside this component */
-  .info-popup {
+  /* Global (unscoped) on purpose: the popup is teleported outside this component. A tooltip
+     surface in both modes, so it also outweighs the dark-mode rule every menu gets in app.css */
+  .info-popup,
+  body.dark .q-menu.info-popup {
     font-size: 13px;
     padding: 6px 12px;
     border-radius: 6px;
+    border: 0;
     background: #2d2d33;
     color: #f5f5f5;
   }

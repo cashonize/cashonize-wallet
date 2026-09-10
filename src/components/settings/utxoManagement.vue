@@ -457,7 +457,7 @@
                 />
               </div>
               <!-- Attached to the row itself, so a click anywhere on it opens the actions -->
-              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="onMenuHidden">
+              <q-menu v-if="!heldByFeature(utxo)" anchor="bottom right" self="top right" @hide="onMenuHidden">
                 <q-list dense>
                   <q-item clickable v-close-popup @click="toggleFreeze(utxo)">
                     <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
@@ -1240,16 +1240,5 @@ $card-label-width: 90px;
 }
 @container ftnft-grid (max-width: 57.4em) {
   @include stacked-card;
-}
-</style>
-
-<style>
-/* Global (unscoped) on purpose: the actions menu is teleported outside this component.
-   Quasar's default menu surface is white, so dark mode gives it the app's own dark
-   surfaces, like the inputs and pill bars get in app.css */
-body.dark .utxo-actions-menu {
-  background: var(--bg-secondary-color);
-  color: var(--font-color);
-  border: 1px solid var(--color-lightGrey);
 }
 </style>

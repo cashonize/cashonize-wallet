@@ -751,6 +751,14 @@ body.dark .q-dialog-plugin {
 body.dark .q-dialog-plugin .q-card__section {
   color: #f5f5f5;
 }
+/* Quasar menus are teleported to the body with a white surface, and dark mode here is the
+   body.dark class rather than Quasar's Dark plugin, so they never learn of it: the surface
+   the inputs and dialogs get, for every menu */
+body.dark .q-menu {
+  background: var(--bg-secondary-color);
+  color: var(--font-color);
+  border: 1px solid var(--color-lightGrey);
+}
 
 /* Quasar pagination styling */
 .q-pagination .q-btn {

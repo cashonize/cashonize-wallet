@@ -106,7 +106,7 @@
       </span>
       <utxoRowStatus :utxo="utxo" compact />
       <q-icon v-if="!heldByFeature" name="more_vert" size="18px" class="row-menu-trigger">
-        <q-menu anchor="bottom right" self="top right" class="utxo-actions-menu" @hide="emit('menuHidden')">
+        <q-menu anchor="bottom right" self="top right" @hide="emit('menuHidden')">
           <q-list dense>
             <q-item clickable v-close-popup @click="emit('toggleFreeze')">
               <q-item-section avatar><q-icon name="ac_unit" size="18px" /></q-item-section>
