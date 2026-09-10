@@ -225,8 +225,11 @@
   watch(() => (openAction.value?.category === props.identity.category ? openAction.value.action : undefined), async action => {
     if (!action) return;
     const publication = props.identity.publication;
-    // the common update changes what the locations serve, not the locations themselves
-    publishUris.value = publication?.uris.length ? [...publication.uris] : [""];
+    // the common update changes what the locations serve, not the locations themselves; a CID
+    // is the content, so its slot is left open for the new one
+    publishUris.value = publication?.uris.length
+      ? publication.uris.map(uri => uri.startsWith("ipfs://") ? "" : uri)
+      : [""];
     issueAmount.value = "";
     issueDestination.value = "";
     addToReserveAmount.value = "";
@@ -254,6 +257,7 @@
   function publishConfirmMessage(candidateSummary: RegistrySummary, hash: string) {
     const lines = [t('identities.publish.confirm.message', { hash })];
     lines.push(...filledUris.value);
+    if (hash === props.identity.publication?.hash) lines.push(t('identities.publish.confirm.sameFile'));
     if (currentRegistry.value) {
       const diff = diffRegistries(currentRegistry.value, candidateSummary);
       for (const change of diff.changed) {

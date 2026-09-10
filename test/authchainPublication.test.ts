@@ -2,8 +2,10 @@ import { describe, expect, it, vi, afterEach } from 'vitest'
 import { OpReturnData } from 'mainnet-js'
 import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
 
-import { parsePublicationOutput } from '../src/utils/tools/authchainIdentity'
+import { parsePublicationOutput, filledLocations } from '../src/utils/tools/authchainIdentity'
 import {
+  isSupportedLocation,
+  publishedFormOf,
   registryUrlOf,
   registryContentHash,
   checkPublicationUri,
@@ -69,6 +71,56 @@ describe('registryUrlOf', () => {
   it('fetches an IPFS location through the configured gateway', () => {
     expect(registryUrlOf('ipfs://bafyexamplecid', ipfsGateway))
       .toBe('https://ipfs.example.com/ipfs/bafyexamplecid')
+  })
+})
+
+describe('publishedFormOf', () => {
+  // the spec's example publishes the well-known location as the bare domain
+  it('compacts the well-known URL to its domain', () => {
+    expect(publishedFormOf('https://example.com/.well-known/bitcoin-cash-metadata-registry.json')).toBe('example.com')
+    expect(publishedFormOf('example.com/.well-known/bitcoin-cash-metadata-registry.json')).toBe('example.com')
+  })
+
+  it('drops the scheme and keeps any other path, the root included', () => {
+    expect(publishedFormOf('https://example.com')).toBe('example.com')
+    expect(publishedFormOf('https://example.com/registry.json')).toBe('example.com/registry.json')
+    expect(publishedFormOf('https://example.com/')).toBe('example.com/')
+  })
+
+  it('leaves an IPFS location as it is', () => {
+    expect(publishedFormOf('ipfs://bafyexamplecid')).toBe('ipfs://bafyexamplecid')
+  })
+
+  // whatever was typed, the compact form is read back to the same place
+  it('resolves to the same URL as what was typed', () => {
+    const typed = [
+      'https://example.com/.well-known/bitcoin-cash-metadata-registry.json',
+      'https://example.com/',
+      'https://example.com/registry.json',
+      'example.com',
+    ]
+    for (const uri of typed) {
+      expect(registryUrlOf(publishedFormOf(uri), ipfsGateway)).toBe(registryUrlOf(uri, ipfsGateway))
+    }
+  })
+
+  it('is what the locations form publishes', () => {
+    expect(filledLocations([' https://example.com/.well-known/bitcoin-cash-metadata-registry.json ', '', 'ipfs://bafy']))
+      .toEqual(['example.com', 'ipfs://bafy'])
+  })
+})
+
+describe('isSupportedLocation', () => {
+  it('accepts HTTPS, with or without the scheme, and ipfs://', () => {
+    expect(isSupportedLocation('example.com')).toBe(true)
+    expect(isSupportedLocation('https://example.com/registry.json')).toBe(true)
+    expect(isSupportedLocation('ipfs://bafyexamplecid')).toBe(true)
+  })
+
+  // the spec serves DNS registries over HTTPS only; read back, http:// would name a garbage URL
+  it('refuses any other scheme', () => {
+    expect(isSupportedLocation('http://example.com')).toBe(false)
+    expect(isSupportedLocation('ftp://example.com/registry.json')).toBe(false)
   })
 })
 
@@ -153,6 +205,13 @@ describe('fetchCandidateRegistry', () => {
       return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(utf8ToBin(content).buffer) })
     }))
   }
+
+  it('refuses a location with another scheme before fetching anything', async () => {
+    stubHosts({})
+
+    await expect(fetchCandidateRegistry(['http://example.com'], ipfsGateway)).rejects.toThrow('http://example.com')
+    expect(fetch).not.toHaveBeenCalled()
+  })
 
   it('returns the file and its hash when every mirror agrees', async () => {
     stubHosts({

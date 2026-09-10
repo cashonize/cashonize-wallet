@@ -19,6 +19,7 @@ import {
 } from "src/queryChainGraph";
 import { resolveAuthHeadsElectrum, queryAuthchainLinksElectrum, ELECTRUM_WALK_LIMIT } from "src/utils/tools/electrumAuthchain";
 import { guardsOpenedByHeldAuthKeys, isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
+import { publishedFormOf } from "src/utils/tools/registryFile";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -225,9 +226,9 @@ export function publicationOutputSize(uris: string[]): number {
   }, withoutLocations);
 }
 
-// The rows of a locations form, down to the locations actually typed
+// The rows of a locations form, down to the locations actually typed, in their published form
 export function filledLocations(rows: string[]): string[] {
-  return rows.map(row => row.trim()).filter(row => row.length);
+  return rows.map(row => publishedFormOf(row.trim())).filter(row => row.length);
 }
 
 // What the form may still add: the hash and the locations share the one output

@@ -1728,6 +1728,8 @@
       "action": "publier des métadonnées",
       "locationsHint": "Un domaine, une URL HTTPS complète ou un CID IPFS. Tous les emplacements doivent servir le même fichier.",
       "uriPlaceholder": "example.com ou ipfs://baf...",
+      "publishedAs": "Publié comme {published}, récupéré depuis {url}",
+      "fetchedFrom": "Récupéré depuis {url}",
       "addLocation": "ajouter un emplacement",
       "removeLocation": "retirer",
       "bytesLeft": "{bytes} octets restants dans le pointeur sur la chaîne",
@@ -1747,12 +1749,14 @@
         "changed": "{field} : {from} devient {to}",
         "empty": "(aucun)",
         "droppedSnapshots": "Attention : le nouveau fichier abandonne {count} instantané de l'historique de cette identité. | Attention : le nouveau fichier abandonne {count} instantanés de l'historique de cette identité.",
+        "sameFile": "Attention : c'est le fichier déjà publié, les détenteurs ne verront donc rien de nouveau. Ne le republiez que pour changer les emplacements.",
         "button": "Publier"
       },
       "errors": {
         "noUris": "Indiquez au moins un emplacement pour le registre.",
         "tooLarge": "Ces emplacements ne tiennent pas dans une sortie de publication. Retirez-en un ou utilisez des emplacements plus courts.",
         "unreachable": "Impossible de récupérer le registre à {uri}.",
+        "unsupportedLocation": "{uri} n'est pas un emplacement HTTPS ni ipfs://. Seuls ceux-là peuvent être publiés.",
         "mirrorMismatch": "{uri} sert un contenu différent du premier emplacement. Tous doivent servir le même fichier.",
         "noIdentity": "Ce registre ne décrit pas cette identité. Vérifiez que le fichier nomme l'authbase de cette identité."
       },

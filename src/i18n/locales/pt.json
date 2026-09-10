@@ -1728,6 +1728,8 @@
       "action": "publicar metadados",
       "locationsHint": "Um domínio, uma URL HTTPS completa ou um CID de IPFS. Todos os locais devem servir o mesmo arquivo.",
       "uriPlaceholder": "example.com ou ipfs://baf...",
+      "publishedAs": "Publicado como {published}, obtido de {url}",
+      "fetchedFrom": "Obtido de {url}",
       "addLocation": "adicionar outro local",
       "removeLocation": "remover",
       "bytesLeft": "{bytes} bytes livres no ponteiro na cadeia",
@@ -1747,12 +1749,14 @@
         "changed": "{field}: {from} passa a {to}",
         "empty": "(nenhum)",
         "droppedSnapshots": "Atenção: o novo arquivo descarta {count} instantâneo do histórico desta identidade. | Atenção: o novo arquivo descarta {count} instantâneos do histórico desta identidade.",
+        "sameFile": "Atenção: este é o arquivo já publicado, então os holders não verão nada de novo. Publique-o de novo apenas para mudar os locais.",
         "button": "Publicar"
       },
       "errors": {
         "noUris": "Informe pelo menos um local para o registro.",
         "tooLarge": "Estes locais não cabem em uma saída de publicação. Remova um ou use locais mais curtos.",
         "unreachable": "Não foi possível buscar o registro em {uri}.",
+        "unsupportedLocation": "{uri} não é um local HTTPS nem ipfs://. Só esses podem ser publicados.",
         "mirrorMismatch": "{uri} serve um conteúdo diferente do primeiro local. Todos devem servir o mesmo arquivo.",
         "noIdentity": "Esse registro não descreve esta identidade. Verifique se o arquivo nomeia a authbase desta identidade."
       },

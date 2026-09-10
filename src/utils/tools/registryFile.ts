@@ -41,8 +41,27 @@ const REGISTRY_FETCH_TIMEOUT_MS = 10_000;
 // per spec, a bare domain names the registry at this well-known path
 const WELL_KNOWN_REGISTRY_PATH = "/.well-known/bitcoin-cash-metadata-registry.json";
 
-// Where a published location is actually fetched from. The published form is the compact one the
-// spec asks for, so an https:// prefix is stripped and a bare domain names the well-known path.
+// The form a location is published in: the spec's example drops the https:// and the well-known
+// path, since a reader assumes both. Anything else, the root's trailing slash included, is kept.
+export function publishedFormOf(uri: string): string {
+  if (uri.startsWith("ipfs://")) return uri;
+  const location = uri.replace(/^https:\/\//, "");
+  if (location.endsWith(WELL_KNOWN_REGISTRY_PATH)) return location.slice(0, -WELL_KNOWN_REGISTRY_PATH.length);
+  return location;
+}
+
+// A scheme in front of a location, "http://" say: a letter, then letters, digits or + . - up to "://"
+const URI_SCHEME_REGEX = /^[a-z][a-z0-9+.-]*:\/\//i;
+
+// What the spec lets a registry be served from: HTTPS, which a location without a scheme is
+// assumed to be, or IPFS. Any other scheme is refused before it is read or published.
+export function isSupportedLocation(uri: string): boolean {
+  if (uri.startsWith("https://") || uri.startsWith("ipfs://")) return true;
+  return !URI_SCHEME_REGEX.test(uri);
+}
+
+// Where a published location is actually fetched from: publishedFormOf read back, an https://
+// prefix stripped in case a publisher kept it, and a bare domain naming the well-known path.
 export function registryUrlOf(uri: string, ipfsGateway: string): string {
   if (uri.startsWith("ipfs://")) return gatewayUrl(uri, ipfsGateway);
   // Per spec a bare domain means the well-known file on it, while anything naming a path is taken
@@ -116,6 +135,8 @@ export async function fetchCandidateRegistry(
   ipfsGateway: string,
 ): Promise<CandidateRegistry> {
   if (!uris.length) throw new Error(t('identities.publish.errors.noUris'));
+  const unsupported = uris.find(uri => !isSupportedLocation(uri));
+  if (unsupported) throw new Error(t('identities.publish.errors.unsupportedLocation', { uri: unsupported }));
   const fetched = await Promise.all(uris.map(async uri => {
     const served = await fetchRegistryBytes(uri, ipfsGateway);
     if (served === undefined) throw new Error(t('identities.publish.errors.unreachable', { uri }));
