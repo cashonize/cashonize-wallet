@@ -1580,7 +1580,7 @@
       "holdingLead": "O que significa ter uma identidade.",
       "holding": "O controlo de uma identidade é um único UTXO, não uma conta: o output 0 da última transação da identidade, a authhead. A cadeia de transações avança a partir da authbase, e o id de transação da authbase é o id permanente da identidade; para um token, esse é o id de categoria.",
       "custodyLead": "O que esta carteira faz com uma identidade que detém.",
-      "custody": "O UTXO de identidade é mantido fora dos envios comuns e da lista de tokens, junto com qualquer reserva de tokens fungíveis que carregue. Gastá-lo de propósito é como a identidade é transferida ou os seus metadados atualizados; os metadados em si são um ficheiro alojado para o qual a cadeia aponta pelo hash. Uma identidade que esta carteira não detém pode ser adicionada só observada: pode ver a sua informação, mas não atualizá-la.",
+      "custody": "O UTXO de identidade é mantido fora dos envios comuns, junto com qualquer reserva de tokens fungíveis que carregue. Gastá-lo de propósito é como a identidade é transferida ou os seus metadados atualizados; os metadados em si são um ficheiro alojado para o qual a cadeia aponta pelo hash. Uma identidade que esta carteira não detém pode ser adicionada só observada: pode ver a sua informação, mas não atualizá-la.",
       "readMoreLead": "Ler mais.",
       "readMore": "A norma BCMR na íntegra: {registries}. As identidades guardadas atrás de uma AuthKey seguem o padrão AuthGuard, que o {studio} implementa.",
       "registriesLink": "registos de metadados em cashtokens.org",

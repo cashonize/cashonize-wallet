@@ -1580,7 +1580,7 @@
       "holdingLead": "Ce que signifie détenir une identité.",
       "holding": "Le contrôle d'une identité tient en un seul UTXO, pas en un compte : l'output 0 de la dernière transaction de l'identité, l'authhead. La chaîne de transactions avance depuis l'authbase, et l'id de transaction de l'authbase est l'id permanent de l'identité ; pour un token, c'est l'id de catégorie.",
       "custodyLead": "Ce que ce portefeuille fait d'une identité qu'il détient.",
-      "custody": "L'UTXO d'identité est gardé hors des envois ordinaires et de la liste des tokens, avec toute réserve de tokens fongibles qu'il porte. Le dépenser volontairement est la façon de transférer l'identité ou de mettre à jour ses métadonnées ; les métadonnées elles-mêmes sont un fichier hébergé vers lequel la chaîne pointe par son hash. Une identité que ce portefeuille ne détient pas peut être ajoutée en surveillance seule : vous pouvez voir ses informations, mais pas les mettre à jour.",
+      "custody": "L'UTXO d'identité est gardé hors des envois ordinaires, avec toute réserve de tokens fongibles qu'il porte. Le dépenser volontairement est la façon de transférer l'identité ou de mettre à jour ses métadonnées ; les métadonnées elles-mêmes sont un fichier hébergé vers lequel la chaîne pointe par son hash. Une identité que ce portefeuille ne détient pas peut être ajoutée en surveillance seule : vous pouvez voir ses informations, mais pas les mettre à jour.",
       "readMoreLead": "Pour aller plus loin.",
       "readMore": "Le standard BCMR en entier : {registries}. Les identités gardées derrière une AuthKey suivent le standard AuthGuard, que {studio} implémente.",
       "registriesLink": "les registres de métadonnées sur cashtokens.org",

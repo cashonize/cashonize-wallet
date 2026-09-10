@@ -1580,7 +1580,7 @@
       "holdingLead": "What holding an identity means.",
       "holding": "Control of an identity is a single UTXO, not an account: output 0 of the identity's latest transaction, the authhead. The chain of transactions runs forward from the authbase, and the authbase's transaction id is the identity's permanent id; for a token, that is the category id.",
       "custodyLead": "What this wallet does with an identity it holds.",
-      "custody": "The identity UTXO is kept out of ordinary sends and out of the token list, along with any reserve of fungible tokens held on it. Spending it on purpose is how the identity is transferred or its metadata updated; the metadata itself is a hosted file the chain points at by hash. An identity this wallet does not hold can be added as watch only: you can see its information, but not update it.",
+      "custody": "The identity UTXO is kept out of ordinary sends, along with any reserve of fungible tokens held on it. Spending it on purpose is how the identity is transferred or its metadata updated; the metadata itself is a hosted file the chain points at by hash. An identity this wallet does not hold can be added as watch only: you can see its information, but not update it.",
       "readMoreLead": "Read more.",
       "readMore": "The BCMR standard in full: {registries}. Identities kept behind an AuthKey follow the AuthGuard standard, which {studio} implements.",
       "registriesLink": "metadata registries on cashtokens.org",

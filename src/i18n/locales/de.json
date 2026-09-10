@@ -1580,7 +1580,7 @@
       "holdingLead": "Was es bedeutet, eine Identität zu halten.",
       "holding": "Die Kontrolle über eine Identität ist ein einziger UTXO, kein Konto: Output 0 der letzten Transaktion der Identität, der Authhead. Die Transaktionskette läuft von der Authbase vorwärts, und die Transaktions-Id der Authbase ist die dauerhafte Id der Identität; bei einem Token ist das die Kategorie-Id.",
       "custodyLead": "Was diese Wallet mit einer Identität macht, die sie hält.",
-      "custody": "Der Identitäts-UTXO wird aus gewöhnlichen Sendungen und der Token-Liste herausgehalten, samt jeder Reserve fungibler Token, die darauf liegt. Ihn absichtlich auszugeben ist, wie die Identität übertragen oder ihre Metadaten aktualisiert werden; die Metadaten selbst sind eine gehostete Datei, auf die die Chain per Hash verweist. Eine Identität, die diese Wallet nicht hält, kann nur beobachtet hinzugefügt werden: du siehst ihre Informationen, kannst sie aber nicht aktualisieren.",
+      "custody": "Der Identitäts-UTXO wird aus gewöhnlichen Sendungen herausgehalten, samt jeder Reserve fungibler Token, die darauf liegt. Ihn absichtlich auszugeben ist, wie die Identität übertragen oder ihre Metadaten aktualisiert werden; die Metadaten selbst sind eine gehostete Datei, auf die die Chain per Hash verweist. Eine Identität, die diese Wallet nicht hält, kann nur beobachtet hinzugefügt werden: du siehst ihre Informationen, kannst sie aber nicht aktualisieren.",
       "readMoreLead": "Mehr lesen.",
       "readMore": "Der BCMR-Standard vollständig: {registries}. Identitäten hinter einem AuthKey folgen dem AuthGuard-Standard, den {studio} umsetzt.",
       "registriesLink": "Metadata Registries auf cashtokens.org",
