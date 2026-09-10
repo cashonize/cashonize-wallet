@@ -47,6 +47,8 @@
   // What the pill says. A plain operation is named by what the reserve did, which is the only
   // thing such a link changes that the chain can show.
   function pillKindOf(link: DescribedLink) {
+    // the authbase is "pre-genesis" only when a genesis follows: a non-token identity has none
+    if (link.kind === 'authbase' && history.value?.[1]?.kind !== 'genesis') return 'authbaseNoGenesis'
     if (link.kind !== 'operation') return link.kind
     if (link.reserveDelta < 0n) return 'issued'
     if (link.reserveDelta > 0n) return 'reserved'
@@ -134,6 +136,12 @@
 .chain-kind.burned {
   font-weight: 600;
 }
+.chain-kind.authbase,
+.chain-kind.authbaseNoGenesis {
+  color: #3d6b8e;
+  background: #e9f2f8;
+  border-color: #c5dbe8;
+}
 .chain-kind.genesis {
   color: #1c5bb8;
   background: #e8f1fe;
@@ -155,14 +163,20 @@
   border-color: #dbccf3;
 }
 .chain-kind.issued {
-  color: #0b7285;
-  background: #e3f6f9;
-  border-color: #b3e3ea;
+  color: #0891b2;
+  background: #e0f7fa;
+  border-color: #a5e8f2;
 }
 .chain-kind.burned {
   color: #c0392b;
   background: #fdeceb;
   border-color: #f5c5c0;
+}
+body.dark .chain-kind.authbase,
+body.dark .chain-kind.authbaseNoGenesis {
+  color: #9fc4de;
+  background: rgba(61, 107, 142, 0.28);
+  border-color: rgba(159, 196, 222, 0.4);
 }
 body.dark .chain-kind.genesis {
   color: #8ab4f8;
@@ -185,9 +199,9 @@ body.dark .chain-kind.mint {
   border-color: rgba(196, 168, 245, 0.4);
 }
 body.dark .chain-kind.issued {
-  color: #66d1e3;
-  background: rgba(11, 114, 133, 0.28);
-  border-color: rgba(102, 209, 227, 0.4);
+  color: #5fd4e8;
+  background: rgba(8, 145, 178, 0.28);
+  border-color: rgba(95, 212, 232, 0.4);
 }
 body.dark .chain-kind.burned {
   color: #f28b82;

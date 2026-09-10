@@ -1624,8 +1624,8 @@
     },
     "reserve": {
       "supply": "Reservierte Menge: {amount}",
-      "mintingNft": "Ein Minting-NFT, das neue NFTs dieser Kategorie erzeugt",
-      "nft": "Ein NFT dieser Kategorie",
+      "mintingNft": "Reserviert: ein Minting-NFT, das neue NFTs dieser Kategorie erzeugt",
+      "nft": "Reserviert: ein NFT dieser Kategorie",
       "errors": {
         "invalidAmount": "Gib einen gültigen Betrag ein.",
         "overReserve": "Das ist mehr, als die Reserve enthält.",
@@ -1656,7 +1656,7 @@
         "done": "Zur Reserve hinzugefügt",
         "doneTitle": "Zur Reserve hinzugefügt"
       },
-      "mintingNftLink": "in der Token-Liste ansehen",
+      "tokenListLink": "In der Token-Liste zeigen",
       "supplyOpenEnded": "Reservierte Menge: ohne Obergrenze",
       "genesisSupply": "Genesis-Menge: {amount}",
       "genesisSupplyOpenEnded": "Genesis-Menge: ohne Obergrenze",
@@ -1721,6 +1721,7 @@
       "reserveDown": "{amount} aus der Reserve",
       "kind": {
         "authbase": "Authbase / Pre-Genesis",
+        "authbaseNoGenesis": "Authbase",
         "genesis": "Genesis",
         "publication": "Metadaten-Update",
         "transfer": "Übertragen",

@@ -27,6 +27,7 @@ import {
   matSwapVert,
   matTune,
   matUnarchive,
+  matViewList,
   matWarning,
 } from '@quasar/extras/material-icons'
 import { outlinedInfo } from '@quasar/extras/material-icons-outlined'
@@ -62,6 +63,7 @@ const appIcons: Record<string, string> = {
   swap_vert: matSwapVert,
   tune: matTune,
   unarchive: matUnarchive,
+  view_list: matViewList,
   warning: matWarning,
 }
 

@@ -1624,8 +1624,8 @@
     },
     "reserve": {
       "supply": "Offre réservée : {amount}",
-      "mintingNft": "Un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
-      "nft": "Un NFT de cette catégorie",
+      "mintingNft": "Réservé : un NFT de frappe, qui crée de nouveaux NFT de cette catégorie",
+      "nft": "Réservé : un NFT de cette catégorie",
       "errors": {
         "invalidAmount": "Saisissez un montant valide.",
         "overReserve": "C'est plus que ce que contient la réserve.",
@@ -1656,7 +1656,7 @@
         "done": "Ajouté à la réserve",
         "doneTitle": "Ajouté à la réserve"
       },
-      "mintingNftLink": "voir dans la liste des tokens",
+      "tokenListLink": "Afficher dans la liste des tokens",
       "supplyOpenEnded": "Offre réservée : sans plafond",
       "genesisSupply": "Offre à la genèse : {amount}",
       "genesisSupplyOpenEnded": "Offre à la genèse : sans plafond",
@@ -1721,6 +1721,7 @@
       "reserveDown": "{amount} hors de la réserve",
       "kind": {
         "authbase": "Authbase / pré-genèse",
+        "authbaseNoGenesis": "Authbase",
         "genesis": "Genèse",
         "publication": "Mise à jour des métadonnées",
         "transfer": "Transférée",

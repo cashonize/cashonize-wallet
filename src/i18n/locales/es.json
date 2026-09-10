@@ -1624,8 +1624,8 @@
     },
     "reserve": {
       "supply": "Suministro reservado: {amount}",
-      "mintingNft": "Un NFT de acuñación, que crea nuevos NFTs de esta categoría",
-      "nft": "Un NFT de esta categoría",
+      "mintingNft": "Reservado: un NFT de acuñación, que crea nuevos NFTs de esta categoría",
+      "nft": "Reservado: un NFT de esta categoría",
       "errors": {
         "invalidAmount": "Introduce una cantidad válida.",
         "overReserve": "Eso es más de lo que tiene la reserva.",
@@ -1656,7 +1656,7 @@
         "done": "Añadido a la reserva",
         "doneTitle": "Añadido a la reserva"
       },
-      "mintingNftLink": "ver en la lista de tokens",
+      "tokenListLink": "Mostrar en la lista de tokens",
       "supplyOpenEnded": "Suministro reservado: sin tope",
       "genesisSupply": "Suministro de génesis: {amount}",
       "genesisSupplyOpenEnded": "Suministro de génesis: sin tope",
@@ -1721,6 +1721,7 @@
       "reserveDown": "{amount} fuera de la reserva",
       "kind": {
         "authbase": "Authbase / pregénesis",
+        "authbaseNoGenesis": "Authbase",
         "genesis": "Génesis",
         "publication": "Actualización de metadatos",
         "transfer": "Transferida",

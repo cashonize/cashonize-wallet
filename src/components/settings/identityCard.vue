@@ -213,7 +213,10 @@
   // The forms, one open at a time across the list, which is why which one is open is the page's
   const isOpen = (action: CardAction) =>
     openAction.value?.category === props.identity.category && openAction.value.action === action;
+  // The three panels in the action row open one at a time on a card: a form closes the history,
+  // and the history closes this card's form. Only the forms are exclusive across the list.
   function toggleAction(action: CardAction) {
+    historyOpen.value = false;
     openAction.value = isOpen(action) ? undefined : { category: props.identity.category, action };
   }
 
@@ -457,6 +460,10 @@
   watch(() => props.expanded, expanded => {
     if (!expanded) historyOpen.value = false;
   });
+  function toggleHistory() {
+    historyOpen.value = !historyOpen.value;
+    if (historyOpen.value && openAction.value?.category === props.identity.category) openAction.value = undefined;
+  }
   // the label carries the chain's length when the resolve already holds it
   const historyLabel = computed(() => {
     const length = props.identity.chainLength;
@@ -502,14 +509,7 @@
       <q-icon name="expand_more" class="chevron" :class="{ open: expanded }" />
     </div>
 
-    <div v-if="carriesLine">
-      {{ carriesLine }}
-      <span
-        v-if="identity.authUtxo?.token?.nft?.capability === 'minting'"
-        class="action-link"
-        @click.stop="openInTokenList(identity.category)"
-      >{{ t('identities.reserve.mintingNftLink') }}</span>
-    </div>
+    <div v-if="carriesLine">{{ carriesLine }}</div>
     <div v-if="issuedLine">{{ issuedLine }}</div>
     <div v-if="!expanded && publicationSummary" class="publication-badge-row">
       <InfoPopup>
@@ -627,7 +627,7 @@
           {{ t('identities.key.action') }}
         </span>
       </template>
-      <span @click="historyOpen = !historyOpen" style="white-space: nowrap;">
+      <span @click="toggleHistory()" style="white-space: nowrap;">
         <q-icon name="history" size="20px" />
         {{ historyLabel }}
       </span>
@@ -642,6 +642,11 @@
             >
               <q-item-section avatar><q-icon name="add_circle" size="18px" /></q-item-section>
               <q-item-section>{{ t('identities.reserve.add.action') }}</q-item-section>
+            </q-item>
+            <!-- the token's row is where minting and sending happen; the row links back here -->
+            <q-item v-if="identity.authUtxo?.token" clickable v-close-popup @click="openInTokenList(identity.category)">
+              <q-item-section avatar><q-icon name="view_list" size="18px" /></q-item-section>
+              <q-item-section>{{ t('identities.reserve.tokenListLink') }}</q-item-section>
             </q-item>
             <q-item clickable v-close-popup :href="`https://tokenexplorer.cash/?tokenId=${identity.category}`" target="_blank">
               <q-item-section avatar><q-icon name="open_in_new" size="18px" /></q-item-section>

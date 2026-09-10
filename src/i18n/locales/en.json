@@ -1624,8 +1624,8 @@
     },
     "reserve": {
       "supply": "Reserved supply: {amount}",
-      "mintingNft": "A minting NFT, which creates new NFTs of this category",
-      "nft": "An NFT of this category",
+      "mintingNft": "Reserved: a minting NFT, which creates new NFTs of this category",
+      "nft": "Reserved: an NFT of this category",
       "errors": {
         "invalidAmount": "Enter a valid amount.",
         "overReserve": "That is more than the reserve holds.",
@@ -1656,7 +1656,7 @@
         "done": "Added to the reserve",
         "doneTitle": "Added to reserve"
       },
-      "mintingNftLink": "view in the token list",
+      "tokenListLink": "Show in token list",
       "supplyOpenEnded": "Reserved supply: uncapped",
       "genesisSupply": "Genesis supply: {amount}",
       "genesisSupplyOpenEnded": "Genesis supply: uncapped",
@@ -1721,6 +1721,7 @@
       "reserveDown": "{amount} out of the reserve",
       "kind": {
         "authbase": "Authbase / pre-genesis",
+        "authbaseNoGenesis": "Authbase",
         "genesis": "Genesis",
         "publication": "Metadata update",
         "transfer": "Transferred",
