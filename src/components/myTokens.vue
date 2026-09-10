@@ -6,12 +6,14 @@
   import tokenItemFT from './tokenItems/tokenItemFT.vue'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useWindowSize } from 'src/utils/composables'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { CurrencySymbols } from 'src/interfaces/interfaces'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const identitiesStore = useIdentitiesStore()
   const { t } = useI18n()
 
   const showOptions = ref(false)
@@ -125,10 +127,15 @@
     return tokens.filter(tokenData => {
       if (tokenData.category.toLowerCase().includes(query)) return true;
       const metadata = store.bcmrRegistries?.[tokenData.category];
-      if (!metadata) return false;
-      if (metadata.name.toLowerCase().includes(query)) return true;
-      if (metadata.token.symbol.toLowerCase().includes(query)) return true;
-      return false;
+      if (metadata?.name.toLowerCase().includes(query)) return true;
+      if (metadata?.token.symbol.toLowerCase().includes(query)) return true;
+      // An AuthKey row shows the identities it opens rather than a metadata of its own, and folds
+      // all but the first name away, so the search reaches the folded ones too
+      const guardedIdentities = identitiesStore.identitiesGuardedByKey(tokenData.category);
+      return guardedIdentities.some(identity =>
+        identity.category.includes(query) ||
+        store.bcmrRegistries?.[identity.category]?.name.toLowerCase().includes(query)
+      );
     });
   });
 
