@@ -1,4 +1,4 @@
-import { chaingraphGraphqlUrl, electrumWssUrl, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, connectElectrum, electrumWssUrl, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -90,5 +90,37 @@ describe('test parseExtendedJson', () => {
     const parsedObject = parseExtendedJson(cashNinjaJsonString1);
     const expectedResult = cashNinjaDecodedObj1
     expect(parsedObject).toMatchObject(expectedResult);
+  })
+})
+
+// The connect gets two windows on the same attempt: mainnet-js's provider.connect() returns at
+// once when the socket connected meanwhile and otherwise awaits the connection already under way,
+// so the second call is a longer wait rather than a fresh attempt.
+describe('connectElectrum', () => {
+  const provider = (connect: () => Promise<void>) => ({ connect } as unknown as Parameters<typeof connectElectrum>[0]);
+
+  beforeEach(() => { vi.useFakeTimers() })
+  afterEach(() => { vi.useRealTimers() })
+
+  // a slow but healthy handshake, a TLS setup on a poor cellular link, used to fail the session
+  it('resolves when the socket connects after the first window', async () => {
+    let connected!: () => void
+    const connect = vi.fn(() => new Promise<void>(resolve => { connected = resolve }))
+
+    const connecting = connectElectrum(provider(connect))
+    await vi.advanceTimersByTimeAsync(5000)
+    connected()
+    await expect(connecting).resolves.toBeUndefined()
+    expect(connect).toHaveBeenCalledTimes(2)
+  })
+
+  it('rejects once both windows have passed', async () => {
+    const connect = vi.fn(() => new Promise<void>(() => {}))
+
+    const connecting = connectElectrum(provider(connect))
+    const settled = expect(connecting).rejects.toThrow('ELECTRUM_CONNECT_TIMEOUT')
+    await vi.advanceTimersByTimeAsync(3000 + 12_000)
+    await settled
+    expect(connect).toHaveBeenCalledTimes(2)
   })
 })

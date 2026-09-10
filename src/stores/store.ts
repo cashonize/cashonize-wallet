@@ -29,7 +29,7 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, runAsyncVoid, walletTypeFromWalletId } from "src/utils/utils"
+import { connectElectrum, electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, runAsyncVoid, walletTypeFromWalletId } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -493,28 +493,17 @@ export const useStore = defineStore('store', () => {
       // // Kick off exchange rate fetch immediately, so it's available as soon as possible for fiat balance display during initialization
       void fetchExchangeRate();
 
-      // attempt non-blocking connection to electrum server
-      // wrapped the logic in an IIFE to avoid error bubbling up
-      // otherwise this can cause the router to error (and UI to fail) in offline mode
-      let electrumConnectionPromise: Promise<unknown>
-      (() => {
-        let timeoutHandle: ReturnType<typeof setTimeout>
-        const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
-        electrumConnectionPromise = Promise.race([
-          wallet.value.provider.connect(),
-          new Promise((_, reject) =>
-            (timeoutHandle = setTimeout(() => {
-              reject(new Error("ELECTRUM_CONNECT_TIMEOUT"));
-            }, 3000))
-          )
-        ]).finally(() => clearTimeout(timeoutHandle))
+      const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
+      // Started here and awaited further down, so the dapp inits run alongside the connect. The
+      // catch is attached in the same expression, so a failed connect never surfaces as an
+      // unhandled rejection; it lands in walletInitFailed and the offline path instead.
+      const electrumConnectionPromise = connectElectrum(wallet.value.provider)
         .catch(error => {
           failedToConnectElectrum = true;
           displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
           // still log the original error for debugging
           console.error("Electrum connect error:", error)
         });
-      })();
       // WizardConnect initialization is synchronous (key derivation only, connections are fire-and-forget)
       initializeWizardConnect();
       // The relay inits are not awaited: wallet data does not depend on them and neither has a
