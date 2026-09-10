@@ -326,7 +326,7 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identityCategories).toEqual([categoryA, categoryB])
     expect(identitiesStore.unseenIdentities).toEqual([categoryB])
     expect(identitiesStore.announcement?.ids).toEqual([categoryB])
-    expect(identitiesStore.tokenIdentities).toEqual([])
+    expect(identitiesStore.followedTokenIdentities).toEqual([])
   })
 
   // an outage at open lands on the page, and lists nothing: "not held" from a server that did
@@ -341,7 +341,7 @@ describe('auth reservations follow the authchain', () => {
 
     expect(identitiesStore.openCheckError).toEqual(expect.any(String))
     expect(identitiesStore.identityCategories).toEqual([])
-    expect(identitiesStore.tokenIdentities).toEqual([])
+    expect(identitiesStore.followedTokenIdentities).toEqual([])
   })
 
   // With following off, a held NFT of a Studio AuthKey's shape still has its category resolved,
@@ -389,7 +389,7 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identityCategories).toEqual([])
     expect(identitiesStore.unseenIdentities).toEqual([])
     expect(identitiesStore.announcement).toBeUndefined()
-    expect(identitiesStore.tokenIdentities?.map(identity => [identity.category, identity.status]))
+    expect(identitiesStore.followedTokenIdentities?.map(identity => [identity.category, identity.status]))
       .toEqual([[categoryB, 'notHeld']])
     expect(store.reservedUtxos).toEqual({})
   })
@@ -403,7 +403,7 @@ describe('auth reservations follow the authchain', () => {
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryA, amount: 5n }]
     await identitiesStore.followTokenIdentities('open')
-    expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryA])
+    expect(identitiesStore.followedTokenIdentities?.map(identity => identity.category)).toEqual([categoryA])
 
     const asked: string[] = []
     const answering = fetch as unknown as { mock: { calls: unknown[][] } }
@@ -415,11 +415,11 @@ describe('auth reservations follow the authchain', () => {
       asked.push(...(variables.hashes ?? []))
     }
     expect(asked).toEqual([`\\x${categoryA}`, `\\x${categoryB}`])
-    expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryA, categoryB])
+    expect(identitiesStore.followedTokenIdentities?.map(identity => identity.category)).toEqual([categoryA, categoryB])
 
     store.tokenList = [{ category: categoryB, amount: 1n }]
     await identitiesStore.followTokenIdentities('all')
-    expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryB])
+    expect(identitiesStore.followedTokenIdentities?.map(identity => identity.category)).toEqual([categoryB])
   })
 
   // the reservation writes go under whichever wallet is active when they run, so a pass writes
@@ -480,7 +480,7 @@ describe('auth reservations follow the authchain', () => {
     await Promise.all([following, refreshing])
 
     expect(identitiesStore.identities?.map(identity => identity.category)).toEqual([categoryA])
-    expect(identitiesStore.tokenIdentities?.map(identity => identity.category)).toEqual([categoryB])
+    expect(identitiesStore.followedTokenIdentities?.map(identity => identity.category)).toEqual([categoryB])
   })
 
   // the confirm is read from a resolve of that one identity, so the add shows the card at once,
@@ -637,7 +637,7 @@ describe('auth reservations follow the authchain', () => {
     store.walletUtxos = [collectionNft, key]
     await identitiesStore.refreshIdentities()
     expect(identitiesStore.identities?.[0]?.status).toBe('heldViaKey')
-    expect(identitiesStore.identities?.[0]?.keyUtxo).toEqual(key)
+    expect(identitiesStore.identities?.[0]?.authKeyUtxo).toEqual(key)
     expect(store.reservedUtxos).toEqual({ [outpointOf(key)]: 'auth' })
   })
 

@@ -56,14 +56,14 @@
   // following is turned off, whatever it last found.
   const tokenGroupShown = computed(() => {
     if (!settingsStore.followTokenIdentities) return false;
-    return identitiesStore.tokenIdentities === undefined || identitiesStore.tokenIdentities.length > 0;
+    return identitiesStore.followedTokenIdentities === undefined || identitiesStore.followedTokenIdentities.length > 0;
   });
   // a burned identity is nobody's now, so it is listed with the watched ones
   const notOwnedStatuses: IdentityStatus[] = ['notHeld', 'burned'];
   const identityGroups = computed(() => [
     { key: 'held' as const, identities: identities.value.filter(identity => !notOwnedStatuses.includes(identity.status)) },
     { key: 'watched' as const, identities: identities.value.filter(identity => notOwnedStatuses.includes(identity.status)) },
-    { key: 'tokens' as const, identities: identitiesStore.tokenIdentities ?? [] },
+    { key: 'tokens' as const, identities: identitiesStore.followedTokenIdentities ?? [] },
   ].filter(group => group.key === 'tokens' ? tokenGroupShown.value : group.identities.length > 0));
   // A wallet opening on a dozen identities it found for itself would carry the same pill a dozen
   // times, so the group says it once instead. The pills stay for a mixed group, where they are
@@ -83,21 +83,23 @@
   // the chain drawn out, folded the same way: the prose above says what it is without it
   const showChain = ref(false);
 
-  // The metadata of a manually added identity is not in the registries yet: the wallet holds its
-  // authhead rather than its token, so nothing else fetched it
+  // From the listed categories rather than the resolved states: a watched identity's token is not
+  // in the wallet, so nothing else fetches the name its card is known by
   async function fetchMissingMetadata() {
-    await identitiesStore.fetchMetadataFor(identities.value.map(identity => identity.category));
+    await identitiesStore.fetchMetadataFor(identitiesStore.identityCategories);
   }
 
   // Re-resolving on every visit is the point of the page: the authhead moves whenever the identity's
   // metadata is updated elsewhere, and the reservations are rewritten from what comes back
   async function reloadIdentities() {
     try {
+      // the names first: the cards are up already, and a name the wallet open failed to fetch
+      // would otherwise wait on Chaingraph
+      await fetchMissingMetadata();
       await identitiesStore.refreshIdentities();
       // the identities of every held token, all of them on a visit rather than the new ones at
       // open; with following off, those of the held NFTs shaped like a key
       await identitiesStore.followTokenIdentities(settingsStore.followTokenIdentities ? 'all' : 'keys');
-      await fetchMissingMetadata();
       // after the resolving, which is what says where each publication is
       await identitiesStore.checkPublications();
     } catch (error) {
@@ -199,7 +201,7 @@
     expandedIdentity.value = category;
     if (!action) return;
     const identity = identities.value.find(listed => listed.category === category);
-    const opens = action === 'transferKey' ? identity?.keyUtxo : identity?.authUtxo;
+    const opens = action === 'transferKey' ? identity?.authKeyUtxo : identity?.authUtxo;
     if (opens) openAction.value = { category, action };
   }
 
@@ -415,7 +417,7 @@
         </InfoPopup>
       </div>
       <div v-else class="section">
-        <div v-if="identitiesStore.tokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }} <q-spinner-dots size="1.2em" /></div>
+        <div v-if="identitiesStore.followedTokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }} <q-spinner-dots size="1.2em" /></div>
         <div v-else class="follow-head" @click="showTokenIdentities = !showTokenIdentities">
           <span>{{ t('identities.follow.header', group.identities.length) }}</span>
           <q-icon name="expand_more" class="chevron" :class="{ open: showTokenIdentities }" />

@@ -391,14 +391,14 @@
   // The AuthKey is an ordinary NFT and moves as one; what makes this different is what goes with it.
   // It is spent through the deliberate path because it is reserved, exactly as an authhead is.
   async function transferKey() {
-    const keyUtxo = props.identity.keyUtxo;
-    const key = keyUtxo?.token;
+    const authKeyUtxo = props.identity.authKeyUtxo;
+    const key = authKeyUtxo?.token;
     const nft = key?.nft;
-    if (!keyUtxo || !key || !nft) return;
+    if (!authKeyUtxo || !key || !nft) return;
     await runAction('transferKey', async () => {
       const address = validateTokenRecipientAddress(keyDestination.value, store.wallet.networkPrefix);
       const guardedByKey = (identitiesStore.identities ?? []).filter(
-        listed => listed.keyUtxo && outpointOf(listed.keyUtxo) === outpointOf(keyUtxo)
+        listed => listed.authKeyUtxo && outpointOf(listed.authKeyUtxo) === outpointOf(authKeyUtxo)
       );
       const confirmed = await confirmDialog(
         t('identities.key.confirmTitle'),
@@ -408,7 +408,7 @@
       );
       if (!confirmed) return;
       notifySending();
-      const { txId } = await store.spend.spendAuthUtxo(keyUtxo, [
+      const { txId } = await store.spend.spendAuthUtxo(authKeyUtxo, [
         new TokenSendRequest({
           cashaddr: address,
           category: key.category,

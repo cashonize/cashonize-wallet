@@ -37,7 +37,7 @@ export interface IdentityState {
   identityOutput?: IdentityOutput; // output 0 of the authhead as the chain has it: where the identity lives, and what it carries
   authUtxo?: Utxo; // the identity output itself, when this wallet holds it directly
   guardedBy?: string; // the key category, when an AuthGuard covenant holds the identity output instead
-  keyUtxo?: Utxo; // that key, when this wallet holds it
+  authKeyUtxo?: Utxo; // that key, when this wallet holds it
   status: IdentityStatus;
   unresolvedReason?: string; // what the lookup said went wrong, for an 'unresolved' one
   // What the genesis made, which never changes: whether the chain is a token's at all, and whether
@@ -421,10 +421,10 @@ export async function resolveIdentities(
     if (guardedBy) {
       // an AuthKey of the identity's own category is the one its genesis minted, when it minted one
       const commitment = guardedBy === category ? keyCommitment : undefined;
-      const keyUtxo = walletUtxos.find(utxo => isAuthKey(utxo, guardedBy, commitment));
+      const authKeyUtxo = walletUtxos.find(utxo => isAuthKey(utxo, guardedBy, commitment));
       // without the AuthKey this is somebody else's identity, watched from here like any other
-      if (!keyUtxo) return { ...resolved, guardedBy, status: 'notHeld' };
-      return { ...resolved, guardedBy, keyUtxo, status: 'heldViaKey' };
+      if (!authKeyUtxo) return { ...resolved, guardedBy, status: 'notHeld' };
+      return { ...resolved, guardedBy, authKeyUtxo, status: 'heldViaKey' };
     }
     return { ...resolved, status: 'notHeld' };
   });
