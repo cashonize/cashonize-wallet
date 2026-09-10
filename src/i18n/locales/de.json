@@ -1608,7 +1608,7 @@
     "authheadAmount": "Enthält {amount}",
     "status": {
       "held": "In diesem Wallet gehalten",
-      "notHeld": "Nur beobachtet, nicht von diesem Wallet gehalten",
+      "notHeld": "Nur beobachtet",
       "unresolved": "Konnte nicht abgefragt werden",
       "heldViaKey": "Über einen AuthKey gehalten",
       "burned": "Verbrannt"

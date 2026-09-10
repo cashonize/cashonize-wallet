@@ -1608,7 +1608,7 @@
     "authheadAmount": "Holds {amount}",
     "status": {
       "held": "Held by this wallet",
-      "notHeld": "Watch only, not held by this wallet",
+      "notHeld": "Watch only",
       "unresolved": "Could not look up this identity",
       "heldViaKey": "Held through an AuthKey",
       "burned": "Burned"

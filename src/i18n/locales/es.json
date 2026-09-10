@@ -1608,7 +1608,7 @@
     "authheadAmount": "Contiene {amount}",
     "status": {
       "held": "En esta billetera",
-      "notHeld": "Solo observada, no la tiene esta billetera",
+      "notHeld": "Solo observada",
       "unresolved": "No se pudo consultar esta identidad",
       "heldViaKey": "A través de una AuthKey",
       "burned": "Quemada"

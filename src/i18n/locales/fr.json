@@ -1608,7 +1608,7 @@
     "authheadAmount": "Contient {amount}",
     "status": {
       "held": "Détenue par ce portefeuille",
-      "notHeld": "Surveillance seule, non détenue par ce portefeuille",
+      "notHeld": "Surveillance seule",
       "unresolved": "Impossible de consulter cette identité",
       "heldViaKey": "Détenue via une AuthKey",
       "burned": "Brûlée"

@@ -1608,7 +1608,7 @@
     "authheadAmount": "Contém {amount}",
     "status": {
       "held": "Nesta carteira",
-      "notHeld": "Só observada, não tida por esta carteira",
+      "notHeld": "Só observada",
       "unresolved": "Não foi possível consultar esta identidade",
       "heldViaKey": "Através de uma AuthKey",
       "burned": "Queimada"
