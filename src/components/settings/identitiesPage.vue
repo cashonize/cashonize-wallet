@@ -220,7 +220,7 @@
     <template v-if="mode === 'learn'">
     <div class="section">
       <b>{{ t('identities.learn.title') }}</b>
-      <div v-for="topic in ['what', 'holding']" :key="topic" style="margin-top: 12px;">
+      <div v-for="topic in ['what', 'holding', 'custody']" :key="topic" style="margin-top: 12px;">
         <b>{{ t(`identities.learn.${topic}Lead`) }}</b> {{ t(`identities.learn.${topic}`) }}
       </div>
       <!-- The chain itself, which the prose above used to spell out link by link. Its terms are
@@ -274,7 +274,7 @@
         </svg>
         <figcaption class="description">{{ t('identities.learn.chainCaption') }}</figcaption>
       </figure>
-      <div style="margin-top: 12px;">
+      <div class="description" style="margin-top: 12px;">
         <!-- the lead and the sentence share a line: a line break between elements is dropped, a space is kept -->
         <b>{{ t('identities.learn.readMoreLead') }}</b> <i18n-t keypath="identities.learn.readMore" tag="span">
           <template #registries>
