@@ -188,7 +188,10 @@ export const useStore = defineStore('store', () => {
   const isWcInitDone = ref(false as boolean)
   const isCcInitDone = ref(false as boolean)
   const isWizInitDone = ref(false as boolean)
-  const walletInitialized = ref(false as boolean)
+  // An electrum subscription replays the current state as if it had just changed, inside the
+  // subscribe call itself; set after that, so a callback that sees it is looking at a change that
+  // came later
+  const electrumSubscriptionsActive = ref(false as boolean)
   // Set when wallet initialization aborts (electrum connection failure or a thrown error),
   // so views can show an error state instead of a loading state that never resolves
   const walletInitFailed = ref(false as boolean)
@@ -454,14 +457,13 @@ export const useStore = defineStore('store', () => {
 
   async function initializeWallet() {
     const identitiesStore = useIdentitiesStore();
-    let failedToConnectElectrum = false
     if(!_wallet.value) throw new Error("No Wallet set in global store")
     currentInitialization++;
     console.log(`Wallet initialization #${currentInitialization}`);
     // Capture value for closures to detect stale async operations
     const initialization = currentInitialization;
 
-    walletInitialized.value = false;
+    electrumSubscriptionsActive.value = false;
     walletInitFailed.value = false;
     abortedInitOffline = false;
     await cancelWalletSubscriptions();
@@ -497,12 +499,12 @@ export const useStore = defineStore('store', () => {
       // Started here and awaited further down, so the dapp inits run alongside the connect. The
       // catch is attached in the same expression, so a failed connect never surfaces as an
       // unhandled rejection; it lands in walletInitFailed and the offline path instead.
-      const electrumConnectionPromise = connectElectrum(wallet.value.provider)
+      const electrumConnectionPromise = connectElectrum(wallet.value.provider).then(() => true)
         .catch(error => {
-          failedToConnectElectrum = true;
           displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
           // still log the original error for debugging
           console.error("Electrum connect error:", error)
+          return false;
         });
       // WizardConnect initialization is synchronous (key derivation only, connections are fire-and-forget)
       initializeWizardConnect();
@@ -510,13 +512,11 @@ export const useStore = defineStore('store', () => {
       // timeout. Code that needs the dapp stores waits on dappConnectionStoresInitDone instead
       void initializeWalletConnect();
       void initializeCashConnect();
-      // wait until the electrumConnectionPromise is resolved
-      await electrumConnectionPromise;
+      const electrumConnected = await electrumConnectionPromise;
       if (initialization !== currentInitialization) return;
-      // if electrum connection failed, cancel the rest of initialization
-      if(failedToConnectElectrum) {
+      if (!electrumConnected) {
         walletInitFailed.value = true;
-        return
+        return;
       }
       // Fetch wallet utxos first, this result will be used in consecutive calls to avoid duplicate getUtxos() calls.
       // For HD wallets this also awaits address discovery (watchPromise), which primes per-address utxos and history.
@@ -546,18 +546,21 @@ export const useStore = defineStore('store', () => {
       await setUpWalletSubscriptions();
       console.timeEnd('set up wallet subscriptions');
       if(!tokenList.value) return // should never happen
+      // From here the subscription callbacks update state; the metadata and history still loading
+      // are enrichment an update can run alongside
+      electrumSubscriptionsActive.value = true;
       // fire-and-forget getLatestGithubRelease promise for desktop platform
       if(isDesktop) void getLatestGithubRelease()
-      console.time('fetch token metadata');
-      await fetchTokenMetadata(allTokenList.value ?? [], false);
-      console.timeEnd('fetch token metadata');
+      console.time('fetch token metadata and initial history');
+      await Promise.all([
+        fetchTokenMetadata(allTokenList.value ?? [], false),
+        updateWalletHistory({ count: 100 }),
+      ]);
+      console.timeEnd('fetch token metadata and initial history');
+      if (initialization !== currentInitialization) return;
       // fetch Cauldron prices as fire-and-forget (non-critical)
       void fetchCauldronPricesForTokens();
       startRefetchIntervals();
-      console.time('fetch initial history');
-      await updateWalletHistory({ count: 100 })
-      console.timeEnd('fetch initial history');
-      walletInitialized.value = true;
       // the identities come last and on their own: not critical to the wallet loading, and a
       // lookup they need failing is theirs to report, not a failed wallet
       void identitiesStore.runChecksOnOpen();
@@ -620,7 +623,7 @@ export const useStore = defineStore('store', () => {
 
   async function setUpWalletSubscriptions(){
     // watchTokenTransactions fires unawaited getRawTransactionObject calls for all existing txids on setup.
-    // Some resolve after walletInitialized flips true, bypassing the init guard below.
+    // Some resolve after electrumSubscriptionsActive flips true, bypassing the init guard below.
     // Prefilling from getRawHistory prevents those late arrivals from triggering false "new token" notifications.
     // Remove seenTokenTxIds (prefill + check) if mainnet-js starts awaiting the initial watchTransactionHashes burst.
     const seenTokenTxIds = new Set<string>();
@@ -644,11 +647,11 @@ export const useStore = defineStore('store', () => {
         const oldBalance = walletUtxos.value?.reduce((acc, utxo) => acc + utxo.satoshis, BigInt(0));
         // explicit undefined check because 0n is falsy: a truthiness check would freeze
         // an empty wallet receiving its first funds and hide a wallet drained to zero
-        if(oldBalance !== undefined && walletInitialized.value){
+        if(oldBalance !== undefined && electrumSubscriptionsActive.value){
           // fire-and-forget so the notification (which may fetch a fiat rate) never
           // delays or blocks the state update below
           if(oldBalance < newBalance) void showReceivedBchNotification(newBalance - oldBalance);
-          // update state (skipped on the initial trigger via the walletInitialized check)
+          // update state (skipped on the initial trigger via the electrumSubscriptionsActive check)
           const walletAddressUtxos = await wallet.value.getUtxos();
           // update balance with the amount on bch-only utxos
           const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
@@ -665,8 +668,8 @@ export const useStore = defineStore('store', () => {
       (tx) => runAsyncVoid(async () => {
         if (initialization !== currentInitialization) return;
         // Guard: the initial watchStatus invocation fires callbacks for all existing txs
-        // before walletInitialized is set to true, so skip those
-        if(!walletInitialized.value) return
+        // before electrumSubscriptionsActive is set to true, so skip those
+        if(!electrumSubscriptionsActive.value) return
 
         // Catch late-resolving initial burst callbacks (see prefill above)
         if (seenTokenTxIds.has(tx.txid)) return;
@@ -731,7 +734,7 @@ export const useStore = defineStore('store', () => {
     // repopulate the state cleared below.
     currentInitialization++;
     viewStack.length = 0;
-    walletInitialized.value = false;
+    electrumSubscriptionsActive.value = false;
     walletInitFailed.value = false;
 
     // Stop the intervals and clear the state before the awaits below, so the views do not go on
@@ -1111,7 +1114,9 @@ export const useStore = defineStore('store', () => {
     const initialization = currentInitialization;
     const registries = await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, tokenMetadataIndexer.value, bcmrRegistries.value);
     if (initialization !== currentInitialization) return;
-    bcmrRegistries.value = registries
+    // Merged rather than assigned: two fetches that started while the registries were still
+    // undefined each built their own object, and the second to land would replace the first's
+    bcmrRegistries.value = Object.assign(bcmrRegistries.value ?? {}, registries);
   }
 
   // Fetch BCH exchange rate for fiat display

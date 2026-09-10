@@ -255,3 +255,62 @@ describe('partial history loading', () => {
     expect(store.walletHistory).toEqual(freshHistory)
   })
 })
+
+// The subscriptions go live once their initial burst has passed, before the metadata and the
+// history have loaded: a payment arriving in that window updates the balance rather than waiting
+// on an indexer, and a first metadata fetch it starts merges into the init's rather than replacing it.
+describe('subscriptions live before metadata and history', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.clear()
+    setActivePinia(createPinia())
+    localStorageMock.setItem('network', 'mainnet')
+  })
+
+  it('applies a balance change while the metadata fetch is still pending', async () => {
+    const wallet = createMockWallet()
+    let balanceCallback: ((balance: bigint) => void) | undefined
+    wallet.watchBalance.mockImplementation((callback: (balance: bigint) => void) => {
+      balanceCallback = callback
+      return Promise.resolve(async () => {})
+    })
+    const metadata = createDeferred<Record<string, unknown>>()
+    vi.mocked(mockFetchTokenMetadataFromIndexer).mockImplementationOnce(() => metadata.promise as never)
+    const store = useStore()
+    store.setWallet(wallet as never)
+
+    const init = store.initializeWallet()
+    await flushAsyncWork()
+    expect(balanceCallback).toBeDefined()
+    expect(wallet.getUtxos).toHaveBeenCalledTimes(1)
+
+    balanceCallback!(5000n)
+    await flushAsyncWork()
+
+    expect(wallet.getUtxos).toHaveBeenCalledTimes(2)
+    metadata.resolve({})
+    await init
+  })
+
+  it('merges a second first-time metadata fetch into the first', async () => {
+    const wallet = createMockWallet()
+    const store = useStore()
+    store.setWallet(wallet as never)
+    const first = createDeferred<Record<string, unknown>>()
+    const second = createDeferred<Record<string, unknown>>()
+    vi.mocked(mockFetchTokenMetadataFromIndexer)
+      .mockImplementationOnce(() => first.promise as never)
+      .mockImplementationOnce(() => second.promise as never)
+
+    const init = store.initializeWallet()
+    await flushAsyncWork()
+    const secondFetch = store.fetchTokenMetadata([], false)
+    // both started while the registries were undefined, and land in either order
+    second.resolve({ bbbb: { name: 'B' } })
+    await secondFetch
+    first.resolve({ aaaa: { name: 'A' } })
+    await init
+
+    expect(Object.keys(store.bcmrRegistries ?? {}).sort()).toEqual(['aaaa', 'bbbb'])
+  })
+})

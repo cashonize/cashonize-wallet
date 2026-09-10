@@ -47,7 +47,13 @@ export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedU
 // otherwise successful response, so every reply is schema-checked and then checked for that
 // field. Returns undefined for a reply that is neither, having logged which of the two it was.
 export async function parseIndexerResponse(response: Response) {
-  const jsonResponse = await response.json();
+  // undefined cannot come out of a JSON body, so it marks one that did not parse: a host that
+  // answers every path with its own page, a mistyped custom indexer URL say
+  const jsonResponse: unknown = await response.json().catch(() => undefined);
+  if (jsonResponse === undefined) {
+    console.error(`BCMR indexer response is not JSON for URL ${response.url}`);
+    return undefined;
+  }
   const parseResult = BcmrIndexerResponseSchema.safeParse(jsonResponse);
   if (!parseResult.success) {
     console.error(`BCMR indexer response validation error for URL ${response.url}: ${parseResult.error.message}`);

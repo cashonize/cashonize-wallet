@@ -2,6 +2,9 @@ import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth';
 
 const CACHE_TTL_DAYS = 7;
 const CACHE_TTL_MS = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
+// A server that accepts the connection and never answers would otherwise hold whatever awaited
+// the fetch for the browser's own timeout, minutes on some; the wallet init awaits these
+const CACHED_FETCH_TIMEOUT_MS = 15_000;
 
 export async function getElectrumCacheSize(): Promise<number> {
   const dbName = "ElectrumNetworkProviderCache";
@@ -99,7 +102,7 @@ export async function cachedFetch(input: string, ttlMs: number = CACHE_TTL_MS): 
   }
 
   // attach url to error if fetch fails
-  const response = await fetch(input).catch(err => {
+  const response = await fetch(input, { signal: AbortSignal.timeout(CACHED_FETCH_TIMEOUT_MS) }).catch(err => {
     err.url = input;
     throw err;
   });
