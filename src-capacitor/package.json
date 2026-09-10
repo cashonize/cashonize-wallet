@@ -1,6 +1,6 @@
 {
   "name": "cashonize-wallet",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Cashonize: Your entry point to CashTokens and Bitcoin Cash DeFi",
   "private": true,
   "dependencies": {
