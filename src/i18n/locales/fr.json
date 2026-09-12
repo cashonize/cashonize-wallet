@@ -1685,7 +1685,7 @@
       "title": "Dernière publication de métadonnées",
       "none": "Cette identité n'a jamais publié de métadonnées.",
       "checking": "vérification...",
-      "hash": "Hash publié : {hash}",
+      "hash": "Hash publié :",
       "driftedPrompt": "Le registre à l'un de ces emplacements ne correspond plus à ce qui a été publié. {link}",
       "driftedLink": "Publier le contenu actuel",
       "status": {

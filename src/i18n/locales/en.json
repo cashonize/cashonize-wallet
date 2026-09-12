@@ -1685,7 +1685,7 @@
       "title": "Latest metadata publication",
       "none": "This identity has never published metadata.",
       "checking": "checking...",
-      "hash": "Published hash: {hash}",
+      "hash": "Published hash:",
       "driftedPrompt": "The registry at one of these locations no longer matches what was published. {link}",
       "driftedLink": "Publish the current content",
       "status": {

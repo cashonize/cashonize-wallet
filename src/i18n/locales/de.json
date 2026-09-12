@@ -1685,7 +1685,7 @@
       "title": "Letzte Metadaten-Veröffentlichung",
       "none": "Diese Identität hat noch nie Metadaten veröffentlicht.",
       "checking": "wird geprüft...",
-      "hash": "Veröffentlichter Hash: {hash}",
+      "hash": "Veröffentlichter Hash:",
       "driftedPrompt": "Die Registry an einem dieser Orte passt nicht mehr zum Veröffentlichten. {link}",
       "driftedLink": "Den aktuellen Inhalt veröffentlichen",
       "status": {

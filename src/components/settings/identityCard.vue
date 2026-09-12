@@ -473,26 +473,27 @@
 
 <template>
   <div class="section identity-card">
-    <div class="identity-header" @click="emit('toggle')">
+    <div class="identity-header">
       <TokenIcon :token-id="identity.category" :icon-url="identityIconUrl" :size="40" />
       <div class="identity-title">
         <div>
           {{ identityName ?? t('identities.unnamedIdentity') }}
-          <!-- .stop so the badge's popup does not also toggle the card -->
-          <InfoPopup v-if="foundAutomatically" class="badge-popup" @click.stop>
+          <InfoPopup v-if="foundAutomatically" class="badge-popup">
             <template #trigger>
               <span class="identity-badge">{{ t('identities.detected.foundAutomatically') }}</span>
             </template>
             <div style="max-width: 300px;">{{ foundHelp }}</div>
           </InfoPopup>
         </div>
-        <div class="copy-target" :title="identity.category" @click.stop="copyToClipboard(identity.category)">
+        <!-- the copy region is the hash alone, so a tap that misses it lands on nothing -->
+        <div class="identity-authbase">
           <span class="description">{{ t('identities.authbaseLabel') }}</span>
-          <span class="mono">{{ shortHash(identity.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+          <span class="copy-target" :title="identity.category" @click="copyToClipboard(identity.category)">
+            <span class="mono">{{ shortHash(identity.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+          </span>
         </div>
       </div>
-      <!-- .stop so the status popup does not also toggle the card -->
-      <span class="identity-state" @click.stop>
+      <span class="identity-state">
         <InfoPopup>
           <template #trigger>
             <span class="identity-status info-popup-text-trigger" :class="identity.status">
@@ -506,7 +507,7 @@
           </div>
         </InfoPopup>
       </span>
-      <q-icon name="expand_more" class="chevron" :class="{ open: expanded }" />
+      <q-icon name="expand_more" class="chevron" :class="{ open: expanded }" @click="emit('toggle')" />
     </div>
 
     <div v-if="carriesLine">{{ carriesLine }}</div>
@@ -585,9 +586,8 @@
           </div>
         </div>
         <div class="copy-target" :title="identity.publication.hash" @click="copyToClipboard(identity.publication.hash)">
-          <span class="mono">
-            {{ t('identities.publication.hash', { hash: shortHash(identity.publication.hash) }) }}<img class="copyIcon" src="images/copyGrey.svg">
-          </span>
+          <span class="description">{{ t('identities.publication.hash') }}</span>
+          <span class="mono">{{ shortHash(identity.publication.hash) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
         </div>
         <div v-if="hasDrifted" class="description" style="margin-top: 6px;">
           <i18n-t keypath="identities.publication.driftedPrompt" tag="span">
@@ -801,17 +801,27 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
-  cursor: pointer;
 }
 .identity-title {
   min-width: 0;
+}
+.identity-authbase {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 .identity-state {
   margin-left: auto;
   flex: none;
 }
+/* the chevron alone toggles the card, padded into a tap target without moving from where the
+   bare icon sat, so the header's popups and copy icon do not compete with it */
 .chevron {
   flex: none;
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
   transition: transform 0.2s;
 }
 /* a phone has no room for the state beside the title, so it goes under it, indented past
@@ -896,11 +906,22 @@
 .publication-badge.muted {
   color: grey;
 }
+/* the gap spaces the actions instead of the action bar's margins, so a wrapped row starts flush
+   left like the first, and the rows sit apart enough to tap */
 .identity-action-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px 0;
+  gap: 10px 20px;
+}
+.identity-action-row > span,
+.identity-action-row > a {
+  margin: 0;
+}
+@media only screen and (max-width: 570px) {
+  .identity-action-row {
+    column-gap: 10px;
+  }
 }
 .actionBar .icon {
   width: 18px;
@@ -909,7 +930,6 @@
 /* the guarded identity's Studio link is one of the card's actions, so it sits in the bar like
    the ones beside it rather than as a link in running text */
 .identity-action-row a {
-  margin-right: 20px;
   color: inherit;
   text-decoration: none;
 }
