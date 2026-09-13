@@ -472,15 +472,14 @@
   cursor: pointer;
   margin-top: 12px;
 }
-/* the chain drawn at the width it has, up to the size at which its labels stop growing; the
-   caption is not held to that width, since it is prose */
+/* the chain drawn across the fieldset, scaling with it: the drawing carries no fixed sizes, so
+   strokes and labels grow with the boxes rather than the picture stretching */
 .chain-figure {
   margin: 8px 0 0;
 }
 .chain-figure svg {
   display: block;
   width: 100%;
-  max-width: 560px;
   height: auto;
 }
 /* the identity's own output and the chain through it, told from the rest the way the standard's
