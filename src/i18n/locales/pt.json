@@ -440,7 +440,7 @@
     "heldBack": "Retido, fora da seleção de moedas",
     "identity": {
       "held": "Esta carteira controla a identidade deste token.",
-      "manage": "gerir identidade"
+      "manage": "gerir identidade | gerir identidades"
     }
   },
   "dapp": {

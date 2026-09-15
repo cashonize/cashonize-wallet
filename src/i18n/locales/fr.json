@@ -440,7 +440,7 @@
     "heldBack": "Retenu, écarté de la sélection des pièces",
     "identity": {
       "held": "Ce portefeuille contrôle l'identité de ce token.",
-      "manage": "gérer l'identité"
+      "manage": "gérer l'identité | gérer les identités"
     }
   },
   "dapp": {

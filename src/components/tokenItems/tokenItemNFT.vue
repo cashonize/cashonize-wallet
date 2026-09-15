@@ -151,6 +151,9 @@
     });
     return typeof decoded === 'string' ? undefined : decoded.address;
   });
+  // The AuthKey row leads to the identities page just like the identity's own row does. An AuthKey
+  // can open several identities, so the label counts them and the page is where one gets picked.
+  const manageIdentityCount = computed(() => isIdentityKey.value ? guardedIdentities.value.length : 1);
   function openIdentityCard(category: string, action?: string) {
     identitiesStore.requestIdentityCard(category, action);
     store.changeView(19);
@@ -500,8 +503,8 @@
           <span v-else @click="displayAuthKeyInfo = !displayAuthKeyInfo" style="white-space: nowrap;">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.authKey.infoAction') }}
           </span>
-          <span v-if="heldIdentityLine" @click="store.changeView(19)" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'"> {{ t('tokenItem.identity.manage') }}
+          <span v-if="heldIdentityLine || isIdentityKey" @click="store.changeView(19)" style="white-space: nowrap;">
+            <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'"> {{ t('tokenItem.identity.manage', manageIdentityCount) }}
           </span>
           <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayBatchTransfer = !displayBatchTransfer" style="margin-left: 10px;">
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.batchTransfer') }}{{ selectedNftCount > 0 ? ` (${selectedNftCount === tokenData.nfts?.length ? t('tokenItem.actions.all') : selectedNftCount})` : '' }}

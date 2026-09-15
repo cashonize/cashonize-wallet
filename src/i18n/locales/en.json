@@ -440,7 +440,7 @@
     "heldBack": "Held back from coin selection",
     "identity": {
       "held": "This wallet controls this token's identity.",
-      "manage": "manage identity"
+      "manage": "manage identity | manage identities"
     }
   },
   "dapp": {
