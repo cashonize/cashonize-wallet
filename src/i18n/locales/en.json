@@ -85,6 +85,7 @@
       "errorFetchingUtxos": "Error in fetching wallet UTXOs",
       "errorFetchingHistory": "Error in fetching wallet history",
       "unableToConnectElectrum": "Unable to connect to Electrum server '{server}'",
+      "staleElectrumServer": "The Electrum server '{server}' seems to be out of date: its newest block is {hours} hours old, so your balance and history may be missing recent transactions. You can switch servers in the advanced settings.",
       "deviceOffline": "Your device appears to be offline, please check your internet connection",
       "bcmrIndexerValidationError": "BCMR indexer response validation error",
       "tokenUtxoHeldBack": "This UTXO is held back from coin selection. The UTXO Management page shows which coins are held and why, and is where a frozen one is unfrozen.",
