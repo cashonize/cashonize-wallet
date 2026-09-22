@@ -12,7 +12,13 @@
       "somethingWentWrong": "Une erreur s'est produite",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
       "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dApp",
-      "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer"
+      "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer",
+      "broadcast": {
+        "conflict": "La transaction a été rejetée car l'une de ses pièces vient d'être dépensée par une autre transaction, par exemple par quelqu'un utilisant le même contrat au même moment. Rien n'a été envoyé et aucun frais n'a été payé, vous pouvez donc réessayer.",
+        "missingInputs": "La transaction a été rejetée car l'une de ses pièces est manquante ou déjà dépensée. Rien n'a été envoyé et aucun frais n'a été payé, vous pouvez donc réessayer.",
+        "notYetFinal": "La transaction a été rejetée car elle est verrouillée dans le temps et le verrou n'est pas encore atteint. Réessayer maintenant n'aidera pas, attendez que le verrou soit passé.",
+        "timeout": "Le serveur n'a pas répondu à temps. La transaction a peut-être quand même été envoyée, vérifiez donc votre historique des transactions avant de réessayer."
+      }
     },
     "attention": "Attention :",
     "backToSettings": "Retour aux paramètres",

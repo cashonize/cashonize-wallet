@@ -12,7 +12,13 @@
       "somethingWentWrong": "Something went wrong",
       "needToInitializeWallet": "Need to initialize a wallet first",
       "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dApp request",
-      "nothingToTransfer": "No BCH or tokens left to transfer"
+      "nothingToTransfer": "No BCH or tokens left to transfer",
+      "broadcast": {
+        "conflict": "The transaction was rejected because one of its coins was just spent by another transaction, for example by someone using the same contract at the same moment. Nothing was sent and no fee was paid, so you can try again.",
+        "missingInputs": "The transaction was rejected because one of its coins is missing or already spent. Nothing was sent and no fee was paid, so you can try again.",
+        "notYetFinal": "The transaction was rejected because it is time-locked and the lock has not been reached yet. Retrying now will not help, wait until the lock has passed.",
+        "timeout": "The server did not respond in time. The transaction may still have been sent, so check your transaction history before trying again."
+      }
     },
     "attention": "Attention:",
     "backToSettings": "Back to settings",

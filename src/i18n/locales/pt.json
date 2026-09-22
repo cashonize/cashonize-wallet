@@ -12,7 +12,13 @@
       "somethingWentWrong": "Algo deu errado",
       "needToInitializeWallet": "É necessário inicializar uma carteira primeiro",
       "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dApp",
-      "nothingToTransfer": "Não resta BCH nem tokens para transferir"
+      "nothingToTransfer": "Não resta BCH nem tokens para transferir",
+      "broadcast": {
+        "conflict": "A transação foi rejeitada porque uma das suas moedas acabou de ser gasta por outra transação, por exemplo por alguém usando o mesmo contrato no mesmo momento. Nada foi enviado e nenhuma taxa foi paga, então você pode tentar novamente.",
+        "missingInputs": "A transação foi rejeitada porque uma das suas moedas está faltando ou já foi gasta. Nada foi enviado e nenhuma taxa foi paga, então você pode tentar novamente.",
+        "notYetFinal": "A transação foi rejeitada porque tem um bloqueio de tempo que ainda não foi atingido. Tentar novamente agora não ajuda, aguarde até o bloqueio passar.",
+        "timeout": "O servidor não respondeu a tempo. A transação pode ter sido enviada mesmo assim, por isso verifique o seu histórico de transações antes de tentar novamente."
+      }
     },
     "attention": "Atenção:",
     "backToSettings": "Voltar às configurações",

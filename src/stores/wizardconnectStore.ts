@@ -37,6 +37,7 @@ import { walletConnectMetadata } from "./constants";
 import { createSignedWizTransaction, chainLockingBytecodes, childLockingBytecode, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
 import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
 import { displayAndLogError } from "src/utils/errorHandling";
+import { displayBroadcastError } from "src/utils/wallet/broadcastErrors";
 import { identityRefusal, refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
 import { reportDappRefusal } from "src/utils/txHelpers";
 import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRequest.vue";
@@ -354,7 +355,8 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
           }
         });
       } catch (error) {
-        displayAndLogError(error);
+        // the dapp still gets the node's own words below, only the user sees them classified
+        displayBroadcastError(error);
         const errorMessage = typeof error == 'string' ? error : ((error instanceof Error) ? error.message : t('wizardConnect.errors.errorSendingTransaction'));
         await manager.sendSignError(connectionId, request.sequence, 'Transaction failed to send: ' + errorMessage);
         return;
