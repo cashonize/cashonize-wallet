@@ -47,6 +47,7 @@ import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
 import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
+import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { pruneHdWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
@@ -1483,10 +1484,20 @@ export const useStore = defineStore('store', () => {
       return await makeTransaction();
     } catch (error) {
       // a reservation outliving its coin holds nothing back, so it explains nothing
-      if (!(error instanceof Error) || !reservedWalletUtxos.value?.length) throw error;
-      if (!shortfallMessages.some(message => error.message.startsWith(message))) throw error;
-      throw new Error(`${error.message} ${t('store.errors.utxosHeldBack')}`, { cause: error });
+      const heldBack = !!reservedWalletUtxos.value?.length;
+      if (heldBack && error instanceof Error && shortfallMessages.some(message => error.message.startsWith(message))) {
+        throw new Error(`${error.message} ${t('store.errors.utxosHeldBack')}`, { cause: error });
+      }
+      throw explainBroadcastError(error);
     }
+  }
+
+  // A rejected broadcast said in the user's terms, the node's own words kept as the cause
+  function explainBroadcastError(error: unknown) {
+    const errorKind = classifyBroadcastError(error);
+    if (errorKind === 'other') return error;
+    console.error(error);
+    return new Error(broadcastErrorMessage(errorKind), { cause: error });
   }
 
   // A spend that names one specific coin, an NFT transfer or burn, cannot fall back on another the
@@ -1506,7 +1517,8 @@ export const useStore = defineStore('store', () => {
   // the transaction and no change returns. A reservation on the coin is dropped only once
   // broadcast, so a failure leaves the coin held rather than released into the next unrelated send.
   async function sendSingleCoin(utxo: Utxo, cashaddr: string) {
-    const response = await wallet.value.sendMax(cashaddr, { utxoIds: [utxo] });
+    const response = await wallet.value.sendMax(cashaddr, { utxoIds: [utxo] })
+      .catch((error: unknown) => { throw explainBroadcastError(error); });
     // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
     // pool still holds it and the max-amount refresh asks the server about a spent outpoint
     await updateWalletUtxos();

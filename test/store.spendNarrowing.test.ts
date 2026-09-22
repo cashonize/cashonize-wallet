@@ -143,4 +143,16 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     await expect(store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }]))
       .rejects.toThrow(/^broadcast failed$/)
   })
+
+  // the node's reject reason means nothing to a user, so they get the classified message and
+  // the node's words stay on as the cause
+  it('says a lost race in the user\'s terms', async () => {
+    const { wallet, store } = await storeHoldingTokenCoin()
+    const rejection = new Error('the transaction was rejected by network rules.\n\ntxn-mempool-conflict (code 18)\n')
+    wallet.send.mockRejectedValue(rejection)
+
+    const sending = store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
+    await expect(sending).rejects.toThrow(/no fee was paid/)
+    await expect(sending).rejects.toMatchObject({ cause: rejection })
+  })
 })
