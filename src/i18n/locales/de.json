@@ -85,6 +85,7 @@
       "errorFetchingUtxos": "Fehler beim Abrufen der Wallet-UTXOs",
       "errorFetchingHistory": "Fehler beim Abrufen der Wallet-Historie",
       "unableToConnectElectrum": "Verbindung zum Electrum-Server '{server}' nicht möglich",
+      "staleElectrumServer": "Der Electrum-Server '{server}' scheint veraltet zu sein: Sein neuester Block ist {hours} Stunden alt, daher fehlen in deinem Guthaben und Verlauf möglicherweise neuere Transaktionen. Du kannst den Server in den erweiterten Einstellungen wechseln.",
       "deviceOffline": "Dein Gerät scheint offline zu sein, bitte überprüfe deine Internetverbindung",
       "bcmrIndexerValidationError": "Validierungsfehler bei BCMR-Indexer-Antwort",
       "tokenUtxoHeldBack": "Dieser UTXO ist von der Münzauswahl ausgenommen. Die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum, und dort wird ein eingefrorener wieder aufgetaut.",

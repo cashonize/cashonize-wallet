@@ -85,6 +85,7 @@
       "errorFetchingUtxos": "Error al obtener los UTXOs de la billetera",
       "errorFetchingHistory": "Error al obtener el historial de la billetera",
       "unableToConnectElectrum": "No se puede conectar al servidor Electrum '{server}'",
+      "staleElectrumServer": "El servidor Electrum '{server}' parece estar desactualizado: su bloque más reciente tiene {hours} horas, así que a tu saldo e historial les pueden faltar transacciones recientes. Puedes cambiar de servidor en la configuración avanzada.",
       "deviceOffline": "Tu dispositivo parece estar sin conexión, comprueba tu conexión a internet",
       "bcmrIndexerValidationError": "Error de validación de respuesta del indexador BCMR",
       "tokenUtxoHeldBack": "Este UTXO está retenido fuera de la selección de monedas. La página de gestión de UTXOs muestra cuáles están retenidos y por qué, y es donde se descongela uno congelado.",
