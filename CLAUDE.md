@@ -21,8 +21,12 @@ pnpm exec vue-tsc --noEmit # Type check (Vue projects use vue-tsc, not plain tsc
 
 ## Architecture
 
-### View Navigation
-Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.
+### The Model
+A wallet is a set of keys, and the keys decide which coins are its own. Those coins are `walletUtxos`: a snapshot cached from electrum, never the source of truth.
+
+Everything else is built on that one set. Facts get attached to the coins, from outside (token metadata, prices, authchain position) and from the app (labels, notes, reservations). Every page is a view of the annotated set: the balance sums it, the token list groups it by category, the identities page filters it to authheads. Every spend picks a subset of it and defines the outputs.
+
+Reservations split the set into what the wallet may spend and what it holds back for a feature: an identity's UTXO, a pledged coin.
 
 ### State Management (Pinia Stores)
 - **store.ts**: Main wallet state - `_wallet` (mutable ref), `wallet` (computed, throws if null), balance, UTXOs, token list, BCMR registries. Handles wallet initialization, network switching, transaction watching.
@@ -122,6 +126,8 @@ The portfolio view (`components/portfolio/`) charts the wallet's total value acr
 The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the AuthKey that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. The identities page also holds back what the user never listed; its detection and following paths are described in `docs/bcmr-identities.md`.
 
 ### Component Organization
+Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.
+
 `src/components/` holds the four main tab views (`bchWallet`, `myTokens`, `connectDapp`, `settingsMenu`) plus `walletOnboarding` at the root, with a folder per area below: `settings/`, `walletconnect/`, `cashconnect/`, `wizardconnect/`, `history/`, `portfolio/`, `tokenItems/`, `qr/` and `general/` for what several views reuse. `src/utils/` is grouped the same way (`dapp/`, `defi/`, `wallet/`, ...).
 
 Two components sit outside their folder's protocol: `WC2TransactionRequest` is shared with wizardconnect, and the WizardConnect sign dialogs are opened from `wizardconnectStore` rather than from a session component.
