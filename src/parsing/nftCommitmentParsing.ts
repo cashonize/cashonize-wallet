@@ -13,8 +13,7 @@ export function useNftCommitmentParsing(getCategory: () => string, getNftUtxo: (
   const parsingNft = ref(false);
 
   const hasParyonUsdExtension = computed(() => {
-    const ext = store.bcmrRegistries?.[getCategory()]?.extensions;
-    return Boolean(ext?.paryonusd ?? ext?.pusd);
+    return Boolean(store.bcmrRegistries?.[getCategory()]?.extensions?.paryonusd);
   });
   const isParsable = computed(() =>
     store.bcmrRegistries?.[getCategory()]?.nft_type === 'parsable'

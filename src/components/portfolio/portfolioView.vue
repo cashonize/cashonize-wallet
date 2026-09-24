@@ -393,7 +393,7 @@
       if (!('nfts' in token)) continue
       const metadata = store.bcmrRegistries?.[token.category]
       const extensions = metadata?.extensions
-      if (!(extensions?.paryonusd ?? extensions?.pusd)) continue
+      if (!extensions?.paryonusd) continue
       // only owner loan keys (minting capability) control a loan, management keys don't
       for (const utxo of token.nfts) {
         if (utxo.token?.nft?.capability !== 'minting') continue

@@ -72,8 +72,7 @@ export async function fetchLoanState(
     }
 
     // Step 1: Get the sidecar locking bytecode from the registry
-    const ext = identitySnapshot.extensions;
-    const extensionConfig = (ext?.paryonusd ?? ext?.pusd) as Record<string, Record<string, string>> | undefined;
+    const extensionConfig = identitySnapshot.extensions?.paryonusd as Record<string, Record<string, string>> | undefined;
     const fetchLoanStateConfig = extensionConfig?.fetchLoanState;
     const sidecarLockingBytecode = fetchLoanStateConfig?.lockingBytecode;
 

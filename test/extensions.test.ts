@@ -433,7 +433,7 @@ describe("fetchLoanState via invokeExtensions", () => {
 
 // ========== End-to-end loan key parsing (extension + parseNft) ==========
 
-// Real parse bytecode from the ParityUSD loan key BCMR template.
+// Real parse bytecode from the ParyonUSD loan key BCMR template.
 // Checks commitment length to determine type ("" for empty, "01" for active loan with 10 fields).
 // Uses OP_UTXOVALUE for the collateral field and multiplies interest rates
 // by 365 to convert per-period rates to APR.
@@ -447,12 +447,12 @@ function createLoanKeyParseInfo(): NftParseInfo {
       "": {
         name: "Loan Key (no loan data)",
         description:
-          "Controls a ParityUSD loan. Install the ParityUSD extension to see loan data.",
+          "Controls a ParyonUSD loan. Install the ParyonUSD extension to see loan data.",
       },
       "01": {
         name: "Loan Key",
         description:
-          "Controls a ParityUSD loan, including access to collateral.",
+          "Controls a ParyonUSD loan, including access to collateral.",
         fields: [
           "currentDebt",
           "collateral",
@@ -522,7 +522,7 @@ describe("End-to-end loan key parsing without extension", () => {
     expect(result.success).toBe(true);
     expect(result.nftType).toBe("");
     expect(result.nftTypeName).toBe("Loan Key (no loan data)");
-    expect(result.nftTypeDescription).toContain("Install the ParityUSD extension");
+    expect(result.nftTypeDescription).toContain("Install the ParyonUSD extension");
     expect(result.namedFields).toHaveLength(0);
   });
 });

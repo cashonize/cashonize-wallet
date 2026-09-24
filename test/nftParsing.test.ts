@@ -3,7 +3,7 @@ import { utxoToLibauthOutput } from "src/parsing/utxoConverter";
 import { parseNft, type NftParseInfo, type FieldEncoding } from "src/parsing/nftParsing";
 import type { Utxo } from "mainnet-js";
 
-// Parse info for the ParityUSD Staking Receipt
+// Parse info for the ParyonUSD Staking Receipt
 const stakingReceiptCategoryId =
   "5f3663beefecdf4f08d35717df4f9c93a5b763e75735d6c9de8d648d0d4b7857";
 
@@ -11,7 +11,7 @@ const stakingReceiptParseInfo: NftParseInfo = {
   bytecode: "006b00cf547f7c816b816b",
   types: {
     "": {
-      name: "ParityUSD Staking Receipt",
+      name: "ParyonUSD Staking Receipt",
       fields: ["stakeCreatedInPeriod", "stakedAmount"],
     },
   },
@@ -119,7 +119,7 @@ describe("parseNft with staking receipt parse info", () => {
 
     expect(result.success).toBe(true);
     expect(result.nftType).toBe("");
-    expect(result.nftTypeName).toBe("ParityUSD Staking Receipt");
+    expect(result.nftTypeName).toBe("ParyonUSD Staking Receipt");
     const namedFields = result.namedFields!;
     expect(namedFields).toHaveLength(2);
 
@@ -183,7 +183,7 @@ describe("parseNft with staking receipt parse info", () => {
     const result = parseNft(output, stakingReceiptParseInfo);
 
     expect(result.success).toBe(true);
-    expect(result.nftTypeName).toBe("ParityUSD Staking Receipt");
+    expect(result.nftTypeName).toBe("ParyonUSD Staking Receipt");
     const namedFields = result.namedFields!;
     expect(namedFields).toHaveLength(2);
     expect(namedFields[0]!.parsedValue?.formatted).toBe("100");
@@ -602,7 +602,7 @@ describe("parseNft end-to-end with PUSD staking receipt", () => {
     bytecode: "006b00cf547f7c816b816b",
     types: {
       "": {
-        name: "ParityUSD Staking Receipt",
+        name: "ParyonUSD Staking Receipt",
         fields: ["stakeCreatedInPeriod", "stakedAmount"],
       },
     },
@@ -637,7 +637,7 @@ describe("parseNft end-to-end with PUSD staking receipt", () => {
     const result = parseNft(output, pusdParseInfo);
 
     expect(result.success).toBe(true);
-    expect(result.nftTypeName).toBe("ParityUSD Staking Receipt");
+    expect(result.nftTypeName).toBe("ParyonUSD Staking Receipt");
     expect(result.namedFields).toHaveLength(2);
     expect(result.namedFields![0]!.name).toBe("Creation Period");
     expect(result.namedFields![0]!.parsedValue?.formatted).toBe("100");
