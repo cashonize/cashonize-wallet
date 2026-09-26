@@ -14,6 +14,7 @@ import {
   type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
+  type HexHeaderI,
   type SendRequestType,
   type TokenGenesisRequest,
   type TokenMintRequest,
@@ -29,7 +30,7 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { connectElectrum, electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, runAsyncVoid, walletTypeFromWalletId } from "src/utils/utils"
+import { connectElectrum, electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, runAsyncVoid, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -726,7 +727,30 @@ export const useStore = defineStore('store', () => {
     cancelWatchBlocks = await wallet.value.watchBlocks(header => {
       if (initialization !== currentInitialization) return;
       currentBlockHeight.value = header.height;
+      // chipnet's hashrate is too erratic for a gap between blocks to say anything about the server
+      if (network.value === 'mainnet') warnIfServerTipStale(header);
     }, false);
+  }
+
+  // Checked only on a tip the server delivers, which it does on every connect and reconnect, so a
+  // connection that merely went quiet in a background tab cannot raise it
+  let dismissStaleServerWarning: undefined | (() => void);
+  function warnIfServerTipStale(header: HexHeaderI) {
+    const hoursBehind = staleTipHours(header);
+    if (hoursBehind === undefined) {
+      dismissStaleServerWarning?.();
+      dismissStaleServerWarning = undefined;
+      return;
+    }
+    if (dismissStaleServerWarning) return;
+    console.warn(`Electrum server tip at height ${header.height} is ${hoursBehind} hours old`);
+    dismissStaleServerWarning = Notify.create({
+      message: t('store.errors.staleElectrumServer', { server: settingsStore.electrumServerMainnet, hours: hoursBehind }),
+      icon: 'warning',
+      color: 'red',
+      timeout: 0,
+      actions: [{ icon: 'close', color: 'white', round: true }],
+    });
   }
 
   async function resetWalletState({ resetDappConnections = true } = {}){
@@ -760,6 +784,8 @@ export const useStore = defineStore('store', () => {
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
     currentBlockHeight.value = undefined;
+    dismissStaleServerWarning?.();
+    dismissStaleServerWarning = undefined;
 
     if (resetDappConnections) {
       // Reset WC/CC/Wiz init-done flags so re-initialization runs after reset
