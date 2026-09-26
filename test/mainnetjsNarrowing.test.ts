@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { BaseWallet, FeePaidByEnum, SendRequest, getHistory } from 'mainnet-js'
+import { BaseWallet, ElectrumNetworkProvider, FeePaidByEnum, SendRequest, getHistory } from 'mainnet-js'
 import type { Utxo } from 'mainnet-js'
 // not on the package's export surface, so reached by path
 import { getSuitableUtxos } from '../node_modules/mainnet-js/dist/module/transaction/Wif.js'
 import { OP_RETURN_ADDRESS_PREFIX } from '../src/utils/history/txDirection'
+import { electrumTimeoutMessage } from '../src/utils/wallet/broadcastErrors'
 
 // The wallet keeps frozen and reserved coins out of a spend by narrowing mainnet-js's pool with
 // the utxoIds option, so every method that selects inputs has to honor it. tokenMint and tokenBurn
@@ -48,6 +49,15 @@ describe('mainnet-js still reports a shortfall in the words the explainer matche
 
   it('getSuitableUtxos says "Amount required was not met"', () => {
     expect(getSuitableUtxos.toString()).toContain('Amount required was not met')
+  })
+})
+
+// A broadcast that timed out may still have been sent, which the classifier only recognizes by
+// this exact string, so a rewording upstream would drop the warning to check history first
+describe('mainnet-js still rejects a timed out request with the string the classifier matches', () => {
+  it('performRequest times out with electrumTimeoutMessage', () => {
+    const source = (ElectrumNetworkProvider.prototype as unknown as Record<string, () => unknown>)['performRequest']?.toString()
+    expect(source).toContain(electrumTimeoutMessage)
   })
 })
 

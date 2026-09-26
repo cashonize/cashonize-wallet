@@ -12,7 +12,15 @@
       "somethingWentWrong": "Algo salió mal",
       "needToInitializeWallet": "Necesitas inicializar una billetera primero",
       "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dApp",
-      "nothingToTransfer": "No queda BCH ni tokens para transferir"
+      "nothingToTransfer": "No queda BCH ni tokens para transferir",
+      "broadcast": {
+        "conflict": "La transacción fue rechazada porque uno de sus UTXOs acaba de ser gastado por otra transacción, por ejemplo porque alguien usó el mismo contrato en el mismo momento. No se envió nada, así que puedes intentarlo de nuevo.",
+        "conflictDapp": "La transacción fue rechazada porque uno de sus UTXOs acaba de ser gastado por otra transacción, por ejemplo porque alguien usó el mismo contrato en el mismo momento. No se envió nada. La dApp tiene que crear la transacción de nuevo: recarga la dApp y repite la acción.",
+        "missingInputs": "La transacción fue rechazada porque uno de sus UTXOs falta o ya fue gastado. No se envió nada, así que puedes intentarlo de nuevo.",
+        "missingInputsDapp": "La transacción fue rechazada porque uno de sus UTXOs falta o ya fue gastado. No se envió nada. La dApp tiene que crear la transacción de nuevo: recarga la dApp y repite la acción.",
+        "notYetFinal": "La transacción fue rechazada porque tiene un bloqueo de tiempo que aún no se ha alcanzado. Reintentar ahora no servirá, espera hasta que pase el bloqueo.",
+        "timeout": "El servidor no respondió a tiempo. Es posible que la transacción se haya enviado igualmente, así que revisa tu historial de transacciones antes de volver a intentarlo."
+      }
     },
     "attention": "Atención:",
     "backToSettings": "Volver a las configuraciones",

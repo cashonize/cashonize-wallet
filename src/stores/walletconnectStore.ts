@@ -26,6 +26,7 @@ import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
 import { displayAndLogError } from "src/utils/errorHandling"
+import { displayBroadcastError } from "src/utils/wallet/broadcastErrors"
 import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
 import { reportDappRefusal } from "src/utils/txHelpers"
 import { WcMessageObjSchema, LooseEncodedWcTransactionObjSchema, StrictEncodedWcTransactionObjSchema } from "src/utils/zodValidation"
@@ -556,7 +557,8 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           }
         })
       } catch(error){
-        displayAndLogError(error);
+        // the dapp still gets the node's own words below, only the user sees them classified
+        displayBroadcastError(error);
         const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : t('walletConnect.errors.errorSendingTransaction'))
         // respond with error to dapp
         const wcErrorMessage = 'Transaction failed to send with error: ' + errorMessage;
