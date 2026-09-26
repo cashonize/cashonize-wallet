@@ -2,14 +2,11 @@ import { i18n } from 'src/boot/i18n'
 import { displayAndLogError } from 'src/utils/errorHandling'
 const { t } = i18n.global
 
-// A rejected broadcast reaches us as the electrum server's wrapping of the node's reject reason,
-// e.g. "the transaction was rejected by network rules.\n\ntxn-mempool-conflict (code 18)\n".
-// Contention over a shared contract UTXO is an ordinary condition in BCH DeFi, and this rejection
-// is the only signal a user gets of having lost the race.
+// A rejected broadcast arrives as the electrum server's wrapping of the node's reject reason,
+// e.g. "the transaction was rejected by network rules.\n\ntxn-mempool-conflict (code 18)\n"
 export type BroadcastErrorKind = 'conflict' | 'missing-inputs' | 'not-yet-final' | 'timeout' | 'other';
 
-// mainnet-js's performRequest rejects a timed out request with this string rather than an Error.
-// The pin test on the installed build asserts it is still mainnet-js's wording.
+// mainnet-js rejects a timed out request with this string rather than an Error (pinned by a test)
 export const electrumTimeoutMessage = 'electrum-cash request timed out, retrying';
 
 // BCHN's reject reasons
@@ -27,17 +24,22 @@ export function classifyBroadcastError(error: unknown): BroadcastErrorKind {
   return 'other';
 }
 
-// The user-facing sentence; for 'other' the node's own words are all there is
-export function broadcastErrorMessage(kind: Exclude<BroadcastErrorKind, 'other'>): string {
+// A dApp's transaction can only be rebuilt by the dApp, while the wallet's own sends select their
+// UTXOs again on retry; for 'other' the node's own words are all there is
+export function broadcastErrorMessage(kind: Exclude<BroadcastErrorKind, 'other'>, fromDapp: boolean): string {
   switch (kind) {
-    case 'conflict': return t('common.errors.broadcast.conflict');
-    case 'missing-inputs': return t('common.errors.broadcast.missingInputs');
+    case 'conflict':
+      if (fromDapp) return t('common.errors.broadcast.conflictDapp');
+      return t('common.errors.broadcast.conflict');
+    case 'missing-inputs':
+      if (fromDapp) return t('common.errors.broadcast.missingInputsDapp');
+      return t('common.errors.broadcast.missingInputs');
     case 'not-yet-final': return t('common.errors.broadcast.notYetFinal');
     case 'timeout': return t('common.errors.broadcast.timeout');
   }
 }
 
-// Shows the failure in the user's terms, keeping the node's own words in the log
+// Shows a dApp broadcast's failure in the user's terms, keeping the node's own words in the log
 export function displayBroadcastError(error: unknown) {
   const kind = classifyBroadcastError(error);
   if (kind === 'other') {
@@ -45,5 +47,5 @@ export function displayBroadcastError(error: unknown) {
     return;
   }
   console.error(error);
-  displayAndLogError(broadcastErrorMessage(kind));
+  displayAndLogError(broadcastErrorMessage(kind, true));
 }

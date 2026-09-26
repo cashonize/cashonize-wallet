@@ -152,7 +152,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     wallet.send.mockRejectedValue(rejection)
 
     const sending = store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
-    await expect(sending).rejects.toThrow(/no fee was paid/)
+    await expect(sending).rejects.toThrow(/Nothing was sent/)
     await expect(sending).rejects.toMatchObject({ cause: rejection })
   })
 })

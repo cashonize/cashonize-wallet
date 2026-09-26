@@ -1484,8 +1484,8 @@ export const useStore = defineStore('store', () => {
       return await makeTransaction();
     } catch (error) {
       // a reservation outliving its coin holds nothing back, so it explains nothing
-      const heldBack = !!reservedWalletUtxos.value?.length;
-      if (heldBack && error instanceof Error && shortfallMessages.some(message => error.message.startsWith(message))) {
+      if (reservedWalletUtxos.value?.length && error instanceof Error
+        && shortfallMessages.some(message => error.message.startsWith(message))) {
         throw new Error(`${error.message} ${t('store.errors.utxosHeldBack')}`, { cause: error });
       }
       throw explainBroadcastError(error);
@@ -1497,7 +1497,7 @@ export const useStore = defineStore('store', () => {
     const errorKind = classifyBroadcastError(error);
     if (errorKind === 'other') return error;
     console.error(error);
-    return new Error(broadcastErrorMessage(errorKind), { cause: error });
+    return new Error(broadcastErrorMessage(errorKind, false), { cause: error });
   }
 
   // A spend that names one specific coin, an NFT transfer or burn, cannot fall back on another the

@@ -14,8 +14,10 @@
       "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, dApp-Anfrage wird abgelehnt",
       "nothingToTransfer": "Keine BCH oder Tokens mehr zum Übertragen",
       "broadcast": {
-        "conflict": "Die Transaktion wurde abgelehnt, weil eine ihrer Coins gerade von einer anderen Transaktion ausgegeben wurde, zum Beispiel weil jemand im selben Moment denselben Vertrag genutzt hat. Es wurde nichts gesendet und keine Gebühr bezahlt, du kannst es also erneut versuchen.",
-        "missingInputs": "Die Transaktion wurde abgelehnt, weil eine ihrer Coins fehlt oder bereits ausgegeben wurde. Es wurde nichts gesendet und keine Gebühr bezahlt, du kannst es also erneut versuchen.",
+        "conflict": "Die Transaktion wurde abgelehnt, weil einer ihrer UTXOs gerade von einer anderen Transaktion ausgegeben wurde, zum Beispiel weil jemand im selben Moment denselben Vertrag genutzt hat. Es wurde nichts gesendet, du kannst es also erneut versuchen.",
+        "conflictDapp": "Die Transaktion wurde abgelehnt, weil einer ihrer UTXOs gerade von einer anderen Transaktion ausgegeben wurde, zum Beispiel weil jemand im selben Moment denselben Vertrag genutzt hat. Es wurde nichts gesendet. Die dApp muss die Transaktion neu erstellen: Lade die dApp neu und wiederhole die Aktion.",
+        "missingInputs": "Die Transaktion wurde abgelehnt, weil einer ihrer UTXOs fehlt oder bereits ausgegeben wurde. Es wurde nichts gesendet, du kannst es also erneut versuchen.",
+        "missingInputsDapp": "Die Transaktion wurde abgelehnt, weil einer ihrer UTXOs fehlt oder bereits ausgegeben wurde. Es wurde nichts gesendet. Die dApp muss die Transaktion neu erstellen: Lade die dApp neu und wiederhole die Aktion.",
         "notYetFinal": "Die Transaktion wurde abgelehnt, weil sie zeitlich gesperrt ist und die Sperre noch nicht erreicht wurde. Ein erneuter Versuch hilft jetzt nicht, warte bis die Sperre abgelaufen ist.",
         "timeout": "Der Server hat nicht rechtzeitig geantwortet. Die Transaktion wurde möglicherweise trotzdem gesendet, prüfe daher deinen Transaktionsverlauf, bevor du es erneut versuchst."
       }
