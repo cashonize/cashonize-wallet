@@ -60,6 +60,14 @@ const MAX_QUEUED_SIGN_REQUESTS = 10;
 // localStorage key holding a Record<`${network}:${walletName}`, wizUri[]> so sessions
 // can be restored after an app reload (the relay key is re-derived from seed + URI)
 const WIZ_URIS_STORAGE_KEY = "wizardConnectUris";
+// localStorage key holding a Record<wizUri, DappInfo>: a restored session knows its dapp only once
+// the dapp sends dapp_ready again, so the name and icon it last sent stand in until then
+const WIZ_DAPP_INFO_STORAGE_KEY = "wizardConnectDappInfo";
+
+export interface DappInfo {
+  name: string;
+  icon: string | null;
+}
 
 interface WizHdNodes {
   // chain-level private nodes (receive/change/defi) under the wallet's parent derivation path
@@ -75,6 +83,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   const mainStore = useStore();
   // Reactive projection of the manager's connection states, synced on manager events.
   const connections = ref<Record<string, RelayConnectionState>>({});
+  const savedDappInfo = ref<Record<string, DappInfo>>(readSavedDappInfo());
   // The manager and derived key material live outside Vue reactivity on purpose:
   // wrapping the manager's internal Maps/EventEmitter in a reactive proxy is unnecessary
   // and holding key material in reactive state would spread it through devtools/watchers.
@@ -189,6 +198,19 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
 
   function refreshConnections() {
     connections.value = manager ? manager.getConnections() : {};
+    for (const connection of Object.values(connections.value)) {
+      if (connection.dappName === null) continue;
+      const saved = savedDappInfo.value[connection.uri];
+      if (saved?.name === connection.dappName && saved.icon === connection.dappIcon) continue;
+      saveDappInfo(connection.uri, { name: connection.dappName, icon: connection.dappIcon });
+    }
+  }
+
+  // The dapp's own name and icon once it is there, the ones it last sent while it is not. Kept
+  // apart from connection.dappName, which is what tells a present dapp from an absent one.
+  function dappInfoFor(connection: RelayConnectionState): DappInfo | undefined {
+    if (connection.dappName !== null) return { name: connection.dappName, icon: connection.dappIcon };
+    return savedDappInfo.value[connection.uri];
   }
 
   //-----------------------------------------------------------------------------
@@ -388,7 +410,8 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
 
   function dappNameForConnection(connectionId: string): string {
     const connection = manager?.getConnections()[connectionId];
-    return connection?.dappName ?? connection?.label ?? 'dapp';
+    if (!connection) return 'dapp';
+    return dappInfoFor(connection)?.name ?? connection.label;
   }
 
   function handleSignCancelled(connectionId: string, sequence: number) {
@@ -553,6 +576,41 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       delete allUris[storageSubKey()];
     }
     localStorage.setItem(WIZ_URIS_STORAGE_KEY, JSON.stringify(allUris));
+    forgetDappInfo(wizUri);
+  }
+
+  function readSavedDappInfo(): Record<string, DappInfo> {
+    try {
+      const rawJson = localStorage.getItem(WIZ_DAPP_INFO_STORAGE_KEY);
+      if (!rawJson) return {};
+      const parsed: unknown = JSON.parse(rawJson);
+      if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+      const validated: Record<string, DappInfo> = {};
+      for (const [wizUri, value] of Object.entries(parsed)) {
+        const { name, icon } = (value ?? {}) as Partial<DappInfo>;
+        if (typeof name !== "string") continue;
+        validated[wizUri] = { name, icon: typeof icon === "string" ? icon : null };
+      }
+      return validated;
+    } catch (error) {
+      console.error("Failed to read saved WizardConnect dapp info:", error);
+      return {};
+    }
+  }
+
+  function saveDappInfo(wizUri: string, dappInfo: DappInfo) {
+    const allDappInfo = readSavedDappInfo();
+    allDappInfo[wizUri] = dappInfo;
+    localStorage.setItem(WIZ_DAPP_INFO_STORAGE_KEY, JSON.stringify(allDappInfo));
+    savedDappInfo.value = allDappInfo;
+  }
+
+  function forgetDappInfo(wizUri: string) {
+    const allDappInfo = readSavedDappInfo();
+    if (!(wizUri in allDappInfo)) return;
+    delete allDappInfo[wizUri];
+    localStorage.setItem(WIZ_DAPP_INFO_STORAGE_KEY, JSON.stringify(allDappInfo));
+    savedDappInfo.value = allDappInfo;
   }
 
   //-----------------------------------------------------------------------------
@@ -564,6 +622,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     stop,
     pair,
     disconnectSession,
+    dappInfoFor,
     // Properties
     connections,
   };

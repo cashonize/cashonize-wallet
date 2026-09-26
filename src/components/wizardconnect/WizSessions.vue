@@ -21,8 +21,9 @@
     const connections = wizardconnectStore.connections;
     const connection = connections[connectionId];
     if (!connection) return '';
+    const dappName = wizardconnectStore.dappInfoFor(connection)?.name;
     const hasDuplicateName = Object.entries(connections).some(([otherId, otherConnection]) =>
-      otherConnection.dappName === connection.dappName && otherId !== connectionId
+      wizardconnectStore.dappInfoFor(otherConnection)?.name === dappName && otherId !== connectionId
     );
     if (!hasDuplicateName) return '';
     try {
@@ -59,10 +60,10 @@
         <template v-for="(connection, connectionId) of wizardconnectStore.connections" :key="connectionId">
           <div class="wiz-session-item">
             <div class="wiz-session-item-app-icon">
-              <img v-if="connection.dappIcon" :src="connection.dappIcon" />
+              <img v-if="wizardconnectStore.dappInfoFor(connection)?.icon" :src="wizardconnectStore.dappInfoFor(connection)?.icon ?? undefined" />
             </div>
             <div class="wiz-session-item-details-container">
-              <div>{{ (connection.dappName ?? t('wizardConnect.sessions.unknownDapp')) + sessionIdTag(String(connectionId)) }}</div>
+              <div>{{ (wizardconnectStore.dappInfoFor(connection)?.name ?? t('wizardConnect.sessions.unknownDapp')) + sessionIdTag(String(connectionId)) }}</div>
               <div :class="'wiz-session-status ' + (isDappConnected(connection) ? 'wiz-session-status-connected' : '')">
                 {{ statusLabel(connection) }}
               </div>
