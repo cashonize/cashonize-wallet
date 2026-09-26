@@ -1,6 +1,6 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, type ElectrumNetworkProvider, type Utxo, type TransactionHistoryItem } from "mainnet-js"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, decodeHeader, type ElectrumNetworkProvider, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "mainnet-js"
 import type { BcmrTokenMetadata, ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
@@ -54,6 +54,17 @@ export async function connectElectrum(provider: ElectrumNetworkProvider): Promis
   } catch {
     await connectWithin(provider, ELECTRUM_CONNECT_RETRY_TIMEOUT_MS);
   }
+}
+
+// A three hour gap between blocks is exceedingly unlikely, leaving room for miner timestamps
+// running behind and a device clock that is slightly off
+const STALE_TIP_SECONDS = 3 * 60 * 60;
+
+// The whole hours the server's tip is behind the device clock, or undefined while it is current
+export function staleTipHours(header: HexHeaderI, nowMs = Date.now()): number | undefined {
+  const tipAgeSeconds = nowMs / 1000 - decodeHeader(header).timestamp;
+  if (tipAgeSeconds < STALE_TIP_SECONDS) return undefined;
+  return Math.floor(tipAgeSeconds / 3600);
 }
 
 // Chaingraph's Hasura API conventionally serves GraphQL at /v1/graphql. Keep
