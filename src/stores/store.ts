@@ -733,10 +733,8 @@ export const useStore = defineStore('store', () => {
     }, false);
   }
 
-  // Electrum answers are not verified (see the Electrum Trust Model), but a server whose newest
-  // block is hours old has stopped following the chain, and every balance and history it reports
-  // is as old. Checked on the tip the subscription delivers, which arrives fresh on every connect
-  // and reconnect, so a connection that went quiet in a background tab cannot raise it.
+  // Checked only on a tip the server delivers, which it does on every connect and reconnect, so a
+  // connection that merely went quiet in a background tab cannot raise it
   let dismissStaleServerWarning: undefined | (() => void);
   function warnIfServerTipStale(header: HexHeaderI) {
     const hoursBehind = staleTipHours(header);
