@@ -59,7 +59,6 @@ describe('badgers-stake', () => {
     expect(positions[0]?.satoshis).toBe(500_000n)
     expect(positions[0]?.confirmedAtHeight).toBe(800_000)
     expect(positions[0]?.fields.stakeBlocks).toBe(160)
-    expect(positions[0]?.ownership).toBe('encumbered')
   })
 
   it('leaves a lock belonging to another wallet alone', async () => {

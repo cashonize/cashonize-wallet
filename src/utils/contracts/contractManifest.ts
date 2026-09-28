@@ -29,18 +29,15 @@ const hexString = z.string().regex(/^([0-9a-fA-F]{2})+$/);
 const byteFieldSchema = z.object({
   at: z.number().int().min(0).max(519),
   bytes: z.number().int().min(1).max(520),
-  as: z.enum(['hex', 'uint16le', 'uint32le']),
-  min: z.number().int().optional(),
-  max: z.number().int().optional(),
+  as: z.enum(['hex', 'uint16le']),
 });
 
 // One push of an OP_RETURN, for a parameter an announcement carries
 const pushFieldSchema = z.object({
   push: z.number().int().min(0).max(15),
-  // utf8word takes the first space-separated word, since creating software appends a version
   // addressHash reads a p2sh address as the hash it commits to, so which encoding the
   // announcing software wrote it in stops mattering
-  as: z.enum(['hex', 'utf8', 'utf8word', 'utf8int', 'vmnumber', 'addressHash']),
+  as: z.enum(['hex', 'utf8int', 'vmnumber', 'addressHash']),
   // a push the announcement pins to one value: the platform key an escrow enforces, or a field
   // left empty because this manifest describes only the offer that leaves it so
   equals: z.string().max(200).optional(),
@@ -141,7 +138,6 @@ export const ContractManifestSchema = z.object({
   id: identifier,
   name: z.string().min(1).max(64),
   description: z.string().max(600).optional(),
-  ownership: z.enum(['owned', 'encumbered', 'shared', 'claim']),
   find: z.union([findAtAddressSchema, findByAnnouncementSchema, findDerivedSchema, findHeldSchema]),
   script: scriptSchema.optional(),
   value: valueSchema.optional(),
@@ -182,9 +178,7 @@ export function readCommitment(
     const slice = bytes.slice(field.at, field.at + field.bytes);
     let value: FieldValue;
     if (field.as === 'hex') value = binToHex(slice);
-    else if (field.as === 'uint16le') value = slice[0]! | (slice[1]! << 8);
-    else value = (slice[0]! | (slice[1]! << 8) | (slice[2]! << 16)) + (slice[3]! * 0x1000000);
-    if (!bounded(value, field)) return undefined;
+    else value = slice[0]! | (slice[1]! << 8);
     fields[name] = value;
   }
   return fields;
@@ -232,9 +226,7 @@ export function readAnnouncement(
       value = typeof number === 'string' ? undefined : Number(number);
     } else {
       const text = new TextDecoder().decode(chunk);
-      if (field.as === 'utf8') value = text;
-      else if (field.as === 'utf8word') value = text.split(" ")[0]!;
-      else if (field.as === 'addressHash') value = addressToHash(text);
+      if (field.as === 'addressHash') value = addressToHash(text);
       else value = /^\d+$/.test(text) ? Number(text) : undefined;
     }
     if (value === undefined || !bounded(value, field)) return undefined;

@@ -114,7 +114,6 @@ describe('finding listings', () => {
     expect(positions[0]?.fields.priceSats).toBe(25_000_000)
     expect(positions[0]?.token?.category).toBe(category)
     // cancelling returns the asset at any time, so a listing is owned rather than locked
-    expect(positions[0]?.ownership).toBe('owned')
   })
 
   // the maker is named in the announcement, so no contract is rebuilt to know whose it is

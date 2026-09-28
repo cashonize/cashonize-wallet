@@ -128,28 +128,15 @@ the issuer's to say; the manifest says the portfolio should count it and how, wh
 wallet's. Recognising it by a registry extension is safe because it only picks among NFTs the
 wallet already holds and reads fields it already parses.
 
-## Ownership
+## Whether a position counts
 
-A position's manifest says what its balance means for the holder, because that decides whether
-the portfolio may add it to a total:
-
-- `owned` — yours to take at will. A TapSwap listing is this: the contract holds the asset, but
-  cancelling returns it at any moment, with nothing to wait for.
-- `encumbered` — yours, temporarily locked. Badgers and hodl are both this, and both count
-  today.
-- `shared` — you hold part and the wallet cannot know which part. A multisig, and AnyHedge.
-  Shown, not counted.
-- `claim` — contingent or future. Being the payee of a recurring payment, or the inheritor of a
-  dead man's switch. Shown, not counted.
-
-Ownership is not the same axis as whether a position counts. A listed NFT is fully owned and
-still stays out of the total, because no price is known for it — the portfolio keeps listings out
-"like other NFTs". Ownership says whether a balance may be counted; valuation says whether it can
-be.
-
-The precedent is `includeReserves` in `portfolioView.vue`, off by default because "an identity's
-reserve priced at the pool is a fiction". The same care applies here: a total that sums a
-balance the wallet cannot spend, or can only partly claim, is a total that lies.
+Which positions add to the total is decided by the portfolio per kind of position, not by the
+manifest. A manifest once carried an ownership class (owned, encumbered, shared, claim) for
+this, but nothing read it, so it was cut until a user bundle needs the wallet to decide for a
+position it has no code for. The rule it would encode still holds: a total that sums a balance
+the wallet cannot spend, or can only partly claim, is a total that lies. That is why
+`includeReserves` and the staking toggle are off by default, and why a listed NFT stays out for
+having no price.
 
 ## What a manifest may not do
 

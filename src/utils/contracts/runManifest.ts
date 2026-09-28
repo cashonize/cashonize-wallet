@@ -13,7 +13,6 @@ import { buildScript, readAnnouncement, readCommitment, type ContractManifest, t
 
 export interface ContractPosition {
   manifestId: string;
-  ownership: ContractManifest['ownership'];
   /** where the position sits, which is the contract's address */
   address: string;
   satoshis: bigint;
@@ -74,7 +73,6 @@ async function runAddressManifest(
     if (!context.ownerPkhs.includes(String(fields[manifest.owner.field]))) continue;
     positions.push({
       manifestId: manifest.id,
-      ownership: manifest.ownership,
       address: find.address,
       satoshis: utxo.satoshis,
       txid: utxo.txid,
@@ -150,7 +148,6 @@ async function runListedPositions(
       if (!live) return undefined;
       return {
         manifestId: manifest.id,
-        ownership: manifest.ownership,
         address: candidate.output.address,
         satoshis: BigInt(candidate.output.value),
         txid: candidate.transaction.hash,
@@ -179,7 +176,6 @@ async function runAnnouncementManifest(
     if (satoshis === 0n) continue;
     positions.push({
       manifestId: manifest.id,
-      ownership: manifest.ownership,
       address: contract.address,
       satoshis,
       fields: contract.fields,
@@ -218,7 +214,6 @@ async function runDerivedManifest(
         .filter(utxo => find.token !== 'fungible' || (utxo.token?.amount && !utxo.token.nft))
         .map(utxo => ({
           manifestId: manifest.id,
-          ownership: manifest.ownership,
           address,
           satoshis: utxo.satoshis,
           txid: utxo.txid,
