@@ -7,6 +7,11 @@ import { ContractBundleSchema, type ContractManifest } from "./contractManifest"
 
 export const builtinBundle = ContractBundleSchema.parse(builtinContracts);
 
+// The manifests whose positions are liquidity pools, the rows the portfolio shows as a pool
+export const LIQUIDITY_POOL_MANIFESTS = [
+  'cauldron-pool', 'guanaco-pool-1bp', 'guanaco-pool-5bp', 'guanaco-pool-30bp', 'guanaco-pool-100bp',
+];
+
 export function builtinManifest(id: string): ContractManifest {
   const manifest = builtinBundle.contracts.find(contract => contract.id === id);
   if (!manifest) throw new Error(`No built-in contract manifest '${id}'`);

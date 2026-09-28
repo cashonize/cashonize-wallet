@@ -214,6 +214,7 @@
     "includeStaked": "Include ParyonUSD stakes in total",
     "includeReserves": "Include identity reserves in total",
     "cauldronPool": "Cauldron liquidity pool",
+    "guanacoPool": "Guanaco liquidity pool ({fee} fee)",
     "poolValue": "Pool value",
     "poolInfo": "Funds in a liquidity pool are held by the pool contract, so they are not part of the wallet balance. The split between BCH and tokens shifts as the pool is traded against.",
     "keycardNumber": "Keycard #{serial}",

@@ -15,7 +15,7 @@
   import InfoPopup from '../general/InfoPopup.vue'
   import loanKeyItem from './loanKeyItem.vue'
   import stakingReceiptItem from './stakingReceiptItem.vue'
-  import cauldronPoolItem from './cauldronPoolItem.vue'
+  import liquidityPoolItem from './liquidityPoolItem.vue'
   import emeraldKeycardItem from './emeraldKeycardItem.vue'
   import badgerLocksItem from './badgerLocksItem.vue'
   import hodlLockItem from './hodlLockItem.vue'
@@ -51,7 +51,7 @@
   const PARYON_STAKING_CATEGORY = '7708645a7f30e97003573d9322202960a560a87527bef3666a30044a0dfdfa81'
   const STAKING_COLOR = '#378df5'
 
-  // shared color for all Cauldron liquidity pool segments
+  // shared color for all liquidity pool segments
   const POOL_COLOR = '#d6336c'
 
   // Shared color for all Emerald DAO keycard segments. Every green light enough for the dark
@@ -108,7 +108,7 @@
     void store.fetchWalletAnnouncedAssets().finally(() => {
       checkingAdditionalContractAssets.value = false
     })
-    await store.fetchWalletCauldronPools()
+    await store.fetchWalletLiquidityPools()
     await store.fetchWalletBadgerLocks()
     // after the pools, so the pools' tokens are priced along with the held ones
     await store.fetchCauldronPricesForTokens(true)
@@ -188,32 +188,45 @@
       .filter(loan => loan.netBch > 0)
   })
 
-  // Cauldron liquidity pools the wallet owns. Both sides of a pool are still the user's funds,
-  // the tokens in it are valued like held tokens are
+  // Guanaco's fee tier per manifest, since each tier is its own contract
+  const GUANACO_FEES: Record<string, string> = {
+    'guanaco-pool-1bp': '0.01%', 'guanaco-pool-5bp': '0.05%', 'guanaco-pool-30bp': '0.3%', 'guanaco-pool-100bp': '1%',
+  }
+
+  // Cauldron and Guanaco liquidity pools the wallet owns. Both sides of a pool are still the
+  // user's funds, the tokens in it are valued like held tokens are
   interface PoolAsset {
     id: string
     category: string
     name: string
+    protocol: 'cauldron' | 'guanaco'
+    feeDisplay: string | undefined
     bchDisplay: string
     tokenDisplay: string
     bchValue: number
   }
   const poolAssets = computed<PoolAsset[]>(() => {
-    return (store.cauldronPools ?? []).map(pool => {
-      const metadata = store.bcmrRegistries?.[pool.tokenId]
+    return (store.liquidityPools ?? []).flatMap(pool => {
+      // the manifest only keeps coins holding a fungible token
+      if (!pool.token) return []
+      const category = pool.token.category
+      const metadata = store.bcmrRegistries?.[category]
       const symbol = metadata?.token?.symbol
       const poolBch = satsToBch(pool.satoshis)
-      const priceInfo = store.cauldronPrices?.[pool.tokenId]
-      const tokenBchValue = priceInfo ? calculateTokenFiatValue(pool.tokenAmount, priceInfo, 1) : null
+      const priceInfo = store.cauldronPrices?.[category]
+      const tokenBchValue = priceInfo ? calculateTokenFiatValue(pool.token.amount, priceInfo, 1) : null
+      const feeDisplay = GUANACO_FEES[pool.manifestId]
       // a pool holds the same value on both sides at its own price, so where the Cauldron price
       // is missing the BCH side is the closest estimate of what the tokens in it are worth. The
       // liquidity minimum that leaves a held token unpriced therefore does not apply to pools.
       return {
         id: `${pool.txid}:${pool.vout}`,
-        category: pool.tokenId,
-        name: metadata?.name ?? pool.tokenId.slice(0, 8) + '...',
+        category,
+        name: metadata?.name ?? category.slice(0, 8) + '...',
+        protocol: feeDisplay ? 'guanaco' as const : 'cauldron' as const,
+        feeDisplay,
         bchDisplay: bchValueFormatter.format(poolBch) + ' ' + bchUnitName.value,
-        tokenDisplay: formatTokenAmount(pool.tokenAmount, metadata?.token?.decimals) + (symbol ? ' ' + symbol : ''),
+        tokenDisplay: formatTokenAmount(pool.token.amount, metadata?.token?.decimals) + (symbol ? ' ' + symbol : ''),
         bchValue: poolBch + (tokenBchValue ?? poolBch)
       }
     })
@@ -614,7 +627,7 @@
     if ((store.tokenList?.length ?? 0) > 0 && !store.bcmrRegistries) return false
     if (hasFungibleTokens.value && store.cauldronPrices === null) return false
     // pools are looked up on entering the view and add to the total and the chart
-    if (store.cauldronPools === null) return false
+    if (store.liquidityPools === null) return false
     // locked BCH adds to the total and the chart, so wait for the lookup
     if (store.badgerLocks === null) return false
     if (!settingsStore.disableTokenIcons) {
@@ -873,10 +886,12 @@
               <div class="sub">{{ formatShare(assetShare(row.asset.bchValue)) }}</div>
             </div>
           </div>
-          <cauldronPoolItem
+          <liquidityPoolItem
             v-else-if="row.kind === 'pool'"
             :category="row.pool.category"
             :name="row.pool.name"
+            :protocol="row.pool.protocol"
+            :fee-display="row.pool.feeDisplay"
             :dot-color="POOL_COLOR"
             :bch-display="row.pool.bchDisplay"
             :token-display="row.pool.tokenDisplay"

@@ -72,6 +72,81 @@
         "position": { "output": 0 }
       },
       "owner": { "kind": "field", "field": "makerPkh" }
+    },
+    {
+      "id": "cauldron-pool",
+      "name": "Cauldron liquidity pool",
+      "description": "BCH and a fungible token provided as liquidity. The contract takes its owner as its only parameter, so all pools of one owner sit at the one address built from that owner's key hash, and each fungible-token coin there is a pool.",
+      "ownership": "owned",
+      "find": { "kind": "derived", "token": "fungible" },
+      "script": {
+        "template": "746376a9<ownerPkh>88ac67c0d1c0ce88c25288c0cdc0c788c0c6c0d095c0c6c0cc9490539502e80396c0cc7c94c0d3957ca268",
+        "addressType": "p2sh32",
+        "fields": {
+          "ownerPkh": { "as": "hex", "bytes": 20 }
+        }
+      },
+      "owner": { "kind": "field", "field": "ownerPkh" }
+    },
+    {
+      "id": "guanaco-pool-1bp",
+      "name": "Guanaco pool (0.01% fee)",
+      "description": "BCH and a fungible token provided as liquidity on Guanaco, a Cauldron-derived pool that adds a fee tier and a protocol fee output. Each fee tier is a different contract with its own address, so each has its own manifest; this one charges 0.01%.",
+      "ownership": "owned",
+      "find": { "kind": "derived", "token": "fungible" },
+      "script": {
+        "template": "746376a9<ownerPkh>88ac67c0d1c0ce88c25288c0cdc0c788c0c6c0cc949002102796765a96c48cc09476cc5279a269cd1976a914748e3dffdc1ab726e8d7d8d381e56034871fe62388ac8894c0c6c0d095c0cc527994c0d395a17768",
+        "addressType": "p2sh32",
+        "fields": {
+          "ownerPkh": { "as": "hex", "bytes": 20 }
+        }
+      },
+      "owner": { "kind": "field", "field": "ownerPkh" }
+    },
+    {
+      "id": "guanaco-pool-5bp",
+      "name": "Guanaco pool (0.05% fee)",
+      "description": "BCH and a fungible token provided as liquidity on Guanaco, a Cauldron-derived pool that adds a fee tier and a protocol fee output. Each fee tier is a different contract with its own address, so each has its own manifest; this one charges 0.05%.",
+      "ownership": "owned",
+      "find": { "kind": "derived", "token": "fungible" },
+      "script": {
+        "template": "746376a9<ownerPkh>88ac67c0d1c0ce88c25288c0cdc0c788c0c6c0cc9490559502102796765a96c48cc09476cc5279a269cd1976a914748e3dffdc1ab726e8d7d8d381e56034871fe62388ac8894c0c6c0d095c0cc527994c0d395a17768",
+        "addressType": "p2sh32",
+        "fields": {
+          "ownerPkh": { "as": "hex", "bytes": 20 }
+        }
+      },
+      "owner": { "kind": "field", "field": "ownerPkh" }
+    },
+    {
+      "id": "guanaco-pool-30bp",
+      "name": "Guanaco pool (0.3% fee)",
+      "description": "BCH and a fungible token provided as liquidity on Guanaco, a Cauldron-derived pool that adds a fee tier and a protocol fee output. Each fee tier is a different contract with its own address, so each has its own manifest; this one charges 0.3%.",
+      "ownership": "owned",
+      "find": { "kind": "derived", "token": "fungible" },
+      "script": {
+        "template": "746376a9<ownerPkh>88ac67c0d1c0ce88c25288c0cdc0c788c0c6c0cc9490539502e80396765a96c48cc09476cc5279a269cd1976a914748e3dffdc1ab726e8d7d8d381e56034871fe62388ac8894c0c6c0d095c0cc527994c0d395a17768",
+        "addressType": "p2sh32",
+        "fields": {
+          "ownerPkh": { "as": "hex", "bytes": 20 }
+        }
+      },
+      "owner": { "kind": "field", "field": "ownerPkh" }
+    },
+    {
+      "id": "guanaco-pool-100bp",
+      "name": "Guanaco pool (1% fee)",
+      "description": "BCH and a fungible token provided as liquidity on Guanaco, a Cauldron-derived pool that adds a fee tier and a protocol fee output. Each fee tier is a different contract with its own address, so each has its own manifest; this one charges 1%.",
+      "ownership": "owned",
+      "find": { "kind": "derived", "token": "fungible" },
+      "script": {
+        "template": "746376a9<ownerPkh>88ac67c0d1c0ce88c25288c0cdc0c788c0c6c0cc9490016496765a96c48cc09476cc5279a269cd1976a914748e3dffdc1ab726e8d7d8d381e56034871fe62388ac8894c0c6c0d095c0cc527994c0d395a17768",
+        "addressType": "p2sh32",
+        "fields": {
+          "ownerPkh": { "as": "hex", "bytes": 20 }
+        }
+      },
+      "owner": { "kind": "field", "field": "ownerPkh" }
     }
   ]
 }

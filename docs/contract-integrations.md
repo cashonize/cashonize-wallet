@@ -15,13 +15,14 @@ Sorted by what the wallet needs in hand before it can look, which is also what e
 - **A record in your history.** An announcement is the only pointer. Needs the full history
   load, which only this group does.
 
-## The six, and what describes each
+## The seven, and what describes each
 
 | protocol | found by | described by | notes |
 |---|---|---|---|
 | **Badgers.cash** | one fixed address, owner in the NFT commitment | **manifest** | `badgers-stake` |
 | **hodl** | announcement, owner by rebuilding the contract | **manifest** | `hodl-vault` |
-| **Cauldron** | address derived from your public key hash | code | needs a `derived` locator |
+| **Cauldron** | address derived from your public key hash | **manifest** | `cauldron-pool` |
+| **Guanaco** | address derived from your public key hash, per fee tier | **manifest** | `guanaco-pool-1bp` … `-100bp` |
 | **TapSwap** | announcement, owner named in it | **manifest** | `tapswap-listing` |
 | **Emerald DAO** | a keycard you hold, backing in its commitment | code | belongs to BCMR |
 | **ParyonUSD** | a loan key you hold, position at an address its registry names | **BCMR extension** | already data |
@@ -29,16 +30,30 @@ Sorted by what the wallet needs in hand before it can look, which is also what e
 Cauldron's price lookups (`cauldronApi.ts`) are not an integration: they price fungible tokens
 for the whole portfolio and are unaffected by any of this.
 
-## What the manifest format cannot express yet
+## Derived pools
 
-Stated as what is missing rather than as a promise about when.
+Cauldron and Guanaco use the third locator, `derived`: the script takes its owner's public key
+hash as its only parameter, so the wallet builds it from each of its own key hashes and looks up
+the resulting address, and every fungible-token coin there is a pool. No history is read and
+nothing is announced to the wallet. Which keys are searched is the wallet's decision rather than
+the manifest's: the receive and change addresses that have history, plus a fixed window of the
+`defi` chain, because pools created through WizardConnect belong to keys the wallet never hands
+out. The lookups go to the wallet's own electrum server; the Cauldron indexer could answer from
+the key hashes, but that would hand the wallet's address list to a third party.
 
-**Cauldron** needs a third locator, `derived`: build the script from each of the wallet's own
-public key hashes and look up the resulting address. The script template already expresses the
-contract — `cauldronPools.ts` builds it by string concatenation exactly as a manifest would —
-so what is missing is only the locator and a way to name which key chains to search. Cauldron
-searches its `defi` chain as well, because pools created through WizardConnect belong to keys
-the wallet never hands out.
+Guanaco V1 is a Cauldron fork: the same owner branch and swap conditions, plus a fee tier and a
+check that pays a protocol fee to one fixed key hash. The fee tier is a run of opcodes rather than
+one push (`OP_5 OP_MUL <10000> OP_DIV` for 0.05%), and a template hole is always one push, so
+each tier is its own manifest and its own address. That makes the pool lookups five per key
+where Cauldron alone took one; they are not capped like the ones a manifest names, since there is
+one per wallet key, and Guanaco is looked up on mainnet only.
+
+Guanaco also announces every pool (`OP_RETURN "GUANAC" <creatorPkh>` beside the pool output),
+which is what a protocol-wide TVL has to scan. The wallet does not use it: the announcement
+names a key hash rather than an address, and the pool moves on every swap, so neither announcement
+shape fits, and derivation finds the same pools without the history.
+
+## What is not manifest work
 
 **Emerald DAO** and **ParyonUSD** are not manifest work at all. Both are the "I hold an asset,
 what does it hold underneath?" question, and that is BCMR's job: parsable NFT info already
@@ -60,6 +75,15 @@ thing to check it against when a protocol changes or a reading looks wrong.
   [mainnet-pat/hodl_ec_plugin](https://github.com/mainnet-pat/hodl_ec_plugin), and the web dapp
   built on it, which write the same three-push announcement. The plugin is also why the address
   is read three ways.
+- **Cauldron** — the raw BCH Script pool contract, as the Cauldron dapp builds it: an owner
+  branch (`OP_DEPTH OP_IF` pay-to-key-hash) and a constant-product swap branch with a 0.3% fee.
+  It is the address the wallet derived before the manifest replaced its module, which the test
+  pins.
+- **Guanaco** — the production V1 CashAssembly at
+  [guanaco-fi/docs](https://github.com/guanaco-fi/docs/tree/main/contract), not the CashScript
+  specification beside it, which compiles to different bytecode. The four tiers reconstructed
+  from it matched every pool address Guanaco's own parser returned in September 2026, and the
+  test pins one real pool.
 - **TapSwap** — the contract is **not open source**. The announcement format was decoded from
   settled trades and checked against the developer's parsing example at
   [mainnet-pat/tapswap-subsquid](https://github.com/mainnet-pat/tapswap-subsquid). The version
@@ -125,5 +149,8 @@ otherwise decide how long a wallet open takes.
 - `src/utils/contracts/runManifest.ts` — running one against a wallet.
 - `src/utils/contracts/builtinContracts.json` — the bundle the wallet ships, in the same shape a
   user's bundle has.
-- `src/utils/defi/` — the integrations still written as modules: Cauldron and Emerald.
+- `src/utils/wallet/walletKeyHashes.ts` — the key hashes a manifest's owner is matched against
+  or built from, the `defi` chain among them.
+- `src/utils/defi/` — the integrations still written as modules: Emerald, and Cauldron's price
+  lookups.
 - `src/parsing/extensions/` — the ones carried by BCMR instead.

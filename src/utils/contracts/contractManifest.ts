@@ -82,6 +82,16 @@ const findByAnnouncementSchema = z.object({
   position: z.object({ output: z.number().int().min(0).max(15) }).optional(),
 });
 
+// Positions sit at an address built from each of the wallet's own public key hashes, the contract
+// taking its owner as its only parameter, so every pool of one owner sits at one address. The
+// script's owner field is filled with each key hash in turn.
+const findDerivedSchema = z.object({
+  kind: z.literal('derived'),
+  // a coin at the address is a position only when it carries a fungible token and no NFT, which
+  // is what a liquidity pool always holds and a stray payment to the address does not
+  token: z.literal('fungible').optional(),
+});
+
 const scriptSchema = z.object({
   template: z.string().min(2).max(4000).regex(/^([0-9a-fA-F]|<[A-Za-z][A-Za-z0-9]*>|\s)+$/),
   addressType: z.enum(['p2sh20', 'p2sh32']),
@@ -89,7 +99,8 @@ const scriptSchema = z.object({
 });
 
 // What proves a position is the wallet's: a decoded field is one of its public key hashes, or
-// rebuilding the contract from one of them reproduces the address the announcement named
+// rebuilding the contract from one of them reproduces the address the announcement named. A
+// derived position's field is one of the wallet's key hashes by construction.
 const ownerSchema = z.union([
   z.object({ kind: z.literal('field'), field: identifier }),
   z.object({ kind: z.literal('rebuild'), ownerField: identifier, matches: identifier }),
@@ -100,7 +111,7 @@ export const ContractManifestSchema = z.object({
   name: z.string().min(1).max(64),
   description: z.string().max(600).optional(),
   ownership: z.enum(['owned', 'encumbered', 'shared', 'claim']),
-  find: z.union([findAtAddressSchema, findByAnnouncementSchema]),
+  find: z.union([findAtAddressSchema, findByAnnouncementSchema, findDerivedSchema]),
   script: scriptSchema.optional(),
   owner: ownerSchema,
 });

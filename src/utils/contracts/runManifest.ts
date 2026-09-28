@@ -3,7 +3,8 @@
 // A manifest found at an address is one lookup for every user of the protocol, since the owner is
 // written into each position; one announced in the history is read off transactions the wallet
 // funded, and its address is only known once the contract has been rebuilt from the wallet's own
-// keys. Both end at an address whose coins are the position, so both return the same thing.
+// keys; a derived one is built from each of the wallet's keys without any announcement. All end
+// at an address whose coins are the position, so all return the same thing.
 
 import type { ElectrumNetworkProvider, TransactionHistoryItem, Utxo } from "mainnet-js";
 import { opReturnHex } from "src/utils/history/txDirection";
@@ -38,7 +39,7 @@ export interface WalletContext {
 // drops positions from the portfolio, so it says so rather than truncating quietly.
 const MAX_CONTRACT_LOOKUPS = 50;
 
-// the batch cauldronPools.ts used, keeping the requests pipelined over the one electrum connection
+// keeping the requests pipelined over the one electrum connection
 const LOOKUP_BATCH_SIZE = 10;
 
 function cappedCandidates<T>(manifestId: string, candidates: T[]) {
@@ -187,7 +188,61 @@ async function runAnnouncementManifest(
   return positions;
 }
 
+// Positions at the address the contract has for each of the wallet's own key hashes. Not capped
+// like the lookups a manifest names, since there is one per key and the wallet chose its keys. A
+// lookup that fails is logged and skipped, so one unreachable request does not hide the positions
+// found at the other addresses.
+//
+// The lookups go to the wallet's own electrum server, which already sees every wallet address. A
+// protocol's indexer could answer the same question from the key hashes, but that would hand the
+// wallet's list of addresses to a third party.
+async function runDerivedManifest(
+  manifest: ContractManifest,
+  find: Extract<ContractManifest['find'], { kind: 'derived' }>,
+  context: WalletContext,
+): Promise<ContractPosition[]> {
+  const owner = manifest.owner;
+  if (owner.kind !== 'field' || !manifest.script) return [];
+  const ownerField = owner.field;
+  const script = manifest.script;
+
+  async function lookup(ownerPkh: string): Promise<ContractPosition[]> {
+    const fields: Fields = { [ownerField]: ownerPkh };
+    const built = buildScript(script, fields);
+    // token-aware, since the address is shown beside the token it holds
+    const address = built && contractAddress(built, script.addressType, context.networkPrefix, true);
+    if (!address) return [];
+    try {
+      const utxos = await context.provider.getUtxos(address);
+      return utxos
+        .filter(utxo => find.token !== 'fungible' || (utxo.token?.amount && !utxo.token.nft))
+        .map(utxo => ({
+          manifestId: manifest.id,
+          ownership: manifest.ownership,
+          address,
+          satoshis: utxo.satoshis,
+          txid: utxo.txid,
+          vout: utxo.vout,
+          ...(utxo.height ? { confirmedAtHeight: utxo.height } : {}),
+          ...(utxo.token ? { token: utxo.token } : {}),
+          fields,
+        }));
+    } catch (error) {
+      console.error(`${manifest.id}: lookup for ${ownerPkh} failed:`, error);
+      return [];
+    }
+  }
+
+  const positions: ContractPosition[] = [];
+  for (let index = 0; index < context.ownerPkhs.length; index += LOOKUP_BATCH_SIZE) {
+    const found = await Promise.all(context.ownerPkhs.slice(index, index + LOOKUP_BATCH_SIZE).map(lookup));
+    positions.push(...found.flat());
+  }
+  return positions;
+}
+
 export async function runManifest(manifest: ContractManifest, context: WalletContext): Promise<ContractPosition[]> {
   if (manifest.find.kind === 'address') return runAddressManifest(manifest, manifest.find, context);
+  if (manifest.find.kind === 'derived') return runDerivedManifest(manifest, manifest.find, context);
   return runAnnouncementManifest(manifest, manifest.find, context);
 }
