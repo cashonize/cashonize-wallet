@@ -3,7 +3,7 @@
 // stay honest examples of the shape a user has to write.
 
 import builtinContracts from "./builtinContracts.json";
-import { ContractBundleSchema, type ContractManifest } from "./contractManifest";
+import { ContractBundleSchema, matchesHeld, type ContractManifest } from "./contractManifest";
 
 export const builtinBundle = ContractBundleSchema.parse(builtinContracts);
 
@@ -22,5 +22,17 @@ export function builtinManifest(id: string): ContractManifest {
 // protocol with no token of its own has no icon to borrow and needs one of its own, which the
 // format does not carry yet.
 export function manifestTokenCategory(manifest: ContractManifest) {
+  if (manifest.find.kind === 'held') return manifest.find.categories?.[0];
   return manifest.find.kind === 'address' ? manifest.find.token?.category : undefined;
+}
+
+// The built-in manifest a held NFT is a position of, if any, and of which kind of value
+export function heldManifestFor(
+  valueKind: 'loan' | 'stake',
+  nft: { category: string, capability: string | undefined },
+  registryExtensions: string[],
+) {
+  return builtinBundle.contracts.find(manifest =>
+    manifest.find.kind === 'held' && manifest.value?.kind === valueKind
+    && matchesHeld(manifest.find, nft, registryExtensions));
 }

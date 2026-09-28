@@ -244,5 +244,7 @@ async function runDerivedManifest(
 export async function runManifest(manifest: ContractManifest, context: WalletContext): Promise<ContractPosition[]> {
   if (manifest.find.kind === 'address') return runAddressManifest(manifest, manifest.find, context);
   if (manifest.find.kind === 'derived') return runDerivedManifest(manifest, manifest.find, context);
+  // a held position is already in the wallet's token list, which is where the portfolio reads it
+  if (manifest.find.kind === 'held') return [];
   return runAnnouncementManifest(manifest, manifest.find, context);
 }

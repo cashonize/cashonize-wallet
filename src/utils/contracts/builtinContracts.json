@@ -147,6 +147,24 @@
         }
       },
       "owner": { "kind": "field", "field": "ownerPkh" }
+    },
+    {
+      "id": "paryonusd-loan",
+      "name": "ParyonUSD loan",
+      "description": "BCH collateral against PUSD debt. Every loan mints its own category, whose registry declares the paryonusd extension that fetches the loan's state from its contract before the key is parsed. Only the owner key, the minting NFT, controls the loan; a management key does not.",
+      "ownership": "encumbered",
+      "find": { "kind": "held", "extension": "paryonusd", "capability": "minting" },
+      "value": { "kind": "loan", "collateral": { "nameIncludes": "collateral" }, "debt": { "nameIncludes": "debt" } },
+      "owner": { "kind": "holder" }
+    },
+    {
+      "id": "paryonusd-stake",
+      "name": "ParyonUSD staking receipt",
+      "description": "PUSD staked at an epoch. The receipt records the amount staked, and the live stake can have been reduced since, so its value is an estimate.",
+      "ownership": "encumbered",
+      "find": { "kind": "held", "categories": ["7708645a7f30e97003573d9322202960a560a87527bef3666a30044a0dfdfa81"] },
+      "value": { "kind": "stake", "staked": { "id": "amountStakedReceipt" }, "epoch": { "id": "epochReceipt" } },
+      "owner": { "kind": "holder" }
     }
   ]
 }

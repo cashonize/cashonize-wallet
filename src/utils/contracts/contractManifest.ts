@@ -11,6 +11,7 @@
 
 import { z } from "zod";
 import { opReturnChunks } from "src/utils/history/txDirection";
+import type { ParsedField } from "src/parsing/nftParsing";
 import {
   bigIntToVmNumber,
   binToHex,
@@ -92,6 +93,34 @@ const findDerivedSchema = z.object({
   token: z.literal('fungible').optional(),
 });
 
+// Positions are NFTs the wallet already holds, recognised by their category, or by the BCMR
+// extension their category's registry declares, which is the only way to recognise a protocol
+// that mints a category per position. Nothing is looked up to find them; what they hold is read
+// from the NFT's parsed fields, after the registry's extensions have fetched any state that
+// lives elsewhere.
+const findHeldSchema = z.object({
+  kind: z.literal('held'),
+  categories: z.array(hexString.length(64)).min(1).max(50).optional(),
+  extension: identifier.optional(),
+  capability: z.enum(['none', 'mutable', 'minting']).optional(),
+}).refine(find => find.categories !== undefined || find.extension !== undefined, {
+  message: 'a held position is recognised by its categories or by a registry extension',
+});
+
+// A parsed NFT field, by its id where the registry gives it one, else by a word in its name
+const parsedFieldSchema = z.union([
+  z.object({ id: identifier }),
+  z.object({ nameIncludes: z.string().min(1).max(40) }),
+]);
+
+// What a held position's fields are worth. Collateral is BCH; debt and a stake are a USD
+// stablecoin, taken at its peg. A loan counts at its collateral minus its debt. A stake counts
+// only when the user asks, since a receipt records what was staked and the live stake can be lower.
+const valueSchema = z.union([
+  z.object({ kind: z.literal('loan'), collateral: parsedFieldSchema, debt: parsedFieldSchema }),
+  z.object({ kind: z.literal('stake'), staked: parsedFieldSchema, epoch: parsedFieldSchema.optional() }),
+]);
+
 const scriptSchema = z.object({
   template: z.string().min(2).max(4000).regex(/^([0-9a-fA-F]|<[A-Za-z][A-Za-z0-9]*>|\s)+$/),
   addressType: z.enum(['p2sh20', 'p2sh32']),
@@ -100,10 +129,12 @@ const scriptSchema = z.object({
 
 // What proves a position is the wallet's: a decoded field is one of its public key hashes, or
 // rebuilding the contract from one of them reproduces the address the announcement named. A
-// derived position's field is one of the wallet's key hashes by construction.
+// derived position's field is one of the wallet's key hashes by construction, and a held one is
+// the wallet's by being held.
 const ownerSchema = z.union([
   z.object({ kind: z.literal('field'), field: identifier }),
   z.object({ kind: z.literal('rebuild'), ownerField: identifier, matches: identifier }),
+  z.object({ kind: z.literal('holder') }),
 ]);
 
 export const ContractManifestSchema = z.object({
@@ -111,8 +142,9 @@ export const ContractManifestSchema = z.object({
   name: z.string().min(1).max(64),
   description: z.string().max(600).optional(),
   ownership: z.enum(['owned', 'encumbered', 'shared', 'claim']),
-  find: z.union([findAtAddressSchema, findByAnnouncementSchema, findDerivedSchema]),
+  find: z.union([findAtAddressSchema, findByAnnouncementSchema, findDerivedSchema, findHeldSchema]),
   script: scriptSchema.optional(),
+  value: valueSchema.optional(),
   owner: ownerSchema,
 });
 
@@ -124,6 +156,8 @@ export const ContractBundleSchema = z.object({
 });
 
 export type ContractManifest = z.infer<typeof ContractManifestSchema>;
+export type HeldFind = z.infer<typeof findHeldSchema>;
+export type PositionValue = z.infer<typeof valueSchema>;
 export type ContractBundle = z.infer<typeof ContractBundleSchema>;
 export type FieldValue = string | number;
 export type Fields = Record<string, FieldValue>;
@@ -243,4 +277,49 @@ export function buildScript(script: z.infer<typeof scriptSchema>, fields: Fields
   return built;
 }
 
+// Whether a held NFT is one of this manifest's positions. The registry's extensions are passed
+// rather than looked up, so an NFT whose metadata has not loaded yet matches by category alone.
+export function matchesHeld(
+  find: HeldFind,
+  nft: { category: string, capability: string | undefined },
+  registryExtensions: string[],
+) {
+  if (find.capability && nft.capability !== find.capability) return false;
+  if (find.categories?.includes(nft.category)) return true;
+  return find.extension !== undefined && registryExtensions.includes(find.extension);
+}
 
+function parsedAmount(field: ParsedField | undefined) {
+  const parsed = field?.parsedValue;
+  if (parsed?.type !== 'number') return undefined;
+  return Number(parsed.value) / (10 ** (parsed.decimals ?? 0));
+}
+
+function findField(fields: ParsedField[], reference: z.infer<typeof parsedFieldSchema>) {
+  if ('id' in reference) return fields.find(field => field.fieldId === reference.id);
+  const word = reference.nameIncludes.toLowerCase();
+  return fields.find(field => field.name?.toLowerCase().includes(word));
+}
+
+// A loan's collateral in BCH and debt in USD, with the parser's own formatting for display
+export function readLoan(value: Extract<PositionValue, { kind: 'loan' }>, fields: ParsedField[]) {
+  const collateral = findField(fields, value.collateral);
+  const debt = findField(fields, value.debt);
+  return {
+    collateralBch: parsedAmount(collateral),
+    debtUsd: parsedAmount(debt),
+    collateralDisplay: collateral?.parsedValue?.formatted,
+    debtDisplay: debt?.parsedValue?.formatted,
+  };
+}
+
+// A stake in USD, as the receipt recorded it
+export function readStake(value: Extract<PositionValue, { kind: 'stake' }>, fields: ParsedField[]) {
+  const staked = findField(fields, value.staked);
+  const epoch = value.epoch ? findField(fields, value.epoch) : undefined;
+  return {
+    stakedUsd: parsedAmount(staked),
+    stakedDisplay: staked?.parsedValue?.formatted,
+    epochDisplay: epoch?.parsedValue?.formatted,
+  };
+}

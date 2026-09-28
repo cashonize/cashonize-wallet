@@ -10,6 +10,8 @@
   import { formatFiatAmount, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { ContractPosition } from 'src/utils/contracts/runManifest'
+  import { heldManifestFor } from 'src/utils/contracts/builtins'
+  import { readLoan, readStake, type ContractManifest } from 'src/utils/contracts/contractManifest'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
@@ -44,11 +46,10 @@
   // minimum perceptual distance between chart colors (OKLab distance x100)
   const MIN_COLOR_DISTANCE = 15
 
-  // shared color for all ParyonUSD loan segments, loans don't get individual colors
+  // shared color for all loan segments, loans don't get individual colors
   const LOAN_COLOR = '#a231c1'
 
-  // ParyonUSD staking receipt category and shared segment color
-  const PARYON_STAKING_CATEGORY = '7708645a7f30e97003573d9322202960a560a87527bef3666a30044a0dfdfa81'
+  // shared color for all staking receipt segments
   const STAKING_COLOR = '#378df5'
 
   // shared color for all liquidity pool segments
@@ -399,23 +400,28 @@
     return nftUtxoId(row.kind === 'loan' ? row.loan.utxo : row.receipt.utxo)
   }
 
-  // ParyonUSD loan key NFTs are listed with the priced assets, showing both
-  // collateral and debt, and are charted by their net value
-  const loanKeyNfts = computed(() => {
-    const loans: { category: string, utxo: Utxo, name: string }[] = []
+  // Held NFTs a manifest names as positions of the given kind: loan keys, or staking receipts.
+  // A manifest recognising positions by a registry extension only matches once the metadata is in.
+  interface HeldPosition { category: string, utxo: Utxo, name: string, manifest: ContractManifest }
+  function heldPositions(valueKind: 'loan' | 'stake') {
+    const positions: HeldPosition[] = []
     for (const token of store.tokenList ?? []) {
       if (!('nfts' in token)) continue
       const metadata = store.bcmrRegistries?.[token.category]
-      const extensions = metadata?.extensions
-      if (!extensions?.paryonusd) continue
-      // only owner loan keys (minting capability) control a loan, management keys don't
+      const registryExtensions = Object.keys(metadata?.extensions ?? {})
       for (const utxo of token.nfts) {
-        if (utxo.token?.nft?.capability !== 'minting') continue
-        loans.push({ category: token.category, utxo, name: metadata?.name ?? token.category.slice(0, 8) + '...' })
+        const nft = { category: token.category, capability: utxo.token?.nft?.capability }
+        const manifest = heldManifestFor(valueKind, nft, registryExtensions)
+        if (!manifest) continue
+        positions.push({ category: token.category, utxo, name: metadata?.name ?? manifest.name, manifest })
       }
     }
-    return loans
-  })
+    return positions
+  }
+
+  // Loan keys are listed with the priced assets, showing both collateral and debt, and are
+  // charted by their net value
+  const loanKeyNfts = computed(() => heldPositions('loan'))
 
   interface LoanState {
     collateralDisplay: string | undefined  // always in BCH, as formatted by the NFT parser
@@ -441,55 +447,42 @@
     return formatShare(assetShare(netBch))
   }
 
-  // Loan state lives on-chain and is fetched through the paryonusd BCMR extension.
+  // Loan state lives on-chain; for ParyonUSD a BCMR extension fetches it before the key is parsed.
   // Parsed as soon as the loan keys are known since the net values feed the chart
   watch(loanKeyNfts, (loans) => {
     for (const loan of loans) {
       const utxoId = nftUtxoId(loan.utxo)
       if (loanStates.value[utxoId]) continue
+      const value = loan.manifest.value
+      if (value?.kind !== 'loan') continue
       void store.parseNftCommitment(loan.category, loan.utxo).then(async result => {
         const namedFields = (result?.success ? result.namedFields : undefined) ?? []
-        const findField = (word: string) =>
-          namedFields.find(field => field.name?.toLowerCase().includes(word))
-        const collateralParsed = findField('collateral')?.parsedValue
-        const debtParsed = findField('debt')?.parsedValue
+        const reading = readLoan(value, namedFields)
 
-        // net position value: collateral (BCH) minus debt (PUSD, treated as USD)
+        // net position value: collateral (BCH) minus debt (a USD stablecoin, taken at its peg)
         let netBch: number | undefined
-        if (collateralParsed?.type === 'number' && debtParsed?.type === 'number') {
+        if (reading.collateralBch !== undefined && reading.debtUsd !== undefined) {
           try {
-            const collateralBch = Number(collateralParsed.value) / (10 ** (collateralParsed.decimals ?? 0))
-            const debtUsd = Number(debtParsed.value) / (10 ** (debtParsed.decimals ?? 0))
-            const debtBch = await convert(debtUsd, 'usd', 'bch')
-            netBch = collateralBch - Number(debtBch)
+            const debtBch = await convert(reading.debtUsd, 'usd', 'bch')
+            netBch = reading.collateralBch - Number(debtBch)
           } catch {
             // exchange rate unavailable, leave the net value out
           }
         }
         loanStates.value = {
           ...loanStates.value,
-          [utxoId]: { collateralDisplay: collateralParsed?.formatted, debtDisplay: debtParsed?.formatted, netBch }
+          [utxoId]: { collateralDisplay: reading.collateralDisplay, debtDisplay: reading.debtDisplay, netBch }
         }
       })
     }
   }, { immediate: true })
 
-  // ParyonUSD staking receipts. The commitment records the amount staked at an
-  // epoch, but the live stake can have been reduced since, so their value is an
-  // estimate, excluded from the chart and total unless the user opts in
+  // Staking receipts. A receipt records the amount staked at an epoch, but the live stake can
+  // have been reduced since, so their value is an estimate, excluded from the chart and total
+  // unless the user opts in
   const includeStaking = ref(false)
 
-  const stakingReceiptNfts = computed(() => {
-    const receipts: { category: string, utxo: Utxo, name: string }[] = []
-    for (const token of store.tokenList ?? []) {
-      if (!('nfts' in token) || token.category !== PARYON_STAKING_CATEGORY) continue
-      const metadata = store.bcmrRegistries?.[token.category]
-      for (const utxo of token.nfts) {
-        receipts.push({ category: token.category, utxo, name: metadata?.name ?? 'ParyonUSD Staking Receipt' })
-      }
-    }
-    return receipts
-  })
+  const stakingReceiptNfts = computed(() => heldPositions('stake'))
 
   interface StakingState {
     stakedDisplay: string | undefined
@@ -512,7 +505,7 @@
     return formatShare(assetShare(stakeBch))
   }
 
-  // receipt commitments parse locally (no extension), so this is cheap
+  // the receipts known today parse locally without an extension, so this is cheap
   watch(stakingReceiptNfts, (receipts) => {
     for (const receipt of receipts) {
       const utxoId = nftUtxoId(receipt.utxo)
@@ -521,24 +514,24 @@
       // parsing needs the metadata's parse info, so skip without recording a
       // result and let a later pass retry once the registries are in
       if (!store.bcmrRegistries?.[receipt.category]) continue
+      const value = receipt.manifest.value
+      if (value?.kind !== 'stake') continue
       void store.parseNftCommitment(receipt.category, receipt.utxo).then(async result => {
         const namedFields = (result?.success ? result.namedFields : undefined) ?? []
-        const stakedParsed = namedFields.find(field => field.fieldId === 'amountStakedReceipt')?.parsedValue
-        const epochParsed = namedFields.find(field => field.fieldId === 'epochReceipt')?.parsedValue
+        const reading = readStake(value, namedFields)
 
-        // estimated value: the staked PUSD amount, treated as USD
+        // estimated value: the staked stablecoin, taken at its USD peg
         let stakeBch: number | undefined
-        if (stakedParsed?.type === 'number') {
+        if (reading.stakedUsd !== undefined) {
           try {
-            const stakedUsd = Number(stakedParsed.value) / (10 ** (stakedParsed.decimals ?? 0))
-            stakeBch = Number(await convert(stakedUsd, 'usd', 'bch'))
+            stakeBch = Number(await convert(reading.stakedUsd, 'usd', 'bch'))
           } catch {
             // exchange rate unavailable, leave the estimated value out
           }
         }
         stakingStates.value = {
           ...stakingStates.value,
-          [utxoId]: { stakedDisplay: stakedParsed?.formatted, epochDisplay: epochParsed?.formatted, stakeBch }
+          [utxoId]: { stakedDisplay: reading.stakedDisplay, epochDisplay: reading.epochDisplay, stakeBch }
         }
       })
     }

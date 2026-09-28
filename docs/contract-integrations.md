@@ -9,13 +9,14 @@ and which is still code, and why the line falls where it does. The mechanism is 
 Sorted by what the wallet needs in hand before it can look, which is also what each costs:
 
 - **A coin you hold.** The position is already in `walletUtxos`, or is keyed by something that
-  is. No discovery lookup at all; the question is what the coin holds underneath.
+  is. No discovery lookup at all; the question is what the coin holds underneath (the `held`
+  locator).
 - **An address you can compute.** Fixed, or derived from your own keys. One lookup, or one per
   key.
 - **A record in your history.** An announcement is the only pointer. Needs the full history
   load, which only this group does.
 
-## The seven, and what describes each
+## What describes each
 
 | protocol | found by | described by | notes |
 |---|---|---|---|
@@ -25,7 +26,8 @@ Sorted by what the wallet needs in hand before it can look, which is also what e
 | **Guanaco** | address derived from your public key hash, per fee tier | **manifest** | `guanaco-pool-1bp` … `-100bp` |
 | **TapSwap** | announcement, owner named in it | **manifest** | `tapswap-listing` |
 | **Emerald DAO** | a keycard you hold, backing in its commitment | code | belongs to BCMR |
-| **ParyonUSD** | a loan key you hold, position at an address its registry names | **BCMR extension** | already data |
+| **ParyonUSD loans** | a loan key you hold, state at a contract its registry's extension finds | **manifest** + BCMR extension | `paryonusd-loan` |
+| **ParyonUSD staking** | a receipt you hold, stake in its commitment | **manifest** | `paryonusd-stake` |
 
 Cauldron's price lookups (`cauldronApi.ts`) are not an integration: they price fungible tokens
 for the whole portfolio and are unaffected by any of this.
@@ -53,15 +55,34 @@ which is what a protocol-wide TVL has to scan. The wallet does not use it: the a
 names a key hash rather than an address, and the pool moves on every swap, so neither announcement
 shape fits, and derivation finds the same pools without the history.
 
-## What is not manifest work
+## Held positions
 
-**Emerald DAO** and **ParyonUSD** are not manifest work at all. Both are the "I hold an asset,
-what does it hold underneath?" question, and that is BCMR's job: parsable NFT info already
-answers it where the backing is written in the commitment, and a registry extension answers it
-where the backing sits elsewhere. ParyonUSD is already data on exactly that path
-(`extensions.paryonusd.fetchLoanState.lockingBytecode`); Emerald could be, and its keycard
-commitment is a plain two-field layout. Expressing them as contract manifests would duplicate a
-mechanism the wallet already has and that the token's own issuer already controls.
+The fourth locator, `held`, is for a position the wallet already holds as an NFT: nothing is
+looked up to find it, so the manifest says only which NFTs are positions and what their parsed
+fields are worth. An NFT is recognised by its category, or by the extension its category's
+registry declares. The extension is the only way to recognise a protocol that mints a category
+per position, as ParyonUSD does for every loan. A capability narrows it further: a ParyonUSD
+loan's owner key is its minting NFT, and a management key is not.
+
+Reading and fetching stay apart. Where a position's state lives elsewhere, getting it is the
+registry's job: the ParyonUSD extension looks up the loan's contract and puts its state into
+the key before parsing (`src/parsing/extensions/paryonusd.ts`). A protocol whose state sits in
+the NFT's own commitment needs no extension. Either way the manifest reads the parsed fields,
+by id where the registry gives stable ones and by a word in the name where it does not, as the
+ParyonUSD loan registries require.
+
+What the fields are worth is named once for every protocol, because the lending protocols share
+one shape: BCH collateral against a USD stablecoin debt. A `loan` counts at collateral minus
+debt, the debt taken at its peg; a `stake` is a stablecoin deposit recorded on a receipt, shown
+as an estimate and counted only when the user turns it on, since the live stake can have been
+reduced since. A second lending protocol is then a manifest with its own recognition and field
+references, and the portfolio's loan and staking rows need no change. If it keeps its loan state
+at a contract and ships no registry extension, which is likely for Moria, what it still needs is
+a way to say where that state is, and that belongs in the format rather than in a module.
+
+Emerald DAO keycards are still code (`emeraldDao.ts`). A keycard is a held position too, but its
+backing is satoshis in a fixed commitment layout rather than a parsed stablecoin field, so it
+would need a third kind of value.
 
 ## Where each byte layout came from
 
@@ -101,6 +122,11 @@ A protocol whose user holds nothing has no such identity to speak through, so so
 tell the wallet where to look. That is the contract manifest, and it is why the trust work — the
 built-in versus user-added distinction, the caps, the impersonation rules — lives on that side
 and not the other.
+
+A held position uses both. The registry says what the token is and fetches its state, which is
+the issuer's to say; the manifest says the portfolio should count it and how, which is the
+wallet's. Recognising it by a registry extension is safe because it only picks among NFTs the
+wallet already holds and reads fields it already parses.
 
 ## Ownership
 
@@ -153,4 +179,4 @@ otherwise decide how long a wallet open takes.
   or built from, the `defi` chain among them.
 - `src/utils/defi/` — the integrations still written as modules: Emerald, and Cauldron's price
   lookups.
-- `src/parsing/extensions/` — the ones carried by BCMR instead.
+- `src/parsing/extensions/` — the registry extensions that fetch a held position's state.
