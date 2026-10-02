@@ -8,6 +8,7 @@
   import ScannerUI from 'components/qr/qrScannerUi.vue'
   import { caughtErrorToString } from 'src/utils/errorHandling';
   import { useI18n } from 'vue-i18n'
+  import { useFilePicker } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore'
 
   import { useWindowSize } from 'src/utils/composables'
@@ -25,7 +26,7 @@
   const showDialog = ref(true);
   const videoElement = ref<HTMLVideoElement | null>(null);
   const videoPlaying = ref(false);
-  const fileInput = ref<HTMLInputElement | null>(null);
+  const { openFilePicker } = useFilePicker({ accept: 'image/*' });
   const cameras = ref<QrScanner.Camera[]>([]);
   const activeCameraId = ref("");
   const switchingCamera = ref(false);
@@ -213,16 +214,15 @@
     }
   }
 
-  function openImagePicker() {
-    fileInput.value?.click();
-  }
-
-  async function handleImageSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    // reset so selecting the same file again re-triggers the change event
-    input.value = '';
-    if (!file) return;
+  async function scanImageFile() {
+    const files = await openFilePicker();
+    if (files === null) return;
+    // empty when the picked file is not an image: the picker checks it against accept
+    const file = files[0];
+    if (!file) {
+      filterHint.value = t('qrScanner.noQrCodeInImage');
+      return;
+    }
     let result: QrScanner.ScanResult;
     try {
       result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
@@ -265,9 +265,8 @@
         <q-icon name="error" left/>
         {{ error }}
       </div>
-      <q-btn class="q-mt-md" color="primary" icon="image" :label="t('qrScanner.chooseImage')" no-caps @click="openImagePicker" />
+      <q-btn class="q-mt-md" color="primary" icon="image" :label="t('qrScanner.chooseImage')" no-caps @click="scanImageFile" />
       <div v-if="filterHint" class="q-mt-sm">{{ filterHint }}</div>
-      <input ref="fileInput" type="file" accept="image/*" style="display: none;" @change="handleImageSelected">
     </div>
     <q-card v-else class="scanner-card" :style="isMobile ? 'width: 100%; height: 100%;' : 'width: 75%; height: 75%;'">
       <video
@@ -295,8 +294,7 @@
         />
       </div>
       <q-btn class="scanner-close-btn" icon="close" color="white" flat round dense v-close-popup />
-      <q-btn class="scanner-upload-btn" icon="image" :label="t('qrScanner.chooseImage')" no-caps flat rounded dense @click="openImagePicker" />
-      <input ref="fileInput" type="file" accept="image/*" style="display: none;" @change="handleImageSelected">
+      <q-btn class="scanner-upload-btn" icon="image" :label="t('qrScanner.chooseImage')" no-caps flat rounded dense @click="scanImageFile" />
     </q-card>
   </q-dialog>
 </template>

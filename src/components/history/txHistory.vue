@@ -2,7 +2,8 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
-  import { computed, ref, watch, nextTick, onActivated, onDeactivated } from 'vue';
+  import { computed, ref, watch, nextTick } from 'vue';
+  import { useSearchShortcut } from 'src/utils/composables';
   import type { TransactionHistoryItem } from 'mainnet-js';
   import TransactionDialog from './transactionDialog.vue';
   import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips, dayLabel, localDayStart } from 'src/utils/utils';
@@ -60,19 +61,11 @@
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
 
-  // Override Ctrl+F to focus the search input.
-  function handleCtrlF(event: KeyboardEvent) {
-    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
-      event.preventDefault();
-      showSearch.value = true;
-      // the input is behind a v-if, wait for the DOM update before focusing it
-      void nextTick().then(() => searchInputRef.value?.focus());
-    }
-  }
-
-  // Listener added/removed on KeepAlive activate/deactivate so it only applies while this view is active.
-  onActivated(() => document.addEventListener('keydown', handleCtrlF));
-  onDeactivated(() => document.removeEventListener('keydown', handleCtrlF));
+  useSearchShortcut(() => {
+    showSearch.value = true;
+    // the input is behind a v-if, wait for the DOM update before focusing it
+    void nextTick().then(() => searchInputRef.value?.focus());
+  });
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";

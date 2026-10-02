@@ -1,13 +1,13 @@
 
 <script setup lang="ts">
-  import { ref, computed, watch, nextTick, onActivated, onDeactivated } from 'vue'
+  import { ref, computed, watch, nextTick } from 'vue'
   import { useI18n } from 'vue-i18n'
   import tokenItemNFT from './tokenItems/tokenItemNFT.vue'
   import tokenItemFT from './tokenItems/tokenItemFT.vue'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
-  import { useWindowSize } from 'src/utils/composables'
+  import { useWindowSize, useSearchShortcut } from 'src/utils/composables'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { CurrencySymbols } from 'src/interfaces/interfaces'
 
@@ -36,19 +36,11 @@
     searchInputRef.value?.focus();
   }
 
-  // Override Ctrl+F to focus the search input.
-  function handleCtrlF(event: KeyboardEvent) {
-    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
-      event.preventDefault();
-      showSearch.value = true;
-      // the input is behind a v-if, wait for the DOM update before focusing it
-      void nextTick().then(() => searchInputRef.value?.focus());
-    }
-  }
-
-  // Listener added/removed on KeepAlive activate/deactivate so it only applies while this view is active.
-  onActivated(() => document.addEventListener('keydown', handleCtrlF));
-  onDeactivated(() => document.removeEventListener('keydown', handleCtrlF));
+  useSearchShortcut(() => {
+    showSearch.value = true;
+    // the input is behind a v-if, wait for the DOM update before focusing it
+    void nextTick().then(() => searchInputRef.value?.focus());
+  });
 
   // Opening a token payment request from the wallet page lands here, narrow the list to the
   // token it asks for. Immediate, because the store value is already set on the first visit.

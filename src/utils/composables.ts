@@ -1,4 +1,5 @@
-import { ref, onMounted, onUnmounted, getCurrentInstance, type Ref } from 'vue'
+import { ref, onMounted, onUnmounted, onActivated, onDeactivated, getCurrentInstance, type Ref } from 'vue'
+import { useKeyboardShortcut } from 'quasar'
 
 interface UseWindowSizeReturn {
   width: Ref<number>
@@ -26,4 +27,14 @@ export function useWindowSize(): UseWindowSizeReturn {
   }
 
   return { width, height }
+}
+
+// Ctrl+F (Cmd+F on macOS) opens the view's own search instead of the browser's find. Quasar's
+// listener knows nothing of KeepAlive, so a hidden view pauses it; a component outside KeepAlive
+// never deactivates and listens for as long as it is mounted.
+export function useSearchShortcut(openSearch: () => void) {
+  const active = ref(true)
+  onActivated(() => { active.value = true })
+  onDeactivated(() => { active.value = false })
+  useKeyboardShortcut('Mod+F', openSearch, () => ({ disabled: !active.value }))
 }

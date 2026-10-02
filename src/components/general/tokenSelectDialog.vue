@@ -1,5 +1,6 @@
 <script setup lang="ts">
-  import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+  import { ref, computed, watch } from 'vue'
+  import { useSearchShortcut } from 'src/utils/composables'
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -156,17 +157,8 @@
     lookupFailed.value = false;
   });
 
-  // Override Ctrl+F to focus the search input, as the token list and history pages do
-  function handleCtrlF(event: KeyboardEvent) {
-    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
-      event.preventDefault();
-      searchInputRef.value?.focus();
-    }
-  }
-
-  // The dialog is mounted for as long as it is open, so the listener follows its lifetime
-  onMounted(() => document.addEventListener('keydown', handleCtrlF));
-  onBeforeUnmount(() => document.removeEventListener('keydown', handleCtrlF));
+  // The dialog is mounted for as long as it is open, so the shortcut follows its lifetime
+  useSearchShortcut(() => searchInputRef.value?.focus());
 </script>
 
 <template>
