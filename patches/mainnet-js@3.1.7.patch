@@ -1,33 +1,78 @@
 diff --git a/dist/module/history/getHistory.js b/dist/module/history/getHistory.js
-index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..449a81bd62f0fd1abf3eecc2e72a5e69e335eb30 100644
---- a/dist/module/history/getHistory.js
-+++ b/dist/module/history/getHistory.js
-@@ -160,6 +160,8 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..52f4f53d4c64277711c65e49fa097423a9fbacde 100644
+--- a/dist/module/history/getHistory.js	
++++ b/dist/module/history/getHistory.js	
+@@ -3,6 +3,10 @@ import { UnitEnum } from "../enum.js";
+ import { ExchangeRate } from "../rate/ExchangeRate.js";
+ import { sanitizeUnit } from "../util/sanitizeUnit.js";
+ import { bchParam } from "../chain.js";
++const historyAddress = (lockingBytecode, prefix) => {
++    const result = lockingBytecodeToCashAddress({ bytecode: lockingBytecode, prefix });
++    return typeof result === "string" ? `SCRIPT: ${binToHex(lockingBytecode)}` : result.address;
++};
+ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight = 0, toHeight = -1, start = 0, count = -1, rawHistory, }) => {
+     if (!addresses.length) {
+         return [];
+@@ -135,10 +139,7 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+             const cached = addressCache[prevoutOutput.lockingBytecode];
+             let address;
+             if (!cached) {
+-                address = assertSuccess(lockingBytecodeToCashAddress({
+-                    bytecode: prevoutOutput.lockingBytecode,
+-                    prefix: prefix,
+-                })).address;
++                address = historyAddress(prevoutOutput.lockingBytecode, prefix);
+                 addressCache[prevoutOutput.lockingBytecode] = address;
+             }
+             else {
+@@ -160,6 +161,9 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
                              : undefined,
                      }
                      : undefined,
 +                outpointTransactionHash: getOutpointHash(input.outpointTransactionHash),
 +                outpointIndex: input.outpointIndex,
++                lockingBytecode: binToHex(prevoutOutput.lockingBytecode),
              };
          });
          result.outputs = tx.outputs.map((output) => {
+@@ -170,10 +174,7 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+                     address = `OP_RETURN: ${binToHex(output.lockingBytecode)}`;
+                 }
+                 else {
+-                    address = assertSuccess(lockingBytecodeToCashAddress({
+-                        bytecode: output.lockingBytecode,
+-                        prefix: prefix,
+-                    })).address;
++                    address = historyAddress(output.lockingBytecode, prefix);
+                     addressCache[output.lockingBytecode] = address;
+                 }
+             }
+@@ -196,6 +197,7 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+                             : undefined,
+                     }
+                     : undefined,
++                lockingBytecode: binToHex(output.lockingBytecode),
+             };
+         });
+         result.blockHeight = tx.blockHeight;
 diff --git a/dist/module/history/interface.d.ts b/dist/module/history/interface.d.ts
-index 2eebf72de8847028c08edceacfc0d9b4ad4618b6..797408ceb91fdefac4eb581d39c2e3149cc81a82 100644
---- a/dist/module/history/interface.d.ts
-+++ b/dist/module/history/interface.d.ts
-@@ -3,6 +3,8 @@ export interface InOutput {
+index 2eebf72de8847028c08edceacfc0d9b4ad4618b6..b4d78e1c316a9104fac6e6e883269bedcd8b7f45 100644
+--- a/dist/module/history/interface.d.ts	
++++ b/dist/module/history/interface.d.ts	
+@@ -3,6 +3,9 @@ export interface InOutput {
      address: string;
      value: number;
      token?: TokenI;
 +    outpointTransactionHash?: string;
 +    outpointIndex?: number;
++    lockingBytecode?: string;
  }
  export interface TransactionHistoryItem {
      inputs: InOutput[];
 diff --git a/dist/module/wallet/Base.js b/dist/module/wallet/Base.js
 index 9baa2496b379fc0dd2efb8229d93be9caefdc97f..ca38609c3c9b04195df7f6ed81edde6f03d34ef6 100644
---- a/dist/module/wallet/Base.js
-+++ b/dist/module/wallet/Base.js
+--- a/dist/module/wallet/Base.js	
++++ b/dist/module/wallet/Base.js	
 @@ -867,7 +867,10 @@ export class BaseWallet {
          if (!Array.isArray(mintRequests)) {
              mintRequests = [mintRequests];

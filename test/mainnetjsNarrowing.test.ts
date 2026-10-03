@@ -4,6 +4,7 @@ import type { Utxo } from 'mainnet-js'
 // not on the package's export surface, so reached by path
 import { getSuitableUtxos } from '../node_modules/mainnet-js/dist/module/transaction/Wif.js'
 import { OP_RETURN_ADDRESS_PREFIX } from '../src/utils/history/txDirection'
+import { binToHex, encodeTransaction, hashTransaction, hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
 import { electrumTimeoutMessage } from '../src/utils/wallet/broadcastErrors'
 
 // The wallet keeps frozen and reserved coins out of a spend by narrowing mainnet-js's pool with
@@ -82,6 +83,40 @@ describe('mainnet-js never funds a plain BCH send from a token UTXO', () => {
 describe('mainnet-js still names an OP_RETURN history output the way the readers expect', () => {
   it(`getHistory builds the address as "${OP_RETURN_ADDRESS_PREFIX}<hex>"`, () => {
     expect(getHistory.toString()).toContain('`' + OP_RETURN_ADDRESS_PREFIX + '${')
+  })
+})
+
+// A P2S output has no CashAddress. Unpatched, getHistory asserted one for every output and spent
+// input, so one such coin anywhere in the history threw the whole call (see pnpm-workspace.yaml)
+describe('mainnet-js getHistory reads a history that holds a P2S coin', () => {
+  it('reports it with a placeholder address and its locking bytecode', async () => {
+    const p2pkh = `76a914${'01'.repeat(20)}88ac`
+    const p2s = '51ce8851d0009d6300cdc0c7886851'
+    const address = lockingBytecodeToCashAddress({ bytecode: hexToBin(p2pkh), prefix: 'bitcoincash' })
+    if (typeof address === 'string') throw new Error(address)
+    const encode = (outpointHash: string, outputs: string[]) => {
+      const encoded = encodeTransaction({
+        version: 2,
+        locktime: 0,
+        inputs: [{ outpointTransactionHash: hexToBin(outpointHash), outpointIndex: 0, sequenceNumber: 0, unlockingBytecode: new Uint8Array() }],
+        outputs: outputs.map(bytecode => ({ lockingBytecode: hexToBin(bytecode), valueSatoshis: 1000n })),
+      })
+      return { hex: binToHex(encoded), hash: hashTransaction(encoded) }
+    }
+    const funding = encode('aa'.repeat(32), [p2s])
+    const spend = encode(funding.hash, [p2pkh, p2s])
+    const raw = new Map([[funding.hash, funding.hex], [spend.hash, spend.hex]])
+    const provider = {
+      getHistory: () => Promise.resolve([{ tx_hash: spend.hash, height: 0 }]),
+      getRawTransactions: (hashes: string[]) => Promise.resolve(new Map(hashes.map(hash => [hash, raw.get(hash)]))),
+      getBalance: () => Promise.resolve(0),
+    } as unknown as ElectrumNetworkProvider
+
+    const [item] = await getHistory({ addresses: [address.address], provider })
+
+    expect(item?.inputs[0]).toMatchObject({ address: `SCRIPT: ${p2s}`, lockingBytecode: p2s })
+    expect(item?.outputs.map(output => output.lockingBytecode)).toEqual([p2pkh, p2s])
+    expect(item?.outputs[0]?.address).toBe(address.address)
   })
 })
 
